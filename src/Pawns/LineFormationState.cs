@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using HarmonyLib;
 using UnityEngine;
 using Verse;
 using Verse.AI;
@@ -93,73 +94,62 @@ namespace RimWorldAccess
             if (!IsActive || !HasBothPoints)
                 return;
 
-            Map map = Find.CurrentMap;
-            if (map == null)
+            if (Find.CurrentMap == null || Find.Selector == null)
             {
                 Cancel();
                 return;
             }
 
-            var movedNames = new List<string>();
-            var failedNames = new List<string>();
-            for (int i = 0; i < pawnsToMove.Count; i++)
-            {
-                Pawn pawn = pawnsToMove[i];
-                if (pawn == null || pawn.Destroyed || !pawn.Spawned)
-                    continue;
+            // Snapshot pawn jobs before issuing orders (for feedback)
+            var validPawns = pawnsToMove
+                .Where(p => p != null && !p.Destroyed && p.Spawned)
+                .ToList();
 
-                // Calculate interpolated position along the line
-                float t = pawnsToMove.Count <= 1 ? 0.5f : (float)i / (pawnsToMove.Count - 1);
-                Vector3 rootVec = Vector3.Lerp(
-                    firstPoint.ToVector3Shifted(),
-                    secondPoint.ToVector3Shifted(),
-                    t);
-                IntVec3 root = rootVec.ToIntVec3();
+            var jobsBefore = new Dictionary<Pawn, Job>();
+            foreach (var p in validPawns)
+                jobsBefore[p] = p.jobs?.curJob;
 
-                // Find best walkable cell near the calculated position
-                IntVec3 dest = RCellFinder.BestOrderedGotoDestNear(root, pawn);
+            // Use the game's own MultiPawnGotoController for line placement.
+            // This handles duplicate-cell prevention, mech range checks,
+            // exit map handling, and proper job creation.
+            var controller = Find.Selector.gotoController;
+            controller.StartInteraction(firstPoint);
 
-                if (dest.IsValid)
-                {
-                    Job job = JobMaker.MakeJob(JobDefOf.Goto, dest);
-                    if (pawn.jobs.TryTakeOrderedJob(job, JobTag.Misc))
-                    {
-                        FleckMaker.Static(dest, map, FleckDefOf.FeedbackGoto);
-                        movedNames.Add(pawn.LabelShort);
-                    }
-                    else
-                    {
-                        failedNames.Add(pawn.LabelShort);
-                    }
-                }
-                else
-                {
-                    failedNames.Add(pawn.LabelShort);
-                }
-            }
+            // Set the end point (private field)
+            var endField = AccessTools.Field(typeof(MultiPawnGotoController), "end");
+            endField.SetValue(controller, secondPoint);
+
+            // Add all valid pawns
+            foreach (var pawn in validPawns)
+                controller.AddPawn(pawn);
+
+            // FinalizeInteraction computes destinations, issues jobs, plays sound
+            controller.FinalizeInteraction();
+
+            // Announce results using job-diff feedback
+            var succeeded = validPawns.Where(p => p.jobs?.curJob != jobsBefore[p]).ToList();
+            var unchanged = validPawns.Where(p => p.jobs?.curJob == jobsBefore[p]).ToList();
 
             string everyone = ((string)"ConfirmAbandonHomeNegativeThoughts_Everyone".Translate()).TrimEnd(':', ' ');
-            if (movedNames.Count > 0)
+            if (unchanged.Count == 0)
             {
-                SoundDefOf.ColonistOrdered.PlayOneShotOnCamera();
-                if (failedNames.Count == 0)
-                {
-                    TolkHelper.Speak($"{everyone} moving in formation");
-                }
-                else if (failedNames.Count <= movedNames.Count)
-                {
-                    string names = MenuHelper.FormatNameList(failedNames);
-                    TolkHelper.Speak($"{everyone} except {names} moving in formation");
-                }
-                else
-                {
-                    string names = MenuHelper.FormatNameList(movedNames);
-                    TolkHelper.Speak($"Only {names} moving in formation");
-                }
+                TolkHelper.Speak($"{everyone} moving in formation");
+            }
+            else if (succeeded.Count == 0)
+            {
+                TolkHelper.Speak("No pawns could reach their destinations");
+            }
+            else if (unchanged.Count <= succeeded.Count)
+            {
+                string names = MenuHelper.FormatNameList(
+                    unchanged.Select(p => p.LabelShort).ToList());
+                TolkHelper.Speak($"{everyone} except {names} moving in formation");
             }
             else
             {
-                TolkHelper.Speak("No pawns could reach their destinations");
+                string names = MenuHelper.FormatNameList(
+                    succeeded.Select(p => p.LabelShort).ToList());
+                TolkHelper.Speak($"Only {names} moving in formation");
             }
 
             Close();
