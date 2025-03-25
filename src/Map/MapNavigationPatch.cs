@@ -295,6 +295,13 @@ namespace RimWorldAccess
             if (shiftHeld)
                 return false; // Block original - our map switching already handled it
 
+            // Multi-select mode: move focus only, don't change selection or camera
+            if (MultiSelectState.IsMultiSelectActive)
+            {
+                MultiSelectState.NavigateFocusNext();
+                return false;
+            }
+
             // When on mech section, cycle mechs instead of colonists
             Pawn selectedPawn;
             if (ColonistBarState.IsOnMechSection)
@@ -323,6 +330,9 @@ namespace RimWorldAccess
                 Find.Selector.Select(selectedPawn);
             }
 
+            // Notify MultiSelectState that a single-select occurred
+            MultiSelectState.NotifySingleSelect(selectedPawn);
+
             // Jump camera to pawn and enable Pawn Following mode
             // NOTE: Cursor stays where it was - user can press Alt+C to move cursor to pawn
             if (Find.CameraDriver != null)
@@ -342,7 +352,7 @@ namespace RimWorldAccess
             if (string.IsNullOrEmpty(currentTask))
                 currentTask = "Idle";
 
-            string announcement = $"{selectedPawn.LabelShort} selected";
+            string announcement = selectedPawn.LabelShort;
             if (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
             {
                 string coverInfo = CoverHelper.GetCoverInfo(selectedPawn);
@@ -370,6 +380,13 @@ namespace RimWorldAccess
             bool shiftHeld = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
             if (shiftHeld)
                 return false; // Block original - our map switching already handled it
+
+            // Multi-select mode: move focus only, don't change selection or camera
+            if (MultiSelectState.IsMultiSelectActive)
+            {
+                MultiSelectState.NavigateFocusPrevious();
+                return false;
+            }
 
             // When on mech section, cycle mechs instead of colonists
             Pawn selectedPawn;
@@ -399,6 +416,9 @@ namespace RimWorldAccess
                 Find.Selector.Select(selectedPawn);
             }
 
+            // Notify MultiSelectState that a single-select occurred
+            MultiSelectState.NotifySingleSelect(selectedPawn);
+
             // Jump camera to pawn and enable Pawn Following mode
             // NOTE: Cursor stays where it was - user can press Alt+C to move cursor to pawn
             if (Find.CameraDriver != null)
@@ -418,7 +438,7 @@ namespace RimWorldAccess
             if (string.IsNullOrEmpty(currentTask))
                 currentTask = "Idle";
 
-            string announcement = $"{selectedPawn.LabelShort} selected";
+            string announcement = selectedPawn.LabelShort;
             if (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
             {
                 string coverInfo = CoverHelper.GetCoverInfo(selectedPawn);

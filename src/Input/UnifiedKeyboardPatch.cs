@@ -648,6 +648,30 @@ namespace RimWorldAccess
                 // This ensures proper priority ordering
             }
 
+            // ===== PRIORITY 0.195: Line Formation Placement (multi-select pawn movement) =====
+            if (LineFormationState.IsActive)
+            {
+                if (key == KeyCode.Space)
+                {
+                    LineFormationState.PlacePoint();
+                    Event.current.Use();
+                    return;
+                }
+                if ((key == KeyCode.Return || key == KeyCode.KeypadEnter) && LineFormationState.HasBothPoints)
+                {
+                    LineFormationState.Confirm();
+                    Event.current.Use();
+                    return;
+                }
+                if (key == KeyCode.Escape)
+                {
+                    LineFormationState.Cancel();
+                    Event.current.Use();
+                    return;
+                }
+                // Arrow keys pass through to map navigation (don't consume)
+            }
+
             // ===== PRIORITY 0.22: Handle inspection menu EARLY if opened from caravan/split/inspect/transport pod dialogs =====
             // This ensures Escape in inspection doesn't get caught by other handlers
             // Note: Window.OnCancelKeyPressed is patched in CaravanFormationPatch and TransportPodPatch to block RimWorld's Cancel handling
@@ -4728,32 +4752,187 @@ namespace RimWorldAccess
                     !ZoneCreationState.IsInCreationMode &&
                     Find.Selector != null && Find.Selector.NumSelected > 0)
                 {
-                    // Get the first selected pawn
-                    Pawn selectedPawn = Find.Selector.FirstSelectedObject as Pawn;
-
-                    if (selectedPawn != null &&
-                        selectedPawn.IsColonist &&
-                        selectedPawn.drafter != null &&
-                        selectedPawn.drafter.ShowDraftGizmo)
+                    // Multi-select: draft/undraft using vanilla InheritInteractionsFrom behavior
+                    // Only toggles pawns with the SAME draft state as the first pawn
+                    if (MultiSelectState.IsMultiSelectActive)
                     {
-                        // Toggle draft state
-                        bool wasDrafted = selectedPawn.drafter.Drafted;
-                        selectedPawn.drafter.Drafted = !wasDrafted;
+                        var pawns = Find.Selector.SelectedPawns
+                            .Where(p => p.IsColonist && p.drafter != null && p.drafter.ShowDraftGizmo)
+                            .ToList();
 
-                        // Play the draft/undraft sound (matches game UI behavior)
-                        if (selectedPawn.drafter.Drafted)
-                            SoundDefOf.DraftOn.PlayOneShotOnCamera();
-                        else
-                            SoundDefOf.DraftOff.PlayOneShotOnCamera();
+                        if (pawns.Count > 0)
+                        {
+                            // Match vanilla InheritInteractionsFrom: only toggle pawns
+                            // with the same current state as the first pawn
+                            bool firstPawnDrafted = pawns[0].drafter.Drafted;
+                            bool newState = !firstPawnDrafted;
+                            var toggledNames = new List<string>();
 
-                        // Announce the change
-                        string status = selectedPawn.drafter.Drafted ? "Drafted" : "Undrafted";
-                        TolkHelper.Speak($"{selectedPawn.LabelShort} {status}");
+                            foreach (var p in pawns)
+                            {
+                                if (p.drafter.Drafted == firstPawnDrafted)
+                                {
+                                    p.drafter.Drafted = newState;
+                                    toggledNames.Add(p.LabelShort);
+                                }
+                            }
 
-                        // Prevent the default R key behavior
-                        Event.current.Use();
-                        return;
+                            if (newState)
+                                SoundDefOf.DraftOn.PlayOneShotOnCamera();
+                            else
+                                SoundDefOf.DraftOff.PlayOneShotOnCamera();
+
+                            // Announce using end-state shorter-list logic
+                            // Pawns already in desired state count as successes
+                            var inDesiredState = pawns.Where(p => p.drafter.Drafted == newState)
+                                .Select(p => p.LabelShort).ToList();
+                            var notInDesiredState = pawns.Where(p => p.drafter.Drafted != newState)
+                                .Select(p => p.LabelShort).ToList();
+
+                            string everyone = ((string)"ConfirmAbandonHomeNegativeThoughts_Everyone".Translate()).TrimEnd(':', ' ');
+                            string status = newState ? "drafted" : "undrafted";
+
+                            if (notInDesiredState.Count == 0)
+                                TolkHelper.Speak($"{everyone} {status}");
+                            else if (notInDesiredState.Count <= inDesiredState.Count)
+                            {
+                                string exceptNames = MenuHelper.FormatNameList(notInDesiredState);
+                                TolkHelper.Speak($"{everyone} except {exceptNames} {status}");
+                            }
+                            else
+                            {
+                                string onlyNames = MenuHelper.FormatNameList(inDesiredState);
+                                TolkHelper.Speak($"Only {onlyNames}: {status}");
+                            }
+
+                            Event.current.Use();
+                            return;
+                        }
                     }
+                    else
+                    {
+                        // Single-select: draft/undraft one pawn
+                        Pawn selectedPawn = Find.Selector.FirstSelectedObject as Pawn;
+
+                        if (selectedPawn != null &&
+                            selectedPawn.IsColonist &&
+                            selectedPawn.drafter != null &&
+                            selectedPawn.drafter.ShowDraftGizmo)
+                        {
+                            bool wasDrafted = selectedPawn.drafter.Drafted;
+                            selectedPawn.drafter.Drafted = !wasDrafted;
+
+                            if (selectedPawn.drafter.Drafted)
+                                SoundDefOf.DraftOn.PlayOneShotOnCamera();
+                            else
+                                SoundDefOf.DraftOff.PlayOneShotOnCamera();
+
+                            string status = selectedPawn.drafter.Drafted ? "Drafted" : "Undrafted";
+                            TolkHelper.Speak($"{selectedPawn.LabelShort} {status}");
+
+                            Event.current.Use();
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // ===== PRIORITY 6.40: Multi-Select Pawn Commands (Alt+Shift+Arrow, Alt+Space, Alt+Escape) =====
+            if (Current.ProgramState == ProgramState.Playing &&
+                Find.CurrentMap != null &&
+                WorldRendererUtility.DrawingMap &&
+                (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
+                !ZoneCreationState.IsInCreationMode)
+            {
+                bool alt = Event.current.alt;
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+
+                // Alt+Shift+Right: extend selection contiguously to next pawn
+                if (alt && shift && !ctrl && key == KeyCode.RightArrow)
+                {
+                    MultiSelectState.SelectContiguousNext();
+                    Event.current.Use();
+                    return;
+                }
+
+                // Alt+Shift+Left: extend selection contiguously to previous pawn
+                if (alt && shift && !ctrl && key == KeyCode.LeftArrow)
+                {
+                    MultiSelectState.SelectContiguousPrevious();
+                    Event.current.Use();
+                    return;
+                }
+
+                // Alt+Space: toggle focused pawn in/out of multi-selection
+                if (alt && !shift && !ctrl && key == KeyCode.Space)
+                {
+                    Pawn focusedPawn = MultiSelectState.IsMultiSelectActive
+                        ? MultiSelectState.FocusedPawn ?? ColonistBarState.GetPawnAtCurrentPosition()
+                        : Find.Selector?.SingleSelectedThing as Pawn ?? ColonistBarState.GetPawnAtCurrentPosition();
+                    MultiSelectState.TogglePawn(focusedPawn);
+                    Event.current.Use();
+                    return;
+                }
+
+                // Alt+Ctrl+Space: toggle-all (clear if in multi-select, select all if not)
+                if (alt && ctrl && !shift && key == KeyCode.Space)
+                {
+                    var allColonists = ColonistBarState.GetColonistsPublic();
+                    if (allColonists.Count > 0)
+                    {
+                        if (MultiSelectState.IsMultiSelectActive)
+                        {
+                            // Already in multi-select → clear
+                            MultiSelectState.ClearMultiSelect();
+                        }
+                        else
+                        {
+                            // Not in multi-select → select all
+                            MultiSelectState.SelectAllColonists(allColonists);
+                        }
+                    }
+                    else
+                    {
+                        TolkHelper.Speak("No colonists on this map");
+                    }
+                    Event.current.Use();
+                    return;
+                }
+
+                // Alt+Ctrl+F1-F5: save current selection to group slot
+                if (alt && ctrl && MultiSelectState.IsMultiSelectActive &&
+                    key >= KeyCode.F1 && key <= KeyCode.F5)
+                {
+                    int slot = key - KeyCode.F1;
+                    var component = Current.Game?.GetComponent<MultiSelectGroupComponent>();
+                    if (component != null)
+                    {
+                        component.SaveGroup(slot, MultiSelectState.SelectedPawns);
+                    }
+                    else
+                    {
+                        TolkHelper.Speak("Cannot save groups outside of a game");
+                    }
+                    Event.current.Use();
+                    return;
+                }
+
+                // Alt+F1-F5: recall group from slot
+                if (alt && !ctrl && !shift && key >= KeyCode.F1 && key <= KeyCode.F5)
+                {
+                    int slot = key - KeyCode.F1;
+                    var component = Current.Game?.GetComponent<MultiSelectGroupComponent>();
+                    if (component != null)
+                    {
+                        component.RecallGroup(slot);
+                    }
+                    else
+                    {
+                        TolkHelper.Speak("Cannot recall groups outside of a game");
+                    }
+                    Event.current.Use();
+                    return;
                 }
             }
 
@@ -4768,15 +4947,22 @@ namespace RimWorldAccess
                 bool ctrl = Event.current.control;
 
                 // Alt+Left/Right: navigate bar linearly (crosses page boundaries)
+                // In multi-select mode, moves focus only without changing selection
                 if (alt && !ctrl && key == KeyCode.RightArrow)
                 {
-                    ColonistBarState.NavigateRight();
+                    if (MultiSelectState.IsMultiSelectActive)
+                        MultiSelectState.NavigateFocusNext();
+                    else
+                        ColonistBarState.NavigateRight();
                     Event.current.Use();
                     return;
                 }
                 if (alt && !ctrl && key == KeyCode.LeftArrow)
                 {
-                    ColonistBarState.NavigateLeft();
+                    if (MultiSelectState.IsMultiSelectActive)
+                        MultiSelectState.NavigateFocusPrevious();
+                    else
+                        ColonistBarState.NavigateLeft();
                     Event.current.Use();
                     return;
                 }
@@ -4784,26 +4970,59 @@ namespace RimWorldAccess
                 // Alt+Down/Up: page down/up through colonist pages, then mech pages
                 if (alt && !ctrl && key == KeyCode.DownArrow)
                 {
-                    ColonistBarState.PageDown();
+                    if (MultiSelectState.IsMultiSelectActive)
+                    {
+                        var pawn = ColonistBarState.PageFocusDown();
+                        if (pawn != null)
+                        {
+                            MultiSelectState.SetFocusedPawn(pawn);
+                            MultiSelectState.AnnounceFocusedPawn(pawn);
+                        }
+                    }
+                    else
+                        ColonistBarState.PageDown();
                     Event.current.Use();
                     return;
                 }
                 if (alt && !ctrl && key == KeyCode.UpArrow)
                 {
-                    ColonistBarState.PageUp();
+                    if (MultiSelectState.IsMultiSelectActive)
+                    {
+                        var pawn = ColonistBarState.PageFocusUp();
+                        if (pawn != null)
+                        {
+                            MultiSelectState.SetFocusedPawn(pawn);
+                            MultiSelectState.AnnounceFocusedPawn(pawn);
+                        }
+                    }
+                    else
+                        ColonistBarState.PageUp();
                     Event.current.Use();
                     return;
                 }
 
                 // Ctrl+Alt+Left/Right: reorder colonists (shift/insert)
+                // Blocked during multi-select to avoid confusion
                 if (alt && ctrl && key == KeyCode.RightArrow)
                 {
+                    if (MultiSelectState.IsMultiSelectActive)
+                    {
+                        TolkHelper.Speak("Cannot reorder during multi-select");
+                        Event.current.Use();
+                        return;
+                    }
                     ColonistBarState.MoveRight();
                     Event.current.Use();
                     return;
                 }
                 if (alt && ctrl && key == KeyCode.LeftArrow)
                 {
+                    if (MultiSelectState.IsMultiSelectActive)
+                    {
+                        TolkHelper.Speak("Cannot reorder during multi-select");
+                        Event.current.Use();
+                        return;
+                    }
                     ColonistBarState.MoveLeft();
                     Event.current.Use();
                     return;
@@ -4812,12 +5031,24 @@ namespace RimWorldAccess
                 // Ctrl+Alt+Down/Up: move colonist between pages (shift/insert)
                 if (alt && ctrl && key == KeyCode.DownArrow)
                 {
+                    if (MultiSelectState.IsMultiSelectActive)
+                    {
+                        TolkHelper.Speak("Cannot reorder during multi-select");
+                        Event.current.Use();
+                        return;
+                    }
                     ColonistBarState.MoveDown();
                     Event.current.Use();
                     return;
                 }
                 if (alt && ctrl && key == KeyCode.UpArrow)
                 {
+                    if (MultiSelectState.IsMultiSelectActive)
+                    {
+                        TolkHelper.Speak("Cannot reorder during multi-select");
+                        Event.current.Use();
+                        return;
+                    }
                     ColonistBarState.MoveUp();
                     Event.current.Use();
                     return;
@@ -4827,7 +5058,17 @@ namespace RimWorldAccess
                 if (alt && !ctrl && key >= KeyCode.Alpha1 && key <= KeyCode.Alpha9)
                 {
                     int position = key - KeyCode.Alpha1; // 0-indexed
-                    ColonistBarState.JumpToPosition(position);
+                    if (MultiSelectState.IsMultiSelectActive)
+                    {
+                        var pawn = ColonistBarState.JumpFocusToPosition(position);
+                        if (pawn != null)
+                        {
+                            MultiSelectState.SetFocusedPawn(pawn);
+                            MultiSelectState.AnnounceFocusedPawn(pawn);
+                        }
+                    }
+                    else
+                        ColonistBarState.JumpToPosition(position);
                     Event.current.Use();
                     return;
                 }
@@ -4835,7 +5076,17 @@ namespace RimWorldAccess
                 // Alt+0: jump to position 10 on current page
                 if (alt && !ctrl && key == KeyCode.Alpha0)
                 {
-                    ColonistBarState.JumpToPosition(9);
+                    if (MultiSelectState.IsMultiSelectActive)
+                    {
+                        var pawn = ColonistBarState.JumpFocusToPosition(9);
+                        if (pawn != null)
+                        {
+                            MultiSelectState.SetFocusedPawn(pawn);
+                            MultiSelectState.AnnounceFocusedPawn(pawn);
+                        }
+                    }
+                    else
+                        ColonistBarState.JumpToPosition(9);
                     Event.current.Use();
                     return;
                 }
@@ -5367,11 +5618,14 @@ namespace RimWorldAccess
                         Event.current.Use();
 
                         // Decide whether to open gizmos for selected objects or for objects at cursor
-                        // Use selected pawn gizmos ONLY if a pawn was just selected with , or .
+                        // Use selected pawn gizmos if:
+                        //   - A pawn was just selected with , or . (PawnJustSelected)
+                        //   - OR multi-select is active (always show selected pawns' gizmos)
                         // Otherwise, use objects at the cursor position
-                        if (GizmoNavigationState.PawnJustSelected && Find.Selector != null && Find.Selector.NumSelected > 0)
+                        if ((GizmoNavigationState.PawnJustSelected || MultiSelectState.IsMultiSelectActive) &&
+                            Find.Selector != null && Find.Selector.NumSelected > 0)
                         {
-                            // Open gizmos for the pawn that was just selected with , or .
+                            // Open gizmos for the selected pawn(s)
                             GizmoNavigationState.Open();
                         }
                         else
@@ -5716,6 +5970,101 @@ namespace RimWorldAccess
 
                 if (options != null && options.Count > 0)
                 {
+                    // If multi-select is active, wrap actions with feedback and inject formation option
+                    if (MultiSelectState.IsMultiSelectActive && selectedPawns.Count > 1)
+                    {
+                        // 1. FIRST: Wrap existing options with job-diff feedback
+                        // (before inserting formation, so formation doesn't get wrapped)
+                        var capturedPawns = selectedPawns.ToList();
+                        string everyone = ((string)"ConfirmAbandonHomeNegativeThoughts_Everyone".Translate()).TrimEnd(':', ' ');
+                        for (int i = 0; i < options.Count; i++)
+                        {
+                            var opt = options[i];
+                            if (!opt.Disabled && opt.action != null)
+                            {
+                                var originalAction = opt.action;
+                                var optLabel = opt.Label;
+                                opt.action = () =>
+                                {
+                                    // Snapshot jobs AND queue counts before action
+                                    var jobsBefore = new Dictionary<Pawn, Verse.AI.Job>();
+                                    var queueCountsBefore = new Dictionary<Pawn, int>();
+                                    foreach (var p in capturedPawns)
+                                    {
+                                        jobsBefore[p] = p.jobs?.curJob;
+                                        queueCountsBefore[p] = p.jobs?.jobQueue?.Count ?? 0;
+                                    }
+
+                                    bool targeterWasActive = Find.Targeter?.IsTargeting ?? false;
+
+                                    originalAction.Invoke();
+
+                                    // Check if targeting mode was activated (attack/ability actions)
+                                    bool targeterNowActive = Find.Targeter?.IsTargeting ?? false;
+                                    if (!targeterWasActive && targeterNowActive)
+                                    {
+                                        TolkHelper.Speak($"{everyone} {optLabel}", SpeechPriority.Low);
+                                        return;
+                                    }
+
+                                    // Determine which pawns got new jobs or had jobs queued
+                                    var succeeded = capturedPawns
+                                        .Where(p =>
+                                            p.jobs?.curJob != jobsBefore[p] ||
+                                            (p.jobs?.jobQueue?.Count ?? 0) > queueCountsBefore[p])
+                                        .ToList();
+                                    var unchanged = capturedPawns
+                                        .Where(p =>
+                                            p.jobs?.curJob == jobsBefore[p] &&
+                                            (p.jobs?.jobQueue?.Count ?? 0) <= queueCountsBefore[p])
+                                        .ToList();
+
+                                    if (unchanged.Count == 0)
+                                    {
+                                        TolkHelper.Speak($"{everyone} {optLabel}", SpeechPriority.Low);
+                                    }
+                                    else if (succeeded.Count == 0)
+                                    {
+                                        TolkHelper.Speak($"No one could {optLabel}", SpeechPriority.Low);
+                                    }
+                                    else if (unchanged.Count <= succeeded.Count)
+                                    {
+                                        string names = MenuHelper.FormatNameList(
+                                            unchanged.Select(p => p.LabelShort).ToList());
+                                        TolkHelper.Speak(
+                                            $"{everyone} except {names} {optLabel}",
+                                            SpeechPriority.Low);
+                                    }
+                                    else
+                                    {
+                                        string names = MenuHelper.FormatNameList(
+                                            succeeded.Select(p => p.LabelShort).ToList());
+                                        TolkHelper.Speak(
+                                            $"Only {names} {optLabel}",
+                                            SpeechPriority.Low);
+                                    }
+                                };
+                            }
+                        }
+
+                        // 2. THEN: Insert formation option (unwrapped, since it enters
+                        // placement mode — jobs are issued later in LineFormationState.Confirm)
+                        int goHereIndex = options.FindIndex(o =>
+                            o.Label != null && (
+                                o.Label == "GoHere".Translate() ||
+                                o.Label.StartsWith((string)"GoHere".Translate())));
+
+                        if (goHereIndex >= 0)
+                        {
+                            var formationPawns = selectedPawns.ToList();
+                            string goHereLabel = "GoHere".Translate();
+                            var formationOption = new FloatMenuOption(
+                                $"{goHereLabel} (formation)",
+                                () => LineFormationState.Activate(formationPawns));
+                            options.Insert(goHereIndex + 1, formationOption);
+                        }
+                    }
+
                     // Open the windowless menu with these options
                     WindowlessFloatMenuState.Open(options, true); // true = gives colonist orders
                 }
