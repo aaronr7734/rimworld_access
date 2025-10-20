@@ -7,7 +7,7 @@
 <ItemGroup>
   <!-- MelonLoader References -->
   <Reference Include="MelonLoader">
-    <HintPath>C:\Program Files (x88)\Steam\steamapps\common\RimWorld\MelonLoader\net6\MelonLoader.dll</HintPath>
+    <HintPath>C:\Program Files (x86)\Steam\steamapps\common\RimWorld\MelonLoader\net6\MelonLoader.dll</HintPath>
   </Reference>
   <Reference Include="0Harmony">
     <HintPath>C:\Program Files (x86)\Steam\steamapps\common\RimWorld\MelonLoader\net6\0Harmony.dll</HintPath>
@@ -19,6 +19,9 @@
   </Reference>
   <Reference Include="UnityEngine.CoreModule">
     <HintPath>C:\Program Files (x86)\Steam\steamapps\common\RimWorld\RimWorldWin64_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+  </Reference>
+  <Reference Include="UnityEngine.IMGUIModule">
+    <HintPath>C:\Program Files (x86)\Steam\steamapps\common\RimWorld\RimWorldWin64_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
   </Reference>
 </ItemGroup>
 
