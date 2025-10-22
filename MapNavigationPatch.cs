@@ -15,6 +15,7 @@ namespace RimWorldAccess
     public static class MapNavigationPatch
     {
         private static bool hasAnnouncedThisFrame = false;
+        private static int lastProcessedFrame = -1;
 
         /// <summary>
         /// Prefix patch that intercepts arrow key input before the camera's normal panning behavior.
@@ -37,6 +38,15 @@ namespace RimWorldAccess
             {
                 return;
             }
+
+            // Prevent processing input multiple times in the same frame
+            // (Update() can be called multiple times per frame)
+            int currentFrame = Time.frameCount;
+            if (lastProcessedFrame == currentFrame)
+            {
+                return;
+            }
+            lastProcessedFrame = currentFrame;
 
             // Initialize cursor position if needed
             if (!MapNavigationState.IsInitialized)
