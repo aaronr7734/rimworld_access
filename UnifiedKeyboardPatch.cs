@@ -27,6 +27,10 @@ namespace RimWorldAccess
 
             KeyCode key = Event.current.keyCode;
 
+            // Skip if no actual key (Unity IMGUI quirk)
+            if (key == KeyCode.None)
+                return;
+
             // ===== PRIORITY 1: Handle delete confirmation if active =====
             if (WindowlessDeleteConfirmationState.IsActive)
             {
@@ -213,8 +217,8 @@ namespace RimWorldAccess
                 if (handled)
                 {
                     Event.current.Use();
+                    return;
                 }
-                return;
             }
 
             // ===== PRIORITY 6: Open pause menu with Escape (if no menu is active and we're in-game) =====

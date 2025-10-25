@@ -16,9 +16,11 @@ namespace RimWorldAccess
     {
         private static float lastZoneKeyTime = 0f;
         private const float ZoneKeyCooldown = 0.3f;
-        
-        // Flag to indicate Z was handled this frame (prevents map search from opening)
-        public static bool ZKeyHandledThisFrame = false;
+
+        // Flag to indicate Z was handled (prevents map search from opening)
+        // Stored with the frame number to ensure it persists for the entire frame
+        private static int zKeyHandledFrame = -1;
+        public static bool ZKeyHandledThisFrame => zKeyHandledFrame == Time.frameCount;
 
         /// <summary>
         /// Prefix patch to check for Z key press at GUI event level.
@@ -28,12 +30,6 @@ namespace RimWorldAccess
         [HarmonyPriority(Priority.High)] // Run before OrderGivingPatch
         public static void Prefix()
         {
-            // Reset the flag at the start of each GUI frame
-            if (Event.current.type == EventType.Layout)
-            {
-                ZKeyHandledThisFrame = false;
-            }
-
             // Only process keyboard events
             if (Event.current.type != EventType.KeyDown)
                 return;
@@ -67,7 +63,7 @@ namespace RimWorldAccess
             {
                 ClipboardHelper.CopyToClipboard("Already creating a zone. Press Enter to confirm or Escape to cancel");
                 Event.current.Use();
-                ZKeyHandledThisFrame = true;
+                zKeyHandledFrame = Time.frameCount;
                 return;
             }
 
@@ -89,9 +85,9 @@ namespace RimWorldAccess
                 ShowZoneCreationMenu();
             }
 
-            // Consume the event and set flag
+            // Consume the event and set flag (using frame count to persist for entire frame)
             Event.current.Use();
-            ZKeyHandledThisFrame = true;
+            zKeyHandledFrame = Time.frameCount;
         }
 
         /// <summary>
@@ -148,25 +144,26 @@ namespace RimWorldAccess
 
     /// <summary>
     /// Harmony patch to prevent the map search window from opening when Z is used for zone menu.
+    /// Patches WindowStack.Add to intercept Dialog_MapSearch from being added.
     /// </summary>
-    [HarmonyPatch(typeof(PlaySettings))]
-    [HarmonyPatch("DoMapControls")]
-    public static class PreventMapSearchPatch
+    [HarmonyPatch(typeof(Verse.WindowStack))]
+    [HarmonyPatch("Add")]
+    public static class PreventMapSearchWindowPatch
     {
         /// <summary>
-        /// Prefix to check if Z key was handled by zone menu system.
-        /// Returns true to continue normal processing, false to skip map search.
+        /// Prefix to check if Z key was handled and the window being added is Dialog_MapSearch.
+        /// Returns false to prevent the window from being added.
         /// </summary>
         [HarmonyPrefix]
-        public static bool Prefix()
+        public static bool Prefix(Verse.Window window)
         {
-            // If ZoneMenuPatch handled the Z key this frame, skip map search
-            if (ZoneMenuPatch.ZKeyHandledThisFrame)
+            // If ZoneMenuPatch handled the Z key this frame and this is a map search dialog, block it
+            if (ZoneMenuPatch.ZKeyHandledThisFrame && window is RimWorld.Dialog_MapSearch)
             {
-                return false; // Skip DoMapControls - don't open map search
+                return false; // Prevent window from being added
             }
 
-            return true; // Continue with normal processing
+            return true; // Allow normal window addition
         }
     }
 }
