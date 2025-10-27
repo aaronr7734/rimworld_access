@@ -42,8 +42,14 @@ namespace RimWorldAccess
             KeyCode key = Event.current.keyCode;
             bool handled = false;
 
+            // R key - rotate building
+            if (key == KeyCode.R)
+            {
+                ArchitectState.RotateBuilding();
+                handled = true;
+            }
             // Space key - toggle selection of current cell
-            if (key == KeyCode.Space)
+            else if (key == KeyCode.Space)
             {
                 // Cooldown to prevent rapid toggling
                 if (Time.time - lastSpaceTime < SpaceCooldown)

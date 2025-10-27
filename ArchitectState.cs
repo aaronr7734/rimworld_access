@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Reflection;
+using HarmonyLib;
 using Verse;
 using RimWorld;
 
@@ -28,6 +30,10 @@ namespace RimWorldAccess
         private static BuildableDef selectedBuildable = null;
         private static ThingDef selectedMaterial = null;
         private static List<IntVec3> selectedCells = new List<IntVec3>();
+        private static Rot4 currentRotation = Rot4.North;
+
+        // Reflection field info for accessing protected placingRot field
+        private static FieldInfo placingRotField = AccessTools.Field(typeof(Designator_Place), "placingRot");
 
         /// <summary>
         /// Gets the current architect mode.
@@ -58,6 +64,15 @@ namespace RimWorldAccess
         /// Gets the list of selected cells for placement.
         /// </summary>
         public static List<IntVec3> SelectedCells => selectedCells;
+
+        /// <summary>
+        /// Gets or sets the current rotation for building placement.
+        /// </summary>
+        public static Rot4 CurrentRotation
+        {
+            get => currentRotation;
+            set => currentRotation = value;
+        }
 
         /// <summary>
         /// Whether architect mode is currently active (any mode except Inactive).
@@ -126,15 +141,238 @@ namespace RimWorldAccess
             selectedMaterial = material;
             selectedCells.Clear();
 
+            // Reset rotation to North when entering placement mode
+            currentRotation = Rot4.North;
+
             // Set the designator as selected in the game's DesignatorManager
             if (Find.DesignatorManager != null)
             {
                 Find.DesignatorManager.Select(designator);
             }
 
+            // If this is a build designator, set its rotation via reflection
+            if (designator is Designator_Build buildDesignator)
+            {
+                if (placingRotField != null)
+                {
+                    placingRotField.SetValue(buildDesignator, currentRotation);
+                }
+            }
+
             string toolName = designator.Label;
-            ClipboardHelper.CopyToClipboard($"{toolName} selected. Press Space to designate tiles, Enter to confirm, Escape to cancel");
+            string announcement = GetPlacementAnnouncement(designator);
+            ClipboardHelper.CopyToClipboard(announcement);
             MelonLoader.MelonLogger.Msg($"Entered placement mode with designator: {toolName}");
+        }
+
+        /// <summary>
+        /// Rotates the current building clockwise.
+        /// </summary>
+        public static void RotateBuilding()
+        {
+            if (!IsInPlacementMode || !(selectedDesignator is Designator_Build buildDesignator))
+                return;
+
+            // Rotate clockwise
+            currentRotation.Rotate(RotationDirection.Clockwise);
+
+            // Set rotation on the designator via reflection
+            if (placingRotField != null)
+            {
+                placingRotField.SetValue(buildDesignator, currentRotation);
+            }
+
+            // Announce new rotation and spatial info
+            string announcement = GetRotationAnnouncement(buildDesignator);
+            ClipboardHelper.CopyToClipboard(announcement);
+            MelonLoader.MelonLogger.Msg($"Rotated building to: {currentRotation}");
+        }
+
+        /// <summary>
+        /// Gets the initial placement announcement including size and rotation info.
+        /// </summary>
+        private static string GetPlacementAnnouncement(Designator designator)
+        {
+            if (!(designator is Designator_Build buildDesignator))
+            {
+                return $"{designator.Label} selected. Press Space to designate tiles, Enter to confirm, Escape to cancel";
+            }
+
+            BuildableDef entDef = buildDesignator.PlacingDef;
+            IntVec2 size = entDef.Size;
+
+            string sizeInfo = GetSizeDescription(size, currentRotation);
+            string specialRequirements = GetSpecialSpatialRequirements(entDef, currentRotation);
+            string controlInfo = "Press Space to place, R to rotate, Escape to cancel";
+
+            if (!string.IsNullOrEmpty(specialRequirements))
+            {
+                return $"{designator.Label} selected. {sizeInfo}. {specialRequirements}. {controlInfo}";
+            }
+
+            return $"{designator.Label} selected. {sizeInfo}. {controlInfo}";
+        }
+
+        /// <summary>
+        /// Gets rotation announcement including size and spatial requirements.
+        /// </summary>
+        private static string GetRotationAnnouncement(Designator_Build buildDesignator)
+        {
+            BuildableDef entDef = buildDesignator.PlacingDef;
+            IntVec2 size = entDef.Size;
+
+            string sizeInfo = GetSizeDescription(size, currentRotation);
+            string rotationName = GetRotationName(currentRotation);
+            string specialRequirements = GetSpecialSpatialRequirements(entDef, currentRotation);
+
+            if (!string.IsNullOrEmpty(specialRequirements))
+            {
+                return $"Facing {rotationName}. {sizeInfo}. {specialRequirements}";
+            }
+
+            return $"Facing {rotationName}. {sizeInfo}";
+        }
+
+        /// <summary>
+        /// Gets special spatial requirements for buildings like wind turbines and coolers.
+        /// </summary>
+        private static string GetSpecialSpatialRequirements(BuildableDef def, Rot4 rotation)
+        {
+            if (def == null || !(def is ThingDef thingDef))
+                return null;
+
+            string defName = thingDef.defName.ToLower();
+
+            // Check for wind turbine
+            if (defName.Contains("windturbine"))
+            {
+                return GetWindTurbineRequirements(rotation);
+            }
+
+            // Check for cooler
+            if (defName.Contains("cooler"))
+            {
+                return GetCoolerRequirements(rotation);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Gets spatial requirements for wind turbines.
+        /// </summary>
+        private static string GetWindTurbineRequirements(Rot4 rotation)
+        {
+            // Wind turbines need clear space in front and behind
+            // The exact distances vary based on rotation
+            if (rotation == Rot4.North)
+            {
+                return "Requires clear space: 9 tiles north, 5 tiles south";
+            }
+            else if (rotation == Rot4.East)
+            {
+                return "Requires clear space: 9 tiles east, 5 tiles west";
+            }
+            else if (rotation == Rot4.South)
+            {
+                return "Requires clear space: 5 tiles north, 9 tiles south";
+            }
+            else // West
+            {
+                return "Requires clear space: 5 tiles east, 9 tiles west";
+            }
+        }
+
+        /// <summary>
+        /// Gets spatial requirements for coolers.
+        /// </summary>
+        private static string GetCoolerRequirements(Rot4 rotation)
+        {
+            // Coolers have a hot side (front) and cold side (back)
+            // Hot side is North relative to rotation, cold side is South
+            IntVec3 hotSide = IntVec3.North.RotatedBy(rotation);
+            IntVec3 coldSide = IntVec3.South.RotatedBy(rotation);
+
+            string hotDir = GetDirectionName(hotSide);
+            string coldDir = GetDirectionName(coldSide);
+
+            return $"Hot exhaust to {hotDir}, cold air to {coldDir}";
+        }
+
+        /// <summary>
+        /// Gets a direction name from an IntVec3 offset.
+        /// </summary>
+        private static string GetDirectionName(IntVec3 offset)
+        {
+            if (offset == IntVec3.North) return "north";
+            if (offset == IntVec3.South) return "south";
+            if (offset == IntVec3.East) return "east";
+            if (offset == IntVec3.West) return "west";
+            return "unknown";
+        }
+
+        /// <summary>
+        /// Gets a human-readable description of the building size and occupied tiles.
+        /// </summary>
+        private static string GetSizeDescription(IntVec2 size, Rot4 rotation)
+        {
+            // Adjust size for rotation (horizontal rotations swap x and z)
+            int width = size.x;
+            int depth = size.z;
+
+            if (rotation.IsHorizontal)
+            {
+                int temp = width;
+                width = depth;
+                depth = temp;
+            }
+
+            if (width == 1 && depth == 1)
+            {
+                return "Size: 1 tile";
+            }
+
+            // Build relative description
+            List<string> parts = new List<string>();
+            parts.Add($"Size: {width} by {depth}");
+
+            // Describe occupied tiles relative to cursor
+            if (width > 1 || depth > 1)
+            {
+                List<string> directions = new List<string>();
+
+                // Calculate how many tiles extend in each direction from center
+                int eastTiles = (width - 1) / 2;
+                int westTiles = width - 1 - eastTiles;
+                int northTiles = (depth - 1) / 2;
+                int southTiles = depth - 1 - northTiles;
+
+                if (northTiles > 0)
+                    directions.Add($"{northTiles} north");
+                if (southTiles > 0)
+                    directions.Add($"{southTiles} south");
+                if (eastTiles > 0)
+                    directions.Add($"{eastTiles} east");
+                if (westTiles > 0)
+                    directions.Add($"{westTiles} west");
+
+                if (directions.Count > 0)
+                    parts.Add("Extends " + string.Join(", ", directions));
+            }
+
+            return string.Join(". ", parts);
+        }
+
+        /// <summary>
+        /// Gets a human-readable rotation name.
+        /// </summary>
+        private static string GetRotationName(Rot4 rotation)
+        {
+            if (rotation == Rot4.North) return "North";
+            if (rotation == Rot4.East) return "East";
+            if (rotation == Rot4.South) return "South";
+            if (rotation == Rot4.West) return "West";
+            return rotation.ToString();
         }
 
         /// <summary>
@@ -230,6 +468,7 @@ namespace RimWorldAccess
             selectedBuildable = null;
             selectedMaterial = null;
             selectedCells.Clear();
+            currentRotation = Rot4.North;
 
             // Deselect any active designator in the game
             if (Find.DesignatorManager != null)
