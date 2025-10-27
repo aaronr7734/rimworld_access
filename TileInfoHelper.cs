@@ -67,6 +67,14 @@ namespace RimWorldAccess
                 if (addedSomething) sb.Append(", ");
                 sb.Append(building.LabelShort);
 
+                // Add temperature control information if building is a cooler/heater
+                string tempControlInfo = GetTemperatureControlInfo(building);
+                if (!string.IsNullOrEmpty(tempControlInfo))
+                {
+                    sb.Append(", ");
+                    sb.Append(tempControlInfo);
+                }
+
                 // Add power information if building has power components
                 string powerInfo = PowerInfoHelper.GetPowerInfo(building);
                 if (!string.IsNullOrEmpty(powerInfo))
@@ -192,11 +200,21 @@ namespace RimWorldAccess
                     {
                         sb.Append($"  - {building.LabelShortCap}");
 
+                        // Add temperature control information if building is a cooler/heater
+                        string tempControlInfo = GetTemperatureControlInfo(building);
+                        if (!string.IsNullOrEmpty(tempControlInfo))
+                        {
+                            sb.Append($" ({tempControlInfo})");
+                        }
+
                         // Add power information if building has power components
                         string powerInfo = PowerInfoHelper.GetPowerInfo(building);
                         if (!string.IsNullOrEmpty(powerInfo))
                         {
-                            sb.Append($" ({powerInfo})");
+                            if (!string.IsNullOrEmpty(tempControlInfo))
+                                sb.Append($", {powerInfo}");
+                            else
+                                sb.Append($" ({powerInfo})");
                         }
 
                         sb.AppendLine();
@@ -267,6 +285,69 @@ namespace RimWorldAccess
             }
 
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Gets temperature control information for coolers and heaters.
+        /// Returns direction (cooling/heating) and target temperature.
+        /// </summary>
+        private static string GetTemperatureControlInfo(Building building)
+        {
+            if (building == null)
+                return null;
+
+            // Check if this building has temperature control
+            CompTempControl tempControl = building.TryGetComp<CompTempControl>();
+            if (tempControl == null)
+                return null;
+
+            // Determine if this is a cooler or heater based on building type
+            Building_TempControl tempControlBuilding = building as Building_TempControl;
+            if (tempControlBuilding == null)
+                return null;
+
+            // For coolers specifically, we need to determine the cooling/heating direction
+            string directionInfo = "";
+            if (building.GetType().Name == "Building_Cooler")
+            {
+                // Coolers cool to the south (blue side) and heat to the north (red side)
+                // IntVec3.South.RotatedBy(Rotation) gives the cooling direction
+                // IntVec3.North.RotatedBy(Rotation) gives the heating direction
+                Rot4 rotation = building.Rotation;
+
+                // Get the actual cardinal direction for the blue (cooling) side
+                IntVec3 coolingSide = IntVec3.South.RotatedBy(rotation);
+                string coolingDir = GetCardinalDirection(coolingSide);
+
+                // Get the actual cardinal direction for the red (heating) side
+                IntVec3 heatingSide = IntVec3.North.RotatedBy(rotation);
+                string heatingDir = GetCardinalDirection(heatingSide);
+
+                directionInfo = $"cooling {coolingDir}, heating {heatingDir}";
+            }
+            else
+            {
+                // For other temperature control devices (heaters, vents, etc.)
+                directionInfo = "temperature control";
+            }
+
+            // Add target temperature
+            float targetTemp = tempControl.TargetTemperature;
+            string tempString = targetTemp.ToStringTemperature("F0");
+
+            return $"{directionInfo}, target {tempString}";
+        }
+
+        /// <summary>
+        /// Converts an IntVec3 direction to a cardinal direction string.
+        /// </summary>
+        private static string GetCardinalDirection(IntVec3 direction)
+        {
+            if (direction == IntVec3.North) return "north";
+            if (direction == IntVec3.South) return "south";
+            if (direction == IntVec3.East) return "east";
+            if (direction == IntVec3.West) return "west";
+            return "unknown";
         }
     }
 }

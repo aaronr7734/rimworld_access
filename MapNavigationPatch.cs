@@ -126,6 +126,12 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Don't process arrow keys if temperature control menu is active
+            if (TempControlMenuState.IsActive)
+            {
+                return;
+            }
+
             // Prevent processing input multiple times in the same frame
             // (Update() can be called multiple times per frame)
             int currentFrame = Time.frameCount;

@@ -385,23 +385,40 @@ namespace RimWorldAccess
                     return;
                 }
 
-                // Check if there's a building at the cursor position that has inspect tabs
+                // Check if there's a building at the cursor position
                 List<Thing> thingsAtPosition = map.thingGrid.ThingsListAt(cursorPosition);
-                Thing buildingWithTabs = null;
+                Thing buildingOrThing = null;
 
+                // First priority: buildings with temperature control (coolers, heaters, etc.)
+                foreach (Thing thing in thingsAtPosition)
+                {
+                    if (thing is Building building)
+                    {
+                        CompTempControl tempControl = building.TryGetComp<CompTempControl>();
+                        if (tempControl != null)
+                        {
+                            // Directly open temperature control menu for coolers/heaters
+                            TempControlMenuState.Open(building);
+                            Event.current.Use();
+                            return;
+                        }
+                    }
+                }
+
+                // Second priority: buildings with inspect tabs
                 foreach (Thing thing in thingsAtPosition)
                 {
                     if (thing.def.inspectorTabs != null && thing.def.inspectorTabs.Count > 0)
                     {
-                        buildingWithTabs = thing;
+                        buildingOrThing = thing;
                         break;
                     }
                 }
 
                 // If there's a building with tabs, open building inspect menu
-                if (buildingWithTabs != null)
+                if (buildingOrThing != null)
                 {
-                    BuildingInspectState.Open(buildingWithTabs);
+                    BuildingInspectState.Open(buildingOrThing);
                     Event.current.Use();
                     return;
                 }

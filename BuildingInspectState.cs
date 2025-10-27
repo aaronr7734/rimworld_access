@@ -134,6 +134,32 @@ namespace RimWorldAccess
             ClipboardHelper.CopyToClipboard($"Tab {currentTab.labelKey.Translate()} not yet supported for keyboard access");
         }
 
+        /// <summary>
+        /// Opens settings for the building directly without going through tabs.
+        /// Used for buildings with simple settings like temperature control.
+        /// </summary>
+        public static void OpenBuildingSettings()
+        {
+            if (selectedBuilding == null)
+                return;
+
+            // Check if building has temperature control
+            if (selectedBuilding is Building building)
+            {
+                CompTempControl tempControl = building.TryGetComp<CompTempControl>();
+                if (tempControl != null)
+                {
+                    // Close building inspect and open temperature control menu
+                    Close();
+                    TempControlMenuState.Open(building);
+                    return;
+                }
+            }
+
+            // If no recognized settings, announce
+            ClipboardHelper.CopyToClipboard($"{selectedBuilding.LabelCap} has no keyboard-accessible settings");
+        }
+
         private static void AnnounceCurrentTab()
         {
             if (availableTabs == null || selectedTabIndex >= availableTabs.Count)

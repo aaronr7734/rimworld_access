@@ -7,7 +7,7 @@ namespace RimWorldAccess
 {
     /// <summary>
     /// Harmony patch to handle keyboard input for building inspection menus.
-    /// Intercepts keyboard events when BuildingInspectState, BillsMenuState, BillConfigState, or ThingFilterMenuState is active.
+    /// Intercepts keyboard events when BuildingInspectState, BillsMenuState, BillConfigState, ThingFilterMenuState, or TempControlMenuState is active.
     /// </summary>
     [HarmonyPatch(typeof(UIRoot))]
     [HarmonyPatch("UIRootOnGUI")]
@@ -25,6 +25,13 @@ namespace RimWorldAccess
             if (WindowlessFloatMenuState.IsActive)
             {
                 // This is handled in UnifiedKeyboardPatch, so just return
+                return;
+            }
+
+            // Handle TempControlMenuState (high priority - it's a building settings menu)
+            if (TempControlMenuState.IsActive)
+            {
+                HandleTempControlInput();
                 return;
             }
 
@@ -75,6 +82,14 @@ namespace RimWorldAccess
 
                 case KeyCode.Return:
                 case KeyCode.KeypadEnter:
+                    // Try to open building settings directly (for coolers, etc.)
+                    // If the building doesn't have direct settings, this will open the current tab
+                    BuildingInspectState.OpenBuildingSettings();
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.T:
+                    // T key for opening tab-specific menus
                     BuildingInspectState.OpenCurrentTab();
                     Event.current.Use();
                     break;
@@ -82,6 +97,45 @@ namespace RimWorldAccess
                 case KeyCode.Escape:
                     BuildingInspectState.Close();
                     ClipboardHelper.CopyToClipboard("Closed building inspection");
+                    Event.current.Use();
+                    break;
+            }
+        }
+
+        private static void HandleTempControlInput()
+        {
+            KeyCode key = Event.current.keyCode;
+
+            switch (key)
+            {
+                case KeyCode.UpArrow:
+                    TempControlMenuState.IncreaseTemperatureSmall();
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.DownArrow:
+                    TempControlMenuState.DecreaseTemperatureSmall();
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.RightArrow:
+                    TempControlMenuState.IncreaseTemperatureLarge();
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.LeftArrow:
+                    TempControlMenuState.DecreaseTemperatureLarge();
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.R:
+                    TempControlMenuState.ResetTemperature();
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.Escape:
+                    TempControlMenuState.Close();
+                    ClipboardHelper.CopyToClipboard("Closed temperature control menu");
                     Event.current.Use();
                     break;
             }
