@@ -193,6 +193,82 @@ namespace RimWorldAccess
             // the events before they reach this patch. However, we DO need to continue processing
             // to handle WindowlessFloatMenuState which can be active at the same time as BillsMenuState.
 
+            // ===== PRIORITY 4.6: Handle research detail view if active =====
+            if (WindowlessResearchDetailState.IsActive)
+            {
+                bool handled = false;
+
+                if (key == KeyCode.DownArrow)
+                {
+                    WindowlessResearchDetailState.SelectNext();
+                    handled = true;
+                }
+                else if (key == KeyCode.UpArrow)
+                {
+                    WindowlessResearchDetailState.SelectPrevious();
+                    handled = true;
+                }
+                else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                {
+                    WindowlessResearchDetailState.ExecuteCurrentSection();
+                    handled = true;
+                }
+                else if (key == KeyCode.Escape)
+                {
+                    WindowlessResearchDetailState.Close();
+                    handled = true;
+                }
+
+                if (handled)
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 4.7: Handle research menu if active =====
+            if (WindowlessResearchMenuState.IsActive)
+            {
+                bool handled = false;
+
+                if (key == KeyCode.DownArrow)
+                {
+                    WindowlessResearchMenuState.SelectNext();
+                    handled = true;
+                }
+                else if (key == KeyCode.UpArrow)
+                {
+                    WindowlessResearchMenuState.SelectPrevious();
+                    handled = true;
+                }
+                else if (key == KeyCode.RightArrow)
+                {
+                    WindowlessResearchMenuState.ExpandCategory();
+                    handled = true;
+                }
+                else if (key == KeyCode.LeftArrow)
+                {
+                    WindowlessResearchMenuState.CollapseCategory();
+                    handled = true;
+                }
+                else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                {
+                    WindowlessResearchMenuState.ExecuteSelected();
+                    handled = true;
+                }
+                else if (key == KeyCode.Escape)
+                {
+                    WindowlessResearchMenuState.Close();
+                    handled = true;
+                }
+
+                if (handled)
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 4.75: Handle jump menu if active =====
             if (JumpMenuState.IsActive)
             {
@@ -350,6 +426,27 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 7.5: Open research menu with P key (if no menu is active and we're in-game) =====
+            if (key == KeyCode.P)
+            {
+                // Only open research menu if:
+                // 1. We're in gameplay (not at main menu)
+                // 2. No windows are preventing camera motion (means a dialog is open)
+                // 3. Not in zone creation mode
+                if (Current.ProgramState == ProgramState.Playing &&
+                    Find.CurrentMap != null &&
+                    (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
+                    !ZoneCreationState.IsInCreationMode)
+                {
+                    // Prevent the default P key behavior
+                    Event.current.Use();
+
+                    // Open the research menu
+                    WindowlessResearchMenuState.Open();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 8: Open pause menu with Escape (if no menu is active and we're in-game) =====
             if (key == KeyCode.Escape)
             {
@@ -410,7 +507,19 @@ namespace RimWorldAccess
                 List<Thing> thingsAtPosition = map.thingGrid.ThingsListAt(cursorPosition);
                 Thing buildingOrThing = null;
 
-                // First priority: buildings with temperature control (coolers, heaters, etc.)
+                // First priority: research benches - open research menu
+                foreach (Thing thing in thingsAtPosition)
+                {
+                    if (thing is Building_ResearchBench)
+                    {
+                        // Open windowless research menu
+                        WindowlessResearchMenuState.Open();
+                        Event.current.Use();
+                        return;
+                    }
+                }
+
+                // Second priority: buildings with temperature control (coolers, heaters, etc.)
                 foreach (Thing thing in thingsAtPosition)
                 {
                     if (thing is Building building)
@@ -426,7 +535,7 @@ namespace RimWorldAccess
                     }
                 }
 
-                // Second priority: buildings with inspect tabs
+                // Third priority: buildings with inspect tabs
                 foreach (Thing thing in thingsAtPosition)
                 {
                     if (thing.def.inspectorTabs != null && thing.def.inspectorTabs.Count > 0)

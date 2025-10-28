@@ -132,6 +132,18 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Don't process arrow keys if research menu is active
+            if (WindowlessResearchMenuState.IsActive)
+            {
+                return;
+            }
+
+            // Don't process arrow keys if research detail view is active
+            if (WindowlessResearchDetailState.IsActive)
+            {
+                return;
+            }
+
             // Prevent processing input multiple times in the same frame
             // (Update() can be called multiple times per frame)
             int currentFrame = Time.frameCount;
