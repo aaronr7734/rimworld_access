@@ -114,6 +114,12 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Don't process arrow keys if the food policy editor is active
+            if (WindowlessFoodPolicyState.IsActive)
+            {
+                return;
+            }
+
             // Don't process arrow keys if the schedule menu is active
             if (WindowlessScheduleState.IsActive)
             {

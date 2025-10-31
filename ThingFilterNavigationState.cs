@@ -305,8 +305,15 @@ namespace RimWorldAccess
             // Deactivate filter navigation
             Deactivate();
 
-            // Close outfit policy manager
-            WindowlessOutfitPolicyState.Close();
+            // Close whichever policy manager is active
+            if (WindowlessOutfitPolicyState.IsActive)
+            {
+                WindowlessOutfitPolicyState.Close();
+            }
+            if (WindowlessFoodPolicyState.IsActive)
+            {
+                WindowlessFoodPolicyState.Close();
+            }
 
             // Reopen assign menu
             if (Find.CurrentMap != null && Find.CurrentMap.mapPawns.FreeColonists.Any())

@@ -297,12 +297,16 @@ namespace RimWorldAccess
                     }
                     break;
 
-                case 1: // Food Restrictions - Open food policies dialog
+                case 1: // Food Restrictions - Open windowless food policies manager
                     if (Current.Game?.foodRestrictionDatabase != null)
                     {
                         // Pass the current pawn's food policy to open that policy for editing
                         FoodPolicy currentPolicy = currentPawn?.foodRestriction?.CurrentFoodPolicy;
-                        Find.WindowStack.Add(new Dialog_ManageFoodPolicies(currentPolicy));
+
+                        // Close the assign menu before opening the policy editor
+                        Close();
+
+                        WindowlessFoodPolicyState.Open(currentPolicy);
                         ClipboardHelper.CopyToClipboard("Opened food policies manager");
                     }
                     break;
