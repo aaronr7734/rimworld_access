@@ -4,6 +4,17 @@ using System.Reflection;
 
 namespace RimWorldAccess
 {
+    /// <summary>
+    /// Harmony patch to announce time speed changes for screen reader accessibility.
+    ///
+    /// Time controls are now bound to Shift+1/2/3 (handled in UnifiedKeyboardPatch):
+    /// - Shift+1: Normal speed
+    /// - Shift+2: Fast speed
+    /// - Shift+3: Superfast speed
+    ///
+    /// This patch monitors all time speed changes (regardless of how they're triggered)
+    /// and announces them to the screen reader via clipboard.
+    /// </summary>
     [HarmonyPatch(typeof(TickManager))]
     public class TimeControlAccessibilityPatch
     {

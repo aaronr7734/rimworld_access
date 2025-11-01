@@ -307,6 +307,226 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Gets information about items and pawns at a tile (key 1).
+        /// Lists all items with stack counts and all pawns with their labels.
+        /// </summary>
+        public static string GetItemsAndPawnsInfo(IntVec3 position, Map map)
+        {
+            if (map == null || !position.InBounds(map))
+                return "Out of bounds";
+
+            var sb = new StringBuilder();
+            List<Thing> things = position.GetThingList(map);
+
+            // Separate items and pawns
+            var pawns = things.OfType<Pawn>().ToList();
+            var items = things.Where(t => !(t is Pawn) && !(t is Building) && !(t is Plant)).ToList();
+
+            if (pawns.Count == 0 && items.Count == 0)
+            {
+                return "no items or pawns";
+            }
+
+            // List all pawns
+            if (pawns.Count > 0)
+            {
+                sb.Append($"{pawns.Count} pawn");
+                if (pawns.Count > 1) sb.Append("s");
+                sb.Append(": ");
+
+                for (int i = 0; i < pawns.Count; i++)
+                {
+                    if (i > 0) sb.Append(", ");
+                    sb.Append(pawns[i].LabelShortCap);
+                }
+            }
+
+            // List all items
+            if (items.Count > 0)
+            {
+                if (pawns.Count > 0) sb.Append(". ");
+                sb.Append($"{items.Count} item");
+                if (items.Count > 1) sb.Append("s");
+                sb.Append(": ");
+
+                int displayLimit = 10;
+                for (int i = 0; i < items.Count && i < displayLimit; i++)
+                {
+                    if (i > 0) sb.Append(", ");
+
+                    string label = items[i].LabelShortCap;
+                    if (items[i].stackCount > 1)
+                        label += $" x{items[i].stackCount}";
+
+                    // Check if forbidden
+                    CompForbiddable forbiddable = items[i].TryGetComp<CompForbiddable>();
+                    if (forbiddable != null && forbiddable.Forbidden)
+                        label = "Forbidden " + label;
+
+                    sb.Append(label);
+                }
+
+                if (items.Count > displayLimit)
+                    sb.Append($", and {items.Count - displayLimit} more");
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Gets information about flooring at a tile (key 2).
+        /// Shows terrain type, smoothness, beauty, and cleanliness.
+        /// </summary>
+        public static string GetFlooringInfo(IntVec3 position, Map map)
+        {
+            if (map == null || !position.InBounds(map))
+                return "Out of bounds";
+
+            var sb = new StringBuilder();
+            TerrainDef terrain = position.GetTerrain(map);
+
+            if (terrain == null)
+                return "no terrain information";
+
+            sb.Append(terrain.LabelCap);
+
+            // Add smoothness information
+            if (terrain.defName.EndsWith("_Smooth"))
+                sb.Append(", smooth");
+            else if (terrain.defName.EndsWith("_Rough"))
+                sb.Append(", rough");
+
+            // Add beauty if non-zero
+            StatDef beautyStat = StatDefOf.Beauty;
+            float beauty = terrain.GetStatValueAbstract(beautyStat);
+            if (beauty != 0)
+                sb.Append($", beauty {beauty:F0}");
+
+            // Add cleanliness if non-zero
+            if (terrain.GetStatValueAbstract(StatDefOf.Cleanliness) != 0)
+            {
+                float cleanliness = terrain.GetStatValueAbstract(StatDefOf.Cleanliness);
+                sb.Append($", cleanliness {cleanliness:F1}");
+            }
+
+            // Add movement speed modifier
+            if (terrain.pathCost > 0)
+                sb.Append($", path cost {terrain.pathCost}");
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Gets information about plants at a tile (key 3).
+        /// Shows plant species, growth percentage, and harvestable status.
+        /// </summary>
+        public static string GetPlantsInfo(IntVec3 position, Map map)
+        {
+            if (map == null || !position.InBounds(map))
+                return "Out of bounds";
+
+            List<Thing> things = position.GetThingList(map);
+            var plants = things.OfType<Plant>().ToList();
+
+            if (plants.Count == 0)
+                return "no plants";
+
+            var sb = new StringBuilder();
+
+            for (int i = 0; i < plants.Count; i++)
+            {
+                if (i > 0) sb.Append(", ");
+
+                Plant plant = plants[i];
+                sb.Append(plant.LabelShortCap);
+
+                // Add growth percentage
+                float growthPercent = plant.Growth * 100f;
+                sb.Append($" ({growthPercent:F0}% grown)");
+
+                // Check if harvestable
+                if (plant.HarvestableNow)
+                    sb.Append(", harvestable");
+                else
+                    sb.Append(", not harvestable");
+
+                // Check if dying
+                if (plant.Dying)
+                    sb.Append(", dying");
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Gets information about lighting at a tile (key 4).
+        /// Shows light level and natural/artificial status.
+        /// </summary>
+        public static string GetLightInfo(IntVec3 position, Map map)
+        {
+            if (map == null || !position.InBounds(map))
+                return "Out of bounds";
+
+            var sb = new StringBuilder();
+
+            // Get light level
+            PsychGlow lightLevel = map.glowGrid.PsychGlowAt(position);
+            string lightDescription = lightLevel.GetLabel();
+            sb.Append(lightDescription);
+
+            // Get actual glow value
+            float glow = map.glowGrid.GroundGlowAt(position, false);
+            sb.Append($" ({glow:F1} glow)");
+
+            // Check if natural light
+            float naturalLight = map.skyManager.CurSkyGlow;
+            if (naturalLight > 0)
+                sb.Append($", natural light {naturalLight:F1}");
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Gets information about temperature at a tile (key 5).
+        /// Shows current temperature and indoor/outdoor status.
+        /// </summary>
+        public static string GetTemperatureInfo(IntVec3 position, Map map)
+        {
+            if (map == null || !position.InBounds(map))
+                return "Out of bounds";
+
+            var sb = new StringBuilder();
+
+            // Get temperature
+            float temperature = position.GetTemperature(map);
+            string tempCelsius = $"{temperature:F1}°C";
+
+            sb.Append(tempCelsius);
+
+            // Check if indoors/outdoors
+            RoofDef roof = position.GetRoof(map);
+            if (roof != null)
+                sb.Append(" indoors");
+            else
+                sb.Append(" outdoors");
+
+            // Check for temperature control buildings nearby
+            List<Thing> things = position.GetThingList(map);
+            var buildings = things.OfType<Building>().ToList();
+
+            foreach (var building in buildings)
+            {
+                string tempControlInfo = GetTemperatureControlInfo(building);
+                if (!string.IsNullOrEmpty(tempControlInfo))
+                {
+                    sb.Append($". {building.LabelShortCap}: {tempControlInfo}");
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
         /// Gets temperature control information for coolers and heaters.
         /// Returns direction (cooling/heating) and target temperature.
         /// </summary>

@@ -1,6 +1,7 @@
 using HarmonyLib;
 using UnityEngine;
 using Verse;
+using Verse.Sound;
 using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
@@ -497,6 +498,90 @@ namespace RimWorldAccess
                 {
                     Event.current.Use();
                     return;
+                }
+            }
+
+            // ===== PRIORITY 5.5: Handle time control with Shift+1/2/3, intercept 1/2/3 without Shift =====
+            if ((key == KeyCode.Alpha1 || key == KeyCode.Keypad1 ||
+                 key == KeyCode.Alpha2 || key == KeyCode.Keypad2 ||
+                 key == KeyCode.Alpha3 || key == KeyCode.Keypad3) &&
+                Current.ProgramState == ProgramState.Playing &&
+                Find.CurrentMap != null &&
+                (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion))
+            {
+                // Don't intercept if any menu is active (keys 1-5 are used for tile info)
+                bool anyMenuActive = WorkMenuState.IsActive ||
+                                    ArchitectState.IsActive ||
+                                    ZoneCreationState.IsInCreationMode ||
+                                    JumpMenuState.IsActive ||
+                                    WindowlessFloatMenuState.IsActive ||
+                                    WindowlessPauseMenuState.IsActive ||
+                                    WindowlessSaveMenuState.IsActive ||
+                                    WindowlessOptionsMenuState.IsActive ||
+                                    WindowlessConfirmationState.IsActive ||
+                                    StorageSettingsMenuState.IsActive ||
+                                    PlantSelectionMenuState.IsActive ||
+                                    WindowlessScheduleState.IsActive ||
+                                    WindowlessResearchMenuState.IsActive ||
+                                    StorytellerSelectionState.IsActive;
+
+                if (!anyMenuActive)
+                {
+                    // If Shift is held, change time speed
+                    if (Event.current.shift)
+                    {
+                        TimeSpeed newSpeed = TimeSpeed.Normal;
+
+                        if (key == KeyCode.Alpha1 || key == KeyCode.Keypad1)
+                            newSpeed = TimeSpeed.Normal;
+                        else if (key == KeyCode.Alpha2 || key == KeyCode.Keypad2)
+                            newSpeed = TimeSpeed.Fast;
+                        else if (key == KeyCode.Alpha3 || key == KeyCode.Keypad3)
+                            newSpeed = TimeSpeed.Superfast;
+
+                        // Set the time speed
+                        Find.TickManager.CurTimeSpeed = newSpeed;
+
+                        // Play the appropriate sound effect
+                        SoundDef soundDef = null;
+                        switch (newSpeed)
+                        {
+                            case TimeSpeed.Paused:
+                                soundDef = SoundDefOf.Clock_Stop;
+                                break;
+                            case TimeSpeed.Normal:
+                                soundDef = SoundDefOf.Clock_Normal;
+                                break;
+                            case TimeSpeed.Fast:
+                                soundDef = SoundDefOf.Clock_Fast;
+                                break;
+                            case TimeSpeed.Superfast:
+                                soundDef = SoundDefOf.Clock_Superfast;
+                                break;
+                            case TimeSpeed.Ultrafast:
+                                soundDef = SoundDefOf.Clock_Superfast;
+                                break;
+                        }
+                        soundDef?.PlayOneShotOnCamera();
+
+                        // Announce the change
+                        string speedName = newSpeed == TimeSpeed.Normal ? "Normal" :
+                                         newSpeed == TimeSpeed.Fast ? "Fast" :
+                                         "Superfast";
+                        ClipboardHelper.CopyToClipboard($"Time speed: {speedName}");
+
+                        Event.current.Use();
+                        return;
+                    }
+                    // If Shift is NOT held, consume event to block native time controls
+                    // Keys 1-3 are now reserved for tile info (handled by DetailInfoPatch)
+                    // DetailInfoPatch uses Input.GetKeyDown() which is separate from Event.current,
+                    // so consuming the IMGUI event here won't affect DetailInfoPatch's functionality
+                    else
+                    {
+                        Event.current.Use();
+                        return;
+                    }
                 }
             }
 
