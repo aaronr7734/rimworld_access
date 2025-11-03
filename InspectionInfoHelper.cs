@@ -119,11 +119,15 @@ namespace RimWorldAccess
                 var powerComp = building.TryGetComp<CompPowerTrader>();
                 if (powerComp != null)
                     categories.Add("Power");
+
+                // Add stats category for all buildings
+                categories.Add("Stats");
             }
             else if (obj is Plant plant)
             {
                 categories.Add("Overview");
                 categories.Add("Growth Info");
+                categories.Add("Stats");
             }
             else if (obj is Thing)
             {
@@ -314,6 +318,9 @@ namespace RimWorldAccess
                 case "Power":
                     return GetBuildingPowerInfo(building);
 
+                case "Stats":
+                    return GetBuildingStatsInfo(building);
+
                 default:
                     return "Category not found.";
             }
@@ -450,6 +457,32 @@ namespace RimWorldAccess
             return "This building does not use power.";
         }
 
+
+        /// <summary>
+        /// Gets all stats information for a building using RimWorld's native stat system.
+        /// </summary>
+        private static string GetBuildingStatsInfo(Building building)
+        {
+            var sb = new StringBuilder();
+
+            // Get all stats using RimWorld's native stat system
+            List<StatDrawEntry> stats = StatsHelper.GetAllStats(building);
+
+            if (stats != null && stats.Count > 0)
+            {
+                // Format stats grouped by category
+                string formattedStats = StatsHelper.FormatStatsForScreenReader(stats);
+                sb.Append(formattedStats);
+            }
+            else
+            {
+                // Fallback: if no stats found, show basic info
+                sb.AppendLine("No stats available for this building.");
+            }
+
+            return sb.ToString();
+        }
+
         /// <summary>
         /// Gets bed assignment information for a bed.
         /// </summary>
@@ -533,6 +566,9 @@ namespace RimWorldAccess
                 case "Growth Info":
                     return GetPlantGrowthInfo(plant);
 
+                case "Stats":
+                    return GetPlantStatsInfo(plant);
+
                 default:
                     return "Category not found.";
             }
@@ -574,6 +610,33 @@ namespace RimWorldAccess
 
             if (plant.HarvestableNow)
                 sb.AppendLine("Ready to harvest!");
+
+            return sb.ToString();
+        }
+
+
+
+        /// <summary>
+        /// Gets all stats information for a plant using RimWorld's native stat system.
+        /// </summary>
+        private static string GetPlantStatsInfo(Plant plant)
+        {
+            var sb = new StringBuilder();
+
+            // Get all stats using RimWorld's native stat system
+            List<StatDrawEntry> stats = StatsHelper.GetAllStats(plant);
+
+            if (stats != null && stats.Count > 0)
+            {
+                // Format stats grouped by category
+                string formattedStats = StatsHelper.FormatStatsForScreenReader(stats);
+                sb.Append(formattedStats);
+            }
+            else
+            {
+                // Fallback: if no stats found, show basic info
+                sb.AppendLine("No stats available for this plant.");
+            }
 
             return sb.ToString();
         }
@@ -621,12 +684,13 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Gets quality and stats information for a thing.
+        /// Uses RimWorld's native stat system to display all relevant stats.
         /// </summary>
         private static string GetThingQualityInfo(Thing thing)
         {
             var sb = new StringBuilder();
 
-            // Quality
+            // Quality (display at top if applicable)
             var qualityComp = thing.TryGetComp<CompQuality>();
             if (qualityComp != null)
             {
@@ -634,24 +698,28 @@ namespace RimWorldAccess
                 sb.AppendLine();
             }
 
-            // Hit points
-            if (thing.def.useHitPoints && thing.HitPoints < thing.MaxHitPoints)
-            {
-                float healthPercent = (float)thing.HitPoints / thing.MaxHitPoints;
-                sb.AppendLine($"Health: {healthPercent:P0} ({thing.HitPoints} / {thing.MaxHitPoints})");
-            }
-
-            // Stuff (material)
+            // Material (display before stats if applicable)
             if (thing.Stuff != null)
             {
                 sb.AppendLine($"Material: {thing.Stuff.LabelCap.ToString().StripTags()}");
+                sb.AppendLine();
             }
 
-            // Market value
-            sb.AppendLine($"Market Value: {thing.MarketValue:F0} silver");
+            // Get all stats using RimWorld's native stat system
+            List<StatDrawEntry> stats = StatsHelper.GetAllStats(thing);
 
-            // Mass
-            sb.AppendLine($"Mass: {thing.GetStatValue(StatDefOf.Mass):F2} kg");
+            if (stats != null && stats.Count > 0)
+            {
+                // Format stats grouped by category
+                string formattedStats = StatsHelper.FormatStatsForScreenReader(stats);
+                sb.Append(formattedStats);
+            }
+            else
+            {
+                // Fallback: if no stats found, show basic info
+                sb.AppendLine($"Market Value: {thing.MarketValue:F0} silver");
+                sb.AppendLine($"Mass: {thing.GetStatValue(StatDefOf.Mass):F2} kg");
+            }
 
             return sb.ToString();
         }
