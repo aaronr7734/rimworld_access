@@ -20,6 +20,7 @@ namespace RimWorldAccess
         private static List<InspectionTreeItem> visibleItems = null;
         private static int selectedIndex = 0;
         private static IntVec3 inspectionPosition;
+        private static object parentObject = null; // Track parent object for navigation back
 
         /// <summary>
         /// Opens the inspection menu for the specified position.
@@ -57,6 +58,52 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Opens the inspection menu for a specific object (Thing, Pawn, Building, etc.).
+        /// </summary>
+        /// <param name="obj">The object to inspect</param>
+        /// <param name="parent">Optional parent object to return to when pressing Escape</param>
+        public static void OpenForObject(object obj, object parent = null)
+        {
+            try
+            {
+                if (obj == null)
+                {
+                    ClipboardHelper.CopyToClipboard("No object to inspect.");
+                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                    return;
+                }
+
+                // Set position if it's a Thing
+                if (obj is Thing thing)
+                {
+                    inspectionPosition = thing.Position;
+                }
+                else
+                {
+                    inspectionPosition = IntVec3.Invalid;
+                }
+
+                // Store parent for navigation back
+                parentObject = parent;
+
+                // Build tree with just this object
+                var objects = new List<object> { obj };
+                rootItem = InspectionTreeBuilder.BuildTree(objects);
+                RebuildVisibleList();
+                selectedIndex = 0;
+
+                IsActive = true;
+                SoundDefOf.TabOpen.PlayOneShotOnCamera();
+                AnnounceCurrentSelection();
+            }
+            catch (Exception ex)
+            {
+                MelonLoader.MelonLogger.Error($"[RimWorldAccess] Error opening inspection menu for object: {ex}");
+                Close();
+            }
+        }
+
+        /// <summary>
         /// Closes the inspection menu.
         /// </summary>
         public static void Close()
@@ -65,6 +112,7 @@ namespace RimWorldAccess
             rootItem = null;
             visibleItems = null;
             selectedIndex = 0;
+            parentObject = null;
         }
 
         /// <summary>
@@ -264,15 +312,27 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Closes the entire panel (Escape key).
+        /// If there's a parent object, returns to that parent's inspection instead of fully closing.
         /// </summary>
         public static void ClosePanel()
         {
             if (!IsActive)
                 return;
 
-            Close();
-            SoundDefOf.Click.PlayOneShotOnCamera();
-            ClipboardHelper.CopyToClipboard("Inspection panel closed.");
+            // Check if we have a parent to return to
+            if (parentObject != null)
+            {
+                var parent = parentObject; // Save reference before Close() clears it
+                Close();
+                SoundDefOf.Click.PlayOneShotOnCamera();
+                OpenForObject(parent); // Open parent without a parent (we don't go deeper than 2 levels)
+            }
+            else
+            {
+                Close();
+                SoundDefOf.Click.PlayOneShotOnCamera();
+                ClipboardHelper.CopyToClipboard("Inspection panel closed.");
+            }
         }
 
         /// <summary>

@@ -431,21 +431,26 @@ namespace RimWorldAccess
             {
                 case "Drop":
                     success = InteractiveGearHelper.ExecuteDropAction(gear, pawn);
+                    if (success)
+                    {
+                        // Rebuild tree to reflect changes
+                        WindowlessInspectionState.RebuildTree();
+                    }
                     break;
                 case "Consume":
                     success = InteractiveGearHelper.ExecuteConsumeAction(gear, pawn);
+                    if (success)
+                    {
+                        // Rebuild tree to reflect changes
+                        WindowlessInspectionState.RebuildTree();
+                    }
                     break;
                 case "View Info":
-                    InteractiveGearHelper.ExecuteInfoAction(gear);
-                    success = true;
+                    // Close current inspection menu and open new one for the item
+                    // Pass the pawn as parent so Escape returns to the pawn's inspection
+                    WindowlessInspectionState.Close();
+                    WindowlessInspectionState.OpenForObject(gear.Thing, pawn);
                     break;
-            }
-
-            if (success)
-            {
-                ClipboardHelper.CopyToClipboard($"{action} executed successfully");
-                // Rebuild tree to reflect changes
-                WindowlessInspectionState.RebuildTree();
             }
         }
 
