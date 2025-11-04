@@ -285,7 +285,42 @@ namespace RimWorldAccess
                     sb.AppendLine("Traits:");
                     foreach (var trait in pawn.story.traits.allTraits)
                     {
-                        sb.AppendLine($"  {trait.LabelCap.StripTags()}");
+                        // Get trait name
+                        sb.Append($"  {trait.LabelCap.StripTags()}");
+
+                        // Get trait description and effects using TipString
+                        string tipString = trait.TipString(pawn);
+                        if (!string.IsNullOrEmpty(tipString))
+                        {
+                            // Strip tags and extract description and effects
+                            tipString = tipString.StripTags();
+
+                            // Split into lines and format
+                            var lines = tipString.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                            if (lines.Length > 0)
+                            {
+                                // First line is usually the description
+                                sb.Append($": {lines[0].Trim()}");
+
+                                // Add effects if present (skip empty lines and the description)
+                                var effects = new List<string>();
+                                for (int i = 1; i < lines.Length; i++)
+                                {
+                                    string line = lines[i].Trim();
+                                    if (!string.IsNullOrEmpty(line))
+                                    {
+                                        effects.Add(line);
+                                    }
+                                }
+
+                                if (effects.Any())
+                                {
+                                    sb.Append(": " + string.Join(", ", effects));
+                                }
+                            }
+                        }
+
+                        sb.AppendLine();
                     }
                     sb.AppendLine();
                 }
@@ -293,11 +328,35 @@ namespace RimWorldAccess
                 // Backstory
                 if (pawn.story.Childhood != null)
                 {
-                    sb.AppendLine($"Childhood: {pawn.story.Childhood.TitleCapFor(pawn.gender)}");
+                    sb.Append($"Childhood: {pawn.story.Childhood.TitleCapFor(pawn.gender)}");
+
+                    // Add description and effects
+                    string childDesc = pawn.story.Childhood.FullDescriptionFor(pawn).ToString().StripTags();
+                    if (!string.IsNullOrEmpty(childDesc))
+                    {
+                        // Clean up the description (remove extra whitespace)
+                        childDesc = childDesc.Replace("\r", "").Replace("\n", " ").Trim();
+                        // Remove redundant info
+                        childDesc = System.Text.RegularExpressions.Regex.Replace(childDesc, @"\s+", " ");
+                        sb.Append($": {childDesc}");
+                    }
+                    sb.AppendLine();
                 }
                 if (pawn.story.Adulthood != null)
                 {
-                    sb.AppendLine($"Adulthood: {pawn.story.Adulthood.TitleCapFor(pawn.gender)}");
+                    sb.Append($"Adulthood: {pawn.story.Adulthood.TitleCapFor(pawn.gender)}");
+
+                    // Add description and effects
+                    string adultDesc = pawn.story.Adulthood.FullDescriptionFor(pawn).ToString().StripTags();
+                    if (!string.IsNullOrEmpty(adultDesc))
+                    {
+                        // Clean up the description (remove extra whitespace)
+                        adultDesc = adultDesc.Replace("\r", "").Replace("\n", " ").Trim();
+                        // Remove redundant info
+                        adultDesc = System.Text.RegularExpressions.Regex.Replace(adultDesc, @"\s+", " ");
+                        sb.Append($": {adultDesc}");
+                    }
+                    sb.AppendLine();
                 }
             }
 

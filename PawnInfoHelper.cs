@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -55,9 +56,54 @@ namespace RimWorldAccess
                 {
                     if (hediff.Visible)
                     {
-                        string severity = hediff.Severity > 0 ? $" (Severity: {hediff.Severity:F1})" : "";
                         string bodyPart = hediff.Part != null ? $" on {hediff.Part.Label}" : "";
-                        sb.AppendLine($"  - {hediff.LabelCap}{bodyPart}{severity}");
+                        sb.Append($"  - {hediff.LabelCap}{bodyPart}");
+
+                        // Get description
+                        string description = hediff.Description;
+                        if (!string.IsNullOrEmpty(description))
+                        {
+                            description = description.StripTags().Trim();
+                            sb.Append($": {description}");
+                        }
+
+                        // Get capacity modifiers directly
+                        var capMods = hediff.CapMods;
+                        if (capMods != null && capMods.Any())
+                        {
+                            var effects = new List<string>();
+                            foreach (var capMod in capMods)
+                            {
+                                if (capMod.capacity != null)
+                                {
+                                    string effect = capMod.capacity.LabelCap;
+
+                                    // Add the modifier details
+                                    if (capMod.offset != 0)
+                                    {
+                                        effect += $" {capMod.offset:+0.##;-0.##}";
+                                    }
+                                    if (capMod.postFactor != 1f)
+                                    {
+                                        effect += $" x{capMod.postFactor:0.##}";
+                                    }
+                                    if (capMod.SetMaxDefined)
+                                    {
+                                        float setMax = capMod.EvaluateSetMax(pawn);
+                                        effect += $" (max {setMax:P0})";
+                                    }
+
+                                    effects.Add(effect);
+                                }
+                            }
+
+                            if (effects.Any())
+                            {
+                                sb.Append(": " + string.Join(", ", effects));
+                            }
+                        }
+
+                        sb.AppendLine();
                     }
                 }
             }
