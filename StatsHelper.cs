@@ -15,6 +15,59 @@ namespace RimWorldAccess
     public static class StatsHelper
     {
         /// <summary>
+        /// Checks if a StatDef is food-related and should be excluded from non-food items.
+        /// </summary>
+        private static bool IsFoodRelatedStat(StatDef statDef)
+        {
+            // Check for common food-related stats
+            return statDef == StatDefOf.FoodPoisonChance ||
+                   statDef == StatDefOf.FoodPoisonChanceFixedHuman ||
+                   statDef == StatDefOf.Nutrition;
+        }
+
+        /// <summary>
+        /// Gets a concise description for a stat entry, suitable for screen reader output.
+        /// Extracts the first sentence or paragraph from the stat's explanation text.
+        /// </summary>
+        private static string GetStatDescription(StatDrawEntry stat)
+        {
+            try
+            {
+                // Get the full explanation text from the stat entry
+                string explanation = stat.GetExplanationText(StatRequest.ForEmpty());
+
+                if (string.IsNullOrEmpty(explanation))
+                    return null;
+
+                // Strip XML tags
+                explanation = explanation.StripTags();
+
+                // Remove excessive whitespace and newlines
+                explanation = System.Text.RegularExpressions.Regex.Replace(explanation, @"\s+", " ").Trim();
+
+                // Extract the first sentence (description usually comes first)
+                // Look for the first period followed by space or end of string
+                int firstPeriod = explanation.IndexOf(". ");
+                if (firstPeriod > 0 && firstPeriod < 200) // Reasonable length for a description
+                {
+                    explanation = explanation.Substring(0, firstPeriod);
+                }
+                else if (explanation.Length > 200)
+                {
+                    // If too long and no period, truncate at reasonable length
+                    explanation = explanation.Substring(0, 197) + "...";
+                }
+
+                return explanation;
+            }
+            catch (Exception ex)
+            {
+                Log.Warning($"[RimWorld Access] Error getting description for stat {stat.LabelCap}: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Gets all displayable stats for a Thing using RimWorld's native stat system.
         /// This mimics the logic in StatsReportUtility.StatsToDraw().
         /// </summary>
@@ -34,6 +87,14 @@ namespace RimWorldAccess
                 foreach (StatDef statDef in DefDatabase<StatDef>.AllDefs
                     .Where(st => st.Worker.ShouldShowFor(statRequest)))
                 {
+                    // Skip abstract stats (matches RimWorld's native filtering)
+                    if (!statDef.showNonAbstract)
+                        continue;
+
+                    // Exclude food-related stats for non-food items
+                    if (!thing.def.IsIngestible && IsFoodRelatedStat(statDef))
+                        continue;
+
                     // Check if stat is disabled for this thing
                     if (!statDef.Worker.IsDisabledFor(thing))
                     {
@@ -71,7 +132,16 @@ namespace RimWorldAccess
                     ));
                 }
 
-                // Add special/custom stats defined by the thing
+                // Add special/custom stats from the ThingDef (includes weapon verb stats like damage, range, etc.)
+                // This is CRITICAL for weapons - damage stats come from ThingDef.SpecialDisplayStats()
+                IEnumerable<StatDrawEntry> defSpecialStats = thing.def.SpecialDisplayStats(statRequest);
+                if (defSpecialStats != null)
+                {
+                    stats.AddRange(defSpecialStats);
+                }
+
+                // Add special/custom stats defined by the thing instance
+                // These include instance-specific stats and component stats
                 IEnumerable<StatDrawEntry> specialStats = thing.SpecialDisplayStats();
                 if (specialStats != null)
                 {
@@ -131,17 +201,28 @@ namespace RimWorldAccess
                     sb.AppendLine($"--- {currentCategory} ---");
                 }
 
-                // Format the stat line
+                // Format the stat line with description
                 string label = stat.LabelCap.ToString().StripTags();
                 string value = stat.ValueString.StripTags();
-                
+
                 // Replace dollar sign with "silver" for lore-friendly currency display
                 if (value.Contains("$"))
                 {
                     value = value.Replace("$", "").Trim() + " silver";
                 }
-                
-                sb.AppendLine($"{label}: {value}");
+
+                // Get description/explanation for the stat
+                string description = GetStatDescription(stat);
+
+                // Format: "Stat Name: Value - Description"
+                if (!string.IsNullOrEmpty(description))
+                {
+                    sb.AppendLine($"{label}: {value} - {description}");
+                }
+                else
+                {
+                    sb.AppendLine($"{label}: {value}");
+                }
             }
 
             return sb.ToString();
