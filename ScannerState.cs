@@ -11,6 +11,7 @@ namespace RimWorldAccess
         private static int currentCategoryIndex = 0;
         private static int currentSubcategoryIndex = 0;
         private static int currentItemIndex = 0;
+        private static int currentBulkIndex = 0; // Index within a bulk group
 
         /// <summary>
         /// Refreshes the scanner item list based on current cursor position.
@@ -59,6 +60,7 @@ namespace RimWorldAccess
                 currentItemIndex = 0; // Wrap to first item
             }
 
+            currentBulkIndex = 0; // Reset bulk index when changing items
             AnnounceCurrentItem();
         }
 
@@ -76,7 +78,42 @@ namespace RimWorldAccess
                 currentItemIndex = currentSubcat.Items.Count - 1; // Wrap to last item
             }
 
+            currentBulkIndex = 0; // Reset bulk index when changing items
             AnnounceCurrentItem();
+        }
+
+        public static void NextBulkItem()
+        {
+            RefreshItems();
+            if (categories.Count == 0) return;
+
+            var currentItem = GetCurrentItem();
+            if (currentItem == null || !currentItem.IsBulkGroup) return;
+
+            currentBulkIndex++;
+            if (currentBulkIndex >= currentItem.BulkCount)
+            {
+                currentBulkIndex = 0; // Wrap to first bulk item
+            }
+
+            AnnounceCurrentBulkItem();
+        }
+
+        public static void PreviousBulkItem()
+        {
+            RefreshItems();
+            if (categories.Count == 0) return;
+
+            var currentItem = GetCurrentItem();
+            if (currentItem == null || !currentItem.IsBulkGroup) return;
+
+            currentBulkIndex--;
+            if (currentBulkIndex < 0)
+            {
+                currentBulkIndex = currentItem.BulkCount - 1; // Wrap to last bulk item
+            }
+
+            AnnounceCurrentBulkItem();
         }
 
         public static void NextCategory()
@@ -195,11 +232,18 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Get the actual thing to jump to (considering bulk index)
+            Thing targetThing = currentItem.Thing;
+            if (currentItem.IsBulkGroup && currentBulkIndex < currentItem.BulkCount)
+            {
+                targetThing = currentItem.BulkThings[currentBulkIndex];
+            }
+
             // Update map cursor position
-            MapNavigationState.CurrentCursorPosition = currentItem.Position;
+            MapNavigationState.CurrentCursorPosition = targetThing.Position;
 
             // Jump camera to position
-            Find.CameraDriver.JumpToCurrentMapLoc(currentItem.Position);
+            Find.CameraDriver.JumpToCurrentMapLoc(targetThing.Position);
 
             TolkHelper.Speak($"Jumped to {currentItem.Label}", SpeechPriority.Normal);
         }
@@ -216,8 +260,17 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Get the actual thing (considering bulk index)
+            Thing targetThing = currentItem.Thing;
+            IntVec3 targetPos = currentItem.Position;
+            if (currentItem.IsBulkGroup && currentBulkIndex < currentItem.BulkCount)
+            {
+                targetThing = currentItem.BulkThings[currentBulkIndex];
+                targetPos = targetThing.Position;
+            }
+
             var cursorPos = MapNavigationState.CurrentCursorPosition;
-            var distance = (currentItem.Position - cursorPos).LengthHorizontal;
+            var distance = (targetPos - cursorPos).LengthHorizontal;
             var direction = currentItem.GetDirectionFrom(cursorPos);
 
             TolkHelper.Speak($"{distance:F1} tiles, {direction}", SpeechPriority.Normal);
@@ -348,11 +401,34 @@ namespace RimWorldAccess
                 return;
             }
 
-            var subcat = GetCurrentSubcategory();
-            var position = currentItemIndex + 1;
-            var total = subcat?.Items.Count ?? 0;
+            // Build announcement without position info
+            string announcement = $"{item.Label} - {item.Distance:F1} tiles";
 
-            TolkHelper.Speak($"{item.Label} - {item.Distance:F1} tiles, {position} of {total}", SpeechPriority.Normal);
+            // Add bulk count if this is a grouped item
+            if (item.IsBulkGroup)
+            {
+                int position = currentBulkIndex + 1;
+                announcement += $", {position} of {item.BulkCount}";
+            }
+
+            TolkHelper.Speak(announcement, SpeechPriority.Normal);
+        }
+
+        private static void AnnounceCurrentBulkItem()
+        {
+            var item = GetCurrentItem();
+            if (item == null || !item.IsBulkGroup)
+                return;
+
+            if (currentBulkIndex < 0 || currentBulkIndex >= item.BulkCount)
+                return;
+
+            var targetThing = item.BulkThings[currentBulkIndex];
+            var cursorPos = MapNavigationState.CurrentCursorPosition;
+            var distance = (targetThing.Position - cursorPos).LengthHorizontal;
+            var position = currentBulkIndex + 1;
+
+            TolkHelper.Speak($"{item.Label} - {distance:F1} tiles, {position} of {item.BulkCount}", SpeechPriority.Normal);
         }
     }
 }

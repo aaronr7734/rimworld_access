@@ -298,17 +298,53 @@ Notes:
 - Reading policies (Ideology DLC) control colonist ideological development.
 
 
-QUICK NAVIGATION (Press J)
----------------------------
-Opens jump menu with categories:
-- Colonists
-- Items
-- Events
-- Buildings
+SCANNER SYSTEM (Always Available)
+----------------------------------
+The scanner provides linear navigation through all map items organized into categories
+and subcategories. Identical items (same type, quality, material) are automatically
+grouped together for efficient navigation.
 
-Left/Right    Expand/collapse categories
-Up/Down       Navigate items
-Enter         Jump to selected item
+Basic Navigation:
+Page Up/Down           Navigate through items in current subcategory
+Ctrl+Page Up/Down      Switch between categories
+Shift+Page Up/Down     Switch between subcategories
+Alt+Page Up/Down       Navigate through individual items within a bulk group
+Home                   Jump cursor to current item (or specific bulk item if within group)
+End                    Read distance and direction from cursor to current item
+
+Categories:
+1. Colonists
+   - Player-Controlled Pawns (your colonists)
+   - NPCs (all non-player humanoids: hostiles, friendlies, traders, prisoners)
+2. Tame Animals (player faction animals)
+3. Wild Animals (non-player faction animals)
+4. Buildings
+   - Walls & Doors
+   - Other Buildings
+5. Trees
+   - Harvestable Trees (wood yield)
+   - Non-Harvestable Trees
+6. Plants
+   - Harvestable Plants
+   - Debris (grass, etc.)
+7. Items
+   - All Items
+   - Forbidden Items
+8. Mineable Tiles (rock tiles with ore deposits)
+
+Announcement Format:
+- Single items: "Steel wall - 12.5 tiles"
+- Bulk groups: "Steel - 5.2 tiles, 1 of 15" (shows position in group)
+- When navigating within bulk group with Alt+Page Up/Down:
+  "Steel - 8.3 tiles, 3 of 15" (individual item position and distance)
+
+Features:
+- Always available during map navigation - no need to open/close
+- Items sorted by distance (closest first)
+- Automatic grouping of identical items
+- Empty categories/subcategories are automatically skipped
+- Navigation position persists across keystrokes
+- Direction calculations use 8-direction compass (N, NE, E, SE, S, SW, W, NW)
 
 
 COLONY INVENTORY MENU (Press I / Shift+i)

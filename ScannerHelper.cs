@@ -9,9 +9,12 @@ namespace RimWorldAccess
     public class ScannerItem
     {
         public Thing Thing { get; set; }
+        public List<Thing> BulkThings { get; set; } // For grouped items of the same type
         public float Distance { get; set; }
         public string Label { get; set; }
         public IntVec3 Position { get; set; }
+        public int BulkCount => BulkThings?.Count ?? 1;
+        public bool IsBulkGroup => BulkThings != null && BulkThings.Count > 1;
 
         public ScannerItem(Thing thing, IntVec3 cursorPosition)
         {
@@ -27,6 +30,28 @@ namespace RimWorldAccess
             else
             {
                 Label = thing.LabelShort ?? thing.def.label ?? "Unknown";
+            }
+        }
+
+        // Constructor for bulk groups
+        public ScannerItem(List<Thing> things, IntVec3 cursorPosition)
+        {
+            if (things == null || things.Count == 0)
+                throw new ArgumentException("Bulk group must contain at least one thing");
+
+            BulkThings = things;
+            Thing = things[0]; // Primary thing (closest)
+            Position = Thing.Position;
+            Distance = (Thing.Position - cursorPosition).LengthHorizontal;
+
+            // Build label from first item
+            if (Thing is Pawn pawn)
+            {
+                Label = pawn.LabelShort + TileInfoHelper.GetPawnSuffix(pawn);
+            }
+            else
+            {
+                Label = Thing.LabelShort ?? Thing.def.label ?? "Unknown";
             }
         }
 
@@ -250,14 +275,18 @@ namespace RimWorldAccess
                 }
             }
 
-            // Sort all subcategories by distance
+            // Group identical items and sort all subcategories by distance
             foreach (var category in new[] { colonistsCategory, tameAnimalsCategory, wildAnimalsCategory,
                                              buildingsCategory, treesCategory, plantsCategory,
                                              itemsCategory, mineableTilesCategory })
             {
                 foreach (var subcat in category.Subcategories)
                 {
+                    // First sort by distance
                     subcat.Items = subcat.Items.OrderBy(i => i.Distance).ToList();
+
+                    // Then group identical items (but not pawns - they're always unique)
+                    subcat.Items = GroupIdenticalItems(subcat.Items, cursorPosition);
                 }
             }
 
@@ -295,6 +324,100 @@ namespace RimWorldAccess
                 return true;
 
             return false;
+        }
+
+        /// <summary>
+        /// Groups identical items together (same def, quality, stuff).
+        /// Pawns are never grouped - they're always unique individuals.
+        /// </summary>
+        private static List<ScannerItem> GroupIdenticalItems(List<ScannerItem> items, IntVec3 cursorPosition)
+        {
+            var grouped = new List<ScannerItem>();
+            var processedThings = new HashSet<Thing>();
+
+            foreach (var item in items)
+            {
+                // Skip if already processed
+                if (processedThings.Contains(item.Thing))
+                    continue;
+
+                // Pawns are never grouped - they're unique individuals
+                if (item.Thing is Pawn)
+                {
+                    grouped.Add(item);
+                    processedThings.Add(item.Thing);
+                    continue;
+                }
+
+                // Find all identical items
+                var identicalThings = new List<Thing> { item.Thing };
+                processedThings.Add(item.Thing);
+
+                foreach (var otherItem in items)
+                {
+                    if (processedThings.Contains(otherItem.Thing))
+                        continue;
+
+                    if (AreThingsIdentical(item.Thing, otherItem.Thing))
+                    {
+                        identicalThings.Add(otherItem.Thing);
+                        processedThings.Add(otherItem.Thing);
+                    }
+                }
+
+                // Create grouped item if multiple found, otherwise add single item
+                if (identicalThings.Count > 1)
+                {
+                    // Sort by distance for the bulk group
+                    identicalThings = identicalThings.OrderBy(t => (t.Position - cursorPosition).LengthHorizontal).ToList();
+                    grouped.Add(new ScannerItem(identicalThings, cursorPosition));
+                }
+                else
+                {
+                    grouped.Add(item);
+                }
+            }
+
+            return grouped;
+        }
+
+        /// <summary>
+        /// Checks if two things are identical (same def, quality, stuff, etc.)
+        /// </summary>
+        private static bool AreThingsIdentical(Thing a, Thing b)
+        {
+            // Must be the same def
+            if (a.def != b.def)
+                return false;
+
+            // Must have same stuff (material)
+            if (a.Stuff != b.Stuff)
+                return false;
+
+            // Check quality if applicable
+            var qualityA = a.TryGetComp<CompQuality>();
+            var qualityB = b.TryGetComp<CompQuality>();
+
+            if (qualityA != null && qualityB != null)
+            {
+                if (qualityA.Quality != qualityB.Quality)
+                    return false;
+            }
+            else if (qualityA != null || qualityB != null)
+            {
+                // One has quality, the other doesn't
+                return false;
+            }
+
+            // Check hit points percentage (for damaged items)
+            float hpPercentA = (float)a.HitPoints / a.MaxHitPoints;
+            float hpPercentB = (float)b.HitPoints / b.MaxHitPoints;
+
+            // Consider items identical if HP difference is less than 10%
+            if (Math.Abs(hpPercentA - hpPercentB) > 0.1f)
+                return false;
+
+            return true;
         }
     }
 }

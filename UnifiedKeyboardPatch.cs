@@ -616,10 +616,15 @@ namespace RimWorldAccess
                 bool handled = false;
                 bool ctrl = Event.current.control;
                 bool shift = Event.current.shift;
+                bool alt = Event.current.alt;
 
                 if (key == KeyCode.PageDown)
                 {
-                    if (ctrl)
+                    if (alt)
+                    {
+                        ScannerState.NextBulkItem();
+                    }
+                    else if (ctrl)
                     {
                         ScannerState.NextCategory();
                     }
@@ -635,7 +640,11 @@ namespace RimWorldAccess
                 }
                 else if (key == KeyCode.PageUp)
                 {
-                    if (ctrl)
+                    if (alt)
+                    {
+                        ScannerState.PreviousBulkItem();
+                    }
+                    else if (ctrl)
                     {
                         ScannerState.PreviousCategory();
                     }
