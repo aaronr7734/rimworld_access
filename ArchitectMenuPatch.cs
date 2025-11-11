@@ -56,6 +56,10 @@ namespace RimWorldAccess
             if (WindowlessFloatMenuState.IsActive)
                 return;
 
+            // Don't process if schedule window is active
+            if (WindowlessScheduleState.IsActive)
+                return;
+
             // If already in architect mode (but in placement), cancel back to menu
             if (ArchitectState.IsInPlacementMode)
             {
