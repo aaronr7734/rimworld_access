@@ -298,8 +298,8 @@ Notes:
 - Reading policies (Ideology DLC) control colonist ideological development.
 
 
-SCANNER SYSTEM (Always Available)
-----------------------------------
+SCANNER SYSTEM (Always Available on Map)
+-----------------------------------------
 The scanner provides linear navigation through all map items organized into categories
 and subcategories. Identical items (same type, quality, material) are automatically
 grouped together for efficient navigation.
@@ -345,6 +345,67 @@ Features:
 - Empty categories/subcategories are automatically skipped
 - Navigation position persists across keystrokes
 - Direction calculations use 8-direction compass (N, NE, E, SE, S, SW, W, NW)
+
+NOTE: Scanner keys (Page Up/Down, Home, End) are disabled in world view and repurposed
+for world map navigation (see WORLD MAP NAVIGATION section below).
+
+
+WORLD MAP NAVIGATION (Press F8)
+--------------------------------
+The world map shows the entire planet with settlements, biomes, and world tiles. All
+navigation is keyboard-accessible with automatic camera movement and screen reader
+announcements.
+
+Opening World View:
+F8                Toggle between map view and world view
+
+Tile Navigation (Camera-Relative):
+Arrow Keys        Move to neighboring tiles
+                  - Navigation is relative to camera rotation
+                  - Up moves "forward" on screen, down moves "back"
+                  - Each keypress moves to the closest neighbor in that direction
+                  - Tile info announced automatically (biome, temperature, settlements)
+
+Quick Navigation:
+Home              Jump to player's home settlement
+End               Jump to nearest player caravan
+Page Down         Cycle to next settlement (sorted by distance from current tile)
+Page Up           Cycle to previous settlement (sorted by distance from current tile)
+
+Tile Information:
+I                 Read detailed tile information (coordinates, biome, elevation,
+                  temperature, world objects)
+
+Settlement Browser (Press S):
+Opens a full-featured settlement browser with faction filtering.
+
+Navigation:
+Up/Down           Navigate through settlement list
+Shift+Left        Previous faction filter
+Shift+Right       Next faction filter
+Enter             Jump to selected settlement and close browser
+Escape            Close settlement browser
+
+Faction Filters (cycle with Shift+Left/Right):
+- All settlements (default)
+- Player settlements only
+- Allied settlements only
+- Neutral settlements only
+- Hostile settlements only
+
+Settlement Announcements:
+Each settlement shows: position, name, faction, relationship, distance
+Example: "3 of 15: Trade Post Alpha, Empire, Ally, 48.2 tiles"
+
+Tile Announcement Format:
+Tiles announce: biome, hilliness, temperature, and any settlements/objects present
+Example: "Temperate forest, Small hills, 18°C, Trading Post (Empire, Ally)"
+
+Important Notes:
+- Map-specific keys are disabled in world view (A for architect, Z for zones, etc.)
+- Scanner keys (Page Up/Down, Home, End) work differently in world view
+- Arrow keys navigate world tiles instead of map tiles
+- Press F8 or Escape to return to map view
 
 
 COLONY INVENTORY MENU (Press I / Shift+i)

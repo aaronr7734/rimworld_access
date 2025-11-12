@@ -43,6 +43,39 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 0.5: Handle world navigation special keys (Home/End/PageUp/PageDown) =====
+            if (WorldNavigationState.IsActive && !SettlementBrowserState.IsActive)
+            {
+                bool handled = false;
+
+                if (key == KeyCode.Home)
+                {
+                    WorldNavigationState.JumpToHome();
+                    handled = true;
+                }
+                else if (key == KeyCode.End)
+                {
+                    WorldNavigationState.JumpToNearestCaravan();
+                    handled = true;
+                }
+                else if (key == KeyCode.PageDown)
+                {
+                    WorldNavigationState.CycleToNextSettlement();
+                    handled = true;
+                }
+                else if (key == KeyCode.PageUp)
+                {
+                    WorldNavigationState.CycleToPreviousSettlement();
+                    handled = true;
+                }
+
+                if (handled)
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== EARLY BLOCK: If in world view, block most map-specific keys =====
             if (WorldNavigationState.IsActive)
             {

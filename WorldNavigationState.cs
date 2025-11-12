@@ -334,6 +334,101 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Cycles to the next settlement (by distance from current position).
+        /// </summary>
+        public static void CycleToNextSettlement()
+        {
+            if (!isInitialized || !currentSelectedTile.Valid)
+                return;
+
+            var settlements = WorldInfoHelper.GetSettlementsByDistance(currentSelectedTile);
+            if (settlements.Count == 0)
+            {
+                TolkHelper.Speak("No settlements found", SpeechPriority.Normal);
+                return;
+            }
+
+            // Find current settlement if we're on one
+            Settlement currentSettlement = Find.WorldObjects?.SettlementAt(currentSelectedTile);
+            int currentIndex = -1;
+
+            if (currentSettlement != null)
+            {
+                currentIndex = settlements.IndexOf(currentSettlement);
+            }
+
+            // Move to next settlement
+            int nextIndex = (currentIndex + 1) % settlements.Count;
+            Settlement nextSettlement = settlements[nextIndex];
+
+            // Jump to it
+            JumpToSettlement(nextSettlement);
+        }
+
+        /// <summary>
+        /// Cycles to the previous settlement (by distance from current position).
+        /// </summary>
+        public static void CycleToPreviousSettlement()
+        {
+            if (!isInitialized || !currentSelectedTile.Valid)
+                return;
+
+            var settlements = WorldInfoHelper.GetSettlementsByDistance(currentSelectedTile);
+            if (settlements.Count == 0)
+            {
+                TolkHelper.Speak("No settlements found", SpeechPriority.Normal);
+                return;
+            }
+
+            // Find current settlement if we're on one
+            Settlement currentSettlement = Find.WorldObjects?.SettlementAt(currentSelectedTile);
+            int currentIndex = -1;
+
+            if (currentSettlement != null)
+            {
+                currentIndex = settlements.IndexOf(currentSettlement);
+            }
+
+            // Move to previous settlement
+            int prevIndex = currentIndex - 1;
+            if (prevIndex < 0)
+                prevIndex = settlements.Count - 1;
+
+            Settlement prevSettlement = settlements[prevIndex];
+
+            // Jump to it
+            JumpToSettlement(prevSettlement);
+        }
+
+        /// <summary>
+        /// Jumps to a specific settlement.
+        /// </summary>
+        private static void JumpToSettlement(Settlement settlement)
+        {
+            if (settlement == null)
+                return;
+
+            currentSelectedTile = settlement.Tile;
+
+            // Sync with game's selection system
+            if (Find.WorldSelector != null)
+            {
+                Find.WorldSelector.ClearSelection();
+                Find.WorldSelector.Select(settlement);
+                Find.WorldSelector.SelectedTile = currentSelectedTile;
+            }
+
+            // Jump camera
+            if (Find.WorldCameraDriver != null)
+            {
+                Find.WorldCameraDriver.JumpTo(currentSelectedTile);
+            }
+
+            // Announce tile info
+            AnnounceTile();
+        }
+
+        /// <summary>
         /// Reads detailed information about the current tile (I key).
         /// </summary>
         public static void ReadDetailedTileInfo()
