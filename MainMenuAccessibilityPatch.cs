@@ -26,9 +26,18 @@ namespace RimWorldAccess
             {
                 string tutorialLabel = ("Tutorial".CanTranslate() ? "Tutorial".Translate() : "LearnToPlay".Translate());
                 cachedColumn0.Add(new ListableOption(tutorialLabel, delegate {
-                    // Call the actual InitLearnToPlay method via reflection
-                    var method = AccessTools.Method(typeof(MainMenuDrawer), "InitLearnToPlay");
-                    method.Invoke(null, null);
+                    // Display accessibility message instead of launching tutorial
+                    Find.WindowStack.Add(new Dialog_MessageBox(
+                        "The tutorial is currently not accessible. This will be added soon.",
+                        null, // buttonAText (OK button, default)
+                        null, // buttonAAction (close on OK, default)
+                        null, // buttonBText (no second button)
+                        null, // buttonBAction
+                        null, // title
+                        false, // destructive
+                        null, // acceptAction
+                        null  // cancelAction
+                    ));
                 }));
 
                 cachedColumn0.Add(new ListableOption("NewColony".Translate(), delegate {
