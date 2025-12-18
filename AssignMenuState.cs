@@ -6,9 +6,22 @@ using RimWorld;
 namespace RimWorldAccess
 {
     /// <summary>
+    /// Column types for the assign menu.
+    /// </summary>
+    public enum ColumnType
+    {
+        Outfit,
+        FoodRestrictions,
+        DrugPolicies,
+        AllowedAreas,
+        ReadingPolicies,
+        MedicineCarry,
+        HostilityResponse
+    }
+
+    /// <summary>
     /// Manages the state and navigation for the interactive assign menu.
-    /// Tracks pawns and their assignments across 5 columns:
-    /// Outfit, Food Restrictions, Drug Policies, Allowed Areas, and Reading Policies.
+    /// Tracks pawns and their assignments across multiple columns.
     /// </summary>
     public static class AssignMenuState
     {
@@ -17,7 +30,8 @@ namespace RimWorldAccess
         private static int currentPawnIndex = 0;
         private static List<Pawn> allPawns = new List<Pawn>();
 
-        // Column navigation (0=Outfit, 1=Food, 2=Drugs, 3=Areas, 4=Reading)
+        // Column navigation - uses dynamic column list based on available features
+        private static List<ColumnType> activeColumns = new List<ColumnType>();
         private static int currentColumnIndex = 0;
         private static int selectedOptionIndex = 0;
 
@@ -27,15 +41,19 @@ namespace RimWorldAccess
         private static List<DrugPolicy> drugPolicies = new List<DrugPolicy>();
         private static List<AreaOption> areaOptions = new List<AreaOption>();
         private static List<ReadingPolicy> readingPolicies = new List<ReadingPolicy>();
+        private static List<MedicineCarryOption> medicineCarryOptions = new List<MedicineCarryOption>();
+        private static List<HostilityResponseMode> hostilityOptions = new List<HostilityResponseMode>();
 
         // Column names for announcements
-        private static readonly string[] columnNames = new string[]
+        private static readonly Dictionary<ColumnType, string> columnNames = new Dictionary<ColumnType, string>
         {
-            "Outfit",
-            "Food Restrictions",
-            "Drug Policies",
-            "Allowed Areas",
-            "Reading Policies"
+            { ColumnType.Outfit, "Outfit" },
+            { ColumnType.FoodRestrictions, "Food Restrictions" },
+            { ColumnType.DrugPolicies, "Drug Policies" },
+            { ColumnType.AllowedAreas, "Allowed Areas" },
+            { ColumnType.ReadingPolicies, "Reading Policies" },
+            { ColumnType.MedicineCarry, "Medicine Carry" },
+            { ColumnType.HostilityResponse, "Hostility Response" }
         };
 
         public static bool IsActive => isActive;
@@ -67,8 +85,41 @@ namespace RimWorldAccess
                     currentPawnIndex = 0;
             }
 
+            RebuildActiveColumns();
             LoadAllPolicies();
             UpdateClipboard();
+        }
+
+        /// <summary>
+        /// Rebuilds the list of active columns based on available features for current pawn.
+        /// </summary>
+        private static void RebuildActiveColumns()
+        {
+            activeColumns.Clear();
+
+            // Base columns always available
+            activeColumns.Add(ColumnType.Outfit);
+            activeColumns.Add(ColumnType.FoodRestrictions);
+            activeColumns.Add(ColumnType.DrugPolicies);
+            activeColumns.Add(ColumnType.AllowedAreas);
+
+            // Reading policies only with Ideology DLC
+            if (ModsConfig.IdeologyActive)
+            {
+                activeColumns.Add(ColumnType.ReadingPolicies);
+            }
+
+            // Medicine carry only if pawn has inventoryStock
+            if (currentPawn?.inventoryStock != null)
+            {
+                activeColumns.Add(ColumnType.MedicineCarry);
+            }
+
+            // Hostility response only for humanlike pawns
+            if (currentPawn?.playerSettings != null && currentPawn.RaceProps.Humanlike)
+            {
+                activeColumns.Add(ColumnType.HostilityResponse);
+            }
         }
 
         /// <summary>
@@ -121,6 +172,39 @@ namespace RimWorldAccess
             {
                 readingPolicies = Current.Game.readingPolicyDatabase.AllReadingPolicies.ToList();
             }
+
+            // Load medicine carry options (0 to max medicine count)
+            medicineCarryOptions.Clear();
+            if (currentPawn?.inventoryStock != null && InventoryStockGroupDefOf.Medicine != null)
+            {
+                var medicineGroup = InventoryStockGroupDefOf.Medicine;
+                // Group by medicine type first, then by count
+                foreach (var medicineDef in medicineGroup.thingDefs)
+                {
+                    for (int i = medicineGroup.min; i <= medicineGroup.max; i++)
+                    {
+                        medicineCarryOptions.Add(new MedicineCarryOption
+                        {
+                            Count = i,
+                            MedicineDef = medicineDef,
+                            Label = $"{medicineDef.label} x{i}"
+                        });
+                    }
+                }
+            }
+
+            // Load hostility response options
+            hostilityOptions.Clear();
+            if (currentPawn?.playerSettings != null && currentPawn.RaceProps.Humanlike)
+            {
+                hostilityOptions.Add(HostilityResponseMode.Ignore);
+                // Only add Attack if pawn doesn't have WorkTags.Violent disabled
+                if (!currentPawn.WorkTagIsDisabled(WorkTags.Violent))
+                {
+                    hostilityOptions.Add(HostilityResponseMode.Attack);
+                }
+                hostilityOptions.Add(HostilityResponseMode.Flee);
+            }
         }
 
         /// <summary>
@@ -135,11 +219,14 @@ namespace RimWorldAccess
             currentColumnIndex = 0;
             selectedOptionIndex = 0;
 
+            activeColumns.Clear();
             outfitPolicies.Clear();
             foodPolicies.Clear();
             drugPolicies.Clear();
             areaOptions.Clear();
             readingPolicies.Clear();
+            medicineCarryOptions.Clear();
+            hostilityOptions.Clear();
 
             TolkHelper.Speak("Assign menu closed");
         }
@@ -215,14 +302,14 @@ namespace RimWorldAccess
         /// </summary>
         public static void ApplySelection()
         {
-            if (currentPawn == null)
+            if (currentPawn == null || currentColumnIndex < 0 || currentColumnIndex >= activeColumns.Count)
                 return;
 
             string result = "";
 
-            switch (currentColumnIndex)
+            switch (activeColumns[currentColumnIndex])
             {
-                case 0: // Outfit
+                case ColumnType.Outfit:
                     if (currentPawn.outfits != null && selectedOptionIndex >= 0 && selectedOptionIndex < outfitPolicies.Count)
                     {
                         var policy = outfitPolicies[selectedOptionIndex];
@@ -231,7 +318,7 @@ namespace RimWorldAccess
                     }
                     break;
 
-                case 1: // Food Restrictions
+                case ColumnType.FoodRestrictions:
                     if (currentPawn.foodRestriction != null && selectedOptionIndex >= 0 && selectedOptionIndex < foodPolicies.Count)
                     {
                         var policy = foodPolicies[selectedOptionIndex];
@@ -240,7 +327,7 @@ namespace RimWorldAccess
                     }
                     break;
 
-                case 2: // Drug Policies
+                case ColumnType.DrugPolicies:
                     if (currentPawn.drugs != null && selectedOptionIndex >= 0 && selectedOptionIndex < drugPolicies.Count)
                     {
                         var policy = drugPolicies[selectedOptionIndex];
@@ -249,7 +336,7 @@ namespace RimWorldAccess
                     }
                     break;
 
-                case 3: // Allowed Areas
+                case ColumnType.AllowedAreas:
                     if (currentPawn.playerSettings != null && selectedOptionIndex >= 0 && selectedOptionIndex < areaOptions.Count)
                     {
                         var areaOption = areaOptions[selectedOptionIndex];
@@ -258,13 +345,36 @@ namespace RimWorldAccess
                     }
                     break;
 
-                case 4: // Reading Policies
+                case ColumnType.ReadingPolicies:
                     if (ModsConfig.IdeologyActive && currentPawn.reading != null &&
                         selectedOptionIndex >= 0 && selectedOptionIndex < readingPolicies.Count)
                     {
                         var policy = readingPolicies[selectedOptionIndex];
                         currentPawn.reading.CurrentPolicy = policy;
                         result = $"{currentPawn.LabelShort}: Reading policy set to {policy.label}";
+                    }
+                    break;
+
+                case ColumnType.MedicineCarry:
+                    if (currentPawn.inventoryStock != null && InventoryStockGroupDefOf.Medicine != null &&
+                        selectedOptionIndex >= 0 && selectedOptionIndex < medicineCarryOptions.Count)
+                    {
+                        var option = medicineCarryOptions[selectedOptionIndex];
+                        var medicineGroup = InventoryStockGroupDefOf.Medicine;
+                        currentPawn.inventoryStock.SetCountForGroup(medicineGroup, option.Count);
+                        currentPawn.inventoryStock.SetThingForGroup(medicineGroup, option.MedicineDef);
+                        result = $"{currentPawn.LabelShort}: Medicine carry set to {option.Label}";
+                    }
+                    break;
+
+                case ColumnType.HostilityResponse:
+                    if (currentPawn.playerSettings != null &&
+                        selectedOptionIndex >= 0 && selectedOptionIndex < hostilityOptions.Count)
+                    {
+                        var response = hostilityOptions[selectedOptionIndex];
+                        currentPawn.playerSettings.hostilityResponse = response;
+                        string modeName = HostilityResponseModeUtility.GetLabel(response);
+                        result = $"{currentPawn.LabelShort}: Hostility response set to {modeName}";
                     }
                     break;
             }
@@ -281,9 +391,12 @@ namespace RimWorldAccess
         /// </summary>
         public static void OpenManagementDialog()
         {
-            switch (currentColumnIndex)
+            if (currentColumnIndex < 0 || currentColumnIndex >= activeColumns.Count)
+                return;
+
+            switch (activeColumns[currentColumnIndex])
             {
-                case 0: // Outfit - Open windowless apparel policies manager
+                case ColumnType.Outfit: // Outfit - Open windowless apparel policies manager
                     if (Current.Game?.outfitDatabase != null)
                     {
                         // Pass the current pawn's outfit policy to open that policy for editing
@@ -297,7 +410,7 @@ namespace RimWorldAccess
                     }
                     break;
 
-                case 1: // Food Restrictions - Open windowless food policies manager
+                case ColumnType.FoodRestrictions: // Food Restrictions - Open windowless food policies manager
                     if (Current.Game?.foodRestrictionDatabase != null)
                     {
                         // Pass the current pawn's food policy to open that policy for editing
@@ -311,7 +424,7 @@ namespace RimWorldAccess
                     }
                     break;
 
-                case 2: // Drug Policies - Open windowless drug policies manager
+                case ColumnType.DrugPolicies: // Drug Policies - Open windowless drug policies manager
                     if (Current.Game?.drugPolicyDatabase != null)
                     {
                         // Pass the current pawn's drug policy to open that policy for editing
@@ -325,7 +438,7 @@ namespace RimWorldAccess
                     }
                     break;
 
-                case 3: // Allowed Areas - Open windowless areas manager
+                case ColumnType.AllowedAreas: // Allowed Areas - Open windowless areas manager
                     if (Find.CurrentMap?.areaManager != null)
                     {
                         // Close the assign menu before opening the area manager
@@ -336,7 +449,7 @@ namespace RimWorldAccess
                     }
                     break;
 
-                case 4: // Reading Policies - Open reading policies dialog (Ideology DLC)
+                case ColumnType.ReadingPolicies: // Reading Policies - Open reading policies dialog (Ideology DLC)
                     if (ModsConfig.IdeologyActive && Current.Game?.readingPolicyDatabase != null)
                     {
                         // Pass the current pawn's reading policy to open that policy for editing
@@ -358,8 +471,9 @@ namespace RimWorldAccess
 
             currentPawnIndex = (currentPawnIndex + 1) % allPawns.Count;
             currentPawn = allPawns[currentPawnIndex];
-            selectedOptionIndex = GetCurrentOptionIndex();
+            RebuildActiveColumns();
             LoadAllPolicies();
+            selectedOptionIndex = GetCurrentOptionIndex();
 
             TolkHelper.Speak($"Now editing: {currentPawn.LabelShort} ({currentPawnIndex + 1}/{allPawns.Count})");
         }
@@ -377,19 +491,19 @@ namespace RimWorldAccess
                 currentPawnIndex = allPawns.Count - 1;
 
             currentPawn = allPawns[currentPawnIndex];
-            selectedOptionIndex = GetCurrentOptionIndex();
+            RebuildActiveColumns();
             LoadAllPolicies();
+            selectedOptionIndex = GetCurrentOptionIndex();
 
             TolkHelper.Speak($"Now editing: {currentPawn.LabelShort} ({currentPawnIndex + 1}/{allPawns.Count})");
         }
 
         /// <summary>
-        /// Gets the number of columns available (may be 4 or 5 depending on DLC).
+        /// Gets the number of columns available (may vary depending on DLC and pawn type).
         /// </summary>
         private static int GetTotalColumns()
         {
-            // Reading column only available with Ideology DLC
-            return ModsConfig.IdeologyActive ? 5 : 4;
+            return activeColumns.Count;
         }
 
         /// <summary>
@@ -397,13 +511,18 @@ namespace RimWorldAccess
         /// </summary>
         private static int GetCurrentColumnOptionCount()
         {
-            switch (currentColumnIndex)
+            if (currentColumnIndex < 0 || currentColumnIndex >= activeColumns.Count)
+                return 0;
+
+            switch (activeColumns[currentColumnIndex])
             {
-                case 0: return outfitPolicies.Count;
-                case 1: return foodPolicies.Count;
-                case 2: return drugPolicies.Count;
-                case 3: return areaOptions.Count;
-                case 4: return readingPolicies.Count;
+                case ColumnType.Outfit: return outfitPolicies.Count;
+                case ColumnType.FoodRestrictions: return foodPolicies.Count;
+                case ColumnType.DrugPolicies: return drugPolicies.Count;
+                case ColumnType.AllowedAreas: return areaOptions.Count;
+                case ColumnType.ReadingPolicies: return readingPolicies.Count;
+                case ColumnType.MedicineCarry: return medicineCarryOptions.Count;
+                case ColumnType.HostilityResponse: return hostilityOptions.Count;
                 default: return 0;
             }
         }
@@ -413,33 +532,33 @@ namespace RimWorldAccess
         /// </summary>
         private static int GetCurrentOptionIndex()
         {
-            if (currentPawn == null)
+            if (currentPawn == null || currentColumnIndex < 0 || currentColumnIndex >= activeColumns.Count)
                 return 0;
 
-            switch (currentColumnIndex)
+            switch (activeColumns[currentColumnIndex])
             {
-                case 0: // Outfit
+                case ColumnType.Outfit:
                     if (currentPawn.outfits != null && currentPawn.outfits.CurrentApparelPolicy != null)
                     {
                         return outfitPolicies.IndexOf(currentPawn.outfits.CurrentApparelPolicy);
                     }
                     break;
 
-                case 1: // Food Restrictions
+                case ColumnType.FoodRestrictions:
                     if (currentPawn.foodRestriction != null && currentPawn.foodRestriction.CurrentFoodPolicy != null)
                     {
                         return foodPolicies.IndexOf(currentPawn.foodRestriction.CurrentFoodPolicy);
                     }
                     break;
 
-                case 2: // Drug Policies
+                case ColumnType.DrugPolicies:
                     if (currentPawn.drugs != null && currentPawn.drugs.CurrentPolicy != null)
                     {
                         return drugPolicies.IndexOf(currentPawn.drugs.CurrentPolicy);
                     }
                     break;
 
-                case 3: // Allowed Areas
+                case ColumnType.AllowedAreas:
                     if (currentPawn.playerSettings != null)
                     {
                         var currentArea = currentPawn.playerSettings.AreaRestrictionInPawnCurrentMap;
@@ -448,10 +567,31 @@ namespace RimWorldAccess
                     }
                     break;
 
-                case 4: // Reading Policies
+                case ColumnType.ReadingPolicies:
                     if (ModsConfig.IdeologyActive && currentPawn.reading != null && currentPawn.reading.CurrentPolicy != null)
                     {
                         return readingPolicies.IndexOf(currentPawn.reading.CurrentPolicy);
+                    }
+                    break;
+
+                case ColumnType.MedicineCarry:
+                    if (currentPawn.inventoryStock != null && InventoryStockGroupDefOf.Medicine != null)
+                    {
+                        var medicineGroup = InventoryStockGroupDefOf.Medicine;
+                        int currentCount = currentPawn.inventoryStock.GetDesiredCountForGroup(medicineGroup);
+                        ThingDef currentMedicine = currentPawn.inventoryStock.GetDesiredThingForGroup(medicineGroup);
+
+                        // Find the option that matches current count and medicine type
+                        int index = medicineCarryOptions.FindIndex(o =>
+                            o.Count == currentCount && o.MedicineDef == currentMedicine);
+                        return index >= 0 ? index : 0;
+                    }
+                    break;
+
+                case ColumnType.HostilityResponse:
+                    if (currentPawn.playerSettings != null)
+                    {
+                        return hostilityOptions.IndexOf(currentPawn.playerSettings.hostilityResponse);
                     }
                     break;
             }
@@ -470,7 +610,14 @@ namespace RimWorldAccess
                 return;
             }
 
-            string columnName = columnNames[currentColumnIndex];
+            if (currentColumnIndex < 0 || currentColumnIndex >= activeColumns.Count)
+            {
+                TolkHelper.Speak("Invalid column");
+                return;
+            }
+
+            ColumnType currentColumn = activeColumns[currentColumnIndex];
+            string columnName = columnNames[currentColumn];
             string optionName = GetCurrentOptionName();
             int optionCount = GetCurrentColumnOptionCount();
 
@@ -483,34 +630,44 @@ namespace RimWorldAccess
         /// </summary>
         private static string GetCurrentOptionName()
         {
-            if (selectedOptionIndex < 0)
+            if (selectedOptionIndex < 0 || currentColumnIndex < 0 || currentColumnIndex >= activeColumns.Count)
                 return "None";
 
-            switch (currentColumnIndex)
+            switch (activeColumns[currentColumnIndex])
             {
-                case 0: // Outfit
+                case ColumnType.Outfit:
                     if (selectedOptionIndex < outfitPolicies.Count)
                         return outfitPolicies[selectedOptionIndex].label;
                     break;
 
-                case 1: // Food Restrictions
+                case ColumnType.FoodRestrictions:
                     if (selectedOptionIndex < foodPolicies.Count)
                         return foodPolicies[selectedOptionIndex].label;
                     break;
 
-                case 2: // Drug Policies
+                case ColumnType.DrugPolicies:
                     if (selectedOptionIndex < drugPolicies.Count)
                         return drugPolicies[selectedOptionIndex].label;
                     break;
 
-                case 3: // Allowed Areas
+                case ColumnType.AllowedAreas:
                     if (selectedOptionIndex < areaOptions.Count)
                         return areaOptions[selectedOptionIndex].Label;
                     break;
 
-                case 4: // Reading Policies
+                case ColumnType.ReadingPolicies:
                     if (selectedOptionIndex < readingPolicies.Count)
                         return readingPolicies[selectedOptionIndex].label;
+                    break;
+
+                case ColumnType.MedicineCarry:
+                    if (selectedOptionIndex < medicineCarryOptions.Count)
+                        return medicineCarryOptions[selectedOptionIndex].Label;
+                    break;
+
+                case ColumnType.HostilityResponse:
+                    if (selectedOptionIndex < hostilityOptions.Count)
+                        return HostilityResponseModeUtility.GetLabel(hostilityOptions[selectedOptionIndex]);
                     break;
             }
 
@@ -524,6 +681,16 @@ namespace RimWorldAccess
         {
             public string Label { get; set; }
             public Area Area { get; set; }
+        }
+
+        /// <summary>
+        /// Represents a medicine carry option (medicine type and count).
+        /// </summary>
+        public class MedicineCarryOption
+        {
+            public int Count { get; set; }
+            public ThingDef MedicineDef { get; set; }
+            public string Label { get; set; }
         }
     }
 }
