@@ -31,36 +31,27 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Check if map navigation is initialized
-            if (!MapNavigationState.IsInitialized)
+            // Try pawn at cursor first
+            Pawn pawnAtCursor = null;
+            if (MapNavigationState.IsInitialized)
             {
-                TolkHelper.Speak("Map navigation not initialized");
-                return;
+                IntVec3 cursorPosition = MapNavigationState.CurrentCursorPosition;
+                if (cursorPosition.IsValid && cursorPosition.InBounds(Find.CurrentMap))
+                {
+                    pawnAtCursor = Find.CurrentMap.thingGrid.ThingsListAt(cursorPosition)
+                        .OfType<Pawn>().FirstOrDefault();
+                }
             }
 
-            // Get the cursor position
-            IntVec3 cursorPosition = MapNavigationState.CurrentCursorPosition;
+            // Fall back to selected pawn
+            if (pawnAtCursor == null)
+                pawnAtCursor = Find.Selector?.FirstSelectedObject as Pawn;
 
-            // Validate cursor position
-            if (!cursorPosition.IsValid || !cursorPosition.InBounds(Find.CurrentMap))
+            if (pawnAtCursor == null)
             {
-                TolkHelper.Speak("Invalid cursor position");
+                TolkHelper.Speak("No pawn selected");
                 return;
             }
-
-            // Get all pawns at the cursor position
-            var pawnsAtPosition = Find.CurrentMap.thingGrid.ThingsListAt(cursorPosition)
-                .OfType<Pawn>()
-                .ToList();
-
-            if (pawnsAtPosition.Count == 0)
-            {
-                TolkHelper.Speak("No pawn at cursor position");
-                return;
-            }
-
-            // Get the first pawn at the position
-            Pawn pawnAtCursor = pawnsAtPosition.First();
 
             // Get needs information using PawnInfoHelper
             string needsInfo = PawnInfoHelper.GetNeedsInfo(pawnAtCursor);
