@@ -21,6 +21,12 @@ namespace RimWorldAccess
         public static bool IsEditingTextField => editingElement != null;
 
         /// <summary>
+        /// Tracks whether the current intercepted dialog has forcePause set.
+        /// Used by WindowsForcePausePatch to maintain game pause behavior.
+        /// </summary>
+        public static bool ShouldForcePause { get; private set; }
+
+        /// <summary>
         /// Opens a windowless version of the given dialog.
         /// </summary>
         public static void Open(Window dialog)
@@ -40,6 +46,11 @@ namespace RimWorldAccess
             CloseActiveMenus();
 
             currentDialog = dialog;
+
+            // Track if this dialog should force pause - used by WindowsForcePausePatch
+            // to prevent game systems from thinking no modal dialog is open
+            ShouldForcePause = dialog.forcePause;
+
             elements = DialogElementExtractor.ExtractElements(dialog);
             selectedIndex = 0;
             editingElement = null;
@@ -93,6 +104,7 @@ namespace RimWorldAccess
             elements.Clear();
             selectedIndex = 0;
             editingElement = null;
+            ShouldForcePause = false;
         }
 
         /// <summary>

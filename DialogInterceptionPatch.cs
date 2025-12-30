@@ -169,4 +169,27 @@ namespace RimWorldAccess
             GUI.color = prevColor;
         }
     }
+
+    /// <summary>
+    /// Patches WindowStack.WindowsForcePause to account for windowless dialogs.
+    /// This fixes a bug where the game would repeatedly try to open automatic letters
+    /// because it didn't know a forcePause dialog was active (since we intercept and
+    /// don't add them to the window stack).
+    /// </summary>
+    [HarmonyPatch(typeof(WindowStack))]
+    [HarmonyPatch("WindowsForcePause", MethodType.Getter)]
+    public static class WindowsForcePausePatch
+    {
+        [HarmonyPostfix]
+        public static void Postfix(ref bool __result)
+        {
+            // If our windowless dialog system has an active forcePause dialog,
+            // report that the windows force pause even though the dialog isn't
+            // in the actual window stack
+            if (WindowlessDialogState.ShouldForcePause)
+            {
+                __result = true;
+            }
+        }
+    }
 }
