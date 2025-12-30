@@ -103,16 +103,22 @@ namespace RimWorldAccess
             menuItems.Add(new MenuItem(MenuItemType.ClearAll, "Clear All", null));
             menuItems.Add(new MenuItem(MenuItemType.AllowAll, "Allow All", null));
 
-            // Hit points range (if configurable)
-            if (currentSettings.filter.allowedHitPointsConfigurable)
+            // Get the parent filter to determine what categories are configurable
+            // This mirrors how ThingFilterUI.DoThingFilterConfigWindow works
+            ThingFilter parentFilter = currentSettings.owner?.GetParentStoreSettings()?.filter;
+
+            // Hit points range (use parent filter's configurability if available)
+            bool hpConfigurable = parentFilter?.allowedHitPointsConfigurable ?? currentSettings.filter.allowedHitPointsConfigurable;
+            if (hpConfigurable)
             {
                 FloatRange hpRange = currentSettings.filter.AllowedHitPointsPercents;
                 string hpLabel = $"Hit Points: {hpRange.min:P0} - {hpRange.max:P0}";
                 menuItems.Add(new MenuItem(MenuItemType.HitPointsRange, hpLabel, hpRange));
             }
 
-            // Quality range (if configurable)
-            if (currentSettings.filter.allowedQualitiesConfigurable)
+            // Quality range (use parent filter's configurability if available)
+            bool qualityConfigurable = parentFilter?.allowedQualitiesConfigurable ?? currentSettings.filter.allowedQualitiesConfigurable;
+            if (qualityConfigurable)
             {
                 QualityRange qualityRange = currentSettings.filter.AllowedQualityLevels;
                 string qualityLabel = $"Quality: {qualityRange.min} - {qualityRange.max}";
@@ -120,7 +126,18 @@ namespace RimWorldAccess
             }
 
             // Thing filter tree
-            TreeNode_ThingCategory rootNode = currentSettings.filter.DisplayRootCategory;
+            // Use the parent filter's DisplayRootCategory if available (stable, doesn't change based on current filter)
+            // Otherwise fall back to the filter's own RootNode
+            TreeNode_ThingCategory rootNode;
+            if (parentFilter != null)
+            {
+                rootNode = parentFilter.DisplayRootCategory;
+            }
+            else
+            {
+                // No parent filter - use the filter's RootNode (not DisplayRootCategory which changes based on allowed items)
+                rootNode = currentSettings.filter.RootNode ?? ThingCategoryNodeDatabase.RootNode;
+            }
             BuildCategoryItems(rootNode, 0, null, isRoot: true);
         }
 
@@ -269,7 +286,7 @@ namespace RimWorldAccess
                     break;
 
                 case MenuItemType.Category:
-                    // Only collapse if expanded
+                    // If expanded, collapse it
                     if (item.isExpanded)
                     {
                         TreeNode_ThingCategory node = item.data as TreeNode_ThingCategory;
@@ -282,12 +299,17 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak($"{item.label} (already collapsed)");
+                        // If not expanded, navigate to parent category
+                        NavigateToParent();
                     }
                     break;
 
                 case MenuItemType.ThingDef:
                 case MenuItemType.SpecialFilter:
+                    // Navigate to parent category
+                    NavigateToParent();
+                    break;
+
                 case MenuItemType.HitPointsRange:
                 case MenuItemType.QualityRange:
                 case MenuItemType.ClearAll:
@@ -295,6 +317,62 @@ namespace RimWorldAccess
                     // Left arrow doesn't apply to these types
                     TolkHelper.Speak("Press Enter to select");
                     break;
+            }
+        }
+
+        /// <summary>
+        /// Navigates to the parent category of the current item.
+        /// If the current item has a parent, collapses the parent and selects it.
+        /// </summary>
+        private static void NavigateToParent()
+        {
+            if (menuItems == null || selectedIndex >= menuItems.Count)
+                return;
+
+            MenuItem item = menuItems[selectedIndex];
+
+            // Check if this item has a parent
+            if (item.parent == null)
+            {
+                TolkHelper.Speak("At top level");
+                return;
+            }
+
+            // Find the parent in the menu items list
+            MenuItem parent = item.parent;
+
+            // The parent should be a category - collapse it
+            if (parent.type == MenuItemType.Category)
+            {
+                TreeNode_ThingCategory node = parent.data as TreeNode_ThingCategory;
+                if (node != null)
+                {
+                    // Collapse the parent category
+                    expandedCategories.Remove(node.catDef.defName);
+
+                    // Remember the parent's label to find it after rebuild
+                    string parentLabel = parent.label;
+                    MenuItemType parentType = parent.type;
+
+                    // Rebuild menu
+                    RebuildMenu();
+
+                    // Find and select the parent
+                    for (int i = 0; i < menuItems.Count; i++)
+                    {
+                        if (menuItems[i].label == parentLabel && menuItems[i].type == parentType)
+                        {
+                            selectedIndex = i;
+                            break;
+                        }
+                    }
+
+                    AnnounceCurrentSelection();
+                }
+            }
+            else
+            {
+                TolkHelper.Speak("At top level");
             }
         }
 
