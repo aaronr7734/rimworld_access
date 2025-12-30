@@ -11,6 +11,8 @@ namespace RimWorldAccess
     public static class MainMenuAccessibilityPatch
     {
         private static bool initialized = false;
+        private static bool announcedMainMenu = false;
+        private static ProgramState lastAnnouncedState = ProgramState.Entry;
         private static List<ListableOption> cachedColumn0 = new List<ListableOption>();
         private static List<ListableOption> cachedColumn1 = new List<ListableOption>();
 
@@ -188,6 +190,20 @@ namespace RimWorldAccess
                 else
                 {
                     MenuNavigationState.Initialize(cachedColumn0, cachedColumn1);
+                }
+
+                // Announce main menu when first appearing or when returning from a game
+                if (Current.ProgramState == ProgramState.Entry && (!announcedMainMenu || lastAnnouncedState != ProgramState.Entry))
+                {
+                    announcedMainMenu = true;
+                    lastAnnouncedState = ProgramState.Entry;
+                    TolkHelper.Speak("Main menu", SpeechPriority.Normal);
+                }
+                else if (Current.ProgramState == ProgramState.Playing)
+                {
+                    // Reset announcement flag when in-game so it triggers again on return
+                    announcedMainMenu = false;
+                    lastAnnouncedState = ProgramState.Playing;
                 }
             }
 

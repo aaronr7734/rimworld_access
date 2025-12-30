@@ -17,11 +17,6 @@ namespace RimWorldAccess
             try
             {
                 TolkHelper.Initialize();
-
-                if (TolkHelper.IsActive())
-                {
-                    TolkHelper.Speak("RimWorld Access mod loaded", SpeechPriority.Normal);
-                }
             }
             catch (System.Exception ex)
             {
