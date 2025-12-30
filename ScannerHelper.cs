@@ -11,12 +11,17 @@ namespace RimWorldAccess
         public Thing Thing { get; set; }
         public List<Thing> BulkThings { get; set; } // For grouped items of the same type
         public List<IntVec3> BulkTerrainPositions { get; set; } // For grouped terrain tiles
+        public Designation Designation { get; set; } // For designation items
+        public List<Designation> BulkDesignations { get; set; } // For grouped designations of the same type
         public float Distance { get; set; }
         public string Label { get; set; }
         public IntVec3 Position { get; set; }
         public bool IsTerrain { get; set; } // True if this represents terrain instead of a Thing
-        public int BulkCount => BulkThings?.Count ?? (BulkTerrainPositions?.Count ?? 1);
-        public bool IsBulkGroup => (BulkThings != null && BulkThings.Count > 1) || (BulkTerrainPositions != null && BulkTerrainPositions.Count > 1);
+        public bool IsDesignation => Designation != null; // True if this represents a designation
+        public int BulkCount => BulkThings?.Count ?? (BulkTerrainPositions?.Count ?? (BulkDesignations?.Count ?? 1));
+        public bool IsBulkGroup => (BulkThings != null && BulkThings.Count > 1) ||
+                                   (BulkTerrainPositions != null && BulkTerrainPositions.Count > 1) ||
+                                   (BulkDesignations != null && BulkDesignations.Count > 1);
 
         public ScannerItem(Thing thing, IntVec3 cursorPosition)
         {
@@ -81,6 +86,65 @@ namespace RimWorldAccess
             Distance = (positions[0] - cursorPosition).LengthHorizontal;
             Label = label;
             IsTerrain = true;
+        }
+
+        // Constructor for designation items
+        public ScannerItem(Designation designation, IntVec3 cursorPosition)
+        {
+            Designation = designation;
+            Position = designation.target.Cell;
+            Distance = (Position - cursorPosition).LengthHorizontal;
+            IsTerrain = false;
+            Thing = designation.target.HasThing ? designation.target.Thing : null;
+
+            // Get localized label from the Designator
+            string defLabel = ScannerHelper.GetLocalizedDesignationLabel(designation.def);
+
+            if (designation.target.HasThing && designation.target.Thing != null)
+            {
+                Label = $"{designation.target.Thing.LabelShort} ({defLabel})";
+            }
+            else
+            {
+                // For cell-based designations (mine, smooth floor, etc.), get terrain or building label
+                var map = Find.CurrentMap;
+                if (map != null)
+                {
+                    var edifice = Position.GetEdifice(map);
+                    if (edifice != null)
+                    {
+                        Label = $"{edifice.LabelShort} ({defLabel})";
+                    }
+                    else
+                    {
+                        var terrain = Position.GetTerrain(map);
+                        Label = terrain != null
+                            ? $"{terrain.LabelCap} ({defLabel})"
+                            : defLabel;
+                    }
+                }
+                else
+                {
+                    Label = defLabel;
+                }
+            }
+        }
+
+        // Constructor for grouped designations (same type)
+        public ScannerItem(List<Designation> designations, IntVec3 cursorPosition)
+        {
+            if (designations == null || designations.Count == 0)
+                throw new ArgumentException("Designation group must contain at least one designation");
+
+            BulkDesignations = designations;
+            Designation = designations[0]; // Primary designation (closest)
+            Position = Designation.target.Cell;
+            Distance = (Position - cursorPosition).LengthHorizontal;
+            IsTerrain = false;
+            Thing = Designation.target.HasThing ? Designation.target.Thing : null;
+
+            // Get localized label from the Designator
+            Label = ScannerHelper.GetLocalizedDesignationLabel(Designation.def);
         }
 
         public string GetDirectionFrom(IntVec3 fromPosition)
@@ -233,6 +297,33 @@ namespace RimWorldAccess
             mineableCategory.Subcategories.Add(mineableStoneSubcat);
             mineableCategory.Subcategories.Add(mineableChunksSubcat);
 
+            // Orders category with subcategories for each designation type
+            var ordersCategory = new ScannerCategory("Orders");
+            var ordersConstructionSubcat = new ScannerSubcategory("Orders-Construction");
+            var ordersHaulSubcat = new ScannerSubcategory("Orders-Haul");
+            var ordersHuntSubcat = new ScannerSubcategory("Orders-Hunt");
+            var ordersMineSubcat = new ScannerSubcategory("Orders-Mine");
+            var ordersDeconstructSubcat = new ScannerSubcategory("Orders-Deconstruct");
+            var ordersUninstallSubcat = new ScannerSubcategory("Orders-Uninstall");
+            var ordersCutSubcat = new ScannerSubcategory("Orders-Cut");
+            var ordersHarvestSubcat = new ScannerSubcategory("Orders-Harvest");
+            var ordersSmoothSubcat = new ScannerSubcategory("Orders-Smooth");
+            var ordersTameSubcat = new ScannerSubcategory("Orders-Tame");
+            var ordersSlaughterSubcat = new ScannerSubcategory("Orders-Slaughter");
+            var ordersOtherSubcat = new ScannerSubcategory("Orders-Other");
+            ordersCategory.Subcategories.Add(ordersConstructionSubcat);
+            ordersCategory.Subcategories.Add(ordersHaulSubcat);
+            ordersCategory.Subcategories.Add(ordersHuntSubcat);
+            ordersCategory.Subcategories.Add(ordersMineSubcat);
+            ordersCategory.Subcategories.Add(ordersDeconstructSubcat);
+            ordersCategory.Subcategories.Add(ordersUninstallSubcat);
+            ordersCategory.Subcategories.Add(ordersCutSubcat);
+            ordersCategory.Subcategories.Add(ordersHarvestSubcat);
+            ordersCategory.Subcategories.Add(ordersSmoothSubcat);
+            ordersCategory.Subcategories.Add(ordersTameSubcat);
+            ordersCategory.Subcategories.Add(ordersSlaughterSubcat);
+            ordersCategory.Subcategories.Add(ordersOtherSubcat);
+
             // Collect all things from the map
             var allThings = map.listerThings.AllThings;
             var playerFaction = Faction.OfPlayer;
@@ -336,6 +427,11 @@ namespace RimWorldAccess
                             debrisSubcat.Items.Add(item);
                         }
                     }
+                }
+                else if (thing is Blueprint || thing is Frame)
+                {
+                    // Blueprints and frames (construction projects) go to Orders-Construction
+                    ordersConstructionSubcat.Items.Add(item);
                 }
                 else if (thing is Building building)
                 {
@@ -478,10 +574,77 @@ namespace RimWorldAccess
                 }
             }
 
+            // Collect all designations/orders
+            var allDesignations = map.designationManager.AllDesignations;
+            foreach (var designation in allDesignations)
+            {
+                // Skip designations without valid targets
+                if (designation == null || designation.def == null)
+                    continue;
+
+                // Skip if target cell is invalid or fogged
+                IntVec3 targetCell = designation.target.Cell;
+                if (!targetCell.IsValid || fogGrid.IsFogged(targetCell))
+                    continue;
+
+                // Skip if thing target is not spawned
+                if (designation.target.HasThing && !designation.target.Thing.Spawned)
+                    continue;
+
+                var item = new ScannerItem(designation, cursorPosition);
+
+                // Categorize by designation type
+                if (designation.def == DesignationDefOf.Haul)
+                {
+                    ordersHaulSubcat.Items.Add(item);
+                }
+                else if (designation.def == DesignationDefOf.Hunt)
+                {
+                    ordersHuntSubcat.Items.Add(item);
+                }
+                else if (designation.def == DesignationDefOf.Mine || designation.def == DesignationDefOf.MineVein)
+                {
+                    ordersMineSubcat.Items.Add(item);
+                }
+                else if (designation.def == DesignationDefOf.Deconstruct)
+                {
+                    ordersDeconstructSubcat.Items.Add(item);
+                }
+                else if (designation.def == DesignationDefOf.Uninstall)
+                {
+                    ordersUninstallSubcat.Items.Add(item);
+                }
+                else if (designation.def == DesignationDefOf.CutPlant || designation.def == DesignationDefOf.ExtractTree)
+                {
+                    ordersCutSubcat.Items.Add(item);
+                }
+                else if (designation.def == DesignationDefOf.HarvestPlant)
+                {
+                    ordersHarvestSubcat.Items.Add(item);
+                }
+                else if (designation.def == DesignationDefOf.SmoothFloor || designation.def == DesignationDefOf.SmoothWall)
+                {
+                    ordersSmoothSubcat.Items.Add(item);
+                }
+                else if (designation.def == DesignationDefOf.Tame)
+                {
+                    ordersTameSubcat.Items.Add(item);
+                }
+                else if (designation.def == DesignationDefOf.Slaughter)
+                {
+                    ordersSlaughterSubcat.Items.Add(item);
+                }
+                else
+                {
+                    // All other designations (Strip, Open, Flick, RemoveFloor, etc.)
+                    ordersOtherSubcat.Items.Add(item);
+                }
+            }
+
             // Group identical items and sort all subcategories by distance
             foreach (var category in new[] { pawnsCategory, tameAnimalsCategory, wildAnimalsCategory,
                                              hazardsCategory, buildingsCategory, treesCategory, plantsCategory,
-                                             itemsCategory, terrainCategory, mineableCategory })
+                                             itemsCategory, terrainCategory, mineableCategory, ordersCategory })
             {
                 foreach (var subcat in category.Subcategories)
                 {
@@ -504,6 +667,7 @@ namespace RimWorldAccess
             categories.Add(itemsCategory);
             categories.Add(terrainCategory);
             categories.Add(mineableCategory);
+            categories.Add(ordersCategory);
 
             // Remove empty categories
             categories.RemoveAll(c => c.IsEmpty);
@@ -581,12 +745,14 @@ namespace RimWorldAccess
         /// Groups identical items together (same def, quality, stuff).
         /// Pawns are never grouped - they're unique individuals.
         /// Terrain tiles are grouped by label (e.g., all "granite flagstone" tiles together).
+        /// Designations are grouped by designation type.
         /// </summary>
         private static List<ScannerItem> GroupIdenticalItems(List<ScannerItem> items, IntVec3 cursorPosition)
         {
             var grouped = new List<ScannerItem>();
             var processedThings = new HashSet<Thing>();
             var processedPositions = new HashSet<IntVec3>(); // For terrain items
+            var processedDesignations = new HashSet<Designation>(); // For designation items
 
             foreach (var item in items)
             {
@@ -619,6 +785,43 @@ namespace RimWorldAccess
                         // Sort by distance for the bulk group
                         identicalPositions = identicalPositions.OrderBy(p => (p - cursorPosition).LengthHorizontal).ToList();
                         grouped.Add(new ScannerItem(identicalPositions, item.Label, cursorPosition));
+                    }
+                    else
+                    {
+                        grouped.Add(item);
+                    }
+                    continue;
+                }
+
+                // Group designation items by designation def (type)
+                if (item.IsDesignation)
+                {
+                    // Skip if we already processed this designation
+                    if (processedDesignations.Contains(item.Designation))
+                        continue;
+
+                    // Find all designations with the same def (type)
+                    var identicalDesignations = new List<Designation> { item.Designation };
+                    processedDesignations.Add(item.Designation);
+
+                    foreach (var otherItem in items)
+                    {
+                        if (!otherItem.IsDesignation || processedDesignations.Contains(otherItem.Designation))
+                            continue;
+
+                        if (otherItem.Designation.def == item.Designation.def)
+                        {
+                            identicalDesignations.Add(otherItem.Designation);
+                            processedDesignations.Add(otherItem.Designation);
+                        }
+                    }
+
+                    // Create grouped designation item if multiple found, otherwise add single item
+                    if (identicalDesignations.Count > 1)
+                    {
+                        // Sort by distance for the bulk group
+                        identicalDesignations = identicalDesignations.OrderBy(d => (d.target.Cell - cursorPosition).LengthHorizontal).ToList();
+                        grouped.Add(new ScannerItem(identicalDesignations, cursorPosition));
                     }
                     else
                     {
@@ -717,6 +920,46 @@ namespace RimWorldAccess
 
             // HP is now ignored - damaged trees, walls, etc. are grouped together
             return true;
+        }
+
+        /// <summary>
+        /// Gets the localized label for a DesignationDef by finding its Designator.
+        /// </summary>
+        public static string GetLocalizedDesignationLabel(DesignationDef def)
+        {
+            if (def == null)
+                return "Unknown";
+
+            // Try to find the Designator that uses this DesignationDef
+            var designators = Find.ReverseDesignatorDatabase?.AllDesignators;
+            if (designators != null)
+            {
+                foreach (var designator in designators)
+                {
+                    // Use reflection to get the protected Designation property
+                    var designationProp = designator.GetType().GetProperty("Designation",
+                        System.Reflection.BindingFlags.Instance |
+                        System.Reflection.BindingFlags.NonPublic |
+                        System.Reflection.BindingFlags.Public);
+
+                    if (designationProp != null)
+                    {
+                        var designatorDef = designationProp.GetValue(designator) as DesignationDef;
+                        if (designatorDef == def)
+                        {
+                            return designator.Label;
+                        }
+                    }
+                }
+            }
+
+            // Fallback: use LabelCap if available, otherwise format defName
+            string label = def.LabelCap;
+            if (string.IsNullOrEmpty(label))
+            {
+                label = GenText.SplitCamelCase(def.defName);
+            }
+            return label;
         }
     }
 }

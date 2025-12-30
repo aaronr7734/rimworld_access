@@ -253,18 +253,21 @@ The mod supports two approaches for audio feedback:
   6. **Plants** - Subcategories: Harvestable Plants, Debris (grass, etc.)
   7. **Items** - Subcategories: All Items, Forbidden Items
   8. **Mineable Tiles** - Rock tiles with ore deposits
+  9. **Orders** - Subcategories: Construction (blueprints and frames), Haul, Hunt, Mine, Deconstruct, Uninstall, Cut, Harvest, Smooth, Tame, Slaughter, Other
 - **Behavior**:
   - Scanner keys work alongside map navigation (no modal state)
   - Item list refreshes automatically on each navigation action
   - Navigation position persists across keystrokes
   - Items sorted by distance within each subcategory (closest first)
   - Auto-skips empty categories/subcategories
+  - **Order display at cursor**: When moving the map cursor, any active orders/designations at that tile are automatically announced (e.g., "Steel (Haul), granite (Mine)")
   - **Item announcements**:
     - Single items: "{label} - {distance} tiles"
     - Bulk groups: "{label} - {distance} tiles, {count} of {count}" (e.g., "Steel - 5.2 tiles, 15 of 15")
     - Within bulk group: "{label} - {distance} tiles, {position} of {count}" (e.g., "Steel - 5.2 tiles, 3 of 15")
   - Direction calculation uses 8-direction compass (N, NE, E, SE, S, SW, W, NW)
   - **Bulk grouping**: Identical items are grouped by def, quality, material, and HP (within 10%)
+  - **Order grouping**: Designations are grouped by type (e.g., all Haul orders grouped together)
 
 ### Quest Menu System
 

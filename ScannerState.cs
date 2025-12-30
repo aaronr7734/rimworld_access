@@ -378,6 +378,18 @@ namespace RimWorldAccess
                     targetPosition = currentItem.Position;
                 }
             }
+            else if (currentItem.IsDesignation)
+            {
+                // For designations, check if we're navigating bulk designations
+                if (currentItem.BulkDesignations != null && currentBulkIndex < currentItem.BulkDesignations.Count)
+                {
+                    targetPosition = currentItem.BulkDesignations[currentBulkIndex].target.Cell;
+                }
+                else
+                {
+                    targetPosition = currentItem.Position;
+                }
+            }
             else
             {
                 // Get the actual thing to jump to (considering bulk index)
@@ -621,6 +633,33 @@ namespace RimWorldAccess
             {
                 var terrainPosition = currentBulkIndex + 1;
                 TolkHelper.Speak($"{item.Label} - {terrainPosition} of {item.BulkCount}", SpeechPriority.Normal);
+                return;
+            }
+
+            // For designation bulk groups
+            if (item.IsDesignation)
+            {
+                if (item.BulkDesignations == null || currentBulkIndex >= item.BulkDesignations.Count)
+                    return;
+
+                var targetDesignation = item.BulkDesignations[currentBulkIndex];
+                var desCursorPos = MapNavigationState.CurrentCursorPosition;
+                var desDistance = (targetDesignation.target.Cell - desCursorPos).LengthHorizontal;
+                var desPosition = currentBulkIndex + 1;
+
+                // Build label from the specific designation target
+                string designationLabel;
+                if (targetDesignation.target.HasThing && targetDesignation.target.Thing != null)
+                {
+                    designationLabel = targetDesignation.target.Thing.LabelShort;
+                }
+                else
+                {
+                    // For cell-based designations, use the main item label
+                    designationLabel = item.Label;
+                }
+
+                TolkHelper.Speak($"{designationLabel} - {desDistance:F1} tiles, {desPosition} of {item.BulkCount}", SpeechPriority.Normal);
                 return;
             }
 
