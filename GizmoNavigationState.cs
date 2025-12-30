@@ -16,6 +16,7 @@ namespace RimWorldAccess
         private static int selectedGizmoIndex = 0;
         private static List<Gizmo> availableGizmos = new List<Gizmo>();
         private static Dictionary<Gizmo, ISelectable> gizmoOwners = new Dictionary<Gizmo, ISelectable>();
+        private static ISelectable lastAnnouncedOwner = null;
         private static bool pawnJustSelected = false;
 
         /// <summary>
@@ -157,15 +158,9 @@ namespace RimWorldAccess
             // Start at the first gizmo
             selectedGizmoIndex = 0;
             isActive = true;
+            lastAnnouncedOwner = null;
 
-            // Announce what we're looking at and the first gizmo
-            string objectNames = string.Join(", ", thingsAtPosition.Select(t => t.LabelShort).Take(3));
-            if (thingsAtPosition.Count > 3)
-                objectNames += $" and {thingsAtPosition.Count - 3} more";
-
-            TolkHelper.Speak($"Gizmos for: {objectNames}");
-
-            // Announce the first gizmo
+            // Announce the first gizmo (will include object name as prefix)
             AnnounceCurrentGizmo();
         }
 
@@ -178,6 +173,7 @@ namespace RimWorldAccess
             selectedGizmoIndex = 0;
             availableGizmos.Clear();
             gizmoOwners.Clear();
+            lastAnnouncedOwner = null;
         }
 
         /// <summary>
@@ -369,8 +365,25 @@ namespace RimWorldAccess
             string label = GetGizmoLabel(gizmo);
             string description = GetGizmoDescription(gizmo);
             string hotkey = GetGizmoHotkey(gizmo);
+            string statusValue = GetGizmoStatusValue(gizmo);
 
-            string announcement = $"{selectedGizmoIndex + 1}/{availableGizmos.Count}: {label}";
+            // Add owner prefix when navigating gizmos from multiple objects
+            string ownerPrefix = "";
+            if (gizmoOwners.Count > 0 && gizmoOwners.TryGetValue(gizmo, out ISelectable owner))
+            {
+                if (owner != lastAnnouncedOwner)
+                {
+                    lastAnnouncedOwner = owner;
+                    if (owner is Thing thing)
+                        ownerPrefix = thing.LabelCap.StripTags() + ": ";
+                }
+            }
+
+            string announcement = ownerPrefix + label;
+
+            // Add status value for non-Command gizmos (progress bars, etc.)
+            if (!string.IsNullOrEmpty(statusValue))
+                announcement += $" - {statusValue}";
 
             if (!string.IsNullOrEmpty(description))
                 announcement += $": {description}";
@@ -412,7 +425,540 @@ namespace RimWorldAccess
                     label = "Unknown Command";
                 return label;
             }
-            return "Unknown";
+
+            // Handle non-Command gizmos (status displays, bars, etc.)
+            return GetNonCommandGizmoLabel(gizmo);
+        }
+
+        /// <summary>
+        /// Gets a descriptive label for non-Command gizmos (status displays, bars, etc.)
+        /// These gizmos don't have a standard Label property, so we identify them by type.
+        /// </summary>
+        private static string GetNonCommandGizmoLabel(Gizmo gizmo)
+        {
+            string typeName = gizmo.GetType().Name;
+
+            // Gizmo_Slider and subclasses have a Title property
+            if (gizmo is Verse.Gizmo_Slider slider)
+            {
+                try
+                {
+                    // Title is a protected abstract property, access via reflection
+                    var titleProp = gizmo.GetType().GetProperty("Title",
+                        System.Reflection.BindingFlags.Instance |
+                        System.Reflection.BindingFlags.NonPublic |
+                        System.Reflection.BindingFlags.Public);
+                    if (titleProp != null)
+                    {
+                        string title = titleProp.GetValue(gizmo) as string;
+                        if (!string.IsNullOrEmpty(title))
+                            return title;
+                    }
+                }
+                catch { }
+            }
+
+            // Handle specific known gizmo types by name
+            switch (typeName)
+            {
+                case "Gizmo_EnergyShieldStatus":
+                    return GetEnergyShieldLabel(gizmo);
+
+                case "PsychicEntropyGizmo":
+                    return "Psychic Entropy and Psyfocus";
+
+                case "MechanitorBandwidthGizmo":
+                    return "Mechanitor Bandwidth";
+
+                case "Gizmo_GrowthTier":
+                    return GetGrowthTierLabel(gizmo);
+
+                case "Gizmo_RoomStats":
+                    return GetRoomStatsLabel(gizmo);
+
+                case "MechCarrierGizmo":
+                    return GetMechCarrierLabel(gizmo);
+
+                case "MechPowerCellGizmo":
+                    return "Mech Power Cell";
+
+                case "MechanitorControlGroupGizmo":
+                    return "Mechanitor Control Groups";
+
+                case "Gizmo_MechResurrectionCharges":
+                    return "Resurrector Charges";
+
+                case "Gizmo_ProjectileInterceptorHitPoints":
+                    return "Shield Hit Points";
+
+                case "Gizmo_PruningConfig":
+                    return "Pruning Configuration";
+
+                case "GuardianShipGizmo":
+                    return "Guardian Ship";
+
+                case "Gizmo_CaravanInfo":
+                    return "Caravan Info";
+
+                case "GeneGizmo_DeathrestCapacity":
+                    return "Deathrest Capacity";
+
+                case "ActivityGizmo":
+                    return GetActivityGizmoLabel(gizmo);
+
+                default:
+                    // For unknown gizmos, return a cleaned-up type name
+                    return CleanupGizmoTypeName(typeName);
+            }
+        }
+
+        /// <summary>
+        /// Gets the label for an energy shield gizmo by accessing its shield component.
+        /// </summary>
+        private static string GetEnergyShieldLabel(Gizmo gizmo)
+        {
+            try
+            {
+                var shieldField = gizmo.GetType().GetField("shield",
+                    System.Reflection.BindingFlags.Instance |
+                    System.Reflection.BindingFlags.Public);
+                if (shieldField != null)
+                {
+                    var shield = shieldField.GetValue(gizmo);
+                    if (shield != null)
+                    {
+                        // Check if it's apparel shield or inbuilt
+                        var isApparelProp = shield.GetType().GetProperty("IsApparel");
+                        bool isApparel = isApparelProp != null && (bool)isApparelProp.GetValue(shield);
+
+                        var parentProp = shield.GetType().GetProperty("parent");
+                        var parent = parentProp?.GetValue(shield) as Thing;
+
+                        if (isApparel && parent != null)
+                            return $"Shield: {parent.LabelCap}";
+                        else
+                            return "Shield (Inbuilt)";
+                    }
+                }
+            }
+            catch { }
+            return "Energy Shield";
+        }
+
+        /// <summary>
+        /// Gets the label for a growth tier gizmo by accessing the child pawn.
+        /// </summary>
+        private static string GetGrowthTierLabel(Gizmo gizmo)
+        {
+            try
+            {
+                var childField = gizmo.GetType().GetField("child",
+                    System.Reflection.BindingFlags.Instance |
+                    System.Reflection.BindingFlags.NonPublic);
+                if (childField != null)
+                {
+                    var child = childField.GetValue(gizmo) as Pawn;
+                    if (child != null)
+                    {
+                        int tier = child.ageTracker?.GrowthTier ?? 0;
+                        return $"Growth Tier {tier}";
+                    }
+                }
+            }
+            catch { }
+            return "Growth Tier";
+        }
+
+        /// <summary>
+        /// Gets the label for a room stats gizmo by accessing the building and room.
+        /// </summary>
+        private static string GetRoomStatsLabel(Gizmo gizmo)
+        {
+            try
+            {
+                var buildingField = gizmo.GetType().GetField("building",
+                    System.Reflection.BindingFlags.Instance |
+                    System.Reflection.BindingFlags.NonPublic);
+                if (buildingField != null)
+                {
+                    var building = buildingField.GetValue(gizmo) as Building;
+                    if (building?.GetRoom() != null)
+                    {
+                        var room = building.GetRoom();
+                        string roleName = room.Role?.label ?? "room";
+                        return $"Room Stats: {roleName.CapitalizeFirst()}";
+                    }
+                }
+            }
+            catch { }
+            return "Room Stats";
+        }
+
+        /// <summary>
+        /// Gets the label for a mech carrier gizmo by accessing the carrier component.
+        /// </summary>
+        private static string GetMechCarrierLabel(Gizmo gizmo)
+        {
+            try
+            {
+                var carrierField = gizmo.GetType().GetField("carrier",
+                    System.Reflection.BindingFlags.Instance |
+                    System.Reflection.BindingFlags.NonPublic);
+                if (carrierField != null)
+                {
+                    var carrier = carrierField.GetValue(gizmo);
+                    if (carrier != null)
+                    {
+                        var propsField = carrier.GetType().GetProperty("Props");
+                        var props = propsField?.GetValue(carrier);
+                        if (props != null)
+                        {
+                            var ingredientField = props.GetType().GetField("fixedIngredient");
+                            var ingredient = ingredientField?.GetValue(props) as Def;
+                            if (ingredient != null)
+                                return $"Mech Carrier: {ingredient.label?.CapitalizeFirst()}";
+                        }
+                    }
+                }
+            }
+            catch { }
+            return "Mech Carrier";
+        }
+
+        /// <summary>
+        /// Gets the label for an activity gizmo by accessing its Title property.
+        /// </summary>
+        private static string GetActivityGizmoLabel(Gizmo gizmo)
+        {
+            try
+            {
+                var titleProp = gizmo.GetType().GetProperty("Title",
+                    System.Reflection.BindingFlags.Instance |
+                    System.Reflection.BindingFlags.NonPublic |
+                    System.Reflection.BindingFlags.Public);
+                if (titleProp != null)
+                {
+                    string title = titleProp.GetValue(gizmo) as string;
+                    if (!string.IsNullOrEmpty(title))
+                        return title;
+                }
+            }
+            catch { }
+            return "Activity";
+        }
+
+        /// <summary>
+        /// Cleans up a gizmo type name to be more readable.
+        /// Converts "Gizmo_SomethingCamelCase" to "Something Camel Case".
+        /// </summary>
+        private static string CleanupGizmoTypeName(string typeName)
+        {
+            // Remove common prefixes
+            if (typeName.StartsWith("Gizmo_"))
+                typeName = typeName.Substring(6);
+            else if (typeName.StartsWith("GeneGizmo_"))
+                typeName = typeName.Substring(10);
+            else if (typeName.EndsWith("Gizmo"))
+                typeName = typeName.Substring(0, typeName.Length - 5);
+
+            // Add spaces before capital letters
+            var result = new System.Text.StringBuilder();
+            for (int i = 0; i < typeName.Length; i++)
+            {
+                if (i > 0 && char.IsUpper(typeName[i]) && !char.IsUpper(typeName[i - 1]))
+                    result.Append(' ');
+                result.Append(typeName[i]);
+            }
+
+            string label = result.ToString().Trim();
+            return string.IsNullOrEmpty(label) ? "Status Display" : label;
+        }
+
+        /// <summary>
+        /// Gets the current status value for non-Command gizmos (progress bars, meters, etc.)
+        /// Returns values like "5 / 12" for bandwidth or "75%" for shield energy.
+        /// </summary>
+        private static string GetGizmoStatusValue(Gizmo gizmo)
+        {
+            // Only get status for non-Command gizmos
+            if (gizmo is Command)
+                return "";
+
+            string typeName = gizmo.GetType().Name;
+
+            try
+            {
+                switch (typeName)
+                {
+                    case "MechanitorBandwidthGizmo":
+                        return GetMechanitorBandwidthStatus(gizmo);
+
+                    case "Gizmo_EnergyShieldStatus":
+                        return GetEnergyShieldStatus(gizmo);
+
+                    case "PsychicEntropyGizmo":
+                        return GetPsychicEntropyStatus(gizmo);
+
+                    case "Gizmo_GrowthTier":
+                        return GetGrowthTierStatus(gizmo);
+
+                    case "MechCarrierGizmo":
+                        return GetMechCarrierStatus(gizmo);
+
+                    case "MechPowerCellGizmo":
+                        return GetMechPowerCellStatus(gizmo);
+
+                    case "Gizmo_MechResurrectionCharges":
+                        return GetMechResurrectionStatus(gizmo);
+
+                    case "Gizmo_ProjectileInterceptorHitPoints":
+                        return GetProjectileInterceptorStatus(gizmo);
+
+                    default:
+                        // Try to get status from Gizmo_Slider subclasses
+                        if (gizmo is Verse.Gizmo_Slider)
+                            return GetSliderGizmoStatus(gizmo);
+                        return "";
+                }
+            }
+            catch
+            {
+                return "";
+            }
+        }
+
+        /// <summary>
+        /// Gets the bandwidth status (used / total).
+        /// </summary>
+        private static string GetMechanitorBandwidthStatus(Gizmo gizmo)
+        {
+            var trackerField = gizmo.GetType().GetField("tracker",
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic);
+            if (trackerField == null) return "";
+
+            var tracker = trackerField.GetValue(gizmo);
+            if (tracker == null) return "";
+
+            var usedProp = tracker.GetType().GetProperty("UsedBandwidth");
+            var totalProp = tracker.GetType().GetProperty("TotalBandwidth");
+
+            if (usedProp != null && totalProp != null)
+            {
+                int used = (int)usedProp.GetValue(tracker);
+                int total = (int)totalProp.GetValue(tracker);
+                return $"{used} / {total}";
+            }
+            return "";
+        }
+
+        /// <summary>
+        /// Gets the shield energy status (current / max as percentage).
+        /// </summary>
+        private static string GetEnergyShieldStatus(Gizmo gizmo)
+        {
+            var shieldField = gizmo.GetType().GetField("shield",
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.Public);
+            if (shieldField == null) return "";
+
+            var shield = shieldField.GetValue(gizmo);
+            if (shield == null) return "";
+
+            var energyProp = shield.GetType().GetProperty("Energy");
+            var parentProp = shield.GetType().GetProperty("parent");
+
+            if (energyProp != null && parentProp != null)
+            {
+                float energy = (float)energyProp.GetValue(shield);
+                var parent = parentProp.GetValue(shield) as Thing;
+                if (parent != null)
+                {
+                    float maxEnergy = parent.GetStatValue(RimWorld.StatDefOf.EnergyShieldEnergyMax);
+                    if (maxEnergy > 0)
+                    {
+                        float percent = (energy / maxEnergy) * 100f;
+                        return $"{percent:F0}% ({energy * 100:F0} / {maxEnergy * 100:F0})";
+                    }
+                }
+            }
+            return "";
+        }
+
+        /// <summary>
+        /// Gets the psychic entropy status (entropy and psyfocus values).
+        /// </summary>
+        private static string GetPsychicEntropyStatus(Gizmo gizmo)
+        {
+            var trackerField = gizmo.GetType().GetField("tracker",
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic);
+            if (trackerField == null) return "";
+
+            var tracker = trackerField.GetValue(gizmo);
+            if (tracker == null) return "";
+
+            var entropyProp = tracker.GetType().GetProperty("EntropyValue");
+            var maxEntropyProp = tracker.GetType().GetProperty("MaxEntropy");
+            var psyfocusProp = tracker.GetType().GetProperty("CurrentPsyfocus");
+
+            if (entropyProp != null && maxEntropyProp != null && psyfocusProp != null)
+            {
+                float entropy = (float)entropyProp.GetValue(tracker);
+                float maxEntropy = (float)maxEntropyProp.GetValue(tracker);
+                float psyfocus = (float)psyfocusProp.GetValue(tracker);
+
+                return $"Entropy: {entropy:F0} / {maxEntropy:F0}, Psyfocus: {psyfocus * 100:F0}%";
+            }
+            return "";
+        }
+
+        /// <summary>
+        /// Gets the growth tier status (current tier and progress).
+        /// </summary>
+        private static string GetGrowthTierStatus(Gizmo gizmo)
+        {
+            var childField = gizmo.GetType().GetField("child",
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic);
+            if (childField == null) return "";
+
+            var child = childField.GetValue(gizmo) as Pawn;
+            if (child?.ageTracker == null) return "";
+
+            int tier = child.ageTracker.GrowthTier;
+            float percent = child.ageTracker.PercentToNextGrowthTier;
+
+            if (child.ageTracker.AtMaxGrowthTier)
+                return $"Tier {tier} (Max)";
+            else
+                return $"Tier {tier}, {percent * 100:F0}% to next";
+        }
+
+        /// <summary>
+        /// Gets the mech carrier status (current / max resources).
+        /// </summary>
+        private static string GetMechCarrierStatus(Gizmo gizmo)
+        {
+            var carrierField = gizmo.GetType().GetField("carrier",
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic);
+            if (carrierField == null) return "";
+
+            var carrier = carrierField.GetValue(gizmo);
+            if (carrier == null) return "";
+
+            var countProp = carrier.GetType().GetProperty("IngredientCount");
+            var propsProp = carrier.GetType().GetProperty("Props");
+
+            if (countProp != null && propsProp != null)
+            {
+                int count = (int)countProp.GetValue(carrier);
+                var props = propsProp.GetValue(carrier);
+                if (props != null)
+                {
+                    var maxField = props.GetType().GetField("maxIngredientCount");
+                    if (maxField != null)
+                    {
+                        int max = (int)maxField.GetValue(props);
+                        return $"{count} / {max}";
+                    }
+                }
+            }
+            return "";
+        }
+
+        /// <summary>
+        /// Gets the mech power cell status.
+        /// </summary>
+        private static string GetMechPowerCellStatus(Gizmo gizmo)
+        {
+            // MechPowerCellGizmo has a mech field
+            var mechField = gizmo.GetType().GetField("mech",
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic);
+            if (mechField == null) return "";
+
+            var mech = mechField.GetValue(gizmo) as Pawn;
+            if (mech?.needs?.energy == null) return "";
+
+            float energy = mech.needs.energy.CurLevel;
+            float max = mech.needs.energy.MaxLevel;
+            float percent = (energy / max) * 100f;
+
+            return $"{percent:F0}% ({energy:F1} / {max:F1})";
+        }
+
+        /// <summary>
+        /// Gets the mech resurrection charges status.
+        /// </summary>
+        private static string GetMechResurrectionStatus(Gizmo gizmo)
+        {
+            var geneField = gizmo.GetType().GetField("gene",
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic);
+            if (geneField == null) return "";
+
+            var gene = geneField.GetValue(gizmo);
+            if (gene == null) return "";
+
+            var chargesProp = gene.GetType().GetProperty("ChargesRemaining");
+            var maxProp = gene.GetType().GetProperty("MaxCharges");
+
+            if (chargesProp != null && maxProp != null)
+            {
+                int charges = (int)chargesProp.GetValue(gene);
+                int max = (int)maxProp.GetValue(gene);
+                return $"{charges} / {max} charges";
+            }
+            return "";
+        }
+
+        /// <summary>
+        /// Gets the projectile interceptor (shield) hit points status.
+        /// </summary>
+        private static string GetProjectileInterceptorStatus(Gizmo gizmo)
+        {
+            var compField = gizmo.GetType().GetField("interceptor",
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic |
+                System.Reflection.BindingFlags.Public);
+            if (compField == null) return "";
+
+            var comp = compField.GetValue(gizmo);
+            if (comp == null) return "";
+
+            var hpProp = comp.GetType().GetProperty("currentHitPoints",
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic |
+                System.Reflection.BindingFlags.Public);
+            var maxHpProp = comp.GetType().GetProperty("HitPointsMax");
+
+            if (hpProp != null && maxHpProp != null)
+            {
+                int hp = (int)hpProp.GetValue(comp);
+                int maxHp = (int)maxHpProp.GetValue(comp);
+                return $"{hp} / {maxHp} HP";
+            }
+            return "";
+        }
+
+        /// <summary>
+        /// Gets the status for Gizmo_Slider subclasses using their ValuePercent property.
+        /// </summary>
+        private static string GetSliderGizmoStatus(Gizmo gizmo)
+        {
+            var valueProp = gizmo.GetType().GetProperty("ValuePercent",
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic |
+                System.Reflection.BindingFlags.Public);
+
+            if (valueProp != null)
+            {
+                float value = (float)valueProp.GetValue(gizmo);
+                return $"{value * 100:F0}%";
+            }
+            return "";
         }
 
         /// <summary>
