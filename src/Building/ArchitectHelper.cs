@@ -421,7 +421,7 @@ namespace RimWorldAccess
         /// <summary>
         /// Gets the description text for a designator (for orders/commands).
         /// </summary>
-        private static string GetDesignatorDescriptionText(Designator designator)
+        public static string GetDesignatorDescriptionText(Designator designator)
         {
             if (designator == null)
                 return "";

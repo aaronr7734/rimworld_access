@@ -126,6 +126,7 @@ namespace RimWorldAccess
         /// <summary>
         /// Gets a label for a designator including cost and description.
         /// Format: "Name: cost (description)" for build designators.
+        /// Format: "Name (description)" for order designators.
         /// </summary>
         private static string GetDesignatorLabel(Designator designator)
         {
@@ -153,6 +154,15 @@ namespace RimWorldAccess
                     {
                         label += $" ({description})";
                     }
+                }
+            }
+            else
+            {
+                // For non-build designators (orders), add description if available
+                string description = ArchitectHelper.GetDesignatorDescriptionText(designator);
+                if (!string.IsNullOrEmpty(description))
+                {
+                    label += $" ({description})";
                 }
             }
 
