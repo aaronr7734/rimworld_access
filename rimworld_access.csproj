@@ -15,7 +15,7 @@
 
   <!-- Explicitly include only our source files -->
   <ItemGroup>
-    <Compile Include="*.cs" />
+    <Compile Include="src/**/*.cs" />
   </ItemGroup>
 
   <!-- Embed audio files as resources -->
