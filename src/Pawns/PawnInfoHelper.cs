@@ -30,8 +30,41 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets detailed health information for the pawn.
-        /// Includes injuries, diseases, bleeding, pain, and capacities.
+        /// Checks if a hediff is a missing part caused by surgical addition (bionic).
+        /// These clutter the display since they're just side effects of having bionics.
+        /// </summary>
+        private static bool IsSurgicallyRemovedPart(Hediff hediff, Pawn pawn)
+        {
+            // Only filter Hediff_MissingPart
+            if (!(hediff is Hediff_MissingPart))
+                return false;
+
+            // Filter if the parent part has a bionic/added part
+            if (hediff.Part != null && pawn.health.hediffSet.PartOrAnyAncestorHasDirectlyAddedParts(hediff.Part))
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if a hediff is drug tolerance or dependency (not useful during combat).
+        /// </summary>
+        private static bool IsDrugToleranceOrDependency(Hediff hediff)
+        {
+            // Filter out addiction hediffs
+            if (hediff is Hediff_Addiction)
+                return true;
+
+            // Filter out tolerance hediffs (usually have "tolerance" in the def name)
+            if (hediff.def.defName.ToLower().Contains("tolerance"))
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// Gets health summary for the pawn.
+        /// Shows critical info first (bleeding, blood loss, pain), then injured parts and capacities.
         /// </summary>
         public static string GetHealthInfo(Pawn pawn)
         {
@@ -42,84 +75,94 @@ namespace RimWorldAccess
                 return $"{pawn.LabelShort}: No health tracker";
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"{pawn.LabelShort} Health:");
+            sb.AppendLine($"{pawn.LabelShort}'s Health.");
 
             // Overall health state
-            sb.AppendLine($"State: {pawn.health.State}");
+            sb.AppendLine($"State: {pawn.health.State}.");
 
-            // Hediffs (injuries, diseases, conditions)
-            var hediffs = pawn.health.hediffSet.hediffs;
-            if (hediffs != null && hediffs.Count > 0)
-            {
-                sb.AppendLine($"\nConditions ({hediffs.Count}):");
-                foreach (var hediff in hediffs)
-                {
-                    if (hediff.Visible)
-                    {
-                        string bodyPart = hediff.Part != null ? $" on {hediff.Part.Label}" : "";
-                        sb.AppendLine($"  - {hediff.LabelCap}{bodyPart}");
-
-                        // Get comprehensive effects using the helper method
-                        string effects = HealthTabHelper.GetComprehensiveHediffEffects(hediff, pawn);
-
-                        if (!string.IsNullOrEmpty(effects))
-                        {
-                            // Split effects into lines and indent each one
-                            string[] effectLines = effects.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                            foreach (string line in effectLines)
-                            {
-                                string trimmedLine = line.Trim();
-                                if (!string.IsNullOrEmpty(trimmedLine))
-                                {
-                                    sb.AppendLine($"      {trimmedLine}");
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            {
-                sb.AppendLine("\nNo injuries or conditions");
-            }
-
-            // Bleeding
+            // Critical info first - bleeding, blood loss, pain
             if (pawn.health.hediffSet.BleedRateTotal > 0.01f)
             {
-                sb.AppendLine($"\nBLEEDING: {pawn.health.hediffSet.BleedRateTotal:F2} per day");
+                sb.AppendLine($"BLEEDING: {pawn.health.hediffSet.BleedRateTotal:F2} per day.");
             }
 
-            // Pain level
+            var bloodLoss = pawn.health.hediffSet.GetFirstHediffOfDef(HediffDefOf.BloodLoss);
+            if (bloodLoss != null)
+            {
+                sb.AppendLine($"Blood Loss: {bloodLoss.Severity:P0}.");
+            }
+
             float painTotal = pawn.health.hediffSet.PainTotal;
             if (painTotal > 0.01f)
             {
-                sb.AppendLine($"Pain: {painTotal:P0}");
+                sb.AppendLine($"Pain: {painTotal:P0}.");
             }
 
-            // Key capacities
+            // Key capacities first - consciousness, moving, manipulation (most important for combat)
             if (pawn.health.capacities != null)
             {
-                sb.AppendLine("\nCapacities:");
                 var keyCapacities = new[]
                 {
                     PawnCapacityDefOf.Consciousness,
                     PawnCapacityDefOf.Moving,
-                    PawnCapacityDefOf.Manipulation,
-                    PawnCapacityDefOf.Sight,
-                    PawnCapacityDefOf.Hearing,
-                    PawnCapacityDefOf.Talking,
-                    PawnCapacityDefOf.Breathing,
-                    PawnCapacityDefOf.BloodFiltration,
-                    PawnCapacityDefOf.BloodPumping
+                    PawnCapacityDefOf.Manipulation
                 };
 
-                foreach (var capacity in keyCapacities)
+                foreach (var cap in keyCapacities)
                 {
-                    if (capacity != null && pawn.health.capacities.CapableOf(capacity))
+                    if (cap != null && pawn.health.capacities.CapableOf(cap))
                     {
-                        float level = pawn.health.capacities.GetLevel(capacity);
-                        string status = level < 1f ? $" ({level:P0})" : " (100%)";
-                        sb.AppendLine($"  - {capacity.LabelCap}: {status}");
+                        float level = pawn.health.capacities.GetLevel(cap);
+                        string status = level < 1f ? $"{level:P0}" : "100%";
+                        sb.AppendLine($"{cap.LabelCap}: {status}.");
+                    }
+                }
+            }
+
+            // Injured body parts - filter out surgically removed parts (from bionics)
+            var hediffs = pawn.health.hediffSet.hediffs;
+            if (hediffs != null && hediffs.Count > 0)
+            {
+                var visibleHediffs = hediffs
+                    .Where(h => h.Visible)
+                    .Where(h => !IsSurgicallyRemovedPart(h, pawn))
+                    .Where(h => !IsDrugToleranceOrDependency(h))
+                    .ToList();
+
+                if (visibleHediffs.Count > 0)
+                {
+                    // Get injured body parts with their health
+                    var injuredParts = visibleHediffs
+                        .Where(h => h.Part != null)
+                        .Select(h => h.Part)
+                        .Distinct()
+                        .Select(part => new {
+                            Part = part,
+                            Health = pawn.health.hediffSet.GetPartHealth(part),
+                            MaxHealth = part.def.GetMaxHealth(pawn)
+                        })
+                        .OrderBy(p => p.Health / p.MaxHealth) // Most damaged first
+                        .ToList();
+
+                    // Get whole-body conditions (excluding drug stuff)
+                    var wholeBodyConditions = visibleHediffs
+                        .Where(h => h.Part == null)
+                        .ToList();
+
+                    if (injuredParts.Count > 0)
+                    {
+                        sb.AppendLine($"\nInjured Parts.");
+
+                        foreach (var part in injuredParts)
+                        {
+                            float healthPercent = part.Health / part.MaxHealth * 100f;
+                            sb.AppendLine($"  {part.Part.LabelCap}: {healthPercent:F0}%.");
+                        }
+                    }
+
+                    if (wholeBodyConditions.Count > 0)
+                    {
+                        sb.AppendLine($"\nConditions: {wholeBodyConditions.Count}.");
                     }
                 }
             }
@@ -129,7 +172,7 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Gets needs information for the pawn.
-        /// Lists all needs with their current percentages.
+        /// Lists all needs with their current percentages, sorted from lowest to highest (most urgent first).
         /// </summary>
         public static string GetNeedsInfo(Pawn pawn)
         {
@@ -140,29 +183,26 @@ namespace RimWorldAccess
                 return $"{pawn.LabelShort}: No needs tracker";
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"{pawn.LabelShort} Needs:");
+            sb.AppendLine($"{pawn.LabelShort}'s Needs.");
 
             var needs = pawn.needs.AllNeeds;
             if (needs != null && needs.Count > 0)
             {
-                foreach (var need in needs)
-                {
-                    if (need.def.showOnNeedList)
-                    {
-                        float percentage = need.CurLevelPercentage * 100f;
-                        string arrow = "";
-                        if (need.GUIChangeArrow == 1)
-                            arrow = " ↑";
-                        else if (need.GUIChangeArrow == -1)
-                            arrow = " ↓";
+                // Filter to visible needs and sort by percentage (lowest first = most urgent)
+                var sortedNeeds = needs
+                    .Where(n => n.def.showOnNeedList)
+                    .OrderBy(n => n.CurLevelPercentage)
+                    .ToList();
 
-                        sb.AppendLine($"  {need.LabelCap}: {percentage:F0}%{arrow}");
-                    }
+                foreach (var need in sortedNeeds)
+                {
+                    float percentage = need.CurLevelPercentage * 100f;
+                    sb.AppendLine($"  {need.LabelCap}: {percentage:F0}%.");
                 }
             }
             else
             {
-                sb.AppendLine("No needs to display");
+                sb.AppendLine("No needs to display.");
             }
 
             return sb.ToString().TrimEnd();

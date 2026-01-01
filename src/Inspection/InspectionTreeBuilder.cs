@@ -23,6 +23,23 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Checks if a hediff is a missing part caused by surgical addition (bionic).
+        /// These clutter the display since they're just side effects of having bionics.
+        /// </summary>
+        private static bool IsSurgicallyRemovedPart(Hediff hediff, Pawn pawn)
+        {
+            // Only filter Hediff_MissingPart
+            if (!(hediff is Hediff_MissingPart missingPart))
+                return false;
+
+            // Filter if the parent part has a bionic/added part
+            if (hediff.Part != null && pawn.health.hediffSet.PartOrAnyAncestorHasDirectlyAddedParts(hediff.Part))
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
         /// Builds the root tree for all objects at a position.
         /// </summary>
         public static InspectionTreeItem BuildTree(List<object> objects)
@@ -87,25 +104,12 @@ namespace RimWorldAccess
         /// </summary>
         private static string GetCategoryLabel(object obj, string category)
         {
-            // Special handling for Mood category to show percentage and break thresholds
+            // Special handling for Mood category to show percentage and descriptor
             if (category == "Mood" && obj is Pawn pawn && pawn.needs?.mood != null)
             {
                 float moodPercentage = pawn.needs.mood.CurLevelPercentage * 100f;
-                var sb = new StringBuilder();
-                sb.Append($"{category} ({moodPercentage:F0}%)");
-
-                // Add break thresholds if pawn can have mental breaks
-                if (pawn.mindState?.mentalBreaker != null &&
-                    pawn.mindState.mentalBreaker.CanDoRandomMentalBreaks)
-                {
-                    float minor = pawn.mindState.mentalBreaker.BreakThresholdMinor * 100f;
-                    float major = pawn.mindState.mentalBreaker.BreakThresholdMajor * 100f;
-                    float extreme = pawn.mindState.mentalBreaker.BreakThresholdExtreme * 100f;
-
-                    sb.Append($" - Breaks: Minor {minor:F0}%, Major {major:F0}%, Extreme {extreme:F0}%");
-                }
-
-                return sb.ToString();
+                string moodDescriptor = pawn.needs.mood.MoodString;
+                return $"{category}: {moodPercentage:F0}% ({moodDescriptor})";
             }
 
             // Special handling for Job Queue category to show count
@@ -720,19 +724,6 @@ namespace RimWorldAccess
             relationsItem.OnActivate = () => BuildSocialRelationsChildren(relationsItem, pawn);
             AddChild(parentItem, relationsItem);
 
-            // Add Social Interactions as expandable item
-            var interactionsItem = new InspectionTreeItem
-            {
-                Type = InspectionTreeItem.ItemType.SubCategory,
-                Label = "Social Interactions",
-                Data = pawn,
-                IndentLevel = parentItem.IndentLevel + 1,
-                IsExpandable = true,
-                IsExpanded = false
-            };
-            interactionsItem.OnActivate = () => BuildSocialInteractionsChildren(interactionsItem, pawn);
-            AddChild(parentItem, interactionsItem);
-
             // Add Ideology if applicable
             if (ModsConfig.IdeologyActive && pawn.ideo != null)
             {
@@ -814,79 +805,6 @@ namespace RimWorldAccess
                     IsExpandable = false
                 };
                 AddChild(relationItem, detailItem);
-            }
-        }
-
-        /// <summary>
-        /// Builds children for Social Interactions sub-category.
-        /// </summary>
-        private static void BuildSocialInteractionsChildren(InspectionTreeItem parentItem, Pawn pawn)
-        {
-            if (parentItem.Children.Count > 0)
-                return; // Already built
-
-            var interactions = SocialTabHelper.GetSocialInteractions(pawn);
-
-            if (interactions.Count == 0)
-            {
-                var noInteractionsItem = new InspectionTreeItem
-                {
-                    Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = "No recent social interactions",
-                    IndentLevel = parentItem.IndentLevel + 1,
-                    IsExpandable = false
-                };
-                AddChild(parentItem, noInteractionsItem);
-                return;
-            }
-
-            foreach (var interaction in interactions)
-            {
-                string interactionName = !string.IsNullOrEmpty(interaction.InteractionLabel)
-                    ? interaction.InteractionLabel
-                    : interaction.InteractionType;
-
-                var interactionItem = new InspectionTreeItem
-                {
-                    Type = InspectionTreeItem.ItemType.Item,
-                    Label = $"{interactionName} - {interaction.Timestamp} ago",
-                    Data = interaction,
-                    IndentLevel = parentItem.IndentLevel + 1,
-                    IsExpandable = true,
-                    IsExpanded = false
-                };
-                interactionItem.OnActivate = () => BuildInteractionDetailChildren(interactionItem, interaction);
-                AddChild(parentItem, interactionItem);
-            }
-        }
-
-        /// <summary>
-        /// Builds detail children for a specific social interaction.
-        /// </summary>
-        private static void BuildInteractionDetailChildren(InspectionTreeItem interactionItem, SocialTabHelper.SocialInteractionInfo interaction)
-        {
-            if (interactionItem.Children.Count > 0)
-                return; // Already built
-
-            var detailItem = new InspectionTreeItem
-            {
-                Type = InspectionTreeItem.ItemType.DetailText,
-                Label = interaction.Description,
-                IndentLevel = interactionItem.IndentLevel + 1,
-                IsExpandable = false
-            };
-            AddChild(interactionItem, detailItem);
-
-            if (interaction.IsFaded)
-            {
-                var fadedItem = new InspectionTreeItem
-                {
-                    Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = "[Old interaction]",
-                    IndentLevel = interactionItem.IndentLevel + 1,
-                    IsExpandable = false
-                };
-                AddChild(interactionItem, fadedItem);
             }
         }
 
@@ -1051,6 +969,20 @@ namespace RimWorldAccess
                 AddChild(parentItem, bleedingItem);
             }
 
+            // Add blood loss level if applicable
+            var bloodLoss = pawn.health.hediffSet.GetFirstHediffOfDef(HediffDefOf.BloodLoss);
+            if (bloodLoss != null)
+            {
+                var bloodLossItem = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = $"Blood Loss: {bloodLoss.Severity:P0}",
+                    IndentLevel = parentItem.IndentLevel + 1,
+                    IsExpandable = false
+                };
+                AddChild(parentItem, bloodLossItem);
+            }
+
             // Add pain level if applicable
             float painTotal = pawn.health.hediffSet.PainTotal;
             if (painTotal > 0.01f)
@@ -1120,10 +1052,19 @@ namespace RimWorldAccess
             if (parentItem.Children.Count > 0)
                 return; // Already built
 
-            var hediffs = pawn.health.hediffSet.hediffs.Where(h => h.Visible).ToList();
+            var hediffs = pawn.health.hediffSet.hediffs
+                .Where(h => h.Visible)
+                .Where(h => !IsSurgicallyRemovedPart(h, pawn))
+                .ToList();
 
             // Group hediffs by body part (null for whole-body conditions)
-            var hediffsByPart = hediffs.GroupBy(h => h.Part).OrderBy(g => g.Key == null ? 0 : 1);
+            // Sort by: whole-body first, then by part health percentage (most damaged first)
+            var hediffsByPart = hediffs
+                .GroupBy(h => h.Part)
+                .OrderBy(g => g.Key == null ? 0 : 1)
+                .ThenBy(g => g.Key != null
+                    ? pawn.health.hediffSet.GetPartHealth(g.Key) / g.Key.def.GetMaxHealth(pawn)
+                    : 0f);
 
             foreach (var group in hediffsByPart)
             {
@@ -1227,10 +1168,18 @@ namespace RimWorldAccess
             if (bodyPartItem.Children.Count > 0)
                 return; // Already built
 
-            foreach (var hediff in hediffs)
+            // Sort hediffs by severity (most severe first)
+            var sortedHediffs = hediffs.OrderByDescending(h => h.Severity).ToList();
+
+            foreach (var hediff in sortedHediffs)
             {
-                // Get hediff label
+                // Get hediff label with inline impacts
                 string hediffLabel = hediff.LabelCap.StripTags();
+                string impacts = GetHediffImpactsSummary(hediff);
+                if (!string.IsNullOrEmpty(impacts))
+                {
+                    hediffLabel += $". {impacts}";
+                }
 
                 var hediffItem = new InspectionTreeItem
                 {
@@ -1245,6 +1194,70 @@ namespace RimWorldAccess
                 hediffItem.OnActivate = () => BuildHediffDetailChildren(hediffItem, hediff, pawn);
                 AddChild(bodyPartItem, hediffItem);
             }
+        }
+
+        /// <summary>
+        /// Gets a compact summary of hediff impacts for inline display.
+        /// </summary>
+        private static string GetHediffImpactsSummary(Hediff hediff)
+        {
+            var impacts = new List<string>();
+
+            // Bleeding
+            if (hediff.Bleeding)
+            {
+                impacts.Add($"Bleeding {hediff.BleedRate:F1}/day");
+            }
+
+            // Pain
+            float pain = hediff.PainOffset;
+            if (pain > 0.01f)
+            {
+                impacts.Add($"Pain +{pain:P0}");
+            }
+
+            // Capacity impacts
+            if (hediff.CapMods != null)
+            {
+                foreach (var capMod in hediff.CapMods)
+                {
+                    if (capMod.capacity == null)
+                        continue;
+
+                    string capName = capMod.capacity.LabelCap.ToString().StripTags();
+
+                    if (capMod.offset != 0f)
+                    {
+                        string sign = capMod.offset > 0 ? "+" : "";
+                        impacts.Add($"{capName} {sign}{capMod.offset:P0}");
+                    }
+                    else if (capMod.postFactor != 1f)
+                    {
+                        float percentChange = (capMod.postFactor - 1f) * 100f;
+                        string sign = percentChange > 0 ? "+" : "";
+                        impacts.Add($"{capName} {sign}{percentChange:F0}%");
+                    }
+                }
+            }
+
+            // Tend status
+            var tendComp = hediff.TryGetComp<HediffComp_TendDuration>();
+            if (tendComp != null)
+            {
+                if (tendComp.IsTended)
+                {
+                    impacts.Add($"Tended {tendComp.tendQuality:P0}");
+                }
+                else if (hediff.TendableNow())
+                {
+                    impacts.Add("Needs tending");
+                }
+            }
+
+            if (impacts.Count == 0)
+                return string.Empty;
+
+            return string.Join(", ", impacts);
         }
 
         /// <summary>
@@ -1331,22 +1344,32 @@ namespace RimWorldAccess
                 PawnCapacityDefOf.BloodPumping
             };
 
+            // Build list of capacities with their levels, then sort by level (lowest first)
+            var capacityLevels = new List<(PawnCapacityDef capacity, float level)>();
             foreach (var capacity in keyCapacities)
             {
                 if (capacity != null && pawn.health.capacities.CapableOf(capacity))
                 {
                     float level = pawn.health.capacities.GetLevel(capacity);
-                    string status = $"{level:P0}";
-
-                    var capacityItem = new InspectionTreeItem
-                    {
-                        Type = InspectionTreeItem.ItemType.DetailText,
-                        Label = $"{capacity.LabelCap}: {status}",
-                        IndentLevel = parentItem.IndentLevel + 1,
-                        IsExpandable = false
-                    };
-                    AddChild(parentItem, capacityItem);
+                    capacityLevels.Add((capacity, level));
                 }
+            }
+
+            // Sort by level ascending (most impaired first)
+            capacityLevels.Sort((a, b) => a.level.CompareTo(b.level));
+
+            foreach (var (capacity, level) in capacityLevels)
+            {
+                string status = $"{level:P0}";
+
+                var capacityItem = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = $"{capacity.LabelCap}: {status}",
+                    IndentLevel = parentItem.IndentLevel + 1,
+                    IsExpandable = false
+                };
+                AddChild(parentItem, capacityItem);
             }
         }
 
@@ -1373,6 +1396,23 @@ namespace RimWorldAccess
 
             Need_Mood mood = pawn.needs.mood;
 
+            // Add Break Thresholds as expandable subcategory if pawn can have mental breaks
+            if (pawn.mindState?.mentalBreaker != null &&
+                pawn.mindState.mentalBreaker.CanDoRandomMentalBreaks)
+            {
+                var breakThresholdsItem = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.SubCategory,
+                    Label = "Break Thresholds",
+                    Data = pawn,
+                    IndentLevel = parentItem.IndentLevel + 1,
+                    IsExpandable = true,
+                    IsExpanded = false
+                };
+                breakThresholdsItem.OnActivate = () => BuildBreakThresholdsChildren(breakThresholdsItem, pawn);
+                AddChild(parentItem, breakThresholdsItem);
+            }
+
             // Get thoughts affecting mood
             List<Thought> thoughtGroups = new List<Thought>();
             PawnNeedsUIUtility.GetThoughtGroupsInDisplayOrder(mood, thoughtGroups);
@@ -1387,7 +1427,6 @@ namespace RimWorldAccess
                     IsExpandable = false
                 };
                 AddChild(parentItem, noThoughtsItem);
-                return;
             }
 
             // Process each thought group
@@ -1408,8 +1447,19 @@ namespace RimWorldAccess
                 // Get mood offset for this thought group
                 float moodOffset = mood.thoughts.MoodOffsetOfGroup(group);
 
-                // Format the thought label
+                // Get the flavor text from thought Description (properly formatted with weapon names, etc.)
                 string thoughtLabel = leadingThought.LabelCap.StripTags();
+                string flavorText = "";
+                if (leadingThought.CurStage != null && !string.IsNullOrEmpty(leadingThought.CurStage.description))
+                {
+                    // Use Description property which resolves placeholders like {WEAPON_indefinite}
+                    // Extract just the first paragraph (before precept/nullified info)
+                    string fullDescription = leadingThought.Description;
+                    int splitIndex = fullDescription.IndexOf("\n\n");
+                    string resolvedDescription = splitIndex > 0 ? fullDescription.Substring(0, splitIndex) : fullDescription;
+                    flavorText = $"\"{resolvedDescription.StripTags()}\" ";
+                }
+
                 if (thoughtGroup.Count > 1)
                 {
                     thoughtLabel = $"{thoughtLabel} x{thoughtGroup.Count}";
@@ -1418,10 +1468,41 @@ namespace RimWorldAccess
                 // Format mood offset with sign
                 string offsetText = moodOffset.ToString("+0;-0;0");
 
+                // Build expiry info if this is a memory-based thought
+                string expiryText = "";
+                int durationTicks = group.DurationTicks;
+                if (durationTicks > 5 && leadingThought is Thought_Memory)
+                {
+                    if (thoughtGroup.Count == 1)
+                    {
+                        // Single thought - simple expiry
+                        Thought_Memory memory = (Thought_Memory)leadingThought;
+                        int remaining = durationTicks - memory.age;
+                        expiryText = $" (expires in {remaining.ToStringTicksToPeriod()})";
+                    }
+                    else
+                    {
+                        // Multiple stacked thoughts - show range
+                        int minAge = int.MaxValue;
+                        int maxAge = int.MinValue;
+                        foreach (Thought thought in thoughtGroup)
+                        {
+                            if (thought is Thought_Memory mem)
+                            {
+                                minAge = Math.Min(minAge, mem.age);
+                                maxAge = Math.Max(maxAge, mem.age);
+                            }
+                        }
+                        int firstExpires = durationTicks - maxAge;
+                        int lastExpires = durationTicks - minAge;
+                        expiryText = $" (expires in {firstExpires.ToStringTicksToPeriod()} to {lastExpires.ToStringTicksToPeriod()})";
+                    }
+                }
+
                 var thoughtItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
-                    Label = $"{thoughtLabel}: {offsetText}",
+                    Label = $"{flavorText}{thoughtLabel}: {offsetText}{expiryText}.",
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = false
                 };
@@ -1430,6 +1511,51 @@ namespace RimWorldAccess
 
                 thoughtGroup.Clear();
             }
+        }
+
+        /// <summary>
+        /// Builds children for Break Thresholds subcategory.
+        /// </summary>
+        private static void BuildBreakThresholdsChildren(InspectionTreeItem parentItem, Pawn pawn)
+        {
+            if (parentItem.Children.Count > 0)
+                return; // Already built
+
+            if (pawn.mindState?.mentalBreaker == null)
+                return;
+
+            var breaker = pawn.mindState.mentalBreaker;
+
+            float minor = breaker.BreakThresholdMinor * 100f;
+            float major = breaker.BreakThresholdMajor * 100f;
+            float extreme = breaker.BreakThresholdExtreme * 100f;
+
+            var minorItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.DetailText,
+                Label = $"Minor: {minor:F0}%",
+                IndentLevel = parentItem.IndentLevel + 1,
+                IsExpandable = false
+            };
+            AddChild(parentItem, minorItem);
+
+            var majorItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.DetailText,
+                Label = $"Major: {major:F0}%",
+                IndentLevel = parentItem.IndentLevel + 1,
+                IsExpandable = false
+            };
+            AddChild(parentItem, majorItem);
+
+            var extremeItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.DetailText,
+                Label = $"Extreme: {extreme:F0}%",
+                IndentLevel = parentItem.IndentLevel + 1,
+                IsExpandable = false
+            };
+            AddChild(parentItem, extremeItem);
         }
 
         /// <summary>

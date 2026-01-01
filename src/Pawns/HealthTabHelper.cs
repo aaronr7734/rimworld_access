@@ -201,7 +201,7 @@ namespace RimWorldAccess
         #region Capacities
 
         /// <summary>
-        /// Gets all capacity information for a pawn.
+        /// Gets all capacity information for a pawn, sorted by level (lowest/most impaired first).
         /// </summary>
         public static List<CapacityInfo> GetCapacities(Pawn pawn)
         {
@@ -210,7 +210,7 @@ namespace RimWorldAccess
             if (pawn?.health?.capacities == null)
                 return capacities;
 
-            // Get key capacities in order
+            // Get key capacities
             var keyCapacities = new List<PawnCapacityDef>
             {
                 PawnCapacityDefOf.Consciousness,
@@ -242,6 +242,9 @@ namespace RimWorldAccess
                     DetailedBreakdown = GetCapacityBreakdown(pawn, capacityDef)
                 });
             }
+
+            // Sort by level (lowest first = most impaired/urgent)
+            capacities = capacities.OrderBy(c => c.Level).ToList();
 
             return capacities;
         }
@@ -507,7 +510,8 @@ namespace RimWorldAccess
         #region Body Parts & Hediffs
 
         /// <summary>
-        /// Gets all body parts with their hediffs organized.
+        /// Gets all body parts with their hediffs organized, sorted by severity (most damaged first).
+        /// Uses health percentage (lower = more urgent) and prioritizes core/vital parts.
         /// </summary>
         public static List<BodyPartInfo> GetBodyPartsWithHediffs(Pawn pawn)
         {
@@ -519,6 +523,7 @@ namespace RimWorldAccess
             // First, get whole-body hediffs
             var wholeBodyHediffs = pawn.health.hediffSet.hediffs
                 .Where(h => h.Part == null && h.Visible)
+                .OrderByDescending(h => h.Severity) // Most severe first
                 .ToList();
 
             if (wholeBodyHediffs.Count > 0)
@@ -545,6 +550,7 @@ namespace RimWorldAccess
             {
                 var hediffs = pawn.health.hediffSet.hediffs
                     .Where(h => h.Part == part && h.Visible)
+                    .OrderByDescending(h => h.Severity) // Most severe first within each part
                     .ToList();
 
                 if (hediffs.Count == 0)
@@ -570,6 +576,13 @@ namespace RimWorldAccess
 
                 parts.Add(partInfo);
             }
+
+            // Sort parts: core/vital parts first, then by health percentage (lowest first = most damaged)
+            parts = parts
+                .OrderByDescending(p => p.Part?.IsCorePart ?? true) // Core parts first (whole body counts as core)
+                .ThenBy(p => p.MaxHealth > 0 ? p.Health / p.MaxHealth : 1f) // Lowest health % first
+                .ThenBy(p => p.Efficiency) // Lowest efficiency first
+                .ToList();
 
             return parts;
         }
@@ -753,16 +766,8 @@ namespace RimWorldAccess
                 }
             }
 
-            // Part efficiency (for injuries without direct capacity mods)
-            if (hediff.Part != null && pawn != null && (hediff.CapMods == null || hediff.CapMods.Count == 0))
-            {
-                float efficiency = PawnCapacityUtility.CalculatePartEfficiency(pawn.health.hediffSet, hediff.Part);
-                if (efficiency < 0.999f)
-                {
-                    sb.AppendLine($"Part efficiency ({hediff.Part.Label}): {efficiency:P0}");
-                    hasAnyEffect = true;
-                }
-            }
+            // Note: Removed generic part efficiency - it's not specific to this condition
+            // and confuses users. CapMods above shows the actual impact of this hediff.
 
             // Stage-based effects
             if (stage != null)
@@ -880,26 +885,32 @@ namespace RimWorldAccess
                 }
             }
 
-            // Permanence status
-            var permanentComp = hediff.TryGetComp<HediffComp_GetsPermanent>();
-            if (permanentComp != null)
+            // Tend status and quality
+            var tendComp = hediff.TryGetComp<HediffComp_TendDuration>();
+            if (tendComp != null)
             {
-                if (permanentComp.IsPermanent)
+                if (tendComp.IsTended)
                 {
-                    sb.AppendLine("Status: Permanent");
+                    sb.AppendLine($"Tended: {tendComp.tendQuality:P0} quality");
                     hasAnyEffect = true;
                 }
-                else
+                else if (hediff.TendableNow())
                 {
-                    sb.AppendLine("Status: Becoming permanent");
+                    sb.AppendLine("Needs tending");
                     hasAnyEffect = true;
                 }
             }
-
-            // Tendable status
-            if (hediff.TendableNow())
+            else if (hediff.TendableNow())
             {
-                sb.AppendLine("Can be tended");
+                sb.AppendLine("Needs tending");
+                hasAnyEffect = true;
+            }
+
+            // Permanence status - only show if already permanent
+            var permanentComp = hediff.TryGetComp<HediffComp_GetsPermanent>();
+            if (permanentComp != null && permanentComp.IsPermanent)
+            {
+                sb.AppendLine("Permanent scar");
                 hasAnyEffect = true;
             }
 

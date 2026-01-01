@@ -63,7 +63,7 @@ namespace RimWorldAccess
 
             // Build combat log information
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"=== {pawn.LabelShort} Combat Log ===");
+            sb.AppendLine($"{pawn.LabelShort}'s Combat Log.");
 
             int entryCount = 0;
             string currentBattleName = null;
@@ -104,12 +104,12 @@ namespace RimWorldAccess
 
             if (entryCount == 0)
             {
-                sb.AppendLine("No combat entries found");
+                sb.AppendLine("No combat entries found.");
             }
             else
             {
                 sb.AppendLine();
-                sb.AppendLine($"Total: {entryCount} entries");
+                sb.AppendLine($"Total: {entryCount} entries.");
             }
 
             TolkHelper.Speak(sb.ToString().TrimEnd());

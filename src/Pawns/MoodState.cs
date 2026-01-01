@@ -70,24 +70,14 @@ namespace RimWorldAccess
 
             // Build mood information
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"=== {pawnAtCursor.LabelShort} Mood ===");
+            sb.AppendLine($"{pawnAtCursor.LabelShort}'s Mood.");
 
             Need_Mood mood = pawnAtCursor.needs.mood;
 
             // Current mood level and description
             float moodPercentage = mood.CurLevelPercentage * 100f;
             string moodDescription = mood.MoodString;
-            sb.AppendLine($"Mood: {moodPercentage:F0}% ({moodDescription})");
-
-            // Mental break thresholds (only if pawn can have mental breaks)
-            if (pawnAtCursor.mindState?.mentalBreaker != null &&
-                pawnAtCursor.mindState.mentalBreaker.CanDoRandomMentalBreaks)
-            {
-                sb.AppendLine($"\nBreak Thresholds:");
-                sb.AppendLine($"  Minor: {pawnAtCursor.mindState.mentalBreaker.BreakThresholdMinor:P0}");
-                sb.AppendLine($"  Major: {pawnAtCursor.mindState.mentalBreaker.BreakThresholdMajor:P0}");
-                sb.AppendLine($"  Extreme: {pawnAtCursor.mindState.mentalBreaker.BreakThresholdExtreme:P0}");
-            }
+            sb.AppendLine($"Mood: {moodPercentage:F0}% ({moodDescription}).");
 
             // Get thoughts affecting mood
             List<Thought> thoughtGroups = new List<Thought>();
@@ -95,7 +85,7 @@ namespace RimWorldAccess
 
             if (thoughtGroups.Count > 0)
             {
-                sb.AppendLine($"\nThoughts affecting mood ({thoughtGroups.Count}):");
+                sb.AppendLine($"\nThoughts affecting mood. {thoughtGroups.Count} total.");
 
                 // Process each thought group
                 List<Thought> thoughtGroup = new List<Thought>();
@@ -125,14 +115,14 @@ namespace RimWorldAccess
                     // Format mood offset with sign
                     string offsetText = moodOffset.ToString("+0;-0;0");
 
-                    sb.AppendLine($"  {thoughtLabel}: {offsetText}");
+                    sb.AppendLine($"  {thoughtLabel}: {offsetText}.");
 
                     thoughtGroup.Clear();
                 }
             }
             else
             {
-                sb.AppendLine("\nNo thoughts affecting mood");
+                sb.AppendLine("\nNo thoughts affecting mood.");
             }
 
             // Copy to clipboard for screen reader

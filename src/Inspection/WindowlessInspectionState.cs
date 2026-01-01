@@ -718,22 +718,6 @@ namespace RimWorldAccess
                 {
                     return HealthTabState.HandleInput(ev);
                 }
-                if (NeedsTabState.IsActive)
-                {
-                    return NeedsTabState.HandleInput(ev);
-                }
-                if (SocialTabState.IsActive)
-                {
-                    return SocialTabState.HandleInput(ev);
-                }
-                if (TrainingTabState.IsActive)
-                {
-                    return TrainingTabState.HandleInput(ev);
-                }
-                if (CharacterTabState.IsActive)
-                {
-                    return CharacterTabState.HandleInput(ev);
-                }
 
                 KeyCode key = ev.keyCode;
 

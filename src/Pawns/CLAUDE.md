@@ -5,8 +5,8 @@ Pawn information, character tabs, policies, and assignments.
 
 ## Files
 **Patches:** PawnInfoPatch.cs, AssignMenuPatch.cs, DrugPolicyPatch.cs, FoodPolicyPatch.cs, OutfitPolicyPatch.cs
-**States:** PawnSelectionState.cs, HealthState.cs, HealthTabState.cs, MoodState.cs, NeedsState.cs, NeedsTabState.cs, CharacterTabState.cs, SocialTabState.cs, TrainingTabState.cs, AssignMenuState.cs, BedAssignmentState.cs, WindowlessDrugPolicyState.cs, WindowlessFoodPolicyState.cs, WindowlessOutfitPolicyState.cs, WindowlessScheduleState.cs
-**Helpers:** PawnInfoHelper.cs, HealthTabHelper.cs, NeedsTabHelper.cs, CharacterTabHelper.cs, SocialTabHelper.cs, TrainingTabHelper.cs, InteractiveGearHelper.cs
+**States:** PawnSelectionState.cs, HealthState.cs, HealthTabState.cs, MoodState.cs, NeedsState.cs, AssignMenuState.cs, BedAssignmentState.cs, WindowlessDrugPolicyState.cs, WindowlessFoodPolicyState.cs, WindowlessOutfitPolicyState.cs, WindowlessScheduleState.cs
+**Helpers:** PawnInfoHelper.cs, HealthTabHelper.cs, SocialTabHelper.cs, InteractiveGearHelper.cs
 
 ## Key Shortcuts
 - **Tab/Shift+Tab** - Cycle selected pawns
