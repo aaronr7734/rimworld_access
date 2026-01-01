@@ -286,6 +286,9 @@ namespace RimWorldAccess
 
             if (item.type == MenuItemType.Category)
             {
+                // Clear search when toggling expansion to avoid stale search state
+                typeahead.ClearSearch();
+
                 // Toggle expansion
                 DesignationCategoryDef category = item.data as DesignationCategoryDef;
                 if (category == null) return;

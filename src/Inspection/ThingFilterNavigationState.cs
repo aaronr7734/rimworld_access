@@ -405,6 +405,9 @@ namespace RimWorldAccess
             if (flattenedNodes.Count == 0 || selectedIndex < 0 || selectedIndex >= flattenedNodes.Count)
                 return;
 
+            // Clear search when expanding to avoid stale search state
+            typeahead.ClearSearch();
+
             var node = flattenedNodes[selectedIndex];
 
             // Case 1: Collapsed category - expand it, focus stays
@@ -457,6 +460,9 @@ namespace RimWorldAccess
         {
             if (flattenedNodes.Count == 0 || selectedIndex < 0 || selectedIndex >= flattenedNodes.Count)
                 return;
+
+            // Clear search when collapsing to avoid stale search state
+            typeahead.ClearSearch();
 
             var node = flattenedNodes[selectedIndex];
 
