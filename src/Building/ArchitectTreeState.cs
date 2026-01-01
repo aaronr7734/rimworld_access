@@ -123,57 +123,39 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets a label for a designator including cost info for build designators.
+        /// Gets a label for a designator including cost and description.
+        /// Format: "Name: cost (description)" for build designators.
         /// </summary>
         private static string GetDesignatorLabel(Designator designator)
         {
             string label = designator.LabelCap;
 
-            // Add brief cost info for build designators
+            // Add cost and description for build designators
             if (designator is Designator_Build buildDesignator)
             {
                 BuildableDef buildable = buildDesignator.PlacingDef;
                 if (buildable != null)
                 {
-                    string costInfo = GetBriefCostInfo(buildable);
-                    if (!string.IsNullOrEmpty(costInfo))
+                    string costInfo = ArchitectHelper.GetBriefCostInfo(buildable);
+                    string description = ArchitectHelper.GetDescription(buildable);
+
+                    // Format: "Name: cost (description)"
+                    if (!string.IsNullOrEmpty(costInfo) && !string.IsNullOrEmpty(description))
                     {
-                        label += $" ({costInfo})";
+                        label += $": {costInfo} ({description})";
+                    }
+                    else if (!string.IsNullOrEmpty(costInfo))
+                    {
+                        label += $": {costInfo}";
+                    }
+                    else if (!string.IsNullOrEmpty(description))
+                    {
+                        label += $" ({description})";
                     }
                 }
             }
 
             return label;
-        }
-
-        /// <summary>
-        /// Gets brief cost information for display in the menu.
-        /// </summary>
-        private static string GetBriefCostInfo(BuildableDef buildable)
-        {
-            List<string> costParts = new List<string>();
-
-            // Get stuff cost first (most common)
-            if (buildable is ThingDef thingDef && thingDef.MadeFromStuff)
-            {
-                int stuffCount = buildable.CostStuffCount;
-                if (stuffCount > 0)
-                {
-                    costParts.Add($"{stuffCount} material");
-                }
-            }
-
-            // Get fixed costs
-            List<ThingDefCountClass> costs = buildable.CostList;
-            if (costs != null)
-            {
-                foreach (ThingDefCountClass cost in costs)
-                {
-                    costParts.Add($"{cost.count} {cost.thingDef.label}");
-                }
-            }
-
-            return string.Join(", ", costParts);
         }
 
         public static void SelectNext()

@@ -306,58 +306,57 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets extra information (cost, skill requirements, and description) for a buildable.
+        /// Gets extra information (cost and description) for a buildable.
+        /// Format: ": {cost} ({description})" matching tree view style.
         /// </summary>
         private static string GetBuildableExtraInfo(BuildableDef buildable)
         {
             if (buildable == null)
                 return "";
 
-            List<string> infoParts = new List<string>();
-
-            // Add cost information first
-            string costInfo = GetCostInfo(buildable);
-            if (!string.IsNullOrEmpty(costInfo))
-            {
-                infoParts.Add(costInfo);
-            }
-
-            // Add skill requirements second
-            string skillInfo = GetSkillRequirements(buildable);
-            if (!string.IsNullOrEmpty(skillInfo))
-            {
-                infoParts.Add(skillInfo);
-            }
-
-            // Add description last so players can skip it if they don't need it
+            string costInfo = GetBriefCostInfo(buildable);
             string description = GetDescription(buildable);
-            if (!string.IsNullOrEmpty(description))
-            {
-                infoParts.Add(description);
-            }
 
-            if (infoParts.Count > 0)
+            // Build the formatted string: ": cost (description)"
+            if (!string.IsNullOrEmpty(costInfo) && !string.IsNullOrEmpty(description))
             {
-                return " (" + string.Join(". ", infoParts) + ")";
+                return $": {costInfo} ({description})";
+            }
+            else if (!string.IsNullOrEmpty(costInfo))
+            {
+                return $": {costInfo}";
+            }
+            else if (!string.IsNullOrEmpty(description))
+            {
+                return $" ({description})";
             }
 
             return "";
         }
 
         /// <summary>
-        /// Gets cost information for a buildable as a formatted string.
+        /// Gets brief cost information for display (no "Cost:" prefix).
         /// </summary>
-        private static string GetCostInfo(BuildableDef buildable)
+        public static string GetBriefCostInfo(BuildableDef buildable)
         {
             if (buildable == null)
                 return "";
 
             List<string> costParts = new List<string>();
 
-            // Get the cost list (handles difficulty adjustments automatically)
-            List<ThingDefCountClass> costs = buildable.CostList;
+            // Get stuff cost first (most common)
+            if (buildable is ThingDef thingDef && thingDef.MadeFromStuff)
+            {
+                int stuffCount = buildable.CostStuffCount;
+                if (stuffCount > 0)
+                {
+                    costParts.Add($"{stuffCount} material");
+                }
+            }
 
-            if (costs != null && costs.Count > 0)
+            // Get fixed costs
+            List<ThingDefCountClass> costs = buildable.CostList;
+            if (costs != null)
             {
                 foreach (ThingDefCountClass cost in costs)
                 {
@@ -365,35 +364,7 @@ namespace RimWorldAccess
                 }
             }
 
-            // Add stuff cost if applicable
-            if (buildable is ThingDef thingDef && thingDef.MadeFromStuff)
-            {
-                int stuffCount = buildable.CostStuffCount;
-                if (stuffCount > 0)
-                {
-                    // Get stuff categories
-                    if (buildable.stuffCategories != null && buildable.stuffCategories.Count > 0)
-                    {
-                        string stuffLabel = buildable.stuffCategories[0].label;
-                        if (buildable.stuffCategories.Count > 1)
-                        {
-                            stuffLabel = "stuff";
-                        }
-                        costParts.Add($"{stuffCount} {stuffLabel}");
-                    }
-                    else
-                    {
-                        costParts.Add($"{stuffCount} stuff");
-                    }
-                }
-            }
-
-            if (costParts.Count > 0)
-            {
-                return "Cost: " + string.Join(", ", costParts);
-            }
-
-            return "";
+            return string.Join(", ", costParts);
         }
 
         /// <summary>
@@ -429,7 +400,7 @@ namespace RimWorldAccess
         /// <summary>
         /// Gets the description for a buildable as a formatted string.
         /// </summary>
-        private static string GetDescription(BuildableDef buildable)
+        public static string GetDescription(BuildableDef buildable)
         {
             if (buildable == null)
                 return "";

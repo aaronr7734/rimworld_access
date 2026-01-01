@@ -166,36 +166,96 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Finds matching items using a two-pass approach:
-        /// Pass 1: Match against names only (ignoring parenthetical content like descriptions)
-        /// Pass 2: If no matches, try matching full labels including parenthetical content
-        /// This prioritizes exact name matches while still allowing description searches as fallback.
+        /// Finds matching items with priority ordering:
+        /// 1. First word prefix matches (e.g., 'w' matches "Wall" before "5 wood")
+        /// 2. Other word prefix matches in the name (before parenthetical content)
+        /// 3. Matches in parenthetical content (descriptions) as fallback
         /// </summary>
         private void FindMatches(List<string> labels)
         {
             matchingIndices.Clear();
 
-            // Pass 1: Try matching without parenthetical content (names only)
+            List<int> firstWordMatches = new List<int>();
+            List<int> otherWordMatches = new List<int>();
+            List<int> descriptionMatches = new List<int>();
+
             for (int i = 0; i < labels.Count; i++)
             {
-                if (MatchesWordPrefix(searchBuffer, labels[i], ignoreParenthetical: true))
+                string label = labels[i];
+                MatchType matchType = GetMatchType(searchBuffer, label);
+
+                switch (matchType)
                 {
-                    matchingIndices.Add(i);
+                    case MatchType.FirstWord:
+                        firstWordMatches.Add(i);
+                        break;
+                    case MatchType.OtherWord:
+                        otherWordMatches.Add(i);
+                        break;
+                    case MatchType.Description:
+                        descriptionMatches.Add(i);
+                        break;
                 }
             }
 
-            // If we found matches in pass 1, we're done
-            if (matchingIndices.Count > 0)
-                return;
+            // Add matches in priority order
+            matchingIndices.AddRange(firstWordMatches);
+            matchingIndices.AddRange(otherWordMatches);
+            matchingIndices.AddRange(descriptionMatches);
+        }
 
-            // Pass 2: No matches found - try matching full labels including descriptions
-            for (int i = 0; i < labels.Count; i++)
+        private enum MatchType
+        {
+            None,
+            FirstWord,      // Match at start of label/first word
+            OtherWord,      // Match on other words in name (before parenthetical)
+            Description     // Match in parenthetical content
+        }
+
+        /// <summary>
+        /// Determines what type of match (if any) exists between search and label.
+        /// </summary>
+        private MatchType GetMatchType(string search, string label)
+        {
+            if (string.IsNullOrEmpty(search) || string.IsNullOrEmpty(label))
+                return MatchType.None;
+
+            string searchLower = search.ToLowerInvariant();
+            string labelLower = label.ToLowerInvariant().Trim();
+
+            // Strip parenthetical content for name-based matching
+            string nameOnly = StripParentheticalContent(labelLower);
+
+            // Check if label/first word starts with search
+            if (nameOnly.StartsWith(searchLower))
             {
-                if (MatchesWordPrefix(searchBuffer, labels[i], ignoreParenthetical: false))
+                return MatchType.FirstWord;
+            }
+
+            // Check first word specifically (before any separator)
+            string[] nameWords = nameOnly.Split(WordSeparators, StringSplitOptions.RemoveEmptyEntries);
+            if (nameWords.Length > 0 && nameWords[0].StartsWith(searchLower))
+            {
+                return MatchType.FirstWord;
+            }
+
+            // Check other words in the name
+            for (int i = 1; i < nameWords.Length; i++)
+            {
+                if (nameWords[i].StartsWith(searchLower))
                 {
-                    matchingIndices.Add(i);
+                    return MatchType.OtherWord;
                 }
             }
+
+            // Check parenthetical content (description)
+            if (MatchesWordPrefix(search, label, ignoreParenthetical: false) &&
+                !MatchesWordPrefix(search, label, ignoreParenthetical: true))
+            {
+                return MatchType.Description;
+            }
+
+            return MatchType.None;
         }
 
         /// <summary>
