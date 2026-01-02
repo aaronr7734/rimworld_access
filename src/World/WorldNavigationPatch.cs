@@ -166,6 +166,24 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Handle number keys 1-5 for categorized tile information
+            if (!shift && !ctrl && !alt)
+            {
+                int category = 0;
+                if (key == KeyCode.Alpha1 || key == KeyCode.Keypad1) category = 1;
+                else if (key == KeyCode.Alpha2 || key == KeyCode.Keypad2) category = 2;
+                else if (key == KeyCode.Alpha3 || key == KeyCode.Keypad3) category = 3;
+                else if (key == KeyCode.Alpha4 || key == KeyCode.Keypad4) category = 4;
+                else if (key == KeyCode.Alpha5 || key == KeyCode.Keypad5) category = 5;
+
+                if (category > 0)
+                {
+                    WorldNavigationState.AnnounceTileInfoCategory(category);
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // Handle C key - form caravan at selected settlement
             if (key == KeyCode.C && !shift && !ctrl && !alt)
             {

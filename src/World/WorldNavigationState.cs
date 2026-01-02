@@ -17,6 +17,14 @@ namespace RimWorldAccess
         private static bool isInitialized = false;
         private static string lastAnnouncedInfo = "";
         private static Caravan selectedCaravan = null;
+        private static bool isInPoleTerritory = false;
+        private static bool lastWasInPoleTerritory = false;
+
+        /// <summary>
+        /// Latitude threshold for pole territory (degrees from equator).
+        /// Beyond this, compass directions become unreliable.
+        /// </summary>
+        private const float PoleLatitudeThreshold = 75f;
 
         /// <summary>
         /// Gets whether world navigation is currently active.
@@ -37,6 +45,13 @@ namespace RimWorldAccess
             get => currentSelectedTile;
             set => currentSelectedTile = value;
         }
+
+        /// <summary>
+        /// Gets whether the cursor is currently in pole territory (|latitude| > 75°).
+        /// When in pole territory, compass directions become unreliable due to
+        /// the convergence of meridians at the poles.
+        /// </summary>
+        public static bool IsInPoleTerritory => isInPoleTerritory;
 
         /// <summary>
         /// Opens world navigation mode and initializes the state.
@@ -85,6 +100,12 @@ namespace RimWorldAccess
                 Find.WorldCameraDriver.JumpTo(currentSelectedTile);
             }
 
+            // Orient camera so north is up (arrow keys match compass directions)
+            OrientCameraNorthUp();
+
+            // Check if we're in pole territory
+            UpdatePoleStatus();
+
             // Sync with game's selection system
             if (Find.WorldSelector != null)
             {
@@ -103,6 +124,53 @@ namespace RimWorldAccess
             currentSelectedTile = PlanetTile.Invalid;
             lastAnnouncedInfo = "";
             selectedCaravan = null;
+            isInPoleTerritory = false;
+            lastWasInPoleTerritory = false;
+        }
+
+        /// <summary>
+        /// Orients the camera so geographic north is screen-up.
+        /// This ensures arrow keys match compass directions.
+        /// </summary>
+        private static void OrientCameraNorthUp()
+        {
+            if (Find.WorldCameraDriver != null)
+            {
+                Find.WorldCameraDriver.RotateSoNorthIsUp();
+            }
+        }
+
+        /// <summary>
+        /// Updates pole territory status based on current tile's latitude.
+        /// Announces when entering or leaving pole territory.
+        /// </summary>
+        private static void UpdatePoleStatus()
+        {
+            if (!currentSelectedTile.Valid || Find.WorldGrid == null)
+            {
+                isInPoleTerritory = false;
+                return;
+            }
+
+            // Get latitude (y component of LongLatOf)
+            UnityEngine.Vector2 longlat = Find.WorldGrid.LongLatOf(currentSelectedTile);
+            float latitude = longlat.y;
+
+            // Check if we're in pole territory
+            isInPoleTerritory = UnityEngine.Mathf.Abs(latitude) > PoleLatitudeThreshold;
+
+            // Announce when entering pole territory (only on state change)
+            if (isInPoleTerritory && !lastWasInPoleTerritory)
+            {
+                string pole = latitude > 0 ? "north" : "south";
+                TolkHelper.Speak($"Near {pole} pole - using relative directions", SpeechPriority.Normal);
+            }
+            else if (!isInPoleTerritory && lastWasInPoleTerritory)
+            {
+                TolkHelper.Speak("Leaving pole territory - using compass directions", SpeechPriority.Normal);
+            }
+
+            lastWasInPoleTerritory = isInPoleTerritory;
         }
 
         /// <summary>
@@ -165,6 +233,9 @@ namespace RimWorldAccess
                 Find.WorldCameraDriver.JumpTo(currentSelectedTile);
             }
 
+            // Check if we've entered/left pole territory
+            UpdatePoleStatus();
+
             // Announce new tile
             AnnounceTile();
 
@@ -186,38 +257,39 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Handles arrow key navigation for world map.
-        /// Maps arrow keys to camera-relative directions.
+        /// Maps arrow keys to geographic compass directions (north/south/east/west).
+        /// Uses the same calculation as the scanner for consistency.
         /// </summary>
         public static void HandleArrowKey(UnityEngine.KeyCode key)
         {
             if (!isInitialized || !currentSelectedTile.Valid)
                 return;
 
-            if (Find.WorldCameraDriver == null)
+            if (Find.WorldGrid == null)
                 return;
 
-            // Get camera's current rotation to determine "up/down/left/right" in world space
-            UnityEngine.Quaternion cameraRotation = Find.WorldCameraDriver.sphereRotation;
+            // Calculate geographic north/east using the same method as the scanner
+            // This ensures arrow keys match the directions shown in the scanner
+            UnityEngine.Vector3 currentPos = Find.WorldGrid.GetTileCenter(currentSelectedTile);
+            UnityEngine.Vector3 up = currentPos.normalized; // "Up" is away from planet center
+            UnityEngine.Vector3 north = UnityEngine.Vector3.ProjectOnPlane(UnityEngine.Vector3.up, up).normalized;
+            UnityEngine.Vector3 east = UnityEngine.Vector3.Cross(up, north).normalized;
 
             UnityEngine.Vector3 desiredDirection = UnityEngine.Vector3.zero;
 
             switch (key)
             {
                 case UnityEngine.KeyCode.UpArrow:
-                    // Move "up" relative to camera (north on screen)
-                    desiredDirection = cameraRotation * UnityEngine.Vector3.forward;
+                    desiredDirection = north;
                     break;
                 case UnityEngine.KeyCode.DownArrow:
-                    // Move "down" relative to camera (south on screen)
-                    desiredDirection = cameraRotation * UnityEngine.Vector3.back;
+                    desiredDirection = -north; // South
                     break;
                 case UnityEngine.KeyCode.RightArrow:
-                    // Move "right" relative to camera (east on screen)
-                    desiredDirection = cameraRotation * UnityEngine.Vector3.right;
+                    desiredDirection = east;
                     break;
                 case UnityEngine.KeyCode.LeftArrow:
-                    // Move "left" relative to camera (west on screen)
-                    desiredDirection = cameraRotation * UnityEngine.Vector3.left;
+                    desiredDirection = -east; // West
                     break;
             }
 
@@ -253,11 +325,15 @@ namespace RimWorldAccess
                 Find.WorldSelector.SelectedTile = currentSelectedTile;
             }
 
-            // Jump camera
+            // Jump camera and orient north-up
             if (Find.WorldCameraDriver != null)
             {
                 Find.WorldCameraDriver.JumpTo(currentSelectedTile);
             }
+            OrientCameraNorthUp();
+
+            // Check if we've entered/left pole territory
+            UpdatePoleStatus();
 
             // Announce tile info (includes settlement name)
             AnnounceTile();
@@ -314,11 +390,15 @@ namespace RimWorldAccess
                 Find.WorldSelector.SelectedTile = currentSelectedTile;
             }
 
-            // Jump camera
+            // Jump camera and orient north-up
             if (Find.WorldCameraDriver != null)
             {
                 Find.WorldCameraDriver.JumpTo(currentSelectedTile);
             }
+            OrientCameraNorthUp();
+
+            // Check if we've entered/left pole territory
+            UpdatePoleStatus();
 
             // Announce tile info
             AnnounceTile();
@@ -431,11 +511,15 @@ namespace RimWorldAccess
                 Find.WorldSelector.SelectedTile = currentSelectedTile;
             }
 
-            // Jump camera
+            // Jump camera and orient north-up
             if (Find.WorldCameraDriver != null)
             {
                 Find.WorldCameraDriver.JumpTo(currentSelectedTile);
             }
+            OrientCameraNorthUp();
+
+            // Check if we've entered/left pole territory
+            UpdatePoleStatus();
 
             // Announce tile info
             AnnounceTile();
@@ -451,6 +535,44 @@ namespace RimWorldAccess
 
             string detailedInfo = WorldInfoHelper.GetDetailedTileInfo(currentSelectedTile);
             TolkHelper.Speak(detailedInfo);
+        }
+
+        /// <summary>
+        /// Announces categorized tile information based on number key pressed.
+        /// Key 1: Growing and Food
+        /// Key 2: Movement and Terrain
+        /// Key 3: Health and Environment
+        /// Key 4: Location
+        /// Key 5: Tile Features/DLC
+        /// </summary>
+        public static void AnnounceTileInfoCategory(int category)
+        {
+            if (!isInitialized || !currentSelectedTile.Valid)
+                return;
+
+            string info;
+            switch (category)
+            {
+                case 1:
+                    info = WorldInfoHelper.GetTileGrowingInfo(currentSelectedTile);
+                    break;
+                case 2:
+                    info = WorldInfoHelper.GetTileMovementInfo(currentSelectedTile);
+                    break;
+                case 3:
+                    info = WorldInfoHelper.GetTileHealthInfo(currentSelectedTile);
+                    break;
+                case 4:
+                    info = WorldInfoHelper.GetTileLocationInfo(currentSelectedTile);
+                    break;
+                case 5:
+                    info = WorldInfoHelper.GetTileFeaturesInfo(currentSelectedTile);
+                    break;
+                default:
+                    return;
+            }
+
+            TolkHelper.Speak(info);
         }
 
         /// <summary>

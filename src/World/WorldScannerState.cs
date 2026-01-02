@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
@@ -38,6 +39,7 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Gets the compass direction from the origin tile to this item.
+        /// In pole territory, returns camera-relative directions instead.
         /// </summary>
         public string GetDirectionFrom(PlanetTile fromTile)
         {
@@ -48,8 +50,21 @@ namespace RimWorldAccess
             Vector3 toPos = Find.WorldGrid.GetTileCenter(Tile);
             Vector3 direction = (toPos - fromPos).normalized;
 
-            // Get camera rotation to determine "north" relative to view
-            // For world map, we use absolute directions based on the globe
+            // Check if we're in pole territory - use relative directions
+            if (WorldNavigationState.IsInPoleTerritory)
+            {
+                return GetRelativeDirection(fromPos, toPos, direction);
+            }
+
+            // Normal compass directions
+            return GetCompassDirection(fromPos, direction);
+        }
+
+        /// <summary>
+        /// Gets compass direction (N/S/E/W) based on geographic coordinates.
+        /// </summary>
+        private string GetCompassDirection(Vector3 fromPos, Vector3 direction)
+        {
             // Project onto the tangent plane at the origin point
             Vector3 up = fromPos.normalized; // "Up" is away from planet center
             Vector3 north = Vector3.ProjectOnPlane(Vector3.up, up).normalized;
@@ -73,6 +88,45 @@ namespace RimWorldAccess
             if (angle >= 202.5 && angle < 247.5) return "Southwest";
             if (angle >= 247.5 && angle < 292.5) return "West";
             return "Northwest";
+        }
+
+        /// <summary>
+        /// Gets camera-relative direction (ahead/behind/left/right).
+        /// Used near poles where compass directions are unreliable.
+        /// </summary>
+        private string GetRelativeDirection(Vector3 fromPos, Vector3 toPos, Vector3 direction)
+        {
+            if (Find.WorldCameraDriver == null)
+                return "";
+
+            // Get camera's rotation and orientation
+            Quaternion cameraRotation = Find.WorldCameraDriver.sphereRotation;
+
+            // Camera's "forward" (up on screen) and "right" (right on screen)
+            Vector3 cameraForward = cameraRotation * Vector3.forward;
+            Vector3 cameraRight = cameraRotation * Vector3.right;
+
+            // Project direction onto the view plane
+            Vector3 up = fromPos.normalized;
+            Vector3 flatDir = Vector3.ProjectOnPlane(direction, up).normalized;
+            Vector3 flatForward = Vector3.ProjectOnPlane(cameraForward, up).normalized;
+            Vector3 flatRight = Vector3.ProjectOnPlane(cameraRight, up).normalized;
+
+            // Calculate angle relative to camera's forward
+            float dotForward = Vector3.Dot(flatDir, flatForward);
+            float dotRight = Vector3.Dot(flatDir, flatRight);
+            double angle = Math.Atan2(dotRight, dotForward) * (180.0 / Math.PI);
+            if (angle < 0) angle += 360;
+
+            // Convert to 8-direction relative
+            if (angle >= 337.5 || angle < 22.5) return "Ahead";
+            if (angle >= 22.5 && angle < 67.5) return "Ahead-right";
+            if (angle >= 67.5 && angle < 112.5) return "Right";
+            if (angle >= 112.5 && angle < 157.5) return "Behind-right";
+            if (angle >= 157.5 && angle < 202.5) return "Behind";
+            if (angle >= 202.5 && angle < 247.5) return "Behind-left";
+            if (angle >= 247.5 && angle < 292.5) return "Left";
+            return "Ahead-left";
         }
     }
 
@@ -128,6 +182,14 @@ namespace RimWorldAccess
 
             PlanetTile originTile = WorldNavigationState.CurrentSelectedTile;
             categories.Clear();
+
+            // Category 0: Route Waypoints (only when route planner is active)
+            if (Find.WorldRoutePlanner != null && Find.WorldRoutePlanner.Active && Find.WorldRoutePlanner.waypoints.Count > 0)
+            {
+                var waypointsCategory = new WorldScannerCategory("Route Waypoints");
+                CollectWaypoints(waypointsCategory, originTile);
+                if (!waypointsCategory.IsEmpty) categories.Add(waypointsCategory);
+            }
 
             // Category 1: Quest Sites
             var questSites = new WorldScannerCategory("Quest Sites");
@@ -329,6 +391,55 @@ namespace RimWorldAccess
             category.Items = category.Items.OrderBy(i => i.Distance).ToList();
         }
 
+        /// <summary>
+        /// Collects route planner waypoints.
+        /// Unlike other categories, waypoints are ordered by sequence, not distance.
+        /// </summary>
+        private static void CollectWaypoints(WorldScannerCategory category, PlanetTile originTile)
+        {
+            WorldRoutePlanner planner = Find.WorldRoutePlanner;
+            if (planner == null || !planner.Active)
+                return;
+
+            for (int i = 0; i < planner.waypoints.Count; i++)
+            {
+                RoutePlannerWaypoint waypoint = planner.waypoints[i];
+                if (waypoint == null || !waypoint.Tile.Valid)
+                    continue;
+
+                var item = new WorldScannerItem(waypoint, originTile);
+
+                // Override label to show waypoint number and travel time
+                StringBuilder label = new StringBuilder();
+                label.Append($"Waypoint {i + 1}");
+
+                // Add tile description
+                string tileName = WorldInfoHelper.GetTileSummary(waypoint.Tile);
+                if (!string.IsNullOrEmpty(tileName))
+                {
+                    label.Append($": {tileName}");
+                }
+
+                // Add travel time for waypoints after the first
+                if (i >= 1)
+                {
+                    int ticksToWaypoint = planner.GetTicksToWaypoint(i);
+                    string timeString = ticksToWaypoint.ToStringTicksToDays("0.#");
+                    // Use clear "Estimated travel time:" instead of game's abbreviated format
+                    label.Append($". Estimated travel time: {timeString}");
+                }
+                else
+                {
+                    label.Append(" (Start)");
+                }
+
+                item.Label = label.ToString();
+                category.Items.Add(item);
+            }
+
+            // Don't sort by distance - keep waypoints in sequence order
+        }
+
         private static void ValidateIndices()
         {
             if (currentCategoryIndex < 0 || currentCategoryIndex >= categories.Count)
@@ -509,9 +620,12 @@ namespace RimWorldAccess
                 Find.WorldSelector.SelectedTile = item.Tile;
             }
 
-            // Jump camera
+            // Jump camera and orient north-up
             if (Find.WorldCameraDriver != null)
+            {
                 Find.WorldCameraDriver.JumpTo(item.Tile);
+                Find.WorldCameraDriver.RotateSoNorthIsUp();
+            }
 
             // Announce with full details
             AnnounceCurrentItem();

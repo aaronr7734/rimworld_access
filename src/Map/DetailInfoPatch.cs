@@ -26,6 +26,10 @@ namespace RimWorldAccess
             if (Find.CurrentMap == null || !MapNavigationState.IsInitialized)
                 return;
 
+            // Don't process if in world view (world map has its own number key handling)
+            if (WorldNavigationState.IsActive)
+                return;
+
             // Don't process if any dialog or window that prevents camera motion is open
             if (Find.WindowStack != null && Find.WindowStack.WindowsPreventCameraMotion)
                 return;

@@ -28,6 +28,19 @@ namespace RimWorldAccess
 
             StringBuilder summary = new StringBuilder();
 
+            // Check for route planner waypoint at this tile FIRST (before everything else)
+            if (Find.WorldRoutePlanner != null && Find.WorldRoutePlanner.Active)
+            {
+                for (int i = 0; i < Find.WorldRoutePlanner.waypoints.Count; i++)
+                {
+                    if (Find.WorldRoutePlanner.waypoints[i].Tile == planetTile)
+                    {
+                        summary.Append($"Waypoint {i + 1}. ");
+                        break;
+                    }
+                }
+            }
+
             // Add biome
             if (tile.PrimaryBiome != null)
             {
@@ -485,5 +498,276 @@ namespace RimWorldAccess
 
             return info.ToString().TrimEnd();
         }
+        #region Number Key Tile Info (Keys 1-5)
+
+        /// <summary>
+        /// Key 1: Growing and Food information.
+        /// Growing period, forageability, grazing, rainfall.
+        /// </summary>
+        public static string GetTileGrowingInfo(PlanetTile planetTile)
+        {
+            if (!planetTile.Valid || Find.WorldGrid == null)
+                return "Invalid tile";
+
+            Tile tile = planetTile.Tile;
+            if (tile == null)
+                return "Unknown tile";
+
+            StringBuilder info = new StringBuilder();
+
+            // Growing period - use game's calculation
+            string growingPeriod = Zone_Growing.GrowingQuadrumsDescription(planetTile);
+            info.Append($"Growing period: {growingPeriod}.");
+
+            // Rainfall
+            info.Append($" Rainfall: {tile.rainfall:F0} mm.");
+
+            // Forageability
+            if (tile.PrimaryBiome?.foragedFood != null && tile.PrimaryBiome.forageability > 0f)
+            {
+                info.Append($" Forageability: {tile.PrimaryBiome.forageability.ToStringPercent()} ({tile.PrimaryBiome.foragedFood.label}).");
+            }
+            else
+            {
+                info.Append(" Forageability: 0%.");
+            }
+
+            // Grazing (animals can graze now)
+            bool canGraze = VirtualPlantsUtility.EnvironmentAllowsEatingVirtualPlantsNowAt(planetTile);
+            info.Append($" Animals can graze: {(canGraze ? "yes" : "no")}.");
+
+            return info.ToString();
+        }
+
+        /// <summary>
+        /// Key 2: Movement and Terrain information.
+        /// Movement difficulty, winter penalty, roads, rivers, stone types, elevation.
+        /// </summary>
+        public static string GetTileMovementInfo(PlanetTile planetTile)
+        {
+            if (!planetTile.Valid || Find.WorldGrid == null)
+                return "Invalid tile";
+
+            Tile tile = planetTile.Tile;
+            if (tile == null)
+                return "Unknown tile";
+
+            StringBuilder info = new StringBuilder();
+
+            // Movement difficulty
+            if (Find.World.Impassable(planetTile))
+            {
+                info.Append("Movement: Impassable.");
+            }
+            else
+            {
+                float difficulty = WorldPathGrid.CalculatedMovementDifficultyAt(planetTile, false, null, null);
+                float roadMultiplier = Find.WorldGrid.GetRoadMovementDifficultyMultiplier(planetTile, PlanetTile.Invalid, null);
+                float totalDifficulty = difficulty * roadMultiplier;
+                info.Append($"Movement difficulty: {totalDifficulty:F1}.");
+
+                // Winter penalty
+                if (WorldPathGrid.WillWinterEverAffectMovementDifficulty(planetTile))
+                {
+                    float currentWinterOffset = WorldPathGrid.GetCurrentWinterMovementDifficultyOffset(planetTile);
+                    if (currentWinterOffset > 0)
+                    {
+                        info.Append($" Current winter penalty: +{currentWinterOffset:F1}.");
+                    }
+                    else
+                    {
+                        info.Append(" Winter penalty: +2.0 in winter.");
+                    }
+                }
+            }
+
+            // Terrain/Hilliness
+            if (tile.HillinessLabel != Hilliness.Undefined)
+            {
+                info.Append($" Terrain: {tile.HillinessLabel.GetLabelCap()}.");
+            }
+
+            // Elevation
+            info.Append($" Elevation: {tile.elevation:F0} m.");
+
+            // Roads and Rivers (only for surface tiles)
+            if (tile is SurfaceTile surfaceTile)
+            {
+                if (surfaceTile.Roads != null && surfaceTile.Roads.Count > 0)
+                {
+                    string roads = surfaceTile.Roads
+                        .Select(r => r.road.label)
+                        .Distinct()
+                        .ToCommaList(useAnd: true);
+                    info.Append($" Road: {roads.CapitalizeFirst()}.");
+                }
+
+                if (surfaceTile.Rivers != null && surfaceTile.Rivers.Count > 0)
+                {
+                    var largestRiver = surfaceTile.Rivers.MaxBy(r => r.river.degradeThreshold);
+                    info.Append($" River: {largestRiver.river.LabelCap}.");
+                }
+            }
+
+            // Stone types (if can build base here)
+            if (tile.PrimaryBiome?.canBuildBase == true)
+            {
+                var stoneTypes = Find.World.NaturalRockTypesIn(planetTile)
+                    .Select(rt => rt.label)
+                    .ToList();
+                if (stoneTypes.Count > 0)
+                {
+                    info.Append($" Stone types: {stoneTypes.ToCommaList(useAnd: true).CapitalizeFirst()}.");
+                }
+            }
+
+            // Coastal
+            if (tile.IsCoastal)
+            {
+                info.Append(" Coastal.");
+            }
+
+            return info.ToString();
+        }
+
+        /// <summary>
+        /// Key 3: Health and Environment information.
+        /// Disease frequency, pollution, noxious haze risk.
+        /// </summary>
+        public static string GetTileHealthInfo(PlanetTile planetTile)
+        {
+            if (!planetTile.Valid || Find.WorldGrid == null)
+                return "Invalid tile";
+
+            Tile tile = planetTile.Tile;
+            if (tile == null)
+                return "Unknown tile";
+
+            StringBuilder info = new StringBuilder();
+
+            // Disease frequency
+            if (tile.PrimaryBiome?.diseaseMtbDays > 0)
+            {
+                float diseasesPerYear = 60f / tile.PrimaryBiome.diseaseMtbDays;
+                info.Append($"Disease frequency: {diseasesPerYear:F1} per year.");
+            }
+            else
+            {
+                info.Append("Disease frequency: None.");
+            }
+
+            // Pollution (Biotech DLC)
+            if (ModsConfig.BiotechActive)
+            {
+                info.Append($" Tile pollution: {tile.pollution.ToStringPercent()}.");
+
+                // Nearby pollution score
+                float nearbyPollution = WorldPollutionUtility.CalculateNearbyPollutionScore(planetTile);
+                info.Append($" Nearby pollution: {nearbyPollution:F2}.");
+
+                // Noxious haze risk
+                if (nearbyPollution >= GameConditionDefOf.NoxiousHaze.minNearbyPollution)
+                {
+                    float hazeInterval = GameConditionDefOf.NoxiousHaze.mtbOverNearbyPollutionCurve.Evaluate(nearbyPollution);
+                    info.Append($" Noxious haze interval: {hazeInterval:F0} days.");
+                }
+                else
+                {
+                    info.Append(" Noxious haze: Never.");
+                }
+            }
+
+            return info.ToString();
+        }
+
+        /// <summary>
+        /// Key 4: Location information.
+        /// Coordinates, time zone, tile ID.
+        /// </summary>
+        public static string GetTileLocationInfo(PlanetTile planetTile)
+        {
+            if (!planetTile.Valid || Find.WorldGrid == null)
+                return "Invalid tile";
+
+            StringBuilder info = new StringBuilder();
+
+            // Coordinates
+            Vector2 longlat = Find.WorldGrid.LongLatOf(planetTile);
+            string latDir = longlat.y >= 0 ? "N" : "S";
+            string lonDir = longlat.x >= 0 ? "E" : "W";
+            info.Append($"Coordinates: {Mathf.Abs(longlat.y):F1} degrees {latDir}, {Mathf.Abs(longlat.x):F1} degrees {lonDir}.");
+
+            // Time zone
+            int timeZone = GenDate.TimeZoneAt(longlat.x);
+            string tzStr = timeZone >= 0 ? $"+{timeZone}" : timeZone.ToString();
+            info.Append($" Time zone: UTC{tzStr}.");
+
+            // Tile ID (useful for debugging/reporting)
+            info.Append($" Tile ID: {planetTile}.");
+
+            return info.ToString();
+        }
+
+        /// <summary>
+        /// Key 5: Tile Features and DLC information.
+        /// Mutators (Odyssey), landmarks (Odyssey), caves.
+        /// </summary>
+        public static string GetTileFeaturesInfo(PlanetTile planetTile)
+        {
+            if (!planetTile.Valid || Find.WorldGrid == null)
+                return "Invalid tile";
+
+            Tile tile = planetTile.Tile;
+            if (tile == null)
+                return "Unknown tile";
+
+            StringBuilder info = new StringBuilder();
+            bool hasContent = false;
+
+            // Mutators (Odyssey DLC)
+            if (tile.Mutators.Any())
+            {
+                var mutatorLabels = tile.Mutators
+                    .OrderByDescending(m => m.displayPriority)
+                    .Select(m => m.Label(planetTile))
+                    .ToList();
+                info.Append($"Tile features: {mutatorLabels.ToCommaList().CapitalizeFirst()}.");
+                hasContent = true;
+            }
+
+            // Landmarks (Odyssey DLC)
+            if (ModsConfig.OdysseyActive && tile.Landmark != null)
+            {
+                if (hasContent) info.Append(" ");
+                info.Append($"Landmark: {tile.Landmark.name}.");
+                hasContent = true;
+            }
+
+            // World feature (e.g., part of a named region)
+            if (tile.feature != null)
+            {
+                if (hasContent) info.Append(" ");
+                info.Append($"Region: {tile.feature.name}.");
+                hasContent = true;
+            }
+
+            // Check for caves using game's method
+            bool hasCaves = Find.World.HasCaves(planetTile);
+            if (hasCaves)
+            {
+                if (hasContent) info.Append(" ");
+                info.Append("May have caves.");
+                hasContent = true;
+            }
+
+            if (!hasContent)
+            {
+                info.Append("No special features.");
+            }
+
+            return info.ToString();
+        }
+
+        #endregion
     }
 }

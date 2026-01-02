@@ -288,6 +288,40 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 0.6: Handle route planner if active =====
+            // Route planner needs to handle Space (add waypoint), Delete (remove), E (ETA), Escape (close)
+            // Space must be consumed to prevent pause/unpause
+            // Note: Must check ProgramState first - Find.WorldRoutePlanner access crashes on main menu
+            if (Current.ProgramState == ProgramState.Playing && RoutePlannerState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = Event.current.alt;
+
+                if (RoutePlannerState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 0.7: R key to toggle route planner in world view =====
+            // Note: Must check ProgramState first for safety
+            if (Current.ProgramState == ProgramState.Playing &&
+                WorldNavigationState.IsActive &&
+                !CaravanFormationState.IsActive &&
+                !CaravanStatsState.IsActive &&
+                !WindowlessDialogState.IsActive &&
+                !RoutePlannerState.IsActive)
+            {
+                if (key == KeyCode.R && !Event.current.shift && !Event.current.control && !Event.current.alt)
+                {
+                    RoutePlannerState.Open();
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== EARLY BLOCK: If in world view, block most map-specific keys =====
             // Don't block when choosing destination (allow map interaction)
             // Don't block Enter/Escape when menus are active (need them for menu navigation)
@@ -298,12 +332,13 @@ namespace RimWorldAccess
                 !CaravanStatsState.IsActive)
             {
                 // Block all map-specific keys - world scanner handles PageUp/PageDown/Home/End above
+                // Note: R is NOT blocked - it opens route planner (handled above)
                 if (key == KeyCode.A ||
                     key == KeyCode.G || key == KeyCode.L || key == KeyCode.Q ||
                     key == KeyCode.Return || key == KeyCode.KeypadEnter ||
                     key == KeyCode.P || key == KeyCode.S ||
                     key == KeyCode.F2 || key == KeyCode.F3 || key == KeyCode.F6 || key == KeyCode.F7 ||
-                    key == KeyCode.R || key == KeyCode.T || key == KeyCode.Tab ||
+                    key == KeyCode.T || key == KeyCode.Tab ||
                     (key == KeyCode.M && Event.current.alt) ||
                     (key == KeyCode.H && Event.current.alt) ||
                     (key == KeyCode.N && Event.current.alt) ||
@@ -2096,6 +2131,26 @@ namespace RimWorldAccess
                     WindowlessFloatMenuState.HandleTypeahead(c);
                     Event.current.Use();
                     return;  // CRITICAL: Don't fall through to T=time, R=draft, etc.
+                }
+            }
+
+            // ===== PRIORITY 5.45: Handle world map tile info keys 1-5 =====
+            if (WorldNavigationState.IsActive &&
+                Current.ProgramState == ProgramState.Playing &&
+                !Event.current.shift && !Event.current.control && !Event.current.alt)
+            {
+                int category = 0;
+                if (key == KeyCode.Alpha1 || key == KeyCode.Keypad1) category = 1;
+                else if (key == KeyCode.Alpha2 || key == KeyCode.Keypad2) category = 2;
+                else if (key == KeyCode.Alpha3 || key == KeyCode.Keypad3) category = 3;
+                else if (key == KeyCode.Alpha4 || key == KeyCode.Keypad4) category = 4;
+                else if (key == KeyCode.Alpha5 || key == KeyCode.Keypad5) category = 5;
+
+                if (category > 0)
+                {
+                    WorldNavigationState.AnnounceTileInfoCategory(category);
+                    Event.current.Use();
+                    return;
                 }
             }
 
