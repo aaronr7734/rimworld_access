@@ -53,7 +53,9 @@ namespace RimWorldAccess
 
             if (obj is Zone zone)
             {
-                return $"Zone: {zone.label}";
+                // Include zone type for clarity
+                string zoneType = GetZoneTypeName(zone);
+                return $"{zone.label} ({zoneType})";
             }
 
             return obj.ToString();
@@ -151,6 +153,19 @@ namespace RimWorldAccess
                 categories.Add("Growth Info");
                 categories.Add("Stats");
             }
+            else if (obj is Zone zone)
+            {
+                categories.Add("Overview");
+                categories.Add("Rename".Translate().ToString());
+
+                // Zone_Stockpile implements IStoreSettingsParent, so add Storage category
+                if (zone is IStoreSettingsParent)
+                    categories.Add("Storage");
+
+                // Zone_Growing has plant settings
+                if (zone is Zone_Growing)
+                    categories.Add("Plant Info");
+            }
             else if (obj is Thing)
             {
                 categories.Add("Overview");
@@ -180,6 +195,10 @@ namespace RimWorldAccess
                 else if (obj is Plant plant)
                 {
                     return GetPlantCategoryInfo(plant, category);
+                }
+                else if (obj is Zone zone)
+                {
+                    return GetZoneCategoryInfo(zone, category);
                 }
                 else if (obj is Thing thing)
                 {
@@ -774,6 +793,97 @@ namespace RimWorldAccess
                 // Fallback: if no stats found, show basic info
                 sb.AppendLine("No stats available for this plant.");
             }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Gets a user-friendly zone type name.
+        /// </summary>
+        private static string GetZoneTypeName(Zone zone)
+        {
+            if (zone is Zone_Stockpile)
+                return "Stockpile";
+            if (zone is Zone_Growing)
+                return "Growing Zone";
+            // Could add Zone_Fishing for Odyssey DLC if needed
+            return "Zone";
+        }
+
+        /// <summary>
+        /// Gets category information for a zone.
+        /// </summary>
+        private static string GetZoneCategoryInfo(Zone zone, string category)
+        {
+            switch (category)
+            {
+                case "Overview":
+                    return GetZoneOverview(zone);
+
+                case "Plant Info":
+                    if (zone is Zone_Growing growing)
+                        return GetGrowingZonePlantInfo(growing);
+                    return "No plant information available.";
+
+                default:
+                    return "Category not found.";
+            }
+        }
+
+        /// <summary>
+        /// Gets overview information for a zone using RimWorld's localized GetInspectString.
+        /// </summary>
+        private static string GetZoneOverview(Zone zone)
+        {
+            var sb = new StringBuilder();
+
+            // Zone name and type
+            sb.AppendLine(zone.label);
+
+            // Get the inspect string from RimWorld (already localized)
+            string inspectString = zone.GetInspectString();
+            if (!string.IsNullOrEmpty(inspectString))
+            {
+                sb.AppendLine(inspectString);
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Gets plant information for a growing zone.
+        /// </summary>
+        private static string GetGrowingZonePlantInfo(Zone_Growing zone)
+        {
+            var sb = new StringBuilder();
+
+            // Current plant type
+            var plantDef = zone.GetPlantDefToGrow();
+            if (plantDef != null)
+            {
+                sb.AppendLine($"Plant: {plantDef.LabelCap}");
+
+                // Growth time
+                if (plantDef.plant != null)
+                {
+                    float growDays = plantDef.plant.growDays;
+                    sb.AppendLine($"Growth time: {growDays:F1} days");
+
+                    // Harvest yield if applicable
+                    if (plantDef.plant.harvestedThingDef != null)
+                    {
+                        sb.AppendLine($"Harvest: {plantDef.plant.harvestedThingDef.LabelCap}");
+                    }
+                }
+            }
+            else
+            {
+                sb.AppendLine("No plant selected");
+            }
+
+            // Sow and cut toggles
+            sb.AppendLine($"Allow sow: {(zone.allowSow ? "Yes" : "No")}");
+            sb.AppendLine($"Allow cut: {(zone.allowCut ? "Yes" : "No")}");
 
             return sb.ToString();
         }

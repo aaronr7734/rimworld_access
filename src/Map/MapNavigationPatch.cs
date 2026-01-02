@@ -1,3 +1,4 @@
+using System.Linq;
 using HarmonyLib;
 using UnityEngine;
 using Verse;
@@ -37,7 +38,6 @@ namespace RimWorldAccess
                 WindowlessConfirmationState.IsActive ||
                 WindowlessDeleteConfirmationState.IsActive ||
                 WindowlessOptionsMenuState.IsActive ||
-                ZoneSettingsMenuState.IsActive ||
                 ZoneRenameState.IsActive ||
                 PlaySettingsMenuState.IsActive ||
                 StorageSettingsMenuState.IsActive ||
@@ -148,8 +148,8 @@ namespace RimWorldAccess
             bool shiftHeld = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
 
             // Handle Shift+Up/Down for jump mode cycling
-            // (but not when zone creation is active in Manual mode - that uses Shift+Arrows for auto-select to wall)
-            bool blockJumpModeCycling = ZoneCreationState.IsInCreationMode && ZoneCreationState.CurrentMode == ZoneCreationMode.Manual;
+            // (but not when zone creation is active - that uses Shift+Arrows for auto-select to wall)
+            bool blockJumpModeCycling = ZoneCreationState.IsInCreationMode;
             if (shiftHeld && !blockJumpModeCycling)
             {
                 if (Input.GetKeyDown(KeyCode.UpArrow))
@@ -235,6 +235,24 @@ namespace RimWorldAccess
                     // Get the new cursor position
                     IntVec3 newPosition = MapNavigationState.CurrentCursorPosition;
 
+                    // Update rectangle preview if in zone creation mode with a start corner
+                    if (ZoneCreationState.IsInCreationMode && ZoneCreationState.HasRectangleStart)
+                    {
+                        ZoneCreationState.UpdatePreview(newPosition);
+                    }
+
+                    // Update rectangle preview if in area painting mode with a start corner
+                    if (AreaPaintingState.IsActive && AreaPaintingState.HasRectangleStart)
+                    {
+                        AreaPaintingState.UpdatePreview(newPosition);
+                    }
+
+                    // Update rectangle preview if in architect placement mode with a zone designator
+                    if (ArchitectState.IsInPlacementMode && ArchitectState.IsZoneDesignator() && ArchitectState.HasRectangleStart)
+                    {
+                        ArchitectState.UpdatePreview(newPosition);
+                    }
+
                     // Move camera to center on new cursor position
                     __instance.JumpToCurrentMapLoc(newPosition);
 
@@ -245,15 +263,41 @@ namespace RimWorldAccess
                     // Get tile information and announce it
                     string tileInfo = TileInfoHelper.GetTileSummary(newPosition, Find.CurrentMap);
 
-                    // If in zone creation mode and this cell is selected, prepend "Selected"
-                    if (ZoneCreationState.IsInCreationMode && ZoneCreationState.IsCellSelected(newPosition))
+                    // If in zone creation mode, prepend selection state
+                    if (ZoneCreationState.IsInCreationMode)
                     {
-                        tileInfo = "Selected, " + tileInfo;
+                        if (ZoneCreationState.IsInPreviewMode && ZoneCreationState.PreviewCells.Contains(newPosition))
+                        {
+                            tileInfo = "Preview, " + tileInfo;
+                        }
+                        else if (ZoneCreationState.IsCellSelected(newPosition))
+                        {
+                            tileInfo = "Selected, " + tileInfo;
+                        }
                     }
-                    // If in area painting mode and this cell is staged, prepend "Selected"
-                    else if (AreaPaintingState.IsActive && AreaPaintingState.StagedCells.Contains(newPosition))
+                    // If in area painting mode, prepend selection/preview state
+                    else if (AreaPaintingState.IsActive)
                     {
-                        tileInfo = "Selected, " + tileInfo;
+                        if (AreaPaintingState.IsInPreviewMode && AreaPaintingState.PreviewCells.Contains(newPosition))
+                        {
+                            tileInfo = "Preview, " + tileInfo;
+                        }
+                        else if (AreaPaintingState.StagedCells.Contains(newPosition))
+                        {
+                            tileInfo = "Selected, " + tileInfo;
+                        }
+                    }
+                    // If in architect mode zone placement, prepend selection/preview state
+                    else if (ArchitectState.IsInPlacementMode && ArchitectState.IsZoneDesignator())
+                    {
+                        if (ArchitectState.IsInPreviewMode && ArchitectState.PreviewCells.Contains(newPosition))
+                        {
+                            tileInfo = "Preview, " + tileInfo;
+                        }
+                        else if (ArchitectState.SelectedCells.Contains(newPosition))
+                        {
+                            tileInfo = "Selected, " + tileInfo;
+                        }
                     }
 
                     // Only announce if different from last announcement (avoids spam when hitting map edge)

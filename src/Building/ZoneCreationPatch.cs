@@ -7,8 +7,7 @@ namespace RimWorldAccess
 {
     /// <summary>
     /// Harmony patch to handle input during zone creation mode.
-    /// Handles Space (add cell), Enter (confirm), and Escape (cancel).
-    /// Also modifies arrow key announcements to include "Selected" prefix for selected cells.
+    /// Uses rectangle selection: Space sets corners, arrows update preview, Enter confirms zone.
     /// </summary>
     [HarmonyPatch(typeof(UIRoot))]
     [HarmonyPatch("UIRootOnGUI")]
@@ -42,11 +41,12 @@ namespace RimWorldAccess
             KeyCode key = Event.current.keyCode;
             bool handled = false;
             bool shiftHeld = Event.current.shift;
+            IntVec3 currentPosition = MapNavigationState.CurrentCursorPosition;
 
-            // Shift+Arrow keys - auto-select to wall (only in manual mode)
-            if (shiftHeld && ZoneCreationState.CurrentMode == ZoneCreationMode.Manual)
+            // Shift+Arrow keys - auto-select to wall (adds cells directly)
+            if (shiftHeld && (key == KeyCode.UpArrow || key == KeyCode.DownArrow ||
+                             key == KeyCode.LeftArrow || key == KeyCode.RightArrow))
             {
-                IntVec3 currentPosition = MapNavigationState.CurrentCursorPosition;
                 Map map = Find.CurrentMap;
                 Rot4 direction = Rot4.Invalid;
 
@@ -65,7 +65,17 @@ namespace RimWorldAccess
                     handled = true;
                 }
             }
-            // Space key - toggle selection of current cell
+            // Arrow keys (no shift) - update rectangle preview if we have a start corner
+            else if (!shiftHeld && ZoneCreationState.HasRectangleStart &&
+                     (key == KeyCode.UpArrow || key == KeyCode.DownArrow ||
+                      key == KeyCode.LeftArrow || key == KeyCode.RightArrow))
+            {
+                // Let MapNavigationState handle the movement first, then we update preview
+                // This is handled in a postfix or we rely on the next frame
+                // For now, we'll update preview after MapNavigationState moves the cursor
+                // The actual movement happens elsewhere, we just need to trigger preview update
+            }
+            // Space key - set start corner or confirm rectangle
             else if (key == KeyCode.Space)
             {
                 // Cooldown to prevent rapid toggling
@@ -74,48 +84,53 @@ namespace RimWorldAccess
 
                 lastSpaceTime = Time.time;
 
-                IntVec3 currentPosition = MapNavigationState.CurrentCursorPosition;
-
-                if (!ZoneCreationState.IsCellSelected(currentPosition))
+                if (!ZoneCreationState.HasRectangleStart)
                 {
-                    ZoneCreationState.AddCell(currentPosition);
+                    // No start corner yet - set it
+                    ZoneCreationState.SetRectangleStart(currentPosition);
+                }
+                else if (ZoneCreationState.IsInPreviewMode)
+                {
+                    // We have a preview - confirm this rectangle
+                    ZoneCreationState.ConfirmRectangle();
                 }
                 else
                 {
-                    ZoneCreationState.RemoveCell(currentPosition);
+                    // Start is set but no end yet - update to create preview at current position
+                    ZoneCreationState.UpdatePreview(currentPosition);
+                    // Then confirm it
+                    ZoneCreationState.ConfirmRectangle();
                 }
 
                 handled = true;
             }
-            // Enter key - behavior depends on current mode
+            // Enter key - create the zone with all selected cells
             else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
             {
-                Map map = Find.CurrentMap;
-
-                switch (ZoneCreationState.CurrentMode)
+                // If in preview mode, confirm the rectangle first
+                if (ZoneCreationState.IsInPreviewMode)
                 {
-                    case ZoneCreationMode.Manual:
-                        // Manual mode: create the zone
-                        ZoneCreationState.CreateZone(map);
-                        break;
-
-                    case ZoneCreationMode.Borders:
-                        // Borders mode: auto-fill interior, then switch to manual
-                        ZoneCreationState.BordersModeAutoFill(map);
-                        break;
-
-                    case ZoneCreationMode.Corners:
-                        // Corners mode: fill rectangle, then switch to manual
-                        ZoneCreationState.CornersModeAutoFill(map);
-                        break;
+                    ZoneCreationState.ConfirmRectangle();
                 }
 
+                // Create the zone
+                Map map = Find.CurrentMap;
+                ZoneCreationState.CreateZone(map);
                 handled = true;
             }
-            // Escape key - cancel zone creation
+            // Escape key - cancel rectangle or exit zone creation
             else if (key == KeyCode.Escape)
             {
-                ZoneCreationState.Cancel();
+                if (ZoneCreationState.HasRectangleStart)
+                {
+                    // Cancel current rectangle but stay in creation mode
+                    ZoneCreationState.CancelRectangle();
+                }
+                else
+                {
+                    // No rectangle in progress - cancel zone creation entirely
+                    ZoneCreationState.Cancel();
+                }
                 handled = true;
             }
 

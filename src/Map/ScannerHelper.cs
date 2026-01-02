@@ -18,6 +18,10 @@ namespace RimWorldAccess
         public IntVec3 Position { get; set; }
         public bool IsTerrain { get; set; } // True if this represents terrain instead of a Thing
         public bool IsDesignation => Designation != null; // True if this represents a designation
+        public Zone Zone { get; set; } // For zone items
+        public bool IsZone => Zone != null; // True if this represents a zone
+        public Room Room { get; set; } // For room items
+        public bool IsRoom => Room != null; // True if this represents a room
         public int BulkCount => BulkThings?.Count ?? (BulkTerrainPositions?.Count ?? (BulkDesignations?.Count ?? 1));
         public bool IsBulkGroup => (BulkThings != null && BulkThings.Count > 1) ||
                                    (BulkTerrainPositions != null && BulkTerrainPositions.Count > 1) ||
@@ -145,6 +149,62 @@ namespace RimWorldAccess
 
             // Get localized label from the Designator
             Label = ScannerHelper.GetLocalizedDesignationLabel(Designation.def);
+        }
+
+        // Constructor for zone items
+        public ScannerItem(Zone zone, IntVec3 cursorPosition)
+        {
+            Zone = zone;
+            IsTerrain = false;
+
+            // Calculate center position of zone
+            if (zone.cells != null && zone.cells.Count > 0)
+            {
+                int avgX = (int)zone.cells.Average(c => c.x);
+                int avgZ = (int)zone.cells.Average(c => c.z);
+                Position = new IntVec3(avgX, 0, avgZ);
+            }
+            else
+            {
+                Position = zone.Position; // Fallback to first cell
+            }
+
+            Distance = (Position - cursorPosition).LengthHorizontal;
+
+            // Build label with zone info
+            if (zone is Zone_Growing growZone && growZone.PlantDefToGrow != null)
+            {
+                Label = $"{zone.label} ({growZone.PlantDefToGrow.label})";
+            }
+            else
+            {
+                Label = zone.label;
+            }
+        }
+
+        // Constructor for room items
+        public ScannerItem(Room room, IntVec3 cursorPosition)
+        {
+            Room = room;
+            IsTerrain = false;
+
+            // Calculate center position of room
+            var cells = room.Cells.ToList();
+            if (cells.Count > 0)
+            {
+                int avgX = (int)cells.Average(c => c.x);
+                int avgZ = (int)cells.Average(c => c.z);
+                Position = new IntVec3(avgX, 0, avgZ);
+            }
+            else
+            {
+                Position = IntVec3.Zero;
+            }
+
+            Distance = (Position - cursorPosition).LengthHorizontal;
+
+            // Build label with role
+            Label = room.GetRoomRoleLabel();
         }
 
         public string GetDirectionFrom(IntVec3 fromPosition)
@@ -323,6 +383,22 @@ namespace RimWorldAccess
             ordersCategory.Subcategories.Add(ordersTameSubcat);
             ordersCategory.Subcategories.Add(ordersSlaughterSubcat);
             ordersCategory.Subcategories.Add(ordersOtherSubcat);
+
+            // Zones category
+            var zonesCategory = new ScannerCategory("Zones");
+            var zonesGrowingSubcat = new ScannerSubcategory("Zones-Growing");
+            var zonesStockpileSubcat = new ScannerSubcategory("Zones-Stockpile");
+            var zonesFishingSubcat = new ScannerSubcategory("Zones-Fishing");
+            var zonesOtherSubcat = new ScannerSubcategory("Zones-Other");
+            zonesCategory.Subcategories.Add(zonesGrowingSubcat);
+            zonesCategory.Subcategories.Add(zonesStockpileSubcat);
+            zonesCategory.Subcategories.Add(zonesFishingSubcat);
+            zonesCategory.Subcategories.Add(zonesOtherSubcat);
+
+            // Rooms category
+            var roomsCategory = new ScannerCategory("Rooms");
+            var roomsAllSubcat = new ScannerSubcategory("Rooms-All");
+            roomsCategory.Subcategories.Add(roomsAllSubcat);
 
             // Collect all things from the map
             var allThings = map.listerThings.AllThings;
@@ -641,10 +717,63 @@ namespace RimWorldAccess
                 }
             }
 
+            // Collect all zones
+            var allZones = map.zoneManager.AllZones;
+            foreach (var zone in allZones)
+            {
+                if (zone == null || zone.cells == null || zone.cells.Count == 0)
+                    continue;
+
+                var item = new ScannerItem(zone, cursorPosition);
+
+                if (zone is Zone_Growing)
+                {
+                    zonesGrowingSubcat.Items.Add(item);
+                }
+                else if (zone is Zone_Stockpile)
+                {
+                    zonesStockpileSubcat.Items.Add(item);
+                }
+                else if (zone.GetType().Name == "Zone_Fishing")
+                {
+                    zonesFishingSubcat.Items.Add(item);
+                }
+                else
+                {
+                    zonesOtherSubcat.Items.Add(item);
+                }
+            }
+
+            // Collect all rooms
+            var allRooms = map.regionGrid.AllRooms;
+            foreach (var room in allRooms)
+            {
+                // Skip outdoor areas and invalid rooms
+                if (room.PsychologicallyOutdoors || !room.ProperRoom)
+                    continue;
+
+                // Skip rooms that are entirely in fog of war
+                bool hasVisibleCell = false;
+                foreach (var cell in room.Cells)
+                {
+                    if (!fogGrid.IsFogged(cell))
+                    {
+                        hasVisibleCell = true;
+                        break;
+                    }
+                }
+                if (!hasVisibleCell)
+                    continue;
+
+                var item = new ScannerItem(room, cursorPosition);
+                roomsAllSubcat.Items.Add(item);
+            }
+
             // Group identical items and sort all subcategories by distance
             foreach (var category in new[] { pawnsCategory, tameAnimalsCategory, wildAnimalsCategory,
                                              hazardsCategory, buildingsCategory, treesCategory, plantsCategory,
-                                             itemsCategory, terrainCategory, mineableCategory, ordersCategory })
+                                             itemsCategory, terrainCategory, mineableCategory, ordersCategory,
+                                             zonesCategory, roomsCategory })
             {
                 foreach (var subcat in category.Subcategories)
                 {
@@ -668,6 +797,8 @@ namespace RimWorldAccess
             categories.Add(terrainCategory);
             categories.Add(mineableCategory);
             categories.Add(ordersCategory);
+            categories.Add(zonesCategory);
+            categories.Add(roomsCategory);
 
             // Remove empty categories
             categories.RemoveAll(c => c.IsEmpty);
@@ -827,6 +958,20 @@ namespace RimWorldAccess
                     {
                         grouped.Add(item);
                     }
+                    continue;
+                }
+
+                // Zones are never grouped - each zone is unique
+                if (item.IsZone)
+                {
+                    grouped.Add(item);
+                    continue;
+                }
+
+                // Rooms are never grouped - each room is unique
+                if (item.IsRoom)
+                {
+                    grouped.Add(item);
                     continue;
                 }
 

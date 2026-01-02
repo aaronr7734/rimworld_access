@@ -106,42 +106,58 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Get all things at the cursor position
             availableGizmos.Clear();
-            List<Thing> thingsAtPosition = cursorPosition.GetThingList(map);
-
-            if (thingsAtPosition == null || thingsAtPosition.Count == 0)
-            {
-                TolkHelper.Speak("No objects at cursor position");
-                return;
-            }
-
-            // Collect gizmos from all things at this position
-            // Important: Temporarily select each thing before getting its gizmos,
-            // because some gizmos (like Designator_Install) check if the thing is selected
-            // to determine their Visible property
             gizmoOwners.Clear();
 
             // Store the current selection to restore it later
             var previousSelection = Find.Selector.SelectedObjects.ToList();
 
-            foreach (Thing thing in thingsAtPosition)
+            // Check for zone at cursor position and collect its gizmos
+            Zone zone = cursorPosition.GetZone(map);
+            if (zone != null)
             {
-                if (thing is ISelectable selectable)
-                {
-                    // Temporarily select this thing so its gizmos' Visible property works correctly
-                    Find.Selector.ClearSelection();
-                    Find.Selector.Select(thing, playSound: false, forceDesignatorDeselect: false);
+                // Temporarily select the zone so its gizmos' Visible property works correctly
+                Find.Selector.ClearSelection();
+                Find.Selector.Select(zone, playSound: false, forceDesignatorDeselect: false);
 
-                    var gizmos = selectable.GetGizmos().ToList();
-                    foreach (Gizmo gizmo in gizmos)
+                var zoneGizmos = zone.GetGizmos().ToList();
+                foreach (Gizmo gizmo in zoneGizmos)
+                {
+                    if (gizmo != null && gizmo.Visible)
                     {
-                        // Check Visible NOW while thing is still selected
-                        // (some gizmos like Designator_Install check selection state)
-                        if (gizmo != null && gizmo.Visible)
+                        availableGizmos.Add(gizmo);
+                        gizmoOwners[gizmo] = zone;
+                    }
+                }
+            }
+
+            // Get all things at the cursor position
+            List<Thing> thingsAtPosition = cursorPosition.GetThingList(map);
+
+            // Collect gizmos from all things at this position
+            // Important: Temporarily select each thing before getting its gizmos,
+            // because some gizmos (like Designator_Install) check if the thing is selected
+            // to determine their Visible property
+            if (thingsAtPosition != null)
+            {
+                foreach (Thing thing in thingsAtPosition)
+                {
+                    if (thing is ISelectable selectable)
+                    {
+                        // Temporarily select this thing so its gizmos' Visible property works correctly
+                        Find.Selector.ClearSelection();
+                        Find.Selector.Select(thing, playSound: false, forceDesignatorDeselect: false);
+
+                        var gizmos = selectable.GetGizmos().ToList();
+                        foreach (Gizmo gizmo in gizmos)
                         {
-                            availableGizmos.Add(gizmo);
-                            gizmoOwners[gizmo] = selectable;
+                            // Check Visible NOW while thing is still selected
+                            // (some gizmos like Designator_Install check selection state)
+                            if (gizmo != null && gizmo.Visible)
+                            {
+                                availableGizmos.Add(gizmo);
+                                gizmoOwners[gizmo] = selectable;
+                            }
                         }
                     }
                 }
@@ -164,7 +180,7 @@ namespace RimWorldAccess
 
             if (availableGizmos.Count == 0)
             {
-                TolkHelper.Speak("No commands available for objects at cursor");
+                TolkHelper.Speak("No commands available at cursor position");
                 return;
             }
 
@@ -254,6 +270,31 @@ namespace RimWorldAccess
                 // 1. Designator (like Reinstall, Copy) - enters placement mode
                 if (selectedGizmo is Designator designator)
                 {
+                    // Check for zone expand/shrink designators - use accessible expansion mode
+                    string designatorTypeName = designator.GetType().Name;
+
+                    // Zone expand designators (Designator_ZoneAdd*_Expand)
+                    if (designatorTypeName.Contains("_Expand") && designatorTypeName.Contains("ZoneAdd"))
+                    {
+                        if (gizmoOwners.TryGetValue(selectedGizmo, out ISelectable owner) && owner is Zone expandZone)
+                        {
+                            Close();
+                            ZoneCreationState.EnterExpansionMode(expandZone);
+                            return;
+                        }
+                    }
+
+                    // Zone shrink designator - enter shrink mode (selected cells will be removed)
+                    if (designatorTypeName == "Designator_ZoneDelete_Shrink")
+                    {
+                        if (gizmoOwners.TryGetValue(selectedGizmo, out ISelectable owner) && owner is Zone shrinkZone)
+                        {
+                            Close();
+                            ZoneCreationState.EnterShrinkMode(shrinkZone);
+                            return;
+                        }
+                    }
+
                     // For Designators opened via cursor objects (not selected pawns),
                     // we need to ensure the correct object is selected
                     // so the Designator has proper context (e.g., Designator_Install needs to know what to reinstall)
@@ -302,7 +343,18 @@ namespace RimWorldAccess
                     Find.Selector.Select(owner, playSound: false, forceDesignatorDeselect: false);
                 }
 
-                // 2. Command_Toggle - toggle and announce state
+                // 2. Command_SetPlantToGrow - open accessible plant selection menu
+                if (selectedGizmo is Command_SetPlantToGrow)
+                {
+                    if (gizmoOwners.TryGetValue(selectedGizmo, out ISelectable owner) && owner is IPlantToGrowSettable plantSettable)
+                    {
+                        Close();
+                        PlantSelectionMenuState.Open(plantSettable);
+                        return;
+                    }
+                }
+
+                // 3. Command_Toggle - toggle and announce state
                 if (selectedGizmo is Command_Toggle toggle)
                 {
                     try
@@ -681,11 +733,18 @@ namespace RimWorldAccess
 
             string announcement = ownerPrefix + label;
 
+            // For Command_Toggle, include current ON/OFF state (sighted players see a checkbox)
+            if (gizmo is Command_Toggle toggle)
+            {
+                bool isOn = toggle.isActive?.Invoke() ?? false;
+                announcement += isOn ? ": ON" : ": OFF";
+            }
+
             // Add status value for non-Command gizmos (progress bars, etc.)
             if (!string.IsNullOrEmpty(statusValue))
                 announcement += $" - {statusValue}";
 
-            if (!string.IsNullOrEmpty(description))
+            if (!string.IsNullOrEmpty(description) && !(gizmo is Command_Toggle))
                 announcement += $": {description}";
 
             if (!string.IsNullOrEmpty(hotkey))
@@ -871,6 +930,7 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Gets the label for a room stats gizmo by accessing the building and room.
+        /// Uses shared TileInfoHelper.GetRoomStatsInfo() for consistent formatting.
         /// </summary>
         private static string GetRoomStatsLabel(Gizmo gizmo)
         {
@@ -882,11 +942,10 @@ namespace RimWorldAccess
                 if (buildingField != null)
                 {
                     var building = buildingField.GetValue(gizmo) as Building;
-                    if (building?.GetRoom() != null)
+                    Room room = Gizmo_RoomStats.GetRoomToShowStatsFor(building);
+                    if (room != null)
                     {
-                        var room = building.GetRoom();
-                        string roleName = room.Role?.label ?? "room";
-                        return $"Room Stats: {roleName.CapitalizeFirst()}";
+                        return TileInfoHelper.GetRoomStatsInfo(room);
                     }
                 }
             }

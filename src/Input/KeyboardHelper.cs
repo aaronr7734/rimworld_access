@@ -48,7 +48,6 @@ namespace RimWorldAccess
                 || AssignMenuState.IsActive
                 || WorkMenuState.IsActive
                 || StorageSettingsMenuState.IsActive
-                || ZoneSettingsMenuState.IsActive
                 || ZoneRenameState.IsActive
                 || PlantSelectionMenuState.IsActive
                 || GizmoNavigationState.IsActive

@@ -390,6 +390,16 @@ namespace RimWorldAccess
                     targetPosition = currentItem.Position;
                 }
             }
+            else if (currentItem.IsZone)
+            {
+                // For zones, use the calculated center position
+                targetPosition = currentItem.Position;
+            }
+            else if (currentItem.IsRoom)
+            {
+                // For rooms, use the calculated center position
+                targetPosition = currentItem.Position;
+            }
             else
             {
                 // Get the actual thing to jump to (considering bulk index)

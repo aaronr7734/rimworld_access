@@ -587,7 +587,7 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Gets information about room stats at a tile (key 5).
-        /// Shows room impressiveness, cleanliness, wealth, and room type.
+        /// Shows room name and all stats with quality tier descriptions.
         /// </summary>
         public static string GetRoomStatsInfo(IntVec3 position, Map map)
         {
@@ -599,15 +599,36 @@ namespace RimWorldAccess
             if (room == null)
                 return "no room";
 
-            // Check if outdoor (no roof)
+            // Check if outdoor (no roof) or not a proper room
             RoofDef roof = position.GetRoof(map);
             if (roof == null)
                 return "outdoors";
 
+            if (!room.ProperRoom)
+                return "not a proper room";
+
+            return GetRoomStatsInfo(room);
+        }
+
+        /// <summary>
+        /// Gets information about room stats for a given room.
+        /// Shows room name and all non-hidden stats with quality tier descriptions.
+        /// Used by both the 5 key and the gizmo navigation.
+        /// </summary>
+        public static string GetRoomStatsInfo(Room room)
+        {
+            if (room == null)
+                return "no room";
+
             var sb = new StringBuilder();
 
-            // Get room role/type
-            if (room.Role != null)
+            // Get room name with owner (e.g., "Aria's bedroom")
+            string roomLabel = room.GetRoomRoleLabel();
+            if (!string.IsNullOrEmpty(roomLabel))
+            {
+                sb.Append(roomLabel.CapitalizeFirst());
+            }
+            else if (room.Role != null)
             {
                 sb.Append(room.Role.LabelCap);
             }
@@ -616,14 +637,30 @@ namespace RimWorldAccess
                 sb.Append("Room");
             }
 
-            // Get room stats
-            float impressiveness = room.GetStat(RoomStatDefOf.Impressiveness);
-            float cleanliness = room.GetStat(RoomStatDefOf.Cleanliness);
-            float wealth = room.GetStat(RoomStatDefOf.Wealth);
+            // Show ALL non-hidden stats like the game does in EnvironmentStatsDrawer.DoRoomInfo
+            // Format: "StatLabel: TierLabel (value)" with asterisk for important stats
+            List<RoomStatDef> allDefs = DefDatabase<RoomStatDef>.AllDefsListForReading;
+            foreach (RoomStatDef statDef in allDefs)
+            {
+                if (!statDef.isHidden)
+                {
+                    float value = room.GetStat(statDef);
+                    RoomStatScoreStage stage = statDef.GetScoreStage(value);
+                    string stageLabel = stage?.label?.CapitalizeFirst() ?? "";
 
-            sb.Append($", impressiveness {impressiveness:F0}");
-            sb.Append($", cleanliness {cleanliness:F1}");
-            sb.Append($", wealth {wealth:F0}");
+                    // Mark important stats for this room type with asterisk
+                    string prefix = (room.Role != null && room.Role.IsStatRelated(statDef)) ? "*" : "";
+
+                    if (!string.IsNullOrEmpty(stageLabel))
+                    {
+                        sb.Append($", {prefix}{statDef.LabelCap}: {stageLabel} ({statDef.ScoreToString(value)})");
+                    }
+                    else
+                    {
+                        sb.Append($", {prefix}{statDef.LabelCap}: {statDef.ScoreToString(value)}");
+                    }
+                }
+            }
 
             return sb.ToString();
         }

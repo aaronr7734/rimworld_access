@@ -1,7 +1,10 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using HarmonyLib;
+using UnityEngine;
 using Verse;
+using Verse.Sound;
 using RimWorld;
 
 namespace RimWorldAccess
@@ -31,7 +34,13 @@ namespace RimWorldAccess
         private static ThingDef selectedMaterial = null;
         private static List<IntVec3> selectedCells = new List<IntVec3>();
         private static Rot4 currentRotation = Rot4.North;
-        private static ZoneCreationMode zoneCreationMode = ZoneCreationMode.Manual;
+
+        // Rectangle selection state for zone designators
+        private static IntVec3? rectangleStart = null;
+        private static IntVec3? rectangleEnd = null;
+        private static List<IntVec3> previewCells = new List<IntVec3>();
+        private static int lastCellCount = 0;
+        private static float lastDragRealTime = 0f;
 
         // Reflection field info for accessing protected placingRot field
         private static FieldInfo placingRotField = AccessTools.Field(typeof(Designator_Place), "placingRot");
@@ -86,9 +95,29 @@ namespace RimWorldAccess
         public static bool IsInPlacementMode => currentMode == ArchitectMode.PlacementMode;
 
         /// <summary>
-        /// Gets the current zone creation mode (only relevant when placing zone designators).
+        /// Whether a rectangle start corner has been set.
         /// </summary>
-        public static ZoneCreationMode ZoneCreationMode => zoneCreationMode;
+        public static bool HasRectangleStart => rectangleStart.HasValue;
+
+        /// <summary>
+        /// Whether we are actively previewing a rectangle (start and end set).
+        /// </summary>
+        public static bool IsInPreviewMode => rectangleStart.HasValue && rectangleEnd.HasValue;
+
+        /// <summary>
+        /// The start corner of the rectangle being selected.
+        /// </summary>
+        public static IntVec3? RectangleStart => rectangleStart;
+
+        /// <summary>
+        /// The end corner of the rectangle being selected.
+        /// </summary>
+        public static IntVec3? RectangleEnd => rectangleEnd;
+
+        /// <summary>
+        /// Cells in the current rectangle preview.
+        /// </summary>
+        public static IReadOnlyList<IntVec3> PreviewCells => previewCells;
 
         /// <summary>
         /// Enters category selection mode.
@@ -412,6 +441,107 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Sets the start corner for rectangle selection.
+        /// </summary>
+        public static void SetRectangleStart(IntVec3 cell)
+        {
+            rectangleStart = cell;
+            rectangleEnd = null;
+            previewCells.Clear();
+            lastCellCount = 0;
+            lastDragRealTime = Time.realtimeSinceStartup;
+            TolkHelper.Speak($"Start at {cell.x}, {cell.z}");
+        }
+
+        /// <summary>
+        /// Updates the rectangle preview as the cursor moves.
+        /// Plays native sound feedback when cell count changes.
+        /// </summary>
+        public static void UpdatePreview(IntVec3 endCell)
+        {
+            if (!rectangleStart.HasValue) return;
+
+            rectangleEnd = endCell;
+
+            // Use native CellRect API for rectangle calculation
+            CellRect rect = CellRect.FromLimits(rectangleStart.Value, endCell);
+            previewCells = rect.Cells.ToList();
+
+            int width = rect.Width;
+            int height = rect.Height;
+            int cellCount = previewCells.Count;
+
+            // Play native sound when cell count changes (like DesignationDragger)
+            if (cellCount != lastCellCount)
+            {
+                SoundInfo info = SoundInfo.OnCamera();
+                info.SetParameter("TimeSinceDrag", Time.realtimeSinceStartup - lastDragRealTime);
+                SoundDefOf.Designate_DragStandard_Changed.PlayOneShot(info);
+                lastDragRealTime = Time.realtimeSinceStartup;
+                lastCellCount = cellCount;
+
+                // Announce dimensions like native display (only when >= 5 cells)
+                if (width >= 5 || height >= 5)
+                {
+                    TolkHelper.Speak($"{width} by {height}", SpeechPriority.Low);
+                }
+                else if (cellCount >= 4)
+                {
+                    TolkHelper.Speak($"{cellCount}", SpeechPriority.Low);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Confirms the current rectangle preview, adding all cells to selection.
+        /// </summary>
+        public static void ConfirmRectangle()
+        {
+            if (!IsInPreviewMode)
+            {
+                TolkHelper.Speak("No rectangle to confirm");
+                return;
+            }
+
+            // Add preview cells to selection (avoiding duplicates)
+            int addedCount = 0;
+            foreach (var cell in previewCells)
+            {
+                if (!selectedCells.Contains(cell))
+                {
+                    selectedCells.Add(cell);
+                    addedCount++;
+                }
+            }
+
+            CellRect rect = CellRect.FromLimits(rectangleStart.Value, rectangleEnd.Value);
+            TolkHelper.Speak($"{rect.Width} by {rect.Height}, {addedCount} cells added. Total: {selectedCells.Count}");
+
+            // Clear rectangle state for next selection
+            rectangleStart = null;
+            rectangleEnd = null;
+            previewCells.Clear();
+            lastCellCount = 0;
+        }
+
+        /// <summary>
+        /// Cancels the current rectangle selection without adding cells.
+        /// </summary>
+        public static void CancelRectangle()
+        {
+            if (!HasRectangleStart)
+            {
+                return;
+            }
+
+            rectangleStart = null;
+            rectangleEnd = null;
+            previewCells.Clear();
+            lastCellCount = 0;
+            TolkHelper.Speak("Rectangle cancelled");
+        }
+
+        /// <summary>
         /// Executes the placement (designates all selected cells).
         /// </summary>
         public static void ExecutePlacement(Map map)
@@ -455,16 +585,6 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Sets the zone creation mode for the current placement.
-        /// Should be called before entering placement mode with a zone designator.
-        /// </summary>
-        public static void SetZoneCreationMode(ZoneCreationMode mode)
-        {
-            zoneCreationMode = mode;
-            Log.Message($"Zone creation mode set to: {mode}");
-        }
-
-        /// <summary>
         /// Checks if the current designator is a zone/area/cell-based designator.
         /// This includes zones (stockpiles, growing zones), areas (home, roof), and other multi-cell designators.
         /// </summary>
@@ -498,7 +618,12 @@ namespace RimWorldAccess
             selectedMaterial = null;
             selectedCells.Clear();
             currentRotation = Rot4.North;
-            zoneCreationMode = ZoneCreationMode.Manual;
+
+            // Clear rectangle selection state
+            rectangleStart = null;
+            rectangleEnd = null;
+            previewCells.Clear();
+            lastCellCount = 0;
 
             // Deselect any active designator in the game
             if (Find.DesignatorManager != null)

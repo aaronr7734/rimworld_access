@@ -203,6 +203,14 @@ namespace RimWorldAccess
             if (Find.CurrentMap == null)
                 return objects;
 
+            // Check for zone at cursor position first (zones are not returned by SelectableObjectsAt)
+            Zone zone = inspectionPosition.GetZone(Find.CurrentMap);
+            if (zone != null)
+            {
+                objects.Add(zone);
+            }
+
+            // Get other selectable objects at this position
             var objectsAtPosition = Selector.SelectableObjectsAt(inspectionPosition, Find.CurrentMap);
 
             foreach (var obj in objectsAtPosition)
