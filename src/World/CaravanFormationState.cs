@@ -764,8 +764,6 @@ namespace RimWorldAccess
 
             try
             {
-                TolkHelper.Speak("Attempting to send caravan...");
-
                 // Temporarily deactivate keyboard navigation so confirmation dialogs can be accessed
                 // (OnAcceptKeyPressed may show "low food" or other warnings that require confirmation)
                 bool wasActive = isActive;

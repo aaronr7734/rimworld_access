@@ -273,6 +273,9 @@ namespace RimWorldAccess
             if (dialog is Dialog_MessageBox messageBox)
             {
                 // Button A (usually Confirm/OK)
+                // Note: Only call buttonAAction, not acceptAction. The game's CreateConfirmation
+                // passes the same action to both, so calling both would execute it twice.
+                // buttonAAction is for button clicks, acceptAction is for Enter key handling.
                 if (!string.IsNullOrEmpty(messageBox.buttonAText))
                 {
                     ButtonElement buttonA = new ButtonElement
@@ -281,10 +284,6 @@ namespace RimWorldAccess
                         Action = () =>
                         {
                             messageBox.buttonAAction?.Invoke();
-                            if (messageBox.acceptAction != null)
-                            {
-                                messageBox.acceptAction();
-                            }
                         },
                         IsConfirm = messageBox.buttonAText.ToLower().Contains("confirm") || messageBox.buttonAText.ToLower().Contains("ok"),
                         IsClose = true
@@ -293,6 +292,7 @@ namespace RimWorldAccess
                 }
 
                 // Button B (usually Cancel/Go Back)
+                // Note: Only call buttonBAction, not cancelAction. Same reason as Button A above.
                 if (!string.IsNullOrEmpty(messageBox.buttonBText))
                 {
                     ButtonElement buttonB = new ButtonElement
@@ -301,10 +301,6 @@ namespace RimWorldAccess
                         Action = () =>
                         {
                             messageBox.buttonBAction?.Invoke();
-                            if (messageBox.cancelAction != null)
-                            {
-                                messageBox.cancelAction();
-                            }
                         },
                         IsCancel = messageBox.buttonBText.ToLower().Contains("cancel") || messageBox.buttonBText.ToLower().Contains("back"),
                         IsClose = true
