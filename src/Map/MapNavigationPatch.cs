@@ -29,6 +29,7 @@ namespace RimWorldAccess
                 WindowlessDialogState.IsActive ||
                 WindowlessFloatMenuState.IsActive ||
                 ArchitectTreeState.IsActive ||
+                CaravanFormationState.IsActive ||
                 WindowlessPauseMenuState.IsActive ||
                 NotificationMenuState.IsActive ||
                 QuestMenuState.IsActive ||

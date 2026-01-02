@@ -147,6 +147,8 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Gets the transferables list from the current dialog using reflection.
+        /// Note: While transferables appears public in decompiled code, using reflection
+        /// ensures we don't interfere with the game's internal state management.
         /// </summary>
         private static List<TransferableOneWay> GetTransferables()
         {
@@ -677,8 +679,6 @@ namespace RimWorldAccess
 
             try
             {
-                Log.Message($"RimWorld Access: Setting caravan destination to tile {destinationTile.tileId}");
-
                 // Get the method before we do anything
                 MethodInfo notifyChoseRouteMethod = AccessTools.Method(typeof(Dialog_FormCaravan), "Notify_ChoseRoute");
                 if (notifyChoseRouteMethod == null)
@@ -703,14 +703,6 @@ namespace RimWorldAccess
 
                 // Now call Notify_ChoseRoute to set destination and calculate exit tile
                 notifyChoseRouteMethod.Invoke(currentDialog, new object[] { destinationTile });
-
-                // Verify the destination was set by reading it back
-                FieldInfo destTileField = AccessTools.Field(typeof(Dialog_FormCaravan), "destinationTile");
-                if (destTileField != null)
-                {
-                    PlanetTile setTile = (PlanetTile)destTileField.GetValue(currentDialog);
-                    Log.Message($"RimWorld Access: After Notify_ChoseRoute, destinationTile is now: {setTile.tileId}, Valid: {setTile.Valid}");
-                }
 
                 // Announce destination set
                 string tileInfo = WorldInfoHelper.GetTileSummary(destinationTile);
@@ -760,7 +752,7 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Attempts to send the caravan by calling Dialog_FormCaravan.TrySend() via reflection.
+        /// Attempts to send the caravan using Dialog_FormCaravan.OnAcceptKeyPressed().
         /// </summary>
         public static void Send()
         {
@@ -772,37 +764,30 @@ namespace RimWorldAccess
 
             try
             {
-                MethodInfo method = AccessTools.Method(typeof(Dialog_FormCaravan), "TrySend");
-                if (method != null)
+                TolkHelper.Speak("Attempting to send caravan...");
+
+                // Temporarily deactivate keyboard navigation so confirmation dialogs can be accessed
+                // (OnAcceptKeyPressed may show "low food" or other warnings that require confirmation)
+                bool wasActive = isActive;
+                isActive = false;
+
+                // OnAcceptKeyPressed is the public method that calls TrySend internally
+                currentDialog.OnAcceptKeyPressed();
+
+                // If the dialog is still in the window stack, reactivate keyboard navigation
+                // (This happens when a confirmation dialog is shown)
+                // If the dialog closed successfully, PostClose will have been called already
+                if (currentDialog != null && Find.WindowStack != null && Find.WindowStack.IsOpen(currentDialog))
                 {
-                    TolkHelper.Speak("Attempting to send caravan...");
-
-                    // Temporarily deactivate keyboard navigation so confirmation dialogs can be accessed
-                    // (TrySend may show "low food" or other warnings that require confirmation)
-                    bool wasActive = isActive;
-                    isActive = false;
-
-                    method.Invoke(currentDialog, null);
-
-                    // If the dialog is still in the window stack, reactivate keyboard navigation
-                    // (This happens when a confirmation dialog is shown)
-                    // If the dialog closed successfully, PostClose will have been called already
-                    if (currentDialog != null && Find.WindowStack != null && Find.WindowStack.IsOpen(currentDialog))
-                    {
-                        isActive = wasActive;
-                    }
-                    // TrySend will show error messages if validation fails
-                    // If successful, the dialog will close and CaravanFormationPatch.PostClose will be called
+                    isActive = wasActive;
                 }
-                else
-                {
-                    TolkHelper.Speak("Failed to send caravan - method not found", SpeechPriority.High);
-                }
+                // OnAcceptKeyPressed will show error messages if validation fails
+                // If successful, the dialog will close and CaravanFormationPatch.PostClose will be called
             }
             catch (Exception ex)
             {
                 TolkHelper.Speak($"Failed to send caravan: {ex.Message}", SpeechPriority.High);
-                Log.Error($"RimWorld Access: Failed to call TrySend on Dialog_FormCaravan: {ex.Message}");
+                Log.Error($"RimWorld Access: Failed to send caravan: {ex.Message}");
                 // Reactivate on error
                 if (currentDialog != null)
                 {
@@ -900,37 +885,33 @@ namespace RimWorldAccess
 
             try
             {
-                // Get mass usage and capacity (public properties)
-                PropertyInfo massUsageProp = AccessTools.Property(typeof(Dialog_FormCaravan), "MassUsage");
-                PropertyInfo massCapacityProp = AccessTools.Property(typeof(Dialog_FormCaravan), "MassCapacity");
+                // Get mass usage and capacity (public properties - access directly)
+                float massUsage = currentDialog.MassUsage;
+                float massCapacity = currentDialog.MassCapacity;
+                float massRemaining = massCapacity - massUsage;
 
-                if (massUsageProp != null && massCapacityProp != null)
+                string massEntry = $"Mass: {massUsage:F1} of {massCapacity:F1} kg";
+                if (massUsage > massCapacity)
                 {
-                    float massUsage = (float)massUsageProp.GetValue(currentDialog);
-                    float massCapacity = (float)massCapacityProp.GetValue(currentDialog);
-                    float massRemaining = massCapacity - massUsage;
-
-                    string massEntry = $"Mass: {massUsage:F1} of {massCapacity:F1} kg";
-                    if (massUsage > massCapacity)
-                    {
-                        massEntry += " - OVERLOADED!";
-                    }
-                    else
-                    {
-                        massEntry += $", {massRemaining:F1} kg remaining";
-                    }
-                    statsEntries.Add(massEntry);
+                    massEntry += " - OVERLOADED!";
                 }
+                else
+                {
+                    massEntry += $", {massRemaining:F1} kg remaining";
+                }
+                statsEntries.Add(massEntry);
 
-                // Get days worth of food (private property)
+                // Get days worth of food (private property - must use reflection)
                 try
                 {
                     PropertyInfo daysWorthProp = AccessTools.Property(typeof(Dialog_FormCaravan), "DaysWorthOfFood");
                     if (daysWorthProp != null)
                     {
-                        var daysWorth = daysWorthProp.GetValue(currentDialog);
-                        float days = (float)daysWorth.GetType().GetField("Item1").GetValue(daysWorth);
-                        float tillRot = (float)daysWorth.GetType().GetField("Item2").GetValue(daysWorth);
+                        var daysWorthObj = daysWorthProp.GetValue(currentDialog);
+                        // Cast to ValueTuple explicitly to match the boxed type
+                        var daysWorth = (ValueTuple<float, float>)daysWorthObj;
+                        float days = daysWorth.Item1;
+                        float tillRot = daysWorth.Item2;
 
                         string foodEntry;
                         if (days < 0.1f)
@@ -948,7 +929,10 @@ namespace RimWorldAccess
                         statsEntries.Add(foodEntry);
                     }
                 }
-                catch { /* Skip food stats on error */ }
+                catch (Exception ex)
+                {
+                    Log.Warning($"RimWorld Access: Failed to get food stats: {ex.Message}");
+                }
 
                 // Get tiles per day (private property)
                 try
@@ -963,17 +947,22 @@ namespace RimWorldAccess
                         statsEntries.Add(speedEntry);
                     }
                 }
-                catch { /* Skip speed stats on error */ }
+                catch (Exception ex)
+                {
+                    Log.Warning($"RimWorld Access: Failed to get speed stats: {ex.Message}");
+                }
 
-                // Get foraging info (private property)
+                // Get foraging info (private property - must use reflection)
                 try
                 {
                     PropertyInfo forageProp = AccessTools.Property(typeof(Dialog_FormCaravan), "ForagedFoodPerDay");
                     if (forageProp != null)
                     {
-                        var forageInfo = forageProp.GetValue(currentDialog);
-                        var foodDef = forageInfo.GetType().GetField("Item1").GetValue(forageInfo) as ThingDef;
-                        float perDay = (float)forageInfo.GetType().GetField("Item2").GetValue(forageInfo);
+                        var forageObj = forageProp.GetValue(currentDialog);
+                        // Cast to ValueTuple explicitly to match the boxed type
+                        var forageInfo = (ValueTuple<ThingDef, float>)forageObj;
+                        ThingDef foodDef = forageInfo.Item1;
+                        float perDay = forageInfo.Item2;
 
                         if (foodDef != null && perDay > 0)
                         {
@@ -985,7 +974,10 @@ namespace RimWorldAccess
                         }
                     }
                 }
-                catch { /* Skip foraging stats on error */ }
+                catch (Exception ex)
+                {
+                    Log.Warning($"RimWorld Access: Failed to get foraging stats: {ex.Message}");
+                }
 
                 // Get visibility (private property)
                 try
@@ -1013,15 +1005,28 @@ namespace RimWorldAccess
                             string tileName = WorldInfoHelper.GetTileSummary(destTile);
                             statsEntries.Add($"Destination: {tileName}");
 
-                            // Get ETA
+                            // Get ETA - note: this can fail if world path finding has issues
                             PropertyInfo ticksToArriveProp = AccessTools.Property(typeof(Dialog_FormCaravan), "TicksToArrive");
                             if (ticksToArriveProp != null)
                             {
-                                int ticksToArrive = (int)ticksToArriveProp.GetValue(currentDialog);
-                                if (ticksToArrive > 0)
+                                try
                                 {
-                                    float daysToArrive = ticksToArrive / 60000f;
-                                    statsEntries.Add($"ETA: {daysToArrive:F1} days");
+                                    int ticksToArrive = (int)ticksToArriveProp.GetValue(currentDialog);
+                                    if (ticksToArrive > 0)
+                                    {
+                                        float daysToArrive = ticksToArrive / 60000f;
+                                        statsEntries.Add($"ETA: {daysToArrive:F1} days");
+                                    }
+                                    else
+                                    {
+                                        // Game's path calculation may have failed - show fallback
+                                        statsEntries.Add("ETA: Calculating...");
+                                    }
+                                }
+                                catch (Exception etaEx)
+                                {
+                                    Log.Warning($"RimWorld Access: Failed to get TicksToArrive: {etaEx.Message}");
+                                    statsEntries.Add("ETA: Unable to calculate");
                                 }
                             }
                         }
