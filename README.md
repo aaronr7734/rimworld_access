@@ -93,18 +93,22 @@ Launch RimWorld. The mod will automatically initialize and you should hear your 
 | Key | Action |
 |-----|--------|
 | Arrow Keys | Navigate menu options |
+| Tab | Switch between main options and ideology presets (Ideology DLC) |
 | Enter | Select menu item |
+
+**Ideology Selection (Ideology DLC):** Full keyboard navigation with Tab to toggle between main options and preset browsing, Up/Down to navigate options.
 
 ## Map Navigation
 
 | Key | Action |
 |-----|--------|
 | Arrow Keys | Move cursor one tile |
+| T | Reads time, date and weather. |
 | I | Open colony inventory |
 | Enter | Open inspect panel |
 | Escape | Open pause menu |
 
-Tiles announce: pawns, buildings, items, plants, terrain, zone, roof status, and coordinates.
+Tiles announce: pawns, buildings, orders (blueprints, jobs), items, plants, terrain, zone, roof status, and coordinates.
 
 ## Tile Information (Keys 1-7)
 
@@ -114,11 +118,10 @@ Tiles announce: pawns, buildings, items, plants, terrain, zone, roof status, and
 | 2 | Flooring details (terrain, beauty, path cost) |
 | 3 | Plant information (species, growth, harvestable) |
 | 4 | Brightness and temperature |
-| 5 | Room statistics (impressiveness, cleanliness, wealth) |
+| 5 | Room statistics (role, owner, quality tiers for all stats) |
 | 6 | Power information (status, network, generation/consumption) |
 | 7 | Area information (home area, allowed areas) |
 
-*Note: Shift+1/2/3 are time controls. Number keys only work without Shift held.*
 
 ## Time Controls
 
@@ -134,27 +137,36 @@ Tiles announce: pawns, buildings, items, plants, terrain, zone, roof status, and
 | Key | Action |
 |-----|--------|
 | Tab | Open architect menu (select category → tool → material → place with Space) |
+| Type letters | Typeahead search in architect menu (prioritizes name matches) |
 | Space | Place building or toggle cell selection (zones) |
 | Shift+Space | Cancel blueprint at cursor position |
 | R | Rotate building |
-| Z | Open zone menu (select type → Space to add/remove cells) |
+| Left | Collapse to parent category (tree menus) |
 
 ## Colonist Actions
 
 | Key | Action |
 |-----|--------|
 | , / . | Cycle previous/next colonist |
-| Alt+C | Jump camera to selected colonist |
-| ] | Open order menu |
+| Alt+C | Jump cursor to selected colonist |
+| Enter | Open inspection menu (includes job queue, logs, health, etc.) |
+| ] | Open order menu (with descriptions) |
 | R | Toggle draft mode |
-| G | Open gizmos for selected colonist/object |
+| G | Open gizmos with status values and labels |
 | Alt+M | Display mood and thoughts |
 | Alt+N | Display needs |
-| Alt+H | Display health |
+| Alt+H | Display health (detailed condition info) |
+| Alt+B | Quick combat log dump |
 | Alt+F | Unforbid all items on map |
 | F1 | Work menu |
 | F2 | Schedule menu |
 | F3 | Assign menu |
+
+
+**Inspection Menu (Enter):** Access pawn details including:
+- **Job Queue** category: View and cancel queued jobs (Delete key)
+- **Log** category: Combat log and social log with timestamps and jump-to-target
+- Health, equipment, records, and more
 
 ## Work Menu (F1)
 
@@ -165,7 +177,6 @@ Tiles announce: pawns, buildings, items, plants, terrain, zone, roof status, and
 | M | Toggle simple/manual priority mode |
 | Space | Toggle work type (simple) or toggle disabled/priority 3 (manual) |
 | 0-4 | Set priority directly (manual mode) |
-| Shift+Up/Down | Reorder work type priority |
 | Enter | Save and close |
 | Escape | Cancel and close |
 
@@ -190,7 +201,7 @@ Tiles announce: pawns, buildings, items, plants, terrain, zone, roof status, and
 | Up/Down | Navigate policies |
 | Enter | Apply policy to colonist |
 | Tab | Next colonist |
-| E | Open policy editor |
+| alt + E | Open policy editor |
 | Escape | Close |
 
 Categories: Outfit, Food Restrictions, Drug Policies, Allowed Areas, Reading Policies (Ideology DLC).
@@ -202,7 +213,7 @@ Categories: Outfit, Food Restrictions, Drug Policies, Allowed Areas, Reading Pol
 | Up/Down | Navigate animals |
 | Left/Right | Navigate property columns |
 | Enter | Toggle checkbox / open dropdown |
-| S | Sort by current column |
+| alt + S | Sort by current column |
 | Escape | Close |
 
 Columns include: Name, Bond, Master, Slaughter, Gender, Age, Training, Follow settings, Area, Medical Care, Food Restriction, Release to Wild.
@@ -221,7 +232,18 @@ Linear navigation through all map items by category. Always available during map
 | Alt+Home | Toggle auto-jump mode (cursor automatically follows scanner) |
 | End | Read distance/direction to item |
 
-Categories: Colonists, Tame Animals, Wild Animals, Buildings, Trees, Plants, Items, Mineable Tiles.
+**Categories:**
+- **Colonists** - All colonists
+- **Tame Animals** - Bonded, pets, livestock
+- **Wild Animals** - Wildlife by species
+- **Orders** - Construction, Haul, Hunt, Mine, Deconstruct, Uninstall, Cut, Harvest, Smooth, Tame, Slaughter
+- **Buildings** - All structures
+- **Zones** - Growing (with plant type), Stockpile, Fishing, Other
+- **Rooms** - Named rooms (e.g., "Ann's Bedroom")
+- **Trees** - Tree types
+- **Plants** - Wild plants
+- **Items** - All items by type
+- **Mineable Tiles** - Stone types, chunks
 
 **Auto-jump mode:** When enabled, the map cursor automatically jumps to each item as you navigate with Page Up/Down. Distance calculations always update based on current cursor position.
 
@@ -231,11 +253,8 @@ Categories: Colonists, Tame Animals, Wild Animals, Buildings, Trees, Plants, Ite
 |-----|--------|
 | F8 | Toggle world view |
 | Arrow Keys | Navigate tiles (camera-relative) |
-| Home | Jump to home settlement |
-| End | Jump to nearest caravan |
-| Page Up/Down | Cycle settlements |
 | I | Read tile details |
-| S | Open settlement browser |
+**Note:** The world map has a scanner.  It includes neutral, hostile and player settlements, quest locations, and caravans.  
 
 ### Caravan Controls
 
@@ -245,8 +264,8 @@ Categories: Colonists, Tame Animals, Wild Animals, Buildings, Trees, Plants, Ite
 | Left/Right | Change tabs |
 | Up/Down | Navigate items |
 | Enter / + / - | Adjust quantities |
-| D | Set destination |
-| T | Send caravan |
+| alt + D | Set destination |
+| alt + T | Send caravan |
 | Shift+C | Reform caravan (temp maps) |
 | , / . | Cycle caravans |
 | ] | Orders on selected tile |
@@ -292,10 +311,11 @@ Actions per item: Jump to location, View details.
 
 | Key | Action |
 |-----|--------|
-| L | View alerts and letters (messages, inbox, warnings) |
-| F6 | Research menu |
+| L | View alerts and letters (Delete key to delete letters) |
+| F6 | Research menu (with tree navigation and typeahead) |
 | F7 | Quest menu |
-| Delete | Delete save file (in save/load menu) |
+| Delete | Delete save file (in save/load menu) or letter (in alerts menu) |
+
 
 ## Mod Manager
 
@@ -308,13 +328,13 @@ Accessible from Main Menu → Mods. Provides full keyboard navigation for enabli
 | Enter | Toggle mod enable/disable |
 | Ctrl+Up | Move mod up in load order (active list only) |
 | Ctrl+Down | Move mod down in load order (active list only) |
-| M | Open mod settings (if mod has settings) |
-| I | Read full mod description and info |
-| S | Save mod changes |
-| R | Auto-sort mods (resolve load order issues) |
-| O | Open mod folder in file explorer |
-| W | Open Steam Workshop page for mod |
-| U | Upload mod to Steam Workshop (requires Dev Mode) |
+| alt + M | Open mod settings (if mod has settings) |
+| alt + I | Read full mod description and info |
+| alt + S | Save mod changes |
+| alt + R | Auto-sort mods (resolve load order issues) |
+| alt + O | Open mod folder in file explorer |
+| alt + W | Open Steam Workshop page for mod |
+| alt + U | Upload mod to Steam Workshop (requires Dev Mode) |
 | Escape | Close mod manager |
 
 ---
