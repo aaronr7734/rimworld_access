@@ -22,6 +22,8 @@ namespace RimWorldAccess
         /// <returns>True if the key was handled, false otherwise</returns>
         public static bool HandleArrowKey(KeyCode key, bool ctrlHeld, bool shiftHeld)
         {
+            MapNavigationPatch.NotifyArrowKeyNavigation();
+
             // Handle Shift+arrow for jump mode adjustments.
             // Shift+Up/Down cycles jump modes; Shift+Left/Right adjusts preset distance.
             // These adjustments must NEVER move the cursor or camera — the user is only
