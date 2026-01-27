@@ -4205,6 +4205,105 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 4.76: Handle Quality Builder menu with Q key =====
+            if (key == KeyCode.Q && !Event.current.shift && !Event.current.control && !Event.current.alt)
+            {
+                // Conditions: gameplay, map exists, no windows preventing camera motion, no accessibility menu active, Quality Builder mod active.
+                if (Current.ProgramState == ProgramState.Playing &&
+                    Find.CurrentMap != null &&
+                    (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
+                    !KeyboardHelper.IsAnyAccessibilityMenuActive() &&
+                    ModDetectionHelper.IsQualityBuilderActive())
+                {
+                    // Get cursor position
+                    IntVec3 cursorPos = MapNavigationState.CurrentCursorPosition;
+                    if (cursorPos.IsValid && cursorPos.InBounds(Find.CurrentMap))
+                    {
+                        // Look for a building at the cursor position (blueprint or frame)
+                        Thing thing = null;
+                        var thingsAtCursor = Find.CurrentMap.thingGrid.ThingsAt(cursorPos);
+                        int totalThings = 0;
+                        int blueprintCount = 0;
+                        foreach (var t in thingsAtCursor)
+                        {
+                            totalThings++;
+                            // First check if it already has a quality designation
+                            if (ModDetectionHelper.HasQualityBuilderDesignation(t))
+                            {
+                                thing = t;
+                                blueprintCount++;
+                                break; // Prefer things with existing designations
+                            }
+                            // Then check if it can have a quality designation
+                            else if (ModDetectionHelper.CanHaveQualityDesignation(t))
+                            {
+                                thing = t;
+                                blueprintCount++;
+                                // Don't break, continue to count all blueprints
+                                // but we'll use the first one found without a designation
+                            }
+                        }
+
+                        if (thing != null)
+                        {
+                            // If multiple blueprints, announce count
+                            if (blueprintCount > 1)
+                            {
+                                TolkHelper.Speak($"Found {blueprintCount} blueprints/frames", SpeechPriority.Low);
+                            }
+
+                            // Open the quality menu for this thing
+                            bool opened = QualityBuilderMenuState.Open(thing);
+                            if (opened)
+                            {
+                                Event.current.Use();
+                                return;
+                            }
+                            else
+                            {
+                                // Menu failed to open
+                                TolkHelper.Speak("Cannot open quality menu", SpeechPriority.Normal);
+                                Event.current.Use();
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            // No blueprint found
+                            if (totalThings == 0)
+                            {
+                                TolkHelper.Speak("No objects at cursor position", SpeechPriority.Normal);
+                            }
+                            else
+                            {
+                                TolkHelper.Speak($"Found {totalThings} objects but no blueprints or frames", SpeechPriority.Normal);
+                            }
+                            Event.current.Use();
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        // Invalid cursor position
+                        TolkHelper.Speak("Invalid cursor position", SpeechPriority.Normal);
+                        Event.current.Use();
+                        return;
+                    }
+                }
+            }
+
+            // ===== PRIORITY 4.771: Handle Quality Builder menu if active =====
+            if (QualityBuilderMenuState.IsActive)
+            {
+                Log.Message($"[UnifiedKeyboardPatch] QualityBuilderMenuState.IsActive=true, key={key}");
+                if (QualityBuilderMenuState.HandleInput())
+                {
+                    Event.current.Use();
+                    return;
+                }
+                Log.Message($"[UnifiedKeyboardPatch] QualityBuilderMenuState.HandleInput() returned false for key={key}");
+            }
+
             // ===== PRIORITY 4.77: Handle notification menu if active =====
             if (NotificationMenuState.IsActive)
             {
