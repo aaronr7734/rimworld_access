@@ -17,6 +17,10 @@ namespace RimWorldAccess
     {
         private static bool lastFrameWasWorldView = false;
 
+        // Mouse navigation tracking for world map
+        private static int lastWorldMouseTile = -1;
+        private static float lastWorldArrowKeyPressTime = 0f;
+
         /// <summary>
         /// Prefix patch that intercepts keyboard input for world map navigation.
         /// </summary>
@@ -84,6 +88,7 @@ namespace RimWorldAccess
                 key == KeyCode.LeftArrow || key == KeyCode.RightArrow)
             {
                 WorldNavigationState.HandleArrowKey(key);
+                lastWorldArrowKeyPressTime = Time.time;
                 Event.current.Use();
                 return;
             }
@@ -243,7 +248,7 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Postfix patch to draw visual highlight on selected tile.
+        /// Postfix patch to draw visual highlight on selected tile and handle mouse navigation.
         /// </summary>
         [HarmonyPostfix]
         public static void Postfix()
@@ -263,6 +268,9 @@ namespace RimWorldAccess
 
             // For additional visual feedback, we could draw text overlay
             DrawTileInfoOverlay(selectedTile);
+
+            // Handle mouse navigation for automatic tile announcement on world map
+            HandleMouseNavigation();
         }
 
         /// <summary>
@@ -311,6 +319,82 @@ namespace RimWorldAccess
             // Reset text settings
             Text.Anchor = TextAnchor.UpperLeft;
             Text.Font = GameFont.Small;
+        }
+
+        /// <summary>
+        /// Handles mouse navigation for automatic tile announcement on world map.
+        /// </summary>
+        private static void HandleMouseNavigation()
+        {
+            // Skip if any accessibility menu is active
+            if (KeyboardHelper.IsAnyAccessibilityMenuActive())
+                return;
+
+            // Skip if caravan formation dialog is active (unless choosing destination)
+            if (CaravanFormationState.IsActive && !CaravanFormationState.IsChoosingDestination)
+                return;
+
+            // Skip if world navigation is not active or initialized
+            if (!WorldNavigationState.IsActive || !WorldNavigationState.IsInitialized)
+                return;
+
+            // Check if left Ctrl is held down
+            bool ctrlHeldForMouse = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+
+            if (ctrlHeldForMouse)
+            {
+                // Get current mouse tile on world map
+                int mouseTile = -1;
+                if (WorldRendererUtility.WorldRendered && Find.World != null)
+                {
+                    // Use screen position to get tile under mouse
+                    mouseTile = GenWorld.TileAt(UI.MousePositionOnUI, true);
+                }
+
+                // Check if mouse tile is valid
+                if (mouseTile < 0)
+                {
+                    // Mouse not over a valid tile, reset tracking
+                    if (lastWorldMouseTile != -1)
+                    {
+                        lastWorldMouseTile = -1;
+                    }
+                    return;
+                }
+
+                // Check if mouse moved to a new tile
+                bool mouseTileChanged = mouseTile != lastWorldMouseTile;
+
+                // Check time since last arrow key press (to avoid announcing when using keyboard)
+                float timeSinceArrowKey = Time.time - lastWorldArrowKeyPressTime;
+                bool keyboardIdle = timeSinceArrowKey > 0.5f; // 0.5 seconds threshold
+
+                if (mouseTileChanged && keyboardIdle)
+                {
+                    // Get tile information
+                    PlanetTile tile = new PlanetTile(mouseTile);
+                    string tileInfo = WorldInfoHelper.GetTileSummary(tile);
+
+                    // Announce tile info with interrupt to cut off previous speech
+                    TolkHelper.Speak(tileInfo, SpeechPriority.High);
+
+                    // Update mouse tracking
+                    lastWorldMouseTile = mouseTile;
+                }
+                else if (!mouseTileChanged && lastWorldMouseTile != -1)
+                {
+                    // Mouse is still on the same tile, no need to announce
+                    return;
+                }
+            }
+            else
+            {
+                // Ctrl is not held - reset tracking to ensure clean state
+                if (lastWorldMouseTile != -1)
+                {
+                    lastWorldMouseTile = -1;
+                }
+            }
         }
     }
 }
