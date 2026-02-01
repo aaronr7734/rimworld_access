@@ -48,6 +48,18 @@ namespace RimWorldAccess
                     KeyCode keyCode = Event.current.keyCode;
                     bool handled = false;
 
+                    // Custom difficulty edit mode takes priority
+                    if (CustomDifficultyEditState.IsActive)
+                    {
+                        handled = HandleCustomDifficultyInput(keyCode);
+                        if (handled)
+                        {
+                            Event.current.Use();
+                            patchActive = true;
+                        }
+                        return; // Don't process other keys when in custom edit mode
+                    }
+
                     // Tab navigation between modes
                     if (keyCode == KeyCode.Tab && !Event.current.shift)
                     {
@@ -58,6 +70,12 @@ namespace RimWorldAccess
                     {
                         CycleNavigationModeBackward(__instance);
                         handled = true;
+                    }
+                    // Enter/Space - open custom difficulty if selected
+                    else if ((keyCode == KeyCode.Return || keyCode == KeyCode.KeypadEnter || keyCode == KeyCode.Space) &&
+                             currentMode == NavigationMode.Difficulty)
+                    {
+                        handled = HandleEnterOnDifficulty(__instance);
                     }
                     // Arrow key navigation
                     else if (keyCode == KeyCode.UpArrow)
@@ -106,6 +124,99 @@ namespace RimWorldAccess
             {
                 Log.Error($"[RimWorld Access] Error in StorytellerSelectionPatch Prefix: {ex}");
             }
+        }
+
+        private static bool HandleCustomDifficultyInput(KeyCode keyCode)
+        {
+            // Navigation
+            if (keyCode == KeyCode.UpArrow)
+            {
+                if (CustomDifficultyEditState.HasActiveSearch)
+                    CustomDifficultyEditState.SelectPreviousMatch();
+                else
+                    CustomDifficultyEditState.SelectPrevious();
+                return true;
+            }
+            else if (keyCode == KeyCode.DownArrow)
+            {
+                if (CustomDifficultyEditState.HasActiveSearch)
+                    CustomDifficultyEditState.SelectNextMatch();
+                else
+                    CustomDifficultyEditState.SelectNext();
+                return true;
+            }
+            else if (keyCode == KeyCode.LeftArrow)
+            {
+                CustomDifficultyEditState.AdjustLeft();
+                return true;
+            }
+            else if (keyCode == KeyCode.RightArrow)
+            {
+                CustomDifficultyEditState.AdjustRight();
+                return true;
+            }
+            else if (keyCode == KeyCode.Return || keyCode == KeyCode.KeypadEnter || keyCode == KeyCode.Space)
+            {
+                CustomDifficultyEditState.ExecuteOrEnter();
+                return true;
+            }
+            else if (keyCode == KeyCode.Escape)
+            {
+                // Clear search first, then go back
+                if (CustomDifficultyEditState.HasActiveSearch)
+                {
+                    CustomDifficultyEditState.ClearSearch();
+                }
+                else if (!CustomDifficultyEditState.GoBack())
+                {
+                    CustomDifficultyEditState.Close();
+                    TolkHelper.Speak("Difficulty");
+                    StorytellerNavigationState.AnnounceDifficulty();
+                }
+                return true;
+            }
+            else if (keyCode == KeyCode.Home)
+            {
+                CustomDifficultyEditState.NavigateHome();
+                return true;
+            }
+            else if (keyCode == KeyCode.End)
+            {
+                CustomDifficultyEditState.NavigateEnd();
+                return true;
+            }
+            // Alt+R - Jump to reset/playstyle section
+            else if (keyCode == KeyCode.R && Event.current.alt)
+            {
+                CustomDifficultyEditState.JumpToResetSection();
+                return true;
+            }
+            else if (keyCode == KeyCode.Backspace)
+            {
+                return CustomDifficultyEditState.HandleBackspace();
+            }
+            // Typeahead (letters/digits)
+            else if (Event.current.character != '\0' &&
+                     !Event.current.control && !Event.current.alt &&
+                     char.IsLetterOrDigit(Event.current.character))
+            {
+                return CustomDifficultyEditState.HandleTypeahead(Event.current.character);
+            }
+
+            return false;
+        }
+
+        private static bool HandleEnterOnDifficulty(Page_SelectStoryteller instance)
+        {
+            DifficultyDef selected = StorytellerNavigationState.SelectedDifficulty;
+            if (selected != null && selected.isCustom)
+            {
+                // Open custom difficulty edit mode
+                CustomDifficultyEditState.Open(instance);
+                return true;
+            }
+            // For non-custom difficulties, don't consume Enter - let page proceed
+            return false;
         }
 
         private static void CycleNavigationModeForward(Page_SelectStoryteller instance)
@@ -417,6 +528,42 @@ namespace RimWorldAccess
         {
             StorytellerSelectionPatch.ResetAnnouncement();
             StorytellerNavigationState.Reset();
+            CustomDifficultyEditState.Close();
+        }
+    }
+
+    // Reset custom difficulty state when page closes
+    // Note: We patch Window.PreClose because Page_SelectStoryteller doesn't override it
+    [HarmonyPatch(typeof(Window), "PreClose")]
+    public class StorytellerSelectionPatch_PreClose
+    {
+        [HarmonyPostfix]
+        static void Postfix(Window __instance)
+        {
+            if (__instance is Page_SelectStoryteller)
+            {
+                CustomDifficultyEditState.Close();
+            }
+        }
+    }
+
+    // Block page advancement when editing custom difficulty settings
+    [HarmonyPatch(typeof(Page), "DoNext")]
+    public class PageDoNextBlockPatch
+    {
+        [HarmonyPrefix]
+        static bool Prefix(Page __instance)
+        {
+            // Only intercept for Page_SelectStoryteller
+            if (__instance is Page_SelectStoryteller)
+            {
+                if (CustomDifficultyEditState.IsActive)
+                {
+                    // Block advancement - user is editing custom settings
+                    return false;
+                }
+            }
+            return true;
         }
     }
 
