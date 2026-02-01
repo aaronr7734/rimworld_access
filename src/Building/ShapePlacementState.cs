@@ -198,6 +198,16 @@ namespace RimWorldAccess
             // This ensures the zone selection matches what's announced on entry
             entryCursorPosition = MapNavigationState.CurrentCursorPosition;
 
+            // For zone designators, clear any existing zone selection.
+            // The expand/create decision should be based purely on cursor position,
+            // not on what zone happens to be selected from a previous operation.
+            // This ensures the actual behavior matches the announcement made on entry.
+            // Note: The gizmo-based expand flow uses GizmoZoneEditState, which preserves selection.
+            if (ShapeHelper.IsZoneDesignator(designator))
+            {
+                Find.Selector.ClearSelection();
+            }
+
             string shapeName = ShapeHelper.GetShapeName(shape);
             string designatorLabel = ArchitectHelper.GetSanitizedLabel(designator);
 

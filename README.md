@@ -776,4 +776,4 @@ Accessible from Main Menu → Mods. Provides full keyboard navigation for enabli
 
 ---
 
-**Questions?** Join the [Discord server](https://discord.gg/Aecaqnbr) for support and discussion.
+**Questions?** Join the [Discord server](https://discord.gg/XdxfyvSKaT) for support and discussion.
