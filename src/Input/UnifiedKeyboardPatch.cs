@@ -3565,6 +3565,12 @@ namespace RimWorldAccess
                         bool wasDrafted = selectedPawn.drafter.Drafted;
                         selectedPawn.drafter.Drafted = !wasDrafted;
 
+                        // Play the draft/undraft sound (matches game UI behavior)
+                        if (selectedPawn.drafter.Drafted)
+                            SoundDefOf.DraftOn.PlayOneShotOnCamera();
+                        else
+                            SoundDefOf.DraftOff.PlayOneShotOnCamera();
+
                         // Announce the change
                         string status = selectedPawn.drafter.Drafted ? "Drafted" : "Undrafted";
                         TolkHelper.Speak($"{selectedPawn.LabelShort} {status}");
