@@ -33,7 +33,10 @@ namespace RimWorldAccess
                     StorytellerDef storyteller = StorytellerNavigationState.SelectedStoryteller;
                     if (storyteller != null)
                     {
-                        TolkHelper.Speak($"{pageTitle} - {storyteller.label} - {storyteller.description}. Tab and Shift+Tab to move between Storyteller, Difficulty, and Save Mode.");
+                        string position = MenuHelper.FormatPosition(0, StorytellerNavigationState.StorytellerCount);
+                        string description = storyteller.description.TrimEnd('.');
+                        string positionPart = string.IsNullOrEmpty(position) ? "" : $" ({position})";
+                        TolkHelper.Speak($"{pageTitle} - {storyteller.label} - {description}{positionPart}. Tab and Shift+Tab to move between Storyteller, Difficulty, and Save Mode.");
                     }
                     else
                     {
