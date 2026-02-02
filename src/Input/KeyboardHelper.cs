@@ -59,6 +59,7 @@ namespace RimWorldAccess
                 // Bills and building menus
                 || BillsMenuState.IsActive
                 || BillConfigState.IsActive
+                || FishingZoneMenuState.IsActive
                 || RangeEditMenuState.IsActive
                 || TempControlMenuState.IsActive
                 // Building component controls

@@ -497,7 +497,8 @@ namespace RimWorldAccess
             {
                 string renameLabel = "Rename".Translate().ToString();
                 return (category == "Storage" && zone is IStoreSettingsParent)
-                    || category == renameLabel;
+                    || category == renameLabel
+                    || (category == "Fishing" && zone.GetType().Name == "Zone_Fishing");
             }
 
             return false;
@@ -562,6 +563,13 @@ namespace RimWorldAccess
                         WindowlessInspectionState.Close();
                         StorageSettingsMenuState.Open(settings);
                     }
+                    return;
+                }
+
+                if (category == "Fishing" && zone.GetType().Name == "Zone_Fishing")
+                {
+                    WindowlessInspectionState.Close();
+                    FishingZoneMenuState.Open(zone);
                     return;
                 }
             }

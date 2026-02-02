@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 using Verse;
 using RimWorld;
 
@@ -561,9 +562,9 @@ namespace RimWorldAccess
                 var allFish = waterBody.CommonFishIncludingExtras.Concat(waterBody.UncommonFish);
                 string fishList = allFish.Select(f => f.label).ToCommaList().CapitalizeFirst();
 
-                // Population numbers (current/max)
-                int population = (int)waterBody.Population;
-                int maxPopulation = (int)waterBody.MaxPopulation;
+                // Population numbers (current/max) - use rounding to match Zone_Fishing.GetInspectString()
+                int population = Mathf.RoundToInt(waterBody.Population);
+                int maxPopulation = Mathf.RoundToInt(waterBody.MaxPopulation);
 
                 sb.Append($", fish: {fishList} ({population}/{maxPopulation})");
 
