@@ -124,6 +124,13 @@ namespace RimWorldAccess
                     {
                         buildingLabel += " wall";
                     }
+
+                    // Add door open/closed state
+                    if (building is Building_Door door)
+                    {
+                        buildingLabel += door.Open ? " (open)" : " (closed)";
+                    }
+
                     sb.Append(buildingLabel);
 
                     // Add cell-specific suffix (e.g., "(head)" for bed, "(fuel port east)" for launcher)
@@ -357,7 +364,12 @@ namespace RimWorldAccess
                     sb.AppendLine($"\nBuildings ({buildings.Count}):");
                     foreach (var building in buildings)
                     {
-                        sb.Append($"  - {building.LabelShortCap}");
+                        string detailLabel = building.LabelShortCap;
+                        if (building is Building_Door door)
+                        {
+                            detailLabel += door.Open ? " (open)" : " (closed)";
+                        }
+                        sb.Append($"  - {detailLabel}");
 
                         // Add temperature control information if building is a cooler/heater
                         string tempControlInfo = GetTemperatureControlInfo(building);

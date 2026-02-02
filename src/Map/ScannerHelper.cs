@@ -172,6 +172,12 @@ namespace RimWorldAccess
                 try
                 {
                     Label = thing.LabelNoParenthesis ?? thing.def.label ?? "Unknown";
+
+                    // Add door open/closed state
+                    if (thing is Building_Door door)
+                    {
+                        Label += door.Open ? " (open)" : " (closed)";
+                    }
                 }
                 catch (Exception)
                 {
@@ -203,6 +209,12 @@ namespace RimWorldAccess
                 try
                 {
                     Label = Thing.LabelNoParenthesis ?? Thing.def.label ?? "Unknown";
+
+                    // Add door open/closed state
+                    if (Thing is Building_Door door)
+                    {
+                        Label += door.Open ? " (open)" : " (closed)";
+                    }
                 }
                 catch (Exception)
                 {
