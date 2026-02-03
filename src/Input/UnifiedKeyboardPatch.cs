@@ -638,6 +638,36 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 0.373: Handle ability targeting if active =====
+            // This provides R, T, I keys during psycast/ability map targeting
+            if (AbilityTargetingState.IsActive && !WindowlessDialogState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = Event.current.alt;
+
+                if (AbilityTargetingState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 0.376: Handle world ability targeting if active =====
+            // This handles Enter/Escape/I keys during world map ability targeting (e.g., Farskip)
+            if (WorldAbilityTargetingState.IsActive && !WindowlessDialogState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = Event.current.alt;
+
+                if (WorldAbilityTargetingState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 0.5: Handle world scanner keys (PageUp/PageDown/Home/End) =====
             // Skip if any accessibility menu is active - they handle their own Enter/navigation keys
             // Note: KeyboardHelper.IsAnyAccessibilityMenuActive() covers all menus that need exclusion

@@ -91,6 +91,7 @@ namespace RimWorldAccess
                    WorkMenuState.IsActive ||
                    BillConfigState.IsActive ||
                    BillsMenuState.IsActive ||
+                   FishingZoneMenuState.IsActive ||
                    WindowlessFloatMenuState.IsActive ||
                    WindowlessPauseMenuState.IsActive ||
                    WindowlessSaveMenuState.IsActive ||

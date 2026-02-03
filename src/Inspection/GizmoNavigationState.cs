@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Verse;
+using Verse.Sound;
 using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
@@ -569,7 +570,16 @@ namespace RimWorldAccess
                     return;
                 }
 
-                // 3. Command_Toggle - toggle and announce state
+                // 3. PsychicEntropyGizmo - toggle neural heat limiter
+                if (selectedGizmo.GetType().Name == "PsychicEntropyGizmo")
+                {
+                    bool newState = ToggleNeuralHeatLimiter(selectedGizmo);
+                    string stateStr = newState ? "ON" : "OFF";
+                    TolkHelper.Speak($"Neural heat limiter: {stateStr}");
+                    return;
+                }
+
+                // 4. Command_Toggle - toggle and announce state
                 if (selectedGizmo is Command_Toggle toggle)
                 {
                     try
@@ -591,7 +601,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    // 3. Command_VerbTarget (weapon attacks) - announce targeting mode
+                    // 5. Command_VerbTarget (weapon attacks) - announce targeting mode
                     if (selectedGizmo is Command_VerbTarget verbTarget)
                     {
                         try
@@ -609,7 +619,7 @@ namespace RimWorldAccess
                             TolkHelper.Speak($"Error executing {gizmoLabel}: {ex.Message}", SpeechPriority.High);
                         }
                     }
-                    // 4. Command_Target - announce targeting mode
+                    // 6. Command_Target - announce targeting mode
                     else if (selectedGizmo is Command_Target)
                     {
                         try
@@ -625,7 +635,7 @@ namespace RimWorldAccess
                             TolkHelper.Speak($"Error executing {gizmoLabel}: {ex.Message}", SpeechPriority.High);
                         }
                     }
-                    // 5. Generic Command
+                    // 7. Generic Command
                     else
                     {
                         try
@@ -979,6 +989,14 @@ namespace RimWorldAccess
             if (!string.IsNullOrEmpty(hotkey))
                 announcement += $" ({hotkey})";
 
+            // For Command_Ability (psycasts, abilities), add cost information
+            if (gizmo is Command_Ability commandAbility && commandAbility.Ability != null)
+            {
+                string costInfo = GetAbilityCostInfo(commandAbility.Ability);
+                if (!string.IsNullOrEmpty(costInfo))
+                    announcement += $". {costInfo}";
+            }
+
             // Add disabled status if applicable
             if (gizmo.Disabled)
             {
@@ -1062,7 +1080,7 @@ namespace RimWorldAccess
                     return GetEnergyShieldLabel(gizmo);
 
                 case "PsychicEntropyGizmo":
-                    return "Psychic Entropy and Psyfocus";
+                    return "Neural Heat and Psyfocus";
 
                 case "MechanitorBandwidthGizmo":
                     return "Mechanitor Bandwidth";
@@ -1383,21 +1401,19 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets the psychic entropy status (entropy and psyfocus values).
+        /// Gets the psychic entropy status (entropy, psyfocus, and limiter state).
         /// </summary>
         private static string GetPsychicEntropyStatus(Gizmo gizmo)
         {
-            var trackerField = gizmo.GetType().GetField("tracker",
-                System.Reflection.BindingFlags.Instance |
-                System.Reflection.BindingFlags.NonPublic);
-            if (trackerField == null) return "";
-
-            var tracker = trackerField.GetValue(gizmo);
+            var tracker = GetPsychicEntropyTracker(gizmo);
             if (tracker == null) return "";
 
             var entropyProp = tracker.GetType().GetProperty("EntropyValue");
             var maxEntropyProp = tracker.GetType().GetProperty("MaxEntropy");
             var psyfocusProp = tracker.GetType().GetProperty("CurrentPsyfocus");
+            var limitField = tracker.GetType().GetField("limitEntropyAmount",
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.Public);
 
             if (entropyProp != null && maxEntropyProp != null && psyfocusProp != null)
             {
@@ -1405,9 +1421,115 @@ namespace RimWorldAccess
                 float maxEntropy = (float)maxEntropyProp.GetValue(tracker);
                 float psyfocus = (float)psyfocusProp.GetValue(tracker);
 
-                return $"Entropy: {entropy:F0} / {maxEntropy:F0}, Psyfocus: {psyfocus * 100:F0}%";
+                string status = $"Neural heat: {entropy:F0} / {maxEntropy:F0}, Psyfocus: {psyfocus * 100:F0}%";
+
+                // Add limiter state
+                if (limitField != null)
+                {
+                    bool isLimited = (bool)limitField.GetValue(tracker);
+                    status += $", Limiter: {(isLimited ? "ON" : "OFF")}";
+                }
+
+                return status;
             }
             return "";
+        }
+
+        /// <summary>
+        /// Gets the Pawn_PsychicEntropyTracker from a PsychicEntropyGizmo.
+        /// </summary>
+        private static object GetPsychicEntropyTracker(Gizmo gizmo)
+        {
+            var trackerField = gizmo.GetType().GetField("tracker",
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic);
+            if (trackerField == null) return null;
+
+            return trackerField.GetValue(gizmo);
+        }
+
+        /// <summary>
+        /// Toggles the neural heat limiter on a PsychicEntropyGizmo.
+        /// Returns the new state (true = limited, false = unlimited).
+        /// </summary>
+        private static bool ToggleNeuralHeatLimiter(Gizmo gizmo)
+        {
+            var tracker = GetPsychicEntropyTracker(gizmo);
+            if (tracker == null) return true;
+
+            var limitField = tracker.GetType().GetField("limitEntropyAmount",
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.Public);
+            if (limitField == null) return true;
+
+            bool currentValue = (bool)limitField.GetValue(tracker);
+            bool newValue = !currentValue;
+            limitField.SetValue(tracker, newValue);
+
+            // Play the appropriate sound (matching the game's behavior)
+            if (newValue)
+                SoundDefOf.Tick_Low.PlayOneShotOnCamera();
+            else
+                SoundDefOf.Tick_High.PlayOneShotOnCamera();
+
+            return newValue;
+        }
+
+        /// <summary>
+        /// Gets cost information for an ability (psyfocus cost, minimum required, neural heat gain).
+        /// Returns a string like "Costs 2% psyfocus, requires 50%, Neural heat: 25" or null if no costs.
+        /// </summary>
+        private static string GetAbilityCostInfo(Ability ability)
+        {
+            if (ability?.def == null)
+                return null;
+
+            var parts = new List<string>();
+
+            // Psyfocus cost (what gets consumed)
+            float psyfocusCost = ability.def.PsyfocusCost;
+
+            // Minimum psyfocus required (band threshold based on ability level)
+            // PsyfocusBandPercentages: 0%, 25%, 50% for bands 0, 1, 2
+            // RequiredPsyfocusBand is calculated from ability level
+            int requiredBand = ability.def.RequiredPsyfocusBand;
+            float minRequired = 0f;
+            if (requiredBand > 0 && requiredBand < Pawn_PsychicEntropyTracker.PsyfocusBandPercentages.Count)
+            {
+                minRequired = Pawn_PsychicEntropyTracker.PsyfocusBandPercentages[requiredBand];
+            }
+
+            // Build psyfocus string showing both cost and minimum if different
+            if (psyfocusCost > float.Epsilon || minRequired > float.Epsilon)
+            {
+                if (psyfocusCost > float.Epsilon && minRequired > float.Epsilon)
+                {
+                    // Both cost and minimum requirement
+                    parts.Add($"Costs {(psyfocusCost * 100f):F0}% psyfocus, requires {(minRequired * 100f):F0}%");
+                }
+                else if (psyfocusCost > float.Epsilon)
+                {
+                    // Just cost, no minimum band requirement
+                    parts.Add($"Costs {(psyfocusCost * 100f):F0}% psyfocus");
+                }
+                else if (minRequired > float.Epsilon)
+                {
+                    // Just minimum requirement (unusual but possible)
+                    parts.Add($"Requires {(minRequired * 100f):F0}% psyfocus");
+                }
+            }
+
+            // Neural heat (entropy) gain
+            float entropyGain = ability.def.EntropyGain;
+            if (entropyGain > float.Epsilon)
+            {
+                parts.Add($"Neural heat: {entropyGain:F0}");
+            }
+
+            if (parts.Count == 0)
+                return null;
+
+            return string.Join(", ", parts);
         }
 
         /// <summary>

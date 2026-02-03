@@ -140,7 +140,7 @@ namespace RimWorldAccess
             { "ITab_StudyNotes", TabHandlerType.BasicInspectString },
             { "ITab_StudyNotesUnnaturalCorpse", TabHandlerType.BasicInspectString },
             { "ITab_StudyNotesVoidMonolith", TabHandlerType.BasicInspectString },
-            { "ITab_Fishing", TabHandlerType.BasicInspectString },
+            { "ITab_Fishing", TabHandlerType.Action },
             { "ITab_Book", TabHandlerType.BasicInspectString },
             { "ITab_PenBase", TabHandlerType.BasicInspectString },
             { "ITab_PenAnimals", TabHandlerType.Action },
@@ -171,6 +171,7 @@ namespace RimWorldAccess
             { "Temperature", TabHandlerType.Action },
             { "Plant Selection", TabHandlerType.Action },
             { "Prisoner", TabHandlerType.Action },
+            { "Fishing", TabHandlerType.Action },
 
             // Synthetic categories (not real tabs)
             { "Overview", TabHandlerType.RichNavigation },
@@ -313,6 +314,7 @@ namespace RimWorldAccess
                 case "ITab_PenAnimals": return "Pen Animals";
                 case "ITab_PenAutoCut": return "Pen Auto-Cut";
                 case "ITab_PenFood": return "Pen Food";
+                case "ITab_Fishing": return "Fishing";
                 default: return GetCategoryNameForTab(tab);
             }
         }
