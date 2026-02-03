@@ -423,8 +423,21 @@ namespace RimWorldAccess
                 }
             }
 
+            // Get ability destination info if world ability targeting is active (e.g., Farskip)
+            string abilityDestInfo = null;
+            if (WorldAbilityTargetingState.IsActive)
+            {
+                abilityDestInfo = WorldAbilityTargetingState.GetDestinationInfo(currentSelectedTile);
+            }
+
             // Pass fuel cost to GetTileSummary so it's inserted right after the biome
             string tileInfo = WorldInfoHelper.GetTileSummary(currentSelectedTile, includeRouteInfo: true, minimal: false, fuelCostInfo: fuelCostInfo);
+
+            // Append ability destination info if available
+            if (!string.IsNullOrEmpty(abilityDestInfo))
+            {
+                tileInfo += $". {abilityDestInfo}";
+            }
 
             TolkHelper.Speak(tileInfo);
             lastAnnouncedInfo = tileInfo;
