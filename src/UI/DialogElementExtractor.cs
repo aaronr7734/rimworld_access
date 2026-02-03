@@ -385,6 +385,20 @@ namespace RimWorldAccess
 
                                         Log.Message($"RimWorld Access: Dialog option: '{optionText}' (disabled: {disabled})");
 
+                                        // Check if this option closes the dialog or navigates to a sub-dialog
+                                        FieldInfo resolveTreeField = optionType.GetField("resolveTree", BindingFlags.Public | BindingFlags.Instance);
+                                        FieldInfo linkField = optionType.GetField("link", BindingFlags.Public | BindingFlags.Instance);
+                                        FieldInfo linkLateBindField = optionType.GetField("linkLateBind", BindingFlags.Public | BindingFlags.Instance);
+
+                                        bool resolveTree = resolveTreeField != null && (bool)resolveTreeField.GetValue(option);
+                                        bool hasLink = linkField != null && linkField.GetValue(option) != null;
+                                        bool hasLinkLateBind = linkLateBindField != null && linkLateBindField.GetValue(option) != null;
+
+                                        // Only close if resolveTree is true AND there's no navigation link
+                                        // If there's a link, we navigate to a sub-dialog instead of closing
+                                        bool shouldClose = resolveTree && !hasLink && !hasLinkLateBind;
+                                        bool navigatesToSubDialog = hasLink || hasLinkLateBind;
+
                                         ButtonElement button = new ButtonElement
                                         {
                                             Label = optionText,
@@ -406,7 +420,8 @@ namespace RimWorldAccess
                                             },
                                             Disabled = disabled,
                                             DisabledReason = disabledReason,
-                                            IsClose = true
+                                            IsClose = shouldClose,
+                                            NavigatesToSubDialog = navigatesToSubDialog
                                         };
 
                                         elements.Add(button);
