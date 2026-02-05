@@ -50,6 +50,9 @@ namespace RimWorldAccess
             {
                 AbilityTargetingState.Close();
             }
+
+            // Also clear Command_Target targeting context (e.g., animal attack range info)
+            TargetingPatch.ClearTargetingContext();
         }
 
         /// <summary>

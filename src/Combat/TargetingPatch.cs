@@ -16,6 +16,72 @@ namespace RimWorldAccess
     [HarmonyPatch("ProcessInputEvents")]
     public static class TargetingPatch
     {
+        // Targeting context for Command_Target with known range (e.g., animal attack target).
+        // Set by GizmoNavigationState when executing a Command_Target with known range constraints.
+        private static bool hasTargetingContext = false;
+        private static IntVec3 contextCasterPos = IntVec3.Invalid;
+        private static float contextRange = 0f;
+
+        /// <summary>
+        /// Gets whether a targeting context with range info is active.
+        /// </summary>
+        public static bool HasTargetingContext => hasTargetingContext;
+
+        /// <summary>
+        /// Sets targeting context for a Command_Target with known range constraints.
+        /// Called by GizmoNavigationState when executing animal attack commands.
+        /// </summary>
+        public static void SetTargetingContext(IntVec3 casterPos, float range)
+        {
+            hasTargetingContext = true;
+            contextCasterPos = casterPos;
+            contextRange = range;
+        }
+
+        /// <summary>
+        /// Clears the targeting context. Called when targeting stops.
+        /// </summary>
+        public static void ClearTargetingContext()
+        {
+            hasTargetingContext = false;
+            contextCasterPos = IntVec3.Invalid;
+            contextRange = 0f;
+        }
+
+        /// <summary>
+        /// Announces range info for Command_Target targeting with context.
+        /// Called from UnifiedKeyboardPatch when user presses R during targeting.
+        /// </summary>
+        public static void HandleRangeCheck()
+        {
+            if (!hasTargetingContext || !contextCasterPos.IsValid)
+            {
+                TolkHelper.Speak("No range information available", SpeechPriority.Normal);
+                return;
+            }
+
+            IntVec3 cursorPos = MapNavigationState.CurrentCursorPosition;
+            if (!cursorPos.IsValid)
+            {
+                TolkHelper.Speak("Invalid cursor position", SpeechPriority.Normal);
+                return;
+            }
+
+            float distance = (cursorPos - contextCasterPos).LengthHorizontal;
+            string announcement = $"Distance: {distance:F0} tiles";
+
+            if (distance <= contextRange)
+            {
+                announcement += ", IN RANGE";
+            }
+            else
+            {
+                announcement += $", OUT OF RANGE (max {contextRange:F0})";
+            }
+
+            TolkHelper.Speak(announcement, SpeechPriority.Normal);
+        }
+
         /// <summary>
         /// Prefix patch that intercepts Enter key during targeting mode and converts it to target selection.
         /// </summary>
@@ -245,6 +311,22 @@ namespace RimWorldAccess
                         TolkHelper.Speak("Invalid target");
                         Event.current.Use();
                         return false;
+                    }
+
+                    // Pre-validate range for Command_Target with known range (e.g., animal attack)
+                    // The game's range check is inside the action delegate, so we check BEFORE calling it
+                    // to provide clear feedback and keep targeting open for retry
+                    if (hasTargetingContext && contextCasterPos.IsValid && contextRange > 0f)
+                    {
+                        float distance = (cursorPosition - contextCasterPos).LengthHorizontal;
+                        if (distance > contextRange)
+                        {
+                            TolkHelper.Speak(
+                                $"Out of range. Distance: {distance:F0}, max range: {contextRange:F0}",
+                                SpeechPriority.High);
+                            Event.current.Use();
+                            return false; // Stay in targeting mode for retry
+                        }
                     }
 
                     // Execute the action callback

@@ -620,14 +620,45 @@ namespace RimWorldAccess
                         }
                     }
                     // 6. Command_Target - announce targeting mode
-                    else if (selectedGizmo is Command_Target)
+                    else if (selectedGizmo is Command_Target cmdTarget)
                     {
                         try
                         {
                             // Execute the command
                             selectedGizmo.ProcessInput(fakeEvent);
 
-                            TolkHelper.Speak($"{gizmoLabel} - Use map navigation to select target, then press Enter");
+                            // Detect animal attack target commands (Odyssey DLC) by icon match.
+                            // Both group (from master's Pawn_PlayerSettings) and individual (from animal's
+                            // Pawn_TrainingTracker) use the same AttackTargetTexture icon.
+                            if (cmdTarget.icon == Pawn_TrainingTracker.AttackTargetTexture
+                                && gizmoOwners.TryGetValue(selectedGizmo, out ISelectable attackOwner)
+                                && attackOwner is Pawn ownerPawn)
+                            {
+                                // Determine the master pawn:
+                                // - Group command: owner IS the drafted master colonist
+                                // - Individual command: owner is the animal, master is its assigned master
+                                Pawn master = (ownerPawn.IsColonist && ownerPawn.Drafted)
+                                    ? ownerPawn
+                                    : ownerPawn.playerSettings?.Master;
+
+                                if (master?.Position.IsValid == true)
+                                {
+                                    float range = Pawn_TrainingTracker.AttackTargetRange;
+                                    TargetingPatch.SetTargetingContext(master.Position, range);
+                                    TolkHelper.Speak(
+                                        $"{gizmoLabel} targeting. Range: {range:F0} tiles from master. Press R to check distance.");
+                                }
+                                else
+                                {
+                                    TolkHelper.Speak(
+                                        $"{gizmoLabel} - Use map navigation to select target, then press Enter");
+                                }
+                            }
+                            else
+                            {
+                                TolkHelper.Speak(
+                                    $"{gizmoLabel} - Use map navigation to select target, then press Enter");
+                            }
                         }
                         catch (System.Exception ex)
                         {
@@ -983,18 +1014,24 @@ namespace RimWorldAccess
             if (!string.IsNullOrEmpty(statusValue))
                 announcement += $" - {statusValue}";
 
-            if (!string.IsNullOrEmpty(description) && !(gizmo is Command_Toggle))
+            // For non-ability gizmos, add description before hotkey
+            bool isAbility = gizmo is Command_Ability;
+            if (!string.IsNullOrEmpty(description) && !(gizmo is Command_Toggle) && !isAbility)
                 announcement += $": {description}";
 
             if (!string.IsNullOrEmpty(hotkey))
                 announcement += $" ({hotkey})";
 
-            // For Command_Ability (psycasts, abilities), add cost information
-            if (gizmo is Command_Ability commandAbility && commandAbility.Ability != null)
+            // For Command_Ability (psycasts, abilities), add cost then description
+            if (isAbility && gizmo is Command_Ability commandAbility && commandAbility.Ability != null)
             {
                 string costInfo = GetAbilityCostInfo(commandAbility.Ability);
                 if (!string.IsNullOrEmpty(costInfo))
                     announcement += $". {costInfo}";
+
+                // Add ability description after cost info
+                if (!string.IsNullOrEmpty(description))
+                    announcement += $". {description}";
             }
 
             // Add disabled status if applicable
@@ -1682,9 +1719,19 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Gets the description text for a gizmo.
+        /// For Command_Ability (psycasts), pulls from ability.def.description since
+        /// Command_Ability.Desc is only populated during mouse hover rendering.
         /// </summary>
         private static string GetGizmoDescription(Gizmo gizmo)
         {
+            // Command_Ability.defaultDesc is only set during GizmoOnGUIInt on mouse hover,
+            // so we pull directly from the ability definition instead
+            if (gizmo is Command_Ability commandAbility && commandAbility.Ability?.def != null)
+            {
+                string abilityDesc = commandAbility.Ability.def.description;
+                return (abilityDesc ?? "").StripTags();
+            }
+
             if (gizmo is Command cmd)
             {
                 string desc = cmd.Desc;

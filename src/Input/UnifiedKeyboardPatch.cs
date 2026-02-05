@@ -653,6 +653,18 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 0.374: Handle Command_Target targeting with range context (R key) =====
+            // This provides R key range check during animal attack targeting and similar Command_Target operations
+            if (TargetingPatch.HasTargetingContext && Find.Targeter.IsTargeting && !WindowlessDialogState.IsActive)
+            {
+                if (key == KeyCode.R && !Event.current.shift && !Event.current.control && !Event.current.alt)
+                {
+                    TargetingPatch.HandleRangeCheck();
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 0.376: Handle world ability targeting if active =====
             // This handles Enter/Escape/I keys during world map ability targeting (e.g., Farskip)
             if (WorldAbilityTargetingState.IsActive && !WindowlessDialogState.IsActive)

@@ -385,19 +385,20 @@ namespace RimWorldAccess
 
                                         Log.Message($"RimWorld Access: Dialog option: '{optionText}' (disabled: {disabled})");
 
-                                        // Check if this option closes the dialog or navigates to a sub-dialog
-                                        FieldInfo resolveTreeField = optionType.GetField("resolveTree", BindingFlags.Public | BindingFlags.Instance);
+                                        // Check if this option navigates to a sub-dialog or is a terminal action
                                         FieldInfo linkField = optionType.GetField("link", BindingFlags.Public | BindingFlags.Instance);
                                         FieldInfo linkLateBindField = optionType.GetField("linkLateBind", BindingFlags.Public | BindingFlags.Instance);
 
-                                        bool resolveTree = resolveTreeField != null && (bool)resolveTreeField.GetValue(option);
                                         bool hasLink = linkField != null && linkField.GetValue(option) != null;
                                         bool hasLinkLateBind = linkLateBindField != null && linkLateBindField.GetValue(option) != null;
 
-                                        // Only close if resolveTree is true AND there's no navigation link
-                                        // If there's a link, we navigate to a sub-dialog instead of closing
-                                        bool shouldClose = resolveTree && !hasLink && !hasLinkLateBind;
+                                        // Close unless this option navigates to a sub-dialog (has link/linkLateBind).
+                                        // Options without links are terminal actions - their callback handles the flow
+                                        // (e.g., opening Dialog_Trade, resolving a quest). resolveTree is not checked
+                                        // because we intercept the dialog before it's added to the window stack,
+                                        // so the game's own close logic doesn't apply.
                                         bool navigatesToSubDialog = hasLink || hasLinkLateBind;
+                                        bool shouldClose = !navigatesToSubDialog;
 
                                         ButtonElement button = new ButtonElement
                                         {
