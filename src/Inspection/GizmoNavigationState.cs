@@ -1045,7 +1045,8 @@ namespace RimWorldAccess
                 && cmdTargetGizmo.icon == Pawn_TrainingTracker.AttackTargetTexture)
             {
                 float attackRange = Pawn_TrainingTracker.AttackTargetRange;
-                announcement += $". Range: {attackRange:F0} tiles from master";
+                string sep = announcement.EndsWith(".") ? " " : ". ";
+                announcement += $"{sep}Range: {attackRange:F0} tiles from master";
             }
 
             // For abilities, hotkey goes at the end; for everything else, add it here
@@ -1057,16 +1058,16 @@ namespace RimWorldAccess
             {
                 string costInfo = GetAbilityCostInfo(commandAbility.Ability);
                 if (!string.IsNullOrEmpty(costInfo))
-                    announcement += $". {costInfo}";
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + costInfo;
 
                 // Add range info after cost
                 string rangeInfo = GetAbilityRangeInfo(commandAbility.Ability);
                 if (!string.IsNullOrEmpty(rangeInfo))
-                    announcement += $". {rangeInfo}";
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + rangeInfo;
 
                 // Add ability description after range info
                 if (!string.IsNullOrEmpty(description))
-                    announcement += $". {description}";
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + description;
 
                 // Hotkey last for abilities
                 if (!string.IsNullOrEmpty(hotkey))
