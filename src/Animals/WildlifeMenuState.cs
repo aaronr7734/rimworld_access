@@ -52,10 +52,11 @@ namespace RimWorldAccess
                 getColumnName: WildlifeMenuHelper.GetColumnName,
                 getColumnValue: WildlifeMenuHelper.GetColumnValue,
                 sortByColumn: (items, col, desc) => WildlifeMenuHelper.SortWildlifeByColumn(items.ToList(), col, desc),
-                defaultSortColumn: 4,  // BodySize
-                defaultSortDescending: true
+                defaultSortColumn: 1,  // Predator
+                defaultSortDescending: false,
+                getColumnTooltip: WildlifeMenuHelper.GetColumnTooltip
             );
-            tableHelper.Reset(4, true);
+            tableHelper.Reset(1, false);
 
             IsActive = true;
 
@@ -133,6 +134,9 @@ namespace RimWorldAccess
 
             switch (type)
             {
+                case WildlifeMenuHelper.ColumnType.Name:
+                    JumpToAnimalOnMap(currentAnimal);
+                    break;
                 case WildlifeMenuHelper.ColumnType.Hunt:
                     ToggleHunt(currentAnimal);
                     break;
@@ -180,6 +184,25 @@ namespace RimWorldAccess
             }
 
             AnnounceCurrentCell(includeAnimalName: false);
+        }
+
+        private static void JumpToAnimalOnMap(Pawn pawn)
+        {
+            if (pawn == null || pawn.Map == null)
+            {
+                TolkHelper.Speak("Animal not on map", SpeechPriority.High);
+                return;
+            }
+
+            IntVec3 position = pawn.Position;
+
+            Close();
+
+            MapNavigationState.CurrentCursorPosition = position;
+            Find.CameraDriver?.JumpToCurrentMapLoc(position);
+
+            string animalName = WildlifeMenuHelper.GetAnimalName(pawn);
+            TolkHelper.Speak($"Jumped to {animalName}");
         }
 
         public static void ToggleSortByCurrentColumn()

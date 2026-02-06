@@ -58,7 +58,8 @@ namespace RimWorldAccess
                 getColumnValue: AnimalsMenuHelper.GetColumnValue,
                 sortByColumn: (items, col, desc) => AnimalsMenuHelper.SortAnimalsByColumn(items.ToList(), col, desc),
                 defaultSortColumn: 0,  // Name
-                defaultSortDescending: false
+                defaultSortDescending: false,
+                getColumnTooltip: AnimalsMenuHelper.GetColumnTooltip
             );
 
             // Apply default sort (by name)
