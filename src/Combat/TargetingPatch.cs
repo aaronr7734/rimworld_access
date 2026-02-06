@@ -244,6 +244,14 @@ namespace RimWorldAccess
                     // Check if this ability has a second phase (destination selection, like Skip)
                     if (targetingSource.DestinationSelector != null)
                     {
+                        // Update AbilityTargetingState with destination phase context BEFORE
+                        // BeginTargeting (which triggers AbilityTargetingPatch postfix).
+                        // Pass the first target position so range is measured from the selected target.
+                        if (AbilityTargetingState.IsActive && targetingSource.DestinationSelector is CompAbilityEffect_WithDest destCompForContext)
+                        {
+                            AbilityTargetingState.EnterDestinationPhase(target.Cell, destCompForContext.Props.range);
+                        }
+
                         // Start second targeting phase for destination selection
                         __instance.BeginTargeting(targetingSource.DestinationSelector, targetingSource);
 

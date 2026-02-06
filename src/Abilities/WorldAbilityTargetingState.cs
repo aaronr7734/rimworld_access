@@ -40,8 +40,22 @@ namespace RimWorldAccess
             currentAbility = ability;
             isActive = true;
 
-            // Announce targeting start
-            string announcement = $"{ability.def.LabelCap} world targeting. Select destination tile.";
+            // Announce targeting start, including affected pawns for AOE abilities
+            // (the AOE is centered on the caster and can't be changed during world targeting)
+            string announcement = $"{ability.def.LabelCap} world targeting.";
+
+            if (ability.def.HasAreaOfEffect && ability.pawn?.Map != null)
+            {
+                var affected = AbilityTargetingHelper.GetAffectedPawns(
+                    ability, ability.pawn.Position, ability.pawn.Map);
+                if (affected.Count > 0)
+                {
+                    var names = affected.Select(p => p.LabelShort).ToCommaList(useAnd: true);
+                    announcement += $" Bringing {affected.Count}: {names}.";
+                }
+            }
+
+            announcement += " Select destination tile.";
             TolkHelper.Speak(announcement, SpeechPriority.Normal);
         }
 

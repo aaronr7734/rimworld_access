@@ -28,15 +28,31 @@ namespace RimWorldAccess
         [HarmonyPostfix]
         public static void BeginTargeting_ITargetingSource_Postfix(ITargetingSource source)
         {
-            // Check if the targeting source is an ability verb
-            if (source is Verb_CastAbility verbAbility && verbAbility.ability != null)
+            // Check if the targeting source is an ability verb.
+            // Use IAbilityVerb interface to catch all ability verb types:
+            // - Verb_CastAbility (standard psycasts/abilities)
+            // - Verb_CastAbilityJump, Verb_CastAbilityTouch (subclasses)
+            // - Verb_AbilityShoot (extends Verb_Shoot, not Verb_CastAbility)
+            // - Any modded ability verbs implementing IAbilityVerb
+            Ability ability = null;
+            if (source is Verb_CastAbility verbAbility)
+                ability = verbAbility.ability;
+            else if (source is IAbilityVerb abilityVerb)
+                ability = abilityVerb.Ability;
+
+            if (ability != null)
             {
                 // Don't re-open if already active (can happen with destination selection)
                 if (AbilityTargetingState.IsActive)
                     return;
 
-                AbilityTargetingState.Open(verbAbility.ability);
+                AbilityTargetingState.Open(ability);
+                return;
             }
+
+            // Note: Destination phase for dual-target abilities (e.g., Skip) is handled by
+            // TargetingPatch.Prefix, which calls AbilityTargetingState.EnterDestinationPhase()
+            // with both the target position and destination range before BeginTargeting is called.
         }
 
         /// <summary>

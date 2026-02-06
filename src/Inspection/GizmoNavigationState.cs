@@ -666,7 +666,28 @@ namespace RimWorldAccess
                             TolkHelper.Speak($"Error executing {gizmoLabel}: {ex.Message}", SpeechPriority.High);
                         }
                     }
-                    // 7. Generic Command
+                    // 7. Command_Ability (psycasts, abilities) - announce casting or targeting
+                    else if (selectedGizmo is Command_Ability cmdAbility)
+                    {
+                        try
+                        {
+                            selectedGizmo.ProcessInput(fakeEvent);
+
+                            // Self-cast abilities (targetRequired == false) don't enter targeting mode,
+                            // so no AbilityTargetingPatch fires. Announce immediately.
+                            if (!cmdAbility.Ability.def.targetRequired)
+                            {
+                                TolkHelper.Speak($"Casting {cmdAbility.Ability.def.LabelCap}");
+                            }
+                            // Targeted abilities will be announced by AbilityTargetingPatch
+                        }
+                        catch (System.Exception ex)
+                        {
+                            ModLogger.Error($"Exception in Command_Ability execution: {ex.Message}");
+                            TolkHelper.Speak($"Error executing {gizmoLabel}: {ex.Message}", SpeechPriority.High);
+                        }
+                    }
+                    // 8. Generic Command
                     else
                     {
                         try
@@ -1019,19 +1040,37 @@ namespace RimWorldAccess
             if (!string.IsNullOrEmpty(description) && !(gizmo is Command_Toggle) && !isAbility)
                 announcement += $": {description}";
 
-            if (!string.IsNullOrEmpty(hotkey))
+            // For animal attack Command_Target, add range info
+            if (gizmo is Command_Target cmdTargetGizmo
+                && cmdTargetGizmo.icon == Pawn_TrainingTracker.AttackTargetTexture)
+            {
+                float attackRange = Pawn_TrainingTracker.AttackTargetRange;
+                announcement += $". Range: {attackRange:F0} tiles from master";
+            }
+
+            // For abilities, hotkey goes at the end; for everything else, add it here
+            if (!isAbility && !string.IsNullOrEmpty(hotkey))
                 announcement += $" ({hotkey})";
 
-            // For Command_Ability (psycasts, abilities), add cost then description
+            // For Command_Ability (psycasts, abilities), add cost, range, description, then hotkey
             if (isAbility && gizmo is Command_Ability commandAbility && commandAbility.Ability != null)
             {
                 string costInfo = GetAbilityCostInfo(commandAbility.Ability);
                 if (!string.IsNullOrEmpty(costInfo))
                     announcement += $". {costInfo}";
 
-                // Add ability description after cost info
+                // Add range info after cost
+                string rangeInfo = GetAbilityRangeInfo(commandAbility.Ability);
+                if (!string.IsNullOrEmpty(rangeInfo))
+                    announcement += $". {rangeInfo}";
+
+                // Add ability description after range info
                 if (!string.IsNullOrEmpty(description))
                     announcement += $". {description}";
+
+                // Hotkey last for abilities
+                if (!string.IsNullOrEmpty(hotkey))
+                    announcement += $" ({hotkey})";
             }
 
             // Add disabled status if applicable
@@ -1566,7 +1605,41 @@ namespace RimWorldAccess
             if (parts.Count == 0)
                 return null;
 
-            return string.Join(", ", parts);
+            return string.Join(". ", parts);
+        }
+
+        /// <summary>
+        /// Gets the range description for an ability gizmo.
+        /// Returns "Range: N tiles", "Range: touch", "Range: self", or null.
+        /// </summary>
+        private static string GetAbilityRangeInfo(Ability ability)
+        {
+            if (ability?.def == null)
+                return null;
+
+            // Determine base range text
+            string rangeText;
+            if (!ability.def.targetRequired)
+                rangeText = "Range: self";
+            else if (ability.def.targetWorldCell)
+                rangeText = "Range: world map";
+            else if (AbilityTargetingHelper.IsTouchRange(ability))
+                rangeText = "Range: touch";
+            else
+            {
+                float range = AbilityTargetingHelper.GetRange(ability);
+                if (range > 0f)
+                    rangeText = $"Range: {range:F0} tiles";
+                else
+                    return null;
+            }
+
+            // Append effect radius if this ability has one
+            float effectRadius = ability.def.EffectRadius;
+            if (effectRadius > 0f)
+                rangeText += $", {effectRadius:F0} tile radius";
+
+            return rangeText;
         }
 
         /// <summary>

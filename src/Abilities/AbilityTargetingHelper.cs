@@ -13,15 +13,28 @@ namespace RimWorldAccess
     public static class AbilityTargetingHelper
     {
         /// <summary>
-        /// Gets the casting range of an ability.
-        /// Returns -1 for melee-only abilities (touch range).
+        /// Gets the effective casting range of an ability.
+        /// Uses the verb's EffectiveRange which accounts for equipment bonuses (e.g., jump pack range).
+        /// Returns 0 for touch/melee abilities (no ranged check - game uses reachability instead).
         /// </summary>
         public static float GetRange(Ability ability)
         {
+            // Use verb's EffectiveRange when available (accounts for stat bonuses like JumpRange)
+            if (ability?.verb is Verb_CastAbility castVerb)
+                return castVerb.EffectiveRange;
+
             if (ability?.def?.verbProperties == null)
                 return 0f;
 
             return ability.def.verbProperties.range;
+        }
+
+        /// <summary>
+        /// Checks if an ability uses touch/melee range (no ranged distance check).
+        /// </summary>
+        public static bool IsTouchRange(Ability ability)
+        {
+            return ability?.verb is Verb_CastAbilityTouch || GetRange(ability) <= 0f;
         }
 
         /// <summary>
@@ -148,19 +161,15 @@ namespace RimWorldAccess
         /// </summary>
         public static bool IsInRange(Ability ability, IntVec3 casterPos, IntVec3 targetPos)
         {
-            float range = GetRange(ability);
+            // Touch range - game handles reachability, we skip range check
+            if (IsTouchRange(ability))
+                return true;
 
-            // Range -1 means melee/touch only
-            if (range < 0)
-            {
-                return casterPos.AdjacentTo8WayOrInside(targetPos);
-            }
+            float range = GetRange(ability);
 
             // Range 0 means unlimited or self-only
             if (range <= float.Epsilon)
-            {
                 return true;
-            }
 
             float distance = CalculateDistance(casterPos, targetPos);
             return distance <= range;
@@ -271,14 +280,17 @@ namespace RimWorldAccess
             sb.Append(" targeting");
 
             // Range info
-            float range = GetRange(ability);
-            if (range > 0)
+            if (IsTouchRange(ability))
             {
-                sb.Append($". Range: {range:F0} tiles");
+                sb.Append(". Touch range");
             }
-            else if (range < 0)
+            else
             {
-                sb.Append(". Melee range");
+                float range = GetRange(ability);
+                if (range > 0)
+                {
+                    sb.Append($". Range: {range:F0} tiles");
+                }
             }
 
             // AOE radius
@@ -329,24 +341,26 @@ namespace RimWorldAccess
             float distance = CalculateDistance(casterPos, cursorPos);
             sb.Append($"Distance: {distance:F0} tiles");
 
-            float range = GetRange(ability);
-
             // Check if in range
-            if (range < 0)
+            if (IsTouchRange(ability))
             {
-                // Melee range
+                // Touch range - game uses reachability, we just report distance
                 bool adjacent = casterPos.AdjacentTo8WayOrInside(cursorPos);
-                sb.Append(adjacent ? ", IN RANGE" : ", OUT OF RANGE (melee only)");
+                sb.Append(adjacent ? ", IN RANGE (touch)" : ", must be adjacent (touch range)");
             }
-            else if (range > 0)
+            else
             {
-                if (distance <= range)
+                float range = GetRange(ability);
+                if (range > 0)
                 {
-                    sb.Append(", IN RANGE");
-                }
-                else
-                {
-                    sb.Append($", OUT OF RANGE (max {range:F0})");
+                    if (distance <= range)
+                    {
+                        sb.Append(", IN RANGE");
+                    }
+                    else
+                    {
+                        sb.Append($", OUT OF RANGE (max {range:F0})");
+                    }
                 }
             }
 

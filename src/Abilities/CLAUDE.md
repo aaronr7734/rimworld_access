@@ -13,13 +13,11 @@ Screen reader accessibility for psycast and ability targeting, providing range i
 ### During Map Ability Targeting (Psycasts, etc.)
 - **R** - Announce range info (distance to cursor, in/out of range, LOS status)
 - **T** - Announce affected targets (AOE preview)
-- **I** - Announce full ability info (name, level, range, costs)
 - **Enter** - Confirm target (handled by TargetingPatch)
 - **Escape** - Cancel targeting
 - **Arrow Keys** - Move cursor (via MapNavigationState)
 
 ### During World Ability Targeting (Farskip)
-- **I** - Announce full ability info
 - **Enter** - Confirm destination
 - **Escape** - Cancel and return to map
 - **Arrow Keys** - Navigate world tiles (via WorldNavigationState)
@@ -64,8 +62,8 @@ Screen reader accessibility for psycast and ability targeting, providing range i
 - Checks psycast immunity, range, and line of sight with specific messages
 
 **UnifiedKeyboardPatch.cs** (Input module)
-- Priority 0.373: AbilityTargetingState input routing (R, T, I keys)
-- Priority 0.376: WorldAbilityTargetingState input routing (Enter, Escape, I)
+- Priority 0.373: AbilityTargetingState input routing (R, T keys)
+- Priority 0.376: WorldAbilityTargetingState input routing (Enter, Escape)
 
 **WorldNavigationState.cs** (World module)
 - AnnounceTile() enhanced to include ability destination info when WorldAbilityTargetingState.IsActive
@@ -77,7 +75,9 @@ Screen reader accessibility for psycast and ability targeting, providing range i
 | `Ability` | Base ability class with def, verb, pawn, GetAffectedTargets() |
 | `Psycast` | Extends Ability with CanApplyPsycastTo() for immunity check |
 | `AbilityDef` | Definition with range, EffectRadius, PsyfocusCost, EntropyGain, targetWorldCell |
-| `Verb_CastAbility` | Verb for casting abilities, implements ITargetingSource |
+| `Verb_CastAbility` | Verb for casting abilities, implements ITargetingSource, IAbilityVerb |
+| `IAbilityVerb` | Interface for all ability verbs (Verb_CastAbility, Verb_AbilityShoot) |
+| `CompAbilityEffect_WithDest` | Comp for dual-target abilities (Skip), implements ITargetingSource |
 | `Targeter` | Map targeting system with BeginTargeting/StopTargeting |
 | `WorldTargeter` | World map targeting system |
 | `Command_Ability` | Gizmo for activating abilities |
@@ -104,11 +104,6 @@ Screen reader accessibility for psycast and ability targeting, providing range i
 "No valid targets at cursor"
 ```
 
-**Ability Info (I key):**
-```
-"Skip, level 4. Range: 28 tiles. Requires line of sight. Psyfocus cost: 2%. Neural heat: 30. Cooldown: 1 hour"
-```
-
 **Immunity Warning:**
 ```
 "Mechanoid Centipede is immune to psychic effects"
@@ -122,7 +117,6 @@ Screen reader accessibility for psycast and ability targeting, providing range i
 - [ ] Psycast targeting announces ability info on start
 - [ ] R key announces distance and range status
 - [ ] T key announces affected targets for AOE abilities
-- [ ] I key announces full ability info
 - [ ] Psycast immunity is detected and announced
 - [ ] Out of range targets show specific error message
 - [ ] No LOS targets show specific error message
@@ -135,13 +129,20 @@ Screen reader accessibility for psycast and ability targeting, providing range i
 ## Known Issues / Notes
 
 **Ability Detection:**
-- AbilityTargetingState opens when `Verb_CastAbility` is detected as targeting source
+- AbilityTargetingState opens when any `IAbilityVerb` is detected as targeting source (catches Verb_CastAbility, Verb_CastAbilityJump, Verb_CastAbilityTouch, Verb_AbilityShoot, and modded verbs)
 - WorldAbilityTargetingState opens when `ability.def.targetWorldCell == true`
+- Self-cast abilities (`targetRequired == false`) are announced by GizmoNavigationState
 
 **AOE Radius Precision:**
 - Game uses float radius (e.g., 2.9, 3.9) which truncates to visual ring
 - Announcements show raw value, may differ from visual ring by ~0.1
 
-**Destination Selection:**
-- Some abilities have two-phase targeting (target + destination)
-- AbilityTargetingState doesn't re-open for destination phase
+**Destination Selection (Dual-Target Abilities):**
+- Abilities with `CompAbilityEffect_WithDest` (e.g., Skip) have two-phase targeting
+- After first target, AbilityTargetingState.EnterDestinationPhase() updates range context
+- Range origin shifts from caster to selected target; range uses destination comp's range
+- R key reports distance from selected target during destination phase
+
+**Touch Range Abilities:**
+- `Verb_CastAbilityTouch` and zero-range abilities announce "Touch range"
+- Range validation is skipped (game handles reachability internally)

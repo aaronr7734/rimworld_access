@@ -15,6 +15,8 @@ namespace RimWorldAccess
         private static Ability currentAbility = null;
         private static IntVec3 casterPosition = IntVec3.Invalid;
         private static Map casterMap = null;
+        private static bool isDestinationPhase = false;
+        private static float destinationRange = 0f;
 
         /// <summary>
         /// Gets whether ability targeting mode is currently active.
@@ -61,7 +63,23 @@ namespace RimWorldAccess
             currentAbility = null;
             casterPosition = IntVec3.Invalid;
             casterMap = null;
+            isDestinationPhase = false;
+            destinationRange = 0f;
         }
+
+        /// <summary>
+        /// Transitions to destination phase for dual-target abilities (e.g., Skip).
+        /// Updates the range origin to the first selected target and uses the destination
+        /// comp's range instead of the ability's verb range.
+        /// Called from TargetingPatch when DestinationSelector is detected.
+        /// </summary>
+        public static void EnterDestinationPhase(IntVec3 selectedTargetPos, float destRange)
+        {
+            casterPosition = selectedTargetPos;  // Range is now measured from the selected target
+            destinationRange = destRange;
+            isDestinationPhase = true;
+        }
+
 
         /// <summary>
         /// Announces range and distance information for the current cursor position.
@@ -82,8 +100,22 @@ namespace RimWorldAccess
                 return;
             }
 
-            string announcement = AbilityTargetingHelper.BuildRangeInfoAnnouncement(
-                currentAbility, casterPosition, cursorPos, casterMap);
+            string announcement;
+            if (isDestinationPhase && destinationRange > 0f)
+            {
+                // During destination phase, use destination-specific range from the selected target
+                float distance = AbilityTargetingHelper.CalculateDistance(casterPosition, cursorPos);
+                announcement = $"Distance: {distance:F0} tiles";
+                if (distance <= destinationRange)
+                    announcement += ", IN RANGE";
+                else
+                    announcement += $", OUT OF RANGE (max {destinationRange:F0})";
+            }
+            else
+            {
+                announcement = AbilityTargetingHelper.BuildRangeInfoAnnouncement(
+                    currentAbility, casterPosition, cursorPos, casterMap);
+            }
             TolkHelper.Speak(announcement, SpeechPriority.Normal);
         }
 
@@ -158,10 +190,15 @@ namespace RimWorldAccess
             if (!isActive || currentAbility == null)
                 return null;
 
-            if (!AbilityTargetingHelper.IsInRange(currentAbility, casterPosition, targetPos))
+            float range = isDestinationPhase ? destinationRange : AbilityTargetingHelper.GetRange(currentAbility);
+
+            // Zero range means touch/melee - game handles reachability internally
+            if (range <= 0f)
+                return null;
+
+            float distance = AbilityTargetingHelper.CalculateDistance(casterPosition, targetPos);
+            if (distance > range)
             {
-                float distance = AbilityTargetingHelper.CalculateDistance(casterPosition, targetPos);
-                float range = AbilityTargetingHelper.GetRange(currentAbility);
                 return $"Out of range. Distance: {distance:F0}, max range: {range:F0}";
             }
 
@@ -249,6 +286,14 @@ namespace RimWorldAccess
 
                 if (affected.Count == 0)
                 {
+                    // For location-targeting abilities (Solar Pinhole, Wallraise, etc.),
+                    // no pawns is expected - just confirm the location
+                    if (AbilityTargetingHelper.CanTargetLocations(currentAbility))
+                    {
+                        var terrain = casterMap.terrainGrid.TerrainAt(cursorPos);
+                        string terrainName = terrain?.label ?? "ground";
+                        return $"Targeting: {terrainName}";
+                    }
                     return "Targeting location. No pawns in radius";
                 }
                 else if (affected.Count == 1)
