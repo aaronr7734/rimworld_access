@@ -1037,8 +1037,14 @@ namespace RimWorldAccess
 
             // For non-ability gizmos, add description before hotkey
             bool isAbility = gizmo is Command_Ability;
-            if (!string.IsNullOrEmpty(description) && !(gizmo is Command_Toggle) && !isAbility)
-                announcement += $": {description}";
+            if (!string.IsNullOrEmpty(description) && !isAbility)
+            {
+                // Toggles already have ": ON/OFF", so use period separator instead of colon
+                string descSep = (gizmo is Command_Toggle)
+                    ? (announcement.EndsWith(".") ? " " : ". ")
+                    : ": ";
+                announcement += descSep + description;
+            }
 
             // For animal attack Command_Target, add range info
             if (gizmo is Command_Target cmdTargetGizmo
