@@ -31,6 +31,7 @@ namespace RimWorldAccess
         public Def LinkedDef { get; set; }  // Associated Def for Alt+I info card navigation
         public Action OnActivate { get; set; }  // Action to execute when Enter is pressed
         public Action OnDelete { get; set; }  // Action to execute when Delete is pressed (for canceling jobs, etc.)
+        public Action OnInfo { get; set; }  // Action for Alt+I (custom info display, e.g. stat breakdown)
 
         public InspectionTreeItem()
         {

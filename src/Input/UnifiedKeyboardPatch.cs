@@ -157,6 +157,24 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== EARLY CHECK: Skip Enter/Escape if Dialog_MessageBox is open =====
+            // MessageBoxAccessibilityPatch handles keyboard input for Dialog_MessageBox windows
+            // (e.g. romance relationship warnings, shelf linking confirmations)
+            if (Find.WindowStack != null)
+            {
+                foreach (var window in Find.WindowStack.Windows)
+                {
+                    if (window is Dialog_MessageBox)
+                    {
+                        if (key == KeyCode.Return || key == KeyCode.KeypadEnter || key == KeyCode.Escape)
+                        {
+                            return; // Let MessageBoxAccessibilityPatch handle these
+                        }
+                        break;
+                    }
+                }
+            }
+
             // ===== PRIORITY -0.2: Scanner search text input =====
             // Must run before all other handlers to capture letter keys that would otherwise
             // be intercepted by route planner (R), notifications (L), settlement browser (S), etc.

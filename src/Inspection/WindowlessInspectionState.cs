@@ -1113,6 +1113,7 @@ namespace RimWorldAccess
         /// </summary>
         private static bool HasDirectInfoCard(InspectionTreeItem item)
         {
+            if (item.OnInfo != null) return true;
             if (item.Data is InteractiveGearHelper.GearItem gi && gi.Thing != null) return true;
             if (item.Data is Hediff) return true;
             if (item.Data is Gene || item.Data is GeneDef) return true;
@@ -1153,6 +1154,13 @@ namespace RimWorldAccess
         /// </summary>
         private static bool TryOpenInfoCardForItem(InspectionTreeItem item)
         {
+            // Custom info action (e.g. romance factor breakdown via StatBreakdownState)
+            if (item.OnInfo != null)
+            {
+                item.OnInfo();
+                return true;
+            }
+
             // Gear items (game shows info cards on Gear tab)
             if (item.Data is InteractiveGearHelper.GearItem gearItem && gearItem.Thing != null)
             {

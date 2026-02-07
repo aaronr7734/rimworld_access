@@ -5,6 +5,7 @@ using System.Text;
 using RimWorld;
 using Verse;
 using Verse.AI;
+using Verse.Sound;
 
 namespace RimWorldAccess
 {
@@ -739,7 +740,7 @@ namespace RimWorldAccess
             }
             else if (category == "Social")
             {
-                BuildSocialChildren(categoryItem, pawn);
+                BuildSocialChildren(categoryItem, pawn, mode);
             }
             else if (category == "Training")
             {
@@ -1067,7 +1068,7 @@ namespace RimWorldAccess
         /// <summary>
         /// Builds children for Social category.
         /// </summary>
-        private static void BuildSocialChildren(InspectionTreeItem parentItem, Pawn pawn)
+        private static void BuildSocialChildren(InspectionTreeItem parentItem, Pawn pawn, InspectionMode mode)
         {
             if (parentItem.Children.Count > 0)
                 return; // Already built
@@ -1099,6 +1100,12 @@ namespace RimWorldAccess
                 };
                 ideologyItem.OnActivate = () => BuildIdeologyChildren(ideologyItem, pawn);
                 AddChild(parentItem, ideologyItem);
+            }
+
+            // Add Try Romance if applicable (Biotech DLC, eligible pawn, full inspection mode)
+            if (mode != InspectionMode.ReadOnly && SocialTabHelper.CanTryRomance(pawn))
+            {
+                BuildRomanceMenu(parentItem, pawn);
             }
         }
 
@@ -1252,6 +1259,136 @@ namespace RimWorldAccess
             };
 
             AddChild(parentItem, approachItem);
+        }
+
+        /// <summary>
+        /// Builds the Try Romance sub-menu within the Social category.
+        /// Shows romance targets with success chance, gated behind Biotech DLC and pawn eligibility.
+        /// Follows the same lazy-loading pattern as BuildPregnancyApproachMenu.
+        /// </summary>
+        private static void BuildRomanceMenu(InspectionTreeItem parentItem, Pawn pawn)
+        {
+            string romanceLabel = "TryRomanceButtonLabel".Translate();
+            int childIndent = parentItem.IndentLevel + 1;
+
+            // Check cooldown first
+            if (SocialTabHelper.IsRomanceOnCooldown(pawn, out string cooldownText))
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = $"{romanceLabel}: {cooldownText}",
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            // Check initiator eligibility
+            var eligibility = SocialTabHelper.GetRomanceInitiatorEligibility(pawn);
+            if (!eligibility.Accepted)
+            {
+                if (!eligibility.Reason.NullOrEmpty())
+                {
+                    AddChild(parentItem, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = $"{romanceLabel}: {eligibility.Reason}",
+                        IndentLevel = childIndent,
+                        IsExpandable = false
+                    });
+                }
+                return;
+            }
+
+            // Eligible: create expandable SubCategory with lazy-loaded targets
+            var romanceItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = romanceLabel,
+                Data = pawn,
+                IndentLevel = childIndent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+
+            romanceItem.OnActivate = () =>
+            {
+                if (romanceItem.Children.Count > 0)
+                    return; // Already built
+
+                var targets = SocialTabHelper.GetRomanceTargets(pawn);
+
+                if (targets.Count == 0)
+                {
+                    AddChild(romanceItem, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = "TryRomanceNoOptsMessage".Translate(pawn),
+                        IndentLevel = romanceItem.IndentLevel + 1,
+                        IsExpandable = false
+                    });
+                    return;
+                }
+
+                int targetIndent = romanceItem.IndentLevel + 1;
+
+                foreach (var target in targets)
+                {
+                    if (target.IsViable)
+                    {
+                        string targetLabel = string.Format("{0} ({1} {2})",
+                            target.TargetName,
+                            target.Chance.ToStringPercent(),
+                            "chance".Translate());
+
+                        var capturedTarget = target;
+                        var targetItem = new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.Action,
+                            Label = targetLabel,
+                            Data = target.Target,
+                            IndentLevel = targetIndent,
+                            IsExpandable = false
+                        };
+
+                        targetItem.OnActivate = () =>
+                        {
+                            if (SocialTabHelper.InitiateRomance(pawn, capturedTarget.Target))
+                            {
+                                TolkHelper.Speak($"{pawn.LabelShort} will try to romance {capturedTarget.TargetName}");
+                            }
+                            else
+                            {
+                                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                            }
+                        };
+
+                        targetItem.OnInfo = () =>
+                        {
+                            string breakdown = SocialTabHelper.BuildRomanceBreakdown(
+                                pawn, capturedTarget.Target);
+                            StatBreakdownState.Open(
+                                $"{capturedTarget.TargetName} - {"RomanceChance".Translate()}: {capturedTarget.Chance.ToStringPercent()}",
+                                breakdown);
+                        };
+
+                        AddChild(romanceItem, targetItem);
+                    }
+                    else
+                    {
+                        AddChild(romanceItem, new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.DetailText,
+                            Label = $"{target.TargetName} ({target.Reason})",
+                            IndentLevel = targetIndent,
+                            IsExpandable = false
+                        });
+                    }
+                }
+            };
+
+            AddChild(parentItem, romanceItem);
         }
 
         /// <summary>
