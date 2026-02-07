@@ -14,6 +14,7 @@ Pawn information, character tabs, policies, and assignments.
 - **Alt+M** - Quick mood info
 - **Alt+H** - Quick health info
 - **Alt+N** - Quick needs info
+- **Alt+K** - Quick top 3 skills info
 - **F2** - Schedule editor
 - **F3** - Assign menu
 

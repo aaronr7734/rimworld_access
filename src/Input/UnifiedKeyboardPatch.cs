@@ -11,7 +11,7 @@ namespace RimWorldAccess
 {
     /// <summary>
     /// Unified Harmony patch for UIRoot.UIRootOnGUI to handle all keyboard accessibility features.
-    /// Handles: Escape key for pause menu, Enter key for building inspection/beds, ] key for colonist orders, I key for inspection menu, J key for scanner, L key for notification menu, F7 key for quest menu, Alt+M for mood info, Alt+H for health info, Alt+N for needs info, Alt+F for unforbid all items, Alt+Home for scanner auto-jump toggle, Shift+C for reform caravan (temporary maps), F2 for schedule, F3 for assign, F6 for research, and all windowless menu navigation.
+    /// Handles: Escape key for pause menu, Enter key for building inspection/beds, ] key for colonist orders, I key for inspection menu, J key for scanner, L key for notification menu, F7 key for quest menu, Alt+M for mood info, Alt+H for health info, Alt+N for needs info, Alt+K for top skills, Alt+F for unforbid all items, Alt+Home for scanner auto-jump toggle, Shift+C for reform caravan (temporary maps), F2 for schedule, F3 for assign, F6 for research, and all windowless menu navigation.
     /// Note: Dialog navigation (including research completion dialogs) is handled by DialogAccessibilityPatch.
     /// </summary>
     [HarmonyPatch(typeof(UIRoot))]
@@ -895,6 +895,7 @@ namespace RimWorldAccess
                     (key == KeyCode.H && Event.current.alt) ||
                     (key == KeyCode.N && Event.current.alt) ||
                     (key == KeyCode.B && Event.current.alt) ||
+                    (key == KeyCode.K && Event.current.alt) ||
                     (key == KeyCode.F && Event.current.alt) ||
                     (key == KeyCode.R && Event.current.alt))
                 {
@@ -3786,6 +3787,27 @@ namespace RimWorldAccess
                     GearState.DisplayGearInfo();
 
                     // Prevent the default G key behavior
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 6.5275: Display top skills with Alt+K (if pawn is selected) =====
+            if (key == KeyCode.K && Event.current.alt)
+            {
+                // Only display skills if:
+                // 1. We're in gameplay (not at main menu)
+                // 2. No windows are preventing camera motion (means a dialog is open)
+                // 3. Not in zone creation mode
+                if (Current.ProgramState == ProgramState.Playing &&
+                    Find.CurrentMap != null &&
+                    (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
+                    !ZoneCreationState.IsInCreationMode)
+                {
+                    // Display top skills information
+                    SkillsState.DisplaySkillsInfo();
+
+                    // Prevent the default K key behavior
                     Event.current.Use();
                     return;
                 }

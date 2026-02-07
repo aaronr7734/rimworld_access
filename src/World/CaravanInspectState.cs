@@ -1104,6 +1104,27 @@ namespace RimWorldAccess
             }
         }
 
+        /// <summary>
+        /// Shows top skills for the selected pawn (Alt+K).
+        /// </summary>
+        private static void ShowPawnSkills()
+        {
+            if (visibleNodes.Count == 0 || selectedIndex < 0 || selectedIndex >= visibleNodes.Count)
+                return;
+
+            var node = visibleNodes[selectedIndex];
+
+            if (node.Data is Pawn pawn)
+            {
+                string skillsInfo = PawnInfoHelper.GetTopSkillsInfo(pawn);
+                TolkHelper.Speak(skillsInfo);
+            }
+            else
+            {
+                TolkHelper.Speak("No skills info available for this item");
+            }
+        }
+
         #endregion
 
         #region Navigation
@@ -1654,6 +1675,13 @@ namespace RimWorldAccess
             if (key == KeyCode.G && alt && !shift && !ctrl)
             {
                 ShowPawnGear();
+                return true;
+            }
+
+            // Alt+K: Skills
+            if (key == KeyCode.K && alt && !shift && !ctrl)
+            {
+                ShowPawnSkills();
                 return true;
             }
 

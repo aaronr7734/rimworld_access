@@ -535,6 +535,44 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Gets a concise summary of the pawn's top 3 skills with passion levels.
+        /// </summary>
+        public static string GetTopSkillsInfo(Pawn pawn)
+        {
+            if (pawn == null)
+                return "No pawn selected";
+
+            if (pawn.skills == null || pawn.skills.skills == null)
+                return $"{pawn.LabelShort}: No skills";
+
+            var topSkills = pawn.skills.skills
+                .Where(s => !s.TotallyDisabled && s.Level > 0)
+                .OrderByDescending(s => s.Level)
+                .Take(3)
+                .ToList();
+
+            if (!topSkills.Any())
+                return $"{pawn.LabelShort}: No skills";
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append($"{pawn.LabelShort}'s Top Skills. ");
+
+            foreach (var skill in topSkills)
+            {
+                sb.Append($"{skill.def.LabelCap}: {skill.Level}.");
+
+                if (skill.passion == Passion.Minor)
+                    sb.Append(" (passion.)");
+                else if (skill.passion == Passion.Major)
+                    sb.Append(" (double passion.)");
+
+                sb.Append(" ");
+            }
+
+            return sb.ToString().TrimEnd();
+        }
+
+        /// <summary>
         /// Gets work priorities information for the pawn.
         /// </summary>
         public static string GetWorkInfo(Pawn pawn)
