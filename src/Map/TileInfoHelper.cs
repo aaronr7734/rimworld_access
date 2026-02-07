@@ -544,6 +544,11 @@ namespace RimWorldAccess
 
             sb.Append(terrain.LabelCap);
 
+            // Add fertility if the terrain has it (matches MouseoverReadout display)
+            float fertility = position.GetFertility(map);
+            if (fertility > 0.0001f)
+                sb.Append($" ({fertility.ToStringPercent()} fertility)");
+
             // Add smoothness information
             if (terrain.defName.EndsWith("_Smooth"))
                 sb.Append(", smooth");
