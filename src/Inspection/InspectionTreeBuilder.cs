@@ -520,6 +520,13 @@ namespace RimWorldAccess
                 category == "Job Queue")
                 return true;
 
+            // Genes tab is expandable for pawns with gene data (Biotech DLC)
+            if (category == "Genes")
+            {
+                Pawn genePawn = GetPawnFromThing(obj);
+                return genePawn?.genes != null && ModsConfig.BiotechActive;
+            }
+
             // Pen Food is expandable if building has pen marker
             if (category == "Pen Food" && obj is Building building)
                 return building.TryGetComp<CompAnimalPenMarker>() != null;
@@ -749,6 +756,10 @@ namespace RimWorldAccess
             else if (category == "Job Queue")
             {
                 BuildJobQueueChildren(categoryItem, pawn, mode);
+            }
+            else if (category == "Genes")
+            {
+                BuildGenesChildren(categoryItem, pawn);
             }
         }
 
@@ -1126,7 +1137,7 @@ namespace RimWorldAccess
                     IsExpandable = true,
                     IsExpanded = false
                 };
-                relationItem.OnActivate = () => BuildRelationDetailChildren(relationItem, relation);
+                relationItem.OnActivate = () => BuildRelationDetailChildren(relationItem, pawn, relation);
                 AddChild(parentItem, relationItem);
             }
         }
@@ -1134,13 +1145,14 @@ namespace RimWorldAccess
         /// <summary>
         /// Builds detail children for a specific relation.
         /// </summary>
-        private static void BuildRelationDetailChildren(InspectionTreeItem relationItem, SocialTabHelper.RelationInfo relation)
+        private static void BuildRelationDetailChildren(InspectionTreeItem relationItem, Pawn inspectedPawn, SocialTabHelper.RelationInfo relation)
         {
             if (relationItem.Children.Count > 0)
                 return; // Already built
 
             string detailedInfo = relation.DetailedInfo.StripTags();
             var lines = detailedInfo.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            bool pregnancyApproachInserted = false;
 
             foreach (var line in lines.Where(l => !string.IsNullOrWhiteSpace(l)))
             {
@@ -1152,7 +1164,94 @@ namespace RimWorldAccess
                     IsExpandable = false
                 };
                 AddChild(relationItem, detailItem);
+
+                // Insert pregnancy approach right after the Relationship line
+                if (!pregnancyApproachInserted && line.TrimStart().StartsWith("Relationship:")
+                    && relation.CanChangePregnancyApproach && ModsConfig.BiotechActive)
+                {
+                    BuildPregnancyApproachMenu(relationItem, inspectedPawn, relation);
+                    pregnancyApproachInserted = true;
+                }
             }
+
+            // Fallback: if no Relationship line was found, still add pregnancy approach at end
+            if (!pregnancyApproachInserted && relation.CanChangePregnancyApproach && ModsConfig.BiotechActive)
+            {
+                BuildPregnancyApproachMenu(relationItem, inspectedPawn, relation);
+            }
+        }
+
+        /// <summary>
+        /// Builds a pregnancy approach sub-menu within a relation's detail children.
+        /// </summary>
+        private static void BuildPregnancyApproachMenu(InspectionTreeItem parentItem, Pawn pawn, SocialTabHelper.RelationInfo relation)
+        {
+            var currentApproach = relation.CurrentPregnancyApproach;
+
+            var approachItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = $"{"PregnancyApproach".Translate()}: {currentApproach.GetLabel().CapitalizeFirst()}",
+                Data = relation,
+                IndentLevel = parentItem.IndentLevel + 1,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+
+            approachItem.OnActivate = () =>
+            {
+                if (approachItem.Children.Count > 0)
+                    return; // Already built
+
+                int childIndent = approachItem.IndentLevel + 1;
+
+                // Check if pregnancy is possible between these two pawns
+                AcceptanceReport canProduce = PregnancyUtility.CanEverProduceChild(pawn, relation.OtherPawn);
+                if (!canProduce.Accepted)
+                {
+                    AddChild(approachItem, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = $"{"PregnancyNotPossible".Translate()}: {canProduce.Reason.CapitalizeFirst()}",
+                        IndentLevel = childIndent,
+                        IsExpandable = false
+                    });
+                    return;
+                }
+
+                foreach (PregnancyApproach approach in Enum.GetValues(typeof(PregnancyApproach)))
+                {
+                    bool isCurrent = approach == relation.CurrentPregnancyApproach;
+                    string optionLabel = isCurrent
+                        ? $"{"Current".Translate()}: {approach.GetDescription()}"
+                        : approach.GetDescription();
+
+                    var optionItem = new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.Action,
+                        Label = optionLabel,
+                        IndentLevel = childIndent,
+                        IsExpandable = false
+                    };
+
+                    if (!isCurrent)
+                    {
+                        var capturedApproach = approach;
+                        optionItem.OnActivate = () =>
+                        {
+                            SocialTabHelper.SetPregnancyApproach(pawn, relation.OtherPawn, capturedApproach);
+                            relation.CurrentPregnancyApproach = capturedApproach;
+                            approachItem.Children.Clear();
+                            approachItem.IsExpanded = false;
+                            approachItem.Label = $"{"PregnancyApproach".Translate()}: {capturedApproach.GetLabel().CapitalizeFirst()}";
+                        };
+                    }
+
+                    AddChild(approachItem, optionItem);
+                }
+            };
+
+            AddChild(parentItem, approachItem);
         }
 
         /// <summary>
@@ -1177,73 +1276,281 @@ namespace RimWorldAccess
                 return;
             }
 
+            int childIndent = parentItem.IndentLevel + 1;
+
             // Add ideology name
-            var ideoNameItem = new InspectionTreeItem
+            AddChild(parentItem, new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.DetailText,
                 Label = $"Ideology: {ideologyInfo.IdeoName}",
-                IndentLevel = parentItem.IndentLevel + 1,
+                IndentLevel = childIndent,
                 IsExpandable = false
-            };
-            AddChild(parentItem, ideoNameItem);
+            });
 
-            // Add certainty
-            var certaintyItem = new InspectionTreeItem
+            // Add combined certainty with change rate (matches game tooltip format)
+            string certaintyText = "Certainty".Translate().CapitalizeFirst();
+            string certaintyLabel = $"{certaintyText}: {ideologyInfo.Certainty:P0}";
+            float changePerDay = pawn.ideo.CertaintyChangePerDay;
+            if (Math.Abs(changePerDay) > 0.001f)
+            {
+                string rateText = changePerDay.ToStringPercent();
+                if (changePerDay > 0) rateText = "+" + rateText;
+                certaintyLabel += $" ({"CertaintyChangePerDay".Translate()}: {rateText})";
+            }
+            AddChild(parentItem, new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.DetailText,
-                Label = $"Certainty: {ideologyInfo.Certainty:P0}",
-                IndentLevel = parentItem.IndentLevel + 1,
+                Label = certaintyLabel,
+                IndentLevel = childIndent,
                 IsExpandable = false
-            };
-            AddChild(parentItem, certaintyItem);
+            });
 
-            // Add role if available
-            if (!string.IsNullOrEmpty(ideologyInfo.RoleName))
+            // Add Roles expandable section with assign/unassign actions
+            var availableRoles = SocialTabHelper.GetAvailableRoles(pawn);
+            if (availableRoles.Count > 0)
             {
+                var rolesItem = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.SubCategory,
+                    Label = "IdeoRoles".Translate().CapitalizeFirst(),
+                    Data = pawn,
+                    IndentLevel = childIndent,
+                    IsExpandable = true,
+                    IsExpanded = false
+                };
+                rolesItem.OnActivate = () => BuildRolesChildren(rolesItem, pawn, availableRoles);
+                AddChild(parentItem, rolesItem);
+            }
+        }
+
+        /// <summary>
+        /// Builds children for the Roles section under Ideology.
+        /// Lists each active role with its current holder and assign/unassign actions.
+        /// </summary>
+        private static void BuildRolesChildren(InspectionTreeItem parentItem, Pawn pawn, List<Precept_Role> roles)
+        {
+            if (parentItem.Children.Count > 0)
+                return; // Already built
+
+            int childIndent = parentItem.IndentLevel + 1;
+
+            foreach (var role in roles)
+            {
+                Pawn currentHolder = role.ChosenPawnSingle();
+                string holderName = currentHolder != null ? currentHolder.LabelShort.StripTags() : (string)"NoRoleAssigned".Translate();
+                string roleLabel = $"{role.LabelCap}: {holderName}";
+
                 var roleItem = new InspectionTreeItem
                 {
-                    Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = $"Role: {ideologyInfo.RoleName}",
-                    IndentLevel = parentItem.IndentLevel + 1,
-                    IsExpandable = false
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = roleLabel,
+                    Data = role,
+                    IndentLevel = childIndent,
+                    IsExpandable = true,
+                    IsExpanded = false
                 };
+
+                var capturedRole = role;
+                roleItem.OnActivate = () => BuildRoleDetailChildren(roleItem, pawn, capturedRole);
                 AddChild(parentItem, roleItem);
             }
+        }
 
-            // Add detailed certainty info
-            if (!string.IsNullOrEmpty(ideologyInfo.CertaintyDetails))
+        /// <summary>
+        /// Builds detail children for a specific role, including assign/unassign actions.
+        /// </summary>
+        private static void BuildRoleDetailChildren(InspectionTreeItem roleItem, Pawn pawn, Precept_Role role)
+        {
+            if (roleItem.Children.Count > 0)
+                return; // Already built
+
+            int childIndent = roleItem.IndentLevel + 1;
+            bool pawnHoldsRole = role.IsAssigned(pawn);
+            bool pawnIsEligible = SocialTabHelper.IsEligibleForRole(role, pawn);
+
+            // Add Assign action if pawn is eligible and not already assigned
+            if (!pawnHoldsRole && pawnIsEligible)
             {
-                var certaintyDetails = ideologyInfo.CertaintyDetails.StripTags();
-                var lines = certaintyDetails.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var line in lines.Where(l => !string.IsNullOrWhiteSpace(l)))
+                var assignItem = new InspectionTreeItem
                 {
-                    var detailItem = new InspectionTreeItem
-                    {
-                        Type = InspectionTreeItem.ItemType.DetailText,
-                        Label = line.Trim(),
-                        IndentLevel = parentItem.IndentLevel + 1,
-                        IsExpandable = false
-                    };
-                    AddChild(parentItem, detailItem);
-                }
+                    Type = InspectionTreeItem.ItemType.Action,
+                    Label = $"Assign {pawn.LabelShort.StripTags()}",
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                };
+                assignItem.OnActivate = () =>
+                {
+                    SocialTabHelper.AssignRole(role, pawn);
+                    // Rebuild: clear children so they refresh with updated holder
+                    roleItem.Children.Clear();
+                    roleItem.IsExpanded = false;
+                    // Update the role label
+                    roleItem.Label = $"{role.LabelCap}: {pawn.LabelShort.StripTags()}";
+                };
+                AddChild(roleItem, assignItem);
             }
 
-            // Add role details if available
-            if (!string.IsNullOrEmpty(ideologyInfo.RoleDetails))
+            // Add Unassign action if pawn holds this role
+            if (pawnHoldsRole)
             {
-                var roleDetails = ideologyInfo.RoleDetails.StripTags();
-                var lines = roleDetails.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var line in lines.Where(l => !string.IsNullOrWhiteSpace(l)))
+                var unassignItem = new InspectionTreeItem
                 {
-                    var detailItem = new InspectionTreeItem
+                    Type = InspectionTreeItem.ItemType.Action,
+                    Label = $"Unassign {pawn.LabelShort.StripTags()}",
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                };
+                unassignItem.OnActivate = () =>
+                {
+                    SocialTabHelper.UnassignRole(role, pawn);
+                    // Rebuild: clear children so they refresh with updated holder
+                    roleItem.Children.Clear();
+                    roleItem.IsExpanded = false;
+                    // Update the role label
+                    roleItem.Label = $"{role.LabelCap}: {"NoRoleAssigned".Translate()}";
+                };
+                AddChild(roleItem, unassignItem);
+            }
+
+            // Show why pawn can't be assigned if not eligible
+            if (!pawnHoldsRole && !pawnIsEligible)
+            {
+                var unmetReq = role.GetFirstUnmetRequirement(pawn);
+                string reason = unmetReq != null
+                    ? $"Cannot assign: {unmetReq.GetLabelCap(role).StripTags()}"
+                    : "Cannot assign: requirements not met";
+                AddChild(roleItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = reason,
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                });
+            }
+
+            // Add role description
+            if (!string.IsNullOrEmpty(role.def.description))
+            {
+                AddChild(roleItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = role.def.description.StripTags(),
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                });
+            }
+
+            // Add role requirements
+            if (role.def.roleRequirements != null && role.def.roleRequirements.Count > 0)
+            {
+                var reqsItem = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.SubCategory,
+                    Label = "Requirements",
+                    IndentLevel = childIndent,
+                    IsExpandable = true,
+                    IsExpanded = false
+                };
+                reqsItem.OnActivate = () =>
+                {
+                    if (reqsItem.Children.Count > 0) return;
+                    foreach (var req in role.def.roleRequirements)
                     {
-                        Type = InspectionTreeItem.ItemType.DetailText,
-                        Label = line.Trim(),
-                        IndentLevel = parentItem.IndentLevel + 1,
-                        IsExpandable = false
-                    };
-                    AddChild(parentItem, detailItem);
-                }
+                        string reqLabel = req.GetLabelCap(role).StripTags();
+                        if (!string.IsNullOrEmpty(reqLabel))
+                        {
+                            AddChild(reqsItem, new InspectionTreeItem
+                            {
+                                Type = InspectionTreeItem.ItemType.DetailText,
+                                Label = reqLabel,
+                                IndentLevel = reqsItem.IndentLevel + 1,
+                                IsExpandable = false
+                            });
+                        }
+                    }
+                };
+                AddChild(roleItem, reqsItem);
+            }
+
+            // Add role effects
+            if (role.def.roleEffects != null && role.def.roleEffects.Count > 0)
+            {
+                var effectsItem = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.SubCategory,
+                    Label = "Effects".Translate().CapitalizeFirst(),
+                    IndentLevel = childIndent,
+                    IsExpandable = true,
+                    IsExpanded = false
+                };
+                effectsItem.OnActivate = () =>
+                {
+                    if (effectsItem.Children.Count > 0) return;
+                    foreach (var effect in role.def.roleEffects)
+                    {
+                        string effectLabel = effect.Label(pawn, role).StripTags();
+                        if (!string.IsNullOrEmpty(effectLabel))
+                        {
+                            AddChild(effectsItem, new InspectionTreeItem
+                            {
+                                Type = InspectionTreeItem.ItemType.DetailText,
+                                Label = effectLabel,
+                                IndentLevel = effectsItem.IndentLevel + 1,
+                                IsExpandable = false
+                            });
+                        }
+                    }
+                };
+                AddChild(roleItem, effectsItem);
+            }
+        }
+
+        /// <summary>
+        /// Builds children for Genes category using GeneTreeBuilder.
+        /// </summary>
+        private static void BuildGenesChildren(InspectionTreeItem categoryItem, Pawn pawn)
+        {
+            if (categoryItem.Children.Count > 0)
+                return; // Already built
+
+            if (pawn?.genes == null || !ModsConfig.BiotechActive)
+            {
+                AddChild(categoryItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "No gene information available",
+                    IndentLevel = categoryItem.IndentLevel + 1,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            var geneTree = GeneTreeBuilder.BuildAdultGeneTree(pawn);
+
+            // Copy children from the gene tree root into our category item
+            foreach (var child in geneTree.Children)
+            {
+                child.Parent = categoryItem;
+                child.IndentLevel = categoryItem.IndentLevel + 1;
+                AdjustChildIndents(child, categoryItem.IndentLevel + 1);
+                categoryItem.Children.Add(child);
+            }
+
+            // Update category label with xenotype info
+            string xenotypeLabel = pawn.genes.XenotypeLabelCap;
+            int geneCount = pawn.genes.GenesListForReading?.Count ?? 0;
+            categoryItem.Label = $"Genes: {xenotypeLabel} ({geneCount} {(geneCount == 1 ? "gene" : "genes")})";
+        }
+
+        /// <summary>
+        /// Recursively adjusts indent levels of children relative to a new base indent.
+        /// </summary>
+        private static void AdjustChildIndents(InspectionTreeItem item, int baseIndent)
+        {
+            item.IndentLevel = baseIndent;
+            foreach (var child in item.Children)
+            {
+                AdjustChildIndents(child, baseIndent + 1);
             }
         }
 

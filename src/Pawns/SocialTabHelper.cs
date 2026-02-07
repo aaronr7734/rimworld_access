@@ -27,7 +27,7 @@ namespace RimWorldAccess
             public string Situation { get; set; }
             public string DetailedInfo { get; set; }
             public bool CanChangePregnancyApproach { get; set; }
-            public PregnancyApproach CurrentPregnancyApproach { get; set; }
+            public RimWorld.PregnancyApproach CurrentPregnancyApproach { get; set; }
 
             public RelationInfo()
             {
@@ -45,20 +45,10 @@ namespace RimWorldAccess
             public float Certainty { get; set; }
             public Precept_Role Role { get; set; }
             public string RoleName { get; set; }
-            public string CertaintyDetails { get; set; }
             public string RoleDetails { get; set; }
         }
 
-        /// <summary>
-        /// Pregnancy approach options.
-        /// </summary>
-        public enum PregnancyApproach
-        {
-            None,
-            TryForPregnancy,
-            AvoidPregnancy,
-            UseContraceptives
-        }
+        // Uses RimWorld.PregnancyApproach enum (Normal, AvoidPregnancy, TryForBaby)
 
         #region Ideology & Role
 
@@ -84,9 +74,6 @@ namespace RimWorldAccess
                 info.RoleName = info.Role?.LabelCap ?? "None";
             }
 
-            // Get detailed certainty info
-            info.CertaintyDetails = GetCertaintyDetails(pawn);
-
             // Get detailed role info
             if (info.Role != null)
             {
@@ -94,30 +81,6 @@ namespace RimWorldAccess
             }
 
             return info;
-        }
-
-        private static string GetCertaintyDetails(Pawn pawn)
-        {
-            if (pawn?.ideo == null)
-                return "";
-
-            var sb = new StringBuilder();
-            sb.AppendLine($"Certainty: {pawn.ideo.Certainty:P0}");
-            sb.AppendLine();
-
-            // Get certainty change rate
-            float certaintyChangePerDay = pawn.ideo.CertaintyChangePerDay;
-            if (Math.Abs(certaintyChangePerDay) > 0.001f)
-            {
-                string direction = certaintyChangePerDay > 0 ? "increasing" : "decreasing";
-                sb.AppendLine($"Certainty is {direction}");
-                sb.AppendLine();
-            }
-
-            sb.AppendLine("Certainty is a measure of how strongly this colonist believes in their ideology.");
-            sb.AppendLine("Higher certainty makes them more resistant to conversion attempts.");
-
-            return sb.ToString().TrimEnd();
         }
 
         private static string GetRoleDetails(Pawn pawn, Precept_Role role)
@@ -159,6 +122,83 @@ namespace RimWorldAccess
             return sb.ToString().TrimEnd();
         }
 
+        /// <summary>
+        /// Gets all active roles from the pawn's ideology.
+        /// </summary>
+        public static List<Precept_Role> GetAvailableRoles(Pawn pawn)
+        {
+            var roles = new List<Precept_Role>();
+            if (pawn?.Ideo == null || !ModsConfig.IdeologyActive)
+                return roles;
+
+            foreach (var role in pawn.Ideo.RolesListForReading)
+            {
+                if (role.Active)
+                    roles.Add(role);
+            }
+
+            return roles;
+        }
+
+        /// <summary>
+        /// Assigns a pawn to an ideology role.
+        /// </summary>
+        public static bool AssignRole(Precept_Role role, Pawn pawn)
+        {
+            try
+            {
+                if (role == null || pawn == null)
+                    return false;
+
+                role.Assign(pawn, addThoughts: true);
+                string roleName = role.LabelForPawn(pawn);
+                TolkHelper.Speak($"{pawn.LabelShort} assigned as {roleName}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[RimWorldAccess] Error assigning role: {ex}");
+                TolkHelper.Speak("Error assigning role", SpeechPriority.High);
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Unassigns a pawn from an ideology role.
+        /// </summary>
+        public static bool UnassignRole(Precept_Role role, Pawn pawn)
+        {
+            try
+            {
+                if (role == null || pawn == null)
+                    return false;
+
+                string roleName = role.LabelForPawn(pawn);
+                role.Unassign(pawn, generateThoughts: true);
+                TolkHelper.Speak($"{pawn.LabelShort} unassigned from {roleName}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[RimWorldAccess] Error unassigning role: {ex}");
+                TolkHelper.Speak("Error unassigning role", SpeechPriority.High);
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Checks if a pawn is eligible for a specific role (meets all requirements).
+        /// </summary>
+        public static bool IsEligibleForRole(Precept_Role role, Pawn pawn)
+        {
+            if (role == null || pawn == null)
+                return false;
+
+            return role.RequirementsMet(pawn);
+        }
+
         #endregion
 
         #region Relations
@@ -189,8 +229,8 @@ namespace RimWorldAccess
                     DetailedInfo = GetRelationDetailedInfo(pawn, otherPawn)
                 };
 
-                // Check if can change pregnancy approach
-                if (LovePartnerRelationUtility.LovePartnerRelationExists(pawn, otherPawn))
+                // Check if can change pregnancy approach (Biotech DLC required)
+                if (ModsConfig.BiotechActive && LovePartnerRelationUtility.LovePartnerRelationExists(pawn, otherPawn))
                 {
                     relationInfo.CanChangePregnancyApproach = true;
                     relationInfo.CurrentPregnancyApproach = GetPregnancyApproach(pawn, otherPawn);
@@ -373,22 +413,30 @@ namespace RimWorldAccess
             return sb.ToString().TrimEnd();
         }
 
-        private static PregnancyApproach GetPregnancyApproach(Pawn pawn, Pawn partner)
+        private static RimWorld.PregnancyApproach GetPregnancyApproach(Pawn pawn, Pawn partner)
         {
-            // This is a simplified version - actual implementation would check the game's pregnancy settings
-            // For now, return None as placeholder
-            return PregnancyApproach.None;
+            if (pawn?.relations == null || partner == null)
+                return RimWorld.PregnancyApproach.Normal;
+
+            return pawn.relations.GetPregnancyApproachForPartner(partner);
         }
 
         /// <summary>
         /// Sets pregnancy approach between two pawns.
+        /// Uses the game's Pawn_RelationsTracker API which sets it on both pawns.
         /// </summary>
-        public static bool SetPregnancyApproach(Pawn pawn, Pawn partner, PregnancyApproach approach)
+        public static bool SetPregnancyApproach(Pawn pawn, Pawn partner, RimWorld.PregnancyApproach approach)
         {
             try
             {
-                // Placeholder - actual implementation would set the game's pregnancy approach
-                TolkHelper.Speak($"Pregnancy approach set to: {approach}");
+                if (pawn?.relations == null || partner == null)
+                    return false;
+
+                pawn.relations.SetPregnancyApproach(partner, approach);
+
+                string approachLabel = approach.GetLabel().CapitalizeFirst();
+
+                TolkHelper.Speak($"Pregnancy approach set to: {approachLabel}");
                 SoundDefOf.Click.PlayOneShotOnCamera();
                 return true;
             }

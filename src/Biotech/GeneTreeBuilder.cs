@@ -98,6 +98,7 @@ namespace RimWorldAccess
                 Type = InspectionTreeItem.ItemType.Item,
                 Label = label,
                 Data = gene,
+                LinkedDef = gene,
                 IsExpandable = true,
                 IsExpanded = false,
                 IndentLevel = indent
@@ -374,6 +375,208 @@ namespace RimWorldAccess
                 AddChild(summaryNode, CreateInfoItem($"Metabolism: {metabolism.ToStringWithSign()}. {metabolismDesc}", summaryNode.IndentLevel + 1));
 
                 // Archites if present
+                if (archites > 0)
+                {
+                    string architesDesc = ((string)"ArchitesRequiredDesc".Translate()).StripTags();
+                    AddChild(summaryNode, CreateInfoItem($"Archites Required: {archites}. {architesDesc}", summaryNode.IndentLevel + 1));
+                }
+            };
+
+            AddChild(root, summaryNode);
+        }
+
+        /// <summary>
+        /// Builds the gene tree for an adult pawn's Pawn_GeneTracker.
+        /// Groups genes into Endogenes and Xenogenes with active/overridden status.
+        /// </summary>
+        /// <param name="pawn">The pawn whose genes to display</param>
+        /// <returns>Root tree item with gene groups as children</returns>
+        public static InspectionTreeItem BuildAdultGeneTree(Pawn pawn)
+        {
+            if (pawn?.genes == null || !ModsConfig.BiotechActive)
+            {
+                return CreateEmptyTree();
+            }
+
+            var geneTracker = pawn.genes;
+            var endogenes = geneTracker.Endogenes;
+            var xenogenes = geneTracker.Xenogenes;
+            int totalCount = (endogenes?.Count ?? 0) + (xenogenes?.Count ?? 0);
+
+            if (totalCount == 0)
+            {
+                return CreateEmptyTree();
+            }
+
+            // Build root label with xenotype
+            string xenotypeLabel = geneTracker.XenotypeLabelCap;
+            string rootLabel = $"Genes: {xenotypeLabel} ({totalCount} {(totalCount == 1 ? "gene" : "genes")})";
+
+            var root = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.Object,
+                Label = rootLabel,
+                IsExpandable = true,
+                IsExpanded = true,
+                IndentLevel = -1
+            };
+
+            // Add Endogenes group
+            if (endogenes != null && endogenes.Count > 0)
+            {
+                var endoGroup = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.SubCategory,
+                    Label = $"Endogenes ({endogenes.Count})",
+                    IsExpandable = true,
+                    IsExpanded = false,
+                    IndentLevel = 0
+                };
+                endoGroup.OnActivate = () => BuildGeneGroupChildren(endoGroup, endogenes);
+                AddChild(root, endoGroup);
+            }
+
+            // Add Xenogenes group
+            if (xenogenes != null && xenogenes.Count > 0)
+            {
+                var xenoGroup = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.SubCategory,
+                    Label = $"Xenogenes ({xenogenes.Count})",
+                    IsExpandable = true,
+                    IsExpanded = false,
+                    IndentLevel = 0
+                };
+                xenoGroup.OnActivate = () => BuildGeneGroupChildren(xenoGroup, xenogenes);
+                AddChild(root, xenoGroup);
+            }
+
+            // Add biostats summary
+            AddAdultBiostatsSummary(root, geneTracker);
+
+            return root;
+        }
+
+        /// <summary>
+        /// Builds children for a gene group (endogenes or xenogenes).
+        /// </summary>
+        private static void BuildGeneGroupChildren(InspectionTreeItem groupItem, List<Gene> genes)
+        {
+            if (groupItem.Children.Count > 0)
+                return; // Already built
+
+            // Sort by display category priority, then by display order, then alphabetically
+            var sorted = genes
+                .OrderByDescending(g => g.def.displayCategory?.displayPriorityInGenepack ?? 0)
+                .ThenBy(g => g.def.displayOrderInCategory)
+                .ThenBy(g => g.def.label)
+                .ToList();
+
+            foreach (var gene in sorted)
+            {
+                var geneNode = CreateActiveGeneNode(gene, groupItem.IndentLevel + 1);
+                AddChild(groupItem, geneNode);
+            }
+        }
+
+        /// <summary>
+        /// Creates a tree node for an active Gene instance (with active/overridden status).
+        /// </summary>
+        private static InspectionTreeItem CreateActiveGeneNode(Gene gene, int indent)
+        {
+            var parts = new List<string>();
+
+            // Gene label with color description for cosmetic genes
+            string label = gene.LabelCap;
+            if (IsCosmeticGene(gene.def))
+            {
+                string colorDesc = GetColorDescription(gene.def);
+                if (!string.IsNullOrEmpty(colorDesc) && !label.ToLower().Contains(colorDesc.ToLower()))
+                {
+                    label = $"{label}: {colorDesc}";
+                }
+            }
+            parts.Add(label);
+
+            // Category
+            if (gene.def.displayCategory != null)
+            {
+                parts.Add($"({gene.def.displayCategory.LabelCap})");
+            }
+
+            // Active/overridden status
+            if (gene.Overridden)
+            {
+                parts.Add("[overridden]");
+            }
+            else if (!gene.Active)
+            {
+                parts.Add("[inactive]");
+            }
+
+            var geneNode = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.Item,
+                Label = string.Join(" ", parts),
+                Data = gene,
+                LinkedDef = gene.def,
+                IsExpandable = true,
+                IsExpanded = false,
+                IndentLevel = indent
+            };
+
+            // Lazy-load children when expanded (reuse existing GeneDef detail builder)
+            geneNode.OnActivate = () => BuildGeneDetails(geneNode, gene.def);
+
+            return geneNode;
+        }
+
+        /// <summary>
+        /// Adds a biostats summary for an adult pawn's gene tracker.
+        /// </summary>
+        private static void AddAdultBiostatsSummary(InspectionTreeItem root, Pawn_GeneTracker geneTracker)
+        {
+            // Calculate totals from all active genes
+            int complexity = 0;
+            int metabolism = 0;
+            int archites = 0;
+
+            foreach (var gene in geneTracker.GenesListForReading)
+            {
+                complexity += gene.def.biostatCpx;
+                metabolism += gene.def.biostatMet;
+                archites += gene.def.biostatArc;
+            }
+
+            var summaryParts = new List<string>();
+            summaryParts.Add($"Complexity {complexity}");
+            summaryParts.Add($"Metabolism {metabolism.ToStringWithSign()}");
+            if (archites > 0)
+            {
+                summaryParts.Add($"Archites {archites}");
+            }
+
+            string summaryLabel = $"Total Biostats: {string.Join(", ", summaryParts)}";
+
+            var summaryNode = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = summaryLabel,
+                IsExpandable = true,
+                IsExpanded = false,
+                IndentLevel = 0
+            };
+
+            summaryNode.OnActivate = () =>
+            {
+                if (summaryNode.Children.Count > 0) return;
+
+                string complexityDesc = ((string)"ComplexityDesc".Translate()).StripTags();
+                AddChild(summaryNode, CreateInfoItem($"Complexity: {complexity}. {complexityDesc}", summaryNode.IndentLevel + 1));
+
+                string metabolismDesc = ((string)"MetabolismDesc".Translate()).StripTags();
+                AddChild(summaryNode, CreateInfoItem($"Metabolism: {metabolism.ToStringWithSign()}. {metabolismDesc}", summaryNode.IndentLevel + 1));
+
                 if (archites > 0)
                 {
                     string architesDesc = ((string)"ArchitesRequiredDesc".Translate()).StripTags();
