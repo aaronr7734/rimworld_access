@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
+using Verse.Sound;
 using RimWorld;
 using UnityEngine;
 
@@ -638,7 +639,7 @@ namespace RimWorldAccess
                 {
                     PlayerKnowledgeDatabase.KnowledgeDemonstrated(recipe.conceptLearned, KnowledgeAmount.Total);
                 }
-            });
+            }, recipe.ProducedThingDef);
 
             options.Add(option);
         }
@@ -686,6 +687,35 @@ namespace RimWorldAccess
             else
             {
                 TolkHelper.Speak($"Bill type {bill.GetType().Name} not yet supported");
+            }
+        }
+
+        /// <summary>
+        /// Opens the info card for the product of the currently selected bill.
+        /// </summary>
+        public static void OpenInfoCard()
+        {
+            if (menuItems == null || selectedIndex >= menuItems.Count)
+                return;
+
+            MenuItem item = menuItems[selectedIndex];
+
+            if (item.type != MenuItemType.ExistingBill || !(item.data is Bill bill))
+            {
+                TolkHelper.Speak("No info card available");
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                return;
+            }
+
+            ThingDef productDef = bill.recipe?.ProducedThingDef;
+            if (productDef != null)
+            {
+                InfoCardState.OpenInfoCardForDef(productDef);
+            }
+            else
+            {
+                TolkHelper.Speak("No info card available for this bill");
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
             }
         }
 

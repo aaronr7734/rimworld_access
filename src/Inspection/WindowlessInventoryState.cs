@@ -514,12 +514,30 @@ namespace RimWorldAccess
                 return true;
             }
 
+            // Alt+I - open info card for current item
+            if (ev.alt && key == KeyCode.I)
+            {
+                ev.Use();
+                var item = GetCurrentOrParentItem();
+                if (item != null && item.Def != null)
+                {
+                    InfoCardState.OpenInfoCardForDef(item.Def);
+                }
+                else
+                {
+                    TolkHelper.Speak("No info card available");
+                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                }
+                return true;
+            }
+
             // Handle typeahead characters
             // Use KeyCode instead of Event.current.character (which is empty in Unity IMGUI)
+            // Skip if Alt is held - Alt+key combos are shortcuts, not search input
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-            if (isLetter || isNumber)
+            if ((isLetter || isNumber) && !ev.alt)
             {
                 char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                 var labels = GetItemLabels();

@@ -96,7 +96,9 @@ namespace RimWorldAccess
                 || HistoryMessagesState.IsActive
                 // Building placement modes
                 || ViewingModeState.IsActive
-                || ShapePlacementState.IsActive;
+                || ShapePlacementState.IsActive
+                // Info Card (modal dialog overlay)
+                || InfoCardState.IsActive;
         }
     }
 }

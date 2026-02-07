@@ -540,6 +540,29 @@ namespace RimWorldAccess
             TolkHelper.Speak($"{state}: {item.label}");
         }
 
+        /// <summary>
+        /// Opens an info card for the currently selected ThingDef item.
+        /// </summary>
+        public static void OpenInfoCard()
+        {
+            if (menuItems == null || selectedIndex < 0 || selectedIndex >= menuItems.Count)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No info card available");
+                return;
+            }
+            var item = menuItems[selectedIndex];
+            if (item.type == MenuItemType.ThingDef && item.data is ThingDef thingDef)
+            {
+                InfoCardState.OpenInfoCardForDef(thingDef);
+            }
+            else
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No info card available");
+            }
+        }
+
         private static void ClearAllItems()
         {
             currentSettings.filter.SetDisallowAll();

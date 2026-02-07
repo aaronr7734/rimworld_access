@@ -311,6 +311,48 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Opens an info card for the currently selected item.
+        /// </summary>
+        public static void OpenInfoCard()
+        {
+            if (flatNavigationList.Count == 0 || currentProject == null) return;
+
+            var current = flatNavigationList[currentIndex];
+
+            switch (current.Type)
+            {
+                case DetailNodeType.ResearchItem:
+                    if (current.LinkedProject != null)
+                    {
+                        Find.WindowStack.Add(new Dialog_InfoCard(current.LinkedProject));
+                    }
+                    break;
+
+                case DetailNodeType.UnlockedItem:
+                    if (current.LinkedDef != null)
+                    {
+                        InfoCardState.OpenInfoCardForDef(current.LinkedDef);
+                    }
+                    else
+                    {
+                        SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                        TolkHelper.Speak("No info card available for this item");
+                    }
+                    break;
+
+                case DetailNodeType.Info:
+                case DetailNodeType.Action:
+                    Find.WindowStack.Add(new Dialog_InfoCard(currentProject));
+                    break;
+
+                case DetailNodeType.Category:
+                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                    TolkHelper.Speak("No info card for this section");
+                    break;
+            }
+        }
+
+        /// <summary>
         /// Starts or stops research on the current project.
         /// </summary>
         private static void ExecuteResearchAction()
@@ -638,7 +680,7 @@ namespace RimWorldAccess
                 {
                     string category = def.building != null ? "Building" :
                                      def.plant != null ? "Plant" : "Item";
-                    var itemNode = CreateUnlockedItemNode($"unlock_thing_{def.defName}", def.LabelCap, category, def.description);
+                    var itemNode = CreateUnlockedItemNode($"unlock_thing_{def.defName}", def.LabelCap, category, def.description, def);
                     children.Add(itemNode);
                 }
             }
@@ -655,7 +697,7 @@ namespace RimWorldAccess
                     {
                         description = def.ProducedThingDef.description;
                     }
-                    var itemNode = CreateUnlockedItemNode($"unlock_recipe_{def.defName}", def.LabelCap, "Recipe", description);
+                    var itemNode = CreateUnlockedItemNode($"unlock_recipe_{def.defName}", def.LabelCap, "Recipe", description, def);
                     children.Add(itemNode);
                 }
             }
@@ -687,7 +729,7 @@ namespace RimWorldAccess
         /// <summary>
         /// Creates an unlocked item node with description inline in the label.
         /// </summary>
-        private static DetailNode CreateUnlockedItemNode(string id, string label, string category, string description)
+        private static DetailNode CreateUnlockedItemNode(string id, string label, string category, string description, Def linkedDef = null)
         {
             // Clean up description
             string cleanDesc = "";
@@ -714,6 +756,7 @@ namespace RimWorldAccess
                 Id = id,
                 Type = DetailNodeType.UnlockedItem,
                 Label = fullLabel,
+                LinkedDef = linkedDef,
                 IsExpandable = false,
                 Children = new List<DetailNode>()
             };
@@ -922,7 +965,7 @@ namespace RimWorldAccess
 
             // Build announcement: "{name} {state}. {X of Y}. level N"
             var sb = new StringBuilder();
-            sb.Append(current.Label);
+            sb.Append(current.Label.TrimEnd('.', '!', '?'));
 
             // Add expand/collapse state for expandable categories
             if (current.Type == DetailNodeType.Category && current.IsExpandable)
@@ -933,9 +976,6 @@ namespace RimWorldAccess
             // Add position
             string positionPart = MenuHelper.FormatPosition(position - 1, total);
             sb.Append(string.IsNullOrEmpty(positionPart) ? "." : $". {positionPart}.");
-
-            // Add level suffix at the end (only announced when level changes)
-            sb.Append(MenuHelper.GetLevelSuffix("ResearchDetail", currentLevel));
 
             // Add level suffix at the end (only announced when level changes)
             sb.Append(MenuHelper.GetLevelSuffix("ResearchDetail", currentLevel));
@@ -1122,6 +1162,7 @@ namespace RimWorldAccess
         public List<DetailNode> Children { get; set; } = new List<DetailNode>();
         public DetailNode Parent { get; set; }
         public ResearchProjectDef LinkedProject { get; set; }
+        public Def LinkedDef { get; set; }
     }
 
     /// <summary>

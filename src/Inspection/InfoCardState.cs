@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -23,6 +24,27 @@ namespace RimWorldAccess
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
         public static TypeaheadSearchHelper Typeahead => typeahead;
 
+        // State stack for nested info card support
+        private class SavedCardState
+        {
+            public Dialog_InfoCard dialog;
+            public InspectionTreeItem rootItem;
+            public List<InspectionTreeItem> visibleItems;
+            public int selectedIndex;
+        }
+        private static Stack<SavedCardState> cardStack = new Stack<SavedCardState>();
+
+        // Flag to prevent PostClose from interfering when CloseInfoCard is driving
+        private static bool closingFromAccessibility = false;
+
+        // Tracks whether InfoCardState opened the current float menu (for multi-hyperlink selection).
+        // When true, InfoCardState delegates input to the float menu instead of handling it.
+        // When false, a float menu from another context (e.g., recipe selection) is active
+        // and InfoCardState should handle its own input normally.
+        private static bool ownsFloatMenu = false;
+        public static bool IsClosingFromAccessibility => closingFromAccessibility;
+        public static bool HasSavedState => cardStack.Count > 0;
+
         /// <summary>
         /// Opens the Info Card accessibility state for a dialog.
         /// </summary>
@@ -38,8 +60,14 @@ namespace RimWorldAccess
                 currentDialog = dialog;
                 IsActive = true;
 
-                // Disable Enter-to-close since we handle Enter for navigation
+                // Disable Enter-to-close and Escape-to-close since we handle both for navigation
                 dialog.closeOnAccept = false;
+                dialog.closeOnCancel = false;
+
+                // Allow multiple info cards to coexist for nested navigation.
+                // RimWorld's default (onlyOneOfTypeAllowed = true) causes WindowStack.Add
+                // to remove the existing Dialog_InfoCard when opening a nested one.
+                dialog.onlyOneOfTypeAllowed = false;
 
                 // Build the tree (stats may not be populated yet on first frame)
                 rootItem = InfoCardTreeBuilder.BuildTree(dialog);
@@ -48,6 +76,7 @@ namespace RimWorldAccess
 
                 MenuHelper.ResetLevel("InfoCard");
                 typeahead.ClearSearch();
+                ownsFloatMenu = false;
 
                 if (announceOpening)
                 {
@@ -96,6 +125,8 @@ namespace RimWorldAccess
             rootItem = null;
             visibleItems = null;
             selectedIndex = 0;
+            cardStack.Clear();
+            ownsFloatMenu = false;
             typeahead.ClearSearch();
             MenuHelper.ResetLevel("InfoCard");
         }
@@ -303,8 +334,10 @@ namespace RimWorldAccess
 
             if (item.Children.Count == 0)
             {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No items to show.");
+                // Item was marked expandable but has no content - correct its state
+                item.IsExpandable = false;
+                SoundDefOf.Click.PlayOneShotOnCamera();
+                AnnounceCurrentSelection();
                 return;
             }
 
@@ -483,22 +516,157 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Closes the Info Card (Escape key).
+        /// Closes the current Info Card. If nested, restores the outer card's state.
         /// </summary>
         public static void CloseInfoCard()
         {
             if (!IsActive)
                 return;
 
-            // Close the visual dialog as well
-            if (currentDialog != null)
+            if (cardStack.Count > 0)
             {
-                currentDialog.Close();
+                // Nested card: remove inner dialog without calling Dialog_InfoCard.Close()
+                // (which would clear RimWorld's static history). Use TryRemove instead.
+                closingFromAccessibility = true;
+                if (currentDialog != null)
+                    Find.WindowStack.TryRemove(currentDialog, doCloseSound: false);
+                closingFromAccessibility = false;
+
+                // Restore outer card state (cursor position, expansion state preserved)
+                var saved = cardStack.Pop();
+                currentDialog = saved.dialog;
+                rootItem = saved.rootItem;
+                visibleItems = saved.visibleItems;
+                selectedIndex = saved.selectedIndex;
+                SoundDefOf.Click.PlayOneShotOnCamera();
+                AnnounceCurrentSelection();
+            }
+            else
+            {
+                // No outer card - actually close the dialog
+                closingFromAccessibility = true;
+                if (currentDialog != null)
+                    currentDialog.Close();
+                closingFromAccessibility = false;
+
+                Close();
+                SoundDefOf.Click.PlayOneShotOnCamera();
+                TolkHelper.Speak("Info card closed.");
+            }
+        }
+
+        /// <summary>
+        /// Restores state from the stack for a specific dialog (used by PostClose for external closures).
+        /// </summary>
+        public static void RestoreFromStack(Dialog_InfoCard remainingCard)
+        {
+            if (cardStack.Count > 0)
+            {
+                var saved = cardStack.Pop();
+                currentDialog = saved.dialog;
+                rootItem = saved.rootItem;
+                visibleItems = saved.visibleItems;
+                selectedIndex = saved.selectedIndex;
+            }
+            else
+            {
+                // Fallback: re-initialize from scratch
+                Open(remainingCard, announceOpening: false);
+            }
+        }
+
+        /// <summary>
+        /// Clears the saved state stack.
+        /// </summary>
+        public static void ClearStack()
+        {
+            cardStack.Clear();
+        }
+
+        /// <summary>
+        /// Extracts all inspectable Defs from a tree item using vanilla's Hyperlink system.
+        /// Only stat entries can have hyperlinks (matching vanilla behavior).
+        /// If the item itself is not a stat entry, walks up to the parent to find one
+        /// (so children of an inspectable stat inherit its hyperlinks for Alt+I).
+        /// </summary>
+        private static List<Def> GetInspectableDefs(InspectionTreeItem item, bool walkUpToParent)
+        {
+            var result = new List<Def>();
+            if (item == null) return result;
+
+            // Check this item first
+            var target = item;
+            if (!(target.Data is StatDrawEntry) && walkUpToParent)
+            {
+                // Walk up to find the nearest ancestor with a StatDrawEntry
+                target = target.Parent;
+                while (target != null && !(target.Data is StatDrawEntry))
+                    target = target.Parent;
             }
 
-            Close();
-            SoundDefOf.Click.PlayOneShotOnCamera();
-            TolkHelper.Speak("Info card closed.");
+            if (target?.Data is StatDrawEntry statEntry)
+            {
+                try
+                {
+                    var hyperlinks = statEntry.GetHyperlinks(StatRequest.ForEmpty());
+                    if (hyperlinks != null)
+                    {
+                        foreach (var link in hyperlinks)
+                        {
+                            if (link.def != null)
+                                result.Add(link.def);
+                            else if (link.thing?.def != null)
+                                result.Add(link.thing.def);
+                        }
+                    }
+                }
+                catch { }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Checks if an item has inspectable hyperlinks directly (not walking up).
+        /// Used for the "Inspectable" announcement hint on stat entry nodes only.
+        /// </summary>
+        public static Def TryGetInspectableDef(InspectionTreeItem item)
+        {
+            var defs = GetInspectableDefs(item, walkUpToParent: false);
+            return defs.Count > 0 ? defs[0] : null;
+        }
+
+        /// <summary>
+        /// Opens a Dialog_InfoCard for a Def, automatically providing default stuff
+        /// for stuff-requiring ThingDefs. Matches the game's Hyperlink.ActivateHyperlink pattern.
+        /// </summary>
+        public static void OpenInfoCardForDef(Def def)
+        {
+            if (def is ThingDef thingDef && thingDef.MadeFromStuff)
+            {
+                var defaultStuff = GenStuff.DefaultStuffFor(thingDef);
+                if (defaultStuff != null)
+                {
+                    Find.WindowStack.Add(new Dialog_InfoCard(thingDef, defaultStuff));
+                    return;
+                }
+            }
+            Find.WindowStack.Add(new Dialog_InfoCard(def));
+        }
+
+        /// <summary>
+        /// Saves current state to the stack and opens a nested info card for a Def.
+        /// Used by both the direct Alt+I handler and the multi-hyperlink selection menu.
+        /// </summary>
+        private static void PushStateAndOpenDef(Def def)
+        {
+            cardStack.Push(new SavedCardState
+            {
+                dialog = currentDialog,
+                rootItem = rootItem,
+                visibleItems = visibleItems,
+                selectedIndex = selectedIndex
+            });
+            OpenInfoCardForDef(def);
         }
 
         /// <summary>
@@ -511,26 +679,118 @@ namespace RimWorldAccess
             if (!IsActive || ev.type != EventType.KeyDown)
                 return false;
 
+            // Delegate to float menu when WE opened it (multi-hyperlink selection).
+            // We call HandleInput directly instead of returning false, because returning false
+            // causes the event to fall through to parent states (inventory at 4.805, research
+            // at 4.6) before reaching the float menu handler at priority 5.
+            // Only delegate when ownsFloatMenu is true — if the float menu was opened by
+            // another context (e.g., recipe selection in bills), we handle our own input.
+            if (ownsFloatMenu && WindowlessFloatMenuState.IsActive)
+            {
+                if (WindowlessFloatMenuState.HandleInput())
+                    return true;
+
+                // HandleInput returns false for Escape with no active search.
+                // Close the float menu and return to this info card.
+                if (ev.keyCode == KeyCode.Escape)
+                {
+                    WindowlessFloatMenuState.Close();
+                    ownsFloatMenu = false;
+                    TolkHelper.Speak("Menu closed");
+                    return true;
+                }
+
+                // Consume all other keys to prevent parent state fallthrough
+                return true;
+            }
+
             KeyCode key = ev.keyCode;
 
-            // Escape - close
+            // Alt+I - open nested info card via vanilla's Hyperlink system
+            if (ev.alt && key == KeyCode.I)
+            {
+                if (visibleItems != null && selectedIndex >= 0 && selectedIndex < visibleItems.Count)
+                {
+                    var item = visibleItems[selectedIndex];
+                    var defs = GetInspectableDefs(item, walkUpToParent: true);
+                    if (defs.Count == 1)
+                    {
+                        // Single hyperlink - open directly
+                        PushStateAndOpenDef(defs[0]);
+                    }
+                    else if (defs.Count > 1)
+                    {
+                        // Multiple hyperlinks - present selection menu
+                        var options = new List<FloatMenuOption>();
+                        foreach (var def in defs)
+                        {
+                            var capturedDef = def;
+                            string label = def.label?.CapitalizeFirst() ?? def.defName;
+                            options.Add(new FloatMenuOption(label, () => PushStateAndOpenDef(capturedDef)));
+                        }
+                        TolkHelper.Speak("Choose item to inspect");
+                        ownsFloatMenu = true;
+                        WindowlessFloatMenuState.Open(options, false);
+                    }
+                    else
+                    {
+                        SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                        TolkHelper.Speak("No info card available");
+                    }
+                }
+                return true;
+            }
+
+            // Escape - clear search FIRST, then close
             if (key == KeyCode.Escape)
             {
+                if (typeahead.HasActiveSearch)
+                {
+                    typeahead.ClearSearchAndAnnounce();
+                    AnnounceCurrentSelection();
+                    return true;
+                }
                 CloseInfoCard();
                 return true;
             }
 
-            // Up arrow - previous item
+            // Up arrow - previous item (navigate matches when search active)
             if (key == KeyCode.UpArrow)
             {
-                SelectPrevious();
+                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                {
+                    int prevIndex = typeahead.GetPreviousMatch(selectedIndex);
+                    if (prevIndex >= 0)
+                    {
+                        selectedIndex = prevIndex;
+                        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                        AnnounceWithSearch();
+                    }
+                }
+                else
+                {
+                    SelectPrevious();
+                }
                 return true;
             }
 
-            // Down arrow - next item
+            // Down arrow - next item (navigate matches when search active)
             if (key == KeyCode.DownArrow)
             {
-                SelectNext();
+                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                {
+                    int nextIndex = typeahead.GetNextMatch(selectedIndex);
+                    if (nextIndex >= 0)
+                    {
+                        selectedIndex = nextIndex;
+                        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                        AnnounceWithSearch();
+                    }
+                }
+                else
+                {
+                    SelectNext();
+                }
                 return true;
             }
 
@@ -597,20 +857,35 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Typeahead search - alphanumeric keys
-            if (ev.character != '\0' && char.IsLetterOrDigit(ev.character))
+            // Backspace - progressive search deletion
+            if (key == KeyCode.Backspace && typeahead.HasActiveSearch)
             {
-                HandleTypeahead(ev.character);
+                var labels = new List<string>();
+                foreach (var item in visibleItems)
+                    labels.Add(item.Label.StripTags());
+
+                if (typeahead.ProcessBackspace(labels, out int newIndex))
+                {
+                    if (newIndex >= 0)
+                        selectedIndex = newIndex;
+                    SoundDefOf.Click.PlayOneShotOnCamera();
+                    AnnounceWithSearch();
+                }
                 return true;
             }
 
-            // Backspace - clear search
-            if (key == KeyCode.Backspace && typeahead.HasActiveSearch)
+            // Typeahead search - alphanumeric keys
+            // Use KeyCode instead of ev.character (which is empty in Unity IMGUI)
             {
-                typeahead.ClearSearch();
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                TolkHelper.Speak("Search cleared.");
-                return true;
+                bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
+                bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
+
+                if ((isLetter || isNumber) && !ev.alt)
+                {
+                    char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
+                    HandleTypeahead(c);
+                    return true;
+                }
             }
 
             return false;
@@ -827,11 +1102,14 @@ namespace RimWorldAccess
                 // Build level suffix if level changed
                 string levelSuffix = MenuHelper.GetLevelSuffix("InfoCard", item.IndentLevel, skipLevelOne: false);
 
+                // Add inspectable hint for items with hyperlinks (stat entries only, matching vanilla)
+                string inspectableHint = TryGetInspectableDef(item) != null ? " Inspectable." : "";
+
                 // Build full announcement (respects AnnouncePosition setting)
                 string positionPart = MenuHelper.FormatPosition(position - 1, total);
                 string announcement = string.IsNullOrEmpty(positionPart)
-                    ? $"{label}{stateIndicator}.{levelSuffix}"
-                    : $"{label}{stateIndicator}.{levelSuffix} {positionPart}.";
+                    ? $"{label}{stateIndicator}.{levelSuffix}{inspectableHint}"
+                    : $"{label}{stateIndicator}.{levelSuffix} {positionPart}.{inspectableHint}";
 
                 TolkHelper.Speak(announcement);
             }

@@ -146,6 +146,29 @@ namespace RimWorldAccess
             }
         }
 
+        /// <summary>
+        /// Opens an info card for the currently selected wild animal.
+        /// </summary>
+        public static void OpenInfoCard()
+        {
+            if (wildlifeList == null || wildlifeList.Count == 0)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No info card available");
+                return;
+            }
+            Pawn animal = wildlifeList[tableHelper.CurrentRowIndex];
+            if (animal != null)
+            {
+                Find.WindowStack.Add(new Dialog_InfoCard(animal));
+            }
+            else
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No info card available");
+            }
+        }
+
         private static void ToggleHunt(Pawn pawn)
         {
             bool isNowMarked = WildlifeMenuHelper.ToggleHuntDesignation(pawn);

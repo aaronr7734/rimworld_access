@@ -45,6 +45,11 @@ namespace RimWorldAccess
             if (Event.current.type != EventType.KeyDown)
                 return;
 
+            // Handle InfoCardState - let UnifiedKeyboardPatch handle it
+            // This ensures info cards opened from menus get proper input handling
+            if (InfoCardState.IsActive)
+                return;
+
             // Handle play settings menu
             if (PlaySettingsMenuState.IsActive)
             {
@@ -263,6 +268,14 @@ namespace RimWorldAccess
                 case KeyCode.End:
                     PlantSelectionMenuState.JumpToLast();
                     Event.current.Use();
+                    break;
+
+                case KeyCode.I:
+                    if (Event.current.alt)
+                    {
+                        PlantSelectionMenuState.OpenInfoCard();
+                        Event.current.Use();
+                    }
                     break;
 
             }

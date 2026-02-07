@@ -495,9 +495,8 @@ namespace RimWorldAccess
             // Check for zone-specific actionable categories
             if (obj is Zone zone)
             {
-                string renameLabel = "Rename".Translate().ToString();
                 return (category == "Storage" && zone is IStoreSettingsParent)
-                    || category == renameLabel
+                    || category == "Rename"
                     || (category == "Fishing" && zone.GetType().Name == "Zone_Fishing");
             }
 
@@ -547,8 +546,7 @@ namespace RimWorldAccess
             // Handle zone-specific actions
             if (obj is Zone zone)
             {
-                string renameLabel = "Rename".Translate().ToString();
-                if (category == renameLabel)
+                if (category == "Rename")
                 {
                     WindowlessInspectionState.Close();
                     ZoneRenameState.Open(zone);

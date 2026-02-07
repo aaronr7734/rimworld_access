@@ -905,6 +905,14 @@ namespace RimWorldAccess
                 return true;
             }
 
+            // Handle Alt+I - open info card for current gizmo
+            if (Event.current.alt && key == KeyCode.I)
+            {
+                OpenInfoCardForCurrentGizmo();
+                Event.current.Use();
+                return true;
+            }
+
             // Handle typeahead characters
             // Use KeyCode instead of Event.current.character (which is empty in Unity IMGUI)
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
@@ -931,6 +939,68 @@ namespace RimWorldAccess
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Opens an info card for the currently selected gizmo, if applicable.
+        /// Handles Command_Ability (ability def), Designator_Build (building def with optional stuff),
+        /// and falls back to the gizmo's owner (Thing or WorldObject).
+        /// </summary>
+        private static void OpenInfoCardForCurrentGizmo()
+        {
+            if (!isActive || availableGizmos.Count == 0)
+                return;
+
+            if (selectedGizmoIndex < 0 || selectedGizmoIndex >= availableGizmos.Count)
+                return;
+
+            Gizmo gizmo = availableGizmos[selectedGizmoIndex];
+
+            // Command_Ability -> open info card for the ability def
+            if (gizmo is Command_Ability cmdAbility && cmdAbility.Ability?.def != null)
+            {
+                Find.WindowStack.Add(new Dialog_InfoCard(cmdAbility.Ability.def));
+                return;
+            }
+
+            // Designator_Build -> open info card for the building def (with stuff if applicable)
+            if (gizmo is Designator_Build buildDesignator)
+            {
+                BuildableDef placingDef = buildDesignator.PlacingDef;
+                if (placingDef is ThingDef thingDef)
+                {
+                    ThingDef stuff = buildDesignator.StuffDef;
+                    if (stuff != null)
+                        Find.WindowStack.Add(new Dialog_InfoCard(thingDef, stuff));
+                    else
+                        InfoCardState.OpenInfoCardForDef(thingDef);
+                    return;
+                }
+                if (placingDef is TerrainDef terrainDef)
+                {
+                    Find.WindowStack.Add(new Dialog_InfoCard(terrainDef));
+                    return;
+                }
+            }
+
+            // Fallback: use gizmo owner (Thing or WorldObject)
+            if (gizmoOwners.TryGetValue(gizmo, out ISelectable owner))
+            {
+                if (owner is Thing thing)
+                {
+                    Find.WindowStack.Add(new Dialog_InfoCard(thing));
+                    return;
+                }
+                if (owner is WorldObject worldObj)
+                {
+                    Find.WindowStack.Add(new Dialog_InfoCard(worldObj));
+                    return;
+                }
+            }
+
+            // Nothing applicable
+            TolkHelper.Speak("No info card available for this command");
+            SoundDefOf.ClickReject.PlayOneShotOnCamera();
         }
 
         /// <summary>
