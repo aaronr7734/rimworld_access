@@ -52,10 +52,11 @@ namespace RimWorldAccess
                 getColumnName: WildlifeMenuHelper.GetColumnName,
                 getColumnValue: WildlifeMenuHelper.GetColumnValue,
                 sortByColumn: (items, col, desc) => WildlifeMenuHelper.SortWildlifeByColumn(items.ToList(), col, desc),
-                defaultSortColumn: 4,  // BodySize
-                defaultSortDescending: true
+                defaultSortColumn: 1,  // Predator
+                defaultSortDescending: false,
+                getColumnTooltip: WildlifeMenuHelper.GetColumnTooltip
             );
-            tableHelper.Reset(4, true);
+            tableHelper.Reset(1, false);
 
             IsActive = true;
 
@@ -133,12 +134,38 @@ namespace RimWorldAccess
 
             switch (type)
             {
+                case WildlifeMenuHelper.ColumnType.Name:
+                    JumpToAnimalOnMap(currentAnimal);
+                    break;
                 case WildlifeMenuHelper.ColumnType.Hunt:
                     ToggleHunt(currentAnimal);
                     break;
                 case WildlifeMenuHelper.ColumnType.Tame:
                     ToggleTame(currentAnimal);
                     break;
+            }
+        }
+
+        /// <summary>
+        /// Opens an info card for the currently selected wild animal.
+        /// </summary>
+        public static void OpenInfoCard()
+        {
+            if (wildlifeList == null || wildlifeList.Count == 0)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No info card available");
+                return;
+            }
+            Pawn animal = wildlifeList[tableHelper.CurrentRowIndex];
+            if (animal != null)
+            {
+                Find.WindowStack.Add(new Dialog_InfoCard(animal));
+            }
+            else
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No info card available");
             }
         }
 
@@ -180,6 +207,25 @@ namespace RimWorldAccess
             }
 
             AnnounceCurrentCell(includeAnimalName: false);
+        }
+
+        private static void JumpToAnimalOnMap(Pawn pawn)
+        {
+            if (pawn == null || pawn.Map == null)
+            {
+                TolkHelper.Speak("Animal not on map", SpeechPriority.High);
+                return;
+            }
+
+            IntVec3 position = pawn.Position;
+
+            Close();
+
+            MapNavigationState.CurrentCursorPosition = position;
+            Find.CameraDriver?.JumpToCurrentMapLoc(position);
+
+            string animalName = WildlifeMenuHelper.GetAnimalName(pawn);
+            TolkHelper.Speak($"Jumped to {animalName}");
         }
 
         public static void ToggleSortByCurrentColumn()

@@ -170,6 +170,39 @@ namespace RimWorldAccess
             }
         }
 
+        // Get column tooltip (shown only on column navigation, not row navigation)
+        public static string GetColumnTooltip(int columnIndex)
+        {
+            // Fixed columns before training — no tooltips
+            if (columnIndex < fixedColumnsBeforeTraining)
+                return null;
+            // Training columns — no tooltips (descriptions already in column value)
+            if (columnIndex < fixedColumnsBeforeTraining + GetAllTrainables().Count)
+                return null;
+            // Fixed columns after training
+            var columnsAfterTraining = GetColumnsAfterTraining();
+            int fixedIndex = columnIndex - fixedColumnsBeforeTraining - GetAllTrainables().Count;
+            if (fixedIndex < 0 || fixedIndex >= columnsAfterTraining.Count)
+                return null;
+
+            ColumnType type = columnsAfterTraining[fixedIndex];
+            switch (type)
+            {
+                case ColumnType.FollowDrafted:
+                    return DefDatabase<PawnColumnDef>.GetNamedSilentFail("FollowDrafted")?.headerTip;
+                case ColumnType.FollowFieldwork:
+                    return DefDatabase<PawnColumnDef>.GetNamedSilentFail("FollowFieldwork")?.headerTip;
+                case ColumnType.Slaughter:
+                    return "DesignatorSlaughterDesc".Translate().Resolve();
+                case ColumnType.Sterile:
+                    return "SterilizeAnimal".Translate().Resolve();
+                case ColumnType.ReleaseToWild:
+                    return "DesignatorReleaseAnimalToWildDesc".Translate().Resolve();
+                default:
+                    return null;
+            }
+        }
+
         // Get column value for a pawn
         public static string GetColumnValue(Pawn pawn, int columnIndex)
         {

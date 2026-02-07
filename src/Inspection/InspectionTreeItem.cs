@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Verse;
 
 namespace RimWorldAccess
 {
@@ -27,8 +28,10 @@ namespace RimWorldAccess
         public List<InspectionTreeItem> Children { get; set; }
         public InspectionTreeItem Parent { get; set; }  // Reference to parent item for upward navigation
         public object Data { get; set; }  // Associated data (Pawn, Building, SkillRecord, etc.)
+        public Def LinkedDef { get; set; }  // Associated Def for Alt+I info card navigation
         public Action OnActivate { get; set; }  // Action to execute when Enter is pressed
         public Action OnDelete { get; set; }  // Action to execute when Delete is pressed (for canceling jobs, etc.)
+        public Action OnInfo { get; set; }  // Action for Alt+I (custom info display, e.g. stat breakdown)
 
         public InspectionTreeItem()
         {

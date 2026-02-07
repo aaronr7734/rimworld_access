@@ -59,6 +59,7 @@ namespace RimWorldAccess
                 // Bills and building menus
                 || BillsMenuState.IsActive
                 || BillConfigState.IsActive
+                || FishingZoneMenuState.IsActive
                 || RangeEditMenuState.IsActive
                 || TempControlMenuState.IsActive
                 // Building component controls
@@ -95,7 +96,9 @@ namespace RimWorldAccess
                 || HistoryMessagesState.IsActive
                 // Building placement modes
                 || ViewingModeState.IsActive
-                || ShapePlacementState.IsActive;
+                || ShapePlacementState.IsActive
+                // Info Card (modal dialog overlay)
+                || InfoCardState.IsActive;
         }
     }
 }

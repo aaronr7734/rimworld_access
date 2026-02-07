@@ -58,7 +58,8 @@ namespace RimWorldAccess
                 getColumnValue: AnimalsMenuHelper.GetColumnValue,
                 sortByColumn: (items, col, desc) => AnimalsMenuHelper.SortAnimalsByColumn(items.ToList(), col, desc),
                 defaultSortColumn: 0,  // Name
-                defaultSortDescending: false
+                defaultSortDescending: false,
+                getColumnTooltip: AnimalsMenuHelper.GetColumnTooltip
             );
 
             // Apply default sort (by name)
@@ -126,6 +127,29 @@ namespace RimWorldAccess
             Pawn currentAnimal = animalsList[tableHelper.CurrentRowIndex];
             string announcement = tableHelper.BuildCellAnnouncement(currentAnimal, animalsList.Count, includeAnimalName);
             TolkHelper.Speak(announcement);
+        }
+
+        /// <summary>
+        /// Opens an info card for the currently selected colony animal.
+        /// </summary>
+        public static void OpenInfoCard()
+        {
+            if (animalsList == null || animalsList.Count == 0)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No info card available");
+                return;
+            }
+            Pawn animal = animalsList[tableHelper.CurrentRowIndex];
+            if (animal != null)
+            {
+                Find.WindowStack.Add(new Dialog_InfoCard(animal));
+            }
+            else
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No info card available");
+            }
         }
 
         public static void InteractWithCurrentCell()

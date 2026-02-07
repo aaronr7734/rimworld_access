@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using HarmonyLib;
 using RimWorld;
 using Verse;
 using Verse.Sound;
@@ -27,7 +29,7 @@ namespace RimWorldAccess
             public string Situation { get; set; }
             public string DetailedInfo { get; set; }
             public bool CanChangePregnancyApproach { get; set; }
-            public PregnancyApproach CurrentPregnancyApproach { get; set; }
+            public RimWorld.PregnancyApproach CurrentPregnancyApproach { get; set; }
 
             public RelationInfo()
             {
@@ -45,20 +47,10 @@ namespace RimWorldAccess
             public float Certainty { get; set; }
             public Precept_Role Role { get; set; }
             public string RoleName { get; set; }
-            public string CertaintyDetails { get; set; }
             public string RoleDetails { get; set; }
         }
 
-        /// <summary>
-        /// Pregnancy approach options.
-        /// </summary>
-        public enum PregnancyApproach
-        {
-            None,
-            TryForPregnancy,
-            AvoidPregnancy,
-            UseContraceptives
-        }
+        // Uses RimWorld.PregnancyApproach enum (Normal, AvoidPregnancy, TryForBaby)
 
         #region Ideology & Role
 
@@ -84,9 +76,6 @@ namespace RimWorldAccess
                 info.RoleName = info.Role?.LabelCap ?? "None";
             }
 
-            // Get detailed certainty info
-            info.CertaintyDetails = GetCertaintyDetails(pawn);
-
             // Get detailed role info
             if (info.Role != null)
             {
@@ -94,30 +83,6 @@ namespace RimWorldAccess
             }
 
             return info;
-        }
-
-        private static string GetCertaintyDetails(Pawn pawn)
-        {
-            if (pawn?.ideo == null)
-                return "";
-
-            var sb = new StringBuilder();
-            sb.AppendLine($"Certainty: {pawn.ideo.Certainty:P0}");
-            sb.AppendLine();
-
-            // Get certainty change rate
-            float certaintyChangePerDay = pawn.ideo.CertaintyChangePerDay;
-            if (Math.Abs(certaintyChangePerDay) > 0.001f)
-            {
-                string direction = certaintyChangePerDay > 0 ? "increasing" : "decreasing";
-                sb.AppendLine($"Certainty is {direction}");
-                sb.AppendLine();
-            }
-
-            sb.AppendLine("Certainty is a measure of how strongly this colonist believes in their ideology.");
-            sb.AppendLine("Higher certainty makes them more resistant to conversion attempts.");
-
-            return sb.ToString().TrimEnd();
         }
 
         private static string GetRoleDetails(Pawn pawn, Precept_Role role)
@@ -159,6 +124,83 @@ namespace RimWorldAccess
             return sb.ToString().TrimEnd();
         }
 
+        /// <summary>
+        /// Gets all active roles from the pawn's ideology.
+        /// </summary>
+        public static List<Precept_Role> GetAvailableRoles(Pawn pawn)
+        {
+            var roles = new List<Precept_Role>();
+            if (pawn?.Ideo == null || !ModsConfig.IdeologyActive)
+                return roles;
+
+            foreach (var role in pawn.Ideo.RolesListForReading)
+            {
+                if (role.Active)
+                    roles.Add(role);
+            }
+
+            return roles;
+        }
+
+        /// <summary>
+        /// Assigns a pawn to an ideology role.
+        /// </summary>
+        public static bool AssignRole(Precept_Role role, Pawn pawn)
+        {
+            try
+            {
+                if (role == null || pawn == null)
+                    return false;
+
+                role.Assign(pawn, addThoughts: true);
+                string roleName = role.LabelForPawn(pawn);
+                TolkHelper.Speak($"{pawn.LabelShort} assigned as {roleName}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[RimWorldAccess] Error assigning role: {ex}");
+                TolkHelper.Speak("Error assigning role", SpeechPriority.High);
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Unassigns a pawn from an ideology role.
+        /// </summary>
+        public static bool UnassignRole(Precept_Role role, Pawn pawn)
+        {
+            try
+            {
+                if (role == null || pawn == null)
+                    return false;
+
+                string roleName = role.LabelForPawn(pawn);
+                role.Unassign(pawn, generateThoughts: true);
+                TolkHelper.Speak($"{pawn.LabelShort} unassigned from {roleName}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[RimWorldAccess] Error unassigning role: {ex}");
+                TolkHelper.Speak("Error unassigning role", SpeechPriority.High);
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Checks if a pawn is eligible for a specific role (meets all requirements).
+        /// </summary>
+        public static bool IsEligibleForRole(Precept_Role role, Pawn pawn)
+        {
+            if (role == null || pawn == null)
+                return false;
+
+            return role.RequirementsMet(pawn);
+        }
+
         #endregion
 
         #region Relations
@@ -189,8 +231,8 @@ namespace RimWorldAccess
                     DetailedInfo = GetRelationDetailedInfo(pawn, otherPawn)
                 };
 
-                // Check if can change pregnancy approach
-                if (LovePartnerRelationUtility.LovePartnerRelationExists(pawn, otherPawn))
+                // Check if can change pregnancy approach (Biotech DLC required)
+                if (ModsConfig.BiotechActive && LovePartnerRelationUtility.LovePartnerRelationExists(pawn, otherPawn))
                 {
                     relationInfo.CanChangePregnancyApproach = true;
                     relationInfo.CurrentPregnancyApproach = GetPregnancyApproach(pawn, otherPawn);
@@ -373,22 +415,30 @@ namespace RimWorldAccess
             return sb.ToString().TrimEnd();
         }
 
-        private static PregnancyApproach GetPregnancyApproach(Pawn pawn, Pawn partner)
+        private static RimWorld.PregnancyApproach GetPregnancyApproach(Pawn pawn, Pawn partner)
         {
-            // This is a simplified version - actual implementation would check the game's pregnancy settings
-            // For now, return None as placeholder
-            return PregnancyApproach.None;
+            if (pawn?.relations == null || partner == null)
+                return RimWorld.PregnancyApproach.Normal;
+
+            return pawn.relations.GetPregnancyApproachForPartner(partner);
         }
 
         /// <summary>
         /// Sets pregnancy approach between two pawns.
+        /// Uses the game's Pawn_RelationsTracker API which sets it on both pawns.
         /// </summary>
-        public static bool SetPregnancyApproach(Pawn pawn, Pawn partner, PregnancyApproach approach)
+        public static bool SetPregnancyApproach(Pawn pawn, Pawn partner, RimWorld.PregnancyApproach approach)
         {
             try
             {
-                // Placeholder - actual implementation would set the game's pregnancy approach
-                TolkHelper.Speak($"Pregnancy approach set to: {approach}");
+                if (pawn?.relations == null || partner == null)
+                    return false;
+
+                pawn.relations.SetPregnancyApproach(partner, approach);
+
+                string approachLabel = approach.GetLabel().CapitalizeFirst();
+
+                TolkHelper.Speak($"Pregnancy approach set to: {approachLabel}");
                 SoundDefOf.Click.PlayOneShotOnCamera();
                 return true;
             }
@@ -396,6 +446,165 @@ namespace RimWorldAccess
             {
                 Log.Error($"[RimWorldAccess] Error setting pregnancy approach: {ex}");
                 TolkHelper.Speak("Error setting pregnancy approach", SpeechPriority.High);
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                return false;
+            }
+        }
+
+        #endregion
+
+        #region Romance
+
+        /// <summary>
+        /// Represents a potential romance target with eligibility and chance info.
+        /// </summary>
+        public class RomanceTargetInfo
+        {
+            public Pawn Target { get; set; }
+            public string TargetName { get; set; }
+            public bool IsViable { get; set; }
+            public float Chance { get; set; }
+            public string Reason { get; set; }
+        }
+
+        /// <summary>
+        /// Checks if the Try Romance button should be visible for this pawn.
+        /// Mirrors SocialCardUtility.CanDrawTryRomance.
+        /// </summary>
+        public static bool CanTryRomance(Pawn pawn)
+        {
+            return ModsConfig.BiotechActive
+                && pawn.ageTracker.AgeBiologicalYearsFloat >= 16f
+                && pawn.Spawned
+                && pawn.IsFreeColonist;
+        }
+
+        /// <summary>
+        /// Checks if the pawn is on romance cooldown and returns the translated cooldown message.
+        /// </summary>
+        public static bool IsRomanceOnCooldown(Pawn pawn, out string cooldownText)
+        {
+            if (pawn.relations.IsTryRomanceOnCooldown)
+            {
+                int numTicks = pawn.relations.romanceEnableTick - Find.TickManager.TicksGame;
+                cooldownText = "CantRomanceInitiateMessageCooldown".Translate(pawn, numTicks.ToStringTicksToPeriod());
+                return true;
+            }
+            cooldownText = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if the pawn is eligible to initiate romance.
+        /// Wraps RelationsUtility.RomanceEligible.
+        /// </summary>
+        public static AcceptanceReport GetRomanceInitiatorEligibility(Pawn pawn)
+        {
+            return RelationsUtility.RomanceEligible(pawn, initiator: true, forOpinionExplanation: false);
+        }
+
+        /// <summary>
+        /// Gets all romance targets for a pawn, sorted like vanilla:
+        /// viable targets descending by chance, then non-viable alphabetically.
+        /// Mirrors SocialCardUtility.RomanceOptions.
+        /// </summary>
+        public static List<RomanceTargetInfo> GetRomanceTargets(Pawn romancer)
+        {
+            var viable = new List<(float chance, RomanceTargetInfo info)>();
+            var nonViable = new List<RomanceTargetInfo>();
+
+            foreach (Pawn target in romancer.Map.mapPawns.FreeColonistsSpawned)
+            {
+                if (target == romancer)
+                    continue;
+
+                // Skip if not attracted (matches vanilla filter in RelationsUtility.RomanceOption)
+                if (!RelationsUtility.AttractedToGender(romancer, target.gender))
+                    continue;
+
+                var eligibility = RelationsUtility.RomanceEligiblePair(romancer, target, forOpinionExplanation: false);
+
+                if (eligibility.Accepted)
+                {
+                    float chance = InteractionWorker_RomanceAttempt.SuccessChance(romancer, target, 1f);
+
+                    viable.Add((chance, new RomanceTargetInfo
+                    {
+                        Target = target,
+                        TargetName = target.LabelShort.StripTags(),
+                        IsViable = true,
+                        Chance = chance
+                    }));
+                }
+                else if (!eligibility.Reason.NullOrEmpty())
+                {
+                    nonViable.Add(new RomanceTargetInfo
+                    {
+                        Target = target,
+                        TargetName = target.LabelShort.StripTags(),
+                        IsViable = false,
+                        Reason = eligibility.Reason
+                    });
+                }
+            }
+
+            var result = new List<RomanceTargetInfo>();
+            result.AddRange(viable.OrderByDescending(v => v.chance).Select(v => v.info));
+            result.AddRange(nonViable.OrderBy(nv => nv.TargetName));
+            return result;
+        }
+
+        /// <summary>
+        /// Builds a descriptive romance factor breakdown for StatBreakdownState.
+        /// Includes overall chance header and reformats the game's "x" notation
+        /// into clearer multiplier format for screen reader users.
+        /// </summary>
+        public static string BuildRomanceBreakdown(Pawn romancer, Pawn target)
+        {
+            // Get the game's factor breakdown and reformat for accessibility
+            string factors = InteractionWorker_RomanceAttempt.RomanceFactors(romancer, target).StripTags();
+            // Replace "x" multiplier notation (e.g. ": x22%") with plain percentage
+            // The "x" is visual shorthand that reads poorly with screen readers
+            factors = System.Text.RegularExpressions.Regex.Replace(factors, @": x(\d)", ": $1");
+            // Strip leading " - " so each factor line is a flat root item in StatBreakdownState
+            // Without this, the " - " prefix causes indent level 1, creating a collapsed parent node
+            factors = System.Text.RegularExpressions.Regex.Replace(factors, @"(?m)^ - ", "");
+
+            return factors;
+        }
+
+        private static MethodInfo giveRomanceJobWithWarningMethod;
+
+        /// <summary>
+        /// Initiates a romance attempt, showing warning dialog if the pawn has existing relationships.
+        /// Uses reflection to call RelationsUtility.GiveRomanceJobWithWarning (private).
+        /// Returns false if the pawn already has a romance job queued.
+        /// </summary>
+        public static bool InitiateRomance(Pawn romancer, Pawn target)
+        {
+            try
+            {
+                // Guard against duplicate romance jobs - vanilla doesn't need this because
+                // the float menu closes after selection, but our tree keeps the action available
+                if (romancer.CurJob?.def == JobDefOf.TryRomance ||
+                    romancer.jobs.jobQueue.Any(j => j.job.def == JobDefOf.TryRomance))
+                {
+                    return false;
+                }
+
+                if (giveRomanceJobWithWarningMethod == null)
+                {
+                    giveRomanceJobWithWarningMethod = AccessTools.Method(
+                        typeof(RelationsUtility), "GiveRomanceJobWithWarning");
+                }
+
+                giveRomanceJobWithWarningMethod.Invoke(null, new object[] { romancer, target });
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[RimWorldAccess] Error initiating romance: {ex}");
+                TolkHelper.Speak("Error initiating romance", SpeechPriority.High);
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return false;
             }

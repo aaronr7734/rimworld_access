@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Verse;
+using Verse.Sound;
 using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
@@ -569,7 +570,16 @@ namespace RimWorldAccess
                     return;
                 }
 
-                // 3. Command_Toggle - toggle and announce state
+                // 3. PsychicEntropyGizmo - toggle neural heat limiter
+                if (selectedGizmo.GetType().Name == "PsychicEntropyGizmo")
+                {
+                    bool newState = ToggleNeuralHeatLimiter(selectedGizmo);
+                    string stateStr = newState ? "ON" : "OFF";
+                    TolkHelper.Speak($"Neural heat limiter: {stateStr}");
+                    return;
+                }
+
+                // 4. Command_Toggle - toggle and announce state
                 if (selectedGizmo is Command_Toggle toggle)
                 {
                     try
@@ -591,7 +601,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    // 3. Command_VerbTarget (weapon attacks) - announce targeting mode
+                    // 5. Command_VerbTarget (weapon attacks) - announce targeting mode
                     if (selectedGizmo is Command_VerbTarget verbTarget)
                     {
                         try
@@ -609,15 +619,46 @@ namespace RimWorldAccess
                             TolkHelper.Speak($"Error executing {gizmoLabel}: {ex.Message}", SpeechPriority.High);
                         }
                     }
-                    // 4. Command_Target - announce targeting mode
-                    else if (selectedGizmo is Command_Target)
+                    // 6. Command_Target - announce targeting mode
+                    else if (selectedGizmo is Command_Target cmdTarget)
                     {
                         try
                         {
                             // Execute the command
                             selectedGizmo.ProcessInput(fakeEvent);
 
-                            TolkHelper.Speak($"{gizmoLabel} - Use map navigation to select target, then press Enter");
+                            // Detect animal attack target commands (Odyssey DLC) by icon match.
+                            // Both group (from master's Pawn_PlayerSettings) and individual (from animal's
+                            // Pawn_TrainingTracker) use the same AttackTargetTexture icon.
+                            if (cmdTarget.icon == Pawn_TrainingTracker.AttackTargetTexture
+                                && gizmoOwners.TryGetValue(selectedGizmo, out ISelectable attackOwner)
+                                && attackOwner is Pawn ownerPawn)
+                            {
+                                // Determine the master pawn:
+                                // - Group command: owner IS the drafted master colonist
+                                // - Individual command: owner is the animal, master is its assigned master
+                                Pawn master = (ownerPawn.IsColonist && ownerPawn.Drafted)
+                                    ? ownerPawn
+                                    : ownerPawn.playerSettings?.Master;
+
+                                if (master?.Position.IsValid == true)
+                                {
+                                    float range = Pawn_TrainingTracker.AttackTargetRange;
+                                    TargetingPatch.SetTargetingContext(master.Position, range);
+                                    TolkHelper.Speak(
+                                        $"{gizmoLabel} targeting. Range: {range:F0} tiles from master. Press R to check distance.");
+                                }
+                                else
+                                {
+                                    TolkHelper.Speak(
+                                        $"{gizmoLabel} - Use map navigation to select target, then press Enter");
+                                }
+                            }
+                            else
+                            {
+                                TolkHelper.Speak(
+                                    $"{gizmoLabel} - Use map navigation to select target, then press Enter");
+                            }
                         }
                         catch (System.Exception ex)
                         {
@@ -625,7 +666,28 @@ namespace RimWorldAccess
                             TolkHelper.Speak($"Error executing {gizmoLabel}: {ex.Message}", SpeechPriority.High);
                         }
                     }
-                    // 5. Generic Command
+                    // 7. Command_Ability (psycasts, abilities) - announce casting or targeting
+                    else if (selectedGizmo is Command_Ability cmdAbility)
+                    {
+                        try
+                        {
+                            selectedGizmo.ProcessInput(fakeEvent);
+
+                            // Self-cast abilities (targetRequired == false) don't enter targeting mode,
+                            // so no AbilityTargetingPatch fires. Announce immediately.
+                            if (!cmdAbility.Ability.def.targetRequired)
+                            {
+                                TolkHelper.Speak($"Casting {cmdAbility.Ability.def.LabelCap}");
+                            }
+                            // Targeted abilities will be announced by AbilityTargetingPatch
+                        }
+                        catch (System.Exception ex)
+                        {
+                            ModLogger.Error($"Exception in Command_Ability execution: {ex.Message}");
+                            TolkHelper.Speak($"Error executing {gizmoLabel}: {ex.Message}", SpeechPriority.High);
+                        }
+                    }
+                    // 8. Generic Command
                     else
                     {
                         try
@@ -843,6 +905,14 @@ namespace RimWorldAccess
                 return true;
             }
 
+            // Handle Alt+I - open info card for current gizmo
+            if (Event.current.alt && key == KeyCode.I)
+            {
+                OpenInfoCardForCurrentGizmo();
+                Event.current.Use();
+                return true;
+            }
+
             // Handle typeahead characters
             // Use KeyCode instead of Event.current.character (which is empty in Unity IMGUI)
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
@@ -869,6 +939,68 @@ namespace RimWorldAccess
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Opens an info card for the currently selected gizmo, if applicable.
+        /// Handles Command_Ability (ability def), Designator_Build (building def with optional stuff),
+        /// and falls back to the gizmo's owner (Thing or WorldObject).
+        /// </summary>
+        private static void OpenInfoCardForCurrentGizmo()
+        {
+            if (!isActive || availableGizmos.Count == 0)
+                return;
+
+            if (selectedGizmoIndex < 0 || selectedGizmoIndex >= availableGizmos.Count)
+                return;
+
+            Gizmo gizmo = availableGizmos[selectedGizmoIndex];
+
+            // Command_Ability -> open info card for the ability def
+            if (gizmo is Command_Ability cmdAbility && cmdAbility.Ability?.def != null)
+            {
+                Find.WindowStack.Add(new Dialog_InfoCard(cmdAbility.Ability.def));
+                return;
+            }
+
+            // Designator_Build -> open info card for the building def (with stuff if applicable)
+            if (gizmo is Designator_Build buildDesignator)
+            {
+                BuildableDef placingDef = buildDesignator.PlacingDef;
+                if (placingDef is ThingDef thingDef)
+                {
+                    ThingDef stuff = buildDesignator.StuffDef;
+                    if (stuff != null)
+                        Find.WindowStack.Add(new Dialog_InfoCard(thingDef, stuff));
+                    else
+                        InfoCardState.OpenInfoCardForDef(thingDef);
+                    return;
+                }
+                if (placingDef is TerrainDef terrainDef)
+                {
+                    Find.WindowStack.Add(new Dialog_InfoCard(terrainDef));
+                    return;
+                }
+            }
+
+            // Fallback: use gizmo owner (Thing or WorldObject)
+            if (gizmoOwners.TryGetValue(gizmo, out ISelectable owner))
+            {
+                if (owner is Thing thing)
+                {
+                    Find.WindowStack.Add(new Dialog_InfoCard(thing));
+                    return;
+                }
+                if (owner is WorldObject worldObj)
+                {
+                    Find.WindowStack.Add(new Dialog_InfoCard(worldObj));
+                    return;
+                }
+            }
+
+            // Nothing applicable
+            TolkHelper.Speak("No info card available for this command");
+            SoundDefOf.ClickReject.PlayOneShotOnCamera();
         }
 
         /// <summary>
@@ -973,11 +1105,50 @@ namespace RimWorldAccess
             if (!string.IsNullOrEmpty(statusValue))
                 announcement += $" - {statusValue}";
 
-            if (!string.IsNullOrEmpty(description) && !(gizmo is Command_Toggle))
-                announcement += $": {description}";
+            // For non-ability gizmos, add description before hotkey
+            bool isAbility = gizmo is Command_Ability;
+            if (!string.IsNullOrEmpty(description) && !isAbility)
+            {
+                // Toggles already have ": ON/OFF", so use period separator instead of colon
+                string descSep = (gizmo is Command_Toggle)
+                    ? (announcement.EndsWith(".") ? " " : ". ")
+                    : ": ";
+                announcement += descSep + description;
+            }
 
-            if (!string.IsNullOrEmpty(hotkey))
+            // For animal attack Command_Target, add range info
+            if (gizmo is Command_Target cmdTargetGizmo
+                && cmdTargetGizmo.icon == Pawn_TrainingTracker.AttackTargetTexture)
+            {
+                float attackRange = Pawn_TrainingTracker.AttackTargetRange;
+                string sep = announcement.EndsWith(".") ? " " : ". ";
+                announcement += $"{sep}Range: {attackRange:F0} tiles from master";
+            }
+
+            // For abilities, hotkey goes at the end; for everything else, add it here
+            if (!isAbility && !string.IsNullOrEmpty(hotkey))
                 announcement += $" ({hotkey})";
+
+            // For Command_Ability (psycasts, abilities), add cost, range, description, then hotkey
+            if (isAbility && gizmo is Command_Ability commandAbility && commandAbility.Ability != null)
+            {
+                string costInfo = GetAbilityCostInfo(commandAbility.Ability);
+                if (!string.IsNullOrEmpty(costInfo))
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + costInfo;
+
+                // Add range info after cost
+                string rangeInfo = GetAbilityRangeInfo(commandAbility.Ability);
+                if (!string.IsNullOrEmpty(rangeInfo))
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + rangeInfo;
+
+                // Add ability description after range info
+                if (!string.IsNullOrEmpty(description))
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + description;
+
+                // Hotkey last for abilities
+                if (!string.IsNullOrEmpty(hotkey))
+                    announcement += $" ({hotkey})";
+            }
 
             // Add disabled status if applicable
             if (gizmo.Disabled)
@@ -1062,7 +1233,7 @@ namespace RimWorldAccess
                     return GetEnergyShieldLabel(gizmo);
 
                 case "PsychicEntropyGizmo":
-                    return "Psychic Entropy and Psyfocus";
+                    return "Neural Heat and Psyfocus";
 
                 case "MechanitorBandwidthGizmo":
                     return "Mechanitor Bandwidth";
@@ -1383,21 +1554,19 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets the psychic entropy status (entropy and psyfocus values).
+        /// Gets the psychic entropy status (entropy, psyfocus, and limiter state).
         /// </summary>
         private static string GetPsychicEntropyStatus(Gizmo gizmo)
         {
-            var trackerField = gizmo.GetType().GetField("tracker",
-                System.Reflection.BindingFlags.Instance |
-                System.Reflection.BindingFlags.NonPublic);
-            if (trackerField == null) return "";
-
-            var tracker = trackerField.GetValue(gizmo);
+            var tracker = GetPsychicEntropyTracker(gizmo);
             if (tracker == null) return "";
 
             var entropyProp = tracker.GetType().GetProperty("EntropyValue");
             var maxEntropyProp = tracker.GetType().GetProperty("MaxEntropy");
             var psyfocusProp = tracker.GetType().GetProperty("CurrentPsyfocus");
+            var limitField = tracker.GetType().GetField("limitEntropyAmount",
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.Public);
 
             if (entropyProp != null && maxEntropyProp != null && psyfocusProp != null)
             {
@@ -1405,9 +1574,149 @@ namespace RimWorldAccess
                 float maxEntropy = (float)maxEntropyProp.GetValue(tracker);
                 float psyfocus = (float)psyfocusProp.GetValue(tracker);
 
-                return $"Entropy: {entropy:F0} / {maxEntropy:F0}, Psyfocus: {psyfocus * 100:F0}%";
+                string status = $"Neural heat: {entropy:F0} / {maxEntropy:F0}, Psyfocus: {psyfocus * 100:F0}%";
+
+                // Add limiter state
+                if (limitField != null)
+                {
+                    bool isLimited = (bool)limitField.GetValue(tracker);
+                    status += $", Limiter: {(isLimited ? "ON" : "OFF")}";
+                }
+
+                return status;
             }
             return "";
+        }
+
+        /// <summary>
+        /// Gets the Pawn_PsychicEntropyTracker from a PsychicEntropyGizmo.
+        /// </summary>
+        private static object GetPsychicEntropyTracker(Gizmo gizmo)
+        {
+            var trackerField = gizmo.GetType().GetField("tracker",
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic);
+            if (trackerField == null) return null;
+
+            return trackerField.GetValue(gizmo);
+        }
+
+        /// <summary>
+        /// Toggles the neural heat limiter on a PsychicEntropyGizmo.
+        /// Returns the new state (true = limited, false = unlimited).
+        /// </summary>
+        private static bool ToggleNeuralHeatLimiter(Gizmo gizmo)
+        {
+            var tracker = GetPsychicEntropyTracker(gizmo);
+            if (tracker == null) return true;
+
+            var limitField = tracker.GetType().GetField("limitEntropyAmount",
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.Public);
+            if (limitField == null) return true;
+
+            bool currentValue = (bool)limitField.GetValue(tracker);
+            bool newValue = !currentValue;
+            limitField.SetValue(tracker, newValue);
+
+            // Play the appropriate sound (matching the game's behavior)
+            if (newValue)
+                SoundDefOf.Tick_Low.PlayOneShotOnCamera();
+            else
+                SoundDefOf.Tick_High.PlayOneShotOnCamera();
+
+            return newValue;
+        }
+
+        /// <summary>
+        /// Gets cost information for an ability (psyfocus cost, minimum required, neural heat gain).
+        /// Returns a string like "Costs 2% psyfocus, requires 50%, Neural heat: 25" or null if no costs.
+        /// </summary>
+        private static string GetAbilityCostInfo(Ability ability)
+        {
+            if (ability?.def == null)
+                return null;
+
+            var parts = new List<string>();
+
+            // Psyfocus cost (what gets consumed)
+            float psyfocusCost = ability.def.PsyfocusCost;
+
+            // Minimum psyfocus required (band threshold based on ability level)
+            // PsyfocusBandPercentages: 0%, 25%, 50% for bands 0, 1, 2
+            // RequiredPsyfocusBand is calculated from ability level
+            int requiredBand = ability.def.RequiredPsyfocusBand;
+            float minRequired = 0f;
+            if (requiredBand > 0 && requiredBand < Pawn_PsychicEntropyTracker.PsyfocusBandPercentages.Count)
+            {
+                minRequired = Pawn_PsychicEntropyTracker.PsyfocusBandPercentages[requiredBand];
+            }
+
+            // Build psyfocus string showing both cost and minimum if different
+            if (psyfocusCost > float.Epsilon || minRequired > float.Epsilon)
+            {
+                if (psyfocusCost > float.Epsilon && minRequired > float.Epsilon)
+                {
+                    // Both cost and minimum requirement
+                    parts.Add($"Costs {(psyfocusCost * 100f):F0}% psyfocus, requires {(minRequired * 100f):F0}%");
+                }
+                else if (psyfocusCost > float.Epsilon)
+                {
+                    // Just cost, no minimum band requirement
+                    parts.Add($"Costs {(psyfocusCost * 100f):F0}% psyfocus");
+                }
+                else if (minRequired > float.Epsilon)
+                {
+                    // Just minimum requirement (unusual but possible)
+                    parts.Add($"Requires {(minRequired * 100f):F0}% psyfocus");
+                }
+            }
+
+            // Neural heat (entropy) gain
+            float entropyGain = ability.def.EntropyGain;
+            if (entropyGain > float.Epsilon)
+            {
+                parts.Add($"Neural heat: {entropyGain:F0}");
+            }
+
+            if (parts.Count == 0)
+                return null;
+
+            return string.Join(". ", parts);
+        }
+
+        /// <summary>
+        /// Gets the range description for an ability gizmo.
+        /// Returns "Range: N tiles", "Range: touch", "Range: self", or null.
+        /// </summary>
+        private static string GetAbilityRangeInfo(Ability ability)
+        {
+            if (ability?.def == null)
+                return null;
+
+            // Determine base range text
+            string rangeText;
+            if (!ability.def.targetRequired)
+                rangeText = "Range: self";
+            else if (ability.def.targetWorldCell)
+                rangeText = "Range: world map";
+            else if (AbilityTargetingHelper.IsTouchRange(ability))
+                rangeText = "Range: touch";
+            else
+            {
+                float range = AbilityTargetingHelper.GetRange(ability);
+                if (range > 0f)
+                    rangeText = $"Range: {range:F0} tiles";
+                else
+                    return null;
+            }
+
+            // Append effect radius if this ability has one
+            float effectRadius = ability.def.EffectRadius;
+            if (effectRadius > 0f)
+                rangeText += $", {effectRadius:F0} tile radius";
+
+            return rangeText;
         }
 
         /// <summary>
@@ -1560,9 +1869,19 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Gets the description text for a gizmo.
+        /// For Command_Ability (psycasts), pulls from ability.def.description since
+        /// Command_Ability.Desc is only populated during mouse hover rendering.
         /// </summary>
         private static string GetGizmoDescription(Gizmo gizmo)
         {
+            // Command_Ability.defaultDesc is only set during GizmoOnGUIInt on mouse hover,
+            // so we pull directly from the ability definition instead
+            if (gizmo is Command_Ability commandAbility && commandAbility.Ability?.def != null)
+            {
+                string abilityDesc = commandAbility.Ability.def.description;
+                return (abilityDesc ?? "").StripTags();
+            }
+
             if (gizmo is Command cmd)
             {
                 string desc = cmd.Desc;

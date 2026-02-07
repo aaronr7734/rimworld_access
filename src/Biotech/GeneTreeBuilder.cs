@@ -98,6 +98,7 @@ namespace RimWorldAccess
                 Type = InspectionTreeItem.ItemType.Item,
                 Label = label,
                 Data = gene,
+                LinkedDef = gene,
                 IsExpandable = true,
                 IsExpanded = false,
                 IndentLevel = indent
@@ -151,38 +152,52 @@ namespace RimWorldAccess
                 return DescribeColor(gene.hairColorOverride.Value);
             }
 
-            // Check for skin color
+            // Check for skin color - use perceptual luminance for skin-specific shade names
             if (gene.skinColorOverride.HasValue)
             {
-                return DescribeColor(gene.skinColorOverride.Value);
+                return DescribeSkinShade(gene.skinColorOverride.Value);
             }
             if (gene.skinColorBase.HasValue)
             {
-                return DescribeColor(gene.skinColorBase.Value);
+                return DescribeSkinShade(gene.skinColorBase.Value);
             }
 
             return null;
         }
 
         /// <summary>
-        /// Converts a Unity Color to a human-readable description.
+        /// Converts a skin color to a human-readable shade using perceptual luminance.
+        /// Matches the labels used in InfoCardDataExtractor for consistency.
+        /// </summary>
+        private static string DescribeSkinShade(UnityEngine.Color color)
+        {
+            float luminance = 0.299f * color.r + 0.587f * color.g + 0.114f * color.b;
+            if (luminance > 0.85f) return "very light";
+            if (luminance > 0.7f) return "light";
+            if (luminance > 0.55f) return "fair";
+            if (luminance > 0.45f) return "medium";
+            if (luminance > 0.35f) return "tan";
+            if (luminance > 0.2f) return "brown";
+            return "dark brown";
+        }
+
+        /// <summary>
+        /// Converts a Unity Color to a human-readable description for non-skin colors (hair, etc.).
         /// </summary>
         private static string DescribeColor(UnityEngine.Color color)
         {
-            // Simple color description based on RGB values
             float r = color.r;
             float g = color.g;
             float b = color.b;
             float brightness = (r + g + b) / 3f;
 
-            // Check for grayscale (skin tones are often desaturated)
+            // Check for grayscale
             float maxChannel = Math.Max(r, Math.Max(g, b));
             float minChannel = Math.Min(r, Math.Min(g, b));
             float saturation = maxChannel > 0 ? (maxChannel - minChannel) / maxChannel : 0;
 
             if (saturation < 0.15f)
             {
-                // Grayscale - describe by brightness
                 if (brightness < 0.2f) return "very dark";
                 if (brightness < 0.35f) return "dark";
                 if (brightness < 0.5f) return "medium-dark";
@@ -360,6 +375,208 @@ namespace RimWorldAccess
                 AddChild(summaryNode, CreateInfoItem($"Metabolism: {metabolism.ToStringWithSign()}. {metabolismDesc}", summaryNode.IndentLevel + 1));
 
                 // Archites if present
+                if (archites > 0)
+                {
+                    string architesDesc = ((string)"ArchitesRequiredDesc".Translate()).StripTags();
+                    AddChild(summaryNode, CreateInfoItem($"Archites Required: {archites}. {architesDesc}", summaryNode.IndentLevel + 1));
+                }
+            };
+
+            AddChild(root, summaryNode);
+        }
+
+        /// <summary>
+        /// Builds the gene tree for an adult pawn's Pawn_GeneTracker.
+        /// Groups genes into Endogenes and Xenogenes with active/overridden status.
+        /// </summary>
+        /// <param name="pawn">The pawn whose genes to display</param>
+        /// <returns>Root tree item with gene groups as children</returns>
+        public static InspectionTreeItem BuildAdultGeneTree(Pawn pawn)
+        {
+            if (pawn?.genes == null || !ModsConfig.BiotechActive)
+            {
+                return CreateEmptyTree();
+            }
+
+            var geneTracker = pawn.genes;
+            var endogenes = geneTracker.Endogenes;
+            var xenogenes = geneTracker.Xenogenes;
+            int totalCount = (endogenes?.Count ?? 0) + (xenogenes?.Count ?? 0);
+
+            if (totalCount == 0)
+            {
+                return CreateEmptyTree();
+            }
+
+            // Build root label with xenotype
+            string xenotypeLabel = geneTracker.XenotypeLabelCap;
+            string rootLabel = $"Genes: {xenotypeLabel} ({totalCount} {(totalCount == 1 ? "gene" : "genes")})";
+
+            var root = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.Object,
+                Label = rootLabel,
+                IsExpandable = true,
+                IsExpanded = true,
+                IndentLevel = -1
+            };
+
+            // Add Endogenes group
+            if (endogenes != null && endogenes.Count > 0)
+            {
+                var endoGroup = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.SubCategory,
+                    Label = $"Endogenes ({endogenes.Count})",
+                    IsExpandable = true,
+                    IsExpanded = false,
+                    IndentLevel = 0
+                };
+                endoGroup.OnActivate = () => BuildGeneGroupChildren(endoGroup, endogenes);
+                AddChild(root, endoGroup);
+            }
+
+            // Add Xenogenes group
+            if (xenogenes != null && xenogenes.Count > 0)
+            {
+                var xenoGroup = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.SubCategory,
+                    Label = $"Xenogenes ({xenogenes.Count})",
+                    IsExpandable = true,
+                    IsExpanded = false,
+                    IndentLevel = 0
+                };
+                xenoGroup.OnActivate = () => BuildGeneGroupChildren(xenoGroup, xenogenes);
+                AddChild(root, xenoGroup);
+            }
+
+            // Add biostats summary
+            AddAdultBiostatsSummary(root, geneTracker);
+
+            return root;
+        }
+
+        /// <summary>
+        /// Builds children for a gene group (endogenes or xenogenes).
+        /// </summary>
+        private static void BuildGeneGroupChildren(InspectionTreeItem groupItem, List<Gene> genes)
+        {
+            if (groupItem.Children.Count > 0)
+                return; // Already built
+
+            // Sort by display category priority, then by display order, then alphabetically
+            var sorted = genes
+                .OrderByDescending(g => g.def.displayCategory?.displayPriorityInGenepack ?? 0)
+                .ThenBy(g => g.def.displayOrderInCategory)
+                .ThenBy(g => g.def.label)
+                .ToList();
+
+            foreach (var gene in sorted)
+            {
+                var geneNode = CreateActiveGeneNode(gene, groupItem.IndentLevel + 1);
+                AddChild(groupItem, geneNode);
+            }
+        }
+
+        /// <summary>
+        /// Creates a tree node for an active Gene instance (with active/overridden status).
+        /// </summary>
+        private static InspectionTreeItem CreateActiveGeneNode(Gene gene, int indent)
+        {
+            var parts = new List<string>();
+
+            // Gene label with color description for cosmetic genes
+            string label = gene.LabelCap;
+            if (IsCosmeticGene(gene.def))
+            {
+                string colorDesc = GetColorDescription(gene.def);
+                if (!string.IsNullOrEmpty(colorDesc) && !label.ToLower().Contains(colorDesc.ToLower()))
+                {
+                    label = $"{label}: {colorDesc}";
+                }
+            }
+            parts.Add(label);
+
+            // Category
+            if (gene.def.displayCategory != null)
+            {
+                parts.Add($"({gene.def.displayCategory.LabelCap})");
+            }
+
+            // Active/overridden status
+            if (gene.Overridden)
+            {
+                parts.Add("[overridden]");
+            }
+            else if (!gene.Active)
+            {
+                parts.Add("[inactive]");
+            }
+
+            var geneNode = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.Item,
+                Label = string.Join(" ", parts),
+                Data = gene,
+                LinkedDef = gene.def,
+                IsExpandable = true,
+                IsExpanded = false,
+                IndentLevel = indent
+            };
+
+            // Lazy-load children when expanded (reuse existing GeneDef detail builder)
+            geneNode.OnActivate = () => BuildGeneDetails(geneNode, gene.def);
+
+            return geneNode;
+        }
+
+        /// <summary>
+        /// Adds a biostats summary for an adult pawn's gene tracker.
+        /// </summary>
+        private static void AddAdultBiostatsSummary(InspectionTreeItem root, Pawn_GeneTracker geneTracker)
+        {
+            // Calculate totals from all active genes
+            int complexity = 0;
+            int metabolism = 0;
+            int archites = 0;
+
+            foreach (var gene in geneTracker.GenesListForReading)
+            {
+                complexity += gene.def.biostatCpx;
+                metabolism += gene.def.biostatMet;
+                archites += gene.def.biostatArc;
+            }
+
+            var summaryParts = new List<string>();
+            summaryParts.Add($"Complexity {complexity}");
+            summaryParts.Add($"Metabolism {metabolism.ToStringWithSign()}");
+            if (archites > 0)
+            {
+                summaryParts.Add($"Archites {archites}");
+            }
+
+            string summaryLabel = $"Total Biostats: {string.Join(", ", summaryParts)}";
+
+            var summaryNode = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = summaryLabel,
+                IsExpandable = true,
+                IsExpanded = false,
+                IndentLevel = 0
+            };
+
+            summaryNode.OnActivate = () =>
+            {
+                if (summaryNode.Children.Count > 0) return;
+
+                string complexityDesc = ((string)"ComplexityDesc".Translate()).StripTags();
+                AddChild(summaryNode, CreateInfoItem($"Complexity: {complexity}. {complexityDesc}", summaryNode.IndentLevel + 1));
+
+                string metabolismDesc = ((string)"MetabolismDesc".Translate()).StripTags();
+                AddChild(summaryNode, CreateInfoItem($"Metabolism: {metabolism.ToStringWithSign()}. {metabolismDesc}", summaryNode.IndentLevel + 1));
+
                 if (archites > 0)
                 {
                     string architesDesc = ((string)"ArchitesRequiredDesc".Translate()).StripTags();

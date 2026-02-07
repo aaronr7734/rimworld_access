@@ -134,13 +134,13 @@ namespace RimWorldAccess
             { "ITab_ContentsGenepackHolder", TabHandlerType.BasicInspectString },
             { "ITab_ContentsOutfitStand", TabHandlerType.BasicInspectString },
             { "ITab_ContentsMapPortal", TabHandlerType.BasicInspectString },
-            { "ITab_Genes", TabHandlerType.BasicInspectString },
+            { "ITab_Genes", TabHandlerType.RichNavigation },
             { "ITab_GenesPregnancy", TabHandlerType.BasicInspectString },
             { "ITab_Entity", TabHandlerType.BasicInspectString },
             { "ITab_StudyNotes", TabHandlerType.BasicInspectString },
             { "ITab_StudyNotesUnnaturalCorpse", TabHandlerType.BasicInspectString },
             { "ITab_StudyNotesVoidMonolith", TabHandlerType.BasicInspectString },
-            { "ITab_Fishing", TabHandlerType.BasicInspectString },
+            { "ITab_Fishing", TabHandlerType.Action },
             { "ITab_Book", TabHandlerType.BasicInspectString },
             { "ITab_PenBase", TabHandlerType.BasicInspectString },
             { "ITab_PenAnimals", TabHandlerType.Action },
@@ -163,6 +163,7 @@ namespace RimWorldAccess
             { "Training", TabHandlerType.RichNavigation },
             { "Log", TabHandlerType.RichNavigation },
             { "Job Queue", TabHandlerType.RichNavigation },
+            { "Genes", TabHandlerType.RichNavigation },
 
             // Action categories
             { "Bills", TabHandlerType.Action },
@@ -171,6 +172,7 @@ namespace RimWorldAccess
             { "Temperature", TabHandlerType.Action },
             { "Plant Selection", TabHandlerType.Action },
             { "Prisoner", TabHandlerType.Action },
+            { "Fishing", TabHandlerType.Action },
 
             // Synthetic categories (not real tabs)
             { "Overview", TabHandlerType.RichNavigation },
@@ -313,6 +315,8 @@ namespace RimWorldAccess
                 case "ITab_PenAnimals": return "Pen Animals";
                 case "ITab_PenAutoCut": return "Pen Auto-Cut";
                 case "ITab_PenFood": return "Pen Food";
+                case "ITab_Fishing": return "Fishing";
+                case "ITab_Genes": return "Genes";
                 default: return GetCategoryNameForTab(tab);
             }
         }
@@ -374,8 +378,9 @@ namespace RimWorldAccess
 
                     try
                     {
-                        // Skip hidden or invisible tabs
-                        if (!tab.IsVisible || tab.Hidden)
+                        // Skip hidden or invisible tabs (but allow ITab_Genes which is hidden in vanilla UI)
+                        bool isGeneTab = tab.GetType().Name == "ITab_Genes";
+                        if (!tab.IsVisible || (tab.Hidden && !isGeneTab))
                         {
                             continue;
                         }
@@ -438,8 +443,9 @@ namespace RimWorldAccess
 
                     try
                     {
-                        // Skip hidden or invisible tabs
-                        if (!tab.IsVisible || tab.Hidden)
+                        // Skip hidden or invisible tabs (but allow ITab_Genes which is hidden in vanilla UI)
+                        bool isGeneTab = tab.GetType().Name == "ITab_Genes";
+                        if (!tab.IsVisible || (tab.Hidden && !isGeneTab))
                         {
                             continue;
                         }

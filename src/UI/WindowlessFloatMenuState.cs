@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Verse;
+using Verse.Sound;
 using RimWorld;
 using UnityEngine;
 
@@ -18,6 +20,9 @@ namespace RimWorldAccess
         private static bool givesColonistOrders = false;
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
         private static List<object> savedSelection = null;
+
+        // Cached reflection for FloatMenuOption.shownItem (private ThingDef field used as icon)
+        private static readonly FieldInfo shownItemField = typeof(FloatMenuOption).GetField("shownItem", BindingFlags.NonPublic | BindingFlags.Instance);
 
         /// <summary>
         /// Gets whether the windowless menu is currently active.
@@ -340,12 +345,21 @@ namespace RimWorldAccess
                 return true;
             }
 
+            // Handle Alt+I - open info card for the selected option's associated Def
+            if (Event.current.alt && key == KeyCode.I)
+            {
+                TryOpenInfoCardForSelected();
+                Event.current.Use();
+                return true;
+            }
+
             // Handle typeahead characters
             // Use KeyCode instead of Event.current.character (which is empty in Unity IMGUI)
+            // Skip if Alt is held - Alt+key combos are shortcuts, not search input
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-            if (isLetter || isNumber)
+            if ((isLetter || isNumber) && !Event.current.alt)
             {
                 char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                 var labels = GetItemLabels();
@@ -447,6 +461,51 @@ namespace RimWorldAccess
             }
 
             return string.IsNullOrEmpty(text) ? null : text.Trim();
+        }
+
+        /// <summary>
+        /// Tries to open an info card for the currently selected float menu option.
+        /// Extracts a Def from the option's shownItem (private ThingDef) or iconThing fields.
+        /// </summary>
+        public static void TryOpenInfoCardForSelected()
+        {
+            if (currentOptions == null || selectedIndex < 0 || selectedIndex >= currentOptions.Count)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No info card available");
+                return;
+            }
+
+            var option = currentOptions[selectedIndex];
+
+            // Try shownItem first (private ThingDef used as icon - common for recipes/bills)
+            Def def = null;
+            if (shownItemField != null)
+            {
+                def = shownItemField.GetValue(option) as ThingDef;
+            }
+
+            // Fall back to iconThing's def
+            if (def == null && option.iconThing?.def != null)
+            {
+                def = option.iconThing.def;
+            }
+
+            // Fall back to revalidateClickTarget's def
+            if (def == null && option.revalidateClickTarget?.def != null)
+            {
+                def = option.revalidateClickTarget.def;
+            }
+
+            if (def != null)
+            {
+                InfoCardState.OpenInfoCardForDef(def);
+            }
+            else
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No info card available");
+            }
         }
 
         /// <summary>

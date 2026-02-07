@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 using Verse;
 using RimWorld;
 
@@ -124,6 +125,13 @@ namespace RimWorldAccess
                     {
                         buildingLabel += " wall";
                     }
+
+                    // Add door open/closed state
+                    if (building is Building_Door door)
+                    {
+                        buildingLabel += door.Open ? " (open)" : " (closed)";
+                    }
+
                     sb.Append(buildingLabel);
 
                     // Add cell-specific suffix (e.g., "(head)" for bed, "(fuel port east)" for launcher)
@@ -357,7 +365,12 @@ namespace RimWorldAccess
                     sb.AppendLine($"\nBuildings ({buildings.Count}):");
                     foreach (var building in buildings)
                     {
-                        sb.Append($"  - {building.LabelShortCap}");
+                        string detailLabel = building.LabelShortCap;
+                        if (building is Building_Door door)
+                        {
+                            detailLabel += door.Open ? " (open)" : " (closed)";
+                        }
+                        sb.Append($"  - {detailLabel}");
 
                         // Add temperature control information if building is a cooler/heater
                         string tempControlInfo = GetTemperatureControlInfo(building);
@@ -531,6 +544,11 @@ namespace RimWorldAccess
 
             sb.Append(terrain.LabelCap);
 
+            // Add fertility if the terrain has it (matches MouseoverReadout display)
+            float fertility = position.GetFertility(map);
+            if (fertility > 0.0001f)
+                sb.Append($" ({fertility.ToStringPercent()} fertility)");
+
             // Add smoothness information
             if (terrain.defName.EndsWith("_Smooth"))
                 sb.Append(", smooth");
@@ -541,18 +559,39 @@ namespace RimWorldAccess
             StatDef beautyStat = StatDefOf.Beauty;
             float beauty = terrain.GetStatValueAbstract(beautyStat);
             if (beauty != 0)
-                sb.Append($", beauty {beauty:F0}");
+                sb.Append($", beauty: {beauty:F0}");
 
             // Add cleanliness if non-zero
             if (terrain.GetStatValueAbstract(StatDefOf.Cleanliness) != 0)
             {
                 float cleanliness = terrain.GetStatValueAbstract(StatDefOf.Cleanliness);
-                sb.Append($", cleanliness {cleanliness:F1}");
+                sb.Append($", cleanliness: {cleanliness:F1}");
             }
 
             // Add movement speed modifier
             if (terrain.pathCost > 0)
-                sb.Append($", path cost {terrain.pathCost}");
+                sb.Append($", path cost: {terrain.pathCost}");
+
+            // Add fishing info if Odyssey DLC is active (matches MouseoverReadout display)
+            if (ModsConfig.OdysseyActive && map.waterBodyTracker.TryGetWaterBodyAt(position, out var waterBody) && waterBody.HasFish)
+            {
+                // Fish species list (common + uncommon)
+                var allFish = waterBody.CommonFishIncludingExtras.Concat(waterBody.UncommonFish);
+                string fishList = allFish.Select(f => f.label).ToCommaList().CapitalizeFirst();
+
+                // Population numbers (current/max) - use rounding to match Zone_Fishing.GetInspectString()
+                int population = Mathf.RoundToInt(waterBody.Population);
+                int maxPopulation = Mathf.RoundToInt(waterBody.MaxPopulation);
+
+                sb.Append($", fish: {fishList} ({population}/{maxPopulation})");
+
+                // GillRot condition if active
+                var gillRot = map.gameConditionManager.GetActiveCondition<GameCondition_GillRot>();
+                if (gillRot != null && !gillRot.HiddenByOtherCondition(map))
+                {
+                    sb.Append($" ({gillRot.LabelCap})");
+                }
+            }
 
             return sb.ToString();
         }
@@ -641,29 +680,15 @@ namespace RimWorldAccess
 
             var sb = new StringBuilder();
 
-            // Get light level (simplified to dark/lit/brightly lit)
+            // Get light level - percentage and label (matches what sighted players see)
+            float glowValue = map.glowGrid.GroundGlowAt(position);
             PsychGlow lightLevel = map.glowGrid.PsychGlowAt(position);
-            string lightDescription;
-            switch (lightLevel)
-            {
-                case PsychGlow.Dark:
-                    lightDescription = "dark";
-                    break;
-                case PsychGlow.Lit:
-                    lightDescription = "lit";
-                    break;
-                case PsychGlow.Overlit:
-                    lightDescription = "brightly lit";
-                    break;
-                default:
-                    lightDescription = lightLevel.GetLabel();
-                    break;
-            }
-            sb.Append(lightDescription);
+            string lightLabel = lightLevel.GetLabel();
+            sb.Append($"light: {glowValue.ToStringPercent()} ({lightLabel})");
 
             // Get temperature (respects user's temperature mode preference)
             float temperature = position.GetTemperature(map);
-            sb.Append($", {MenuHelper.FormatTemperature(temperature, "F1")}");
+            sb.Append($", temperature: {MenuHelper.FormatTemperature(temperature, "F1")}");
 
             // Check if indoors/outdoors
             RoofDef roof = position.GetRoof(map);

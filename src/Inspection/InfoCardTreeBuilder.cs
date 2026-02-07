@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
+using RimWorld.Planet;
 using Verse;
 
 namespace RimWorldAccess
@@ -76,7 +77,43 @@ namespace RimWorldAccess
                 return $"{infoCardLabel}: {thing.LabelCapNoCount}";
             }
 
+            var worldObject = InfoCardDataExtractor.GetWorldObject(dialog);
+            if (worldObject != null)
+            {
+                return $"{infoCardLabel}: {worldObject.LabelCap}";
+            }
+
+            var hediff = InfoCardDataExtractor.GetHediff(dialog);
+            if (hediff != null)
+            {
+                return $"{infoCardLabel}: {hediff.def.LabelCap}";
+            }
+
             var def = InfoCardDataExtractor.GetDef(dialog);
+            var stuff = InfoCardDataExtractor.GetStuff(dialog);
+
+            if (def is ThingDef thingDef && stuff != null)
+            {
+                return $"{infoCardLabel}: {GenLabel.ThingLabel(thingDef, stuff).CapitalizeFirst()}";
+            }
+
+            if (def is AbilityDef abilityDef)
+            {
+                return $"{infoCardLabel}: {abilityDef.LabelCap}";
+            }
+
+            var titleDef = InfoCardDataExtractor.GetTitleDef(dialog);
+            if (titleDef != null)
+            {
+                return $"{infoCardLabel}: {titleDef.GetLabelCapForBothGenders()}";
+            }
+
+            var faction = InfoCardDataExtractor.GetFaction(dialog);
+            if (faction != null)
+            {
+                return $"{infoCardLabel}: {faction.Name}";
+            }
+
             if (def != null)
             {
                 return $"{infoCardLabel}: {def.LabelCap}";
@@ -184,17 +221,50 @@ namespace RimWorldAccess
                 {
                     string label = $"{entry.LabelCap}: {entry.ValueString}";
 
+                    // Enrich label with hyperlink def names when the value is generic.
+                    // A sighted player sees the linked def names as clickable text;
+                    // screen reader users should hear them too.
+                    try
+                    {
+                        var hyperlinks = entry.GetHyperlinks(StatRequest.ForEmpty());
+                        if (hyperlinks != null)
+                        {
+                            var defNames = new List<string>();
+                            foreach (var link in hyperlinks)
+                            {
+                                string name = link.def?.label ?? link.thing?.def?.label;
+                                if (!string.IsNullOrEmpty(name) && !label.ToLower().Contains(name.ToLower()))
+                                    defNames.Add(name.CapitalizeFirst());
+                            }
+                            if (defNames.Count > 0)
+                                label += $" ({string.Join(", ", defNames)})";
+                        }
+                    }
+                    catch { }
+
+                    // Check explanation text upfront to determine expandability
+                    bool hasExplanation = false;
+                    try
+                    {
+                        string explanation = entry.GetExplanationText(StatRequest.ForEmpty())?.Trim();
+                        hasExplanation = !string.IsNullOrEmpty(explanation);
+                    }
+                    catch { }
+
                     var statNode = new InspectionTreeItem
                     {
                         Type = InspectionTreeItem.ItemType.Item,
                         Label = label,
                         Data = entry,
-                        IsExpandable = true,
+                        IsExpandable = hasExplanation,
                         IsExpanded = false,
                         IndentLevel = tabNode.IndentLevel + 1
                     };
 
-                    statNode.OnActivate = () => BuildStatDetailChildren(statNode, entry);
+                    if (hasExplanation)
+                    {
+                        statNode.OnActivate = () => BuildStatDetailChildren(statNode, entry);
+                    }
 
                     AddChild(tabNode, statNode);
                 }
@@ -319,9 +389,9 @@ namespace RimWorldAccess
                 {
                     string passionStr = "";
                     if (passion == Passion.Minor)
-                        passionStr = " *";
+                        passionStr = " (Minor passion)";
                     else if (passion == Passion.Major)
-                        passionStr = " **";
+                        passionStr = " (Major passion)";
 
                     string label = disabled
                         ? $"{def.skillLabel.CapitalizeFirst()}: Disabled"
@@ -427,9 +497,17 @@ namespace RimWorldAccess
                     {
                         AddChild(xenoNode, CreateInfoItem(xenotypeInfo.Value.description.StripTags(), xenoNode.IndentLevel + 1));
                     }
-                    foreach (var gene in xenotypeInfo.Value.genes)
+                    foreach (var (name, def) in xenotypeInfo.Value.genes)
                     {
-                        AddChild(xenoNode, CreateInfoItem($"Gene: {gene}", xenoNode.IndentLevel + 1));
+                        var geneNode = new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.Item,
+                            Label = $"Gene: {name}",
+                            IsExpandable = false,
+                            IsExpanded = false,
+                            IndentLevel = xenoNode.IndentLevel + 1
+                        };
+                        AddChild(xenoNode, geneNode);
                     }
                 };
                 AddChild(tabNode, xenoNode);
@@ -473,7 +551,13 @@ namespace RimWorldAccess
                         capacityNode.OnActivate = () =>
                         {
                             if (capacityNode.Children.Count > 0) return;
-                            AddChild(capacityNode, CreateInfoItem(tip.StripTags(), capacityNode.IndentLevel + 1));
+                            var lines = tip.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                            foreach (var line in lines)
+                            {
+                                string trimmedLine = line.Trim().StripTags();
+                                if (!string.IsNullOrEmpty(trimmedLine))
+                                    AddChild(capacityNode, CreateInfoItem(trimmedLine, capacityNode.IndentLevel + 1));
+                            }
                         };
                     }
                     AddChild(tabNode, capacityNode);
@@ -583,30 +667,58 @@ namespace RimWorldAccess
             }
 
             // Group by faction
-            var grouped = permitsInfo.GroupBy(p => p.factionName);
+            var grouped = permitsInfo.GroupBy(p => p.faction);
             foreach (var group in grouped)
             {
                 // Add faction as category header
-                AddChild(tabNode, CreateCategoryHeader(group.Key, tabNode.IndentLevel + 1));
+                AddChild(tabNode, CreateCategoryHeader(group.Key.Name, tabNode.IndentLevel + 1));
 
-                foreach (var (permitName, factionName, available, description) in group)
+                // Add title/permits/favor header matching vanilla's PermitsCardUtility
+                var faction = group.Key;
+                var currentTitle = pawn.royalty.GetCurrentTitle(faction);
+                string titleLabel = currentTitle != null
+                    ? currentTitle.GetLabelFor(pawn).CapitalizeFirst()
+                    : (string)"None".Translate();
+                AddChild(tabNode, CreateInfoItem(
+                    $"{"CurrentTitle".Translate()}: {titleLabel}",
+                    tabNode.IndentLevel + 1));
+
+                int permitPoints = pawn.royalty.GetPermitPoints(faction);
+                AddChild(tabNode, CreateInfoItem(
+                    $"{"UnusedPermits".Translate()}: {permitPoints}",
+                    tabNode.IndentLevel + 1));
+
+                if (!faction.def.royalFavorLabel.NullOrEmpty())
                 {
-                    string availStr = available ? "Available" : "Unavailable";
+                    int favor = pawn.royalty.GetFavor(faction);
+                    AddChild(tabNode, CreateInfoItem(
+                        $"{faction.def.royalFavorLabel.CapitalizeFirst()}: {favor}",
+                        tabNode.IndentLevel + 1));
+                }
+
+                foreach (var (permitName, _, status, description, requiredTitle, def) in group)
+                {
+                    string label = $"{permitName} - {status}";
+                    bool hasDetails = !string.IsNullOrEmpty(description) || requiredTitle != "None";
+
                     var permitNode = new InspectionTreeItem
                     {
                         Type = InspectionTreeItem.ItemType.Item,
-                        Label = $"{permitName} ({availStr})",
-                        IsExpandable = !string.IsNullOrEmpty(description),
+                        Label = label,
+                        IsExpandable = hasDetails,
                         IsExpanded = false,
                         IndentLevel = tabNode.IndentLevel + 1
                     };
 
-                    if (!string.IsNullOrEmpty(description))
+                    if (hasDetails)
                     {
                         permitNode.OnActivate = () =>
                         {
                             if (permitNode.Children.Count > 0) return;
-                            AddChild(permitNode, CreateInfoItem(description.StripTags(), permitNode.IndentLevel + 1));
+                            if (requiredTitle != "None")
+                                AddChild(permitNode, CreateInfoItem($"Required title: {requiredTitle}", permitNode.IndentLevel + 1));
+                            if (!string.IsNullOrEmpty(description))
+                                AddChild(permitNode, CreateInfoItem(description.StripTags(), permitNode.IndentLevel + 1));
                         };
                     }
                     AddChild(tabNode, permitNode);

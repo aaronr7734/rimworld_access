@@ -11,7 +11,7 @@ namespace RimWorldAccess
 {
     /// <summary>
     /// Unified Harmony patch for UIRoot.UIRootOnGUI to handle all keyboard accessibility features.
-    /// Handles: Escape key for pause menu, Enter key for building inspection/beds, ] key for colonist orders, I key for inspection menu, J key for scanner, L key for notification menu, F7 key for quest menu, Alt+M for mood info, Alt+H for health info, Alt+N for needs info, Alt+F for unforbid all items, Alt+Home for scanner auto-jump toggle, Shift+C for reform caravan (temporary maps), F2 for schedule, F3 for assign, F6 for research, and all windowless menu navigation.
+    /// Handles: Escape key for pause menu, Enter key for building inspection/beds, ] key for colonist orders, I key for inspection menu, J key for scanner, L key for notification menu, F7 key for quest menu, Alt+M for mood info, Alt+H for health info, Alt+N for needs info, Alt+K for top skills, Alt+F for unforbid all items, Alt+Home for scanner auto-jump toggle, Shift+C for reform caravan (temporary maps), F2 for schedule, F3 for assign, F6 for research, and all windowless menu navigation.
     /// Note: Dialog navigation (including research completion dialogs) is handled by DialogAccessibilityPatch.
     /// </summary>
     [HarmonyPatch(typeof(UIRoot))]
@@ -151,6 +151,24 @@ namespace RimWorldAccess
                             Log.Message($"[UnifiedKeyboardPatch] Dialog_NodeTree open, letting key {key} pass through");
                             // Don't consume these keys - let DialogAccessibilityPatch handle them
                             return;
+                        }
+                        break;
+                    }
+                }
+            }
+
+            // ===== EARLY CHECK: Skip Enter/Escape if Dialog_MessageBox is open =====
+            // MessageBoxAccessibilityPatch handles keyboard input for Dialog_MessageBox windows
+            // (e.g. romance relationship warnings, shelf linking confirmations)
+            if (Find.WindowStack != null)
+            {
+                foreach (var window in Find.WindowStack.Windows)
+                {
+                    if (window is Dialog_MessageBox)
+                    {
+                        if (key == KeyCode.Return || key == KeyCode.KeypadEnter || key == KeyCode.Escape)
+                        {
+                            return; // Let MessageBoxAccessibilityPatch handle these
                         }
                         break;
                     }
@@ -388,7 +406,7 @@ namespace RimWorldAccess
                 bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
                 bool isStar = key == KeyCode.KeypadMultiply || (Event.current.shift && key == KeyCode.Alpha8);
 
-                if (isLetter || isNumber || isStar)
+                if ((isLetter || isNumber || isStar) && !Event.current.alt)
                 {
                     if (isStar)
                     {
@@ -638,6 +656,48 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 0.373: Handle ability targeting if active =====
+            // This provides R, T, I keys during psycast/ability map targeting
+            if (AbilityTargetingState.IsActive && !WindowlessDialogState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = Event.current.alt;
+
+                if (AbilityTargetingState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 0.374: Handle Command_Target targeting with range context (R key) =====
+            // This provides R key range check during animal attack targeting and similar Command_Target operations
+            if (TargetingPatch.HasTargetingContext && Find.Targeter.IsTargeting && !WindowlessDialogState.IsActive)
+            {
+                if (key == KeyCode.R && !Event.current.shift && !Event.current.control && !Event.current.alt)
+                {
+                    TargetingPatch.HandleRangeCheck();
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 0.376: Handle world ability targeting if active =====
+            // This handles Enter/Escape/I keys during world map ability targeting (e.g., Farskip)
+            if (WorldAbilityTargetingState.IsActive && !WindowlessDialogState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = Event.current.alt;
+
+                if (WorldAbilityTargetingState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 0.5: Handle world scanner keys (PageUp/PageDown/Home/End) =====
             // Skip if any accessibility menu is active - they handle their own Enter/navigation keys
             // Note: KeyboardHelper.IsAnyAccessibilityMenuActive() covers all menus that need exclusion
@@ -835,6 +895,7 @@ namespace RimWorldAccess
                     (key == KeyCode.H && Event.current.alt) ||
                     (key == KeyCode.N && Event.current.alt) ||
                     (key == KeyCode.B && Event.current.alt) ||
+                    (key == KeyCode.K && Event.current.alt) ||
                     (key == KeyCode.F && Event.current.alt) ||
                     (key == KeyCode.R && Event.current.alt))
                 {
@@ -1103,7 +1164,7 @@ namespace RimWorldAccess
                         bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                         bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                        if (isLetter || isNumber)
+                        if ((isLetter || isNumber) && !Event.current.alt)
                         {
                             char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                             WindowlessAreaState.HandleActionsTypeahead(c);
@@ -1569,7 +1630,7 @@ namespace RimWorldAccess
                     bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                     bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                    if (isLetter || isNumber)
+                    if ((isLetter || isNumber) && !Event.current.alt)
                     {
                         char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                         WindowlessSaveMenuState.ProcessTypeaheadCharacter(c);
@@ -2122,8 +2183,14 @@ namespace RimWorldAccess
             {
                 bool handled = false;
 
+                // Handle Alt+I - open info card for current item
+                if (Event.current.alt && key == KeyCode.I && !Event.current.shift && !Event.current.control)
+                {
+                    WindowlessResearchDetailState.OpenInfoCard();
+                    handled = true;
+                }
                 // Handle Home - jump to first (Ctrl+Home for absolute first)
-                if (key == KeyCode.Home)
+                else if (key == KeyCode.Home)
                 {
                     if (Event.current.control)
                         WindowlessResearchDetailState.JumpToAbsoluteFirst();
@@ -2212,7 +2279,7 @@ namespace RimWorldAccess
                     bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                     bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                    if (isLetter || isNumber)
+                    if ((isLetter || isNumber) && !Event.current.alt)
                     {
                         char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                         WindowlessResearchDetailState.ProcessTypeaheadCharacter(c);
@@ -2232,6 +2299,12 @@ namespace RimWorldAccess
             {
                 bool handled = false;
 
+                // Handle Alt+I - open info card for selected project
+                if (Event.current.alt && key == KeyCode.I)
+                {
+                    WindowlessResearchMenuState.OpenInfoCard();
+                    handled = true;
+                }
                 // Handle Home - jump to first (Ctrl+Home for absolute first)
                 if (key == KeyCode.Home)
                 {
@@ -2327,7 +2400,7 @@ namespace RimWorldAccess
                     bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                     bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                    if (isLetter || isNumber)
+                    if ((isLetter || isNumber) && !Event.current.alt)
                     {
                         char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                         WindowlessResearchMenuState.ProcessTypeaheadCharacter(c);
@@ -2465,10 +2538,11 @@ namespace RimWorldAccess
 
                 // Handle typeahead characters
                 // Use KeyCode instead of Event.current.character (which is empty in Unity IMGUI)
+                // Skip if Alt is held - Alt+key combos are shortcuts, not search input
                 bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                 bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                if (isLetter || isNumber)
+                if ((isLetter || isNumber) && !Event.current.alt)
                 {
                     char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                     QuestMenuState.HandleTypeahead(c);
@@ -2581,6 +2655,13 @@ namespace RimWorldAccess
                     handled = true;
                 }
 
+                // Handle Alt+I - open info card for selected animal
+                if (Event.current.alt && key == KeyCode.I)
+                {
+                    WildlifeMenuState.OpenInfoCard();
+                    handled = true;
+                }
+
                 if (handled)
                 {
                     Event.current.Use();
@@ -2589,10 +2670,11 @@ namespace RimWorldAccess
 
                 // Handle typeahead characters
                 // Use KeyCode instead of Event.current.character (which is empty in Unity IMGUI)
+                // Skip if Alt is held - Alt+key combos are shortcuts, not search input
                 bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                 bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                if (isLetter || isNumber)
+                if ((isLetter || isNumber) && !Event.current.alt)
                 {
                     char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                     WildlifeMenuState.HandleTypeahead(c);
@@ -2823,6 +2905,12 @@ namespace RimWorldAccess
                     }
                     handled = true;
                 }
+                // Handle Alt+I - open info card for selected animal
+                else if (Event.current.alt && key == KeyCode.I)
+                {
+                    AnimalsMenuState.OpenInfoCard();
+                    handled = true;
+                }
 
                 if (handled)
                 {
@@ -2832,10 +2920,11 @@ namespace RimWorldAccess
 
                 // Handle typeahead characters
                 // Use KeyCode instead of Event.current.character (which is empty in Unity IMGUI)
+                // Skip if Alt is held - Alt+key combos are shortcuts, not search input
                 bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                 bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                if (isLetter || isNumber)
+                if ((isLetter || isNumber) && !Event.current.alt)
                 {
                     char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                     AnimalsMenuState.HandleTypeahead(c);
@@ -3149,12 +3238,13 @@ namespace RimWorldAccess
                 }
 
                 // Handle typeahead characters for search (only in list view)
+                // Skip if Alt is held - Alt+key combos are shortcuts, not search input
                 if (!NotificationMenuState.IsInDetailView)
                 {
                     bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                     bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                    if (isLetter || isNumber)
+                    if ((isLetter || isNumber) && !Event.current.alt)
                     {
                         char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                         NotificationMenuState.HandleTypeahead(c);
@@ -3170,7 +3260,7 @@ namespace RimWorldAccess
                 bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                 bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                if (isLetter || isNumber)
+                if ((isLetter || isNumber) && !Event.current.alt)
                 {
                     char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                     AssignMenuState.ProcessTypeaheadCharacter(c);
@@ -3190,10 +3280,18 @@ namespace RimWorldAccess
             // Note: StorageSettingsMenuPatch handles navigation at higher priority, but letters fall through here
             if (StorageSettingsMenuState.IsActive)
             {
+                // Handle Alt+I - open info card for selected item
+                if (Event.current.alt && key == KeyCode.I)
+                {
+                    StorageSettingsMenuState.OpenInfoCard();
+                    Event.current.Use();
+                    return;
+                }
+
                 bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                 bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                if (isLetter || isNumber)
+                if ((isLetter || isNumber) && !Event.current.alt)
                 {
                     char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                     StorageSettingsMenuState.ProcessTypeaheadCharacter(c);
@@ -3215,7 +3313,7 @@ namespace RimWorldAccess
                 bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                 bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                if (isLetter || isNumber)
+                if ((isLetter || isNumber) && !Event.current.alt)
                 {
                     char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                     PlantSelectionMenuState.HandleTypeahead(c);
@@ -3403,6 +3501,12 @@ namespace RimWorldAccess
                     WindowlessFloatMenuState.HandleBackspace();
                     handled = true;
                 }
+                // === Handle Alt+I - open info card for selected item ===
+                else if (Event.current.alt && key == KeyCode.I)
+                {
+                    WindowlessFloatMenuState.TryOpenInfoCardForSelected();
+                    handled = true;
+                }
 
                 if (handled)
                 {
@@ -3413,11 +3517,12 @@ namespace RimWorldAccess
                 // === Consume ALL alphanumeric + * for typeahead ===
                 // This MUST be at the end to catch any unhandled characters
                 // Use KeyCode instead of Event.current.character (which is empty in Unity IMGUI)
+                // Skip if Alt is held - Alt+key combos are shortcuts, not search input
                 bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                 bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
                 bool isStar = key == KeyCode.KeypadMultiply || (Event.current.shift && key == KeyCode.Alpha8);
 
-                if (isLetter || isNumber || isStar)
+                if ((isLetter || isNumber || isStar) && !Event.current.alt)
                 {
                     if (isStar)
                     {
@@ -3565,6 +3670,12 @@ namespace RimWorldAccess
                         bool wasDrafted = selectedPawn.drafter.Drafted;
                         selectedPawn.drafter.Drafted = !wasDrafted;
 
+                        // Play the draft/undraft sound (matches game UI behavior)
+                        if (selectedPawn.drafter.Drafted)
+                            SoundDefOf.DraftOn.PlayOneShotOnCamera();
+                        else
+                            SoundDefOf.DraftOff.PlayOneShotOnCamera();
+
                         // Announce the change
                         string status = selectedPawn.drafter.Drafted ? "Drafted" : "Undrafted";
                         TolkHelper.Speak($"{selectedPawn.LabelShort} {status}");
@@ -3676,6 +3787,27 @@ namespace RimWorldAccess
                     GearState.DisplayGearInfo();
 
                     // Prevent the default G key behavior
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 6.5275: Display top skills with Alt+K (if pawn is selected) =====
+            if (key == KeyCode.K && Event.current.alt)
+            {
+                // Only display skills if:
+                // 1. We're in gameplay (not at main menu)
+                // 2. No windows are preventing camera motion (means a dialog is open)
+                // 3. Not in zone creation mode
+                if (Current.ProgramState == ProgramState.Playing &&
+                    Find.CurrentMap != null &&
+                    (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
+                    !ZoneCreationState.IsInCreationMode)
+                {
+                    // Display top skills information
+                    SkillsState.DisplaySkillsInfo();
+
+                    // Prevent the default K key behavior
                     Event.current.Use();
                     return;
                 }
@@ -4129,6 +4261,33 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 7.61: Open info card at cursor with Alt+I =====
+            if (Event.current.alt && key == KeyCode.I && !Event.current.shift && !Event.current.control)
+            {
+                if (Current.ProgramState == ProgramState.Playing &&
+                    Find.CurrentMap != null &&
+                    (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
+                    !ZoneCreationState.IsInCreationMode &&
+                    MapNavigationState.IsInitialized &&
+                    !WindowlessResearchMenuState.IsActive &&
+                    !WindowlessResearchDetailState.IsActive &&
+                    !WindowlessInventoryState.IsActive &&
+                    !GizmoNavigationState.IsActive &&
+                    !WindowlessInspectionState.IsActive &&
+                    !QuestMenuState.IsActive &&
+                    !NotificationMenuState.IsActive &&
+                    !WindowlessFloatMenuState.IsActive &&
+                    !PlantSelectionMenuState.IsActive &&
+                    !StorageSettingsMenuState.IsActive &&
+                    !BillsMenuState.IsActive &&
+                    !BillConfigState.IsActive)
+                {
+                    Event.current.Use();
+                    OpenInfoCardAtCursor();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 7.6b: Open colony inventory menu with uppercase 'I' key =====
             if (key == KeyCode.I)
             {
@@ -4511,6 +4670,80 @@ namespace RimWorldAccess
 
             Log.Message($"Unforbid all: {unforbiddenCount} items unforbidden");
         }
+
+        #region Info Card at Cursor
+
+        private static void OpenInfoCardAtCursor()
+        {
+            IntVec3 pos = MapNavigationState.CurrentCursorPosition;
+            Map map = Find.CurrentMap;
+
+            if (!pos.IsValid || !pos.InBounds(map))
+            {
+                TolkHelper.Speak("Nothing to inspect here");
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                return;
+            }
+
+            // Gather selectable things at cursor position
+            var things = new List<Thing>();
+            foreach (var obj in Selector.SelectableObjectsAt(pos, map))
+            {
+                if (obj is Thing thing)
+                {
+                    things.Add(thing);
+                }
+            }
+
+            TerrainDef terrain = map.terrainGrid.TerrainAt(pos);
+
+            if (things.Count == 1)
+            {
+                // Single thing - open its info card directly
+                Find.WindowStack.Add(new Dialog_InfoCard(things[0]));
+            }
+            else if (things.Count == 0)
+            {
+                if (terrain != null)
+                {
+                    // Only terrain at this position
+                    Find.WindowStack.Add(new Dialog_InfoCard(terrain));
+                }
+                else
+                {
+                    // Nothing at all
+                    TolkHelper.Speak("Nothing to inspect here");
+                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                }
+            }
+            else
+            {
+                // Multiple things - show selection menu with terrain as last option
+                var options = new List<FloatMenuOption>();
+
+                foreach (var thing in things)
+                {
+                    var capturedThing = thing;
+                    options.Add(new FloatMenuOption(
+                        capturedThing.LabelCapNoCount.StripTags(),
+                        () => Find.WindowStack.Add(new Dialog_InfoCard(capturedThing))
+                    ));
+                }
+
+                if (terrain != null)
+                {
+                    var capturedTerrain = terrain;
+                    options.Add(new FloatMenuOption(
+                        ((string)capturedTerrain.LabelCap).StripTags(),
+                        () => Find.WindowStack.Add(new Dialog_InfoCard(capturedTerrain))
+                    ));
+                }
+
+                WindowlessFloatMenuState.Open(options, colonistOrders: false);
+            }
+        }
+
+        #endregion
 
         #region Forbid Toggle at Cursor
 

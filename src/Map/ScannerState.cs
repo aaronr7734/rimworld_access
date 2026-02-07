@@ -946,13 +946,23 @@ namespace RimWorldAccess
                 basicAnnouncement = $"{item.Label}, here";
             }
 
-            // Add location context for pawns (colonists, NPCs, animals)
-            if (item.Thing is Pawn)
+            // Add location context and activity for pawns (colonists, NPCs, animals)
+            if (item.Thing is Pawn pawn)
             {
                 string locationContext = TileInfoHelper.GetLocationContext(targetPos, Find.CurrentMap);
                 if (!string.IsNullOrEmpty(locationContext))
                 {
                     basicAnnouncement += $" {locationContext}";
+                }
+
+                // Add pawn activity if enabled in settings
+                if (RimWorldAccessMod_Settings.Settings?.ShowPawnActivityOnMap ?? true)
+                {
+                    string activity = PawnHelper.GetPawnActivity(pawn);
+                    if (!string.IsNullOrEmpty(activity))
+                    {
+                        basicAnnouncement += $", {activity}";
+                    }
                 }
             }
 
