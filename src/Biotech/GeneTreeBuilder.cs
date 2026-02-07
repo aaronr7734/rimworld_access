@@ -151,38 +151,52 @@ namespace RimWorldAccess
                 return DescribeColor(gene.hairColorOverride.Value);
             }
 
-            // Check for skin color
+            // Check for skin color - use perceptual luminance for skin-specific shade names
             if (gene.skinColorOverride.HasValue)
             {
-                return DescribeColor(gene.skinColorOverride.Value);
+                return DescribeSkinShade(gene.skinColorOverride.Value);
             }
             if (gene.skinColorBase.HasValue)
             {
-                return DescribeColor(gene.skinColorBase.Value);
+                return DescribeSkinShade(gene.skinColorBase.Value);
             }
 
             return null;
         }
 
         /// <summary>
-        /// Converts a Unity Color to a human-readable description.
+        /// Converts a skin color to a human-readable shade using perceptual luminance.
+        /// Matches the labels used in InfoCardDataExtractor for consistency.
+        /// </summary>
+        private static string DescribeSkinShade(UnityEngine.Color color)
+        {
+            float luminance = 0.299f * color.r + 0.587f * color.g + 0.114f * color.b;
+            if (luminance > 0.85f) return "very light";
+            if (luminance > 0.7f) return "light";
+            if (luminance > 0.55f) return "fair";
+            if (luminance > 0.45f) return "medium";
+            if (luminance > 0.35f) return "tan";
+            if (luminance > 0.2f) return "brown";
+            return "dark brown";
+        }
+
+        /// <summary>
+        /// Converts a Unity Color to a human-readable description for non-skin colors (hair, etc.).
         /// </summary>
         private static string DescribeColor(UnityEngine.Color color)
         {
-            // Simple color description based on RGB values
             float r = color.r;
             float g = color.g;
             float b = color.b;
             float brightness = (r + g + b) / 3f;
 
-            // Check for grayscale (skin tones are often desaturated)
+            // Check for grayscale
             float maxChannel = Math.Max(r, Math.Max(g, b));
             float minChannel = Math.Min(r, Math.Min(g, b));
             float saturation = maxChannel > 0 ? (maxChannel - minChannel) / maxChannel : 0;
 
             if (saturation < 0.15f)
             {
-                // Grayscale - describe by brightness
                 if (brightness < 0.2f) return "very dark";
                 if (brightness < 0.35f) return "dark";
                 if (brightness < 0.5f) return "medium-dark";
