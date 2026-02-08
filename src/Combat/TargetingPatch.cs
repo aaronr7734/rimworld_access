@@ -180,44 +180,88 @@ namespace RimWorldAccess
                         }
                     }
 
+                    // For item targeting (CompTargetable), check if there's a valid thing at cursor.
+                    // CompTargetable.ValidateTarget returns false for non-Thing targets but
+                    // doesn't produce a message for the "nothing here" case. Provide explicit feedback.
+                    if (ItemTargetingState.IsActive && !target.HasThing)
+                    {
+                        TolkHelper.Speak(ItemTargetingState.GetNoTargetErrorMessage(), SpeechPriority.High);
+                        Event.current.Use();
+                        return false;
+                    }
+
                     // Validate the target can be attacked/used
                     if (!targetingSource.ValidateTarget(target, showMessages: true))
                     {
                         // Invalid target - stay in targeting mode, let user try another position
+                        // For item targeting, CompTargetable.ValidateTarget may reject silently
+                        // (e.g., wrong pawn type, hediff conflict). Provide feedback so the user
+                        // knows the target was rejected rather than hearing nothing.
+                        if (ItemTargetingState.IsActive)
+                        {
+                            string targetLabel = target.HasThing ? target.Thing.LabelShort : "target";
+                            TolkHelper.Speak($"{targetLabel} is not a valid target", SpeechPriority.High);
+                        }
                         // User must press Escape to exit targeting
                         Event.current.Use();
                         return false;
                     }
 
-                    // For turrets, call OrderAttack on the building instead of the verb's OrderForceTarget
-                    // (Verb.OrderForceTarget assumes a pawn caster and will throw NullReferenceException)
-                    var verb = targetingSource as Verb;
-                    if (verb?.caster is Building_TurretGun turret)
+                    try
                     {
-                        // Pre-check range to stay in targeting mode on failure
-                        float distance = (target.Cell - turret.Position).LengthHorizontal;
-                        float minRange = turret.AttackVerb.verbProps.EffectiveMinRange(target, turret);
-                        float maxRange = turret.AttackVerb.EffectiveRange;
-
-                        if (distance < minRange)
+                        // For turrets, call OrderAttack on the building instead of the verb's OrderForceTarget
+                        // (Verb.OrderForceTarget assumes a pawn caster and will throw NullReferenceException)
+                        var verb = targetingSource as Verb;
+                        if (verb?.caster is Building_TurretGun turret)
                         {
-                            Messages.Message("MessageTargetBelowMinimumRange".Translate(), turret, MessageTypeDefOf.RejectInput, historical: false);
-                            Event.current.Use();
-                            return false;
-                        }
-                        if (distance > maxRange)
-                        {
-                            Messages.Message("MessageTargetBeyondMaximumRange".Translate(), turret, MessageTypeDefOf.RejectInput, historical: false);
-                            Event.current.Use();
-                            return false;
-                        }
+                            // Pre-check range to stay in targeting mode on failure
+                            float distance = (target.Cell - turret.Position).LengthHorizontal;
+                            float minRange = turret.AttackVerb.verbProps.EffectiveMinRange(target, turret);
+                            float maxRange = turret.AttackVerb.EffectiveRange;
 
-                        turret.OrderAttack(target);
+                            if (distance < minRange)
+                            {
+                                Messages.Message("MessageTargetBelowMinimumRange".Translate(), turret, MessageTypeDefOf.RejectInput, historical: false);
+                                Event.current.Use();
+                                return false;
+                            }
+                            if (distance > maxRange)
+                            {
+                                Messages.Message("MessageTargetBeyondMaximumRange".Translate(), turret, MessageTypeDefOf.RejectInput, historical: false);
+                                Event.current.Use();
+                                return false;
+                            }
+
+                            turret.OrderAttack(target);
+                        }
+                        else
+                        {
+                            // Standard pawn targeting
+                            targetingSource.OrderForceTarget(target);
+                        }
                     }
-                    else
+                    catch (System.Exception ex)
                     {
-                        // Standard pawn targeting
-                        targetingSource.OrderForceTarget(target);
+                        ModLogger.Error($"Exception in OrderForceTarget: {ex.Message}");
+                        TolkHelper.Speak($"Error using on target: {ex.Message}", SpeechPriority.High);
+                        Event.current.Use();
+                        return false;
+                    }
+
+                    // Check if OrderForceTarget started a NEW targeting phase.
+                    // This happens with multi-phase items like the sentience catalyst:
+                    //   Phase 1 (CompUsable): select colonist to administer → OrderForceTarget
+                    //   Phase 2 (CompTargetable): select target animal (started inside OrderForceTarget)
+                    // If the Targeter's targeting source changed, a new phase was started.
+                    // Do NOT call StopTargeting or we'd kill the new phase.
+                    var newTargetingSource = targetingSourceField?.GetValue(__instance) as ITargetingSource;
+                    if (__instance.IsTargeting && newTargetingSource != null && newTargetingSource != targetingSource)
+                    {
+                        // New targeting phase started by OrderForceTarget.
+                        // The BeginTargeting postfix already announced it via ItemTargetingState.Open().
+                        // Just consume the event and let the new phase continue.
+                        Event.current.Use();
+                        return false;
                     }
 
                     // Build success announcement BEFORE stopping targeting
@@ -226,6 +270,10 @@ namespace RimWorldAccess
                     if (AbilityTargetingState.IsActive)
                     {
                         successMessage = AbilityTargetingState.BuildSuccessAnnouncement(target, cursorPosition);
+                    }
+                    else if (ItemTargetingState.IsActive)
+                    {
+                        successMessage = ItemTargetingState.BuildSuccessAnnouncement(target);
                     }
                     else
                     {

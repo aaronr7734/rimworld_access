@@ -53,6 +53,20 @@ namespace RimWorldAccess
             // Note: Destination phase for dual-target abilities (e.g., Skip) is handled by
             // TargetingPatch.Prefix, which calls AbilityTargetingState.EnterDestinationPhase()
             // with both the target position and destination range before BeginTargeting is called.
+
+            // Handle non-ability targeting sources (CompTargetable, CompUsable items like
+            // sentience catalyst, healer mech serum, etc.). These implement ITargetingSource
+            // but are not ability verbs.
+            if (!AbilityTargetingState.IsActive)
+            {
+                // Close previous phase if active. Multi-phase items (e.g., sentience catalyst)
+                // transition from CompUsable (Phase 1: select colonist) to CompTargetable
+                // (Phase 2: select target animal) via OrderForceTarget → SelectedUseOption → BeginTargeting.
+                if (ItemTargetingState.IsActive)
+                    ItemTargetingState.Close();
+
+                ItemTargetingState.Open(source);
+            }
         }
 
         /// <summary>
@@ -65,6 +79,11 @@ namespace RimWorldAccess
             if (AbilityTargetingState.IsActive)
             {
                 AbilityTargetingState.Close();
+            }
+
+            if (ItemTargetingState.IsActive)
+            {
+                ItemTargetingState.Close();
             }
 
             // Also clear Command_Target targeting context (e.g., animal attack range info)

@@ -5,7 +5,7 @@ Screen reader accessibility for psycast and ability targeting, providing range i
 
 ## Files
 **Patches:** AbilityTargetingPatch.cs
-**States:** AbilityTargetingState.cs, WorldAbilityTargetingState.cs
+**States:** AbilityTargetingState.cs, WorldAbilityTargetingState.cs, ItemTargetingState.cs
 **Helpers:** AbilityTargetingHelper.cs
 
 ## Key Shortcuts
@@ -38,6 +38,13 @@ Screen reader accessibility for psycast and ability targeting, providing range i
 - Integrates with WorldNavigationState for tile navigation
 - Uses ability.ValidateGlobalTarget() for destination validation
 
+**ItemTargetingState** - Manages CompTargetable/CompUsable item targeting (sentience catalyst, mech serums, etc.)
+- Lightweight: no custom key handlers (no R/T key support needed)
+- Opened by BeginTargeting postfix when source is not an ability verb
+- Closed by StopTargeting postfix
+- Provides contextual announcements (start, success, error) via TargetingPatch integration
+- Infers target type description from TargetingParameters (animal, pawn, building, etc.)
+
 ### Helper Class
 
 **AbilityTargetingHelper** - Utility methods for ability information extraction
@@ -50,8 +57,8 @@ Screen reader accessibility for psycast and ability targeting, providing range i
 ### Harmony Patches
 
 **AbilityTargetingPatch**
-- Patches `Targeter.BeginTargeting(ITargetingSource...)` to detect ability targeting start
-- Patches `Targeter.StopTargeting` to close AbilityTargetingState
+- Patches `Targeter.BeginTargeting(ITargetingSource...)` to detect ability and item targeting start
+- Patches `Targeter.StopTargeting` to close AbilityTargetingState and ItemTargetingState
 - Patches `WorldTargeter.StopTargeting` to close WorldAbilityTargetingState
 - Patches `Command_Ability.ProcessInput` to detect world targeting start
 
@@ -125,6 +132,10 @@ Screen reader accessibility for psycast and ability targeting, providing range i
 - [ ] World tiles show ability destination validity info
 - [ ] Enter on world map confirms destination
 - [ ] Escape cancels targeting and returns to map
+- [ ] CompUsable/CompTargetable items announce targeting mode on start
+- [ ] Enter on valid animal confirms item targeting with contextual message
+- [ ] Enter on empty tile during item targeting speaks error message
+- [ ] Escape cancels item targeting cleanly
 
 ## Known Issues / Notes
 
@@ -132,6 +143,7 @@ Screen reader accessibility for psycast and ability targeting, providing range i
 - AbilityTargetingState opens when any `IAbilityVerb` is detected as targeting source (catches Verb_CastAbility, Verb_CastAbilityJump, Verb_CastAbilityTouch, Verb_AbilityShoot, and modded verbs)
 - WorldAbilityTargetingState opens when `ability.def.targetWorldCell == true`
 - Self-cast abilities (`targetRequired == false`) are announced by GizmoNavigationState
+- ItemTargetingState opens for any other ITargetingSource (CompTargetable, CompUsable items)
 
 **AOE Radius Precision:**
 - Game uses float radius (e.g., 2.9, 3.9) which truncates to visual ring
