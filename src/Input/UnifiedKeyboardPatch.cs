@@ -744,12 +744,12 @@ namespace RimWorldAccess
                         WorldScannerState.JumpToCurrent();
                     handled = true;
                 }
-                // End: Read distance/direction (Alt = nearest caravan)
+                // End: Read distance/direction (Alt = nearest caravan, in-game only)
                 else if (key == KeyCode.End && !shift && !ctrl)
                 {
-                    if (alt)
+                    if (alt && WorldNavigationState.Context == WorldNavContext.InGame)
                         WorldNavigationState.JumpToNearestCaravan();
-                    else
+                    else if (!alt)
                         WorldScannerState.ReadDistanceAndDirection();
                     handled = true;
                 }
@@ -759,51 +759,56 @@ namespace RimWorldAccess
                     WorldScannerState.ToggleAutoJumpMode();
                     handled = true;
                 }
-                // Comma/Period: Cycle caravans
-                else if (key == KeyCode.Period && !shift && !ctrl && !alt)
+                // === In-game only keys (caravans, inspect, notifications, world object selection) ===
+                // These must not consume events during WorldGen - StartingSitePatch handles I/Enter/etc.
+                else if (WorldNavigationState.Context == WorldNavContext.InGame)
                 {
-                    WorldNavigationState.CycleToNextCaravan();
-                    handled = true;
-                }
-                else if (key == KeyCode.Comma && !shift && !ctrl && !alt)
-                {
-                    WorldNavigationState.CycleToPreviousCaravan();
-                    handled = true;
-                }
-                // Ctrl+Space: Toggle caravan multi-selection
-                else if (key == KeyCode.Space && !shift && ctrl && !alt)
-                {
-                    WorldNavigationState.ToggleCaravanSelection();
-                    handled = true;
-                }
-                // Alt+C: Jump cursor to selected caravan(s)
-                else if (key == KeyCode.C && !shift && !ctrl && alt)
-                {
-                    WorldNavigationState.JumpToSelectedCaravans();
-                    handled = true;
-                }
-                // I key: Open caravan inspect screen for selected caravan
-                // Skip if gizmo menu is active - let typeahead handle the key
-                else if (key == KeyCode.I && !shift && !ctrl && !alt && !GizmoNavigationState.IsActive)
-                {
-                    WorldNavigationState.ShowCaravanInspect();
-                    handled = true;
-                }
-                // L key: Open notification/letter menu from world map
-                else if (key == KeyCode.L && !shift && !ctrl && !alt)
-                {
-                    NotificationMenuState.Open();
-                    handled = true;
-                }
-                // Enter key: Open world object selection/inspection at current tile
-                // Skip if route planner is active - it handles Enter for confirming routes
-                else if ((key == KeyCode.Return || key == KeyCode.KeypadEnter) && !shift && !ctrl && !alt && !RoutePlannerState.IsActive)
-                {
-                    PlanetTile currentTile = WorldNavigationState.CurrentSelectedTile;
-                    if (currentTile.Valid)
+                    // Comma/Period: Cycle caravans
+                    if (key == KeyCode.Period && !shift && !ctrl && !alt)
                     {
-                        WorldObjectSelectionState.Open(currentTile);
+                        WorldNavigationState.CycleToNextCaravan();
                         handled = true;
+                    }
+                    else if (key == KeyCode.Comma && !shift && !ctrl && !alt)
+                    {
+                        WorldNavigationState.CycleToPreviousCaravan();
+                        handled = true;
+                    }
+                    // Ctrl+Space: Toggle caravan multi-selection
+                    else if (key == KeyCode.Space && !shift && ctrl && !alt)
+                    {
+                        WorldNavigationState.ToggleCaravanSelection();
+                        handled = true;
+                    }
+                    // Alt+C: Jump cursor to selected caravan(s)
+                    else if (key == KeyCode.C && !shift && !ctrl && alt)
+                    {
+                        WorldNavigationState.JumpToSelectedCaravans();
+                        handled = true;
+                    }
+                    // I key: Open caravan inspect screen for selected caravan
+                    // Skip if gizmo menu is active - let typeahead handle the key
+                    else if (key == KeyCode.I && !shift && !ctrl && !alt && !GizmoNavigationState.IsActive)
+                    {
+                        WorldNavigationState.ShowCaravanInspect();
+                        handled = true;
+                    }
+                    // L key: Open notification/letter menu from world map
+                    else if (key == KeyCode.L && !shift && !ctrl && !alt)
+                    {
+                        NotificationMenuState.Open();
+                        handled = true;
+                    }
+                    // Enter key: Open world object selection/inspection at current tile
+                    // Skip if route planner is active - it handles Enter for confirming routes
+                    else if ((key == KeyCode.Return || key == KeyCode.KeypadEnter) && !shift && !ctrl && !alt && !RoutePlannerState.IsActive)
+                    {
+                        PlanetTile currentTile = WorldNavigationState.CurrentSelectedTile;
+                        if (currentTile.Valid)
+                        {
+                            WorldObjectSelectionState.Open(currentTile);
+                            handled = true;
+                        }
                     }
                 }
 
@@ -853,10 +858,11 @@ namespace RimWorldAccess
                 }
             }
 
-            // ===== PRIORITY 0.75: Handle F8 to dismiss world map and restore cursor =====
+            // ===== PRIORITY 0.75: Handle F8 to dismiss world map and restore cursor (in-game only) =====
             // F8 is the world map toggle - when pressed while on world map, dismiss it and restore cursor
             if (key == KeyCode.F8 &&
                 WorldNavigationState.IsActive &&
+                WorldNavigationState.Context == WorldNavContext.InGame &&
                 !CaravanFormationState.IsActive &&
                 !SplitCaravanState.IsActive &&
                 !KeyboardHelper.IsAnyAccessibilityMenuActive())
@@ -869,11 +875,13 @@ namespace RimWorldAccess
                 return;
             }
 
-            // ===== EARLY BLOCK: If in world view, block most map-specific keys =====
+            // ===== EARLY BLOCK: If in world view (in-game), block most map-specific keys =====
+            // Only applies to in-game world map - world gen has its own key handling in StartingSitePatch
             // Don't block when choosing destination (allow map interaction)
             // Don't block Enter/Escape when menus are active (need them for menu navigation)
             // Use IsAnyAccessibilityMenuActive() to cover all windowless menus (pause, save, load, options, etc.)
             if (WorldNavigationState.IsActive &&
+                WorldNavigationState.Context == WorldNavContext.InGame &&
                 !CaravanFormationState.IsActive &&
                 !SplitCaravanState.IsActive &&
                 !GearEquipMenuState.IsActive &&
@@ -2940,7 +2948,9 @@ namespace RimWorldAccess
             // ===== PRIORITY 4.745: Handle scanner search (Z key activates, letters go to buffer) =====
             // Z key activates search; when search is active, letter keys filter items
             // Works during placement mode (architect build or designator from gizmos)
-            if (Current.ProgramState == ProgramState.Playing)
+            // Also works during world gen (WorldNavContext.WorldGen) for world scanner search
+            if (Current.ProgramState == ProgramState.Playing ||
+                WorldNavigationState.Context == WorldNavContext.WorldGen)
             {
                 bool onWorldMap = WorldNavigationState.IsActive;
                 bool onMap = MapNavigationState.IsInitialized && !onWorldMap;
@@ -3538,8 +3548,9 @@ namespace RimWorldAccess
             }
 
             // ===== PRIORITY 5.45: Handle world map tile info keys 1-5 =====
+            // Works during both in-game world map and world gen starting site screen
             if (WorldNavigationState.IsActive &&
-                Current.ProgramState == ProgramState.Playing &&
+                (Current.ProgramState == ProgramState.Playing || WorldNavigationState.Context == WorldNavContext.WorldGen) &&
                 !Event.current.shift && !Event.current.control && !Event.current.alt)
             {
                 int category = 0;
