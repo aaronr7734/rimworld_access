@@ -549,7 +549,7 @@ namespace RimWorldAccess
 
             IntVec3 targetPosition;
 
-            if (currentItem.IsTerrain)
+            if (currentItem.IsTerrain || currentItem.HasTerrainRegions)
             {
                 // For terrain regions, jump to the region center
                 if (currentItem.HasTerrainRegions && currentBulkIndex < currentItem.TerrainRegions.Count)
@@ -676,7 +676,7 @@ namespace RimWorldAccess
 
             IntVec3 targetPos;
 
-            if (currentItem.IsTerrain)
+            if (currentItem.IsTerrain || currentItem.HasTerrainRegions)
             {
                 // For terrain regions, use region center
                 if (currentItem.HasTerrainRegions && currentBulkIndex < currentItem.TerrainRegions.Count)

@@ -3042,6 +3042,8 @@ namespace RimWorldAccess
             {
                 // Check placement mode here (after verifying we're in gameplay)
                 bool inPlacementMode = ArchitectState.IsInPlacementMode ||
+                    ViewingModeState.IsActive ||
+                    ShapePlacementState.IsActive ||
                     (Find.DesignatorManager != null && Find.DesignatorManager.SelectedDesignator != null);
 
                 if (!KeyboardHelper.IsAnyAccessibilityMenuActive() || inPlacementMode)
