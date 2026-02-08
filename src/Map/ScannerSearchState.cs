@@ -242,7 +242,7 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Refreshes the active filter with fresh items from the map.
-        /// Called by ScannerState.RefreshItems() when there's an active filter.
+        /// Called by CancelSearch when restoring a previous filter.
         /// Returns the updated list of matching items, or null if no active filter.
         /// </summary>
         public static List<ScannerItem> RefreshMapFilter(Map map, IntVec3 cursorPosition)
@@ -250,8 +250,29 @@ namespace RimWorldAccess
             if (string.IsNullOrEmpty(activeFilterQuery) || activeFilterIsWorldMap)
                 return null;
 
-            // Collect all items from all categories
-            var allItems = CollectAllMapItemsFlat(map, cursorPosition);
+            var categories = ScannerHelper.CollectMapItems(map, cursorPosition);
+            return RefreshMapFilter(categories);
+        }
+
+        /// <summary>
+        /// Refreshes the active filter from pre-collected categories.
+        /// Called by ScannerState.RefreshItems() to avoid double-collecting.
+        /// Returns the updated list of matching items, or null if no active filter.
+        /// </summary>
+        public static List<ScannerItem> RefreshMapFilter(List<ScannerCategory> preCollectedCategories)
+        {
+            if (string.IsNullOrEmpty(activeFilterQuery) || activeFilterIsWorldMap)
+                return null;
+
+            // Flatten all items from pre-collected categories
+            var allItems = new List<ScannerItem>();
+            foreach (var category in preCollectedCategories)
+            {
+                foreach (var subcat in category.Subcategories)
+                {
+                    allItems.AddRange(subcat.Items);
+                }
+            }
 
             // Filter and prioritize by match type
             var firstWordMatches = new List<ScannerItem>();

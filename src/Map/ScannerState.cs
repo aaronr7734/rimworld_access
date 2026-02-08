@@ -24,6 +24,12 @@ namespace RimWorldAccess
         // Temporary category tracking
         private static ScannerCategory temporaryCategory = null;
 
+        // Cache for CollectMapItems to avoid expensive re-collection on every keystroke
+        private static List<ScannerCategory> cachedCategories = null;
+        private static int lastThingStateHash = 0;
+        private static int lastDesignationCount = 0;
+        private static int lastZoneCount = 0;
+
         /// <summary>
         /// Toggles auto-jump mode on/off (Alt+Home).
         /// When enabled, cursor automatically jumps to items as you navigate.
@@ -116,7 +122,7 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Recalculates distances for all items from the current cursor position.
+        /// Recalculates distances for items in the current subcategory from the current cursor position.
         /// Does NOT re-sort items or refresh the list from the map.
         /// </summary>
         private static void RecalculateDistances()
@@ -125,24 +131,15 @@ namespace RimWorldAccess
                 return;
 
             var cursorPos = MapNavigationState.CurrentCursorPosition;
+            var currentSubcat = GetCurrentSubcategory();
+            if (currentSubcat == null) return;
 
-            foreach (var category in categories)
+            foreach (var item in currentSubcat.Items)
             {
-                foreach (var subcat in category.Subcategories)
-                {
-                    foreach (var item in subcat.Items)
-                    {
-                        // Recalculate distance for the primary position
-                        if (item.IsTerrain)
-                        {
-                            item.Distance = (item.Position - cursorPos).LengthHorizontal;
-                        }
-                        else if (item.Thing != null)
-                        {
-                            item.Distance = (item.Thing.Position - cursorPos).LengthHorizontal;
-                        }
-                    }
-                }
+                if (item.IsTerrain)
+                    item.Distance = (item.Position - cursorPos).LengthHorizontal;
+                else if (item.Thing != null)
+                    item.Distance = (item.Thing.Position - cursorPos).LengthHorizontal;
             }
         }
 
@@ -159,6 +156,13 @@ namespace RimWorldAccess
             currentSubcategoryIndex = 0;
             currentItemIndex = 0;
             currentBulkIndex = 0;
+
+            // Clear the collection cache
+            cachedCategories = null;
+            lastThingStateHash = 0;
+            lastDesignationCount = 0;
+            lastZoneCount = 0;
+            ScannerHelper.InvalidateCache();
 
             // Also clear saved focus since it's no longer valid
             savedCategoryIndex = -1;
@@ -192,6 +196,32 @@ namespace RimWorldAccess
 
             var cursorPos = MapNavigationState.CurrentCursorPosition;
 
+            // Check if cached collection is still valid to avoid expensive re-collection
+            int currentThingHash = map.listerThings.StateHashOfGroup(ThingRequestGroup.Everything);
+            int currentDesignationCount = map.designationManager.AllDesignations.Count;
+            int currentZoneCount = map.zoneManager.AllZones.Count;
+
+            bool cacheValid = cachedCategories != null
+                && cachedCategories.Count > 0
+                && currentThingHash == lastThingStateHash
+                && currentDesignationCount == lastDesignationCount
+                && currentZoneCount == lastZoneCount;
+
+            if (cacheValid)
+            {
+                categories = cachedCategories;
+
+                // Re-add temporary category if it existed
+                if (temporaryCategory != null)
+                {
+                    if (!categories.Contains(temporaryCategory))
+                        categories.Add(temporaryCategory);
+                }
+
+                ValidateIndices();
+                return;
+            }
+
             // Check if there's an active search filter that needs refreshing
             if (ScannerSearchState.HasActiveFilter)
             {
@@ -199,13 +229,17 @@ namespace RimWorldAccess
                 bool wasInFilterCategory = IsInTemporaryCategory();
                 int previousItemIndex = currentItemIndex;
 
-                // Get fresh filtered items
-                var filteredItems = ScannerSearchState.RefreshMapFilter(map, cursorPos);
+                // Collect items once, then filter from the collected categories
+                categories = ScannerHelper.CollectMapItems(map, cursorPos);
+                cachedCategories = categories;
+                lastThingStateHash = currentThingHash;
+                lastDesignationCount = currentDesignationCount;
+                lastZoneCount = currentZoneCount;
+
+                // Get filtered items from already-collected categories
+                var filteredItems = ScannerSearchState.RefreshMapFilter(categories);
                 if (filteredItems != null)
                 {
-                    // Collect regular items first
-                    categories = ScannerHelper.CollectMapItems(map, cursorPos);
-
                     // Update the temporary category with fresh filtered items
                     if (filteredItems.Count > 0)
                     {
@@ -254,6 +288,10 @@ namespace RimWorldAccess
 
             // Collect items
             categories = ScannerHelper.CollectMapItems(map, cursorPos);
+            cachedCategories = categories;
+            lastThingStateHash = currentThingHash;
+            lastDesignationCount = currentDesignationCount;
+            lastZoneCount = currentZoneCount;
 
             // Re-add temporary category if it existed
             if (savedTemporaryCategory != null)
@@ -880,6 +918,8 @@ namespace RimWorldAccess
                 return;
             }
 
+            item.RefreshLabel();
+
             // Special handling for terrain with regions
             if (item.HasTerrainRegions)
             {
@@ -981,6 +1021,8 @@ namespace RimWorldAccess
             var item = GetCurrentItem();
             if (item == null || !item.IsBulkGroup)
                 return;
+
+            item.RefreshLabel();
 
             if (currentBulkIndex < 0 || currentBulkIndex >= item.BulkCount)
                 return;
