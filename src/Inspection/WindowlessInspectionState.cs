@@ -622,6 +622,11 @@ namespace RimWorldAccess
             if (item.OnActivate != null)
             {
                 item.OnActivate();
+
+                // If the action closed this state (e.g., opening HealthTabState), stop here
+                if (!IsActive)
+                    return;
+
                 SoundDefOf.Click.PlayOneShotOnCamera();
 
                 // Rebuild visible list, then restore cursor to the acted-upon item

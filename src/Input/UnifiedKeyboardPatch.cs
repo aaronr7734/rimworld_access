@@ -77,6 +77,16 @@ namespace RimWorldAccess
                             return;
                         }
                     }
+
+                    // HealthTabState typeahead (recipe and body part lists)
+                    if (HealthTabState.IsActive)
+                    {
+                        if (HealthTabState.HandleCharacterInput(c))
+                        {
+                            Event.current.Use();
+                            return;
+                        }
+                    }
                 }
             }
 
