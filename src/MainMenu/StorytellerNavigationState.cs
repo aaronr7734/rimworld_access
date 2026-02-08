@@ -5,47 +5,40 @@ using Verse;
 
 namespace RimWorldAccess
 {
+    /// <summary>
+    /// Manages navigation state for the Page_SelectStoryteller screen.
+    /// Handles storyteller selection, difficulty selection, and permadeath mode selection.
+    /// Uses modern patterns: MenuHelper for navigation, TypeaheadSearchHelper for search.
+    /// </summary>
     public static class StorytellerNavigationState
     {
         private static bool initialized = false;
         private static int storytellerIndex = 0;
-        private static int difficultyIndex = -1; // -1 means not selected
+        private static int difficultyIndex = -1; // -1 means not yet selected
+        private static int permadeathIndex = -1; // -1 = not selected, 0 = Reload Anytime, 1 = Commitment
+
         private static List<StorytellerDef> storytellers = new List<StorytellerDef>();
         private static List<DifficultyDef> difficulties = new List<DifficultyDef>();
-        private static bool permadeathSelected = false;
-        private static bool permadeathValue = false;
 
-        public static void Initialize()
-        {
-            if (!initialized)
-            {
-                // Get all storytellers ordered by listOrder
-                storytellers = DefDatabase<StorytellerDef>.AllDefs
-                    .Where(d => d.listVisible)
-                    .OrderBy(d => d.listOrder)
-                    .ToList();
+        // Permadeath options as radio buttons
+        private static readonly string[] permadeathLabels = { "Reload Anytime Mode", "Commitment Mode (Permadeath)" };
+        private static readonly string[] permadeathDescriptions = {
+            "Can reload saves anytime",
+            "Cannot reload saves. One chance only!"
+        };
 
-                // Get all difficulties
-                difficulties = DefDatabase<DifficultyDef>.AllDefs.ToList();
+        // Typeahead search helpers
+        private static TypeaheadSearchHelper storytellerTypeahead = new TypeaheadSearchHelper();
+        private static TypeaheadSearchHelper difficultyTypeahead = new TypeaheadSearchHelper();
 
-                storytellerIndex = 0;
-                difficultyIndex = -1;
-                permadeathSelected = Find.GameInitData.permadeathChosen;
-                permadeathValue = Find.GameInitData.permadeath;
-                initialized = true;
-            }
-        }
+        // ===== PUBLIC PROPERTIES =====
 
-        public static void Reset()
-        {
-            initialized = false;
-            storytellerIndex = 0;
-            difficultyIndex = -1;
-            storytellers.Clear();
-            difficulties.Clear();
-            permadeathSelected = false;
-            permadeathValue = false;
-        }
+        public static int StorytellerCount => storytellers.Count;
+        public static int DifficultyCount => difficulties.Count;
+        public static int PermadeathCount => 2;
+
+        public static bool HasActiveStorytellerSearch => storytellerTypeahead.HasActiveSearch;
+        public static bool HasActiveDifficultySearch => difficultyTypeahead.HasActiveSearch;
 
         public static StorytellerDef SelectedStoryteller
         {
@@ -67,102 +60,434 @@ namespace RimWorldAccess
             }
         }
 
+        public static int PermadeathSelectedIndex => permadeathIndex;
+
+        // ===== INITIALIZATION =====
+
+        public static void Initialize()
+        {
+            if (!initialized)
+            {
+                // Get all storytellers ordered by listOrder
+                storytellers = DefDatabase<StorytellerDef>.AllDefs
+                    .Where(d => d.listVisible)
+                    .OrderBy(d => d.listOrder)
+                    .ToList();
+
+                // Get all difficulties
+                difficulties = DefDatabase<DifficultyDef>.AllDefs.ToList();
+
+                // Start with first storyteller selected (game also does this)
+                storytellerIndex = 0;
+                // Difficulty and permadeath start unselected - will auto-select on first Tab
+                difficultyIndex = -1;
+                permadeathIndex = -1;
+
+                // Clear any previous search state
+                storytellerTypeahead.ClearSearch();
+                difficultyTypeahead.ClearSearch();
+
+                initialized = true;
+            }
+        }
+
+        public static void Reset()
+        {
+            initialized = false;
+            storytellerIndex = 0;
+            difficultyIndex = -1;
+            permadeathIndex = -1;
+            storytellers.Clear();
+            difficulties.Clear();
+            storytellerTypeahead.ClearSearch();
+            difficultyTypeahead.ClearSearch();
+        }
+
+        // ===== FIRST-VISIT AUTO-SELECT =====
+        // These methods auto-select the first item ONLY if nothing is selected yet.
+        // Subsequent visits preserve the user's selection.
+
+        /// <summary>
+        /// Called when user tabs to Storyteller mode.
+        /// Storyteller should always have a selection (game auto-selects first too).
+        /// </summary>
+        public static void EnsureStorytellerSelected()
+        {
+            if (storytellerIndex < 0 && storytellers.Count > 0)
+            {
+                storytellerIndex = 0;
+            }
+        }
+
+        /// <summary>
+        /// Called when user tabs to Difficulty mode.
+        /// Auto-selects first difficulty only on first visit.
+        /// </summary>
+        public static void EnsureDifficultySelected()
+        {
+            if (difficultyIndex < 0 && difficulties.Count > 0)
+            {
+                difficultyIndex = 0;
+            }
+        }
+
+        /// <summary>
+        /// Called when user tabs to Permadeath mode.
+        /// Auto-selects "Reload Anytime Mode" only on first visit.
+        /// </summary>
+        public static void EnsurePermadeathSelected()
+        {
+            if (permadeathIndex < 0)
+            {
+                permadeathIndex = 0;
+                UpdateGameInitDataPermadeath();
+            }
+        }
+
+        // ===== STORYTELLER NAVIGATION =====
+
         public static void NavigateStorytellerUp()
         {
             if (storytellers.Count == 0) return;
-
-            storytellerIndex--;
-            if (storytellerIndex < 0)
-                storytellerIndex = storytellers.Count - 1;
-
-            CopyStorytellerToClipboard();
+            storytellerTypeahead.ClearSearch();
+            storytellerIndex = MenuHelper.SelectPrevious(storytellerIndex, storytellers.Count);
+            AnnounceStoryteller();
         }
 
         public static void NavigateStorytellerDown()
         {
             if (storytellers.Count == 0) return;
-
-            storytellerIndex++;
-            if (storytellerIndex >= storytellers.Count)
-                storytellerIndex = 0;
-
-            CopyStorytellerToClipboard();
+            storytellerTypeahead.ClearSearch();
+            storytellerIndex = MenuHelper.SelectNext(storytellerIndex, storytellers.Count);
+            AnnounceStoryteller();
         }
+
+        public static void NavigateStorytellerHome()
+        {
+            if (storytellers.Count == 0) return;
+            storytellerTypeahead.ClearSearch();
+            storytellerIndex = 0;
+            AnnounceStoryteller();
+        }
+
+        public static void NavigateStorytellerEnd()
+        {
+            if (storytellers.Count == 0) return;
+            storytellerTypeahead.ClearSearch();
+            storytellerIndex = storytellers.Count - 1;
+            AnnounceStoryteller();
+        }
+
+        // ===== DIFFICULTY NAVIGATION =====
 
         public static void NavigateDifficultyUp()
         {
             if (difficulties.Count == 0) return;
-
-            difficultyIndex--;
-            if (difficultyIndex < 0)
-                difficultyIndex = difficulties.Count - 1;
-
-            CopyDifficultyToClipboard();
+            difficultyTypeahead.ClearSearch();
+            // If not yet selected, start at 0 then go to previous
+            if (difficultyIndex < 0) difficultyIndex = 0;
+            difficultyIndex = MenuHelper.SelectPrevious(difficultyIndex, difficulties.Count);
+            AnnounceAndApplyDifficulty();
         }
 
         public static void NavigateDifficultyDown()
         {
             if (difficulties.Count == 0) return;
-
-            difficultyIndex++;
-            if (difficultyIndex >= difficulties.Count)
-                difficultyIndex = 0;
-
-            CopyDifficultyToClipboard();
+            difficultyTypeahead.ClearSearch();
+            // If not yet selected, start at -1 so SelectNext gives 0
+            difficultyIndex = MenuHelper.SelectNext(difficultyIndex < 0 ? -1 : difficultyIndex, difficulties.Count);
+            AnnounceAndApplyDifficulty();
         }
 
-        public static void TogglePermadeath()
+        public static void NavigateDifficultyHome()
         {
-            permadeathSelected = true;
-            permadeathValue = !permadeathValue;
-
-            // Update GameInitData
-            Find.GameInitData.permadeathChosen = true;
-            Find.GameInitData.permadeath = permadeathValue;
-
-            CopyPermadeathToClipboard();
+            if (difficulties.Count == 0) return;
+            difficultyTypeahead.ClearSearch();
+            difficultyIndex = 0;
+            AnnounceAndApplyDifficulty();
         }
 
-        private static void CopyStorytellerToClipboard()
+        public static void NavigateDifficultyEnd()
+        {
+            if (difficulties.Count == 0) return;
+            difficultyTypeahead.ClearSearch();
+            difficultyIndex = difficulties.Count - 1;
+            AnnounceAndApplyDifficulty();
+        }
+
+        // ===== PERMADEATH NAVIGATION =====
+
+        public static void NavigatePermadeathUp()
+        {
+            // If not yet selected, start at 0 then go to previous
+            if (permadeathIndex < 0) permadeathIndex = 0;
+            permadeathIndex = MenuHelper.SelectPrevious(permadeathIndex, 2);
+            UpdateGameInitDataPermadeath();
+            AnnouncePermadeath();
+        }
+
+        public static void NavigatePermadeathDown()
+        {
+            // If not yet selected, start at -1 so SelectNext gives 0
+            permadeathIndex = MenuHelper.SelectNext(permadeathIndex < 0 ? -1 : permadeathIndex, 2);
+            UpdateGameInitDataPermadeath();
+            AnnouncePermadeath();
+        }
+
+        public static void NavigatePermadeathHome()
+        {
+            permadeathIndex = 0;
+            UpdateGameInitDataPermadeath();
+            AnnouncePermadeath();
+        }
+
+        public static void NavigatePermadeathEnd()
+        {
+            permadeathIndex = 1;
+            UpdateGameInitDataPermadeath();
+            AnnouncePermadeath();
+        }
+
+        // ===== TYPEAHEAD SEARCH =====
+
+        public static bool HandleStorytellerTypeahead(char character)
+        {
+            if (storytellers.Count == 0) return false;
+
+            var labels = storytellers.Select(s => s.label).ToList();
+            if (storytellerTypeahead.ProcessCharacterInput(character, labels, out int newIndex))
+            {
+                if (newIndex >= 0)
+                {
+                    storytellerIndex = newIndex;
+                    AnnounceStorytellerWithSearch();
+                }
+            }
+            else
+            {
+                TolkHelper.Speak($"No matches for '{storytellerTypeahead.LastFailedSearch}'");
+            }
+            return true;
+        }
+
+        public static bool HandleStorytellerTypeaheadBackspace()
+        {
+            if (!storytellerTypeahead.HasActiveSearch) return false;
+
+            var labels = storytellers.Select(s => s.label).ToList();
+            if (storytellerTypeahead.ProcessBackspace(labels, out int newIndex))
+            {
+                if (newIndex >= 0)
+                {
+                    storytellerIndex = newIndex;
+                    AnnounceStorytellerWithSearch();
+                }
+            }
+            return true;
+        }
+
+        public static bool ClearStorytellerTypeaheadSearch()
+        {
+            if (storytellerTypeahead.ClearSearchAndAnnounce())
+            {
+                AnnounceStoryteller();
+                return true;
+            }
+            return false;
+        }
+
+        public static bool SelectNextStorytellerMatch()
+        {
+            if (!storytellerTypeahead.HasActiveSearch) return false;
+            int next = storytellerTypeahead.GetNextMatch(storytellerIndex);
+            if (next >= 0)
+            {
+                storytellerIndex = next;
+                AnnounceStorytellerWithSearch();
+            }
+            return true;
+        }
+
+        public static bool SelectPreviousStorytellerMatch()
+        {
+            if (!storytellerTypeahead.HasActiveSearch) return false;
+            int prev = storytellerTypeahead.GetPreviousMatch(storytellerIndex);
+            if (prev >= 0)
+            {
+                storytellerIndex = prev;
+                AnnounceStorytellerWithSearch();
+            }
+            return true;
+        }
+
+        public static bool HandleDifficultyTypeahead(char character)
+        {
+            if (difficulties.Count == 0) return false;
+
+            var labels = difficulties.Select(d => d.LabelCap.ToString()).ToList();
+            if (difficultyTypeahead.ProcessCharacterInput(character, labels, out int newIndex))
+            {
+                if (newIndex >= 0)
+                {
+                    difficultyIndex = newIndex;
+                    AnnounceDifficultyWithSearch();
+                }
+            }
+            else
+            {
+                TolkHelper.Speak($"No matches for '{difficultyTypeahead.LastFailedSearch}'");
+            }
+            return true;
+        }
+
+        public static bool HandleDifficultyTypeaheadBackspace()
+        {
+            if (!difficultyTypeahead.HasActiveSearch) return false;
+
+            var labels = difficulties.Select(d => d.LabelCap.ToString()).ToList();
+            if (difficultyTypeahead.ProcessBackspace(labels, out int newIndex))
+            {
+                if (newIndex >= 0)
+                {
+                    difficultyIndex = newIndex;
+                    AnnounceDifficultyWithSearch();
+                }
+            }
+            return true;
+        }
+
+        public static bool ClearDifficultyTypeaheadSearch()
+        {
+            if (difficultyTypeahead.ClearSearchAndAnnounce())
+            {
+                AnnounceAndApplyDifficulty();
+                return true;
+            }
+            return false;
+        }
+
+        public static bool SelectNextDifficultyMatch()
+        {
+            if (!difficultyTypeahead.HasActiveSearch) return false;
+            int next = difficultyTypeahead.GetNextMatch(difficultyIndex);
+            if (next >= 0)
+            {
+                difficultyIndex = next;
+                AnnounceDifficultyWithSearch();
+            }
+            return true;
+        }
+
+        public static bool SelectPreviousDifficultyMatch()
+        {
+            if (!difficultyTypeahead.HasActiveSearch) return false;
+            int prev = difficultyTypeahead.GetPreviousMatch(difficultyIndex);
+            if (prev >= 0)
+            {
+                difficultyIndex = prev;
+                AnnounceDifficultyWithSearch();
+            }
+            return true;
+        }
+
+        // ===== ANNOUNCEMENTS =====
+
+        public static void AnnounceStoryteller()
         {
             StorytellerDef storyteller = SelectedStoryteller;
             if (storyteller == null) return;
 
-            string text = $"Storyteller: {storyteller.label} - {storyteller.description}";
+            string position = MenuHelper.FormatPosition(storytellerIndex, storytellers.Count);
+            string text = $"{storyteller.label} - {storyteller.description}";
+            if (!string.IsNullOrEmpty(position))
+            {
+                text += $" ({position})";
+            }
             TolkHelper.Speak(text);
         }
 
-        private static void CopyDifficultyToClipboard()
+        private static void AnnounceStorytellerWithSearch()
+        {
+            StorytellerDef storyteller = SelectedStoryteller;
+            if (storyteller == null) return;
+
+            if (storytellerTypeahead.HasActiveSearch)
+            {
+                TolkHelper.Speak($"{storyteller.label}, {storytellerTypeahead.CurrentMatchPosition} of {storytellerTypeahead.MatchCount} matches for '{storytellerTypeahead.SearchBuffer}'");
+            }
+            else
+            {
+                AnnounceStoryteller();
+            }
+        }
+
+        public static void AnnounceDifficulty()
         {
             DifficultyDef difficulty = SelectedDifficulty;
             if (difficulty == null) return;
 
-            StorytellerDef storyteller = SelectedStoryteller;
-            string storytellerName = storyteller != null ? storyteller.label : "Unknown";
-
+            string position = MenuHelper.FormatPosition(difficultyIndex, difficulties.Count);
             string customSuffix = difficulty.isCustom ? " (Custom settings)" : "";
-            string text = $"{storytellerName} - Difficulty: {difficulty.LabelCap}{customSuffix}";
+            string text = $"{difficulty.LabelCap}{customSuffix}";
 
             if (!string.IsNullOrEmpty(difficulty.description))
             {
                 text += $" - {difficulty.description.StripTags()}";
             }
 
+            if (!string.IsNullOrEmpty(position))
+            {
+                text += $" ({position})";
+            }
+
             TolkHelper.Speak(text);
         }
 
-        private static void CopyPermadeathToClipboard()
+        private static void AnnounceAndApplyDifficulty()
         {
-            string mode = permadeathValue ? "Commitment Mode (Permadeath)" : "Reload Anytime Mode";
-            string description = permadeathValue
-                ? "Cannot reload saves. One chance only!"
-                : "Can reload saves anytime";
+            AnnounceDifficulty();
+        }
 
-            string text = $"{mode} - {description}";
+        private static void AnnounceDifficultyWithSearch()
+        {
+            DifficultyDef difficulty = SelectedDifficulty;
+            if (difficulty == null) return;
+
+            if (difficultyTypeahead.HasActiveSearch)
+            {
+                TolkHelper.Speak($"{difficulty.LabelCap}, {difficultyTypeahead.CurrentMatchPosition} of {difficultyTypeahead.MatchCount} matches for '{difficultyTypeahead.SearchBuffer}'");
+            }
+            else
+            {
+                AnnounceDifficulty();
+            }
+        }
+
+        public static void AnnouncePermadeath()
+        {
+            if (permadeathIndex < 0 || permadeathIndex >= 2) return;
+
+            string position = MenuHelper.FormatPosition(permadeathIndex, 2);
+            string label = permadeathLabels[permadeathIndex];
+            string description = permadeathDescriptions[permadeathIndex];
+
+            string text = $"{label} - {description}";
+            if (!string.IsNullOrEmpty(position))
+            {
+                text += $" ({position})";
+            }
             TolkHelper.Speak(text);
         }
 
-        public static int StorytellerCount => storytellers.Count;
-        public static int DifficultyCount => difficulties.Count;
+        // ===== GAME DATA SYNC =====
+
+        private static void UpdateGameInitDataPermadeath()
+        {
+            if (permadeathIndex >= 0)
+            {
+                Find.GameInitData.permadeathChosen = true;
+                Find.GameInitData.permadeath = (permadeathIndex == 1);
+            }
+        }
     }
 }

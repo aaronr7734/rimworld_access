@@ -7,21 +7,31 @@ using Verse;
 namespace RimWorldAccess
 {
     /// <summary>
+    /// Context in which world navigation is active.
+    /// Controls which features are available.
+    /// </summary>
+    public enum WorldNavContext
+    {
+        None,     // Not active
+        InGame,   // F8 world map during gameplay
+        WorldGen  // Starting site selection during game setup
+    }
+
+    /// <summary>
     /// Maintains the state of world map navigation for accessibility features.
     /// Tracks the current selected tile as the user navigates the world map with arrow keys.
+    /// Used by both in-game world map (F8) and world generation starting site screen.
     /// </summary>
     public static class WorldNavigationState
     {
         private static PlanetTile currentSelectedTile = PlanetTile.Invalid;
         private static bool isActive = false;
         private static bool isInitialized = false;
-        private static string lastAnnouncedInfo = "";
         private static Caravan selectedCaravan = null;
         private static HashSet<Caravan> multiSelectedCaravans = new HashSet<Caravan>();
         private static bool isInPoleTerritory = false;
         private static bool lastWasInPoleTerritory = false;
-        private static bool wasOnRoad = false;
-        private static bool wasOnRiver = false;
+        private static WorldNavContext context = WorldNavContext.None;
 
         /// <summary>
         /// Pending start tile set by other systems (e.g., caravan reform) before world view opens.
@@ -40,6 +50,11 @@ namespace RimWorldAccess
         /// Used by other systems to suppress their input when in world view.
         /// </summary>
         public static bool IsActive => isActive;
+
+        /// <summary>
+        /// Gets the current navigation context (InGame, WorldGen, or None).
+        /// </summary>
+        public static WorldNavContext Context => context;
 
         /// <summary>
         /// Gets whether the navigation state has been initialized.
@@ -74,10 +89,20 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Opens world navigation mode and initializes the state.
-        /// Called when entering world view (F8).
+        /// Opens world navigation mode in the InGame context.
+        /// Called when entering world view (F8) during gameplay.
         /// </summary>
         public static void Open()
+        {
+            Open(WorldNavContext.InGame);
+        }
+
+        /// <summary>
+        /// Opens world navigation mode in the specified context.
+        /// WorldGen context: uses the game's WorldInterface selection or a provided start tile.
+        /// InGame context: uses priority chain (pending tile, current map, game selection, caravan, home).
+        /// </summary>
+        public static void Open(WorldNavContext navContext, PlanetTile startTile = default)
         {
             if (Find.World == null)
             {
@@ -85,42 +110,38 @@ namespace RimWorldAccess
                 return;
             }
 
+            context = navContext;
             isActive = true;
 
-            // Initialize to a sensible starting position
-            // Priority: 0) Pending tile (set by caravan reform), 1) Current map's world tile, 2) Game's selection, 3) Player caravan, 4) Home settlement
-            bool foundCaravan = false;
-            bool foundStartingTile = false;
-
-            // Priority 0: Check for pending start tile (set by caravan reform before map was removed)
-            if (pendingStartTile.Valid)
+            if (navContext == WorldNavContext.WorldGen)
             {
-                currentSelectedTile = pendingStartTile;
-                foundStartingTile = true;
-                pendingStartTile = PlanetTile.Invalid; // Consume the pending tile
-
-                // Check if there's a caravan at this tile (the newly reformed caravan)
-                var caravanAtTile = Find.WorldObjects?.ObjectsAt(currentSelectedTile)
-                    .OfType<RimWorld.Planet.Caravan>()
-                    .FirstOrDefault(c => c.Faction == Faction.OfPlayer);
-                if (caravanAtTile != null)
+                // World gen: use provided tile, game's selected tile, or random
+                if (startTile.Valid)
                 {
-                    selectedCaravan = caravanAtTile;
-                    foundCaravan = true;
+                    currentSelectedTile = startTile;
+                }
+                else if (Find.WorldInterface?.SelectedTile.Valid == true)
+                {
+                    currentSelectedTile = Find.WorldInterface.SelectedTile;
+                }
+                else
+                {
+                    currentSelectedTile = TileFinder.RandomStartingTile();
                 }
             }
-
-            // First priority: If we were on a map, start at that map's world tile
-            // This handles pressing F8 from a temporary encounter map
-            if (!foundStartingTile)
+            else
             {
-                Map currentMap = Find.CurrentMap;
-                if (currentMap != null && currentMap.Tile.Valid)
-                {
-                    currentSelectedTile = currentMap.Tile;
-                    foundStartingTile = true;
+                // === In-game priority chain (existing logic) ===
+                bool foundCaravan = false;
+                bool foundStartingTile = false;
 
-                    // Check if there's a caravan at this tile
+                // Priority 0: Check for pending start tile (set by caravan reform before map was removed)
+                if (pendingStartTile.Valid)
+                {
+                    currentSelectedTile = pendingStartTile;
+                    foundStartingTile = true;
+                    pendingStartTile = PlanetTile.Invalid; // Consume the pending tile
+
                     var caravanAtTile = Find.WorldObjects?.ObjectsAt(currentSelectedTile)
                         .OfType<RimWorld.Planet.Caravan>()
                         .FirstOrDefault(c => c.Faction == Faction.OfPlayer);
@@ -130,67 +151,95 @@ namespace RimWorldAccess
                         foundCaravan = true;
                     }
                 }
-            }
 
-            // Second priority: Check game's current world selection
-            if (!foundStartingTile && Find.WorldSelector != null && Find.WorldSelector.SelectedTile.Valid)
-            {
-                currentSelectedTile = Find.WorldSelector.SelectedTile;
-                foundStartingTile = true;
-            }
-
-            // Third priority: Look for player caravans
-            if (!foundStartingTile)
-            {
-                var playerCaravans = Find.WorldObjects?.Caravans?
-                    .Where(c => c.Faction == Faction.OfPlayer)
-                    .ToList();
-
-                if (playerCaravans != null && playerCaravans.Count >= 1)
+                // First priority: If we were on a map, start at that map's world tile
+                if (!foundStartingTile)
                 {
-                    // Use first caravan
-                    currentSelectedTile = playerCaravans[0].Tile;
-                    selectedCaravan = playerCaravans[0];
-                    foundCaravan = true;
+                    Map currentMap = Find.CurrentMap;
+                    if (currentMap != null && currentMap.Tile.Valid)
+                    {
+                        currentSelectedTile = currentMap.Tile;
+                        foundStartingTile = true;
+
+                        var caravanAtTile = Find.WorldObjects?.ObjectsAt(currentSelectedTile)
+                            .OfType<RimWorld.Planet.Caravan>()
+                            .FirstOrDefault(c => c.Faction == Faction.OfPlayer);
+                        if (caravanAtTile != null)
+                        {
+                            selectedCaravan = caravanAtTile;
+                            foundCaravan = true;
+                        }
+                    }
+                }
+
+                // Second priority: Check game's current world selection
+                if (!foundStartingTile && Find.WorldSelector != null && Find.WorldSelector.SelectedTile.Valid)
+                {
+                    currentSelectedTile = Find.WorldSelector.SelectedTile;
                     foundStartingTile = true;
                 }
-            }
 
-            // Fourth priority: Default to player's home settlement
-            if (!foundStartingTile)
-            {
-                Settlement homeSettlement = Find.WorldObjects?.Settlements?.FirstOrDefault(s => s.Faction == Faction.OfPlayer);
-                if (homeSettlement != null)
+                // Third priority: Look for player caravans
+                if (!foundStartingTile)
                 {
-                    currentSelectedTile = homeSettlement.Tile;
-                    foundStartingTile = true;
-                }
-                else
-                {
-                    // Fallback to tile 0 (should always exist)
-                    currentSelectedTile = new PlanetTile(0);
-                }
-            }
+                    var playerCaravans = Find.WorldObjects?.Caravans?
+                        .Where(c => c.Faction == Faction.OfPlayer)
+                        .ToList();
 
-            // If we found a tile but haven't checked for caravan yet, do so now
-            if (!foundCaravan && currentSelectedTile.Valid)
-            {
-                var caravanAtTile = Find.WorldObjects?.ObjectsAt(currentSelectedTile)
-                    .OfType<RimWorld.Planet.Caravan>()
-                    .FirstOrDefault(c => c.Faction == Faction.OfPlayer);
-                if (caravanAtTile != null)
+                    if (playerCaravans != null && playerCaravans.Count >= 1)
+                    {
+                        currentSelectedTile = playerCaravans[0].Tile;
+                        selectedCaravan = playerCaravans[0];
+                        foundCaravan = true;
+                        foundStartingTile = true;
+                    }
+                }
+
+                // Fourth priority: Default to player's home settlement
+                if (!foundStartingTile)
                 {
-                    selectedCaravan = caravanAtTile;
+                    Settlement homeSettlement = Find.WorldObjects?.Settlements?.FirstOrDefault(s => s.Faction == Faction.OfPlayer);
+                    if (homeSettlement != null)
+                    {
+                        currentSelectedTile = homeSettlement.Tile;
+                        foundStartingTile = true;
+                    }
+                    else
+                    {
+                        currentSelectedTile = new PlanetTile(0);
+                    }
+                }
+
+                // If we found a tile but haven't checked for caravan yet, do so now
+                if (!foundCaravan && currentSelectedTile.Valid)
+                {
+                    var caravanAtTile = Find.WorldObjects?.ObjectsAt(currentSelectedTile)
+                        .OfType<RimWorld.Planet.Caravan>()
+                        .FirstOrDefault(c => c.Faction == Faction.OfPlayer);
+                    if (caravanAtTile != null)
+                    {
+                        selectedCaravan = caravanAtTile;
+                    }
                 }
             }
 
             isInitialized = true;
 
-            // Announce menu and initial position
-            string initialInfo = WorldInfoHelper.GetTileSummary(currentSelectedTile);
+            // Sync with game's selection system
+            SyncSelectionWithGame();
 
-            // Check if route planner is active - announce it so user knows
-            if (RoutePlannerState.IsActive)
+            // Build announcement with biome description for starting tile
+            string initialInfo = WorldInfoHelper.GetTileSummary(currentSelectedTile, includeRouteInfo: navContext == WorldNavContext.InGame);
+
+            // Get biome description for the starting tile
+            string biomeDesc = BiomeDescriptionTracker.GetBiomeDescriptionIfNew(currentSelectedTile);
+            if (!string.IsNullOrEmpty(biomeDesc))
+            {
+                initialInfo += $". {biomeDesc}";
+            }
+
+            // Check if route planner is active (in-game only) - announce it so user knows
+            if (navContext == WorldNavContext.InGame && RoutePlannerState.IsActive)
             {
                 int waypointCount = RoutePlannerState.WaypointCount;
                 if (waypointCount > 0)
@@ -206,7 +255,7 @@ namespace RimWorldAccess
             {
                 TolkHelper.Speak($"World map. {initialInfo}");
             }
-            lastAnnouncedInfo = initialInfo;
+
 
             // Jump camera to selected tile
             if (Find.WorldCameraDriver != null)
@@ -219,11 +268,26 @@ namespace RimWorldAccess
 
             // Check if we're in pole territory
             UpdatePoleStatus();
+        }
 
-            // Sync with game's selection system
+        /// <summary>
+        /// Syncs the current tile with the game's selection system.
+        /// Handles both in-game (WorldSelector) and world gen (WorldInterface + GameInitData).
+        /// </summary>
+        private static void SyncSelectionWithGame()
+        {
             if (Find.WorldSelector != null)
             {
+                Find.WorldSelector.ClearSelection();
                 Find.WorldSelector.SelectedTile = currentSelectedTile;
+            }
+
+            if (context == WorldNavContext.WorldGen)
+            {
+                if (Find.WorldInterface != null)
+                    Find.WorldInterface.SelectedTile = currentSelectedTile;
+                if (Find.GameInitData != null)
+                    Find.GameInitData.startingTile = currentSelectedTile;
             }
         }
 
@@ -235,14 +299,13 @@ namespace RimWorldAccess
         {
             isActive = false;
             isInitialized = false;
+            context = WorldNavContext.None;
             currentSelectedTile = PlanetTile.Invalid;
-            lastAnnouncedInfo = "";
             selectedCaravan = null;
             multiSelectedCaravans.Clear();
             isInPoleTerritory = false;
             lastWasInPoleTerritory = false;
-            wasOnRoad = false;
-            wasOnRiver = false;
+            BiomeDescriptionTracker.Reset();
         }
 
         /// <summary>
@@ -288,41 +351,6 @@ namespace RimWorldAccess
             }
 
             lastWasInPoleTerritory = isInPoleTerritory;
-        }
-
-        /// <summary>
-        /// Checks if we've left a road or river and announces it.
-        /// </summary>
-        private static void CheckOffRoadOrRiver(PlanetTile tile)
-        {
-            if (!tile.Valid)
-            {
-                wasOnRoad = false;
-                wasOnRiver = false;
-                return;
-            }
-
-            bool nowOnRoad = false;
-            bool nowOnRiver = false;
-
-            if (tile.Tile is SurfaceTile surfaceTile)
-            {
-                nowOnRoad = surfaceTile.Roads != null && surfaceTile.Roads.Count > 0;
-                nowOnRiver = surfaceTile.Rivers != null && surfaceTile.Rivers.Count > 0;
-            }
-
-            // Announce leaving road/river (before the tile announcement)
-            if (wasOnRoad && !nowOnRoad)
-            {
-                TolkHelper.Speak("Off road", SpeechPriority.Normal);
-            }
-            if (wasOnRiver && !nowOnRiver)
-            {
-                TolkHelper.Speak("Off river", SpeechPriority.Normal);
-            }
-
-            wasOnRoad = nowOnRoad;
-            wasOnRiver = nowOnRiver;
         }
 
         /// <summary>
@@ -372,12 +400,8 @@ namespace RimWorldAccess
             // Update selection
             currentSelectedTile = bestNeighbor;
 
-            // Sync with game's selection system
-            if (Find.WorldSelector != null)
-            {
-                Find.WorldSelector.ClearSelection();
-                Find.WorldSelector.SelectedTile = currentSelectedTile;
-            }
+            // Sync with game's selection system (handles both InGame and WorldGen)
+            SyncSelectionWithGame();
 
             // Jump camera to new tile
             if (Find.WorldCameraDriver != null)
@@ -388,11 +412,17 @@ namespace RimWorldAccess
             // Check if we've entered/left pole territory
             UpdatePoleStatus();
 
-            // Check if we've moved off a planned route
-            RoutePlannerState.CheckOffRoute(currentSelectedTile);
+            // Check if we've moved off a planned route (in-game only)
+            if (context == WorldNavContext.InGame)
+            {
+                RoutePlannerState.CheckOffRoute(currentSelectedTile);
+            }
 
-            // Road/river directions are now accurate, so "off road" announcement not needed
-            // CheckOffRoadOrRiver(currentSelectedTile);
+            // Notify world-gen context of tile change (closes I-menu, etc.)
+            if (context == WorldNavContext.WorldGen)
+            {
+                StartingSiteContext.OnTileChanged();
+            }
 
             // Announce new tile
             AnnounceTile();
@@ -402,15 +432,16 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Announces the current tile information.
+        /// Includes biome descriptions (both contexts) and faction/settle warnings (WorldGen only).
         /// </summary>
         public static void AnnounceTile()
         {
             if (!currentSelectedTile.Valid)
                 return;
 
-            // Get fuel cost if transport pod launch targeting is active
+            // Get fuel cost if transport pod launch targeting is active (in-game only)
             string fuelCostInfo = null;
-            if (TransportPodLaunchState.IsActive)
+            if (context == WorldNavContext.InGame && TransportPodLaunchState.IsActive)
             {
                 int originTile = TransportPodLaunchState.GetOriginTile();
                 if (originTile >= 0 && Find.WorldGrid != null)
@@ -423,24 +454,52 @@ namespace RimWorldAccess
                 }
             }
 
-            // Get ability destination info if world ability targeting is active (e.g., Farskip)
+            // Get ability destination info if world ability targeting is active (in-game only)
             string abilityDestInfo = null;
-            if (WorldAbilityTargetingState.IsActive)
+            if (context == WorldNavContext.InGame && WorldAbilityTargetingState.IsActive)
             {
                 abilityDestInfo = WorldAbilityTargetingState.GetDestinationInfo(currentSelectedTile);
             }
 
-            // Pass fuel cost to GetTileSummary so it's inserted right after the biome
-            string tileInfo = WorldInfoHelper.GetTileSummary(currentSelectedTile, includeRouteInfo: true, minimal: false, fuelCostInfo: fuelCostInfo);
+            // Pass fuel cost and route info based on context
+            string tileInfo = WorldInfoHelper.GetTileSummary(
+                currentSelectedTile,
+                includeRouteInfo: context == WorldNavContext.InGame,
+                minimal: false,
+                fuelCostInfo: fuelCostInfo);
 
-            // Append ability destination info if available
+            // Append ability destination info if available (in-game only)
             if (!string.IsNullOrEmpty(abilityDestInfo))
             {
                 tileInfo += $". {abilityDestInfo}";
             }
 
+            // WorldGen: append faction proximity warning (change-only) before biome description
+            if (context == WorldNavContext.WorldGen)
+            {
+                string factionWarning = StartingSiteContext.GetChangedFactionWarning(currentSelectedTile);
+                if (!string.IsNullOrEmpty(factionWarning))
+                {
+                    tileInfo += $". {factionWarning}";
+                }
+
+                // WorldGen: append biome settle warning if present
+                BiomeDef biome = currentSelectedTile.Tile?.PrimaryBiome;
+                if (biome != null && !string.IsNullOrEmpty(biome.settleWarning))
+                {
+                    tileInfo += $". Warning: {biome.settleWarning}";
+                }
+            }
+
+            // Both contexts: append biome description if entering a new biome
+            string biomeDesc = BiomeDescriptionTracker.GetBiomeDescriptionIfNew(currentSelectedTile);
+            if (!string.IsNullOrEmpty(biomeDesc))
+            {
+                tileInfo += $". {biomeDesc}";
+            }
+
             TolkHelper.Speak(tileInfo);
-            lastAnnouncedInfo = tileInfo;
+
         }
 
         /// <summary>
@@ -488,10 +547,11 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Jumps to the player's home settlement.
+        /// Jumps to the player's home settlement. In-game only.
         /// </summary>
         public static void JumpToHome()
         {
+            if (context != WorldNavContext.InGame) return;
             if (!isInitialized)
                 return;
 
@@ -528,10 +588,11 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Jumps to the nearest player caravan.
+        /// Jumps to the nearest player caravan. In-game only.
         /// </summary>
         public static void JumpToNearestCaravan()
         {
+            if (context != WorldNavContext.InGame) return;
             if (!isInitialized || !currentSelectedTile.Valid)
                 return;
 
@@ -593,10 +654,11 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Opens the settlement browser (S key).
+        /// Opens the settlement browser (S key). In-game only.
         /// </summary>
         public static void OpenSettlementBrowser()
         {
+            if (context != WorldNavContext.InGame) return;
             if (!isInitialized)
                 return;
 
@@ -604,113 +666,15 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Opens the quest locations browser (Q key).
+        /// Opens the quest locations browser (Q key). In-game only.
         /// </summary>
         public static void OpenQuestLocationsBrowser()
         {
+            if (context != WorldNavContext.InGame) return;
             if (!isInitialized)
                 return;
 
             QuestLocationsBrowserState.Open(currentSelectedTile);
-        }
-
-        /// <summary>
-        /// Cycles to the next settlement (by distance from current position).
-        /// </summary>
-        public static void CycleToNextSettlement()
-        {
-            if (!isInitialized || !currentSelectedTile.Valid)
-                return;
-
-            var settlements = WorldInfoHelper.GetSettlementsByDistance(currentSelectedTile);
-            if (settlements.Count == 0)
-            {
-                TolkHelper.Speak("No settlements found", SpeechPriority.Normal);
-                return;
-            }
-
-            // Find current settlement if we're on one
-            Settlement currentSettlement = Find.WorldObjects?.SettlementAt(currentSelectedTile);
-            int currentIndex = -1;
-
-            if (currentSettlement != null)
-            {
-                currentIndex = settlements.IndexOf(currentSettlement);
-            }
-
-            // Move to next settlement
-            int nextIndex = (currentIndex + 1) % settlements.Count;
-            Settlement nextSettlement = settlements[nextIndex];
-
-            // Jump to it
-            JumpToSettlement(nextSettlement);
-        }
-
-        /// <summary>
-        /// Cycles to the previous settlement (by distance from current position).
-        /// </summary>
-        public static void CycleToPreviousSettlement()
-        {
-            if (!isInitialized || !currentSelectedTile.Valid)
-                return;
-
-            var settlements = WorldInfoHelper.GetSettlementsByDistance(currentSelectedTile);
-            if (settlements.Count == 0)
-            {
-                TolkHelper.Speak("No settlements found", SpeechPriority.Normal);
-                return;
-            }
-
-            // Find current settlement if we're on one
-            Settlement currentSettlement = Find.WorldObjects?.SettlementAt(currentSelectedTile);
-            int currentIndex = -1;
-
-            if (currentSettlement != null)
-            {
-                currentIndex = settlements.IndexOf(currentSettlement);
-            }
-
-            // Move to previous settlement
-            int prevIndex = currentIndex - 1;
-            if (prevIndex < 0)
-                prevIndex = settlements.Count - 1;
-
-            Settlement prevSettlement = settlements[prevIndex];
-
-            // Jump to it
-            JumpToSettlement(prevSettlement);
-        }
-
-        /// <summary>
-        /// Jumps to a specific settlement.
-        /// </summary>
-        private static void JumpToSettlement(Settlement settlement)
-        {
-            if (settlement == null)
-                return;
-
-            currentSelectedTile = settlement.Tile;
-
-            // Sync with game's selection system
-            if (Find.WorldSelector != null)
-            {
-                Find.WorldSelector.ClearSelection();
-                Find.WorldSelector.Select(settlement);
-                Find.WorldSelector.SelectedTile = currentSelectedTile;
-            }
-
-            // Jump camera and orient north-up
-            if (Find.WorldCameraDriver != null)
-            {
-                Find.WorldCameraDriver.JumpTo(currentSelectedTile);
-            }
-            OrientCameraNorthUp();
-
-            // Check if we've entered/left pole territory
-            UpdatePoleStatus();
-
-            // Announce tile info
-            AnnounceTile();
         }
 
         /// <summary>
@@ -764,11 +728,12 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Forms a caravan at the currently selected settlement (C key).
+        /// Forms a caravan at the currently selected settlement (C key). In-game only.
         /// Opens the route planner first to set destination, then opens the caravan formation dialog.
         /// </summary>
         public static void FormCaravanAtSelectedSettlement()
         {
+            if (context != WorldNavContext.InGame) return;
             if (!isInitialized || !currentSelectedTile.Valid)
             {
                 TolkHelper.Speak("No tile selected", SpeechPriority.Normal);
@@ -808,10 +773,11 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Shows the caravan inspect screen (I key when caravan selected).
+        /// Shows the caravan inspect screen (I key when caravan selected). In-game only.
         /// </summary>
         public static void ShowCaravanInspect()
         {
+            if (context != WorldNavContext.InGame) return;
             Caravan caravan = GetSelectedCaravan();
             if (caravan == null)
             {
@@ -823,11 +789,12 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Opens the order menu for the currently selected caravan (] key).
+        /// Opens the order menu for the currently selected caravan (] key). In-game only.
         /// Uses the cursor tile as the target location for orders.
         /// </summary>
         public static void GiveCaravanOrders()
         {
+            if (context != WorldNavContext.InGame) return;
             if (!isInitialized || !currentSelectedTile.Valid)
             {
                 TolkHelper.Speak("No tile selected", SpeechPriority.Normal);
@@ -885,11 +852,12 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Cycles to the next player caravan (for order-giving).
+        /// Cycles to the next player caravan (for order-giving). In-game only.
         /// Does not move the map cursor.
         /// </summary>
         public static void CycleToNextCaravan()
         {
+            if (context != WorldNavContext.InGame) return;
             if (!isInitialized)
                 return;
 
@@ -934,11 +902,12 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Cycles to the previous player caravan (for order-giving).
+        /// Cycles to the previous player caravan (for order-giving). In-game only.
         /// Does not move the map cursor.
         /// </summary>
         public static void CycleToPreviousCaravan()
         {
+            if (context != WorldNavContext.InGame) return;
             if (!isInitialized)
                 return;
 
@@ -1025,10 +994,11 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Toggles multi-selection of the currently focused caravan (via Ctrl+Space).
+        /// Toggles multi-selection of the currently focused caravan (via Ctrl+Space). In-game only.
         /// </summary>
         public static void ToggleCaravanSelection()
         {
+            if (context != WorldNavContext.InGame) return;
             if (selectedCaravan == null)
             {
                 TolkHelper.Speak("No caravan focused. Use comma or period to cycle through caravans first.");
@@ -1107,11 +1077,12 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Jumps the cursor to the selected caravan(s) location (Alt+C).
+        /// Jumps the cursor to the selected caravan(s) location (Alt+C). In-game only.
         /// If multiple caravans are selected, they must all be on the same tile.
         /// </summary>
         public static void JumpToSelectedCaravans()
         {
+            if (context != WorldNavContext.InGame) return;
             // Check multi-selection first
             if (multiSelectedCaravans.Count > 0)
             {
@@ -1126,6 +1097,7 @@ namespace RimWorldAccess
                 // All on same tile - jump there
                 PlanetTile targetTile = tiles[0];
                 currentSelectedTile = targetTile;
+                SyncSelectionWithGame();
 
                 // Center camera on that tile
                 Find.WorldCameraDriver?.JumpTo(Find.WorldGrid.GetTileCenter(targetTile));
@@ -1139,6 +1111,7 @@ namespace RimWorldAccess
             if (selectedCaravan != null)
             {
                 currentSelectedTile = selectedCaravan.Tile;
+                SyncSelectionWithGame();
                 Find.WorldCameraDriver?.JumpTo(Find.WorldGrid.GetTileCenter(selectedCaravan.Tile));
 
                 string tileInfo = WorldInfoHelper.GetTileSummary(selectedCaravan.Tile);

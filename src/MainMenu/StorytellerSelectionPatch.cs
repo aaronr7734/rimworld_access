@@ -5,6 +5,10 @@ using Verse;
 
 namespace RimWorldAccess
 {
+    /// <summary>
+    /// Harmony patch for Page_SelectStoryteller (main menu difficulty selection).
+    /// Provides keyboard navigation for storyteller, difficulty, and permadeath selection.
+    /// </summary>
     [HarmonyPatch(typeof(Page_SelectStoryteller))]
     [HarmonyPatch("DoWindowContents")]
     public class StorytellerSelectionPatch
@@ -13,9 +17,6 @@ namespace RimWorldAccess
         private static bool hasAnnouncedTitle = false;
         private enum NavigationMode { Storyteller, Difficulty, Permadeath }
         private static NavigationMode currentMode = NavigationMode.Storyteller;
-        private static bool announcedStorytellerHelp = false;
-        private static bool announcedDifficultyHelp = false;
-        private static bool announcedPermadeathHelp = false;
 
         // Prefix: Initialize state and handle keyboard input
         static void Prefix(Page_SelectStoryteller __instance, Rect rect)
@@ -32,7 +33,10 @@ namespace RimWorldAccess
                     StorytellerDef storyteller = StorytellerNavigationState.SelectedStoryteller;
                     if (storyteller != null)
                     {
-                        TolkHelper.Speak($"{pageTitle} - {storyteller.label} - {storyteller.description}. Use Tab to switch between Storyteller, Difficulty, and Permadeath modes.");
+                        string position = MenuHelper.FormatPosition(0, StorytellerNavigationState.StorytellerCount);
+                        string description = storyteller.description.TrimEnd('.');
+                        string positionPart = string.IsNullOrEmpty(position) ? "" : $" ({position})";
+                        TolkHelper.Speak($"{pageTitle} - {storyteller.label} - {description}{positionPart}. Tab and Shift+Tab to move between Storyteller, Difficulty, and Save Mode.");
                     }
                     else
                     {
@@ -45,36 +49,75 @@ namespace RimWorldAccess
                 if (Event.current.type == EventType.KeyDown)
                 {
                     KeyCode keyCode = Event.current.keyCode;
+                    bool handled = false;
 
+                    // Custom difficulty edit mode takes priority
+                    if (CustomDifficultyEditState.IsActive)
+                    {
+                        handled = HandleCustomDifficultyInput(keyCode);
+                        if (handled)
+                        {
+                            Event.current.Use();
+                            patchActive = true;
+                        }
+                        return; // Don't process other keys when in custom edit mode
+                    }
+
+                    // Tab navigation between modes
                     if (keyCode == KeyCode.Tab && !Event.current.shift)
                     {
-                        // Forward cycle
-                        CycleNavigationModeForward();
-                        Event.current.Use();
-                        patchActive = true;
+                        CycleNavigationModeForward(__instance);
+                        handled = true;
                     }
                     else if (keyCode == KeyCode.Tab && Event.current.shift)
                     {
-                        // Backward cycle
-                        CycleNavigationModeBackward();
-                        Event.current.Use();
-                        patchActive = true;
+                        CycleNavigationModeBackward(__instance);
+                        handled = true;
                     }
+                    // Enter/Space - open custom difficulty if selected
+                    else if ((keyCode == KeyCode.Return || keyCode == KeyCode.KeypadEnter || keyCode == KeyCode.Space) &&
+                             currentMode == NavigationMode.Difficulty)
+                    {
+                        handled = HandleEnterOnDifficulty(__instance);
+                    }
+                    // Arrow key navigation
                     else if (keyCode == KeyCode.UpArrow)
                     {
-                        HandleUpArrow(__instance);
-                        Event.current.Use();
-                        patchActive = true;
+                        handled = HandleUpArrow(__instance);
                     }
                     else if (keyCode == KeyCode.DownArrow)
                     {
-                        HandleDownArrow(__instance);
-                        Event.current.Use();
-                        patchActive = true;
+                        handled = HandleDownArrow(__instance);
                     }
-                    else if (keyCode == KeyCode.Space && currentMode == NavigationMode.Permadeath)
+                    // Home/End navigation
+                    else if (keyCode == KeyCode.Home)
                     {
-                        StorytellerNavigationState.TogglePermadeath();
+                        handled = HandleHome(__instance);
+                    }
+                    else if (keyCode == KeyCode.End)
+                    {
+                        handled = HandleEnd(__instance);
+                    }
+                    // Escape - clear typeahead search
+                    else if (keyCode == KeyCode.Escape)
+                    {
+                        handled = HandleEscape();
+                    }
+                    // Backspace - delete last search character
+                    else if (keyCode == KeyCode.Backspace)
+                    {
+                        handled = HandleBackspace(__instance);
+                    }
+                    // Typeahead search (letters/digits)
+                    else if (Event.current.character != '\0' &&
+                             !Event.current.control && !Event.current.alt &&
+                             char.IsLetterOrDigit(Event.current.character))
+                    {
+                        handled = HandleTypeahead(Event.current.character, __instance);
+                    }
+
+                    if (handled)
+                    {
                         Event.current.Use();
                         patchActive = true;
                     }
@@ -86,13 +129,106 @@ namespace RimWorldAccess
             }
         }
 
-        private static void CycleNavigationModeForward()
+        private static bool HandleCustomDifficultyInput(KeyCode keyCode)
+        {
+            // Navigation
+            if (keyCode == KeyCode.UpArrow)
+            {
+                if (CustomDifficultyEditState.HasActiveSearch)
+                    CustomDifficultyEditState.SelectPreviousMatch();
+                else
+                    CustomDifficultyEditState.SelectPrevious();
+                return true;
+            }
+            else if (keyCode == KeyCode.DownArrow)
+            {
+                if (CustomDifficultyEditState.HasActiveSearch)
+                    CustomDifficultyEditState.SelectNextMatch();
+                else
+                    CustomDifficultyEditState.SelectNext();
+                return true;
+            }
+            else if (keyCode == KeyCode.LeftArrow)
+            {
+                CustomDifficultyEditState.AdjustLeft();
+                return true;
+            }
+            else if (keyCode == KeyCode.RightArrow)
+            {
+                CustomDifficultyEditState.AdjustRight();
+                return true;
+            }
+            else if (keyCode == KeyCode.Return || keyCode == KeyCode.KeypadEnter || keyCode == KeyCode.Space)
+            {
+                CustomDifficultyEditState.ExecuteOrEnter();
+                return true;
+            }
+            else if (keyCode == KeyCode.Escape)
+            {
+                // Clear search first, then go back
+                if (CustomDifficultyEditState.HasActiveSearch)
+                {
+                    CustomDifficultyEditState.ClearSearch();
+                }
+                else if (!CustomDifficultyEditState.GoBack())
+                {
+                    CustomDifficultyEditState.Close();
+                    TolkHelper.Speak("Difficulty");
+                    StorytellerNavigationState.AnnounceDifficulty();
+                }
+                return true;
+            }
+            else if (keyCode == KeyCode.Home)
+            {
+                CustomDifficultyEditState.NavigateHome();
+                return true;
+            }
+            else if (keyCode == KeyCode.End)
+            {
+                CustomDifficultyEditState.NavigateEnd();
+                return true;
+            }
+            // Alt+R - Jump to reset/playstyle section
+            else if (keyCode == KeyCode.R && Event.current.alt)
+            {
+                CustomDifficultyEditState.JumpToResetSection();
+                return true;
+            }
+            else if (keyCode == KeyCode.Backspace)
+            {
+                return CustomDifficultyEditState.HandleBackspace();
+            }
+            // Typeahead (letters/digits)
+            else if (Event.current.character != '\0' &&
+                     !Event.current.control && !Event.current.alt &&
+                     char.IsLetterOrDigit(Event.current.character))
+            {
+                return CustomDifficultyEditState.HandleTypeahead(Event.current.character);
+            }
+
+            return false;
+        }
+
+        private static bool HandleEnterOnDifficulty(Page_SelectStoryteller instance)
+        {
+            DifficultyDef selected = StorytellerNavigationState.SelectedDifficulty;
+            if (selected != null && selected.isCustom)
+            {
+                // Open custom difficulty edit mode
+                CustomDifficultyEditState.Open(instance);
+                return true;
+            }
+            // For non-custom difficulties, don't consume Enter - let page proceed
+            return false;
+        }
+
+        private static void CycleNavigationModeForward(Page_SelectStoryteller instance)
         {
             switch (currentMode)
             {
                 case NavigationMode.Storyteller:
                     currentMode = NavigationMode.Difficulty;
-                    AnnounceDifficultyMode();
+                    AnnounceDifficultyMode(instance);
                     break;
                 case NavigationMode.Difficulty:
                     currentMode = NavigationMode.Permadeath;
@@ -100,12 +236,12 @@ namespace RimWorldAccess
                     break;
                 case NavigationMode.Permadeath:
                     currentMode = NavigationMode.Storyteller;
-                    AnnounceStorytellerMode();
+                    AnnounceStorytellerMode(instance);
                     break;
             }
         }
 
-        private static void CycleNavigationModeBackward()
+        private static void CycleNavigationModeBackward(Page_SelectStoryteller instance)
         {
             switch (currentMode)
             {
@@ -115,93 +251,204 @@ namespace RimWorldAccess
                     break;
                 case NavigationMode.Difficulty:
                     currentMode = NavigationMode.Storyteller;
-                    AnnounceStorytellerMode();
+                    AnnounceStorytellerMode(instance);
                     break;
                 case NavigationMode.Permadeath:
                     currentMode = NavigationMode.Difficulty;
-                    AnnounceDifficultyMode();
+                    AnnounceDifficultyMode(instance);
                     break;
             }
         }
 
-        private static void AnnounceStorytellerMode()
+        private static void AnnounceStorytellerMode(Page_SelectStoryteller instance)
         {
-            string announcement = "Storyteller selection";
-            if (!announcedStorytellerHelp)
-            {
-                announcement += ". Use Up/Down arrows to choose storyteller";
-                announcedStorytellerHelp = true;
-            }
-            TolkHelper.Speak(announcement);
+            StorytellerNavigationState.EnsureStorytellerSelected();
+            UpdatePageStoryteller(instance);
+            TolkHelper.Speak("Storyteller");
+            StorytellerNavigationState.AnnounceStoryteller();
         }
 
-        private static void AnnounceDifficultyMode()
+        private static void AnnounceDifficultyMode(Page_SelectStoryteller instance)
         {
-            string announcement = "Difficulty selection";
-            if (!announcedDifficultyHelp)
-            {
-                announcement += ". Use Up/Down arrows to choose difficulty";
-                announcedDifficultyHelp = true;
-            }
-            TolkHelper.Speak(announcement);
+            StorytellerNavigationState.EnsureDifficultySelected();
+            UpdatePageDifficulty(instance);
+            TolkHelper.Speak("Difficulty");
+            StorytellerNavigationState.AnnounceDifficulty();
         }
 
         private static void AnnouncePermadeathMode()
         {
-            // Ensure permadeathChosen is set so game can proceed without touching this
-            if (!Find.GameInitData.permadeathChosen)
-            {
-                Find.GameInitData.permadeathChosen = true;
-                Find.GameInitData.permadeath = false; // Default to Reload Anytime
-            }
-
-            string mode = Find.GameInitData.permadeath
-                ? "Commitment Mode (Permadeath)"
-                : "Reload Anytime Mode";
-
-            string announcement = $"Permadeath selection: {mode}";
-            if (!announcedPermadeathHelp)
-            {
-                announcement += ". Press Space to toggle";
-                announcedPermadeathHelp = true;
-            }
-            TolkHelper.Speak(announcement);
+            StorytellerNavigationState.EnsurePermadeathSelected();
+            TolkHelper.Speak("Save Mode");
+            StorytellerNavigationState.AnnouncePermadeath();
         }
 
-        private static void HandleUpArrow(Page_SelectStoryteller instance)
+        private static bool HandleUpArrow(Page_SelectStoryteller instance)
         {
             switch (currentMode)
             {
                 case NavigationMode.Storyteller:
-                    StorytellerNavigationState.NavigateStorytellerUp();
+                    if (StorytellerNavigationState.HasActiveStorytellerSearch)
+                        StorytellerNavigationState.SelectPreviousStorytellerMatch();
+                    else
+                        StorytellerNavigationState.NavigateStorytellerUp();
                     UpdatePageStoryteller(instance);
-                    break;
+                    return true;
+
                 case NavigationMode.Difficulty:
-                    StorytellerNavigationState.NavigateDifficultyUp();
+                    if (StorytellerNavigationState.HasActiveDifficultySearch)
+                        StorytellerNavigationState.SelectPreviousDifficultyMatch();
+                    else
+                        StorytellerNavigationState.NavigateDifficultyUp();
                     UpdatePageDifficulty(instance);
-                    break;
+                    return true;
+
                 case NavigationMode.Permadeath:
-                    // No up/down for permadeath, just toggle with Space
-                    break;
+                    StorytellerNavigationState.NavigatePermadeathUp();
+                    return true;
             }
+            return false;
         }
 
-        private static void HandleDownArrow(Page_SelectStoryteller instance)
+        private static bool HandleDownArrow(Page_SelectStoryteller instance)
         {
             switch (currentMode)
             {
                 case NavigationMode.Storyteller:
-                    StorytellerNavigationState.NavigateStorytellerDown();
+                    if (StorytellerNavigationState.HasActiveStorytellerSearch)
+                        StorytellerNavigationState.SelectNextStorytellerMatch();
+                    else
+                        StorytellerNavigationState.NavigateStorytellerDown();
                     UpdatePageStoryteller(instance);
-                    break;
+                    return true;
+
                 case NavigationMode.Difficulty:
-                    StorytellerNavigationState.NavigateDifficultyDown();
+                    if (StorytellerNavigationState.HasActiveDifficultySearch)
+                        StorytellerNavigationState.SelectNextDifficultyMatch();
+                    else
+                        StorytellerNavigationState.NavigateDifficultyDown();
                     UpdatePageDifficulty(instance);
-                    break;
+                    return true;
+
                 case NavigationMode.Permadeath:
-                    // No up/down for permadeath, just toggle with Space
-                    break;
+                    StorytellerNavigationState.NavigatePermadeathDown();
+                    return true;
             }
+            return false;
+        }
+
+        private static bool HandleHome(Page_SelectStoryteller instance)
+        {
+            switch (currentMode)
+            {
+                case NavigationMode.Storyteller:
+                    StorytellerNavigationState.NavigateStorytellerHome();
+                    UpdatePageStoryteller(instance);
+                    return true;
+
+                case NavigationMode.Difficulty:
+                    StorytellerNavigationState.NavigateDifficultyHome();
+                    UpdatePageDifficulty(instance);
+                    return true;
+
+                case NavigationMode.Permadeath:
+                    StorytellerNavigationState.NavigatePermadeathHome();
+                    return true;
+            }
+            return false;
+        }
+
+        private static bool HandleEnd(Page_SelectStoryteller instance)
+        {
+            switch (currentMode)
+            {
+                case NavigationMode.Storyteller:
+                    StorytellerNavigationState.NavigateStorytellerEnd();
+                    UpdatePageStoryteller(instance);
+                    return true;
+
+                case NavigationMode.Difficulty:
+                    StorytellerNavigationState.NavigateDifficultyEnd();
+                    UpdatePageDifficulty(instance);
+                    return true;
+
+                case NavigationMode.Permadeath:
+                    StorytellerNavigationState.NavigatePermadeathEnd();
+                    return true;
+            }
+            return false;
+        }
+
+        private static bool HandleEscape()
+        {
+            // Only handle if there's an active search to clear
+            switch (currentMode)
+            {
+                case NavigationMode.Storyteller:
+                    return StorytellerNavigationState.ClearStorytellerTypeaheadSearch();
+
+                case NavigationMode.Difficulty:
+                    return StorytellerNavigationState.ClearDifficultyTypeaheadSearch();
+
+                case NavigationMode.Permadeath:
+                    // No typeahead for permadeath
+                    return false;
+            }
+            return false;
+        }
+
+        private static bool HandleBackspace(Page_SelectStoryteller instance)
+        {
+            switch (currentMode)
+            {
+                case NavigationMode.Storyteller:
+                    if (StorytellerNavigationState.HandleStorytellerTypeaheadBackspace())
+                    {
+                        UpdatePageStoryteller(instance);
+                        return true;
+                    }
+                    return false;
+
+                case NavigationMode.Difficulty:
+                    if (StorytellerNavigationState.HandleDifficultyTypeaheadBackspace())
+                    {
+                        UpdatePageDifficulty(instance);
+                        return true;
+                    }
+                    return false;
+
+                case NavigationMode.Permadeath:
+                    // No typeahead for permadeath
+                    return false;
+            }
+            return false;
+        }
+
+        private static bool HandleTypeahead(char character, Page_SelectStoryteller instance)
+        {
+            switch (currentMode)
+            {
+                case NavigationMode.Storyteller:
+                    if (StorytellerNavigationState.HandleStorytellerTypeahead(character))
+                    {
+                        UpdatePageStoryteller(instance);
+                        return true;
+                    }
+                    return false;
+
+                case NavigationMode.Difficulty:
+                    if (StorytellerNavigationState.HandleDifficultyTypeahead(character))
+                    {
+                        UpdatePageDifficulty(instance);
+                        return true;
+                    }
+                    return false;
+
+                case NavigationMode.Permadeath:
+                    // No typeahead for permadeath (only 2 options)
+                    return false;
+            }
+            return false;
         }
 
         private static void UpdatePageStoryteller(Page_SelectStoryteller instance)
@@ -249,7 +496,7 @@ namespace RimWorldAccess
                         modeText = "[Selecting: Difficulty]";
                         break;
                     case NavigationMode.Permadeath:
-                        modeText = "[Selecting: Permadeath Mode]";
+                        modeText = "[Selecting: Save Mode]";
                         break;
                 }
 
@@ -272,9 +519,6 @@ namespace RimWorldAccess
         {
             hasAnnouncedTitle = false;
             currentMode = NavigationMode.Storyteller;
-            announcedStorytellerHelp = false;
-            announcedDifficultyHelp = false;
-            announcedPermadeathHelp = false;
         }
     }
 
@@ -287,6 +531,42 @@ namespace RimWorldAccess
         {
             StorytellerSelectionPatch.ResetAnnouncement();
             StorytellerNavigationState.Reset();
+            CustomDifficultyEditState.Close();
+        }
+    }
+
+    // Reset custom difficulty state when page closes
+    // Note: We patch Window.PreClose because Page_SelectStoryteller doesn't override it
+    [HarmonyPatch(typeof(Window), "PreClose")]
+    public class StorytellerSelectionPatch_PreClose
+    {
+        [HarmonyPostfix]
+        static void Postfix(Window __instance)
+        {
+            if (__instance is Page_SelectStoryteller)
+            {
+                CustomDifficultyEditState.Close();
+            }
+        }
+    }
+
+    // Block page advancement when editing custom difficulty settings
+    [HarmonyPatch(typeof(Page), "DoNext")]
+    public class PageDoNextBlockPatch
+    {
+        [HarmonyPrefix]
+        static bool Prefix(Page __instance)
+        {
+            // Only intercept for Page_SelectStoryteller
+            if (__instance is Page_SelectStoryteller)
+            {
+                if (CustomDifficultyEditState.IsActive)
+                {
+                    // Block advancement - user is editing custom settings
+                    return false;
+                }
+            }
+            return true;
         }
     }
 

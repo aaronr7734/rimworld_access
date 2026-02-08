@@ -1,21 +1,21 @@
+using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Verse;
 
 namespace RimWorldAccess
 {
+    /// <summary>
+    /// Manages navigation state for the Page_CreateWorldParams screen.
+    /// All fields in a single menu, including Advanced settings (Map Size, Season).
+    /// Uses modern patterns: MenuHelper for navigation, TypeaheadSearchHelper for search.
+    /// </summary>
     public static class WorldParamsNavigationState
     {
-        private static bool initialized = false;
-        private static int currentFieldIndex = 0;
-
-        // Text input state for seed editing
-        private static bool isEditingSeed = false;
-        private static string seedInputBuffer = "";
-
-        // Field identifiers
+        // ===== FIELD DEFINITIONS =====
         private enum WorldParamField
         {
             Seed,
@@ -23,16 +23,69 @@ namespace RimWorldAccess
             Rainfall,
             Temperature,
             Population,
-            LandmarkDensity, // Odyssey only
-            Pollution        // Biotech only
+            LandmarkDensity,  // Odyssey only
+            Pollution,        // Biotech only
+            MapSize,          // Advanced
+            StartingSeason    // Advanced
         }
 
         private static List<WorldParamField> availableFields = new List<WorldParamField>();
+        private static int fieldIndex = 0;
+        private static TypeaheadSearchHelper fieldTypeahead = new TypeaheadSearchHelper();
 
-        public static void Initialize()
+        // Per-slider value tracking (synced with game)
+        // Planet coverage - pulled dynamically based on dev mode
+        private static float[] activePlanetCoverages;
+        private static bool[] isPlanetCoverageDev;  // Tracks which coverage options are dev-only
+        private static int planetCoverageIndex = 0;
+
+        // Rainfall/Temperature/Population/LandmarkDensity labels derived from enum names
+        private static readonly string[] RainfallLabels = { "Almost None", "Little", "A Little Less", "Normal", "A Little More", "High", "Very High" };
+        private static readonly string[] TemperatureLabels = { "Very Cold", "Cold", "A Little Colder", "Normal", "A Little Warmer", "Hot", "Very Hot" };
+        private static readonly string[] PopulationLabels = { "Almost None", "Little", "A Little Less", "Normal", "A Little More", "High", "Very High" };
+        private static readonly string[] LandmarkDensityLabels = { "Sparse", "Slightly More Sparse", "Slightly Sparse", "Normal", "Slightly Crowded", "Slightly More Crowded", "Crowded" };
+
+        private static int rainfallIndex = 3;       // Default: Normal
+        private static int temperatureIndex = 3;    // Default: Normal
+        private static int populationIndex = 3;     // Default: Normal
+        private static int landmarkDensityIndex = 3; // Default: Normal
+        private static float pollutionValue = 0f;
+
+        // Text input state for seed editing
+        private static bool isEditingSeed = false;
+        private static string seedInputBuffer = "";
+
+        // Map sizes - pulled dynamically based on dev mode (Prefs.TestMapSizes)
+        private static int[] activeMapSizes;
+        private static string[] activeMapSizeLabels;
+        private static int mapSizeIndex = 2;  // Default 250 (Medium)
+
+        // Seasons
+        private static readonly Season[] Seasons = { Season.Undefined, Season.Spring, Season.Summer, Season.Fall, Season.Winter };
+        private static int seasonIndex = 0;  // Default Auto (game's default)
+
+        // ===== INITIALIZATION STATE =====
+        private static bool initialized = false;
+        private static Page_CreateWorldParams currentInstance = null;
+
+        // ===== PUBLIC PROPERTIES =====
+        public static bool IsEditingSeed => isEditingSeed;
+        public static string SeedInputBuffer => seedInputBuffer;
+        public static bool HasActiveSearch => fieldTypeahead.HasActiveSearch;
+
+        public static int FieldCount => availableFields.Count;
+
+        // ===== INITIALIZATION =====
+
+        public static void Initialize(Page_CreateWorldParams instance)
         {
-            if (!initialized)
+            // Always re-setup dynamic options (dev mode could have changed)
+            SetupDynamicOptions();
+
+            if (!initialized || currentInstance != instance)
             {
+                currentInstance = instance;
+
                 // Build list of available fields based on active mods
                 availableFields.Clear();
                 availableFields.Add(WorldParamField.Seed);
@@ -51,196 +104,292 @@ namespace RimWorldAccess
                     availableFields.Add(WorldParamField.Pollution);
                 }
 
-                currentFieldIndex = 0;
+                // Advanced settings always available
+                availableFields.Add(WorldParamField.MapSize);
+                availableFields.Add(WorldParamField.StartingSeason);
+
+                // Sync slider values with game's actual values
+                SyncFromGame(instance);
+
+                // Sync advanced settings from GameInitData
+                SyncAdvancedFromGame();
+
+                // Reset navigation state
+                fieldIndex = 0;
+                isEditingSeed = false;
+                seedInputBuffer = "";
+                fieldTypeahead.ClearSearch();
+
                 initialized = true;
             }
+        }
+
+        /// <summary>
+        /// Set up dynamic options based on dev mode settings.
+        /// </summary>
+        private static void SetupDynamicOptions()
+        {
+            // Planet coverage - dev mode adds 5% option at the end with (dev) marker
+            if (Prefs.DevMode)
+            {
+                activePlanetCoverages = new float[] { 0.3f, 0.5f, 1f, 0.05f };
+                isPlanetCoverageDev = new bool[] { false, false, false, true };
+            }
+            else
+            {
+                activePlanetCoverages = new float[] { 0.3f, 0.5f, 1f };
+                isPlanetCoverageDev = new bool[] { false, false, false };
+            }
+
+            // Map sizes - Prefs.TestMapSizes adds 350 and 400 in numeric order
+            if (Prefs.TestMapSizes)
+            {
+                activeMapSizes = new int[] { 200, 225, 250, 275, 300, 325, 350, 400 };
+            }
+            else
+            {
+                activeMapSizes = new int[] { 200, 225, 250, 275, 300, 325 };
+            }
+
+            // Generate labels using game's translation keys
+            activeMapSizeLabels = new string[activeMapSizes.Length];
+            for (int i = 0; i < activeMapSizes.Length; i++)
+            {
+                activeMapSizeLabels[i] = GetMapSizeCategory(activeMapSizes[i]);
+            }
+        }
+
+        /// <summary>
+        /// Get the translated category label for a map size, matching game's thresholds.
+        /// </summary>
+        private static string GetMapSizeCategory(int size)
+        {
+            if (size >= 350)
+                return "MapSizeExtreme".Translate().ToString();
+            if (size >= 300)
+                return "MapSizeLarge".Translate().ToString();
+            if (size >= 250)
+                return "MapSizeMedium".Translate().ToString();
+            return "MapSizeSmall".Translate().ToString();
         }
 
         public static void Reset()
         {
             initialized = false;
-            currentFieldIndex = 0;
+            currentInstance = null;
+            fieldIndex = 0;
             availableFields.Clear();
+            fieldTypeahead.ClearSearch();
+            isEditingSeed = false;
+            seedInputBuffer = "";
         }
+
+        /// <summary>
+        /// Sync our internal indices with the game's actual slider values.
+        /// </summary>
+        private static void SyncFromGame(Page_CreateWorldParams instance)
+        {
+            // Planet coverage
+            float coverage = (float)AccessTools.Field(typeof(Page_CreateWorldParams), "planetCoverage").GetValue(instance);
+            planetCoverageIndex = Array.FindIndex(activePlanetCoverages, c => Math.Abs(c - coverage) < 0.01f);
+            if (planetCoverageIndex < 0) planetCoverageIndex = 0; // Default to first option
+
+            // Rainfall
+            OverallRainfall rainfall = (OverallRainfall)AccessTools.Field(typeof(Page_CreateWorldParams), "rainfall").GetValue(instance);
+            rainfallIndex = (int)rainfall;
+
+            // Temperature
+            OverallTemperature temperature = (OverallTemperature)AccessTools.Field(typeof(Page_CreateWorldParams), "temperature").GetValue(instance);
+            temperatureIndex = (int)temperature;
+
+            // Population
+            OverallPopulation population = (OverallPopulation)AccessTools.Field(typeof(Page_CreateWorldParams), "population").GetValue(instance);
+            populationIndex = (int)population;
+
+            // Landmark Density (Odyssey)
+            if (ModsConfig.OdysseyActive)
+            {
+                LandmarkDensity density = (LandmarkDensity)AccessTools.Field(typeof(Page_CreateWorldParams), "landmarkDensity").GetValue(instance);
+                landmarkDensityIndex = (int)density;
+            }
+
+            // Pollution (Biotech)
+            if (ModsConfig.BiotechActive)
+            {
+                pollutionValue = (float)AccessTools.Field(typeof(Page_CreateWorldParams), "pollution").GetValue(instance);
+            }
+        }
+
+        /// <summary>
+        /// Sync advanced settings from GameInitData.
+        /// </summary>
+        private static void SyncAdvancedFromGame()
+        {
+            // Map size
+            int currentMapSize = Find.GameInitData.mapSize;
+            mapSizeIndex = Array.IndexOf(activeMapSizes, currentMapSize);
+            if (mapSizeIndex < 0) mapSizeIndex = 2; // Default to 250
+
+            // Season - game defaults to Auto (Season.Undefined)
+            Season currentSeason = Find.GameInitData.startingSeason;
+            seasonIndex = Array.IndexOf(Seasons, currentSeason);
+            if (seasonIndex < 0) seasonIndex = 0; // Default to Auto
+        }
+
+        // ===== NAVIGATION =====
 
         public static void NavigateUp()
         {
             if (availableFields.Count == 0) return;
-
-            currentFieldIndex--;
-            if (currentFieldIndex < 0)
-                currentFieldIndex = availableFields.Count - 1;
-
-            CopyCurrentFieldToClipboard();
+            fieldTypeahead.ClearSearch();
+            fieldIndex = MenuHelper.SelectPrevious(fieldIndex, availableFields.Count);
+            AnnounceCurrentField();
         }
 
         public static void NavigateDown()
         {
             if (availableFields.Count == 0) return;
-
-            currentFieldIndex++;
-            if (currentFieldIndex >= availableFields.Count)
-                currentFieldIndex = 0;
-
-            CopyCurrentFieldToClipboard();
+            fieldTypeahead.ClearSearch();
+            fieldIndex = MenuHelper.SelectNext(fieldIndex, availableFields.Count);
+            AnnounceCurrentField();
         }
 
-        public static string GetCurrentFieldName()
+        public static void NavigateHome()
         {
-            if (currentFieldIndex < 0 || currentFieldIndex >= availableFields.Count)
-                return "Unknown";
-
-            return availableFields[currentFieldIndex].ToString();
+            if (availableFields.Count == 0) return;
+            fieldTypeahead.ClearSearch();
+            fieldIndex = 0;
+            AnnounceCurrentField();
         }
 
-        public static void CopyFieldValue(string seedString, float planetCoverage, OverallRainfall rainfall,
-            OverallTemperature temperature, OverallPopulation population, LandmarkDensity landmarkDensity, float pollution)
+        public static void NavigateEnd()
         {
-            if (currentFieldIndex < 0 || currentFieldIndex >= availableFields.Count)
-                return;
+            if (availableFields.Count == 0) return;
+            fieldTypeahead.ClearSearch();
+            fieldIndex = availableFields.Count - 1;
+            AnnounceCurrentField();
+        }
 
-            WorldParamField currentField = availableFields[currentFieldIndex];
-            string fieldName = "";
-            string fieldValue = "";
+        // ===== VALUE MODIFICATION =====
 
-            switch (currentField)
+        public static void ModifyCurrentValue(int direction)
+        {
+            if (fieldIndex < 0 || fieldIndex >= availableFields.Count) return;
+
+            WorldParamField field = availableFields[fieldIndex];
+            switch (field)
             {
                 case WorldParamField.Seed:
-                    fieldName = "World Seed";
-                    fieldValue = seedString;
+                    TolkHelper.Speak("Press Enter to type custom seed, or R to randomize");
                     break;
 
                 case WorldParamField.PlanetCoverage:
-                    fieldName = "Planet Coverage";
-                    fieldValue = planetCoverage.ToStringPercent();
+                    planetCoverageIndex = ClampIndex(planetCoverageIndex + direction, activePlanetCoverages.Length);
+                    ApplyPlanetCoverage();
+                    AnnounceFieldValue(field);
                     break;
 
                 case WorldParamField.Rainfall:
-                    fieldName = "Rainfall";
-                    fieldValue = GetRainfallLabel(rainfall);
+                    // Sliders clamp, don't wrap
+                    rainfallIndex = ClampIndex(rainfallIndex + direction, RainfallLabels.Length);
+                    ApplyRainfall();
+                    AnnounceFieldValue(field);
                     break;
 
                 case WorldParamField.Temperature:
-                    fieldName = "Temperature";
-                    fieldValue = GetTemperatureLabel(temperature);
+                    temperatureIndex = ClampIndex(temperatureIndex + direction, TemperatureLabels.Length);
+                    ApplyTemperature();
+                    AnnounceFieldValue(field);
                     break;
 
                 case WorldParamField.Population:
-                    fieldName = "Population";
-                    fieldValue = GetPopulationLabel(population);
+                    populationIndex = ClampIndex(populationIndex + direction, PopulationLabels.Length);
+                    ApplyPopulation();
+                    AnnounceFieldValue(field);
                     break;
 
                 case WorldParamField.LandmarkDensity:
-                    fieldName = "Landmark Density";
-                    fieldValue = GetLandmarkDensityLabel(landmarkDensity);
+                    landmarkDensityIndex = ClampIndex(landmarkDensityIndex + direction, LandmarkDensityLabels.Length);
+                    ApplyLandmarkDensity();
+                    AnnounceFieldValue(field);
                     break;
 
                 case WorldParamField.Pollution:
-                    fieldName = "Pollution";
-                    fieldValue = pollution.ToStringPercent();
+                    // Pollution is a percentage slider - clamp between 0 and 1
+                    float step = 0.05f;
+                    pollutionValue = Math.Max(0f, Math.Min(1f, pollutionValue + (direction * step)));
+                    ApplyPollution();
+                    AnnounceFieldValue(field);
+                    break;
+
+                case WorldParamField.MapSize:
+                    mapSizeIndex = ClampIndex(mapSizeIndex + direction, activeMapSizes.Length);
+                    Find.GameInitData.mapSize = activeMapSizes[mapSizeIndex];
+                    AnnounceFieldValue(field);
+                    break;
+
+                case WorldParamField.StartingSeason:
+                    seasonIndex = ClampIndex(seasonIndex + direction, Seasons.Length);
+                    Find.GameInitData.startingSeason = Seasons[seasonIndex];
+                    AnnounceFieldValue(field);
                     break;
             }
-
-            string text = $"{fieldName}: {fieldValue}";
-            TolkHelper.Speak(text);
         }
 
-        private static void CopyCurrentFieldToClipboard()
+        private static int ClampIndex(int index, int count)
         {
-            if (currentFieldIndex < 0 || currentFieldIndex >= availableFields.Count)
-                return;
-
-            WorldParamField currentField = availableFields[currentFieldIndex];
-            string fieldName = "";
-            string description = "";
-
-            switch (currentField)
-            {
-                case WorldParamField.Seed:
-                    fieldName = "World Seed";
-                    description = "Random seed for world generation. Press Enter to type custom seed, or R to randomize.";
-                    break;
-
-                case WorldParamField.PlanetCoverage:
-                    fieldName = "Planet Coverage";
-                    description = "How much of the planet to generate. Use Left/Right to change (30%, 50%, 100%).";
-                    break;
-
-                case WorldParamField.Rainfall:
-                    fieldName = "Rainfall";
-                    description = "Overall planet rainfall level. Use Left/Right to adjust (Low, Normal, High).";
-                    break;
-
-                case WorldParamField.Temperature:
-                    fieldName = "Temperature";
-                    description = "Overall planet temperature. Use Left/Right to adjust (Low, Normal, High).";
-                    break;
-
-                case WorldParamField.Population:
-                    fieldName = "Population";
-                    description = "World population density. Use Left/Right to adjust (Low, Normal, High).";
-                    break;
-
-                case WorldParamField.LandmarkDensity:
-                    fieldName = "Landmark Density";
-                    description = "Density of landmarks (Odyssey). Use Left/Right to adjust (Low, Normal, High).";
-                    break;
-
-                case WorldParamField.Pollution:
-                    fieldName = "Pollution";
-                    description = "Starting pollution level (Biotech). Use Left/Right to adjust (0-100%).";
-                    break;
-            }
-
-            string text = $"[Field] {fieldName} - {description}";
-            TolkHelper.Speak(text);
+            if (index < 0) return 0;
+            if (index >= count) return count - 1;
+            return index;
         }
 
-        private static string GetRainfallLabel(OverallRainfall rainfall)
+        // ===== APPLY VALUES TO GAME =====
+
+        private static void ApplyPlanetCoverage()
         {
-            // Enum values: 0=Low, 1=Normal, 2=High
-            if ((int)rainfall == 0) return "Low";
-            if ((int)rainfall == 1) return "Normal";
-            if ((int)rainfall == 2) return "High";
-            return rainfall.ToString();
+            if (currentInstance == null) return;
+            AccessTools.Field(typeof(Page_CreateWorldParams), "planetCoverage").SetValue(currentInstance, activePlanetCoverages[planetCoverageIndex]);
         }
 
-        private static string GetTemperatureLabel(OverallTemperature temperature)
+        private static void ApplyRainfall()
         {
-            // Enum values: 0=Low, 1=Normal, 2=High
-            if ((int)temperature == 0) return "Low";
-            if ((int)temperature == 1) return "Normal";
-            if ((int)temperature == 2) return "High";
-            return temperature.ToString();
+            if (currentInstance == null) return;
+            AccessTools.Field(typeof(Page_CreateWorldParams), "rainfall").SetValue(currentInstance, (OverallRainfall)rainfallIndex);
         }
 
-        private static string GetPopulationLabel(OverallPopulation population)
+        private static void ApplyTemperature()
         {
-            // Enum values: 0=Low, 1=Normal, 2=High
-            if ((int)population == 0) return "Low";
-            if ((int)population == 1) return "Normal";
-            if ((int)population == 2) return "High";
-            return population.ToString();
+            if (currentInstance == null) return;
+            AccessTools.Field(typeof(Page_CreateWorldParams), "temperature").SetValue(currentInstance, (OverallTemperature)temperatureIndex);
         }
 
-        private static string GetLandmarkDensityLabel(LandmarkDensity density)
+        private static void ApplyPopulation()
         {
-            // Enum values: 0=Low, 1=Normal, 2=High
-            if ((int)density == 0) return "Low";
-            if ((int)density == 1) return "Normal";
-            if ((int)density == 2) return "High";
-            return density.ToString();
+            if (currentInstance == null) return;
+            AccessTools.Field(typeof(Page_CreateWorldParams), "population").SetValue(currentInstance, (OverallPopulation)populationIndex);
         }
 
-        public static int CurrentFieldIndex => currentFieldIndex;
-        public static int FieldCount => availableFields.Count;
-
-        // Seed text input methods
-        public static void StartSeedEdit(string currentSeed)
+        private static void ApplyLandmarkDensity()
         {
+            if (currentInstance == null) return;
+            AccessTools.Field(typeof(Page_CreateWorldParams), "landmarkDensity").SetValue(currentInstance, (LandmarkDensity)landmarkDensityIndex);
+        }
+
+        private static void ApplyPollution()
+        {
+            if (currentInstance == null) return;
+            AccessTools.Field(typeof(Page_CreateWorldParams), "pollution").SetValue(currentInstance, pollutionValue);
+        }
+
+        // ===== SEED EDITING =====
+
+        public static void StartSeedEdit()
+        {
+            if (currentInstance == null) return;
+            string currentSeed = (string)AccessTools.Field(typeof(Page_CreateWorldParams), "seedString").GetValue(currentInstance);
             isEditingSeed = true;
             seedInputBuffer = currentSeed ?? "";
-            TolkHelper.Speak($"[Editing Seed] Type seed, Enter to confirm, Escape to cancel. Current: {seedInputBuffer}");
+            TolkHelper.Speak($"Editing Seed. Type seed, Enter to confirm, Escape to cancel. Current: {seedInputBuffer}");
         }
 
         public static void CancelSeedEdit()
@@ -250,18 +399,26 @@ namespace RimWorldAccess
             TolkHelper.Speak("Seed editing canceled");
         }
 
-        public static string ConfirmSeedEdit()
+        public static void ConfirmSeedEdit()
         {
+            if (currentInstance == null) return;
             isEditingSeed = false;
-            string result = seedInputBuffer;
+            if (!string.IsNullOrEmpty(seedInputBuffer))
+            {
+                AccessTools.Field(typeof(Page_CreateWorldParams), "seedString").SetValue(currentInstance, seedInputBuffer);
+                TolkHelper.Speak($"World Seed: {seedInputBuffer} (Confirmed)");
+            }
+            else
+            {
+                TolkHelper.Speak("Seed input canceled (empty)");
+            }
             seedInputBuffer = "";
-            return result;
         }
 
         public static void AddCharToSeedBuffer(char c)
         {
             seedInputBuffer += c;
-            TolkHelper.Speak($"[Editing Seed] {seedInputBuffer}");
+            TolkHelper.Speak(seedInputBuffer);
         }
 
         public static void RemoveCharFromSeedBuffer()
@@ -269,11 +426,262 @@ namespace RimWorldAccess
             if (seedInputBuffer.Length > 0)
             {
                 seedInputBuffer = seedInputBuffer.Substring(0, seedInputBuffer.Length - 1);
-                TolkHelper.Speak($"[Editing Seed] {seedInputBuffer}");
+                if (seedInputBuffer.Length > 0)
+                    TolkHelper.Speak(seedInputBuffer);
+                else
+                    TolkHelper.Speak("Empty");
             }
         }
 
-        public static bool IsEditingSeed => isEditingSeed;
-        public static string SeedInputBuffer => seedInputBuffer;
+        public static void RandomizeSeed()
+        {
+            if (currentInstance == null) return;
+            string newSeed = GenText.RandomSeedString();
+            AccessTools.Field(typeof(Page_CreateWorldParams), "seedString").SetValue(currentInstance, newSeed);
+            TolkHelper.Speak($"World Seed: {newSeed} (Randomized)");
+        }
+
+        // ===== TYPEAHEAD SEARCH =====
+
+        public static bool HandleTypeahead(char character)
+        {
+            if (availableFields.Count == 0) return false;
+
+            var labels = availableFields.Select(f => GetFieldLabel(f)).ToList();
+            if (fieldTypeahead.ProcessCharacterInput(character, labels, out int newIndex))
+            {
+                if (newIndex >= 0)
+                {
+                    fieldIndex = newIndex;
+                    AnnounceFieldWithSearch();
+                }
+            }
+            else
+            {
+                TolkHelper.Speak($"No matches for '{fieldTypeahead.LastFailedSearch}'");
+            }
+            return true;
+        }
+
+        public static bool HandleTypeaheadBackspace()
+        {
+            if (!fieldTypeahead.HasActiveSearch) return false;
+
+            var labels = availableFields.Select(f => GetFieldLabel(f)).ToList();
+            if (fieldTypeahead.ProcessBackspace(labels, out int newIndex))
+            {
+                if (newIndex >= 0)
+                {
+                    fieldIndex = newIndex;
+                    AnnounceFieldWithSearch();
+                }
+            }
+            return true;
+        }
+
+        public static bool ClearTypeaheadSearch()
+        {
+            if (fieldTypeahead.ClearSearchAndAnnounce())
+            {
+                AnnounceCurrentField();
+                return true;
+            }
+            return false;
+        }
+
+        public static bool SelectNextMatch()
+        {
+            if (!fieldTypeahead.HasActiveSearch) return false;
+            int next = fieldTypeahead.GetNextMatch(fieldIndex);
+            if (next >= 0)
+            {
+                fieldIndex = next;
+                AnnounceFieldWithSearch();
+            }
+            return true;
+        }
+
+        public static bool SelectPreviousMatch()
+        {
+            if (!fieldTypeahead.HasActiveSearch) return false;
+            int prev = fieldTypeahead.GetPreviousMatch(fieldIndex);
+            if (prev >= 0)
+            {
+                fieldIndex = prev;
+                AnnounceFieldWithSearch();
+            }
+            return true;
+        }
+
+        // ===== ANNOUNCEMENTS =====
+
+        public static void AnnounceCurrentField()
+        {
+            if (fieldIndex < 0 || fieldIndex >= availableFields.Count) return;
+
+            WorldParamField field = availableFields[fieldIndex];
+            string fieldName = GetFieldLabel(field);
+            string value = GetFieldValueString(field);
+            string position = MenuHelper.FormatPosition(fieldIndex, availableFields.Count);
+
+            string text = $"{fieldName}: {value}";
+            if (!string.IsNullOrEmpty(position))
+            {
+                text += $" ({position})";
+            }
+
+            TolkHelper.Speak(text);
+        }
+
+        private static void AnnounceFieldValue(WorldParamField field)
+        {
+            // Use short label (no "(Advanced)" suffix) for value changes
+            string fieldName = GetFieldLabel(field, includeAdvancedSuffix: false);
+            string value = GetFieldValueString(field);
+            string warning = GetFieldWarning(field);
+            TolkHelper.Speak($"{fieldName}: {value}{warning}");
+        }
+
+        private static string GetFieldWarning(WorldParamField field)
+        {
+            switch (field)
+            {
+                case WorldParamField.PlanetCoverage:
+                    if (activePlanetCoverages[planetCoverageIndex] == 1f)
+                        return ". " + "MessageMaxPlanetCoveragePerformanceWarning".Translate().ToString();
+                    break;
+
+                case WorldParamField.MapSize:
+                    if (activeMapSizes[mapSizeIndex] > 280)
+                        return ". " + "MapSizePerformanceWarning".Translate().ToString();
+                    break;
+
+                case WorldParamField.StartingSeason:
+                    if (Seasons[seasonIndex] == Season.Winter)
+                        return ". " + "MapWinterWarning".Translate().ToString();
+                    break;
+            }
+            return "";
+        }
+
+        private static void AnnounceFieldWithSearch()
+        {
+            if (fieldIndex < 0 || fieldIndex >= availableFields.Count) return;
+
+            WorldParamField field = availableFields[fieldIndex];
+            string fieldName = GetFieldLabel(field);
+            string value = GetFieldValueString(field);
+
+            if (fieldTypeahead.HasActiveSearch)
+            {
+                TolkHelper.Speak($"{fieldName}: {value}, {fieldTypeahead.CurrentMatchPosition} of {fieldTypeahead.MatchCount} matches for '{fieldTypeahead.SearchBuffer}'");
+            }
+            else
+            {
+                AnnounceCurrentField();
+            }
+        }
+
+        // ===== HELPERS =====
+
+        private static string GetFieldLabel(WorldParamField field, bool includeAdvancedSuffix = true)
+        {
+            string label;
+            switch (field)
+            {
+                case WorldParamField.Seed:
+                    label = "WorldSeed".Translate().ToString();
+                    break;
+                case WorldParamField.PlanetCoverage:
+                    label = "PlanetCoverage".Translate().ToString();
+                    break;
+                case WorldParamField.Rainfall:
+                    label = "PlanetRainfall".Translate().ToString();
+                    break;
+                case WorldParamField.Temperature:
+                    label = "PlanetTemperature".Translate().ToString();
+                    break;
+                case WorldParamField.Population:
+                    label = "PlanetPopulation".Translate().ToString();
+                    break;
+                case WorldParamField.LandmarkDensity:
+                    label = "PlanetLandmarkDensity".Translate().ToString();
+                    break;
+                case WorldParamField.Pollution:
+                    label = "PlanetPollution".Translate().ToString();
+                    break;
+                case WorldParamField.MapSize:
+                    label = "MapSize".Translate().ToString();
+                    if (includeAdvancedSuffix)
+                        label += " (" + "AdvancedSettings".Translate().ToString() + ")";
+                    return label;
+                case WorldParamField.StartingSeason:
+                    label = "MapStartSeason".Translate().ToString();
+                    if (includeAdvancedSuffix)
+                        label += " (" + "AdvancedSettings".Translate().ToString() + ")";
+                    return label;
+                default:
+                    return "Unknown";
+            }
+            return label;
+        }
+
+        private static string GetFieldValueString(WorldParamField field)
+        {
+            switch (field)
+            {
+                case WorldParamField.Seed:
+                    if (currentInstance == null) return "Unknown";
+                    return (string)AccessTools.Field(typeof(Page_CreateWorldParams), "seedString").GetValue(currentInstance);
+
+                case WorldParamField.PlanetCoverage:
+                    string coverageValue = activePlanetCoverages[planetCoverageIndex].ToStringPercent();
+                    if (isPlanetCoverageDev != null && isPlanetCoverageDev[planetCoverageIndex])
+                        coverageValue += " (dev)";
+                    return coverageValue;
+
+                case WorldParamField.Rainfall:
+                    return RainfallLabels[rainfallIndex];
+
+                case WorldParamField.Temperature:
+                    return TemperatureLabels[temperatureIndex];
+
+                case WorldParamField.Population:
+                    return PopulationLabels[populationIndex];
+
+                case WorldParamField.LandmarkDensity:
+                    return LandmarkDensityLabels[landmarkDensityIndex];
+
+                case WorldParamField.Pollution:
+                    return pollutionValue.ToStringPercent();
+
+                case WorldParamField.MapSize:
+                    int size = activeMapSizes[mapSizeIndex];
+                    string sizeLabel = activeMapSizeLabels[mapSizeIndex];
+                    return $"{size}x{size} {sizeLabel}";
+
+                case WorldParamField.StartingSeason:
+                    // Use game's translation - "MapStartSeasonDefault" for Auto, or Season.LabelCap() for others
+                    if (Seasons[seasonIndex] == Season.Undefined)
+                        return "MapStartSeasonDefault".Translate().ToString();
+                    return Seasons[seasonIndex].LabelCap().ToString();
+
+                default:
+                    return "Unknown";
+            }
+        }
+
+        public static string GetCurrentFieldName()
+        {
+            if (fieldIndex < 0 || fieldIndex >= availableFields.Count)
+                return "Unknown";
+            return availableFields[fieldIndex].ToString();
+        }
+
+        public static bool IsOnSeedField()
+        {
+            if (fieldIndex < 0 || fieldIndex >= availableFields.Count) return false;
+            return availableFields[fieldIndex] == WorldParamField.Seed;
+        }
     }
 }

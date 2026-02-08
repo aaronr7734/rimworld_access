@@ -1,33 +1,49 @@
 # World Module
 
 ## Purpose
-Keyboard navigation for world map (F8 view), settlement browsing, and caravan formation/management.
+Keyboard navigation for world map (F8 view and world gen starting site), settlement browsing, caravan formation/management, and biome descriptions.
 
 ## Files
 **Patches:** WorldNavigationPatch.cs, CaravanFormationPatch.cs, MessageBoxAccessibilityPatch.cs
-**States:** WorldNavigationState.cs, SettlementBrowserState.cs, QuestLocationsBrowserState.cs, CaravanFormationState.cs, CaravanInspectState.cs
-**Helpers:** WorldInfoHelper.cs
+**States:** WorldNavigationState.cs, WorldScannerState.cs, SettlementBrowserState.cs, QuestLocationsBrowserState.cs, CaravanFormationState.cs, CaravanInspectState.cs
+**Helpers:** WorldInfoHelper.cs, BiomeDescriptionTracker.cs
+
+## Context System
+WorldNavigationState supports two contexts via `WorldNavContext` enum:
+- **InGame** - F8 world map during gameplay. Full feature set: caravans, route planner, settlement browser, quest locations.
+- **WorldGen** - Starting site selection during game setup. Shared navigation + scanner + Z search + number keys. No caravans/quests. World-gen-specific features handled by `StartingSiteContext` (in MainMenu module).
+
+Methods guarded with `if (context != WorldNavContext.InGame) return;`: CycleToNextCaravan, CycleToPreviousCaravan, FormCaravanAtSelectedSettlement, ShowCaravanInspect, GiveCaravanOrders, ToggleCaravanSelection, JumpToSelectedCaravans, JumpToNearestCaravan, OpenSettlementBrowser, OpenQuestLocationsBrowser.
+
+## Biome Descriptions
+`BiomeDescriptionTracker` tracks last announced biome. On tile change, returns `BiomeDef.description` if biome differs from last. Both contexts get biome descriptions. WorldGen context also gets faction proximity warnings and biome settle warnings before the description.
 
 ## Key Shortcuts
-- **Arrow Keys** - Navigate world tiles
-- **Home** - Jump to home settlement
-- **End** - Jump to nearest caravan
-- **Page Up/Down** - Cycle settlements by distance
-- **S** - Settlement browser (filter by faction)
-- **I** - Caravan stats / Tile info
-- **C** - Form caravan
-- **]** - Caravan orders
-- **D** - Choose destination (in caravan formation)
+- **Arrow Keys** - Navigate world tiles (3D geographic compass)
+- **Home** - Jump to scanner item (Alt+Home = home settlement)
+- **End** - Read scanner distance (Alt+End = nearest caravan, in-game only)
+- **Page Up/Down** - Scanner navigation (Ctrl=category, Shift=subcategory, Alt=instance)
+- **Z** - Scanner search
+- **1-5** - Categorized tile info
+- **S** - Settlement browser (in-game only)
+- **I** - Caravan inspect (in-game) / Info menu (world gen, via StartingSiteContext)
+- **C** - Form caravan (in-game only)
+- **]** - Caravan orders (in-game only)
 
 ## Architecture
-WorldNavigationState tracks current world tile. Camera-relative directional navigation. Settlement browser provides faction filtering.
+WorldNavigationState tracks current world tile with `PlanetTile`. 3D geographic compass navigation (Vector3 math). `SyncSelectionWithGame()` syncs WorldSelector + WorldInterface + GameInitData. Settlement browser provides faction filtering.
 
 ## Dependencies
 **Requires:** ScreenReader/, Input/, Map/ (cursor sync)
-**Used by:** Quests/ (quest jump targets)
+**Used by:** Quests/ (quest jump targets), MainMenu/ (StartingSitePatch + StartingSiteContext use WorldNavigationState)
 
 ## Testing
-- [ ] Arrow keys navigate world tiles
-- [ ] Settlement browser filters work
-- [ ] Caravan formation keyboard nav works
-- [ ] Destination selection functional
+- [ ] Arrow keys navigate world tiles (both contexts)
+- [ ] Scanner works (both contexts)
+- [ ] Z search works (both contexts)
+- [ ] Number keys 1-5 work (both contexts)
+- [ ] Biome descriptions announced on biome change (both contexts)
+- [ ] Faction warnings before biome descriptions (world gen only)
+- [ ] Settlement browser filters work (in-game only)
+- [ ] Caravan formation keyboard nav works (in-game only)
+- [ ] Caravan keys don't fire during world gen

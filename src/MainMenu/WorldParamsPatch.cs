@@ -10,128 +10,35 @@ namespace RimWorldAccess
     [HarmonyPatch("DoWindowContents")]
     public class WorldParamsPatch
     {
-        private static bool patchActive = false;
         private static bool hasAnnouncedTitle = false;
-        private static readonly float[] PlanetCoverages = new float[] { 0.3f, 0.5f, 1f };
 
-        // Prefix: Handle keyboard input for navigation and value changes
+        // Section tracking for Tab switching between World Params and Factions
+        private enum CreateWorldSection { WorldParams, Factions }
+        private static CreateWorldSection currentSection = CreateWorldSection.WorldParams;
+
+        // Expose for Harmony patches
+        internal static bool IsInFactionsSection => currentSection == CreateWorldSection.Factions;
+
         static void Prefix(Page_CreateWorldParams __instance, Rect rect)
         {
             try
             {
-                // Initialize navigation state
-                WorldParamsNavigationState.Initialize();
+                // Initialize navigation state with the instance (syncs game values)
+                WorldParamsNavigationState.Initialize(__instance);
+                FactionsNavigationState.Initialize(__instance);
 
-                // Announce window title and initial field once
+                // Announce window title once
                 if (!hasAnnouncedTitle)
                 {
-                    string pageTitle = "Create World";
-                    TolkHelper.Speak($"{pageTitle} - Use Up/Down to navigate fields, Left/Right to change values, R to randomize seed");
+                    string help = "Use Up/Down to navigate fields, Left/Right to change values. Tab to switch to factions.";
+                    TolkHelper.Speak($"Create World. {help}");
                     hasAnnouncedTitle = true;
                 }
 
                 // Handle keyboard input
                 if (Event.current.type == EventType.KeyDown)
                 {
-                    KeyCode keyCode = Event.current.keyCode;
-
-                    // Check if we're in seed text input mode
-                    if (WorldParamsNavigationState.IsEditingSeed)
-                    {
-                        // Handle text input for seed
-                        if (keyCode == KeyCode.Return || keyCode == KeyCode.KeypadEnter)
-                        {
-                            // Confirm seed input
-                            string newSeed = WorldParamsNavigationState.ConfirmSeedEdit();
-                            if (!string.IsNullOrEmpty(newSeed))
-                            {
-                                AccessTools.Field(typeof(Page_CreateWorldParams), "seedString").SetValue(__instance, newSeed);
-                                TolkHelper.Speak($"World Seed: {newSeed} (Confirmed)");
-                            }
-                            else
-                            {
-                                TolkHelper.Speak("Seed input canceled (empty)");
-                            }
-                            Event.current.Use();
-                            patchActive = true;
-                        }
-                        else if (keyCode == KeyCode.Escape)
-                        {
-                            // Cancel seed input
-                            WorldParamsNavigationState.CancelSeedEdit();
-                            Event.current.Use();
-                            patchActive = true;
-                        }
-                        else if (keyCode == KeyCode.Backspace)
-                        {
-                            // Remove character
-                            WorldParamsNavigationState.RemoveCharFromSeedBuffer();
-                            Event.current.Use();
-                            patchActive = true;
-                        }
-                        else if (Event.current.character != '\0' && !char.IsControl(Event.current.character))
-                        {
-                            // Add character to buffer
-                            WorldParamsNavigationState.AddCharToSeedBuffer(Event.current.character);
-                            Event.current.Use();
-                            patchActive = true;
-                        }
-                    }
-                    else
-                    {
-                        // Normal navigation mode
-                        if (keyCode == KeyCode.UpArrow)
-                        {
-                            WorldParamsNavigationState.NavigateUp();
-                            CopyCurrentFieldValue(__instance);
-                            Event.current.Use();
-                            patchActive = true;
-                        }
-                        else if (keyCode == KeyCode.DownArrow)
-                        {
-                            WorldParamsNavigationState.NavigateDown();
-                            CopyCurrentFieldValue(__instance);
-                            Event.current.Use();
-                            patchActive = true;
-                        }
-                        else if (keyCode == KeyCode.LeftArrow)
-                        {
-                            ModifyCurrentField(__instance, -1);
-                            CopyCurrentFieldValue(__instance);
-                            Event.current.Use();
-                            patchActive = true;
-                        }
-                        else if (keyCode == KeyCode.RightArrow)
-                        {
-                            ModifyCurrentField(__instance, 1);
-                            CopyCurrentFieldValue(__instance);
-                            Event.current.Use();
-                            patchActive = true;
-                        }
-                        else if (keyCode == KeyCode.Return || keyCode == KeyCode.KeypadEnter)
-                        {
-                            // Enter key on Seed field starts text input mode
-                            if (WorldParamsNavigationState.GetCurrentFieldName() == "Seed")
-                            {
-                                string currentSeed = (string)AccessTools.Field(typeof(Page_CreateWorldParams), "seedString").GetValue(__instance);
-                                WorldParamsNavigationState.StartSeedEdit(currentSeed);
-                                Event.current.Use();
-                                patchActive = true;
-                            }
-                        }
-                        else if (keyCode == KeyCode.R)
-                        {
-                            // Randomize seed
-                            if (WorldParamsNavigationState.GetCurrentFieldName() == "Seed")
-                            {
-                                string newSeed = GenText.RandomSeedString();
-                                AccessTools.Field(typeof(Page_CreateWorldParams), "seedString").SetValue(__instance, newSeed);
-                                TolkHelper.Speak($"World Seed: {newSeed} (Randomized)");
-                                Event.current.Use();
-                                patchActive = true;
-                            }
-                        }
-                    }
+                    HandleKeyInput(__instance, Event.current);
                 }
             }
             catch (System.Exception ex)
@@ -140,137 +47,353 @@ namespace RimWorldAccess
             }
         }
 
-        private static void ModifyCurrentField(Page_CreateWorldParams instance, int direction)
+        private static void HandleKeyInput(Page_CreateWorldParams instance, Event evt)
         {
-            string fieldName = WorldParamsNavigationState.GetCurrentFieldName();
+            // Don't handle input when info card is open - let InfoCardState handle it
+            if (InfoCardState.IsActive)
+                return;
 
-            switch (fieldName)
+            KeyCode keyCode = evt.keyCode;
+
+            // ===== Tab switching between sections =====
+            // Both Tab and Shift+Tab toggle between the two sections
+            if (keyCode == KeyCode.Tab)
             {
-                case "Seed":
-                    // Can't modify seed with arrows, use R to randomize or Enter to type
-                    TolkHelper.Speak("Press Enter to type custom seed, or R to randomize");
-                    break;
-
-                case "PlanetCoverage":
-                    ModifyPlanetCoverage(instance, direction);
-                    break;
-
-                case "Rainfall":
-                    ModifyRainfall(instance, direction);
-                    break;
-
-                case "Temperature":
-                    ModifyTemperature(instance, direction);
-                    break;
-
-                case "Population":
-                    ModifyPopulation(instance, direction);
-                    break;
-
-                case "LandmarkDensity":
-                    ModifyLandmarkDensity(instance, direction);
-                    break;
-
-                case "Pollution":
-                    ModifyPollution(instance, direction);
-                    break;
-            }
-        }
-
-        private static void ModifyPlanetCoverage(Page_CreateWorldParams instance, int direction)
-        {
-            float currentCoverage = (float)AccessTools.Field(typeof(Page_CreateWorldParams), "planetCoverage").GetValue(instance);
-
-            // Find current index
-            int currentIndex = 0;
-            for (int i = 0; i < PlanetCoverages.Length; i++)
-            {
-                if (Mathf.Approximately(currentCoverage, PlanetCoverages[i]))
+                if (currentSection == CreateWorldSection.WorldParams)
                 {
-                    currentIndex = i;
-                    break;
+                    // Switch to Factions
+                    currentSection = CreateWorldSection.Factions;
+                    FactionsNavigationState.Activate();
+                }
+                else
+                {
+                    // Switch to World Params
+                    currentSection = CreateWorldSection.WorldParams;
+                    FactionsNavigationState.Deactivate();
+                    TolkHelper.Speak("World parameters");
+                    WorldParamsNavigationState.AnnounceCurrentField();
+                }
+                evt.Use();
+                return;
+            }
+
+            // ===== Route based on section =====
+            if (currentSection == CreateWorldSection.Factions)
+            {
+                HandleFactionsInput(instance, evt);
+                return;
+            }
+
+            // ===== World Params section handling below =====
+
+            // Seed editing mode has priority
+            if (WorldParamsNavigationState.IsEditingSeed)
+            {
+                HandleSeedEditing(keyCode, evt);
+                return;
+            }
+
+            // Typeahead search handling - when search is active, Up/Down navigate matches
+            if (WorldParamsNavigationState.HasActiveSearch)
+            {
+                if (keyCode == KeyCode.UpArrow)
+                {
+                    WorldParamsNavigationState.SelectPreviousMatch();
+                    evt.Use();
+                    return;
+                }
+                else if (keyCode == KeyCode.DownArrow)
+                {
+                    WorldParamsNavigationState.SelectNextMatch();
+                    evt.Use();
+                    return;
+                }
+                else if (keyCode == KeyCode.Escape)
+                {
+                    WorldParamsNavigationState.ClearTypeaheadSearch();
+                    evt.Use();
+                    return;
+                }
+                else if (keyCode == KeyCode.Backspace)
+                {
+                    if (WorldParamsNavigationState.HandleTypeaheadBackspace())
+                    {
+                        evt.Use();
+                        return;
+                    }
                 }
             }
 
-            // Apply direction
-            currentIndex += direction;
-            if (currentIndex < 0) currentIndex = PlanetCoverages.Length - 1;
-            if (currentIndex >= PlanetCoverages.Length) currentIndex = 0;
-
-            float newCoverage = PlanetCoverages[currentIndex];
-            AccessTools.Field(typeof(Page_CreateWorldParams), "planetCoverage").SetValue(instance, newCoverage);
+            // Standard navigation
+            if (keyCode == KeyCode.UpArrow)
+            {
+                WorldParamsNavigationState.NavigateUp();
+                evt.Use();
+            }
+            else if (keyCode == KeyCode.DownArrow)
+            {
+                WorldParamsNavigationState.NavigateDown();
+                evt.Use();
+            }
+            else if (keyCode == KeyCode.Home)
+            {
+                WorldParamsNavigationState.NavigateHome();
+                evt.Use();
+            }
+            else if (keyCode == KeyCode.End)
+            {
+                WorldParamsNavigationState.NavigateEnd();
+                evt.Use();
+            }
+            else if (keyCode == KeyCode.LeftArrow)
+            {
+                WorldParamsNavigationState.ModifyCurrentValue(-1);
+                evt.Use();
+            }
+            else if (keyCode == KeyCode.RightArrow)
+            {
+                WorldParamsNavigationState.ModifyCurrentValue(1);
+                evt.Use();
+            }
+            else if (keyCode == KeyCode.Return || keyCode == KeyCode.KeypadEnter)
+            {
+                // Enter key on Seed field starts text input mode
+                if (WorldParamsNavigationState.IsOnSeedField())
+                {
+                    WorldParamsNavigationState.StartSeedEdit();
+                    evt.Use();
+                }
+            }
+            else if (keyCode == KeyCode.R)
+            {
+                // Randomize seed
+                if (WorldParamsNavigationState.IsOnSeedField())
+                {
+                    WorldParamsNavigationState.RandomizeSeed();
+                    evt.Use();
+                }
+            }
+            else if (keyCode == KeyCode.Escape)
+            {
+                // Escape with active search clears search
+                if (WorldParamsNavigationState.HasActiveSearch)
+                {
+                    WorldParamsNavigationState.ClearTypeaheadSearch();
+                    evt.Use();
+                }
+                // Otherwise let the game handle Escape (go back)
+            }
+            else if (keyCode == KeyCode.Backspace)
+            {
+                // Backspace during search
+                if (WorldParamsNavigationState.HandleTypeaheadBackspace())
+                {
+                    evt.Use();
+                }
+            }
+            else if (evt.character != '\0' && !evt.control && !evt.alt && char.IsLetterOrDigit(evt.character))
+            {
+                // Typeahead search
+                WorldParamsNavigationState.HandleTypeahead(evt.character);
+                evt.Use();
+            }
         }
 
-        private static void ModifyRainfall(Page_CreateWorldParams instance, int direction)
+        private static void HandleSeedEditing(KeyCode keyCode, Event evt)
         {
-            OverallRainfall current = (OverallRainfall)AccessTools.Field(typeof(Page_CreateWorldParams), "rainfall").GetValue(instance);
-            int newValue = (int)current + direction;
-
-            // Wrap around (0 = Low, 1 = Normal, 2 = High)
-            if (newValue < 0) newValue = 2;
-            if (newValue > 2) newValue = 0;
-
-            AccessTools.Field(typeof(Page_CreateWorldParams), "rainfall").SetValue(instance, (OverallRainfall)newValue);
+            if (keyCode == KeyCode.Return || keyCode == KeyCode.KeypadEnter)
+            {
+                WorldParamsNavigationState.ConfirmSeedEdit();
+                evt.Use();
+            }
+            else if (keyCode == KeyCode.Escape)
+            {
+                WorldParamsNavigationState.CancelSeedEdit();
+                evt.Use();
+            }
+            else if (keyCode == KeyCode.Backspace)
+            {
+                WorldParamsNavigationState.RemoveCharFromSeedBuffer();
+                evt.Use();
+            }
+            else if (evt.character != '\0' && !char.IsControl(evt.character))
+            {
+                WorldParamsNavigationState.AddCharToSeedBuffer(evt.character);
+                evt.Use();
+            }
         }
 
-        private static void ModifyTemperature(Page_CreateWorldParams instance, int direction)
+        private static void HandleFactionsInput(Page_CreateWorldParams instance, Event evt)
         {
-            OverallTemperature current = (OverallTemperature)AccessTools.Field(typeof(Page_CreateWorldParams), "temperature").GetValue(instance);
-            int newValue = (int)current + direction;
+            KeyCode keyCode = evt.keyCode;
+            bool alt = evt.alt;
 
-            if (newValue < 0) newValue = 2;
-            if (newValue > 2) newValue = 0;
+            // ===== Add Menu overlay (highest priority) =====
+            if (FactionsNavigationState.IsAddMenuOpen)
+            {
+                // Typeahead in add menu
+                if (FactionsNavigationState.HasAddMenuTypeahead)
+                {
+                    if (keyCode == KeyCode.UpArrow)
+                    {
+                        FactionsNavigationState.SelectPreviousAddMenuMatch();
+                        evt.Use();
+                        return;
+                    }
+                    else if (keyCode == KeyCode.DownArrow)
+                    {
+                        FactionsNavigationState.SelectNextAddMenuMatch();
+                        evt.Use();
+                        return;
+                    }
+                    else if (keyCode == KeyCode.Escape)
+                    {
+                        FactionsNavigationState.ClearAddMenuTypeahead();
+                        evt.Use();
+                        return;
+                    }
+                    else if (keyCode == KeyCode.Backspace)
+                    {
+                        FactionsNavigationState.HandleAddMenuTypeaheadBackspace();
+                        evt.Use();
+                        return;
+                    }
+                }
 
-            AccessTools.Field(typeof(Page_CreateWorldParams), "temperature").SetValue(instance, (OverallTemperature)newValue);
-        }
+                if (keyCode == KeyCode.Escape)
+                {
+                    FactionsNavigationState.CloseAddMenu();
+                    evt.Use();
+                    return;
+                }
+                else if (keyCode == KeyCode.UpArrow)
+                {
+                    FactionsNavigationState.AddMenuNavigateUp();
+                    evt.Use();
+                    return;
+                }
+                else if (keyCode == KeyCode.DownArrow)
+                {
+                    FactionsNavigationState.AddMenuNavigateDown();
+                    evt.Use();
+                    return;
+                }
+                else if (keyCode == KeyCode.Home)
+                {
+                    FactionsNavigationState.AddMenuNavigateHome();
+                    evt.Use();
+                    return;
+                }
+                else if (keyCode == KeyCode.End)
+                {
+                    FactionsNavigationState.AddMenuNavigateEnd();
+                    evt.Use();
+                    return;
+                }
+                else if (keyCode == KeyCode.Return || keyCode == KeyCode.KeypadEnter)
+                {
+                    FactionsNavigationState.AddMenuConfirm();
+                    evt.Use();
+                    return;
+                }
+                else if (evt.character != '\0' && !evt.control && !alt && char.IsLetterOrDigit(evt.character))
+                {
+                    FactionsNavigationState.HandleAddMenuTypeahead(evt.character);
+                    evt.Use();
+                    return;
+                }
 
-        private static void ModifyPopulation(Page_CreateWorldParams instance, int direction)
-        {
-            OverallPopulation current = (OverallPopulation)AccessTools.Field(typeof(Page_CreateWorldParams), "population").GetValue(instance);
-            int newValue = (int)current + direction;
+                // Consume all other keys when add menu is open
+                evt.Use();
+                return;
+            }
 
-            if (newValue < 0) newValue = 2;
-            if (newValue > 2) newValue = 0;
+            // ===== Faction list typeahead active =====
+            if (FactionsNavigationState.HasFactionListTypeahead)
+            {
+                if (keyCode == KeyCode.UpArrow)
+                {
+                    FactionsNavigationState.SelectPreviousFactionMatch();
+                    evt.Use();
+                    return;
+                }
+                else if (keyCode == KeyCode.DownArrow)
+                {
+                    FactionsNavigationState.SelectNextFactionMatch();
+                    evt.Use();
+                    return;
+                }
+                else if (keyCode == KeyCode.Escape)
+                {
+                    FactionsNavigationState.ClearFactionTypeahead();
+                    evt.Use();
+                    return;
+                }
+                else if (keyCode == KeyCode.Backspace)
+                {
+                    FactionsNavigationState.HandleFactionTypeaheadBackspace();
+                    evt.Use();
+                    return;
+                }
+            }
 
-            AccessTools.Field(typeof(Page_CreateWorldParams), "population").SetValue(instance, (OverallPopulation)newValue);
-        }
+            // ===== Navigation =====
+            if (keyCode == KeyCode.UpArrow)
+            {
+                FactionsNavigationState.NavigateUp();
+                evt.Use();
+                return;
+            }
+            else if (keyCode == KeyCode.DownArrow)
+            {
+                FactionsNavigationState.NavigateDown();
+                evt.Use();
+                return;
+            }
+            else if (keyCode == KeyCode.Home)
+            {
+                FactionsNavigationState.NavigateHome();
+                evt.Use();
+                return;
+            }
+            else if (keyCode == KeyCode.End)
+            {
+                FactionsNavigationState.NavigateEnd();
+                evt.Use();
+                return;
+            }
 
-        private static void ModifyLandmarkDensity(Page_CreateWorldParams instance, int direction)
-        {
-            LandmarkDensity current = (LandmarkDensity)AccessTools.Field(typeof(Page_CreateWorldParams), "landmarkDensity").GetValue(instance);
-            int newValue = (int)current + direction;
+            // ===== Actions =====
+            if (keyCode == KeyCode.Delete)
+            {
+                FactionsNavigationState.DeleteSelectedFaction();
+                evt.Use();
+                return;
+            }
+            else if (keyCode == KeyCode.A && alt)
+            {
+                FactionsNavigationState.OpenAddMenu();
+                evt.Use();
+                return;
+            }
 
-            if (newValue < 0) newValue = 2;
-            if (newValue > 2) newValue = 0;
+            // ===== Typeahead =====
+            if (evt.character != '\0' && !evt.control && !alt && char.IsLetterOrDigit(evt.character))
+            {
+                FactionsNavigationState.HandleFactionTypeahead(evt.character);
+                evt.Use();
+                return;
+            }
 
-            AccessTools.Field(typeof(Page_CreateWorldParams), "landmarkDensity").SetValue(instance, (LandmarkDensity)newValue);
-        }
-
-        private static void ModifyPollution(Page_CreateWorldParams instance, int direction)
-        {
-            float current = (float)AccessTools.Field(typeof(Page_CreateWorldParams), "pollution").GetValue(instance);
-            float step = 0.05f; // 5% increments
-
-            float newValue = current + (direction * step);
-
-            // Clamp between 0 and 1
-            if (newValue < 0f) newValue = 0f;
-            if (newValue > 1f) newValue = 1f;
-
-            AccessTools.Field(typeof(Page_CreateWorldParams), "pollution").SetValue(instance, newValue);
-        }
-
-        private static void CopyCurrentFieldValue(Page_CreateWorldParams instance)
-        {
-            string seedString = (string)AccessTools.Field(typeof(Page_CreateWorldParams), "seedString").GetValue(instance);
-            float planetCoverage = (float)AccessTools.Field(typeof(Page_CreateWorldParams), "planetCoverage").GetValue(instance);
-            OverallRainfall rainfall = (OverallRainfall)AccessTools.Field(typeof(Page_CreateWorldParams), "rainfall").GetValue(instance);
-            OverallTemperature temperature = (OverallTemperature)AccessTools.Field(typeof(Page_CreateWorldParams), "temperature").GetValue(instance);
-            OverallPopulation population = (OverallPopulation)AccessTools.Field(typeof(Page_CreateWorldParams), "population").GetValue(instance);
-            LandmarkDensity landmarkDensity = (LandmarkDensity)AccessTools.Field(typeof(Page_CreateWorldParams), "landmarkDensity").GetValue(instance);
-            float pollution = (float)AccessTools.Field(typeof(Page_CreateWorldParams), "pollution").GetValue(instance);
-
-            WorldParamsNavigationState.CopyFieldValue(seedString, planetCoverage, rainfall, temperature, population, landmarkDensity, pollution);
+            // ===== Backspace for typeahead =====
+            if (keyCode == KeyCode.Backspace)
+            {
+                if (FactionsNavigationState.HandleFactionTypeaheadBackspace())
+                {
+                    evt.Use();
+                    return;
+                }
+            }
         }
 
         // Postfix: Draw visual indicator
@@ -278,10 +401,8 @@ namespace RimWorldAccess
         {
             try
             {
-                if (!patchActive) return;
-
                 // Draw indicator of current field at top
-                Rect indicatorRect = new Rect(rect.x + 10f, rect.y + 10f, 400f, 30f);
+                Rect indicatorRect = new Rect(rect.x + 10f, rect.y + 10f, 500f, 30f);
                 string text;
 
                 if (WorldParamsNavigationState.IsEditingSeed)
@@ -291,7 +412,7 @@ namespace RimWorldAccess
                 else
                 {
                     string fieldName = WorldParamsNavigationState.GetCurrentFieldName();
-                    text = $"[Editing: {fieldName}] (Use Arrow Keys)";
+                    text = $"[Field: {fieldName}] (Arrow keys to navigate)";
                 }
 
                 Widgets.DrawBoxSolid(indicatorRect, new Color(0.2f, 0.2f, 0.2f, 0.8f));
@@ -309,6 +430,7 @@ namespace RimWorldAccess
         public static void ResetAnnouncement()
         {
             hasAnnouncedTitle = false;
+            currentSection = CreateWorldSection.WorldParams;
         }
     }
 
@@ -321,6 +443,61 @@ namespace RimWorldAccess
         {
             WorldParamsPatch.ResetAnnouncement();
             WorldParamsNavigationState.Reset();
+            FactionsNavigationState.Reset();
+        }
+    }
+
+    /// <summary>
+    /// Block Enter key from advancing to next page when in factions mode.
+    /// </summary>
+    [HarmonyPatch(typeof(Page), "OnAcceptKeyPressed")]
+    public class WorldParamsPatch_OnAcceptKeyPressed
+    {
+        [HarmonyPrefix]
+        public static bool Prefix(Page __instance)
+        {
+            // Only intercept for Page_CreateWorldParams
+            if (!(__instance is Page_CreateWorldParams))
+                return true;
+
+            // Block Enter when add menu is open (we handle Enter to add faction)
+            if (FactionsNavigationState.IsAddMenuOpen)
+                return false;
+
+            // Block Enter when in factions section (don't advance page)
+            if (WorldParamsPatch.IsInFactionsSection)
+                return false;
+
+            return true; // Let original run for world params section
+        }
+    }
+
+    /// <summary>
+    /// Block Escape key from going back when in factions mode, add menu, or typeahead active.
+    /// </summary>
+    [HarmonyPatch(typeof(Page), "OnCancelKeyPressed")]
+    public class WorldParamsPatch_OnCancelKeyPressed
+    {
+        [HarmonyPrefix]
+        public static bool Prefix(Page __instance)
+        {
+            // Only intercept for Page_CreateWorldParams
+            if (!(__instance is Page_CreateWorldParams))
+                return true;
+
+            // Block Escape when add menu is open (we handle Escape to close menu)
+            if (FactionsNavigationState.IsAddMenuOpen)
+                return false;
+
+            // Block Escape when typeahead is active (we handle Escape to clear search)
+            if (FactionsNavigationState.HasActiveTypeahead)
+                return false;
+
+            // Also check WorldParams typeahead
+            if (WorldParamsNavigationState.HasActiveSearch)
+                return false;
+
+            return true; // Let original run to go back to previous page
         }
     }
 }

@@ -25,7 +25,7 @@ Provides keyboard navigation for main menu and all game setup screens (scenario 
 - **StorytellerSelectionState.cs** - In-game storyteller change
 - **IdeologyNavigationState.cs** - Ideology picker
 - **ColonistEditorNavigationState.cs** - Character customization
-- **StartingSiteNavigationState.cs** - Map site picker
+- **StartingSiteContext.cs** - World-gen-only features (I-menu, R random, Ctrl+arrows biome jump, faction warnings, tile validation). Navigation shared with in-game via WorldNavigationState.
 - **WorldParamsNavigationState.cs** - World gen settings
 
 ## Key Architecture
