@@ -102,7 +102,7 @@ namespace RimWorldAccess
         /// WorldGen context: uses the game's WorldInterface selection or a provided start tile.
         /// InGame context: uses priority chain (pending tile, current map, game selection, caravan, home).
         /// </summary>
-        public static void Open(WorldNavContext navContext, PlanetTile startTile = default)
+        public static void Open(WorldNavContext navContext, PlanetTile? startTile = null)
         {
             if (Find.World == null)
             {
@@ -115,10 +115,15 @@ namespace RimWorldAccess
 
             if (navContext == WorldNavContext.WorldGen)
             {
-                // World gen: use provided tile, game's selected tile, or random
-                if (startTile.Valid)
+                // World gen: use provided tile, game's already-chosen tile, WorldInterface, or random
+                if (startTile.HasValue && startTile.Value.Valid)
                 {
-                    currentSelectedTile = startTile;
+                    currentSelectedTile = startTile.Value;
+                }
+                else if (Find.GameInitData?.startingTile.Valid == true)
+                {
+                    // Game's PostOpen() already called ChooseRandomStartingTile() which picks a valid land tile
+                    currentSelectedTile = Find.GameInitData.startingTile;
                 }
                 else if (Find.WorldInterface?.SelectedTile.Valid == true)
                 {
@@ -206,7 +211,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        currentSelectedTile = new PlanetTile(0);
+                        currentSelectedTile = new PlanetTile(0, -1);
                     }
                 }
 
@@ -235,7 +240,7 @@ namespace RimWorldAccess
             string biomeDesc = BiomeDescriptionTracker.GetBiomeDescriptionIfNew(currentSelectedTile);
             if (!string.IsNullOrEmpty(biomeDesc))
             {
-                initialInfo += $". {biomeDesc}";
+                initialInfo = AppendSentence(initialInfo, biomeDesc);
             }
 
             // Check if route planner is active (in-game only) - announce it so user knows
@@ -271,10 +276,29 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Appends a sentence to existing text, ensuring proper period separation.
+        /// Avoids double periods when either the existing text ends with a period
+        /// or the new sentence starts after one.
+        /// </summary>
+        private static string AppendSentence(string existing, string sentence)
+        {
+            if (string.IsNullOrEmpty(sentence)) return existing;
+            if (string.IsNullOrEmpty(existing)) return sentence;
+
+            string trimmedExisting = existing.TrimEnd();
+            bool existingEndsPeriod = trimmedExisting.EndsWith(".");
+
+            if (existingEndsPeriod)
+                return trimmedExisting + " " + sentence;
+            else
+                return trimmedExisting + ". " + sentence;
+        }
+
+        /// <summary>
         /// Syncs the current tile with the game's selection system.
         /// Handles both in-game (WorldSelector) and world gen (WorldInterface + GameInitData).
         /// </summary>
-        private static void SyncSelectionWithGame()
+        public static void SyncSelectionWithGame()
         {
             if (Find.WorldSelector != null)
             {
@@ -480,14 +504,14 @@ namespace RimWorldAccess
                 string factionWarning = StartingSiteContext.GetChangedFactionWarning(currentSelectedTile);
                 if (!string.IsNullOrEmpty(factionWarning))
                 {
-                    tileInfo += $". {factionWarning}";
+                    tileInfo = AppendSentence(tileInfo, factionWarning);
                 }
 
                 // WorldGen: append biome settle warning if present
                 BiomeDef biome = currentSelectedTile.Tile?.PrimaryBiome;
                 if (biome != null && !string.IsNullOrEmpty(biome.settleWarning))
                 {
-                    tileInfo += $". Warning: {biome.settleWarning}";
+                    tileInfo = AppendSentence(tileInfo, "Warning: " + biome.settleWarning);
                 }
             }
 
@@ -495,7 +519,7 @@ namespace RimWorldAccess
             string biomeDesc = BiomeDescriptionTracker.GetBiomeDescriptionIfNew(currentSelectedTile);
             if (!string.IsNullOrEmpty(biomeDesc))
             {
-                tileInfo += $". {biomeDesc}";
+                tileInfo = AppendSentence(tileInfo, biomeDesc);
             }
 
             TolkHelper.Speak(tileInfo);

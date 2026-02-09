@@ -40,6 +40,56 @@ namespace RimWorldAccess
                 if (Event.current.type == EventType.KeyDown)
                 {
                     KeyCode keyCode = Event.current.keyCode;
+                    bool shift = Event.current.shift;
+                    bool ctrl = Event.current.control;
+                    bool alt = Event.current.alt;
+
+                    // === Scanner search text input (highest priority) ===
+                    // When search is active, capture letters/numbers/Enter/Escape/Backspace.
+                    // This is a defensive fallback - UnifiedKeyboardPatch normally handles this
+                    // at priority -0.2, but may not fire during world gen (ProgramState.Entry).
+                    if (ScannerSearchState.IsActive)
+                    {
+                        if (keyCode == KeyCode.Return || keyCode == KeyCode.KeypadEnter)
+                        {
+                            ScannerSearchState.ConfirmSearch();
+                            Event.current.Use();
+                            patchActive = true;
+                            return;
+                        }
+                        if (keyCode == KeyCode.Escape)
+                        {
+                            ScannerSearchState.CancelSearch();
+                            Event.current.Use();
+                            patchActive = true;
+                            return;
+                        }
+                        if (keyCode == KeyCode.Backspace)
+                        {
+                            ScannerSearchState.HandleBackspace();
+                            Event.current.Use();
+                            patchActive = true;
+                            return;
+                        }
+                        if (keyCode >= KeyCode.A && keyCode <= KeyCode.Z && !ctrl && !alt)
+                        {
+                            char c = shift ? (char)('A' + (keyCode - KeyCode.A)) : (char)('a' + (keyCode - KeyCode.A));
+                            ScannerSearchState.HandleCharacter(c);
+                            Event.current.Use();
+                            patchActive = true;
+                            return;
+                        }
+                        if (keyCode >= KeyCode.Alpha0 && keyCode <= KeyCode.Alpha9 && !ctrl && !alt)
+                        {
+                            char c = (char)('0' + (keyCode - KeyCode.Alpha0));
+                            ScannerSearchState.HandleCharacter(c);
+                            Event.current.Use();
+                            patchActive = true;
+                            return;
+                        }
+                        // Arrow keys, PgUp/PgDn, Home/End, Space: pass through to navigation below
+                    }
+
                     bool menuOpen = StartingSiteContext.IsMenuOpen;
 
                     // When I-menu is open, route Up/Down/Enter/Escape to menu and block other keys
@@ -76,7 +126,7 @@ namespace RimWorldAccess
                     if (keyCode == KeyCode.UpArrow || keyCode == KeyCode.DownArrow ||
                         keyCode == KeyCode.LeftArrow || keyCode == KeyCode.RightArrow)
                     {
-                        if (Event.current.control)
+                        if (ctrl)
                         {
                             // Ctrl+arrows: biome jump
                             StartingSiteContext.JumpToNextBiomeInDirection(keyCode);
@@ -91,35 +141,63 @@ namespace RimWorldAccess
                             patchActive = true;
                         }
                     }
-                    else if (keyCode == KeyCode.R)
+                    else if (keyCode == KeyCode.R && !shift && !ctrl && !alt)
                     {
                         StartingSiteContext.SelectRandomTile();
                         Event.current.Use();
                         patchActive = true;
                     }
-                    else if (keyCode == KeyCode.Space)
+                    else if (keyCode == KeyCode.Space && !shift && !ctrl && !alt)
                     {
                         // Re-announce current tile
                         WorldNavigationState.AnnounceTile();
                         Event.current.Use();
                         patchActive = true;
                     }
-                    else if (keyCode == KeyCode.I)
+                    else if (keyCode == KeyCode.I && !shift && !ctrl && !alt)
                     {
                         // Open additional info menu
                         StartingSiteContext.OpenAdditionalInfoMenu();
                         Event.current.Use();
                         patchActive = true;
                     }
-                    else if (keyCode == KeyCode.F)
+                    else if (keyCode == KeyCode.F && !shift && !ctrl && !alt)
                     {
                         Find.WindowStack.Add(new Dialog_FactionDuringLanding());
                         TolkHelper.Speak("Opened faction relations dialog.");
                         Event.current.Use();
                         patchActive = true;
                     }
-                    // Note: Number keys 1-5, scanner keys (PgUp/PgDn/Home/End), and Z search
-                    // are all handled by UnifiedKeyboardPatch before this patch runs
+                    // === Z key: activate scanner search ===
+                    // Defensive fallback - also handled by UnifiedKeyboardPatch at priority 4.745
+                    else if (keyCode == KeyCode.Z && !shift && !ctrl && !alt && !ScannerSearchState.IsActive)
+                    {
+                        ScannerSearchState.Activate(true);
+                        // Block game's keybinding system from seeing Z
+                        Event.current.keyCode = KeyCode.None;
+                        Event.current.Use();
+                        patchActive = true;
+                    }
+                    // === Number keys 1-5: tile info categories ===
+                    // Defensive fallback - also handled by UnifiedKeyboardPatch at priority 5.45
+                    else if (!shift && !ctrl && !alt)
+                    {
+                        int category = 0;
+                        if (keyCode == KeyCode.Alpha1 || keyCode == KeyCode.Keypad1) category = 1;
+                        else if (keyCode == KeyCode.Alpha2 || keyCode == KeyCode.Keypad2) category = 2;
+                        else if (keyCode == KeyCode.Alpha3 || keyCode == KeyCode.Keypad3) category = 3;
+                        else if (keyCode == KeyCode.Alpha4 || keyCode == KeyCode.Keypad4) category = 4;
+                        else if (keyCode == KeyCode.Alpha5 || keyCode == KeyCode.Keypad5) category = 5;
+
+                        if (category > 0)
+                        {
+                            WorldNavigationState.AnnounceTileInfoCategory(category);
+                            Event.current.Use();
+                            patchActive = true;
+                        }
+                    }
+                    // Note: Scanner keys (PgUp/PgDn/Home/End) are handled by
+                    // UnifiedKeyboardPatch at priority 0.5 before this patch runs
                 }
             }
             catch (System.Exception ex)
@@ -161,6 +239,13 @@ namespace RimWorldAccess
         [HarmonyPrefix]
         static bool OnAcceptKeyPressed_Prefix()
         {
+            // If scanner search is active, don't advance page - Enter confirms search
+            if (ScannerSearchState.IsActive)
+            {
+                ScannerSearchState.ConfirmSearch();
+                return false;
+            }
+
             // If I-menu is open, handle menu interaction only - don't advance page
             if (StartingSiteContext.IsMenuOpen)
             {
