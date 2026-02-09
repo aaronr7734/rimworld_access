@@ -128,6 +128,7 @@ namespace RimWorldAccess
                 return;
 
             KeyCode key = Event.current.keyCode;
+            key = KeyboardHelper.RemapCharacterToKeyCode(key);
 
             // Handle Escape - clear search first, then close
             if (key == KeyCode.Escape)

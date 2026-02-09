@@ -90,6 +90,9 @@ namespace RimWorldAccess
                 }
             }
 
+            // Remap character-only events for non-US keyboard layouts (e.g., German AltGr+9 = ])
+            key = KeyboardHelper.RemapCharacterToKeyCode(key);
+
             // Skip if no actual key (Unity IMGUI quirk)
             if (key == KeyCode.None)
                 return;

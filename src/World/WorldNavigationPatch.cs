@@ -67,6 +67,7 @@ namespace RimWorldAccess
                 return;
 
             KeyCode key = Event.current.keyCode;
+            key = KeyboardHelper.RemapCharacterToKeyCode(key);
 
             // Skip if no actual key
             if (key == KeyCode.None)
@@ -187,7 +188,9 @@ namespace RimWorldAccess
             }
 
             // Handle ] key - give orders to selected caravan
-            if (key == KeyCode.RightBracket && !shift && !ctrl && !alt)
+            if (key == KeyCode.RightBracket && !shift
+                && (!ctrl || KeyboardHelper.WasCharacterRemapped)
+                && (!alt || KeyboardHelper.WasCharacterRemapped))
             {
                 WorldNavigationState.GiveCaravanOrders();
                 Event.current.Use();

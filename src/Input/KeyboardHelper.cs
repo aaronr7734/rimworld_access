@@ -1,10 +1,59 @@
 using System;
+using UnityEngine;
 using Verse;
 
 namespace RimWorldAccess
 {
     public static class KeyboardHelper
     {
+        /// <summary>
+        /// True if the last RemapCharacterToKeyCode call remapped a character event to a KeyCode.
+        /// When true, ctrl/alt modifier flags may be artifacts of AltGr and should be ignored.
+        /// </summary>
+        public static bool WasCharacterRemapped { get; private set; }
+
+        // Tracks the frame when a real KeyCode.RightBracket was seen, so we don't
+        // also remap the follow-up character event that Unity sends for the same keypress.
+        private static int lastRightBracketFrame = -1;
+
+        /// <summary>
+        /// Remaps character-only KeyDown events to their equivalent KeyCode.
+        /// On non-US keyboards (e.g., German), layout-dependent characters like ] are produced
+        /// via AltGr combinations, which Unity reports as keyCode=None with the character set.
+        /// On US keyboards, Unity already sends keyCode=RightBracket followed by a separate
+        /// character=']' event in the same frame; frame tracking prevents double-processing.
+        /// Call after getting Event.current.keyCode, before any KeyCode.None early-return guard.
+        /// </summary>
+        public static KeyCode RemapCharacterToKeyCode(KeyCode key)
+        {
+            WasCharacterRemapped = false;
+
+            // If we see a real RightBracket keyCode (US layout), record the frame
+            if (key == KeyCode.RightBracket)
+            {
+                lastRightBracketFrame = Time.frameCount;
+                return key;
+            }
+
+            if (key != KeyCode.None)
+                return key;
+
+            switch (Event.current.character)
+            {
+                case ']':
+                    // Only remap if we didn't already see a real RightBracket keyCode this frame.
+                    // On US keyboards, both events fire in the same frame — skip the character one.
+                    // On German keyboards, the keyCode event was Alpha9, not RightBracket, so
+                    // lastRightBracketFrame won't match and we correctly remap.
+                    if (Time.frameCount == lastRightBracketFrame)
+                        return key;
+                    WasCharacterRemapped = true;
+                    return KeyCode.RightBracket;
+                default:
+                    return key;
+            }
+        }
+
         /// <summary>
         /// Returns true if ANY modal accessibility menu is currently active.
         /// When true, ALL keyboard input should go to that menu, not the game.
