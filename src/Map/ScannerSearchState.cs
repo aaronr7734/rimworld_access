@@ -501,56 +501,12 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Collects all world scanner items flattened into a single list.
-        /// This triggers a fresh collection from world objects.
+        /// Delegates to WorldScannerState which builds all categories (settlements, biomes, roads, etc.)
+        /// and returns them flattened, mirroring how CollectAllMapItemsFlat uses ScannerHelper.
         /// </summary>
         private static List<WorldScannerItem> CollectAllWorldItemsFlat()
         {
-            var allItems = new List<WorldScannerItem>();
-            var originTile = WorldNavigationState.CurrentSelectedTile;
-
-            // Collect settlements
-            var settlements = Find.WorldObjects?.Settlements;
-            if (settlements != null)
-            {
-                foreach (var settlement in settlements)
-                {
-                    if (settlement.Faction == null || !settlement.Tile.Valid)
-                        continue;
-
-                    allItems.Add(new WorldScannerItem(settlement));
-                }
-            }
-
-            // Collect caravans
-            var caravans = Find.WorldObjects?.Caravans?
-                .Where(c => c.Faction == RimWorld.Faction.OfPlayer)
-                .ToList();
-
-            if (caravans != null)
-            {
-                foreach (var caravan in caravans)
-                {
-                    allItems.Add(new WorldScannerItem(caravan));
-                }
-            }
-
-            // Collect other world objects (sites, etc.)
-            var allObjects = Find.WorldObjects?.AllWorldObjects;
-            if (allObjects != null)
-            {
-                foreach (var worldObj in allObjects)
-                {
-                    // Skip settlements and caravans (already added)
-                    if (worldObj is RimWorld.Planet.Settlement || worldObj is RimWorld.Planet.Caravan)
-                        continue;
-                    if (!worldObj.Tile.Valid)
-                        continue;
-
-                    allItems.Add(new WorldScannerItem(worldObj));
-                }
-            }
-
-            return allItems;
+            return WorldScannerState.CollectAllItemsFlat();
         }
 
         /// <summary>

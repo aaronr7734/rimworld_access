@@ -18,7 +18,6 @@ namespace RimWorldAccess
         public int TileCount { get; set; }
         public string SizeDescription { get; set; } // e.g., "approximately 75 tiles, 8 across"
         public float Distance { get; set; } // Distance from cursor to center
-        public float Span { get; set; } // Maximum distance across the region
 
         public BiomeRegion(PlanetTile centerTile, int tileCount)
         {
@@ -27,67 +26,11 @@ namespace RimWorldAccess
             SizeDescription = $"approximately {tileCount} tiles";
         }
 
-        /// <summary>
-        /// Constructor that calculates span from all region tiles.
-        /// </summary>
         public BiomeRegion(PlanetTile centerTile, HashSet<int> regionTiles)
         {
             CenterTile = centerTile;
             TileCount = regionTiles.Count;
-
-            // Calculate span (maximum distance between any two tiles)
-            Span = CalculateSpan(regionTiles);
-
-            // Build size description with span if meaningful
-            if (Span >= 3)
-            {
-                SizeDescription = $"approximately {TileCount} tiles, {Span:F0} across";
-            }
-            else
-            {
-                SizeDescription = $"approximately {TileCount} tiles";
-            }
-        }
-
-        /// <summary>
-        /// Calculates the maximum distance across the region (span).
-        /// Uses a sample of tiles for performance with large regions.
-        /// </summary>
-        private static float CalculateSpan(HashSet<int> regionTiles)
-        {
-            if (regionTiles.Count <= 1 || Find.WorldGrid == null)
-                return 0f;
-
-            // For small regions, check all pairs
-            // For large regions, sample boundary tiles
-            var tilesToCheck = regionTiles.ToList();
-            if (tilesToCheck.Count > 50)
-            {
-                // Sample: take first, last, and some distributed tiles
-                var sampled = new List<int>();
-                sampled.Add(tilesToCheck[0]);
-                sampled.Add(tilesToCheck[tilesToCheck.Count - 1]);
-                for (int i = 0; i < tilesToCheck.Count; i += tilesToCheck.Count / 10)
-                {
-                    sampled.Add(tilesToCheck[i]);
-                }
-                tilesToCheck = sampled.Distinct().ToList();
-            }
-
-            float maxDist = 0f;
-            for (int i = 0; i < tilesToCheck.Count; i++)
-            {
-                for (int j = i + 1; j < tilesToCheck.Count; j++)
-                {
-                    var tileA = new PlanetTile(tilesToCheck[i]);
-                    var tileB = new PlanetTile(tilesToCheck[j]);
-                    float dist = Find.WorldGrid.ApproxDistanceInTiles(tileA, tileB);
-                    if (dist > maxDist)
-                        maxDist = dist;
-                }
-            }
-
-            return maxDist;
+            SizeDescription = $"approximately {TileCount} tiles";
         }
     }
 
@@ -160,8 +103,8 @@ namespace RimWorldAccess
             {
                 for (int j = i + 1; j < tilesToCheck.Count; j++)
                 {
-                    var tileA = new PlanetTile(tilesToCheck[i]);
-                    var tileB = new PlanetTile(tilesToCheck[j]);
+                    var tileA = new PlanetTile(tilesToCheck[i], -1);
+                    var tileB = new PlanetTile(tilesToCheck[j], -1);
                     float dist = Find.WorldGrid.ApproxDistanceInTiles(tileA, tileB);
                     if (dist > maxDist)
                         maxDist = dist;
@@ -378,6 +321,14 @@ namespace RimWorldAccess
         private static Dictionary<string, List<RoadSegment>> cachedRoadSegments = null;
         private static PlanetTile lastCacheOrigin = PlanetTile.Invalid;
 
+        // Cache for full category list (count-based invalidation)
+        private static List<WorldScannerCategory> cachedCategories = null;
+        private static int lastSettlementCount = 0;
+        private static int lastCaravanCount = 0;
+        private static int lastWorldObjectCount = 0;
+        private static int lastQuestCount = 0;
+        private static int lastWaypointCount = 0;
+
         // Saved focus state for temporary category operations
         private static int savedCategoryIndex = -1;
         private static int savedSubcategoryIndex = -1;
@@ -494,6 +445,30 @@ namespace RimWorldAccess
             }
 
             PlanetTile originTile = WorldNavigationState.CurrentSelectedTile;
+
+            // Check if we can reuse cached categories
+            int currentSettlements = Find.WorldObjects?.Settlements?.Count ?? 0;
+            int currentCaravans = Find.WorldObjects?.Caravans?.Count ?? 0;
+            int currentWorldObjects = Find.WorldObjects?.AllWorldObjects?.Count ?? 0;
+            int currentQuests = Find.QuestManager?.questsInDisplayOrder?.Count ?? 0;
+            int currentWaypoints = (Find.WorldRoutePlanner?.Active == true)
+                ? (Find.WorldRoutePlanner.waypoints?.Count ?? 0) : 0;
+
+            bool cacheValid = cachedCategories != null
+                && cachedCategories.Count > 0
+                && currentSettlements == lastSettlementCount
+                && currentCaravans == lastCaravanCount
+                && currentWorldObjects == lastWorldObjectCount
+                && currentQuests == lastQuestCount
+                && currentWaypoints == lastWaypointCount;
+
+            if (cacheValid)
+            {
+                categories = new List<WorldScannerCategory>(cachedCategories);
+                ValidateIndices();
+                return;
+            }
+
             categories.Clear();
 
             // Category 0: Route Waypoints (only when route planner is active)
@@ -537,7 +512,44 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Save cache (but not if a temporary search category is present)
+            if (temporaryCategory == null)
+            {
+                cachedCategories = new List<WorldScannerCategory>(categories);
+                lastSettlementCount = currentSettlements;
+                lastCaravanCount = currentCaravans;
+                lastWorldObjectCount = currentWorldObjects;
+                lastQuestCount = currentQuests;
+                lastWaypointCount = currentWaypoints;
+            }
+
             ValidateIndices();
+        }
+
+        /// <summary>
+        /// Collects all world scanner items from all categories into a flat list.
+        /// Used by ScannerSearchState for Z search to match against biomes, roads, settlements, etc.
+        /// </summary>
+        public static List<WorldScannerItem> CollectAllItemsFlat()
+        {
+            // Use cached categories if available to avoid full rebuild per keystroke
+            if (cachedCategories == null || cachedCategories.Count == 0)
+                RefreshItems();
+
+            var source = cachedCategories ?? categories;
+            var allItems = new List<WorldScannerItem>();
+            foreach (var category in source)
+            {
+                // Skip temporary search category to avoid including old search results
+                if (category == temporaryCategory)
+                    continue;
+
+                foreach (var subcat in category.Subcategories)
+                {
+                    allItems.AddRange(subcat.Items);
+                }
+            }
+            return allItems;
         }
 
         #region Category Creators
@@ -612,41 +624,39 @@ namespace RimWorldAccess
                     if (!IsOnSurfaceLayer(settlement))
                         continue;
 
-                    var item = new WorldScannerItem(settlement);
-
-                    // Add to All subcategory
-                    allSubcat.Items.Add(item);
-
-                    if (settlement.Faction == Faction.OfPlayer)
-                    {
-                        playerSubcat.Items.Add(item);
-                    }
-                    else
-                    {
-                        var relation = settlement.Faction.RelationKindWith(Faction.OfPlayer);
-                        switch (relation)
-                        {
-                            case FactionRelationKind.Ally:
-                                alliedSubcat.Items.Add(item);
-                                break;
-                            case FactionRelationKind.Neutral:
-                                neutralSubcat.Items.Add(item);
-                                break;
-                            case FactionRelationKind.Hostile:
-                                hostileSubcat.Items.Add(item);
-                                break;
-                        }
-
-                    }
+                    allSubcat.Items.Add(new WorldScannerItem(settlement));
                 }
             }
 
-            // Sort each subcategory by distance
+            // Sort once, then split into faction subcategories preserving sort order
             SortItemsByDistance(allSubcat.Items, originTile);
-            SortItemsByDistance(playerSubcat.Items, originTile);
-            SortItemsByDistance(alliedSubcat.Items, originTile);
-            SortItemsByDistance(neutralSubcat.Items, originTile);
-            SortItemsByDistance(hostileSubcat.Items, originTile);
+
+            foreach (var item in allSubcat.Items)
+            {
+                var settlement = item.WorldObject as Settlement;
+                if (settlement == null) continue;
+
+                if (settlement.Faction == Faction.OfPlayer)
+                {
+                    playerSubcat.Items.Add(item);
+                }
+                else
+                {
+                    var relation = settlement.Faction.RelationKindWith(Faction.OfPlayer);
+                    switch (relation)
+                    {
+                        case FactionRelationKind.Ally:
+                            alliedSubcat.Items.Add(item);
+                            break;
+                        case FactionRelationKind.Neutral:
+                            neutralSubcat.Items.Add(item);
+                            break;
+                        case FactionRelationKind.Hostile:
+                            hostileSubcat.Items.Add(item);
+                            break;
+                    }
+                }
+            }
 
             category.Subcategories.Add(allSubcat);
             category.Subcategories.Add(playerSubcat);
@@ -664,12 +674,9 @@ namespace RimWorldAccess
 
             if (Find.QuestManager != null)
             {
-                var activeQuests = Find.QuestManager.questsInDisplayOrder
-                    .Where(q => q.State == QuestState.Ongoing && !q.hidden && !q.hiddenInUI)
-                    .ToList();
-
-                foreach (Quest quest in activeQuests)
+                foreach (Quest quest in Find.QuestManager.questsInDisplayOrder)
                 {
+                    if (quest.State != QuestState.Ongoing || quest.hidden || quest.hiddenInUI) continue;
                     foreach (GlobalTargetInfo target in quest.QuestLookTargets)
                     {
                         if (!target.IsValid || !target.IsWorldTarget)
@@ -745,8 +752,9 @@ namespace RimWorldAccess
                 var questTiles = new HashSet<int>();
                 if (Find.QuestManager != null)
                 {
-                    foreach (var quest in Find.QuestManager.questsInDisplayOrder.Where(q => q.State == QuestState.Ongoing))
+                    foreach (var quest in Find.QuestManager.questsInDisplayOrder)
                     {
+                        if (quest.State != QuestState.Ongoing) continue;
                         foreach (var target in quest.QuestLookTargets)
                         {
                             if (target.IsValid && target.IsWorldTarget)
@@ -811,16 +819,14 @@ namespace RimWorldAccess
                 }
 
                 // Sort regions by distance
-                regions = regions.OrderBy(r => r.Distance).ToList();
+                regions.Sort((a, b) => a.Distance.CompareTo(b.Distance));
 
                 var item = new WorldScannerItem(biomeName, regions);
                 biomeItems.Add(item);
             }
 
             // Sort biome types by their closest region
-            biomeItems = biomeItems
-                .OrderBy(i => i.GetDistance(originTile, 0))
-                .ToList();
+            SortItemsByDistance(biomeItems, originTile);
 
             subcat.Items.AddRange(biomeItems);
             category.Subcategories.Add(subcat);
@@ -854,15 +860,13 @@ namespace RimWorldAccess
                     segment.Distance = Find.WorldGrid.ApproxDistanceInTiles(originTile, segment.CenterTile);
                 }
 
-                segments = segments.OrderBy(s => s.Distance).ToList();
+                segments.Sort((a, b) => a.Distance.CompareTo(b.Distance));
 
                 var item = new WorldScannerItem(roadName, segments);
                 roadItems.Add(item);
             }
 
-            roadItems = roadItems
-                .OrderBy(i => i.GetDistance(originTile, 0))
-                .ToList();
+            SortItemsByDistance(roadItems, originTile);
 
             subcat.Items.AddRange(roadItems);
             category.Subcategories.Add(subcat);
@@ -925,7 +929,7 @@ namespace RimWorldAccess
                 return result;
 
             // Get tiles within a reasonable range (performance optimization)
-            int maxRange = 100; // tiles
+            int maxRange = 200; // tiles
             var visited = new HashSet<int>();
             var tilesByBiome = new Dictionary<string, HashSet<int>>();
 
@@ -934,10 +938,10 @@ namespace RimWorldAccess
             queue.Enqueue(originTile);
             visited.Add(originTile);
 
-            while (queue.Count > 0 && visited.Count < 5000) // Limit total tiles
+            while (queue.Count > 0 && visited.Count < 125000) // Limit total tiles
             {
                 int currentTileId = queue.Dequeue();
-                PlanetTile currentTile = new PlanetTile(currentTileId);
+                PlanetTile currentTile = new PlanetTile(currentTileId, -1);
 
                 if (!currentTile.Valid) continue;
 
@@ -975,7 +979,8 @@ namespace RimWorldAccess
 
                 while (biomeTiles.Count > 0)
                 {
-                    int startTile = biomeTiles.First();
+                    int startTile = 0;
+                    foreach (int t in biomeTiles) { startTile = t; break; }
                     var regionTiles = FloodFillRegion(startTile, biomeTiles);
 
                     if (regionTiles.Count > 0)
@@ -1014,7 +1019,7 @@ namespace RimWorldAccess
                 region.Add(current);
 
                 var neighbors = new List<PlanetTile>();
-                Find.WorldGrid.GetTileNeighbors(new PlanetTile(current), neighbors);
+                Find.WorldGrid.GetTileNeighbors(new PlanetTile(current, -1), neighbors);
                 foreach (var neighbor in neighbors)
                 {
                     if (validTiles.Contains(neighbor) && !region.Contains(neighbor))
@@ -1034,17 +1039,18 @@ namespace RimWorldAccess
             Vector3 centroid = Vector3.zero;
             foreach (int tileId in regionTiles)
             {
-                centroid += Find.WorldGrid.GetTileCenter(new PlanetTile(tileId));
+                centroid += Find.WorldGrid.GetTileCenter(new PlanetTile(tileId, -1));
             }
             centroid /= regionTiles.Count;
 
             // Find tile closest to centroid
-            int closestTile = regionTiles.First();
+            int closestTile = 0;
+            foreach (int t in regionTiles) { closestTile = t; break; }
             float closestDist = float.MaxValue;
 
             foreach (int tileId in regionTiles)
             {
-                Vector3 tilePos = Find.WorldGrid.GetTileCenter(new PlanetTile(tileId));
+                Vector3 tilePos = Find.WorldGrid.GetTileCenter(new PlanetTile(tileId, -1));
                 float dist = Vector3.Distance(tilePos, centroid);
                 if (dist < closestDist)
                 {
@@ -1053,7 +1059,7 @@ namespace RimWorldAccess
                 }
             }
 
-            return new PlanetTile(closestTile);
+            return new PlanetTile(closestTile, -1);
         }
 
         private static Dictionary<string, List<RoadSegment>> CollectRoadSegments(PlanetTile originTile)
@@ -1063,7 +1069,7 @@ namespace RimWorldAccess
             if (Find.WorldGrid == null)
                 return result;
 
-            int maxRange = 100;
+            int maxRange = 200;
             var visited = new HashSet<int>();
             var roadTilesByType = new Dictionary<string, HashSet<int>>();
 
@@ -1071,10 +1077,10 @@ namespace RimWorldAccess
             queue.Enqueue(originTile);
             visited.Add(originTile);
 
-            while (queue.Count > 0 && visited.Count < 5000)
+            while (queue.Count > 0 && visited.Count < 125000)
             {
                 int currentTileId = queue.Dequeue();
-                PlanetTile currentTile = new PlanetTile(currentTileId);
+                PlanetTile currentTile = new PlanetTile(currentTileId, -1);
 
                 if (!currentTile.Valid) continue;
 
@@ -1114,7 +1120,8 @@ namespace RimWorldAccess
 
                 while (roadTiles.Count > 0)
                 {
-                    int startTile = roadTiles.First();
+                    int startTile = 0;
+                    foreach (int t in roadTiles) { startTile = t; break; }
                     var segmentTiles = FloodFillRoadSegment(startTile, roadTiles, roadName);
 
                     if (segmentTiles.Count > 0)
@@ -1151,7 +1158,7 @@ namespace RimWorldAccess
                 segment.Add(current);
 
                 var neighbors = new List<PlanetTile>();
-                Find.WorldGrid.GetTileNeighbors(new PlanetTile(current), neighbors);
+                Find.WorldGrid.GetTileNeighbors(new PlanetTile(current, -1), neighbors);
                 foreach (var neighbor in neighbors)
                 {
                     if (validTiles.Contains(neighbor) && !segment.Contains(neighbor))
@@ -1160,7 +1167,15 @@ namespace RimWorldAccess
                         Tile neighborData = neighbor.Tile;
                         if (neighborData is SurfaceTile surfaceTile && surfaceTile.Roads != null)
                         {
-                            bool hasRoadType = surfaceTile.Roads.Any(r => r.road.LabelCap == roadType);
+                            bool hasRoadType = false;
+                            foreach (var road in surfaceTile.Roads)
+                            {
+                                if (road.road.LabelCap == roadType)
+                                {
+                                    hasRoadType = true;
+                                    break;
+                                }
+                            }
                             if (hasRoadType)
                                 queue.Enqueue(neighbor);
                         }
@@ -1178,6 +1193,36 @@ namespace RimWorldAccess
         private static void SortItemsByDistance(List<WorldScannerItem> items, PlanetTile originTile)
         {
             items.Sort((a, b) => a.GetDistance(originTile, 0).CompareTo(b.GetDistance(originTile, 0)));
+        }
+
+        /// <summary>
+        /// Recalculates distances and re-sorts only the current subcategory's items.
+        /// Call after changing indices to ensure the viewed subcategory is sorted
+        /// by distance from the user's current position.
+        /// </summary>
+        private static void RecalculateCurrentDistances()
+        {
+            var subcat = GetCurrentSubcategory();
+            if (subcat == null) return;
+            PlanetTile originTile = WorldNavigationState.CurrentSelectedTile;
+            SortItemsByDistance(subcat.Items, originTile);
+        }
+
+        /// <summary>
+        /// Invalidates all scanner caches. Call when world state changes externally
+        /// or when the scanner is closed/reset.
+        /// </summary>
+        public static void InvalidateCache()
+        {
+            cachedCategories = null;
+            lastSettlementCount = 0;
+            lastCaravanCount = 0;
+            lastWorldObjectCount = 0;
+            lastQuestCount = 0;
+            lastWaypointCount = 0;
+            cachedBiomeRegions = null;
+            cachedRoadSegments = null;
+            lastCacheOrigin = PlanetTile.Invalid;
         }
 
         private static void ValidateIndices()
@@ -1277,6 +1322,7 @@ namespace RimWorldAccess
             currentItemIndex = 0;
             currentInstanceIndex = 0;
             SkipEmptySubcategories(forward: true);
+            RecalculateCurrentDistances();
 
             AnnounceCurrentCategory();
             AnnounceCurrentItem();
@@ -1300,6 +1346,7 @@ namespace RimWorldAccess
             currentItemIndex = 0;
             currentInstanceIndex = 0;
             SkipEmptySubcategories(forward: true);
+            RecalculateCurrentDistances();
 
             AnnounceCurrentCategory();
             AnnounceCurrentItem();
@@ -1336,6 +1383,7 @@ namespace RimWorldAccess
 
             currentItemIndex = 0;
             currentInstanceIndex = 0;
+            RecalculateCurrentDistances();
 
             AnnounceCurrentSubcategory();
             AnnounceCurrentItem();
@@ -1372,6 +1420,7 @@ namespace RimWorldAccess
 
             currentItemIndex = 0;
             currentInstanceIndex = 0;
+            RecalculateCurrentDistances();
 
             AnnounceCurrentSubcategory();
             AnnounceCurrentItem();
@@ -1527,13 +1576,11 @@ namespace RimWorldAccess
 
             WorldNavigationState.CurrentSelectedTile = targetTile;
 
-            if (Find.WorldSelector != null)
-            {
-                Find.WorldSelector.ClearSelection();
-                if (item.WorldObject != null)
-                    Find.WorldSelector.Select(item.WorldObject);
-                Find.WorldSelector.SelectedTile = targetTile;
-            }
+            // Sync with game selection (WorldSelector + WorldInterface/GameInitData for world gen)
+            WorldNavigationState.SyncSelectionWithGame();
+            // Also select the world object if applicable
+            if (item.WorldObject != null && Find.WorldSelector != null)
+                Find.WorldSelector.Select(item.WorldObject);
 
             if (Find.WorldCameraDriver != null)
             {
@@ -1541,10 +1588,9 @@ namespace RimWorldAccess
                 Find.WorldCameraDriver.RotateSoNorthIsUp();
             }
 
-            if (item.HasInstances)
-                AnnounceCurrentInstance();
-            else
-                AnnounceCurrentItem();
+            // Announce full tile info as if the user arrowed to this tile,
+            // which also updates BiomeDescriptionTracker for the new location
+            WorldNavigationState.AnnounceTile();
         }
 
         /// <summary>
@@ -1677,7 +1723,7 @@ namespace RimWorldAccess
                 else if (item.RoadSegments != null)
                     parts.Add($"{item.RoadSegments[0].SizeDescription}");
 
-                parts.Add($"{item.InstanceCount} regions");
+                parts.Add($"Region 1 of {item.InstanceCount}");
             }
 
             if (isSpaceObject)
@@ -1779,9 +1825,7 @@ namespace RimWorldAccess
             currentSubcategoryIndex = 0;
             currentItemIndex = 0;
             currentInstanceIndex = 0;
-            cachedBiomeRegions = null;
-            cachedRoadSegments = null;
-            lastCacheOrigin = PlanetTile.Invalid;
+            InvalidateCache();
             temporaryCategory = null;
             savedCategoryIndex = -1;
             savedSubcategoryIndex = -1;
