@@ -107,7 +107,7 @@ namespace RimWorldAccess
                     if (firstScenario != null)
                     {
                         string categorySuffix = GetCategorySuffixString(firstScenario.Category);
-                        TolkHelper.Speak($"{pageTitle} - {firstScenario.name} - {firstScenario.summary}{categorySuffix}");
+                        TolkHelper.Speak($"{pageTitle} - {firstScenario.name} - {firstScenario.summary}{categorySuffix}. Tab for details, Alt+E to edit.");
                     }
                     else
                     {
