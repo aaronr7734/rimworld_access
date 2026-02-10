@@ -926,8 +926,18 @@ namespace RimWorldAccess
                     return;
                 }
 
-                // Note: Escape (without I-menu) is NOT handled here — it passes through
-                // to RimWorld's Page.OnCancelKeyPressed() for back navigation.
+                // Escape: go back to world generation settings
+                if (key == KeyCode.Escape && !shift && !ctrl && !alt)
+                {
+                    var page = Find.WindowStack.WindowOfType<Page_SelectStartingSite>();
+                    if (page != null)
+                    {
+                        AccessTools.Method(typeof(Page), "DoBack").Invoke(page, null);
+                    }
+                    Event.current.Use();
+                    return;
+                }
+
                 // Note: Z key, 1-5 number keys, PageUp/PageDown/Home/End/J are already
                 // handled by other sections (priorities -0.2, 0.5, 4.745, 5.45).
             }
