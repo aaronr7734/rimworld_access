@@ -15,6 +15,10 @@ namespace RimWorldAccess
         private static bool hasAnnouncedTitle = false;
 
         // Prefix: Initialize state and handle keyboard input
+        // NOTE: Most key handling here is duplicated in UnifiedKeyboardPatch at priority 0.55.
+        // UnifiedKeyboardPatch runs OUTSIDE GUI.Window context and handles keys reliably even
+        // when IMGUI focus is not properly established (e.g., after closing faction dialog).
+        // This handler serves as a defensive fallback when GUI.Window focus is working normally.
         static void Prefix(Page_SelectStartingSite __instance, Rect rect)
         {
             try
@@ -164,7 +168,7 @@ namespace RimWorldAccess
                     else if (keyCode == KeyCode.F && !shift && !ctrl && !alt)
                     {
                         Find.WindowStack.Add(new Dialog_FactionDuringLanding());
-                        TolkHelper.Speak("Opened faction relations dialog.");
+                        // Opening announcement handled by FactionLandingState via PostOpen patch
                         Event.current.Use();
                         patchActive = true;
                     }

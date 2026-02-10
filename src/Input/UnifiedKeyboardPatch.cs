@@ -340,6 +340,17 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY -0.22: Handle Faction Landing dialog if active =====
+            // Faction relations is a modal dialog opened from starting site selection (F key)
+            if (FactionLandingState.IsActive)
+            {
+                if (FactionLandingState.HandleInput(Event.current))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 0: Handle world object selection if active =====
             if (WorldObjectSelectionState.IsActive && !WindowlessDialogState.IsActive)
             {
@@ -451,8 +462,10 @@ namespace RimWorldAccess
             // ===== DEFENSIVE STATE CLEANUP =====
             // If placement state has stale internal values but no designator is selected,
             // clean up the state. This is belt-and-suspenders with the defensive IsActive properties.
-            if (ShapePlacementState.CurrentPhase != PlacementPhase.Inactive ||
-                ArchitectState.CurrentMode == ArchitectMode.PlacementMode)
+            // Guard with CurrentMap check — Find.DesignatorManager throws during entry screen.
+            if (Find.CurrentMap != null &&
+                (ShapePlacementState.CurrentPhase != PlacementPhase.Inactive ||
+                ArchitectState.CurrentMode == ArchitectMode.PlacementMode))
             {
                 if (Find.DesignatorManager?.SelectedDesignator == null)
                 {
@@ -817,6 +830,106 @@ namespace RimWorldAccess
                     Event.current.Use();
                     return;
                 }
+            }
+
+            // ===== PRIORITY 0.55: Handle world gen starting site keys =====
+            // These keys are normally handled by StartingSitePatch.Prefix (inside GUI.Window),
+            // but after closing the faction dialog, GUI.Window focus may not be re-established
+            // properly, so we handle them here (outside GUI.Window context) as well.
+            // This follows the same dual-handling pattern used for Z key (priority 4.745)
+            // and 1-5 tile info keys (priority 5.45).
+            if (WorldNavigationState.IsActive &&
+                WorldNavigationState.Context == WorldNavContext.WorldGen)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = Event.current.alt;
+
+                // When I-menu is open, route keys to menu navigation
+                if (StartingSiteContext.IsMenuOpen)
+                {
+                    if (key == KeyCode.UpArrow)
+                    {
+                        StartingSiteContext.NavigateMenu(-1);
+                        Event.current.Use();
+                        return;
+                    }
+                    else if (key == KeyCode.DownArrow)
+                    {
+                        StartingSiteContext.NavigateMenu(1);
+                        Event.current.Use();
+                        return;
+                    }
+                    else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                    {
+                        StartingSiteContext.ReadSelectedMenuItem();
+                        Event.current.Use();
+                        return;
+                    }
+                    else if (key == KeyCode.Escape)
+                    {
+                        StartingSiteContext.CloseMenu();
+                        Event.current.Use();
+                        return;
+                    }
+                    // Block all other keys while I-menu is open
+                    // (Scanner keys at priority 0.5 already passed through)
+                    Event.current.Use();
+                    return;
+                }
+
+                // Arrow keys: plain = world navigation, Ctrl = biome jump
+                if (key == KeyCode.UpArrow || key == KeyCode.DownArrow ||
+                    key == KeyCode.LeftArrow || key == KeyCode.RightArrow)
+                {
+                    if (ctrl)
+                    {
+                        StartingSiteContext.JumpToNextBiomeInDirection(key);
+                    }
+                    else
+                    {
+                        WorldNavigationState.HandleArrowKey(key);
+                    }
+                    Event.current.Use();
+                    return;
+                }
+
+                // R key: random tile selection
+                if (key == KeyCode.R && !shift && !ctrl && !alt && !ScannerSearchState.IsActive)
+                {
+                    StartingSiteContext.SelectRandomTile();
+                    Event.current.Use();
+                    return;
+                }
+
+                // Space: re-announce current tile
+                if (key == KeyCode.Space && !shift && !ctrl && !alt)
+                {
+                    WorldNavigationState.AnnounceTile();
+                    Event.current.Use();
+                    return;
+                }
+
+                // I key: open additional info menu
+                if (key == KeyCode.I && !shift && !ctrl && !alt && !ScannerSearchState.IsActive)
+                {
+                    StartingSiteContext.OpenAdditionalInfoMenu();
+                    Event.current.Use();
+                    return;
+                }
+
+                // F key: open faction relations dialog
+                if (key == KeyCode.F && !shift && !ctrl && !alt && !ScannerSearchState.IsActive)
+                {
+                    Find.WindowStack.Add(new Dialog_FactionDuringLanding());
+                    Event.current.Use();
+                    return;
+                }
+
+                // Note: Escape (without I-menu) is NOT handled here — it passes through
+                // to RimWorld's Page.OnCancelKeyPressed() for back navigation.
+                // Note: Z key, 1-5 number keys, PageUp/PageDown/Home/End/J are already
+                // handled by other sections (priorities -0.2, 0.5, 4.745, 5.45).
             }
 
             // ===== PRIORITY 0.6: Handle route planner if active =====

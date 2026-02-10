@@ -114,8 +114,8 @@ namespace RimWorldAccess
                 // Sync advanced settings from GameInitData
                 SyncAdvancedFromGame();
 
-                // Reset navigation state
-                fieldIndex = 0;
+                // Reset navigation state — start with no field selected so Enter advances
+                fieldIndex = -1;
                 isEditingSeed = false;
                 seedInputBuffer = "";
                 fieldTypeahead.ClearSearch();
@@ -177,7 +177,7 @@ namespace RimWorldAccess
         {
             initialized = false;
             currentInstance = null;
-            fieldIndex = 0;
+            fieldIndex = -1;
             availableFields.Clear();
             fieldTypeahead.ClearSearch();
             isEditingSeed = false;
@@ -242,7 +242,14 @@ namespace RimWorldAccess
         {
             if (availableFields.Count == 0) return;
             fieldTypeahead.ClearSearch();
-            fieldIndex = MenuHelper.SelectPrevious(fieldIndex, availableFields.Count);
+            if (fieldIndex < 0)
+            {
+                fieldIndex = availableFields.Count - 1;
+            }
+            else
+            {
+                fieldIndex = MenuHelper.SelectPrevious(fieldIndex, availableFields.Count);
+            }
             AnnounceCurrentField();
         }
 
@@ -250,7 +257,14 @@ namespace RimWorldAccess
         {
             if (availableFields.Count == 0) return;
             fieldTypeahead.ClearSearch();
-            fieldIndex = MenuHelper.SelectNext(fieldIndex, availableFields.Count);
+            if (fieldIndex < 0)
+            {
+                fieldIndex = 0;
+            }
+            else
+            {
+                fieldIndex = MenuHelper.SelectNext(fieldIndex, availableFields.Count);
+            }
             AnnounceCurrentField();
         }
 

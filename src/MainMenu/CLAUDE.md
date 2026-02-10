@@ -5,7 +5,7 @@ Provides keyboard navigation for main menu and all game setup screens (scenario 
 
 ## Files in This Module
 
-### Patches (10 files)
+### Patches (11 files)
 - **MainMenuAccessibilityPatch.cs** - Main menu navigation (Prefix + Postfix)
 - **ModListPatch.cs** - Mod manager (Page_ModsConfig) keyboard navigation
 - **ModSettingsDialogPatch.cs** - Mod settings dialog announcements
@@ -16,8 +16,9 @@ Provides keyboard navigation for main menu and all game setup screens (scenario 
 - **ColonistEditorPatch.cs** - Character editor (Prepare Carefully mode)
 - **StartingSitePatch.cs** - Starting location selection
 - **WorldParamsPatch.cs** - World generation parameters
+- **FactionLandingPatch.cs** - Faction relations dialog during starting site selection (PostOpen/PostClose lifecycle)
 
-### States (9 files)
+### States (10 files)
 - **MenuNavigationState.cs** - Main menu navigation
 - **ModListState.cs** - Mod manager keyboard navigation
 - **ScenarioNavigationState.cs** - Scenario selection
@@ -27,6 +28,7 @@ Provides keyboard navigation for main menu and all game setup screens (scenario 
 - **ColonistEditorNavigationState.cs** - Character customization
 - **StartingSiteContext.cs** - World-gen-only features (I-menu, R random, Ctrl+arrows biome jump, faction warnings, tile validation). Navigation shared with in-game via WorldNavigationState.
 - **WorldParamsNavigationState.cs** - World gen settings
+- **FactionLandingState.cs** - Faction relations dialog navigation (F key from starting site). Flat list with typeahead search, Alt+I for info card.
 
 ## Key Architecture
 
