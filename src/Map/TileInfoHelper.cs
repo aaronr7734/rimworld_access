@@ -1180,12 +1180,6 @@ namespace RimWorldAccess
             // Get localized label from the Designator that uses this DesignationDef
             string label = GetLocalizedDesignationLabel(designation.def);
 
-            // For thing-targeted designations, include the thing's label
-            if (designation.target.HasThing && designation.target.Thing != null)
-            {
-                return $"{designation.target.Thing.LabelShort} ({label})";
-            }
-
             return label;
         }
 
