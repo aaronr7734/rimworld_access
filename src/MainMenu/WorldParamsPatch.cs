@@ -30,7 +30,7 @@ namespace RimWorldAccess
                 // Announce window title once
                 if (!hasAnnouncedTitle)
                 {
-                    string help = "Use Up/Down to navigate fields, Left/Right to change values. Tab to switch to factions.";
+                    string help = "Press Enter to generate world with default settings, or Up/Down to browse fields, Left/Right to change values. Tab to switch to factions.";
                     TolkHelper.Speak($"Create World. {help}");
                     hasAnnouncedTitle = true;
                 }
