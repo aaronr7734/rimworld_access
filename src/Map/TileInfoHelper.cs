@@ -23,9 +23,15 @@ namespace RimWorldAccess
                 return "Out of bounds";
 
 
-            // Check fog of war - if fogged, return "unseen" with coordinates
+            // Check fog of war
             if (position.Fogged(map))
+            {
+                // Still announce player-placed designations on fogged tiles
+                string fogDesignations = GetDesignationsInfo(position, map);
+                if (!string.IsNullOrEmpty(fogDesignations))
+                    return $"{fogDesignations}, unseen, {position.x}, {position.z}";
                 return $"unseen, {position.x}, {position.z}";
+            }
             var sb = new StringBuilder();
 
             // Check visibility from drafted pawn (if one is selected)
