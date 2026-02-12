@@ -290,13 +290,25 @@ namespace RimWorldAccess
             if (shiftHeld)
                 return false; // Block original - our map switching already handled it
 
-            // Use our map-filtered pawn cycling
-            Pawn selectedPawn = PawnSelectionState.SelectNextColonist();
-
-            if (selectedPawn == null)
+            // When on mech section, cycle mechs instead of colonists
+            Pawn selectedPawn;
+            if (ColonistBarState.IsOnMechSection)
             {
-                TolkHelper.Speak("No colonists on this map");
-                return false;
+                selectedPawn = ColonistBarState.SelectNextMech();
+                if (selectedPawn == null)
+                {
+                    TolkHelper.Speak("No mechs on this map");
+                    return false;
+                }
+            }
+            else
+            {
+                selectedPawn = PawnSelectionState.SelectNextColonist();
+                if (selectedPawn == null)
+                {
+                    TolkHelper.Speak("No colonists on this map");
+                    return false;
+                }
             }
 
             // Select the pawn and jump camera to follow
@@ -316,6 +328,9 @@ namespace RimWorldAccess
 
             // Set flag so G key shows this pawn's gizmos (until arrow keys move cursor)
             GizmoNavigationState.PawnJustSelected = true;
+
+            // Keep colonist bar position in sync
+            ColonistBarState.SyncBarPosition(selectedPawn);
 
             // Announce selection
             string currentTask = selectedPawn.GetJobReport();
@@ -343,13 +358,25 @@ namespace RimWorldAccess
             if (shiftHeld)
                 return false; // Block original - our map switching already handled it
 
-            // Use our map-filtered pawn cycling
-            Pawn selectedPawn = PawnSelectionState.SelectPreviousColonist();
-
-            if (selectedPawn == null)
+            // When on mech section, cycle mechs instead of colonists
+            Pawn selectedPawn;
+            if (ColonistBarState.IsOnMechSection)
             {
-                TolkHelper.Speak("No colonists on this map");
-                return false;
+                selectedPawn = ColonistBarState.SelectPreviousMech();
+                if (selectedPawn == null)
+                {
+                    TolkHelper.Speak("No mechs on this map");
+                    return false;
+                }
+            }
+            else
+            {
+                selectedPawn = PawnSelectionState.SelectPreviousColonist();
+                if (selectedPawn == null)
+                {
+                    TolkHelper.Speak("No colonists on this map");
+                    return false;
+                }
             }
 
             // Select the pawn and jump camera to follow
@@ -369,6 +396,9 @@ namespace RimWorldAccess
 
             // Set flag so G key shows this pawn's gizmos (until arrow keys move cursor)
             GizmoNavigationState.PawnJustSelected = true;
+
+            // Keep colonist bar position in sync
+            ColonistBarState.SyncBarPosition(selectedPawn);
 
             // Announce selection
             string currentTask = selectedPawn.GetJobReport();

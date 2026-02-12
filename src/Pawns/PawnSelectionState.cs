@@ -289,6 +289,29 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Called by ColonistBarState to keep PawnSelectionState in sync
+        /// when the user navigates with Alt+Arrow or Alt+number keys.
+        /// </summary>
+        public static void SyncFromBarNavigation(Pawn pawn)
+        {
+            if (pawn == null)
+                return;
+
+            lastSelectedPawn = pawn;
+
+            if (Find.CurrentMap != null)
+            {
+                lastSelectedPawnPerMap[Find.CurrentMap.uniqueID] = pawn;
+            }
+
+            // Update index to match
+            var colonistList = GetSelectableColonists();
+            int idx = colonistList.IndexOf(pawn);
+            if (idx >= 0)
+                currentSelectedIndex = idx;
+        }
+
+        /// <summary>
         /// Resets the selection state.
         /// </summary>
         public static void Reset()

@@ -3707,9 +3707,11 @@ namespace RimWorldAccess
             }
 
             // ===== PRIORITY 5.5: Handle time control with Shift+1/2/3, intercept 1/2/3 without Shift =====
+            // Skip if Alt is held - Alt+number keys are for colonist bar navigation
             if ((key == KeyCode.Alpha1 || key == KeyCode.Keypad1 ||
                  key == KeyCode.Alpha2 || key == KeyCode.Keypad2 ||
                  key == KeyCode.Alpha3 || key == KeyCode.Keypad3) &&
+                !Event.current.alt &&
                 Current.ProgramState == ProgramState.Playing &&
                 Find.CurrentMap != null &&
                 (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion))
@@ -3833,6 +3835,76 @@ namespace RimWorldAccess
                         Event.current.Use();
                         return;
                     }
+                }
+            }
+
+            // ===== PRIORITY 6.45: Colonist Bar Navigation (Alt+Arrow, Alt+Number, Ctrl+Alt+Arrow) =====
+            if (Current.ProgramState == ProgramState.Playing &&
+                Find.CurrentMap != null &&
+                !WorldRendererUtility.WorldRendered &&
+                (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
+                !ZoneCreationState.IsInCreationMode)
+            {
+                bool alt = Event.current.alt;
+                bool ctrl = Event.current.control;
+
+                // Alt+Left/Right: navigate bar linearly (crosses page boundaries)
+                if (alt && !ctrl && key == KeyCode.RightArrow)
+                {
+                    ColonistBarState.NavigateRight();
+                    Event.current.Use();
+                    return;
+                }
+                if (alt && !ctrl && key == KeyCode.LeftArrow)
+                {
+                    ColonistBarState.NavigateLeft();
+                    Event.current.Use();
+                    return;
+                }
+
+                // Alt+Down/Up: page down/up through colonist pages, then mech pages
+                if (alt && !ctrl && key == KeyCode.DownArrow)
+                {
+                    ColonistBarState.PageDown();
+                    Event.current.Use();
+                    return;
+                }
+                if (alt && !ctrl && key == KeyCode.UpArrow)
+                {
+                    ColonistBarState.PageUp();
+                    Event.current.Use();
+                    return;
+                }
+
+                // Ctrl+Alt+Left/Right: reorder colonists (shift/insert)
+                if (alt && ctrl && key == KeyCode.RightArrow)
+                {
+                    ColonistBarState.MoveRight();
+                    Event.current.Use();
+                    return;
+                }
+                if (alt && ctrl && key == KeyCode.LeftArrow)
+                {
+                    ColonistBarState.MoveLeft();
+                    Event.current.Use();
+                    return;
+                }
+
+                // Alt+1 through Alt+9: jump to position 1-9 on current page
+                if (alt && !ctrl && key >= KeyCode.Alpha1 && key <= KeyCode.Alpha9)
+                {
+                    int position = key - KeyCode.Alpha1; // 0-indexed
+                    ColonistBarState.JumpToPosition(position);
+                    Event.current.Use();
+                    return;
+                }
+
+                // Alt+0: jump to position 10 on current page
+                if (alt && !ctrl && key == KeyCode.Alpha0)
+                {
+                    ColonistBarState.JumpToPosition(9);
+                    Event.current.Use();
+                    return;
                 }
             }
 

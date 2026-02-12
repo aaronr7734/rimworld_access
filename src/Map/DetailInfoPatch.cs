@@ -42,6 +42,10 @@ namespace RimWorldAccess
             if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
                 return;
 
+            // Don't process if Alt is held (Alt+1-0 are for colonist bar navigation)
+            if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt))
+                return;
+
             // Check for tile info hotkeys (1-7 keys, both alpha and keypad)
             KeyCode? pressedKey = null;
             if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
