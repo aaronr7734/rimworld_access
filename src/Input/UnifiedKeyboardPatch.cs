@@ -3890,6 +3890,20 @@ namespace RimWorldAccess
                     return;
                 }
 
+                // Ctrl+Alt+Down/Up: move colonist between pages (shift/insert)
+                if (alt && ctrl && key == KeyCode.DownArrow)
+                {
+                    ColonistBarState.MoveDown();
+                    Event.current.Use();
+                    return;
+                }
+                if (alt && ctrl && key == KeyCode.UpArrow)
+                {
+                    ColonistBarState.MoveUp();
+                    Event.current.Use();
+                    return;
+                }
+
                 // Alt+1 through Alt+9: jump to position 1-9 on current page
                 if (alt && !ctrl && key >= KeyCode.Alpha1 && key <= KeyCode.Alpha9)
                 {
@@ -3903,6 +3917,22 @@ namespace RimWorldAccess
                 if (alt && !ctrl && key == KeyCode.Alpha0)
                 {
                     ColonistBarState.JumpToPosition(9);
+                    Event.current.Use();
+                    return;
+                }
+
+                // Alt+Enter: open inspection tree for currently selected pawn
+                if (alt && !ctrl && (key == KeyCode.Return || key == KeyCode.KeypadEnter))
+                {
+                    Pawn selectedPawn = Find.Selector?.SingleSelectedThing as Pawn;
+                    if (selectedPawn != null)
+                    {
+                        WindowlessInspectionState.OpenForObject(selectedPawn);
+                    }
+                    else
+                    {
+                        TolkHelper.Speak("No pawn selected");
+                    }
                     Event.current.Use();
                     return;
                 }

@@ -521,6 +521,104 @@ namespace RimWorldAccess
             AnnounceReorder(pawnToMove);
         }
 
+        /// <summary>
+        /// Move current colonist down one page (Ctrl+Alt+Down). Moves to the position
+        /// directly below on the next page, or to the last position on the next page
+        /// if the direct-below slot doesn't exist. Not available for mechs.
+        /// </summary>
+        public static void MoveDown()
+        {
+            CheckMapChange();
+
+            if (onMechSection)
+            {
+                TolkHelper.Speak("Cannot reorder mechs");
+                return;
+            }
+
+            var colonists = GetColonists();
+            if (colonists.Count < 2)
+                return;
+
+            ClampPosition();
+
+            // Target: directly below on next page, clamped to last position
+            int targetBarPosition = System.Math.Min(barPosition + PageSize, colonists.Count - 1);
+
+            if (targetBarPosition / PageSize == barPosition / PageSize)
+            {
+                TolkHelper.Speak("Already on last page");
+                return;
+            }
+
+            Pawn pawnToMove = colonists[barPosition];
+            Pawn targetPawn = colonists[targetBarPosition];
+
+            int group = GetGroupForPawn(pawnToMove);
+            if (group < 0) return;
+
+            NormalizeGroupDisplayOrders(group);
+            Find.ColonistBar.MarkColonistsDirty();
+
+            int fromIndex = GetEntryIndexForPawn(pawnToMove, group);
+            int targetIndex = GetEntryIndexForPawn(targetPawn, group);
+            if (fromIndex < 0 || targetIndex < 0) return;
+
+            // Moving forward: insert after target (same as MoveRight)
+            Find.ColonistBar.Reorder(fromIndex, targetIndex + 1, group);
+
+            AnnounceReorder(pawnToMove);
+        }
+
+        /// <summary>
+        /// Move current colonist up one page (Ctrl+Alt+Up). Moves to the position
+        /// directly above on the previous page, or to position 0 if the direct-above
+        /// slot doesn't exist. Not available for mechs.
+        /// </summary>
+        public static void MoveUp()
+        {
+            CheckMapChange();
+
+            if (onMechSection)
+            {
+                TolkHelper.Speak("Cannot reorder mechs");
+                return;
+            }
+
+            var colonists = GetColonists();
+            if (colonists.Count < 2)
+                return;
+
+            ClampPosition();
+
+            // Target: directly above on previous page, clamped to first position
+            int targetBarPosition = System.Math.Max(barPosition - PageSize, 0);
+
+            if (targetBarPosition / PageSize == barPosition / PageSize)
+            {
+                TolkHelper.Speak("Already on first page");
+                return;
+            }
+
+            Pawn pawnToMove = colonists[barPosition];
+            Pawn targetPawn = colonists[targetBarPosition];
+
+            int group = GetGroupForPawn(pawnToMove);
+            if (group < 0) return;
+
+            NormalizeGroupDisplayOrders(group);
+            Find.ColonistBar.MarkColonistsDirty();
+
+            int fromIndex = GetEntryIndexForPawn(pawnToMove, group);
+            int targetIndex = GetEntryIndexForPawn(targetPawn, group);
+            if (fromIndex < 0 || targetIndex < 0) return;
+
+            // Moving backward: insert before target (same as MoveLeft)
+            Find.ColonistBar.Reorder(fromIndex, targetIndex, group);
+
+            AnnounceReorder(pawnToMove);
+        }
+
         // ===== SYNC WITH COMMA/PERIOD =====
 
         /// <summary>
@@ -685,12 +783,24 @@ namespace RimWorldAccess
             // Re-fetch list after reorder to get fresh positions
             var colonists = GetColonists();
             int newIndex = colonists.IndexOf(pawn);
-            if (newIndex >= 0)
-            {
-                // Follow the moved pawn
-                barPosition = newIndex;
-                TolkHelper.Speak($"{pawn.LabelShort} moved to position {newIndex + 1}");
-            }
+            if (newIndex < 0)
+                return;
+
+            // Follow the moved pawn
+            barPosition = newIndex;
+
+            // Build neighbor context
+            string context;
+            if (newIndex == 0 && colonists.Count == 1)
+                context = "only colonist";
+            else if (newIndex == 0)
+                context = "leftmost";
+            else if (newIndex == colonists.Count - 1)
+                context = "rightmost";
+            else
+                context = $"between {colonists[newIndex - 1].LabelShort} and {colonists[newIndex + 1].LabelShort}";
+
+            TolkHelper.Speak($"{pawn.LabelShort}, position {newIndex + 1}, {context}");
         }
 
         /// <summary>
