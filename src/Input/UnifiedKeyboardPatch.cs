@@ -3921,8 +3921,10 @@ namespace RimWorldAccess
                     return;
                 }
 
-                // Alt+Enter: open inspection tree for currently selected pawn
-                if (alt && !ctrl && (key == KeyCode.Return || key == KeyCode.KeypadEnter))
+                // Ctrl+Alt+Enter: open inspection tree for currently selected pawn
+                // Note: Alt+Enter is captured by Unity for fullscreen toggle, so Ctrl+Alt+Enter is used instead.
+                // Unity reports ctrl=true alongside alt, so we just check alt without excluding ctrl.
+                if (alt && (key == KeyCode.Return || key == KeyCode.KeypadEnter))
                 {
                     Pawn selectedPawn = Find.Selector?.SingleSelectedThing as Pawn;
                     if (selectedPawn != null)

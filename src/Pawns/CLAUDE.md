@@ -16,7 +16,7 @@ Pawn information, character tabs, policies, and assignments.
 - **Alt+Down/Up** - Move between pages of 10 (colonist pages, then mech pages)
 - **Ctrl+Alt+Left/Right** - Reorder: shift selected colonist left/right on bar
 - **Ctrl+Alt+Down/Up** - Reorder: move selected colonist between pages
-- **Alt+Enter** - Open inspection tree for selected pawn
+- **Ctrl+Alt+Enter** - Open inspection tree for selected pawn
 - **Alt+M** - Quick mood info
 - **Alt+H** - Quick health info
 - **Alt+N** - Quick needs info
@@ -47,7 +47,7 @@ PawnSelectionState integrates with scanner. ColonistBarState provides page-based
 - [ ] Position jumping (Alt+1-0)
 - [ ] Colonist reordering (Ctrl+Alt+Left/Right) with neighbor announcements
 - [ ] Cross-page reordering (Ctrl+Alt+Down/Up)
-- [ ] Alt+Enter opens inspection tree for selected pawn
+- [ ] Ctrl+Alt+Enter opens inspection tree for selected pawn
 - [ ] Mech page navigation
 - [ ] Mech cycling with comma/period on mech page
 - [ ] Bar position syncs with comma/period

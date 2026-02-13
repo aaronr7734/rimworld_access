@@ -897,8 +897,8 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Handle Enter - execute selected
-            if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+            // Handle Enter - execute selected (skip if Alt held, Alt+Enter opens pawn inspection)
+            if ((key == KeyCode.Return || key == KeyCode.KeypadEnter) && !Event.current.alt)
             {
                 ExecuteSelected();
                 Event.current.Use();
