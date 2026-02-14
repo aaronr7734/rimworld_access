@@ -510,6 +510,22 @@ namespace RimWorldAccess
             if (letter == null)
                 return;
 
+            // Handle growth moment letters (ChoiceLetter_GrowthMoment extends LetterWithTimeout, NOT ChoiceLetter)
+            if (letter is ChoiceLetter_GrowthMoment growthLetter)
+            {
+                string label = growthLetter.ArchiveView ? "View choices" : "Open growth moment";
+                buttons.Add(new ButtonInfo
+                {
+                    Label = label,
+                    Action = () => {
+                        Close();
+                        growthLetter.OpenLetter();
+                    },
+                    IsDisabled = false
+                });
+                return;
+            }
+
             // Extract buttons from ChoiceLetter
             if (letter is ChoiceLetter choiceLetter)
             {

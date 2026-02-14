@@ -353,6 +353,17 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY -0.215: Handle Growth Moment dialog if active =====
+            // Growth moment is a modal dialog for child development choices (Biotech DLC)
+            if (GrowthMomentState.IsActive)
+            {
+                if (GrowthMomentState.HandleInput(key, Event.current.shift, Event.current.control, Event.current.alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY -0.22: Handle Faction Landing dialog if active =====
             // Faction relations is a modal dialog opened from starting site selection (F key)
             if (FactionLandingState.IsActive)

@@ -1115,7 +1115,7 @@ namespace RimWorldAccess
 
             // Add status value for non-Command gizmos (progress bars, etc.)
             if (!string.IsNullOrEmpty(statusValue))
-                announcement += $" - {statusValue}";
+                announcement += $": {statusValue}";
 
             // For non-ability gizmos, add description before hotkey
             bool isAbility = gizmo is Command_Ability;
@@ -1326,9 +1326,9 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets the label for a growth tier gizmo by accessing the child pawn.
+        /// Gets the child pawn from a Gizmo_GrowthTier via reflection.
         /// </summary>
-        private static string GetGrowthTierLabel(Gizmo gizmo)
+        private static Pawn GetGrowthTierChild(Gizmo gizmo)
         {
             try
             {
@@ -1336,17 +1336,23 @@ namespace RimWorldAccess
                     System.Reflection.BindingFlags.Instance |
                     System.Reflection.BindingFlags.NonPublic);
                 if (childField != null)
-                {
-                    var child = childField.GetValue(gizmo) as Pawn;
-                    if (child != null)
-                    {
-                        int tier = child.ageTracker?.GrowthTier ?? 0;
-                        return $"Growth Tier {tier}";
-                    }
-                }
+                    return childField.GetValue(gizmo) as Pawn;
             }
             catch { }
-            return "Growth Tier";
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the label for a growth tier gizmo by accessing the child pawn.
+        /// </summary>
+        private static string GetGrowthTierLabel(Gizmo gizmo)
+        {
+            var child = GetGrowthTierChild(gizmo);
+            if (child?.ageTracker == null)
+                return "Growth Tier";
+
+            int tier = child.ageTracker.GrowthTier;
+            return $"Growth Tier {tier}";
         }
 
         /// <summary>
@@ -1735,25 +1741,78 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets the growth tier status (current tier and progress).
+        /// Gets the growth tier status including progress, learning, and tooltip details.
+        /// Mirrors the information sighted players see in the gizmo bar and hover tooltip.
         /// </summary>
         private static string GetGrowthTierStatus(Gizmo gizmo)
         {
-            var childField = gizmo.GetType().GetField("child",
-                System.Reflection.BindingFlags.Instance |
-                System.Reflection.BindingFlags.NonPublic);
-            if (childField == null) return "";
-
-            var child = childField.GetValue(gizmo) as Pawn;
+            var child = GetGrowthTierChild(gizmo);
             if (child?.ageTracker == null) return "";
 
             int tier = child.ageTracker.GrowthTier;
-            float percent = child.ageTracker.PercentToNextGrowthTier;
+            var parts = new List<string>();
 
+            // Growth points progress (at-a-glance bar text)
             if (child.ageTracker.AtMaxGrowthTier)
-                return $"Tier {tier} (Max)";
+            {
+                float maxPoints = GrowthUtility.GrowthTiers[GrowthUtility.GrowthTiers.Length - 1].pointsRequirement;
+                parts.Add($"{maxPoints} of {maxPoints} points, max tier");
+            }
             else
-                return $"Tier {tier}, {percent * 100:F0}% to next";
+            {
+                int currentPoints = Mathf.FloorToInt(child.ageTracker.growthPoints);
+                float nextTierPoints = GrowthUtility.GrowthTiers[tier + 1].pointsRequirement;
+                string pointsText = $"{currentPoints} of {nextTierPoints} points";
+                if (child.ageTracker.canGainGrowthPoints)
+                    pointsText += $" (+{"PerDay".Translate(child.ageTracker.GrowthPointsPerDay.ToStringByStyle(ToStringStyle.FloatMaxTwo))})";
+                parts.Add(pointsText);
+            }
+
+            // Learning need (at-a-glance bar)
+            if (child.needs?.learning != null)
+                parts.Add($"Learning {child.needs.learning.CurLevelPercentage.ToStringPercent()}");
+
+            // Next growth moment age (from tooltip)
+            if (child.ageTracker.AgeBiologicalYears < 13)
+            {
+                for (int i = child.ageTracker.AgeBiologicalYears + 1; i <= 13; i++)
+                {
+                    if (GrowthUtility.IsGrowthBirthday(i))
+                    {
+                        parts.Add($"{"NextGrowthMomentAt".Translate()}: {i}");
+                        break;
+                    }
+                }
+            }
+
+            // Current tier rewards (from tooltip)
+            var currentTier = GrowthUtility.GrowthTiers[tier];
+            parts.Add(FormatTierRewards("ThisGrowthTier".Translate(tier), currentTier));
+
+            // Next tier rewards (from tooltip)
+            if (!child.ageTracker.AtMaxGrowthTier)
+            {
+                var nextTier = GrowthUtility.GrowthTiers[tier + 1];
+                parts.Add(FormatTierRewards($"If growth tier {tier + 1} is reached", nextTier));
+            }
+
+            // Trim trailing periods from each part to avoid double periods in the joined result
+            for (int i = 0; i < parts.Count; i++)
+                parts[i] = parts[i].TrimEnd('.');
+            return string.Join(". ", parts);
+        }
+
+        /// <summary>
+        /// Formats tier reward text using the same translation keys as the game's tooltip.
+        /// Joins multiple rewards with "and" for natural speech flow.
+        /// </summary>
+        private static string FormatTierRewards(string header, GrowthUtility.GrowthTier tier)
+        {
+            var rewards = new List<string>();
+            if (tier.passionGainsRange.TrueMax > 0)
+                rewards.Add("NumPassionsFromOptions".Translate(tier.passionGainsRange.ToString(), tier.passionChoices).Resolve().StripTags().TrimEnd('.'));
+            rewards.Add("NumTraitsFromOptions".Translate(tier.traitGains, tier.traitChoices).Resolve().StripTags().TrimEnd('.'));
+            return $"{header.StripTags()}: {string.Join(" and ", rewards)}";
         }
 
         /// <summary>

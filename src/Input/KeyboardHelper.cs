@@ -148,7 +148,9 @@ namespace RimWorldAccess
                 || ViewingModeState.IsActive
                 || ShapePlacementState.IsActive
                 // Info Card (modal dialog overlay)
-                || InfoCardState.IsActive;
+                || InfoCardState.IsActive
+                // Biotech modal dialogs
+                || GrowthMomentState.IsActive;
         }
     }
 }
