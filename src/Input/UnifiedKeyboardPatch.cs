@@ -3477,6 +3477,15 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 4.7795: Handle mech control group menu if active =====
+            if (MechControlGroupState.IsActive)
+            {
+                if (MechControlGroupState.HandleInput())
+                {
+                    return;
+                }
+            }
+
             // ===== PRIORITY 4.78: Handle gizmo navigation if active =====
             if (GizmoNavigationState.IsActive)
             {
@@ -3732,6 +3741,7 @@ namespace RimWorldAccess
                                     WindowlessConfirmationState.IsActive ||
                                     StorageSettingsMenuState.IsActive ||
                                     PlantSelectionMenuState.IsActive ||
+                                    MechControlGroupState.IsActive ||
                                     WindowlessScheduleState.IsActive ||
                                     WindowlessResearchMenuState.IsActive ||
                                     StorytellerSelectionState.IsActive ||
@@ -4531,6 +4541,7 @@ namespace RimWorldAccess
                     !NotificationMenuState.IsActive &&
                     !WindowlessFloatMenuState.IsActive &&
                     !PlantSelectionMenuState.IsActive &&
+                    !MechControlGroupState.IsActive &&
                     !StorageSettingsMenuState.IsActive &&
                     !BillsMenuState.IsActive &&
                     !BillConfigState.IsActive)

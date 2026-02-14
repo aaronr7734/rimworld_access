@@ -102,6 +102,7 @@ namespace RimWorldAccess
                 || ZoneRenameState.IsActive
                 || StorageRenameState.IsActive
                 || PlantSelectionMenuState.IsActive
+                || MechControlGroupState.IsActive
                 || GizmoNavigationState.IsActive
                 || TradeNavigationState.IsActive
                 || SellableItemsState.IsActive

@@ -53,6 +53,7 @@ namespace RimWorldAccess
                 PlaySettingsMenuState.IsActive ||
                 StorageSettingsMenuState.IsActive ||
                 PlantSelectionMenuState.IsActive ||
+                MechControlGroupState.IsActive ||
                 RangeEditMenuState.IsActive ||
                 WorkMenuState.IsActive ||
                 AssignMenuState.IsActive ||

@@ -570,6 +570,18 @@ namespace RimWorldAccess
                     return;
                 }
 
+                // 2b. MechanitorControlGroupGizmo - open accessible control group menu
+                if (selectedGizmo.GetType().Name == "MechanitorControlGroupGizmo")
+                {
+                    var mcg = MechControlGroupState.GetControlGroupFromGizmo(selectedGizmo);
+                    if (mcg != null)
+                    {
+                        Close();
+                        MechControlGroupState.Open(mcg);
+                        return;
+                    }
+                }
+
                 // 3. PsychicEntropyGizmo - toggle neural heat limiter
                 if (selectedGizmo.GetType().Name == "PsychicEntropyGizmo")
                 {
@@ -1251,7 +1263,7 @@ namespace RimWorldAccess
                     return "Mech Power Cell";
 
                 case "MechanitorControlGroupGizmo":
-                    return "Mechanitor Control Groups";
+                    return MechControlGroupState.GetGizmoLabel(gizmo);
 
                 case "Gizmo_MechResurrectionCharges":
                     return "Resurrector Charges";
@@ -1481,6 +1493,9 @@ namespace RimWorldAccess
 
                     case "Gizmo_ProjectileInterceptorHitPoints":
                         return GetProjectileInterceptorStatus(gizmo);
+
+                    case "MechanitorControlGroupGizmo":
+                        return MechControlGroupState.GetGizmoStatus(gizmo);
 
                     default:
                         // Try to get status from Gizmo_Slider subclasses
