@@ -202,6 +202,16 @@ namespace RimWorldAccess
                 {
                     float percentage = need.CurLevelPercentage * 100f;
                     sb.AppendLine($"  {need.LabelCap}: {percentage:F0}%.");
+
+                    // After the Learning need, list active learning desires (Biotech children only)
+                    if (need.def == NeedDefOf.Learning && pawn.learning?.ActiveLearningDesires != null
+                        && pawn.learning.ActiveLearningDesires.Count > 0)
+                    {
+                        var desireLabels = pawn.learning.ActiveLearningDesires
+                            .Select(d => d.LabelCap.ToString())
+                            .ToArray();
+                        sb.AppendLine($"    Learning desires: {string.Join(", ", desireLabels)}.");
+                    }
                 }
             }
             else

@@ -732,7 +732,7 @@ namespace RimWorldAccess
             }
             else if (category == "Needs")
             {
-                BuildDetailedInfoChildren(categoryItem, obj, category);
+                BuildNeedsChildren(categoryItem, pawn);
             }
             else if (category == "Mood")
             {
@@ -1001,6 +1001,69 @@ namespace RimWorldAccess
         /// <summary>
         /// Builds children for Skills category.
         /// </summary>
+        /// <summary>
+        /// Builds children for the Needs category.
+        /// Lists all visible needs sorted by urgency, with learning desires shown
+        /// immediately after the Learning need (Biotech children only).
+        /// </summary>
+        private static void BuildNeedsChildren(InspectionTreeItem parentItem, Pawn pawn)
+        {
+            if (parentItem.Children.Count > 0)
+                return; // Already built
+
+            if (pawn.needs == null)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+
+            var needs = pawn.needs.AllNeeds;
+            if (needs == null || needs.Count == 0)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "No needs to display.",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            // Filter to visible needs and sort by percentage (lowest first = most urgent)
+            var sortedNeeds = needs
+                .Where(n => n.def.showOnNeedList)
+                .OrderBy(n => n.CurLevelPercentage)
+                .ToList();
+
+            foreach (var need in sortedNeeds)
+            {
+                float percentage = need.CurLevelPercentage * 100f;
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = $"{need.LabelCap}: {percentage:F0}%",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+
+                // After the Learning need, add learning desires with label and description
+                if (need.def == NeedDefOf.Learning && pawn.learning?.ActiveLearningDesires != null)
+                {
+                    foreach (var desire in pawn.learning.ActiveLearningDesires)
+                    {
+                        string description = desire.description ?? "";
+                        AddChild(parentItem, new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.DetailText,
+                            Label = $"Learning desire: {desire.LabelCap}. {description}".TrimEnd(),
+                            IndentLevel = indent + 1,
+                            IsExpandable = false
+                        });
+                    }
+                }
+            }
+        }
+
         private static void BuildSkillsChildren(InspectionTreeItem parentItem, Pawn pawn)
         {
             if (pawn.skills?.skills == null)
