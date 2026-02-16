@@ -1,4 +1,5 @@
 using System;
+using HarmonyLib;
 using UnityEngine;
 using Verse;
 
@@ -15,6 +16,11 @@ namespace RimWorldAccess
         // Tracks the frame when a real KeyCode.RightBracket was seen, so we don't
         // also remap the follow-up character event that Unity sends for the same keypress.
         private static int lastRightBracketFrame = -1;
+
+        // Same frame tracking for KeyCode.KeypadMultiply (asterisk).
+        // On US keyboards, numpad * sends keyCode=KeypadMultiply then character='*' in the same frame.
+        // On AZERTY keyboards, the dedicated * key sends only character='*' with keyCode=None.
+        private static int lastKeypadMultiplyFrame = -1;
 
         /// <summary>
         /// Remaps character-only KeyDown events to their equivalent KeyCode.
@@ -35,6 +41,13 @@ namespace RimWorldAccess
                 return key;
             }
 
+            // If we see a real KeypadMultiply keyCode (numpad *), record the frame
+            if (key == KeyCode.KeypadMultiply)
+            {
+                lastKeypadMultiplyFrame = Time.frameCount;
+                return key;
+            }
+
             if (key != KeyCode.None)
                 return key;
 
@@ -49,9 +62,34 @@ namespace RimWorldAccess
                         return key;
                     WasCharacterRemapped = true;
                     return KeyCode.RightBracket;
+                case '*':
+                    // On AZERTY keyboards, * is a dedicated key that sends keyCode=None + character='*'.
+                    // On US keyboards, Shift+8 sends keyCode=Alpha8 (not KeypadMultiply), so no frame
+                    // conflict. Numpad * sends KeypadMultiply then character='*' — frame tracking
+                    // prevents double-processing.
+                    if (Time.frameCount == lastKeypadMultiplyFrame)
+                        return key;
+                    WasCharacterRemapped = true;
+                    return KeyCode.KeypadMultiply;
                 default:
                     return key;
             }
+        }
+
+        /// <summary>
+        /// Applies RemapCharacterToKeyCode globally by writing back to Event.current.keyCode.
+        /// This ensures all downstream patches and handlers see the remapped keyCode without
+        /// needing to call RemapCharacterToKeyCode individually.
+        /// </summary>
+        public static void ApplyGlobalRemap()
+        {
+            if (Event.current.type != EventType.KeyDown)
+                return;
+
+            var original = Event.current.keyCode;
+            var remapped = RemapCharacterToKeyCode(original);
+            if (remapped != original)
+                Event.current.keyCode = remapped;
         }
 
         /// <summary>
@@ -151,6 +189,22 @@ namespace RimWorldAccess
                 || InfoCardState.IsActive
                 // Biotech modal dialogs
                 || GrowthMomentState.IsActive;
+        }
+    }
+
+    /// <summary>
+    /// Highest-priority UIRootOnGUI prefix that remaps keyboard layout-dependent characters
+    /// (e.g., AZERTY *) to their canonical KeyCodes before any other patch reads Event.current.
+    /// </summary>
+    [HarmonyPatch(typeof(UIRoot))]
+    [HarmonyPatch("UIRootOnGUI")]
+    public static class KeyRemapPatch
+    {
+        [HarmonyPrefix]
+        [HarmonyPriority(Priority.First + 100)]
+        public static void Prefix()
+        {
+            KeyboardHelper.ApplyGlobalRemap();
         }
     }
 }
