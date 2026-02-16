@@ -283,6 +283,12 @@ namespace RimWorldAccess
                 return false;
             }
 
+            // Sync game selection state before the game's CanDoNext() checks
+            // WorldInterface.SelectedTile. Without this, the initial tile chosen by
+            // ChooseRandomStartingTile may not be registered as a player selection
+            // in the game's WorldSelector, causing "Please select a site" on first Enter.
+            WorldNavigationState.SyncSelectionWithGame();
+
             // Tile is valid - allow game to proceed normally
             return true;
         }
