@@ -241,7 +241,7 @@ namespace RimWorldAccess
         // Patch OnAcceptKeyPressed to handle Enter key based on context
         [HarmonyPatch(typeof(Page_SelectStartingSite), "OnAcceptKeyPressed")]
         [HarmonyPrefix]
-        static bool OnAcceptKeyPressed_Prefix()
+        static bool OnAcceptKeyPressed_Prefix(Page_SelectStartingSite __instance)
         {
             // Block Enter when a windowless dialog is active or was just closed this frame.
             // Prevents settlement validation from re-triggering when confirming a Dialog_MessageBox.
@@ -283,14 +283,17 @@ namespace RimWorldAccess
                 return false;
             }
 
-            // Sync game selection state before the game's CanDoNext() checks
-            // WorldInterface.SelectedTile. Without this, the initial tile chosen by
-            // ChooseRandomStartingTile may not be registered as a player selection
-            // in the game's WorldSelector, causing "Please select a site" on first Enter.
+            // Sync game selection state so the game's DoNext picks up our tile
             WorldNavigationState.SyncSelectionWithGame();
 
-            // Tile is valid - allow game to proceed normally
-            return true;
+            // Announce confirmation before advancing
+            TolkHelper.Speak("Starting site selected.");
+
+            // Call the game's DoNext directly to advance to the next page.
+            // This handles CheckConfirmSettle (proximity warnings) internally.
+            AccessTools.Method(typeof(Page_SelectStartingSite), "DoNext").Invoke(__instance, null);
+
+            return false;
         }
 
         // Postfix: Draw help text and menu overlay
