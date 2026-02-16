@@ -711,6 +711,11 @@ namespace RimWorldAccess
                     BuildPenFoodChildren(categoryItem, building);
                     return;
                 }
+                if (category == "Linked Facilities")
+                {
+                    BuildFacilityChildren(categoryItem, building);
+                    return;
+                }
             }
 
             // Handle Pawn-specific categories (supports both live pawns and corpses)
@@ -2769,6 +2774,42 @@ namespace RimWorldAccess
                     }
                 };
                 AddChild(parentItem, foodCategory);
+            }
+        }
+
+        /// <summary>
+        /// Builds children for the Linked Facilities category.
+        /// Shows facility provider info, consumer info, linked buildings, and compatible facilities.
+        /// </summary>
+        private static void BuildFacilityChildren(InspectionTreeItem parentItem, Building building)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+            var entries = FacilityLinkHelper.GetFacilityEntries(building);
+
+            if (entries.Count == 0)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "No facility linking information.",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            foreach (var entry in entries)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = entry.Label,
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
             }
         }
     }

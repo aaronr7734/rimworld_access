@@ -246,6 +246,19 @@ namespace RimWorldAccess
                         });
                     }
 
+                    // Facility linking (CompFacility / CompAffectedByFacilities)
+                    if (FacilityLinkHelper.HasFacilityComps(building) && !categories.Any(c => c.Name == "Linked Facilities"))
+                    {
+                        categories.Add(new TabCategoryInfo
+                        {
+                            Name = "Linked Facilities",
+                            Tab = null,
+                            Handler = TabHandlerType.RichNavigation,
+                            IsKnown = true,
+                            OriginalCategoryName = "Linked Facilities"
+                        });
+                    }
+
                 }
 
                 // Add growth info for plants
@@ -734,6 +747,9 @@ namespace RimWorldAccess
 
                 case "Power":
                     return GetBuildingPowerInfo(building);
+
+                case "Linked Facilities":
+                    return FacilityLinkHelper.GetInspectionInfo(building) ?? "No facility linking information.";
 
                 default:
                     // Try to get info from dynamic tab using GetInspectString as fallback

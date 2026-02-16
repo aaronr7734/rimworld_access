@@ -109,8 +109,37 @@ namespace RimWorldAccess
                 });
             }
 
+            // Check for CompFacility (provides bonuses to nearby buildings - read only)
+            var compFacility = building.TryGetComp<CompFacility>();
+            if (compFacility != null)
+            {
+                discovered.Add(new DiscoveredComponent
+                {
+                    ComponentType = "CompFacility",
+                    DisplayName = "Facility Links",
+                    CategoryName = "Linked Facilities",
+                    Component = compFacility,
+                    IsReadOnly = true
+                });
+            }
 
-
+            // Check for CompAffectedByFacilities (receives bonuses - read only)
+            // Only add if CompFacility wasn't already found (avoid duplicate category)
+            if (compFacility == null)
+            {
+                var compAffected = building.TryGetComp<CompAffectedByFacilities>();
+                if (compAffected != null)
+                {
+                    discovered.Add(new DiscoveredComponent
+                    {
+                        ComponentType = "CompAffectedByFacilities",
+                        DisplayName = "Facility Links",
+                        CategoryName = "Linked Facilities",
+                        Component = compAffected,
+                        IsReadOnly = true
+                    });
+                }
+            }
 
             return discovered;
         }
