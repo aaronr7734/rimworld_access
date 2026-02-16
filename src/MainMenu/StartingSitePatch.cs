@@ -13,6 +13,7 @@ namespace RimWorldAccess
     {
         private static bool patchActive = false;
         private static bool hasAnnouncedTitle = false;
+        private static bool advancingToNextPage = false;
 
         // Prefix: Initialize state and handle keyboard input
         // NOTE: Most key handling here is duplicated in UnifiedKeyboardPatch at priority 0.55.
@@ -231,11 +232,18 @@ namespace RimWorldAccess
         [HarmonyPostfix]
         static void PostClose_Postfix()
         {
-            WorldNavigationState.Close();
-            StartingSiteContext.Close();
-            WorldScannerState.Reset();
-            hasAnnouncedTitle = false;
+            // When advancing to the next page, keep world navigation state alive
+            // so the DoWindowContents Prefix doesn't re-initialize and re-announce
+            // the tile details during the page transition.
+            if (!advancingToNextPage)
+            {
+                WorldNavigationState.Close();
+                StartingSiteContext.Close();
+                WorldScannerState.Reset();
+                hasAnnouncedTitle = false;
+            }
             patchActive = false;
+            advancingToNextPage = false;
         }
 
         // Patch OnAcceptKeyPressed to handle Enter key based on context
@@ -288,6 +296,10 @@ namespace RimWorldAccess
 
             // Announce confirmation before advancing
             TolkHelper.Speak("Starting site selected.");
+
+            // Prevent PostClose from resetting state, which causes the DoWindowContents
+            // Prefix to re-initialize and re-announce during the page transition.
+            advancingToNextPage = true;
 
             // Call the game's DoNext directly to advance to the next page.
             // This handles CheckConfirmSettle (proximity warnings) internally.
