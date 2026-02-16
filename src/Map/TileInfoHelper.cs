@@ -162,6 +162,14 @@ namespace RimWorldAccess
                         sb.Append(", ");
                         sb.Append(transportPodInfo);
                     }
+
+                    // Add work/process progress for active buildings
+                    string progressInfo = GetBuildingProgressInfo(building);
+                    if (!string.IsNullOrEmpty(progressInfo))
+                    {
+                        sb.Append(", ");
+                        sb.Append(progressInfo);
+                    }
                 }
 
                 addedSomething = true;
@@ -209,12 +217,42 @@ namespace RimWorldAccess
                 addedSomething = true;
             }
 
-            // Add items (grouped by label)
-            if (items.Count > 0)
+            // Separate unfinished things (crafting in progress) from regular items
+            var unfinishedThings = new List<UnfinishedThing>();
+            var regularItems = new List<Thing>();
+            foreach (var item in items)
+            {
+                if (item is UnfinishedThing uft)
+                    unfinishedThings.Add(uft);
+                else
+                    regularItems.Add(item);
+            }
+
+            // Add unfinished things with work progress
+            foreach (var unfinished in unfinishedThings.Take(2))
+            {
+                if (addedSomething) sb.Append(", ");
+                sb.Append(unfinished.LabelShort);
+                if (unfinished.Initialized)
+                {
+                    sb.Append(", work left: ");
+                    sb.Append(unfinished.workLeft.ToStringWorkAmount());
+                }
+                addedSomething = true;
+            }
+            if (unfinishedThings.Count > 2)
+            {
+                if (addedSomething) sb.Append(", ");
+                sb.Append($"and {unfinishedThings.Count - 2} more unfinished items");
+                addedSomething = true;
+            }
+
+            // Add regular items (grouped by label)
+            if (regularItems.Count > 0)
             {
                 if (addedSomething) sb.Append(", ");
 
-                var groupedItems = GroupItemsByLabel(items);
+                var groupedItems = GroupItemsByLabel(regularItems);
                 sb.Append(string.Join(", ", groupedItems));
 
                 addedSomething = true;
@@ -1265,6 +1303,28 @@ namespace RimWorldAccess
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Gets work/process progress information for buildings with active processes.
+        /// Returns a formatted string like "fermenting, 45%" or null if no progress to report.
+        /// </summary>
+        private static string GetBuildingProgressInfo(Building building)
+        {
+            if (building is Building_FermentingBarrel barrel)
+            {
+                if (barrel.Fermented)
+                    return "fermented";
+                if (barrel.Progress > 0f)
+                    return $"fermenting, {barrel.Progress.ToStringPercent()}";
+            }
+
+            if (building is Building_GeneAssembler assembler && assembler.Working)
+            {
+                return $"assembling, {assembler.ProgressPercent.ToStringPercent()}";
+            }
+
+            return null;
         }
 
         /// <summary>
