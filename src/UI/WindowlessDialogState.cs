@@ -209,6 +209,18 @@ namespace RimWorldAccess
                 evt.Use();
                 return true;
             }
+            else if (key == KeyCode.LeftArrow)
+            {
+                SelectPrevious();
+                evt.Use();
+                return true;
+            }
+            else if (key == KeyCode.RightArrow)
+            {
+                SelectNext();
+                evt.Use();
+                return true;
+            }
             else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
             {
                 ActivateCurrentElement();

@@ -41,7 +41,7 @@ namespace RimWorldAccess
                 }
 
                 // Handle keyboard input
-                if (Event.current.type == EventType.KeyDown)
+                if (Event.current.type == EventType.KeyDown && !WindowlessDialogState.IsActive)
                 {
                     KeyCode keyCode = Event.current.keyCode;
                     bool shift = Event.current.shift;
@@ -243,6 +243,13 @@ namespace RimWorldAccess
         [HarmonyPrefix]
         static bool OnAcceptKeyPressed_Prefix()
         {
+            // Block Enter when a windowless dialog is active or was just closed this frame.
+            // Prevents settlement validation from re-triggering when confirming a Dialog_MessageBox.
+            if (WindowlessDialogState.IsActive || WindowlessDialogState.WasClosedThisFrame)
+            {
+                return false;
+            }
+
             // If scanner search is active, don't advance page - Enter confirms search
             if (ScannerSearchState.IsActive)
             {
