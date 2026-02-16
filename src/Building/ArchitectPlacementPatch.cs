@@ -177,10 +177,15 @@ namespace RimWorldAccess
             {
                 handled = HandleShiftSpaceKey();
             }
-            // R key - rotate building
+            // Shift+R - rotate building counter-clockwise
+            else if (shiftHeld && key == KeyCode.R)
+            {
+                handled = HandleRotateKey(activeDesignator, inArchitectMode, RotationDirection.Counterclockwise);
+            }
+            // R key - rotate building clockwise
             else if (key == KeyCode.R)
             {
-                handled = HandleRotateKey(activeDesignator, inArchitectMode);
+                handled = HandleRotateKey(activeDesignator, inArchitectMode, RotationDirection.Clockwise);
             }
             // Space key - unified handling for all designator types
             else if (key == KeyCode.Space)
@@ -299,7 +304,7 @@ namespace RimWorldAccess
         /// If the building is not rotatable, announces that it can't be rotated.
         /// </summary>
         /// <returns>True if the key was handled, false otherwise.</returns>
-        private static bool HandleRotateKey(Designator activeDesignator, bool inArchitectMode)
+        private static bool HandleRotateKey(Designator activeDesignator, bool inArchitectMode, RotationDirection direction)
         {
             // Check if the building can be rotated before attempting rotation
             // Some buildings like doors auto-detect their orientation and cannot be manually rotated
@@ -339,7 +344,7 @@ namespace RimWorldAccess
             // Building is rotatable - proceed with rotation
             if (inArchitectMode)
             {
-                ArchitectState.RotateBuilding();
+                ArchitectState.RotateBuilding(direction);
             }
             else if (activeDesignator is Designator_Place designatorPlace)
             {
@@ -348,7 +353,7 @@ namespace RimWorldAccess
                 if (rotField != null)
                 {
                     Rot4 currentRot = (Rot4)rotField.GetValue(designatorPlace);
-                    currentRot.Rotate(RotationDirection.Clockwise);
+                    currentRot.Rotate(direction);
                     rotField.SetValue(designatorPlace, currentRot);
 
                     // Build a proper announcement with direction and special info

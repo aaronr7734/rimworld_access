@@ -235,16 +235,15 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Rotates the current building clockwise.
+        /// Rotates the current building in the specified direction.
         /// Works with both Designator_Build (new construction) and Designator_Install (reinstall/install).
         /// </summary>
-        public static void RotateBuilding()
+        public static void RotateBuilding(RotationDirection direction = RotationDirection.Clockwise)
         {
             if (!IsInPlacementMode || !(selectedDesignator is Designator_Place placeDesignator))
                 return;
 
-            // Rotate clockwise
-            currentRotation.Rotate(RotationDirection.Clockwise);
+            currentRotation.Rotate(direction);
 
             // Set rotation on the designator via reflection
             if (placingRotField != null)
