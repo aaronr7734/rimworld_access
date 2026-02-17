@@ -311,6 +311,30 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Re-flattens the visible items list after tree children have been modified,
+        /// preserving the current cursor position.
+        /// </summary>
+        public static void RefreshVisibleList()
+        {
+            if (!IsActive || visibleItems == null)
+                return;
+
+            var currentItem = (selectedIndex >= 0 && selectedIndex < visibleItems.Count)
+                ? visibleItems[selectedIndex] : null;
+
+            RebuildVisibleList();
+
+            if (currentItem != null)
+            {
+                int newIndex = visibleItems.IndexOf(currentItem);
+                if (newIndex >= 0)
+                    selectedIndex = newIndex;
+                else if (selectedIndex >= visibleItems.Count)
+                    selectedIndex = Math.Max(0, visibleItems.Count - 1);
+            }
+        }
+
+        /// <summary>
         /// Builds the list of inspectable objects at the cursor position.
         /// </summary>
         private static List<object> BuildObjectList()

@@ -259,6 +259,19 @@ namespace RimWorldAccess
                         });
                     }
 
+                    // Pen marker rename
+                    if (building.TryGetComp<CompAnimalPenMarker>() != null && !categories.Any(c => c.OriginalCategoryName == "Rename"))
+                    {
+                        categories.Add(new TabCategoryInfo
+                        {
+                            Name = "Rename".Translate().ToString(),
+                            Tab = null,
+                            Handler = TabHandlerType.Action,
+                            IsKnown = true,
+                            OriginalCategoryName = "Rename"
+                        });
+                    }
+
                 }
 
                 // Add growth info for plants

@@ -489,7 +489,7 @@ namespace RimWorldAccess
                        (category == "Shells" && building is Building_TurretGun) ||
                        (category == "Plant Selection" && building is IPlantToGrowSettable) ||
                        (category == "Pen Animals" && building.TryGetComp<CompAnimalPenMarker>() != null) ||
-                       (category == "Pen Auto-Cut" && building.TryGetComp<CompAnimalPenMarker>() != null) ||
+                       (category == "Rename" && building.TryGetComp<CompAnimalPenMarker>() != null) ||
                        BuildingComponentsHelper.GetDiscoverableComponents(building).Any(c => c.CategoryName == category && !c.IsReadOnly);
             }
 
@@ -528,8 +528,8 @@ namespace RimWorldAccess
                 return genePawn?.genes != null && ModsConfig.BiotechActive;
             }
 
-            // Pen Food is expandable if building has pen marker
-            if (category == "Pen Food" && obj is Building building)
+            // Pen Food and Pen Auto-Cut are expandable if building has pen marker
+            if ((category == "Pen Food" || category == "Pen Auto-Cut") && obj is Building building)
                 return building.TryGetComp<CompAnimalPenMarker>() != null;
 
             return false;
@@ -647,13 +647,12 @@ namespace RimWorldAccess
                     ThingFilterMenuState.Open(penMarker.AnimalFilter, AnimalPenUtility.GetFixedAnimalFilter(), "Pen Animals");
                 }
             }
-            else if (category == "Pen Auto-Cut")
+            else if (category == "Rename")
             {
                 var penMarker = building.TryGetComp<CompAnimalPenMarker>();
                 if (penMarker != null)
                 {
-                    var fixedFilter = penMarker.parent.Map?.animalPenManager?.GetFixedAutoCutFilter();
-                    ThingFilterMenuState.Open(penMarker.AutoCutFilter, fixedFilter, "Pen Auto-Cut");
+                    PenRenameState.Open(penMarker);
                 }
             }
             else
@@ -709,6 +708,11 @@ namespace RimWorldAccess
                 if (category == "Pen Food")
                 {
                     BuildPenFoodChildren(categoryItem, building);
+                    return;
+                }
+                if (category == "Pen Auto-Cut")
+                {
+                    BuildPenAutoCutChildren(categoryItem, building);
                     return;
                 }
                 if (category == "Linked Facilities")
@@ -2674,36 +2678,73 @@ namespace RimWorldAccess
             int indent = parentItem.IndentLevel + 1;
             var calculator = penMarker.PenFoodCalculator;
 
-            // Summary item
+            // Unenclosed check - game shows only this message when pen is not enclosed
+            if (calculator.Unenclosed)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = "Not Enclosed - pen must be fully enclosed to function",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            // Pen size description
+            string penSize = calculator.PenSizeDescription();
+            if (!string.IsNullOrEmpty(penSize))
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = $"Pen Size: {penSize}",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+            }
+
+            // Nutrition balance summary
             float growth = calculator.NutritionPerDayToday;
             float consumption = calculator.SumNutritionConsumptionPerDay;
             float balance = growth - consumption;
             string balanceStr = balance >= 0 ? $"+{balance:F1}" : $"{balance:F1}";
             string summaryText = $"Balance: {balanceStr} nutrition/day (growth: {growth:F1}, consumption: {consumption:F1})";
 
-            var summaryItem = new InspectionTreeItem
+            AddChild(parentItem, new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.Item,
                 Label = summaryText,
                 IndentLevel = indent,
                 IsExpandable = false
-            };
-            AddChild(parentItem, summaryItem);
+            });
 
             // Stockpiled food
             if (calculator.sumStockpiledNutritionAvailableNow > 0)
             {
-                var stockpileItem = new InspectionTreeItem
+                AddChild(parentItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
                     Label = $"Stockpiled: {calculator.sumStockpiledNutritionAvailableNow:F1} nutrition",
                     IndentLevel = indent,
                     IsExpandable = false
-                };
-                AddChild(parentItem, stockpileItem);
+                });
+
+                // Days until stockpile is empty (only when in deficit)
+                if (balance < 0)
+                {
+                    float daysUntilEmpty = calculator.sumStockpiledNutritionAvailableNow / (-balance);
+                    AddChild(parentItem, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.Item,
+                        Label = $"Stockpile lasts: {daysUntilEmpty:F1} days",
+                        IndentLevel = indent,
+                        IsExpandable = false
+                    });
+                }
             }
 
-            // Animals category
+            // Animals in pen
             var animalInfos = calculator.ActualAnimalInfos;
             if (animalInfos != null && animalInfos.Count > 0)
             {
@@ -2726,19 +2767,156 @@ namespace RimWorldAccess
                             int count = info.count;
                             string animalText = $"{animalLabel} ({count}): -{animalConsumption:F2}/day";
 
-                            var animalItem = new InspectionTreeItem
+                            AddChild(animalsCategory, new InspectionTreeItem
                             {
                                 Type = InspectionTreeItem.ItemType.Item,
                                 Label = animalText,
                                 IndentLevel = indent + 1,
                                 IsExpandable = false
-                            };
-                            AddChild(animalsCategory, animalItem);
+                            });
                         }
                     }
                 };
                 AddChild(parentItem, animalsCategory);
             }
+
+            // Example Animals and Add Example Animal — these cross-reference each other
+            // so changes in one rebuild both sections and refresh the visible list.
+            var examplesCategory = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = "Example Animals",
+                IndentLevel = indent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+
+            var addExampleCategory = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = "Add Example Animal",
+                IndentLevel = indent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+
+            // Shared helper to rebuild both sections' children from current data
+            System.Action rebuildExampleSections = null;
+            rebuildExampleSections = () =>
+            {
+                // Rebuild "Example Animals" children
+                examplesCategory.Children.Clear();
+                var currentDefs = penMarker.ForceDisplayedAnimalDefs;
+                if (currentDefs != null && currentDefs.Count > 0)
+                {
+                    var infos = calculator.ComputeExampleAnimals(currentDefs);
+                    Quadrum bestQuadrum = calculator.GetSummerOrBestQuadrum();
+                    examplesCategory.Label = $"Example Animals ({(infos?.Count ?? 0)} types)";
+                    if (infos != null)
+                    {
+                        foreach (var info in infos)
+                        {
+                            if (info.animalDef == null) continue;
+                            string label = info.animalDef.label?.CapitalizeFirst() ?? "Unknown";
+                            float capacity = calculator.CapacityOf(bestQuadrum, info.animalDef);
+                            float perAnimal = info.nutritionConsumptionPerDay;
+                            string text = $"{label}: max {capacity:F0}, consumes {perAnimal:F2}/day (Enter to remove)";
+
+                            var exampleItem = new InspectionTreeItem
+                            {
+                                Type = InspectionTreeItem.ItemType.Action,
+                                Label = text,
+                                IndentLevel = indent + 1,
+                                IsExpandable = false
+                            };
+                            ThingDef capturedDef = info.animalDef;
+                            exampleItem.OnActivate = () =>
+                            {
+                                penMarker.RemoveForceDisplayedAnimal(capturedDef);
+                                string removedName = capturedDef.label?.CapitalizeFirst() ?? "Unknown";
+                                TolkHelper.Speak($"Removed example: {removedName}");
+                                rebuildExampleSections();
+                            };
+                            AddChild(examplesCategory, exampleItem);
+                        }
+                    }
+                }
+                else
+                {
+                    examplesCategory.Label = "Example Animals (0 types)";
+                }
+
+                // Rebuild "Add Example Animal" children
+                addExampleCategory.Children.Clear();
+                var map = building.Map;
+                if (map != null)
+                {
+                    var grazingAnimals = map.plantGrowthRateCalculator.GrazingAnimals;
+                    var currentExamples = penMarker.ForceDisplayedAnimalDefs ?? new List<ThingDef>();
+                    var available = new List<ThingDef>();
+                    foreach (var animal in grazingAnimals)
+                    {
+                        if (!currentExamples.Contains(animal))
+                            available.Add(animal);
+                    }
+
+                    if (available.Count == 0)
+                    {
+                        AddChild(addExampleCategory, new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.Item,
+                            Label = "No more animals available",
+                            IndentLevel = indent + 1,
+                            IsExpandable = false
+                        });
+                    }
+                    else
+                    {
+                        foreach (var animal in available)
+                        {
+                            string animalName = animal.label?.CapitalizeFirst() ?? "Unknown";
+                            ThingDef capturedAnimal = animal;
+                            var animalChoice = new InspectionTreeItem
+                            {
+                                Type = InspectionTreeItem.ItemType.Action,
+                                Label = animalName,
+                                IndentLevel = indent + 1,
+                                IsExpandable = false
+                            };
+                            animalChoice.OnActivate = () =>
+                            {
+                                penMarker.AddForceDisplayedAnimal(capturedAnimal);
+                                TolkHelper.Speak($"Added example: {animalName}");
+                                rebuildExampleSections();
+                            };
+                            AddChild(addExampleCategory, animalChoice);
+                        }
+                    }
+                }
+
+                // Re-flatten the visible items list so the UI reflects changes
+                WindowlessInspectionState.RefreshVisibleList();
+            };
+
+            // Wire up OnActivate to lazy-load via the shared rebuild
+            examplesCategory.OnActivate = () =>
+            {
+                if (examplesCategory.Children.Count == 0)
+                    rebuildExampleSections();
+            };
+            addExampleCategory.OnActivate = () =>
+            {
+                if (addExampleCategory.Children.Count == 0)
+                    rebuildExampleSections();
+            };
+
+            // Update the example animals label with current count
+            var initialDefs = penMarker.ForceDisplayedAnimalDefs;
+            int initialCount = (initialDefs != null) ? initialDefs.Count : 0;
+            examplesCategory.Label = $"Example Animals ({initialCount} types)";
+
+            AddChild(parentItem, examplesCategory);
+            AddChild(parentItem, addExampleCategory);
 
             // Stockpiled items breakdown
             var stockpileInfos = calculator.AllStockpiledInfos;
@@ -2762,19 +2940,96 @@ namespace RimWorldAccess
                             float nutrition = info.totalNutritionAvailable;
                             string foodText = $"{foodLabel}: {nutrition:F1} nutrition";
 
-                            var foodItem = new InspectionTreeItem
+                            AddChild(foodCategory, new InspectionTreeItem
                             {
                                 Type = InspectionTreeItem.ItemType.Item,
                                 Label = foodText,
                                 IndentLevel = indent + 1,
                                 IsExpandable = false
-                            };
-                            AddChild(foodCategory, foodItem);
+                            });
                         }
                     }
                 };
                 AddChild(parentItem, foodCategory);
             }
+        }
+
+        /// <summary>
+        /// Builds children for the Pen Auto-Cut category.
+        /// Shows auto-cut toggle, Cut Now button, and plant filter access.
+        /// </summary>
+        private static void BuildPenAutoCutChildren(InspectionTreeItem parentItem, Building building)
+        {
+            var penMarker = building.TryGetComp<CompAnimalPenMarker>();
+            if (penMarker == null)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+            bool penEnclosed = penMarker.PenState.Enclosed;
+
+            // Auto-cut toggle
+            string toggleLabel = penMarker.autoCut
+                ? "Auto-Cut Plants: Enabled"
+                : "Auto-Cut Plants: Disabled";
+            if (!penEnclosed)
+                toggleLabel += " (pen not enclosed)";
+
+            var toggleItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.Action,
+                Label = toggleLabel,
+                IndentLevel = indent,
+                IsExpandable = false
+            };
+            toggleItem.OnActivate = () =>
+            {
+                penMarker.autoCut = !penMarker.autoCut;
+                string state = penMarker.autoCut ? "Enabled" : "Disabled";
+                toggleItem.Label = penMarker.autoCut
+                    ? "Auto-Cut Plants: Enabled"
+                    : "Auto-Cut Plants: Disabled";
+                if (!penMarker.PenState.Enclosed)
+                    toggleItem.Label += " (pen not enclosed)";
+                TolkHelper.Speak($"Auto-cut {state}");
+            };
+            AddChild(parentItem, toggleItem);
+
+            // Cut Now button
+            var cutNowItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.Action,
+                Label = penEnclosed ? "Cut Now" : "Cut Now (pen not enclosed)",
+                IndentLevel = indent,
+                IsExpandable = false
+            };
+            cutNowItem.OnActivate = () =>
+            {
+                if (penMarker.PenState.Enclosed)
+                {
+                    penMarker.DesignatePlantsToCut();
+                    TolkHelper.Speak("Designated plants for cutting");
+                }
+                else
+                {
+                    TolkHelper.Speak("Cannot cut: pen is not enclosed");
+                }
+            };
+            AddChild(parentItem, cutNowItem);
+
+            // Plant filter action
+            var filterItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.Action,
+                Label = "Plant Filter",
+                IndentLevel = indent,
+                IsExpandable = false
+            };
+            filterItem.OnActivate = () =>
+            {
+                var fixedFilter = penMarker.parent.Map?.animalPenManager?.GetFixedAutoCutFilter();
+                ThingFilterMenuState.Open(penMarker.AutoCutFilter, fixedFilter, "Pen Auto-Cut Plants");
+            };
+            AddChild(parentItem, filterItem);
         }
 
         /// <summary>

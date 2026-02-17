@@ -21,6 +21,7 @@ namespace RimWorldAccess
             if (KeyboardHelper.IsAnyAccessibilityMenuActive() &&
                 !ZoneRenameState.IsActive &&
                 !StorageRenameState.IsActive &&
+                !PenRenameState.IsActive &&
                 !PlaySettingsMenuState.IsActive &&
                 !StorageSettingsMenuState.IsActive &&
                 !PlantSelectionMenuState.IsActive &&
@@ -38,6 +39,13 @@ namespace RimWorldAccess
             if (StorageRenameState.IsActive)
             {
                 HandleStorageRenameInput();
+                return;
+            }
+
+            // Handle pen marker rename text input
+            if (PenRenameState.IsActive)
+            {
+                HandlePenRenameInput();
                 return;
             }
 
@@ -401,6 +409,50 @@ namespace RimWorldAccess
                 if (character != '\0' && !char.IsControl(character))
                 {
                     StorageRenameState.HandleCharacter(character);
+                    currentEvent.Use();
+                    return;
+                }
+            }
+        }
+
+        private static void HandlePenRenameInput()
+        {
+            Event currentEvent = Event.current;
+
+            if (currentEvent.type == EventType.KeyDown)
+            {
+                KeyCode key = currentEvent.keyCode;
+
+                if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                {
+                    PenRenameState.Confirm();
+                    currentEvent.Use();
+                    return;
+                }
+                else if (key == KeyCode.Escape)
+                {
+                    PenRenameState.Cancel();
+                    currentEvent.Use();
+                    return;
+                }
+                else if (key == KeyCode.Backspace)
+                {
+                    PenRenameState.HandleBackspace();
+                    currentEvent.Use();
+                    return;
+                }
+                else if (key == KeyCode.Tab)
+                {
+                    PenRenameState.ReadCurrentText();
+                    currentEvent.Use();
+                    return;
+                }
+
+                char character = currentEvent.character;
+
+                if (character != '\0' && !char.IsControl(character))
+                {
+                    PenRenameState.HandleCharacter(character);
                     currentEvent.Use();
                     return;
                 }

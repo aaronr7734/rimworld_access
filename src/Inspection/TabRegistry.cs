@@ -98,6 +98,7 @@ namespace RimWorldAccess
             { "ITab_PenBase", "Pen" },
             { "ITab_PenAnimals", "Pen Animals" },
             { "ITab_PenFood", "Pen Food" },
+            { "ITab_PenAutoCut", "Pen Auto-Cut" },
         };
 
         // Maps tab type names to handler types
@@ -145,7 +146,7 @@ namespace RimWorldAccess
             { "ITab_PenBase", TabHandlerType.BasicInspectString },
             { "ITab_PenAnimals", TabHandlerType.Action },
             { "ITab_PenFood", TabHandlerType.RichNavigation },
-            { "ITab_PenAutoCut", TabHandlerType.Action },
+            { "ITab_PenAutoCut", TabHandlerType.RichNavigation },
         };
 
         // Maps original category names used in InspectionInfoHelper to handler types

@@ -100,7 +100,7 @@ namespace RimWorldAccess
             // ===== PRIORITY -1: Block ALL keys if text input mode is active =====
             // Zone/storage rename needs to capture text input, so block everything here
             // TextInputCapturePatch will handle the input
-            if (ZoneRenameState.IsActive || StorageRenameState.IsActive)
+            if (ZoneRenameState.IsActive || StorageRenameState.IsActive || PenRenameState.IsActive)
             {
                 // Don't process any keys in this patch when renaming
                 return;

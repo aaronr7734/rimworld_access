@@ -1168,7 +1168,7 @@ namespace RimWorldAccess
 
         private static void OpenIngredientFilterMenu()
         {
-            ThingFilterMenuState.Open(bill.ingredientFilter, null, "Ingredient Filter");
+            ThingFilterMenuState.Open(bill.ingredientFilter, bill.recipe.fixedIngredientFilter, "Ingredient Filter");
         }
 
         private static void DeleteBill()

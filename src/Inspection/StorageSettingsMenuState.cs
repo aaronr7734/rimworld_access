@@ -18,6 +18,7 @@ namespace RimWorldAccess
         private static int selectedIndex = 0;
         private static bool isActive = false;
         private static StorageSettings currentSettings = null;
+        private static ThingFilter parentFilter = null;
         private static HashSet<string> expandedCategories = new HashSet<string>(); // Track which categories are expanded
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
 
@@ -90,6 +91,7 @@ namespace RimWorldAccess
             selectedIndex = 0;
             isActive = false;
             currentSettings = null;
+            parentFilter = null;
             expandedCategories.Clear();
             MenuHelper.ResetLevel("StorageSettings");
             typeahead.ClearSearch();
@@ -111,7 +113,7 @@ namespace RimWorldAccess
 
             // Get the parent filter to determine what categories are configurable
             // This mirrors how ThingFilterUI.DoThingFilterConfigWindow works
-            ThingFilter parentFilter = currentSettings.owner?.GetParentStoreSettings()?.filter;
+            parentFilter = currentSettings.owner?.GetParentStoreSettings()?.filter;
 
             // Hit points range (use parent filter's configurability if available)
             bool hpConfigurable = parentFilter?.allowedHitPointsConfigurable ?? currentSettings.filter.allowedHitPointsConfigurable;
@@ -155,7 +157,7 @@ namespace RimWorldAccess
             // Add special filters for this category
             foreach (SpecialThingFilterDef specialFilter in node.catDef.childSpecialFilters)
             {
-                if (specialFilter.configurable)
+                if (specialFilter.configurable && IsVisibleSpecialFilter(specialFilter))
                 {
                     MenuItem item = new MenuItem(MenuItemType.SpecialFilter, "*" + specialFilter.LabelCap, specialFilter, indent);
                     item.isAllowed = currentSettings.filter.Allows(specialFilter);
@@ -167,6 +169,9 @@ namespace RimWorldAccess
             // Add child categories
             foreach (TreeNode_ThingCategory childNode in node.ChildCategoryNodes)
             {
+                if (!IsVisibleCategory(childNode))
+                    continue;
+
                 MenuItem catItem = new MenuItem(MenuItemType.Category, childNode.LabelCap, childNode, indent);
                 catItem.isAllowed = IsCategoryAllowed(childNode);
                 catItem.parent = parentItem;
@@ -187,7 +192,7 @@ namespace RimWorldAccess
             // Add thing defs in this category
             foreach (ThingDef thingDef in node.catDef.childThingDefs)
             {
-                if (!Find.HiddenItemsManager.Hidden(thingDef))
+                if (IsVisible(thingDef) && !Find.HiddenItemsManager.Hidden(thingDef))
                 {
                     MenuItem item = new MenuItem(MenuItemType.ThingDef, thingDef.LabelCap, thingDef, indent);
                     item.isAllowed = currentSettings.filter.Allows(thingDef);
@@ -197,12 +202,51 @@ namespace RimWorldAccess
             }
         }
 
+        /// <summary>
+        /// Checks if a ThingDef should be visible in the filter tree.
+        /// Mirrors Listing_TreeThingFilter.Visible(ThingDef).
+        /// </summary>
+        private static bool IsVisible(ThingDef td)
+        {
+            if (!td.PlayerAcquirable)
+                return false;
+            if (td.virtualDefParent != null)
+                return false;
+            if (parentFilter != null)
+            {
+                if (!parentFilter.Allows(td))
+                    return false;
+                if (parentFilter.IsAlwaysDisallowedDueToSpecialFilters(td))
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Checks if a category node has any visible descendant ThingDefs.
+        /// Mirrors Listing_TreeThingFilter.Visible(TreeNode_ThingCategory).
+        /// </summary>
+        private static bool IsVisibleCategory(TreeNode_ThingCategory node)
+        {
+            return node.catDef.DescendantThingDefs.Any(td => IsVisible(td));
+        }
+
+        /// <summary>
+        /// Checks if a special filter should be visible.
+        /// Mirrors Listing_TreeThingFilter.Visible(SpecialThingFilterDef).
+        /// </summary>
+        private static bool IsVisibleSpecialFilter(SpecialThingFilterDef f)
+        {
+            if (parentFilter != null && !parentFilter.Allows(f))
+                return false;
+            return true;
+        }
+
         private static bool IsCategoryAllowed(TreeNode_ThingCategory node)
         {
-            // Check if any descendant thing def is allowed
             foreach (ThingDef thingDef in node.catDef.DescendantThingDefs)
             {
-                if (currentSettings.filter.Allows(thingDef))
+                if (IsVisible(thingDef) && currentSettings.filter.Allows(thingDef))
                 {
                     return true;
                 }
@@ -572,7 +616,7 @@ namespace RimWorldAccess
 
         private static void AllowAllItems()
         {
-            currentSettings.filter.SetAllowAll(null);
+            currentSettings.filter.SetAllowAll(parentFilter);
             RebuildMenu();
             TolkHelper.Speak("Allowed all items");
         }
