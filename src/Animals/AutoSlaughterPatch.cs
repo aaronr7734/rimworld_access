@@ -44,5 +44,22 @@ namespace RimWorldAccess
                 }
             }
         }
+
+        /// <summary>
+        /// Patch for Window.OnAcceptKeyPressed to block the game's Enter key handling.
+        /// Dialog_AutoSlaughter inherits Window's default OnAcceptKeyPressed which closes the dialog.
+        /// We block this so our Enter key handling (numeric input mode, boolean toggle) works.
+        /// </summary>
+        [HarmonyPatch(typeof(Window), "OnAcceptKeyPressed")]
+        public static class Window_OnAcceptKeyPressed_Patch
+        {
+            [HarmonyPrefix]
+            public static bool Prefix(Window __instance)
+            {
+                if (__instance is Dialog_AutoSlaughter && AutoSlaughterState.IsActive)
+                    return false;
+                return true;
+            }
+        }
     }
 }
