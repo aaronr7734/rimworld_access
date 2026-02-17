@@ -30,12 +30,17 @@ namespace RimWorldAccess
         public static bool IsActive => isActive;
 
         /// <summary>
+        /// Gets the currently selected index in the menu.
+        /// </summary>
+        public static int SelectedIndex => selectedIndex;
+
+        /// <summary>
         /// Opens the windowless menu with the given options.
         /// </summary>
-        public static void Open(List<FloatMenuOption> options, bool colonistOrders)
+        public static void Open(List<FloatMenuOption> options, bool colonistOrders, int startIndex = 0)
         {
             currentOptions = options;
-            selectedIndex = 0;
+            selectedIndex = System.Math.Max(0, System.Math.Min(startIndex, options.Count - 1));
             isActive = true;
             givesColonistOrders = colonistOrders;
             typeahead.ClearSearch();

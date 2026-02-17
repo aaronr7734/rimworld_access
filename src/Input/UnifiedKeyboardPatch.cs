@@ -2573,136 +2573,281 @@ namespace RimWorldAccess
             // ===== PRIORITY 4.73: Handle quest menu if active =====
             if (QuestMenuState.IsActive)
             {
-                bool handled = false;
-                bool alt = Event.current.alt;
-                var typeahead = QuestMenuState.Typeahead;
+                // Clean up reward menu state if float menu was closed externally
+                if (QuestMenuState.HasActiveRewardMenu && !WindowlessFloatMenuState.IsActive)
+                {
+                    QuestMenuState.CleanupRewardMenu();
+                }
 
-                // Handle Home - jump to first
-                if (key == KeyCode.Home)
+                // --- Reward Choice Float Menu Active ---
+                // Intercept only special keys; let everything else fall through to float menu at priority 5.0
+                if (WindowlessFloatMenuState.IsActive && QuestMenuState.HasActiveRewardMenu)
                 {
-                    QuestMenuState.JumpToFirst();
-                    handled = true;
-                }
-                // Handle End - jump to last
-                else if (key == KeyCode.End)
-                {
-                    QuestMenuState.JumpToLast();
-                    handled = true;
-                }
-                // Handle Escape - clear search FIRST, then close
-                else if (key == KeyCode.Escape)
-                {
-                    if (typeahead.HasActiveSearch)
+                    bool alt = Event.current.alt;
+
+                    if (QuestMenuState.IsInItemInspectionMenu)
                     {
-                        typeahead.ClearSearchAndAnnounce();
-                        QuestMenuState.AnnounceWithSearch();
-                        handled = true;
+                        // Item inspection sub-menu: intercept Enter and Escape
+                        if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                        {
+                            QuestMenuState.InspectCurrentItem();
+                            Event.current.Use();
+                            return;
+                        }
+                        else if (key == KeyCode.Escape)
+                        {
+                            QuestMenuState.ReturnToRewardChoiceMenu();
+                            Event.current.Use();
+                            return;
+                        }
+                        // Up/Down/Home/End: fall through to float menu handler at priority 5.0
                     }
                     else
                     {
-                        QuestMenuState.Close();
-                        handled = true;
+                        // Reward choice menu: intercept Alt+I only
+                        if (alt && key == KeyCode.I)
+                        {
+                            QuestMenuState.OpenItemInspectionForCurrentChoice();
+                            Event.current.Use();
+                            return;
+                        }
+                        // Enter/Up/Down/Escape/Home/End: fall through to float menu handler
                     }
                 }
-                // Handle Backspace for search
-                else if (key == KeyCode.Backspace)
+                // --- Normal Quest Menu Handling (no float menu active) ---
+                else if (!WindowlessFloatMenuState.IsActive)
                 {
-                    QuestMenuState.HandleBackspace();
-                    handled = true;
-                }
-                // Handle Down arrow (use typeahead if active with matches)
-                else if (key == KeyCode.DownArrow)
-                {
-                    if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                    bool handled = false;
+                    bool alt = Event.current.alt;
+
+                    // --- Reward Preferences Mode ---
+                    if (QuestMenuState.IsInRewardPrefsMode)
                     {
-                        // Navigate through matches only when there ARE matches
-                        int newIndex = typeahead.GetNextMatch(QuestMenuState.CurrentIndex);
-                        if (newIndex >= 0)
+                        if (key == KeyCode.UpArrow)
                         {
-                            QuestMenuState.SetCurrentIndex(newIndex);
-                            QuestMenuState.AnnounceWithSearch();
+                            QuestMenuState.RewardPrefsPrevious();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.DownArrow)
+                        {
+                            QuestMenuState.RewardPrefsNext();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                        {
+                            QuestMenuState.RewardPrefsToggle();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.Tab)
+                        {
+                            QuestMenuState.ToggleRewardPreferencesMode();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.Escape)
+                        {
+                            QuestMenuState.ToggleRewardPreferencesMode();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.Home)
+                        {
+                            QuestMenuState.RewardPrefsJumpToFirst();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.End)
+                        {
+                            QuestMenuState.RewardPrefsJumpToLast();
+                            handled = true;
                         }
                     }
-                    else
+                    // --- Quest Detail Mode ---
+                    else if (QuestMenuState.IsInDetailView)
                     {
-                        // Navigate normally (either no search active, OR search with no matches)
-                        QuestMenuState.SelectNext();
-                    }
-                    handled = true;
-                }
-                // Handle Up arrow (use typeahead if active with matches)
-                else if (key == KeyCode.UpArrow)
-                {
-                    if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
-                    {
-                        // Navigate through matches only when there ARE matches
-                        int newIndex = typeahead.GetPreviousMatch(QuestMenuState.CurrentIndex);
-                        if (newIndex >= 0)
+                        if (key == KeyCode.UpArrow)
                         {
-                            QuestMenuState.SetCurrentIndex(newIndex);
-                            QuestMenuState.AnnounceWithSearch();
+                            QuestMenuState.SelectPreviousDetail();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.DownArrow)
+                        {
+                            QuestMenuState.SelectNextDetail();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.LeftArrow)
+                        {
+                            if (QuestMenuState.IsInButtonsSection)
+                                QuestMenuState.SelectPreviousButton();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.RightArrow)
+                        {
+                            if (QuestMenuState.IsInButtonsSection)
+                                QuestMenuState.SelectNextButton();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                        {
+                            if (QuestMenuState.IsInButtonsSection)
+                                QuestMenuState.ActivateCurrentButton();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.Escape)
+                        {
+                            QuestMenuState.GoBackToList();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.Home)
+                        {
+                            QuestMenuState.JumpToDetailStart();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.End)
+                        {
+                            QuestMenuState.JumpToDetailEnd();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.A && alt)
+                        {
+                            QuestMenuState.AcceptQuest();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.D && alt)
+                        {
+                            QuestMenuState.ToggleDismissQuest();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.I && alt)
+                        {
+                            QuestMenuState.OpenInfoCard();
+                            handled = true;
                         }
                     }
+                    // --- Quest List Mode ---
                     else
                     {
-                        // Navigate normally (either no search active, OR search with no matches)
-                        QuestMenuState.SelectPrevious();
+                        var typeahead = QuestMenuState.Typeahead;
+
+                        if (key == KeyCode.Home)
+                        {
+                            QuestMenuState.JumpToFirst();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.End)
+                        {
+                            QuestMenuState.JumpToLast();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.Escape)
+                        {
+                            if (typeahead.HasActiveSearch)
+                            {
+                                typeahead.ClearSearchAndAnnounce();
+                                QuestMenuState.AnnounceWithSearch();
+                            }
+                            else
+                            {
+                                QuestMenuState.Close();
+                            }
+                            handled = true;
+                        }
+                        else if (key == KeyCode.Backspace)
+                        {
+                            QuestMenuState.HandleBackspace();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.DownArrow)
+                        {
+                            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                            {
+                                int newIndex = typeahead.GetNextMatch(QuestMenuState.CurrentIndex);
+                                if (newIndex >= 0)
+                                {
+                                    QuestMenuState.SetCurrentIndex(newIndex);
+                                    QuestMenuState.AnnounceWithSearch();
+                                }
+                            }
+                            else
+                            {
+                                QuestMenuState.SelectNext();
+                            }
+                            handled = true;
+                        }
+                        else if (key == KeyCode.UpArrow)
+                        {
+                            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                            {
+                                int newIndex = typeahead.GetPreviousMatch(QuestMenuState.CurrentIndex);
+                                if (newIndex >= 0)
+                                {
+                                    QuestMenuState.SetCurrentIndex(newIndex);
+                                    QuestMenuState.AnnounceWithSearch();
+                                }
+                            }
+                            else
+                            {
+                                QuestMenuState.SelectPrevious();
+                            }
+                            handled = true;
+                        }
+                        else if (key == KeyCode.RightArrow)
+                        {
+                            QuestMenuState.NextTab();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.LeftArrow)
+                        {
+                            QuestMenuState.PreviousTab();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                        {
+                            QuestMenuState.EnterDetailView();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.A && alt)
+                        {
+                            QuestMenuState.AcceptQuest();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.D && alt)
+                        {
+                            QuestMenuState.ToggleDismissQuest();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.Tab)
+                        {
+                            QuestMenuState.ToggleRewardPreferencesMode();
+                            handled = true;
+                        }
                     }
-                    handled = true;
-                }
-                else if (key == KeyCode.RightArrow)
-                {
-                    QuestMenuState.NextTab();
-                    handled = true;
-                }
-                else if (key == KeyCode.LeftArrow)
-                {
-                    QuestMenuState.PreviousTab();
-                    handled = true;
-                }
-                else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
-                {
-                    QuestMenuState.ViewSelectedQuest();
-                    handled = true;
-                }
-                else if (key == KeyCode.A && alt)
-                {
-                    QuestMenuState.AcceptQuest();
-                    handled = true;
-                }
-                else if (key == KeyCode.D && alt)
-                {
-                    QuestMenuState.ToggleDismissQuest();
-                    handled = true;
-                }
 
-                if (handled)
-                {
-                    Event.current.Use();
-                    return;
-                }
+                    if (handled)
+                    {
+                        Event.current.Use();
+                        return;
+                    }
 
-                // Handle * key - consume to prevent passthrough
-                // Use KeyCode instead of Event.current.character (which is empty in Unity IMGUI)
-                bool isStarKey = key == KeyCode.KeypadMultiply || (Event.current.shift && key == KeyCode.Alpha8);
-                if (isStarKey)
-                {
-                    Event.current.Use();
-                    return;
-                }
+                    // Handle * key - consume to prevent passthrough
+                    bool isStarKey = key == KeyCode.KeypadMultiply || (Event.current.shift && key == KeyCode.Alpha8);
+                    if (isStarKey)
+                    {
+                        Event.current.Use();
+                        return;
+                    }
 
-                // Handle typeahead characters
-                // Use KeyCode instead of Event.current.character (which is empty in Unity IMGUI)
-                // Skip if Alt is held - Alt+key combos are shortcuts, not search input
-                bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
-                bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
+                    // Handle typeahead characters (only in quest list mode)
+                    if (!QuestMenuState.IsInDetailView && !QuestMenuState.IsInRewardPrefsMode)
+                    {
+                        bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
+                        bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                if ((isLetter || isNumber) && !Event.current.alt)
-                {
-                    char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                    QuestMenuState.HandleTypeahead(c);
-                    Event.current.Use();
-                    return;
+                        if ((isLetter || isNumber) && !Event.current.alt)
+                        {
+                            char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
+                            QuestMenuState.HandleTypeahead(c);
+                            Event.current.Use();
+                            return;
+                        }
+                    }
                 }
             }
 
