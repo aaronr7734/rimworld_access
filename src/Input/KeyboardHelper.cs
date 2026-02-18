@@ -189,6 +189,8 @@ namespace RimWorldAccess
                 || InfoCardState.IsActive
                 // Biotech modal dialogs
                 || GrowthMomentState.IsActive
+                // Factions tab
+                || FactionTabState.IsActive
                 // Extra menus
                 || ExtraMenusState.IsActive;
         }

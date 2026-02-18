@@ -2589,6 +2589,16 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 4.71: Handle faction tab if active =====
+            if (FactionTabState.IsActive)
+            {
+                if (FactionTabState.HandleInput(Event.current))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 4.73: Handle quest menu if active =====
             if (QuestMenuState.IsActive)
             {
@@ -3921,7 +3931,8 @@ namespace RimWorldAccess
                                     WindowlessResearchMenuState.IsActive ||
                                     StorytellerSelectionState.IsActive ||
                                     PrisonerTabState.IsActive ||
-                                    HealthTabState.IsActive;
+                                    HealthTabState.IsActive ||
+                                    FactionTabState.IsActive;
 
                 if (!anyMenuActive)
                 {

@@ -9,63 +9,48 @@ using Verse.Sound;
 namespace RimWorldAccess
 {
     /// <summary>
-    /// Manages keyboard navigation state for Dialog_FactionDuringLanding.
-    /// Provides a flat list of factions with typeahead search, opened via F key during starting site selection.
+    /// Manages keyboard navigation for the in-game Factions tab (windowless).
+    /// Provides a flat list of factions with typeahead search.
+    /// Opened via F12 > Factions or any other path that activates MainTabWindow_Factions.
     /// </summary>
-    public static class FactionLandingState
+    public static class FactionTabState
     {
         public static bool IsActive { get; private set; }
 
-        /// <summary>
-        /// Frame number when we last handled Escape to close the dialog.
-        /// Used by FactionLandingPatch.Page_OnCancelKeyPressed_Patch to block
-        /// the game's Cancel handling in the same frame (since Event.current.Use()
-        /// does not prevent HandleEventsHighPriority from firing).
-        /// </summary>
-        internal static int escapeHandledOnFrame = -1;
-
-        private static Dialog_FactionDuringLanding currentDialog;
         private static List<Faction> factions = new List<Faction>();
         private static int selectedIndex = 0;
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
 
         /// <summary>
-        /// Opens the faction landing state for a dialog.
-        /// Called from FactionLandingPatch when Dialog_FactionDuringLanding opens.
+        /// Opens the faction tab state and builds the faction list.
+        /// Called from FactionTabPatch when MainTabWindow_Factions opens.
         /// </summary>
-        public static void Open(Dialog_FactionDuringLanding dialog)
+        public static void Open()
         {
-            if (dialog == null)
+            if (IsActive)
                 return;
 
-            currentDialog = dialog;
             IsActive = true;
-
-            // Prevent RimWorld from closing on Enter/Escape — we handle both
-            dialog.closeOnAccept = false;
-            dialog.closeOnCancel = false;
-
-            factions = BuildFactionList();
+            factions = FactionHelper.BuildFactionList();
             selectedIndex = 0;
             typeahead.ClearSearch();
-
             AnnounceOpening();
         }
 
         /// <summary>
-        /// Closes the faction landing state and resets all fields.
+        /// Closes the faction tab state and resets all fields.
         /// </summary>
         public static void Close()
         {
             IsActive = false;
-            currentDialog = null;
             factions.Clear();
             selectedIndex = 0;
             typeahead.ClearSearch();
+            TolkHelper.Speak("Faction relations closed.");
         }
 
         /// <summary>
-        /// Handles keyboard input for the faction landing dialog.
+        /// Handles keyboard input for the faction tab.
         /// Returns true if input was handled.
         /// Called from UnifiedKeyboardPatch which handles Event.current.Use().
         /// </summary>
@@ -83,7 +68,7 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Escape — clear search first, then close dialog
+            // Escape — clear search first, then close
             if (key == KeyCode.Escape)
             {
                 if (typeahead.HasActiveSearch)
@@ -92,7 +77,7 @@ namespace RimWorldAccess
                     AnnounceCurrentFaction();
                     return true;
                 }
-                CloseDialog();
+                Close();
                 return true;
             }
 
@@ -171,7 +156,7 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Enter — consumed (do nothing, prevents dialog close)
+            // Enter — consumed (read-only, no action)
             if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
             {
                 return true;
@@ -204,40 +189,22 @@ namespace RimWorldAccess
                 }
             }
 
-            // Consume all other keys while dialog is open to prevent pass-through
+            // Consume all other keys while menu is open to prevent pass-through
             return true;
         }
 
         #region Private Methods
 
-        /// <summary>
-        /// Builds the list of visible factions. Delegates to FactionHelper.
-        /// </summary>
-        private static List<Faction> BuildFactionList() => FactionHelper.BuildFactionList();
-
-        /// <summary>
-        /// Builds the full announcement string for a faction. Delegates to FactionHelper.
-        /// </summary>
-        private static string BuildFactionAnnouncement(Faction faction) => FactionHelper.BuildFactionAnnouncement(faction);
-
-        /// <summary>
-        /// Appends text as a new sentence. Delegates to FactionHelper.
-        /// </summary>
-        private static void AppendSentence(StringBuilder sb, string text) => FactionHelper.AppendSentence(sb, text);
-
-        /// <summary>
-        /// Announces the dialog opening and the first faction.
-        /// </summary>
         private static void AnnounceOpening()
         {
             if (factions.Count > 0)
             {
                 var sb = new StringBuilder($"Faction relations, {factions.Count} factions");
-                AppendSentence(sb, BuildFactionAnnouncement(factions[0]));
+                FactionHelper.AppendSentence(sb, FactionHelper.BuildFactionAnnouncement(factions[0]));
 
                 string position = MenuHelper.FormatPosition(0, factions.Count);
                 if (!string.IsNullOrEmpty(position))
-                    AppendSentence(sb, position);
+                    FactionHelper.AppendSentence(sb, position);
 
                 TolkHelper.Speak(sb.ToString());
             }
@@ -247,29 +214,23 @@ namespace RimWorldAccess
             }
         }
 
-        /// <summary>
-        /// Announces the currently selected faction with full details and position.
-        /// </summary>
         private static void AnnounceCurrentFaction()
         {
             if (factions.Count == 0 || selectedIndex < 0 || selectedIndex >= factions.Count)
                 return;
 
-            string announcement = BuildFactionAnnouncement(factions[selectedIndex]);
+            string announcement = FactionHelper.BuildFactionAnnouncement(factions[selectedIndex]);
             string position = MenuHelper.FormatPosition(selectedIndex, factions.Count);
             if (!string.IsNullOrEmpty(position))
             {
                 var sb = new StringBuilder(announcement);
-                AppendSentence(sb, position);
+                FactionHelper.AppendSentence(sb, position);
                 announcement = sb.ToString();
             }
 
             TolkHelper.Speak(announcement);
         }
 
-        /// <summary>
-        /// Announces the current faction with search context.
-        /// </summary>
         private static void AnnounceWithSearch()
         {
             if (factions.Count == 0 || selectedIndex < 0 || selectedIndex >= factions.Count)
@@ -296,9 +257,6 @@ namespace RimWorldAccess
             TolkHelper.Speak(sb.ToString());
         }
 
-        /// <summary>
-        /// Handles typeahead search character input.
-        /// </summary>
         private static void HandleTypeahead(char c)
         {
             var labels = factions.Select(f => f.Name).ToList();
@@ -316,10 +274,6 @@ namespace RimWorldAccess
             }
         }
 
-        /// <summary>
-        /// Opens a Dialog_InfoCard for the currently selected faction.
-        /// InfoCardPatch will auto-activate InfoCardState via PostOpen.
-        /// </summary>
         private static void OpenInfoCard()
         {
             if (factions.Count == 0 || selectedIndex < 0 || selectedIndex >= factions.Count)
@@ -331,22 +285,6 @@ namespace RimWorldAccess
 
             Faction faction = factions[selectedIndex];
             Find.WindowStack.Add(new Dialog_InfoCard(faction));
-        }
-
-        /// <summary>
-        /// Closes the dialog via WindowStack and announces closure.
-        /// Calls Close() directly rather than relying on PostClose patch,
-        /// which may not fire reliably for all Window subclasses.
-        /// </summary>
-        private static void CloseDialog()
-        {
-            escapeHandledOnFrame = Time.frameCount;
-            if (currentDialog != null)
-            {
-                Find.WindowStack.TryRemove(currentDialog, doCloseSound: false);
-            }
-            Close();
-            TolkHelper.Speak("Faction relations closed.");
         }
 
         #endregion
