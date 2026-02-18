@@ -1819,6 +1819,25 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 4.05: Handle extra menus if active =====
+            if (ExtraMenusState.IsActive)
+            {
+                if (ExtraMenusState.HandleInput())
+                {
+                    Event.current.Use();
+                    return;
+                }
+
+                // HandleInput returns false for Escape without active search - handle closing here
+                if (key == KeyCode.Escape)
+                {
+                    ExtraMenusState.Close();
+                    TolkHelper.Speak("Menu closed");
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 4.2: Handle History tab if active =====
             // History tab has two sub-tabs: Statistics and Messages
             // Tab/Shift+Tab switches between them, sub-states handle navigation
@@ -4653,6 +4672,28 @@ namespace RimWorldAccess
 
                     // Open the research menu
                     WindowlessResearchMenuState.Open();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 7.56: Open extra menus with F12 key =====
+            if (key == KeyCode.F12)
+            {
+                if (Current.ProgramState == ProgramState.Playing &&
+                    Find.CurrentMap != null &&
+                    (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
+                    !ZoneCreationState.IsInCreationMode &&
+                    !KeyboardHelper.IsAnyAccessibilityMenuActive())
+                {
+                    Event.current.Use();
+
+                    if (WorldNavigationState.IsActive)
+                    {
+                        CameraJumper.TryHideWorld();
+                        MapNavigationState.RestoreCursorForCurrentMap();
+                    }
+
+                    ExtraMenusState.Open();
                     return;
                 }
             }
