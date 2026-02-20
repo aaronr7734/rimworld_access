@@ -625,6 +625,9 @@ namespace RimWorldAccess
             accessSettings.Settings.Add(new CheckboxSetting("Show Pawn Activity on Map",
                 () => RimWorldAccessMod_Settings.Settings?.ShowPawnActivityOnMap ?? true,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.ShowPawnActivityOnMap = v; }));
+            accessSettings.Settings.Add(new CheckboxSetting("Show Cover Info for Drafted and Hostile Pawns",
+                () => RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.ShowCoverInfo = v; }));
             categories.Add(accessSettings);
 
             // Mod Settings Category - list all mods that have settings

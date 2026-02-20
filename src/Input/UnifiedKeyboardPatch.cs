@@ -3869,6 +3869,7 @@ namespace RimWorldAccess
                     else
                     {
                         // No active search, close the menu
+                        SoundDefOf.FloatMenu_Cancel.PlayOneShotOnCamera();
                         WindowlessFloatMenuState.Close();
 
                         // If architect mode is active (category/tool/material selection), also reset it

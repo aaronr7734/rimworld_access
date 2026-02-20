@@ -694,6 +694,7 @@ namespace RimWorldAccess
                 // Close the float menu and return to this info card.
                 if (ev.keyCode == KeyCode.Escape)
                 {
+                    SoundDefOf.FloatMenu_Cancel.PlayOneShotOnCamera();
                     WindowlessFloatMenuState.Close();
                     ownsFloatMenu = false;
                     TolkHelper.Speak("Menu closed");

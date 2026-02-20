@@ -27,11 +27,19 @@ namespace RimWorldAccess
         /// </summary>
         public bool ShowPawnActivityOnMap = true;
 
+        /// <summary>
+        /// When true, cover info is shown for drafted and hostile pawns.
+        /// Example: "Bob, behind sandbag (good cover), melee attacking"
+        /// Default: true.
+        /// </summary>
+        public bool ShowCoverInfo = true;
+
         public override void ExposeData()
         {
             Scribe_Values.Look(ref WrapNavigation, "WrapNavigation", false);
             Scribe_Values.Look(ref AnnouncePosition, "AnnouncePosition", true);
             Scribe_Values.Look(ref ShowPawnActivityOnMap, "ShowPawnActivityOnMap", true);
+            Scribe_Values.Look(ref ShowCoverInfo, "ShowCoverInfo", true);
             base.ExposeData();
         }
     }
@@ -62,6 +70,7 @@ namespace RimWorldAccess
             listing.CheckboxLabeled("Wrap navigation (loop from end to beginning)", ref Settings.WrapNavigation);
             listing.CheckboxLabeled("Announce position (e.g., '3 of 7')", ref Settings.AnnouncePosition);
             listing.CheckboxLabeled("Show pawn activity on map cursor movement", ref Settings.ShowPawnActivityOnMap);
+            listing.CheckboxLabeled("Show cover info for drafted and hostile pawns", ref Settings.ShowCoverInfo);
 
             listing.End();
         }

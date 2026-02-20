@@ -271,12 +271,13 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Page down (Alt+Down). Jumps to next page of 10.
+        /// Page down (Alt+Down). Jumps to next page of 10, preserving position within the page.
         /// If on last colonist page, switches to mech section.
         /// </summary>
         public static void PageDown()
         {
             CheckMapChange();
+            int posInPage = PositionInPage;
 
             if (!onMechSection)
             {
@@ -288,7 +289,7 @@ namespace RimWorldAccess
                     if (mechs.Count > 0)
                     {
                         onMechSection = true;
-                        barPosition = 0;
+                        barPosition = System.Math.Min(posInPage, mechs.Count - 1);
                         AnnounceSectionChange();
                         SelectAndAnnounce();
                     }
@@ -299,22 +300,18 @@ namespace RimWorldAccess
                     return;
                 }
 
-                int nextPageStart = (CurrentPage + 1) * PageSize;
-                if (nextPageStart < colonists.Count)
+                int targetPosition = barPosition + PageSize;
+                if (targetPosition >= colonists.Count)
+                    targetPosition = colonists.Count - 1;
+
+                if (targetPosition / PageSize == CurrentPage)
                 {
-                    // Move to next colonist page
-                    barPosition = nextPageStart;
-                    AnnouncePageChange();
-                    SelectAndAnnounce();
-                }
-                else
-                {
-                    // Past last colonist page - switch to mechs
+                    // Couldn't move to a new page - try mechs
                     var mechs = GetMechs();
                     if (mechs.Count > 0)
                     {
                         onMechSection = true;
-                        barPosition = 0;
+                        barPosition = System.Math.Min(posInPage, mechs.Count - 1);
                         AnnounceSectionChange();
                         SelectAndAnnounce();
                     }
@@ -322,6 +319,12 @@ namespace RimWorldAccess
                     {
                         TolkHelper.Speak("Last page");
                     }
+                }
+                else
+                {
+                    barPosition = targetPosition;
+                    AnnouncePageChange();
+                    SelectAndAnnounce();
                 }
             }
             else
@@ -334,34 +337,38 @@ namespace RimWorldAccess
                     return;
                 }
 
-                int nextPageStart = (CurrentPage + 1) * PageSize;
-                if (nextPageStart < mechs.Count)
+                int targetPosition = barPosition + PageSize;
+                if (targetPosition >= mechs.Count)
+                    targetPosition = mechs.Count - 1;
+
+                if (targetPosition / PageSize == CurrentPage)
                 {
-                    barPosition = nextPageStart;
-                    AnnouncePageChange();
-                    SelectAndAnnounce();
+                    TolkHelper.Speak("Last page");
                 }
                 else
                 {
-                    TolkHelper.Speak("Last page");
+                    barPosition = targetPosition;
+                    AnnouncePageChange();
+                    SelectAndAnnounce();
                 }
             }
         }
 
         /// <summary>
-        /// Page up (Alt+Up). Jumps to previous page of 10.
+        /// Page up (Alt+Up). Jumps to previous page of 10, preserving position within the page.
         /// If on first mech page, switches back to colonist section.
         /// </summary>
         public static void PageUp()
         {
             CheckMapChange();
+            int posInPage = PositionInPage;
 
             if (onMechSection)
             {
                 if (CurrentPage > 0)
                 {
-                    // Move to previous mech page
-                    barPosition = (CurrentPage - 1) * PageSize;
+                    // Move to previous mech page, preserve position
+                    barPosition = (CurrentPage - 1) * PageSize + posInPage;
                     AnnouncePageChange();
                     SelectAndAnnounce();
                 }
@@ -372,9 +379,9 @@ namespace RimWorldAccess
                     if (colonists.Count > 0)
                     {
                         onMechSection = false;
-                        // Go to last colonist page
-                        int lastPage = (colonists.Count - 1) / PageSize;
-                        barPosition = lastPage * PageSize;
+                        // Go to last colonist page, preserve position (clamped)
+                        int lastPageStart = ((colonists.Count - 1) / PageSize) * PageSize;
+                        barPosition = System.Math.Min(lastPageStart + posInPage, colonists.Count - 1);
                         AnnounceSectionChange();
                         SelectAndAnnounce();
                     }
@@ -389,7 +396,8 @@ namespace RimWorldAccess
                 // On colonist section
                 if (CurrentPage > 0)
                 {
-                    barPosition = (CurrentPage - 1) * PageSize;
+                    // Previous page, preserve position
+                    barPosition = (CurrentPage - 1) * PageSize + posInPage;
                     AnnouncePageChange();
                     SelectAndAnnounce();
                 }
@@ -746,7 +754,16 @@ namespace RimWorldAccess
             if (string.IsNullOrEmpty(task))
                 task = "Idle";
 
-            string announcement = $"{pawn.LabelShort} selected - {task}";
+            string announcement = $"{pawn.LabelShort} selected";
+
+            if (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
+            {
+                string coverInfo = CoverHelper.GetCoverInfo(pawn);
+                if (!string.IsNullOrEmpty(coverInfo))
+                    announcement += $", {coverInfo}";
+            }
+
+            announcement += $" - {task}";
 
             string positionPart = MenuHelper.FormatPosition(barPosition, totalInSection);
             if (!string.IsNullOrEmpty(positionPart))

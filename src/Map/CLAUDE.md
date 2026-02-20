@@ -16,9 +16,10 @@ Provides keyboard navigation for the map view, including cursor movement, scanne
 - **TimeAnnouncementState.cs** - Time/date/weather info
 - **PlaySettingsMenuState.cs** - Play settings overlay
 
-### Helpers (2 files)
+### Helpers (3 files)
 - **ScannerHelper.cs** - Collects and categorizes map items
 - **TileInfoHelper.cs** - Extracts tile information
+- **CoverHelper.cs** - Cover status for drafted/hostile pawns (uses CoverGrid + BaseBlockChance)
 
 ## Key Architecture
 

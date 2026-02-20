@@ -36,7 +36,7 @@ namespace RimWorldAccess
                         // Clear the confirming flag since we're handling it now
                         TransportPodLaunchState.ClearConfirmingFlag();
 
-                        WindowlessFloatMenuState.Open(options, floatMenu.givesColonistOrders);
+                        WindowlessFloatMenuState.Open(options, floatMenu.givesColonistOrders, playOpenSound: false);
                         return false; // Prevent FloatMenu from being added
                     }
                 }
