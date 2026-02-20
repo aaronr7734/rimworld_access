@@ -183,6 +183,14 @@ namespace RimWorldAccess
                         Event.current.Use();
                         patchActive = true;
                     }
+                    // Ctrl+Z clears the active search filter
+                    // Defensive fallback - also handled by UnifiedKeyboardPatch at priority 4.745
+                    else if (keyCode == KeyCode.Z && ctrl && !shift && !alt && !ScannerSearchState.IsActive && ScannerSearchState.HasActiveFilter)
+                    {
+                        ScannerSearchState.ClearActiveFilter();
+                        Event.current.Use();
+                        patchActive = true;
+                    }
                     // === Number keys 1-5: tile info categories ===
                     // Defensive fallback - also handled by UnifiedKeyboardPatch at priority 5.45
                     else if (!shift && !ctrl && !alt)

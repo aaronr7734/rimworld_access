@@ -228,6 +228,40 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Clears the active search filter and removes the search temporary category.
+        /// Called by Ctrl+Z when not actively searching.
+        /// If the user is currently in the search category, restores focus to pre-search position.
+        /// Does nothing if there is no active filter.
+        /// </summary>
+        public static void ClearActiveFilter()
+        {
+            if (!HasActiveFilter || IsActive)
+                return;
+
+            if (activeFilterIsWorldMap)
+            {
+                bool wasInFilter = WorldScannerState.IsInTemporaryCategory();
+                WorldScannerState.RemoveTemporaryCategory();
+                if (wasInFilter)
+                    WorldScannerState.RestoreFocus();
+            }
+            else
+            {
+                bool wasInFilter = ScannerState.IsInTemporaryCategory();
+                ScannerState.RemoveTemporaryCategory();
+                if (wasInFilter)
+                    ScannerState.RestoreFocus();
+            }
+
+            activeFilterQuery = "";
+            activeFilterIsWorldMap = false;
+            savedFilterQuery = "";
+            savedFilterIsWorldMap = false;
+
+            TolkHelper.Speak("Search filter cleared", SpeechPriority.Normal);
+        }
+
+        /// <summary>
         /// Clears the search without announcement.
         /// Used when map is invalidated or switched.
         /// Also clears any active filter.

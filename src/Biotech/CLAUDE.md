@@ -1,12 +1,12 @@
 # Biotech Module
 
 ## Purpose
-Accessibility features for RimWorld's Biotech DLC, including baby gene inspection, mechanitor control group management, and child growth moment choices.
+Accessibility features for RimWorld's Biotech DLC, including baby gene inspection, xenogerm creation, mechanitor control group management, and child growth moment choices.
 
 ## Files
 
-**States:** GeneInspectionState.cs, MechControlGroupState.cs, GrowthMomentState.cs
-**Patches:** GeneInspectionPatch.cs, GrowthMomentPatch.cs
+**States:** GeneInspectionState.cs, XenogermState.cs, MechControlGroupState.cs, GrowthMomentState.cs
+**Patches:** GeneInspectionPatch.cs, XenogermPatch.cs, GrowthMomentPatch.cs
 **Helpers:** GeneTreeBuilder.cs
 
 ## Key Shortcuts (Gene Inspection)
@@ -315,8 +315,148 @@ GrowthMomentState is handled at Priority -0.215, between GeneInspection (-0.23) 
 - [ ] Archive view shows read-only content
 - [ ] State closes when dialog closes (timeout, pawn death)
 
+## Xenogerm Creation State
+
+### Trigger Point
+
+When a gene assembler building (`Building_GeneAssembler`) with connected gene banks is selected, the "Recombine..." gizmo appears. Clicking it opens `Dialog_CreateXenogerm`. Our patch intercepts PostOpen to activate `XenogermState`.
+
+### Tabbed Treeview Layout
+
+Three sections navigated via Tab/Shift+Tab:
+
+**Tab 1: Selected Genepacks** - Treeview of genepacks chosen for the xenogerm. Enter removes a genepack. Each genepack expands to show individual genes.
+
+**Tab 2: Genepack Library** - Treeview of available genepacks from connected gene banks (excluding already-selected). Enter adds a genepack. Unpowered genepacks shown with suffix but cannot be added.
+
+**Tab 3: Controls** - Flat list: biostats summary, xenotype name (Enter to randomize), name lock toggle, Start Combining, Close.
+
+### Tree Structure
+
+```
+Root (hidden)
+├── Strong blood pack, 3 genes, complexity 2, metabolism -1  [expandable]
+│   ├── Tough (Miscellaneous)                                 [expandable → gene details]
+│   │   └── [DescriptionFull from GeneTreeBuilder]
+│   ├── Strong Back (Miscellaneous)                           [expandable]
+│   └── ...
+├── Another pack, 2 genes, complexity 1, metabolism 0        [expandable]
+│   └── ...
+└── ...
+```
+
+### Data Flow
+
+```
+User clicks "Recombine..." gizmo
+    → Dialog_CreateXenogerm.PostOpen()
+        → XenogermPatch.PostOpen_Patch (Postfix)
+            → XenogermState.Open(dialog)
+                → Reads selectedGenepacks, libraryGenepacks, unpoweredGenepacks via reflection
+                → Builds Selected tree + Library tree using BuildGenepackTree()
+                → Gene children lazy-loaded via GeneTreeBuilder.CreateGeneNode()
+                → Builds Controls list
+                → Announces opening with pack count and complexity limit
+```
+
+### Key Shortcuts (Xenogerm Creation)
+
+#### Tab Navigation
+| Key | Action |
+|-----|--------|
+| Tab | Next tab (Selected → Library → Controls → Selected) |
+| Shift+Tab | Previous tab |
+
+#### Tree Navigation (WCAG, within genepack tabs)
+| Key | Action |
+|-----|--------|
+| Up/Down | Navigate visible items (search-aware if typeahead active) |
+| Right | Expand collapsed node / move to first child |
+| Left | Collapse expanded node / move to parent |
+| Home/End | First/last sibling at current level |
+| Ctrl+Home/End | Absolute first/last |
+| Page Up/Down | Jump between genepacks (top-level items) |
+| * | Expand all siblings |
+| Typeahead | Search by label within current tab |
+| Backspace | Clear search |
+
+#### Actions
+| Key | Action |
+|-----|--------|
+| Enter | Context-dependent (toggle genepack, open InfoCard, expand node) |
+| Alt+I | Open InfoCard for current item |
+| Alt+S | Start Combining shortcut (validates first) |
+| Escape | Clear search if active, otherwise close dialog |
+
+### Key Classes
+
+| Class | Location | Purpose |
+|-------|----------|---------|
+| `Dialog_CreateXenogerm` | RimWorld | The xenogerm creation dialog |
+| `GeneCreationDialogBase` | RimWorld | Shared base class (also used by Dialog_CreateXenotype) |
+| `Building_GeneAssembler` | RimWorld | Gene processor building |
+| `Genepack` | RimWorld | Physical genepack item containing a GeneSet |
+
+### Reflection Targets
+
+From `Dialog_CreateXenogerm`: `selectedGenepacks`, `libraryGenepacks`, `unpoweredGenepacks`, `geneAssembler`
+
+From `GeneCreationDialogBase`: `xenotypeName`, `xenotypeNameLocked`, `gcx`, `met`, `arc`, `maxGCX`, `OnGenesChanged()`, `Accept()`, `CanAccept()`, `SelectedGenes` (property)
+
+### Reuse with GeneTreeBuilder
+
+`GeneTreeBuilder.CreateGeneNode()` and `AddChild()` (made public for this feature) are used to build gene children within genepack nodes. Same gene detail tree structure as GeneInspectionState.
+
+### Priority in UnifiedKeyboardPatch
+
+XenogermState is handled at Priority -0.21, between GrowthMoment (-0.215) and FactionLanding (-0.22).
+
+### State Lifecycle
+
+1. User clicks "Recombine..." gizmo on gene assembler
+2. `Dialog_CreateXenogerm.PostOpen()` fires
+3. `XenogermPatch.PostOpen_Patch` calls `XenogermState.Open(dialog)`
+4. Trees built, opening announced
+5. User navigates tabs (Tab/Shift+Tab), trees (arrow keys), selects genepacks (Enter)
+6. Genepack toggle: updates dialog lists via reflection, rebuilds both trees, restores cursor
+7. User presses Alt+S or selects "Start Combining" in Controls
+8. Validation runs; if valid, `Accept()` invoked via reflection
+9. Dialog closes → `Window.PostClose` patch calls `XenogermState.Close()`
+
+### Reusability for Xenotype Editor
+
+`Dialog_CreateXenotype` shares `GeneCreationDialogBase`. When implementing:
+- Tab 1 becomes individual GeneDefs (not genepacks)
+- Tab 2 categories use GeneCategoryDef as expandable top-level nodes
+- Additional controls: "Inheritable" toggle, "Ignore restrictions" toggle
+- Same tab/tree keyboard patterns throughout
+
+### Testing Checklist
+
+- [ ] Dialog opens with correct pack count and complexity limit announcement
+- [ ] Tab/Shift+Tab cycles between Selected, Library, Controls tabs
+- [ ] Up/Down navigates genepacks in library, Enter adds to selected
+- [ ] Tab to Selected shows added packs, Enter removes
+- [ ] Right arrow expands genepack to show gene children
+- [ ] Right on gene expands to show DescriptionFull details
+- [ ] Left collapses, Left again moves to parent genepack
+- [ ] Home/End navigate siblings, Ctrl+Home/End absolute first/last
+- [ ] Page Up/Down jumps between genepacks
+- [ ] * expands all sibling genepacks
+- [ ] Typeahead search finds genepacks/genes in current tab
+- [ ] Backspace clears search
+- [ ] Alt+I opens InfoCard for current gene or genepack
+- [ ] Alt+S validates and starts combining (or announces errors)
+- [ ] Controls tab: biostats update after each toggle
+- [ ] Controls tab: xenotype name randomize works
+- [ ] Controls tab: name lock toggles
+- [ ] Escape clears search first, then closes dialog
+- [ ] No double-close on Escape (OnCancelKeyPressed patch)
+- [ ] Cursor restores to same genepack after selection changes
+- [ ] Unpowered genepacks shown but rejected on Enter
+
 ## Future Work
 
-- Xenogerm creation/editing accessibility
+- Xenotype editor (Dialog_CreateXenotype) accessibility
 - Gene extractor accessibility
 - Growth vat monitoring
