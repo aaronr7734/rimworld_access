@@ -178,6 +178,7 @@ namespace RimWorldAccess
                 || GearEquipMenuState.IsActive
                 || QuantityMenuState.IsActive
                 || AreaSelectionMenuState.IsActive
+                || PawnAreaMenuState.IsActive
                 // History tab
                 || HistoryState.IsActive
                 || HistoryStatisticsState.IsActive

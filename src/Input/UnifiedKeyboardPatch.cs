@@ -608,6 +608,17 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 0.292: Handle pawn area assignment menu if active =====
+            // Opened via Alt+A to assign allowed areas to the selected pawn
+            if (PawnAreaMenuState.IsActive)
+            {
+                if (PawnAreaMenuState.HandleInput(key))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 0.3: Handle caravan formation dialog if active =====
             // BUT: Skip if windowless dialog, inspection, or quantity menu is active - they take priority
             if (CaravanFormationState.IsActive && !CaravanFormationState.IsChoosingDestination && !WindowlessDialogState.IsActive && !WindowlessInspectionState.IsActive && !QuantityMenuState.IsActive)
@@ -1051,6 +1062,7 @@ namespace RimWorldAccess
                     (key == KeyCode.N && Event.current.alt) ||
                     (key == KeyCode.B && Event.current.alt) ||
                     (key == KeyCode.K && Event.current.alt) ||
+                    (key == KeyCode.A && Event.current.alt) ||
                     (key == KeyCode.F && Event.current.alt) ||
                     (key == KeyCode.R && Event.current.alt))
                 {
@@ -4257,6 +4269,38 @@ namespace RimWorldAccess
                     SkillsState.DisplaySkillsInfo();
 
                     // Prevent the default K key behavior
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 6.5276: Assign area with Alt+A (if pawn is selected) =====
+            if (key == KeyCode.A && Event.current.alt)
+            {
+                if (Current.ProgramState == ProgramState.Playing &&
+                    Find.CurrentMap != null &&
+                    (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
+                    !ZoneCreationState.IsInCreationMode)
+                {
+                    // Try pawn at cursor first
+                    Pawn pawn = null;
+                    if (MapNavigationState.IsInitialized)
+                    {
+                        IntVec3 cursorPosition = MapNavigationState.CurrentCursorPosition;
+                        if (cursorPosition.IsValid && cursorPosition.InBounds(Find.CurrentMap))
+                        {
+                            pawn = Find.CurrentMap.thingGrid.ThingsListAt(cursorPosition)
+                                .OfType<Pawn>().FirstOrDefault();
+                        }
+                    }
+
+                    // Fall back to selected pawn
+                    if (pawn == null)
+                        pawn = Find.Selector?.FirstSelectedObject as Pawn;
+
+                    // Open area assignment menu (handles null pawn and unsupported pawns internally)
+                    PawnAreaMenuState.Open(pawn);
+
                     Event.current.Use();
                     return;
                 }
