@@ -48,6 +48,12 @@ namespace RimWorldAccess
                 HandleBedAssignmentInput();
                 return;
             }
+            // Handle BuildingOwnerAssignmentState (generic owner assignment menu)
+            if (BuildingOwnerAssignmentState.IsActive)
+            {
+                HandleBuildingOwnerAssignmentInput();
+                return;
+            }
             // Handle FlickableComponentState (building component menu)
             if (FlickableComponentState.IsActive)
             {
@@ -783,6 +789,36 @@ namespace RimWorldAccess
                     break;
             }
         }
+
+        private static void HandleBuildingOwnerAssignmentInput()
+        {
+            KeyCode key = Event.current.keyCode;
+
+            switch (key)
+            {
+                case KeyCode.UpArrow:
+                    BuildingOwnerAssignmentState.SelectPrevious();
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.DownArrow:
+                    BuildingOwnerAssignmentState.SelectNext();
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.Return:
+                case KeyCode.KeypadEnter:
+                    BuildingOwnerAssignmentState.ExecuteSelected();
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.Escape:
+                    BuildingOwnerAssignmentState.GoBack();
+                    Event.current.Use();
+                    break;
+            }
+        }
+
         private static void HandleFlickableComponentInput()
         {
             KeyCode key = Event.current.keyCode;

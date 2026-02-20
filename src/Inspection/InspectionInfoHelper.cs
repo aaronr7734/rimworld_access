@@ -205,6 +205,38 @@ namespace RimWorldAccess
                         });
                     }
 
+                    // Owner Assignment (non-bed buildings with CompAssignableToPawn)
+                    if (!(building is Building_Bed))
+                    {
+                        var assignComp = building.TryGetComp<CompAssignableToPawn>();
+                        if (assignComp != null && !categories.Any(c => c.Name == "Owner Assignment"))
+                        {
+                            categories.Add(new TabCategoryInfo
+                            {
+                                Name = "Owner Assignment",
+                                Tab = null,
+                                Handler = TabHandlerType.Action,
+                                IsKnown = true,
+                                OriginalCategoryName = "Owner Assignment"
+                            });
+                        }
+                    }
+
+                    // Meditation Focus (meditation spots with Royalty DLC)
+                    if (building.def == ThingDefOf.MeditationSpot
+                        && ModsConfig.RoyaltyActive
+                        && !categories.Any(c => c.Name == "Meditation Focus"))
+                    {
+                        categories.Add(new TabCategoryInfo
+                        {
+                            Name = "Meditation Focus",
+                            Tab = null,
+                            Handler = TabHandlerType.RichNavigation,
+                            IsKnown = true,
+                            OriginalCategoryName = "Meditation Focus"
+                        });
+                    }
+
                     // Plant Selection for plant growers
                     if (building is IPlantToGrowSettable && !categories.Any(c => c.Name == "Plant Selection"))
                     {
@@ -385,6 +417,14 @@ namespace RimWorldAccess
                 // Check for bed assignment
                 if (building is Building_Bed)
                     categories.Add("Bed Assignment");
+
+                // Owner Assignment for non-bed CompAssignableToPawn buildings
+                if (!(building is Building_Bed) && building.TryGetComp<CompAssignableToPawn>() != null)
+                    categories.Add("Owner Assignment");
+
+                // Meditation Focus for meditation spots
+                if (building.def == ThingDefOf.MeditationSpot && ModsConfig.RoyaltyActive)
+                    categories.Add("Meditation Focus");
 
                 // Check for temperature control (coolers, heaters, vents)
                 var tempControl = building.TryGetComp<CompTempControl>();
@@ -752,6 +792,12 @@ namespace RimWorldAccess
                 case "Bed Assignment":
                     return GetBuildingBedAssignmentInfo(building);
 
+                case "Owner Assignment":
+                    return GetBuildingOwnerAssignmentInfo(building);
+
+                case "Meditation Focus":
+                    return GetMeditationFocusInfo(building);
+
                 case "Temperature":
                     return GetBuildingTemperatureInfo(building);
 
@@ -952,6 +998,47 @@ namespace RimWorldAccess
             }
 
             return "This building is not a bed.";
+        }
+
+        /// <summary>
+        /// Gets generic owner assignment information for non-bed buildings.
+        /// </summary>
+        private static string GetBuildingOwnerAssignmentInfo(Building building)
+        {
+            var comp = (building as ThingWithComps)?.TryGetComp<CompAssignableToPawn>();
+            if (comp == null)
+                return "This building does not support owner assignment.";
+
+            var sb = new StringBuilder();
+
+            if (comp.AssignedPawnsForReading.Count > 0)
+            {
+                sb.AppendLine("Assigned to:");
+                foreach (var pawn in comp.AssignedPawnsForReading)
+                {
+                    sb.AppendLine($"  {pawn.LabelShort}");
+                }
+            }
+            else
+            {
+                sb.AppendLine("Not assigned to anyone");
+            }
+
+            sb.AppendLine();
+            sb.AppendLine("Press Enter to change assignments");
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Gets meditation focus information for a meditation spot (fallback text).
+        /// </summary>
+        private static string GetMeditationFocusInfo(Building building)
+        {
+            if (!ModsConfig.RoyaltyActive || !building.Spawned)
+                return "No meditation focus information available.";
+
+            return $"No meditation focus objects nearby. Place focus objects within {MeditationUtility.FocusObjectSearchRadius:F0} cells.";
         }
 
         /// <summary>

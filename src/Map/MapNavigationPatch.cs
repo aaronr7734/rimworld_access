@@ -68,6 +68,7 @@ namespace RimWorldAccess
                 ThingFilterMenuState.IsActive ||
                 TempControlMenuState.IsActive ||
                 BedAssignmentState.IsActive ||
+                BuildingOwnerAssignmentState.IsActive ||
                 WindowlessResearchMenuState.IsActive ||
                 WindowlessResearchDetailState.IsActive ||
                 WindowlessInspectionState.IsActive ||

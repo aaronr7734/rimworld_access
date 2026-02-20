@@ -158,6 +158,7 @@ namespace RimWorldAccess
                 || RefuelableComponentState.IsActive
                 || UninstallControlState.IsActive
                 || BedAssignmentState.IsActive
+                || BuildingOwnerAssignmentState.IsActive
                 // Pawn inspection tabs
                 || HealthTabState.IsActive
                 || PrisonerTabState.IsActive

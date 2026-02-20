@@ -233,10 +233,19 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        // Fallback to detailed info display
-                        item.IsExpandable = true;
-                        item.IsExpanded = false;
-                        item.OnActivate = () => BuildDetailedInfoChildren(item, obj, categoryKey);
+                        if (categoryKey == "Meditation Focus")
+                        {
+                            // No focus objects nearby - show non-expandable warning
+                            item.Label = "Meditation Focus - No focus objects within range";
+                            item.IsExpandable = false;
+                        }
+                        else
+                        {
+                            // Fallback to detailed info display
+                            item.IsExpandable = true;
+                            item.IsExpanded = false;
+                            item.OnActivate = () => BuildDetailedInfoChildren(item, obj, categoryKey);
+                        }
                     }
                     break;
 
@@ -484,6 +493,7 @@ namespace RimWorldAccess
             {
                 return (category == "Bills" && building is IBillGiver) ||
                        (category == "Bed Assignment" && building is Building_Bed) ||
+                       (category == "Owner Assignment" && !(building is Building_Bed) && building.TryGetComp<CompAssignableToPawn>() != null) ||
                        (category == "Temperature" && building.TryGetComp<CompTempControl>() != null) ||
                        (category == "Storage" && building is IStoreSettingsParent) ||
                        (category == "Shells" && building is Building_TurretGun) ||
@@ -531,6 +541,10 @@ namespace RimWorldAccess
             // Pen Food and Pen Auto-Cut are expandable if building has pen marker
             if ((category == "Pen Food" || category == "Pen Auto-Cut") && obj is Building building)
                 return building.TryGetComp<CompAnimalPenMarker>() != null;
+
+            // Meditation Focus is expandable only if there are nearby focus objects
+            if (category == "Meditation Focus" && obj is Building meditationBuilding && meditationBuilding.Spawned)
+                return HasNearbyMeditationFocusObjects(meditationBuilding);
 
             return false;
         }
@@ -605,6 +619,14 @@ namespace RimWorldAccess
             else if (category == "Bed Assignment" && building is Building_Bed bed)
             {
                 BedAssignmentState.Open(bed);
+            }
+            else if (category == "Owner Assignment")
+            {
+                var comp = (building as ThingWithComps)?.TryGetComp<CompAssignableToPawn>();
+                if (comp != null)
+                {
+                    BuildingOwnerAssignmentState.Open(building as ThingWithComps, comp);
+                }
             }
             else if (category == "Temperature")
             {
@@ -718,6 +740,11 @@ namespace RimWorldAccess
                 if (category == "Linked Facilities")
                 {
                     BuildFacilityChildren(categoryItem, building);
+                    return;
+                }
+                if (category == "Meditation Focus")
+                {
+                    BuildMeditationFocusChildren(categoryItem, building);
                     return;
                 }
             }
@@ -3066,6 +3093,101 @@ namespace RimWorldAccess
                     IsExpandable = false
                 });
             }
+        }
+
+        /// <summary>
+        /// Builds children for the Meditation Focus category, listing nearby focus objects.
+        /// </summary>
+        private static void BuildMeditationFocusChildren(InspectionTreeItem parentItem, Building building)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+
+            if (!building.Spawned)
+                return;
+
+            var map = building.Map;
+            var center = building.Position;
+            float searchRadius = MeditationUtility.FocusObjectSearchRadius;
+
+            foreach (Thing thing in GenRadial.RadialDistinctThingsAround(center, map, searchRadius, useCenter: false))
+            {
+                CompMeditationFocus focusComp = thing.TryGetComp<CompMeditationFocus>();
+                if (focusComp == null)
+                    continue;
+
+                if (thing is Building_Throne)
+                    continue;
+
+                var sb = new System.Text.StringBuilder();
+                sb.Append(thing.LabelCap.ToString().StripTags());
+
+                // Focus types
+                if (focusComp.Props.focusTypes != null && focusComp.Props.focusTypes.Count > 0)
+                {
+                    string types = string.Join(", ",
+                        focusComp.Props.focusTypes.Select(f => f.label.CapitalizeFirst()));
+                    sb.Append($" - {types}");
+                }
+
+                // Focus strength
+                float strength = thing.GetStatValue(StatDefOf.MeditationFocusStrength);
+                sb.Append($" - Strength: {strength.ToStringPercent()}");
+
+                // Distance
+                float distance = center.DistanceTo(thing.Position);
+                sb.Append($" - {distance:F1} cells");
+
+                // Line of sight
+                if (!GenSight.LineOfSightToThing(center, thing, map))
+                {
+                    sb.Append(" - No line of sight");
+                }
+
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = sb.ToString(),
+                    IndentLevel = indent,
+                    IsExpandable = false,
+                    LinkedDef = thing.def,
+                    Data = thing
+                });
+            }
+
+            if (parentItem.Children.Count == 0)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = $"No meditation focus objects within {searchRadius:F0} cells.",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+            }
+        }
+
+        /// <summary>
+        /// Checks if there are any meditation focus objects near a building.
+        /// </summary>
+        private static bool HasNearbyMeditationFocusObjects(Building building)
+        {
+            if (!building.Spawned)
+                return false;
+
+            foreach (Thing thing in GenRadial.RadialDistinctThingsAround(
+                building.Position, building.Map, MeditationUtility.FocusObjectSearchRadius, useCenter: false))
+            {
+                if (thing is Building_Throne)
+                    continue;
+
+                if (thing.TryGetComp<CompMeditationFocus>() != null)
+                    return true;
+            }
+
+            return false;
         }
     }
 }
