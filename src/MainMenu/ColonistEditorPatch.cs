@@ -317,10 +317,15 @@ namespace RimWorldAccess
     public class ColonistEditorPatch_PreOpen
     {
         [HarmonyPostfix]
-        static void Postfix()
+        static void Postfix(Page_ConfigureStartingPawns __instance)
         {
             ColonistEditorPatch.ResetAnnouncement();
             ColonistEditorNavigationState.Reset();
+
+            // Restore IMGUI focus to this page. After closing certain dialogs
+            // (e.g., faction relations), IMGUI focus may be lost to an ImmediateWindow,
+            // preventing DoWindowContents from receiving KeyDown events.
+            Find.WindowStack.Notify_ManuallySetFocus(__instance);
         }
     }
 }

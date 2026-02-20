@@ -202,10 +202,15 @@ namespace RimWorldAccess
         }
 
         [HarmonyPostfix]
-        static void Postfix()
+        static void Postfix(Window __instance)
         {
             IdeologySelectionPatch.ResetAnnouncement();
             IdeologyNavigationState.Reset();
+
+            // Restore IMGUI focus to this page. After closing certain dialogs
+            // (e.g., faction relations), IMGUI focus may be lost to an ImmediateWindow,
+            // preventing DoWindowContents from receiving KeyDown events.
+            Find.WindowStack.Notify_ManuallySetFocus(__instance);
         }
     }
 }
