@@ -201,6 +201,10 @@ namespace RimWorldAccess
                         {
                             ColonistEditorNavigationState.CancelTextEdit();
                         }
+                        else
+                        {
+                            AccessTools.Method(typeof(Page), "DoBack").Invoke(__instance, null);
+                        }
                         Event.current.Use();
                         patchActive = true;
                     }
