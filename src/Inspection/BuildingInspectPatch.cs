@@ -306,9 +306,23 @@ namespace RimWorldAccess
 
         private static void HandleBillConfigInput()
         {
+            // Handle range edit submenu first (HP range, quality range)
+            if (RangeEditMenuState.IsActive)
+            {
+                HandleBillConfigRangeEditInput();
+                return;
+            }
+
+            // Handle text input mode (bill rename)
+            if (BillConfigState.IsTextInputMode)
+            {
+                HandleBillRenameInput();
+                return;
+            }
+
             KeyCode key = Event.current.keyCode;
 
-            // Handle numeric input mode first
+            // Handle numeric input mode
             if (BillConfigState.IsNumericInputMode)
             {
                 if (key == KeyCode.Escape)
@@ -451,6 +465,22 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Handle Home - jump to first item
+            if (key == KeyCode.Home && !shift)
+            {
+                BillConfigState.JumpToFirst();
+                Event.current.Use();
+                return;
+            }
+
+            // Handle End - jump to last item
+            if (key == KeyCode.End && !shift)
+            {
+                BillConfigState.JumpToLast();
+                Event.current.Use();
+                return;
+            }
+
             // Handle Arrow Up - navigate with search awareness
             if (key == KeyCode.UpArrow)
             {
@@ -508,6 +538,87 @@ namespace RimWorldAccess
                     BillConfigState.StartNumericInput();
                     Event.current.Use();
                     break;
+            }
+        }
+
+        private static void HandleBillConfigRangeEditInput()
+        {
+            KeyCode key = Event.current.keyCode;
+
+            switch (key)
+            {
+                case KeyCode.UpArrow:
+                    RangeEditMenuState.SelectPrevious();
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.DownArrow:
+                    RangeEditMenuState.SelectNext();
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.LeftArrow:
+                    RangeEditMenuState.DecreaseValue();
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.RightArrow:
+                    RangeEditMenuState.IncreaseValue();
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.Return:
+                case KeyCode.KeypadEnter:
+                    if (RangeEditMenuState.ApplyAndClose(out var hitPoints, out var quality))
+                    {
+                        BillConfigState.ApplyRangeChanges(hitPoints, quality);
+                    }
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.Escape:
+                    RangeEditMenuState.Close();
+                    TolkHelper.Speak("Cancelled range editing");
+                    Event.current.Use();
+                    break;
+            }
+        }
+
+        private static void HandleBillRenameInput()
+        {
+            KeyCode key = Event.current.keyCode;
+
+            if (key == KeyCode.Escape)
+            {
+                BillConfigState.CancelTextInput();
+                Event.current.Use();
+                return;
+            }
+            if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+            {
+                BillConfigState.ConfirmTextInput();
+                Event.current.Use();
+                return;
+            }
+            if (key == KeyCode.Backspace)
+            {
+                TextInputHelper.HandleBackspace();
+                Event.current.Use();
+                return;
+            }
+            // Handle Ctrl+V paste
+            if (Event.current.control && key == KeyCode.V)
+            {
+                TextInputHelper.HandlePaste();
+                Event.current.Use();
+                return;
+            }
+            // Handle character input
+            char c = Event.current.character;
+            if (c != '\0' && !char.IsControl(c))
+            {
+                TextInputHelper.HandleCharacter(c);
+                Event.current.Use();
             }
         }
 
