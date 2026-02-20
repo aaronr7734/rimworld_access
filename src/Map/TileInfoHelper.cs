@@ -1008,6 +1008,7 @@ namespace RimWorldAccess
         {
             var sb = new StringBuilder();
             int limit = 3;
+            bool showCover = RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true;
 
             for (int i = 0; i < pawns.Count && i < limit; i++)
             {
@@ -1017,6 +1018,13 @@ namespace RimWorldAccess
                 string suffix = GetPawnSuffix(pawns[i]);
                 if (!string.IsNullOrEmpty(suffix))
                     sb.Append(suffix);
+
+                if (showCover)
+                {
+                    string coverInfo = CoverHelper.GetCoverInfo(pawns[i]);
+                    if (!string.IsNullOrEmpty(coverInfo))
+                        sb.Append($", {coverInfo}");
+                }
             }
 
             if (pawns.Count > limit)
@@ -1036,23 +1044,25 @@ namespace RimWorldAccess
             int limit = 5; // Allow more when showing activity since we're grouping
             var pawnsToShow = pawns.Take(limit).ToList();
 
-            // Group pawns by activity (and special suffix like hostile/trader)
-            var groups = new List<(List<Pawn> pawns, string activity, string suffix)>();
+            // Group pawns by activity, suffix, and cover info
+            bool showCover = RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true;
+            var groups = new List<(List<Pawn> pawns, string activity, string suffix, string coverInfo)>();
 
             foreach (var pawn in pawnsToShow)
             {
                 string activity = PawnHelper.GetPawnActivity(pawn);
                 string suffix = GetPawnSuffix(pawn);
+                string coverInfo = showCover ? CoverHelper.GetCoverInfo(pawn) : null;
 
-                // Find existing group with same activity and suffix
-                var existingGroup = groups.FirstOrDefault(g => g.activity == activity && g.suffix == suffix);
+                // Find existing group with same activity, suffix, and cover info
+                var existingGroup = groups.FirstOrDefault(g => g.activity == activity && g.suffix == suffix && g.coverInfo == coverInfo);
                 if (existingGroup.pawns != null)
                 {
                     existingGroup.pawns.Add(pawn);
                 }
                 else
                 {
-                    groups.Add((new List<Pawn> { pawn }, activity, suffix));
+                    groups.Add((new List<Pawn> { pawn }, activity, suffix, coverInfo));
                 }
             }
 
@@ -1068,6 +1078,10 @@ namespace RimWorldAccess
                 // Add suffix (hostile/trader) if present
                 if (!string.IsNullOrEmpty(group.suffix))
                     groupText.Append(group.suffix);
+
+                // Add cover info if present (before activity)
+                if (!string.IsNullOrEmpty(group.coverInfo))
+                    groupText.Append($", {group.coverInfo}");
 
                 // Add activity if present
                 if (!string.IsNullOrEmpty(group.activity))

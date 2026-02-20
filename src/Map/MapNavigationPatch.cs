@@ -339,7 +339,15 @@ namespace RimWorldAccess
             if (string.IsNullOrEmpty(currentTask))
                 currentTask = "Idle";
 
-            TolkHelper.Speak($"{selectedPawn.LabelShort} selected - {currentTask}");
+            string announcement = $"{selectedPawn.LabelShort} selected";
+            if (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
+            {
+                string coverInfo = CoverHelper.GetCoverInfo(selectedPawn);
+                if (!string.IsNullOrEmpty(coverInfo))
+                    announcement += $", {coverInfo}";
+            }
+            announcement += $" - {currentTask}";
+            TolkHelper.Speak(announcement);
 
             return false; // Block original method
         }
@@ -407,7 +415,15 @@ namespace RimWorldAccess
             if (string.IsNullOrEmpty(currentTask))
                 currentTask = "Idle";
 
-            TolkHelper.Speak($"{selectedPawn.LabelShort} selected - {currentTask}");
+            string announcement = $"{selectedPawn.LabelShort} selected";
+            if (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
+            {
+                string coverInfo = CoverHelper.GetCoverInfo(selectedPawn);
+                if (!string.IsNullOrEmpty(coverInfo))
+                    announcement += $", {coverInfo}";
+            }
+            announcement += $" - {currentTask}";
+            TolkHelper.Speak(announcement);
 
             return false; // Block original method
         }

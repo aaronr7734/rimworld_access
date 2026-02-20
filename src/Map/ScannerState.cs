@@ -986,13 +986,23 @@ namespace RimWorldAccess
                 basicAnnouncement = $"{item.Label}, here";
             }
 
-            // Add location context and activity for pawns (colonists, NPCs, animals)
+            // Add location context, cover info, and activity for pawns (colonists, NPCs, animals)
             if (item.Thing is Pawn pawn)
             {
                 string locationContext = TileInfoHelper.GetLocationContext(targetPos, Find.CurrentMap);
                 if (!string.IsNullOrEmpty(locationContext))
                 {
                     basicAnnouncement += $" {locationContext}";
+                }
+
+                // Add cover info for drafted/hostile pawns if enabled
+                if (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
+                {
+                    string coverInfo = CoverHelper.GetCoverInfo(pawn);
+                    if (!string.IsNullOrEmpty(coverInfo))
+                    {
+                        basicAnnouncement += $", {coverInfo}";
+                    }
                 }
 
                 // Add pawn activity if enabled in settings
