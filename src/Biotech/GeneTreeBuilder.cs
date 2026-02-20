@@ -88,7 +88,7 @@ namespace RimWorldAccess
         /// <summary>
         /// Creates a tree node for a single gene with expandable details.
         /// </summary>
-        private static InspectionTreeItem CreateGeneNode(GeneDef gene, int indent)
+        public static InspectionTreeItem CreateGeneNode(GeneDef gene, int indent)
         {
             // Build a summary label with key stats
             string label = BuildGeneSummaryLabel(gene);
@@ -230,6 +230,8 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Builds the detail children for a gene node using DescriptionFull.
+        /// Biostats (complexity, metabolism, archites) are added as separate expandable items
+        /// with tooltip descriptions accessible via Right arrow.
         /// </summary>
         private static void BuildGeneDetails(InspectionTreeItem geneNode, GeneDef gene)
         {
@@ -237,6 +239,15 @@ namespace RimWorldAccess
                 return; // Already built
 
             int childIndent = geneNode.IndentLevel + 1;
+
+            // Add explicit biostat items first, each expandable with its tooltip description
+            AddBiostatItems(geneNode, gene, childIndent);
+
+            // Build set of biostat label prefixes to filter from DescriptionFull
+            var biostatPrefixes = new List<string>();
+            biostatPrefixes.Add(((string)"Complexity".Translate()).StripTags());
+            biostatPrefixes.Add(((string)"Metabolism".Translate()).StripTags());
+            biostatPrefixes.Add(((string)"ArchitesRequired".Translate()).StripTags());
 
             // Use the game's DescriptionFull which contains all tooltip information
             string fullDescription = gene.DescriptionFull;
@@ -254,9 +265,9 @@ namespace RimWorldAccess
 
                     if (lines.Length == 1)
                     {
-                        // Single line section - add directly
+                        // Single line section - add directly if not a biostat line
                         string line = lines[0].Trim();
-                        if (!string.IsNullOrEmpty(line))
+                        if (!string.IsNullOrEmpty(line) && !IsBiostatLine(line, biostatPrefixes))
                         {
                             AddChild(geneNode, CreateInfoItem(line, childIndent));
                         }
@@ -294,9 +305,16 @@ namespace RimWorldAccess
                         }
                         else
                         {
-                            // Multi-line without header - join into single item
-                            string combined = string.Join(" ", lines.Select(l => l.Trim()));
-                            AddChild(geneNode, CreateInfoItem(combined, childIndent));
+                            // Multi-line without header - add each line separately,
+                            // filtering out biostat lines (already shown as explicit items)
+                            foreach (var rawLine in lines)
+                            {
+                                string line = rawLine.Trim();
+                                if (!string.IsNullOrEmpty(line) && !IsBiostatLine(line, biostatPrefixes))
+                                {
+                                    AddChild(geneNode, CreateInfoItem(line, childIndent));
+                                }
+                            }
                         }
                     }
                 }
@@ -315,6 +333,87 @@ namespace RimWorldAccess
                     AddChild(geneNode, CreateInfoItem("No additional details available", childIndent));
                 }
             }
+        }
+
+        /// <summary>
+        /// Adds biostat items (complexity, metabolism, archites) as separate expandable
+        /// tree items with tooltip descriptions.
+        /// </summary>
+        private static void AddBiostatItems(InspectionTreeItem parent, GeneDef gene, int indent)
+        {
+            if (gene.biostatCpx != 0)
+            {
+                string label = ((string)"Complexity".Translate()).CapitalizeFirst();
+                var node = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = $"{label}: {gene.biostatCpx.ToStringWithSign()}",
+                    IsExpandable = true,
+                    IsExpanded = false,
+                    IndentLevel = indent
+                };
+                node.OnActivate = () =>
+                {
+                    if (node.Children.Count > 0) return;
+                    string desc = ((string)"ComplexityDesc".Translate()).StripTags();
+                    AddChild(node, CreateInfoItem(desc, indent + 1));
+                };
+                AddChild(parent, node);
+            }
+
+            if (gene.biostatMet != 0)
+            {
+                string label = ((string)"Metabolism".Translate()).CapitalizeFirst();
+                var node = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = $"{label}: {gene.biostatMet.ToStringWithSign()}",
+                    IsExpandable = true,
+                    IsExpanded = false,
+                    IndentLevel = indent
+                };
+                node.OnActivate = () =>
+                {
+                    if (node.Children.Count > 0) return;
+                    string desc = ((string)"MetabolismDesc".Translate()).StripTags();
+                    AddChild(node, CreateInfoItem(desc, indent + 1));
+                };
+                AddChild(parent, node);
+            }
+
+            if (gene.biostatArc != 0)
+            {
+                string label = ((string)"ArchitesRequired".Translate()).CapitalizeFirst();
+                var node = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = $"{label}: {gene.biostatArc.ToStringWithSign()}",
+                    IsExpandable = true,
+                    IsExpanded = false,
+                    IndentLevel = indent
+                };
+                node.OnActivate = () =>
+                {
+                    if (node.Children.Count > 0) return;
+                    string desc = ((string)"ArchitesRequiredDesc".Translate()).StripTags();
+                    AddChild(node, CreateInfoItem(desc, indent + 1));
+                };
+                AddChild(parent, node);
+            }
+        }
+
+        /// <summary>
+        /// Checks if a line is a biostat line that should be filtered from DescriptionFull
+        /// (already shown as an explicit expandable item).
+        /// </summary>
+        private static bool IsBiostatLine(string line, List<string> biostatPrefixes)
+        {
+            foreach (var prefix in biostatPrefixes)
+            {
+                if (line.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -622,7 +721,7 @@ namespace RimWorldAccess
         /// <summary>
         /// Adds a child to a parent and sets the parent reference.
         /// </summary>
-        private static void AddChild(InspectionTreeItem parent, InspectionTreeItem child)
+        public static void AddChild(InspectionTreeItem parent, InspectionTreeItem child)
         {
             child.Parent = parent;
             parent.Children.Add(child);

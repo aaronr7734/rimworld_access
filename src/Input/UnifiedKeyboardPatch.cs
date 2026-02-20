@@ -87,6 +87,14 @@ namespace RimWorldAccess
                             return;
                         }
                     }
+
+                    // XenogermState xenotype name rename
+                    if (XenogermState.IsActive && XenogermState.IsRenaming)
+                    {
+                        TextInputHelper.HandleCharacter(c);
+                        Event.current.Use();
+                        return;
+                    }
                 }
             }
 
@@ -103,6 +111,22 @@ namespace RimWorldAccess
             if (ZoneRenameState.IsActive || StorageRenameState.IsActive || PenRenameState.IsActive)
             {
                 // Don't process any keys in this patch when renaming
+                return;
+            }
+
+            // ===== PRIORITY -0.95: Block ALL keys if xenogerm rename is active =====
+            // Control keys (Enter/Escape/Backspace/Ctrl+V/Tab) handled by XenogermState,
+            // character input handled in keyCode==None section above
+            if (XenogermState.IsActive && XenogermState.IsRenaming)
+            {
+                if (XenogermState.HandleRenameInput(Event.current))
+                {
+                    Event.current.Use();
+                }
+                else
+                {
+                    Event.current.Use(); // Block all other keys while renaming
+                }
                 return;
             }
 
@@ -358,6 +382,17 @@ namespace RimWorldAccess
             if (GrowthMomentState.IsActive)
             {
                 if (GrowthMomentState.HandleInput(key, Event.current.shift, Event.current.control, Event.current.alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY -0.21: Handle Xenogerm Creation dialog if active =====
+            // Gene processor dialog for creating xenogerms (Biotech DLC)
+            if (XenogermState.IsActive)
+            {
+                if (XenogermState.HandleInput(Event.current))
                 {
                     Event.current.Use();
                     return;
