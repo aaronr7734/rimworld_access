@@ -61,6 +61,13 @@ namespace RimWorldAccess
         [HarmonyPrefix]
         public static bool Window_OnAcceptKeyPressed_Prefix(Window __instance)
         {
+            // Block the game's Accept handling when a windowless dialog is active.
+            // Mirrors the existing guard in Window_OnCancelKeyPressed_Prefix.
+            if (WindowlessDialogState.IsActive)
+            {
+                return false;
+            }
+
             // Block Enter handling for Dialog_SplitCaravan when our state is active
             if (__instance is Dialog_SplitCaravan && SplitCaravanState.IsActive)
             {

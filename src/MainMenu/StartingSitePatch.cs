@@ -13,6 +13,7 @@ namespace RimWorldAccess
     {
         private static bool patchActive = false;
         private static bool hasAnnouncedTitle = false;
+        private static bool advancingToNextPage = false;
 
         // Prefix: Initialize state and handle keyboard input
         // NOTE: Most key handling here is duplicated in UnifiedKeyboardPatch at priority 0.55.
@@ -41,7 +42,7 @@ namespace RimWorldAccess
                 }
 
                 // Handle keyboard input
-                if (Event.current.type == EventType.KeyDown)
+                if (Event.current.type == EventType.KeyDown && !WindowlessDialogState.IsActive)
                 {
                     KeyCode keyCode = Event.current.keyCode;
                     bool shift = Event.current.shift;
@@ -231,18 +232,32 @@ namespace RimWorldAccess
         [HarmonyPostfix]
         static void PostClose_Postfix()
         {
-            WorldNavigationState.Close();
-            StartingSiteContext.Close();
-            WorldScannerState.Reset();
-            hasAnnouncedTitle = false;
+            // When advancing to the next page, keep world navigation state alive
+            // so the DoWindowContents Prefix doesn't re-initialize and re-announce
+            // the tile details during the page transition.
+            if (!advancingToNextPage)
+            {
+                WorldNavigationState.Close();
+                StartingSiteContext.Close();
+                WorldScannerState.Reset();
+                hasAnnouncedTitle = false;
+            }
             patchActive = false;
+            advancingToNextPage = false;
         }
 
         // Patch OnAcceptKeyPressed to handle Enter key based on context
         [HarmonyPatch(typeof(Page_SelectStartingSite), "OnAcceptKeyPressed")]
         [HarmonyPrefix]
-        static bool OnAcceptKeyPressed_Prefix()
+        static bool OnAcceptKeyPressed_Prefix(Page_SelectStartingSite __instance)
         {
+            // Block Enter when a windowless dialog is active or was just closed this frame.
+            // Prevents settlement validation from re-triggering when confirming a Dialog_MessageBox.
+            if (WindowlessDialogState.IsActive || WindowlessDialogState.WasClosedThisFrame)
+            {
+                return false;
+            }
+
             // If scanner search is active, don't advance page - Enter confirms search
             if (ScannerSearchState.IsActive)
             {
@@ -276,8 +291,21 @@ namespace RimWorldAccess
                 return false;
             }
 
-            // Tile is valid - allow game to proceed normally
-            return true;
+            // Sync game selection state so the game's DoNext picks up our tile
+            WorldNavigationState.SyncSelectionWithGame();
+
+            // Announce confirmation before advancing
+            TolkHelper.Speak("Starting site selected.");
+
+            // Prevent PostClose from resetting state, which causes the DoWindowContents
+            // Prefix to re-initialize and re-announce during the page transition.
+            advancingToNextPage = true;
+
+            // Call the game's DoNext directly to advance to the next page.
+            // This handles CheckConfirmSettle (proximity warnings) internally.
+            AccessTools.Method(typeof(Page_SelectStartingSite), "DoNext").Invoke(__instance, null);
+
+            return false;
         }
 
         // Postfix: Draw help text and menu overlay
