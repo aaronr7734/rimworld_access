@@ -425,6 +425,27 @@ namespace RimWorldAccess
 
                     if (report.Accepted)
                     {
+                        // Check meditation focus / tree protection before placing
+                        var (placingDef, placingRot) =
+                            MeditationProtectionHelper.GetPlacementInfo(activeDesignator);
+
+                        if (placingDef != null &&
+                            MeditationProtectionHelper.IsArtificialBuilding(
+                                placingDef, Faction.OfPlayer))
+                        {
+                            var protection = MeditationProtectionHelper.CheckProtection(
+                                Find.CurrentMap, placingDef, Faction.OfPlayer,
+                                currentPosition, placingRot);
+
+                            if (protection.IsProtected)
+                            {
+                                string message =
+                                    MeditationProtectionHelper.FormatManualBlockMessage(protection);
+                                TolkHelper.Speak(message);
+                                return true;
+                            }
+                        }
+
                         try
                         {
                             activeDesignator.DesignateSingleCell(currentPosition);

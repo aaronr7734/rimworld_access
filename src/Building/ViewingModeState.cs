@@ -40,6 +40,10 @@ namespace RimWorldAccess
         // Navigation is handled by ScannerState's temporary category
         private static List<IntVec3> obstacleCells = new List<IntVec3>();
 
+        // Track meditation focus / tree protection across segments
+        private static int protectedCount = 0;
+        private static HashSet<string> protectedByLabels = new HashSet<string>();
+
         // Track detected enclosures formed by wall blueprints
         private static List<Enclosure> detectedEnclosures = new List<Enclosure>();
 
@@ -237,6 +241,8 @@ namespace RimWorldAccess
                 cellSegments.Clear();
                 segmentShapeTypes.Clear();
                 obstacleCells.Clear();
+                protectedCount = 0;
+                protectedByLabels.Clear();
                 createdZones.Clear();
                 orderTargets.Clear();
                 orderTargetCells.Clear();
@@ -290,6 +296,24 @@ namespace RimWorldAccess
                 {
                     if (!obstacleCells.Contains(cell))
                         obstacleCells.Add(cell);
+                }
+            }
+
+            // Add protected cells (meditation focus / tree protection) to obstacle list for scanner navigation
+            if (!isDeleteDesignator && result.ProtectedCells != null)
+            {
+                foreach (var cell in result.ProtectedCells)
+                {
+                    if (!obstacleCells.Contains(cell))
+                        obstacleCells.Add(cell);
+                }
+                protectedCount += result.ProtectedCount;
+                if (result.ProtectedByLabels != null)
+                {
+                    foreach (string label in result.ProtectedByLabels)
+                    {
+                        protectedByLabels.Add(label);
+                    }
                 }
             }
 
@@ -393,7 +417,9 @@ namespace RimWorldAccess
                 createdZones,
                 isAreaDesignator,
                 targetArea,
-                isBuiltInAreaDesignator);
+                isBuiltInAreaDesignator,
+                protectedCount,
+                protectedByLabels);
             TolkHelper.Speak(announcement, SpeechPriority.Normal);
 
             int totalPlaced = PlacedCount;
