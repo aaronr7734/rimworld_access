@@ -48,6 +48,14 @@ namespace RimWorldAccess
                 return key;
             }
 
+            // If we see Shift+Alpha8 (US keyboard main-row *), record the frame
+            // just like numpad * so the follow-up character='*' event won't be remapped.
+            if (key == KeyCode.Alpha8 && Event.current.shift)
+            {
+                lastKeypadMultiplyFrame = Time.frameCount;
+                return key;
+            }
+
             if (key != KeyCode.None)
                 return key;
 
