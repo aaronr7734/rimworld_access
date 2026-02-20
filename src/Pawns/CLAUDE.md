@@ -21,6 +21,7 @@ Pawn information, character tabs, policies, and assignments.
 - **Alt+H** - Quick health info
 - **Alt+N** - Quick needs info
 - **Alt+K** - Quick top 3 skills info
+- **Alt+A** - Quick area assignment for selected pawn
 - **F2** - Schedule editor
 - **F3** - Assign menu
 

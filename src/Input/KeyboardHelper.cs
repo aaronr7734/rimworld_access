@@ -158,6 +158,7 @@ namespace RimWorldAccess
                 || RefuelableComponentState.IsActive
                 || UninstallControlState.IsActive
                 || BedAssignmentState.IsActive
+                || BuildingOwnerAssignmentState.IsActive
                 // Pawn inspection tabs
                 || HealthTabState.IsActive
                 || PrisonerTabState.IsActive
@@ -178,6 +179,7 @@ namespace RimWorldAccess
                 || GearEquipMenuState.IsActive
                 || QuantityMenuState.IsActive
                 || AreaSelectionMenuState.IsActive
+                || PawnAreaMenuState.IsActive
                 // History tab
                 || HistoryState.IsActive
                 || HistoryStatisticsState.IsActive

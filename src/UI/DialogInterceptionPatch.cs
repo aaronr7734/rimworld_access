@@ -62,8 +62,13 @@ namespace RimWorldAccess
                         BedAssignmentState.Open(bed);
                         return false; // Prevent dialog from being added
                     }
+                    else if (assignable?.parent is ThingWithComps building)
+                    {
+                        BuildingOwnerAssignmentState.Open(building, assignable);
+                        return false; // Prevent dialog from being added
+                    }
                 }
-                // Fallback: let it through if not a bed or couldn't extract
+                // Fallback: let it through if couldn't extract
                 return true;
             }
 

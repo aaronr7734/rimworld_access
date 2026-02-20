@@ -20,6 +20,7 @@ namespace RimWorldAccess
         private static bool givesColonistOrders = false;
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
         private static List<object> savedSelection = null;
+        private static bool announceOnExecute = true;
 
         // Cached reflection for FloatMenuOption.shownItem (private ThingDef field used as icon)
         private static readonly FieldInfo shownItemField = typeof(FloatMenuOption).GetField("shownItem", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -37,12 +38,13 @@ namespace RimWorldAccess
         /// <summary>
         /// Opens the windowless menu with the given options.
         /// </summary>
-        public static void Open(List<FloatMenuOption> options, bool colonistOrders, int startIndex = 0)
+        public static void Open(List<FloatMenuOption> options, bool colonistOrders, int startIndex = 0, bool announceSelection = true)
         {
             currentOptions = options;
             selectedIndex = System.Math.Max(0, System.Math.Min(startIndex, options.Count - 1));
             isActive = true;
             givesColonistOrders = colonistOrders;
+            announceOnExecute = announceSelection;
             typeahead.ClearSearch();
 
             // Save current selection - some FloatMenu actions expect specific objects to be selected
@@ -128,7 +130,9 @@ namespace RimWorldAccess
 
             // Announce selection - but skip if the action entered placement mode
             // (placement mode already announces its own message, e.g., "bed selected. Size: 1 by 2...")
-            if (!ArchitectState.IsInPlacementMode)
+            // Also skip if the caller suppressed the announcement (e.g., bill config submenus
+            // where the callback already announces the updated state with position context)
+            if (!ArchitectState.IsInPlacementMode && announceOnExecute)
             {
                 TolkHelper.Speak($"{selectedOption.Label} selected");
             }

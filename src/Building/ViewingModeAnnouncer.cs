@@ -65,7 +65,9 @@ namespace RimWorldAccess
             HashSet<Zone> createdZones,
             bool isAreaDesignator = false,
             Area targetArea = null,
-            bool isBuiltInAreaDesignator = false)
+            bool isBuiltInAreaDesignator = false,
+            int protectedCount = 0,
+            HashSet<string> protectedByLabels = null)
         {
             // Use shape type counts for multi-segment, empty for single segment
             string shapeInfo = FormatShapeTypeCounts(segmentShapeTypes);
@@ -140,7 +142,8 @@ namespace RimWorldAccess
                 // Build announcement for build designators with smooth flowing sentences
                 return BuildBuildDesignatorAnnouncement(
                     designator, totalPlaced, segmentInfo, isBuildDesignator,
-                    obstacleCells, detectedEnclosures, placedBlueprints, placedCells);
+                    obstacleCells, detectedEnclosures, placedBlueprints, placedCells,
+                    protectedCount, protectedByLabels);
             }
         }
 
@@ -723,7 +726,9 @@ namespace RimWorldAccess
             List<IntVec3> obstacleCells,
             List<Enclosure> detectedEnclosures,
             List<Thing> placedBlueprints,
-            List<IntVec3> placedCells)
+            List<IntVec3> placedCells,
+            int protectedCount = 0,
+            HashSet<string> protectedByLabels = null)
         {
             var parts = new List<string>();
 
@@ -847,6 +852,18 @@ namespace RimWorldAccess
                     }
 
                     parts.Add(enclosurePart);
+                }
+            }
+
+            // Meditation protection info
+            if (protectedCount > 0 && protectedByLabels != null)
+            {
+                string protectionSummary = MeditationProtectionHelper.FormatShapeSummary(
+                    protectedCount, protectedByLabels);
+                if (!string.IsNullOrEmpty(protectionSummary))
+                {
+                    parts.Add(protectionSummary);
+                    parts.Add("Disable warning toggle on the tree to build here");
                 }
             }
 

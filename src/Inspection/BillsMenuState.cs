@@ -85,6 +85,21 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Rebuilds the menu items while preserving the current selection index.
+        /// Called externally when bill data changes (e.g., after rename).
+        /// </summary>
+        public static void RefreshMenuItems()
+        {
+            if (!isActive || menuItems == null) return;
+            int savedIndex = selectedIndex;
+            BuildMenuItems();
+            if (savedIndex < menuItems.Count)
+                selectedIndex = savedIndex;
+            else if (menuItems.Count > 0)
+                selectedIndex = menuItems.Count - 1;
+        }
+
+        /// <summary>
         /// Builds the menu item list.
         /// </summary>
         private static void BuildMenuItems()
@@ -137,14 +152,14 @@ namespace RimWorldAccess
                     string costInfo = GetBillCostInfo(bill);
                     if (!string.IsNullOrEmpty(costInfo))
                     {
-                        billLabel += $" - {costInfo}";
+                        billLabel += $". {costInfo}";
                     }
 
                     // Add description
                     string description = GetBillDescription(bill);
                     if (!string.IsNullOrEmpty(description))
                     {
-                        billLabel += $" - {description}";
+                        billLabel += $". {description}";
                     }
 
                     if (bill.suspended)
@@ -586,14 +601,14 @@ namespace RimWorldAccess
             string costInfo = GetRecipeCostInfo(recipe);
             if (!string.IsNullOrEmpty(costInfo))
             {
-                label += $" - {costInfo}";
+                label += $". {costInfo}";
             }
 
             // Add description
             string description = GetRecipeDescription(recipe);
             if (!string.IsNullOrEmpty(description))
             {
-                label += $" - {description}";
+                label += $". {description}";
             }
 
             FloatMenuOption option = new FloatMenuOption(label, delegate
@@ -800,20 +815,22 @@ namespace RimWorldAccess
             }
 
             // Add work amount if available
-            if (recipe.workAmount > 0)
+            float workAmount = recipe.WorkAmountTotal(null);
+            if (workAmount > 0f)
             {
-                descriptions.Add($"Work: {recipe.workAmount}");
+                descriptions.Add($"{"WorkAmount".Translate()}: {workAmount.ToStringWorkAmount()}");
             }
 
-            // Add skill requirement if available
-            if (recipe.workSkill != null)
+            // Add minimum skill requirements (or just the skill name if no requirements)
+            if (!recipe.skillRequirements.NullOrEmpty())
             {
-                string skillInfo = recipe.workSkill.LabelCap.ToString();
-                if (recipe.workSkillLearnFactor > 0)
-                {
-                    skillInfo += $" (Learn factor: {recipe.workSkillLearnFactor:F1})";
-                }
-                descriptions.Add(skillInfo);
+                var reqs = recipe.skillRequirements
+                    .Select(r => $"{r.skill.LabelCap} {r.minLevel}");
+                descriptions.Add($"{"MinimumSkills".Translate()}: {string.Join(", ", reqs)}");
+            }
+            else if (recipe.workSkill != null)
+            {
+                descriptions.Add(recipe.workSkill.LabelCap.ToString());
             }
 
             if (descriptions.Count == 0)
@@ -885,20 +902,22 @@ namespace RimWorldAccess
             }
 
             // Add work amount if available
-            if (bill.recipe.workAmount > 0)
+            float workAmount = bill.recipe.WorkAmountTotal(null);
+            if (workAmount > 0f)
             {
-                descriptions.Add($"Work: {bill.recipe.workAmount}");
+                descriptions.Add($"{"WorkAmount".Translate()}: {workAmount.ToStringWorkAmount()}");
             }
 
-            // Add skill requirement if available
-            if (bill.recipe.workSkill != null)
+            // Add minimum skill requirements (or just the skill name if no requirements)
+            if (!bill.recipe.skillRequirements.NullOrEmpty())
             {
-                string skillInfo = bill.recipe.workSkill.LabelCap.ToString();
-                if (bill.recipe.workSkillLearnFactor > 0)
-                {
-                    skillInfo += $" (Learn factor: {bill.recipe.workSkillLearnFactor:F1})";
-                }
-                descriptions.Add(skillInfo);
+                var reqs = bill.recipe.skillRequirements
+                    .Select(r => $"{r.skill.LabelCap} {r.minLevel}");
+                descriptions.Add($"{"MinimumSkills".Translate()}: {string.Join(", ", reqs)}");
+            }
+            else if (bill.recipe.workSkill != null)
+            {
+                descriptions.Add(bill.recipe.workSkill.LabelCap.ToString());
             }
 
             if (descriptions.Count == 0)
