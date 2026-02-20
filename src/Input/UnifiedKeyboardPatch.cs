@@ -3338,6 +3338,14 @@ namespace RimWorldAccess
                         Event.current.Use();
                         return;
                     }
+
+                    // Ctrl+Z clears the active search filter (removes search category only)
+                    if (key == KeyCode.Z && ctrl && !shift && !alt && !ScannerSearchState.IsActive && ScannerSearchState.HasActiveFilter)
+                    {
+                        ScannerSearchState.ClearActiveFilter();
+                        Event.current.Use();
+                        return;
+                    }
                 }
             }
 
