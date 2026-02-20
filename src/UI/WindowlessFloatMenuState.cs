@@ -38,7 +38,9 @@ namespace RimWorldAccess
         /// <summary>
         /// Opens the windowless menu with the given options.
         /// </summary>
-        public static void Open(List<FloatMenuOption> options, bool colonistOrders, int startIndex = 0, bool announceSelection = true)
+        /// <param name="playOpenSound">Whether to play FloatMenu_Open sound. Set to false when
+        /// the vanilla FloatMenu constructor already played it (e.g. DialogInterceptionPatch).</param>
+        public static void Open(List<FloatMenuOption> options, bool colonistOrders, int startIndex = 0, bool announceSelection = true, bool playOpenSound = true)
         {
             currentOptions = options;
             selectedIndex = System.Math.Max(0, System.Math.Min(startIndex, options.Count - 1));
@@ -49,6 +51,10 @@ namespace RimWorldAccess
 
             // Save current selection - some FloatMenu actions expect specific objects to be selected
             savedSelection = Find.Selector?.SelectedObjects?.ToList();
+
+            // Play menu open sound (matches vanilla FloatMenu constructor behavior)
+            if (playOpenSound)
+                SoundDefOf.FloatMenu_Open.PlayOneShotOnCamera();
 
             // Announce the first option
             AnnounceCurrentSelection();
@@ -104,6 +110,7 @@ namespace RimWorldAccess
 
             if (selectedOption.Disabled)
             {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 TolkHelper.Speak(selectedOption.Label + " - unavailable");
                 return;
             }
@@ -125,8 +132,13 @@ namespace RimWorldAccess
             // This allows the action to open a new menu if needed
             Close();
 
-            // Call the Chosen method to execute the option's action
-            selectedOption.Chosen(givesColonistOrders, null);
+            // Play colonist ordered sound manually (since we bypass the visual FloatMenu,
+            // Chosen()'s internal sound doesn't fire — same pattern as manual draft sounds)
+            if (givesColonistOrders)
+                SoundDefOf.ColonistOrdered.PlayOneShotOnCamera();
+
+            // Pass colonistOrdering: false to Chosen() since we handle the sound ourselves
+            selectedOption.Chosen(false, null);
 
             // Announce selection - but skip if the action entered placement mode
             // (placement mode already announces its own message, e.g., "bed selected. Size: 1 by 2...")
