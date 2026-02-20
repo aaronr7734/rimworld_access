@@ -1,16 +1,14 @@
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using RimWorld;
 using UnityEngine;
 using Verse;
-using Verse.Sound;
 
 namespace RimWorldAccess
 {
     /// <summary>
     /// Manages keyboard navigation state for Dialog_FactionDuringLanding.
-    /// Provides a flat list of factions with typeahead search, opened via F key during starting site selection.
+    /// Provides a treeview of factions with expandable sections and typeahead search,
+    /// opened via F key during starting site selection.
     /// </summary>
     public static class FactionLandingState
     {
@@ -25,9 +23,7 @@ namespace RimWorldAccess
         internal static int escapeHandledOnFrame = -1;
 
         private static Dialog_FactionDuringLanding currentDialog;
-        private static List<Faction> factions = new List<Faction>();
-        private static int selectedIndex = 0;
-        private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
+        private static FactionTreeNavigation navigation = new FactionTreeNavigation();
 
         /// <summary>
         /// Opens the faction landing state for a dialog.
@@ -45,11 +41,8 @@ namespace RimWorldAccess
             dialog.closeOnAccept = false;
             dialog.closeOnCancel = false;
 
-            factions = BuildFactionList();
-            selectedIndex = 0;
-            typeahead.ClearSearch();
-
-            AnnounceOpening();
+            List<Faction> factions = FactionHelper.BuildFactionList();
+            navigation.Initialize(factions);
         }
 
         /// <summary>
@@ -59,9 +52,7 @@ namespace RimWorldAccess
         {
             IsActive = false;
             currentDialog = null;
-            factions.Clear();
-            selectedIndex = 0;
-            typeahead.ClearSearch();
+            navigation.Reset();
         }
 
         /// <summary>
@@ -74,269 +65,24 @@ namespace RimWorldAccess
             if (!IsActive || ev.type != EventType.KeyDown)
                 return false;
 
-            KeyCode key = ev.keyCode;
-
-            // Alt+I — open info card for selected faction
-            if (ev.alt && key == KeyCode.I)
-            {
-                OpenInfoCard();
+            // Delegate to shared tree navigation
+            if (navigation.HandleInput(ev))
                 return true;
-            }
 
-            // Escape — clear search first, then close dialog
-            if (key == KeyCode.Escape)
+            // Escape with no active search — close dialog
+            if (ev.keyCode == KeyCode.Escape)
             {
-                if (typeahead.HasActiveSearch)
-                {
-                    typeahead.ClearSearchAndAnnounce();
-                    AnnounceCurrentFaction();
-                    return true;
-                }
                 CloseDialog();
                 return true;
             }
 
-            // Up arrow
-            if (key == KeyCode.UpArrow)
-            {
-                if (factions.Count == 0) return true;
-                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
-                {
-                    int prev = typeahead.GetPreviousMatch(selectedIndex);
-                    if (prev >= 0)
-                    {
-                        selectedIndex = prev;
-                        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                        AnnounceWithSearch();
-                    }
-                }
-                else
-                {
-                    selectedIndex = MenuHelper.SelectPrevious(selectedIndex, factions.Count);
-                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                    AnnounceCurrentFaction();
-                }
-                return true;
-            }
-
-            // Down arrow
-            if (key == KeyCode.DownArrow)
-            {
-                if (factions.Count == 0) return true;
-                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
-                {
-                    int next = typeahead.GetNextMatch(selectedIndex);
-                    if (next >= 0)
-                    {
-                        selectedIndex = next;
-                        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                        AnnounceWithSearch();
-                    }
-                }
-                else
-                {
-                    selectedIndex = MenuHelper.SelectNext(selectedIndex, factions.Count);
-                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                    AnnounceCurrentFaction();
-                }
-                return true;
-            }
-
-            // Home — first faction
-            if (key == KeyCode.Home)
-            {
-                if (factions.Count == 0) return true;
-                typeahead.ClearSearch();
-                selectedIndex = 0;
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                AnnounceCurrentFaction();
-                return true;
-            }
-
-            // End — last faction
-            if (key == KeyCode.End)
-            {
-                if (factions.Count == 0) return true;
-                typeahead.ClearSearch();
-                selectedIndex = factions.Count - 1;
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                AnnounceCurrentFaction();
-                return true;
-            }
-
-            // Space — re-announce current faction
-            if (key == KeyCode.Space)
-            {
-                AnnounceCurrentFaction();
-                return true;
-            }
-
-            // Enter — consumed (do nothing, prevents dialog close)
-            if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
-            {
-                return true;
-            }
-
-            // Backspace — delete last search character
-            if (key == KeyCode.Backspace && typeahead.HasActiveSearch)
-            {
-                var labels = factions.Select(f => f.Name).ToList();
-                if (typeahead.ProcessBackspace(labels, out int newIndex))
-                {
-                    if (newIndex >= 0)
-                        selectedIndex = newIndex;
-                    SoundDefOf.Click.PlayOneShotOnCamera();
-                    AnnounceWithSearch();
-                }
-                return true;
-            }
-
-            // Typeahead search — alphanumeric keys
-            {
-                bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
-                bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
-
-                if ((isLetter || isNumber) && !ev.alt && !ev.control)
-                {
-                    char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                    HandleTypeahead(c);
-                    return true;
-                }
-            }
-
-            // Consume all other keys while dialog is open to prevent pass-through
             return true;
         }
 
         #region Private Methods
 
         /// <summary>
-        /// Builds the list of visible factions. Delegates to FactionHelper.
-        /// </summary>
-        private static List<Faction> BuildFactionList() => FactionHelper.BuildFactionList();
-
-        /// <summary>
-        /// Builds the full announcement string for a faction. Delegates to FactionHelper.
-        /// </summary>
-        private static string BuildFactionAnnouncement(Faction faction) => FactionHelper.BuildFactionAnnouncement(faction);
-
-        /// <summary>
-        /// Appends text as a new sentence. Delegates to FactionHelper.
-        /// </summary>
-        private static void AppendSentence(StringBuilder sb, string text) => FactionHelper.AppendSentence(sb, text);
-
-        /// <summary>
-        /// Announces the dialog opening and the first faction.
-        /// </summary>
-        private static void AnnounceOpening()
-        {
-            if (factions.Count > 0)
-            {
-                var sb = new StringBuilder($"Faction relations, {factions.Count} factions");
-                AppendSentence(sb, BuildFactionAnnouncement(factions[0]));
-
-                string position = MenuHelper.FormatPosition(0, factions.Count);
-                if (!string.IsNullOrEmpty(position))
-                    AppendSentence(sb, position);
-
-                TolkHelper.Speak(sb.ToString());
-            }
-            else
-            {
-                TolkHelper.Speak("Faction relations. No factions.");
-            }
-        }
-
-        /// <summary>
-        /// Announces the currently selected faction with full details and position.
-        /// </summary>
-        private static void AnnounceCurrentFaction()
-        {
-            if (factions.Count == 0 || selectedIndex < 0 || selectedIndex >= factions.Count)
-                return;
-
-            string announcement = BuildFactionAnnouncement(factions[selectedIndex]);
-            string position = MenuHelper.FormatPosition(selectedIndex, factions.Count);
-            if (!string.IsNullOrEmpty(position))
-            {
-                var sb = new StringBuilder(announcement);
-                AppendSentence(sb, position);
-                announcement = sb.ToString();
-            }
-
-            TolkHelper.Speak(announcement);
-        }
-
-        /// <summary>
-        /// Announces the current faction with search context.
-        /// </summary>
-        private static void AnnounceWithSearch()
-        {
-            if (factions.Count == 0 || selectedIndex < 0 || selectedIndex >= factions.Count)
-                return;
-
-            Faction faction = factions[selectedIndex];
-            string name = faction.Name.CapitalizeFirst();
-            string relation = faction.PlayerRelationKind.GetLabelCap();
-
-            // Shorter announcement during search for readability
-            var sb = new StringBuilder();
-            sb.Append(name);
-
-            if (faction.HasGoodwill && !faction.def.permanentEnemy)
-            {
-                sb.Append($", {relation}, goodwill {faction.PlayerGoodwill.ToStringWithSign()}");
-            }
-            else
-            {
-                sb.Append($", {relation}");
-            }
-
-            sb.Append($", {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'");
-            TolkHelper.Speak(sb.ToString());
-        }
-
-        /// <summary>
-        /// Handles typeahead search character input.
-        /// </summary>
-        private static void HandleTypeahead(char c)
-        {
-            var labels = factions.Select(f => f.Name).ToList();
-
-            if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
-            {
-                selectedIndex = newIndex;
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                AnnounceWithSearch();
-            }
-            else
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'.");
-            }
-        }
-
-        /// <summary>
-        /// Opens a Dialog_InfoCard for the currently selected faction.
-        /// InfoCardPatch will auto-activate InfoCardState via PostOpen.
-        /// </summary>
-        private static void OpenInfoCard()
-        {
-            if (factions.Count == 0 || selectedIndex < 0 || selectedIndex >= factions.Count)
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No faction selected.");
-                return;
-            }
-
-            Faction faction = factions[selectedIndex];
-            Find.WindowStack.Add(new Dialog_InfoCard(faction));
-        }
-
-        /// <summary>
         /// Closes the dialog via WindowStack and announces closure.
-        /// Calls Close() directly rather than relying on PostClose patch,
-        /// which may not fire reliably for all Window subclasses.
         /// </summary>
         private static void CloseDialog()
         {

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -142,7 +143,7 @@ namespace RimWorldAccess
         /// Only includes situations that cap max goodwill below 100.
         /// Returns null if no ongoing events.
         /// </summary>
-        private static string BuildOngoingEvents(Faction faction)
+        internal static string BuildOngoingEvents(Faction faction)
         {
             var situations = Find.GoodwillSituationManager.GetSituations(faction);
             var parts = new List<string>();
@@ -167,7 +168,7 @@ namespace RimWorldAccess
         /// Looks at events within the last 3,600,000 ticks (~60 in-game days).
         /// Returns null if no recent events with goodwill impact.
         /// </summary>
-        private static string BuildRecentEvents(Faction faction)
+        internal static string BuildRecentEvents(Faction faction)
         {
             var allEventDefs = DefDatabase<HistoryEventDef>.AllDefsListForReading;
             var tmpTicks = new List<int>();
@@ -207,6 +208,158 @@ namespace RimWorldAccess
                 return null;
 
             return $"Recent: {string.Join(", ", parts)}";
+        }
+
+        /// <summary>
+        /// Builds a treeview of factions. Root is hidden (IndentLevel -1).
+        /// Each faction is a collapsible level-0 node with the full announcement as its label.
+        /// Children are individual sections (type, leader, relation, etc.).
+        /// Description child is expandable with each line as a grandchild.
+        /// </summary>
+        public static InspectionTreeItem BuildFactionTree(List<Faction> factions)
+        {
+            var root = new InspectionTreeItem
+            {
+                Label = "Factions",
+                IndentLevel = -1,
+                IsExpandable = true,
+                IsExpanded = true
+            };
+
+            foreach (var faction in factions)
+            {
+                var factionNode = BuildFactionNode(faction);
+                factionNode.Parent = root;
+                root.Children.Add(factionNode);
+            }
+
+            return root;
+        }
+
+        private static InspectionTreeItem BuildFactionNode(Faction faction)
+        {
+            var node = new InspectionTreeItem
+            {
+                Label = BuildFactionAnnouncement(faction),
+                IndentLevel = 0,
+                IsExpandable = true,
+                IsExpanded = false,
+                Data = faction,
+                Type = InspectionTreeItem.ItemType.Category
+            };
+
+            // Faction type
+            AddChildNode(node, faction.def.LabelCap.Resolve());
+
+            // Defeated status
+            if (faction.defeated)
+                AddChildNode(node, "Defeated");
+
+            // Leader info
+            if (faction.leader != null)
+            {
+                string leaderTitle = faction.LeaderTitle.CapitalizeFirst();
+                string leaderName = faction.leader.Name.ToStringFull;
+                AddChildNode(node, $"{leaderTitle}: {leaderName}");
+            }
+
+            // Relation and goodwill
+            string relation = faction.PlayerRelationKind.GetLabelCap();
+            if (faction.HasGoodwill && !faction.def.permanentEnemy)
+            {
+                AddChildNode(node, $"{relation}, goodwill {faction.PlayerGoodwill.ToStringWithSign()}, natural goodwill {faction.NaturalGoodwill.ToStringWithSign()}");
+
+                string ongoing = BuildOngoingEvents(faction);
+                if (!string.IsNullOrEmpty(ongoing))
+                    AddChildNode(node, ongoing);
+
+                string recent = BuildRecentEvents(faction);
+                if (!string.IsNullOrEmpty(recent))
+                    AddChildNode(node, recent);
+            }
+            else if (faction.def.permanentEnemy)
+            {
+                AddChildNode(node, $"{relation}, permanent enemy");
+            }
+            else
+            {
+                AddChildNode(node, relation);
+            }
+
+            // Ideology
+            if (ModsConfig.IdeologyActive && !Find.IdeoManager.classicMode && faction.ideos != null)
+            {
+                if (faction.ideos.PrimaryIdeo != null)
+                    AddChildNode(node, $"Ideology: {faction.ideos.PrimaryIdeo.name}");
+
+                var minor = faction.ideos.IdeosMinorListForReading;
+                if (minor != null && minor.Count > 0)
+                {
+                    var minorNames = minor.Select(i => i.name);
+                    AddChildNode(node, $"Minor ideologies: {string.Join(", ", minorNames)}");
+                }
+            }
+
+            // Enemy-of list
+            var enemies = Find.FactionManager.AllFactionsInViewOrder
+                .Where(f => f != faction && f.HostileTo(faction) && !f.IsPlayer && !f.Hidden)
+                .ToArray();
+            if (enemies.Length > 0)
+            {
+                var enemyNames = enemies.Select(f => f.Name).ToArray();
+                AddChildNode(node, $"Enemy of: {string.Join(", ", enemyNames)}");
+            }
+
+            // Description (expandable with lines as grandchildren)
+            string description = faction.def.Description;
+            if (!string.IsNullOrEmpty(description))
+            {
+                string[] lines = description.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+                if (lines.Length <= 1)
+                {
+                    // Single line — non-expandable leaf with the full text
+                    AddChildNode(node, description.Trim());
+                }
+                else
+                {
+                    // Multi-line — expandable node with each line as a grandchild
+                    var descNode = new InspectionTreeItem
+                    {
+                        Label = description.Replace("\r", "").Replace("\n", " ").Trim(),
+                        IndentLevel = 1,
+                        IsExpandable = true,
+                        IsExpanded = false,
+                        Parent = node,
+                        Type = InspectionTreeItem.ItemType.SubCategory
+                    };
+
+                    foreach (string line in lines)
+                    {
+                        string trimmed = line.Trim();
+                        if (!string.IsNullOrEmpty(trimmed))
+                            AddChildNode(descNode, trimmed);
+                    }
+
+                    if (descNode.Children.Count > 0)
+                        node.Children.Add(descNode);
+                }
+            }
+
+            return node;
+        }
+
+        private static void AddChildNode(InspectionTreeItem parent, string label)
+        {
+            parent.Children.Add(new InspectionTreeItem
+            {
+                Label = label,
+                IndentLevel = parent.IndentLevel + 1,
+                IsExpandable = false,
+                IsExpanded = false,
+                Parent = parent,
+                Type = InspectionTreeItem.ItemType.DetailText
+            });
         }
     }
 }
