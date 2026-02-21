@@ -4190,6 +4190,22 @@ namespace RimWorldAccess
                     Event.current.Use();
                     return;
                 }
+
+                // Ctrl+Alt+I: open info card for currently selected pawn
+                if (alt && ctrl && key == KeyCode.I)
+                {
+                    Pawn selectedPawn = Find.Selector?.SingleSelectedThing as Pawn;
+                    if (selectedPawn != null)
+                    {
+                        Find.WindowStack.Add(new Dialog_InfoCard(selectedPawn));
+                    }
+                    else
+                    {
+                        TolkHelper.Speak("No pawn selected");
+                    }
+                    Event.current.Use();
+                    return;
+                }
             }
 
             // ===== PRIORITY 6.5: Display mood info with Alt+M (if pawn is selected) =====
