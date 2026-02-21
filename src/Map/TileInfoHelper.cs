@@ -46,43 +46,66 @@ namespace RimWorldAccess
                 }
             }
 
-            // Get all things at this position
-            List<Thing> things = position.GetThingList(map);
-
-            // Categorize things (filtering out motes and visual effects)
-            var pawns = new List<Pawn>();
-            var buildings = new List<Building>();
-            var blueprintsAndFrames = new List<Thing>(); // Blueprints and frames for building info
-            var items = new List<Thing>();
-            var plants = new List<Plant>();
-
-            foreach (var thing in things)
+            // Collect designations and partition by target type
+            var allDesignations = map.designationManager.AllDesignationsAt(position).ToList();
+            var thingDesignations = new Dictionary<Thing, List<Designation>>();
+            var cellDesignations = new List<Designation>();
+            foreach (var designation in allDesignations)
             {
-                // Skip motes and visual-only things
-                if (thing is Mote || thing.def.category == ThingCategory.Mote)
-                    continue;
-
-                if (thing is Pawn pawn)
-                    pawns.Add(pawn);
-                else if (thing is Building building)
-                    buildings.Add(building);
-                else if (thing is Blueprint || thing is Frame)
-                    blueprintsAndFrames.Add(thing);
-                else if (thing is Plant plant)
-                    plants.Add(plant);
+                if (designation.target.HasThing)
+                {
+                    if (!thingDesignations.TryGetValue(designation.target.Thing, out var dlist))
+                    {
+                        dlist = new List<Designation>();
+                        thingDesignations[designation.target.Thing] = dlist;
+                    }
+                    dlist.Add(designation);
+                }
                 else
-                    items.Add(thing);
+                {
+                    cellDesignations.Add(designation);
+                }
             }
 
-            // Sort buildings by priority (doors first, then walls, then by category)
-            buildings = buildings.OrderBy(b => GetBuildingPriority(b)).ToList();
+            // Get all things sorted by AltitudeLayer descending (game's visual priority)
+            var sortedThings = position.GetThingList(map)
+                .Where(t => !(t is Mote) && t.def.category != ThingCategory.Mote)
+                .OrderByDescending(t => (int)t.def.altitudeLayer)
+                .ToList();
+
+            // Separate pawns for grouped formatting; collect remaining things
+            var pawns = new List<Pawn>();
+            var nonPawnThings = new List<Thing>();
+            bool hasBuildings = false;
+            foreach (var thing in sortedThings)
+            {
+                if (thing is Pawn pawn)
+                {
+                    if (!pawn.IsHiddenFromPlayer())
+                        pawns.Add(pawn);
+                }
+                else
+                {
+                    nonPawnThings.Add(thing);
+                    if (thing is Building)
+                        hasBuildings = true;
+                }
+            }
 
             bool addedSomething = false;
 
-            // Add pawns with optional activity grouping
+            // 1. Cell-targeted designations (e.g., "mine", "smooth floor")
+            foreach (var designation in cellDesignations)
+            {
+                if (addedSomething) sb.Append(", ");
+                sb.Append(GetDesignationLabel(designation));
+                addedSomething = true;
+            }
+
+            // 2. Pawns (grouped by activity, no truncation)
             if (pawns.Count > 0)
             {
-                string pawnsText = FormatPawnsForTileSummary(pawns);
+                string pawnsText = FormatPawnsForTileSummary(pawns, thingDesignations);
                 if (!string.IsNullOrEmpty(pawnsText))
                 {
                     if (addedSomething) sb.Append(", ");
@@ -91,196 +114,133 @@ namespace RimWorldAccess
                 }
             }
 
-            // Add buildings with cell-specific info, temperature info and transport pod info
-            foreach (var building in buildings.Take(2))
+            // 3. Non-pawn things in AltitudeLayer order (no truncation)
+            foreach (var thing in nonPawnThings)
             {
                 if (addedSomething) sb.Append(", ");
 
-                // Special handling for frames (construction in progress)
-                if (building is Frame frame)
+                if (thing is Frame frame)
                 {
                     sb.Append(frame.LabelEntityToBuild);
                     sb.Append(", building");
-
-                    // Check if supplies are fully delivered
                     if (frame.IsCompleted())
                     {
-                        // All materials delivered - show work remaining
                         sb.Append(", work left: ");
                         sb.Append(frame.WorkLeft.ToStringWorkAmount());
                     }
                     else
                     {
-                        // Still waiting for supplies to be hauled
                         sb.Append(", awaiting supplies");
                     }
-
-                    // Add cell-specific suffix for frames (e.g., "(head)" for bed frame)
                     string frameCellInfo = BuildingCellHelper.GetCellPrefix(frame, position);
                     if (!string.IsNullOrEmpty(frameCellInfo))
                     {
                         sb.Append($" ({frameCellInfo})");
                     }
                 }
-                else
+                else if (thing is Building building)
                 {
-                    // Normal building handling
-                    // Check if this is a smoothed stone wall and add "wall" suffix
                     string buildingLabel = building.LabelShort;
                     if (building.def.defName.StartsWith("Smoothed") && building.def.building != null && !building.def.building.isNaturalRock)
                     {
                         buildingLabel += " wall";
                     }
-
-                    // Add door open/closed state
                     if (building is Building_Door door)
                     {
                         buildingLabel += door.Open ? " (open)" : " (closed)";
                     }
-
                     sb.Append(buildingLabel);
 
-                    // Add cell-specific suffix (e.g., "(head)" for bed, "(fuel port east)" for launcher)
                     string cellInfo = BuildingCellHelper.GetCellPrefix(building, position);
                     if (!string.IsNullOrEmpty(cellInfo))
                     {
                         sb.Append($" ({cellInfo})");
                     }
-
-                    // Add temperature control information if building is a cooler/heater
                     string tempControlInfo = GetTemperatureControlInfo(building);
                     if (!string.IsNullOrEmpty(tempControlInfo))
                     {
                         sb.Append(", ");
                         sb.Append(tempControlInfo);
                     }
-
-                    // Add transport pod connection info
                     string transportPodInfo = GetTransportPodInfo(building, map);
                     if (!string.IsNullOrEmpty(transportPodInfo))
                     {
                         sb.Append(", ");
                         sb.Append(transportPodInfo);
                     }
-
-                    // Add work/process progress for active buildings
                     string progressInfo = GetBuildingProgressInfo(building);
                     if (!string.IsNullOrEmpty(progressInfo))
                     {
                         sb.Append(", ");
                         sb.Append(progressInfo);
                     }
-                }
-
-                addedSomething = true;
-            }
-            if (buildings.Count > 2)
-            {
-                if (addedSomething) sb.Append(", ");
-                sb.Append($"and {buildings.Count - 2} more buildings");
-                addedSomething = true;
-            }
-
-            // Add blueprints with cell-specific info (e.g., "(head)" for bed blueprints)
-            // Note: Frames extend Building, so they are handled in the buildings loop above
-            foreach (var thing in blueprintsAndFrames.Take(2))
-            {
-                if (addedSomething) sb.Append(", ");
-
-                sb.Append(thing.LabelShort);
-
-                // Add cell-specific suffix (e.g., "(head)" for bed blueprint, "(fuel port east)" for launcher)
-                string cellInfo = BuildingCellHelper.GetCellPrefix(thing, position);
-                if (!string.IsNullOrEmpty(cellInfo))
-                {
-                    sb.Append($" ({cellInfo})");
-                }
-
-                // Add storage group name for storage blueprints
-                // Note: Blueprint_Storage uses explicit interface implementation, so we cast explicitly
-                if (thing is RimWorld.Blueprint_Storage blueprintStorage)
-                {
-                    var storageMember = (IStorageGroupMember)blueprintStorage;
-                    if (storageMember.Group != null)
+                    // Inline storage group with the building
+                    if (building is IStorageGroupMember storageMember && storageMember.Group != null)
                     {
                         sb.Append(", ");
                         sb.Append(storageMember.Group.RenamableLabel);
                     }
                 }
-
-                addedSomething = true;
-            }
-            if (blueprintsAndFrames.Count > 2)
-            {
-                if (addedSomething) sb.Append(", ");
-                sb.Append($"and {blueprintsAndFrames.Count - 2} more blueprints");
-                addedSomething = true;
-            }
-
-            // Separate unfinished things (crafting in progress) from regular items
-            var unfinishedThings = new List<UnfinishedThing>();
-            var regularItems = new List<Thing>();
-            foreach (var item in items)
-            {
-                if (item is UnfinishedThing uft)
-                    unfinishedThings.Add(uft);
-                else
-                    regularItems.Add(item);
-            }
-
-            // Add unfinished things with work progress
-            foreach (var unfinished in unfinishedThings.Take(2))
-            {
-                if (addedSomething) sb.Append(", ");
-                sb.Append(unfinished.LabelShort);
-                if (unfinished.Initialized)
+                else if (thing is Blueprint blueprint)
                 {
-                    sb.Append(", work left: ");
-                    sb.Append(unfinished.workLeft.ToStringWorkAmount());
+                    sb.Append(blueprint.LabelShort);
+                    string cellInfo = BuildingCellHelper.GetCellPrefix(blueprint, position);
+                    if (!string.IsNullOrEmpty(cellInfo))
+                    {
+                        sb.Append($" ({cellInfo})");
+                    }
+                    if (blueprint is RimWorld.Blueprint_Storage blueprintStorage)
+                    {
+                        var storageBpMember = (IStorageGroupMember)blueprintStorage;
+                        if (storageBpMember.Group != null)
+                        {
+                            sb.Append(", ");
+                            sb.Append(storageBpMember.Group.RenamableLabel);
+                        }
+                    }
                 }
+                else if (thing is Plant plant)
+                {
+                    sb.Append(plant.LabelMouseover);
+                }
+                else if (thing is UnfinishedThing unfinished)
+                {
+                    sb.Append(unfinished.LabelShort);
+                    if (unfinished.Initialized)
+                    {
+                        sb.Append(", work left: ");
+                        sb.Append(unfinished.workLeft.ToStringWorkAmount());
+                    }
+                }
+                else
+                {
+                    // Regular items
+                    string itemLabel = thing.LabelMouseover;
+                    CompForbiddable forbiddable = thing.TryGetComp<CompForbiddable>();
+                    if (forbiddable != null && forbiddable.Forbidden)
+                    {
+                        itemLabel = "Forbidden " + itemLabel;
+                    }
+                    sb.Append(itemLabel);
+                }
+
+                // Append thing-targeted designations in parentheses
+                if (thingDesignations.TryGetValue(thing, out var thingDesigs))
+                {
+                    foreach (var desig in thingDesigs)
+                    {
+                        sb.Append($" ({GetDesignationLabel(desig)})");
+                    }
+                }
+
                 addedSomething = true;
             }
-            if (unfinishedThings.Count > 2)
-            {
-                if (addedSomething) sb.Append(", ");
-                sb.Append($"and {unfinishedThings.Count - 2} more unfinished items");
-                addedSomething = true;
-            }
 
-            // Add regular items (grouped by label)
-            if (regularItems.Count > 0)
-            {
-                if (addedSomething) sb.Append(", ");
-
-                var groupedItems = GroupItemsByLabel(regularItems);
-                sb.Append(string.Join(", ", groupedItems));
-
-                addedSomething = true;
-            }
-
-            // Add plants if present and nothing else important
-            if (plants.Count > 0 && !addedSomething)
-            {
-                sb.Append(plants[0].LabelShort);
-                addedSomething = true;
-            }
-
-            // Add designation/order information BEFORE terrain (orders are more important)
-            string designationsInfo = GetDesignationsInfo(position, map);
-            if (!string.IsNullOrEmpty(designationsInfo))
-            {
-                if (addedSomething) sb.Append(", ");
-                sb.Append(designationsInfo);
-                addedSomething = true;
-            }
-
-            // Check if terrain has no audio match - if so, announce terrain name
+            // 4. Terrain (only if no audio match)
             TerrainDef terrain = position.GetTerrain(map);
             if (terrain != null && !TerrainAudioHelper.HasAudioMatch(terrain))
             {
                 if (addedSomething) sb.Append(", ");
-
-                // Check if this is a smooth stone floor and add "floor" suffix
                 string terrainLabel = terrain.LabelCap;
                 if (terrain.defName.EndsWith("_Smooth"))
                 {
@@ -290,9 +250,20 @@ namespace RimWorldAccess
                 addedSomething = true;
             }
 
-            // Check if this is an empty fueling port cell (where pod should be placed)
-            // Only check if no buildings are on this tile
-            if (buildings.Count == 0)
+            // 5. Roof status (after terrain - both environmental info)
+            RoofDef roof = position.GetRoof(map);
+            if (roof != null)
+            {
+                string roofText = roof.isNatural ? "underground" : "roofed";
+                if (addedSomething)
+                    sb.Append(", " + roofText);
+                else
+                    sb.Append(roofText);
+                addedSomething = true;
+            }
+
+            // 6. Empty fueling port cell (only if no buildings on tile)
+            if (!hasBuildings)
             {
                 string fuelingPortInfo = GetEmptyFuelingPortInfo(position, map);
                 if (!string.IsNullOrEmpty(fuelingPortInfo))
@@ -303,37 +274,12 @@ namespace RimWorldAccess
                 }
             }
 
-            // Add zone information if present
+            // 7. Zone information
             Zone zone = position.GetZone(map);
             if (zone != null)
             {
                 if (addedSomething) sb.Append(", ");
                 sb.Append(zone.label);
-                addedSomething = true;
-            }
-
-            // Add storage group information for storage buildings
-            foreach (var building in buildings)
-            {
-                if (building is IStorageGroupMember storageMember && storageMember.Group != null)
-                {
-                    if (addedSomething) sb.Append(", ");
-                    sb.Append(storageMember.Group.RenamableLabel);
-                    addedSomething = true;
-                    break; // Only announce once per tile
-                }
-            }
-
-            // Add roofed status (only if roofed, not unroofed)
-            // Natural rock roof (overhead mountain) = "underground", constructed roof = "roofed"
-            RoofDef roof = position.GetRoof(map);
-            if (roof != null)
-            {
-                string roofText = roof.isNatural ? "underground" : "roofed";
-                if (addedSomething)
-                    sb.Append(", " + roofText);
-                else
-                    sb.Append(roofText);
                 addedSomething = true;
             }
 
@@ -984,7 +930,7 @@ namespace RimWorldAccess
         /// <summary>
         /// Formats a list of pawns for tile summary, optionally grouping by activity.
         /// </summary>
-        private static string FormatPawnsForTileSummary(List<Pawn> pawns)
+        private static string FormatPawnsForTileSummary(List<Pawn> pawns, Dictionary<Thing, List<Designation>> thingDesignations = null)
         {
             if (pawns == null || pawns.Count == 0)
                 return null;
@@ -993,27 +939,29 @@ namespace RimWorldAccess
 
             if (!showActivity)
             {
-                // Simple format without activity
-                return FormatPawnsSimple(pawns);
+                return FormatPawnsSimple(pawns, thingDesignations);
             }
 
-            // Group pawns by activity for smarter display
-            return FormatPawnsWithActivityGrouping(pawns);
+            return FormatPawnsWithActivityGrouping(pawns, thingDesignations);
         }
 
         /// <summary>
-        /// Simple pawn formatting without activity (original behavior).
+        /// Simple pawn formatting without activity.
         /// </summary>
-        private static string FormatPawnsSimple(List<Pawn> pawns)
+        private static string FormatPawnsSimple(List<Pawn> pawns, Dictionary<Thing, List<Designation>> thingDesignations = null)
         {
             var sb = new StringBuilder();
-            int limit = 3;
             bool showCover = RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true;
 
-            for (int i = 0; i < pawns.Count && i < limit; i++)
+            for (int i = 0; i < pawns.Count; i++)
             {
                 if (i > 0) sb.Append(", ");
                 sb.Append(pawns[i].LabelShort);
+
+                // Append designations targeting this pawn (e.g., "hunt", "tame")
+                string designationSuffix = GetThingDesignationSuffix(pawns[i], thingDesignations);
+                if (!string.IsNullOrEmpty(designationSuffix))
+                    sb.Append($" ({designationSuffix})");
 
                 string suffix = GetPawnSuffix(pawns[i]);
                 if (!string.IsNullOrEmpty(suffix))
@@ -1027,11 +975,6 @@ namespace RimWorldAccess
                 }
             }
 
-            if (pawns.Count > limit)
-            {
-                sb.Append($", and {pawns.Count - limit} more pawns");
-            }
-
             return sb.ToString();
         }
 
@@ -1039,30 +982,28 @@ namespace RimWorldAccess
         /// Formats pawns with activity grouping.
         /// Pawns doing the same activity are grouped: "A and B (sleeping)"
         /// </summary>
-        private static string FormatPawnsWithActivityGrouping(List<Pawn> pawns)
+        private static string FormatPawnsWithActivityGrouping(List<Pawn> pawns, Dictionary<Thing, List<Designation>> thingDesignations = null)
         {
-            int limit = 5; // Allow more when showing activity since we're grouping
-            var pawnsToShow = pawns.Take(limit).ToList();
-
-            // Group pawns by activity, suffix, and cover info
+            // Group pawns by activity, suffix, cover info, and designations
             bool showCover = RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true;
-            var groups = new List<(List<Pawn> pawns, string activity, string suffix, string coverInfo)>();
+            var groups = new List<(List<Pawn> pawns, string activity, string suffix, string coverInfo, string designationInfo)>();
 
-            foreach (var pawn in pawnsToShow)
+            foreach (var pawn in pawns)
             {
                 string activity = PawnHelper.GetPawnActivity(pawn);
                 string suffix = GetPawnSuffix(pawn);
                 string coverInfo = showCover ? CoverHelper.GetCoverInfo(pawn) : null;
+                string designationInfo = GetThingDesignationSuffix(pawn, thingDesignations);
 
-                // Find existing group with same activity, suffix, and cover info
-                var existingGroup = groups.FirstOrDefault(g => g.activity == activity && g.suffix == suffix && g.coverInfo == coverInfo);
+                // Find existing group with same activity, suffix, cover info, and designations
+                var existingGroup = groups.FirstOrDefault(g => g.activity == activity && g.suffix == suffix && g.coverInfo == coverInfo && g.designationInfo == designationInfo);
                 if (existingGroup.pawns != null)
                 {
                     existingGroup.pawns.Add(pawn);
                 }
                 else
                 {
-                    groups.Add((new List<Pawn> { pawn }, activity, suffix, coverInfo));
+                    groups.Add((new List<Pawn> { pawn }, activity, suffix, coverInfo, designationInfo));
                 }
             }
 
@@ -1071,9 +1012,11 @@ namespace RimWorldAccess
             foreach (var group in groups)
             {
                 string names = FormatPawnNames(group.pawns);
-
-                // Build the display string
                 var groupText = new StringBuilder(names);
+
+                // Add designation info if present (e.g., "(hunt)")
+                if (!string.IsNullOrEmpty(group.designationInfo))
+                    groupText.Append($" ({group.designationInfo})");
 
                 // Add suffix (hostile/trader) if present
                 if (!string.IsNullOrEmpty(group.suffix))
@@ -1090,14 +1033,7 @@ namespace RimWorldAccess
                 parts.Add(groupText.ToString());
             }
 
-            string result = string.Join(", ", parts);
-
-            if (pawns.Count > limit)
-            {
-                result += $", and {pawns.Count - limit} more pawns";
-            }
-
-            return result;
+            return string.Join(", ", parts);
         }
 
         /// <summary>
@@ -1205,6 +1141,18 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Gets designation labels for a specific thing (e.g., "chop" for a tree, "hunt" for an animal).
+        /// Returns comma-separated labels or null if no designations target this thing.
+        /// </summary>
+        private static string GetThingDesignationSuffix(Thing thing, Dictionary<Thing, List<Designation>> thingDesignations)
+        {
+            if (thingDesignations == null || !thingDesignations.TryGetValue(thing, out var designations) || designations.Count == 0)
+                return null;
+
+            return string.Join(", ", designations.Select(d => GetDesignationLabel(d)));
+        }
+
+        /// <summary>
         /// Gets information about designations/orders at a tile.
         /// Returns a comma-separated list of active designations.
         /// </summary>
@@ -1282,44 +1230,6 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Groups items by their label and returns formatted strings with counts.
-        /// Forbidden items are grouped separately from non-forbidden items.
-        /// Format: "name" for single items, "name Nx" for multiple identical items.
-        /// </summary>
-        private static List<string> GroupItemsByLabel(List<Thing> items)
-        {
-            var result = new List<string>();
-
-            // Group by label + forbidden status
-            var groups = new Dictionary<string, int>();
-
-            foreach (var item in items)
-            {
-                string label = item.LabelShort;
-                CompForbiddable forbiddable = item.TryGetComp<CompForbiddable>();
-                bool isForbidden = forbiddable != null && forbiddable.Forbidden;
-
-                string key = isForbidden ? "Forbidden " + label : label;
-
-                if (groups.TryGetValue(key, out var count))
-                    groups[key] = count + 1;
-                else
-                    groups[key] = 1;
-            }
-
-            // Format each group
-            foreach (var kvp in groups)
-            {
-                if (kvp.Value > 1)
-                    result.Add($"{kvp.Key} {kvp.Value}x");
-                else
-                    result.Add(kvp.Key);
-            }
-
-            return result;
-        }
-
-        /// <summary>
         /// Gets work/process progress information for buildings with active processes.
         /// Returns a formatted string like "fermenting, 45%" or null if no progress to report.
         /// </summary>
@@ -1339,27 +1249,6 @@ namespace RimWorldAccess
             }
 
             return null;
-        }
-
-        /// <summary>
-        /// Gets sort priority for buildings. Lower = announced first.
-        /// </summary>
-        private static int GetBuildingPriority(Building b)
-        {
-            if (b is Building_Door) return 0;
-            if (b.def.building != null && b.def.building.isNaturalRock) return 1;
-
-            var category = b.def.designationCategory?.defName;
-            switch (category)
-            {
-                case "Structure": return 2;
-                case "Furniture": return 3;
-                case "Production": return 4;
-                case "Security": return 5;
-                case "Temperature": return 6;
-                case "Power": return 7;
-                default: return 8;
-            }
         }
 
         /// <summary>
