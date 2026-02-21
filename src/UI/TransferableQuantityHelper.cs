@@ -89,17 +89,17 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Shift+Home - set to maximum
+            // Shift+Home - set to zero (minimum)
             if (key == KeyCode.Home && shift && !ctrl && !alt)
             {
-                SetToMax(getTransferable, onChanged);
+                SetToZero(getTransferable, onChanged);
                 return true;
             }
 
-            // Shift+End - set to zero
+            // Shift+End - set to maximum
             if (key == KeyCode.End && shift && !ctrl && !alt)
             {
-                SetToZero(getTransferable, onChanged);
+                SetToMax(getTransferable, onChanged);
                 return true;
             }
 

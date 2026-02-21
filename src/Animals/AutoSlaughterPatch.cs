@@ -61,5 +61,24 @@ namespace RimWorldAccess
                 return true;
             }
         }
+
+        /// <summary>
+        /// Patch for Window.OnCancelKeyPressed to block the game's Escape key handling.
+        /// Event.current.Use() is NOT sufficient to block RimWorld's Escape handling -
+        /// the KeyBindingDef system fires independently. Without this patch, the game
+        /// processes Escape on Dialog_AutoSlaughter after our handler already ran,
+        /// which can interfere with closing the parent Animals menu.
+        /// </summary>
+        [HarmonyPatch(typeof(Window), "OnCancelKeyPressed")]
+        public static class Window_OnCancelKeyPressed_Patch
+        {
+            [HarmonyPrefix]
+            public static bool Prefix(Window __instance)
+            {
+                if (__instance is Dialog_AutoSlaughter)
+                    return false;
+                return true;
+            }
+        }
     }
 }

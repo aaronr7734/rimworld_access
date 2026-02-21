@@ -1542,8 +1542,8 @@ namespace RimWorldAccess
                 {
                     if (TradeNavigationState.IsInQuantityMode || shift)
                     {
-                        // Home or Shift+Home: max action (context-aware)
-                        TradeNavigationState.SetToMaximumAction();
+                        // Home or Shift+Home: set to minimum (most selling)
+                        TradeNavigationState.SetToMinimumAction();
                     }
                     else
                     {
@@ -1556,8 +1556,8 @@ namespace RimWorldAccess
                 {
                     if (TradeNavigationState.IsInQuantityMode || shift)
                     {
-                        // End or Shift+End: opposite or reset (context-aware)
-                        TradeNavigationState.SetToOppositeOrReset();
+                        // End or Shift+End: set to maximum (most buying)
+                        TradeNavigationState.SetToMaximumAction();
                     }
                     else
                     {
@@ -1950,12 +1950,12 @@ namespace RimWorldAccess
                     StorytellerSelectionState.OpenResetToPresetMenu();
                     handled = true;
                 }
-                // Home - Jump to first (or Shift+Home in settings = max value)
+                // Home - Jump to first (or Shift+Home in settings = min value)
                 else if (key == KeyCode.Home)
                 {
                     if (Event.current.shift && inSettingsList)
                     {
-                        StorytellerSelectionState.SetCurrentSettingToMax();
+                        StorytellerSelectionState.SetCurrentSettingToMin();
                     }
                     else
                     {
@@ -1963,12 +1963,12 @@ namespace RimWorldAccess
                     }
                     handled = true;
                 }
-                // End - Jump to last (or Shift+End in settings = min value)
+                // End - Jump to last (or Shift+End in settings = max value)
                 else if (key == KeyCode.End)
                 {
                     if (Event.current.shift && inSettingsList)
                     {
-                        StorytellerSelectionState.SetCurrentSettingToMin();
+                        StorytellerSelectionState.SetCurrentSettingToMax();
                     }
                     else
                     {

@@ -460,13 +460,13 @@ namespace RimWorldAccess
             // Min/Max jumps
             if (key == KeyCode.Home && shift)
             {
-                BillConfigState.JumpToMax();
+                BillConfigState.JumpToMin();
                 Event.current.Use();
                 return;
             }
             if (key == KeyCode.End && shift)
             {
-                BillConfigState.JumpToMin();
+                BillConfigState.JumpToMax();
                 Event.current.Use();
                 return;
             }
@@ -1091,13 +1091,13 @@ namespace RimWorldAccess
             // Min/Max jumps (Shift+Home/End for values)
             if (key == KeyCode.Home && shift && !ctrl)
             {
-                FishingZoneMenuState.JumpToMax();
+                FishingZoneMenuState.JumpToMin();
                 Event.current.Use();
                 return;
             }
             if (key == KeyCode.End && shift && !ctrl)
             {
-                FishingZoneMenuState.JumpToMin();
+                FishingZoneMenuState.JumpToMax();
                 Event.current.Use();
                 return;
             }

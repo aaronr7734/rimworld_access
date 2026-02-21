@@ -509,17 +509,17 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Home - jump to max
+            // Home - jump to min
             if (key == KeyCode.Home)
             {
-                JumpToMax();
+                JumpToMin();
                 return true;
             }
 
-            // End - jump to min
+            // End - jump to max
             if (key == KeyCode.End)
             {
-                JumpToMin();
+                JumpToMax();
                 return true;
             }
 

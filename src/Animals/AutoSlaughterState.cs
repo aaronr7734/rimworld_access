@@ -607,7 +607,7 @@ namespace RimWorldAccess
         {
             if (!isNumericInputMode) return;
 
-            if (int.TryParse(numericBuffer, out int value) && value >= 0)
+            if (int.TryParse(numericBuffer, out int value) && (value >= 0 || value == -1))
             {
                 var config = configs[currentRowIndex];
                 var column = (Column)currentColumnIndex;
@@ -617,7 +617,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("Invalid number");
+                TolkHelper.Speak("Invalid number. Use minus 1 for unlimited");
             }
 
             isNumericInputMode = false;
@@ -737,6 +737,13 @@ namespace RimWorldAccess
                     HandleNumericBackspace();
                     return true;
                 }
+                // Minus key: allow typing negative sign for -1 (unlimited)
+                if ((key == KeyCode.Minus || key == KeyCode.KeypadMinus) && numericBuffer.Length == 0)
+                {
+                    numericBuffer = "-";
+                    TolkHelper.Speak("minus", SpeechPriority.Low);
+                    return true;
+                }
                 if (key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9)
                 {
                     HandleNumericDigit((char)('0' + (key - KeyCode.Alpha0)));
@@ -751,7 +758,7 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Escape: clear search first, then close dialog
+            // Escape: clear search first, then close everything (auto-slaughter + animals menu)
             if (key == KeyCode.Escape)
             {
                 if (typeahead.HasActiveSearch)
@@ -760,11 +767,28 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    if (currentDialog != null)
-                    {
-                        Find.WindowStack.TryRemove(currentDialog, doCloseSound: false);
-                    }
-                    Close();
+                    string slaughterSummary = BuildSlaughterSummary();
+                    var dialog = currentDialog;
+
+                    // Clear state BEFORE removing dialog to prevent PostClose from calling Close() again
+                    IsActive = false;
+                    currentDialog = null;
+                    configs.Clear();
+                    cachedCounts.Clear();
+                    typeahead.ClearSearch();
+                    isNumericInputMode = false;
+                    numericBuffer = "";
+
+                    if (dialog != null)
+                        Find.WindowStack.TryRemove(dialog, doCloseSound: false);
+
+                    // Close animals menu entirely
+                    bool hasSlaughter = !string.IsNullOrEmpty(slaughterSummary);
+                    AnimalsMenuState.Close(silent: hasSlaughter);
+
+                    // If slaughtering, announce with summary
+                    if (hasSlaughter)
+                        TolkHelper.Speak($"Animals menu closed. {slaughterSummary}");
                 }
                 return true;
             }
@@ -787,7 +811,7 @@ namespace RimWorldAccess
             if (key == KeyCode.Home)
             {
                 if (shift && !ctrl)
-                    SetToUnlimited();
+                    SetToZero();
                 else
                     JumpToFirst();
                 return true;
@@ -795,7 +819,7 @@ namespace RimWorldAccess
             if (key == KeyCode.End)
             {
                 if (shift && !ctrl)
-                    SetToZero();
+                    SetToUnlimited();
                 else
                     JumpToLast();
                 return true;
@@ -886,9 +910,30 @@ namespace RimWorldAccess
                 }
             }
 
-            // Tab: consume to prevent vanilla behavior
+            // Tab/Shift+Tab: close auto-slaughter, return to animals menu
             if (key == KeyCode.Tab)
             {
+                string slaughterSummary = BuildSlaughterSummary();
+                var dialog = currentDialog;
+
+                // Clear state BEFORE removing dialog to prevent PostClose from calling Close() again
+                IsActive = false;
+                currentDialog = null;
+                configs.Clear();
+                cachedCounts.Clear();
+                typeahead.ClearSearch();
+                isNumericInputMode = false;
+                numericBuffer = "";
+
+                if (dialog != null)
+                    Find.WindowStack.TryRemove(dialog, doCloseSound: false);
+
+                // Announce slaughter summary if any, otherwise just the menu name
+                if (!string.IsNullOrEmpty(slaughterSummary))
+                    TolkHelper.Speak(slaughterSummary);
+                else
+                    TolkHelper.Speak("Animals menu");
+
                 return true;
             }
 

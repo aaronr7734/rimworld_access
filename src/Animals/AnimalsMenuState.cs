@@ -76,7 +76,7 @@ namespace RimWorldAccess
             AnnounceCurrentCell(includeAnimalName: true);
         }
 
-        public static void Close()
+        public static void Close(bool silent = false)
         {
             IsActive = false;
             activeSubmenu = SubmenuType.None;
@@ -86,8 +86,11 @@ namespace RimWorldAccess
             // Ensure any stale designator from area management is cleared
             Find.DesignatorManager?.Deselect();
 
-            SoundDefOf.TabClose.PlayOneShotOnCamera();
-            TolkHelper.Speak("Animals menu closed");
+            if (!silent)
+            {
+                SoundDefOf.TabClose.PlayOneShotOnCamera();
+                TolkHelper.Speak("Animals menu closed");
+            }
         }
 
         public static void SelectNextAnimal()
