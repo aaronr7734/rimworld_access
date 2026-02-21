@@ -25,6 +25,7 @@ namespace RimWorldAccess
         private static FieldInfo dialogTitleDefField;
         private static FieldInfo dialogFactionField;
         private static FieldInfo dialogStuffField;
+        private static MethodInfo getWorkTypeDisableCausesMethod;
 
         static InfoCardDataExtractor()
         {
@@ -72,6 +73,11 @@ namespace RimWorldAccess
             dialogStuffField = typeof(Dialog_InfoCard).GetField(
                 "stuff",
                 BindingFlags.NonPublic | BindingFlags.Instance
+            );
+
+            getWorkTypeDisableCausesMethod = typeof(CharacterCardUtility).GetMethod(
+                "GetWorkTypeDisableCauses",
+                BindingFlags.NonPublic | BindingFlags.Static
             );
         }
 
@@ -398,33 +404,102 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets incapable work types for a pawn.
+        /// Gets incapable work tag info for a pawn, organized by WorkTag.
+        /// Each entry includes the tag label (with inline causes), and affected work type defs.
+        /// Mirrors the vanilla CharacterCardUtility tooltip structure.
         /// </summary>
-        public static List<string> GetIncapableWorkTypes(Pawn pawn)
+        public static List<(string tagLabel, List<WorkTypeDef> affectedWorkTypes)> GetIncapableWorkTagsInfo(Pawn pawn)
         {
-            var incapable = new List<string>();
+            var result = new List<(string, List<WorkTypeDef>)>();
 
             if (pawn?.story == null)
-                return incapable;
+                return result;
 
             try
             {
                 WorkTags disabled = pawn.CombinedDisabledWorkTags;
+                if (disabled == WorkTags.None)
+                    return result;
 
-                foreach (WorkTypeDef workType in DefDatabase<WorkTypeDef>.AllDefsListForReading)
+                foreach (WorkTags tag in disabled.GetAllSelectedItems<WorkTags>())
                 {
-                    if ((workType.workTags & disabled) != 0)
+                    if (tag == WorkTags.None)
+                        continue;
+
+                    string tagLabel = tag.LabelTranslated().CapitalizeFirst();
+
+                    // Build inline cause string
+                    string causeStr = GetCauseString(pawn, tag);
+                    if (!string.IsNullOrEmpty(causeStr))
+                        tagLabel += " (" + causeStr + ")";
+
+                    var affectedWorkTypes = new List<WorkTypeDef>();
+                    foreach (WorkTypeDef workTypeDef in DefDatabase<WorkTypeDef>.AllDefs)
                     {
-                        incapable.Add(workType.labelShort.CapitalizeFirst());
+                        if ((workTypeDef.workTags & tag) > WorkTags.None)
+                        {
+                            affectedWorkTypes.Add(workTypeDef);
+                        }
                     }
+
+                    result.Add((tagLabel, affectedWorkTypes));
                 }
             }
             catch (Exception ex)
             {
-                Log.Error($"[InfoCardDataExtractor] Error getting incapable work: {ex.Message}");
+                Log.Error($"[InfoCardDataExtractor] Error getting incapable work tags: {ex.Message}");
             }
 
-            return incapable.Distinct().ToList();
+            return result;
+        }
+
+        private static string GetCauseString(Pawn pawn, WorkTags tag)
+        {
+            if (getWorkTypeDisableCausesMethod == null)
+                return null;
+
+            try
+            {
+                var causeObjects = getWorkTypeDisableCausesMethod.Invoke(
+                    null, new object[] { pawn, tag }) as List<object>;
+                if (causeObjects == null || causeObjects.Count == 0)
+                    return null;
+
+                var parts = new List<string>();
+                foreach (var cause in causeObjects)
+                {
+                    string formatted = FormatWorkTagDisableCause(pawn, cause);
+                    if (!string.IsNullOrEmpty(formatted))
+                        parts.Add(formatted);
+                }
+                return parts.Count > 0 ? string.Join(", ", parts) : null;
+            }
+            catch (Exception ex)
+            {
+                Log.Warning($"[InfoCardDataExtractor] Error getting disable causes for {tag}: {ex.Message}");
+                return null;
+            }
+        }
+
+        private static string FormatWorkTagDisableCause(Pawn pawn, object cause)
+        {
+            if (cause is BackstoryDef backstory)
+                return "IncapableOfTooltipBackstory".Translate() + ": " + backstory.TitleFor(pawn.gender).CapitalizeFirst();
+            if (cause is Trait trait)
+                return "IncapableOfTooltipTrait".Translate() + ": " + trait.LabelCap;
+            if (cause is Hediff hediff)
+                return "IncapableOfTooltipHediff".Translate() + ": " + hediff.LabelCap;
+            if (cause is RoyalTitle royalTitle)
+                return "IncapableOfTooltipTitle".Translate() + ": " + royalTitle.def.GetLabelFor(pawn);
+            if (cause is Quest quest)
+                return "IncapableOfTooltipQuest".Translate() + ": " + quest.name;
+            if (cause is Precept_Role role)
+                return "IncapableOfTooltipRole".Translate() + ": " + role.LabelForPawn(pawn);
+            if (cause is Gene gene)
+                return "IncapableOfTooltipGene".Translate() + ": " + gene.LabelCap;
+            if (cause is MutantDef mutantDef)
+                return "IncapableOfTooltipMutant".Translate() + ": " + mutantDef.LabelCap;
+            return cause?.ToString() ?? "";
         }
 
         /// <summary>
