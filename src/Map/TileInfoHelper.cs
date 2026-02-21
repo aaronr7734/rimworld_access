@@ -241,7 +241,10 @@ namespace RimWorldAccess
             if (terrain != null && !TerrainAudioHelper.HasAudioMatch(terrain))
             {
                 if (addedSomething) sb.Append(", ");
-                string terrainLabel = terrain.LabelCap;
+                bool isPolluted = position.IsPolluted(map);
+                string terrainLabel = isPolluted
+                    ? (string)"PollutedTerrain".Translate(terrain.label).CapitalizeFirst()
+                    : (string)terrain.LabelCap;
                 if (terrain.defName.EndsWith("_Smooth"))
                 {
                     terrainLabel += " floor";
@@ -323,7 +326,11 @@ namespace RimWorldAccess
             TerrainDef terrain = position.GetTerrain(map);
             if (terrain != null)
             {
-                sb.AppendLine($"Terrain: {terrain.LabelCap}");
+                bool isPolluted = position.IsPolluted(map);
+                string terrainLabel = isPolluted
+                    ? (string)"PollutedTerrain".Translate(terrain.label).CapitalizeFirst()
+                    : (string)terrain.LabelCap;
+                sb.AppendLine($"Terrain: {terrainLabel}");
             }
 
             // Get all things
@@ -532,7 +539,11 @@ namespace RimWorldAccess
             if (terrain == null)
                 return "no terrain information";
 
-            sb.Append(terrain.LabelCap);
+            bool isPolluted = position.IsPolluted(map);
+            string terrainLabel = isPolluted
+                ? (string)"PollutedTerrain".Translate(terrain.label).CapitalizeFirst()
+                : (string)terrain.LabelCap;
+            sb.Append(terrainLabel);
 
             // Add fertility if the terrain has it (matches MouseoverReadout display)
             float fertility = position.GetFertility(map);
