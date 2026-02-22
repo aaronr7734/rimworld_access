@@ -39,9 +39,21 @@ namespace RimWorldAccess
             "Close"
         };
 
+        // Callback invoked when this editor closes (used to return to Assign menu)
+        private static System.Action onCloseCallback = null;
+
         public static bool IsActive => isActive;
         public static ApparelPolicy SelectedPolicy => selectedPolicy;
         public static NavigationMode CurrentMode => currentMode;
+
+        /// <summary>
+        /// Opens the outfit policy management interface with an optional close callback.
+        /// </summary>
+        public static void Open(ApparelPolicy initialPolicy, System.Action onClose)
+        {
+            onCloseCallback = onClose;
+            Open(initialPolicy);
+        }
 
         /// <summary>
         /// Opens the outfit policy management interface.
@@ -81,6 +93,10 @@ namespace RimWorldAccess
             currentMode = NavigationMode.PolicyList;
 
             TolkHelper.Speak("Outfit policy manager closed");
+
+            var callback = onCloseCallback;
+            onCloseCallback = null;
+            callback?.Invoke();
         }
 
         /// <summary>

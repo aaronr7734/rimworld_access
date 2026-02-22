@@ -3642,26 +3642,245 @@ namespace RimWorldAccess
                 }
             }
 
-            // ===== PRIORITY 4.779: Handle assign menu typeahead if active =====
-            if (AssignMenuState.IsActive)
+            // ===== PRIORITY 4.778: Handle assign menu if active =====
+            // Skip if float menu is open (e.g., ] context menu for policies)
+            // Skip if dialog is active (e.g., Rename Policy dialog)
+            if (AssignMenuState.IsActive && !WindowlessFloatMenuState.IsActive &&
+                !WindowlessDialogState.IsActive)
             {
+                bool handled = false;
+                var typeahead = AssignMenuState.Typeahead;
+
+                // Check if in submenu
+                if (AssignMenuState.IsInSubmenu)
+                {
+                    var submenuTypeahead = AssignMenuState.SubmenuTypeahead;
+
+                    // Handle Escape - clear search FIRST, then close submenu
+                    if (key == KeyCode.Escape)
+                    {
+                        if (submenuTypeahead.HasActiveSearch)
+                        {
+                            submenuTypeahead.ClearSearchAndAnnounce();
+                            AssignMenuState.AnnounceSubmenuOption();
+                        }
+                        else
+                        {
+                            AssignMenuState.SubmenuCancel();
+                        }
+                        handled = true;
+                    }
+                    // Handle Backspace for search
+                    else if (key == KeyCode.Backspace)
+                    {
+                        AssignMenuState.SubmenuHandleBackspace();
+                        handled = true;
+                    }
+                    // Handle Down arrow (use typeahead if active with matches)
+                    else if (key == KeyCode.DownArrow)
+                    {
+                        if (submenuTypeahead.HasActiveSearch && !submenuTypeahead.HasNoMatches)
+                        {
+                            int newIndex = submenuTypeahead.GetNextMatch(AssignMenuState.SubmenuSelectedIndex);
+                            if (newIndex >= 0)
+                            {
+                                AssignMenuState.SetSubmenuSelectedIndex(newIndex);
+                                AssignMenuState.AnnounceSubmenuOption();
+                            }
+                        }
+                        else
+                        {
+                            AssignMenuState.SubmenuSelectNext();
+                        }
+                        handled = true;
+                    }
+                    // Handle Up arrow (use typeahead if active with matches)
+                    else if (key == KeyCode.UpArrow)
+                    {
+                        if (submenuTypeahead.HasActiveSearch && !submenuTypeahead.HasNoMatches)
+                        {
+                            int newIndex = submenuTypeahead.GetPreviousMatch(AssignMenuState.SubmenuSelectedIndex);
+                            if (newIndex >= 0)
+                            {
+                                AssignMenuState.SetSubmenuSelectedIndex(newIndex);
+                                AssignMenuState.AnnounceSubmenuOption();
+                            }
+                        }
+                        else
+                        {
+                            AssignMenuState.SubmenuSelectPrevious();
+                        }
+                        handled = true;
+                    }
+                    else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                    {
+                        AssignMenuState.SubmenuApply();
+                        handled = true;
+                    }
+
+                    if (handled)
+                    {
+                        Event.current.Use();
+                        return;
+                    }
+
+                    // Handle typeahead characters in submenu
+                    bool isSubmenuLetter = key >= KeyCode.A && key <= KeyCode.Z;
+                    bool isSubmenuNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
+
+                    if (isSubmenuLetter || isSubmenuNumber)
+                    {
+                        char c = isSubmenuLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
+                        AssignMenuState.SubmenuHandleTypeahead(c);
+                        Event.current.Use();
+                        return;
+                    }
+
+                    // Consume other keys in submenu
+                    Event.current.Use();
+                    return;
+                }
+
+                // Main table handling
+                // Handle Home - jump to first
+                if (key == KeyCode.Home)
+                {
+                    AssignMenuState.JumpToFirst();
+                    handled = true;
+                }
+                // Handle End - jump to last
+                else if (key == KeyCode.End)
+                {
+                    AssignMenuState.JumpToLast();
+                    handled = true;
+                }
+                // Handle Escape - clear search FIRST, then close
+                else if (key == KeyCode.Escape)
+                {
+                    if (typeahead != null && typeahead.HasActiveSearch)
+                    {
+                        typeahead.ClearSearchAndAnnounce();
+                        AssignMenuState.AnnounceWithSearch();
+                        handled = true;
+                    }
+                    else
+                    {
+                        AssignMenuState.Close();
+                        handled = true;
+                    }
+                }
+                // Handle Backspace for search
+                else if (key == KeyCode.Backspace)
+                {
+                    AssignMenuState.HandleBackspace();
+                    handled = true;
+                }
+                // Handle Shift+Down - paint value to next pawn (BEFORE regular Down)
+                else if (key == KeyCode.DownArrow && Event.current.shift)
+                {
+                    AssignMenuState.PaintDown();
+                    handled = true;
+                }
+                // Handle Shift+Up - paint value to previous pawn (BEFORE regular Up)
+                else if (key == KeyCode.UpArrow && Event.current.shift)
+                {
+                    AssignMenuState.PaintUp();
+                    handled = true;
+                }
+                // Handle Down arrow - navigate pawns (use typeahead if active with matches)
+                else if (key == KeyCode.DownArrow)
+                {
+                    if (typeahead != null && typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                    {
+                        int newIndex = typeahead.GetNextMatch(AssignMenuState.CurrentPawnIndex);
+                        if (newIndex >= 0)
+                        {
+                            AssignMenuState.SetCurrentPawnIndex(newIndex);
+                            AssignMenuState.AnnounceWithSearch();
+                        }
+                    }
+                    else
+                    {
+                        AssignMenuState.SelectNextPawn();
+                    }
+                    handled = true;
+                }
+                // Handle Up arrow - navigate pawns (use typeahead if active with matches)
+                else if (key == KeyCode.UpArrow)
+                {
+                    if (typeahead != null && typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                    {
+                        int newIndex = typeahead.GetPreviousMatch(AssignMenuState.CurrentPawnIndex);
+                        if (newIndex >= 0)
+                        {
+                            AssignMenuState.SetCurrentPawnIndex(newIndex);
+                            AssignMenuState.AnnounceWithSearch();
+                        }
+                    }
+                    else
+                    {
+                        AssignMenuState.SelectPreviousPawn();
+                    }
+                    handled = true;
+                }
+                // Handle Right arrow - navigate columns
+                else if (key == KeyCode.RightArrow)
+                {
+                    AssignMenuState.SelectNextColumn();
+                    handled = true;
+                }
+                // Handle Left arrow - navigate columns
+                else if (key == KeyCode.LeftArrow)
+                {
+                    AssignMenuState.SelectPreviousColumn();
+                    handled = true;
+                }
+                // Handle Enter - interact with current cell
+                else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                {
+                    AssignMenuState.InteractWithCurrentCell();
+                    handled = true;
+                }
+                // Handle ] (right bracket) - open context menu
+                else if (key == KeyCode.RightBracket)
+                {
+                    AssignMenuState.OpenContextMenu();
+                    handled = true;
+                }
+                // Handle Alt+S - sort by current column
+                else if (key == KeyCode.S && Event.current.alt)
+                {
+                    AssignMenuState.ToggleSortByCurrentColumn();
+                    handled = true;
+                }
+                // Handle Alt+I - open info card for selected pawn
+                else if (Event.current.alt && key == KeyCode.I)
+                {
+                    AssignMenuState.OpenInfoCard();
+                    handled = true;
+                }
+
+                if (handled)
+                {
+                    Event.current.Use();
+                    return;
+                }
+
+                // Handle typeahead characters
                 bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                 bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
                 if ((isLetter || isNumber) && !Event.current.alt)
                 {
                     char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                    AssignMenuState.ProcessTypeaheadCharacter(c);
+                    AssignMenuState.HandleTypeahead(c);
                     Event.current.Use();
                     return;
                 }
 
-                if (key == KeyCode.Backspace)
-                {
-                    AssignMenuState.ProcessBackspace();
-                    Event.current.Use();
-                    return;
-                }
+                // Consume other keys to prevent passthrough
+                Event.current.Use();
+                return;
             }
 
             // ===== PRIORITY 4.7791: Handle storage settings menu typeahead if active =====
@@ -4629,28 +4848,8 @@ namespace RimWorldAccess
                         MapNavigationState.RestoreCursorForCurrentMap();
                     }
 
-                    // Get the selected pawn, or use first colonist if none selected
-                    Pawn targetPawn = null;
-                    if (Find.Selector != null && Find.Selector.NumSelected > 0)
-                    {
-                        targetPawn = Find.Selector.FirstSelectedObject as Pawn;
-                    }
-
-                    // If no pawn selected, use first colonist
-                    if (targetPawn == null && Find.CurrentMap.mapPawns.FreeColonists.Any())
-                    {
-                        targetPawn = Find.CurrentMap.mapPawns.FreeColonists.First();
-                    }
-
-                    if (targetPawn != null)
-                    {
-                        // Open the assign menu
-                        AssignMenuState.Open(targetPawn);
-                    }
-                    else
-                    {
-                        TolkHelper.Speak("No colonists available");
-                    }
+                    // Open the assign menu (handles pawn selection internally)
+                    AssignMenuState.Open();
 
                     return;
                 }

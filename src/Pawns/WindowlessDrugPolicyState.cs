@@ -57,9 +57,21 @@ namespace RimWorldAccess
             "Back to Drug List"
         };
 
+        // Callback invoked when this editor closes (used to return to Assign menu)
+        private static System.Action onCloseCallback = null;
+
         public static bool IsActive => isActive;
         public static DrugPolicy SelectedPolicy => selectedPolicy;
         public static NavigationMode CurrentMode => currentMode;
+
+        /// <summary>
+        /// Opens the drug policy management interface with an optional close callback.
+        /// </summary>
+        public static void Open(DrugPolicy initialPolicy, System.Action onClose)
+        {
+            onCloseCallback = onClose;
+            Open(initialPolicy);
+        }
 
         /// <summary>
         /// Opens the drug policy management interface.
@@ -103,6 +115,10 @@ namespace RimWorldAccess
             selectedSettingIndex = 0;
 
             TolkHelper.Speak("Drug policy manager closed");
+
+            var callback = onCloseCallback;
+            onCloseCallback = null;
+            callback?.Invoke();
         }
 
         /// <summary>

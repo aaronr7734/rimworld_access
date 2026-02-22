@@ -335,11 +335,7 @@ namespace RimWorldAccess
             }
 
             // Reopen assign menu
-            if (Find.CurrentMap != null && Find.CurrentMap.mapPawns.FreeColonists.Any())
-            {
-                Pawn firstPawn = Find.CurrentMap.mapPawns.FreeColonists.First();
-                AssignMenuState.Open(firstPawn);
-            }
+            AssignMenuState.Open();
         }
 
         /// <summary>
