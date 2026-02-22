@@ -24,6 +24,10 @@ namespace RimWorldAccess
         [HarmonyPrefix]
         public static void Prefix()
         {
+            // Process per-frame sound queue for bulk schedule painting
+            if (WindowlessScheduleState.IsActive)
+                WindowlessScheduleState.UpdateSoundQueue();
+
             // Only process keyboard events
             if (Event.current.type != EventType.KeyDown)
                 return;
@@ -2244,150 +2248,219 @@ namespace RimWorldAccess
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
 
-                // Ctrl+Tab: Switch columns
-                if (key == KeyCode.Tab && ctrl && !shift)
+                // Tab / Shift+Tab: Switch columns (Schedule <-> Areas)
+                if (key == KeyCode.Tab && !ctrl)
                 {
-                    WindowlessScheduleState.SwitchToNextColumn();
+                    WindowlessScheduleState.SwitchColumn();
                     handled = true;
                 }
-                else if (key == KeyCode.Tab && ctrl && shift)
+                // Escape: Close menu
+                else if (key == KeyCode.Escape)
                 {
-                    WindowlessScheduleState.SwitchToPreviousColumn();
+                    WindowlessScheduleState.Close();
                     handled = true;
                 }
-                // Column-dependent navigation
-                else if (WindowlessScheduleState.IsInAreasColumn)
+                // Ctrl+C: Copy schedule
+                else if (ctrl && key == KeyCode.C)
                 {
-                    // AREAS COLUMN
-                    if (key == KeyCode.UpArrow && !shift)
-                    {
-                        WindowlessScheduleState.MoveUp();
-                        handled = true;
-                    }
-                    else if (key == KeyCode.DownArrow && !shift)
-                    {
-                        WindowlessScheduleState.MoveDown();
-                        handled = true;
-                    }
-                    else if (key == KeyCode.LeftArrow)
-                    {
-                        WindowlessScheduleState.SelectPreviousArea();
-                        handled = true;
-                    }
-                    else if (key == KeyCode.RightArrow)
-                    {
-                        WindowlessScheduleState.SelectNextArea();
-                        handled = true;
-                    }
-                    else if (key == KeyCode.UpArrow && shift)
-                    {
-                        WindowlessScheduleState.ApplyAreaToPawnAbove();
-                        handled = true;
-                    }
-                    else if (key == KeyCode.DownArrow && shift)
-                    {
-                        WindowlessScheduleState.ApplyAreaToPawnBelow();
-                        handled = true;
-                    }
-                    else if (key == KeyCode.RightBracket)
-                    {
-                        WindowlessScheduleState.OpenAreaContextMenu();
-                        handled = true;
-                    }
-                    else if (key == KeyCode.Home)
-                    {
-                        WindowlessScheduleState.JumpToFirstPawn();
-                        handled = true;
-                    }
-                    else if (key == KeyCode.End)
-                    {
-                        WindowlessScheduleState.JumpToLastPawn();
-                        handled = true;
-                    }
-                    else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
-                    {
-                        // Enter in Areas column: confirm selection or open Manage Areas
-                        WindowlessScheduleState.ConfirmAreaSelection();
-                        handled = true;
-                    }
-                    // Escape falls through to common handler which closes the menu
+                    WindowlessScheduleState.CopySchedule();
+                    handled = true;
                 }
-                else
+                // Ctrl+V: Paste schedule
+                else if (ctrl && key == KeyCode.V)
                 {
-                    // SCHEDULE COLUMN (existing behavior)
-                    if (key == KeyCode.UpArrow)
+                    WindowlessScheduleState.PasteSchedule();
+                    handled = true;
+                }
+                // Number keys 1-9, 0: Select brush (both columns)
+                else if (!ctrl && !shift && !Event.current.alt)
+                {
+                    int brushIndex = -1;
+                    if (key >= KeyCode.Alpha1 && key <= KeyCode.Alpha9)
+                        brushIndex = key - KeyCode.Alpha1; // 1->0, 2->1, ..., 9->8
+                    else if (key == KeyCode.Alpha0)
+                        brushIndex = 9; // 0->9
+
+                    if (brushIndex >= 0)
                     {
-                        WindowlessScheduleState.MoveUp();
-                        handled = true;
-                    }
-                    else if (key == KeyCode.DownArrow)
-                    {
-                        WindowlessScheduleState.MoveDown();
-                        handled = true;
-                    }
-                    else if (key == KeyCode.LeftArrow)
-                    {
-                        WindowlessScheduleState.MoveLeft();
-                        handled = true;
-                    }
-                    else if (key == KeyCode.RightArrow && !shift)
-                    {
-                        WindowlessScheduleState.MoveRight();
-                        handled = true;
-                    }
-                    else if (key == KeyCode.RightArrow && shift)
-                    {
-                        WindowlessScheduleState.FillRow();
-                        handled = true;
-                    }
-                    else if (key == KeyCode.Tab && !ctrl && !shift)
-                    {
-                        WindowlessScheduleState.CycleAssignment();
-                        handled = true;
-                    }
-                    else if (key == KeyCode.Tab && !ctrl && shift)
-                    {
-                        WindowlessScheduleState.CycleAssignmentBackward();
-                        handled = true;
-                    }
-                    else if (key == KeyCode.Space)
-                    {
-                        WindowlessScheduleState.ApplyAssignment();
-                        handled = true;
-                    }
-                    else if (key == KeyCode.Home)
-                    {
-                        WindowlessScheduleState.JumpToFirstHour();
-                        handled = true;
-                    }
-                    else if (key == KeyCode.End)
-                    {
-                        WindowlessScheduleState.JumpToLastHour();
+                        WindowlessScheduleState.SelectBrush(brushIndex);
                         handled = true;
                     }
                 }
 
-                // Common keys for both columns
+                // Column-dependent navigation
                 if (!handled)
                 {
-                    if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                    if (WindowlessScheduleState.IsInAreasColumn)
                     {
-                        WindowlessScheduleState.Confirm();
-                        handled = true;
+                        // === AREAS COLUMN ===
+                        if (key == KeyCode.UpArrow && !shift)
+                        {
+                            WindowlessScheduleState.MoveUp();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.DownArrow && !shift)
+                        {
+                            WindowlessScheduleState.MoveDown();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.LeftArrow)
+                        {
+                            WindowlessScheduleState.SelectPreviousArea();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.RightArrow)
+                        {
+                            WindowlessScheduleState.SelectNextArea();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.UpArrow && shift)
+                        {
+                            WindowlessScheduleState.ApplyAreaToPawnAbove();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.DownArrow && shift)
+                        {
+                            WindowlessScheduleState.ApplyAreaToPawnBelow();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.RightBracket)
+                        {
+                            WindowlessScheduleState.OpenAreaContextMenu();
+                            handled = true;
+                        }
+                        // Home/End and Ctrl+Home/End: In Areas column, all jump between pawns
+                        else if (key == KeyCode.Home)
+                        {
+                            WindowlessScheduleState.JumpToFirstPawn();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.End)
+                        {
+                            WindowlessScheduleState.JumpToLastPawn();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                        {
+                            WindowlessScheduleState.ConfirmAreaSelection();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.Backspace)
+                        {
+                            WindowlessScheduleState.HandleBackspace();
+                            handled = true;
+                        }
                     }
-                    else if (key == KeyCode.Escape)
+                    else
                     {
-                        WindowlessScheduleState.Cancel();
-                        handled = true;
+                        // === SCHEDULE COLUMN ===
+                        if (key == KeyCode.UpArrow && !shift)
+                        {
+                            WindowlessScheduleState.MoveUp();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.DownArrow && !shift)
+                        {
+                            WindowlessScheduleState.MoveDown();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.LeftArrow && !shift)
+                        {
+                            WindowlessScheduleState.MoveLeft();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.RightArrow && !shift)
+                        {
+                            WindowlessScheduleState.MoveRight();
+                            handled = true;
+                        }
+                        // Shift+Arrows: Paint mode
+                        else if (key == KeyCode.UpArrow && shift)
+                        {
+                            WindowlessScheduleState.PaintUp();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.DownArrow && shift)
+                        {
+                            WindowlessScheduleState.PaintDown();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.LeftArrow && shift)
+                        {
+                            WindowlessScheduleState.PaintLeft();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.RightArrow && shift)
+                        {
+                            WindowlessScheduleState.PaintRight();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.Space || key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                        {
+                            WindowlessScheduleState.ApplyBrush();
+                            handled = true;
+                        }
+                        // Home/End navigation and painting:
+                        // Home = first hour, End = last hour
+                        // Shift+Home/End = paint to first/last hour
+                        // Ctrl+Home/End = first/last pawn (keep column)
+                        // Ctrl+Shift+Home/End = paint to first/last pawn
+                        else if (key == KeyCode.Home && !ctrl && !shift)
+                        {
+                            WindowlessScheduleState.JumpToFirstHour();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.Home && !ctrl && shift)
+                        {
+                            WindowlessScheduleState.PaintToFirstHour();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.End && !ctrl && !shift)
+                        {
+                            WindowlessScheduleState.JumpToLastHour();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.End && !ctrl && shift)
+                        {
+                            WindowlessScheduleState.PaintToLastHour();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.Home && ctrl && !shift)
+                        {
+                            WindowlessScheduleState.JumpToFirstPawn();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.Home && ctrl && shift)
+                        {
+                            WindowlessScheduleState.PaintToFirstPawn();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.End && ctrl && !shift)
+                        {
+                            WindowlessScheduleState.JumpToLastPawn();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.End && ctrl && shift)
+                        {
+                            WindowlessScheduleState.PaintToLastPawn();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.Backspace)
+                        {
+                            WindowlessScheduleState.HandleBackspace();
+                            handled = true;
+                        }
                     }
-                    else if (ctrl && key == KeyCode.C)
+                }
+
+                // Typeahead: Letter keys for pawn name search (both columns)
+                if (!handled && !ctrl && !Event.current.alt)
+                {
+                    bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
+                    if (isLetter)
                     {
-                        WindowlessScheduleState.CopySchedule();
-                        handled = true;
-                    }
-                    else if (ctrl && key == KeyCode.V)
-                    {
-                        WindowlessScheduleState.PasteSchedule();
+                        char c = (char)('a' + (key - KeyCode.A));
+                        WindowlessScheduleState.HandleTypeahead(c);
                         handled = true;
                     }
                 }
@@ -5135,8 +5208,8 @@ namespace RimWorldAccess
             int totalPawns = WindowlessScheduleState.Pawns.Count;
             string title = $"Schedule Menu - {selectedPawn.LabelShort} ({pawnNum}/{totalPawns}) - Hour {hour}";
             string currentInfo = $"Current: {currentAssignment.label}";
-            string instructions1 = "Arrows: Navigate | Tab: Change Cell | Space: Apply Selected";
-            string instructions2 = "Shift+Right: Fill Row | Ctrl+C/V: Copy/Paste | Enter: Save | Esc: Cancel";
+            string instructions1 = "Arrows: Navigate | 1-5: Select Brush | Space/Enter: Apply Brush";
+            string instructions2 = "Shift+Arrows: Paint | Ctrl+C/V: Copy/Paste | Tab: Areas | Esc: Close";
 
             Rect titleRect = new Rect(overlayX, overlayY + 10f, overlayWidth, 30f);
             Rect infoRect = new Rect(overlayX, overlayY + 40f, overlayWidth, 25f);

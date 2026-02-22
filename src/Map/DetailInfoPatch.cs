@@ -101,6 +101,7 @@ namespace RimWorldAccess
                    WindowlessSaveMenuState.IsActive ||
                    WindowlessOptionsMenuState.IsActive ||
                    WindowlessConfirmationState.IsActive ||
+                   WindowlessScheduleState.IsActive ||
                    StorageSettingsMenuState.IsActive ||
                    PlantSelectionMenuState.IsActive ||
                    PrisonerTabState.IsActive ||
