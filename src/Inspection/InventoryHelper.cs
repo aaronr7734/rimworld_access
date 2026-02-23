@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
@@ -11,41 +12,60 @@ namespace RimWorldAccess
     public static class InventoryHelper
     {
         /// <summary>
-        /// Represents an aggregated inventory item with its total quantity and storage locations.
+        /// Represents a single physical stack of items at a specific location.
+        /// </summary>
+        public class InventoryStack
+        {
+            public Thing Thing { get; set; }
+            public int Quantity { get; set; }
+            public Pawn CarrierPawn { get; set; }
+            public bool IsForbidden { get; set; }
+            public bool IsTainted { get; set; }
+            public string LocationLabel { get; set; }
+            public bool IsMinifiedThing { get; set; }
+
+            public bool IsCarried => CarrierPawn != null;
+
+            /// <summary>
+            /// Position for jump-to functionality. Carrier position for carried items, thing position for stored items.
+            /// </summary>
+            public IntVec3 Position => IsCarried && CarrierPawn != null && !CarrierPawn.Destroyed
+                ? CarrierPawn.Position
+                : Thing.Position;
+        }
+
+        /// <summary>
+        /// Represents an aggregated inventory item with its total quantity and individual stacks.
         /// Items are grouped by ThingDef + Stuff (material) + Quality to avoid incorrectly
         /// combining items like "steel knife (excellent)" with "plasteel knife (poor)".
         /// </summary>
         public class InventoryItem
         {
             public ThingDef Def { get; set; }
-            public ThingDef Stuff { get; set; } // Material the item is made of (null if no stuff)
-            public QualityCategory? Quality { get; set; } // Quality level (null if no quality component)
-            public int TotalQuantity { get; set; }
-            public List<IntVec3> StorageLocations { get; set; }
-            public List<Thing> Things { get; set; } // Actual thing references for actions like Install
-            public bool IsMinifiedThing { get; set; } // True if these are uninstalled furniture
-            public Pawn CarrierPawn { get; set; } // Pawn carrying this item (null for storage items)
+            public ThingDef Stuff { get; set; }
+            public QualityCategory? Quality { get; set; }
+            public List<InventoryStack> Stacks { get; set; }
+            public bool IsMinifiedThing { get; set; }
 
-            /// <summary>
-            /// True if this item is being carried by a pawn rather than stored in a stockpile/building
-            /// </summary>
-            public bool IsCarried => CarrierPawn != null;
+            public int TotalQuantity => Stacks.Sum(s => s.Quantity);
+            public int CarriedCount => Stacks.Where(s => s.IsCarried).Sum(s => s.Quantity);
+            public bool HasCarriedStacks => Stacks.Any(s => s.IsCarried);
 
             public InventoryItem(ThingDef def, ThingDef stuff = null, QualityCategory? quality = null)
             {
                 Def = def;
                 Stuff = stuff;
                 Quality = quality;
-                TotalQuantity = 0;
-                StorageLocations = new List<IntVec3>();
-                Things = new List<Thing>();
+                Stacks = new List<InventoryStack>();
                 IsMinifiedThing = false;
-                CarrierPawn = null;
             }
 
-            public string GetDisplayLabel()
+            /// <summary>
+            /// Gets the base item name with material prefix and quality suffix, without quantity.
+            /// Used by both GetDisplayLabel and external code for stack labels.
+            /// </summary>
+            public string GetItemName()
             {
-                // Build label with material prefix if applicable
                 string itemName;
                 if (Stuff != null)
                 {
@@ -56,20 +76,28 @@ namespace RimWorldAccess
                     itemName = Def.label;
                 }
 
-                // Capitalize first letter
                 if (!string.IsNullOrEmpty(itemName))
                 {
                     itemName = char.ToUpper(itemName[0]) + itemName.Substring(1);
                 }
 
-                // Add quality if applicable
-                string qualitySuffix = Quality.HasValue ? $" ({Quality.Value})" : "";
-
-                if (IsCarried)
+                if (Quality.HasValue)
                 {
-                    return $"{itemName}{qualitySuffix} x{TotalQuantity} (carried by {CarrierPawn.LabelShort})";
+                    itemName += $" ({Quality.Value})";
                 }
-                return $"{itemName}{qualitySuffix} x{TotalQuantity}";
+
+                return itemName;
+            }
+
+            public string GetDisplayLabel()
+            {
+                string name = GetItemName();
+                int carried = CarriedCount;
+                if (carried > 0)
+                {
+                    return $"{name} x{TotalQuantity} ({carried} carried by colonists)";
+                }
+                return $"{name} x{TotalQuantity}";
             }
         }
 
@@ -100,6 +128,149 @@ namespace RimWorldAccess
                 }
                 return CategoryDef.LabelCap;
             }
+        }
+
+        /// <summary>
+        /// Determines a human-readable location label for a stored thing.
+        /// </summary>
+        public static string GetLocationLabel(Thing thing, Map map)
+        {
+            if (thing == null || map == null || !thing.Spawned) return "";
+
+            SlotGroup slotGroup = map.haulDestinationManager.SlotGroupAt(thing.Position);
+            if (slotGroup == null) return $"at ({thing.Position.x}, {thing.Position.z})";
+
+            if (slotGroup.parent is Zone_Stockpile stockpile)
+            {
+                return $"in {stockpile.label}";
+            }
+
+            if (slotGroup.parent is Building_Storage building)
+            {
+                if (building is IStorageGroupMember member && member.Group != null)
+                {
+                    return $"at {member.Group.RenamableLabel}";
+                }
+                return $"on {building.Label}";
+            }
+
+            return $"at ({thing.Position.x}, {thing.Position.z})";
+        }
+
+        /// <summary>
+        /// Checks if a thing is forbidden via its CompForbiddable.
+        /// </summary>
+        public static bool GetIsForbidden(Thing thing)
+        {
+            if (thing is ThingWithComps twc && twc.compForbiddable != null)
+            {
+                return twc.compForbiddable.Forbidden;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if apparel is tainted (worn by a corpse).
+        /// </summary>
+        public static bool GetIsTainted(Thing thing)
+        {
+            if (thing is Apparel apparel)
+            {
+                return apparel.WornByCorpse;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Aggregates all items (stored + carried) by ThingDef + Stuff + Quality into unified InventoryItems.
+        /// Each physical stack becomes an InventoryStack with location info.
+        /// </summary>
+        public static List<InventoryItem> AggregateAllItems(List<Thing> storedItems, Dictionary<Thing, Pawn> carriedItems)
+        {
+            var aggregated = new Dictionary<(ThingDef, ThingDef, QualityCategory?), InventoryItem>();
+            Map map = Find.CurrentMap;
+
+            foreach (Thing item in storedItems)
+            {
+                if (item?.def == null) continue;
+
+                Thing thingToCheck = item;
+                bool isMinified = item is MinifiedThing;
+                if (isMinified)
+                {
+                    Thing innerThing = item.GetInnerIfMinified();
+                    if (innerThing != null) thingToCheck = innerThing;
+                }
+
+                ThingDef defToUse = thingToCheck.def;
+                ThingDef stuffToUse = thingToCheck.Stuff;
+                QualityCategory? qualityToUse = null;
+                var qualityComp = thingToCheck.TryGetComp<CompQuality>();
+                if (qualityComp != null) qualityToUse = qualityComp.Quality;
+
+                var key = (defToUse, stuffToUse, qualityToUse);
+                if (!aggregated.ContainsKey(key))
+                {
+                    aggregated[key] = new InventoryItem(defToUse, stuffToUse, qualityToUse)
+                    {
+                        IsMinifiedThing = isMinified
+                    };
+                }
+
+                aggregated[key].Stacks.Add(new InventoryStack
+                {
+                    Thing = item,
+                    Quantity = item.stackCount,
+                    CarrierPawn = null,
+                    IsForbidden = GetIsForbidden(item),
+                    IsTainted = GetIsTainted(item),
+                    LocationLabel = GetLocationLabel(item, map),
+                    IsMinifiedThing = isMinified
+                });
+            }
+
+            foreach (var kvp in carriedItems)
+            {
+                Thing item = kvp.Key;
+                Pawn carrier = kvp.Value;
+                if (item?.def == null || carrier == null) continue;
+
+                Thing thingToCheck = item;
+                bool isMinified = item is MinifiedThing;
+                if (isMinified)
+                {
+                    Thing innerThing = item.GetInnerIfMinified();
+                    if (innerThing != null) thingToCheck = innerThing;
+                }
+
+                ThingDef defToUse = thingToCheck.def;
+                ThingDef stuffToUse = thingToCheck.Stuff;
+                QualityCategory? qualityToUse = null;
+                var qualityComp = thingToCheck.TryGetComp<CompQuality>();
+                if (qualityComp != null) qualityToUse = qualityComp.Quality;
+
+                var key = (defToUse, stuffToUse, qualityToUse);
+                if (!aggregated.ContainsKey(key))
+                {
+                    aggregated[key] = new InventoryItem(defToUse, stuffToUse, qualityToUse)
+                    {
+                        IsMinifiedThing = isMinified
+                    };
+                }
+
+                aggregated[key].Stacks.Add(new InventoryStack
+                {
+                    Thing = item,
+                    Quantity = item.stackCount,
+                    CarrierPawn = carrier,
+                    IsForbidden = false,
+                    IsTainted = GetIsTainted(item),
+                    LocationLabel = $"carried by {carrier.LabelShort}",
+                    IsMinifiedThing = isMinified
+                });
+            }
+
+            return aggregated.Values.ToList();
         }
 
         /// <summary>
@@ -198,137 +369,52 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Aggregates items by ThingDef + Stuff (material) + Quality, summing quantities and tracking locations.
-        /// This ensures items like "steel knife (excellent)" and "plasteel knife (poor)" are shown separately.
-        /// For MinifiedThings (uninstalled furniture), uses the inner thing's properties.
+        /// Aggregates items by ThingDef + Stuff (material) + Quality, populating Stacks.
+        /// Used by CaravanInspectState for caravan inventory display.
+        /// For colony inventory, use AggregateAllItems instead.
         /// </summary>
         public static List<InventoryItem> AggregateStacks(List<Thing> items)
         {
-            // Key: (ThingDef, Stuff, Quality) - keeps items with different materials/quality separate
-            Dictionary<(ThingDef, ThingDef, QualityCategory?), InventoryItem> aggregated =
-                new Dictionary<(ThingDef, ThingDef, QualityCategory?), InventoryItem>();
+            var aggregated = new Dictionary<(ThingDef, ThingDef, QualityCategory?), InventoryItem>();
+            Map map = Find.CurrentMap;
 
             foreach (Thing item in items)
             {
                 if (item?.def == null) continue;
 
-                // For MinifiedThings, use the inner thing's properties for categorization
                 Thing thingToCheck = item;
                 bool isMinified = item is MinifiedThing;
                 if (isMinified)
                 {
                     Thing innerThing = item.GetInnerIfMinified();
-                    if (innerThing != null)
-                    {
-                        thingToCheck = innerThing;
-                    }
+                    if (innerThing != null) thingToCheck = innerThing;
                 }
 
                 ThingDef defToUse = thingToCheck.def;
                 ThingDef stuffToUse = thingToCheck.Stuff;
-
-                // Get quality if the item has a quality component
                 QualityCategory? qualityToUse = null;
                 var qualityComp = thingToCheck.TryGetComp<CompQuality>();
-                if (qualityComp != null)
-                {
-                    qualityToUse = qualityComp.Quality;
-                }
+                if (qualityComp != null) qualityToUse = qualityComp.Quality;
 
                 var key = (defToUse, stuffToUse, qualityToUse);
                 if (!aggregated.ContainsKey(key))
                 {
-                    aggregated[key] = new InventoryItem(defToUse, stuffToUse, qualityToUse);
-                    aggregated[key].IsMinifiedThing = isMinified;
-                }
-
-                InventoryItem invItem = aggregated[key];
-                invItem.TotalQuantity += item.stackCount;
-
-                // Store reference to actual thing (for Install action)
-                if (invItem.Things.Count < 10)
-                {
-                    invItem.Things.Add(item);
-                }
-
-                // Store the location of this item (for jump-to functionality)
-                if (invItem.StorageLocations.Count < 10)
-                {
-                    IntVec3 position = item.Position;
-                    if (!invItem.StorageLocations.Contains(position))
-                    {
-                        invItem.StorageLocations.Add(position);
-                    }
-                }
-            }
-
-            return aggregated.Values.ToList();
-        }
-
-        /// <summary>
-        /// Aggregates pawn-carried items, keeping items from different pawns separate.
-        /// Each pawn + ThingDef + Stuff + Quality combination becomes a separate InventoryItem.
-        /// </summary>
-        public static List<InventoryItem> AggregatePawnCarriedItems(Dictionary<Thing, Pawn> carriedItems)
-        {
-            // Key: (ThingDef, Stuff, Quality, Pawn) - keeps items from different pawns and with different properties separate
-            Dictionary<(ThingDef, ThingDef, QualityCategory?, Pawn), InventoryItem> aggregated =
-                new Dictionary<(ThingDef, ThingDef, QualityCategory?, Pawn), InventoryItem>();
-
-            foreach (var kvp in carriedItems)
-            {
-                Thing item = kvp.Key;
-                Pawn carrier = kvp.Value;
-
-                if (item?.def == null || carrier == null) continue;
-
-                // For MinifiedThings, use the inner thing's properties for categorization
-                Thing thingToCheck = item;
-                bool isMinified = item is MinifiedThing;
-                if (isMinified)
-                {
-                    Thing innerThing = item.GetInnerIfMinified();
-                    if (innerThing != null)
-                    {
-                        thingToCheck = innerThing;
-                    }
-                }
-
-                ThingDef defToUse = thingToCheck.def;
-                ThingDef stuffToUse = thingToCheck.Stuff;
-
-                // Get quality if the item has a quality component
-                QualityCategory? qualityToUse = null;
-                var qualityComp = thingToCheck.TryGetComp<CompQuality>();
-                if (qualityComp != null)
-                {
-                    qualityToUse = qualityComp.Quality;
-                }
-
-                var key = (defToUse, stuffToUse, qualityToUse, carrier);
-                if (!aggregated.ContainsKey(key))
-                {
                     aggregated[key] = new InventoryItem(defToUse, stuffToUse, qualityToUse)
                     {
-                        CarrierPawn = carrier,
                         IsMinifiedThing = isMinified
                     };
                 }
 
-                InventoryItem invItem = aggregated[key];
-                invItem.TotalQuantity += item.stackCount;
-
-                // Store reference to actual thing
-                if (invItem.Things.Count < 10)
+                aggregated[key].Stacks.Add(new InventoryStack
                 {
-                    invItem.Things.Add(item);
-                }
-
-                // For carried items, storage location is the carrier's position
-                if (invItem.StorageLocations.Count == 0)
-                {
-                    invItem.StorageLocations.Add(carrier.Position);
-                }
+                    Thing = item,
+                    Quantity = item.stackCount,
+                    CarrierPawn = null,
+                    IsForbidden = GetIsForbidden(item),
+                    IsTainted = GetIsTainted(item),
+                    LocationLabel = map != null ? GetLocationLabel(item, map) : "",
+                    IsMinifiedThing = isMinified
+                });
             }
 
             return aggregated.Values.ToList();
@@ -337,37 +423,28 @@ namespace RimWorldAccess
         /// <summary>
         /// Groups inventory items by their categories, building a hierarchical tree
         /// </summary>
-        /// <param name="storageItems">Storage items aggregated by ThingDef + Stuff + Quality</param>
-        /// <param name="pawnCarriedItems">Optional list of pawn-carried items (kept separate per pawn)</param>
-        public static List<CategoryNode> BuildCategoryTree(List<InventoryItem> storageItems, List<InventoryItem> pawnCarriedItems = null)
+        public static List<CategoryNode> BuildCategoryTree(List<InventoryItem> items)
         {
-            // Build a dictionary of all categories that have items
             Dictionary<ThingCategoryDef, CategoryNode> categoryNodes = new Dictionary<ThingCategoryDef, CategoryNode>();
 
-            // Helper method to add an item to its categories
             void AddItemToCategories(InventoryItem item)
             {
                 ThingDef thingDef = item.Def;
                 if (thingDef.thingCategories == null || thingDef.thingCategories.Count == 0)
                 {
-                    // Item has no category - skip it
                     return;
                 }
 
-                // Add item to all its categories
                 foreach (ThingCategoryDef category in thingDef.thingCategories)
                 {
-                    // Ensure category node exists
                     if (!categoryNodes.ContainsKey(category))
                     {
                         categoryNodes[category] = new CategoryNode(category);
                     }
 
-                    // Add item to this category
                     categoryNodes[category].Items.Add(item);
                     categoryNodes[category].TotalItemCount++;
 
-                    // Ensure all parent categories exist
                     ThingCategoryDef parentCategory = category.parent;
                     while (parentCategory != null)
                     {
@@ -381,39 +458,17 @@ namespace RimWorldAccess
                 }
             }
 
-            // Add storage items
-            foreach (InventoryItem item in storageItems)
+            foreach (InventoryItem item in items)
             {
                 AddItemToCategories(item);
             }
 
-            // Add pawn-carried items (if any)
-            if (pawnCarriedItems != null)
-            {
-                foreach (InventoryItem item in pawnCarriedItems)
-                {
-                    AddItemToCategories(item);
-                }
-            }
-
-            // Collect uncategorized items (items with no thingCategories)
             List<InventoryItem> uncategorizedItems = new List<InventoryItem>();
-            foreach (InventoryItem item in storageItems)
+            foreach (InventoryItem item in items)
             {
-                ThingDef thingDef = item.Def;
-                if (thingDef.thingCategories == null || thingDef.thingCategories.Count == 0)
+                if (item.Def.thingCategories == null || item.Def.thingCategories.Count == 0)
                 {
                     uncategorizedItems.Add(item);
-                }
-            }
-            if (pawnCarriedItems != null)
-            {
-                foreach (InventoryItem item in pawnCarriedItems)
-                {
-                    if (item.Def.thingCategories == null || item.Def.thingCategories.Count == 0)
-                    {
-                        uncategorizedItems.Add(item);
-                    }
                 }
             }
 
@@ -470,7 +525,7 @@ namespace RimWorldAccess
                     uncategorizedNode.Items.Add(item);
                 }
                 uncategorizedNode.TotalItemCount = uncategorizedItems.Count;
-                uncategorizedNode.Items.Sort((a, b) => string.Compare(a.Def.label, b.Def.label));
+                uncategorizedNode.Items.Sort((a, b) => b.TotalQuantity.CompareTo(a.TotalQuantity));
                 rootCategories.Add(uncategorizedNode);
             }
 
@@ -491,64 +546,13 @@ namespace RimWorldAccess
                     SortCategoryNode(node.SubCategories); // Recurse
                 }
 
-                // Sort items alphabetically
+                // Sort items by quantity descending (largest stacks first)
                 if (node.Items.Count > 0)
                 {
-                    node.Items.Sort((a, b) => string.Compare(a.Def.label, b.Def.label));
+                    node.Items.Sort((a, b) => b.TotalQuantity.CompareTo(a.TotalQuantity));
                 }
             }
         }
 
-        /// <summary>
-        /// Gets the first storage location for a given ThingDef
-        /// </summary>
-        public static IntVec3? FindFirstStorageLocation(ThingDef thingDef)
-        {
-            Map map = Find.CurrentMap;
-            if (map == null) return null;
-
-            // Check stockpiles
-            if (map.zoneManager?.AllZones != null)
-            {
-                foreach (Zone zone in map.zoneManager.AllZones)
-                {
-                    if (zone is Zone_Stockpile stockpile)
-                    {
-                        SlotGroup slotGroup = stockpile.GetSlotGroup();
-                        if (slotGroup?.HeldThings != null)
-                        {
-                            foreach (Thing item in slotGroup.HeldThings)
-                            {
-                                if (item.def == thingDef)
-                                {
-                                    return item.Position;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Check storage buildings
-            if (map.listerBuildings != null)
-            {
-                foreach (Building_Storage storage in map.listerBuildings.AllBuildingsColonistOfClass<Building_Storage>())
-                {
-                    SlotGroup slotGroup = storage.GetSlotGroup();
-                    if (slotGroup?.HeldThings != null)
-                    {
-                        foreach (Thing item in slotGroup.HeldThings)
-                        {
-                            if (item.def == thingDef)
-                            {
-                                return item.Position;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return null;
-        }
     }
 }

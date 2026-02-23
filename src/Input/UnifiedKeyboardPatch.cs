@@ -3830,7 +3830,8 @@ namespace RimWorldAccess
             }
 
             // ===== PRIORITY 4.805: Handle inventory menu if active =====
-            if (WindowlessInventoryState.IsActive)
+            // Skip if float menu is open (e.g., right bracket context menu on inventory items)
+            if (WindowlessInventoryState.IsActive && !WindowlessFloatMenuState.IsActive)
             {
                 if (WindowlessInventoryState.HandleInput(Event.current))
                 {
