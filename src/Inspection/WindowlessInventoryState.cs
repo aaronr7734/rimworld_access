@@ -31,9 +31,11 @@ namespace RimWorldAccess
         {
             public enum NodeType
             {
-                Category,      // A ThingCategoryDef
-                ItemGroup,     // An aggregated item type (all stacks of same def+stuff+quality)
-                Stack          // An individual physical stack at a specific location
+                Category,       // A ThingCategoryDef
+                DefGroup,       // All items of the same ThingDef (2+ variants) or same meal tier
+                MaterialGroup,  // All items of the same ThingDef + Stuff (within a DefGroup)
+                ItemGroup,      // An aggregated item type (single variant: def+stuff+quality)
+                Stack           // An individual physical stack at a specific location
             }
 
             public NodeType Type { get; set; }
@@ -50,6 +52,11 @@ namespace RimWorldAccess
 
             // For Stack nodes
             public InventoryHelper.InventoryStack StackData { get; set; }
+
+            // For DefGroup and MaterialGroup nodes
+            public ThingDef DefGroupDef { get; set; }
+            public ThingDef DefGroupStuff { get; set; }
+            public List<InventoryHelper.InventoryItem> DefGroupItems { get; set; }
 
             // Tree structure
             public TreeNode Parent { get; set; }
@@ -118,8 +125,11 @@ namespace RimWorldAccess
             // Flatten to get initially visible nodes
             RebuildFlattenedList();
 
+            // Count distinct items (DefGroups and single-variant ItemGroups, not every variant)
+            int distinctItemCount = CountDistinctItems(rootNodes);
+
             // Announcement
-            string announcement = $"Colony inventory opened. {allItems.Count} item types. {rootNodes.Count} categories.";
+            string announcement = $"Colony inventory opened. {distinctItemCount} item types. {rootNodes.Count} categories.";
             TolkHelper.Speak(announcement);
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
 
@@ -132,7 +142,8 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Converts InventoryHelper.CategoryNode tree to TreeNode tree.
-        /// Creates 3-level hierarchy: Category -> ItemGroup -> Stack
+        /// Creates hierarchy with DefGroup/MaterialGroup for multi-variant items,
+        /// and flat ItemGroup for single-variant items.
         /// </summary>
         private static List<TreeNode> BuildTreeNodes(List<InventoryHelper.CategoryNode> categoryNodes, TreeNode parent = null, int depth = 0)
         {
@@ -156,38 +167,8 @@ namespace RimWorldAccess
                     catNode.Children.AddRange(BuildTreeNodes(categoryNode.SubCategories, catNode, depth + 1));
                 }
 
-                // Add ItemGroup nodes for each aggregated item type
-                foreach (InventoryHelper.InventoryItem item in categoryNode.Items)
-                {
-                    TreeNode itemGroupNode = new TreeNode
-                    {
-                        Type = TreeNode.NodeType.ItemGroup,
-                        Label = item.GetDisplayLabel(),
-                        Depth = depth + 1,
-                        ItemData = item,
-                        Parent = catNode,
-                        CanExpand = true
-                    };
-
-                    // Add Stack nodes for each physical stack
-                    foreach (InventoryHelper.InventoryStack stack in item.Stacks)
-                    {
-                        TreeNode stackNode = new TreeNode
-                        {
-                            Type = TreeNode.NodeType.Stack,
-                            Label = BuildStackLabel(item, stack),
-                            Depth = depth + 2,
-                            StackData = stack,
-                            ItemData = item,
-                            Parent = itemGroupNode,
-                            CanExpand = false
-                        };
-
-                        itemGroupNode.Children.Add(stackNode);
-                    }
-
-                    catNode.Children.Add(itemGroupNode);
-                }
+                // Build item children with DefGroup/MaterialGroup/ItemGroup hierarchy
+                BuildItemChildren(categoryNode.Items, catNode, depth);
 
                 nodes.Add(catNode);
             }
@@ -196,8 +177,371 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Builds item children for a category node, creating DefGroups for multi-variant
+        /// items and flat ItemGroups for single-variant items.
+        /// </summary>
+        private static void BuildItemChildren(List<InventoryHelper.InventoryItem> items, TreeNode catNode, int depth)
+        {
+            if (items.Count == 0) return;
+
+            // Step 1: Identify meal-tier items and group by preferability
+            var mealGroupedDefs = new HashSet<ThingDef>();
+            var mealGroups = items
+                .Where(i => HasMealTierPreferability(i.Def))
+                .GroupBy(i => i.Def.ingestible.preferability)
+                .Where(g => g.Count() >= 2)
+                .ToList();
+
+            foreach (var mg in mealGroups)
+            {
+                foreach (var item in mg)
+                    mealGroupedDefs.Add(item.Def);
+            }
+
+            // Step 2: Group remaining items by ThingDef
+            var remainingItems = items.Where(i => !mealGroupedDefs.Contains(i.Def)).ToList();
+            var defGroups = remainingItems
+                .GroupBy(i => i.Def)
+                .ToList();
+
+            // Step 3: Build all child nodes into a single list for sorting
+            var childNodes = new List<(TreeNode node, int totalQty)>();
+
+            // Build meal DefGroup nodes
+            foreach (var mealGroup in mealGroups)
+            {
+                var mealItems = mealGroup.OrderByDescending(i => i.TotalQuantity).ToList();
+                int totalQty = mealItems.Sum(i => i.TotalQuantity);
+
+                TreeNode defGroupNode = new TreeNode
+                {
+                    Type = TreeNode.NodeType.DefGroup,
+                    Label = BuildMealGroupLabel(mealItems),
+                    Depth = depth + 1,
+                    Parent = catNode,
+                    CanExpand = true,
+                    DefGroupDef = mealItems.OrderBy(i => i.Def.label.Length).First().Def,
+                    DefGroupItems = mealItems
+                };
+
+                // Meal DefGroup children are ItemGroups (each is a different ThingDef)
+                foreach (var item in mealItems)
+                {
+                    TreeNode itemGroupNode = BuildItemGroupNode(item, defGroupNode, depth + 2);
+                    defGroupNode.Children.Add(itemGroupNode);
+                }
+
+                childNodes.Add((defGroupNode, totalQty));
+            }
+
+            // Build material/quality DefGroups and single-variant ItemGroups
+            foreach (var defGroup in defGroups)
+            {
+                var groupItems = defGroup.ToList();
+
+                if (groupItems.Count == 1)
+                {
+                    // Single variant: regular ItemGroup
+                    TreeNode itemGroupNode = BuildItemGroupNode(groupItems[0], catNode, depth + 1);
+                    childNodes.Add((itemGroupNode, groupItems[0].TotalQuantity));
+                }
+                else
+                {
+                    // Multiple variants: create DefGroup
+                    ThingDef def = defGroup.Key;
+                    int totalQty = groupItems.Sum(i => i.TotalQuantity);
+                    bool hasStuffVariations = groupItems.Any(i => i.Stuff != null);
+
+                    TreeNode defGroupNode = new TreeNode
+                    {
+                        Type = TreeNode.NodeType.DefGroup,
+                        Label = BuildDefGroupLabel(def, groupItems),
+                        Depth = depth + 1,
+                        Parent = catNode,
+                        CanExpand = true,
+                        DefGroupDef = def,
+                        DefGroupItems = groupItems
+                    };
+
+                    if (hasStuffVariations)
+                    {
+                        // Sub-group by Stuff -> MaterialGroup -> Stacks
+                        var materialGroups = groupItems
+                            .GroupBy(i => i.Stuff)
+                            .Select(g => new { Stuff = g.Key, Items = g.ToList() })
+                            .OrderByDescending(g => g.Items.Sum(i => i.TotalQuantity))
+                            .ToList();
+
+                        foreach (var matGroup in materialGroups)
+                        {
+                            int materialTotal = matGroup.Items.Sum(i => i.TotalQuantity);
+
+                            TreeNode matGroupNode = new TreeNode
+                            {
+                                Type = TreeNode.NodeType.MaterialGroup,
+                                Label = BuildMaterialGroupLabel(def, matGroup.Stuff, materialTotal, matGroup.Items),
+                                Depth = depth + 2,
+                                Parent = defGroupNode,
+                                CanExpand = true,
+                                DefGroupDef = def,
+                                DefGroupStuff = matGroup.Stuff
+                            };
+
+                            // Collect all stacks, sort by quality desc then quantity desc
+                            var sortedStacks = matGroup.Items
+                                .OrderByDescending(i => i.Quality.HasValue ? (int)i.Quality.Value : -1)
+                                .SelectMany(i => i.Stacks.Select(s => new { Item = i, Stack = s }))
+                                .OrderByDescending(x => x.Item.Quality.HasValue ? (int)x.Item.Quality.Value : -1)
+                                .ThenByDescending(x => x.Stack.Quantity)
+                                .ToList();
+
+                            foreach (var pair in sortedStacks)
+                            {
+                                TreeNode stackNode = new TreeNode
+                                {
+                                    Type = TreeNode.NodeType.Stack,
+                                    Label = BuildStackLabel(pair.Item, pair.Stack),
+                                    Depth = depth + 3,
+                                    StackData = pair.Stack,
+                                    ItemData = pair.Item,
+                                    Parent = matGroupNode,
+                                    CanExpand = false
+                                };
+                                matGroupNode.Children.Add(stackNode);
+                            }
+
+                            defGroupNode.Children.Add(matGroupNode);
+                        }
+                    }
+                    else
+                    {
+                        // No stuff variations (quality-only): Stacks directly under DefGroup
+                        var sortedStacks = groupItems
+                            .OrderByDescending(i => i.Quality.HasValue ? (int)i.Quality.Value : -1)
+                            .SelectMany(i => i.Stacks.Select(s => new { Item = i, Stack = s }))
+                            .OrderByDescending(x => x.Item.Quality.HasValue ? (int)x.Item.Quality.Value : -1)
+                            .ThenByDescending(x => x.Stack.Quantity)
+                            .ToList();
+
+                        foreach (var pair in sortedStacks)
+                        {
+                            TreeNode stackNode = new TreeNode
+                            {
+                                Type = TreeNode.NodeType.Stack,
+                                Label = BuildStackLabel(pair.Item, pair.Stack),
+                                Depth = depth + 2,
+                                StackData = pair.Stack,
+                                ItemData = pair.Item,
+                                Parent = defGroupNode,
+                                CanExpand = false
+                            };
+                            defGroupNode.Children.Add(stackNode);
+                        }
+                    }
+
+                    childNodes.Add((defGroupNode, totalQty));
+                }
+            }
+
+            // Sort all children by total quantity descending and add to category
+            foreach (var (node, _) in childNodes.OrderByDescending(c => c.totalQty))
+            {
+                catNode.Children.Add(node);
+            }
+        }
+
+        /// <summary>
+        /// Counts distinct items across all categories (DefGroups + single-variant ItemGroups).
+        /// </summary>
+        private static int CountDistinctItems(List<TreeNode> nodes)
+        {
+            int count = 0;
+            foreach (TreeNode node in nodes)
+            {
+                if (node.Type == TreeNode.NodeType.DefGroup || node.Type == TreeNode.NodeType.ItemGroup)
+                {
+                    count++;
+                }
+                else if (node.Type == TreeNode.NodeType.Category && node.Children.Count > 0)
+                {
+                    count += CountDistinctItems(node.Children);
+                }
+            }
+            return count;
+        }
+
+        /// <summary>
+        /// Builds a standard ItemGroup node with Stack children.
+        /// Used for single-variant items and for meal variants within a meal DefGroup.
+        /// </summary>
+        private static TreeNode BuildItemGroupNode(InventoryHelper.InventoryItem item, TreeNode parent, int depth)
+        {
+            TreeNode itemGroupNode = new TreeNode
+            {
+                Type = TreeNode.NodeType.ItemGroup,
+                Label = item.GetDisplayLabel(),
+                Depth = depth,
+                ItemData = item,
+                Parent = parent,
+                CanExpand = true
+            };
+
+            foreach (InventoryHelper.InventoryStack stack in item.Stacks)
+            {
+                TreeNode stackNode = new TreeNode
+                {
+                    Type = TreeNode.NodeType.Stack,
+                    Label = BuildStackLabel(item, stack),
+                    Depth = depth + 1,
+                    StackData = stack,
+                    ItemData = item,
+                    Parent = itemGroupNode,
+                    CanExpand = false
+                };
+                itemGroupNode.Children.Add(stackNode);
+            }
+
+            return itemGroupNode;
+        }
+
+        /// <summary>
+        /// Checks if a FoodPreferability value represents a meal tier.
+        /// </summary>
+        private static bool IsMealTier(FoodPreferability pref)
+        {
+            return pref == FoodPreferability.MealAwful
+                || pref == FoodPreferability.MealTerrible
+                || pref == FoodPreferability.MealSimple
+                || pref == FoodPreferability.MealFine
+                || pref == FoodPreferability.MealLavish;
+        }
+
+        /// <summary>
+        /// Checks if a ThingDef has a meal-tier food preferability.
+        /// </summary>
+        private static bool HasMealTierPreferability(ThingDef def)
+        {
+            return def.ingestible != null && IsMealTier(def.ingestible.preferability);
+        }
+
+        /// <summary>
+        /// Builds the display label for a DefGroup node (material/quality grouping).
+        /// Format: "{def.LabelCap} x{total} ({N} carried), {material summary}"
+        /// </summary>
+        private static string BuildDefGroupLabel(ThingDef def, List<InventoryHelper.InventoryItem> items)
+        {
+            int totalCount = items.Sum(i => i.TotalQuantity);
+            int carriedCount = items.Sum(i => i.CarriedCount);
+
+            string label = $"{def.LabelCap} x{totalCount}";
+            if (carriedCount > 0)
+            {
+                label += $" ({carriedCount} carried by colonists)";
+            }
+
+            // Add material summary if items have stuff variations
+            var materialCounts = items
+                .Where(i => i.Stuff != null)
+                .GroupBy(i => i.Stuff)
+                .Select(g => new { Stuff = g.Key, Count = g.Sum(i => i.TotalQuantity) })
+                .OrderByDescending(m => m.Count)
+                .ToList();
+
+            if (materialCounts.Count > 0)
+            {
+                // Show top materials: at most 3, or until 95% coverage, whichever is fewer
+                const int maxShown = 3;
+                int threshold = (int)Math.Ceiling(totalCount * 0.95);
+                int accumulated = 0;
+                var shownMaterials = new List<string>();
+                var truncatedMaterials = new List<(string name, int count)>();
+
+                foreach (var mat in materialCounts)
+                {
+                    if (shownMaterials.Count < maxShown && accumulated < threshold)
+                    {
+                        shownMaterials.Add($"{mat.Count} {mat.Stuff.LabelAsStuff}");
+                        accumulated += mat.Count;
+                    }
+                    else
+                    {
+                        truncatedMaterials.Add((mat.Stuff.LabelAsStuff, mat.Count));
+                    }
+                }
+
+                if (shownMaterials.Count > 0)
+                {
+                    label += ", " + string.Join(", ", shownMaterials);
+                    if (truncatedMaterials.Count == 1)
+                    {
+                        label += $", and {truncatedMaterials[0].count} {truncatedMaterials[0].name}";
+                    }
+                    else if (truncatedMaterials.Count > 1)
+                    {
+                        label += $", and {truncatedMaterials.Count} other materials";
+                    }
+                }
+            }
+
+            return label;
+        }
+
+        /// <summary>
+        /// Builds the display label for a meal tier DefGroup node.
+        /// Uses the shortest member label as the group name (the base variant).
+        /// Format: "{baseMealLabel} x{total} ({N} carried by colonists)"
+        /// </summary>
+        private static string BuildMealGroupLabel(List<InventoryHelper.InventoryItem> items)
+        {
+            int totalCount = items.Sum(i => i.TotalQuantity);
+            int carriedCount = items.Sum(i => i.CarriedCount);
+
+            // Use the member with the shortest label as the base name
+            string baseName = items
+                .OrderBy(i => i.Def.label.Length)
+                .First().Def.LabelCap;
+
+            string label = $"{baseName} x{totalCount}";
+            if (carriedCount > 0)
+            {
+                label += $" ({carriedCount} carried by colonists)";
+            }
+
+            return label;
+        }
+
+        /// <summary>
+        /// Builds the display label for a MaterialGroup node.
+        /// Format: "{stuff} {def} x{total} ({N} carried by colonists)"
+        /// </summary>
+        private static string BuildMaterialGroupLabel(ThingDef def, ThingDef stuff, int totalQty, List<InventoryHelper.InventoryItem> items)
+        {
+            string name;
+            if (stuff != null)
+            {
+                name = $"{stuff.LabelAsStuff} {def.label}";
+            }
+            else
+            {
+                name = def.label;
+            }
+
+            if (!string.IsNullOrEmpty(name))
+            {
+                name = char.ToUpper(name[0]) + name.Substring(1);
+            }
+
+            int carriedCount = items.Sum(i => i.CarriedCount);
+            if (carriedCount > 0)
+            {
+                return $"{name} x{totalQty} ({carriedCount} carried by colonists)";
+            }
+            return $"{name} x{totalQty}";
+        }
+
+        /// <summary>
         /// Builds the display label for an individual stack node.
-        /// Format: "{name} x{count}, {location}" with optional " (forbidden)" suffix.
+        /// Format: "{name} x{count}, {location}" with optional flags.
         /// </summary>
         private static string BuildStackLabel(InventoryHelper.InventoryItem item, InventoryHelper.InventoryStack stack)
         {
@@ -680,6 +1024,13 @@ namespace RimWorldAccess
                 return;
             }
 
+            if (current.Type == TreeNode.NodeType.DefGroup || current.Type == TreeNode.NodeType.MaterialGroup)
+            {
+                TolkHelper.Speak("Expand this group and select a specific stack to drop.");
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                return;
+            }
+
             TolkHelper.Speak("Select a carried item to drop.");
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
         }
@@ -699,8 +1050,9 @@ namespace RimWorldAccess
                 return;
             }
 
-            // ItemGroup-level: jump to first available stack location
             TreeNode current = flattenedVisibleNodes[selectedIndex];
+
+            // ItemGroup-level: jump to first available stack location
             if (current.Type == TreeNode.NodeType.ItemGroup && current.ItemData != null)
             {
                 var firstStack = current.ItemData.Stacks.FirstOrDefault();
@@ -1138,6 +1490,25 @@ namespace RimWorldAccess
                 if (node.CategoryData.CategoryDef == null)
                     return "cat:uncategorized";
                 return "cat:" + node.CategoryData.CategoryDef.defName;
+            }
+
+            if (node.Type == TreeNode.NodeType.DefGroup && node.DefGroupDef != null)
+            {
+                // Distinguish meal tier DefGroups from material/quality DefGroups
+                if (HasMealTierPreferability(node.DefGroupDef) && node.DefGroupItems != null
+                    && node.DefGroupItems.Any(i => i.Def != node.DefGroupDef))
+                {
+                    return "defgroup:meal:" + node.DefGroupDef.ingestible.preferability.ToString();
+                }
+                return "defgroup:" + node.DefGroupDef.defName;
+            }
+
+            if (node.Type == TreeNode.NodeType.MaterialGroup && node.DefGroupDef != null)
+            {
+                string key = "matgroup:" + node.DefGroupDef.defName;
+                if (node.DefGroupStuff != null)
+                    key += ":" + node.DefGroupStuff.defName;
+                return key;
             }
 
             if (node.Type == TreeNode.NodeType.ItemGroup && node.ItemData != null)
