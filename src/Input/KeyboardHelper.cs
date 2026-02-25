@@ -129,10 +129,8 @@ namespace RimWorldAccess
                 || WindowlessDialogState.IsActive
                 || WindowlessConfirmationState.IsActive
                 || WindowlessAreaState.IsActive
-                // Policy menus
-                || WindowlessOutfitPolicyState.IsActive
-                || WindowlessFoodPolicyState.IsActive
-                || WindowlessDrugPolicyState.IsActive
+                // Policy editor
+                || PolicyEditorState.IsActive
                 // Main gameplay menus
                 // Note: SettlementBrowserState and QuestLocationsBrowserState are
                 // intentionally NOT included here - they're world-view-specific and handle their own

@@ -57,9 +57,7 @@ namespace RimWorldAccess
                 RangeEditMenuState.IsActive ||
                 WorkMenuState.IsActive ||
                 AssignMenuState.IsActive ||
-                WindowlessOutfitPolicyState.IsActive ||
-                WindowlessFoodPolicyState.IsActive ||
-                WindowlessDrugPolicyState.IsActive ||
+                PolicyEditorState.IsActive ||
                 WindowlessAreaState.IsActive ||
                 WindowlessScheduleState.IsActive ||
                 BillsMenuState.IsActive ||

@@ -22,7 +22,7 @@ namespace RimWorldAccess
         private readonly Func<int, string> getColumnName;
         private readonly Func<TItem, int, string> getColumnValue;
         private readonly Func<IList<TItem>, int, bool, IList<TItem>> sortByColumn;
-        private readonly Func<int, string> getColumnTooltip;
+        private readonly Func<TItem, int, string> getColumnTooltip;
 
         // === Properties ===
         public int CurrentRowIndex
@@ -53,7 +53,7 @@ namespace RimWorldAccess
         /// <param name="sortByColumn">Sorts items by column index and direction, returns new sorted list</param>
         /// <param name="defaultSortColumn">Initial sort column index</param>
         /// <param name="defaultSortDescending">Initial sort direction</param>
-        /// <param name="getColumnTooltip">Optional: returns tooltip text for a column (shown only on column navigation)</param>
+        /// <param name="getColumnTooltip">Optional: returns tooltip text for a column and item (shown only on column navigation)</param>
         public TabularMenuHelper(
             Func<int> getColumnCount,
             Func<TItem, string> getItemLabel,
@@ -62,7 +62,7 @@ namespace RimWorldAccess
             Func<IList<TItem>, int, bool, IList<TItem>> sortByColumn,
             int defaultSortColumn = 0,
             bool defaultSortDescending = false,
-            Func<int, string> getColumnTooltip = null)
+            Func<TItem, int, string> getColumnTooltip = null)
         {
             this.getColumnCount = getColumnCount ?? throw new ArgumentNullException(nameof(getColumnCount));
             this.getItemLabel = getItemLabel ?? throw new ArgumentNullException(nameof(getItemLabel));
@@ -326,7 +326,7 @@ namespace RimWorldAccess
             else
             {
                 string result = $"{columnName}: {columnValue}";
-                string tooltip = getColumnTooltip?.Invoke(currentColumnIndex);
+                string tooltip = getColumnTooltip?.Invoke(item, currentColumnIndex);
                 if (!string.IsNullOrEmpty(tooltip))
                     result += ". " + tooltip;
                 return result;

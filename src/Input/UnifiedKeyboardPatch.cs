@@ -3715,26 +3715,340 @@ namespace RimWorldAccess
                 }
             }
 
-            // ===== PRIORITY 4.779: Handle assign menu typeahead if active =====
-            if (AssignMenuState.IsActive)
+            // ===== PRIORITY 4.776: Handle policy content editor if active =====
+            if (PolicyEditorState.IsActive && !WindowlessDialogState.IsActive)
             {
+                bool handled = false;
+
+                if (ReadingPolicyEditorState.IsActive)
+                {
+                    // Reading policy: Tab/Shift+Tab switches panels
+                    if (key == KeyCode.Tab)
+                    {
+                        ReadingPolicyEditorState.SwitchPanel();
+                        handled = true;
+                    }
+                    else if (key == KeyCode.Escape)
+                    {
+                        if (ThingFilterNavigationState.IsActive && ThingFilterNavigationState.IsEditingSlider)
+                        {
+                            ThingFilterNavigationState.ExitSliderEdit();
+                            handled = true;
+                        }
+                        else if (ThingFilterNavigationState.IsActive && ThingFilterNavigationState.HasActiveSearch)
+                        {
+                            ThingFilterNavigationState.ClearTypeaheadSearch();
+                            handled = true;
+                        }
+                        else
+                        {
+                            PolicyEditorState.Close();
+                            handled = true;
+                        }
+                    }
+                    else if (ThingFilterNavigationState.IsActive)
+                    {
+                        handled = HandleThingFilterInput(key);
+                    }
+                }
+                else if (DrugPolicyEditorState.IsActive)
+                {
+                    handled = HandleDrugEditorInput(key);
+                }
+                else if (ThingFilterNavigationState.IsActive)
+                {
+                    // Apparel/Food filter editing
+                    if (key == KeyCode.Escape)
+                    {
+                        if (ThingFilterNavigationState.IsEditingSlider)
+                        {
+                            ThingFilterNavigationState.ExitSliderEdit();
+                            handled = true;
+                        }
+                        else if (ThingFilterNavigationState.HasActiveSearch)
+                        {
+                            ThingFilterNavigationState.ClearTypeaheadSearch();
+                            handled = true;
+                        }
+                        else
+                        {
+                            PolicyEditorState.Close();
+                            handled = true;
+                        }
+                    }
+                    else
+                    {
+                        handled = HandleThingFilterInput(key);
+                    }
+                }
+
+                if (handled)
+                {
+                    Event.current.Use();
+                    return;
+                }
+
+                // Consume unhandled keys to prevent passthrough
+                Event.current.Use();
+                return;
+            }
+
+            // ===== PRIORITY 4.778: Handle assign menu if active =====
+            // Skip if float menu is open (e.g., ] context menu for policies)
+            // Skip if dialog is active (e.g., Rename Policy dialog)
+            if (AssignMenuState.IsActive && !WindowlessFloatMenuState.IsActive &&
+                !WindowlessDialogState.IsActive)
+            {
+                bool handled = false;
+                var typeahead = AssignMenuState.Typeahead;
+
+                // Policy shortcuts (work in both table and submenu when on policy column)
+                if (Event.current.alt && key == KeyCode.N)
+                    handled = AssignMenuState.HandlePolicyShortcut(AssignMenuHelper.PolicyAction.New);
+                else if (Event.current.alt && key == KeyCode.R)
+                    handled = AssignMenuState.HandlePolicyShortcut(AssignMenuHelper.PolicyAction.Rename);
+                else if (Event.current.alt && key == KeyCode.C)
+                    handled = AssignMenuState.HandlePolicyShortcut(AssignMenuHelper.PolicyAction.Copy);
+                else if (Event.current.alt && key == KeyCode.E)
+                    handled = AssignMenuState.HandlePolicyShortcut(AssignMenuHelper.PolicyAction.Edit);
+                else if (key == KeyCode.Delete)
+                    handled = AssignMenuState.HandlePolicyShortcut(AssignMenuHelper.PolicyAction.Delete);
+
+                // Check if in submenu
+                if (AssignMenuState.IsInSubmenu)
+                {
+                    var submenuTypeahead = AssignMenuState.SubmenuTypeahead;
+
+                    // Handle Escape - clear search FIRST, then close submenu
+                    if (key == KeyCode.Escape)
+                    {
+                        if (submenuTypeahead.HasActiveSearch)
+                        {
+                            submenuTypeahead.ClearSearchAndAnnounce();
+                            AssignMenuState.AnnounceSubmenuOption();
+                        }
+                        else
+                        {
+                            AssignMenuState.SubmenuCancel();
+                        }
+                        handled = true;
+                    }
+                    // Handle Backspace for search
+                    else if (key == KeyCode.Backspace)
+                    {
+                        AssignMenuState.SubmenuHandleBackspace();
+                        handled = true;
+                    }
+                    // Handle Down arrow (use typeahead if active with matches)
+                    else if (key == KeyCode.DownArrow)
+                    {
+                        if (submenuTypeahead.HasActiveSearch && !submenuTypeahead.HasNoMatches)
+                        {
+                            int newIndex = submenuTypeahead.GetNextMatch(AssignMenuState.SubmenuSelectedIndex);
+                            if (newIndex >= 0)
+                            {
+                                AssignMenuState.SetSubmenuSelectedIndex(newIndex);
+                                AssignMenuState.AnnounceSubmenuOption();
+                            }
+                        }
+                        else
+                        {
+                            AssignMenuState.SubmenuSelectNext();
+                        }
+                        handled = true;
+                    }
+                    // Handle Up arrow (use typeahead if active with matches)
+                    else if (key == KeyCode.UpArrow)
+                    {
+                        if (submenuTypeahead.HasActiveSearch && !submenuTypeahead.HasNoMatches)
+                        {
+                            int newIndex = submenuTypeahead.GetPreviousMatch(AssignMenuState.SubmenuSelectedIndex);
+                            if (newIndex >= 0)
+                            {
+                                AssignMenuState.SetSubmenuSelectedIndex(newIndex);
+                                AssignMenuState.AnnounceSubmenuOption();
+                            }
+                        }
+                        else
+                        {
+                            AssignMenuState.SubmenuSelectPrevious();
+                        }
+                        handled = true;
+                    }
+                    else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                    {
+                        AssignMenuState.SubmenuApply();
+                        handled = true;
+                    }
+                    else if (key == KeyCode.RightBracket)
+                    {
+                        AssignMenuState.OpenSubmenuContextMenu();
+                        handled = true;
+                    }
+
+                    if (handled)
+                    {
+                        Event.current.Use();
+                        return;
+                    }
+
+                    // Handle typeahead characters in submenu
+                    bool isSubmenuLetter = key >= KeyCode.A && key <= KeyCode.Z;
+                    bool isSubmenuNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
+
+                    if (isSubmenuLetter || isSubmenuNumber)
+                    {
+                        char c = isSubmenuLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
+                        AssignMenuState.SubmenuHandleTypeahead(c);
+                        Event.current.Use();
+                        return;
+                    }
+
+                    // Consume other keys in submenu
+                    Event.current.Use();
+                    return;
+                }
+
+                // Main table handling
+                // Handle Home - jump to first
+                if (key == KeyCode.Home)
+                {
+                    AssignMenuState.JumpToFirst();
+                    handled = true;
+                }
+                // Handle End - jump to last
+                else if (key == KeyCode.End)
+                {
+                    AssignMenuState.JumpToLast();
+                    handled = true;
+                }
+                // Handle Escape - clear search FIRST, then close
+                else if (key == KeyCode.Escape)
+                {
+                    if (typeahead != null && typeahead.HasActiveSearch)
+                    {
+                        typeahead.ClearSearchAndAnnounce();
+                        AssignMenuState.AnnounceWithSearch();
+                        handled = true;
+                    }
+                    else
+                    {
+                        AssignMenuState.Close();
+                        handled = true;
+                    }
+                }
+                // Handle Backspace for search
+                else if (key == KeyCode.Backspace)
+                {
+                    AssignMenuState.HandleBackspace();
+                    handled = true;
+                }
+                // Handle Shift+Down - paint value to next pawn (BEFORE regular Down)
+                else if (key == KeyCode.DownArrow && Event.current.shift)
+                {
+                    AssignMenuState.PaintDown();
+                    handled = true;
+                }
+                // Handle Shift+Up - paint value to previous pawn (BEFORE regular Up)
+                else if (key == KeyCode.UpArrow && Event.current.shift)
+                {
+                    AssignMenuState.PaintUp();
+                    handled = true;
+                }
+                // Handle Down arrow - navigate pawns (use typeahead if active with matches)
+                else if (key == KeyCode.DownArrow)
+                {
+                    if (typeahead != null && typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                    {
+                        int newIndex = typeahead.GetNextMatch(AssignMenuState.CurrentPawnIndex);
+                        if (newIndex >= 0)
+                        {
+                            AssignMenuState.SetCurrentPawnIndex(newIndex);
+                            AssignMenuState.AnnounceWithSearch();
+                        }
+                    }
+                    else
+                    {
+                        AssignMenuState.SelectNextPawn();
+                    }
+                    handled = true;
+                }
+                // Handle Up arrow - navigate pawns (use typeahead if active with matches)
+                else if (key == KeyCode.UpArrow)
+                {
+                    if (typeahead != null && typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                    {
+                        int newIndex = typeahead.GetPreviousMatch(AssignMenuState.CurrentPawnIndex);
+                        if (newIndex >= 0)
+                        {
+                            AssignMenuState.SetCurrentPawnIndex(newIndex);
+                            AssignMenuState.AnnounceWithSearch();
+                        }
+                    }
+                    else
+                    {
+                        AssignMenuState.SelectPreviousPawn();
+                    }
+                    handled = true;
+                }
+                // Handle Right arrow - navigate columns
+                else if (key == KeyCode.RightArrow)
+                {
+                    AssignMenuState.SelectNextColumn();
+                    handled = true;
+                }
+                // Handle Left arrow - navigate columns
+                else if (key == KeyCode.LeftArrow)
+                {
+                    AssignMenuState.SelectPreviousColumn();
+                    handled = true;
+                }
+                // Handle Enter - interact with current cell
+                else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                {
+                    AssignMenuState.InteractWithCurrentCell();
+                    handled = true;
+                }
+                // Handle ] (right bracket) - open context menu
+                else if (key == KeyCode.RightBracket)
+                {
+                    AssignMenuState.OpenContextMenu();
+                    handled = true;
+                }
+                // Handle Alt+S - sort by current column
+                else if (key == KeyCode.S && Event.current.alt)
+                {
+                    AssignMenuState.ToggleSortByCurrentColumn();
+                    handled = true;
+                }
+                // Handle Alt+I - open info card for selected pawn
+                else if (Event.current.alt && key == KeyCode.I)
+                {
+                    AssignMenuState.OpenInfoCard();
+                    handled = true;
+                }
+
+                if (handled)
+                {
+                    Event.current.Use();
+                    return;
+                }
+
+                // Handle typeahead characters
                 bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                 bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
                 if ((isLetter || isNumber) && !Event.current.alt)
                 {
                     char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                    AssignMenuState.ProcessTypeaheadCharacter(c);
+                    AssignMenuState.HandleTypeahead(c);
                     Event.current.Use();
                     return;
                 }
 
-                if (key == KeyCode.Backspace)
-                {
-                    AssignMenuState.ProcessBackspace();
-                    Event.current.Use();
-                    return;
-                }
+                // Consume other keys to prevent passthrough
+                Event.current.Use();
+                return;
             }
 
             // ===== PRIORITY 4.7791: Handle storage settings menu typeahead if active =====
@@ -3952,7 +4266,15 @@ namespace RimWorldAccess
                             ArchitectState.Reset();
                         }
 
-                        TolkHelper.Speak("Menu closed");
+                        // Re-announce context if returning to a known menu
+                        if (AssignMenuState.IsActive)
+                        {
+                            AssignMenuState.AnnounceCurrentCell(includeItemName: false);
+                        }
+                        else
+                        {
+                            TolkHelper.Speak("Menu closed");
+                        }
                         handled = true;
                     }
                 }
@@ -4256,6 +4578,22 @@ namespace RimWorldAccess
                     if (selectedPawn != null)
                     {
                         WindowlessInspectionState.OpenForObject(selectedPawn);
+                    }
+                    else
+                    {
+                        TolkHelper.Speak("No pawn selected");
+                    }
+                    Event.current.Use();
+                    return;
+                }
+
+                // Ctrl+Alt+I: open info card for currently selected pawn
+                if (alt && ctrl && key == KeyCode.I)
+                {
+                    Pawn selectedPawn = Find.Selector?.SingleSelectedThing as Pawn;
+                    if (selectedPawn != null)
+                    {
+                        Find.WindowStack.Add(new Dialog_InfoCard(selectedPawn));
                     }
                     else
                     {
@@ -4687,28 +5025,8 @@ namespace RimWorldAccess
                         MapNavigationState.RestoreCursorForCurrentMap();
                     }
 
-                    // Get the selected pawn, or use first colonist if none selected
-                    Pawn targetPawn = null;
-                    if (Find.Selector != null && Find.Selector.NumSelected > 0)
-                    {
-                        targetPawn = Find.Selector.FirstSelectedObject as Pawn;
-                    }
-
-                    // If no pawn selected, use first colonist
-                    if (targetPawn == null && Find.CurrentMap.mapPawns.FreeColonists.Any())
-                    {
-                        targetPawn = Find.CurrentMap.mapPawns.FreeColonists.First();
-                    }
-
-                    if (targetPawn != null)
-                    {
-                        // Open the assign menu
-                        AssignMenuState.Open(targetPawn);
-                    }
-                    else
-                    {
-                        TolkHelper.Speak("No colonists available");
-                    }
+                    // Open the assign menu (handles pawn selection internally)
+                    AssignMenuState.Open();
 
                     return;
                 }
@@ -5441,6 +5759,207 @@ namespace RimWorldAccess
             }
 
             TolkHelper.Speak(announcement);
+        }
+
+        #endregion
+
+        #region Policy Editor Helpers
+
+        /// <summary>
+        /// Handles ThingFilter keyboard input (shared by apparel, food, and reading policy editors).
+        /// Does NOT handle Escape (caller handles that for proper context-dependent behavior).
+        /// </summary>
+        private static bool HandleThingFilterInput(KeyCode key)
+        {
+            if (!ThingFilterNavigationState.IsActive)
+                return false;
+
+            if (ThingFilterNavigationState.IsEditingSlider)
+            {
+                if (key == KeyCode.LeftArrow)
+                {
+                    ThingFilterNavigationState.AdjustSlider(-1);
+                    return true;
+                }
+                else if (key == KeyCode.RightArrow)
+                {
+                    ThingFilterNavigationState.AdjustSlider(1);
+                    return true;
+                }
+                else if (key == KeyCode.UpArrow || key == KeyCode.DownArrow)
+                {
+                    ThingFilterNavigationState.ToggleSliderPart();
+                    return true;
+                }
+                else if (key == KeyCode.Return || key == KeyCode.KeypadEnter || key == KeyCode.Escape)
+                {
+                    ThingFilterNavigationState.ExitSliderEdit();
+                    return true;
+                }
+                return false;
+            }
+
+            // Normal filter navigation
+            if (key == KeyCode.Backspace)
+            {
+                if (ThingFilterNavigationState.HasActiveSearch)
+                {
+                    ThingFilterNavigationState.ProcessBackspace();
+                    return true;
+                }
+            }
+            else if (key == KeyCode.UpArrow)
+            {
+                if (ThingFilterNavigationState.HasActiveSearch && !ThingFilterNavigationState.HasNoMatches)
+                    ThingFilterNavigationState.SelectPreviousMatch();
+                else
+                    ThingFilterNavigationState.SelectPrevious();
+                return true;
+            }
+            else if (key == KeyCode.DownArrow)
+            {
+                if (ThingFilterNavigationState.HasActiveSearch && !ThingFilterNavigationState.HasNoMatches)
+                    ThingFilterNavigationState.SelectNextMatch();
+                else
+                    ThingFilterNavigationState.SelectNext();
+                return true;
+            }
+            else if (key == KeyCode.Space)
+            {
+                ThingFilterNavigationState.ToggleSelected();
+                return true;
+            }
+            else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+            {
+                ThingFilterNavigationState.ActivateSelected();
+                return true;
+            }
+            else if (key == KeyCode.LeftArrow)
+            {
+                ThingFilterNavigationState.Collapse();
+                return true;
+            }
+            else if (key == KeyCode.RightArrow)
+            {
+                ThingFilterNavigationState.Expand();
+                return true;
+            }
+            else if (key == KeyCode.KeypadMultiply || (Event.current.shift && key == KeyCode.Alpha8))
+            {
+                ThingFilterNavigationState.ExpandAllSiblings();
+                return true;
+            }
+            else if (key == KeyCode.Home)
+            {
+                ThingFilterNavigationState.JumpToFirst(Event.current.control);
+                return true;
+            }
+            else if (key == KeyCode.End)
+            {
+                ThingFilterNavigationState.JumpToLast(Event.current.control);
+                return true;
+            }
+            else if (key == KeyCode.A && Event.current.control)
+            {
+                ThingFilterNavigationState.AllowAll();
+                return true;
+            }
+            else if (key == KeyCode.D && Event.current.control)
+            {
+                ThingFilterNavigationState.DisallowAll();
+                return true;
+            }
+            else if (Event.current.character != '\0' && !Event.current.control && !Event.current.alt)
+            {
+                char c = Event.current.character;
+                if (char.IsLetterOrDigit(c))
+                {
+                    ThingFilterNavigationState.ProcessTypeaheadCharacter(c);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Handles drug policy editor keyboard input (drug list and drug settings modes).
+        /// </summary>
+        private static bool HandleDrugEditorInput(KeyCode key)
+        {
+            if (!DrugPolicyEditorState.IsActive)
+                return false;
+
+            var mode = DrugPolicyEditorState.CurrentMode;
+
+            if (mode == DrugPolicyEditorState.NavigationMode.DrugList)
+            {
+                if (key == KeyCode.UpArrow)
+                {
+                    DrugPolicyEditorState.SelectPreviousDrug();
+                    return true;
+                }
+                else if (key == KeyCode.DownArrow)
+                {
+                    DrugPolicyEditorState.SelectNextDrug();
+                    return true;
+                }
+                else if (key == KeyCode.Home)
+                {
+                    DrugPolicyEditorState.JumpToFirstDrug();
+                    return true;
+                }
+                else if (key == KeyCode.End)
+                {
+                    DrugPolicyEditorState.JumpToLastDrug();
+                    return true;
+                }
+                else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                {
+                    DrugPolicyEditorState.EnterDrugSettings();
+                    return true;
+                }
+                else if (key == KeyCode.Escape)
+                {
+                    PolicyEditorState.Close();
+                    return true;
+                }
+            }
+            else if (mode == DrugPolicyEditorState.NavigationMode.DrugSettings)
+            {
+                if (key == KeyCode.UpArrow)
+                {
+                    DrugPolicyEditorState.SelectPreviousSetting();
+                    return true;
+                }
+                else if (key == KeyCode.DownArrow)
+                {
+                    DrugPolicyEditorState.SelectNextSetting();
+                    return true;
+                }
+                else if (key == KeyCode.Space || key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                {
+                    DrugPolicyEditorState.ToggleSetting();
+                    return true;
+                }
+                else if (key == KeyCode.LeftArrow)
+                {
+                    DrugPolicyEditorState.AdjustSetting(-1);
+                    return true;
+                }
+                else if (key == KeyCode.RightArrow)
+                {
+                    DrugPolicyEditorState.AdjustSetting(1);
+                    return true;
+                }
+                else if (key == KeyCode.Escape)
+                {
+                    DrugPolicyEditorState.ReturnToDrugList();
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         #endregion

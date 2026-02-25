@@ -401,14 +401,47 @@ namespace RimWorldAccess
                 }
             }
 
-            // Incapable Of
-            var incapableInfo = InfoCardDataExtractor.GetIncapableWorkTypes(pawn);
-            if (incapableInfo.Count > 0)
+            // Incapable Of - organized by WorkTag with inline causes, expandable to show affected work types
+            AddChild(tabNode, CreateCategoryHeader("Incapable Of", tabNode.IndentLevel + 1));
+            var incapableTagsInfo = InfoCardDataExtractor.GetIncapableWorkTagsInfo(pawn);
+            if (incapableTagsInfo.Count == 0)
             {
-                AddChild(tabNode, CreateCategoryHeader("Incapable Of", tabNode.IndentLevel + 1));
-                foreach (var workType in incapableInfo)
+                AddChild(tabNode, CreateInfoItem("None".Translate(), tabNode.IndentLevel + 1));
+            }
+            else
+            {
+                foreach (var (tagLabel, affectedWorkTypes) in incapableTagsInfo)
                 {
-                    AddChild(tabNode, CreateInfoItem(workType, tabNode.IndentLevel + 1));
+                    bool hasWorkTypes = affectedWorkTypes.Count > 0;
+
+                    var tagNode = new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.Item,
+                        Label = tagLabel,
+                        IsExpandable = hasWorkTypes,
+                        IsExpanded = false,
+                        IndentLevel = tabNode.IndentLevel + 1
+                    };
+
+                    if (hasWorkTypes)
+                    {
+                        var capturedWorkTypes = affectedWorkTypes;
+
+                        tagNode.OnActivate = () =>
+                        {
+                            if (tagNode.Children.Count > 0) return;
+
+                            foreach (var workTypeDef in capturedWorkTypes)
+                            {
+                                string label = !string.IsNullOrEmpty(workTypeDef.description)
+                                    ? workTypeDef.pawnLabel + ": " + workTypeDef.description
+                                    : workTypeDef.pawnLabel;
+                                AddChild(tagNode, CreateInfoItem(label, tagNode.IndentLevel + 1));
+                            }
+                        };
+                    }
+
+                    AddChild(tabNode, tagNode);
                 }
             }
 

@@ -157,6 +157,31 @@ namespace RimWorldAccess
                 IsActive = true;
                 SoundDefOf.TabOpen.PlayOneShotOnCamera();
                 typeahead.ClearSearch();
+
+                // Auto-expand the single object node and position on first child
+                if (visibleItems.Count > 0)
+                {
+                    var singleItem = visibleItems[0];
+                    if (singleItem.IsExpandable)
+                    {
+                        TolkHelper.Speak(singleItem.Label.StripTags());
+
+                        if (singleItem.OnActivate != null && singleItem.Children.Count == 0)
+                        {
+                            singleItem.OnActivate();
+                        }
+
+                        if (singleItem.Children.Count > 0)
+                        {
+                            singleItem.IsExpanded = true;
+                            RebuildVisibleList();
+                            selectedIndex = 1;
+                            AnnounceCurrentSelection();
+                            return;
+                        }
+                    }
+                }
+
                 AnnounceCurrentSelection();
             }
             catch (Exception ex)

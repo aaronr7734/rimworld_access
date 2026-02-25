@@ -105,15 +105,15 @@ namespace RimWorldAccess
             menuItems.Clear();
 
             // Quick actions
-            menuItems.Add(new MenuItem(MenuItemType.ClearAll, "Clear All", null));
-            menuItems.Add(new MenuItem(MenuItemType.AllowAll, "Allow All", null));
+            menuItems.Add(new MenuItem(MenuItemType.ClearAll, "ClearAll".Translate(), null));
+            menuItems.Add(new MenuItem(MenuItemType.AllowAll, "AllowAll".Translate(), null));
 
             // Hit points range (use parent filter's configurability if available)
             bool hpConfigurable = parentFilter?.allowedHitPointsConfigurable ?? currentFilter.allowedHitPointsConfigurable;
             if (hpConfigurable)
             {
                 FloatRange hpRange = currentFilter.AllowedHitPointsPercents;
-                string hpLabel = $"Hit Points: {hpRange.min:P0} - {hpRange.max:P0}";
+                string hpLabel = $"{"HitPointsBasic".Translate().CapitalizeFirst()}: {hpRange.min:P0} - {hpRange.max:P0}";
                 menuItems.Add(new MenuItem(MenuItemType.HitPointsRange, hpLabel, hpRange));
             }
 
@@ -122,7 +122,7 @@ namespace RimWorldAccess
             if (qualityConfigurable)
             {
                 QualityRange qualityRange = currentFilter.AllowedQualityLevels;
-                string qualityLabel = $"Quality: {qualityRange.min} - {qualityRange.max}";
+                string qualityLabel = $"{"Quality".Translate()}: {qualityRange.min.GetLabel()} - {qualityRange.max.GetLabel()}";
                 menuItems.Add(new MenuItem(MenuItemType.QualityRange, qualityLabel, qualityRange));
             }
 
@@ -403,14 +403,14 @@ namespace RimWorldAccess
             if (item.type == MenuItemType.HitPointsRange)
             {
                 currentFilter.AllowedHitPointsPercents = hitPoints;
-                item.label = $"Hit Points: {hitPoints.min:P0} - {hitPoints.max:P0}";
+                item.label = $"{"HitPointsBasic".Translate().CapitalizeFirst()}: {hitPoints.min:P0} - {hitPoints.max:P0}";
                 item.data = hitPoints;
                 TolkHelper.Speak(item.label);
             }
             else if (item.type == MenuItemType.QualityRange)
             {
                 currentFilter.AllowedQualityLevels = quality;
-                item.label = $"Quality: {quality.min} - {quality.max}";
+                item.label = $"{"Quality".Translate()}: {quality.min.GetLabel()} - {quality.max.GetLabel()}";
                 item.data = quality;
                 TolkHelper.Speak(item.label);
             }
@@ -470,14 +470,14 @@ namespace RimWorldAccess
         {
             currentFilter.SetDisallowAll();
             RebuildMenu();
-            TolkHelper.Speak("Cleared all items");
+            TolkHelper.Speak("ClearAll".Translate());
         }
 
         private static void AllowAllItems()
         {
             currentFilter.SetAllowAll(parentFilter);
             RebuildMenu();
-            TolkHelper.Speak("Allowed all items");
+            TolkHelper.Speak("AllowAll".Translate());
         }
 
         private static void RebuildMenu()
