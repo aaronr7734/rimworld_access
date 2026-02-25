@@ -5637,15 +5637,12 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Gather selectable things at cursor position
-            var things = new List<Thing>();
-            foreach (var obj in Selector.SelectableObjectsAt(pos, map))
-            {
-                if (obj is Thing thing)
-                {
-                    things.Add(thing);
-                }
-            }
+            // Gather all things at cursor position, sorted by AltitudeLayer descending
+            // (matches TileInfoHelper ordering - highest layer first)
+            var things = pos.GetThingList(map)
+                .Where(t => !(t is Mote) && t.def.category != ThingCategory.Mote)
+                .OrderByDescending(t => (int)t.def.altitudeLayer)
+                .ToList();
 
             TerrainDef terrain = map.terrainGrid.TerrainAt(pos);
 

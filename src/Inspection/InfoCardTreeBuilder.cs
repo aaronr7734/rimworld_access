@@ -251,6 +251,10 @@ namespace RimWorldAccess
                     }
                     catch { }
 
+                    // Skip entries with no value and no explanation (e.g., Description for things without one)
+                    if (string.IsNullOrEmpty(entry.ValueString) && !hasExplanation)
+                        continue;
+
                     var statNode = new InspectionTreeItem
                     {
                         Type = InspectionTreeItem.ItemType.Item,
