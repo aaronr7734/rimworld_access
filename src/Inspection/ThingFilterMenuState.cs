@@ -141,7 +141,7 @@ namespace RimWorldAccess
             {
                 if (specialFilter.configurable && IsVisibleSpecialFilter(specialFilter))
                 {
-                    MenuItem item = new MenuItem(MenuItemType.SpecialFilter, "*" + specialFilter.LabelCap, specialFilter, indent);
+                    MenuItem item = new MenuItem(MenuItemType.SpecialFilter, specialFilter.LabelCap, specialFilter, indent);
                     item.isAllowed = currentFilter.Allows(specialFilter);
                     item.parent = parentItem;
                     menuItems.Add(item);
@@ -362,7 +362,7 @@ namespace RimWorldAccess
             switch (item.type)
             {
                 case MenuItemType.Category:
-                    ToggleCategory(item, !item.isAllowed);
+                    ToggleCategory(item);
                     break;
 
                 case MenuItemType.ThingDef:
@@ -416,29 +416,30 @@ namespace RimWorldAccess
             }
         }
 
-        private static void ToggleCategory(MenuItem item, bool allow)
+        private static void ToggleCategory(MenuItem item)
         {
             TreeNode_ThingCategory node = item.data as TreeNode_ThingCategory;
             if (node == null) return;
 
-            if (allow)
-            {
-                currentFilter.SetAllow(node.catDef, true);
-            }
-            else
-            {
-                currentFilter.SetAllow(node.catDef, false);
-            }
+            // Tri-state toggle matching vanilla: Off→On, Partial→On, On→Off
+            var state = ThingFilterHelper.GetAllowanceState(
+                node.catDef, currentFilter, td => IsVisible(td));
+            bool desired = (state != ThingFilterHelper.CategoryAllowanceState.AllAllowed);
 
-            item.isAllowed = allow;
-            string state = allow ? "Allowed" : "Disallowed";
-            TolkHelper.Speak($"{state}: {item.label}");
+            currentFilter.SetAllow(node.catDef, desired);
 
             // Update child items if expanded
             if (item.isExpanded)
             {
                 RebuildMenu();
             }
+
+            // Re-read actual state from the game
+            var actualState = ThingFilterHelper.GetAllowanceState(
+                node.catDef, currentFilter, td => IsVisible(td));
+            item.isAllowed = (actualState != ThingFilterHelper.CategoryAllowanceState.NoneAllowed);
+            string stateStr = actualState == ThingFilterHelper.CategoryAllowanceState.NoneAllowed ? "Disallowed" : "Allowed";
+            TolkHelper.Speak($"{item.label}: {stateStr}");
         }
 
         private static void ToggleItem(MenuItem item, bool allow)
@@ -449,7 +450,8 @@ namespace RimWorldAccess
                 if (thingDef != null)
                 {
                     currentFilter.SetAllow(thingDef, allow);
-                    item.isAllowed = allow;
+                    // Re-read from game to verify actual state
+                    item.isAllowed = currentFilter.Allows(thingDef);
                 }
             }
             else if (item.type == MenuItemType.SpecialFilter)
@@ -458,12 +460,13 @@ namespace RimWorldAccess
                 if (specialFilter != null)
                 {
                     currentFilter.SetAllow(specialFilter, allow);
-                    item.isAllowed = allow;
+                    // Re-read from game to verify actual state
+                    item.isAllowed = currentFilter.Allows(specialFilter);
                 }
             }
 
-            string state = allow ? "Allowed" : "Disallowed";
-            TolkHelper.Speak($"{state}: {item.label}");
+            string state = item.isAllowed ? "Allowed" : "Disallowed";
+            TolkHelper.Speak($"{item.label}: {state}");
         }
 
         private static void ClearAllItems()
@@ -510,26 +513,34 @@ namespace RimWorldAccess
             {
                 MenuItem item = menuItems[selectedIndex];
 
-                // WCAG format: "{name} {state}. {X of Y}. {allowed}. level N"
+                // Format: "{name}. {state}. {X of Y}. level N"
                 string announcement = item.label;
 
-                // Add expanded/collapsed state for categories
+                // Add allowed/disallowed state for toggleable items
                 if (item.type == MenuItemType.Category)
                 {
                     string expandState = item.isExpanded ? "expanded" : "collapsed";
-                    announcement += $" {expandState}";
+                    var catNode = item.data as TreeNode_ThingCategory;
+                    if (catNode != null)
+                    {
+                        var summary = ThingFilterHelper.GetCategorySummary(
+                            catNode.catDef, currentFilter, td => IsVisible(td));
+                        announcement += $". {ThingFilterHelper.FormatCategorySummary(summary)}, {expandState}";
+                    }
+                    else
+                    {
+                        announcement += $" {expandState}";
+                    }
                 }
-
-                // Add sibling position (X of Y)
-                var (position, total) = GetSiblingPosition(item);
-                announcement += $". {MenuHelper.FormatPosition(position - 1, total)}";
-
-                // Add allowed/disallowed state for toggleable items
-                if (item.type == MenuItemType.Category || item.type == MenuItemType.ThingDef || item.type == MenuItemType.SpecialFilter)
+                else if (item.type == MenuItemType.ThingDef || item.type == MenuItemType.SpecialFilter)
                 {
                     string allowState = item.isAllowed ? "allowed" : "disallowed";
                     announcement += $". {allowState}";
                 }
+
+                // Add sibling position (X of Y) at the end
+                var (position, total) = GetSiblingPosition(item);
+                announcement += $". {MenuHelper.FormatPosition(position - 1, total)}";
 
                 // Add level suffix at the end (only announced when level changes)
                 announcement += MenuHelper.GetLevelSuffix("ThingFilterMenu", item.indentLevel);

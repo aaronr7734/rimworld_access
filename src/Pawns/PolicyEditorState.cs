@@ -1,3 +1,4 @@
+using System.Linq;
 using Verse;
 using RimWorld;
 
@@ -87,26 +88,56 @@ namespace RimWorldAccess
             }
         }
 
+        // Cached global filters matching vanilla's Dialog_ManageApparelPolicies/Dialog_ManageFoodPolicies
+        private static ThingFilter apparelGlobalFilter = null;
+        private static ThingFilter foodGlobalFilter = null;
+
+        private static ThingFilter ApparelGlobalFilter
+        {
+            get
+            {
+                if (apparelGlobalFilter == null)
+                {
+                    apparelGlobalFilter = new ThingFilter();
+                    apparelGlobalFilter.SetAllow(ThingCategoryDefOf.Apparel, true);
+                }
+                return apparelGlobalFilter;
+            }
+        }
+
+        private static ThingFilter FoodGlobalFilter
+        {
+            get
+            {
+                if (foodGlobalFilter == null)
+                {
+                    foodGlobalFilter = new ThingFilter();
+                    foreach (ThingDef def in DefDatabase<ThingDef>.AllDefs.Where(
+                        x => x.GetStatValueAbstract(StatDefOf.Nutrition) > 0f))
+                    {
+                        foodGlobalFilter.SetAllow(def, true);
+                    }
+                }
+                return foodGlobalFilter;
+            }
+        }
+
         private static void OpenApparelEditor(ApparelPolicy policy)
         {
-            // Apparel global filter: all apparel items
-            // Matches vanilla Dialog_ManageApparelPolicies: shows quality and hit points
-            ThingFilter globalFilter = new ThingFilter();
-            globalFilter.SetAllow(ThingCategoryDefOf.Apparel, true);
-            TreeNode_ThingCategory rootNode = globalFilter.DisplayRootCategory;
+            // Apparel global filter: matches vanilla Dialog_ManageApparelPolicies
+            TreeNode_ThingCategory rootNode = ApparelGlobalFilter.DisplayRootCategory;
 
             TolkHelper.Speak($"{"AssignTabEdit".Translate()} {policy.label}");
-            ThingFilterNavigationState.Activate(policy.filter, rootNode, showQuality: true, showHitPoints: true);
+            ThingFilterNavigationState.Activate(policy.filter, ApparelGlobalFilter, rootNode, showQuality: true, showHitPoints: true);
         }
 
         private static void OpenFoodEditor(FoodPolicy policy)
         {
-            // Food uses Foods category tree as root, no hit points
-            // Matches vanilla Dialog_ManageFoodPolicies: forceHideHitPointsConfig: true
+            // Food global filter: matches vanilla Dialog_ManageFoodPolicies
             TreeNode_ThingCategory rootNode = ThingCategoryDefOf.Foods.treeNode;
 
             TolkHelper.Speak($"{"AssignTabEdit".Translate()} {policy.label}");
-            ThingFilterNavigationState.Activate(policy.filter, rootNode, showQuality: false, showHitPoints: false);
+            ThingFilterNavigationState.Activate(policy.filter, FoodGlobalFilter, rootNode, showQuality: false, showHitPoints: false);
         }
 
         private static void OpenDrugEditor(DrugPolicy policy)
