@@ -36,6 +36,19 @@ namespace RimWorldAccess
 
         public static void Open()
         {
+            // Handle return from policy editor while already active
+            if (IsActive && pendingRestorePawnIndex >= 0)
+            {
+                tableHelper.CurrentRowIndex = Math.Min(pendingRestorePawnIndex, pawnsList.Count - 1);
+                tableHelper.CurrentColumnIndex = Math.Min(pendingRestoreColIndex, AssignMenuHelper.GetColumnCount() - 1);
+                pendingRestorePawnIndex = -1;
+                pendingRestoreColIndex = -1;
+
+                SoundDefOf.TabOpen.PlayOneShotOnCamera();
+                AnnounceCurrentCell(includeItemName: true);
+                return;
+            }
+
             if (IsActive) return;
 
             if (Find.CurrentMap == null)
@@ -65,7 +78,7 @@ namespace RimWorldAccess
                 sortByColumn: (items, col, desc) => AssignMenuHelper.SortByColumn(items.ToList(), col, desc),
                 defaultSortColumn: 0,
                 defaultSortDescending: false,
-                getColumnTooltip: AssignMenuHelper.GetColumnTooltip
+                getColumnTooltip: (pawn, col) => AssignMenuHelper.GetColumnTooltip(pawn, col)
             );
 
             // Sort by name
@@ -98,7 +111,8 @@ namespace RimWorldAccess
             }
 
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
-            TolkHelper.Speak($"Assign menu, {pawnsList.Count} colonists");
+            string tabLabel = DefDatabase<MainButtonDef>.GetNamed("Assign").LabelCap;
+            TolkHelper.Speak($"{tabLabel}, {pawnsList.Count} colonists");
             AnnounceCurrentCell(includeItemName: true);
         }
 
@@ -113,7 +127,8 @@ namespace RimWorldAccess
             tableHelper?.ClearSearch();
 
             SoundDefOf.TabClose.PlayOneShotOnCamera();
-            TolkHelper.Speak("Assign menu closed");
+            string tabLabel = DefDatabase<MainButtonDef>.GetNamed("Assign").LabelCap;
+            TolkHelper.Speak($"{tabLabel} closed");
         }
 
         public static void PrepareForPolicyEditorReturn()
@@ -396,6 +411,68 @@ namespace RimWorldAccess
             }
         }
 
+        // === Policy Shortcuts ===
+
+        public static bool HandlePolicyShortcut(AssignMenuHelper.PolicyAction action)
+        {
+            if (pawnsList.Count == 0) return false;
+
+            int colIndex = tableHelper.CurrentColumnIndex;
+            if (!AssignMenuHelper.IsColumnPolicyType(colIndex))
+                return false;
+
+            Pawn currentPawn = pawnsList[tableHelper.CurrentRowIndex];
+            Policy policy = null;
+
+            if (isInSubmenu && submenuOptions != null &&
+                submenuSelectedIndex >= 0 && submenuSelectedIndex < submenuOptions.Count)
+            {
+                policy = submenuOptions[submenuSelectedIndex].PolicyObject;
+            }
+
+            Action editCallback = BuildEditCallback(colIndex, currentPawn, policy);
+            Action refreshCallback = () => AnnounceCurrentCell(includeItemName: false);
+
+            return AssignMenuHelper.ExecutePolicyAction(
+                action, colIndex, currentPawn, refreshCallback, editCallback, policy);
+        }
+
+        private static Action BuildEditCallback(int colIndex, Pawn pawn, Policy policy)
+        {
+            var colType = AssignMenuHelper.GetColumnType(colIndex);
+            PolicyEditorState.PolicyType? editorType = null;
+
+            switch (colType)
+            {
+                case AssignMenuHelper.AssignColumnType.Outfit:
+                    policy = policy ?? pawn.outfits?.CurrentApparelPolicy;
+                    editorType = PolicyEditorState.PolicyType.Apparel;
+                    break;
+                case AssignMenuHelper.AssignColumnType.FoodRestriction:
+                    policy = policy ?? pawn.foodRestriction?.CurrentFoodPolicy;
+                    editorType = PolicyEditorState.PolicyType.Food;
+                    break;
+                case AssignMenuHelper.AssignColumnType.DrugPolicy:
+                    policy = policy ?? pawn.drugs?.CurrentPolicy;
+                    editorType = PolicyEditorState.PolicyType.Drug;
+                    break;
+                case AssignMenuHelper.AssignColumnType.ReadingPolicy:
+                    policy = policy ?? pawn.reading?.CurrentPolicy;
+                    editorType = PolicyEditorState.PolicyType.Reading;
+                    break;
+            }
+
+            if (editorType == null || policy == null) return null;
+
+            var capturedPolicy = policy;
+            var capturedType = editorType.Value;
+            return () =>
+            {
+                PrepareForPolicyEditorReturn();
+                PolicyEditorState.Open(capturedType, capturedPolicy, () => AssignMenuState.Open());
+            };
+        }
+
         // === Context Menu ===
 
         public static void OpenContextMenu()
@@ -422,8 +499,9 @@ namespace RimWorldAccess
                     editCallback = () =>
                     {
                         var policy = currentPawn.outfits?.CurrentApparelPolicy;
+                        if (policy == null) return;
                         PrepareForPolicyEditorReturn();
-                        WindowlessOutfitPolicyState.Open(policy, () =>
+                        PolicyEditorState.Open(PolicyEditorState.PolicyType.Apparel, policy, () =>
                         {
                             AssignMenuState.Open();
                         });
@@ -434,8 +512,9 @@ namespace RimWorldAccess
                     editCallback = () =>
                     {
                         var policy = currentPawn.foodRestriction?.CurrentFoodPolicy;
+                        if (policy == null) return;
                         PrepareForPolicyEditorReturn();
-                        WindowlessFoodPolicyState.Open(policy, () =>
+                        PolicyEditorState.Open(PolicyEditorState.PolicyType.Food, policy, () =>
                         {
                             AssignMenuState.Open();
                         });
@@ -446,8 +525,9 @@ namespace RimWorldAccess
                     editCallback = () =>
                     {
                         var policy = currentPawn.drugs?.CurrentPolicy;
+                        if (policy == null) return;
                         PrepareForPolicyEditorReturn();
-                        WindowlessDrugPolicyState.Open(policy, () =>
+                        PolicyEditorState.Open(PolicyEditorState.PolicyType.Drug, policy, () =>
                         {
                             AssignMenuState.Open();
                         });
@@ -458,7 +538,12 @@ namespace RimWorldAccess
                     editCallback = () =>
                     {
                         var policy = currentPawn.reading?.CurrentPolicy;
-                        Find.WindowStack.Add(new Dialog_ManageReadingPolicies(policy));
+                        if (policy == null) return;
+                        PrepareForPolicyEditorReturn();
+                        PolicyEditorState.Open(PolicyEditorState.PolicyType.Reading, policy, () =>
+                        {
+                            AssignMenuState.Open();
+                        });
                     };
                     break;
             }
@@ -480,6 +565,92 @@ namespace RimWorldAccess
                 return;
             }
 
+            WindowlessFloatMenuState.Open(options, colonistOrders: false);
+        }
+
+        public static void OpenSubmenuContextMenu()
+        {
+            if (!isInSubmenu || submenuOptions.Count == 0) return;
+            if (submenuSelectedIndex < 0 || submenuSelectedIndex >= submenuOptions.Count) return;
+
+            var selectedOption = submenuOptions[submenuSelectedIndex];
+            var policy = selectedOption.PolicyObject;
+            if (policy == null)
+            {
+                TolkHelper.Speak("No context menu for this item");
+                return;
+            }
+
+            int colIndex = tableHelper.CurrentColumnIndex;
+            Pawn currentPawn = pawnsList[tableHelper.CurrentRowIndex];
+
+            // Build edit callback targeting the highlighted policy
+            Action editCallback = null;
+            var colType = AssignMenuHelper.GetColumnType(colIndex);
+
+            switch (colType)
+            {
+                case AssignMenuHelper.AssignColumnType.Outfit:
+                    editCallback = () =>
+                    {
+                        PrepareForPolicyEditorReturn();
+                        PolicyEditorState.Open(PolicyEditorState.PolicyType.Apparel, policy, () =>
+                        {
+                            AssignMenuState.Open();
+                        });
+                    };
+                    break;
+
+                case AssignMenuHelper.AssignColumnType.FoodRestriction:
+                    editCallback = () =>
+                    {
+                        PrepareForPolicyEditorReturn();
+                        PolicyEditorState.Open(PolicyEditorState.PolicyType.Food, policy, () =>
+                        {
+                            AssignMenuState.Open();
+                        });
+                    };
+                    break;
+
+                case AssignMenuHelper.AssignColumnType.DrugPolicy:
+                    editCallback = () =>
+                    {
+                        PrepareForPolicyEditorReturn();
+                        PolicyEditorState.Open(PolicyEditorState.PolicyType.Drug, policy, () =>
+                        {
+                            AssignMenuState.Open();
+                        });
+                    };
+                    break;
+
+                case AssignMenuHelper.AssignColumnType.ReadingPolicy:
+                    editCallback = () =>
+                    {
+                        PrepareForPolicyEditorReturn();
+                        PolicyEditorState.Open(PolicyEditorState.PolicyType.Reading, policy, () =>
+                        {
+                            AssignMenuState.Open();
+                        });
+                    };
+                    break;
+            }
+
+            Action refreshCallback = () =>
+            {
+                AnnounceCurrentCell(includeItemName: false);
+            };
+
+            var options = AssignMenuHelper.GetContextMenuOptions(
+                colIndex, currentPawn, refreshCallback, editCallback, policy);
+
+            if (options == null || options.Count == 0)
+            {
+                TolkHelper.Speak("No context menu for this item");
+                return;
+            }
+
+            // Close submenu before opening context menu
+            isInSubmenu = false;
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
         }
 
@@ -573,7 +744,7 @@ namespace RimWorldAccess
 
         // === Announcements ===
 
-        private static void AnnounceCurrentCell(bool includeItemName)
+        public static void AnnounceCurrentCell(bool includeItemName)
         {
             if (pawnsList.Count == 0) return;
 

@@ -3642,6 +3642,84 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 4.776: Handle policy content editor if active =====
+            if (PolicyEditorState.IsActive && !WindowlessDialogState.IsActive)
+            {
+                bool handled = false;
+
+                if (ReadingPolicyEditorState.IsActive)
+                {
+                    // Reading policy: Tab/Shift+Tab switches panels
+                    if (key == KeyCode.Tab)
+                    {
+                        ReadingPolicyEditorState.SwitchPanel();
+                        handled = true;
+                    }
+                    else if (key == KeyCode.Escape)
+                    {
+                        if (ThingFilterNavigationState.IsActive && ThingFilterNavigationState.IsEditingSlider)
+                        {
+                            ThingFilterNavigationState.ExitSliderEdit();
+                            handled = true;
+                        }
+                        else if (ThingFilterNavigationState.IsActive && ThingFilterNavigationState.HasActiveSearch)
+                        {
+                            ThingFilterNavigationState.ClearTypeaheadSearch();
+                            handled = true;
+                        }
+                        else
+                        {
+                            PolicyEditorState.Close();
+                            handled = true;
+                        }
+                    }
+                    else if (ThingFilterNavigationState.IsActive)
+                    {
+                        handled = HandleThingFilterInput(key);
+                    }
+                }
+                else if (DrugPolicyEditorState.IsActive)
+                {
+                    handled = HandleDrugEditorInput(key);
+                }
+                else if (ThingFilterNavigationState.IsActive)
+                {
+                    // Apparel/Food filter editing
+                    if (key == KeyCode.Escape)
+                    {
+                        if (ThingFilterNavigationState.IsEditingSlider)
+                        {
+                            ThingFilterNavigationState.ExitSliderEdit();
+                            handled = true;
+                        }
+                        else if (ThingFilterNavigationState.HasActiveSearch)
+                        {
+                            ThingFilterNavigationState.ClearTypeaheadSearch();
+                            handled = true;
+                        }
+                        else
+                        {
+                            PolicyEditorState.Close();
+                            handled = true;
+                        }
+                    }
+                    else
+                    {
+                        handled = HandleThingFilterInput(key);
+                    }
+                }
+
+                if (handled)
+                {
+                    Event.current.Use();
+                    return;
+                }
+
+                // Consume unhandled keys to prevent passthrough
+                Event.current.Use();
+                return;
+            }
+
             // ===== PRIORITY 4.778: Handle assign menu if active =====
             // Skip if float menu is open (e.g., ] context menu for policies)
             // Skip if dialog is active (e.g., Rename Policy dialog)
@@ -3650,6 +3728,18 @@ namespace RimWorldAccess
             {
                 bool handled = false;
                 var typeahead = AssignMenuState.Typeahead;
+
+                // Policy shortcuts (work in both table and submenu when on policy column)
+                if (Event.current.alt && key == KeyCode.N)
+                    handled = AssignMenuState.HandlePolicyShortcut(AssignMenuHelper.PolicyAction.New);
+                else if (Event.current.alt && key == KeyCode.R)
+                    handled = AssignMenuState.HandlePolicyShortcut(AssignMenuHelper.PolicyAction.Rename);
+                else if (Event.current.alt && key == KeyCode.C)
+                    handled = AssignMenuState.HandlePolicyShortcut(AssignMenuHelper.PolicyAction.Copy);
+                else if (Event.current.alt && key == KeyCode.E)
+                    handled = AssignMenuState.HandlePolicyShortcut(AssignMenuHelper.PolicyAction.Edit);
+                else if (key == KeyCode.Delete)
+                    handled = AssignMenuState.HandlePolicyShortcut(AssignMenuHelper.PolicyAction.Delete);
 
                 // Check if in submenu
                 if (AssignMenuState.IsInSubmenu)
@@ -3715,6 +3805,11 @@ namespace RimWorldAccess
                     else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
                     {
                         AssignMenuState.SubmenuApply();
+                        handled = true;
+                    }
+                    else if (key == KeyCode.RightBracket)
+                    {
+                        AssignMenuState.OpenSubmenuContextMenu();
                         handled = true;
                     }
 
@@ -4097,7 +4192,15 @@ namespace RimWorldAccess
                             ArchitectState.Reset();
                         }
 
-                        TolkHelper.Speak("Menu closed");
+                        // Re-announce context if returning to a known menu
+                        if (AssignMenuState.IsActive)
+                        {
+                            AssignMenuState.AnnounceCurrentCell(includeItemName: false);
+                        }
+                        else
+                        {
+                            TolkHelper.Speak("Menu closed");
+                        }
                         handled = true;
                     }
                 }
@@ -5582,6 +5685,207 @@ namespace RimWorldAccess
             }
 
             TolkHelper.Speak(announcement);
+        }
+
+        #endregion
+
+        #region Policy Editor Helpers
+
+        /// <summary>
+        /// Handles ThingFilter keyboard input (shared by apparel, food, and reading policy editors).
+        /// Does NOT handle Escape (caller handles that for proper context-dependent behavior).
+        /// </summary>
+        private static bool HandleThingFilterInput(KeyCode key)
+        {
+            if (!ThingFilterNavigationState.IsActive)
+                return false;
+
+            if (ThingFilterNavigationState.IsEditingSlider)
+            {
+                if (key == KeyCode.LeftArrow)
+                {
+                    ThingFilterNavigationState.AdjustSlider(-1);
+                    return true;
+                }
+                else if (key == KeyCode.RightArrow)
+                {
+                    ThingFilterNavigationState.AdjustSlider(1);
+                    return true;
+                }
+                else if (key == KeyCode.UpArrow || key == KeyCode.DownArrow)
+                {
+                    ThingFilterNavigationState.ToggleSliderPart();
+                    return true;
+                }
+                else if (key == KeyCode.Return || key == KeyCode.KeypadEnter || key == KeyCode.Escape)
+                {
+                    ThingFilterNavigationState.ExitSliderEdit();
+                    return true;
+                }
+                return false;
+            }
+
+            // Normal filter navigation
+            if (key == KeyCode.Backspace)
+            {
+                if (ThingFilterNavigationState.HasActiveSearch)
+                {
+                    ThingFilterNavigationState.ProcessBackspace();
+                    return true;
+                }
+            }
+            else if (key == KeyCode.UpArrow)
+            {
+                if (ThingFilterNavigationState.HasActiveSearch && !ThingFilterNavigationState.HasNoMatches)
+                    ThingFilterNavigationState.SelectPreviousMatch();
+                else
+                    ThingFilterNavigationState.SelectPrevious();
+                return true;
+            }
+            else if (key == KeyCode.DownArrow)
+            {
+                if (ThingFilterNavigationState.HasActiveSearch && !ThingFilterNavigationState.HasNoMatches)
+                    ThingFilterNavigationState.SelectNextMatch();
+                else
+                    ThingFilterNavigationState.SelectNext();
+                return true;
+            }
+            else if (key == KeyCode.Space)
+            {
+                ThingFilterNavigationState.ToggleSelected();
+                return true;
+            }
+            else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+            {
+                ThingFilterNavigationState.ActivateSelected();
+                return true;
+            }
+            else if (key == KeyCode.LeftArrow)
+            {
+                ThingFilterNavigationState.Collapse();
+                return true;
+            }
+            else if (key == KeyCode.RightArrow)
+            {
+                ThingFilterNavigationState.Expand();
+                return true;
+            }
+            else if (key == KeyCode.KeypadMultiply || (Event.current.shift && key == KeyCode.Alpha8))
+            {
+                ThingFilterNavigationState.ExpandAllSiblings();
+                return true;
+            }
+            else if (key == KeyCode.Home)
+            {
+                ThingFilterNavigationState.JumpToFirst(Event.current.control);
+                return true;
+            }
+            else if (key == KeyCode.End)
+            {
+                ThingFilterNavigationState.JumpToLast(Event.current.control);
+                return true;
+            }
+            else if (key == KeyCode.A && Event.current.control)
+            {
+                ThingFilterNavigationState.AllowAll();
+                return true;
+            }
+            else if (key == KeyCode.D && Event.current.control)
+            {
+                ThingFilterNavigationState.DisallowAll();
+                return true;
+            }
+            else if (Event.current.character != '\0' && !Event.current.control && !Event.current.alt)
+            {
+                char c = Event.current.character;
+                if (char.IsLetterOrDigit(c))
+                {
+                    ThingFilterNavigationState.ProcessTypeaheadCharacter(c);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Handles drug policy editor keyboard input (drug list and drug settings modes).
+        /// </summary>
+        private static bool HandleDrugEditorInput(KeyCode key)
+        {
+            if (!DrugPolicyEditorState.IsActive)
+                return false;
+
+            var mode = DrugPolicyEditorState.CurrentMode;
+
+            if (mode == DrugPolicyEditorState.NavigationMode.DrugList)
+            {
+                if (key == KeyCode.UpArrow)
+                {
+                    DrugPolicyEditorState.SelectPreviousDrug();
+                    return true;
+                }
+                else if (key == KeyCode.DownArrow)
+                {
+                    DrugPolicyEditorState.SelectNextDrug();
+                    return true;
+                }
+                else if (key == KeyCode.Home)
+                {
+                    DrugPolicyEditorState.JumpToFirstDrug();
+                    return true;
+                }
+                else if (key == KeyCode.End)
+                {
+                    DrugPolicyEditorState.JumpToLastDrug();
+                    return true;
+                }
+                else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                {
+                    DrugPolicyEditorState.EnterDrugSettings();
+                    return true;
+                }
+                else if (key == KeyCode.Escape)
+                {
+                    PolicyEditorState.Close();
+                    return true;
+                }
+            }
+            else if (mode == DrugPolicyEditorState.NavigationMode.DrugSettings)
+            {
+                if (key == KeyCode.UpArrow)
+                {
+                    DrugPolicyEditorState.SelectPreviousSetting();
+                    return true;
+                }
+                else if (key == KeyCode.DownArrow)
+                {
+                    DrugPolicyEditorState.SelectNextSetting();
+                    return true;
+                }
+                else if (key == KeyCode.Space || key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                {
+                    DrugPolicyEditorState.ToggleSetting();
+                    return true;
+                }
+                else if (key == KeyCode.LeftArrow)
+                {
+                    DrugPolicyEditorState.AdjustSetting(-1);
+                    return true;
+                }
+                else if (key == KeyCode.RightArrow)
+                {
+                    DrugPolicyEditorState.AdjustSetting(1);
+                    return true;
+                }
+                else if (key == KeyCode.Escape)
+                {
+                    DrugPolicyEditorState.ReturnToDrugList();
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         #endregion

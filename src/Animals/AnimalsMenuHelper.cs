@@ -171,7 +171,7 @@ namespace RimWorldAccess
         }
 
         // Get column tooltip (shown only on column navigation, not row navigation)
-        public static string GetColumnTooltip(int columnIndex)
+        public static string GetColumnTooltip(Pawn pawn, int columnIndex)
         {
             // Fixed columns before training — no tooltips
             if (columnIndex < fixedColumnsBeforeTraining)

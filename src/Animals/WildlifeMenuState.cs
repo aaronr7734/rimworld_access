@@ -54,7 +54,7 @@ namespace RimWorldAccess
                 sortByColumn: (items, col, desc) => WildlifeMenuHelper.SortWildlifeByColumn(items.ToList(), col, desc),
                 defaultSortColumn: 1,  // Predator
                 defaultSortDescending: false,
-                getColumnTooltip: WildlifeMenuHelper.GetColumnTooltip
+                getColumnTooltip: (pawn, col) => WildlifeMenuHelper.GetColumnTooltip(pawn, col)
             );
             tableHelper.Reset(1, false);
 

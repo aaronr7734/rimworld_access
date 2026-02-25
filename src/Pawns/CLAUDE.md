@@ -4,8 +4,8 @@
 Pawn information, character tabs, policies, and assignments.
 
 ## Files
-**Patches:** PawnInfoPatch.cs, AssignMenuPatch.cs, DrugPolicyPatch.cs, FoodPolicyPatch.cs, OutfitPolicyPatch.cs
-**States:** PawnSelectionState.cs, ColonistBarState.cs, HealthState.cs, HealthTabState.cs, MoodState.cs, NeedsState.cs, AssignMenuState.cs, BedAssignmentState.cs, WindowlessDrugPolicyState.cs, WindowlessFoodPolicyState.cs, WindowlessOutfitPolicyState.cs, WindowlessScheduleState.cs
+**Patches:** PawnInfoPatch.cs, AssignMenuPatch.cs, PolicyEditorPatch.cs
+**States:** PawnSelectionState.cs, ColonistBarState.cs, HealthState.cs, HealthTabState.cs, MoodState.cs, NeedsState.cs, AssignMenuState.cs, BedAssignmentState.cs, PolicyEditorState.cs, DrugPolicyEditorState.cs, ReadingPolicyEditorState.cs, WindowlessScheduleState.cs
 **Helpers:** PawnInfoHelper.cs, HealthTabHelper.cs, SocialTabHelper.cs, InteractiveGearHelper.cs
 
 ## Key Shortcuts

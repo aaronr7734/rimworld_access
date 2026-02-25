@@ -82,7 +82,7 @@ namespace RimWorldAccess
         }
 
         // Get column tooltip (shown only on column navigation, not row navigation)
-        public static string GetColumnTooltip(int columnIndex)
+        public static string GetColumnTooltip(Pawn pawn, int columnIndex)
         {
             if (columnIndex < 0 || columnIndex >= totalColumns)
                 return null;

@@ -41,7 +41,7 @@ namespace RimWorldAccess
             Text.Font = GameFont.Small;
             Text.Anchor = TextAnchor.MiddleCenter;
 
-            string title = "Assign Menu";
+            string title = DefDatabase<MainButtonDef>.GetNamed("Assign").LabelCap;
 
             string instructions1 = "Up/Down: Navigate Pawns | Left/Right: Navigate Columns | Enter: Change Value";
             string instructions2 = "]: Context Menu | Shift+Up/Down: Paint | Alt+S: Sort | Alt+I: Info Card | Esc: Close";

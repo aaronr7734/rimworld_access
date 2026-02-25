@@ -22,10 +22,13 @@ namespace RimWorldAccess
             MedicineCarry
         }
 
+        public enum PolicyAction { New, Rename, Copy, Delete, Edit }
+
         public class SubmenuOption
         {
             public string Label;
             public Action<Pawn> Apply;
+            public Policy PolicyObject;
         }
 
         private static List<AssignColumnType> activeColumns = new List<AssignColumnType>();
@@ -88,9 +91,9 @@ namespace RimWorldAccess
                 case AssignColumnType.Xenotype:
                     return "Xenotype".Translate().Resolve();
                 case AssignColumnType.HostilityResponse:
-                    return GetPawnColumnHeaderTip("HostilityResponse", "HostilityResponse".Translate().Resolve());
+                    return GetPawnColumnHeaderTip("HostilityResponse", "Hostility response");
                 case AssignColumnType.MedicalCare:
-                    return GetPawnColumnHeaderTip("MedicalCare", "MedicalCare".Translate().Resolve());
+                    return GetPawnColumnHeaderTip("MedicalCare", "Medical care");
                 case AssignColumnType.Outfit:
                     return GetPawnColumnLabel("Outfit", "ApparelPolicy".Translate().Resolve());
                 case AssignColumnType.FoodRestriction:
@@ -126,7 +129,7 @@ namespace RimWorldAccess
                     if (pawn.playerSettings == null) return "N/A";
                     return pawn.playerSettings.medCare.GetLabel();
                 case AssignColumnType.Outfit:
-                    return pawn.outfits?.CurrentApparelPolicy?.label ?? "None".Translate().Resolve();
+                    return GetOutfitValue(pawn);
                 case AssignColumnType.FoodRestriction:
                     return pawn.foodRestriction?.CurrentFoodPolicy?.label ?? "None".Translate().Resolve();
                 case AssignColumnType.DrugPolicy:
@@ -140,7 +143,7 @@ namespace RimWorldAccess
             }
         }
 
-        public static string GetColumnTooltip(int index)
+        public static string GetColumnTooltip(Pawn pawn, int index)
         {
             if (index < 0 || index >= activeColumns.Count)
                 return null;
@@ -238,6 +241,20 @@ namespace RimWorldAccess
         }
 
         // === Value Helpers ===
+
+        private static string GetOutfitValue(Pawn pawn)
+        {
+            if (pawn.IsQuestLodger())
+                return "Unchangeable".Translate().Resolve();
+
+            string label = pawn.outfits?.CurrentApparelPolicy?.label ?? "None".Translate().Resolve();
+            if (pawn.outfits?.forcedHandler?.SomethingIsForced == true)
+            {
+                var forced = pawn.outfits.forcedHandler.ForcedApparel;
+                label += ". " + "ForcedApparel".Translate() + ": " + string.Join(", ", forced.Select(a => a.LabelCap));
+            }
+            return label;
+        }
 
         private static string GetMedicineCarryValue(Pawn pawn)
         {
@@ -378,7 +395,8 @@ namespace RimWorldAccess
                 options.Add(new SubmenuOption
                 {
                     Label = p.label,
-                    Apply = pawn => pawn.outfits.CurrentApparelPolicy = p
+                    Apply = pawn => pawn.outfits.CurrentApparelPolicy = p,
+                    PolicyObject = p
                 });
             }
             return options;
@@ -396,7 +414,8 @@ namespace RimWorldAccess
                 options.Add(new SubmenuOption
                 {
                     Label = p.label,
-                    Apply = pawn => pawn.foodRestriction.CurrentFoodPolicy = p
+                    Apply = pawn => pawn.foodRestriction.CurrentFoodPolicy = p,
+                    PolicyObject = p
                 });
             }
             return options;
@@ -414,7 +433,8 @@ namespace RimWorldAccess
                 options.Add(new SubmenuOption
                 {
                     Label = p.label,
-                    Apply = pawn => pawn.drugs.CurrentPolicy = p
+                    Apply = pawn => pawn.drugs.CurrentPolicy = p,
+                    PolicyObject = p
                 });
             }
             return options;
@@ -432,7 +452,8 @@ namespace RimWorldAccess
                 options.Add(new SubmenuOption
                 {
                     Label = p.label,
-                    Apply = pawn => pawn.reading.CurrentPolicy = p
+                    Apply = pawn => pawn.reading.CurrentPolicy = p,
+                    PolicyObject = p
                 });
             }
             return options;
@@ -484,7 +505,7 @@ namespace RimWorldAccess
         // === Context Menu Builders ===
 
         public static List<FloatMenuOption> GetContextMenuOptions(
-            int colIndex, Pawn pawn, Action refreshCallback, Action editCallback)
+            int colIndex, Pawn pawn, Action refreshCallback, Action editCallback, Policy policyOverride = null)
         {
             if (colIndex < 0 || colIndex >= activeColumns.Count)
                 return null;
@@ -492,13 +513,74 @@ namespace RimWorldAccess
             switch (activeColumns[colIndex])
             {
                 case AssignColumnType.Outfit:
-                    return BuildOutfitContextMenu(pawn, refreshCallback, editCallback);
+                {
+                    var db = Current.Game?.outfitDatabase;
+                    if (db == null) return null;
+                    var policy = policyOverride ?? pawn.outfits?.CurrentApparelPolicy;
+                    List<FloatMenuOption> extras = null;
+                    if (policyOverride == null && pawn.outfits?.forcedHandler?.SomethingIsForced == true)
+                    {
+                        extras = new List<FloatMenuOption>
+                        {
+                            new FloatMenuOption("ClearForcedApparel".Translate(), () =>
+                            {
+                                pawn.outfits.forcedHandler.Reset();
+                                refreshCallback?.Invoke();
+                                TolkHelper.Speak("ClearForcedApparel".Translate());
+                            })
+                        };
+                    }
+                    return BuildPolicyContextMenu(
+                        policy,
+                        () => db.MakeNewOutfit(),
+                        p => db.TryDelete((ApparelPolicy)p),
+                        db.DefaultOutfit(),
+                        p => db.SetDefault((ApparelPolicy)p),
+                        refreshCallback, editCallback, extras);
+                }
+
                 case AssignColumnType.FoodRestriction:
-                    return BuildFoodContextMenu(pawn, refreshCallback, editCallback);
+                {
+                    var db = Current.Game?.foodRestrictionDatabase;
+                    if (db == null) return null;
+                    var policy = policyOverride ?? pawn.foodRestriction?.CurrentFoodPolicy;
+                    return BuildPolicyContextMenu(
+                        policy,
+                        () => db.MakeNewFoodRestriction(),
+                        p => db.TryDelete((FoodPolicy)p),
+                        db.DefaultFoodRestriction(),
+                        p => db.SetDefault((FoodPolicy)p),
+                        refreshCallback, editCallback);
+                }
+
                 case AssignColumnType.DrugPolicy:
-                    return BuildDrugContextMenu(pawn, refreshCallback, editCallback);
+                {
+                    var db = Current.Game?.drugPolicyDatabase;
+                    if (db == null) return null;
+                    var policy = policyOverride ?? pawn.drugs?.CurrentPolicy;
+                    return BuildPolicyContextMenu(
+                        policy,
+                        () => db.MakeNewDrugPolicy(),
+                        p => db.TryDelete((DrugPolicy)p),
+                        db.DefaultDrugPolicy(),
+                        p => db.SetDefault((DrugPolicy)p),
+                        refreshCallback, editCallback);
+                }
+
                 case AssignColumnType.ReadingPolicy:
-                    return BuildReadingContextMenu(pawn, refreshCallback, editCallback);
+                {
+                    var db = Current.Game?.readingPolicyDatabase;
+                    if (db == null) return null;
+                    var policy = policyOverride ?? pawn.reading?.CurrentPolicy;
+                    return BuildPolicyContextMenu(
+                        policy,
+                        () => db.MakeNewReadingPolicy(),
+                        p => db.TryDelete((ReadingPolicy)p),
+                        db.DefaultReadingPolicy(),
+                        p => db.SetDefault((ReadingPolicy)p),
+                        refreshCallback, editCallback);
+                }
+
                 case AssignColumnType.MedicalCare:
                     return BuildMedicalCareContextMenu();
                 default:
@@ -506,19 +588,22 @@ namespace RimWorldAccess
             }
         }
 
-        private static List<FloatMenuOption> BuildOutfitContextMenu(
-            Pawn pawn, Action refreshCallback, Action editCallback)
+        private static List<FloatMenuOption> BuildPolicyContextMenu(
+            Policy currentPolicy,
+            Func<Policy> createNew,
+            Func<Policy, AcceptanceReport> tryDelete,
+            Policy defaultPolicy,
+            Action<Policy> setDefault,
+            Action refreshCallback,
+            Action editCallback,
+            List<FloatMenuOption> extraOptions = null)
         {
             var options = new List<FloatMenuOption>();
-            var db = Current.Game?.outfitDatabase;
-            if (db == null) return null;
-
-            var currentPolicy = pawn.outfits?.CurrentApparelPolicy;
 
             // New
-            options.Add(new FloatMenuOption("NewPolicy".Translate(), () =>
+            options.Add(new FloatMenuOption($"{"NewPolicy".Translate()} (Alt+N)", () =>
             {
-                var newPolicy = db.MakeNewOutfit();
+                var newPolicy = createNew();
                 refreshCallback?.Invoke();
                 TolkHelper.Speak($"Created: {newPolicy.label}");
             }));
@@ -527,16 +612,16 @@ namespace RimWorldAccess
             {
                 // Rename
                 options.Add(new FloatMenuOption(
-                    $"{"Rename".Translate()}: {currentPolicy.label}", () =>
+                    $"{"Rename".Translate()}: {currentPolicy.label} (Alt+R)", () =>
                     {
                         Find.WindowStack.Add(new Dialog_RenamePolicy(currentPolicy));
                     }));
 
                 // Duplicate
                 options.Add(new FloatMenuOption(
-                    $"{"Copy".Translate()}: {currentPolicy.label}", () =>
+                    $"{"Copy".Translate()}: {currentPolicy.label} (Alt+C)", () =>
                     {
-                        var newPolicy = db.MakeNewOutfit();
+                        var newPolicy = createNew();
                         newPolicy.CopyFrom(currentPolicy);
                         refreshCallback?.Invoke();
                         TolkHelper.Speak($"Duplicated: {newPolicy.label}");
@@ -544,9 +629,9 @@ namespace RimWorldAccess
 
                 // Delete
                 options.Add(new FloatMenuOption(
-                    $"{"Delete".Translate()}: {currentPolicy.label}", () =>
+                    $"{"Delete".Translate()}: {currentPolicy.label} (Delete)", () =>
                     {
-                        AcceptanceReport result = db.TryDelete(currentPolicy);
+                        AcceptanceReport result = tryDelete(currentPolicy);
                         if (!result.Accepted)
                             TolkHelper.Speak(result.Reason);
                         else
@@ -557,12 +642,12 @@ namespace RimWorldAccess
                     }));
 
                 // Set as Default (only if not already default)
-                if (db.DefaultOutfit() != currentPolicy)
+                if (defaultPolicy != currentPolicy)
                 {
                     options.Add(new FloatMenuOption(
                         $"{"Default".Translate()}: {currentPolicy.label}", () =>
                         {
-                            db.SetDefault(currentPolicy);
+                            setDefault(currentPolicy);
                             TolkHelper.Speak($"{currentPolicy.label} set as default");
                         }));
                 }
@@ -572,250 +657,121 @@ namespace RimWorldAccess
             if (editCallback != null)
             {
                 options.Add(new FloatMenuOption(
-                    "AssignTabEdit".Translate(), () =>
+                    $"{"AssignTabEdit".Translate()}: {currentPolicy.label} (Alt+E)", () =>
                     {
                         editCallback.Invoke();
                     }));
             }
 
-            // Clear Forced Apparel (outfit-specific, only if pawn has forced items)
-            if (pawn.outfits?.forcedHandler?.SomethingIsForced == true)
+            // Extra options (e.g., Clear Forced Apparel for outfits)
+            if (extraOptions != null)
             {
-                options.Add(new FloatMenuOption(
-                    "ClearForcedApparel".Translate(), () =>
-                    {
-                        pawn.outfits.forcedHandler.Reset();
-                        refreshCallback?.Invoke();
-                        TolkHelper.Speak("ClearForcedApparel".Translate());
-                    }));
+                options.AddRange(extraOptions);
             }
 
             return options;
         }
 
-        private static List<FloatMenuOption> BuildFoodContextMenu(
-            Pawn pawn, Action refreshCallback, Action editCallback)
+        // === Direct Policy Action Execution (keyboard shortcuts) ===
+
+        public static bool ExecutePolicyAction(PolicyAction action, int colIndex, Pawn pawn,
+            Action refreshCallback, Action editCallback, Policy policyOverride = null)
         {
-            var options = new List<FloatMenuOption>();
-            var db = Current.Game?.foodRestrictionDatabase;
-            if (db == null) return null;
+            if (colIndex < 0 || colIndex >= activeColumns.Count)
+                return false;
 
-            var currentPolicy = pawn.foodRestriction?.CurrentFoodPolicy;
-
-            // New
-            options.Add(new FloatMenuOption("NewPolicy".Translate(), () =>
+            switch (activeColumns[colIndex])
             {
-                var newPolicy = db.MakeNewFoodRestriction();
-                refreshCallback?.Invoke();
-                TolkHelper.Speak($"Created: {newPolicy.label}");
-            }));
-
-            if (currentPolicy != null)
-            {
-                // Rename
-                options.Add(new FloatMenuOption(
-                    $"{"Rename".Translate()}: {currentPolicy.label}", () =>
-                    {
-                        Find.WindowStack.Add(new Dialog_RenamePolicy(currentPolicy));
-                    }));
-
-                // Duplicate
-                options.Add(new FloatMenuOption(
-                    $"{"Copy".Translate()}: {currentPolicy.label}", () =>
-                    {
-                        var newPolicy = db.MakeNewFoodRestriction();
-                        newPolicy.CopyFrom(currentPolicy);
-                        refreshCallback?.Invoke();
-                        TolkHelper.Speak($"Duplicated: {newPolicy.label}");
-                    }));
-
-                // Delete
-                options.Add(new FloatMenuOption(
-                    $"{"Delete".Translate()}: {currentPolicy.label}", () =>
-                    {
-                        AcceptanceReport result = db.TryDelete(currentPolicy);
-                        if (!result.Accepted)
-                            TolkHelper.Speak(result.Reason);
-                        else
-                        {
-                            refreshCallback?.Invoke();
-                            TolkHelper.Speak("Policy deleted");
-                        }
-                    }));
-
-                // Set as Default
-                if (db.DefaultFoodRestriction() != currentPolicy)
+                case AssignColumnType.Outfit:
                 {
-                    options.Add(new FloatMenuOption(
-                        $"{"Default".Translate()}: {currentPolicy.label}", () =>
-                        {
-                            db.SetDefault(currentPolicy);
-                            TolkHelper.Speak($"{currentPolicy.label} set as default");
-                        }));
+                    var db = Current.Game?.outfitDatabase;
+                    if (db == null) return false;
+                    var policy = policyOverride ?? pawn.outfits?.CurrentApparelPolicy;
+                    return ExecuteAction(action, policy,
+                        () => db.MakeNewOutfit(),
+                        p => db.TryDelete((ApparelPolicy)p),
+                        refreshCallback, editCallback);
                 }
+                case AssignColumnType.FoodRestriction:
+                {
+                    var db = Current.Game?.foodRestrictionDatabase;
+                    if (db == null) return false;
+                    var policy = policyOverride ?? pawn.foodRestriction?.CurrentFoodPolicy;
+                    return ExecuteAction(action, policy,
+                        () => db.MakeNewFoodRestriction(),
+                        p => db.TryDelete((FoodPolicy)p),
+                        refreshCallback, editCallback);
+                }
+                case AssignColumnType.DrugPolicy:
+                {
+                    var db = Current.Game?.drugPolicyDatabase;
+                    if (db == null) return false;
+                    var policy = policyOverride ?? pawn.drugs?.CurrentPolicy;
+                    return ExecuteAction(action, policy,
+                        () => db.MakeNewDrugPolicy(),
+                        p => db.TryDelete((DrugPolicy)p),
+                        refreshCallback, editCallback);
+                }
+                case AssignColumnType.ReadingPolicy:
+                {
+                    var db = Current.Game?.readingPolicyDatabase;
+                    if (db == null) return false;
+                    var policy = policyOverride ?? pawn.reading?.CurrentPolicy;
+                    return ExecuteAction(action, policy,
+                        () => db.MakeNewReadingPolicy(),
+                        p => db.TryDelete((ReadingPolicy)p),
+                        refreshCallback, editCallback);
+                }
+                default:
+                    return false;
             }
-
-            // Edit
-            if (editCallback != null)
-            {
-                options.Add(new FloatMenuOption(
-                    "AssignTabEdit".Translate(), () =>
-                    {
-                        editCallback.Invoke();
-                    }));
-            }
-
-            return options;
         }
 
-        private static List<FloatMenuOption> BuildDrugContextMenu(
-            Pawn pawn, Action refreshCallback, Action editCallback)
+        private static bool ExecuteAction(PolicyAction action, Policy policy,
+            Func<Policy> createNew, Func<Policy, AcceptanceReport> tryDelete,
+            Action refreshCallback, Action editCallback)
         {
-            var options = new List<FloatMenuOption>();
-            var db = Current.Game?.drugPolicyDatabase;
-            if (db == null) return null;
-
-            var currentPolicy = pawn.drugs?.CurrentPolicy;
-
-            // New
-            options.Add(new FloatMenuOption("NewPolicy".Translate(), () =>
+            switch (action)
             {
-                var newPolicy = db.MakeNewDrugPolicy();
-                refreshCallback?.Invoke();
-                TolkHelper.Speak($"Created: {newPolicy.label}");
-            }));
+                case PolicyAction.New:
+                    var newPolicy = createNew();
+                    refreshCallback?.Invoke();
+                    TolkHelper.Speak($"Created: {newPolicy.label}");
+                    return true;
 
-            if (currentPolicy != null)
-            {
-                // Rename
-                options.Add(new FloatMenuOption(
-                    $"{"Rename".Translate()}: {currentPolicy.label}", () =>
-                    {
-                        Find.WindowStack.Add(new Dialog_RenamePolicy(currentPolicy));
-                    }));
+                case PolicyAction.Rename:
+                    if (policy == null) return false;
+                    Find.WindowStack.Add(new Dialog_RenamePolicy(policy));
+                    return true;
 
-                // Duplicate
-                options.Add(new FloatMenuOption(
-                    $"{"Copy".Translate()}: {currentPolicy.label}", () =>
+                case PolicyAction.Copy:
+                    if (policy == null) return false;
+                    var copied = createNew();
+                    copied.CopyFrom(policy);
+                    refreshCallback?.Invoke();
+                    TolkHelper.Speak($"Duplicated: {copied.label}");
+                    return true;
+
+                case PolicyAction.Delete:
+                    if (policy == null) return false;
+                    AcceptanceReport result = tryDelete(policy);
+                    if (!result.Accepted)
+                        TolkHelper.Speak(result.Reason);
+                    else
                     {
-                        var newPolicy = db.MakeNewDrugPolicy();
-                        newPolicy.CopyFrom(currentPolicy);
                         refreshCallback?.Invoke();
-                        TolkHelper.Speak($"Duplicated: {newPolicy.label}");
-                    }));
+                        TolkHelper.Speak("Policy deleted");
+                    }
+                    return true;
 
-                // Delete
-                options.Add(new FloatMenuOption(
-                    $"{"Delete".Translate()}: {currentPolicy.label}", () =>
-                    {
-                        AcceptanceReport result = db.TryDelete(currentPolicy);
-                        if (!result.Accepted)
-                            TolkHelper.Speak(result.Reason);
-                        else
-                        {
-                            refreshCallback?.Invoke();
-                            TolkHelper.Speak("Policy deleted");
-                        }
-                    }));
+                case PolicyAction.Edit:
+                    if (editCallback == null) return false;
+                    editCallback.Invoke();
+                    return true;
 
-                // Set as Default
-                if (db.DefaultDrugPolicy() != currentPolicy)
-                {
-                    options.Add(new FloatMenuOption(
-                        $"{"Default".Translate()}: {currentPolicy.label}", () =>
-                        {
-                            db.SetDefault(currentPolicy);
-                            TolkHelper.Speak($"{currentPolicy.label} set as default");
-                        }));
-                }
+                default:
+                    return false;
             }
-
-            // Edit
-            if (editCallback != null)
-            {
-                options.Add(new FloatMenuOption(
-                    "AssignTabEdit".Translate(), () =>
-                    {
-                        editCallback.Invoke();
-                    }));
-            }
-
-            return options;
-        }
-
-        private static List<FloatMenuOption> BuildReadingContextMenu(
-            Pawn pawn, Action refreshCallback, Action editCallback)
-        {
-            var options = new List<FloatMenuOption>();
-            var db = Current.Game?.readingPolicyDatabase;
-            if (db == null) return null;
-
-            var currentPolicy = pawn.reading?.CurrentPolicy;
-
-            // New
-            options.Add(new FloatMenuOption("NewPolicy".Translate(), () =>
-            {
-                var newPolicy = db.MakeNewReadingPolicy();
-                refreshCallback?.Invoke();
-                TolkHelper.Speak($"Created: {newPolicy.label}");
-            }));
-
-            if (currentPolicy != null)
-            {
-                // Rename
-                options.Add(new FloatMenuOption(
-                    $"{"Rename".Translate()}: {currentPolicy.label}", () =>
-                    {
-                        Find.WindowStack.Add(new Dialog_RenamePolicy(currentPolicy));
-                    }));
-
-                // Duplicate
-                options.Add(new FloatMenuOption(
-                    $"{"Copy".Translate()}: {currentPolicy.label}", () =>
-                    {
-                        var newPolicy = db.MakeNewReadingPolicy();
-                        newPolicy.CopyFrom(currentPolicy);
-                        refreshCallback?.Invoke();
-                        TolkHelper.Speak($"Duplicated: {newPolicy.label}");
-                    }));
-
-                // Delete
-                options.Add(new FloatMenuOption(
-                    $"{"Delete".Translate()}: {currentPolicy.label}", () =>
-                    {
-                        AcceptanceReport result = db.TryDelete(currentPolicy);
-                        if (!result.Accepted)
-                            TolkHelper.Speak(result.Reason);
-                        else
-                        {
-                            refreshCallback?.Invoke();
-                            TolkHelper.Speak("Policy deleted");
-                        }
-                    }));
-
-                // Set as Default
-                if (db.DefaultReadingPolicy() != currentPolicy)
-                {
-                    options.Add(new FloatMenuOption(
-                        $"{"Default".Translate()}: {currentPolicy.label}", () =>
-                        {
-                            db.SetDefault(currentPolicy);
-                            TolkHelper.Speak($"{currentPolicy.label} set as default");
-                        }));
-                }
-            }
-
-            // Edit — opens vanilla dialog (no WindowlessReadingPolicyState exists)
-            if (editCallback != null)
-            {
-                options.Add(new FloatMenuOption(
-                    "AssignTabEdit".Translate(), () =>
-                    {
-                        editCallback.Invoke();
-                    }));
-            }
-
-            return options;
         }
 
         private static List<FloatMenuOption> BuildMedicalCareContextMenu()
