@@ -350,7 +350,20 @@ namespace RimWorldAccess
             }
             else if (element is ButtonElement button)
             {
+                // Save reference to detect re-entrant dialog opening.
+                // A button's action may open a new dialog that gets intercepted by
+                // DialogInterceptionPatch, which calls WindowlessDialogState.Open()
+                // re-entrantly (e.g., "Name Baby" DiaOption opens Dialog_NamePawn).
+                // In that case, currentDialog changes during Execute() and we must
+                // NOT close the newly opened dialog.
+                Window dialogBeforeExecute = currentDialog;
+
                 button.Execute();
+
+                // If the button's action opened a new dialog re-entrantly,
+                // currentDialog will have changed. Don't close it.
+                if (currentDialog != dialogBeforeExecute)
+                    return;
 
                 // If it's a confirm or close button, close the dialog
                 if (button.IsConfirm || button.IsClose)
