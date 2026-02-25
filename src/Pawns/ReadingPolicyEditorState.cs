@@ -117,14 +117,14 @@ namespace RimWorldAccess
                 // Book types panel: defFilter with global filter, no hit points, no quality
                 // Matches vanilla: forceHideHitPointsConfig: true
                 TreeNode_ThingCategory root = BookTypesGlobalFilter.DisplayRootCategory;
-                ThingFilterNavigationState.Activate(policy.defFilter, root, showQuality: false, showHitPoints: false, initialIndex);
+                ThingFilterNavigationState.Activate(policy.defFilter, BookTypesGlobalFilter, root, showQuality: false, showHitPoints: false, initialIndex);
             }
             else
             {
                 // Book effects panel: effectFilter with BookEffects root, no hit points, no quality
                 // Matches vanilla: forceHideHitPointsConfig: true, forceHideQualityConfig: true
                 TreeNode_ThingCategory root = ThingCategoryDefOf.BookEffects.treeNode;
-                ThingFilterNavigationState.Activate(policy.effectFilter, root, showQuality: false, showHitPoints: false, initialIndex);
+                ThingFilterNavigationState.Activate(policy.effectFilter, null, root, showQuality: false, showHitPoints: false, initialIndex);
             }
         }
 
