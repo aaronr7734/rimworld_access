@@ -1250,6 +1250,12 @@ namespace RimWorldAccess
         /// </summary>
         private static string GetThingOverview(Thing thing)
         {
+            // GeneSetHolderBase items need shade-aware gene labels in overview
+            if (thing is GeneSetHolderBase geneHolder && geneHolder.GeneSet != null && ModsConfig.BiotechActive)
+            {
+                return GetGeneSetHolderOverview(geneHolder);
+            }
+
             var sb = new StringBuilder();
             sb.AppendLine(thing.LabelCap.StripTags());
             sb.AppendLine();
@@ -1272,6 +1278,76 @@ namespace RimWorldAccess
                 sb.AppendLine("Description:");
                 string description = thing.def.description.StripTags().Trim();
                 // Clean up whitespace
+                description = System.Text.RegularExpressions.Regex.Replace(description, @"\s+", " ");
+                sb.AppendLine(description);
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Gets overview information for a GeneSetHolderBase item with shade-aware gene labels.
+        /// Replaces the raw gene labels from GetInspectString() with descriptive shade names
+        /// for skin color genes.
+        /// </summary>
+        private static string GetGeneSetHolderOverview(GeneSetHolderBase holder)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine(holder.LabelCap.StripTags());
+            sb.AppendLine();
+
+            // Get the full inspect string
+            string inspectString = holder.GetInspectString();
+
+            // Split at the "Genes:" header to separate non-gene info from gene list
+            string genesHeader = "Genes".Translate().CapitalizeFirst() + ":";
+            int headerIndex = inspectString?.IndexOf(genesHeader) ?? -1;
+
+            if (headerIndex >= 0)
+            {
+                // Format the non-gene portion (component info, etc.)
+                string preGenes = inspectString.Substring(0, headerIndex).Trim();
+                if (!string.IsNullOrEmpty(preGenes))
+                {
+                    sb.AppendLine(FormatInspectStringWithPunctuation(preGenes));
+                }
+
+                // Build our own gene section with shade-aware labels
+                var genes = holder.GeneSet.GenesListForReading;
+                if (genes != null && genes.Count > 0)
+                {
+                    sb.AppendLine(genesHeader);
+                    int cap = Math.Min(5, genes.Count);
+                    for (int i = 0; i < cap; i++)
+                    {
+                        string geneLabel = GeneTreeBuilder.GetGeneDisplayLabel(genes[i]);
+                        if (holder.GeneSet.IsOverridden(genes[i]))
+                        {
+                            geneLabel += $" ({"Overridden".Translate()})";
+                        }
+                        sb.AppendLine($"  - {geneLabel}.");
+                    }
+                    if (genes.Count > cap)
+                    {
+                        sb.AppendLine($"  - {"Etc".Translate()}...");
+                    }
+                }
+            }
+            else
+            {
+                // No gene section found - just format the whole string
+                if (!string.IsNullOrEmpty(inspectString))
+                {
+                    sb.AppendLine(FormatInspectStringWithPunctuation(inspectString));
+                }
+            }
+
+            // Add description
+            if (holder.def != null && !string.IsNullOrEmpty(holder.def.description))
+            {
+                sb.AppendLine();
+                sb.AppendLine("Description:");
+                string description = holder.def.description.StripTags().Trim();
                 description = System.Text.RegularExpressions.Regex.Replace(description, @"\s+", " ");
                 sb.AppendLine(description);
             }

@@ -204,6 +204,11 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Pre-fetch the dialog's thing for gene label enrichment (avoids repeated reflection)
+            var dialogThing = InfoCardDataExtractor.GetThing(dialog);
+            GeneSetHolderBase geneSetHolder = dialogThing as GeneSetHolderBase;
+            string genesTranslated = ModsConfig.BiotechActive ? "Genes".Translate().CapitalizeFirst().ToString() : null;
+
             // Group by category label (not object) to avoid duplicate headers for same-named categories
             var grouped = entries
                 .GroupBy(e => e.category.LabelCap.ToString())
@@ -220,6 +225,23 @@ namespace RimWorldAccess
                 foreach (var entry in sortedEntries)
                 {
                     string label = $"{entry.LabelCap}: {entry.ValueString}";
+
+                    // Enrich gene labels for GeneSetHolderBase items with shade-aware descriptions.
+                    // Also suppress the useless explanation (just a header like "Genes:") since
+                    // the label already contains all gene names with shade descriptions.
+                    bool suppressExplanation = false;
+                    if (geneSetHolder?.GeneSet != null &&
+                        genesTranslated != null &&
+                        entry.LabelCap.ToString() == genesTranslated)
+                    {
+                        var genes = geneSetHolder.GeneSet.GenesListForReading;
+                        if (genes != null && genes.Count > 0)
+                        {
+                            string shadeAwareValue = string.Join(", ", genes.Select(g => GeneTreeBuilder.GetGeneDisplayLabel(g)));
+                            label = $"{entry.LabelCap}: {shadeAwareValue}";
+                        }
+                        suppressExplanation = true;
+                    }
 
                     // Enrich label with hyperlink def names when the value is generic.
                     // A sighted player sees the linked def names as clickable text;
@@ -244,12 +266,15 @@ namespace RimWorldAccess
 
                     // Check explanation text upfront to determine expandability
                     bool hasExplanation = false;
-                    try
+                    if (!suppressExplanation)
                     {
-                        string explanation = entry.GetExplanationText(StatRequest.ForEmpty())?.Trim();
-                        hasExplanation = !string.IsNullOrEmpty(explanation);
+                        try
+                        {
+                            string explanation = entry.GetExplanationText(StatRequest.ForEmpty())?.Trim();
+                            hasExplanation = !string.IsNullOrEmpty(explanation);
+                        }
+                        catch { }
                     }
-                    catch { }
 
                     var statNode = new InspectionTreeItem
                     {

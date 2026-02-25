@@ -531,11 +531,18 @@ namespace RimWorldAccess
                 category == "Job Queue")
                 return true;
 
-            // Genes tab is expandable for pawns with gene data (Biotech DLC)
+            // Genes tab is expandable for pawns with gene data or GeneSetHolderBase items (Biotech DLC)
             if (category == "Genes")
             {
                 Pawn genePawn = GetPawnFromThing(obj);
-                return genePawn?.genes != null && ModsConfig.BiotechActive;
+                if (genePawn?.genes != null && ModsConfig.BiotechActive)
+                    return true;
+
+                // Also expandable for GeneSetHolderBase items (embryos, genepacks, xenogerms)
+                if (obj is GeneSetHolderBase holder && holder.GeneSet != null && ModsConfig.BiotechActive)
+                    return true;
+
+                return false;
             }
 
             // Pen Food and Pen Auto-Cut are expandable if building has pen marker
@@ -747,6 +754,13 @@ namespace RimWorldAccess
                     BuildMeditationFocusChildren(categoryItem, building);
                     return;
                 }
+            }
+
+            // Handle GeneSetHolderBase (embryos, genepacks, xenogerms) gene category
+            if (category == "Genes" && obj is GeneSetHolderBase geneHolder)
+            {
+                BuildGeneSetHolderGenesChildren(categoryItem, geneHolder);
+                return;
             }
 
             // Handle Pawn-specific categories (supports both live pawns and corpses)
@@ -1776,6 +1790,60 @@ namespace RimWorldAccess
             string xenotypeLabel = pawn.genes.XenotypeLabelCap;
             int geneCount = pawn.genes.GenesListForReading?.Count ?? 0;
             categoryItem.Label = $"Genes: {xenotypeLabel} ({geneCount} {(geneCount == 1 ? "gene" : "genes")})";
+        }
+
+        /// <summary>
+        /// Builds children for Genes category for GeneSetHolderBase items (embryos, genepacks, xenogerms).
+        /// Uses GeneTreeBuilder.BuildTree() to create the gene tree from the item's GeneSet.
+        /// </summary>
+        private static void BuildGeneSetHolderGenesChildren(InspectionTreeItem categoryItem, GeneSetHolderBase holder)
+        {
+            if (categoryItem.Children.Count > 0)
+                return; // Already built
+
+            if (holder.GeneSet == null || !ModsConfig.BiotechActive)
+            {
+                AddChild(categoryItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "No gene information available",
+                    IndentLevel = categoryItem.IndentLevel + 1,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            // Get parent names for embryos (HumanEmbryo has Mother/Father via CompHasPawnSources)
+            string motherName = null;
+            string fatherName = null;
+            if (holder is HumanEmbryo embryo)
+            {
+                try
+                {
+                    motherName = embryo.Mother?.LabelShort;
+                    fatherName = embryo.Father?.LabelShort;
+                }
+                catch { /* CompHasPawnSources may not be available */ }
+            }
+
+            var geneTree = GeneTreeBuilder.BuildTree(holder.GeneSet, motherName, fatherName);
+
+            // Copy children from the gene tree root into our category item
+            foreach (var child in geneTree.Children)
+            {
+                child.Parent = categoryItem;
+                child.IndentLevel = categoryItem.IndentLevel + 1;
+                AdjustChildIndents(child, categoryItem.IndentLevel + 1);
+                categoryItem.Children.Add(child);
+            }
+
+            // Update category label with gene count info
+            int geneCount = holder.GeneSet.GenesListForReading?.Count ?? 0;
+            string xenotype = holder.GeneSet.Label;
+            if (!string.IsNullOrEmpty(xenotype) && xenotype != "ERR")
+                categoryItem.Label = $"Genes: {xenotype} ({geneCount} {(geneCount == 1 ? "gene" : "genes")})";
+            else
+                categoryItem.Label = $"Genes ({geneCount} {(geneCount == 1 ? "gene" : "genes")})";
         }
 
         /// <summary>
