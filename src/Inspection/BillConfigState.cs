@@ -52,6 +52,7 @@ namespace RimWorldAccess
             RenameBill,
             StyleSelection,
             SuspendToggle,
+            UnpauseBill,
             DeleteBill
         }
 
@@ -133,8 +134,15 @@ namespace RimWorldAccess
             menuItems.Add(new MenuItem(MenuItemType.RecipeInfo, GetRecipeInfoLabel(), "Recipe", null, false));
 
             // 2. Suspend/Resume toggle
-            string suspendLabel = bill.suspended ? "Resume bill" : "Pause bill";
+            string suspendLabel = bill.suspended ? "Suspended".Translate().ToString() : "NotSuspended".Translate().ToString();
             menuItems.Add(new MenuItem(MenuItemType.SuspendToggle, suspendLabel, suspendLabel, null, true));
+
+            // 2b. Unpause button (only when auto-paused, matching vanilla's Unpause button)
+            if (bill.paused)
+            {
+                menuItems.Add(new MenuItem(MenuItemType.UnpauseBill, "Unpause".Translate().ToString(),
+                    "Unpause".Translate().ToString(), null, true));
+            }
 
             // 3. Repeat mode
             menuItems.Add(new MenuItem(MenuItemType.RepeatMode, GetRepeatModeLabel(), "Repeat mode", null, true));
@@ -172,20 +180,20 @@ namespace RimWorldAccess
 
                     // Include source (count from which stockpile)
                     menuItems.Add(new MenuItem(MenuItemType.IncludeSource, GetIncludeSourceLabel(),
-                        "Count from", null, true));
+                        "IncludeFromAll".Translate().ToString(), null, true));
 
                     // HP range (products with hit points only)
                     if (bill.recipe.products.Any(p => p.thingDef.useHitPoints))
                     {
                         menuItems.Add(new MenuItem(MenuItemType.HpRange, GetHpRangeLabel(),
-                            "Hit points", null, true));
+                            "HitPointsBasic".Translate().CapitalizeFirst().ToString(), null, true));
                     }
 
                     // Quality range (products with CompQuality only)
                     if (producedThingDef.HasComp(typeof(CompQuality)))
                     {
                         menuItems.Add(new MenuItem(MenuItemType.QualityRange, GetQualityRangeLabel(),
-                            "Quality", null, true));
+                            "Quality".Translate().ToString(), null, true));
                     }
 
                     // Limit to allowed stuff (products made from stuff only)
@@ -198,36 +206,39 @@ namespace RimWorldAccess
 
                 // Pause when satisfied checkbox
                 menuItems.Add(new MenuItem(MenuItemType.PauseWhenSatisfied, GetPauseWhenSatisfiedLabel(),
-                    "Pause when satisfied", null, true));
+                    "PauseWhenSatisfied".Translate().ToString(), null, true));
 
                 // Only show unpause threshold if pauseWhenSatisfied is enabled
                 if (bill.pauseWhenSatisfied)
                 {
-                    menuItems.Add(new MenuItem(MenuItemType.UnpauseAt, GetUnpauseAtLabel(), "Unpause at", null, true));
+                    menuItems.Add(new MenuItem(MenuItemType.UnpauseAt, GetUnpauseAtLabel(), "UnpauseWhenYouHave".Translate().ToString(), null, true));
                 }
             }
 
             // 15. Store mode
-            menuItems.Add(new MenuItem(MenuItemType.StoreMode, GetStoreModeLabel(), "Store in", null, true));
+            menuItems.Add(new MenuItem(MenuItemType.StoreMode, GetStoreModeLabel(), bill.GetStoreMode().LabelCap.ToString(), null, true));
 
             // 16. Pawn restriction
-            menuItems.Add(new MenuItem(MenuItemType.PawnRestriction, GetPawnRestrictionLabel(), "Worker", null, true));
+            menuItems.Add(new MenuItem(MenuItemType.PawnRestriction, GetPawnRestrictionLabel(), "AnyWorker".Translate().ToString(), null, true));
 
             // 17-18. Skill range (two items: min and max, conditional)
             if (bill.PawnRestriction == null && bill.recipe.workSkill != null && !bill.MechsOnly)
             {
-                menuItems.Add(new MenuItem(MenuItemType.SkillRangeMin, GetSkillRangeMinLabel(), "Skill minimum", null, true));
-                menuItems.Add(new MenuItem(MenuItemType.SkillRangeMax, GetSkillRangeMaxLabel(), "Skill maximum", null, true));
+                string skillSearchLabel = "AllowedSkillRange".Translate(bill.recipe.workSkill.label).ToString();
+                menuItems.Add(new MenuItem(MenuItemType.SkillRangeMin, GetSkillRangeMinLabel(), skillSearchLabel, null, true));
+                menuItems.Add(new MenuItem(MenuItemType.SkillRangeMax, GetSkillRangeMaxLabel(), skillSearchLabel, null, true));
             }
 
             // 19. Ingredient search radius
-            menuItems.Add(new MenuItem(MenuItemType.IngredientSearchRadius, GetIngredientRadiusLabel(), "Ingredient radius", null, true));
+            menuItems.Add(new MenuItem(MenuItemType.IngredientSearchRadius, GetIngredientRadiusLabel(), "IngredientSearchRadius".Translate().ToString(), null, true));
 
             // 20. Ingredient filter
-            menuItems.Add(new MenuItem(MenuItemType.IngredientFilter, "Configure ingredient filter...", "Ingredient filter", null, true));
+            menuItems.Add(new MenuItem(MenuItemType.IngredientFilter,
+                "Filter".Translate() + " " + "Ingredients".Translate().ToLower() + "...",
+                "Ingredients".Translate().ToString(), null, true));
 
             // 21. Rename bill
-            menuItems.Add(new MenuItem(MenuItemType.RenameBill, GetRenameBillLabel(), "Rename bill", null, true));
+            menuItems.Add(new MenuItem(MenuItemType.RenameBill, GetRenameBillLabel(), "Rename".Translate().ToString(), null, true));
 
             // 22. Ideology styling (conditional)
             if (ModsConfig.IdeologyActive && !Find.IdeoManager.classicMode && bill.recipe.ProducedThingDef != null)
@@ -235,12 +246,12 @@ namespace RimWorldAccess
                 ThingDef producedDef = bill.recipe.ProducedThingDef;
                 if (producedDef.RelevantStyleCategories != null && producedDef.RelevantStyleCategories.Any())
                 {
-                    menuItems.Add(new MenuItem(MenuItemType.StyleSelection, GetStyleLabel(), "Style", null, true));
+                    menuItems.Add(new MenuItem(MenuItemType.StyleSelection, GetStyleLabel(), "Stat_Thing_StyleLabel".Translate().ToString(), null, true));
                 }
             }
 
             // 23. Delete bill
-            menuItems.Add(new MenuItem(MenuItemType.DeleteBill, "Delete this bill", "Delete bill", null, true));
+            menuItems.Add(new MenuItem(MenuItemType.DeleteBill, "DeleteBillTip".Translate().ToString(), "DeleteBillTip".Translate().ToString(), null, true));
         }
 
         #region Label Generators
@@ -311,7 +322,7 @@ namespace RimWorldAccess
 
         private static string GetRepeatCountLabel()
         {
-            return $"Repeat count: {bill.repeatCount}";
+            return "RepeatCount".Translate() + " " + bill.repeatCount;
         }
 
         private static string GetTargetCountLabel()
@@ -341,12 +352,12 @@ namespace RimWorldAccess
 
         private static string GetIncludeEquippedLabel()
         {
-            return $"{"IncludeEquipped".Translate()}: {(bill.includeEquipped ? "On" : "Off")}";
+            return $"{"IncludeEquipped".Translate()}: {(bill.includeEquipped ? "On".Translate() : "Off".Translate())}";
         }
 
         private static string GetIncludeTaintedLabel()
         {
-            return $"{"IncludeTainted".Translate()}: {(bill.includeTainted ? "On" : "Off")}";
+            return $"{"IncludeTainted".Translate()}: {(bill.includeTainted ? "On".Translate() : "Off".Translate())}";
         }
 
         private static string GetIncludeSourceLabel()
@@ -359,52 +370,41 @@ namespace RimWorldAccess
 
         private static string GetHpRangeLabel()
         {
-            return $"Hit points: {bill.hpRange.min:P0} - {bill.hpRange.max:P0}";
+            return $"{"HitPointsBasic".Translate().CapitalizeFirst()}: {bill.hpRange.min:P0} - {bill.hpRange.max:P0}";
         }
 
         private static string GetQualityRangeLabel()
         {
-            return $"Quality: {bill.qualityRange.min} - {bill.qualityRange.max}";
+            return $"{"Quality".Translate()}: {bill.qualityRange.min} - {bill.qualityRange.max}";
         }
 
         private static string GetLimitToAllowedStuffLabel()
         {
-            return $"{"LimitToAllowedStuff".Translate()}: {(bill.limitToAllowedStuff ? "On" : "Off")}";
+            return $"{"LimitToAllowedStuff".Translate()}: {(bill.limitToAllowedStuff ? "On".Translate() : "Off".Translate())}";
         }
 
         private static string GetPauseWhenSatisfiedLabel()
         {
-            return $"Pause when satisfied: {(bill.pauseWhenSatisfied ? "Yes" : "No")}";
+            return $"{"PauseWhenSatisfied".Translate()}: {(bill.pauseWhenSatisfied ? "On".Translate() : "Off".Translate())}";
         }
 
         private static string GetUnpauseAtLabel()
         {
-            return $"Unpause at: {bill.unpauseWhenYouHave}";
+            return $"{"UnpauseWhenYouHave".Translate()}: {bill.unpauseWhenYouHave}";
         }
 
         private static string GetStoreModeLabel()
         {
-            string label = "Store in: ";
+            string label = string.Format(
+                bill.GetStoreMode().LabelCap.ToString(),
+                (bill.GetSlotGroup() != null)
+                    ? SlotGroup.GetGroupLabel(bill.GetSlotGroup())
+                    : "");
 
-            if (bill.GetStoreMode() == BillStoreModeDefOf.BestStockpile)
+            if (bill.GetSlotGroup() != null
+                && !bill.recipe.WorkerCounter.CanPossiblyStore(bill, bill.GetSlotGroup()))
             {
-                label += "Best stockpile";
-            }
-            else if (bill.GetStoreMode() == BillStoreModeDefOf.DropOnFloor)
-            {
-                label += "Drop on floor";
-            }
-            else if (bill.GetStoreMode() == BillStoreModeDefOf.SpecificStockpile)
-            {
-                ISlotGroup slotGroup = bill.GetSlotGroup();
-                if (slotGroup is Zone_Stockpile stockpile)
-                {
-                    label += stockpile.label;
-                }
-                else
-                {
-                    label += "(No stockpile)";
-                }
+                label += string.Format(" ({0})", "IncompatibleLower".Translate());
             }
 
             return label;
@@ -439,11 +439,11 @@ namespace RimWorldAccess
         {
             if (bill.ingredientSearchRadius >= 999f)
             {
-                return "Ingredient radius: Unlimited";
+                return $"{"IngredientSearchRadius".Translate()}: {"Unlimited".Translate()}";
             }
             else
             {
-                return $"Ingredient radius: {bill.ingredientSearchRadius:F0} tiles";
+                return $"{"IngredientSearchRadius".Translate()}: {bill.ingredientSearchRadius:F0}";
             }
         }
 
@@ -452,21 +452,22 @@ namespace RimWorldAccess
             string custom = bill.RenamableLabel;
             string baseName = bill.BaseLabel;
             if (custom != baseName)
-                return $"Rename bill: {custom} (original: {baseName})";
-            return "Rename bill";
+                return $"{"Rename".Translate()}: {custom} (original: {baseName})";
+            return "Rename".Translate().ToString();
         }
 
         private static string GetStyleLabel()
         {
+            string stylePrefix = "Stat_Thing_StyleLabel".Translate().ToString();
             if (bill.globalStyle)
             {
-                return $"Style: {"UseGlobalStyle".Translate()}";
+                return $"{stylePrefix}: {"UseGlobalStyle".Translate()}";
             }
             if (bill.style != null)
             {
-                return $"Style: {bill.style.Category.LabelCap}";
+                return $"{stylePrefix}: {bill.style.Category.LabelCap}";
             }
-            return "Style: Basic";
+            return stylePrefix;
         }
 
         /// <summary>
@@ -746,6 +747,12 @@ namespace RimWorldAccess
             {
                 case MenuItemType.SuspendToggle:
                     bill.suspended = !bill.suspended;
+                    BuildMenuItems();
+                    AnnounceCurrentSelection();
+                    break;
+
+                case MenuItemType.UnpauseBill:
+                    bill.paused = false;
                     BuildMenuItems();
                     AnnounceCurrentSelection();
                     break;
@@ -1472,35 +1479,26 @@ namespace RimWorldAccess
         {
             List<FloatMenuOption> options = new List<FloatMenuOption>();
 
-            // Drop on floor
-            options.Add(new FloatMenuOption("Drop on floor", delegate
+            foreach (BillStoreModeDef storeDef in DefDatabase<BillStoreModeDef>.AllDefs
+                .OrderBy(bsm => bsm.listOrder))
             {
-                bill.SetStoreMode(BillStoreModeDefOf.DropOnFloor);
-                BuildMenuItems();
-                AnnounceCurrentSelection();
-            }));
-
-            // Best stockpile
-            options.Add(new FloatMenuOption("Best stockpile", delegate
-            {
-                bill.SetStoreMode(BillStoreModeDefOf.BestStockpile);
-                BuildMenuItems();
-                AnnounceCurrentSelection();
-            }));
-
-            // Specific stockpiles
-            List<SlotGroup> allGroupsListForReading = bill.billStack.billGiver.Map.haulDestinationManager.AllGroupsListForReading;
-            for (int i = 0; i < allGroupsListForReading.Count; i++)
-            {
-                SlotGroup group = allGroupsListForReading[i];
-                Zone_Stockpile stockpile = group.parent as Zone_Stockpile;
-
-                if (stockpile != null)
+                if (storeDef == BillStoreModeDefOf.SpecificStockpile)
                 {
-                    ISlotGroup localGroup = group; // Capture for lambda
-                    options.Add(new FloatMenuOption($"Stockpile: {stockpile.label}", delegate
+                    FillOutputDropdownOptions(options,
+                        BillStoreModeDefOf.SpecificStockpile.LabelCap,
+                        delegate(ISlotGroup slot)
+                        {
+                            bill.SetStoreMode(BillStoreModeDefOf.SpecificStockpile, slot);
+                            BuildMenuItems();
+                            AnnounceCurrentSelection();
+                        });
+                }
+                else
+                {
+                    BillStoreModeDef smLocal = storeDef;
+                    options.Add(new FloatMenuOption(smLocal.LabelCap, delegate
                     {
-                        bill.SetStoreMode(BillStoreModeDefOf.SpecificStockpile, localGroup);
+                        bill.SetStoreMode(smLocal);
                         BuildMenuItems();
                         AnnounceCurrentSelection();
                     }));
@@ -1617,19 +1615,15 @@ namespace RimWorldAccess
                 AnnounceCurrentSelection();
             }));
 
-            // Specific stockpiles
-            List<SlotGroup> allGroups = bill.billStack.billGiver.Map.haulDestinationManager.AllGroupsListInPriorityOrder;
-            foreach (SlotGroup group in allGroups)
-            {
-                ISlotGroup localGroup = group;
-                string label = "IncludeSpecific".Translate(SlotGroup.GetGroupLabel(localGroup)).ToString();
-                options.Add(new FloatMenuOption(label, delegate
+            // Specific storage locations (grouped like vanilla)
+            FillOutputDropdownOptions(options,
+                "IncludeSpecific".Translate(),
+                delegate(ISlotGroup slot)
                 {
-                    bill.SetIncludeGroup(localGroup);
+                    bill.SetIncludeGroup(slot);
                     BuildMenuItems();
                     AnnounceCurrentSelection();
-                }));
-            }
+                });
 
             WindowlessFloatMenuState.Open(options, false, announceSelection: false);
         }
@@ -1685,6 +1679,79 @@ namespace RimWorldAccess
             }
 
             WindowlessFloatMenuState.Open(options, false, announceSelection: false);
+        }
+
+        /// <summary>
+        /// Fills dropdown options for storage locations, replicating vanilla's
+        /// FillOutputDropdownOptions logic with StorageGroup deduplication
+        /// and unnamed Building_Storage filtering.
+        /// </summary>
+        private static void FillOutputDropdownOptions(
+            List<FloatMenuOption> options,
+            string prefix,
+            Action<ISlotGroup> onSelected)
+        {
+            List<SlotGroup> allGroups = bill.billStack.billGiver.Map
+                .haulDestinationManager.AllGroupsListInPriorityOrder;
+
+            var groupsByLabel = new Dictionary<string, List<ISlotGroup>>();
+
+            for (int i = 0; i < allGroups.Count; i++)
+            {
+                SlotGroup slotGroup = allGroups[i];
+
+                if (slotGroup.StorageGroup != null)
+                {
+                    StorageGroup storageGroup = slotGroup.StorageGroup;
+                    if (!groupsByLabel.ContainsKey(storageGroup.GroupingLabel))
+                        groupsByLabel.Add(storageGroup.GroupingLabel, new List<ISlotGroup>());
+                    if (!groupsByLabel[storageGroup.GroupingLabel].Contains(storageGroup))
+                        groupsByLabel[storageGroup.GroupingLabel].Add(storageGroup);
+                }
+                else if (!(slotGroup.parent is Building_Storage) || slotGroup.parent is IRenameable)
+                {
+                    if (!groupsByLabel.ContainsKey(slotGroup.GroupingLabel))
+                        groupsByLabel.Add(slotGroup.GroupingLabel, new List<ISlotGroup>());
+                    groupsByLabel[slotGroup.GroupingLabel].Add(slotGroup);
+                }
+            }
+
+            // Flatten groups maintaining GroupingOrder, then separate compatible from incompatible
+            var orderedGroups = groupsByLabel
+                .OrderBy(kv => (kv.Value.Count > 0) ? kv.Value[0].GroupingOrder : 0)
+                .SelectMany(kv => kv.Value)
+                .ToList();
+
+            var compatible = new List<ISlotGroup>();
+            var incompatible = new List<ISlotGroup>();
+
+            foreach (var group in orderedGroups)
+            {
+                if (bill.recipe.WorkerCounter.CanPossiblyStore(bill, group))
+                    compatible.Add(group);
+                else
+                    incompatible.Add(group);
+            }
+
+            // Compatible locations first
+            foreach (var group in compatible)
+            {
+                string label = string.Format(prefix, SlotGroup.GetGroupLabel(group));
+                ISlotGroup localGroup = group;
+                options.Add(new FloatMenuOption(label, delegate
+                {
+                    onSelected(localGroup);
+                }));
+            }
+
+            // Incompatible locations after
+            foreach (var group in incompatible)
+            {
+                string label = string.Format(prefix, SlotGroup.GetGroupLabel(group));
+                options.Add(new FloatMenuOption(
+                    string.Format("{0} ({1})", label, "IncompatibleLower".Translate()),
+                    null));
+            }
         }
 
         private static void OpenIngredientFilterMenu()

@@ -107,14 +107,14 @@ namespace RimWorldAccess
             menuItems.Clear();
 
             // Add "Add new bill" option
-            menuItems.Add(new MenuItem(MenuItemType.AddBill, "Add new bill...", null));
+            menuItems.Add(new MenuItem(MenuItemType.AddBill, "AddBill".Translate() + "...", null));
 
             // Add paste bill option if clipboard has a bill
             if (BillUtility.Clipboard != null)
             {
                 Building_WorkTable workTable = billGiver as Building_WorkTable;
                 bool canPaste = false;
-                string pasteLabel = "Paste bill";
+                string pasteLabel = "PasteBillTip".Translate().CapitalizeFirst().ToString();
 
                 if (workTable != null)
                 {
@@ -122,17 +122,17 @@ namespace RimWorldAccess
                         !BillUtility.Clipboard.recipe.AvailableNow ||
                         !BillUtility.Clipboard.recipe.AvailableOnNow(workTable))
                     {
-                        pasteLabel = $"Paste bill (not available here): {BillUtility.Clipboard.LabelCap}";
+                        pasteLabel = "ClipboardBillNotAvailableHere".Translate() + ": " + BillUtility.Clipboard.LabelCap;
                         canPaste = false;
                     }
                     else if (billGiver.BillStack.Count >= 15)
                     {
-                        pasteLabel = $"Paste bill (limit reached): {BillUtility.Clipboard.LabelCap}";
+                        pasteLabel = "PasteBillTip".Translate().CapitalizeFirst() + " (" + "PasteBillTip_LimitReached".Translate() + "): " + BillUtility.Clipboard.LabelCap;
                         canPaste = false;
                     }
                     else
                     {
-                        pasteLabel = $"Paste bill: {BillUtility.Clipboard.LabelCap}";
+                        pasteLabel = "PasteBillTip".Translate().CapitalizeFirst() + ": " + BillUtility.Clipboard.LabelCap;
                         canPaste = true;
                     }
                 }
@@ -164,7 +164,11 @@ namespace RimWorldAccess
 
                     if (bill.suspended)
                     {
-                        billLabel += " (paused)";
+                        billLabel += " (" + "Paused".Translate() + ")";
+                    }
+                    else if (bill is Bill_Production prodBill && prodBill.paused)
+                    {
+                        billLabel += " (" + "Paused".Translate() + ")";
                     }
 
                     menuItems.Add(new MenuItem(MenuItemType.ExistingBill, billLabel, bill));
