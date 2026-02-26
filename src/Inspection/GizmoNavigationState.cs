@@ -1141,7 +1141,7 @@ namespace RimWorldAccess
             if (!isAbility && !string.IsNullOrEmpty(hotkey))
                 announcement += $" ({hotkey})";
 
-            // For Command_Ability (psycasts, abilities), add cost, range, description, then hotkey
+            // For Command_Ability (psycasts, abilities), add cost, range, cooldown, description, then hotkey
             if (isAbility && gizmo is Command_Ability commandAbility && commandAbility.Ability != null)
             {
                 string costInfo = GetAbilityCostInfo(commandAbility.Ability);
@@ -1153,7 +1153,12 @@ namespace RimWorldAccess
                 if (!string.IsNullOrEmpty(rangeInfo))
                     announcement += (announcement.EndsWith(".") ? " " : ". ") + rangeInfo;
 
-                // Add ability description after range info
+                // Add cooldown info after range
+                string cooldownInfo = GetAbilityCooldownInfo(commandAbility.Ability);
+                if (!string.IsNullOrEmpty(cooldownInfo))
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + cooldownInfo;
+
+                // Add ability description after cooldown info
                 if (!string.IsNullOrEmpty(description))
                     announcement += (announcement.EndsWith(".") ? " " : ". ") + description;
 
@@ -1738,6 +1743,51 @@ namespace RimWorldAccess
                 rangeText += $", {effectRadius:F0} tile radius";
 
             return rangeText;
+        }
+
+        /// <summary>
+        /// Gets cooldown information for an ability.
+        /// When on cooldown, shows remaining time. Otherwise shows base cooldown duration.
+        /// The disabled section separately announces the full "on cooldown" game text.
+        /// </summary>
+        private static string GetAbilityCooldownInfo(Ability ability)
+        {
+            if (ability?.def == null)
+                return null;
+
+            string cooldownLabel = "StatsReport_Cooldown".Translate();
+
+            // When on cooldown, show remaining time (most actionable info).
+            // The disabled section already announces the full "AbilityOnCooldown" text.
+            if (ability.OnCooldown && ability.CooldownTicksRemaining > 0)
+            {
+                string remaining = ability.CooldownTicksRemaining.ToStringTicksToPeriod();
+                return cooldownLabel + ": " + remaining;
+            }
+
+            // When not on cooldown, show base cooldown duration (matches game's stats report).
+            // Group abilities use groupDef.cooldownTicks unless overrideGroupCooldown is set.
+            // Individual abilities use cooldownTicksRange when it's a fixed value (min == max).
+            int baseCooldownTicks = 0;
+            if (ability.def.groupDef != null && !ability.def.overrideGroupCooldown
+                && ability.def.groupDef.cooldownTicks > 0)
+            {
+                baseCooldownTicks = ability.def.groupDef.cooldownTicks;
+            }
+            else if (ability.def.cooldownTicksRange.min == ability.def.cooldownTicksRange.max
+                     && ability.def.cooldownTicksRange.min > 0)
+            {
+                baseCooldownTicks = ability.def.cooldownTicksRange.min;
+            }
+
+            if (baseCooldownTicks > 0)
+            {
+                string baseDuration = baseCooldownTicks.ToStringTicksToPeriod(
+                    allowSeconds: true, shortForm: false, canUseDecimals: true, allowYears: false);
+                return cooldownLabel + ": " + baseDuration;
+            }
+
+            return null;
         }
 
         /// <summary>
