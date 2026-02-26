@@ -7,13 +7,14 @@ using Verse;
 namespace RimWorldAccess
 {
     /// <summary>
-    /// Harmony patches to enable keyboard accessibility for baby gene inspection.
-    /// Intercepts when ITab_GenesPregnancy is opened and activates GeneInspectionState.
+    /// Harmony patches to enable keyboard accessibility for gene inspection.
+    /// Intercepts when ITab_GenesPregnancy or ITab_Genes is opened and activates GeneInspectionState.
+    /// Supports both pregnancy gene inspection and GeneSetHolderBase items (embryos, genepacks, xenogerms).
     /// </summary>
     public static class GeneInspectionPatch
     {
         /// <summary>
-        /// Postfix patch for InspectPaneUtility.OpenTab to detect when ITab_GenesPregnancy opens.
+        /// Postfix patch for InspectPaneUtility.OpenTab to detect when gene tabs open.
         /// </summary>
         [HarmonyPatch(typeof(InspectPaneUtility), "OpenTab")]
         public static class OpenTab_Patch
@@ -27,11 +28,22 @@ namespace RimWorldAccess
                     if (inspectTabType == typeof(ITab_GenesPregnancy) ||
                         (inspectTabType != null && typeof(ITab_GenesPregnancy).IsAssignableFrom(inspectTabType)))
                     {
-                        // Get the currently selected pawn
                         var pawn = GetSelectedPregnantPawn();
                         if (pawn != null)
                         {
                             GeneInspectionState.Open(pawn);
+                            return;
+                        }
+                    }
+
+                    // Check if this is the genes tab for GeneSetHolderBase items (embryos, genepacks, xenogerms)
+                    if (inspectTabType == typeof(ITab_Genes) ||
+                        (inspectTabType != null && typeof(ITab_Genes).IsAssignableFrom(inspectTabType)))
+                    {
+                        var selected = Find.Selector?.SingleSelectedThing;
+                        if (selected is GeneSetHolderBase holder && holder.GeneSet != null)
+                        {
+                            GeneInspectionState.OpenForGeneSetHolder(holder);
                         }
                     }
                 }

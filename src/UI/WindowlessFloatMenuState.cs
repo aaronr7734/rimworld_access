@@ -107,6 +107,7 @@ namespace RimWorldAccess
                 return;
 
             FloatMenuOption selectedOption = currentOptions[selectedIndex];
+            bool shiftHeld = Event.current.shift;
 
             if (selectedOption.Disabled)
             {
@@ -146,7 +147,10 @@ namespace RimWorldAccess
             // where the callback already announces the updated state with position context)
             if (!ArchitectState.IsInPlacementMode && announceOnExecute)
             {
-                TolkHelper.Speak($"{selectedOption.Label} selected");
+                if (shiftHeld && givesColonistOrders)
+                    TolkHelper.Speak($"{selectedOption.Label}, {"Queued".Translate()}");
+                else
+                    TolkHelper.Speak($"{selectedOption.Label} selected");
             }
         }
 

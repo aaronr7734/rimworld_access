@@ -417,6 +417,26 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Returns a display label for a gene with shade/color descriptions for cosmetic genes.
+        /// Suitable for use in overviews and info card stat entries.
+        /// </summary>
+        public static string GetGeneDisplayLabel(GeneDef gene)
+        {
+            string label = gene.LabelCap;
+
+            if (IsCosmeticGene(gene))
+            {
+                string colorDesc = GetColorDescription(gene);
+                if (!string.IsNullOrEmpty(colorDesc) && !label.ToLower().Contains(colorDesc.ToLower()))
+                {
+                    label = $"{label}: {colorDesc}";
+                }
+            }
+
+            return label;
+        }
+
+        /// <summary>
         /// Checks if a gene is purely cosmetic (no biostats, no effects).
         /// </summary>
         private static bool IsCosmeticGene(GeneDef gene)
