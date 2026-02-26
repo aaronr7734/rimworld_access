@@ -8,11 +8,14 @@ Tame animal and wildlife management with tabular navigation.
 **States:** AnimalsMenuState.cs, AutoSlaughterState.cs, WildlifeMenuState.cs
 **Helpers:** AnimalsMenuHelper.cs, WildlifeMenuHelper.cs
 
-## Key Shortcuts
+## Key Shortcuts (Animals & Wildlife)
 - **Arrow Keys Up/Down** - Navigate animal list (rows)
 - **Arrow Keys Left/Right** - Navigate columns
 - **Enter** - Interact with current cell
 - **Home/End** - Jump to first/last animal
+- **Shift+Down/Up** - Paint current cell's value to next/previous row
+- **Shift+Home/End** - Bulk paint from current row to first/last
+- **Ctrl+Shift+Home/End** - Paint entire column
 - **Alt+S** - Sort by current column
 - **Type letters** - Typeahead search
 
@@ -78,6 +81,17 @@ tableHelper = new TabularMenuHelper<Pawn>(
 ## Dependencies
 **Requires:** ScreenReader/, Input/, UI/TabularMenuHelper
 
+### Painting Support
+Both menus support column painting for game-paintable columns:
+- **Checkbox columns** (detected via `PawnColumnDef.paintable`): Slaughter, Sterile, FollowDrafted, FollowFieldwork, ReleaseToWild, SpecialTrainable, AnimalDig, AnimalForage
+- **Training columns** (workers pass `paintable: true` to `Widgets.Checkbox`): All TrainableDef columns (Obedience, Release, Rescue, Haul, etc.)
+- **Dropdown columns** (workers pass `paintable: true` to `Widgets.Dropdown`): Master (Click sound), MedicalCare (Tick_High sound)
+- **AllowedArea** (mod-specific `lastAppliedArea` mechanism)
+- **WildlifeMenuHelper**: Checkbox columns (Hunt, Tame)
+- Uses `BulkSoundQueue` for rapid-fire sounds during bulk paint
+- Single-step paint announces "already {value}" when target matches brush
+- Announcements follow Schedule tab pattern: "Painted {column} {value} for {name list}"
+
 ## Testing
 - [ ] Animals menu navigation (rows, columns)
 - [ ] Wildlife menu navigation (rows, columns)
@@ -85,6 +99,19 @@ tableHelper = new TabularMenuHelper<Pawn>(
 - [ ] Sorting by column in both menus
 - [ ] Cell interactions (toggles, submenus)
 - [ ] Submenu navigation in Animals menu
+- [ ] Animals: Shift+Down/Up paints checkbox columns (Slaughter, FollowDrafted, etc.)
+- [ ] Animals: Shift+Down/Up paints training columns (Obedience, Release, etc.)
+- [ ] Animals: Shift+Down/Up paints Master column (copies master assignment)
+- [ ] Animals: Shift+Down/Up paints Medical care column (copies care level)
+- [ ] Animals: Shift+Home/End bulk paints with name list announcement
+- [ ] Animals: Ctrl+Shift+Home/End paints entire column
+- [ ] Animals: AllowedArea painting uses current cell's area as brush
+- [ ] Animals: "Already set" announced when target matches brush value
+- [ ] Animals: Non-paintable columns (Name, Gender, Age, etc.) show "Cannot paint this column"
+- [ ] Wildlife: Shift+Down/Up paints Hunt/Tame columns
+- [ ] Wildlife: Shift+Home/End bulk paints with name list announcement
+- [ ] Wildlife: Ctrl+Shift+Home/End paints entire column
+- [ ] Wildlife: Non-paintable columns show "Cannot paint this column"
 - [ ] Auto-slaughter: row/column navigation with announcements
 - [ ] Auto-slaughter: +/- adjustments and Shift/Ctrl shortcuts
 - [ ] Auto-slaughter: Enter numeric input mode, type number, confirm/cancel

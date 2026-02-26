@@ -124,45 +124,65 @@ namespace RimWorldAccess
 
             try
             {
-                // Check for zone at cursor position and collect its gizmos
-                Zone zone = cursorPosition.GetZone(map);
-                if (zone != null)
-                {
-                    // Temporarily select the zone so its gizmos' Visible property works correctly
-                    Find.Selector.ClearSelection();
-                    Find.Selector.Select(zone, playSound: false, forceDesignatorDeselect: false);
+                // Get all things at cursor, sorted by AltitudeLayer descending
+                // (matches TileInfoHelper ordering - highest layer first)
+                var sortedThings = cursorPosition.GetThingList(map)
+                    .Where(t => !(t is Mote) && t.def.category != ThingCategory.Mote)
+                    .OrderByDescending(t => (int)t.def.altitudeLayer)
+                    .ToList();
 
-                    var zoneGizmos = zone.GetGizmos().ToList();
-                    foreach (Gizmo gizmo in zoneGizmos.Where(g => g != null && g.Visible && !ShouldSkipGizmo(g)))
-                    {
-                        availableGizmos.Add(gizmo);
-                        gizmoOwners[gizmo] = zone;
-                    }
-                }
-
-                // Get all things at the cursor position
-                List<Thing> thingsAtPosition = cursorPosition.GetThingList(map);
-
-                // Collect gizmos from all things at this position
+                // Collect gizmos from things in altitude order (highest layer first)
+                // Within each owner, gizmos are sorted by gizmo.Order
                 // Important: Temporarily select each thing before getting its gizmos,
                 // because some gizmos (like Designator_Install) check if the thing is selected
                 // to determine their Visible property
-                if (thingsAtPosition != null)
+                foreach (ISelectable selectable in sortedThings.OfType<ISelectable>())
                 {
-                    foreach (ISelectable selectable in thingsAtPosition.OfType<ISelectable>())
-                    {
-                        // Temporarily select this thing so its gizmos' Visible property works correctly
-                        Find.Selector.ClearSelection();
-                        Find.Selector.Select(selectable, playSound: false, forceDesignatorDeselect: false);
+                    Find.Selector.ClearSelection();
+                    Find.Selector.Select(selectable, playSound: false, forceDesignatorDeselect: false);
 
-                        var gizmos = selectable.GetGizmos().ToList();
-                        foreach (Gizmo gizmo in gizmos.Where(g => g != null && g.Visible && !ShouldSkipGizmo(g)))
+                    var gizmos = selectable.GetGizmos()
+                        .Where(g => g != null && g.Visible && !ShouldSkipGizmo(g))
+                        .OrderBy(g => g.Order)
+                        .ToList();
+                    foreach (Gizmo gizmo in gizmos)
+                    {
+                        availableGizmos.Add(gizmo);
+                        gizmoOwners[gizmo] = selectable;
+                    }
+
+                    // Collect reverse designator gizmos (Mine, Mine Vein, Strip, etc.)
+                    // Mirrors GizmoGridDrawer.DrawGizmoGridFor() behavior
+                    if (selectable is Thing thing)
+                    {
+                        List<Designator> reverseDesignators = Find.ReverseDesignatorDatabase.AllDesignators;
+                        for (int i = 0; i < reverseDesignators.Count; i++)
                         {
-                            // Check Visible NOW while thing is still selected
-                            // (some gizmos like Designator_Install check selection state)
-                            availableGizmos.Add(gizmo);
-                            gizmoOwners[gizmo] = selectable;
+                            Command_Action reverseGizmo = reverseDesignators[i].CreateReverseDesignationGizmo(thing);
+                            if (reverseGizmo != null && !ShouldSkipGizmo(reverseGizmo))
+                            {
+                                availableGizmos.Add(reverseGizmo);
+                                gizmoOwners[reverseGizmo] = selectable;
+                            }
                         }
+                    }
+                }
+
+                // Check for zone AFTER things (matches TileInfoHelper ordering)
+                Zone zone = cursorPosition.GetZone(map);
+                if (zone != null)
+                {
+                    Find.Selector.ClearSelection();
+                    Find.Selector.Select(zone, playSound: false, forceDesignatorDeselect: false);
+
+                    var zoneGizmos = zone.GetGizmos()
+                        .Where(g => g != null && g.Visible && !ShouldSkipGizmo(g))
+                        .OrderBy(g => g.Order)
+                        .ToList();
+                    foreach (Gizmo gizmo in zoneGizmos)
+                    {
+                        availableGizmos.Add(gizmo);
+                        gizmoOwners[gizmo] = zone;
                     }
                 }
             }
@@ -175,11 +195,6 @@ namespace RimWorldAccess
                     Find.Selector.Select(obj, playSound: false, forceDesignatorDeselect: false);
                 }
             }
-
-            // Sort by Order property (lower values appear first)
-            availableGizmos = availableGizmos
-                .OrderBy(g => g.Order)
-                .ToList();
 
             if (availableGizmos.Count == 0)
             {

@@ -332,5 +332,177 @@ namespace RimWorldAccess
         }
 
         #endregion
+
+        #region Painting
+
+        /// <summary>
+        /// Paints the current cell's value to the next row and moves down.
+        /// </summary>
+        public static void PaintDown()
+        {
+            if (wildlifeList.Count <= 1) return;
+
+            int col = tableHelper.CurrentColumnIndex;
+            if (!WildlifeMenuHelper.CanPaintColumn(col))
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("Cannot paint this column");
+                return;
+            }
+
+            Pawn sourcePawn = wildlifeList[tableHelper.CurrentRowIndex];
+            bool brushValue = WildlifeMenuHelper.GetPaintableValue(sourcePawn, col);
+
+            tableHelper.SelectNextRow(wildlifeList.Count);
+            Pawn targetPawn = wildlifeList[tableHelper.CurrentRowIndex];
+
+            string colName = WildlifeMenuHelper.GetColumnName(col);
+            string valueLabel = WildlifeMenuHelper.GetPaintValueLabel(col, brushValue);
+            string pos = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, wildlifeList.Count);
+
+            bool targetValue = WildlifeMenuHelper.GetPaintableValue(targetPawn, col);
+            if (targetValue == brushValue)
+            {
+                TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} already {valueLabel}. {pos}");
+                return;
+            }
+
+            bool applied = WildlifeMenuHelper.SetPaintableValue(targetPawn, col, brushValue);
+            SoundDef sound = applied
+                ? WildlifeMenuHelper.GetPaintSound(col, brushValue)
+                : SoundDefOf.ClickReject;
+            sound.PlayOneShotOnCamera();
+
+            TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} {valueLabel}. {pos}");
+        }
+
+        /// <summary>
+        /// Paints the current cell's value to the previous row and moves up.
+        /// </summary>
+        public static void PaintUp()
+        {
+            if (wildlifeList.Count <= 1) return;
+
+            int col = tableHelper.CurrentColumnIndex;
+            if (!WildlifeMenuHelper.CanPaintColumn(col))
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("Cannot paint this column");
+                return;
+            }
+
+            Pawn sourcePawn = wildlifeList[tableHelper.CurrentRowIndex];
+            bool brushValue = WildlifeMenuHelper.GetPaintableValue(sourcePawn, col);
+
+            tableHelper.SelectPreviousRow(wildlifeList.Count);
+            Pawn targetPawn = wildlifeList[tableHelper.CurrentRowIndex];
+
+            string colName = WildlifeMenuHelper.GetColumnName(col);
+            string valueLabel = WildlifeMenuHelper.GetPaintValueLabel(col, brushValue);
+            string pos = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, wildlifeList.Count);
+
+            bool targetValue = WildlifeMenuHelper.GetPaintableValue(targetPawn, col);
+            if (targetValue == brushValue)
+            {
+                TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} already {valueLabel}. {pos}");
+                return;
+            }
+
+            bool applied = WildlifeMenuHelper.SetPaintableValue(targetPawn, col, brushValue);
+            SoundDef sound = applied
+                ? WildlifeMenuHelper.GetPaintSound(col, brushValue)
+                : SoundDefOf.ClickReject;
+            sound.PlayOneShotOnCamera();
+
+            TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} {valueLabel}. {pos}");
+        }
+
+        /// <summary>
+        /// Bulk paints the current value from the current row to the last row.
+        /// </summary>
+        public static void PaintToLast()
+        {
+            PaintBulk(towardFirst: false, entireColumn: false);
+        }
+
+        /// <summary>
+        /// Bulk paints the current value from the current row to the first row.
+        /// </summary>
+        public static void PaintToFirst()
+        {
+            PaintBulk(towardFirst: true, entireColumn: false);
+        }
+
+        /// <summary>
+        /// Paints the current value to the entire column.
+        /// </summary>
+        public static void PaintEntireColumn(bool towardFirst)
+        {
+            PaintBulk(towardFirst, entireColumn: true);
+        }
+
+        private static void PaintBulk(bool towardFirst, bool entireColumn)
+        {
+            if (wildlifeList.Count == 0) return;
+
+            int col = tableHelper.CurrentColumnIndex;
+            if (!WildlifeMenuHelper.CanPaintColumn(col))
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("Cannot paint this column");
+                return;
+            }
+
+            int currentRow = tableHelper.CurrentRowIndex;
+            string colName = WildlifeMenuHelper.GetColumnName(col);
+
+            int startRow, endRow;
+            if (entireColumn)
+            {
+                startRow = 0;
+                endRow = wildlifeList.Count - 1;
+            }
+            else if (towardFirst)
+            {
+                startRow = 0;
+                endRow = currentRow;
+            }
+            else
+            {
+                startRow = currentRow;
+                endRow = wildlifeList.Count - 1;
+            }
+
+            Pawn sourcePawn = wildlifeList[currentRow];
+            bool brushValue = WildlifeMenuHelper.GetPaintableValue(sourcePawn, col);
+            string valueLabel = WildlifeMenuHelper.GetPaintValueLabel(col, brushValue);
+            SoundDef paintSound = WildlifeMenuHelper.GetPaintSound(col, brushValue);
+
+            var changed = new List<string>();
+            for (int i = startRow; i <= endRow; i++)
+            {
+                Pawn pawn = wildlifeList[i];
+                bool currentValue = WildlifeMenuHelper.GetPaintableValue(pawn, col);
+                if (currentValue != brushValue)
+                {
+                    if (WildlifeMenuHelper.SetPaintableValue(pawn, col, brushValue))
+                        changed.Add(pawn.LabelShort);
+                }
+            }
+
+            tableHelper.CurrentRowIndex = towardFirst ? startRow : endRow;
+
+            if (changed.Count > 0)
+            {
+                BulkSoundQueue.Queue(changed.Count, paintSound);
+                TolkHelper.Speak($"Painted {colName} {valueLabel} for {MenuHelper.FormatNameList(changed)}");
+            }
+            else
+            {
+                TolkHelper.Speak($"{colName} already {valueLabel} for all wildlife");
+            }
+        }
+
+        #endregion
     }
 }

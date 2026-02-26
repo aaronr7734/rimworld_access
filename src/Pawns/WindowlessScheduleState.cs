@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using Verse;
 using Verse.Sound;
 using RimWorld;
@@ -36,13 +35,6 @@ namespace RimWorldAccess
         // === Copy/paste ===
         private static List<TimeAssignmentDef> copiedSchedule = null;
 
-        // === Sound queue for bulk painting (ease-in-ease-out timing) ===
-        private static readonly List<float> scheduledSoundTimes = new List<float>();
-        private static int nextSoundIndex = 0;
-        private static int lastSoundFrame = -1;
-        private const float SoundMinDelay = 0.02f;  // 20ms - fastest (middle of sequence)
-        private const float SoundMaxDelay = 0.08f;  // 80ms - slowest (start/end of sequence)
-
         // === Areas column state ===
         private static ScheduleColumnMode currentColumn = ScheduleColumnMode.Schedule;
         private static List<object> availableAreas = new List<object>();
@@ -73,59 +65,7 @@ namespace RimWorldAccess
             }
         }
 
-        /// <summary>
-        /// Pre-computes sound play times with ease-in-ease-out timing.
-        /// First sound plays immediately; subsequent sounds are spaced using a quadratic
-        /// easing curve — slow at the start, fast in the middle, slow at the end.
-        /// </summary>
-        private static void QueueBulkSounds(int count)
-        {
-            scheduledSoundTimes.Clear();
-            nextSoundIndex = 0;
-
-            if (count <= 0) return;
-
-            float now = Time.realtimeSinceStartup;
-            scheduledSoundTimes.Add(now); // first sound plays immediately
-
-            if (count == 1) return;
-
-            float cumulative = 0f;
-            for (int i = 1; i < count; i++)
-            {
-                float t = (float)i / (count - 1); // 0 to 1
-                // Quadratic ease: 1.0 at edges (t=0,1), 0.0 at middle (t=0.5)
-                float ease = 4f * (t - 0.5f) * (t - 0.5f);
-                float delay = SoundMinDelay + (SoundMaxDelay - SoundMinDelay) * ease;
-                cumulative += delay;
-                scheduledSoundTimes.Add(now + cumulative);
-            }
-        }
-
-        /// <summary>
-        /// Plays scheduled sounds when their time arrives.
-        /// Called every frame from UnifiedKeyboardPatch (before the KeyDown check).
-        /// Limited to one sound per frame to avoid audio overlap.
-        /// </summary>
-        public static void UpdateSoundQueue()
-        {
-            if (nextSoundIndex >= scheduledSoundTimes.Count) return;
-
-            int currentFrame = Time.frameCount;
-            if (currentFrame == lastSoundFrame) return;
-
-            float now = Time.realtimeSinceStartup;
-            if (now >= scheduledSoundTimes[nextSoundIndex])
-            {
-                SoundDefOf.Designate_DragStandard_Changed_NoCam.PlayOneShotOnCamera();
-                lastSoundFrame = currentFrame;
-                nextSoundIndex++;
-
-                // Skip any overdue sounds to keep timing in sync after frame spikes
-                while (nextSoundIndex < scheduledSoundTimes.Count && now >= scheduledSoundTimes[nextSoundIndex])
-                    nextSoundIndex++;
-            }
-        }
+        private static readonly SoundDef BulkPaintSound = SoundDefOf.Designate_DragStandard_Changed_NoCam;
 
         // === Column definition delegates for TabularMenuHelper ===
 
@@ -501,17 +441,6 @@ namespace RimWorldAccess
         // ===== Bulk Painting (Shift+Home/End, Ctrl+Shift+Home/End) =====
 
         /// <summary>
-        /// Formats a list of strings with natural English joining (e.g., "bob, bill, jan, and jess").
-        /// </summary>
-        private static string FormatNameList(List<string> items)
-        {
-            if (items.Count == 0) return "";
-            if (items.Count == 1) return items[0];
-            if (items.Count == 2) return $"{items[0]} and {items[1]}";
-            return string.Join(", ", items.Take(items.Count - 1)) + ", and " + items.Last();
-        }
-
-        /// <summary>
         /// Groups a sorted list of hour indices into consecutive ranges and formats them
         /// (e.g., [0,1,2,5,7,8,9] becomes "hours 0 through 2, 5, and 7 through 9").
         /// </summary>
@@ -539,7 +468,7 @@ namespace RimWorldAccess
             ranges.Add(rangeStart == rangeEnd ? $"{rangeStart}" : $"{rangeStart} through {rangeEnd}");
 
             string label = hours.Count == 1 ? "hour" : "hours";
-            return $"{label} {FormatNameList(ranges)}";
+            return $"{label} {MenuHelper.FormatNameList(ranges)}";
         }
 
         /// <summary>
@@ -566,7 +495,7 @@ namespace RimWorldAccess
             }
 
             tableHelper.CurrentColumnIndex = 0;
-            QueueBulkSounds(changedHours.Count);
+            BulkSoundQueue.Queue(changedHours.Count, BulkPaintSound);
 
             if (changedHours.Count > 0)
             {
@@ -604,7 +533,7 @@ namespace RimWorldAccess
             }
 
             tableHelper.CurrentColumnIndex = 23;
-            QueueBulkSounds(changedHours.Count);
+            BulkSoundQueue.Queue(changedHours.Count, BulkPaintSound);
 
             if (changedHours.Count > 0)
             {
@@ -645,11 +574,11 @@ namespace RimWorldAccess
             tableHelper.JumpToFirst(pawns.Count);
             tableHelper.CurrentColumnIndex = savedColumn;
 
-            QueueBulkSounds(changedNames.Count);
+            BulkSoundQueue.Queue(changedNames.Count, BulkPaintSound);
 
             if (changedNames.Count > 0)
             {
-                TolkHelper.Speak($"Painted {selectedAssignment.LabelCap} on hour {hour} for {FormatNameList(changedNames)}");
+                TolkHelper.Speak($"Painted {selectedAssignment.LabelCap} on hour {hour} for {MenuHelper.FormatNameList(changedNames)}");
             }
             else
             {
@@ -685,11 +614,11 @@ namespace RimWorldAccess
             tableHelper.JumpToLast(pawns.Count);
             tableHelper.CurrentColumnIndex = savedColumn;
 
-            QueueBulkSounds(changedNames.Count);
+            BulkSoundQueue.Queue(changedNames.Count, BulkPaintSound);
 
             if (changedNames.Count > 0)
             {
-                TolkHelper.Speak($"Painted {selectedAssignment.LabelCap} on hour {hour} for {FormatNameList(changedNames)}");
+                TolkHelper.Speak($"Painted {selectedAssignment.LabelCap} on hour {hour} for {MenuHelper.FormatNameList(changedNames)}");
             }
             else
             {

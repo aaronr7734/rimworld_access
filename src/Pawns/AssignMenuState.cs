@@ -667,19 +667,25 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Source pawn (current)
             Pawn sourcePawn = pawnsList[tableHelper.CurrentRowIndex];
+            string sourceValue = AssignMenuHelper.GetColumnValue(sourcePawn, colIndex);
 
-            // Move to next pawn
             tableHelper.SelectNextRow(pawnsList.Count);
             Pawn targetPawn = pawnsList[tableHelper.CurrentRowIndex];
 
-            // Apply value
-            AssignMenuHelper.ApplyValueToPawn(sourcePawn, targetPawn, colIndex);
+            string targetValue = AssignMenuHelper.GetColumnValue(targetPawn, colIndex);
+            string position = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, pawnsList.Count);
 
+            if (sourceValue == targetValue)
+            {
+                string colName = AssignMenuHelper.GetColumnName(colIndex);
+                TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} already {targetValue}. {position}");
+                return;
+            }
+
+            AssignMenuHelper.ApplyValueToPawn(sourcePawn, targetPawn, colIndex);
             SoundDefOf.Click.PlayOneShotOnCamera();
             string value = AssignMenuHelper.GetColumnValue(targetPawn, colIndex);
-            string position = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, pawnsList.Count);
             TolkHelper.Speak($"{targetPawn.LabelShort}: {value} applied. {position}");
         }
 
@@ -694,20 +700,110 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Source pawn (current)
             Pawn sourcePawn = pawnsList[tableHelper.CurrentRowIndex];
+            string sourceValue = AssignMenuHelper.GetColumnValue(sourcePawn, colIndex);
 
-            // Move to previous pawn
             tableHelper.SelectPreviousRow(pawnsList.Count);
             Pawn targetPawn = pawnsList[tableHelper.CurrentRowIndex];
 
-            // Apply value
-            AssignMenuHelper.ApplyValueToPawn(sourcePawn, targetPawn, colIndex);
+            string targetValue = AssignMenuHelper.GetColumnValue(targetPawn, colIndex);
+            string position = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, pawnsList.Count);
 
+            if (sourceValue == targetValue)
+            {
+                string colName = AssignMenuHelper.GetColumnName(colIndex);
+                TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} already {targetValue}. {position}");
+                return;
+            }
+
+            AssignMenuHelper.ApplyValueToPawn(sourcePawn, targetPawn, colIndex);
             SoundDefOf.Click.PlayOneShotOnCamera();
             string value = AssignMenuHelper.GetColumnValue(targetPawn, colIndex);
-            string position = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, pawnsList.Count);
             TolkHelper.Speak($"{targetPawn.LabelShort}: {value} applied. {position}");
+        }
+
+        /// <summary>
+        /// Bulk paints the current value from the current row to the last row.
+        /// </summary>
+        public static void PaintToLast()
+        {
+            PaintBulk(towardFirst: false, entireColumn: false);
+        }
+
+        /// <summary>
+        /// Bulk paints the current value from the current row to the first row.
+        /// </summary>
+        public static void PaintToFirst()
+        {
+            PaintBulk(towardFirst: true, entireColumn: false);
+        }
+
+        /// <summary>
+        /// Paints the current value to the entire column.
+        /// </summary>
+        public static void PaintEntireColumn(bool towardFirst)
+        {
+            PaintBulk(towardFirst, entireColumn: true);
+        }
+
+        private static void PaintBulk(bool towardFirst, bool entireColumn)
+        {
+            if (isInSubmenu) return;
+            if (pawnsList.Count == 0) return;
+
+            int col = tableHelper.CurrentColumnIndex;
+            if (!AssignMenuHelper.CanPaintColumn(col))
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("Cannot paint this column");
+                return;
+            }
+
+            int currentRow = tableHelper.CurrentRowIndex;
+            Pawn sourcePawn = pawnsList[currentRow];
+            string sourceValue = AssignMenuHelper.GetColumnValue(sourcePawn, col);
+            string colName = AssignMenuHelper.GetColumnName(col);
+
+            int startRow, endRow;
+            if (entireColumn)
+            {
+                startRow = 0;
+                endRow = pawnsList.Count - 1;
+            }
+            else if (towardFirst)
+            {
+                startRow = 0;
+                endRow = currentRow;
+            }
+            else
+            {
+                startRow = currentRow;
+                endRow = pawnsList.Count - 1;
+            }
+
+            var changed = new List<string>();
+            for (int i = startRow; i <= endRow; i++)
+            {
+                Pawn target = pawnsList[i];
+                string beforeValue = AssignMenuHelper.GetColumnValue(target, col);
+                if (beforeValue != sourceValue)
+                {
+                    AssignMenuHelper.ApplyValueToPawn(sourcePawn, target, col);
+                    changed.Add(target.LabelShort);
+                }
+            }
+
+            tableHelper.CurrentRowIndex = towardFirst ? startRow : endRow;
+
+            if (changed.Count > 0)
+            {
+                BulkSoundQueue.Queue(changed.Count, SoundDefOf.Click);
+                TolkHelper.Speak($"Painted {colName} to {sourceValue} for {MenuHelper.FormatNameList(changed)}");
+            }
+            else
+            {
+                TolkHelper.Speak($"{colName} already {sourceValue} for all colonists");
+            }
         }
 
         // === Main Table Typeahead ===

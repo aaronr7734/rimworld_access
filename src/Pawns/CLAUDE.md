@@ -25,6 +25,11 @@ Pawn information, character tabs, policies, and assignments.
 - **F2** - Schedule editor
 - **F3** - Assign menu
 
+### Assign Menu Painting
+- **Shift+Down/Up** - Paint current cell's value to next/previous pawn
+- **Shift+Home/End** - Bulk paint from current row to first/last
+- **Ctrl+Shift+Home/End** - Paint entire column
+
 ## Architecture
 PawnSelectionState integrates with scanner. ColonistBarState provides page-based bar navigation with Alt+Arrow/number keys, reordering via ColonistBar.Reorder(), and mech section after colonist pages. Quick info shortcuts (Alt+M/H/N) work without opening tabs. Full tabs navigate detailed character info.
 
@@ -56,3 +61,7 @@ PawnSelectionState integrates with scanner. ColonistBarState provides page-based
 - [ ] Quick info shortcuts functional
 - [ ] Character tabs navigable
 - [ ] Policy editors accessible
+- [ ] Assign: Shift+Down/Up paints column values (policies, hostility, medical care)
+- [ ] Assign: Shift+Home/End bulk paints with name list announcement
+- [ ] Assign: Ctrl+Shift+Home/End paints entire column
+- [ ] Assign: Non-paintable columns (Name, Ideo, Xenotype) show "Cannot paint"
