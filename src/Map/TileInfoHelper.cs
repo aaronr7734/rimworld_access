@@ -201,7 +201,7 @@ namespace RimWorldAccess
                 }
                 else if (thing is Plant plant)
                 {
-                    sb.Append(plant.LabelMouseover);
+                    sb.Append(plant.LabelCap);
                 }
                 else if (thing is UnfinishedThing unfinished)
                 {
