@@ -76,6 +76,12 @@ namespace RimWorldAccess
             if (AreaSelectionMenuState.IsActive)
                 return;
 
+            // Don't let placement mode steal keys from overlay screens
+            if (WindowlessInventoryState.IsActive
+                || GizmoNavigationState.IsActive
+                || WindowlessInspectionState.IsActive)
+                return;
+
             if (ViewingModeState.IsActive && !ShapePlacementState.IsActive)
                 return;
 

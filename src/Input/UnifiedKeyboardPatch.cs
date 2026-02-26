@@ -552,7 +552,13 @@ namespace RimWorldAccess
             // ===== PRIORITY 0.18: Viewing Mode (post-placement review) =====
             if (ViewingModeState.IsActive)
             {
-                if (ViewingModeState.HandleInput(key, Event.current.shift))
+                // Don't let ViewingMode steal input from overlay screens
+                // opened on top of it (inventory, gizmos, inspection, etc.)
+                bool overlayActive = WindowlessInventoryState.IsActive
+                    || GizmoNavigationState.IsActive
+                    || WindowlessInspectionState.IsActive;
+
+                if (!overlayActive && ViewingModeState.HandleInput(key, Event.current.shift))
                 {
                     Event.current.Use();
                     return;
