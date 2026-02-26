@@ -24,9 +24,8 @@ namespace RimWorldAccess
         [HarmonyPrefix]
         public static void Prefix()
         {
-            // Process per-frame sound queue for bulk schedule painting
-            if (WindowlessScheduleState.IsActive)
-                WindowlessScheduleState.UpdateSoundQueue();
+            // Process per-frame sound queue for bulk painting operations
+            BulkSoundQueue.Update();
 
             // Only process keyboard events
             if (Event.current.type != EventType.KeyDown)
@@ -3012,8 +3011,26 @@ namespace RimWorldAccess
                 bool handled = false;
                 var typeahead = WildlifeMenuState.Typeahead;
 
+                // Handle Ctrl+Shift+Home/End - paint entire column
+                if ((key == KeyCode.Home || key == KeyCode.End) && Event.current.control && Event.current.shift)
+                {
+                    WildlifeMenuState.PaintEntireColumn(key == KeyCode.Home);
+                    handled = true;
+                }
+                // Handle Shift+Home - bulk paint to first
+                else if (key == KeyCode.Home && Event.current.shift)
+                {
+                    WildlifeMenuState.PaintToFirst();
+                    handled = true;
+                }
+                // Handle Shift+End - bulk paint to last
+                else if (key == KeyCode.End && Event.current.shift)
+                {
+                    WildlifeMenuState.PaintToLast();
+                    handled = true;
+                }
                 // Handle Home - jump to first
-                if (key == KeyCode.Home)
+                else if (key == KeyCode.Home)
                 {
                     WildlifeMenuState.JumpToFirst();
                     handled = true;
@@ -3043,6 +3060,18 @@ namespace RimWorldAccess
                 else if (key == KeyCode.Backspace)
                 {
                     WildlifeMenuState.HandleBackspace();
+                    handled = true;
+                }
+                // Handle Shift+Down - paint to next row
+                else if (key == KeyCode.DownArrow && Event.current.shift)
+                {
+                    WildlifeMenuState.PaintDown();
+                    handled = true;
+                }
+                // Handle Shift+Up - paint to previous row
+                else if (key == KeyCode.UpArrow && Event.current.shift)
+                {
+                    WildlifeMenuState.PaintUp();
                     handled = true;
                 }
                 // Handle Down arrow - navigate animals (use typeahead if active with matches)
@@ -3242,8 +3271,26 @@ namespace RimWorldAccess
                 }
 
                 // Main menu handling
+                // Handle Ctrl+Shift+Home/End - paint entire column
+                if ((key == KeyCode.Home || key == KeyCode.End) && Event.current.control && Event.current.shift)
+                {
+                    AnimalsMenuState.PaintEntireColumn(key == KeyCode.Home);
+                    handled = true;
+                }
+                // Handle Shift+Home - bulk paint to first
+                else if (key == KeyCode.Home && Event.current.shift)
+                {
+                    AnimalsMenuState.PaintToFirst();
+                    handled = true;
+                }
+                // Handle Shift+End - bulk paint to last
+                else if (key == KeyCode.End && Event.current.shift)
+                {
+                    AnimalsMenuState.PaintToLast();
+                    handled = true;
+                }
                 // Handle Home - jump to first
-                if (key == KeyCode.Home)
+                else if (key == KeyCode.Home)
                 {
                     AnimalsMenuState.JumpToFirst();
                     handled = true;
@@ -3275,16 +3322,16 @@ namespace RimWorldAccess
                     AnimalsMenuState.HandleBackspace();
                     handled = true;
                 }
-                // Handle Shift+Down - apply last area to next animal (only on Allowed Area column)
+                // Handle Shift+Down - paint current cell value to next row
                 else if (key == KeyCode.DownArrow && Event.current.shift)
                 {
-                    AnimalsMenuState.ApplyLastAreaToNextAnimal();
+                    AnimalsMenuState.PaintDown();
                     handled = true;
                 }
-                // Handle Shift+Up - apply last area to previous animal (only on Allowed Area column)
+                // Handle Shift+Up - paint current cell value to previous row
                 else if (key == KeyCode.UpArrow && Event.current.shift)
                 {
-                    AnimalsMenuState.ApplyLastAreaToPreviousAnimal();
+                    AnimalsMenuState.PaintUp();
                     handled = true;
                 }
                 // Handle Down arrow - navigate animals (use typeahead if active with matches)
@@ -3916,8 +3963,26 @@ namespace RimWorldAccess
                 }
 
                 // Main table handling
+                // Handle Ctrl+Shift+Home/End - paint entire column
+                if ((key == KeyCode.Home || key == KeyCode.End) && Event.current.control && Event.current.shift)
+                {
+                    AssignMenuState.PaintEntireColumn(key == KeyCode.Home);
+                    handled = true;
+                }
+                // Handle Shift+Home - bulk paint to first
+                else if (key == KeyCode.Home && Event.current.shift)
+                {
+                    AssignMenuState.PaintToFirst();
+                    handled = true;
+                }
+                // Handle Shift+End - bulk paint to last
+                else if (key == KeyCode.End && Event.current.shift)
+                {
+                    AssignMenuState.PaintToLast();
+                    handled = true;
+                }
                 // Handle Home - jump to first
-                if (key == KeyCode.Home)
+                else if (key == KeyCode.Home)
                 {
                     AssignMenuState.JumpToFirst();
                     handled = true;

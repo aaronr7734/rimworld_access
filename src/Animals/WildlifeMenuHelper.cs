@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using Verse;
+using Verse.Sound;
 
 namespace RimWorldAccess
 {
@@ -240,6 +241,111 @@ namespace RimWorldAccess
                 TameUtility.ShowDesignationWarnings(pawn);
                 return true; // Now marked
             }
+        }
+
+        // === Painting Support ===
+
+        private static readonly Dictionary<ColumnType, string> columnDefNames = new Dictionary<ColumnType, string>
+        {
+            { ColumnType.Hunt, "Hunt" },
+            { ColumnType.Tame, "Tame" },
+        };
+
+        /// <summary>
+        /// Checks if a column supports painting (drag-to-apply).
+        /// Uses runtime PawnColumnDef.paintable lookup.
+        /// </summary>
+        public static bool CanPaintColumn(int columnIndex)
+        {
+            if (columnIndex < 0 || columnIndex >= totalColumns)
+                return false;
+
+            ColumnType type = (ColumnType)columnIndex;
+            if (columnDefNames.TryGetValue(type, out string defName))
+            {
+                var def = DefDatabase<PawnColumnDef>.GetNamedSilentFail(defName);
+                return def?.paintable == true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Gets the current boolean value of a paintable column for a pawn.
+        /// </summary>
+        public static bool GetPaintableValue(Pawn pawn, int columnIndex)
+        {
+            ColumnType type = (ColumnType)columnIndex;
+            switch (type)
+            {
+                case ColumnType.Hunt:
+                    return pawn.Map?.designationManager.DesignationOn(pawn, DesignationDefOf.Hunt) != null;
+                case ColumnType.Tame:
+                    return pawn.Map?.designationManager.DesignationOn(pawn, DesignationDefOf.Tame) != null;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Sets a paintable column to a specific value (not toggle).
+        /// Returns false if the animal can't accept the value or is already in the desired state.
+        /// </summary>
+        public static bool SetPaintableValue(Pawn pawn, int columnIndex, bool value)
+        {
+            ColumnType type = (ColumnType)columnIndex;
+            switch (type)
+            {
+                case ColumnType.Hunt:
+                    if (pawn.Map == null) return false;
+                    var huntDes = pawn.Map.designationManager.DesignationOn(pawn, DesignationDefOf.Hunt);
+                    if (value && huntDes == null)
+                    {
+                        pawn.Map.designationManager.AddDesignation(new Designation(pawn, DesignationDefOf.Hunt));
+                        return true;
+                    }
+                    if (!value && huntDes != null)
+                    {
+                        pawn.Map.designationManager.RemoveDesignation(huntDes);
+                        return true;
+                    }
+                    return false;
+
+                case ColumnType.Tame:
+                    if (pawn.Map == null) return false;
+                    if (pawn.GetStatValue(StatDefOf.Wildness) >= 1f) return false;
+                    var tameDes = pawn.Map.designationManager.DesignationOn(pawn, DesignationDefOf.Tame);
+                    if (value && tameDes == null)
+                    {
+                        pawn.Map.designationManager.AddDesignation(new Designation(pawn, DesignationDefOf.Tame));
+                        return true;
+                    }
+                    if (!value && tameDes != null)
+                    {
+                        pawn.Map.designationManager.RemoveDesignation(tameDes);
+                        return true;
+                    }
+                    return false;
+
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Gets the appropriate sound for painting a column.
+        /// </summary>
+        public static SoundDef GetPaintSound(int columnIndex, bool value)
+        {
+            return value ? SoundDefOf.Checkbox_TurnedOn : SoundDefOf.Checkbox_TurnedOff;
+        }
+
+        /// <summary>
+        /// Gets the display label for a paint value (e.g., "checked", "unchecked").
+        /// </summary>
+        public static string GetPaintValueLabel(int columnIndex, bool value)
+        {
+            return value ? "checked" : "unchecked";
         }
 
         // === Sorting ===

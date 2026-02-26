@@ -1040,5 +1040,429 @@ namespace RimWorldAccess
         }
 
         #endregion
+
+        #region Painting
+
+        /// <summary>
+        /// Paints the current cell's value to the next row and moves down.
+        /// </summary>
+        public static void PaintDown()
+        {
+            if (activeSubmenu != SubmenuType.None) return;
+            if (animalsList.Count <= 1) return;
+
+            int col = tableHelper.CurrentColumnIndex;
+            if (!AnimalsMenuHelper.CanPaintColumn(col))
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("Cannot paint this column");
+                return;
+            }
+
+            Pawn sourcePawn = animalsList[tableHelper.CurrentRowIndex];
+            var columnType = AnimalsMenuHelper.GetColumnTypeAfterTraining(col);
+
+            if (columnType == AnimalsMenuHelper.ColumnType.AllowedArea)
+            {
+                lastAppliedArea = sourcePawn.playerSettings?.AreaRestrictionInPawnCurrentMap;
+                tableHelper.SelectNextRow(animalsList.Count);
+                Pawn target = animalsList[tableHelper.CurrentRowIndex];
+                string areaName = lastAppliedArea?.Label ?? "Unrestricted";
+                string position = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, animalsList.Count);
+                Area targetArea = target.playerSettings?.AreaRestrictionInPawnCurrentMap;
+                if (targetArea == lastAppliedArea)
+                {
+                    TolkHelper.Speak($"{target.LabelShort}: already set to {areaName}. {position}");
+                }
+                else
+                {
+                    if (target.playerSettings != null)
+                        target.playerSettings.AreaRestrictionInPawnCurrentMap = lastAppliedArea;
+                    SoundDefOf.Designate_DragStandard_Changed_NoCam.PlayOneShotOnCamera();
+                    TolkHelper.Speak($"{target.LabelShort}: {areaName} applied. {position}");
+                }
+                return;
+            }
+
+            if (columnType == AnimalsMenuHelper.ColumnType.Master)
+            {
+                Pawn sourceMaster = sourcePawn.playerSettings?.Master;
+                string masterName = sourceMaster?.LabelShort ?? "None".Translate().Resolve();
+                tableHelper.SelectNextRow(animalsList.Count);
+                Pawn target = animalsList[tableHelper.CurrentRowIndex];
+                string position = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, animalsList.Count);
+                if (target.playerSettings == null || target.training?.HasLearned(TrainableDefOf.Obedience) != true)
+                {
+                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                    TolkHelper.Speak($"{target.LabelShort}: requires {TrainableDefOf.Obedience.LabelCap}. {position}");
+                }
+                else if (target.playerSettings.Master == sourceMaster)
+                {
+                    TolkHelper.Speak($"{target.LabelShort}: Master already {masterName}. {position}");
+                }
+                else
+                {
+                    target.playerSettings.Master = sourceMaster;
+                    SoundDefOf.Click.PlayOneShotOnCamera();
+                    TolkHelper.Speak($"{target.LabelShort}: Master {masterName} applied. {position}");
+                }
+                return;
+            }
+
+            if (columnType == AnimalsMenuHelper.ColumnType.MedicalCare)
+            {
+                var sourceCare = sourcePawn.playerSettings?.medCare ?? MedicalCareCategory.NoCare;
+                string careLabel = sourceCare.GetLabel();
+                tableHelper.SelectNextRow(animalsList.Count);
+                Pawn target = animalsList[tableHelper.CurrentRowIndex];
+                string position = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, animalsList.Count);
+                if (target.playerSettings == null)
+                {
+                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                    TolkHelper.Speak($"{target.LabelShort}: cannot set medical care. {position}");
+                }
+                else if (target.playerSettings.medCare == sourceCare)
+                {
+                    TolkHelper.Speak($"{target.LabelShort}: Medical care already {careLabel}. {position}");
+                }
+                else
+                {
+                    target.playerSettings.medCare = sourceCare;
+                    SoundDefOf.Tick_High.PlayOneShotOnCamera();
+                    TolkHelper.Speak($"{target.LabelShort}: Medical care {careLabel} applied. {position}");
+                }
+                return;
+            }
+
+            bool brushValue = AnimalsMenuHelper.GetPaintableValue(sourcePawn, col);
+            tableHelper.SelectNextRow(animalsList.Count);
+            Pawn targetPawn = animalsList[tableHelper.CurrentRowIndex];
+
+            string colName = AnimalsMenuHelper.GetColumnName(col);
+            string valueLabel = AnimalsMenuHelper.GetPaintValueLabel(col, brushValue);
+            string pos = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, animalsList.Count);
+
+            bool targetValue = AnimalsMenuHelper.GetPaintableValue(targetPawn, col);
+            if (targetValue == brushValue)
+            {
+                TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} already {valueLabel}. {pos}");
+                return;
+            }
+
+            bool applied = AnimalsMenuHelper.SetPaintableValue(targetPawn, col, brushValue);
+            SoundDef sound = applied
+                ? AnimalsMenuHelper.GetPaintSound(col, brushValue)
+                : SoundDefOf.ClickReject;
+            sound.PlayOneShotOnCamera();
+
+            TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} {valueLabel}. {pos}");
+        }
+
+        /// <summary>
+        /// Paints the current cell's value to the previous row and moves up.
+        /// </summary>
+        public static void PaintUp()
+        {
+            if (activeSubmenu != SubmenuType.None) return;
+            if (animalsList.Count <= 1) return;
+
+            int col = tableHelper.CurrentColumnIndex;
+            if (!AnimalsMenuHelper.CanPaintColumn(col))
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("Cannot paint this column");
+                return;
+            }
+
+            Pawn sourcePawn = animalsList[tableHelper.CurrentRowIndex];
+            var columnType = AnimalsMenuHelper.GetColumnTypeAfterTraining(col);
+
+            if (columnType == AnimalsMenuHelper.ColumnType.AllowedArea)
+            {
+                lastAppliedArea = sourcePawn.playerSettings?.AreaRestrictionInPawnCurrentMap;
+                tableHelper.SelectPreviousRow(animalsList.Count);
+                Pawn target = animalsList[tableHelper.CurrentRowIndex];
+                string areaName = lastAppliedArea?.Label ?? "Unrestricted";
+                string position = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, animalsList.Count);
+                Area targetArea = target.playerSettings?.AreaRestrictionInPawnCurrentMap;
+                if (targetArea == lastAppliedArea)
+                {
+                    TolkHelper.Speak($"{target.LabelShort}: already set to {areaName}. {position}");
+                }
+                else
+                {
+                    if (target.playerSettings != null)
+                        target.playerSettings.AreaRestrictionInPawnCurrentMap = lastAppliedArea;
+                    SoundDefOf.Designate_DragStandard_Changed_NoCam.PlayOneShotOnCamera();
+                    TolkHelper.Speak($"{target.LabelShort}: {areaName} applied. {position}");
+                }
+                return;
+            }
+
+            if (columnType == AnimalsMenuHelper.ColumnType.Master)
+            {
+                Pawn sourceMaster = sourcePawn.playerSettings?.Master;
+                string masterName = sourceMaster?.LabelShort ?? "None".Translate().Resolve();
+                tableHelper.SelectPreviousRow(animalsList.Count);
+                Pawn target = animalsList[tableHelper.CurrentRowIndex];
+                string position = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, animalsList.Count);
+                if (target.playerSettings == null || target.training?.HasLearned(TrainableDefOf.Obedience) != true)
+                {
+                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                    TolkHelper.Speak($"{target.LabelShort}: requires {TrainableDefOf.Obedience.LabelCap}. {position}");
+                }
+                else if (target.playerSettings.Master == sourceMaster)
+                {
+                    TolkHelper.Speak($"{target.LabelShort}: Master already {masterName}. {position}");
+                }
+                else
+                {
+                    target.playerSettings.Master = sourceMaster;
+                    SoundDefOf.Click.PlayOneShotOnCamera();
+                    TolkHelper.Speak($"{target.LabelShort}: Master {masterName} applied. {position}");
+                }
+                return;
+            }
+
+            if (columnType == AnimalsMenuHelper.ColumnType.MedicalCare)
+            {
+                var sourceCare = sourcePawn.playerSettings?.medCare ?? MedicalCareCategory.NoCare;
+                string careLabel = sourceCare.GetLabel();
+                tableHelper.SelectPreviousRow(animalsList.Count);
+                Pawn target = animalsList[tableHelper.CurrentRowIndex];
+                string position = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, animalsList.Count);
+                if (target.playerSettings == null)
+                {
+                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                    TolkHelper.Speak($"{target.LabelShort}: cannot set medical care. {position}");
+                }
+                else if (target.playerSettings.medCare == sourceCare)
+                {
+                    TolkHelper.Speak($"{target.LabelShort}: Medical care already {careLabel}. {position}");
+                }
+                else
+                {
+                    target.playerSettings.medCare = sourceCare;
+                    SoundDefOf.Tick_High.PlayOneShotOnCamera();
+                    TolkHelper.Speak($"{target.LabelShort}: Medical care {careLabel} applied. {position}");
+                }
+                return;
+            }
+
+            bool brushValue = AnimalsMenuHelper.GetPaintableValue(sourcePawn, col);
+            tableHelper.SelectPreviousRow(animalsList.Count);
+            Pawn targetPawn = animalsList[tableHelper.CurrentRowIndex];
+
+            string colName = AnimalsMenuHelper.GetColumnName(col);
+            string valueLabel = AnimalsMenuHelper.GetPaintValueLabel(col, brushValue);
+            string pos = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, animalsList.Count);
+
+            bool targetValue = AnimalsMenuHelper.GetPaintableValue(targetPawn, col);
+            if (targetValue == brushValue)
+            {
+                TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} already {valueLabel}. {pos}");
+                return;
+            }
+
+            bool applied = AnimalsMenuHelper.SetPaintableValue(targetPawn, col, brushValue);
+            SoundDef sound = applied
+                ? AnimalsMenuHelper.GetPaintSound(col, brushValue)
+                : SoundDefOf.ClickReject;
+            sound.PlayOneShotOnCamera();
+
+            TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} {valueLabel}. {pos}");
+        }
+
+        /// <summary>
+        /// Bulk paints the current value from the current row to the last row.
+        /// </summary>
+        public static void PaintToLast()
+        {
+            PaintBulk(towardFirst: false, entireColumn: false);
+        }
+
+        /// <summary>
+        /// Bulk paints the current value from the current row to the first row.
+        /// </summary>
+        public static void PaintToFirst()
+        {
+            PaintBulk(towardFirst: true, entireColumn: false);
+        }
+
+        /// <summary>
+        /// Paints the current value to the entire column.
+        /// Cursor moves to first row (Ctrl+Shift+Home) or last row (Ctrl+Shift+End).
+        /// </summary>
+        public static void PaintEntireColumn(bool towardFirst)
+        {
+            PaintBulk(towardFirst, entireColumn: true);
+        }
+
+        private static void PaintBulk(bool towardFirst, bool entireColumn)
+        {
+            if (activeSubmenu != SubmenuType.None) return;
+            if (animalsList.Count == 0) return;
+
+            int col = tableHelper.CurrentColumnIndex;
+            if (!AnimalsMenuHelper.CanPaintColumn(col))
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("Cannot paint this column");
+                return;
+            }
+
+            var columnType = AnimalsMenuHelper.GetColumnTypeAfterTraining(col);
+            int currentRow = tableHelper.CurrentRowIndex;
+            string colName = AnimalsMenuHelper.GetColumnName(col);
+
+            int startRow, endRow;
+            if (entireColumn)
+            {
+                startRow = 0;
+                endRow = animalsList.Count - 1;
+            }
+            else if (towardFirst)
+            {
+                startRow = 0;
+                endRow = currentRow;
+            }
+            else
+            {
+                startRow = currentRow;
+                endRow = animalsList.Count - 1;
+            }
+
+            // AllowedArea painting
+            if (columnType == AnimalsMenuHelper.ColumnType.AllowedArea)
+            {
+                Pawn source = animalsList[currentRow];
+                lastAppliedArea = source.playerSettings?.AreaRestrictionInPawnCurrentMap;
+                string areaName = lastAppliedArea?.Label ?? "Unrestricted";
+
+                var changedNames = new List<string>();
+                for (int i = startRow; i <= endRow; i++)
+                {
+                    Pawn pawn = animalsList[i];
+                    if (pawn.playerSettings == null) continue;
+                    if (pawn.playerSettings.AreaRestrictionInPawnCurrentMap != lastAppliedArea)
+                    {
+                        pawn.playerSettings.AreaRestrictionInPawnCurrentMap = lastAppliedArea;
+                        changedNames.Add(pawn.LabelShort);
+                    }
+                }
+
+                tableHelper.CurrentRowIndex = towardFirst ? startRow : endRow;
+
+                if (changedNames.Count > 0)
+                {
+                    BulkSoundQueue.Queue(changedNames.Count, SoundDefOf.Designate_DragStandard_Changed_NoCam);
+                    TolkHelper.Speak($"Painted allowed area to {areaName} for {MenuHelper.FormatNameList(changedNames)}");
+                }
+                else
+                {
+                    TolkHelper.Speak($"Allowed area already {areaName} for all animals");
+                }
+                return;
+            }
+
+            // Master painting
+            if (columnType == AnimalsMenuHelper.ColumnType.Master)
+            {
+                Pawn source = animalsList[currentRow];
+                Pawn sourceMaster = source.playerSettings?.Master;
+                string masterName = sourceMaster?.LabelShort ?? "None".Translate().Resolve();
+
+                var changedNames = new List<string>();
+                for (int i = startRow; i <= endRow; i++)
+                {
+                    Pawn pawn = animalsList[i];
+                    if (pawn.playerSettings == null || pawn.training?.HasLearned(TrainableDefOf.Obedience) != true)
+                        continue;
+                    if (pawn.playerSettings.Master != sourceMaster)
+                    {
+                        pawn.playerSettings.Master = sourceMaster;
+                        changedNames.Add(pawn.LabelShort);
+                    }
+                }
+
+                tableHelper.CurrentRowIndex = towardFirst ? startRow : endRow;
+
+                if (changedNames.Count > 0)
+                {
+                    BulkSoundQueue.Queue(changedNames.Count, SoundDefOf.Click);
+                    TolkHelper.Speak($"Painted Master to {masterName} for {MenuHelper.FormatNameList(changedNames)}");
+                }
+                else
+                {
+                    TolkHelper.Speak($"Master already {masterName} for all animals");
+                }
+                return;
+            }
+
+            // MedicalCare painting
+            if (columnType == AnimalsMenuHelper.ColumnType.MedicalCare)
+            {
+                Pawn source = animalsList[currentRow];
+                var sourceCare = source.playerSettings?.medCare ?? MedicalCareCategory.NoCare;
+                string careLabel = sourceCare.GetLabel();
+
+                var changedNames = new List<string>();
+                for (int i = startRow; i <= endRow; i++)
+                {
+                    Pawn pawn = animalsList[i];
+                    if (pawn.playerSettings == null) continue;
+                    if (pawn.playerSettings.medCare != sourceCare)
+                    {
+                        pawn.playerSettings.medCare = sourceCare;
+                        changedNames.Add(pawn.LabelShort);
+                    }
+                }
+
+                tableHelper.CurrentRowIndex = towardFirst ? startRow : endRow;
+
+                if (changedNames.Count > 0)
+                {
+                    BulkSoundQueue.Queue(changedNames.Count, SoundDefOf.Tick_High);
+                    TolkHelper.Speak($"Painted Medical care to {careLabel} for {MenuHelper.FormatNameList(changedNames)}");
+                }
+                else
+                {
+                    TolkHelper.Speak($"Medical care already {careLabel} for all animals");
+                }
+                return;
+            }
+
+            // Checkbox/boolean painting
+            Pawn sourcePawn = animalsList[currentRow];
+            bool brushValue = AnimalsMenuHelper.GetPaintableValue(sourcePawn, col);
+            string valueLabel = AnimalsMenuHelper.GetPaintValueLabel(col, brushValue);
+            SoundDef paintSound = AnimalsMenuHelper.GetPaintSound(col, brushValue);
+
+            var changed = new List<string>();
+            for (int i = startRow; i <= endRow; i++)
+            {
+                Pawn pawn = animalsList[i];
+                bool currentValue = AnimalsMenuHelper.GetPaintableValue(pawn, col);
+                if (currentValue != brushValue)
+                {
+                    if (AnimalsMenuHelper.SetPaintableValue(pawn, col, brushValue))
+                        changed.Add(pawn.LabelShort);
+                }
+            }
+
+            tableHelper.CurrentRowIndex = towardFirst ? startRow : endRow;
+
+            if (changed.Count > 0)
+            {
+                BulkSoundQueue.Queue(changed.Count, paintSound);
+                TolkHelper.Speak($"Painted {colName} {valueLabel} for {MenuHelper.FormatNameList(changed)}");
+            }
+            else
+            {
+                TolkHelper.Speak($"{colName} already {valueLabel} for all animals");
+            }
+        }
+
+        #endregion
     }
 }

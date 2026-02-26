@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using Verse;
+using Verse.Sound;
 
 namespace RimWorldAccess
 {
@@ -793,6 +794,240 @@ namespace RimWorldAccess
                 .Where(p => !p.Dead && !p.Downed)
                 .OrderBy(p => p.LabelShort)
                 .ToList();
+        }
+
+        // === Painting Support ===
+
+        private static readonly Dictionary<ColumnType, string> columnDefNames = new Dictionary<ColumnType, string>
+        {
+            { ColumnType.FollowDrafted, "FollowDrafted" },
+            { ColumnType.FollowFieldwork, "FollowFieldwork" },
+            { ColumnType.Slaughter, "Slaughter" },
+            { ColumnType.Sterile, "Sterile" },
+            { ColumnType.ReleaseToWild, "ReleaseAnimalToWild" },
+            { ColumnType.SpecialTrainable, "SpecialTrainable" },
+            { ColumnType.AnimalDig, "AnimalDig" },
+            { ColumnType.AnimalForage, "AnimalForage" },
+        };
+
+        /// <summary>
+        /// Checks if a column supports painting (drag-to-apply).
+        /// Training columns are paintable (workers pass paintable: true to Widgets.Checkbox).
+        /// Post-training columns use runtime PawnColumnDef.paintable lookup.
+        /// AllowedArea is a special case (mod's lastAppliedArea mechanism).
+        /// </summary>
+        public static bool CanPaintColumn(int columnIndex)
+        {
+            // Fixed columns before training are never paintable
+            if (columnIndex < fixedColumnsBeforeTraining)
+                return false;
+
+            // Training columns are paintable (PawnColumnWorker_Trainable passes paintable: true)
+            if (IsTrainingColumn(columnIndex))
+                return true;
+
+            var columnType = GetColumnTypeAfterTraining(columnIndex);
+            if (columnType == null)
+                return false;
+
+            // AllowedArea is paintable via mod's lastAppliedArea mechanism
+            if (columnType == ColumnType.AllowedArea)
+                return true;
+
+            // Master and MedicalCare are paintable (workers pass paintable: true to Widgets.Dropdown)
+            if (columnType == ColumnType.Master || columnType == ColumnType.MedicalCare)
+                return true;
+
+            // Look up PawnColumnDef.paintable at runtime
+            if (columnDefNames.TryGetValue(columnType.Value, out string defName))
+            {
+                var def = DefDatabase<PawnColumnDef>.GetNamedSilentFail(defName);
+                return def?.paintable == true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns true if the column index is in the dynamic training column range.
+        /// </summary>
+        public static bool IsTrainingColumn(int columnIndex)
+        {
+            return columnIndex >= fixedColumnsBeforeTraining
+                && columnIndex < fixedColumnsBeforeTraining + GetAllTrainables().Count;
+        }
+
+        /// <summary>
+        /// Gets the current boolean value of a paintable column for a pawn.
+        /// Used as the "brush" value when painting.
+        /// </summary>
+        public static bool GetPaintableValue(Pawn pawn, int columnIndex)
+        {
+            // Training columns
+            if (IsTrainingColumn(columnIndex))
+            {
+                if (pawn.training == null) return false;
+                var trainable = GetTrainableAtColumn(columnIndex);
+                return trainable != null && pawn.training.GetWanted(trainable);
+            }
+
+            var columnType = GetColumnTypeAfterTraining(columnIndex);
+            if (columnType == null) return false;
+
+            switch (columnType.Value)
+            {
+                case ColumnType.FollowDrafted:
+                    return pawn.playerSettings?.followDrafted == true;
+                case ColumnType.FollowFieldwork:
+                    return pawn.playerSettings?.followFieldwork == true;
+                case ColumnType.Slaughter:
+                    return pawn.Map?.designationManager.DesignationOn(pawn, DesignationDefOf.Slaughter) != null;
+                case ColumnType.Sterile:
+                    return HasSterilizationScheduled(pawn);
+                case ColumnType.ReleaseToWild:
+                    return pawn.Map?.designationManager.DesignationOn(pawn, DesignationDefOf.ReleaseAnimalToWild) != null;
+                case ColumnType.SpecialTrainable:
+                    var specials = GetSpecialTrainables(pawn);
+                    return specials.Count > 0 && pawn.training != null && specials.Any(t => pawn.training.GetWanted(t));
+                case ColumnType.AnimalDig:
+                    return pawn.playerSettings?.animalDig == true;
+                case ColumnType.AnimalForage:
+                    return pawn.playerSettings?.animalForage == true;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Sets a paintable column to a specific value (not toggle).
+        /// Returns false if the animal can't accept the value or is already in the desired state.
+        /// </summary>
+        public static bool SetPaintableValue(Pawn pawn, int columnIndex, bool value)
+        {
+            // Training columns
+            if (IsTrainingColumn(columnIndex))
+            {
+                if (pawn.training == null) return false;
+                var trainable = GetTrainableAtColumn(columnIndex);
+                if (trainable == null) return false;
+                bool visible;
+                AcceptanceReport canTrain = pawn.training.CanAssignToTrain(trainable, out visible);
+                if (!visible || !canTrain.Accepted) return false;
+                if (pawn.training.HasLearned(trainable) && !value) return false; // can't un-train learned
+                pawn.training.SetWantedRecursive(trainable, value);
+                return true;
+            }
+
+            var columnType = GetColumnTypeAfterTraining(columnIndex);
+            if (columnType == null) return false;
+
+            switch (columnType.Value)
+            {
+                case ColumnType.FollowDrafted:
+                    if (pawn.playerSettings == null || pawn.training?.HasLearned(TrainableDefOf.Obedience) != true)
+                        return false;
+                    pawn.playerSettings.followDrafted = value;
+                    return true;
+
+                case ColumnType.FollowFieldwork:
+                    if (pawn.playerSettings == null || pawn.training?.HasLearned(TrainableDefOf.Obedience) != true)
+                        return false;
+                    pawn.playerSettings.followFieldwork = value;
+                    return true;
+
+                case ColumnType.Slaughter:
+                    if (pawn.Map == null) return false;
+                    var slaughterDes = pawn.Map.designationManager.DesignationOn(pawn, DesignationDefOf.Slaughter);
+                    if (value && slaughterDes == null)
+                    {
+                        pawn.Map.designationManager.AddDesignation(new Designation(pawn, DesignationDefOf.Slaughter));
+                        return true;
+                    }
+                    if (!value && slaughterDes != null)
+                    {
+                        pawn.Map.designationManager.RemoveDesignation(slaughterDes);
+                        return true;
+                    }
+                    return false;
+
+                case ColumnType.Sterile:
+                    if (IsAnimalSterilized(pawn)) return false;
+                    bool scheduled = HasSterilizationScheduled(pawn);
+                    if (value && !scheduled)
+                    {
+                        HealthCardUtility.CreateSurgeryBill(pawn, RecipeDefOf.Sterilize, null);
+                        return true;
+                    }
+                    if (!value && scheduled)
+                    {
+                        var bills = pawn.BillStack.Bills.Where(b => b.recipe == RecipeDefOf.Sterilize).ToList();
+                        foreach (var bill in bills)
+                            pawn.BillStack.Delete(bill);
+                        return true;
+                    }
+                    return false;
+
+                case ColumnType.ReleaseToWild:
+                    if (pawn.Map == null) return false;
+                    var releaseDes = pawn.Map.designationManager.DesignationOn(pawn, DesignationDefOf.ReleaseAnimalToWild);
+                    if (value && releaseDes == null)
+                    {
+                        pawn.Map.designationManager.AddDesignation(new Designation(pawn, DesignationDefOf.ReleaseAnimalToWild));
+                        return true;
+                    }
+                    if (!value && releaseDes != null)
+                    {
+                        pawn.Map.designationManager.RemoveDesignation(releaseDes);
+                        return true;
+                    }
+                    return false;
+
+                case ColumnType.SpecialTrainable:
+                    var specials = GetSpecialTrainables(pawn);
+                    if (specials.Count == 0 || pawn.training == null) return false;
+                    foreach (var trainable in specials)
+                        pawn.training.SetWantedRecursive(trainable, value);
+                    return true;
+
+                case ColumnType.AnimalDig:
+                    if (pawn.playerSettings == null || pawn.training?.HasLearned(TrainableDefOf.Dig) != true)
+                        return false;
+                    pawn.playerSettings.animalDig = value;
+                    return true;
+
+                case ColumnType.AnimalForage:
+                    if (pawn.playerSettings == null || pawn.training?.HasLearned(TrainableDefOf.Forage) != true)
+                        return false;
+                    pawn.playerSettings.animalForage = value;
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Gets the appropriate sound for painting a column.
+        /// </summary>
+        public static SoundDef GetPaintSound(int columnIndex, bool value)
+        {
+            var columnType = GetColumnTypeAfterTraining(columnIndex);
+            if (columnType == ColumnType.AllowedArea)
+                return SoundDefOf.Designate_DragStandard_Changed_NoCam;
+            if (columnType == ColumnType.Master)
+                return SoundDefOf.Click;
+            if (columnType == ColumnType.MedicalCare)
+                return SoundDefOf.Tick_High;
+            // Training columns and all other checkbox columns use Checkbox sounds
+            return value ? SoundDefOf.Checkbox_TurnedOn : SoundDefOf.Checkbox_TurnedOff;
+        }
+
+        /// <summary>
+        /// Gets the display label for a paint value (e.g., "checked", "unchecked").
+        /// </summary>
+        public static string GetPaintValueLabel(int columnIndex, bool value)
+        {
+            return value ? "checked" : "unchecked";
         }
 
         // === Sorting ===
