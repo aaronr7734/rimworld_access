@@ -150,6 +150,22 @@ namespace RimWorldAccess
                         availableGizmos.Add(gizmo);
                         gizmoOwners[gizmo] = selectable;
                     }
+
+                    // Collect reverse designator gizmos (Mine, Mine Vein, Strip, etc.)
+                    // Mirrors GizmoGridDrawer.DrawGizmoGridFor() behavior
+                    if (selectable is Thing thing)
+                    {
+                        List<Designator> reverseDesignators = Find.ReverseDesignatorDatabase.AllDesignators;
+                        for (int i = 0; i < reverseDesignators.Count; i++)
+                        {
+                            Command_Action reverseGizmo = reverseDesignators[i].CreateReverseDesignationGizmo(thing);
+                            if (reverseGizmo != null && !ShouldSkipGizmo(reverseGizmo))
+                            {
+                                availableGizmos.Add(reverseGizmo);
+                                gizmoOwners[reverseGizmo] = selectable;
+                            }
+                        }
+                    }
                 }
 
                 // Check for zone AFTER things (matches TileInfoHelper ordering)
