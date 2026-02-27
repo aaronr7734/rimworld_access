@@ -214,7 +214,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak("End of bar");
+                    SelectAndAnnounce();
                     return;
                 }
             }
@@ -262,7 +262,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak("Start of bar");
+                    SelectAndAnnounce();
                     return;
                 }
             }

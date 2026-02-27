@@ -151,7 +151,7 @@ namespace RimWorldAccess
             // Build tree
             if (rootNode != null)
             {
-                AddCategoryChildren(rootNode, 0);
+                AddCategoryChildren(rootNode, 0, isRoot: true);
             }
 
         }
@@ -159,8 +159,28 @@ namespace RimWorldAccess
         /// <summary>
         /// Recursively adds category children to the flattened list.
         /// </summary>
-        private static void AddCategoryChildren(TreeNode_ThingCategory node, int indentLevel)
+        private static void AddCategoryChildren(TreeNode_ThingCategory node, int indentLevel, bool isRoot = false)
         {
+            // Add parent special filters at root level (e.g., AllowRotten, AllowFresh from Root category)
+            if (isRoot)
+            {
+                foreach (var specialFilter in node.catDef.ParentsSpecialThingFilterDefs)
+                {
+                    if (specialFilter.configurable && ThingFilterHelper.IsVisibleSpecialFilter(specialFilter, parentFilter))
+                    {
+                        flattenedNodes.Add(new NavigationNode
+                        {
+                            Type = NodeType.SpecialFilter,
+                            IndentLevel = indentLevel,
+                            Label = specialFilter.LabelCap,
+                            Description = specialFilter.description,
+                            IsChecked = currentFilter.Allows(specialFilter),
+                            Data = specialFilter
+                        });
+                    }
+                }
+            }
+
             // Add special filters
             foreach (var specialFilter in node.catDef.childSpecialFilters)
             {

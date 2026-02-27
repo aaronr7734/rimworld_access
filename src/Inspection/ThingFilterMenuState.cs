@@ -136,6 +136,21 @@ namespace RimWorldAccess
             if (node == null)
                 return;
 
+            // Add parent special filters at root level (e.g., AllowRotten, AllowFresh from Root category)
+            if (isRoot)
+            {
+                foreach (SpecialThingFilterDef specialFilter in node.catDef.ParentsSpecialThingFilterDefs)
+                {
+                    if (specialFilter.configurable && IsVisibleSpecialFilter(specialFilter))
+                    {
+                        MenuItem item = new MenuItem(MenuItemType.SpecialFilter, specialFilter.LabelCap, specialFilter, indent);
+                        item.isAllowed = currentFilter.Allows(specialFilter);
+                        item.parent = parentItem;
+                        menuItems.Add(item);
+                    }
+                }
+            }
+
             // Add special filters for this category
             foreach (SpecialThingFilterDef specialFilter in node.catDef.childSpecialFilters)
             {
