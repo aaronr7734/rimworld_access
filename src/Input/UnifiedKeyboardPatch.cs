@@ -5867,6 +5867,19 @@ namespace RimWorldAccess
                 return false;
             }
 
+            // Handle typeahead character input via keyCode ranges.
+            // Must use keyCode (not Event.current.character) because the keyCode==None
+            // guard at line 108 kills character-only events before reaching this handler.
+            bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
+            bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
+
+            if ((isLetter || (isNumber && !Event.current.shift)) && !Event.current.alt && !Event.current.control)
+            {
+                char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
+                ThingFilterNavigationState.ProcessTypeaheadCharacter(c);
+                return true;
+            }
+
             // Normal filter navigation
             if (key == KeyCode.Backspace)
             {
@@ -5937,16 +5950,6 @@ namespace RimWorldAccess
                 ThingFilterNavigationState.DisallowAll();
                 return true;
             }
-            else if (Event.current.character != '\0' && !Event.current.control && !Event.current.alt)
-            {
-                char c = Event.current.character;
-                if (char.IsLetterOrDigit(c))
-                {
-                    ThingFilterNavigationState.ProcessTypeaheadCharacter(c);
-                    return true;
-                }
-            }
-
             return false;
         }
 
