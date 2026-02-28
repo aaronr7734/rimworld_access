@@ -193,15 +193,17 @@ namespace RimWorldAccess
                     // For permit targeting, validate range before game's validation.
                     // The range validator in targetingParameters.validator is only consulted by
                     // GenUI.TargetsAt for Thing targets; cell-only fallback targets bypass it.
-                    if (targetingSource is RoyalTitlePermitWorker_Targeted permitWorker)
+                    if (targetingSource is RoyalTitlePermitWorker_Targeted permitWorker
+                        && permitWorker.def.royalAid != null)
                     {
                         float targetingRange = permitWorker.def.royalAid.targetingRange;
-                        if (targetingRange > 0f)
+                        float weatherCap = Find.CurrentMap.weatherManager.CurWeatherMaxRangeCap;
+                        float rangeClamped = Mathf.Min(targetingRange, weatherCap);
+
+                        if (rangeClamped > 0f)
                         {
                             IntVec3 casterPos = permitWorker.CasterPawn.Position;
                             float distance = cursorPosition.DistanceTo(casterPos);
-                            float weatherCap = Find.CurrentMap.weatherManager.CurWeatherMaxRangeCap;
-                            float rangeClamped = Mathf.Min(targetingRange, weatherCap);
 
                             if (distance > rangeClamped)
                             {
