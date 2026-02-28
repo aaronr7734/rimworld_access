@@ -112,5 +112,29 @@ namespace RimWorldAccess
                 }
             }
         }
+
+        [HarmonyPatch(typeof(Window), "OnCancelKeyPressed")]
+        public static class Window_OnCancelKeyPressed_Patch
+        {
+            [HarmonyPrefix]
+            public static bool Prefix(Window __instance)
+            {
+                if (__instance is Dialog_GrowthMomentChoices && GrowthMomentState.IsActive)
+                    return false;
+                return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(Window), "OnAcceptKeyPressed")]
+        public static class Window_OnAcceptKeyPressed_Patch
+        {
+            [HarmonyPrefix]
+            public static bool Prefix(Window __instance)
+            {
+                if (__instance is Dialog_GrowthMomentChoices && GrowthMomentState.IsActive)
+                    return false;
+                return true;
+            }
+        }
     }
 }

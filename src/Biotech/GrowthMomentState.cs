@@ -64,6 +64,11 @@ namespace RimWorldAccess
 
         public static bool IsActive => isActive;
 
+        private static bool HasChoicesToMake()
+        {
+            return !isArchiveView && (passionItems.Count > 0 || traitItems.Count > 0);
+        }
+
         /// <summary>
         /// Opens the growth moment accessible interface.
         /// Extracts data from the letter, builds tabs, reads info aloud, then focuses first selection tab.
@@ -420,7 +425,8 @@ namespace RimWorldAccess
 
             if (tab == Tab.Info)
             {
-                // Info tab is read-only
+                if (!isArchiveView && !HasChoicesToMake())
+                    ConfirmChoices();
                 return;
             }
 
@@ -536,6 +542,12 @@ namespace RimWorldAccess
 
         private static void PostponeChoices()
         {
+            if (!HasChoicesToMake())
+            {
+                ConfirmChoices();
+                return;
+            }
+
             if (letter.ShouldAutomaticallyOpenLetter)
             {
                 TolkHelper.Speak("MessageCannotPostponeGrowthMoment".Translate(letter.pawn.Named("PAWN")), SpeechPriority.High);
@@ -582,15 +594,22 @@ namespace RimWorldAccess
             // Navigation instructions
             if (!isArchiveView)
             {
-                string tabCount = $"{availableTabs.Count} tabs";
-
-                if (!letter.passionChoices.NullOrEmpty() && letter.passionGainsCount > 0)
+                if (!HasChoicesToMake())
                 {
-                    parts.Add($"Choose {letter.passionGainsCount} of {passionItems.Count} passions and 1 trait. {tabCount}. Tab to switch pages, Alt+S to confirm");
+                    parts.Add("Press Enter to confirm");
                 }
                 else
                 {
-                    parts.Add($"Choose 1 trait. {tabCount}. Tab to switch pages, Alt+S to confirm");
+                    string tabCount = $"{availableTabs.Count} tabs";
+
+                    if (!letter.passionChoices.NullOrEmpty() && letter.passionGainsCount > 0)
+                    {
+                        parts.Add($"Choose {letter.passionGainsCount} of {passionItems.Count} passions and 1 trait. {tabCount}. Tab to switch pages, Alt+S to confirm");
+                    }
+                    else
+                    {
+                        parts.Add($"Choose 1 trait. {tabCount}. Tab to switch pages, Alt+S to confirm");
+                    }
                 }
             }
 
