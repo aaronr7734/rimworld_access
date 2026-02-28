@@ -639,6 +639,24 @@ namespace RimWorldAccess
 
             KeyCode key = Event.current.keyCode;
 
+            // Handle typeahead character input BEFORE the switch on keyCode.
+            // Unity IMGUI sends two KeyDown events per key press:
+            //   1. keyCode = KeyCode.T, character = '\0'
+            //   2. keyCode = KeyCode.None, character = 't'
+            // Checking Event.current.character (the old approach) only catches event 2,
+            // letting event 1 leak to UnifiedKeyboardPatch where it triggers game shortcuts.
+            // Checking keyCode ranges (like HandleBillsMenuInput does) catches event 1.
+            bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
+            bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
+
+            if ((isLetter || isNumber) && !Event.current.alt && !Event.current.control)
+            {
+                char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
+                ThingFilterMenuState.ProcessTypeaheadCharacter(c);
+                Event.current.Use();
+                return;
+            }
+
             switch (key)
             {
                 case KeyCode.UpArrow:
@@ -681,8 +699,8 @@ namespace RimWorldAccess
                     if (ThingFilterMenuState.HasActiveSearch)
                     {
                         ThingFilterMenuState.ProcessBackspace();
-                        Event.current.Use();
                     }
+                    Event.current.Use();
                     break;
 
                 case KeyCode.Return:
@@ -705,13 +723,8 @@ namespace RimWorldAccess
                     break;
 
                 default:
-                    // Handle typeahead character input
-                    char c = Event.current.character;
-                    if (c != '\0' && !char.IsControl(c))
-                    {
-                        ThingFilterMenuState.ProcessTypeaheadCharacter(c);
-                        Event.current.Use();
-                    }
+                    // Consume all remaining keys to prevent leaking to UnifiedKeyboardPatch
+                    Event.current.Use();
                     break;
             }
         }
