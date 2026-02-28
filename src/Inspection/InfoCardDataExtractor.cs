@@ -803,12 +803,22 @@ namespace RimWorldAccess
                     foreach (var permitDef in factionPermits)
                     {
                         string status;
-                        if (pawn.royalty.HasPermit(permitDef, faction))
+                        bool isUnlocked = IsPermitUnlocked(permitDef, pawn, faction);
+
+                        if (isUnlocked)
                         {
-                            var factionPermit = pawn.royalty.AllFactionPermits
-                                .FirstOrDefault(fp => fp.Permit == permitDef && fp.Faction == faction);
-                            status = (factionPermit != null && factionPermit.OnCooldown)
-                                ? "Granted (on cooldown)" : "Granted";
+                            if (pawn.royalty.HasPermit(permitDef, faction))
+                            {
+                                var factionPermit = pawn.royalty.AllFactionPermits
+                                    .FirstOrDefault(fp => fp.Permit == permitDef && fp.Faction == faction);
+                                status = (factionPermit != null && factionPermit.OnCooldown)
+                                    ? "Granted (on cooldown)" : "Granted";
+                            }
+                            else
+                            {
+                                // Unlocked via upgrade chain (prerequisite of a held permit)
+                                status = "Granted";
+                            }
                         }
                         else if (permitDef.AvailableForPawn(pawn, faction))
                         {
@@ -816,10 +826,10 @@ namespace RimWorldAccess
                         }
                         else
                         {
-                            if (permitDef.prerequisite != null && !pawn.royalty.HasPermit(permitDef.prerequisite, faction))
-                                status = $"Locked (requires {permitDef.prerequisite.LabelCap})";
+                            if (permitDef.prerequisite != null && !IsPermitUnlocked(permitDef.prerequisite, pawn, faction))
+                                status = "Locked (" + "UpgradeFrom".Translate(permitDef.prerequisite.LabelCap).Resolve() + ")";
                             else if (permitDef.minTitle != null)
-                                status = $"Locked (requires {permitDef.minTitle.GetLabelFor(pawn).CapitalizeFirst()})";
+                                status = "Locked (" + "RequiresTitle".Translate(permitDef.minTitle.GetLabelForBothGenders()).Resolve() + ")";
                             else
                                 status = "Locked";
                         }
@@ -836,6 +846,45 @@ namespace RimWorldAccess
             }
 
             return permits;
+        }
+
+        /// <summary>
+        /// Checks if a permit is "unlocked" for display purposes.
+        /// Matches vanilla PermitsCardUtility.PermitUnlocked logic.
+        /// A permit is unlocked if directly held OR if another held permit has it as a prerequisite
+        /// (meaning the pawn upgraded past it).
+        /// </summary>
+        public static bool IsPermitUnlocked(RoyalTitlePermitDef permit, Pawn pawn, Faction faction)
+        {
+            if (pawn.royalty.HasPermit(permit, faction))
+                return true;
+
+            var allFactionPermits = pawn.royalty.AllFactionPermits;
+            for (int i = 0; i < allFactionPermits.Count; i++)
+            {
+                if (allFactionPermits[i].Permit.prerequisite == permit && allFactionPermits[i].Faction == faction)
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Calculates total favor cost to return all permits.
+        /// Matches vanilla PermitsCardUtility.TotalReturnPermitsCost: base cost of 8
+        /// plus favor cost of any on-cooldown permits that have royalAid.
+        /// </summary>
+        public static int TotalReturnPermitsCost(Pawn pawn)
+        {
+            int cost = 8;
+            var allFactionPermits = pawn.royalty.AllFactionPermits;
+            for (int i = 0; i < allFactionPermits.Count; i++)
+            {
+                if (allFactionPermits[i].OnCooldown && allFactionPermits[i].Permit.royalAid != null)
+                {
+                    cost += allFactionPermits[i].Permit.royalAid.favorCost;
+                }
+            }
+            return cost;
         }
     }
 }

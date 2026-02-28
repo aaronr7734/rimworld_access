@@ -190,6 +190,30 @@ namespace RimWorldAccess
                         return false;
                     }
 
+                    // For permit targeting, validate range before game's validation.
+                    // The range validator in targetingParameters.validator is only consulted by
+                    // GenUI.TargetsAt for Thing targets; cell-only fallback targets bypass it.
+                    if (targetingSource is RoyalTitlePermitWorker_Targeted permitWorker)
+                    {
+                        float targetingRange = permitWorker.def.royalAid.targetingRange;
+                        if (targetingRange > 0f)
+                        {
+                            IntVec3 casterPos = permitWorker.CasterPawn.Position;
+                            float distance = cursorPosition.DistanceTo(casterPos);
+                            float weatherCap = Find.CurrentMap.weatherManager.CurWeatherMaxRangeCap;
+                            float rangeClamped = Mathf.Min(targetingRange, weatherCap);
+
+                            if (distance > rangeClamped)
+                            {
+                                TolkHelper.Speak(
+                                    $"Out of range. Distance: {distance:F0}, max range: {rangeClamped:F0}",
+                                    SpeechPriority.High);
+                                Event.current.Use();
+                                return false;
+                            }
+                        }
+                    }
+
                     // Validate the target can be attacked/used
                     if (!targetingSource.ValidateTarget(target, showMessages: true))
                     {

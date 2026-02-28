@@ -892,6 +892,23 @@ namespace RimWorldAccess
             return false;
         }
 
+        /// <summary>
+        /// Rebuilds the visible items list and clamps selection index after tree structure changes.
+        /// Called from InfoCardTreeBuilder after permit allocation or refund modifies the tree.
+        /// </summary>
+        public static void RefreshVisibleListAndAnnounce()
+        {
+            RebuildVisibleList();
+            if (visibleItems == null || visibleItems.Count == 0)
+            {
+                selectedIndex = 0;
+                return;
+            }
+            if (selectedIndex >= visibleItems.Count)
+                selectedIndex = Math.Max(0, visibleItems.Count - 1);
+            AnnounceCurrentSelection();
+        }
+
         #region Private Methods
 
         /// <summary>

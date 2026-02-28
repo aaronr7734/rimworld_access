@@ -54,18 +54,32 @@ namespace RimWorldAccess
             // TargetingPatch.Prefix, which calls AbilityTargetingState.EnterDestinationPhase()
             // with both the target position and destination range before BeginTargeting is called.
 
-            // Handle non-ability targeting sources (CompTargetable, CompUsable items like
-            // sentience catalyst, healer mech serum, etc.). These implement ITargetingSource
-            // but are not ability verbs.
+            // Handle non-ability targeting sources. Only open ItemTargetingState for actual
+            // item-based sources (CompTargetable, CompUsable). Permit workers use cell targeting
+            // and must NOT go through ItemTargetingState (which blocks cell-only targets).
             if (!AbilityTargetingState.IsActive)
             {
-                // Close previous phase if active. Multi-phase items (e.g., sentience catalyst)
-                // transition from CompUsable (Phase 1: select colonist) to CompTargetable
-                // (Phase 2: select target animal) via OrderForceTarget → SelectedUseOption → BeginTargeting.
-                if (ItemTargetingState.IsActive)
-                    ItemTargetingState.Close();
+                if (source is RoyalTitlePermitWorker_Targeted permitWorker)
+                {
+                    // Permit targeting - announce but don't open ItemTargetingState.
+                    // Permits target map cells (for drops, laborers, strikes) and the standard
+                    // ValidateTarget/OrderForceTarget flow in TargetingPatch handles them correctly.
+                    string permitLabel = permitWorker.def?.LabelCap ?? "permit";
+                    TolkHelper.Speak(
+                        $"Select a target for {permitLabel}. Navigate with arrow keys, Enter to confirm.",
+                        SpeechPriority.Normal);
+                }
+                else
+                {
+                    // CompTargetable/CompUsable items (sentience catalyst, healer mech serum, etc.)
+                    // Close previous phase if active. Multi-phase items (e.g., sentience catalyst)
+                    // transition from CompUsable (Phase 1: select colonist) to CompTargetable
+                    // (Phase 2: select target animal) via OrderForceTarget → SelectedUseOption → BeginTargeting.
+                    if (ItemTargetingState.IsActive)
+                        ItemTargetingState.Close();
 
-                ItemTargetingState.Open(source);
+                    ItemTargetingState.Open(source);
+                }
             }
         }
 

@@ -4,6 +4,7 @@ using System.Linq;
 using RimWorld;
 using RimWorld.Planet;
 using Verse;
+using Verse.Sound;
 
 namespace RimWorldAccess
 {
@@ -715,7 +716,7 @@ namespace RimWorldAccess
         private static void BuildPermitsTabChildren(InspectionTreeItem tabNode, Dialog_InfoCard dialog)
         {
             var pawn = InfoCardDataExtractor.GetPawn(dialog);
-            if (pawn == null)
+            if (pawn == null || !ModsConfig.RoyaltyActive || pawn.royalty == null)
             {
                 AddChild(tabNode, CreateInfoItem("No permits available", tabNode.IndentLevel + 1));
                 return;
@@ -732,11 +733,12 @@ namespace RimWorldAccess
             var grouped = permitsInfo.GroupBy(p => p.faction);
             foreach (var group in grouped)
             {
-                // Add faction as category header
-                AddChild(tabNode, CreateCategoryHeader(group.Key.Name, tabNode.IndentLevel + 1));
-
-                // Add title/permits/favor header matching vanilla's PermitsCardUtility
                 var faction = group.Key;
+
+                // Faction header
+                AddChild(tabNode, CreateCategoryHeader(faction.Name, tabNode.IndentLevel + 1));
+
+                // Title / points / favor info
                 var currentTitle = pawn.royalty.GetCurrentTitle(faction);
                 string titleLabel = currentTitle != null
                     ? currentTitle.GetLabelFor(pawn).CapitalizeFirst()
@@ -758,10 +760,88 @@ namespace RimWorldAccess
                         tabNode.IndentLevel + 1));
                 }
 
+                // "Return all permits" action
+                if (faction.def.HasRoyalTitles)
+                {
+                    int returnCost = InfoCardDataExtractor.TotalReturnPermitsCost(pawn);
+                    string favorLabel = faction.def.royalFavorLabel.NullOrEmpty()
+                        ? "favor" : faction.def.royalFavorLabel;
+
+                    var returnNode = new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.Action,
+                        Label = "ReturnAllPermits".Translate() + $" ({returnCost} {favorLabel})",
+                        IsExpandable = false,
+                        IsExpanded = false,
+                        IndentLevel = tabNode.IndentLevel + 1
+                    };
+
+                    var capturedFaction = faction;
+                    var capturedPawn = pawn;
+                    var capturedTabNode = tabNode;
+                    var capturedDialog = dialog;
+
+                    returnNode.OnActivate = () =>
+                    {
+                        if (!capturedPawn.royalty.PermitsFromFaction(capturedFaction).Any())
+                        {
+                            SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                            TolkHelper.Speak(
+                                "NoPermitsToReturn".Translate(capturedPawn.Named("PAWN")).Resolve(),
+                                SpeechPriority.High);
+                            return;
+                        }
+
+                        int cost = InfoCardDataExtractor.TotalReturnPermitsCost(capturedPawn);
+                        int currentFavor = capturedPawn.royalty.GetFavor(capturedFaction);
+                        if (currentFavor < cost)
+                        {
+                            SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                            TolkHelper.Speak(
+                                "NotEnoughFavor".Translate(
+                                    cost.Named("FAVORCOST"),
+                                    capturedFaction.def.royalFavorLabel.Named("FAVOR"),
+                                    capturedPawn.Named("PAWN"),
+                                    currentFavor.Named("CURFAVOR")
+                                ).Resolve(),
+                                SpeechPriority.High);
+                            return;
+                        }
+
+                        int baseCost = 8;
+                        string confirmText = "ReturnAllPermits_Confirm".Translate(
+                            baseCost.Named("BASEFAVORCOST"),
+                            cost.Named("FAVORCOST"),
+                            capturedFaction.def.royalFavorLabel.Named("FAVOR"),
+                            capturedFaction.Named("FACTION")
+                        ).Resolve();
+
+                        Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(confirmText, delegate
+                        {
+                            capturedPawn.royalty.RefundPermits(baseCost, capturedFaction);
+                            SoundDefOf.Quest_Accepted.PlayOneShotOnCamera();
+                            TolkHelper.Speak(
+                                "ReturnAllPermits".Translate() + ". " +
+                                "UnusedPermits".Translate() + ": " +
+                                capturedPawn.royalty.GetPermitPoints(capturedFaction),
+                                SpeechPriority.High);
+                            RebuildPermitsTab(capturedTabNode, capturedDialog);
+                        }, destructive: true));
+                    };
+
+                    AddChild(tabNode, returnNode);
+                }
+
+                // Individual permit nodes
                 foreach (var (permitName, _, status, description, requiredTitle, def) in group)
                 {
                     string label = $"{permitName} - {status}";
-                    bool hasDetails = !string.IsNullOrEmpty(description) || requiredTitle != "None";
+                    bool isUnlocked = InfoCardDataExtractor.IsPermitUnlocked(def, pawn, faction);
+                    bool isAvailable = def.AvailableForPawn(pawn, faction) && !isUnlocked;
+
+                    // Always expandable - permits have details (description, cooldown, requirements)
+                    bool hasDetails = !string.IsNullOrEmpty(description) || def.minTitle != null ||
+                                      def.prerequisite != null || def.cooldownDays > 0 || isAvailable;
 
                     var permitNode = new InspectionTreeItem
                     {
@@ -774,18 +854,118 @@ namespace RimWorldAccess
 
                     if (hasDetails)
                     {
+                        var capturedDef = def;
+                        var capturedFaction = faction;
+                        var capturedPawn = pawn;
+                        var capturedTabNode = tabNode;
+                        var capturedDialog = dialog;
+                        var capturedDescription = description;
+
                         permitNode.OnActivate = () =>
                         {
                             if (permitNode.Children.Count > 0) return;
-                            if (requiredTitle != "None")
-                                AddChild(permitNode, CreateInfoItem($"Required title: {requiredTitle}", permitNode.IndentLevel + 1));
-                            if (!string.IsNullOrEmpty(description))
-                                AddChild(permitNode, CreateInfoItem(description.StripTags(), permitNode.IndentLevel + 1));
+
+                            // Required title
+                            if (capturedDef.minTitle != null)
+                            {
+                                var curTitle = capturedPawn.royalty.GetCurrentTitle(capturedFaction);
+                                bool titleMet = curTitle != null && curTitle.seniority >= capturedDef.minTitle.seniority;
+                                string titleStatus = titleMet ? "" : " (not met)";
+                                AddChild(permitNode, CreateInfoItem(
+                                    "RequiresTitle".Translate(capturedDef.minTitle.GetLabelForBothGenders()).Resolve() + titleStatus,
+                                    permitNode.IndentLevel + 1));
+                            }
+
+                            // Prerequisite
+                            if (capturedDef.prerequisite != null)
+                            {
+                                bool prereqMet = InfoCardDataExtractor.IsPermitUnlocked(
+                                    capturedDef.prerequisite, capturedPawn, capturedFaction);
+                                string prereqStatus = prereqMet ? "" : " (not met)";
+                                AddChild(permitNode, CreateInfoItem(
+                                    "UpgradeFrom".Translate(capturedDef.prerequisite.LabelCap).Resolve() + prereqStatus,
+                                    permitNode.IndentLevel + 1));
+                            }
+
+                            // Cooldown
+                            if (capturedDef.cooldownDays > 0)
+                            {
+                                AddChild(permitNode, CreateInfoItem(
+                                    "Cooldown".Translate() + ": " + "PeriodDays".Translate(capturedDef.cooldownDays),
+                                    permitNode.IndentLevel + 1));
+                            }
+
+                            // Favor cost if used during cooldown
+                            if (capturedDef.royalAid != null && capturedDef.royalAid.favorCost > 0 &&
+                                !capturedFaction.def.royalFavorLabel.NullOrEmpty())
+                            {
+                                AddChild(permitNode, CreateInfoItem(
+                                    "CooldownUseFavorCost".Translate(
+                                        capturedFaction.def.royalFavorLabel.Named("HONOR")
+                                    ).CapitalizeFirst().Resolve() + ": " + capturedDef.royalAid.favorCost,
+                                    permitNode.IndentLevel + 1));
+                            }
+
+                            // Description
+                            if (!string.IsNullOrEmpty(capturedDescription))
+                            {
+                                AddChild(permitNode, CreateInfoItem(
+                                    capturedDescription.StripTags(), permitNode.IndentLevel + 1));
+                            }
+
+                            // "Accept permit" action (only if currently available)
+                            bool currentlyAvailable = capturedDef.AvailableForPawn(capturedPawn, capturedFaction)
+                                && !InfoCardDataExtractor.IsPermitUnlocked(capturedDef, capturedPawn, capturedFaction);
+
+                            if (currentlyAvailable)
+                            {
+                                var acceptNode = new InspectionTreeItem
+                                {
+                                    Type = InspectionTreeItem.ItemType.Action,
+                                    Label = "AcceptPermit".Translate(),
+                                    IsExpandable = false,
+                                    IsExpanded = false,
+                                    IndentLevel = permitNode.IndentLevel + 1
+                                };
+
+                                acceptNode.OnActivate = () =>
+                                {
+                                    // Re-validate at activation time
+                                    if (!capturedDef.AvailableForPawn(capturedPawn, capturedFaction))
+                                    {
+                                        SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                                        TolkHelper.Speak("Permit no longer available.", SpeechPriority.High);
+                                        return;
+                                    }
+
+                                    capturedPawn.royalty.AddPermit(capturedDef, capturedFaction);
+                                    SoundDefOf.Quest_Accepted.PlayOneShotOnCamera();
+
+                                    int remainingPoints = capturedPawn.royalty.GetPermitPoints(capturedFaction);
+                                    TolkHelper.Speak(
+                                        capturedDef.LabelCap + " granted. " +
+                                        "UnusedPermits".Translate() + ": " + remainingPoints,
+                                        SpeechPriority.High);
+
+                                    RebuildPermitsTab(capturedTabNode, capturedDialog);
+                                };
+
+                                AddChild(permitNode, acceptNode);
+                            }
                         };
                     }
+
                     AddChild(tabNode, permitNode);
                 }
             }
+        }
+
+        private static void RebuildPermitsTab(InspectionTreeItem tabNode, Dialog_InfoCard dialog)
+        {
+            tabNode.Children.Clear();
+            BuildPermitsTabChildren(tabNode, dialog);
+            tabNode.IsExpanded = true;
+            InfoCardState.RefreshVisibleListAndAnnounce();
         }
 
         #endregion
