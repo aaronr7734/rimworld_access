@@ -639,6 +639,15 @@ namespace RimWorldAccess
 
             KeyCode key = Event.current.keyCode;
 
+            // Asterisk (*) - expand all sibling categories (WCAG tree view pattern)
+            bool isStar = key == KeyCode.KeypadMultiply || (Event.current.shift && key == KeyCode.Alpha8);
+            if (isStar)
+            {
+                ThingFilterMenuState.ExpandAllSiblings();
+                Event.current.Use();
+                return;
+            }
+
             // Handle typeahead character input BEFORE the switch on keyCode.
             // Unity IMGUI sends two KeyDown events per key press:
             //   1. keyCode = KeyCode.T, character = '\0'
@@ -646,10 +655,11 @@ namespace RimWorldAccess
             // Checking Event.current.character (the old approach) only catches event 2,
             // letting event 1 leak to UnifiedKeyboardPatch where it triggers game shortcuts.
             // Checking keyCode ranges (like HandleBillsMenuInput does) catches event 1.
+            // Exclude shift+number (e.g., Shift+8 = *) to avoid eating modifier combos.
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-            if ((isLetter || isNumber) && !Event.current.alt && !Event.current.control)
+            if ((isLetter || (isNumber && !Event.current.shift)) && !Event.current.alt && !Event.current.control)
             {
                 char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                 ThingFilterMenuState.ProcessTypeaheadCharacter(c);

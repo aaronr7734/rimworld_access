@@ -367,6 +367,63 @@ namespace RimWorldAccess
             }
         }
 
+        /// <summary>
+        /// Expands all sibling categories at the same level as the current item.
+        /// WCAG tree view pattern: * key expands all siblings.
+        /// </summary>
+        public static void ExpandAllSiblings()
+        {
+            if (menuItems == null || selectedIndex < 0 || selectedIndex >= menuItems.Count)
+                return;
+
+            MenuItem currentItem = menuItems[selectedIndex];
+            int currentIndent = currentItem.indentLevel;
+            MenuItem currentParent = currentItem.parent;
+
+            int expandedCount = 0;
+            foreach (var item in menuItems)
+            {
+                if (item.indentLevel == currentIndent && item.parent == currentParent
+                    && item.type == MenuItemType.Category && !item.isExpanded)
+                {
+                    TreeNode_ThingCategory node = item.data as TreeNode_ThingCategory;
+                    if (node != null)
+                    {
+                        expandedCategories.Add(node.catDef.defName);
+                        expandedCount++;
+                    }
+                }
+            }
+
+            if (expandedCount > 0)
+            {
+                RebuildMenu();
+                typeahead.ClearSearch();
+                if (expandedCount == 1)
+                    TolkHelper.Speak("Expanded 1 category");
+                else
+                    TolkHelper.Speak($"Expanded {expandedCount} categories");
+            }
+            else
+            {
+                bool hasAnySiblingCategories = false;
+                foreach (var item in menuItems)
+                {
+                    if (item.indentLevel == currentIndent && item.parent == currentParent
+                        && item.type == MenuItemType.Category)
+                    {
+                        hasAnySiblingCategories = true;
+                        break;
+                    }
+                }
+
+                if (hasAnySiblingCategories)
+                    TolkHelper.Speak("All categories already expanded at this level");
+                else
+                    TolkHelper.Speak("No categories to expand at this level");
+            }
+        }
+
         public static void ToggleCurrent()
         {
             if (menuItems == null || selectedIndex >= menuItems.Count)
