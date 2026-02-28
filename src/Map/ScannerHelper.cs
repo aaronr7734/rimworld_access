@@ -559,10 +559,12 @@ namespace RimWorldAccess
             var pawnsCategory = new ScannerCategory("Pawns");
             var pawnsPlayerSubcat = new ScannerSubcategory("Pawns-Player");
             var pawnsNPCSubcat = new ScannerSubcategory("Pawns-NPC");
-            var pawnsMechanoidsSubcat = new ScannerSubcategory("Pawns-Mechanoids");
+            var pawnsPlayerMechSubcat = new ScannerSubcategory("Pawns-Player Mechanoids");
+            var pawnsHostileMechSubcat = new ScannerSubcategory("Pawns-Hostile Mechanoids");
             pawnsCategory.Subcategories.Add(pawnsPlayerSubcat);
             pawnsCategory.Subcategories.Add(pawnsNPCSubcat);
-            pawnsCategory.Subcategories.Add(pawnsMechanoidsSubcat);
+            pawnsCategory.Subcategories.Add(pawnsPlayerMechSubcat);
+            pawnsCategory.Subcategories.Add(pawnsHostileMechSubcat);
 
             // Tame Animals with Pen/Non-Pen split
             var tameAnimalsCategory = new ScannerCategory("Tame");
@@ -719,8 +721,19 @@ namespace RimWorldAccess
                     // Categorize pawns
                     if (pawn.RaceProps.IsMechanoid)
                     {
-                        // Mechanoids subcategory (all mechanoids regardless of faction)
-                        pawnsMechanoidsSubcat.Items.Add(item);
+                        if (pawn.Faction == playerFaction)
+                        {
+                            pawnsPlayerMechSubcat.Items.Add(item);
+                        }
+                        else if (pawn.HostileTo(Faction.OfPlayer))
+                        {
+                            pawnsHostileMechSubcat.Items.Add(item);
+                        }
+                        else
+                        {
+                            // Neutral/ally mechanoids go with NPCs
+                            pawnsNPCSubcat.Items.Add(item);
+                        }
                         categorizedThings.Add(thing);
                     }
                     else if (pawn.RaceProps.Humanlike)
