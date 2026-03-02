@@ -97,6 +97,11 @@ namespace RimWorldAccess
             // Reset per-frame flag
             hasAnnouncedThisFrame = false;
 
+            // Don't process during game loading - camera position isn't restored yet
+            // Mirrors CameraDriver.Update()'s own early-return check
+            if (LongEventHandler.ShouldWaitForEvent)
+                return true;
+
             // Update suppression flag based on active menus
             UpdateSuppressionFlag();
 
