@@ -2076,7 +2076,7 @@ namespace RimWorldAccess
                 return null;
 
             // Get all transporters in the group
-            var transportersInGroup = transporter.TransportersInGroup(transporter.parent.Map);
+            var transportersInGroup = transporter.TransportersInGroup(transporter.parent.Map)?.ToList();
             if (transportersInGroup == null || transportersInGroup.Count <= 1)
                 return null;
 
