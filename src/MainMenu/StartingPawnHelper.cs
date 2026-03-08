@@ -844,6 +844,18 @@ namespace RimWorldAccess
             }));
             infoCardDefs.Add(null);
 
+            // Xenotype editor option (opens Dialog_CreateXenotype for full gene editing)
+            options.Add(new FloatMenuOption("XenotypeEditor".Translate() + "...", () =>
+            {
+                Find.WindowStack.Add(new Dialog_CreateXenotype(pawnIndex, () =>
+                {
+                    CharacterCardUtility.cachedCustomXenotypes = null;
+                    StartingPawnUtility.RandomizePawn(pawnIndex);
+                    rebuildCallback?.Invoke();
+                }));
+            }));
+            infoCardDefs.Add(null);
+
             // Standard xenotypes
             foreach (var xenotype in DefDatabase<XenotypeDef>.AllDefs.OrderBy(x => x.displayPriority))
             {

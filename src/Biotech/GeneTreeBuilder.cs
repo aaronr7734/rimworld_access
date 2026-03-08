@@ -87,16 +87,25 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Creates a tree node for a single gene with expandable details.
+        /// Front-loads biostats and description excerpt in the collapsed label.
+        /// When expanded, the label is shortened to just the gene name.
         /// </summary>
-        public static InspectionTreeItem CreateGeneNode(GeneDef gene, int indent)
+        /// <param name="gene">The gene definition</param>
+        /// <param name="indent">Indent level in the tree</param>
+        /// <param name="includeCategory">Whether to include the category name in the label (default true)</param>
+        public static InspectionTreeItem CreateGeneNode(GeneDef gene, int indent, bool includeCategory = true)
         {
-            // Build a summary label with key stats
-            string label = BuildGeneSummaryLabel(gene);
+            // Build short label (gene name + color info + optional category)
+            string shortLabel = BuildGeneShortLabel(gene, includeCategory);
+
+            // Build rich collapsed label with biostats and description
+            string richLabel = BuildGeneRichLabel(shortLabel, gene);
 
             var geneNode = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.Item,
-                Label = label,
+                Label = richLabel,
+                Description = richLabel, // Store rich label so it can be restored after collapse
                 Data = gene,
                 LinkedDef = gene,
                 IsExpandable = true,
@@ -111,13 +120,11 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Builds the summary label for a gene (name and category only, stats shown on expand).
+        /// Builds the short label for a gene (name, color info, and optional category).
+        /// Used as the expanded label and as the base for the rich collapsed label.
         /// </summary>
-        private static string BuildGeneSummaryLabel(GeneDef gene)
+        private static string BuildGeneShortLabel(GeneDef gene, bool includeCategory)
         {
-            var parts = new List<string>();
-
-            // Try to get a more descriptive label for color genes
             string label = gene.LabelCap;
 
             // For cosmetic genes, try to add color info if available
@@ -130,15 +137,53 @@ namespace RimWorldAccess
                 }
             }
 
-            parts.Add(label);
-
-            // Add category if available
-            if (gene.displayCategory != null)
+            if (includeCategory && gene.displayCategory != null)
             {
-                parts.Add($"({gene.displayCategory.LabelCap})");
+                label = $"{label} ({gene.displayCategory.LabelCap})";
             }
 
-            return string.Join(" ", parts);
+            return label;
+        }
+
+        /// <summary>
+        /// Builds the rich collapsed label by appending biostats and description excerpt
+        /// to the short label. Front-loads key info so users can browse without expanding.
+        /// </summary>
+        private static string BuildGeneRichLabel(string shortLabel, GeneDef gene)
+        {
+            var parts = new List<string>();
+            parts.Add(shortLabel);
+
+            // Add non-zero biostats using translation keys
+            if (gene.biostatCpx != 0)
+            {
+                string cpxLabel = ((string)"Complexity".Translate()).CapitalizeFirst();
+                parts.Add($"{cpxLabel}: {gene.biostatCpx.ToStringWithSign()}");
+            }
+            if (gene.biostatMet != 0)
+            {
+                string metLabel = ((string)"Metabolism".Translate()).CapitalizeFirst();
+                parts.Add($"{metLabel}: {gene.biostatMet.ToStringWithSign()}");
+            }
+            if (gene.biostatArc != 0)
+            {
+                string arcLabel = ((string)"ArchitesRequired".Translate()).CapitalizeFirst();
+                parts.Add($"{arcLabel}: {gene.biostatArc.ToStringWithSign()}");
+            }
+
+            // Add full description (Def.description, not DescriptionFull which includes biostats)
+            if (!string.IsNullOrEmpty(gene.description))
+            {
+                string desc = gene.description.StripTags().TrimEnd();
+                // Ensure description ends with a period for proper screen reader pausing
+                if (!desc.EndsWith(".") && !desc.EndsWith("!") && !desc.EndsWith("?"))
+                {
+                    desc += ".";
+                }
+                parts.Add(desc);
+            }
+
+            return string.Join(", ", parts);
         }
 
         /// <summary>
@@ -237,6 +282,10 @@ namespace RimWorldAccess
         {
             if (geneNode.Children.Count > 0)
                 return; // Already built
+
+            // Shorten label to just the gene name on expand (details are now in children)
+            // The rich label is preserved in Description for restore on collapse
+            geneNode.Label = GetGeneDisplayLabel(gene);
 
             int childIndent = geneNode.IndentLevel + 1;
 

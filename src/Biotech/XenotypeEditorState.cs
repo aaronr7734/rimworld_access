@@ -11,14 +11,14 @@ using Verse.Sound;
 namespace RimWorldAccess
 {
     /// <summary>
-    /// Manages accessible keyboard navigation for Dialog_CreateXenogerm (gene processor).
-    /// Uses a tabbed treeview architecture: Tab/Shift+Tab switches between Selected Genepacks,
-    /// Genepack Library, and Controls. Each genepack tab is an InspectionTreeItem treeview
-    /// with WCAG tree keyboard navigation.
+    /// Manages accessible keyboard navigation for Dialog_CreateXenotype (xenotype editor).
+    /// Uses a tabbed treeview architecture: Tab/Shift+Tab switches between Selected Genes,
+    /// Gene Library (organized by GeneCategoryDef), and Controls. Each gene tab is an
+    /// InspectionTreeItem treeview with WCAG tree keyboard navigation.
     /// </summary>
-    public static class XenogermState
+    public static class XenotypeEditorState
     {
-        private enum Tab { Library, Selected, Controls }
+        private enum Tab { Selected, Library, Controls }
 
         // ===== Global State =====
         private static bool isActive;
@@ -29,13 +29,13 @@ namespace RimWorldAccess
         private static Window dialog;
         private static Tab currentTab;
 
-        // ===== Per-Tab State: Selected Genepacks =====
+        // ===== Per-Tab State: Selected Genes =====
         private static InspectionTreeItem selectedRoot;
         private static List<InspectionTreeItem> selectedVisible = new List<InspectionTreeItem>();
         private static int selectedIdx;
         private static TypeaheadSearchHelper selectedTypeahead = new TypeaheadSearchHelper();
 
-        // ===== Per-Tab State: Genepack Library =====
+        // ===== Per-Tab State: Gene Library =====
         private static InspectionTreeItem libraryRoot;
         private static List<InspectionTreeItem> libraryVisible = new List<InspectionTreeItem>();
         private static int libraryIdx;
@@ -48,45 +48,50 @@ namespace RimWorldAccess
         private class ControlItem
         {
             public string Label;
+            public string Tooltip;
             public Action OnActivate;
         }
 
         // ===== Reflection Cache =====
-        private static FieldInfo fi_selectedGenepacks;
-        private static FieldInfo fi_libraryGenepacks;
-        private static FieldInfo fi_unpoweredGenepacks;
-        private static FieldInfo fi_geneAssembler;
+        private static FieldInfo fi_selectedGenes;
+        private static FieldInfo fi_inheritable;
+        private static FieldInfo fi_collapsedCategories;
+        private static FieldInfo fi_generationRequestIndex;
+        private static FieldInfo fi_callback;
+        private static FieldInfo fi_ignoreRestrictionsConfirmationSent;
         private static FieldInfo fi_xenotypeName;
         private static FieldInfo fi_xenotypeNameLocked;
         private static FieldInfo fi_iconDef;
         private static FieldInfo fi_gcx;
         private static FieldInfo fi_met;
         private static FieldInfo fi_arc;
-        private static FieldInfo fi_maxGCX;
+        private static FieldInfo fi_ignoreRestrictions;
+        private static FieldInfo fi_leftChosenGroups;
         private static MethodInfo mi_onGenesChanged;
         private static MethodInfo mi_accept;
         private static MethodInfo mi_canAccept;
-        private static PropertyInfo pi_selectedGenes;
 
-        private const string LevelKey = "XenogermCreation";
+        private const string LevelKey = "XenotypeEditor";
 
-        static XenogermState()
+        static XenotypeEditorState()
         {
-            fi_selectedGenepacks = AccessTools.Field(typeof(Dialog_CreateXenogerm), "selectedGenepacks");
-            fi_libraryGenepacks = AccessTools.Field(typeof(Dialog_CreateXenogerm), "libraryGenepacks");
-            fi_unpoweredGenepacks = AccessTools.Field(typeof(Dialog_CreateXenogerm), "unpoweredGenepacks");
-            fi_geneAssembler = AccessTools.Field(typeof(Dialog_CreateXenogerm), "geneAssembler");
+            fi_selectedGenes = AccessTools.Field(typeof(Dialog_CreateXenotype), "selectedGenes");
+            fi_inheritable = AccessTools.Field(typeof(Dialog_CreateXenotype), "inheritable");
+            fi_collapsedCategories = AccessTools.Field(typeof(Dialog_CreateXenotype), "collapsedCategories");
+            fi_generationRequestIndex = AccessTools.Field(typeof(Dialog_CreateXenotype), "generationRequestIndex");
+            fi_callback = AccessTools.Field(typeof(Dialog_CreateXenotype), "callback");
+            fi_ignoreRestrictionsConfirmationSent = AccessTools.Field(typeof(Dialog_CreateXenotype), "ignoreRestrictionsConfirmationSent");
             fi_xenotypeName = AccessTools.Field(typeof(GeneCreationDialogBase), "xenotypeName");
             fi_xenotypeNameLocked = AccessTools.Field(typeof(GeneCreationDialogBase), "xenotypeNameLocked");
             fi_iconDef = AccessTools.Field(typeof(GeneCreationDialogBase), "iconDef");
             fi_gcx = AccessTools.Field(typeof(GeneCreationDialogBase), "gcx");
             fi_met = AccessTools.Field(typeof(GeneCreationDialogBase), "met");
             fi_arc = AccessTools.Field(typeof(GeneCreationDialogBase), "arc");
-            fi_maxGCX = AccessTools.Field(typeof(GeneCreationDialogBase), "maxGCX");
+            fi_ignoreRestrictions = AccessTools.Field(typeof(GeneCreationDialogBase), "ignoreRestrictions");
+            fi_leftChosenGroups = AccessTools.Field(typeof(GeneCreationDialogBase), "leftChosenGroups");
             mi_onGenesChanged = AccessTools.Method(typeof(GeneCreationDialogBase), "OnGenesChanged");
-            mi_accept = AccessTools.Method(typeof(Dialog_CreateXenogerm), "Accept");
-            mi_canAccept = AccessTools.Method(typeof(Dialog_CreateXenogerm), "CanAccept");
-            pi_selectedGenes = AccessTools.Property(typeof(Dialog_CreateXenogerm), "SelectedGenes");
+            mi_accept = AccessTools.Method(typeof(Dialog_CreateXenotype), "Accept");
+            mi_canAccept = AccessTools.Method(typeof(Dialog_CreateXenotype), "CanAccept");
         }
 
         // ===== Lifecycle =====
@@ -105,8 +110,8 @@ namespace RimWorldAccess
                 RebuildAllTrees();
                 BuildControlItems();
 
-                // Start on Library if nothing selected, otherwise Selected
-                var selected = GetSelectedGenepacks();
+                // Start on Selected if genes exist, otherwise Library
+                var selected = GetSelectedGenes();
                 currentTab = (selected != null && selected.Count > 0) ? Tab.Selected : Tab.Library;
 
                 // Reset navigation
@@ -122,7 +127,7 @@ namespace RimWorldAccess
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimWorld Access] Error in XenogermState.Open: {ex}");
+                Log.Error($"[RimWorld Access] Error in XenotypeEditorState.Open: {ex}");
                 Close();
             }
         }
@@ -152,7 +157,7 @@ namespace RimWorldAccess
             if (!isActive || ev.type != EventType.KeyDown)
                 return false;
 
-            // Let float menu (e.g. Load Template) handle its own input
+            // Let float menu (e.g. Load Custom/Premade) handle its own input
             if (WindowlessFloatMenuState.IsActive)
                 return false;
 
@@ -161,10 +166,10 @@ namespace RimWorldAccess
             bool ctrl = ev.control;
             bool alt = ev.alt;
 
-            // Alt+S: Start combining shortcut from any tab
+            // Alt+S: Save and apply shortcut from any tab
             if (key == KeyCode.S && alt && !ctrl && !shift)
             {
-                StartCombining();
+                SaveAndApply();
                 return true;
             }
 
@@ -187,6 +192,10 @@ namespace RimWorldAccess
             {
                 return HandleEscape();
             }
+
+            // Block ] to prevent StartingPawnState context menu from opening underneath
+            if (key == KeyCode.RightBracket)
+                return true;
 
             // Route to current tab
             switch (currentTab)
@@ -296,17 +305,17 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Page Down - jump to next top-level genepack
+            // Page Down - jump to next top-level item (gene in Selected, category in Library)
             if (key == KeyCode.PageDown && !alt)
             {
-                JumpToNextGenepack(visible, isSelectedTab, root, forward: true);
+                JumpToNextTopLevel(visible, isSelectedTab, root, forward: true);
                 return true;
             }
 
-            // Page Up - jump to previous top-level genepack
+            // Page Up - jump to previous top-level item
             if (key == KeyCode.PageUp && !alt)
             {
-                JumpToNextGenepack(visible, isSelectedTab, root, forward: false);
+                JumpToNextTopLevel(visible, isSelectedTab, root, forward: false);
                 return true;
             }
 
@@ -704,7 +713,7 @@ namespace RimWorldAccess
             }
         }
 
-        private static void JumpToNextGenepack(List<InspectionTreeItem> visible, bool isSelectedTab, InspectionTreeItem root, bool forward)
+        private static void JumpToNextTopLevel(List<InspectionTreeItem> visible, bool isSelectedTab, InspectionTreeItem root, bool forward)
         {
             if (visible == null || visible.Count == 0)
                 return;
@@ -758,10 +767,20 @@ namespace RimWorldAccess
 
             var item = visible[idx];
 
-            // Top-level genepack item (IndentLevel 0) - toggle selection
-            if (item.IndentLevel == 0 && item.Data is Genepack genepack)
+            // Gene item (IndentLevel 0 in Selected, IndentLevel 1 in Library) - toggle selection
+            if (item.Data is GeneDef gene)
             {
-                ToggleGenepack(genepack, adding: !isSelectedTab);
+                ToggleGene(gene);
+                return;
+            }
+
+            // Category node in Library (IndentLevel 0, Data is GeneCategoryDef) - expand/collapse
+            if (item.Data is GeneCategoryDef)
+            {
+                if (!item.IsExpanded)
+                    ExpandNode(visible, isSelectedTab, root);
+                else
+                    CollapseNode(visible, isSelectedTab, root);
                 return;
             }
 
@@ -782,72 +801,68 @@ namespace RimWorldAccess
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
         }
 
-        // ===== Genepack Selection Toggle =====
+        // ===== Gene Selection Toggle =====
 
-        private static void ToggleGenepack(Genepack genepack, bool adding)
+        private static void ToggleGene(GeneDef gene)
         {
             if (dialog == null) return;
 
-            var selectedList = GetSelectedGenepacks();
-            var unpowered = GetUnpoweredGenepacks();
+            var selectedList = GetSelectedGenes();
+            if (selectedList == null) return;
 
-            if (adding)
+            bool adding;
+            if (selectedList.Contains(gene))
             {
-                // Check if unpowered
-                if (unpowered != null && unpowered.Contains(genepack))
-                {
-                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak(((string)"GenepackUnusableGenebankUnpowered".Translate()).StripTags());
-                    return;
-                }
-
-                selectedList.Add(genepack);
-                SoundDefOf.Tick_High.PlayOneShotOnCamera();
+                selectedList.Remove(gene);
+                SoundDefOf.Tick_Low.PlayOneShotOnCamera();
+                adding = false;
             }
             else
             {
-                selectedList.Remove(genepack);
-                SoundDefOf.Tick_Low.PlayOneShotOnCamera();
+                selectedList.Add(gene);
+                SoundDefOf.Tick_High.PlayOneShotOnCamera();
+                adding = true;
             }
 
             // Update xenotype name if not locked
             bool nameLocked = (bool)fi_xenotypeNameLocked.GetValue(dialog);
             if (!nameLocked)
             {
-                var genes = (List<GeneDef>)pi_selectedGenes.GetValue(dialog);
-                string newName = GeneUtility.GenerateXenotypeNameFromGenes(genes);
+                string newName = GeneUtility.GenerateXenotypeNameFromGenes(selectedList);
                 fi_xenotypeName.SetValue(dialog, newName);
             }
 
-            // Update biostats
+            // Update biostats and conflict info
             mi_onGenesChanged.Invoke(dialog, null);
 
             // Save cursor context
-            Genepack cursorPack = null;
-            if (currentTab == Tab.Selected && selectedIdx >= 0 && selectedIdx < selectedVisible.Count)
-                cursorPack = selectedVisible[selectedIdx].Data as Genepack;
-            else if (currentTab == Tab.Library && libraryIdx >= 0 && libraryIdx < libraryVisible.Count)
-                cursorPack = libraryVisible[libraryIdx].Data as Genepack;
+            GeneDef cursorGene = GetCurrentGeneDef();
 
             // Rebuild trees
             RebuildAllTrees();
             BuildControlItems();
 
             // Restore cursor
-            RestoreCursor(cursorPack);
+            RestoreCursor(cursorGene);
 
             // Announce feedback
-            string packLabel = genepack.LabelNoCount;
             string action = adding ? "added" : "removed";
             string biostats = FormatCurrentBiostats();
-            TolkHelper.Speak($"{packLabel} {action}. {biostats}");
+            TolkHelper.Speak($"{gene.LabelCap} {action}. {biostats}");
         }
 
-        private static void RestoreCursor(Genepack cursorPack)
+        private static GeneDef GetCurrentGeneDef()
         {
-            if (cursorPack == null) return;
+            InspectionTreeItem item = GetCurrentItem();
+            if (item?.Data is GeneDef gene)
+                return gene;
+            return null;
+        }
 
-            // Try to find the genepack in the current tab's tree
+        private static void RestoreCursor(GeneDef cursorGene)
+        {
+            if (cursorGene == null) return;
+
             List<InspectionTreeItem> visible;
             switch (currentTab)
             {
@@ -855,9 +870,9 @@ namespace RimWorldAccess
                     visible = selectedVisible;
                     for (int i = 0; i < visible.Count; i++)
                     {
-                        if (visible[i].Data == cursorPack) { selectedIdx = i; return; }
+                        if (visible[i].Data is GeneDef g && g == cursorGene) { selectedIdx = i; return; }
                     }
-                    // Pack was removed from selected - clamp index
+                    // Gene was removed from selected - clamp index
                     if (selectedIdx >= visible.Count)
                         selectedIdx = Math.Max(0, visible.Count - 1);
                     break;
@@ -865,45 +880,27 @@ namespace RimWorldAccess
                     visible = libraryVisible;
                     for (int i = 0; i < visible.Count; i++)
                     {
-                        if (visible[i].Data == cursorPack) { libraryIdx = i; return; }
+                        if (visible[i].Data is GeneDef g && g == cursorGene) { libraryIdx = i; return; }
                     }
-                    // Pack was moved to selected - clamp index
                     if (libraryIdx >= visible.Count)
                         libraryIdx = Math.Max(0, visible.Count - 1);
                     break;
             }
         }
 
-        // ===== Start Combining =====
+        // ===== Save and Apply =====
 
-        private static void StartCombining()
+        private static void SaveAndApply()
         {
             if (dialog == null) return;
 
-            var selectedList = GetSelectedGenepacks();
+            var selectedList = GetSelectedGenes();
 
             // Validate - announce specific errors
             if (selectedList == null || selectedList.Count == 0)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak(((string)"MessageNoSelectedGenepacks".Translate()).StripTags());
-                return;
-            }
-
-            int arc = (int)fi_arc.GetValue(dialog);
-            if (arc > 0 && !ResearchProjectDefOf.Archogenetics.IsFinished)
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak(((string)"AssemblingRequiresResearch".Translate(ResearchProjectDefOf.Archogenetics)).StripTags());
-                return;
-            }
-
-            int gcx = (int)fi_gcx.GetValue(dialog);
-            int maxGCX = (int)fi_maxGCX.GetValue(dialog);
-            if (gcx > maxGCX)
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak(((string)"ComplexityTooHighToCreateXenogerm".Translate(gcx.Named("AMOUNT"), maxGCX.Named("MAX"))).StripTags());
+                TolkHelper.Speak(((string)"MessageNoSelectedGenes".Translate()).StripTags());
                 return;
             }
 
@@ -913,6 +910,39 @@ namespace RimWorldAccess
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 TolkHelper.Speak(((string)"XenotypeNameCannotBeEmpty".Translate()).StripTags());
                 return;
+            }
+
+            // Check file count limit
+            if (GenFilePaths.AllCustomXenotypeFiles.EnumerableCount() >= 200)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("Too many custom xenotypes saved. Delete some first.");
+                return;
+            }
+
+            bool ignoreRestr = (bool)fi_ignoreRestrictions.GetValue(dialog);
+            if (!ignoreRestr)
+            {
+                // Check for gene conflicts
+                var leftChosenGroups = fi_leftChosenGroups.GetValue(dialog) as System.Collections.IList;
+                if (leftChosenGroups != null && leftChosenGroups.Count > 0)
+                {
+                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                    TolkHelper.Speak(((string)"MessageConflictingGenesPresent".Translate()).StripTags());
+                    return;
+                }
+
+                // Check for missing prerequisites
+                foreach (var gene in selectedList)
+                {
+                    if (gene.prerequisite != null && !selectedList.Contains(gene.prerequisite))
+                    {
+                        SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                        TolkHelper.Speak(((string)"MessageGeneMissingPrerequisite".Translate(gene.label)).CapitalizeFirst().StripTags()
+                            + ": " + gene.prerequisite.LabelCap);
+                        return;
+                    }
+                }
             }
 
             // All checks passed - deactivate our state before Accept, which may
@@ -930,112 +960,128 @@ namespace RimWorldAccess
             }
         }
 
-        // ===== Save / Load Templates =====
+        // ===== Load Custom / Premade =====
 
-        private static void SaveTemplate()
+        private static void LoadCustom()
         {
             if (dialog == null) return;
 
-            string name = (string)fi_xenotypeName.GetValue(dialog);
-            XenotypeIconDef icon = (XenotypeIconDef)fi_iconDef.GetValue(dialog);
-            List<Genepack> selected = GetSelectedGenepacks();
-
-            AcceptanceReport result = CustomXenogermUtility.SaveXenogermTemplate(name, icon, selected);
-            if (result.Accepted)
-            {
-                SoundDefOf.Tick_High.PlayOneShotOnCamera();
-                TolkHelper.Speak(((string)"XenogermTemplateSaved".Translate(name.Named("NAME"))).StripTags());
-            }
-            else
+            var files = GenFilePaths.AllCustomXenotypeFiles.ToList();
+            if (files.Count == 0)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak(result.Reason.StripTags());
-            }
-        }
-
-        private static void LoadTemplate()
-        {
-            if (dialog == null) return;
-
-            var templates = Find.CustomXenogermDatabase.CustomXenogermsForReading;
-            if (templates == null || templates.Count == 0)
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No saved templates.");
+                TolkHelper.Speak("No saved custom xenotypes.");
                 return;
             }
 
             var options = new List<FloatMenuOption>();
-            foreach (var template in templates)
+            foreach (var file in files)
             {
-                string label = FormatTemplateLabel(template);
-                var capturedTemplate = template;
-                options.Add(new FloatMenuOption(label, () => ApplyTemplate(capturedTemplate)));
+                string fileName = System.IO.Path.GetFileNameWithoutExtension(file.Name);
+                var capturedFile = file;
+                options.Add(new FloatMenuOption(fileName, () =>
+                {
+                    string filePath = capturedFile.FullName;
+                    if (GameDataSaveLoader.TryLoadXenotype(filePath, out CustomXenotype xenotype))
+                    {
+                        ApplyCustomXenotype(xenotype);
+                    }
+                    else
+                    {
+                        SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                        TolkHelper.Speak("Failed to load xenotype.");
+                    }
+                }));
             }
 
             WindowlessFloatMenuState.Open(options, false);
         }
 
-        private static string FormatTemplateLabel(CustomXenogerm template)
-        {
-            var geneNames = new List<string>();
-            foreach (var geneSet in template.genesets)
-            {
-                foreach (var gene in geneSet.GenesListForReading)
-                {
-                    geneNames.Add(gene.LabelCap.ToString());
-                }
-            }
-
-            if (geneNames.Count > 0)
-                return $"{template.name}: {string.Join(", ", geneNames)}";
-            return template.name;
-        }
-
-        private static void ApplyTemplate(CustomXenogerm template)
+        private static void ApplyCustomXenotype(CustomXenotype xenotype)
         {
             if (dialog == null) return;
 
-            // Set name, lock, and icon
-            fi_xenotypeName.SetValue(dialog, template.name);
+            fi_xenotypeName.SetValue(dialog, xenotype.name);
             fi_xenotypeNameLocked.SetValue(dialog, true);
-            fi_iconDef.SetValue(dialog, template.iconDef);
+            fi_iconDef.SetValue(dialog, xenotype.IconDef);
 
-            // Match genepacks from library
-            var libraryList = GetLibraryGenepacks();
-            var selectedList = GetSelectedGenepacks();
-            var matched = CustomXenogermUtility.GetMatchingGenepacks(template.genesets, libraryList).ToList();
-
+            var selectedList = GetSelectedGenes();
             selectedList.Clear();
-            selectedList.AddRange(matched);
+            selectedList.AddRange(xenotype.genes);
+
+            fi_inheritable.SetValue(dialog, xenotype.inheritable);
+
             mi_onGenesChanged.Invoke(dialog, null);
 
-            // Rebuild everything
+            // Enable ignore restrictions if needed
+            bool hasArchite = selectedList.Any(g => g.biostatArc > 0);
+            if (hasArchite)
+            {
+                fi_ignoreRestrictions.SetValue(dialog, true);
+            }
+
             RebuildAllTrees();
             BuildControlItems();
 
-            // Find missing genesets
-            var missingGenes = new List<string>();
-            foreach (var geneSet in template.genesets)
+            SoundDefOf.Tick_High.PlayOneShotOnCamera();
+            TolkHelper.Speak($"Loaded {xenotype.name}. {selectedList.Count} genes. {FormatCurrentBiostats()}");
+        }
+
+        private static void LoadPremade()
+        {
+            if (dialog == null) return;
+
+            var xenotypes = DefDatabase<XenotypeDef>.AllDefs
+                .OrderByDescending(x => x.displayPriority)
+                .ToList();
+
+            if (xenotypes.Count == 0)
             {
-                if (!matched.Any(gp => gp.GeneSet.Matches(geneSet)))
-                {
-                    foreach (var gene in geneSet.GenesListForReading)
-                        missingGenes.Add(gene.LabelCap.ToString());
-                }
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No premade xenotypes available.");
+                return;
             }
 
-            // Announce result
-            var sb = new System.Text.StringBuilder();
-            sb.Append($"Loaded {template.name}. {matched.Count} genepacks matched.");
-            if (missingGenes.Count > 0)
+            var options = new List<FloatMenuOption>();
+            var infoCardDefs = new List<Def>();
+
+            foreach (var xenotype in xenotypes)
             {
-                sb.Append($" Missing genes: {string.Join(", ", missingGenes)}.");
+                var localXeno = xenotype;
+                options.Add(new FloatMenuOption(localXeno.LabelCap, () => ApplyPremadeXenotype(localXeno)));
+                infoCardDefs.Add(localXeno);
             }
-            sb.Append($" {FormatCurrentBiostats()}");
+
+            WindowlessFloatMenuState.Open(options, false, infoCardDefs: infoCardDefs);
+        }
+
+        private static void ApplyPremadeXenotype(XenotypeDef xenotype)
+        {
+            if (dialog == null) return;
+
+            fi_xenotypeName.SetValue(dialog, xenotype.label);
+            fi_xenotypeNameLocked.SetValue(dialog, true);
+
+            var selectedList = GetSelectedGenes();
+            selectedList.Clear();
+            selectedList.AddRange(xenotype.genes);
+
+            fi_inheritable.SetValue(dialog, xenotype.inheritable);
+
+            mi_onGenesChanged.Invoke(dialog, null);
+
+            // Enable ignore restrictions if needed
+            bool hasArchite = selectedList.Any(g => g.biostatArc > 0);
+            if (hasArchite)
+            {
+                fi_ignoreRestrictions.SetValue(dialog, true);
+            }
+
+            RebuildAllTrees();
+            BuildControlItems();
 
             SoundDefOf.Tick_High.PlayOneShotOnCamera();
-            TolkHelper.Speak(sb.ToString());
+            TolkHelper.Speak($"Loaded {xenotype.LabelCap}. {selectedList.Count} genes. {FormatCurrentBiostats()}");
         }
 
         // ===== InfoCard =====
@@ -1043,18 +1089,15 @@ namespace RimWorldAccess
         private static void OpenInfoCard()
         {
             InspectionTreeItem item = GetCurrentItem();
-            if (item == null) return;
+            if (item == null)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                return;
+            }
 
             if (item.Data is GeneDef geneDef)
             {
                 Find.WindowStack.Add(new Dialog_InfoCard(geneDef));
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                return;
-            }
-
-            if (item.Data is Genepack genepack)
-            {
-                Find.WindowStack.Add(new Dialog_InfoCard(genepack));
                 SoundDefOf.Click.PlayOneShotOnCamera();
                 return;
             }
@@ -1066,35 +1109,25 @@ namespace RimWorldAccess
 
         private static void RebuildAllTrees()
         {
-            var selectedList = GetSelectedGenepacks();
-            var libraryList = GetLibraryGenepacks();
-            var unpowered = GetUnpoweredGenepacks();
+            var selectedList = GetSelectedGenes();
+            bool ignoreRestr = dialog != null && (bool)fi_ignoreRestrictions.GetValue(dialog);
 
-            // Build Selected tree
-            selectedRoot = BuildGenepackTree(selectedList, unpowered);
+            // Build Selected tree (flat list of selected genes)
+            selectedRoot = BuildSelectedTree(selectedList);
             selectedVisible.Clear();
             CollectVisibleItems(selectedRoot, selectedVisible);
             if (selectedIdx >= selectedVisible.Count)
                 selectedIdx = Math.Max(0, selectedVisible.Count - 1);
 
-            // Build Library tree (exclude already-selected packs)
-            var availableLibrary = new List<Genepack>();
-            if (libraryList != null)
-            {
-                foreach (var pack in libraryList)
-                {
-                    if (selectedList == null || !selectedList.Contains(pack))
-                        availableLibrary.Add(pack);
-                }
-            }
-            libraryRoot = BuildGenepackTree(availableLibrary, unpowered);
+            // Build Library tree (categories with gene children)
+            libraryRoot = BuildLibraryTree(selectedList, ignoreRestr);
             libraryVisible.Clear();
             CollectVisibleItems(libraryRoot, libraryVisible);
             if (libraryIdx >= libraryVisible.Count)
                 libraryIdx = Math.Max(0, libraryVisible.Count - 1);
         }
 
-        private static InspectionTreeItem BuildGenepackTree(List<Genepack> packs, List<Genepack> unpowered)
+        private static InspectionTreeItem BuildSelectedTree(List<GeneDef> selectedGenes)
         {
             var root = new InspectionTreeItem
             {
@@ -1105,58 +1138,85 @@ namespace RimWorldAccess
                 IndentLevel = -1
             };
 
-            if (packs == null || packs.Count == 0)
+            if (selectedGenes == null || selectedGenes.Count == 0)
                 return root;
 
-            foreach (var pack in packs)
+            // Sort to match game's display order
+            var sorted = selectedGenes
+                .OrderByDescending(g => g.displayCategory?.displayPriorityInXenotype ?? 0)
+                .ThenBy(g => g.displayCategory?.label ?? "")
+                .ThenBy(g => g.displayOrderInCategory)
+                .ThenBy(g => g.label)
+                .ToList();
+
+            foreach (var gene in sorted)
             {
-                if (pack?.GeneSet == null || pack.GeneSet.GenesListForReading.NullOrEmpty())
-                    continue;
-
-                bool isUnpowered = unpowered != null && unpowered.Contains(pack);
-                string label = FormatGenepackLabel(pack, isUnpowered);
-
-                var packNode = new InspectionTreeItem
-                {
-                    Type = InspectionTreeItem.ItemType.Item,
-                    Label = label,
-                    Data = pack,
-                    IsExpandable = true,
-                    IsExpanded = false,
-                    IndentLevel = 0
-                };
-
-                // Lazy-load gene children
-                packNode.OnActivate = () => BuildGenepackChildren(packNode, pack);
-
-                GeneTreeBuilder.AddChild(root, packNode);
+                var geneNode = GeneTreeBuilder.CreateGeneNode(gene, root.IndentLevel + 1, includeCategory: false);
+                GeneTreeBuilder.AddChild(root, geneNode);
             }
 
             return root;
         }
 
-        private static void BuildGenepackChildren(InspectionTreeItem packNode, Genepack pack)
+        private static InspectionTreeItem BuildLibraryTree(List<GeneDef> selectedGenes, bool ignoreRestrictions)
         {
-            if (packNode.Children.Count > 0) return;
-
-            var genes = pack.GeneSet.GenesListForReading
-                .OrderByDescending(g => g.displayCategory?.displayPriorityInGenepack ?? 0)
-                .ThenBy(g => g.displayOrderInCategory)
-                .ThenBy(g => g.label)
-                .ToList();
-
-            foreach (var gene in genes)
+            var root = new InspectionTreeItem
             {
-                var geneNode = GeneTreeBuilder.CreateGeneNode(gene, packNode.IndentLevel + 1);
-                GeneTreeBuilder.AddChild(packNode, geneNode);
+                Type = InspectionTreeItem.ItemType.Object,
+                Label = "Root",
+                IsExpandable = true,
+                IsExpanded = true,
+                IndentLevel = -1
+            };
+
+            GeneCategoryDef currentCategory = null;
+            InspectionTreeItem categoryNode = null;
+
+            foreach (var gene in GeneUtility.GenesInOrder)
+            {
+                // Skip archite genes if restrictions not ignored
+                if (!ignoreRestrictions && gene.biostatArc > 0)
+                    continue;
+
+                // New category?
+                if (gene.displayCategory != currentCategory)
+                {
+                    currentCategory = gene.displayCategory;
+                    string catLabel = currentCategory?.LabelCap ?? "Uncategorized";
+
+                    categoryNode = new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.SubCategory,
+                        Label = catLabel,
+                        Data = currentCategory,
+                        IsExpandable = true,
+                        IsExpanded = false,
+                        IndentLevel = 0
+                    };
+
+                    GeneTreeBuilder.AddChild(root, categoryNode);
+                }
+
+                // Build gene node under category
+                bool isSelected = selectedGenes != null && selectedGenes.Contains(gene);
+                string suffix = isSelected ? $" [{((string)"StartingPawnsSelected".Translate()).ToLower()}]" : "";
+
+                var geneNode = GeneTreeBuilder.CreateGeneNode(gene, 1, includeCategory: false);
+                geneNode.Label = geneNode.Label + suffix;
+                // Ensure Data stores the GeneDef for toggle operations
+                geneNode.Data = gene;
+
+                GeneTreeBuilder.AddChild(categoryNode, geneNode);
             }
+
+            return root;
         }
 
         private static void BuildControlItems()
         {
             controlItems.Clear();
 
-            // 1. Biostats summary
+            // 0. Biostats summary
             controlItems.Add(new ControlItem
             {
                 Label = FormatCurrentBiostats(),
@@ -1166,7 +1226,7 @@ namespace RimWorldAccess
                 }
             });
 
-            // 2. Xenotype name (Enter to rename)
+            // 1. Xenotype name (Enter to rename)
             controlItems.Add(new ControlItem
             {
                 Label = FormatXenotypeName(),
@@ -1180,10 +1240,11 @@ namespace RimWorldAccess
                 }
             });
 
-            // 3. Name lock toggle
+            // 2. Name lock toggle
             controlItems.Add(new ControlItem
             {
                 Label = FormatNameLock(),
+                Tooltip = FormatNameLockTooltip(),
                 OnActivate = () =>
                 {
                     if (dialog == null) return;
@@ -1195,17 +1256,18 @@ namespace RimWorldAccess
                         : ((string)"LockNameOff".Translate()).StripTags();
                     TolkHelper.Speak(desc);
                     controlItems[controlIdx].Label = FormatNameLock();
+                    controlItems[controlIdx].Tooltip = FormatNameLockTooltip();
                 }
             });
 
-            // 4. Randomize name
+            // 3. Randomize name
             controlItems.Add(new ControlItem
             {
                 Label = ((string)"RandomizeName".Translate()).StripTags(),
                 OnActivate = () =>
                 {
                     if (dialog == null) return;
-                    var genes = (List<GeneDef>)pi_selectedGenes.GetValue(dialog);
+                    var genes = GetSelectedGenes();
                     if (genes == null || genes.Count == 0)
                     {
                         SoundDefOf.ClickReject.PlayOneShotOnCamera();
@@ -1220,28 +1282,106 @@ namespace RimWorldAccess
                 }
             });
 
-            // 5. Save template
+            // 4. Inheritable toggle
             controlItems.Add(new ControlItem
             {
-                Label = ((string)"SaveXenogermTemplate".Translate()).StripTags(),
-                OnActivate = SaveTemplate
+                Label = FormatInheritable(),
+                Tooltip = ((string)"GenesAreInheritableDesc".Translate()).StripTags(),
+                OnActivate = () =>
+                {
+                    if (dialog == null) return;
+                    bool inheritable = (bool)fi_inheritable.GetValue(dialog);
+                    fi_inheritable.SetValue(dialog, !inheritable);
+                    SoundDefOf.Click.PlayOneShotOnCamera();
+                    TolkHelper.Speak(FormatInheritable());
+                    controlItems[controlIdx].Label = FormatInheritable();
+                }
             });
 
-            // 6. Load template
+            // 5. Ignore restrictions toggle
             controlItems.Add(new ControlItem
             {
-                Label = ((string)"LoadXenogermTemplate".Translate()).StripTags(),
-                OnActivate = LoadTemplate
+                Label = FormatIgnoreRestrictions(),
+                Tooltip = ((string)"IgnoreRestrictionsDesc".Translate()).StripTags(),
+                OnActivate = () =>
+                {
+                    if (dialog == null) return;
+                    bool ignoreRestr = (bool)fi_ignoreRestrictions.GetValue(dialog);
+
+                    if (!ignoreRestr)
+                    {
+                        // Enabling - check if confirmation needed
+                        bool confirmSent = (bool)fi_ignoreRestrictionsConfirmationSent.GetValue(null);
+                        if (!confirmSent)
+                        {
+                            fi_ignoreRestrictionsConfirmationSent.SetValue(null, true);
+                            // Show confirmation dialog - WindowlessConfirmationState will handle it
+                            Find.WindowStack.Add(new Dialog_MessageBox(
+                                (string)"IgnoreRestrictionsConfirmation".Translate(),
+                                (string)"Yes".Translate(),
+                                () =>
+                                {
+                                    fi_ignoreRestrictions.SetValue(dialog, true);
+                                    RebuildAllTrees();
+                                    BuildControlItems();
+                                    TolkHelper.Speak($"{((string)"IgnoreRestrictions".Translate()).StripTags()}: Yes");
+                                },
+                                (string)"No".Translate(),
+                                () =>
+                                {
+                                    TolkHelper.Speak($"{((string)"IgnoreRestrictions".Translate()).StripTags()}: No");
+                                }));
+                            return;
+                        }
+
+                        fi_ignoreRestrictions.SetValue(dialog, true);
+                        RebuildAllTrees();
+                        BuildControlItems();
+                        SoundDefOf.Click.PlayOneShotOnCamera();
+                        TolkHelper.Speak($"{((string)"IgnoreRestrictions".Translate()).StripTags()}: Yes");
+                    }
+                    else
+                    {
+                        // Disabling - remove archite genes
+                        fi_ignoreRestrictions.SetValue(dialog, false);
+                        var selectedList = GetSelectedGenes();
+                        int removed = selectedList.RemoveAll(g => g.biostatArc > 0);
+                        mi_onGenesChanged.Invoke(dialog, null);
+                        RebuildAllTrees();
+                        BuildControlItems();
+                        SoundDefOf.Click.PlayOneShotOnCamera();
+                        string msg = $"{((string)"IgnoreRestrictions".Translate()).StripTags()}: No";
+                        if (removed > 0)
+                            msg += $". {removed} archite {(removed == 1 ? "gene" : "genes")} removed.";
+                        TolkHelper.Speak(msg);
+                    }
+
+                    controlItems[controlIdx].Label = FormatIgnoreRestrictions();
+                }
             });
 
-            // 7. Start Combining
+            // 6. Load custom
             controlItems.Add(new ControlItem
             {
-                Label = (string)"StartCombining".Translate(),
-                OnActivate = StartCombining
+                Label = ((string)"LoadCustom".Translate()).StripTags(),
+                OnActivate = LoadCustom
             });
 
-            // 8. Close
+            // 7. Load premade
+            controlItems.Add(new ControlItem
+            {
+                Label = ((string)"LoadPremade".Translate()).StripTags(),
+                OnActivate = LoadPremade
+            });
+
+            // 8. Save and apply
+            controlItems.Add(new ControlItem
+            {
+                Label = ((string)"SaveAndApply".Translate()).CapitalizeFirst().StripTags(),
+                OnActivate = SaveAndApply
+            });
+
+            // 9. Close
             controlItems.Add(new ControlItem
             {
                 Label = (string)"Close".Translate(),
@@ -1285,13 +1425,10 @@ namespace RimWorldAccess
 
         private static void AnnounceOpening()
         {
-            int maxGCX = (int)fi_maxGCX.GetValue(dialog);
-
-            string header = ((string)"AssembleGenes".Translate()).StripTags();
-            string complexity = ((string)"Complexity".Translate()).CapitalizeFirst();
+            string header = ((string)"CreateXenotype".Translate()).CapitalizeFirst().StripTags();
 
             var sb = new System.Text.StringBuilder();
-            sb.Append($"{header}. {complexity} limit {maxGCX}. ");
+            sb.Append($"{header}. ");
 
             // Announce current tab (includes item count)
             sb.Append(GetTabAnnouncement());
@@ -1309,11 +1446,12 @@ namespace RimWorldAccess
             switch (currentTab)
             {
                 case Tab.Selected:
-                    string selLabel = ((string)"SelectedGenepacks".Translate()).StripTags();
+                    string selLabel = ((string)"SelectedGenes".Translate()).StripTags();
                     return $"{selLabel}, {selectedVisible.Count} {(selectedVisible.Count == 1 ? "item" : "items")}.";
                 case Tab.Library:
-                    string libLabel = ((string)"GenepackLibrary".Translate()).StripTags();
-                    return $"{libLabel}, {libraryVisible.Count} {(libraryVisible.Count == 1 ? "item" : "items")}.";
+                    string libLabel = ((string)"Genes".Translate()).CapitalizeFirst().StripTags();
+                    int categoryCount = libraryRoot?.Children?.Count ?? 0;
+                    return $"{libLabel}, {categoryCount} {(categoryCount == 1 ? "category" : "categories")}.";
                 case Tab.Controls:
                     return "Controls.";
             }
@@ -1329,11 +1467,16 @@ namespace RimWorldAccess
             }
 
             var item = visible[idx];
-            string label = item.Label.StripTags().TrimEnd('.', '!', '?');
+            string label = item.Label.StripTags().TrimEnd();
 
             string stateIndicator = "";
             if (item.IsExpandable)
+            {
+                // Ensure label ends with punctuation for a pause before state indicator
+                if (!label.EndsWith(".") && !label.EndsWith("!") && !label.EndsWith("?"))
+                    label += ".";
                 stateIndicator = item.IsExpanded ? " expanded" : " collapsed";
+            }
 
             var (position, total) = GetSiblingPosition(item, root);
             string positionPart = MenuHelper.FormatPosition(position - 1, total);
@@ -1364,56 +1507,41 @@ namespace RimWorldAccess
             if (controlIdx < 0 || controlIdx >= controlItems.Count)
                 return;
 
-            // Refresh dynamic labels before announcing
+            // Refresh dynamic labels and tooltips before announcing
             if (controlIdx == 0) controlItems[0].Label = FormatCurrentBiostats();
             if (controlIdx == 1) controlItems[1].Label = FormatXenotypeName();
-            if (controlIdx == 2) controlItems[2].Label = FormatNameLock();
+            if (controlIdx == 2)
+            {
+                controlItems[2].Label = FormatNameLock();
+                controlItems[2].Tooltip = FormatNameLockTooltip();
+            }
             if (controlIdx == 3) controlItems[3].Label = ((string)"RandomizeName".Translate()).StripTags();
+            if (controlIdx == 4) controlItems[4].Label = FormatInheritable();
+            if (controlIdx == 5) controlItems[5].Label = FormatIgnoreRestrictions();
 
-            string label = controlItems[controlIdx].Label;
+            var item = controlItems[controlIdx];
             string positionPart = MenuHelper.FormatPosition(controlIdx, controlItems.Count);
 
-            string announcement = string.IsNullOrEmpty(positionPart)
-                ? $"{label}."
-                : $"{label}. {positionPart}.";
+            var sb = new System.Text.StringBuilder();
+            sb.Append(item.Label);
 
-            TolkHelper.Speak(announcement);
+            if (!string.IsNullOrEmpty(item.Tooltip))
+            {
+                sb.Append(". ");
+                sb.Append(item.Tooltip);
+            }
+
+            if (!string.IsNullOrEmpty(positionPart))
+            {
+                sb.Append(". ");
+                sb.Append(positionPart);
+            }
+
+            sb.Append(".");
+            TolkHelper.Speak(sb.ToString());
         }
 
         // ===== Formatting =====
-
-        private static string FormatGenepackLabel(Genepack pack, bool isUnpowered)
-        {
-            var sb = new System.Text.StringBuilder();
-
-            // List all gene names so the user can identify the genepack
-            var geneNames = pack.GeneSet.GenesListForReading
-                .Select(g => g.LabelCap.ToString())
-                .ToList();
-            sb.Append(string.Join(", ", geneNames));
-
-            int cpx = pack.GeneSet.ComplexityTotal;
-            int met = pack.GeneSet.MetabolismTotal;
-            int arc = pack.GeneSet.ArchitesTotal;
-
-            string complexityLabel = ((string)"Complexity".Translate()).ToLower();
-            string metabolismLabel = ((string)"Metabolism".Translate()).ToLower();
-
-            sb.Append($", {complexityLabel} {cpx}, {metabolismLabel} {met.ToStringWithSign()}");
-
-            if (arc > 0)
-            {
-                string architesLabel = ((string)"ArchitesRequired".Translate()).ToLower();
-                sb.Append($", {architesLabel} {arc}");
-            }
-
-            if (isUnpowered)
-            {
-                sb.Append(", unpowered");
-            }
-
-            return sb.ToString();
-        }
 
         private static string FormatCurrentBiostats()
         {
@@ -1422,21 +1550,25 @@ namespace RimWorldAccess
             int gcx = (int)fi_gcx.GetValue(dialog);
             int met = (int)fi_met.GetValue(dialog);
             int arc = (int)fi_arc.GetValue(dialog);
-            int maxGCX = (int)fi_maxGCX.GetValue(dialog);
 
             string complexityLabel = ((string)"Complexity".Translate()).CapitalizeFirst();
             string metabolismLabel = ((string)"Metabolism".Translate()).CapitalizeFirst();
 
             var sb = new System.Text.StringBuilder();
             sb.Append($"{complexityLabel} {gcx}");
-            if (maxGCX >= 0)
-                sb.Append($" of {maxGCX} max");
             sb.Append($", {metabolismLabel} {met.ToStringWithSign()}");
 
             if (arc > 0)
             {
                 string architesLabel = ((string)"ArchitesRequired".Translate()).CapitalizeFirst();
                 sb.Append($", {architesLabel} {arc}");
+            }
+
+            // Announce gene conflicts if any
+            var leftChosenGroups = fi_leftChosenGroups.GetValue(dialog) as System.Collections.IList;
+            if (leftChosenGroups != null && leftChosenGroups.Count > 0)
+            {
+                sb.Append($". {((string)"GenesConflict".Translate()).StripTags()}");
             }
 
             return sb.ToString();
@@ -1456,11 +1588,31 @@ namespace RimWorldAccess
         {
             if (dialog == null) return "";
             bool locked = (bool)fi_xenotypeNameLocked.GetValue(dialog);
-            // Use the game's lock description strings
             if (locked)
                 return ((string)"LockNameOn".Translate()).StripTags();
             else
                 return ((string)"LockNameOff".Translate()).StripTags();
+        }
+
+        private static string FormatNameLockTooltip()
+        {
+            return ((string)"LockNameButtonDesc".Translate()).StripTags();
+        }
+
+        private static string FormatInheritable()
+        {
+            if (dialog == null) return "";
+            bool inheritable = (bool)fi_inheritable.GetValue(dialog);
+            string label = ((string)"GenesAreInheritable".Translate()).StripTags();
+            return $"{label}: {(inheritable ? "Yes" : "No")}";
+        }
+
+        private static string FormatIgnoreRestrictions()
+        {
+            if (dialog == null) return "";
+            bool ignoreRestr = (bool)fi_ignoreRestrictions.GetValue(dialog);
+            string label = ((string)"IgnoreRestrictions".Translate()).StripTags();
+            return $"{label}: {(ignoreRestr ? "Yes" : "No")}";
         }
 
         // ===== Helpers =====
@@ -1516,19 +1668,9 @@ namespace RimWorldAccess
 
         // ===== Reflection Accessors =====
 
-        private static List<Genepack> GetSelectedGenepacks()
+        private static List<GeneDef> GetSelectedGenes()
         {
-            return dialog != null ? (List<Genepack>)fi_selectedGenepacks.GetValue(dialog) : null;
-        }
-
-        private static List<Genepack> GetLibraryGenepacks()
-        {
-            return dialog != null ? (List<Genepack>)fi_libraryGenepacks.GetValue(dialog) : null;
-        }
-
-        private static List<Genepack> GetUnpoweredGenepacks()
-        {
-            return dialog != null ? (List<Genepack>)fi_unpoweredGenepacks.GetValue(dialog) : null;
+            return dialog != null ? (List<GeneDef>)fi_selectedGenes.GetValue(dialog) : null;
         }
     }
 }

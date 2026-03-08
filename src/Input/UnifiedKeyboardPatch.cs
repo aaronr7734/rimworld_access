@@ -98,6 +98,14 @@ namespace RimWorldAccess
                         Event.current.Use();
                         return;
                     }
+
+                    // XenotypeEditorState xenotype name rename
+                    if (XenotypeEditorState.IsActive && XenotypeEditorState.IsRenaming)
+                    {
+                        TextInputHelper.HandleCharacter(c);
+                        Event.current.Use();
+                        return;
+                    }
                 }
             }
 
@@ -123,6 +131,20 @@ namespace RimWorldAccess
             if (XenogermState.IsActive && XenogermState.IsRenaming)
             {
                 if (XenogermState.HandleRenameInput(Event.current))
+                {
+                    Event.current.Use();
+                }
+                else
+                {
+                    Event.current.Use(); // Block all other keys while renaming
+                }
+                return;
+            }
+
+            // ===== PRIORITY -0.94: Block ALL keys if xenotype editor rename is active =====
+            if (XenotypeEditorState.IsActive && XenotypeEditorState.IsRenaming)
+            {
+                if (XenotypeEditorState.HandleRenameInput(Event.current))
                 {
                     Event.current.Use();
                 }
@@ -396,6 +418,17 @@ namespace RimWorldAccess
             if (XenogermState.IsActive)
             {
                 if (XenogermState.HandleInput(Event.current))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY -0.205: Handle Xenotype Editor dialog if active =====
+            // Xenotype editor dialog for creating custom xenotypes (Biotech DLC, chargen)
+            if (XenotypeEditorState.IsActive)
+            {
+                if (XenotypeEditorState.HandleInput(Event.current))
                 {
                     Event.current.Use();
                     return;
