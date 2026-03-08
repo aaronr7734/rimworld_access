@@ -14,6 +14,7 @@ namespace RimWorldAccess
         private static bool patchActive = false;
         private static bool hasAnnouncedTitle = false;
         private static bool advancingToNextPage = false;
+        private static PlanetTile savedTileForReturn = PlanetTile.Invalid;
 
         // Prefix: Initialize state and handle keyboard input
         // NOTE: Most key handling here is duplicated in UnifiedKeyboardPatch at priority 0.55.
@@ -24,17 +25,29 @@ namespace RimWorldAccess
         {
             try
             {
+                // Don't initialize if pawn selection screen is active on top of us
+                if (StartingPawnState.IsActive)
+                    return;
+
                 // Initialize shared world navigation state on first frame
                 if (!WorldNavigationState.IsActive)
                 {
-                    WorldNavigationState.Open(WorldNavContext.WorldGen);
+                    if (savedTileForReturn.Valid)
+                    {
+                        WorldNavigationState.Open(WorldNavContext.WorldGen, savedTileForReturn);
+                        savedTileForReturn = PlanetTile.Invalid;
+                    }
+                    else
+                    {
+                        WorldNavigationState.Open(WorldNavContext.WorldGen);
+                    }
                     StartingSiteContext.Open();
                 }
 
                 // Announce window title once
                 if (!hasAnnouncedTitle)
                 {
-                    string pageTitle = "Select Starting Site";
+                    string pageTitle = "SelectStartingSite".Translate();
                     TolkHelper.Speak($"{pageTitle} - Arrow keys to navigate, Control+arrows to jump by biome, " +
                         "Page Up/Down for scanner, Z to search, 1-5 for tile info, " +
                         "I for detailed info menu, F for factions, Enter to validate selection");
@@ -304,6 +317,9 @@ namespace RimWorldAccess
 
             // Announce confirmation before advancing
             TolkHelper.Speak("Starting site selected.");
+
+            // Save tile so we can restore it if the user comes back from chargen
+            savedTileForReturn = WorldNavigationState.CurrentSelectedTile;
 
             // Prevent PostClose from resetting state, which causes the DoWindowContents
             // Prefix to re-initialize and re-announce during the page transition.

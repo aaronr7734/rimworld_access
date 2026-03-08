@@ -918,7 +918,8 @@ namespace RimWorldAccess
             // This follows the same dual-handling pattern used for Z key (priority 4.745)
             // and 1-5 tile info keys (priority 5.45).
             if (WorldNavigationState.IsActive &&
-                WorldNavigationState.Context == WorldNavContext.WorldGen)
+                WorldNavigationState.Context == WorldNavContext.WorldGen &&
+                !StartingPawnState.IsActive)
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
@@ -1270,6 +1271,27 @@ namespace RimWorldAccess
                 }
 
                 if (ScenarioBuilderState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 2.3: Handle pawn selection screen =====
+            if (StartingPawnState.IsActive && !WindowlessFloatMenuState.IsActive && !WindowlessDialogState.IsActive
+                && !Find.WindowStack.IsOpen<Dialog_NamePawn>())
+            {
+                // Character input for typeahead
+                if (Event.current.character != '\0' && !Event.current.control && !Event.current.alt)
+                {
+                    if (StartingPawnState.HandleCharacterInput(Event.current.character))
+                    {
+                        Event.current.Use();
+                        return;
+                    }
+                }
+
+                if (StartingPawnState.HandleInput(key, Event.current))
                 {
                     Event.current.Use();
                     return;
@@ -3453,10 +3475,11 @@ namespace RimWorldAccess
                 bool alt = Event.current.alt;
 
                 // Check placement mode (search should work during placement)
+                // Guard Find.DesignatorManager with CurrentMap — it chains through Find.MapUI which throws during Entry state
                 bool inPlacementMode = ArchitectState.IsInPlacementMode ||
                     ViewingModeState.IsActive ||
                     ShapePlacementState.IsActive ||
-                    (Find.DesignatorManager != null && Find.DesignatorManager.SelectedDesignator != null);
+                    (Find.CurrentMap != null && Find.DesignatorManager != null && Find.DesignatorManager.SelectedDesignator != null);
 
                 // Determine if search should be allowed
                 // Allow search when: on map/world AND (no blocking menus OR in placement mode)
@@ -3498,10 +3521,11 @@ namespace RimWorldAccess
                 bool alt = Event.current.alt;
 
                 // Check placement mode (Go To should work during placement like scanner search)
+                // Guard Find.DesignatorManager with CurrentMap — it chains through Find.MapUI which throws during Entry state
                 bool inPlacementMode = ArchitectState.IsInPlacementMode ||
                     ViewingModeState.IsActive ||
                     ShapePlacementState.IsActive ||
-                    (Find.DesignatorManager != null && Find.DesignatorManager.SelectedDesignator != null);
+                    (Find.CurrentMap != null && Find.DesignatorManager != null && Find.DesignatorManager.SelectedDesignator != null);
 
                 // Determine if Go To should be allowed
                 bool menuBlocksGoTo = KeyboardHelper.IsAnyAccessibilityMenuActive() && !inPlacementMode;
