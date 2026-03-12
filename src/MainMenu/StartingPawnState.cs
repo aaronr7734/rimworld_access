@@ -168,6 +168,13 @@ namespace RimWorldAccess
             bool ctrl = currentEvent.control;
             bool alt = currentEvent.alt;
 
+            // Alt+F: Open filter editor
+            if (alt && key == KeyCode.F)
+            {
+                PawnFilterState.Open();
+                return true;
+            }
+
             // Alt+R: Randomize
             if (alt && key == KeyCode.R)
             {
@@ -672,7 +679,15 @@ namespace RimWorldAccess
                 }
             }
 
-            TolkHelper.Speak("Randomize".Translate());
+            string randomizeAnnouncement = "Randomize".Translate();
+            if (PawnFilterData.HasActiveFilters())
+            {
+                if (PawnFilterData.LastRerollSucceeded)
+                    randomizeAnnouncement += $". Found match in {PawnFilterData.LastRerollAttempts} attempts.";
+                else
+                    randomizeAnnouncement += $". No match after {PawnFilterData.LastRerollAttempts} attempts, keeping last result.";
+            }
+            TolkHelper.Speak(randomizeAnnouncement);
             AnnounceCurrentItem();
         }
 

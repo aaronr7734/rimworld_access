@@ -1310,9 +1310,29 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 2.25: Pawn filter editor =====
+            if (PawnFilterState.IsActive && !WindowlessFloatMenuState.IsActive)
+            {
+                // Character input for typeahead
+                if (Event.current.character != '\0' && !Event.current.control && !Event.current.alt)
+                {
+                    if (PawnFilterState.HandleCharacterInput(Event.current.character))
+                    {
+                        Event.current.Use();
+                        return;
+                    }
+                }
+
+                if (PawnFilterState.HandleInput(key, Event.current))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 2.3: Handle pawn selection screen =====
             if (StartingPawnState.IsActive && !WindowlessFloatMenuState.IsActive && !WindowlessDialogState.IsActive
-                && !Find.WindowStack.IsOpen<Dialog_NamePawn>())
+                && !PawnFilterState.IsActive && !Find.WindowStack.IsOpen<Dialog_NamePawn>())
             {
                 // Character input for typeahead
                 if (Event.current.character != '\0' && !Event.current.control && !Event.current.alt)

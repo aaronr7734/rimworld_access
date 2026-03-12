@@ -1,0 +1,498 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using RimWorld;
+using Verse;
+using Verse.Grammar;
+
+namespace RimWorldAccess
+{
+    public enum FilterItemType
+    {
+        SectionHeader,
+        Skill,
+        PassionMin,
+        PassionMax,
+        SkillPointsMin,
+        SkillPointsMax,
+        TraitEntry,
+        AddRequiredTrait,
+        AddExcludedTrait,
+        AgeMin,
+        AgeMax,
+        Gender,
+        Health,
+        Work,
+        RerollLimit,
+        ClearAll
+    }
+
+    public class FilterMenuItem
+    {
+        public string Label { get; set; }
+        public FilterItemType ItemType { get; set; }
+        public SkillFilter SkillFilter { get; set; }
+        public TraitFilter TraitFilter { get; set; }
+        public bool IsSectionHeader => ItemType == FilterItemType.SectionHeader;
+    }
+
+    public static class PawnFilterHelper
+    {
+        private static readonly int[] RerollLimitSteps = { 100, 250, 500, 1000, 2500, 5000 };
+
+        public static List<FilterMenuItem> BuildMenuItems(PawnFilter filter)
+        {
+            var items = new List<FilterMenuItem>();
+
+            // Skills section
+            items.Add(new FilterMenuItem
+            {
+                Label = "Skills".Translate(),
+                ItemType = FilterItemType.SectionHeader
+            });
+
+            foreach (var skill in filter.Skills)
+            {
+                items.Add(new FilterMenuItem
+                {
+                    Label = FormatSkillLabel(skill),
+                    ItemType = FilterItemType.Skill,
+                    SkillFilter = skill
+                });
+            }
+
+            // Passion and skill point aggregate filters (still in Skills section)
+            items.Add(new FilterMenuItem
+            {
+                Label = FormatPassionMinLabel(filter),
+                ItemType = FilterItemType.PassionMin
+            });
+
+            items.Add(new FilterMenuItem
+            {
+                Label = FormatPassionMaxLabel(filter),
+                ItemType = FilterItemType.PassionMax
+            });
+
+            items.Add(new FilterMenuItem
+            {
+                Label = FormatSkillPointsMinLabel(filter),
+                ItemType = FilterItemType.SkillPointsMin
+            });
+
+            items.Add(new FilterMenuItem
+            {
+                Label = FormatSkillPointsMaxLabel(filter),
+                ItemType = FilterItemType.SkillPointsMax
+            });
+
+            // Traits section
+            items.Add(new FilterMenuItem
+            {
+                Label = "Traits".Translate(),
+                ItemType = FilterItemType.SectionHeader
+            });
+
+            foreach (var trait in filter.Traits)
+            {
+                string modeLabel = trait.Mode == TraitFilterMode.Required
+                    ? "Required".Translate()
+                    : "Excluded".Translate();
+                items.Add(new FilterMenuItem
+                {
+                    Label = $"{modeLabel}: {trait.Label}",
+                    ItemType = FilterItemType.TraitEntry,
+                    TraitFilter = trait
+                });
+            }
+
+            items.Add(new FilterMenuItem
+            {
+                Label = "Add required trait...",
+                ItemType = FilterItemType.AddRequiredTrait
+            });
+
+            items.Add(new FilterMenuItem
+            {
+                Label = "Add excluded trait...",
+                ItemType = FilterItemType.AddExcludedTrait
+            });
+
+            // Demographics section
+            items.Add(new FilterMenuItem
+            {
+                Label = "Demographics",
+                ItemType = FilterItemType.SectionHeader
+            });
+
+            items.Add(new FilterMenuItem
+            {
+                Label = FormatAgeMinLabel(filter),
+                ItemType = FilterItemType.AgeMin
+            });
+
+            items.Add(new FilterMenuItem
+            {
+                Label = FormatAgeMaxLabel(filter),
+                ItemType = FilterItemType.AgeMax
+            });
+
+            items.Add(new FilterMenuItem
+            {
+                Label = FormatGenderLabel(filter),
+                ItemType = FilterItemType.Gender
+            });
+
+            // Conditions section
+            items.Add(new FilterMenuItem
+            {
+                Label = "Conditions",
+                ItemType = FilterItemType.SectionHeader
+            });
+
+            items.Add(new FilterMenuItem
+            {
+                Label = FormatHealthLabel(filter),
+                ItemType = FilterItemType.Health
+            });
+
+            items.Add(new FilterMenuItem
+            {
+                Label = FormatWorkLabel(filter),
+                ItemType = FilterItemType.Work
+            });
+
+            // Settings section
+            items.Add(new FilterMenuItem
+            {
+                Label = "Settings".Translate(),
+                ItemType = FilterItemType.SectionHeader
+            });
+
+            items.Add(new FilterMenuItem
+            {
+                Label = FormatRerollLimitLabel(filter),
+                ItemType = FilterItemType.RerollLimit
+            });
+
+            // Actions section
+            items.Add(new FilterMenuItem
+            {
+                Label = "Actions",
+                ItemType = FilterItemType.SectionHeader
+            });
+
+            items.Add(new FilterMenuItem
+            {
+                Label = "ClearAll".Translate(),
+                ItemType = FilterItemType.ClearAll
+            });
+
+            return items;
+        }
+
+        public static string FormatSkillLabel(SkillFilter skill)
+        {
+            string label = skill.Skill.skillLabel.CapitalizeFirst() + ": ";
+
+            if (skill.MinLevel <= 0 && skill.MinPassion == Passion.None)
+            {
+                label += "Any";
+                return label;
+            }
+
+            var parts = new List<string>();
+            if (skill.MinLevel > 0)
+                parts.Add($"{"minimum".Translate()} {skill.MinLevel}");
+
+            if (skill.MinPassion != Passion.None)
+            {
+                string passionLabel = skill.MinPassion == Passion.Minor
+                    ? "PassionMinor".Translate()
+                    : "PassionMajor".Translate();
+                parts.Add(passionLabel);
+            }
+
+            label += string.Join(", ", parts);
+            return label;
+        }
+
+        public static string FormatPassionMinLabel(PawnFilter filter)
+        {
+            if (filter.PassionMin <= 0)
+                return "Total passions " + "minimum".Translate() + ": " + "Any";
+            return "Total passions " + "minimum".Translate() + ": " + filter.PassionMin;
+        }
+
+        public static string FormatPassionMaxLabel(PawnFilter filter)
+        {
+            if (filter.PassionMax >= 12)
+                return "Total passions " + "maximum".Translate() + ": " + "Any";
+            return "Total passions " + "maximum".Translate() + ": " + filter.PassionMax;
+        }
+
+        public static string FormatSkillPointsMinLabel(PawnFilter filter)
+        {
+            if (filter.SkillPointsMin <= 0)
+                return "Total skill points " + "minimum".Translate() + ": " + "Any";
+            return "Total skill points " + "minimum".Translate() + ": " + filter.SkillPointsMin;
+        }
+
+        public static string FormatSkillPointsMaxLabel(PawnFilter filter)
+        {
+            if (filter.SkillPointsMax >= 240)
+                return "Total skill points " + "maximum".Translate() + ": " + "Any";
+            return "Total skill points " + "maximum".Translate() + ": " + filter.SkillPointsMax;
+        }
+
+        public static string FormatAgeMinLabel(PawnFilter filter)
+        {
+            if (filter.AgeMin <= 0)
+                return "Age" + " " + "minimum".Translate() + ": " + "Any";
+            return "Age" + " " + "minimum".Translate() + ": " + filter.AgeMin;
+        }
+
+        public static string FormatAgeMaxLabel(PawnFilter filter)
+        {
+            if (filter.AgeMax >= 120)
+                return "Age" + " " + "maximum".Translate() + ": " + "Any";
+            return "Age" + " " + "maximum".Translate() + ": " + filter.AgeMax;
+        }
+
+        public static string FormatGenderLabel(PawnFilter filter)
+        {
+            string value;
+            if (!filter.Gender.HasValue)
+                value = "Any";
+            else if (filter.Gender.Value == Verse.Gender.Male)
+                value = "Male".Translate();
+            else
+                value = "Female".Translate();
+
+            return "Gender".Translate() + ": " + value;
+        }
+
+        public static string FormatHealthLabel(PawnFilter filter)
+        {
+            string value;
+            switch (filter.Health)
+            {
+                case HealthFilterMode.AllowAll: value = "AllowAll".Translate(); break;
+                case HealthFilterMode.NoPain: value = "NoPain".Translate(); break;
+                case HealthFilterMode.NoAddiction: value = "NoAddiction".Translate(); break;
+                case HealthFilterMode.AllowNone: value = "None".Translate(); break;
+                default: value = "AllowAll".Translate(); break;
+            }
+            return "Health".Translate() + ": " + value;
+        }
+
+        public static string FormatWorkLabel(PawnFilter filter)
+        {
+            string value;
+            switch (filter.Work)
+            {
+                case WorkFilterMode.AllowAll: value = "AllowAll".Translate(); break;
+                case WorkFilterMode.NoDumbLabor: value = "NoDumbLabor".Translate(); break;
+                case WorkFilterMode.AllowNone: value = "None".Translate(); break;
+                default: value = "AllowAll".Translate(); break;
+            }
+            return "IncapableOf".Translate() + ": " + value;
+        }
+
+        public static string FormatRerollLimitLabel(PawnFilter filter)
+        {
+            return "Reroll limit: " + filter.RerollLimit;
+        }
+
+        public static List<FloatMenuOption> BuildTraitPickerOptions(
+            PawnFilter filter, TraitFilterMode mode, Action onTraitAdded)
+        {
+            var options = new List<FloatMenuOption>();
+            var existingTraits = new HashSet<string>();
+
+            foreach (var existing in filter.Traits)
+                existingTraits.Add(existing.Def.defName + "_" + existing.Degree);
+
+            var allTraits = DefDatabase<TraitDef>.AllDefsListForReading;
+
+            foreach (var traitDef in allTraits.OrderBy(t => t.defName))
+            {
+                if (traitDef.degreeDatas == null) continue;
+
+                foreach (var degree in traitDef.degreeDatas)
+                {
+                    string key = traitDef.defName + "_" + degree.degree;
+                    if (existingTraits.Contains(key))
+                        continue;
+
+                    var trait = new Trait(traitDef, degree.degree);
+                    string label = trait.LabelCap;
+                    string desc = degree.description;
+                    if (!string.IsNullOrEmpty(desc))
+                    {
+                        // Convert {PAWN_*} to [PAWN_*] so GrammarResolver handles both formats
+                        desc = Regex.Replace(desc, @"\{(PAWN_\w+)\}", "[$1]");
+
+                        // Resolve using game's grammar system with generic female colonist
+                        var request = default(GrammarRequest);
+                        request.Includes.Add(RulePackDefOf.DynamicWrapper);
+                        request.Rules.Add(new Rule_String("RULE", desc));
+                        request.Rules.AddRange(GrammarUtility.RulesForPawn(
+                            "PAWN", null, null, PawnKindDefOf.Colonist, Gender.Female,
+                            null, 25, 25, "", false, false, false, null, false, "",
+                            null, false));
+                        desc = GrammarResolver.Resolve("r_root", request);
+                    }
+
+                    var option = new FloatMenuOption(label, () =>
+                    {
+                        filter.Traits.Add(new TraitFilter
+                        {
+                            Def = traitDef,
+                            Degree = degree.degree,
+                            Mode = mode
+                        });
+                        onTraitAdded?.Invoke();
+                    });
+
+                    if (!string.IsNullOrEmpty(desc))
+                        option.tooltip = new TipSignal(desc);
+
+                    options.Add(option);
+                }
+            }
+
+            return options;
+        }
+
+        public static void AdjustRerollLimit(PawnFilter filter, int direction)
+        {
+            int currentIndex = -1;
+            for (int i = 0; i < RerollLimitSteps.Length; i++)
+            {
+                if (RerollLimitSteps[i] == filter.RerollLimit)
+                {
+                    currentIndex = i;
+                    break;
+                }
+            }
+
+            if (currentIndex < 0)
+            {
+                // Not on a standard step — snap to nearest
+                currentIndex = 2; // default to 500
+            }
+
+            int newIndex = currentIndex + direction;
+            if (newIndex < 0) newIndex = 0;
+            if (newIndex >= RerollLimitSteps.Length) newIndex = RerollLimitSteps.Length - 1;
+
+            filter.RerollLimit = RerollLimitSteps[newIndex];
+        }
+
+        public static void CycleGender(PawnFilter filter, int direction)
+        {
+            // Cycle: null (Any) → Male → Female → null
+            if (!filter.Gender.HasValue)
+                filter.Gender = direction > 0 ? Verse.Gender.Male : Verse.Gender.Female;
+            else if (filter.Gender.Value == Verse.Gender.Male)
+                filter.Gender = direction > 0 ? Verse.Gender.Female : (Gender?)null;
+            else // Female
+                filter.Gender = direction > 0 ? (Gender?)null : Verse.Gender.Male;
+        }
+
+        public static void CycleHealth(PawnFilter filter, int direction)
+        {
+            var values = (HealthFilterMode[])Enum.GetValues(typeof(HealthFilterMode));
+            int idx = Array.IndexOf(values, filter.Health);
+            idx = (idx + direction + values.Length) % values.Length;
+            filter.Health = values[idx];
+        }
+
+        public static void CycleWork(PawnFilter filter, int direction)
+        {
+            var values = (WorkFilterMode[])Enum.GetValues(typeof(WorkFilterMode));
+            int idx = Array.IndexOf(values, filter.Work);
+            idx = (idx + direction + values.Length) % values.Length;
+            filter.Work = values[idx];
+        }
+
+        public static void CyclePassion(SkillFilter skill)
+        {
+            switch (skill.MinPassion)
+            {
+                case Passion.None:
+                    skill.MinPassion = Passion.Minor;
+                    break;
+                case Passion.Minor:
+                    skill.MinPassion = Passion.Major;
+                    break;
+                case Passion.Major:
+                    skill.MinPassion = Passion.None;
+                    break;
+            }
+        }
+
+        public static void AdjustSkillLevel(SkillFilter skill, int direction)
+        {
+            skill.MinLevel += direction;
+            if (skill.MinLevel < 0) skill.MinLevel = 0;
+            if (skill.MinLevel > 20) skill.MinLevel = 20;
+        }
+
+        public static void AdjustPassion(PawnFilter filter, bool isMin, int direction)
+        {
+            if (isMin)
+            {
+                filter.PassionMin += direction;
+                if (filter.PassionMin < 0) filter.PassionMin = 0;
+                if (filter.PassionMin > 12) filter.PassionMin = 12;
+                if (filter.PassionMin > filter.PassionMax) filter.PassionMax = filter.PassionMin;
+            }
+            else
+            {
+                filter.PassionMax += direction;
+                if (filter.PassionMax < 0) filter.PassionMax = 0;
+                if (filter.PassionMax > 12) filter.PassionMax = 12;
+                if (filter.PassionMax < filter.PassionMin) filter.PassionMin = filter.PassionMax;
+            }
+        }
+
+        public static void AdjustSkillPoints(PawnFilter filter, bool isMin, int direction)
+        {
+            if (isMin)
+            {
+                filter.SkillPointsMin += direction;
+                if (filter.SkillPointsMin < 0) filter.SkillPointsMin = 0;
+                if (filter.SkillPointsMin > 240) filter.SkillPointsMin = 240;
+                if (filter.SkillPointsMin > filter.SkillPointsMax) filter.SkillPointsMax = filter.SkillPointsMin;
+            }
+            else
+            {
+                filter.SkillPointsMax += direction;
+                if (filter.SkillPointsMax < 0) filter.SkillPointsMax = 0;
+                if (filter.SkillPointsMax > 240) filter.SkillPointsMax = 240;
+                if (filter.SkillPointsMax < filter.SkillPointsMin) filter.SkillPointsMin = filter.SkillPointsMax;
+            }
+        }
+
+        public static void AdjustAge(PawnFilter filter, bool isMin, int direction)
+        {
+            if (isMin)
+            {
+                filter.AgeMin += direction;
+                if (filter.AgeMin < 0) filter.AgeMin = 0;
+                if (filter.AgeMin > 120) filter.AgeMin = 120;
+                if (filter.AgeMin > filter.AgeMax) filter.AgeMax = filter.AgeMin;
+            }
+            else
+            {
+                filter.AgeMax += direction;
+                if (filter.AgeMax < 0) filter.AgeMax = 0;
+                if (filter.AgeMax > 120) filter.AgeMax = 120;
+                if (filter.AgeMax < filter.AgeMin) filter.AgeMin = filter.AgeMax;
+            }
+        }
+    }
+}

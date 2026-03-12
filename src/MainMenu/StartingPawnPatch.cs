@@ -22,6 +22,7 @@ namespace RimWorldAccess
                 }
 
                 StartingPawnPatch.SetInstance(__instance);
+                PawnFilterData.Initialize();
                 StartingPawnState.Open();
 
                 // Restore IMGUI focus to this page after dialog closures
@@ -95,7 +96,7 @@ namespace RimWorldAccess
             if (__instance is Page_ConfigureStartingPawns)
             {
                 // Block DoNext when our overlay menus are active
-                if (WindowlessFloatMenuState.IsActive || InfoCardState.IsActive)
+                if (WindowlessFloatMenuState.IsActive || InfoCardState.IsActive || PawnFilterState.IsActive)
                     return false;
             }
             return true;
@@ -116,7 +117,7 @@ namespace RimWorldAccess
         {
             if (__instance is Page_ConfigureStartingPawns)
             {
-                bool blocked = WindowlessFloatMenuState.IsActive || WindowlessDialogState.IsActive || InfoCardState.IsActive;
+                bool blocked = WindowlessFloatMenuState.IsActive || WindowlessDialogState.IsActive || InfoCardState.IsActive || PawnFilterState.IsActive;
                 if (blocked)
                     return false;
                 // Mark the frame so cascading DoBack on the previous page is blocked

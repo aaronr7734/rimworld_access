@@ -757,6 +757,14 @@ namespace RimWorldAccess
             renameOption.tooltip = new TipSignal("Alt+N");
             options.Add(renameOption);
 
+            // Edit pawn filter (Alt+F)
+            var filterOption = new FloatMenuOption("Edit pawn filter...", () =>
+            {
+                PawnFilterState.Open();
+            });
+            filterOption.tooltip = new TipSignal("Alt+F");
+            options.Add(filterOption);
+
             // Biotech: Developmental stage and xenotype selectors
             if (ModsConfig.BiotechActive)
             {
