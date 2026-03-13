@@ -9,12 +9,14 @@ namespace RimWorldAccess
     public enum TraitFilterMode
     {
         Required,
+        Optional,
         Excluded
     }
 
     public enum HealthFilterMode
     {
         AllowAll,
+        OnlyStartCondition,
         NoPain,
         NoAddiction,
         AllowNone
@@ -25,6 +27,12 @@ namespace RimWorldAccess
         AllowAll,
         NoDumbLabor,
         AllowNone
+    }
+
+    public enum RerollAlgorithm
+    {
+        Normal,
+        Fast
     }
 
     public class SkillFilter
@@ -59,6 +67,10 @@ namespace RimWorldAccess
         public int SkillPointsMin { get; set; } = 0;
         public int SkillPointsMax { get; set; } = 240;
         public int RerollLimit { get; set; } = 500;
+        public int RequiredTraitsInPool { get; set; } = 0;
+        public bool CountOnlyHighestAttack { get; set; } = false;
+        public bool CountOnlyPassionSkills { get; set; } = false;
+        public RerollAlgorithm Algorithm { get; set; } = RerollAlgorithm.Fast;
 
         public void InitializeSkills()
         {
@@ -93,6 +105,10 @@ namespace RimWorldAccess
             Health = HealthFilterMode.AllowAll;
             Work = WorkFilterMode.AllowAll;
             RerollLimit = 500;
+            RequiredTraitsInPool = 0;
+            CountOnlyHighestAttack = false;
+            CountOnlyPassionSkills = false;
+            Algorithm = RerollAlgorithm.Fast;
         }
 
         public bool HasActiveFilters()
@@ -103,7 +119,11 @@ namespace RimWorldAccess
                 return true;
             if (SkillPointsMin > 0 || SkillPointsMax < 240)
                 return true;
+            if (CountOnlyHighestAttack || CountOnlyPassionSkills)
+                return true;
             if (Traits.Count > 0)
+                return true;
+            if (RequiredTraitsInPool > 0)
                 return true;
             if (AgeMin > 0 || AgeMax < 120)
                 return true;
@@ -122,7 +142,10 @@ namespace RimWorldAccess
             count += Skills.Count(s => s.IsActive);
             if (PassionMin > 0 || PassionMax < 12) count++;
             if (SkillPointsMin > 0 || SkillPointsMax < 240) count++;
+            if (CountOnlyHighestAttack) count++;
+            if (CountOnlyPassionSkills) count++;
             count += Traits.Count;
+            if (RequiredTraitsInPool > 0) count++;
             if (AgeMin > 0 || AgeMax < 120) count++;
             if (Gender.HasValue) count++;
             if (Health != HealthFilterMode.AllowAll) count++;
@@ -189,9 +212,34 @@ namespace RimWorldAccess
             if (SkillPointsMin <= 0 && SkillPointsMax >= 240) return true;
             if (pawn.skills == null) return true;
 
-            int totalPoints = pawn.skills.skills
-                .Where(s => !s.TotallyDisabled)
-                .Sum(s => s.Level);
+            int totalPoints = 0;
+            bool shootingCounted = false;
+
+            foreach (var skill in pawn.skills.skills)
+            {
+                if (skill.TotallyDisabled) continue;
+
+                if (CountOnlyHighestAttack &&
+                    (skill.def == SkillDefOf.Shooting || skill.def == SkillDefOf.Melee))
+                {
+                    if (!shootingCounted)
+                    {
+                        var shooting = pawn.skills.GetSkill(SkillDefOf.Shooting);
+                        var melee = pawn.skills.GetSkill(SkillDefOf.Melee);
+                        int shootingLevel = (shooting != null && !shooting.TotallyDisabled) ? shooting.Level : 0;
+                        int meleeLevel = (melee != null && !melee.TotallyDisabled) ? melee.Level : 0;
+                        totalPoints += Math.Max(shootingLevel, meleeLevel);
+                        shootingCounted = true;
+                    }
+                    continue;
+                }
+
+                if (CountOnlyPassionSkills && skill.passion == Passion.None)
+                    continue;
+
+                totalPoints += skill.Level;
+            }
+
             return totalPoints >= SkillPointsMin && totalPoints <= SkillPointsMax;
         }
 
@@ -206,6 +254,15 @@ namespace RimWorldAccess
                 if (filter.Mode == TraitFilterMode.Required && !hasTrait)
                     return false;
                 if (filter.Mode == TraitFilterMode.Excluded && hasTrait)
+                    return false;
+            }
+
+            // Check optional trait pool
+            if (RequiredTraitsInPool > 0)
+            {
+                var optionalTraits = Traits.Where(t => t.Mode == TraitFilterMode.Optional);
+                int poolMatches = optionalTraits.Count(t => pawn.story.traits.HasTrait(t.Def, t.Degree));
+                if (poolMatches < RequiredTraitsInPool)
                     return false;
             }
 
@@ -226,6 +283,12 @@ namespace RimWorldAccess
             return pawn.gender == Gender.Value;
         }
 
+        private static bool IsGeneAffected(Hediff hediff)
+        {
+            if (!ModsConfig.BiotechActive) return false;
+            return hediff is Hediff_ChemicalDependency chemDep && chemDep.LinkedGene != null;
+        }
+
         private bool CheckHealth(Pawn pawn)
         {
             if (Health == HealthFilterMode.AllowAll) return true;
@@ -236,11 +299,29 @@ namespace RimWorldAccess
             switch (Health)
             {
                 case HealthFilterMode.AllowNone:
-                    return hediffs.Count == 0;
+                    foreach (var hediff in hediffs)
+                    {
+                        if (!IsGeneAffected(hediff))
+                            return false;
+                    }
+                    return true;
+
+                case HealthFilterMode.OnlyStartCondition:
+                    foreach (var hediff in hediffs)
+                    {
+                        if (IsGeneAffected(hediff))
+                            continue;
+                        if (hediff.def != HediffDefOf.CryptosleepSickness &&
+                            hediff.def != HediffDefOf.Malnutrition)
+                            return false;
+                    }
+                    return true;
 
                 case HealthFilterMode.NoPain:
                     foreach (var hediff in hediffs)
                     {
+                        if (IsGeneAffected(hediff))
+                            continue;
                         var stage = hediff.CurStage;
                         if (stage != null && stage.painOffset > 0f)
                             return false;
@@ -250,6 +331,8 @@ namespace RimWorldAccess
                 case HealthFilterMode.NoAddiction:
                     foreach (var hediff in hediffs)
                     {
+                        if (IsGeneAffected(hediff))
+                            continue;
                         if (hediff is Hediff_Addiction)
                             return false;
                     }
@@ -259,6 +342,13 @@ namespace RimWorldAccess
                     return true;
             }
         }
+
+        // Fast reroll helper methods - expose individual checks for step-by-step filtering
+        public bool CheckAgeForFastReroll(Pawn pawn) => CheckAge(pawn) && CheckGender(pawn);
+        public bool CheckSkillsAndTraitsForFastReroll(Pawn pawn) =>
+            CheckSkills(pawn) && CheckPassionRange(pawn) && CheckSkillPoints(pawn) && CheckTraits(pawn);
+        public bool CheckHealthForFastReroll(Pawn pawn) => CheckHealth(pawn);
+        public bool CheckWorkForFastReroll(Pawn pawn) => CheckWork(pawn);
 
         private bool CheckWork(Pawn pawn)
         {
@@ -291,7 +381,11 @@ namespace RimWorldAccess
                 Gender = Gender,
                 Health = Health,
                 Work = Work,
-                RerollLimit = RerollLimit
+                RerollLimit = RerollLimit,
+                RequiredTraitsInPool = RequiredTraitsInPool,
+                CountOnlyHighestAttack = CountOnlyHighestAttack,
+                CountOnlyPassionSkills = CountOnlyPassionSkills,
+                Algorithm = Algorithm
             };
 
             foreach (var skill in Skills)
@@ -329,6 +423,10 @@ namespace RimWorldAccess
             Health = source.Health;
             Work = source.Work;
             RerollLimit = source.RerollLimit;
+            RequiredTraitsInPool = source.RequiredTraitsInPool;
+            CountOnlyHighestAttack = source.CountOnlyHighestAttack;
+            CountOnlyPassionSkills = source.CountOnlyPassionSkills;
+            Algorithm = source.Algorithm;
 
             Skills.Clear();
             foreach (var skill in source.Skills)

@@ -16,15 +16,22 @@ namespace RimWorldAccess
         PassionMax,
         SkillPointsMin,
         SkillPointsMax,
+        CountOnlyHighestAttack,
+        CountOnlyPassionSkills,
         TraitEntry,
+        RequiredTraitsInPool,
         AddRequiredTrait,
         AddExcludedTrait,
+        AddOptionalTrait,
         AgeMin,
         AgeMax,
         Gender,
         Health,
         Work,
         RerollLimit,
+        RerollAlgorithm,
+        SavePreset,
+        LoadPreset,
         ClearAll
     }
 
@@ -39,7 +46,7 @@ namespace RimWorldAccess
 
     public static class PawnFilterHelper
     {
-        private static readonly int[] RerollLimitSteps = { 100, 250, 500, 1000, 2500, 5000 };
+        private static readonly int[] RerollLimitSteps = { 100, 250, 500, 1000, 2500, 5000, 10000, 50000 };
 
         public static List<FilterMenuItem> BuildMenuItems(PawnFilter filter)
         {
@@ -87,6 +94,18 @@ namespace RimWorldAccess
                 ItemType = FilterItemType.SkillPointsMax
             });
 
+            items.Add(new FilterMenuItem
+            {
+                Label = FormatCountOnlyHighestAttackLabel(filter),
+                ItemType = FilterItemType.CountOnlyHighestAttack
+            });
+
+            items.Add(new FilterMenuItem
+            {
+                Label = FormatCountOnlyPassionSkillsLabel(filter),
+                ItemType = FilterItemType.CountOnlyPassionSkills
+            });
+
             // Traits section
             items.Add(new FilterMenuItem
             {
@@ -96,14 +115,23 @@ namespace RimWorldAccess
 
             foreach (var trait in filter.Traits)
             {
-                string modeLabel = trait.Mode == TraitFilterMode.Required
-                    ? "Required".Translate()
-                    : "Excluded".Translate();
+                string modeLabel = GetTraitModeLabel(trait.Mode);
+                string chanceText = GetTraitRollChanceText(trait.Def);
                 items.Add(new FilterMenuItem
                 {
-                    Label = $"{modeLabel}: {trait.Label}",
+                    Label = $"{modeLabel}: {trait.Label} {chanceText}",
                     ItemType = FilterItemType.TraitEntry,
                     TraitFilter = trait
+                });
+            }
+
+            // Show "Required traits from pool" when optional traits exist
+            if (filter.Traits.Any(t => t.Mode == TraitFilterMode.Optional))
+            {
+                items.Add(new FilterMenuItem
+                {
+                    Label = FormatRequiredTraitsInPoolLabel(filter),
+                    ItemType = FilterItemType.RequiredTraitsInPool
                 });
             }
 
@@ -117,6 +145,12 @@ namespace RimWorldAccess
             {
                 Label = "Add excluded trait...",
                 ItemType = FilterItemType.AddExcludedTrait
+            });
+
+            items.Add(new FilterMenuItem
+            {
+                Label = "Add optional trait...",
+                ItemType = FilterItemType.AddOptionalTrait
             });
 
             // Demographics section
@@ -176,6 +210,16 @@ namespace RimWorldAccess
                 ItemType = FilterItemType.RerollLimit
             });
 
+            // Only show algorithm choice when HAR mod is not active
+            if (!ModsConfig.IsActive("erdelf.HumanoidAlienRaces"))
+            {
+                items.Add(new FilterMenuItem
+                {
+                    Label = FormatRerollAlgorithmLabel(filter),
+                    ItemType = FilterItemType.RerollAlgorithm
+                });
+            }
+
             // Actions section
             items.Add(new FilterMenuItem
             {
@@ -185,11 +229,55 @@ namespace RimWorldAccess
 
             items.Add(new FilterMenuItem
             {
+                Label = "Save preset...",
+                ItemType = FilterItemType.SavePreset
+            });
+
+            items.Add(new FilterMenuItem
+            {
+                Label = "Load preset...",
+                ItemType = FilterItemType.LoadPreset
+            });
+
+            items.Add(new FilterMenuItem
+            {
                 Label = "ClearAll".Translate(),
                 ItemType = FilterItemType.ClearAll
             });
 
             return items;
+        }
+
+        public static string GetTraitModeLabel(TraitFilterMode mode)
+        {
+            switch (mode)
+            {
+                case TraitFilterMode.Required: return "Required".Translate();
+                case TraitFilterMode.Excluded: return "Excluded".Translate();
+                case TraitFilterMode.Optional: return "Optional".Translate();
+                default: return mode.ToString();
+            }
+        }
+
+        public static string GetTraitRollChanceText(TraitDef traitDef)
+        {
+            var allTraits = DefDatabase<TraitDef>.AllDefsListForReading;
+            float totalMale = 0f;
+            float totalFemale = 0f;
+            foreach (var td in allTraits)
+            {
+                totalMale += td.GetGenderSpecificCommonality(Verse.Gender.Male);
+                totalFemale += td.GetGenderSpecificCommonality(Verse.Gender.Female);
+            }
+
+            if (totalMale <= 0f || totalFemale <= 0f) return "";
+
+            float malePct = traitDef.GetGenderSpecificCommonality(Verse.Gender.Male) / totalMale * 100f;
+            float femalePct = traitDef.GetGenderSpecificCommonality(Verse.Gender.Female) / totalFemale * 100f;
+
+            if (Math.Abs(malePct - femalePct) < 0.05f)
+                return $"({malePct:F1}%)";
+            return $"({"Male".Translate()}: {malePct:F1}%, {"Female".Translate()}: {femalePct:F1}%)";
         }
 
         public static string FormatSkillLabel(SkillFilter skill)
@@ -246,6 +334,25 @@ namespace RimWorldAccess
             return "Total skill points " + "maximum".Translate() + ": " + filter.SkillPointsMax;
         }
 
+        public static string FormatCountOnlyHighestAttackLabel(PawnFilter filter)
+        {
+            string state = filter.CountOnlyHighestAttack ? "On".Translate() : "Off".Translate();
+            return "Count only highest attack skill: " + state
+                + ". When counting total skill points, only count the higher of Shooting or Melee, not both";
+        }
+
+        public static string FormatCountOnlyPassionSkillsLabel(PawnFilter filter)
+        {
+            string state = filter.CountOnlyPassionSkills ? "On".Translate() : "Off".Translate();
+            return "Count only passion skills: " + state
+                + ". When counting total skill points, only count skills that have a passion";
+        }
+
+        public static string FormatRequiredTraitsInPoolLabel(PawnFilter filter)
+        {
+            return "Required traits from pool: " + filter.RequiredTraitsInPool;
+        }
+
         public static string FormatAgeMinLabel(PawnFilter filter)
         {
             if (filter.AgeMin <= 0)
@@ -279,6 +386,7 @@ namespace RimWorldAccess
             switch (filter.Health)
             {
                 case HealthFilterMode.AllowAll: value = "AllowAll".Translate(); break;
+                case HealthFilterMode.OnlyStartCondition: value = "Only start conditions"; break;
                 case HealthFilterMode.NoPain: value = "NoPain".Translate(); break;
                 case HealthFilterMode.NoAddiction: value = "NoAddiction".Translate(); break;
                 case HealthFilterMode.AllowNone: value = "None".Translate(); break;
@@ -305,6 +413,12 @@ namespace RimWorldAccess
             return "Reroll limit: " + filter.RerollLimit;
         }
 
+        public static string FormatRerollAlgorithmLabel(PawnFilter filter)
+        {
+            string value = filter.Algorithm == RerollAlgorithm.Normal ? "Normal" : "Fast";
+            return "Reroll algorithm: " + value;
+        }
+
         public static List<FloatMenuOption> BuildTraitPickerOptions(
             PawnFilter filter, TraitFilterMode mode, Action onTraitAdded)
         {
@@ -314,11 +428,22 @@ namespace RimWorldAccess
             foreach (var existing in filter.Traits)
                 existingTraits.Add(existing.Def.defName + "_" + existing.Degree);
 
+            // Collect required trait defs for conflict checking
+            var requiredTraitDefs = filter.Traits
+                .Where(t => t.Mode == TraitFilterMode.Required)
+                .Select(t => t.Def)
+                .ToList();
+
             var allTraits = DefDatabase<TraitDef>.AllDefsListForReading;
 
             foreach (var traitDef in allTraits.OrderBy(t => t.defName))
             {
                 if (traitDef.degreeDatas == null) continue;
+
+                // Check conflicts with existing required traits
+                bool conflictsWithRequired = requiredTraitDefs.Any(req => req.ConflictsWith(traitDef));
+                if (conflictsWithRequired && mode != TraitFilterMode.Excluded)
+                    continue;
 
                 foreach (var degree in traitDef.degreeDatas)
                 {
@@ -327,7 +452,8 @@ namespace RimWorldAccess
                         continue;
 
                     var trait = new Trait(traitDef, degree.degree);
-                    string label = trait.LabelCap;
+                    string label = trait.LabelCap + " " + GetTraitRollChanceText(traitDef);
+
                     string desc = degree.description;
                     if (!string.IsNullOrEmpty(desc))
                     {
@@ -339,7 +465,7 @@ namespace RimWorldAccess
                         request.Includes.Add(RulePackDefOf.DynamicWrapper);
                         request.Rules.Add(new Rule_String("RULE", desc));
                         request.Rules.AddRange(GrammarUtility.RulesForPawn(
-                            "PAWN", null, null, PawnKindDefOf.Colonist, Gender.Female,
+                            "PAWN", null, null, PawnKindDefOf.Colonist, Verse.Gender.Female,
                             null, 25, 25, "", false, false, false, null, false, "",
                             null, false));
                         desc = GrammarResolver.Resolve("r_root", request);
@@ -418,6 +544,14 @@ namespace RimWorldAccess
             filter.Work = values[idx];
         }
 
+        public static void CycleRerollAlgorithm(PawnFilter filter, int direction)
+        {
+            var values = (RerollAlgorithm[])Enum.GetValues(typeof(RerollAlgorithm));
+            int idx = Array.IndexOf(values, filter.Algorithm);
+            idx = (idx + direction + values.Length) % values.Length;
+            filter.Algorithm = values[idx];
+        }
+
         public static void CyclePassion(SkillFilter skill)
         {
             switch (skill.MinPassion)
@@ -493,6 +627,16 @@ namespace RimWorldAccess
                 if (filter.AgeMax > 120) filter.AgeMax = 120;
                 if (filter.AgeMax < filter.AgeMin) filter.AgeMin = filter.AgeMax;
             }
+        }
+
+        public static void AdjustRequiredTraitsInPool(PawnFilter filter, int direction)
+        {
+            int optionalCount = filter.Traits.Count(t => t.Mode == TraitFilterMode.Optional);
+            int maxPool = Math.Min(3, optionalCount);
+
+            filter.RequiredTraitsInPool += direction;
+            if (filter.RequiredTraitsInPool < 0) filter.RequiredTraitsInPool = 0;
+            if (filter.RequiredTraitsInPool > maxPool) filter.RequiredTraitsInPool = maxPool;
         }
     }
 }

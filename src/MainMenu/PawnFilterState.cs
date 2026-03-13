@@ -387,6 +387,18 @@ namespace RimWorldAccess
                     AnnounceCurrentItem();
                     break;
 
+                case FilterItemType.RerollAlgorithm:
+                    PawnFilterHelper.CycleRerollAlgorithm(workingCopy, direction);
+                    item.Label = PawnFilterHelper.FormatRerollAlgorithmLabel(workingCopy);
+                    AnnounceCurrentItem();
+                    break;
+
+                case FilterItemType.RequiredTraitsInPool:
+                    PawnFilterHelper.AdjustRequiredTraitsInPool(workingCopy, direction);
+                    item.Label = PawnFilterHelper.FormatRequiredTraitsInPoolLabel(workingCopy);
+                    AnnounceCurrentItem();
+                    break;
+
                 default:
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
                     break;
@@ -428,6 +440,54 @@ namespace RimWorldAccess
                     OpenTraitPicker(TraitFilterMode.Excluded);
                     break;
 
+                case FilterItemType.AddOptionalTrait:
+                    OpenTraitPicker(TraitFilterMode.Optional);
+                    break;
+
+                case FilterItemType.CountOnlyHighestAttack:
+                    workingCopy.CountOnlyHighestAttack = !workingCopy.CountOnlyHighestAttack;
+                    item.Label = PawnFilterHelper.FormatCountOnlyHighestAttackLabel(workingCopy);
+                    AnnounceCurrentItem();
+                    break;
+
+                case FilterItemType.CountOnlyPassionSkills:
+                    workingCopy.CountOnlyPassionSkills = !workingCopy.CountOnlyPassionSkills;
+                    item.Label = PawnFilterHelper.FormatCountOnlyPassionSkillsLabel(workingCopy);
+                    AnnounceCurrentItem();
+                    break;
+
+                case FilterItemType.SavePreset:
+                    PawnFilterPresetSaveState.Open(workingCopy);
+                    break;
+
+                case FilterItemType.LoadPreset:
+                    PawnFilterPresetLoadState.Open(loadedFilter =>
+                    {
+                        if (loadedFilter != null)
+                        {
+                            workingCopy.CopyFrom(loadedFilter);
+                            workingCopy.InitializeSkills();
+                            // Re-copy skill filters from loaded data
+                            foreach (var loadedSkill in loadedFilter.Skills)
+                            {
+                                var matchingSkill = workingCopy.Skills.FirstOrDefault(
+                                    s => s.Skill == loadedSkill.Skill);
+                                if (matchingSkill != null)
+                                {
+                                    matchingSkill.MinLevel = loadedSkill.MinLevel;
+                                    matchingSkill.MinPassion = loadedSkill.MinPassion;
+                                }
+                            }
+                            RebuildMenu();
+                            selectedIndex = 0;
+                            SkipToNextNonHeader(1);
+                            int filterCount = workingCopy.GetActiveFilterCount();
+                            TolkHelper.Speak($"Preset loaded. {filterCount} active filters.");
+                            AnnounceCurrentItem();
+                        }
+                    });
+                    break;
+
                 case FilterItemType.ClearAll:
                     workingCopy.Reset();
                     workingCopy.InitializeSkills();
@@ -450,9 +510,7 @@ namespace RimWorldAccess
         {
             var options = PawnFilterHelper.BuildTraitPickerOptions(workingCopy, mode, () =>
             {
-                string modeLabel = mode == TraitFilterMode.Required
-                    ? "Required".Translate()
-                    : "Excluded".Translate();
+                string modeLabel = PawnFilterHelper.GetTraitModeLabel(mode);
                 var lastTrait = workingCopy.Traits.Last();
                 TolkHelper.Speak($"{modeLabel}: {lastTrait.Label} added");
                 RebuildMenu();
@@ -479,9 +537,7 @@ namespace RimWorldAccess
                 return;
             }
 
-            string modeLabel = item.TraitFilter.Mode == TraitFilterMode.Required
-                ? "Required".Translate()
-                : "Excluded".Translate();
+            string modeLabel = PawnFilterHelper.GetTraitModeLabel(item.TraitFilter.Mode);
             string traitLabel = item.TraitFilter.Label;
             workingCopy.Traits.Remove(item.TraitFilter);
             TolkHelper.Speak($"{modeLabel}: {traitLabel} removed");

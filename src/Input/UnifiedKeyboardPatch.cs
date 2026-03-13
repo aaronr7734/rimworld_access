@@ -81,6 +81,37 @@ namespace RimWorldAccess
                         }
                     }
 
+                    // PawnFilterPresetSaveState preset name input
+                    if (PawnFilterPresetSaveState.IsActive)
+                    {
+                        if (PawnFilterPresetSaveState.HandleCharacterInput(c))
+                        {
+                            Event.current.Use();
+                            return;
+                        }
+                    }
+
+                    // PawnFilterPresetLoadState typeahead
+                    if (PawnFilterPresetLoadState.IsActive)
+                    {
+                        if (PawnFilterPresetLoadState.HandleCharacterInput(c))
+                        {
+                            Event.current.Use();
+                            return;
+                        }
+                    }
+
+                    // PawnFilterState typeahead
+                    if (PawnFilterState.IsActive && !WindowlessFloatMenuState.IsActive
+                        && !PawnFilterPresetSaveState.IsActive && !PawnFilterPresetLoadState.IsActive)
+                    {
+                        if (PawnFilterState.HandleCharacterInput(c))
+                        {
+                            Event.current.Use();
+                            return;
+                        }
+                    }
+
                     // HealthTabState typeahead (recipe and body part lists)
                     if (HealthTabState.IsActive)
                     {
@@ -1310,19 +1341,49 @@ namespace RimWorldAccess
                 }
             }
 
-            // ===== PRIORITY 2.25: Pawn filter editor =====
-            if (PawnFilterState.IsActive && !WindowlessFloatMenuState.IsActive)
+            // ===== PRIORITY 2.2: Pawn filter preset overlays =====
+            if (PawnFilterPresetDeleteConfirmState.IsActive)
             {
-                // Character input for typeahead
-                if (Event.current.character != '\0' && !Event.current.control && !Event.current.alt)
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = Event.current.alt;
+                if (PawnFilterPresetDeleteConfirmState.HandleInput(key, shift, ctrl, alt))
                 {
-                    if (PawnFilterState.HandleCharacterInput(Event.current.character))
-                    {
-                        Event.current.Use();
-                        return;
-                    }
+                    Event.current.Use();
+                    return;
                 }
+            }
 
+            if (PawnFilterPresetLoadState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = Event.current.alt;
+
+                if (PawnFilterPresetLoadState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            if (PawnFilterPresetSaveState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = Event.current.alt;
+
+                if (PawnFilterPresetSaveState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 2.25: Pawn filter editor =====
+            if (PawnFilterState.IsActive && !WindowlessFloatMenuState.IsActive
+                && !PawnFilterPresetSaveState.IsActive && !PawnFilterPresetLoadState.IsActive)
+            {
                 if (PawnFilterState.HandleInput(key, Event.current))
                 {
                     Event.current.Use();
