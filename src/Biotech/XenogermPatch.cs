@@ -48,6 +48,13 @@ namespace RimWorldAccess
                         XenogermState.Close();
                     }
                 }
+                if (__instance is Dialog_CreateXenotype)
+                {
+                    if (XenotypeEditorState.IsActive)
+                    {
+                        XenotypeEditorState.Close();
+                    }
+                }
             }
         }
 
@@ -64,7 +71,7 @@ namespace RimWorldAccess
             {
                 if (__instance is Dialog_CreateXenogerm || __instance is GeneCreationDialogBase)
                 {
-                    if (XenogermState.IsActive)
+                    if (XenogermState.IsActive || XenotypeEditorState.IsActive)
                     {
                         return false; // Block - our HandleInput handles Escape
                     }

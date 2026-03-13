@@ -472,6 +472,12 @@ namespace RimWorldAccess
             if (item.IsExpandable && item.IsExpanded)
             {
                 item.IsExpanded = false;
+
+                // Restore rich label for gene nodes (Description stores the rich collapsed label)
+                if (item.Data is GeneDef && !string.IsNullOrEmpty(item.Description))
+                {
+                    item.Label = item.Description;
+                }
                 RebuildVisibleList();
 
                 if (selectedIndex >= visibleItems.Count)

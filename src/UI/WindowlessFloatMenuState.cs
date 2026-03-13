@@ -21,6 +21,7 @@ namespace RimWorldAccess
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
         private static List<object> savedSelection = null;
         private static bool announceOnExecute = true;
+        private static List<Def> currentInfoCardDefs = null;
 
         // Cached reflection for FloatMenuOption.shownItem (private ThingDef field used as icon)
         private static readonly FieldInfo shownItemField = typeof(FloatMenuOption).GetField("shownItem", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -40,9 +41,10 @@ namespace RimWorldAccess
         /// </summary>
         /// <param name="playOpenSound">Whether to play FloatMenu_Open sound. Set to false when
         /// the vanilla FloatMenu constructor already played it (e.g. DialogInterceptionPatch).</param>
-        public static void Open(List<FloatMenuOption> options, bool colonistOrders, int startIndex = 0, bool announceSelection = true, bool playOpenSound = true)
+        public static void Open(List<FloatMenuOption> options, bool colonistOrders, int startIndex = 0, bool announceSelection = true, bool playOpenSound = true, List<Def> infoCardDefs = null)
         {
             currentOptions = options;
+            currentInfoCardDefs = infoCardDefs;
             selectedIndex = System.Math.Max(0, System.Math.Min(startIndex, options.Count - 1));
             isActive = true;
             givesColonistOrders = colonistOrders;
@@ -50,7 +52,8 @@ namespace RimWorldAccess
             typeahead.ClearSearch();
 
             // Save current selection - some FloatMenu actions expect specific objects to be selected
-            savedSelection = Find.Selector?.SelectedObjects?.ToList();
+            // Find.Selector throws during chargen (no map), so guard with CurrentMap check
+            savedSelection = Find.CurrentMap != null ? Find.Selector?.SelectedObjects?.ToList() : null;
 
             // Play menu open sound (matches vanilla FloatMenu constructor behavior)
             if (playOpenSound)
@@ -66,6 +69,7 @@ namespace RimWorldAccess
         public static void Close()
         {
             currentOptions = null;
+            currentInfoCardDefs = null;
             selectedIndex = 0;
             isActive = false;
             typeahead.ClearSearch();
@@ -117,7 +121,8 @@ namespace RimWorldAccess
             }
 
             // Restore saved selection before executing - some actions check Find.Selector.SelectedObjects
-            if (savedSelection != null && Find.Selector != null)
+            // Find.Selector throws during chargen (no map), so guard with CurrentMap check
+            if (savedSelection != null && Find.CurrentMap != null)
             {
                 Find.Selector.ClearSelection();
                 foreach (var obj in savedSelection)
@@ -502,6 +507,14 @@ namespace RimWorldAccess
             }
 
             var option = currentOptions[selectedIndex];
+
+            // Check caller-provided info card defs first (e.g. xenotype selector)
+            if (currentInfoCardDefs != null && selectedIndex < currentInfoCardDefs.Count &&
+                currentInfoCardDefs[selectedIndex] != null)
+            {
+                InfoCardState.OpenInfoCardForDef(currentInfoCardDefs[selectedIndex]);
+                return;
+            }
 
             // Try shownItem first (private ThingDef used as icon - common for recipes/bills)
             Def def = null;

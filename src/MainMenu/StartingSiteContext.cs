@@ -38,9 +38,6 @@ namespace RimWorldAccess
         private static int selectedMenuIndex = 0;
         private static List<AdditionalInfoCategory> availableMenuItems = new List<AdditionalInfoCategory>();
 
-        // Faction proximity tracking (for change-only announcements)
-        private static string lastFactionWarning = null;
-
         public static bool IsMenuOpen => isMenuOpen;
         public static int SelectedMenuIndex => selectedMenuIndex;
         public static int MenuItemCount => availableMenuItems.Count;
@@ -50,7 +47,6 @@ namespace RimWorldAccess
             isMenuOpen = false;
             selectedMenuIndex = 0;
             availableMenuItems.Clear();
-            lastFactionWarning = null;
         }
 
         public static void Close()
@@ -58,7 +54,6 @@ namespace RimWorldAccess
             isMenuOpen = false;
             selectedMenuIndex = 0;
             availableMenuItems.Clear();
-            lastFactionWarning = null;
         }
 
         /// <summary>
@@ -177,7 +172,6 @@ namespace RimWorldAccess
             string tileInfo = WorldInfoHelper.GetTileSummary(randomTile, includeRouteInfo: false);
 
             string factionWarning = GetFactionProximityWarning(randomTile);
-            lastFactionWarning = factionWarning; // Always update tracking, even if null
             if (!string.IsNullOrEmpty(factionWarning))
             {
                 tileInfo += $". {factionWarning}";
@@ -311,24 +305,9 @@ namespace RimWorldAccess
 
             if (proximityOffsets.Count > 0)
             {
-                return $"Warning: Settling here affects {proximityOffsets.Count} faction{(proximityOffsets.Count > 1 ? "s" : "")}";
+                return $"{"Warning".Translate()}: Settling here affects {proximityOffsets.Count} faction{(proximityOffsets.Count > 1 ? "s" : "")}";
             }
 
-            return null;
-        }
-
-        /// <summary>
-        /// Returns faction warning only if it changed since last check.
-        /// Returns null if unchanged.
-        /// </summary>
-        public static string GetChangedFactionWarning(PlanetTile tile)
-        {
-            string warning = GetFactionProximityWarning(tile);
-            if (warning != lastFactionWarning)
-            {
-                lastFactionWarning = warning;
-                return warning;
-            }
             return null;
         }
 

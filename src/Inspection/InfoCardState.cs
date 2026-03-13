@@ -594,6 +594,21 @@ namespace RimWorldAccess
             var result = new List<Def>();
             if (item == null) return result;
 
+            // Direct Def data (e.g. gene nodes under xenotype info card)
+            if (item.Data is Def directDef)
+            {
+                result.Add(directDef);
+                return result;
+            }
+
+            // List of Defs (e.g. Genes parent node with multiple gene defs)
+            if (item.Data is IReadOnlyList<Def> defList && defList.Count > 0)
+            {
+                foreach (var d in defList)
+                    result.Add(d);
+                return result;
+            }
+
             // Check this item first
             var target = item;
             if (!(target.Data is StatDrawEntry) && walkUpToParent)

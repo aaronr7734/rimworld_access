@@ -1,12 +1,12 @@
 # Biotech Module
 
 ## Purpose
-Accessibility features for RimWorld's Biotech DLC, including baby gene inspection, xenogerm creation, mechanitor control group management, and child growth moment choices.
+Accessibility features for RimWorld's Biotech DLC, including baby gene inspection, xenogerm creation, xenotype editing (chargen), mechanitor control group management, and child growth moment choices.
 
 ## Files
 
-**States:** GeneInspectionState.cs, XenogermState.cs, MechControlGroupState.cs, GrowthMomentState.cs
-**Patches:** GeneInspectionPatch.cs, XenogermPatch.cs, GrowthMomentPatch.cs
+**States:** GeneInspectionState.cs, XenogermState.cs, XenotypeEditorState.cs, MechControlGroupState.cs, GrowthMomentState.cs
+**Patches:** GeneInspectionPatch.cs, XenogermPatch.cs, XenotypeEditorPatch.cs, GrowthMomentPatch.cs
 **Helpers:** GeneTreeBuilder.cs
 
 ## Key Shortcuts (Gene Inspection)
@@ -423,15 +423,7 @@ XenogermState is handled at Priority -0.21, between GrowthMoment (-0.215) and Fa
 8. Validation runs; if valid, `Accept()` invoked via reflection
 9. Dialog closes → `Window.PostClose` patch calls `XenogermState.Close()`
 
-### Reusability for Xenotype Editor
-
-`Dialog_CreateXenotype` shares `GeneCreationDialogBase`. When implementing:
-- Tab 1 becomes individual GeneDefs (not genepacks)
-- Tab 2 categories use GeneCategoryDef as expandable top-level nodes
-- Additional controls: "Inheritable" toggle, "Ignore restrictions" toggle
-- Same tab/tree keyboard patterns throughout
-
-### Testing Checklist
+### Testing Checklist (XenogermState)
 
 - [ ] Dialog opens with correct pack count and complexity limit announcement
 - [ ] Tab/Shift+Tab cycles between Selected, Library, Controls tabs
@@ -455,8 +447,75 @@ XenogermState is handled at Priority -0.21, between GrowthMoment (-0.215) and Fa
 - [ ] Cursor restores to same genepack after selection changes
 - [ ] Unpowered genepacks shown but rejected on Enter
 
+## XenotypeEditorState (Dialog_CreateXenotype)
+
+### Overview
+
+Provides keyboard accessibility for `Dialog_CreateXenotype`, used in character creation to build custom xenotypes from individual genes. Opens from:
+- The "Xenotype Editor" button at bottom of `Page_ConfigureStartingPawns`
+- The "Xenotype editor..." option in the xenotype context menu (] key on a pawn)
+
+### Architecture
+
+Same tabbed treeview pattern as XenogermState but with individual GeneDef selection instead of genepacks:
+- **Tab 1 (Selected Genes):** Flat list of selected GeneDefs, each expandable to show gene details via GeneTreeBuilder
+- **Tab 2 (Gene Library):** GeneCategoryDef categories (IndentLevel 0) → GeneDef children (IndentLevel 1), categories start collapsed
+- **Tab 3 (Controls):** Biostats, name, name lock, randomize, inheritable toggle, ignore restrictions toggle, load custom/premade, save and apply, close
+
+### Key Differences from XenogermState
+
+| Aspect | XenogermState | XenotypeEditorState |
+|--------|--------------|---------------------|
+| Data model | Genepacks (collections) | Individual GeneDefs |
+| Library structure | Flat genepack list | GeneCategoryDef categories |
+| Extra controls | Save/load template | Inheritable, ignore restrictions, load custom/premade |
+| Accept action | Start combining (gene assembler) | Save to disk + apply to PawnGenerationRequest |
+| Complexity limit | Gene assembler max | No max |
+| UnifiedKeyboardPatch priority | -0.21 | -0.205 |
+
+### Reflection Targets
+
+- From `GeneCreationDialogBase`: xenotypeName, xenotypeNameLocked, iconDef, gcx, met, arc, ignoreRestrictions, leftChosenGroups, OnGenesChanged()
+- From `Dialog_CreateXenotype`: selectedGenes, inheritable, collapsedCategories, generationRequestIndex, callback, Accept(), CanAccept()
+- Static: ignoreRestrictionsConfirmationSent
+
+### Keyboard Shortcuts
+
+Same as XenogermState (Tab/Shift+Tab, arrows, Home/End, Page Up/Down, *, Enter, Alt+I, Alt+S, typeahead, Escape).
+
+### Testing Checklist (XenotypeEditorState)
+
+- [ ] Dialog opens from "Xenotype Editor" button (Page_ConfigureStartingPawns)
+- [ ] Dialog opens from context menu "Xenotype editor..." option
+- [ ] Opening announcement includes header and tab info
+- [ ] Tab/Shift+Tab cycles between Selected Genes, Gene Library, Controls
+- [ ] Gene Library: categories shown collapsed, Right/Enter expands
+- [ ] Gene Library: genes within categories navigable, Enter adds to selected
+- [ ] Selected Genes: shows added genes, Enter removes
+- [ ] Right arrow expands gene to show detail tree (from GeneTreeBuilder)
+- [ ] Left collapses, Left again moves to parent category
+- [ ] Home/End navigate siblings, Ctrl+Home/End absolute first/last
+- [ ] Page Up/Down jumps between categories in Library, between genes in Selected
+- [ ] * expands all sibling categories/genes
+- [ ] Typeahead search finds genes/categories by name
+- [ ] Backspace clears search
+- [ ] Alt+I opens InfoCard for current gene
+- [ ] Controls: biostats update dynamically after gene changes
+- [ ] Controls: xenotype name rename works
+- [ ] Controls: name lock toggle works
+- [ ] Controls: randomize name works
+- [ ] Controls: inheritable toggle changes state, announces
+- [ ] Controls: ignore restrictions toggle works, first enable shows confirmation
+- [ ] Controls: ignore restrictions off removes archite genes
+- [ ] Controls: load custom lists saved xenotypes, applies on selection
+- [ ] Controls: load premade lists XenotypeDefs, applies on selection
+- [ ] Alt+S validates and saves (or announces errors)
+- [ ] Escape clears search first, then closes dialog
+- [ ] No double-close on Escape (OnCancelKeyPressed patch)
+- [ ] Cursor restores to same gene after selection changes
+- [ ] Selected genes marked with suffix in library tab
+
 ## Future Work
 
-- Xenotype editor (Dialog_CreateXenotype) accessibility
 - Gene extractor accessibility
 - Growth vat monitoring

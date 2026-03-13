@@ -81,6 +81,37 @@ namespace RimWorldAccess
                         }
                     }
 
+                    // PawnFilterPresetSaveState preset name input
+                    if (PawnFilterPresetSaveState.IsActive)
+                    {
+                        if (PawnFilterPresetSaveState.HandleCharacterInput(c))
+                        {
+                            Event.current.Use();
+                            return;
+                        }
+                    }
+
+                    // PawnFilterPresetLoadState typeahead
+                    if (PawnFilterPresetLoadState.IsActive)
+                    {
+                        if (PawnFilterPresetLoadState.HandleCharacterInput(c))
+                        {
+                            Event.current.Use();
+                            return;
+                        }
+                    }
+
+                    // PawnFilterState typeahead
+                    if (PawnFilterState.IsActive && !WindowlessFloatMenuState.IsActive
+                        && !PawnFilterPresetSaveState.IsActive && !PawnFilterPresetLoadState.IsActive)
+                    {
+                        if (PawnFilterState.HandleCharacterInput(c))
+                        {
+                            Event.current.Use();
+                            return;
+                        }
+                    }
+
                     // HealthTabState typeahead (recipe and body part lists)
                     if (HealthTabState.IsActive)
                     {
@@ -93,6 +124,14 @@ namespace RimWorldAccess
 
                     // XenogermState xenotype name rename
                     if (XenogermState.IsActive && XenogermState.IsRenaming)
+                    {
+                        TextInputHelper.HandleCharacter(c);
+                        Event.current.Use();
+                        return;
+                    }
+
+                    // XenotypeEditorState xenotype name rename
+                    if (XenotypeEditorState.IsActive && XenotypeEditorState.IsRenaming)
                     {
                         TextInputHelper.HandleCharacter(c);
                         Event.current.Use();
@@ -123,6 +162,20 @@ namespace RimWorldAccess
             if (XenogermState.IsActive && XenogermState.IsRenaming)
             {
                 if (XenogermState.HandleRenameInput(Event.current))
+                {
+                    Event.current.Use();
+                }
+                else
+                {
+                    Event.current.Use(); // Block all other keys while renaming
+                }
+                return;
+            }
+
+            // ===== PRIORITY -0.94: Block ALL keys if xenotype editor rename is active =====
+            if (XenotypeEditorState.IsActive && XenotypeEditorState.IsRenaming)
+            {
+                if (XenotypeEditorState.HandleRenameInput(Event.current))
                 {
                     Event.current.Use();
                 }
@@ -396,6 +449,17 @@ namespace RimWorldAccess
             if (XenogermState.IsActive)
             {
                 if (XenogermState.HandleInput(Event.current))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY -0.205: Handle Xenotype Editor dialog if active =====
+            // Xenotype editor dialog for creating custom xenotypes (Biotech DLC, chargen)
+            if (XenotypeEditorState.IsActive)
+            {
+                if (XenotypeEditorState.HandleInput(Event.current))
                 {
                     Event.current.Use();
                     return;
@@ -918,7 +982,8 @@ namespace RimWorldAccess
             // This follows the same dual-handling pattern used for Z key (priority 4.745)
             // and 1-5 tile info keys (priority 5.45).
             if (WorldNavigationState.IsActive &&
-                WorldNavigationState.Context == WorldNavContext.WorldGen)
+                WorldNavigationState.Context == WorldNavContext.WorldGen &&
+                !StartingPawnState.IsActive)
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
@@ -1270,6 +1335,77 @@ namespace RimWorldAccess
                 }
 
                 if (ScenarioBuilderState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 2.2: Pawn filter preset overlays =====
+            if (PawnFilterPresetDeleteConfirmState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = Event.current.alt;
+                if (PawnFilterPresetDeleteConfirmState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            if (PawnFilterPresetLoadState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = Event.current.alt;
+
+                if (PawnFilterPresetLoadState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            if (PawnFilterPresetSaveState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = Event.current.alt;
+
+                if (PawnFilterPresetSaveState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 2.25: Pawn filter editor =====
+            if (PawnFilterState.IsActive && !WindowlessFloatMenuState.IsActive
+                && !PawnFilterPresetSaveState.IsActive && !PawnFilterPresetLoadState.IsActive)
+            {
+                if (PawnFilterState.HandleInput(key, Event.current))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 2.3: Handle pawn selection screen =====
+            if (StartingPawnState.IsActive && !WindowlessFloatMenuState.IsActive && !WindowlessDialogState.IsActive
+                && !PawnFilterState.IsActive && !Find.WindowStack.IsOpen<Dialog_NamePawn>())
+            {
+                // Character input for typeahead
+                if (Event.current.character != '\0' && !Event.current.control && !Event.current.alt)
+                {
+                    if (StartingPawnState.HandleCharacterInput(Event.current.character))
+                    {
+                        Event.current.Use();
+                        return;
+                    }
+                }
+
+                if (StartingPawnState.HandleInput(key, Event.current))
                 {
                     Event.current.Use();
                     return;
@@ -3453,10 +3589,11 @@ namespace RimWorldAccess
                 bool alt = Event.current.alt;
 
                 // Check placement mode (search should work during placement)
+                // Guard Find.DesignatorManager with CurrentMap — it chains through Find.MapUI which throws during Entry state
                 bool inPlacementMode = ArchitectState.IsInPlacementMode ||
                     ViewingModeState.IsActive ||
                     ShapePlacementState.IsActive ||
-                    (Find.DesignatorManager != null && Find.DesignatorManager.SelectedDesignator != null);
+                    (Find.CurrentMap != null && Find.DesignatorManager != null && Find.DesignatorManager.SelectedDesignator != null);
 
                 // Determine if search should be allowed
                 // Allow search when: on map/world AND (no blocking menus OR in placement mode)
@@ -3498,10 +3635,11 @@ namespace RimWorldAccess
                 bool alt = Event.current.alt;
 
                 // Check placement mode (Go To should work during placement like scanner search)
+                // Guard Find.DesignatorManager with CurrentMap — it chains through Find.MapUI which throws during Entry state
                 bool inPlacementMode = ArchitectState.IsInPlacementMode ||
                     ViewingModeState.IsActive ||
                     ShapePlacementState.IsActive ||
-                    (Find.DesignatorManager != null && Find.DesignatorManager.SelectedDesignator != null);
+                    (Find.CurrentMap != null && Find.DesignatorManager != null && Find.DesignatorManager.SelectedDesignator != null);
 
                 // Determine if Go To should be allowed
                 bool menuBlocksGoTo = KeyboardHelper.IsAnyAccessibilityMenuActive() && !inPlacementMode;

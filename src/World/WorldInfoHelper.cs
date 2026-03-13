@@ -90,7 +90,7 @@ namespace RimWorldAccess
                         {
                             if (settlement.Faction == Faction.OfPlayer)
                             {
-                                summary.Append(" (Player colony)");
+                                summary.Append($" ({Faction.OfPlayer.Name})");
                             }
                             else
                             {
@@ -98,8 +98,7 @@ namespace RimWorldAccess
                                 summary.Append($" ({settlement.Faction.Name}");
 
                                 // Relationship with goodwill (visible on inspect pane)
-                                string relationship = settlement.Faction.HostileTo(Faction.OfPlayer) ? "Hostile" :
-                                                     settlement.Faction.PlayerRelationKind.GetLabelCap();
+                                string relationship = settlement.Faction.PlayerRelationKind.GetLabelCap();
                                 int goodwill = settlement.Faction.PlayerGoodwill;
                                 string goodwillStr = goodwill >= 0 ? $"+{goodwill}" : goodwill.ToString();
                                 summary.Append($", {relationship} {goodwillStr}");
@@ -313,13 +312,12 @@ namespace RimWorldAccess
                             {
                                 if (settlement.Faction == Faction.OfPlayer)
                                 {
-                                    info.Append(" (Player colony)");
+                                    info.Append($" ({Faction.OfPlayer.Name})");
                                 }
                                 else
                                 {
                                     // Only show what's visible on the world map inspect pane
-                                    string relationship = settlement.Faction.HostileTo(Faction.OfPlayer) ? "Hostile" :
-                                                         settlement.Faction.PlayerRelationKind.GetLabelCap();
+                                    string relationship = settlement.Faction.PlayerRelationKind.GetLabelCap();
                                     int goodwill = settlement.Faction.PlayerGoodwill;
                                     string goodwillStr = goodwill >= 0 ? $"+{goodwill}" : goodwill.ToString();
                                     info.AppendLine();

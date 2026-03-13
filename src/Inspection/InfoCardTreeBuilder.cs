@@ -223,9 +223,32 @@ namespace RimWorldAccess
 
                 // Add stat items under this category
                 var sortedEntries = group.Entries.OrderByDescending(e => e.DisplayPriorityWithinCategory);
+                // Get the dialog's Def for xenotype-specific handling
+                var dialogDef = InfoCardDataExtractor.GetDef(dialog);
+
                 foreach (var entry in sortedEntries)
                 {
-                    string label = $"{entry.LabelCap}: {entry.ValueString}";
+                    string value = entry.ValueString;
+                    bool emptyValue = string.IsNullOrEmpty(value);
+
+                    // When value is empty (e.g. Description), use first line of explanation text
+                    if (emptyValue)
+                    {
+                        try
+                        {
+                            string explanation = entry.GetExplanationText(StatRequest.ForEmpty())?.Trim();
+                            if (!string.IsNullOrEmpty(explanation))
+                            {
+                                int firstBreak = explanation.IndexOfAny(new[] { '\n', '\r' });
+                                value = firstBreak > 0 ? explanation.Substring(0, firstBreak).Trim() : explanation;
+                            }
+                        }
+                        catch { }
+                    }
+
+                    string label = string.IsNullOrEmpty(value)
+                        ? entry.LabelCap.ToString()
+                        : $"{entry.LabelCap}: {value}";
 
                     // Enrich gene labels for GeneSetHolderBase items with shade-aware descriptions.
                     // Also suppress the useless explanation (just a header like "Genes:") since
@@ -244,26 +267,29 @@ namespace RimWorldAccess
                         suppressExplanation = true;
                     }
 
-                    // Enrich label with hyperlink def names when the value is generic.
-                    // A sighted player sees the linked def names as clickable text;
-                    // screen reader users should hear them too.
-                    try
+                    // Enrich label with hyperlink def names when the entry has a real value.
+                    // Skip for empty-value entries (like Description) — those get explanation text
+                    // as their label instead, and hyperlinks remain accessible via Alt+I.
+                    if (!emptyValue)
                     {
-                        var hyperlinks = entry.GetHyperlinks(StatRequest.ForEmpty());
-                        if (hyperlinks != null)
+                        try
                         {
-                            var defNames = new List<string>();
-                            foreach (var link in hyperlinks)
+                            var hyperlinks = entry.GetHyperlinks(StatRequest.ForEmpty());
+                            if (hyperlinks != null)
                             {
-                                string name = link.def?.label ?? link.thing?.def?.label;
-                                if (!string.IsNullOrEmpty(name) && !label.ToLower().Contains(name.ToLower()))
-                                    defNames.Add(name.CapitalizeFirst());
+                                var defNames = new List<string>();
+                                foreach (var link in hyperlinks)
+                                {
+                                    string name = link.def?.label ?? link.thing?.def?.label;
+                                    if (!string.IsNullOrEmpty(name) && !label.ToLower().Contains(name.ToLower()))
+                                        defNames.Add(name.CapitalizeFirst());
+                                }
+                                if (defNames.Count > 0)
+                                    label += $" ({string.Join(", ", defNames)})";
                             }
-                            if (defNames.Count > 0)
-                                label += $" ({string.Join(", ", defNames)})";
                         }
+                        catch { }
                     }
-                    catch { }
 
                     // Check explanation text upfront to determine expandability
                     bool hasExplanation = false;
@@ -278,14 +304,14 @@ namespace RimWorldAccess
                     }
 
                     // Skip entries with no value and no explanation (e.g., Description for things without one)
-                    if (string.IsNullOrEmpty(entry.ValueString) && !hasExplanation)
+                    if (emptyValue && !hasExplanation)
                         continue;
 
                     var statNode = new InspectionTreeItem
                     {
                         Type = InspectionTreeItem.ItemType.Item,
                         Label = label,
-                        Data = entry,
+                        Data = emptyValue ? null : (object)entry,
                         IsExpandable = hasExplanation,
                         IsExpanded = false,
                         IndentLevel = tabNode.IndentLevel + 1
@@ -293,7 +319,17 @@ namespace RimWorldAccess
 
                     if (hasExplanation)
                     {
-                        statNode.OnActivate = () => BuildStatDetailChildren(statNode, entry);
+                        // For the "Genes" entry on a XenotypeDef, build individual inspectable gene nodes
+                        if (dialogDef is XenotypeDef xenoDef && genesTranslated != null &&
+                            entry.LabelCap.ToString() == genesTranslated)
+                        {
+                            statNode.Data = xenoDef.genes;
+                            statNode.OnActivate = () => BuildXenotypeGeneChildren(statNode, xenoDef);
+                        }
+                        else
+                        {
+                            statNode.OnActivate = () => BuildStatDetailChildren(statNode, entry);
+                        }
                     }
 
                     AddChild(tabNode, statNode);
@@ -329,6 +365,32 @@ namespace RimWorldAccess
                 Log.Error($"[InfoCardTreeBuilder] Error building stat details: {ex.Message}");
                 AddChild(statNode, CreateInfoItem("Unable to load details", statNode.IndentLevel + 1));
             }
+        }
+
+        private static void BuildXenotypeGeneChildren(InspectionTreeItem statNode, XenotypeDef xenoDef)
+        {
+            if (statNode.Children.Count > 0) return;
+
+            foreach (var geneDef in xenoDef.genes)
+            {
+                string geneLabel = geneDef.LabelCap;
+                if (!string.IsNullOrEmpty(geneDef.description))
+                    geneLabel += ". " + geneDef.description;
+
+                var geneNode = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = geneLabel,
+                    Data = geneDef,
+                    IsExpandable = false,
+                    IsExpanded = false,
+                    IndentLevel = statNode.IndentLevel + 1
+                };
+                AddChild(statNode, geneNode);
+            }
+
+            if (statNode.Children.Count == 0)
+                AddChild(statNode, CreateInfoItem("No genes", statNode.IndentLevel + 1));
         }
 
         #endregion

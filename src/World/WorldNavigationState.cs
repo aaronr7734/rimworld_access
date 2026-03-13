@@ -501,7 +501,7 @@ namespace RimWorldAccess
             // WorldGen: append faction proximity warning (change-only) before biome description
             if (context == WorldNavContext.WorldGen)
             {
-                string factionWarning = StartingSiteContext.GetChangedFactionWarning(currentSelectedTile);
+                string factionWarning = StartingSiteContext.GetFactionProximityWarning(currentSelectedTile);
                 if (!string.IsNullOrEmpty(factionWarning))
                 {
                     tileInfo = AppendSentence(tileInfo, factionWarning);
@@ -511,7 +511,7 @@ namespace RimWorldAccess
                 BiomeDef biome = currentSelectedTile.Tile?.PrimaryBiome;
                 if (biome != null && !string.IsNullOrEmpty(biome.settleWarning))
                 {
-                    tileInfo = AppendSentence(tileInfo, "Warning: " + biome.settleWarning);
+                    tileInfo = AppendSentence(tileInfo, "Warning".Translate() + ": " + biome.settleWarning);
                 }
             }
 
