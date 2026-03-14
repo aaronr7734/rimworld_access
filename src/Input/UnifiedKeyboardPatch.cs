@@ -2860,6 +2860,16 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 4.72: Handle ideology tab if active =====
+            if (IdeologyTabState.IsActive && !WindowlessFloatMenuState.IsActive)
+            {
+                if (IdeologyTabState.HandleInput(Event.current))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 4.73: Handle quest menu if active =====
             if (QuestMenuState.IsActive)
             {
@@ -4593,7 +4603,8 @@ namespace RimWorldAccess
                                     StorytellerSelectionState.IsActive ||
                                     PrisonerTabState.IsActive ||
                                     HealthTabState.IsActive ||
-                                    FactionTabState.IsActive;
+                                    FactionTabState.IsActive ||
+                                    IdeologyTabState.IsActive;
 
                 if (!anyMenuActive)
                 {
