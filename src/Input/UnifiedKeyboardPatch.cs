@@ -983,7 +983,8 @@ namespace RimWorldAccess
             // and 1-5 tile info keys (priority 5.45).
             if (WorldNavigationState.IsActive &&
                 WorldNavigationState.Context == WorldNavContext.WorldGen &&
-                !StartingPawnState.IsActive)
+                !StartingPawnState.IsActive &&
+                !IdeologyNavigationState.IsActive)
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
