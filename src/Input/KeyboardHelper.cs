@@ -199,6 +199,8 @@ namespace RimWorldAccess
                 || GrowthMomentState.IsActive
                 // Factions tab
                 || FactionTabState.IsActive
+                // Ideology tab
+                || IdeologyTabState.IsActive
                 // Extra menus
                 || ExtraMenusState.IsActive;
         }
