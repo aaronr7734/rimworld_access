@@ -423,8 +423,10 @@ namespace RimWorldAccess
             {
                 if (traitDef.degreeDatas == null) continue;
 
-                // Check conflicts with existing required traits
-                bool conflictsWithRequired = requiredTraitDefs.Any(req => req.ConflictsWith(traitDef));
+                // Check conflicts with existing required traits (both explicit conflicts
+                // and same-TraitDef different-degree conflicts — a pawn can only have one degree)
+                bool conflictsWithRequired = requiredTraitDefs.Any(req =>
+                    req.ConflictsWith(traitDef) || req == traitDef);
                 if (conflictsWithRequired && mode != TraitFilterMode.Excluded)
                     continue;
 
