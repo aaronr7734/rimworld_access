@@ -372,7 +372,17 @@ namespace RimWorldAccess
                 return;
 
             var item = visibleItems[selectedIndex];
-            string label = item.Label.TrimEnd('.', '!', '?');
+            string label;
+            if (item.IsExpandable && item.IsExpanded)
+            {
+                // Smart label: just the section name when expanded
+                int sepIdx = item.Label.IndexOf(". ");
+                label = sepIdx > 0 ? item.Label.Substring(0, sepIdx) : item.Label;
+            }
+            else
+            {
+                label = item.Label.TrimEnd('.', '!', '?');
+            }
 
             string stateIndicator = "";
             if (item.IsExpandable)
@@ -400,7 +410,16 @@ namespace RimWorldAccess
                 return;
 
             var item = visibleItems[selectedIndex];
-            string label = item.Label.TrimEnd('.', '!', '?');
+            string label;
+            if (item.IsExpandable && item.IsExpanded)
+            {
+                int sepIdx = item.Label.IndexOf(". ");
+                label = sepIdx > 0 ? item.Label.Substring(0, sepIdx) : item.Label;
+            }
+            else
+            {
+                label = item.Label.TrimEnd('.', '!', '?');
+            }
 
             string stateIndicator = "";
             if (item.IsExpandable)
