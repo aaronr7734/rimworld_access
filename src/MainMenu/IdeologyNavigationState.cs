@@ -17,6 +17,7 @@ namespace RimWorldAccess
 
         private static bool initialized;
         private static int currentTab;
+        private static bool hasShownPresetsHint;
 
         public static bool IsActive { get; private set; }
 
@@ -84,6 +85,7 @@ namespace RimWorldAccess
             presetsTypeahead.ClearSearch();
             MenuHelper.ResetLevel(TreeLevelKey);
             IsActive = true;
+            hasShownPresetsHint = false;
             initialized = true;
         }
 
@@ -243,7 +245,15 @@ namespace RimWorldAccess
             {
                 string tabName = "Presets";
                 if (visibleItems.Count > 0)
-                    TolkHelper.Speak(tabName + ". " + BuildTreeItemAnnouncement());
+                {
+                    string hint = "";
+                    if (!hasShownPresetsHint)
+                    {
+                        hasShownPresetsHint = true;
+                        hint = ". Alt+S to set structure, Alt+Y to set style for your chosen preset";
+                    }
+                    TolkHelper.Speak(tabName + ". " + BuildTreeItemAnnouncement() + hint);
+                }
                 else
                     TolkHelper.Speak(tabName + ". " + "NoneLower".Translate() + ".");
             }
@@ -735,14 +745,6 @@ namespace RimWorldAccess
                 .Field(typeof(Page_ChooseIdeoPreset), "selectedStructure")
                 .GetValue(page);
 
-            // Announce current
-            string currentName = selectedStructure != null
-                ? selectedStructure.LabelCap.ToString()
-                : "Random".Translate().ToString();
-            string tooltip = selectedStructure != null
-                ? IdeoUIUtility.StructureTooltip(selectedStructure, IdeoEditMode.None).ToString()
-                : "RandomStructureTip".Translate().ToString();
-
             // Build menu options
             var menuOptions = new List<FloatMenuOption>();
 
@@ -768,7 +770,7 @@ namespace RimWorldAccess
                     continue;
 
                 var captured = meme;
-                menuOptions.Add(new FloatMenuOption(meme.LabelCap.ToString(), () =>
+                menuOptions.Add(new FloatMenuOption(captured.LabelCap + ". " + captured.description, () =>
                 {
                     HarmonyLib.AccessTools.Field(typeof(Page_ChooseIdeoPreset), "selectedStructure")
                         .SetValue(page, captured);
@@ -776,7 +778,6 @@ namespace RimWorldAccess
                 }));
             }
 
-            TolkHelper.Speak("Structure".Translate() + ": " + currentName + ". " + tooltip);
             WindowlessFloatMenuState.Open(menuOptions, colonistOrders: false);
         }
 
@@ -788,15 +789,6 @@ namespace RimWorldAccess
         {
             var stylesField = HarmonyLib.AccessTools.Field(typeof(Page_ChooseIdeoPreset), "selectedStyles");
             var styles = (List<StyleCategoryDef>)stylesField.GetValue(page);
-
-            // Announce current styles
-            var styleNames = new List<string>();
-            for (int i = 0; i < styles.Count; i++)
-            {
-                styleNames.Add(styles[i] != null ? styles[i].LabelCap.ToString() : "Random".Translate().ToString());
-            }
-            string currentStyles = string.Join(", ", styleNames);
-            TolkHelper.Speak("Styles".Translate() + ": " + currentStyles + ". " + "StyleCategoryDescriptionAbstract".Translate());
 
             // Build slot menu
             var menuOptions = new List<FloatMenuOption>();

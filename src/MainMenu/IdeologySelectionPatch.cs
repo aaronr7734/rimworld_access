@@ -29,10 +29,16 @@ namespace RimWorldAccess
             selectedStructureField = AccessTools.Field(typeof(Page_ChooseIdeoPreset), "selectedStructure");
         }
 
-        static void Prefix(Page_ChooseIdeoPreset __instance, Rect inRect)
+        static bool Prefix(Page_ChooseIdeoPreset __instance, Rect inRect)
         {
             try
             {
+                // Skip entire DoWindowContents while float menu is open.
+                // This prevents DoBottomButtons from processing Enter/Escape
+                // in the Page's IMGUI context (separate from UnifiedKeyboardPatch's context).
+                if (WindowlessFloatMenuState.IsActive)
+                    return false;
+
                 EnsureReflectionCached();
 
                 IdeologyNavigationState.Initialize();
@@ -45,7 +51,7 @@ namespace RimWorldAccess
                 }
 
                 // Handle keyboard input
-                if (Event.current.type == EventType.KeyDown && !WindowlessFloatMenuState.IsActive)
+                if (Event.current.type == EventType.KeyDown)
                 {
                     KeyCode key = Event.current.keyCode;
                     bool shift = Event.current.shift;
@@ -108,6 +114,7 @@ namespace RimWorldAccess
             {
                 Log.Error($"[RimWorld Access] Error in IdeologySelectionPatch Prefix: {ex}");
             }
+            return true; // Run original DoWindowContents
         }
 
         private static bool HandleOptionsInput(KeyCode key, bool shift, bool ctrl, bool alt)
