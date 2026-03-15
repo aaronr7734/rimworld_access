@@ -193,7 +193,7 @@ namespace RimWorldAccess
                         item.IsExpanded = !item.IsExpanded;
                         RebuildVisibleList();
                         SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                        AnnounceCurrentItem();
+                        AnnounceStateChange();
                     }
                 }
                 return true;
@@ -262,7 +262,7 @@ namespace RimWorldAccess
                 item.IsExpanded = true;
                 RebuildVisibleList();
                 SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                AnnounceCurrentItem();
+                AnnounceStateChange();
             }
             else if (item.Children.Count > 0)
             {
@@ -291,7 +291,7 @@ namespace RimWorldAccess
                 if (selectedIndex >= visibleItems.Count)
                     selectedIndex = Math.Max(0, visibleItems.Count - 1);
                 SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                AnnounceCurrentItem();
+                AnnounceStateChange();
             }
             else if (item.Parent != null && item.Parent != rootItem)
             {
@@ -372,10 +372,11 @@ namespace RimWorldAccess
                 return;
 
             var item = visibleItems[selectedIndex];
+
+            // Smart label: expanded nodes use short name, collapsed/leaf use full label
             string label;
             if (item.IsExpandable && item.IsExpanded)
             {
-                // Smart label: just the section name when expanded
                 int sepIdx = item.Label.IndexOf(". ");
                 label = sepIdx > 0 ? item.Label.Substring(0, sepIdx) : item.Label;
             }
@@ -404,22 +405,34 @@ namespace RimWorldAccess
             TolkHelper.Speak($"{label}{stateIndicator}{positionSection}{levelSuffix}{inspectable}");
         }
 
+        /// <summary>
+        /// Announces only the short label + state after an expand/collapse action.
+        /// Does not include the full aggregated content.
+        /// </summary>
+        private void AnnounceStateChange()
+        {
+            if (visibleItems.Count == 0 || selectedIndex < 0 || selectedIndex >= visibleItems.Count)
+                return;
+
+            var item = visibleItems[selectedIndex];
+            int sepIdx = item.Label.IndexOf(". ");
+            string shortLabel = sepIdx > 0 ? item.Label.Substring(0, sepIdx) : item.Label.TrimEnd('.', '!', '?');
+
+            string state = item.IsExpanded ? "expanded" : "collapsed";
+            int childCount = item.Children.Count;
+            string childWord = childCount == 1 ? "item" : "items";
+
+            TolkHelper.Speak($"{shortLabel}, {state}, {childCount} {childWord}");
+        }
+
         private void AnnounceWithSearch()
         {
             if (visibleItems.Count == 0 || selectedIndex < 0 || selectedIndex >= visibleItems.Count)
                 return;
 
             var item = visibleItems[selectedIndex];
-            string label;
-            if (item.IsExpandable && item.IsExpanded)
-            {
-                int sepIdx = item.Label.IndexOf(". ");
-                label = sepIdx > 0 ? item.Label.Substring(0, sepIdx) : item.Label;
-            }
-            else
-            {
-                label = item.Label.TrimEnd('.', '!', '?');
-            }
+            int searchSepIdx = item.IsExpandable ? item.Label.IndexOf(". ") : -1;
+            string label = searchSepIdx > 0 ? item.Label.Substring(0, searchSepIdx) : item.Label.TrimEnd('.', '!', '?');
 
             string stateIndicator = "";
             if (item.IsExpandable)
