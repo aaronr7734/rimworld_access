@@ -147,6 +147,18 @@ namespace RimWorldAccess
             if (key == KeyCode.None)
                 return;
 
+            // ===== PRIORITY -1.1: Block ALL keys during pawn filter reroll =====
+            // Only Escape is allowed (to cancel the reroll)
+            if (RerollState.IsActive)
+            {
+                if (key == KeyCode.Escape)
+                {
+                    RerollState.Cancel();
+                }
+                Event.current.Use();
+                return;
+            }
+
             // ===== PRIORITY -1: Block ALL keys if text input mode is active =====
             // Zone/storage rename needs to capture text input, so block everything here
             // TextInputCapturePatch will handle the input

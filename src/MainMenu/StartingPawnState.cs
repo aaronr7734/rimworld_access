@@ -9,6 +9,12 @@ using Verse.Sound;
 
 namespace RimWorldAccess
 {
+    public enum PawnEditorContext
+    {
+        GameStart,
+        Wanderer
+    }
+
     public static class StartingPawnState
     {
         private static List<PawnTreeItem> hierarchy = new List<PawnTreeItem>();
@@ -23,9 +29,11 @@ namespace RimWorldAccess
 
         public static bool IsActive => isActive;
         public static bool HasActiveSearch => typeahead.HasActiveSearch;
+        public static PawnEditorContext Context { get; private set; } = PawnEditorContext.GameStart;
 
-        public static void Open()
+        public static void Open(PawnEditorContext context = PawnEditorContext.GameStart)
         {
+            Context = context;
             isActive = true;
             openedOnFrame = Time.frameCount;
             selectedIndex = 0;
@@ -36,7 +44,7 @@ namespace RimWorldAccess
 
             if (flattenedItems.Count > 0)
             {
-                // Select first pawn (skip group header)
+                // Select first pawn (skip group header if present)
                 for (int i = 0; i < flattenedItems.Count; i++)
                 {
                     if (flattenedItems[i].NodeType == PawnNodeType.Pawn)
@@ -45,7 +53,10 @@ namespace RimWorldAccess
                         break;
                     }
                 }
-                TolkHelper.Speak("CreateCharacters".Translate());
+                string title = context == PawnEditorContext.Wanderer
+                    ? "ChooseNewWanderers".Translate() + ". Alt+A to add, Delete to remove."
+                    : "CreateCharacters".Translate();
+                TolkHelper.Speak(title);
                 AnnounceCurrentItem();
             }
         }
@@ -196,6 +207,20 @@ namespace RimWorldAccess
                 return true;
             }
 
+            // Alt+A: Add pawn (wanderer only)
+            if (alt && key == KeyCode.A && Context == PawnEditorContext.Wanderer)
+            {
+                AddWandererPawn();
+                return true;
+            }
+
+            // Delete: Remove current pawn (wanderer only)
+            if (key == KeyCode.Delete && Context == PawnEditorContext.Wanderer)
+            {
+                RemoveWandererPawn();
+                return true;
+            }
+
             // Ctrl+Up/Down: Reorder
             if (ctrl && key == KeyCode.UpArrow)
             {
@@ -271,22 +296,29 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Enter: Start game with confirmation
+            // Enter: Confirm (context-dependent)
             if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
             {
                 if (Time.frameCount <= openedOnFrame + 1)
-                    return true; // Consume but ignore — key repeat from site selection
-                ConfirmStartGame();
+                    return true; // Consume but ignore — key repeat from prior screen
+                if (Context == PawnEditorContext.Wanderer)
+                    ConfirmWanderers();
+                else
+                    ConfirmStartGame();
                 return true;
             }
 
-            // Escape: Clear search or go back
+            // Escape: Clear search or go back/close (context-dependent)
             if (key == KeyCode.Escape)
             {
                 if (typeahead.HasActiveSearch)
                 {
                     typeahead.ClearSearchAndAnnounce();
                     AnnounceCurrentItem();
+                }
+                else if (Context == PawnEditorContext.Wanderer)
+                {
+                    WandererPatch.CloseDialog();
                 }
                 else
                 {
@@ -482,11 +514,15 @@ namespace RimWorldAccess
             // Save position within current pawn
             var position = SaveTreePosition();
 
-            // Find all pawn nodes
+            // Find all pawn nodes (top-level in wanderer mode, under group headers in game-start)
             var pawnNodes = new List<PawnTreeItem>();
             foreach (var item in hierarchy)
             {
-                if (item.NodeType == PawnNodeType.GroupHeader)
+                if (item.NodeType == PawnNodeType.Pawn)
+                {
+                    pawnNodes.Add(item);
+                }
+                else if (item.NodeType == PawnNodeType.GroupHeader)
                 {
                     foreach (var child in item.Children)
                     {
@@ -657,27 +693,29 @@ namespace RimWorldAccess
 
         // ===== ACTIONS =====
 
+        private static int rerollPawnIdx = -1;
+        private static TreePosition rerollSavedPosition;
+
         private static void RandomizeCurrentPawn()
         {
             int pawnIdx = GetCurrentPawnIndex();
             if (pawnIdx < 0) return;
 
             // Save position so user returns to same logical location after reroll
-            var position = SaveTreePosition();
+            rerollPawnIdx = pawnIdx;
+            rerollSavedPosition = SaveTreePosition();
 
             StartingPawnUtility.RandomizePawn(pawnIdx);
+
+            // If RerollState is active, the reroll is spread across frames —
+            // OnRerollComplete will handle tree rebuild and announcement.
+            if (RerollState.IsActive)
+                return;
+
+            // No filters active or immediate match — finalize now
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
             RebuildTree();
-
-            // Restore position within the rerolled pawn
-            foreach (var item in flattenedItems)
-            {
-                if (item.NodeType == PawnNodeType.Pawn && item.PawnIndex == pawnIdx)
-                {
-                    RestoreTreePosition(item, position);
-                    break;
-                }
-            }
+            RestoreRerollPosition();
 
             string randomizeAnnouncement = "Randomize".Translate();
             if (PawnFilterData.HasActiveFilters())
@@ -689,6 +727,38 @@ namespace RimWorldAccess
             }
             TolkHelper.Speak(randomizeAnnouncement);
             AnnounceCurrentItem();
+        }
+
+        public static void OnRerollComplete(bool success, int attempts, bool cancelled)
+        {
+            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            RebuildTree();
+            RestoreRerollPosition();
+
+            string announcement;
+            if (cancelled)
+                announcement = $"Stopped at {attempts} attempts.";
+            else if (success)
+                announcement = $"Found match in {attempts} attempts.";
+            else
+                announcement = $"No match after {attempts} attempts, keeping last result.";
+
+            TolkHelper.Speak(announcement);
+            AnnounceCurrentItem();
+        }
+
+        private static void RestoreRerollPosition()
+        {
+            if (rerollPawnIdx < 0) return;
+            foreach (var item in flattenedItems)
+            {
+                if (item.NodeType == PawnNodeType.Pawn && item.PawnIndex == rerollPawnIdx)
+                {
+                    RestoreTreePosition(item, rerollSavedPosition);
+                    break;
+                }
+            }
+            rerollPawnIdx = -1;
         }
 
         private static void RenameCurrentPawn()
@@ -815,6 +885,78 @@ namespace RimWorldAccess
                 message,
                 () => StartingPawnPatch.DoNext(),
                 destructive: false));
+        }
+
+        // ===== WANDERER-SPECIFIC ACTIONS =====
+
+        private static void ConfirmWanderers()
+        {
+            var pawns = Find.GameInitData.startingAndOptionalPawns;
+            var names = new List<string>();
+            for (int i = 0; i < pawns.Count; i++)
+                names.Add(pawns[i].LabelShort);
+
+            string pawnList = names.ToCommaList(useAnd: true);
+            string message = "Confirm".Translate() + ": " + pawnList + "?";
+
+            Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
+                message,
+                () => WandererPatch.ConfirmWanderers(),
+                destructive: false));
+        }
+
+        private static void AddWandererPawn()
+        {
+            var pawns = Find.GameInitData.startingAndOptionalPawns;
+            if (pawns.Count >= 6)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("Maximum 6");
+                return;
+            }
+
+            WandererPatch.AddPawn();
+            RebuildTree();
+
+            // Navigate to the newly added pawn
+            for (int i = flattenedItems.Count - 1; i >= 0; i--)
+            {
+                if (flattenedItems[i].NodeType == PawnNodeType.Pawn)
+                {
+                    selectedIndex = i;
+                    break;
+                }
+            }
+
+            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            TolkHelper.Speak("Pawn added");
+            AnnounceCurrentItem();
+        }
+
+        private static void RemoveWandererPawn()
+        {
+            int pawnIdx = GetCurrentPawnIndex();
+            if (pawnIdx < 0) return;
+
+            var pawns = Find.GameInitData.startingAndOptionalPawns;
+            if (pawns.Count <= 1)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("Minimum 1");
+                return;
+            }
+
+            string removedName = pawns[pawnIdx].LabelShort;
+            WandererPatch.RemovePawn(pawnIdx);
+            RebuildTree();
+
+            // Clamp selection
+            if (selectedIndex >= flattenedItems.Count)
+                selectedIndex = flattenedItems.Count - 1;
+
+            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            TolkHelper.Speak(removedName + " removed");
+            AnnounceCurrentItem();
         }
 
         // ===== TYPEAHEAD SEARCH =====

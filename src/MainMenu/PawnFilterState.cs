@@ -167,21 +167,36 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Home/End
+            // Shift+Home/End: Jump slider to min/max
+            // Home/End without Shift: Navigate to first/last item
             if (key == KeyCode.Home)
             {
                 typeahead.ClearSearch();
-                selectedIndex = 0;
-                SkipToNextNonHeader(1);
-                AnnounceCurrentItem();
+                if (shift)
+                {
+                    JumpToExtreme(isMax: false);
+                }
+                else
+                {
+                    selectedIndex = 0;
+                    SkipToNextNonHeader(1);
+                    AnnounceCurrentItem();
+                }
                 return true;
             }
             if (key == KeyCode.End)
             {
                 typeahead.ClearSearch();
-                selectedIndex = menuItems.Count - 1;
-                SkipToNextNonHeader(-1);
-                AnnounceCurrentItem();
+                if (shift)
+                {
+                    JumpToExtreme(isMax: true);
+                }
+                else
+                {
+                    selectedIndex = menuItems.Count - 1;
+                    SkipToNextNonHeader(-1);
+                    AnnounceCurrentItem();
+                }
                 return true;
             }
 
@@ -387,14 +402,88 @@ namespace RimWorldAccess
                     AnnounceCurrentItem();
                     break;
 
-                case FilterItemType.RerollAlgorithm:
-                    PawnFilterHelper.CycleRerollAlgorithm(workingCopy, direction);
-                    item.Label = PawnFilterHelper.FormatRerollAlgorithmLabel(workingCopy);
+                case FilterItemType.RequiredTraitsInPool:
+                    PawnFilterHelper.AdjustRequiredTraitsInPool(workingCopy, direction);
+                    item.Label = PawnFilterHelper.FormatRequiredTraitsInPoolLabel(workingCopy);
+                    AnnounceCurrentItem();
+                    break;
+
+                default:
+                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                    break;
+            }
+        }
+
+        private static void JumpToExtreme(bool isMax)
+        {
+            if (selectedIndex < 0 || selectedIndex >= menuItems.Count) return;
+            var item = menuItems[selectedIndex];
+
+            switch (item.ItemType)
+            {
+                case FilterItemType.Skill:
+                    item.SkillFilter.MinLevel = isMax ? 20 : 0;
+                    item.Label = PawnFilterHelper.FormatSkillLabel(item.SkillFilter);
+                    AnnounceCurrentItem();
+                    break;
+
+                case FilterItemType.PassionMin:
+                    workingCopy.PassionMin = isMax ? 12 : 0;
+                    if (workingCopy.PassionMin > workingCopy.PassionMax) workingCopy.PassionMax = workingCopy.PassionMin;
+                    item.Label = PawnFilterHelper.FormatPassionMinLabel(workingCopy);
+                    UpdateItemLabel(FilterItemType.PassionMax, PawnFilterHelper.FormatPassionMaxLabel(workingCopy));
+                    AnnounceCurrentItem();
+                    break;
+
+                case FilterItemType.PassionMax:
+                    workingCopy.PassionMax = isMax ? 12 : 0;
+                    if (workingCopy.PassionMax < workingCopy.PassionMin) workingCopy.PassionMin = workingCopy.PassionMax;
+                    item.Label = PawnFilterHelper.FormatPassionMaxLabel(workingCopy);
+                    UpdateItemLabel(FilterItemType.PassionMin, PawnFilterHelper.FormatPassionMinLabel(workingCopy));
+                    AnnounceCurrentItem();
+                    break;
+
+                case FilterItemType.SkillPointsMin:
+                    workingCopy.SkillPointsMin = isMax ? 240 : 0;
+                    if (workingCopy.SkillPointsMin > workingCopy.SkillPointsMax) workingCopy.SkillPointsMax = workingCopy.SkillPointsMin;
+                    item.Label = PawnFilterHelper.FormatSkillPointsMinLabel(workingCopy);
+                    UpdateItemLabel(FilterItemType.SkillPointsMax, PawnFilterHelper.FormatSkillPointsMaxLabel(workingCopy));
+                    AnnounceCurrentItem();
+                    break;
+
+                case FilterItemType.SkillPointsMax:
+                    workingCopy.SkillPointsMax = isMax ? 240 : 0;
+                    if (workingCopy.SkillPointsMax < workingCopy.SkillPointsMin) workingCopy.SkillPointsMin = workingCopy.SkillPointsMax;
+                    item.Label = PawnFilterHelper.FormatSkillPointsMaxLabel(workingCopy);
+                    UpdateItemLabel(FilterItemType.SkillPointsMin, PawnFilterHelper.FormatSkillPointsMinLabel(workingCopy));
+                    AnnounceCurrentItem();
+                    break;
+
+                case FilterItemType.AgeMin:
+                    workingCopy.AgeMin = isMax ? 120 : 0;
+                    if (workingCopy.AgeMin > workingCopy.AgeMax) workingCopy.AgeMax = workingCopy.AgeMin;
+                    item.Label = PawnFilterHelper.FormatAgeMinLabel(workingCopy);
+                    UpdateItemLabel(FilterItemType.AgeMax, PawnFilterHelper.FormatAgeMaxLabel(workingCopy));
+                    AnnounceCurrentItem();
+                    break;
+
+                case FilterItemType.AgeMax:
+                    workingCopy.AgeMax = isMax ? 120 : 0;
+                    if (workingCopy.AgeMax < workingCopy.AgeMin) workingCopy.AgeMin = workingCopy.AgeMax;
+                    item.Label = PawnFilterHelper.FormatAgeMaxLabel(workingCopy);
+                    UpdateItemLabel(FilterItemType.AgeMin, PawnFilterHelper.FormatAgeMinLabel(workingCopy));
+                    AnnounceCurrentItem();
+                    break;
+
+                case FilterItemType.RerollLimit:
+                    workingCopy.RerollLimit = isMax ? 50000 : 100;
+                    item.Label = PawnFilterHelper.FormatRerollLimitLabel(workingCopy);
                     AnnounceCurrentItem();
                     break;
 
                 case FilterItemType.RequiredTraitsInPool:
-                    PawnFilterHelper.AdjustRequiredTraitsInPool(workingCopy, direction);
+                    int optionalCount = workingCopy.Traits.Count(t => t.Mode == TraitFilterMode.Optional);
+                    workingCopy.RequiredTraitsInPool = isMax ? Math.Min(3, optionalCount) : 0;
                     item.Label = PawnFilterHelper.FormatRequiredTraitsInPoolLabel(workingCopy);
                     AnnounceCurrentItem();
                     break;

@@ -29,7 +29,6 @@ namespace RimWorldAccess
         Health,
         Work,
         RerollLimit,
-        RerollAlgorithm,
         SavePreset,
         LoadPreset,
         ClearAll
@@ -210,16 +209,6 @@ namespace RimWorldAccess
                 ItemType = FilterItemType.RerollLimit
             });
 
-            // Only show algorithm choice when HAR mod is not active
-            if (!ModsConfig.IsActive("erdelf.HumanoidAlienRaces"))
-            {
-                items.Add(new FilterMenuItem
-                {
-                    Label = FormatRerollAlgorithmLabel(filter),
-                    ItemType = FilterItemType.RerollAlgorithm
-                });
-            }
-
             // Actions section
             items.Add(new FilterMenuItem
             {
@@ -387,9 +376,9 @@ namespace RimWorldAccess
             {
                 case HealthFilterMode.AllowAll: value = "AllowAll".Translate(); break;
                 case HealthFilterMode.OnlyStartCondition: value = "Only start conditions"; break;
-                case HealthFilterMode.NoPain: value = "NoPain".Translate(); break;
-                case HealthFilterMode.NoAddiction: value = "NoAddiction".Translate(); break;
-                case HealthFilterMode.AllowNone: value = "None".Translate(); break;
+                case HealthFilterMode.NoPain: value = "No pain"; break;
+                case HealthFilterMode.NoAddiction: value = "No addictions"; break;
+                case HealthFilterMode.AllowNone: value = "No health conditions"; break;
                 default: value = "AllowAll".Translate(); break;
             }
             return "Health".Translate() + ": " + value;
@@ -401,8 +390,8 @@ namespace RimWorldAccess
             switch (filter.Work)
             {
                 case WorkFilterMode.AllowAll: value = "AllowAll".Translate(); break;
-                case WorkFilterMode.NoDumbLabor: value = "NoDumbLabor".Translate(); break;
-                case WorkFilterMode.AllowNone: value = "None".Translate(); break;
+                case WorkFilterMode.NoDumbLabor: value = "No dumb labor"; break;
+                case WorkFilterMode.AllowNone: value = "Allow none"; break;
                 default: value = "AllowAll".Translate(); break;
             }
             return "IncapableOf".Translate() + ": " + value;
@@ -411,12 +400,6 @@ namespace RimWorldAccess
         public static string FormatRerollLimitLabel(PawnFilter filter)
         {
             return "Reroll limit: " + filter.RerollLimit;
-        }
-
-        public static string FormatRerollAlgorithmLabel(PawnFilter filter)
-        {
-            string value = filter.Algorithm == RerollAlgorithm.Normal ? "Normal" : "Fast";
-            return "Reroll algorithm: " + value;
         }
 
         public static List<FloatMenuOption> BuildTraitPickerOptions(
@@ -542,14 +525,6 @@ namespace RimWorldAccess
             int idx = Array.IndexOf(values, filter.Work);
             idx = (idx + direction + values.Length) % values.Length;
             filter.Work = values[idx];
-        }
-
-        public static void CycleRerollAlgorithm(PawnFilter filter, int direction)
-        {
-            var values = (RerollAlgorithm[])Enum.GetValues(typeof(RerollAlgorithm));
-            int idx = Array.IndexOf(values, filter.Algorithm);
-            idx = (idx + direction + values.Length) % values.Length;
-            filter.Algorithm = values[idx];
         }
 
         public static void CyclePassion(SkillFilter skill)

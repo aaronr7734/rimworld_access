@@ -64,7 +64,18 @@ namespace RimWorldAccess
             int startingCount = Find.GameInitData.startingPawnCount;
             var hierarchy = new List<PawnTreeItem>();
 
-            // Selected group
+            // Wanderer mode: all pawns are selected, no group headers
+            if (StartingPawnState.Context == PawnEditorContext.Wanderer)
+            {
+                for (int i = 0; i < pawns.Count; i++)
+                {
+                    var pawnNode = BuildPawnNode(pawns[i], i, null);
+                    hierarchy.Add(pawnNode);
+                }
+                return hierarchy;
+            }
+
+            // Game-start mode: pawns grouped under Selected/Left Behind headers
             var selectedHeader = new PawnTreeItem
             {
                 Label = "StartingPawnsSelected".Translate(),
@@ -764,6 +775,31 @@ namespace RimWorldAccess
             });
             filterOption.tooltip = new TipSignal("Alt+F");
             options.Add(filterOption);
+
+            // Wanderer mode: Add/Remove pawn options
+            if (StartingPawnState.Context == PawnEditorContext.Wanderer)
+            {
+                if (pawns.Count < 6)
+                {
+                    var addOption = new FloatMenuOption("Add pawn", () =>
+                    {
+                        WandererPatch.AddPawn();
+                        rebuildCallback?.Invoke();
+                    });
+                    addOption.tooltip = new TipSignal("Alt+A");
+                    options.Add(addOption);
+                }
+                if (pawns.Count > 1)
+                {
+                    var removeOption = new FloatMenuOption("Remove pawn", () =>
+                    {
+                        WandererPatch.RemovePawn(pawnIndex);
+                        rebuildCallback?.Invoke();
+                    });
+                    removeOption.tooltip = new TipSignal("Delete");
+                    options.Add(removeOption);
+                }
+            }
 
             // Biotech: Developmental stage and xenotype selectors
             if (ModsConfig.BiotechActive)

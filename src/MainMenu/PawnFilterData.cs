@@ -29,12 +29,6 @@ namespace RimWorldAccess
         AllowNone
     }
 
-    public enum RerollAlgorithm
-    {
-        Normal,
-        Fast
-    }
-
     public class SkillFilter
     {
         public SkillDef Skill { get; set; }
@@ -70,7 +64,6 @@ namespace RimWorldAccess
         public int RequiredTraitsInPool { get; set; } = 0;
         public bool CountOnlyHighestAttack { get; set; } = false;
         public bool CountOnlyPassionSkills { get; set; } = false;
-        public RerollAlgorithm Algorithm { get; set; } = RerollAlgorithm.Fast;
 
         public void InitializeSkills()
         {
@@ -108,7 +101,6 @@ namespace RimWorldAccess
             RequiredTraitsInPool = 0;
             CountOnlyHighestAttack = false;
             CountOnlyPassionSkills = false;
-            Algorithm = RerollAlgorithm.Fast;
         }
 
         public bool HasActiveFilters()
@@ -384,8 +376,7 @@ namespace RimWorldAccess
                 RerollLimit = RerollLimit,
                 RequiredTraitsInPool = RequiredTraitsInPool,
                 CountOnlyHighestAttack = CountOnlyHighestAttack,
-                CountOnlyPassionSkills = CountOnlyPassionSkills,
-                Algorithm = Algorithm
+                CountOnlyPassionSkills = CountOnlyPassionSkills
             };
 
             foreach (var skill in Skills)
@@ -426,7 +417,6 @@ namespace RimWorldAccess
             RequiredTraitsInPool = source.RequiredTraitsInPool;
             CountOnlyHighestAttack = source.CountOnlyHighestAttack;
             CountOnlyPassionSkills = source.CountOnlyPassionSkills;
-            Algorithm = source.Algorithm;
 
             Skills.Clear();
             foreach (var skill in source.Skills)

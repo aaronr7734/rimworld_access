@@ -183,7 +183,6 @@ namespace RimWorldAccess
             private bool countOnlyPassion;
             private int ageRangeMin;
             private int ageRangeMax;
-            private RerollAlgorithm rerollAlgorithm;
             private int rerollLimit;
             private Gender gender;
             private HealthFilterMode healthCondition;
@@ -208,7 +207,7 @@ namespace RimWorldAccess
                 Scribe_Values.Look(ref countOnlyPassion, "countOnlyPassion", false);
                 Scribe_Values.Look(ref ageRangeMin, "ageRangeMin", 0);
                 Scribe_Values.Look(ref ageRangeMax, "ageRangeMax", 120);
-                Scribe_Values.Look(ref rerollAlgorithm, "rerollAlgorithm", RerollAlgorithm.Normal);
+                // rerollAlgorithm field removed — old presets may still contain it, Scribe silently ignores missing fields
                 Scribe_Values.Look(ref rerollLimit, "rerollLimit", 1000);
                 Scribe_Values.Look(ref gender, "gender", Gender.None);
                 Scribe_Values.Look(ref healthCondition, "healthCondition", HealthFilterMode.AllowAll);
@@ -263,7 +262,6 @@ namespace RimWorldAccess
                 filter.CountOnlyPassionSkills = countOnlyPassion;
                 filter.AgeMin = ageRangeMin;
                 filter.AgeMax = ageRangeMax;
-                filter.Algorithm = rerollAlgorithm;
                 filter.RerollLimit = rerollLimit;
                 filter.Gender = (gender == Gender.None) ? (Gender?)null : gender;
                 filter.Health = healthCondition;
@@ -300,7 +298,6 @@ namespace RimWorldAccess
                 entry.countOnlyPassion = filter.CountOnlyPassionSkills;
                 entry.ageRangeMin = filter.AgeMin;
                 entry.ageRangeMax = filter.AgeMax;
-                entry.rerollAlgorithm = filter.Algorithm;
                 entry.rerollLimit = filter.RerollLimit;
                 entry.gender = filter.Gender ?? Gender.None;
                 entry.healthCondition = filter.Health;

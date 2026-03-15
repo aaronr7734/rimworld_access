@@ -64,6 +64,9 @@ namespace RimWorldAccess
         {
             try
             {
+                // Process reroll batch each frame
+                RerollState.ProcessBatch();
+
                 if (!StartingPawnState.IsActive) return;
 
                 // Check if rename dialog just closed and tree needs rebuilding
@@ -117,7 +120,7 @@ namespace RimWorldAccess
         {
             if (__instance is Page_ConfigureStartingPawns)
             {
-                bool blocked = WindowlessFloatMenuState.IsActive || WindowlessDialogState.IsActive || InfoCardState.IsActive || PawnFilterState.IsActive;
+                bool blocked = WindowlessFloatMenuState.IsActive || WindowlessDialogState.IsActive || InfoCardState.IsActive || PawnFilterState.IsActive || RerollState.IsActive;
                 if (blocked)
                     return false;
                 // Mark the frame so cascading DoBack on the previous page is blocked
