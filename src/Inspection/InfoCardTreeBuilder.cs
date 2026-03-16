@@ -637,6 +637,23 @@ namespace RimWorldAccess
                 };
                 AddChild(tabNode, xenoNode);
             }
+
+            // Favorite color (Ideology DLC)
+            if (ModsConfig.IdeologyActive && !pawn.DevelopmentalStage.Baby() && pawn.story?.favoriteColor != null)
+            {
+                string orIdeoColor = string.Empty;
+                if (pawn.Ideo != null && !pawn.Ideo.classicMode)
+                {
+                    orIdeoColor = "OrIdeoColor".Translate(pawn.Named("PAWN"));
+                }
+                string colorLabel = "FavoriteColorTooltip".Translate(
+                    pawn.Named("PAWN"),
+                    pawn.story.favoriteColor.label.Named("COLOR"),
+                    0.6f.ToStringPercent().Named("PERCENTAGE"),
+                    orIdeoColor.Named("ORIDEO")
+                ).Resolve();
+                AddChild(tabNode, CreateInfoItem(colorLabel, tabNode.IndentLevel + 1));
+            }
         }
 
         #endregion

@@ -799,6 +799,31 @@ namespace RimWorldAccess
             else if (category == "Character")
             {
                 BuildDetailedInfoChildren(categoryItem, obj, category);
+
+                // Favorite color — visual-only in vanilla, add as text for accessibility
+                if (pawn != null && ModsConfig.IdeologyActive
+                    && !pawn.DevelopmentalStage.Baby()
+                    && pawn.story?.favoriteColor != null)
+                {
+                    string orIdeoColor = string.Empty;
+                    if (pawn.Ideo != null && !pawn.Ideo.classicMode)
+                    {
+                        orIdeoColor = "OrIdeoColor".Translate(pawn.Named("PAWN"));
+                    }
+                    string colorLabel = "FavoriteColorTooltip".Translate(
+                        pawn.Named("PAWN"),
+                        pawn.story.favoriteColor.label.Named("COLOR"),
+                        0.6f.ToStringPercent().Named("PERCENTAGE"),
+                        orIdeoColor.Named("ORIDEO")
+                    ).Resolve();
+                    AddChild(categoryItem, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = colorLabel,
+                        IndentLevel = categoryItem.IndentLevel + 1,
+                        IsExpandable = false
+                    });
+                }
             }
             else if (category == "Log")
             {
