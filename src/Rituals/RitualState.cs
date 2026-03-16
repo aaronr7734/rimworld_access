@@ -124,7 +124,7 @@ namespace RimWorldAccess
 
                 // Announce opening with description and expected quality
                 string ritualName = RitualTreeBuilder.GetRitualLabel(currentRitual);
-                int roleCount = roleItems.Count;
+                int roleCount = roleItems.Count(item => item.Type != RitualRoleListItem.ItemType.GravshipCheckbox);
 
                 // Get description if available
                 string description = GetRitualDescription(dialog);
