@@ -502,9 +502,7 @@ namespace RimWorldAccess
             var roadsCategory = CreateRoadsCategory(originTile);
             if (!roadsCategory.IsEmpty) categories.Add(roadsCategory);
 
-            // Category 7: Space objects (not accessible yet)
-            var spaceCategory = CreateSpaceObjectsCategory();
-            if (!spaceCategory.IsEmpty) categories.Add(spaceCategory);
+            // Note: Space/orbital objects are now included in their proper categories above
 
             if (categories.Count == 0)
             {
@@ -620,10 +618,6 @@ namespace RimWorldAccess
                     if (settlement.Faction == null || !settlement.Tile.Valid)
                         continue;
 
-                    // Skip non-surface objects (space stations, etc.)
-                    if (!IsOnSurfaceLayer(settlement))
-                        continue;
-
                     allSubcat.Items.Add(new WorldScannerItem(settlement));
                 }
             }
@@ -698,10 +692,6 @@ namespace RimWorldAccess
 
                         if (!tile.Valid || worldObj == null) continue;
 
-                        // Skip non-surface objects (space quests)
-                        if (!IsOnSurfaceLayer(worldObj))
-                            continue;
-
                         // Skip player settlements
                         if (worldObj is Settlement settlement && settlement.Faction == Faction.OfPlayer)
                             continue;
@@ -724,7 +714,7 @@ namespace RimWorldAccess
             var subcat = new WorldScannerSubcategory("Player Caravans");
 
             var caravans = Find.WorldObjects?.Caravans?
-                .Where(c => c.Faction == Faction.OfPlayer && IsOnSurfaceLayer(c))
+                .Where(c => c.Faction == Faction.OfPlayer)
                 .ToList();
 
             if (caravans != null)
@@ -775,9 +765,6 @@ namespace RimWorldAccess
                     if (questTiles.Contains(worldObj.Tile))
                         continue;
                     if (!worldObj.Tile.Valid)
-                        continue;
-                    // Skip non-surface objects (space objects)
-                    if (!IsOnSurfaceLayer(worldObj))
                         continue;
 
                     var item = new WorldScannerItem(worldObj);
@@ -886,35 +873,14 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Creates a category for space objects that aren't accessible yet.
-        /// Only shown when space objects exist (Odyssey DLC).
+        /// Checks if an item's tile is on a different planet layer than the currently selected one.
+        /// Used for cross-layer distance calculation and layer annotations.
         /// </summary>
-        private static WorldScannerCategory CreateSpaceObjectsCategory()
+        private static bool IsOnDifferentLayer(WorldScannerItem item)
         {
-            var category = new WorldScannerCategory("Not Accessible Yet");
-            var subcat = new WorldScannerSubcategory("Space Objects");
-
-            var allObjects = Find.WorldObjects?.AllWorldObjects;
-            if (allObjects != null)
-            {
-                foreach (var worldObj in allObjects)
-                {
-                    if (!worldObj.Tile.Valid)
-                        continue;
-
-                    // Only include objects NOT on the surface layer
-                    if (IsOnSurfaceLayer(worldObj))
-                        continue;
-
-                    // Create item with just the label - no distance/direction
-                    // since those calculations would fail for space objects
-                    var item = new WorldScannerItem(worldObj);
-                    subcat.Items.Add(item);
-                }
-            }
-
-            category.Subcategories.Add(subcat);
-            return category;
+            if (item.WorldObject == null || !item.WorldObject.Tile.Valid)
+                return false;
+            return item.WorldObject.Tile.Layer != PlanetLayer.Selected;
         }
 
         #endregion
@@ -1574,6 +1540,13 @@ namespace RimWorldAccess
 
             PlanetTile targetTile = item.GetTileAtInstance(currentInstanceIndex);
 
+            // Auto-switch layer if jumping to an item on a different layer
+            if (targetTile.Valid && targetTile.Layer != PlanetLayer.Selected)
+            {
+                PlanetLayer.Selected = targetTile.Layer;
+                TolkHelper.Speak($"Switched to {targetTile.LayerDef.LabelCap} layer.");
+            }
+
             WorldNavigationState.CurrentSelectedTile = targetTile;
 
             // Sync with game selection (WorldSelector + WorldInterface/GameInitData for world gen)
@@ -1659,17 +1632,30 @@ namespace RimWorldAccess
             var subcat = GetCurrentSubcategory();
             var category = GetCurrentCategory();
 
-            // Check if this is a space object (not on surface layer)
-            bool isSpaceObject = item.WorldObject != null && !IsOnSurfaceLayer(item.WorldObject);
+            // Check if item is on a different planet layer (e.g., orbital object while on surface)
+            bool onDifferentLayer = IsOnDifferentLayer(item);
 
             var parts = new List<string>();
 
-            // Skip distance/direction calculations for space objects
             PlanetTile originTile = WorldNavigationState.CurrentSelectedTile;
             float distance = 0f;
             string direction = "";
 
-            if (!isSpaceObject)
+            if (onDifferentLayer)
+            {
+                // Cross-layer: project origin to target layer for comparable distance
+                PlanetTile itemTile = item.GetTileAtInstance(0);
+                if (itemTile.Valid && originTile.Valid)
+                {
+                    PlanetTile projected = itemTile.Layer.GetClosestTile_NewTemp(originTile);
+                    if (projected.Valid)
+                    {
+                        distance = Find.WorldGrid.ApproxDistanceInTiles(projected, itemTile);
+                        direction = item.GetDirectionFrom(projected, 0);
+                    }
+                }
+            }
+            else
             {
                 distance = item.GetDistance(originTile, 0);
                 direction = item.GetDirectionFrom(originTile, 0);
@@ -1679,7 +1665,6 @@ namespace RimWorldAccess
                 if (targetTile.Valid && Find.WorldRoutePlanner != null && Find.WorldRoutePlanner.Active &&
                     Find.WorldRoutePlanner.waypoints.Count > 0 && Find.WorldReachability != null)
                 {
-                    // Get the last waypoint's tile as the origin for reachability check
                     var lastWaypoint = Find.WorldRoutePlanner.waypoints[Find.WorldRoutePlanner.waypoints.Count - 1];
                     if (lastWaypoint != null && lastWaypoint.Tile.Valid)
                     {
@@ -1726,25 +1711,42 @@ namespace RimWorldAccess
                 parts.Add($"Region 1 of {item.InstanceCount}");
             }
 
-            if (isSpaceObject)
-            {
-                parts.Add("In space");
-            }
-            else if (!string.IsNullOrEmpty(direction) && distance > 0.1f)
+            if (!string.IsNullOrEmpty(direction) && distance > 0.1f)
             {
                 parts.Add($"{direction}, {distance:F0} tiles");
             }
-            else if (distance <= 0.1f)
+            else if (distance <= 0.1f && !onDifferentLayer)
             {
                 parts.Add("Current location");
             }
 
-            // Add fuel cost if transport pod launch targeting is active
-            if (!isSpaceObject && TransportPodLaunchState.ShouldAnnounceFuelCosts() && distance > 0.1f)
+            // Append layer name for cross-layer items
+            if (onDifferentLayer)
+            {
+                var itemTile = item.GetTileAtInstance(0);
+                if (itemTile.Valid)
+                {
+                    string layerName = itemTile.LayerDef.LabelCap;
+                    parts.Add($"on {layerName} layer");
+                }
+            }
+
+            // Add fuel cost if transport pod or gravship launch targeting is active
+            if (TransportPodLaunchState.ShouldAnnounceFuelCosts() && distance > 0.1f)
             {
                 string fuelInfo = TransportPodLaunchState.GetFuelCostAnnouncement(distance);
                 if (!string.IsNullOrEmpty(fuelInfo))
                     parts.Add(fuelInfo);
+            }
+            else if (GravshipDestinationState.ShouldAnnounceFuelCosts())
+            {
+                PlanetTile itemTile = item.GetTileAtInstance(0);
+                if (itemTile.Valid)
+                {
+                    string fuelInfo = GravshipDestinationState.GetFuelCostAnnouncement(itemTile);
+                    if (!string.IsNullOrEmpty(fuelInfo))
+                        parts.Add(fuelInfo);
+                }
             }
 
             int pos = currentItemIndex + 1;
@@ -1798,10 +1800,16 @@ namespace RimWorldAccess
             else if (distance <= 0.1f)
                 parts.Add("Current location");
 
-            // Add fuel cost if transport pod launch targeting is active
+            // Add fuel cost if transport pod or gravship launch targeting is active
             if (TransportPodLaunchState.ShouldAnnounceFuelCosts() && distance > 0.1f)
             {
                 string fuelInfo = TransportPodLaunchState.GetFuelCostAnnouncement(distance);
+                if (!string.IsNullOrEmpty(fuelInfo))
+                    parts.Add(fuelInfo);
+            }
+            else if (GravshipDestinationState.ShouldAnnounceFuelCosts() && targetTile.Valid)
+            {
+                string fuelInfo = GravshipDestinationState.GetFuelCostAnnouncement(targetTile);
                 if (!string.IsNullOrEmpty(fuelInfo))
                     parts.Add(fuelInfo);
             }

@@ -1365,7 +1365,7 @@ namespace RimWorldAccess
         /// <param name="startPos">The starting position for the flood fill</param>
         /// <param name="validPositions">Set of all valid positions to consider (must be of same terrain type)</param>
         /// <returns>Set of all contiguous positions found</returns>
-        private static HashSet<IntVec3> FloodFillTerrainRegion(IntVec3 startPos, HashSet<IntVec3> validPositions)
+        internal static HashSet<IntVec3> FloodFillTerrainRegion(IntVec3 startPos, HashSet<IntVec3> validPositions)
         {
             var region = new HashSet<IntVec3>();
             var queue = new Queue<IntVec3>();
@@ -1405,7 +1405,7 @@ namespace RimWorldAccess
         /// <param name="positions">All positions with the same terrain label</param>
         /// <param name="cursorPosition">Current cursor position for distance calculation</param>
         /// <returns>List of TerrainRegion objects sorted by distance from cursor</returns>
-        private static List<TerrainRegion> GroupTerrainByAdjacency(List<IntVec3> positions, IntVec3 cursorPosition)
+        internal static List<TerrainRegion> GroupTerrainByAdjacency(List<IntVec3> positions, IntVec3 cursorPosition)
         {
             var regions = new List<TerrainRegion>();
             var remaining = new HashSet<IntVec3>(positions);

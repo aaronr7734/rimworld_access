@@ -352,6 +352,30 @@ namespace RimWorldAccess
             {
                 ArchitectState.RotateBuilding(direction);
             }
+            else if (activeDesignator.GetType().Name == "Designator_MoveGravship")
+            {
+                // Gravship landing designator — rotate via marker.GravshipRotation
+                var markerField = AccessTools.Field(activeDesignator.GetType(), "marker");
+                if (markerField != null)
+                {
+                    var marker = markerField.GetValue(activeDesignator);
+                    if (marker != null)
+                    {
+                        var rotProp = AccessTools.Property(marker.GetType(), "GravshipRotation");
+                        if (rotProp != null)
+                        {
+                            Rot4 currentRot = (Rot4)rotProp.GetValue(marker);
+                            currentRot.Rotate(direction);
+                            rotProp.SetValue(marker, currentRot);
+
+                            string dirName = currentRot == Rot4.North ? "North" :
+                                             currentRot == Rot4.East ? "East" :
+                                             currentRot == Rot4.South ? "South" : "West";
+                            TolkHelper.Speak($"Gravship facing {dirName}.");
+                        }
+                    }
+                }
+            }
             else if (activeDesignator is Designator_Place designatorPlace)
             {
                 // Use reflection to access private placingRot field
@@ -504,6 +528,51 @@ namespace RimWorldAccess
                 {
                     // Toggle cell in the selection list
                     ArchitectState.ToggleCell(currentPosition);
+                }
+                // For gravship landing placement designator
+                else if (activeDesignator.GetType().Name == "Designator_MoveGravship")
+                {
+                    // Compensate for vanilla rounding bug in even-sized gravships.
+                    // GetSizeRotAdjustedCell uses size/2 but PrefabUtility.GetRoot uses (size-1)/2,
+                    // causing a +1 offset per axis when that dimension is even.
+                    IntVec3 placementPos = currentPosition;
+                    var markerField = AccessTools.Field(activeDesignator.GetType(), "marker");
+                    var marker = markerField?.GetValue(activeDesignator) as GravshipLandingMarker;
+                    if (marker != null)
+                    {
+                        IntVec2 size = marker.gravship.Bounds.Size;
+                        Rot4 rot = marker.GravshipRotation;
+
+                        // Replicate GetSizeRotAdjustedCell math
+                        IntVec3 halfX = new IntVec3(size.x / 2, 0, 0);
+                        IntVec3 halfZ = new IntVec3(0, 0, size.z / 2);
+                        IntVec3 adjusted = currentPosition;
+                        if (rot == Rot4.North) adjusted += halfX + halfZ;
+                        else if (rot == Rot4.East) adjusted += halfX - halfZ;
+                        else if (rot == Rot4.South) adjusted -= halfX + halfZ;
+                        else if (rot == Rot4.West) adjusted += -halfX + halfZ;
+
+                        // See where the marker would actually end up
+                        IntVec3 wouldPlace = PrefabUtility.GetRoot(adjusted, size, rot);
+                        IntVec3 offset = wouldPlace - currentPosition;
+                        if (offset != IntVec3.Zero)
+                        {
+                            placementPos = currentPosition - offset;
+                        }
+                    }
+
+                    AcceptanceReport report = activeDesignator.CanDesignateCell(placementPos);
+                    if (report.Accepted)
+                    {
+                        activeDesignator.DesignateSingleCell(placementPos);
+                        TolkHelper.Speak($"Gravship positioned at {currentPosition.x}, {currentPosition.z}. Select landing marker and use gizmos to confirm landing.");
+                        // DesignateSingleCell auto-deselects the designator
+                    }
+                    else
+                    {
+                        string reason = report.Reason ?? "Cannot place here";
+                        TolkHelper.Speak($"Invalid: {reason}");
+                    }
                 }
             }
 

@@ -147,6 +147,36 @@ namespace RimWorldAccess
                 RouteToAccessiblePlacement(des);
                 return;
             }
+
+            // Handle gravship landing placement designator
+            if (des.GetType().Name == "Designator_MoveGravship")
+            {
+                RouteToAccessiblePlacement(des);
+
+                // Announce gravship footprint size
+                var markerField = AccessTools.Field(des.GetType(), "marker");
+                if (markerField != null)
+                {
+                    var marker = markerField.GetValue(des);
+                    if (marker != null)
+                    {
+                        var gravshipField = AccessTools.Field(marker.GetType(), "gravship");
+                        var gravship = gravshipField?.GetValue(marker);
+                        if (gravship != null)
+                        {
+                            var boundsField = AccessTools.Property(gravship.GetType(), "Bounds");
+                            if (boundsField != null)
+                            {
+                                var bounds = (CellRect)boundsField.GetValue(gravship);
+                                TolkHelper.Speak(
+                                    $"Position gravship landing zone. Footprint: {bounds.Width} by {bounds.Height} cells. " +
+                                    "Arrow keys to move, R to rotate, Space to place.");
+                            }
+                        }
+                    }
+                }
+                return;
+            }
         }
 
         /// <summary>

@@ -455,6 +455,62 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Cycles to the next available planet layer (e.g., Surface ↔ Orbit).
+        /// Used for gravship navigation between orbital and surface views.
+        /// </summary>
+        public static void CyclePlanetLayer()
+        {
+            var worldGrid = Find.WorldGrid;
+            if (worldGrid == null) return;
+
+            var currentLayer = PlanetLayer.Selected;
+            if (currentLayer == null) return;
+
+            // Find next valid layer that has a connection from current
+            PlanetLayer nextLayer = null;
+            foreach (var kvp in worldGrid.PlanetLayers)
+            {
+                var layer = kvp.Value;
+                if (layer == currentLayer) continue;
+                if (!currentLayer.HasConnectionFromTo(layer)) continue;
+
+                AcceptanceReport report = layer.CanSelectLayer();
+                if (!report.Accepted)
+                {
+                    TolkHelper.Speak($"Cannot switch to {layer.Def.LabelCap}: {report.Reason}");
+                    return;
+                }
+                nextLayer = layer;
+                break;
+            }
+
+            if (nextLayer == null)
+            {
+                TolkHelper.Speak("No other layers available");
+                return;
+            }
+
+            PlanetLayer.Selected = nextLayer;
+
+            // Find the closest tile on the new layer to maintain position
+            var closestTile = nextLayer.GetClosestTile_NewTemp(currentSelectedTile);
+            if (closestTile.Valid)
+            {
+                currentSelectedTile = closestTile;
+                SyncSelectionWithGame();
+            }
+            else
+            {
+                currentSelectedTile = PlanetTile.Invalid;
+            }
+
+            string layerName = nextLayer.Def.LabelCap;
+            bool isSpace = nextLayer.Def.isSpace;
+            TolkHelper.Speak($"Switched to {layerName} layer.{(isSpace ? " Space layer." : "")}");
+            AnnounceTile();
+        }
+
+        /// <summary>
         /// Announces the current tile information.
         /// Includes biome descriptions (both contexts) and faction/settle warnings (WorldGen only).
         /// </summary>
@@ -463,7 +519,7 @@ namespace RimWorldAccess
             if (!currentSelectedTile.Valid)
                 return;
 
-            // Get fuel cost if transport pod launch targeting is active (in-game only)
+            // Get fuel cost if transport pod or gravship launch targeting is active (in-game only)
             string fuelCostInfo = null;
             if (context == WorldNavContext.InGame && TransportPodLaunchState.IsActive)
             {
@@ -476,6 +532,10 @@ namespace RimWorldAccess
                         fuelCostInfo = TransportPodLaunchState.GetFuelCostAnnouncement(distance);
                     }
                 }
+            }
+            else if (context == WorldNavContext.InGame && GravshipDestinationState.ShouldAnnounceFuelCosts())
+            {
+                fuelCostInfo = GravshipDestinationState.GetFuelCostAnnouncement(currentSelectedTile);
             }
 
             // Get ability destination info if world ability targeting is active (in-game only)

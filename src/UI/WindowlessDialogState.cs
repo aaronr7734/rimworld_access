@@ -34,6 +34,7 @@ namespace RimWorldAccess
 
         public static bool IsActive => currentDialog != null;
         public static bool IsEditingTextField => editingElement != null;
+        public static string CurrentDialogTypeName => currentDialog?.GetType().Name ?? "null";
 
         /// <summary>
         /// Returns true if the dialog was closed on the current frame.
@@ -135,11 +136,15 @@ namespace RimWorldAccess
         /// </summary>
         public static void Close()
         {
-            if (currentDialog != null)
+            // Null currentDialog first to ensure IsActive returns false immediately,
+            // preventing stale state from blocking arrow keys via SuppressMapNavigation
+            var dialogToClose = currentDialog;
+            currentDialog = null;
+
+            if (dialogToClose != null)
             {
                 // Remove from window stack if still present
-                Find.WindowStack.TryRemove(currentDialog, doCloseSound: false);
-                currentDialog = null;
+                Find.WindowStack.TryRemove(dialogToClose, doCloseSound: false);
             }
 
             elements.Clear();

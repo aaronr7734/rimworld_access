@@ -284,8 +284,8 @@ namespace RimWorldAccess
         [HarmonyPrefix]
         public static bool SelectNextColonist_Prefix()
         {
-            // If world view is selected, let the original method handle it (caravan cycling)
-            if (WorldRendererUtility.WorldRendered)
+            // If in full planet view, let the original method handle it (caravan cycling)
+            if (!WorldRendererUtility.DrawingMap)
                 return true;
 
             // Check if shift is held - if so, this is a map switch request
@@ -362,8 +362,8 @@ namespace RimWorldAccess
         [HarmonyPrefix]
         public static bool SelectPreviousColonist_Prefix()
         {
-            // If world view is selected, let the original method handle it (caravan cycling)
-            if (WorldRendererUtility.WorldRendered)
+            // If in full planet view, let the original method handle it (caravan cycling)
+            if (!WorldRendererUtility.DrawingMap)
                 return true;
 
             // Check if shift is held - if so, this is a map switch request
