@@ -379,10 +379,20 @@ namespace RimWorldAccess
             // Favorite color
             if (pawn.story?.favoriteColor != null)
             {
-                string colorName = pawn.story.favoriteColor.LabelCap;
+                string orIdeoColor = string.Empty;
+                if (pawn.Ideo != null && !pawn.Ideo.classicMode)
+                {
+                    orIdeoColor = "OrIdeoColor".Translate(pawn.Named("PAWN"));
+                }
+                string colorLabel = "FavoriteColorTooltip".Translate(
+                    pawn.Named("PAWN"),
+                    pawn.story.favoriteColor.label.Named("COLOR"),
+                    0.6f.ToStringPercent().Named("PERCENTAGE"),
+                    orIdeoColor.Named("ORIDEO")
+                ).Resolve();
                 bioNode.Children.Add(new PawnTreeItem
                 {
-                    Label = "FavoriteColorTooltip".Translate() + ": " + colorName,
+                    Label = colorLabel,
                     IndentLevel = 3,
                     NodeType = PawnNodeType.Leaf,
                     CategoryType = PawnCategoryType.Bio,
