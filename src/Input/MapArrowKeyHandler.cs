@@ -314,6 +314,16 @@ namespace RimWorldAccess
                 }
             }
 
+            // Substructure overlay - check engine's overlay toggle and announce disconnected tiles
+            SubstructureOverlayState.CheckOverlayState();
+            if (SubstructureOverlayState.IsOverlayActive(Find.CurrentMap))
+            {
+                if (SubstructureOverlayState.IsDisconnectedAt(position, Find.CurrentMap))
+                {
+                    tileInfo = "Disconnected, " + tileInfo;
+                }
+            }
+
             return tileInfo;
         }
     }

@@ -814,6 +814,21 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 0.365: Handle gravship destination targeting if active =====
+            // This handles Enter/Escape/F keys during gravship world map destination selection
+            if (GravshipDestinationState.IsActive && !WindowlessDialogState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = Event.current.alt;
+
+                if (GravshipDestinationState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 0.37: Handle gear equip menu if active =====
             if (GearEquipMenuState.IsActive && !WindowlessDialogState.IsActive)
             {
@@ -959,12 +974,6 @@ namespace RimWorldAccess
                     else if (key == KeyCode.I && !shift && !ctrl && !alt && !GizmoNavigationState.IsActive)
                     {
                         WorldNavigationState.ShowCaravanInspect();
-                        handled = true;
-                    }
-                    // L key: Open notification/letter menu from world map
-                    else if (key == KeyCode.L && !shift && !ctrl && !alt)
-                    {
-                        NotificationMenuState.Open();
                         handled = true;
                     }
                     // Enter key: Open world object selection/inspection at current tile
@@ -1170,12 +1179,21 @@ namespace RimWorldAccess
                 !CaravanInspectState.IsActive &&
                 !KeyboardHelper.IsAnyAccessibilityMenuActive())
             {
+                // L key: cycle planet layer (Surface ↔ Orbit)
+                if (key == KeyCode.L && !Event.current.shift && !Event.current.control && !Event.current.alt)
+                {
+                    WorldNavigationState.CyclePlanetLayer();
+                    Event.current.Use();
+                    return;
+                }
+
                 // Block all map-specific keys - world scanner handles PageUp/PageDown/Home/End above
                 // Note: R is NOT blocked - it opens route planner (handled above)
                 // Note: G is NOT blocked - it opens gizmos for world objects (caravans, settlements)
+                // Note: L is NOT blocked - it cycles planet layers (handled above)
                 // Note: F1-F7 are NOT blocked - intercept patches handle them
                 if (key == KeyCode.A ||
-                    key == KeyCode.L || key == KeyCode.Q ||
+                    key == KeyCode.Q ||
                     key == KeyCode.Return || key == KeyCode.KeypadEnter ||
                     key == KeyCode.P || key == KeyCode.S ||
                     key == KeyCode.Tab ||
@@ -3701,6 +3719,9 @@ namespace RimWorldAccess
 
                 if (!KeyboardHelper.IsAnyAccessibilityMenuActive() || inPlacementMode)
                 {
+                    // Ensure substructure overlay scanner category is in sync before scanner navigation
+                    SubstructureOverlayState.CheckOverlayState();
+
                     bool handled = false;
                     bool ctrl = Event.current.control;
                     bool shift = Event.current.shift;
@@ -4722,7 +4743,7 @@ namespace RimWorldAccess
             // ===== PRIORITY 6.45: Colonist Bar Navigation (Alt+Arrow, Alt+Number, Ctrl+Alt+Arrow) =====
             if (Current.ProgramState == ProgramState.Playing &&
                 Find.CurrentMap != null &&
-                !WorldRendererUtility.WorldRendered &&
+                WorldRendererUtility.DrawingMap &&
                 (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
                 !ZoneCreationState.IsInCreationMode)
             {
@@ -5667,8 +5688,8 @@ namespace RimWorldAccess
             if (key == KeyCode.UpArrow || key == KeyCode.DownArrow ||
                 key == KeyCode.LeftArrow || key == KeyCode.RightArrow)
             {
-                // Skip if in world view
-                if (WorldRendererUtility.WorldRendered)
+                // Skip if in full planet view (but allow orbital/background-world maps)
+                if (!WorldRendererUtility.DrawingMap)
                     return;
 
                 // Only during gameplay with valid map

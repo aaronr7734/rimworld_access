@@ -120,11 +120,11 @@ namespace RimWorldAccess
                 typeahead.ClearSearch();
 
                 // Build role list
-                RitualTreeBuilder.BuildRoleList(currentAssignments, currentTarget, currentRitual, roleItems);
+                RitualTreeBuilder.BuildRoleList(currentAssignments, currentTarget, currentRitual, roleItems, currentDialog);
 
                 // Announce opening with description and expected quality
                 string ritualName = RitualTreeBuilder.GetRitualLabel(currentRitual);
-                int roleCount = roleItems.Count;
+                int roleCount = roleItems.Count(item => item.Type != RitualRoleListItem.ItemType.GravshipCheckbox);
 
                 // Get description if available
                 string description = GetRitualDescription(dialog);
@@ -299,6 +299,19 @@ namespace RimWorldAccess
                     {
                         EnterPawnSelection();
                         return true;
+                    }
+                    break;
+
+                case KeyCode.Space:
+                    if (!shift && !ctrl && !alt)
+                    {
+                        // Space toggles gravship checkboxes in the role list
+                        if (roleIndex >= 0 && roleIndex < roleItems.Count &&
+                            roleItems[roleIndex].Type == RitualRoleListItem.ItemType.GravshipCheckbox)
+                        {
+                            ToggleGravshipCheckbox();
+                            return true;
+                        }
                     }
                     break;
 
@@ -607,6 +620,29 @@ namespace RimWorldAccess
 
         #region Mode Transitions
 
+        private static void ToggleGravshipCheckbox()
+        {
+            if (roleItems.Count == 0 || roleIndex < 0 || roleIndex >= roleItems.Count)
+                return;
+
+            var item = roleItems[roleIndex];
+            if (item.Type != RitualRoleListItem.ItemType.GravshipCheckbox)
+                return;
+
+            if (currentDialog == null || string.IsNullOrEmpty(item.FieldName))
+                return;
+
+            // Toggle the field on the dialog via reflection
+            var field = AccessTools.Field(currentDialog.GetType(), item.FieldName);
+            if (field == null) return;
+
+            bool newValue = !item.CheckboxValue;
+            field.SetValue(currentDialog, newValue);
+            item.CheckboxValue = newValue;
+
+            TolkHelper.Speak($"{item.Label}: {(newValue ? "checked" : "unchecked")}.");
+        }
+
         private static void EnterPawnSelection()
         {
             if (roleItems.Count == 0 || roleIndex < 0 || roleIndex >= roleItems.Count)
@@ -616,6 +652,13 @@ namespace RimWorldAccess
             }
 
             var role = roleItems[roleIndex];
+
+            // Handle gravship checkbox toggle instead of pawn selection
+            if (role.Type == RitualRoleListItem.ItemType.GravshipCheckbox)
+            {
+                ToggleGravshipCheckbox();
+                return;
+            }
 
             if (role.IsLocked)
             {
@@ -654,7 +697,7 @@ namespace RimWorldAccess
             typeahead.ClearSearch();
 
             // Refresh role list to show updated counts
-            RitualTreeBuilder.BuildRoleList(currentAssignments, currentTarget, currentRitual, roleItems);
+            RitualTreeBuilder.BuildRoleList(currentAssignments, currentTarget, currentRitual, roleItems, currentDialog);
 
             if (cancelled)
             {
@@ -990,7 +1033,17 @@ namespace RimWorldAccess
             }
 
             var item = roleItems[roleIndex];
-            string announcement = RitualStatFormatter.FormatRoleAnnouncement(item, currentAssignments);
+
+            string announcement;
+            if (item.Type == RitualRoleListItem.ItemType.GravshipCheckbox)
+            {
+                announcement = RitualStatFormatter.FormatCheckboxAnnouncement(item);
+            }
+            else
+            {
+                announcement = RitualStatFormatter.FormatRoleAnnouncement(item, currentAssignments);
+            }
+
             string position = MenuHelper.FormatPosition(roleIndex, roleItems.Count);
 
             if (!string.IsNullOrEmpty(position))

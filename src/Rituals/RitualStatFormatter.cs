@@ -60,6 +60,30 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Formats a gravship checkbox announcement for screen reader.
+        /// Example: "Force visitors to leave: checked. Tooltip text."
+        /// </summary>
+        public static string FormatCheckboxAnnouncement(RitualRoleListItem item, bool includeTooltip = true)
+        {
+            var sb = new StringBuilder();
+            sb.Append(item.Label);
+            sb.Append(": ");
+            sb.Append(item.CheckboxValue ? "checked" : "unchecked");
+            sb.Append(".");
+
+            if (includeTooltip && !string.IsNullOrEmpty(item.TooltipKey))
+            {
+                string tooltip = item.TooltipKey.Translate();
+                if (!string.IsNullOrEmpty(tooltip))
+                {
+                    sb.Append($" {tooltip}");
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
         /// Formats a pawn announcement for screen reader.
         /// Example: "John: Medical: 15. Tend Quality: 145%. Selected."
         /// </summary>
@@ -238,7 +262,7 @@ namespace RimWorldAccess
     /// </summary>
     public class RitualRoleListItem
     {
-        public enum ItemType { Role, Spectators, NotParticipating }
+        public enum ItemType { Role, Spectators, NotParticipating, GravshipCheckbox }
 
         public ItemType Type { get; set; }
         public List<RitualRole> Roles { get; set; } // null for Spectators/NotParticipating
@@ -247,6 +271,11 @@ namespace RimWorldAccess
         public int MaxCount { get; set; } // -1 for unlimited
         public bool IsRequired { get; set; }
         public bool IsLocked { get; set; } // All assigned pawns are forced
+
+        // Gravship checkbox fields
+        public string FieldName { get; set; }      // reflection field name on Dialog_BeginGravshipLaunch
+        public string TooltipKey { get; set; }      // translation key for tooltip
+        public bool CheckboxValue { get; set; }     // current checkbox state
     }
 
     /// <summary>
