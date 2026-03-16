@@ -29,7 +29,7 @@ namespace RimWorldAccess
                 // Announce window title and initial selection once
                 if (!hasAnnouncedTitle)
                 {
-                    string pageTitle = "Choose AI Storyteller";
+                    string pageTitle = "ChooseAIStoryteller".Translate();
                     StorytellerDef storyteller = StorytellerNavigationState.SelectedStoryteller;
                     if (storyteller != null)
                     {
@@ -173,7 +173,7 @@ namespace RimWorldAccess
                 else if (!CustomDifficultyEditState.GoBack())
                 {
                     CustomDifficultyEditState.Close();
-                    TolkHelper.Speak("Difficulty");
+                    TolkHelper.Speak("Difficulty".Translate());
                     StorytellerNavigationState.AnnounceDifficulty();
                 }
                 return true;
@@ -264,7 +264,7 @@ namespace RimWorldAccess
         {
             StorytellerNavigationState.EnsureStorytellerSelected();
             UpdatePageStoryteller(instance);
-            TolkHelper.Speak("Storyteller");
+            TolkHelper.Speak("ChooseAIStoryteller".Translate());
             StorytellerNavigationState.AnnounceStoryteller();
         }
 
@@ -272,7 +272,7 @@ namespace RimWorldAccess
         {
             StorytellerNavigationState.EnsureDifficultySelected();
             UpdatePageDifficulty(instance);
-            TolkHelper.Speak("Difficulty");
+            TolkHelper.Speak("Difficulty".Translate());
             StorytellerNavigationState.AnnounceDifficulty();
         }
 
@@ -490,13 +490,13 @@ namespace RimWorldAccess
                 switch (currentMode)
                 {
                     case NavigationMode.Storyteller:
-                        modeText = "[Selecting: Storyteller]";
+                        modeText = $"[{"ChooseAIStoryteller".Translate()}]";
                         break;
                     case NavigationMode.Difficulty:
-                        modeText = "[Selecting: Difficulty]";
+                        modeText = $"[{"Difficulty".Translate()}]";
                         break;
                     case NavigationMode.Permadeath:
-                        modeText = "[Selecting: Save Mode]";
+                        modeText = "[Save Mode]";
                         break;
                 }
 

@@ -171,7 +171,7 @@ namespace RimWorldAccess
                     new FloatMenuOption("BuySoundtrack_Anomaly".Translate(), delegate { Application.OpenURL("https://store.steampowered.com/app/2914900/RimWorld__Anomaly_Soundtrack/"); }),
                     new FloatMenuOption("BuySoundtrack_Odyssey".Translate(), delegate { Application.OpenURL("https://store.steampowered.com/app/3689230/RimWorld__Odyssey_Soundtrack/"); })
                 };
-                Find.WindowStack.Add(new FloatMenu(options));
+                WindowlessFloatMenuState.Open(options, false);
             }));
         }
 
@@ -197,7 +197,7 @@ namespace RimWorldAccess
                 {
                     announcedMainMenu = true;
                     lastAnnouncedState = ProgramState.Entry;
-                    TolkHelper.Speak("Main menu", SpeechPriority.Normal);
+                    TolkHelper.Speak("GameOverMainMenu".Translate(), SpeechPriority.Normal);
                 }
                 else if (Current.ProgramState == ProgramState.Playing)
                 {

@@ -102,7 +102,7 @@ namespace RimWorldAccess
                 // Announce window title and initial selection once
                 if (!hasAnnouncedTitle)
                 {
-                    string pageTitle = "Choose Scenario";
+                    string pageTitle = "ChooseScenario".Translate().ToString();
                     Scenario firstScenario = ScenarioNavigationState.SelectedScenario;
                     if (firstScenario != null)
                     {
@@ -511,9 +511,9 @@ namespace RimWorldAccess
                 case ScenarioCategory.FromDef:
                     return " (Built-in)";
                 case ScenarioCategory.CustomLocal:
-                    return " (Custom)";
+                    return $" ({"ScenariosCustom".Translate()})";
                 case ScenarioCategory.SteamWorkshop:
-                    return " (Workshop)";
+                    return $" ({"ScenariosSteamWorkshop".Translate()})";
                 default:
                     return "";
             }

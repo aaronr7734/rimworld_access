@@ -20,12 +20,25 @@ namespace RimWorldAccess
         private static List<StorytellerDef> storytellers = new List<StorytellerDef>();
         private static List<DifficultyDef> difficulties = new List<DifficultyDef>();
 
-        // Permadeath options as radio buttons
-        private static readonly string[] permadeathLabels = { "Reload Anytime Mode", "Commitment Mode (Permadeath)" };
-        private static readonly string[] permadeathDescriptions = {
-            "Can reload saves anytime",
-            "Cannot reload saves. One chance only!"
-        };
+        // Permadeath option labels and descriptions from game translation keys
+        private static string GetPermadeathLabel(int index)
+        {
+            return index == 0
+                ? "ReloadAnytimeMode".Translate().ToString()
+                : "CommitmentMode".Translate().ToString();
+        }
+
+        private static string GetPermadeathDescription(int index)
+        {
+            string fullText = index == 0
+                ? "ReloadAnytimeModeInfo".Translate().ToString()
+                : "PermadeathModeInfo".Translate().ToString();
+            // Extract just the first sentence/line for brevity
+            int newlineIndex = fullText.IndexOf("\n");
+            if (newlineIndex > 0)
+                return fullText.Substring(0, newlineIndex).TrimEnd();
+            return fullText;
+        }
 
         // Typeahead search helpers
         private static TypeaheadSearchHelper storytellerTypeahead = new TypeaheadSearchHelper();
@@ -468,8 +481,8 @@ namespace RimWorldAccess
             if (permadeathIndex < 0 || permadeathIndex >= 2) return;
 
             string position = MenuHelper.FormatPosition(permadeathIndex, 2);
-            string label = permadeathLabels[permadeathIndex];
-            string description = permadeathDescriptions[permadeathIndex];
+            string label = GetPermadeathLabel(permadeathIndex);
+            string description = GetPermadeathDescription(permadeathIndex);
 
             string text = $"{label} - {description}";
             if (!string.IsNullOrEmpty(position))

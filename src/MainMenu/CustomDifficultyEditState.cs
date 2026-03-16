@@ -63,7 +63,7 @@ namespace RimWorldAccess
             settingTypeahead.ClearSearch();
             IsActive = true;
 
-            TolkHelper.Speak("Custom Difficulty Settings");
+            TolkHelper.Speak("DifficultyCustomSectionLabel".Translate());
             AnnounceSection();
         }
 

@@ -2297,7 +2297,8 @@ namespace RimWorldAccess
             }
 
             // ===== PRIORITY 4.6: Handle options menu if active =====
-            if (WindowlessOptionsMenuState.IsActive)
+            // Skip if float menu is active (e.g., language selection, reset preset menu)
+            if (WindowlessOptionsMenuState.IsActive && !WindowlessFloatMenuState.IsActive)
             {
                 bool handled = false;
 
