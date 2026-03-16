@@ -214,6 +214,12 @@ namespace RimWorldAccess
         /// </summary>
         private static string AddContextPrefix(string tileInfo, IntVec3 position)
         {
+            // Jump targeting mode - announce per-tile jump validity
+            if (JumpTargetingState.IsActive)
+            {
+                return JumpTargetingState.GetJumpValidityPrefix(position) + tileInfo;
+            }
+
             // Zone creation mode - single tile selection
             if (ZoneCreationState.IsInCreationMode &&
                 ZoneCreationState.SelectionMode == ZoneSelectionMode.SingleTile &&
