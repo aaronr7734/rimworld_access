@@ -839,6 +839,21 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 0.372: Handle jump targeting if active =====
+            // This provides R key during jump pack / locust armor targeting
+            if (JumpTargetingState.IsActive && !WindowlessDialogState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = Event.current.alt;
+
+                if (JumpTargetingState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 0.373: Handle ability targeting if active =====
             // This provides R, T, I keys during psycast/ability map targeting
             if (AbilityTargetingState.IsActive && !WindowlessDialogState.IsActive)

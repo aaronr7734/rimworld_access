@@ -139,6 +139,18 @@ namespace RimWorldAccess
                         target = new LocalTargetInfo(cursorPosition);
                     }
 
+                    // For jump targeting, provide specific feedback before standard validation
+                    if (JumpTargetingState.IsActive)
+                    {
+                        string jumpError = JumpTargetingState.ValidateAndGetError(cursorPosition);
+                        if (jumpError != null)
+                        {
+                            TolkHelper.Speak(jumpError, SpeechPriority.High);
+                            Event.current.Use();
+                            return false;
+                        }
+                    }
+
                     // For ability targeting, provide more specific feedback before standard validation
                     if (AbilityTargetingState.IsActive)
                     {
@@ -293,7 +305,11 @@ namespace RimWorldAccess
                     // Build success announcement BEFORE stopping targeting
                     // (StopTargeting closes AbilityTargetingState via our patch)
                     string successMessage;
-                    if (AbilityTargetingState.IsActive)
+                    if (JumpTargetingState.IsActive)
+                    {
+                        successMessage = JumpTargetingState.BuildSuccessAnnouncement(cursorPosition);
+                    }
+                    else if (AbilityTargetingState.IsActive)
                     {
                         successMessage = AbilityTargetingState.BuildSuccessAnnouncement(target, cursorPosition);
                     }

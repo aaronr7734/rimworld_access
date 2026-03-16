@@ -28,6 +28,16 @@ namespace RimWorldAccess
         [HarmonyPostfix]
         public static void BeginTargeting_ITargetingSource_Postfix(ITargetingSource source)
         {
+            // Check for Verb_Jump FIRST (Jump Pack / Locust Armor).
+            // Verb_Jump extends Verb directly, not Verb_CastAbility/IAbilityVerb,
+            // so it must be detected separately from ability verbs.
+            if (source is Verb_Jump verbJump)
+            {
+                if (!JumpTargetingState.IsActive)
+                    JumpTargetingState.Open(verbJump);
+                return;
+            }
+
             // Check if the targeting source is an ability verb.
             // Use IAbilityVerb interface to catch all ability verb types:
             // - Verb_CastAbility (standard psycasts/abilities)
@@ -90,6 +100,11 @@ namespace RimWorldAccess
         [HarmonyPostfix]
         public static void StopTargeting_Postfix()
         {
+            if (JumpTargetingState.IsActive)
+            {
+                JumpTargetingState.Close();
+            }
+
             if (AbilityTargetingState.IsActive)
             {
                 AbilityTargetingState.Close();

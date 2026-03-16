@@ -1,14 +1,20 @@
 # Abilities Module
 
 ## Purpose
-Screen reader accessibility for psycast and ability targeting, providing range information, affected target previews, and world map targeting support for abilities like Farskip.
+Screen reader accessibility for psycast and ability targeting, providing range information, affected target previews, world map targeting support for abilities like Farskip, and equipment-based jump targeting (Jump Pack, Locust Armor).
 
 ## Files
 **Patches:** AbilityTargetingPatch.cs
-**States:** AbilityTargetingState.cs, WorldAbilityTargetingState.cs, ItemTargetingState.cs
+**States:** AbilityTargetingState.cs, WorldAbilityTargetingState.cs, ItemTargetingState.cs, JumpTargetingState.cs
 **Helpers:** AbilityTargetingHelper.cs
 
 ## Key Shortcuts
+
+### During Jump Targeting (Jump Pack, Locust Armor)
+- **R** - Announce range info (distance, in/out of range, LOS, jump validity)
+- **Enter** - Confirm jump target (handled by TargetingPatch)
+- **Escape** - Cancel targeting
+- **Arrow Keys** - Move cursor with per-tile validity prefixes ("Can jump", "Out of range", etc.)
 
 ### During Map Ability Targeting (Psycasts, etc.)
 - **R** - Announce range info (distance to cursor, in/out of range, LOS status)
@@ -25,6 +31,14 @@ Screen reader accessibility for psycast and ability targeting, providing range i
 ## Architecture
 
 ### State Classes
+
+**JumpTargetingState** - Manages equipment-based jump targeting (Jump Pack, Locust Armor)
+- Verb_Jump extends Verb directly, not Verb_CastAbility/IAbilityVerb, so needs separate state
+- Tracks Verb_Jump, caster pawn, position, map, and range from verb.EffectiveRange
+- Provides per-tile validity prefixes during arrow navigation ("Can jump", "Out of range", etc.)
+- Validates using game's JumpUtility.ValidJumpTarget() and GenSight.LineOfSight()
+- Reports specific failure reasons: impassable, fogged, closed door, not walkable, no LOS, out of range
+- Opens automatically when Verb_Jump targeting starts (detected in AbilityTargetingPatch)
 
 **AbilityTargetingState** - Manages map-based ability targeting
 - Tracks current ability being targeted
@@ -88,6 +102,9 @@ Screen reader accessibility for psycast and ability targeting, providing range i
 | `Targeter` | Map targeting system with BeginTargeting/StopTargeting |
 | `WorldTargeter` | World map targeting system |
 | `Command_Ability` | Gizmo for activating abilities |
+| `Verb_Jump` | Equipment-based jump verb (Jump Pack, Locust Armor) - extends Verb directly |
+| `JumpUtility` | Static methods for jump validation (ValidJumpTarget) and execution |
+| `CompApparelReloadable` | Manages charges for reloadable apparel (jump pack fuel) |
 
 ## Announcement Formats
 
@@ -136,10 +153,18 @@ Screen reader accessibility for psycast and ability targeting, providing range i
 - [ ] Enter on valid animal confirms item targeting with contextual message
 - [ ] Enter on empty tile during item targeting speaks error message
 - [ ] Escape cancels item targeting cleanly
+- [ ] Jump Pack gizmo activation announces range and charges
+- [ ] Arrow navigation during jump targeting shows per-tile validity prefixes
+- [ ] R key announces detailed distance, range, LOS, and jump validity
+- [ ] Enter on valid jump tile confirms with success message
+- [ ] Enter on invalid jump tile shows specific error and stays in targeting
+- [ ] Escape cancels jump targeting cleanly
+- [ ] Locust Armor uses same jump targeting flow
 
 ## Known Issues / Notes
 
 **Ability Detection:**
+- JumpTargetingState opens when `Verb_Jump` is detected (Jump Pack, Locust Armor - equipment verbs extending Verb directly)
 - AbilityTargetingState opens when any `IAbilityVerb` is detected as targeting source (catches Verb_CastAbility, Verb_CastAbilityJump, Verb_CastAbilityTouch, Verb_AbilityShoot, and modded verbs)
 - WorldAbilityTargetingState opens when `ability.def.targetWorldCell == true`
 - Self-cast abilities (`targetRequired == false`) are announced by GizmoNavigationState
