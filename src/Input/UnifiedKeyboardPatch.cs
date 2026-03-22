@@ -4622,11 +4622,12 @@ namespace RimWorldAccess
             }
 
             // ===== PRIORITY 5.5: Handle time control with Shift+1/2/3, intercept 1/2/3 without Shift =====
-            // Skip if Alt is held - Alt+number keys are for colonist bar navigation
+            // Skip if Alt or Ctrl is held - Alt+number for colonist bar, Ctrl+number for bookmarks
             if ((key == KeyCode.Alpha1 || key == KeyCode.Keypad1 ||
                  key == KeyCode.Alpha2 || key == KeyCode.Keypad2 ||
                  key == KeyCode.Alpha3 || key == KeyCode.Keypad3) &&
                 !Event.current.alt &&
+                !Event.current.control &&
                 Current.ProgramState == ProgramState.Playing &&
                 Find.CurrentMap != null &&
                 (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion))
@@ -4872,6 +4873,34 @@ namespace RimWorldAccess
                     Event.current.Use();
                     return;
                 }
+            }
+
+            // ===== PRIORITY 6.48: Map Bookmarks (Ctrl+0-9, Ctrl+Shift+0-9, Ctrl+Alt+0-9) =====
+            if (Current.ProgramState == ProgramState.Playing &&
+                Find.CurrentMap != null &&
+                WorldRendererUtility.DrawingMap &&
+                (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
+                MapNavigationState.IsInitialized &&
+                Event.current.control &&
+                key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9)
+            {
+                int slot = key - KeyCode.Alpha0;
+
+                if (Event.current.alt && !Event.current.shift)
+                {
+                    BookmarkHelper.SetBookmark(slot);
+                }
+                else if (Event.current.shift && !Event.current.alt)
+                {
+                    BookmarkHelper.JumpToBookmark(slot);
+                }
+                else if (!Event.current.shift && !Event.current.alt)
+                {
+                    BookmarkHelper.PeekAtBookmark(slot);
+                }
+
+                Event.current.Use();
+                return;
             }
 
             // ===== PRIORITY 6.5: Display mood info with Alt+M (if pawn is selected) =====
