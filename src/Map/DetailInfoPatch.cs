@@ -46,6 +46,10 @@ namespace RimWorldAccess
             if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt))
                 return;
 
+            // Don't process if Ctrl is held (Ctrl+1-0 are for map bookmarks)
+            if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
+                return;
+
             // Check for tile info hotkeys (1-7 keys, both alpha and keypad)
             KeyCode? pressedKey = null;
             if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
