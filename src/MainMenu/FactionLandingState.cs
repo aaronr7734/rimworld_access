@@ -40,6 +40,12 @@ namespace RimWorldAccess
             // Prevent RimWorld from closing on Enter/Escape — we handle both
             dialog.closeOnAccept = false;
             dialog.closeOnCancel = false;
+            // Prevent the dialog from stealing Unity IMGUI keyboard focus.
+            // Page_SelectStartingSite has InitialSize=Vector2.zero, so when this dialog
+            // closes, TryRemove tries to GUI.FocusWindow on the zero-sized page, which
+            // corrupts Unity's focus chain. Since we handle all input via
+            // UnifiedKeyboardPatch (outside GUI.Window), this dialog doesn't need focus.
+            dialog.focusWhenOpened = false;
 
             List<Faction> factions = FactionHelper.BuildFactionList();
             navigation.Initialize(factions);

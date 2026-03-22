@@ -81,6 +81,12 @@ namespace RimWorldAccess
         {
             try
             {
+                // Restore IMGUI focus to this page. After closing certain dialogs
+                // (e.g., faction relations from site selection), IMGUI focus may be
+                // lost to a deleted window, preventing KeyDown events from arriving.
+                // Same pattern used in IdeologySelectionPatch and StartingPawnPatch.
+                Find.WindowStack.Notify_ManuallySetFocus(__instance);
+
                 // Build flat list of all scenarios
                 List<Scenario> allScenarios = new List<Scenario>();
 

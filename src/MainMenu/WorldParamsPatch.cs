@@ -27,6 +27,12 @@ namespace RimWorldAccess
                 WorldParamsNavigationState.Initialize(__instance);
                 FactionsNavigationState.Initialize(__instance);
 
+                // Restore IMGUI focus to this page. After closing certain dialogs
+                // (e.g., faction relations from site selection), IMGUI focus may be
+                // lost to a deleted window, preventing KeyDown events from arriving.
+                // Same pattern used in IdeologySelectionPatch and StartingPawnPatch.
+                Find.WindowStack.Notify_ManuallySetFocus(__instance);
+
                 // Announce window title once
                 if (!hasAnnouncedTitle)
                 {
