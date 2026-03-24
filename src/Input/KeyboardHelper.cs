@@ -22,6 +22,11 @@ namespace RimWorldAccess
         // On AZERTY keyboards, the dedicated * key sends only character='*' with keyCode=None.
         private static int lastKeypadMultiplyFrame = -1;
 
+        // Frame tracking for Shift+Slash (question mark on US keyboards).
+        // On US keyboards, Shift+/ sends keyCode=Slash+shift=true then character='?' in the same frame.
+        // On non-US keyboards, ? may be a direct key sending only character='?' with keyCode=None.
+        private static int lastSlashShiftFrame = -1;
+
         /// <summary>
         /// Remaps character-only KeyDown events to their equivalent KeyCode.
         /// On non-US keyboards (e.g., German), layout-dependent characters like ] are produced
@@ -56,6 +61,14 @@ namespace RimWorldAccess
                 return key;
             }
 
+            // If we see Shift+Slash (US keyboard ?), record the frame
+            // so the follow-up character='?' event won't be double-processed.
+            if (key == KeyCode.Slash && Event.current.shift)
+            {
+                lastSlashShiftFrame = Time.frameCount;
+                return key;
+            }
+
             if (key != KeyCode.None)
                 return key;
 
@@ -79,6 +92,14 @@ namespace RimWorldAccess
                         return key;
                     WasCharacterRemapped = true;
                     return KeyCode.KeypadMultiply;
+                case '?':
+                    // On non-US keyboards, ? may be a direct key that sends keyCode=None + character='?'.
+                    // On US keyboards, Shift+/ sends keyCode=Slash+shift=true then character='?' —
+                    // frame tracking prevents double-processing.
+                    if (Time.frameCount == lastSlashShiftFrame)
+                        return key;
+                    WasCharacterRemapped = true;
+                    return KeyCode.Slash;
                 default:
                     return key;
             }
@@ -202,7 +223,9 @@ namespace RimWorldAccess
                 // Ideology tab
                 || IdeologyTabState.IsActive
                 // Extra menus
-                || ExtraMenusState.IsActive;
+                || ExtraMenusState.IsActive
+                // Learning helper
+                || LearningHelperState.IsActive;
         }
     }
 
