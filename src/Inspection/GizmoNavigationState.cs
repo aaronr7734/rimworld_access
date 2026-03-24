@@ -925,7 +925,7 @@ namespace RimWorldAccess
             }
 
             // Handle Enter - execute selected (skip if Alt held, Alt+Enter opens pawn inspection)
-            if ((key == KeyCode.Return || key == KeyCode.KeypadEnter) && !Event.current.alt)
+            if ((key == KeyCode.Return || key == KeyCode.KeypadEnter) && !KeyboardHelper.IsAltHeld)
             {
                 ExecuteSelected();
                 Event.current.Use();
@@ -933,7 +933,7 @@ namespace RimWorldAccess
             }
 
             // Handle Alt+I - open info card for current gizmo
-            if (Event.current.alt && key == KeyCode.I)
+            if (KeyboardHelper.IsAltHeld && key == KeyCode.I)
             {
                 OpenInfoCardForCurrentGizmo();
                 Event.current.Use();

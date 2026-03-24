@@ -60,7 +60,7 @@ namespace RimWorldAccess
                     KeyCode keyCode = Event.current.keyCode;
                     bool shift = Event.current.shift;
                     bool ctrl = Event.current.control;
-                    bool alt = Event.current.alt;
+                    bool alt = KeyboardHelper.IsAltHeld;
 
                     // === Scanner search text input (highest priority) ===
                     // When search is active, capture letters/numbers/Enter/Escape/Backspace.

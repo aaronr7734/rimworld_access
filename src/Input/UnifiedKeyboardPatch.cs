@@ -287,7 +287,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
 
                 // Enter: confirm search
                 if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
@@ -340,7 +340,7 @@ namespace RimWorldAccess
             if (GoToState.IsActive)
             {
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
 
                 // Enter: confirm and move cursor (only if no overlay menu is on top of us)
                 if (!GoToState.ShouldYieldToOverlayMenu() &&
@@ -449,7 +449,7 @@ namespace RimWorldAccess
             // Growth moment is a modal dialog for child development choices (Biotech DLC)
             if (GrowthMomentState.IsActive)
             {
-                if (GrowthMomentState.HandleInput(key, Event.current.shift, Event.current.control, Event.current.alt))
+                if (GrowthMomentState.HandleInput(key, Event.current.shift, Event.current.control, KeyboardHelper.IsAltHeld))
                 {
                     Event.current.Use();
                     return;
@@ -494,7 +494,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
                 if (WorldObjectSelectionState.HandleInput(key, shift, ctrl, alt))
                 {
                     Event.current.Use();
@@ -508,7 +508,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
                 if (CaravanInspectState.HandleInput(key, shift, ctrl, alt))
                 {
                     Event.current.Use();
@@ -555,7 +555,7 @@ namespace RimWorldAccess
                 bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
                 bool isStar = key == KeyCode.KeypadMultiply || (Event.current.shift && key == KeyCode.Alpha8);
 
-                if ((isLetter || isNumber || isStar) && !Event.current.alt)
+                if ((isLetter || isNumber || isStar) && !KeyboardHelper.IsAltHeld)
                 {
                     if (isStar)
                     {
@@ -576,7 +576,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
 
                 // Handle Enter key to set destination
                 if ((key == KeyCode.Return || key == KeyCode.KeypadEnter) && !shift && !ctrl && !alt)
@@ -677,7 +677,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
 
                 if (QuantityMenuState.HandleInput(key, shift, ctrl, alt))
                 {
@@ -693,7 +693,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
 
                 if (ShelfLinkingState.HandleInput(key, shift, ctrl, alt))
                 {
@@ -708,7 +708,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
 
                 if (TransportPodSelectionState.HandleInput(key, shift, ctrl, alt))
                 {
@@ -745,7 +745,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
 
                 if (CaravanFormationState.HandleInput(key, shift, ctrl, alt))
                 {
@@ -760,7 +760,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
 
                 if (TransportPodLoadingState.HandleInput(key, shift, ctrl, alt))
                 {
@@ -776,7 +776,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
 
                 if (RitualState.HandleInput(key, shift, ctrl, alt))
                 {
@@ -790,7 +790,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
 
                 if (SplitCaravanState.HandleInput(key, shift, ctrl, alt))
                 {
@@ -805,7 +805,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
 
                 if (TransportPodLaunchState.HandleInput(key, shift, ctrl, alt))
                 {
@@ -820,7 +820,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
 
                 if (GravshipDestinationState.HandleInput(key, shift, ctrl, alt))
                 {
@@ -845,7 +845,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
 
                 if (JumpTargetingState.HandleInput(key, shift, ctrl, alt))
                 {
@@ -860,7 +860,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
 
                 if (AbilityTargetingState.HandleInput(key, shift, ctrl, alt))
                 {
@@ -873,7 +873,7 @@ namespace RimWorldAccess
             // This provides R key range check during animal attack targeting and similar Command_Target operations
             if (TargetingPatch.HasTargetingContext && Find.Targeter.IsTargeting && !WindowlessDialogState.IsActive)
             {
-                if (key == KeyCode.R && !Event.current.shift && !Event.current.control && !Event.current.alt)
+                if (key == KeyCode.R && !Event.current.shift && !Event.current.control && !KeyboardHelper.IsAltHeld)
                 {
                     TargetingPatch.HandleRangeCheck();
                     Event.current.Use();
@@ -887,7 +887,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
 
                 if (WorldAbilityTargetingState.HandleInput(key, shift, ctrl, alt))
                 {
@@ -903,7 +903,7 @@ namespace RimWorldAccess
                 !KeyboardHelper.IsAnyAccessibilityMenuActive())
             {
                 bool handled = false;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
                 bool ctrl = Event.current.control;
                 bool shift = Event.current.shift;
 
@@ -1024,7 +1024,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
 
                 // When I-menu is open, route keys to menu navigation
                 if (StartingSiteContext.IsMenuOpen)
@@ -1131,7 +1131,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
 
                 if (RoutePlannerState.HandleInput(key, shift, ctrl, alt))
                 {
@@ -1154,7 +1154,7 @@ namespace RimWorldAccess
                 !SellableItemsState.IsActive &&
                 !HistoryState.IsActive)
             {
-                if (key == KeyCode.R && !Event.current.shift && !Event.current.control && !Event.current.alt)
+                if (key == KeyCode.R && !Event.current.shift && !Event.current.control && !KeyboardHelper.IsAltHeld)
                 {
                     RoutePlannerState.Open();
                     Event.current.Use();
@@ -1195,7 +1195,7 @@ namespace RimWorldAccess
                 !KeyboardHelper.IsAnyAccessibilityMenuActive())
             {
                 // L key: cycle planet layer (Surface ↔ Orbit)
-                if (key == KeyCode.L && !Event.current.shift && !Event.current.control && !Event.current.alt)
+                if (key == KeyCode.L && !Event.current.shift && !Event.current.control && !KeyboardHelper.IsAltHeld)
                 {
                     WorldNavigationState.CyclePlanetLayer();
                     Event.current.Use();
@@ -1212,14 +1212,14 @@ namespace RimWorldAccess
                     key == KeyCode.Return || key == KeyCode.KeypadEnter ||
                     key == KeyCode.P || key == KeyCode.S ||
                     key == KeyCode.Tab ||
-                    (key == KeyCode.M && Event.current.alt) ||
-                    (key == KeyCode.H && Event.current.alt) ||
-                    (key == KeyCode.N && Event.current.alt) ||
-                    (key == KeyCode.B && Event.current.alt) ||
-                    (key == KeyCode.K && Event.current.alt) ||
-                    (key == KeyCode.A && Event.current.alt) ||
-                    (key == KeyCode.F && Event.current.alt) ||
-                    (key == KeyCode.R && Event.current.alt))
+                    (key == KeyCode.M && KeyboardHelper.IsAltHeld) ||
+                    (key == KeyCode.H && KeyboardHelper.IsAltHeld) ||
+                    (key == KeyCode.N && KeyboardHelper.IsAltHeld) ||
+                    (key == KeyCode.B && KeyboardHelper.IsAltHeld) ||
+                    (key == KeyCode.K && KeyboardHelper.IsAltHeld) ||
+                    (key == KeyCode.A && KeyboardHelper.IsAltHeld) ||
+                    (key == KeyCode.F && KeyboardHelper.IsAltHeld) ||
+                    (key == KeyCode.R && KeyboardHelper.IsAltHeld))
                 {
                     // These keys should not work in world view - they're map-specific
                     // Must consume the event to prevent game from opening its inaccessible menus
@@ -1268,7 +1268,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
                 if (WindowlessScenarioDeleteConfirmState.HandleInput(key, shift, ctrl, alt))
                 {
                     Event.current.Use();
@@ -1280,7 +1280,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
                 // Handle character input for typeahead
                 if (Event.current.character != '\0' && !ctrl && !alt && char.IsLetterOrDigit(Event.current.character))
                 {
@@ -1302,7 +1302,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
                 // Handle character input for filename typing
                 if (Event.current.character != '\0' && !ctrl && !alt)
                 {
@@ -1324,7 +1324,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
                 // Handle character input for typeahead
                 if (Event.current.character != '\0' && !ctrl && !alt && char.IsLetterOrDigit(Event.current.character))
                 {
@@ -1346,7 +1346,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
                 // Handle character input for dropdown typeahead
                 if (Event.current.character != '\0' && !ctrl && !alt && char.IsLetterOrDigit(Event.current.character))
                 {
@@ -1369,7 +1369,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
                 // Handle character input for text editing or typeahead
                 if (Event.current.character != '\0' && !ctrl && !alt)
                 {
@@ -1392,7 +1392,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
                 if (PawnFilterPresetDeleteConfirmState.HandleInput(key, shift, ctrl, alt))
                 {
                     Event.current.Use();
@@ -1404,7 +1404,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
 
                 if (PawnFilterPresetLoadState.HandleInput(key, shift, ctrl, alt))
                 {
@@ -1417,7 +1417,7 @@ namespace RimWorldAccess
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
 
                 if (PawnFilterPresetSaveState.HandleInput(key, shift, ctrl, alt))
                 {
@@ -1442,7 +1442,7 @@ namespace RimWorldAccess
                 && !PawnFilterState.IsActive && !Find.WindowStack.IsOpen<Dialog_NamePawn>())
             {
                 // Character input for typeahead
-                if (Event.current.character != '\0' && !Event.current.control && !Event.current.alt)
+                if (Event.current.character != '\0' && !Event.current.control && !KeyboardHelper.IsAltHeld)
                 {
                     if (StartingPawnState.HandleCharacterInput(Event.current.character))
                     {
@@ -1557,7 +1557,7 @@ namespace RimWorldAccess
                         bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                         bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                        if ((isLetter || isNumber) && !Event.current.alt)
+                        if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                         {
                             char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                             WindowlessAreaState.HandleActionsTypeahead(c);
@@ -1666,7 +1666,7 @@ namespace RimWorldAccess
                 // Check for modifier keys
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
 
                 // Handle Escape - clear search FIRST, then exit quantity mode, then close
                 if (key == KeyCode.Escape)
@@ -1944,7 +1944,7 @@ namespace RimWorldAccess
                     bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                     bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                    if ((isLetter || isNumber) && !Event.current.shift && !Event.current.control && !Event.current.alt)
+                    if ((isLetter || isNumber) && !Event.current.shift && !Event.current.control && !KeyboardHelper.IsAltHeld)
                     {
                         char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                         SellableItemsState.ProcessTypeaheadCharacter(c);
@@ -2023,7 +2023,7 @@ namespace RimWorldAccess
                     bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                     bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                    if ((isLetter || isNumber) && !Event.current.alt)
+                    if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                     {
                         char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                         WindowlessSaveMenuState.ProcessTypeaheadCharacter(c);
@@ -2094,7 +2094,7 @@ namespace RimWorldAccess
                 {
                     bool shift = Event.current.shift;
                     bool ctrl = Event.current.control;
-                    bool alt = Event.current.alt;
+                    bool alt = KeyboardHelper.IsAltHeld;
 
                     // Check sub-states first - they handle navigation within their tabs
                     if (HistoryState.CurrentTab == HistoryState.Tab.Statistics && HistoryStatisticsState.IsActive)
@@ -2136,7 +2136,7 @@ namespace RimWorldAccess
                 bool inSettingsList = StorytellerSelectionState.CurrentLevel == StorytellerSelectionLevel.CustomSettingsList;
 
                 // Alt+R - Reset to preset (only in custom settings)
-                if (key == KeyCode.R && Event.current.alt && inCustomSettings)
+                if (key == KeyCode.R && KeyboardHelper.IsAltHeld && inCustomSettings)
                 {
                     StorytellerSelectionState.OpenResetToPresetMenu();
                     handled = true;
@@ -2276,7 +2276,7 @@ namespace RimWorldAccess
                     }
                 }
                 // Typeahead character input - check for printable characters
-                else if (!Event.current.alt && !Event.current.control)
+                else if (!KeyboardHelper.IsAltHeld && !Event.current.control)
                 {
                     // Use character from event if available, otherwise map from keycode
                     char c = Event.current.character;
@@ -2403,7 +2403,7 @@ namespace RimWorldAccess
                     bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                     bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                    if ((isLetter || isNumber) && !Event.current.shift && !Event.current.control && !Event.current.alt)
+                    if ((isLetter || isNumber) && !Event.current.shift && !Event.current.control && !KeyboardHelper.IsAltHeld)
                     {
                         char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                         WindowlessOptionsMenuState.ProcessTypeaheadCharacter(c);
@@ -2461,7 +2461,7 @@ namespace RimWorldAccess
                     handled = true;
                 }
                 // Number keys 1-9, 0: Select brush (both columns)
-                else if (!ctrl && !shift && !Event.current.alt)
+                else if (!ctrl && !shift && !KeyboardHelper.IsAltHeld)
                 {
                     int brushIndex = -1;
                     if (key >= KeyCode.Alpha1 && key <= KeyCode.Alpha9)
@@ -2642,7 +2642,7 @@ namespace RimWorldAccess
                 }
 
                 // Typeahead: Letter keys for pawn name search (both columns)
-                if (!handled && !ctrl && !Event.current.alt)
+                if (!handled && !ctrl && !KeyboardHelper.IsAltHeld)
                 {
                     bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                     if (isLetter)
@@ -2666,7 +2666,7 @@ namespace RimWorldAccess
                 bool handled = false;
 
                 // Handle Alt+I - open info card for current item
-                if (Event.current.alt && key == KeyCode.I && !Event.current.shift && !Event.current.control)
+                if (KeyboardHelper.IsAltHeld && key == KeyCode.I && !Event.current.shift && !Event.current.control)
                 {
                     WindowlessResearchDetailState.OpenInfoCard();
                     handled = true;
@@ -2761,7 +2761,7 @@ namespace RimWorldAccess
                     bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                     bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                    if ((isLetter || isNumber) && !Event.current.alt)
+                    if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                     {
                         char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                         WindowlessResearchDetailState.ProcessTypeaheadCharacter(c);
@@ -2782,7 +2782,7 @@ namespace RimWorldAccess
                 bool handled = false;
 
                 // Handle Alt+I - open info card for selected project
-                if (Event.current.alt && key == KeyCode.I)
+                if (KeyboardHelper.IsAltHeld && key == KeyCode.I)
                 {
                     WindowlessResearchMenuState.OpenInfoCard();
                     handled = true;
@@ -2882,7 +2882,7 @@ namespace RimWorldAccess
                     bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                     bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                    if ((isLetter || isNumber) && !Event.current.alt)
+                    if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                     {
                         char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                         WindowlessResearchMenuState.ProcessTypeaheadCharacter(c);
@@ -2930,7 +2930,7 @@ namespace RimWorldAccess
                 // Intercept only special keys; let everything else fall through to float menu at priority 5.0
                 if (WindowlessFloatMenuState.IsActive && QuestMenuState.HasActiveRewardMenu)
                 {
-                    bool alt = Event.current.alt;
+                    bool alt = KeyboardHelper.IsAltHeld;
 
                     if (QuestMenuState.IsInItemInspectionMenu)
                     {
@@ -2965,7 +2965,7 @@ namespace RimWorldAccess
                 else if (!WindowlessFloatMenuState.IsActive)
                 {
                     bool handled = false;
-                    bool alt = Event.current.alt;
+                    bool alt = KeyboardHelper.IsAltHeld;
 
                     // --- Reward Preferences Mode ---
                     if (QuestMenuState.IsInRewardPrefsMode)
@@ -3187,7 +3187,7 @@ namespace RimWorldAccess
                         bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                         bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                        if ((isLetter || isNumber) && !Event.current.alt)
+                        if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                         {
                             char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                             QuestMenuState.HandleTypeahead(c);
@@ -3319,21 +3319,29 @@ namespace RimWorldAccess
                     WildlifeMenuState.SelectPreviousColumn();
                     handled = true;
                 }
-                // Handle Enter - interact with current cell
+                // Handle Enter - confirm typeahead search if active, otherwise interact with current cell
                 else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
                 {
-                    WildlifeMenuState.InteractWithCurrentCell();
+                    if (typeahead.HasActiveSearch)
+                    {
+                        typeahead.ClearSearch();
+                        WildlifeMenuState.AnnounceWithSearch();
+                    }
+                    else
+                    {
+                        WildlifeMenuState.InteractWithCurrentCell();
+                    }
                     handled = true;
                 }
                 // Handle Alt+S - sort by current column
-                else if (key == KeyCode.S && Event.current.alt)
+                else if (key == KeyCode.S && KeyboardHelper.IsAltHeld)
                 {
                     WildlifeMenuState.ToggleSortByCurrentColumn();
                     handled = true;
                 }
 
                 // Handle Alt+I - open info card for selected animal
-                if (Event.current.alt && key == KeyCode.I)
+                if (KeyboardHelper.IsAltHeld && key == KeyCode.I)
                 {
                     WildlifeMenuState.OpenInfoCard();
                     handled = true;
@@ -3351,7 +3359,7 @@ namespace RimWorldAccess
                 bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                 bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                if ((isLetter || isNumber) && !Event.current.alt)
+                if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                 {
                     char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                     WildlifeMenuState.HandleTypeahead(c);
@@ -3579,14 +3587,22 @@ namespace RimWorldAccess
                     AnimalsMenuState.SelectPreviousColumn();
                     handled = true;
                 }
-                // Handle Enter - interact with current cell
+                // Handle Enter - confirm typeahead search if active, otherwise interact with current cell
                 else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
                 {
-                    AnimalsMenuState.InteractWithCurrentCell();
+                    if (typeahead.HasActiveSearch)
+                    {
+                        typeahead.ClearSearch();
+                        AnimalsMenuState.AnnounceWithSearch();
+                    }
+                    else
+                    {
+                        AnimalsMenuState.InteractWithCurrentCell();
+                    }
                     handled = true;
                 }
                 // Handle Alt+S - sort by current column
-                else if (key == KeyCode.S && Event.current.alt)
+                else if (key == KeyCode.S && KeyboardHelper.IsAltHeld)
                 {
                     AnimalsMenuState.ToggleSortByCurrentColumn();
                     handled = true;
@@ -3601,7 +3617,7 @@ namespace RimWorldAccess
                     handled = true;
                 }
                 // Handle Alt+I - open info card for selected animal
-                else if (Event.current.alt && key == KeyCode.I)
+                else if (KeyboardHelper.IsAltHeld && key == KeyCode.I)
                 {
                     AnimalsMenuState.OpenInfoCard();
                     handled = true;
@@ -3619,7 +3635,7 @@ namespace RimWorldAccess
                 bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                 bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                if ((isLetter || isNumber) && !Event.current.alt)
+                if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                 {
                     char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                     AnimalsMenuState.HandleTypeahead(c);
@@ -3643,7 +3659,7 @@ namespace RimWorldAccess
                 bool onMap = MapNavigationState.IsInitialized && !onWorldMap;
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
 
                 // Check placement mode (search should work during placement)
                 // Guard Find.DesignatorManager with CurrentMap — it chains through Find.MapUI which throws during Entry state
@@ -3689,7 +3705,7 @@ namespace RimWorldAccess
                 bool onMap = MapNavigationState.IsInitialized && !onWorldMap;
                 bool ctrl = Event.current.control;
                 bool shift = Event.current.shift;
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
 
                 // Check placement mode (Go To should work during placement like scanner search)
                 // Guard Find.DesignatorManager with CurrentMap — it chains through Find.MapUI which throws during Entry state
@@ -3741,7 +3757,7 @@ namespace RimWorldAccess
                     bool handled = false;
                     bool ctrl = Event.current.control;
                     bool shift = Event.current.shift;
-                    bool alt = Event.current.alt;
+                    bool alt = KeyboardHelper.IsAltHeld;
 
                     if (key == KeyCode.PageDown)
                     {
@@ -3956,7 +3972,7 @@ namespace RimWorldAccess
                     bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                     bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                    if ((isLetter || isNumber) && !Event.current.alt)
+                    if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                     {
                         char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                         NotificationMenuState.HandleTypeahead(c);
@@ -4054,13 +4070,13 @@ namespace RimWorldAccess
                 var typeahead = AssignMenuState.Typeahead;
 
                 // Policy shortcuts (work in both table and submenu when on policy column)
-                if (Event.current.alt && key == KeyCode.N)
+                if (KeyboardHelper.IsAltHeld && key == KeyCode.N)
                     handled = AssignMenuState.HandlePolicyShortcut(AssignMenuHelper.PolicyAction.New);
-                else if (Event.current.alt && key == KeyCode.R)
+                else if (KeyboardHelper.IsAltHeld && key == KeyCode.R)
                     handled = AssignMenuState.HandlePolicyShortcut(AssignMenuHelper.PolicyAction.Rename);
-                else if (Event.current.alt && key == KeyCode.C)
+                else if (KeyboardHelper.IsAltHeld && key == KeyCode.C)
                     handled = AssignMenuState.HandlePolicyShortcut(AssignMenuHelper.PolicyAction.Copy);
-                else if (Event.current.alt && key == KeyCode.E)
+                else if (KeyboardHelper.IsAltHeld && key == KeyCode.E)
                     handled = AssignMenuState.HandlePolicyShortcut(AssignMenuHelper.PolicyAction.Edit);
                 else if (key == KeyCode.Delete)
                     handled = AssignMenuState.HandlePolicyShortcut(AssignMenuHelper.PolicyAction.Delete);
@@ -4285,13 +4301,13 @@ namespace RimWorldAccess
                     handled = true;
                 }
                 // Handle Alt+S - sort by current column
-                else if (key == KeyCode.S && Event.current.alt)
+                else if (key == KeyCode.S && KeyboardHelper.IsAltHeld)
                 {
                     AssignMenuState.ToggleSortByCurrentColumn();
                     handled = true;
                 }
                 // Handle Alt+I - open info card for selected pawn
-                else if (Event.current.alt && key == KeyCode.I)
+                else if (KeyboardHelper.IsAltHeld && key == KeyCode.I)
                 {
                     AssignMenuState.OpenInfoCard();
                     handled = true;
@@ -4307,7 +4323,7 @@ namespace RimWorldAccess
                 bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                 bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                if ((isLetter || isNumber) && !Event.current.alt)
+                if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                 {
                     char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                     AssignMenuState.HandleTypeahead(c);
@@ -4325,7 +4341,7 @@ namespace RimWorldAccess
             if (StorageSettingsMenuState.IsActive)
             {
                 // Handle Alt+I - open info card for selected item
-                if (Event.current.alt && key == KeyCode.I)
+                if (KeyboardHelper.IsAltHeld && key == KeyCode.I)
                 {
                     StorageSettingsMenuState.OpenInfoCard();
                     Event.current.Use();
@@ -4335,7 +4351,7 @@ namespace RimWorldAccess
                 bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                 bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                if ((isLetter || isNumber) && !Event.current.alt)
+                if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                 {
                     char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                     StorageSettingsMenuState.ProcessTypeaheadCharacter(c);
@@ -4357,7 +4373,7 @@ namespace RimWorldAccess
                 bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                 bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-                if ((isLetter || isNumber) && !Event.current.alt)
+                if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                 {
                     char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                     PlantSelectionMenuState.HandleTypeahead(c);
@@ -4565,7 +4581,7 @@ namespace RimWorldAccess
                     handled = true;
                 }
                 // === Handle Alt+I - open info card for selected item ===
-                else if (Event.current.alt && key == KeyCode.I)
+                else if (KeyboardHelper.IsAltHeld && key == KeyCode.I)
                 {
                     WindowlessFloatMenuState.TryOpenInfoCardForSelected();
                     handled = true;
@@ -4585,7 +4601,7 @@ namespace RimWorldAccess
                 bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
                 bool isStar = key == KeyCode.KeypadMultiply || (Event.current.shift && key == KeyCode.Alpha8);
 
-                if ((isLetter || isNumber || isStar) && !Event.current.alt)
+                if ((isLetter || isNumber || isStar) && !KeyboardHelper.IsAltHeld)
                 {
                     if (isStar)
                     {
@@ -4604,7 +4620,7 @@ namespace RimWorldAccess
             // Works during both in-game world map and world gen starting site screen
             if (WorldNavigationState.IsActive &&
                 (Current.ProgramState == ProgramState.Playing || WorldNavigationState.Context == WorldNavContext.WorldGen) &&
-                !Event.current.shift && !Event.current.control && !Event.current.alt)
+                !Event.current.shift && !Event.current.control && !KeyboardHelper.IsAltHeld)
             {
                 int category = 0;
                 if (key == KeyCode.Alpha1 || key == KeyCode.Keypad1) category = 1;
@@ -4626,7 +4642,7 @@ namespace RimWorldAccess
             if ((key == KeyCode.Alpha1 || key == KeyCode.Keypad1 ||
                  key == KeyCode.Alpha2 || key == KeyCode.Keypad2 ||
                  key == KeyCode.Alpha3 || key == KeyCode.Keypad3) &&
-                !Event.current.alt &&
+                !KeyboardHelper.IsAltHeld &&
                 !Event.current.control &&
                 Current.ProgramState == ProgramState.Playing &&
                 Find.CurrentMap != null &&
@@ -4715,7 +4731,7 @@ namespace RimWorldAccess
             }
 
             // ===== PRIORITY 6: Toggle draft mode with R key (if pawn is selected) =====
-            if (key == KeyCode.R && !Event.current.alt)
+            if (key == KeyCode.R && !KeyboardHelper.IsAltHeld)
             {
                 // Only toggle draft if:
                 // 1. We're in gameplay (not at main menu)
@@ -4764,7 +4780,7 @@ namespace RimWorldAccess
                 (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
                 !ZoneCreationState.IsInCreationMode)
             {
-                bool alt = Event.current.alt;
+                bool alt = KeyboardHelper.IsAltHeld;
                 bool ctrl = Event.current.control;
 
                 // Alt+Left/Right: navigate bar linearly (crosses page boundaries)
@@ -4886,15 +4902,15 @@ namespace RimWorldAccess
             {
                 int slot = key - KeyCode.Alpha0;
 
-                if (Event.current.alt && !Event.current.shift)
+                if (KeyboardHelper.IsAltHeld && !Event.current.shift)
                 {
                     BookmarkHelper.SetBookmark(slot);
                 }
-                else if (Event.current.shift && !Event.current.alt)
+                else if (Event.current.shift && !KeyboardHelper.IsAltHeld)
                 {
                     BookmarkHelper.JumpToBookmark(slot);
                 }
-                else if (!Event.current.shift && !Event.current.alt)
+                else if (!Event.current.shift && !KeyboardHelper.IsAltHeld)
                 {
                     BookmarkHelper.PeekAtBookmark(slot);
                 }
@@ -4904,7 +4920,7 @@ namespace RimWorldAccess
             }
 
             // ===== PRIORITY 6.5: Display mood info with Alt+M (if pawn is selected) =====
-            if (key == KeyCode.M && Event.current.alt)
+            if (key == KeyCode.M && KeyboardHelper.IsAltHeld)
             {
                 // Only display mood if:
                 // 1. We're in gameplay (not at main menu)
@@ -4925,7 +4941,7 @@ namespace RimWorldAccess
             }
 
             // ===== PRIORITY 6.51: Display health info with Alt+H (if pawn is selected) =====
-            if (key == KeyCode.H && Event.current.alt)
+            if (key == KeyCode.H && KeyboardHelper.IsAltHeld)
             {
                 // Only display health if:
                 // 1. We're in gameplay (not at main menu)
@@ -4946,7 +4962,7 @@ namespace RimWorldAccess
             }
 
             // ===== PRIORITY 6.52: Display needs info with Alt+N (if pawn is selected) =====
-            if (key == KeyCode.N && Event.current.alt)
+            if (key == KeyCode.N && KeyboardHelper.IsAltHeld)
             {
                 // Only display needs if:
                 // 1. We're in gameplay (not at main menu)
@@ -4967,7 +4983,7 @@ namespace RimWorldAccess
             }
 
             // ===== PRIORITY 6.525: Display combat log with Alt+B (if pawn is selected) =====
-            if (key == KeyCode.B && Event.current.alt)
+            if (key == KeyCode.B && KeyboardHelper.IsAltHeld)
             {
                 // Only display combat log if:
                 // 1. We're in gameplay (not at main menu)
@@ -4988,7 +5004,7 @@ namespace RimWorldAccess
             }
 
             // ===== PRIORITY 6.527: Display gear info with Alt+G (if pawn is selected) =====
-            if (key == KeyCode.G && Event.current.alt)
+            if (key == KeyCode.G && KeyboardHelper.IsAltHeld)
             {
                 // Only display gear if:
                 // 1. We're in gameplay (not at main menu)
@@ -5009,7 +5025,7 @@ namespace RimWorldAccess
             }
 
             // ===== PRIORITY 6.5275: Display top skills with Alt+K (if pawn is selected) =====
-            if (key == KeyCode.K && Event.current.alt)
+            if (key == KeyCode.K && KeyboardHelper.IsAltHeld)
             {
                 // Only display skills if:
                 // 1. We're in gameplay (not at main menu)
@@ -5030,7 +5046,7 @@ namespace RimWorldAccess
             }
 
             // ===== PRIORITY 6.5276: Assign area with Alt+A (if pawn is selected) =====
-            if (key == KeyCode.A && Event.current.alt)
+            if (key == KeyCode.A && KeyboardHelper.IsAltHeld)
             {
                 if (Current.ProgramState == ProgramState.Playing &&
                     Find.CurrentMap != null &&
@@ -5062,7 +5078,7 @@ namespace RimWorldAccess
             }
 
             // ===== PRIORITY 6.528: Rename pawn with Alt+R =====
-            if (key == KeyCode.R && Event.current.alt)
+            if (key == KeyCode.R && KeyboardHelper.IsAltHeld)
             {
                 // Only rename if:
                 // 1. We're in gameplay
@@ -5117,7 +5133,7 @@ namespace RimWorldAccess
             }
 
             // ===== PRIORITY 6.53: Unforbid all items on the map with Alt+F =====
-            if (key == KeyCode.F && Event.current.alt)
+            if (key == KeyCode.F && KeyboardHelper.IsAltHeld)
             {
                 // Only unforbid if:
                 // 1. We're in gameplay (not at main menu)
@@ -5191,7 +5207,7 @@ namespace RimWorldAccess
             }
 
             // ===== PRIORITY 6.56: Toggle forbid status on items at cursor with F key =====
-            if (key == KeyCode.F && !Event.current.shift && !Event.current.control && !Event.current.alt)
+            if (key == KeyCode.F && !Event.current.shift && !Event.current.control && !KeyboardHelper.IsAltHeld)
             {
                 // Only toggle forbid if:
                 // 1. We're in gameplay (not at main menu)
@@ -5512,7 +5528,7 @@ namespace RimWorldAccess
             }
 
             // ===== PRIORITY 7.61: Open info card at cursor with Alt+I =====
-            if (Event.current.alt && key == KeyCode.I && !Event.current.shift && !Event.current.control)
+            if (KeyboardHelper.IsAltHeld && key == KeyCode.I && !Event.current.shift && !Event.current.control)
             {
                 if (Current.ProgramState == ProgramState.Playing &&
                     Find.CurrentMap != null &&
@@ -6101,7 +6117,7 @@ namespace RimWorldAccess
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-            if ((isLetter || (isNumber && !Event.current.shift)) && !Event.current.alt && !Event.current.control)
+            if ((isLetter || (isNumber && !Event.current.shift)) && !KeyboardHelper.IsAltHeld && !Event.current.control)
             {
                 char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                 ThingFilterNavigationState.ProcessTypeaheadCharacter(c);

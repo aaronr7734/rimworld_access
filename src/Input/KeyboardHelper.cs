@@ -13,6 +13,14 @@ namespace RimWorldAccess
         /// </summary>
         public static bool WasCharacterRemapped { get; private set; }
 
+        /// <summary>
+        /// True if either ALT key is physically held down.
+        /// Use instead of Event.current.alt for AZERTY keyboard compatibility —
+        /// Event.current.alt may not reliably detect Left Alt on some keyboard layouts
+        /// where Windows intercepts it for menu acceleration before Unity receives it.
+        /// </summary>
+        public static bool IsAltHeld => Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
+
         // Tracks the frame when a real KeyCode.RightBracket was seen, so we don't
         // also remap the follow-up character event that Unity sends for the same keypress.
         private static int lastRightBracketFrame = -1;

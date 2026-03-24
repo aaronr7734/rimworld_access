@@ -43,7 +43,7 @@ namespace RimWorldAccess
                 return;
 
             // Don't process if Alt is held (Alt+1-0 are for colonist bar navigation)
-            if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt))
+            if (KeyboardHelper.IsAltHeld)
                 return;
 
             // Don't process if Ctrl is held (Ctrl+1-0 are for map bookmarks)

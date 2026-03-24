@@ -116,7 +116,7 @@ namespace RimWorldAccess
                     }
                     // Typeahead search (letters/digits)
                     else if (Event.current.character != '\0' &&
-                             !Event.current.control && !Event.current.alt &&
+                             !Event.current.control && !KeyboardHelper.IsAltHeld &&
                              char.IsLetterOrDigit(Event.current.character))
                     {
                         handled = HandleTypeahead(Event.current.character, __instance);
@@ -195,7 +195,7 @@ namespace RimWorldAccess
                 return true;
             }
             // Alt+R - Jump to reset/playstyle section
-            else if (keyCode == KeyCode.R && Event.current.alt)
+            else if (keyCode == KeyCode.R && KeyboardHelper.IsAltHeld)
             {
                 CustomDifficultyEditState.JumpToResetSection();
                 return true;
@@ -206,7 +206,7 @@ namespace RimWorldAccess
             }
             // Typeahead (letters/digits)
             else if (Event.current.character != '\0' &&
-                     !Event.current.control && !Event.current.alt &&
+                     !Event.current.control && !KeyboardHelper.IsAltHeld &&
                      char.IsLetterOrDigit(Event.current.character))
             {
                 return CustomDifficultyEditState.HandleTypeahead(Event.current.character);

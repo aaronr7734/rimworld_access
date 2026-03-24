@@ -376,7 +376,7 @@ namespace RimWorldAccess
             }
 
             // Handle Alt+I - open info card for the selected option's associated Def
-            if (Event.current.alt && key == KeyCode.I)
+            if (KeyboardHelper.IsAltHeld && key == KeyCode.I)
             {
                 TryOpenInfoCardForSelected();
                 Event.current.Use();
@@ -389,7 +389,7 @@ namespace RimWorldAccess
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-            if ((isLetter || isNumber) && !Event.current.alt)
+            if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
             {
                 char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                 var labels = GetItemLabels();

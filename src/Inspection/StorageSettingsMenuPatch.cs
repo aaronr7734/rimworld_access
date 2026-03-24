@@ -279,7 +279,7 @@ namespace RimWorldAccess
                     break;
 
                 case KeyCode.I:
-                    if (Event.current.alt)
+                    if (KeyboardHelper.IsAltHeld)
                     {
                         PlantSelectionMenuState.OpenInfoCard();
                         Event.current.Use();

@@ -218,7 +218,7 @@ namespace RimWorldAccess
                             }
                         }
                         else if (Event.current.character != '\0' &&
-                                 !Event.current.control && !Event.current.alt &&
+                                 !Event.current.control && !KeyboardHelper.IsAltHeld &&
                                  char.IsLetterOrDigit(Event.current.character))
                         {
                             // Handle typeahead search for printable characters
@@ -232,7 +232,7 @@ namespace RimWorldAccess
                         // Normal scenario list navigation
 
                         // Handle Alt+E to edit the selected scenario
-                        if (Event.current.alt && keyCode == KeyCode.E)
+                        if (KeyboardHelper.IsAltHeld && keyCode == KeyCode.E)
                         {
                             if (ScenarioNavigationState.IsScenarioBuilderSelected)
                             {
@@ -355,7 +355,7 @@ namespace RimWorldAccess
                             }
                         }
                         else if (Event.current.character != '\0' &&
-                                 !Event.current.control && !Event.current.alt &&
+                                 !Event.current.control && !KeyboardHelper.IsAltHeld &&
                                  char.IsLetterOrDigit(Event.current.character))
                         {
                             // Handle typeahead search for printable characters

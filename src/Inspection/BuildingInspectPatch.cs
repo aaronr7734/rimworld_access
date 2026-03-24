@@ -207,7 +207,7 @@ namespace RimWorldAccess
             // Exclude keys used for other purposes: C for copy (with Ctrl)
             bool isExcludedLetter = key == KeyCode.C && Event.current.control;
 
-            if ((isLetter || isNumber) && !isExcludedLetter && !Event.current.alt)
+            if ((isLetter || isNumber) && !isExcludedLetter && !KeyboardHelper.IsAltHeld)
             {
                 char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                 if (!BillsMenuState.ProcessTypeaheadCharacter(c))
@@ -219,7 +219,7 @@ namespace RimWorldAccess
             }
 
             // Handle Alt+I for info card
-            if (Event.current.alt && key == KeyCode.I)
+            if (KeyboardHelper.IsAltHeld && key == KeyCode.I)
             {
                 BillsMenuState.OpenInfoCard();
                 Event.current.Use();
@@ -369,7 +369,7 @@ namespace RimWorldAccess
             }
 
             // Handle Alt+I for info card
-            if (Event.current.alt && key == KeyCode.I)
+            if (KeyboardHelper.IsAltHeld && key == KeyCode.I)
             {
                 BillConfigState.OpenInfoCard();
                 Event.current.Use();
@@ -405,7 +405,7 @@ namespace RimWorldAccess
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-            if ((isLetter || isNumber) && !Event.current.alt)
+            if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
             {
                 char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                 if (!BillConfigState.ProcessTypeaheadCharacter(c))
@@ -659,7 +659,7 @@ namespace RimWorldAccess
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-            if ((isLetter || (isNumber && !Event.current.shift)) && !Event.current.alt && !Event.current.control)
+            if ((isLetter || (isNumber && !Event.current.shift)) && !KeyboardHelper.IsAltHeld && !Event.current.control)
             {
                 char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                 ThingFilterMenuState.ProcessTypeaheadCharacter(c);
@@ -1048,7 +1048,7 @@ namespace RimWorldAccess
             }
 
             // Handle Alt+I for fish info card
-            if (key == KeyCode.I && Event.current.alt)
+            if (key == KeyCode.I && KeyboardHelper.IsAltHeld)
             {
                 FishingZoneMenuState.OpenFishInfoCard();
                 Event.current.Use();
@@ -1059,7 +1059,7 @@ namespace RimWorldAccess
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-            if ((isLetter || isNumber) && !Event.current.alt)
+            if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
             {
                 char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                 if (!FishingZoneMenuState.ProcessTypeaheadCharacter(c))

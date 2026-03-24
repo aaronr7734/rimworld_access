@@ -76,7 +76,7 @@ namespace RimWorldAccess
             // Check for modifier keys
             bool shift = Event.current.shift;
             bool ctrl = Event.current.control;
-            bool alt = Event.current.alt;
+            bool alt = KeyboardHelper.IsAltHeld;
 
             // Note: CaravanInspectState input is handled by UnifiedKeyboardPatch at priority 0
 

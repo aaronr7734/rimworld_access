@@ -248,7 +248,7 @@ namespace RimWorldAccess
             }
 
             // Handle Alt+I - open info card for selected designator
-            if (key == KeyCode.I && Event.current.alt)
+            if (key == KeyCode.I && KeyboardHelper.IsAltHeld)
             {
                 OpenDesignatorInfoCard();
                 Event.current.Use();
@@ -257,7 +257,7 @@ namespace RimWorldAccess
 
             // Handle typeahead search characters (letters only)
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
-            if (isLetter && !Event.current.alt && !Event.current.shift)
+            if (isLetter && !KeyboardHelper.IsAltHeld && !Event.current.shift)
             {
                 char c = (char)('a' + (key - KeyCode.A));
                 ArchitectTreeState.ProcessTypeaheadCharacter(c);

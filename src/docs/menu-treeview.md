@@ -191,7 +191,7 @@ if (MyMenuState.IsActive)
             Event.current.Use();
     }
     else if (Event.current.character != '\0' &&
-             !Event.current.control && !Event.current.alt &&
+             !Event.current.control && !KeyboardHelper.IsAltHeld &&
              char.IsLetterOrDigit(Event.current.character))
     {
         MyMenuState.HandleTypeahead(Event.current.character);

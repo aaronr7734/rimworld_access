@@ -793,9 +793,15 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Enter: numeric mode for numeric columns, toggle for boolean columns
+            // Enter: confirm typeahead search if active, otherwise numeric mode
             if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
             {
+                if (typeahead.HasActiveSearch)
+                {
+                    typeahead.ClearSearch();
+                    AnnounceCurrentCell(includeAnimalName: true);
+                    return true;
+                }
                 EnterNumericMode();
                 return true;
             }
@@ -937,10 +943,12 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Typeahead: letter keys only
-            if (evt.character != '\0' && char.IsLetter(evt.character))
+            // Typeahead: letter keys only (use KeyCode, not evt.character which is often empty in IMGUI)
+            bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
+            if (isLetter && !KeyboardHelper.IsAltHeld)
             {
-                HandleTypeahead(evt.character);
+                char c = (char)('a' + (key - KeyCode.A));
+                HandleTypeahead(c);
                 return true;
             }
 

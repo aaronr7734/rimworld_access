@@ -464,7 +464,7 @@ namespace RimWorldAccess
             }
 
             // Handle Alt+I - open info card for selected plant
-            if (key == KeyCode.I && Event.current.alt)
+            if (key == KeyCode.I && KeyboardHelper.IsAltHeld)
             {
                 if (availablePlants != null && selectedIndex >= 0 && selectedIndex < availablePlants.Count)
                 {
@@ -487,7 +487,7 @@ namespace RimWorldAccess
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-            if ((isLetter || isNumber) && !Event.current.alt)
+            if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
             {
                 char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                 var labels = GetPlantLabels();

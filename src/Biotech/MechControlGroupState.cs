@@ -143,7 +143,7 @@ namespace RimWorldAccess
             KeyCode key = Event.current.keyCode;
             bool shift = Event.current.shift;
             bool ctrl = Event.current.control;
-            bool alt = Event.current.alt;
+            bool alt = KeyboardHelper.IsAltHeld;
 
             // Range editor sub-state takes priority
             if (isEditingRange)

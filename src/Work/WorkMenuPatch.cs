@@ -30,7 +30,7 @@ namespace RimWorldAccess
 
             KeyCode key = Event.current.keyCode;
             bool shift = Event.current.shift;
-            bool alt = Event.current.alt;
+            bool alt = KeyboardHelper.IsAltHeld;
             var typeahead = WorkMenuState.Typeahead;
 
             // Handle Escape - clear search first, then cancel
