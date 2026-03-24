@@ -81,6 +81,12 @@ namespace RimWorldAccess
         {
             try
             {
+                // Restore IMGUI focus to this page. After closing certain dialogs
+                // (e.g., faction relations from site selection), IMGUI focus may be
+                // lost to a deleted window, preventing KeyDown events from arriving.
+                // Same pattern used in IdeologySelectionPatch and StartingPawnPatch.
+                Find.WindowStack.Notify_ManuallySetFocus(__instance);
+
                 // Build flat list of all scenarios
                 List<Scenario> allScenarios = new List<Scenario>();
 
@@ -102,12 +108,12 @@ namespace RimWorldAccess
                 // Announce window title and initial selection once
                 if (!hasAnnouncedTitle)
                 {
-                    string pageTitle = "Choose Scenario";
+                    string pageTitle = "ChooseScenario".Translate().ToString();
                     Scenario firstScenario = ScenarioNavigationState.SelectedScenario;
                     if (firstScenario != null)
                     {
                         string categorySuffix = GetCategorySuffixString(firstScenario.Category);
-                        TolkHelper.Speak($"{pageTitle} - {firstScenario.name} - {firstScenario.summary}{categorySuffix}");
+                        TolkHelper.Speak($"{pageTitle} - {firstScenario.name} - {firstScenario.summary}{categorySuffix}. Tab for details, Alt+E to edit.");
                     }
                     else
                     {
@@ -212,7 +218,7 @@ namespace RimWorldAccess
                             }
                         }
                         else if (Event.current.character != '\0' &&
-                                 !Event.current.control && !Event.current.alt &&
+                                 !Event.current.control && !KeyboardHelper.IsAltHeld &&
                                  char.IsLetterOrDigit(Event.current.character))
                         {
                             // Handle typeahead search for printable characters
@@ -226,7 +232,7 @@ namespace RimWorldAccess
                         // Normal scenario list navigation
 
                         // Handle Alt+E to edit the selected scenario
-                        if (Event.current.alt && keyCode == KeyCode.E)
+                        if (KeyboardHelper.IsAltHeld && keyCode == KeyCode.E)
                         {
                             if (ScenarioNavigationState.IsScenarioBuilderSelected)
                             {
@@ -349,7 +355,7 @@ namespace RimWorldAccess
                             }
                         }
                         else if (Event.current.character != '\0' &&
-                                 !Event.current.control && !Event.current.alt &&
+                                 !Event.current.control && !KeyboardHelper.IsAltHeld &&
                                  char.IsLetterOrDigit(Event.current.character))
                         {
                             // Handle typeahead search for printable characters
@@ -511,9 +517,9 @@ namespace RimWorldAccess
                 case ScenarioCategory.FromDef:
                     return " (Built-in)";
                 case ScenarioCategory.CustomLocal:
-                    return " (Custom)";
+                    return $" ({"ScenariosCustom".Translate()})";
                 case ScenarioCategory.SteamWorkshop:
-                    return " (Workshop)";
+                    return $" ({"ScenariosSteamWorkshop".Translate()})";
                 default:
                     return "";
             }

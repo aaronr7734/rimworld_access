@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
+using Verse.Sound;
 using RimWorld;
 using UnityEngine;
 
@@ -84,6 +85,21 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Rebuilds the menu items while preserving the current selection index.
+        /// Called externally when bill data changes (e.g., after rename).
+        /// </summary>
+        public static void RefreshMenuItems()
+        {
+            if (!isActive || menuItems == null) return;
+            int savedIndex = selectedIndex;
+            BuildMenuItems();
+            if (savedIndex < menuItems.Count)
+                selectedIndex = savedIndex;
+            else if (menuItems.Count > 0)
+                selectedIndex = menuItems.Count - 1;
+        }
+
+        /// <summary>
         /// Builds the menu item list.
         /// </summary>
         private static void BuildMenuItems()
@@ -91,14 +107,14 @@ namespace RimWorldAccess
             menuItems.Clear();
 
             // Add "Add new bill" option
-            menuItems.Add(new MenuItem(MenuItemType.AddBill, "Add new bill...", null));
+            menuItems.Add(new MenuItem(MenuItemType.AddBill, "AddBill".Translate() + "...", null));
 
             // Add paste bill option if clipboard has a bill
             if (BillUtility.Clipboard != null)
             {
                 Building_WorkTable workTable = billGiver as Building_WorkTable;
                 bool canPaste = false;
-                string pasteLabel = "Paste bill";
+                string pasteLabel = "PasteBillTip".Translate().CapitalizeFirst().ToString();
 
                 if (workTable != null)
                 {
@@ -106,17 +122,17 @@ namespace RimWorldAccess
                         !BillUtility.Clipboard.recipe.AvailableNow ||
                         !BillUtility.Clipboard.recipe.AvailableOnNow(workTable))
                     {
-                        pasteLabel = $"Paste bill (not available here): {BillUtility.Clipboard.LabelCap}";
+                        pasteLabel = "ClipboardBillNotAvailableHere".Translate() + ": " + BillUtility.Clipboard.LabelCap;
                         canPaste = false;
                     }
                     else if (billGiver.BillStack.Count >= 15)
                     {
-                        pasteLabel = $"Paste bill (limit reached): {BillUtility.Clipboard.LabelCap}";
+                        pasteLabel = "PasteBillTip".Translate().CapitalizeFirst() + " (" + "PasteBillTip_LimitReached".Translate() + "): " + BillUtility.Clipboard.LabelCap;
                         canPaste = false;
                     }
                     else
                     {
-                        pasteLabel = $"Paste bill: {BillUtility.Clipboard.LabelCap}";
+                        pasteLabel = "PasteBillTip".Translate().CapitalizeFirst() + ": " + BillUtility.Clipboard.LabelCap;
                         canPaste = true;
                     }
                 }
@@ -136,19 +152,23 @@ namespace RimWorldAccess
                     string costInfo = GetBillCostInfo(bill);
                     if (!string.IsNullOrEmpty(costInfo))
                     {
-                        billLabel += $" - {costInfo}";
+                        billLabel += $". {costInfo}";
                     }
 
                     // Add description
                     string description = GetBillDescription(bill);
                     if (!string.IsNullOrEmpty(description))
                     {
-                        billLabel += $" - {description}";
+                        billLabel += $". {description}";
                     }
 
                     if (bill.suspended)
                     {
-                        billLabel += " (paused)";
+                        billLabel += " (" + "Paused".Translate() + ")";
+                    }
+                    else if (bill is Bill_Production prodBill && prodBill.paused)
+                    {
+                        billLabel += " (" + "Paused".Translate() + ")";
                     }
 
                     menuItems.Add(new MenuItem(MenuItemType.ExistingBill, billLabel, bill));
@@ -585,14 +605,14 @@ namespace RimWorldAccess
             string costInfo = GetRecipeCostInfo(recipe);
             if (!string.IsNullOrEmpty(costInfo))
             {
-                label += $" - {costInfo}";
+                label += $". {costInfo}";
             }
 
             // Add description
             string description = GetRecipeDescription(recipe);
             if (!string.IsNullOrEmpty(description))
             {
-                label += $" - {description}";
+                label += $". {description}";
             }
 
             FloatMenuOption option = new FloatMenuOption(label, delegate
@@ -638,7 +658,7 @@ namespace RimWorldAccess
                 {
                     PlayerKnowledgeDatabase.KnowledgeDemonstrated(recipe.conceptLearned, KnowledgeAmount.Total);
                 }
-            });
+            }, recipe.ProducedThingDef);
 
             options.Add(option);
         }
@@ -686,6 +706,35 @@ namespace RimWorldAccess
             else
             {
                 TolkHelper.Speak($"Bill type {bill.GetType().Name} not yet supported");
+            }
+        }
+
+        /// <summary>
+        /// Opens the info card for the product of the currently selected bill.
+        /// </summary>
+        public static void OpenInfoCard()
+        {
+            if (menuItems == null || selectedIndex >= menuItems.Count)
+                return;
+
+            MenuItem item = menuItems[selectedIndex];
+
+            if (item.type != MenuItemType.ExistingBill || !(item.data is Bill bill))
+            {
+                TolkHelper.Speak("No info card available");
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                return;
+            }
+
+            ThingDef productDef = bill.recipe?.ProducedThingDef;
+            if (productDef != null)
+            {
+                InfoCardState.OpenInfoCardForDef(productDef);
+            }
+            else
+            {
+                TolkHelper.Speak("No info card available for this bill");
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
             }
         }
 
@@ -770,20 +819,22 @@ namespace RimWorldAccess
             }
 
             // Add work amount if available
-            if (recipe.workAmount > 0)
+            float workAmount = recipe.WorkAmountTotal(null);
+            if (workAmount > 0f)
             {
-                descriptions.Add($"Work: {recipe.workAmount}");
+                descriptions.Add($"{"WorkAmount".Translate()}: {workAmount.ToStringWorkAmount()}");
             }
 
-            // Add skill requirement if available
-            if (recipe.workSkill != null)
+            // Add minimum skill requirements (or just the skill name if no requirements)
+            if (!recipe.skillRequirements.NullOrEmpty())
             {
-                string skillInfo = recipe.workSkill.LabelCap.ToString();
-                if (recipe.workSkillLearnFactor > 0)
-                {
-                    skillInfo += $" (Learn factor: {recipe.workSkillLearnFactor:F1})";
-                }
-                descriptions.Add(skillInfo);
+                var reqs = recipe.skillRequirements
+                    .Select(r => $"{r.skill.LabelCap} {r.minLevel}");
+                descriptions.Add($"{"MinimumSkills".Translate()}: {string.Join(", ", reqs)}");
+            }
+            else if (recipe.workSkill != null)
+            {
+                descriptions.Add(recipe.workSkill.LabelCap.ToString());
             }
 
             if (descriptions.Count == 0)
@@ -855,20 +906,22 @@ namespace RimWorldAccess
             }
 
             // Add work amount if available
-            if (bill.recipe.workAmount > 0)
+            float workAmount = bill.recipe.WorkAmountTotal(null);
+            if (workAmount > 0f)
             {
-                descriptions.Add($"Work: {bill.recipe.workAmount}");
+                descriptions.Add($"{"WorkAmount".Translate()}: {workAmount.ToStringWorkAmount()}");
             }
 
-            // Add skill requirement if available
-            if (bill.recipe.workSkill != null)
+            // Add minimum skill requirements (or just the skill name if no requirements)
+            if (!bill.recipe.skillRequirements.NullOrEmpty())
             {
-                string skillInfo = bill.recipe.workSkill.LabelCap.ToString();
-                if (bill.recipe.workSkillLearnFactor > 0)
-                {
-                    skillInfo += $" (Learn factor: {bill.recipe.workSkillLearnFactor:F1})";
-                }
-                descriptions.Add(skillInfo);
+                var reqs = bill.recipe.skillRequirements
+                    .Select(r => $"{r.skill.LabelCap} {r.minLevel}");
+                descriptions.Add($"{"MinimumSkills".Translate()}: {string.Join(", ", reqs)}");
+            }
+            else if (bill.recipe.workSkill != null)
+            {
+                descriptions.Add(bill.recipe.workSkill.LabelCap.ToString());
             }
 
             if (descriptions.Count == 0)

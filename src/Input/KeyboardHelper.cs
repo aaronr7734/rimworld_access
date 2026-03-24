@@ -1,10 +1,134 @@
 using System;
+using HarmonyLib;
+using UnityEngine;
 using Verse;
 
 namespace RimWorldAccess
 {
     public static class KeyboardHelper
     {
+        /// <summary>
+        /// True if the last RemapCharacterToKeyCode call remapped a character event to a KeyCode.
+        /// When true, ctrl/alt modifier flags may be artifacts of AltGr and should be ignored.
+        /// </summary>
+        public static bool WasCharacterRemapped { get; private set; }
+
+        /// <summary>
+        /// True if either ALT key is physically held down.
+        /// Use instead of Event.current.alt for AZERTY keyboard compatibility —
+        /// Event.current.alt may not reliably detect Left Alt on some keyboard layouts
+        /// where Windows intercepts it for menu acceleration before Unity receives it.
+        /// </summary>
+        public static bool IsAltHeld => Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
+
+        // Tracks the frame when a real KeyCode.RightBracket was seen, so we don't
+        // also remap the follow-up character event that Unity sends for the same keypress.
+        private static int lastRightBracketFrame = -1;
+
+        // Same frame tracking for KeyCode.KeypadMultiply (asterisk).
+        // On US keyboards, numpad * sends keyCode=KeypadMultiply then character='*' in the same frame.
+        // On AZERTY keyboards, the dedicated * key sends only character='*' with keyCode=None.
+        private static int lastKeypadMultiplyFrame = -1;
+
+        // Frame tracking for Shift+Slash (question mark on US keyboards).
+        // On US keyboards, Shift+/ sends keyCode=Slash+shift=true then character='?' in the same frame.
+        // On non-US keyboards, ? may be a direct key sending only character='?' with keyCode=None.
+        private static int lastSlashShiftFrame = -1;
+
+        /// <summary>
+        /// Remaps character-only KeyDown events to their equivalent KeyCode.
+        /// On non-US keyboards (e.g., German), layout-dependent characters like ] are produced
+        /// via AltGr combinations, which Unity reports as keyCode=None with the character set.
+        /// On US keyboards, Unity already sends keyCode=RightBracket followed by a separate
+        /// character=']' event in the same frame; frame tracking prevents double-processing.
+        /// Call after getting Event.current.keyCode, before any KeyCode.None early-return guard.
+        /// </summary>
+        public static KeyCode RemapCharacterToKeyCode(KeyCode key)
+        {
+            WasCharacterRemapped = false;
+
+            // If we see a real RightBracket keyCode (US layout), record the frame
+            if (key == KeyCode.RightBracket)
+            {
+                lastRightBracketFrame = Time.frameCount;
+                return key;
+            }
+
+            // If we see a real KeypadMultiply keyCode (numpad *), record the frame
+            if (key == KeyCode.KeypadMultiply)
+            {
+                lastKeypadMultiplyFrame = Time.frameCount;
+                return key;
+            }
+
+            // If we see Shift+Alpha8 (US keyboard main-row *), record the frame
+            // just like numpad * so the follow-up character='*' event won't be remapped.
+            if (key == KeyCode.Alpha8 && Event.current.shift)
+            {
+                lastKeypadMultiplyFrame = Time.frameCount;
+                return key;
+            }
+
+            // If we see Shift+Slash (US keyboard ?), record the frame
+            // so the follow-up character='?' event won't be double-processed.
+            if (key == KeyCode.Slash && Event.current.shift)
+            {
+                lastSlashShiftFrame = Time.frameCount;
+                return key;
+            }
+
+            if (key != KeyCode.None)
+                return key;
+
+            switch (Event.current.character)
+            {
+                case ']':
+                    // Only remap if we didn't already see a real RightBracket keyCode this frame.
+                    // On US keyboards, both events fire in the same frame — skip the character one.
+                    // On German keyboards, the keyCode event was Alpha9, not RightBracket, so
+                    // lastRightBracketFrame won't match and we correctly remap.
+                    if (Time.frameCount == lastRightBracketFrame)
+                        return key;
+                    WasCharacterRemapped = true;
+                    return KeyCode.RightBracket;
+                case '*':
+                    // On AZERTY keyboards, * is a dedicated key that sends keyCode=None + character='*'.
+                    // On US keyboards, Shift+8 sends keyCode=Alpha8 (not KeypadMultiply), so no frame
+                    // conflict. Numpad * sends KeypadMultiply then character='*' — frame tracking
+                    // prevents double-processing.
+                    if (Time.frameCount == lastKeypadMultiplyFrame)
+                        return key;
+                    WasCharacterRemapped = true;
+                    return KeyCode.KeypadMultiply;
+                case '?':
+                    // On non-US keyboards, ? may be a direct key that sends keyCode=None + character='?'.
+                    // On US keyboards, Shift+/ sends keyCode=Slash+shift=true then character='?' —
+                    // frame tracking prevents double-processing.
+                    if (Time.frameCount == lastSlashShiftFrame)
+                        return key;
+                    WasCharacterRemapped = true;
+                    return KeyCode.Slash;
+                default:
+                    return key;
+            }
+        }
+
+        /// <summary>
+        /// Applies RemapCharacterToKeyCode globally by writing back to Event.current.keyCode.
+        /// This ensures all downstream patches and handlers see the remapped keyCode without
+        /// needing to call RemapCharacterToKeyCode individually.
+        /// </summary>
+        public static void ApplyGlobalRemap()
+        {
+            if (Event.current.type != EventType.KeyDown)
+                return;
+
+            var original = Event.current.keyCode;
+            var remapped = RemapCharacterToKeyCode(original);
+            if (remapped != original)
+                Event.current.keyCode = remapped;
+        }
+
         /// <summary>
         /// Returns true if ANY modal accessibility menu is currently active.
         /// When true, ALL keyboard input should go to that menu, not the game.
@@ -34,10 +158,8 @@ namespace RimWorldAccess
                 || WindowlessDialogState.IsActive
                 || WindowlessConfirmationState.IsActive
                 || WindowlessAreaState.IsActive
-                // Policy menus
-                || WindowlessOutfitPolicyState.IsActive
-                || WindowlessFoodPolicyState.IsActive
-                || WindowlessDrugPolicyState.IsActive
+                // Policy editor
+                || PolicyEditorState.IsActive
                 // Main gameplay menus
                 // Note: SettlementBrowserState and QuestLocationsBrowserState are
                 // intentionally NOT included here - they're world-view-specific and handle their own
@@ -53,12 +175,14 @@ namespace RimWorldAccess
                 || ZoneRenameState.IsActive
                 || StorageRenameState.IsActive
                 || PlantSelectionMenuState.IsActive
+                || MechControlGroupState.IsActive
                 || GizmoNavigationState.IsActive
                 || TradeNavigationState.IsActive
                 || SellableItemsState.IsActive
                 // Bills and building menus
                 || BillsMenuState.IsActive
                 || BillConfigState.IsActive
+                || FishingZoneMenuState.IsActive
                 || RangeEditMenuState.IsActive
                 || TempControlMenuState.IsActive
                 // Building component controls
@@ -69,6 +193,7 @@ namespace RimWorldAccess
                 || RefuelableComponentState.IsActive
                 || UninstallControlState.IsActive
                 || BedAssignmentState.IsActive
+                || BuildingOwnerAssignmentState.IsActive
                 // Pawn inspection tabs
                 || HealthTabState.IsActive
                 || PrisonerTabState.IsActive
@@ -89,13 +214,42 @@ namespace RimWorldAccess
                 || GearEquipMenuState.IsActive
                 || QuantityMenuState.IsActive
                 || AreaSelectionMenuState.IsActive
+                || PawnAreaMenuState.IsActive
                 // History tab
                 || HistoryState.IsActive
                 || HistoryStatisticsState.IsActive
                 || HistoryMessagesState.IsActive
                 // Building placement modes
                 || ViewingModeState.IsActive
-                || ShapePlacementState.IsActive;
+                || ShapePlacementState.IsActive
+                // Info Card (modal dialog overlay)
+                || InfoCardState.IsActive
+                // Biotech modal dialogs
+                || GrowthMomentState.IsActive
+                // Factions tab
+                || FactionTabState.IsActive
+                // Ideology tab
+                || IdeologyTabState.IsActive
+                // Extra menus
+                || ExtraMenusState.IsActive
+                // Learning helper
+                || LearningHelperState.IsActive;
+        }
+    }
+
+    /// <summary>
+    /// Highest-priority UIRootOnGUI prefix that remaps keyboard layout-dependent characters
+    /// (e.g., AZERTY *) to their canonical KeyCodes before any other patch reads Event.current.
+    /// </summary>
+    [HarmonyPatch(typeof(UIRoot))]
+    [HarmonyPatch("UIRootOnGUI")]
+    public static class KeyRemapPatch
+    {
+        [HarmonyPrefix]
+        [HarmonyPriority(Priority.First + 100)]
+        public static void Prefix()
+        {
+            KeyboardHelper.ApplyGlobalRemap();
         }
     }
 }

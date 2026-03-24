@@ -76,6 +76,12 @@ namespace RimWorldAccess
             if (AreaSelectionMenuState.IsActive)
                 return;
 
+            // Don't let placement mode steal keys from overlay screens
+            if (WindowlessInventoryState.IsActive
+                || GizmoNavigationState.IsActive
+                || WindowlessInspectionState.IsActive)
+                return;
+
             if (ViewingModeState.IsActive && !ShapePlacementState.IsActive)
                 return;
 
@@ -177,10 +183,15 @@ namespace RimWorldAccess
             {
                 handled = HandleShiftSpaceKey();
             }
-            // R key - rotate building
+            // Shift+R - rotate building counter-clockwise
+            else if (shiftHeld && key == KeyCode.R)
+            {
+                handled = HandleRotateKey(activeDesignator, inArchitectMode, RotationDirection.Counterclockwise);
+            }
+            // R key - rotate building clockwise
             else if (key == KeyCode.R)
             {
-                handled = HandleRotateKey(activeDesignator, inArchitectMode);
+                handled = HandleRotateKey(activeDesignator, inArchitectMode, RotationDirection.Clockwise);
             }
             // Space key - unified handling for all designator types
             else if (key == KeyCode.Space)
@@ -299,7 +310,7 @@ namespace RimWorldAccess
         /// If the building is not rotatable, announces that it can't be rotated.
         /// </summary>
         /// <returns>True if the key was handled, false otherwise.</returns>
-        private static bool HandleRotateKey(Designator activeDesignator, bool inArchitectMode)
+        private static bool HandleRotateKey(Designator activeDesignator, bool inArchitectMode, RotationDirection direction)
         {
             // Check if the building can be rotated before attempting rotation
             // Some buildings like doors auto-detect their orientation and cannot be manually rotated
@@ -339,7 +350,31 @@ namespace RimWorldAccess
             // Building is rotatable - proceed with rotation
             if (inArchitectMode)
             {
-                ArchitectState.RotateBuilding();
+                ArchitectState.RotateBuilding(direction);
+            }
+            else if (activeDesignator.GetType().Name == "Designator_MoveGravship")
+            {
+                // Gravship landing designator — rotate via marker.GravshipRotation
+                var markerField = AccessTools.Field(activeDesignator.GetType(), "marker");
+                if (markerField != null)
+                {
+                    var marker = markerField.GetValue(activeDesignator);
+                    if (marker != null)
+                    {
+                        var rotProp = AccessTools.Property(marker.GetType(), "GravshipRotation");
+                        if (rotProp != null)
+                        {
+                            Rot4 currentRot = (Rot4)rotProp.GetValue(marker);
+                            currentRot.Rotate(direction);
+                            rotProp.SetValue(marker, currentRot);
+
+                            string dirName = currentRot == Rot4.North ? "North" :
+                                             currentRot == Rot4.East ? "East" :
+                                             currentRot == Rot4.South ? "South" : "West";
+                            TolkHelper.Speak($"Gravship facing {dirName}.");
+                        }
+                    }
+                }
             }
             else if (activeDesignator is Designator_Place designatorPlace)
             {
@@ -348,7 +383,7 @@ namespace RimWorldAccess
                 if (rotField != null)
                 {
                     Rot4 currentRot = (Rot4)rotField.GetValue(designatorPlace);
-                    currentRot.Rotate(RotationDirection.Clockwise);
+                    currentRot.Rotate(direction);
                     rotField.SetValue(designatorPlace, currentRot);
 
                     // Build a proper announcement with direction and special info
@@ -420,6 +455,27 @@ namespace RimWorldAccess
 
                     if (report.Accepted)
                     {
+                        // Check meditation focus / tree protection before placing
+                        var (placingDef, placingRot) =
+                            MeditationProtectionHelper.GetPlacementInfo(activeDesignator);
+
+                        if (placingDef != null &&
+                            MeditationProtectionHelper.IsArtificialBuilding(
+                                placingDef, Faction.OfPlayer))
+                        {
+                            var protection = MeditationProtectionHelper.CheckProtection(
+                                Find.CurrentMap, placingDef, Faction.OfPlayer,
+                                currentPosition, placingRot);
+
+                            if (protection.IsProtected)
+                            {
+                                string message =
+                                    MeditationProtectionHelper.FormatManualBlockMessage(protection);
+                                TolkHelper.Speak(message);
+                                return true;
+                            }
+                        }
+
                         try
                         {
                             activeDesignator.DesignateSingleCell(currentPosition);
@@ -472,6 +528,51 @@ namespace RimWorldAccess
                 {
                     // Toggle cell in the selection list
                     ArchitectState.ToggleCell(currentPosition);
+                }
+                // For gravship landing placement designator
+                else if (activeDesignator.GetType().Name == "Designator_MoveGravship")
+                {
+                    // Compensate for vanilla rounding bug in even-sized gravships.
+                    // GetSizeRotAdjustedCell uses size/2 but PrefabUtility.GetRoot uses (size-1)/2,
+                    // causing a +1 offset per axis when that dimension is even.
+                    IntVec3 placementPos = currentPosition;
+                    var markerField = AccessTools.Field(activeDesignator.GetType(), "marker");
+                    var marker = markerField?.GetValue(activeDesignator) as GravshipLandingMarker;
+                    if (marker != null)
+                    {
+                        IntVec2 size = marker.gravship.Bounds.Size;
+                        Rot4 rot = marker.GravshipRotation;
+
+                        // Replicate GetSizeRotAdjustedCell math
+                        IntVec3 halfX = new IntVec3(size.x / 2, 0, 0);
+                        IntVec3 halfZ = new IntVec3(0, 0, size.z / 2);
+                        IntVec3 adjusted = currentPosition;
+                        if (rot == Rot4.North) adjusted += halfX + halfZ;
+                        else if (rot == Rot4.East) adjusted += halfX - halfZ;
+                        else if (rot == Rot4.South) adjusted -= halfX + halfZ;
+                        else if (rot == Rot4.West) adjusted += -halfX + halfZ;
+
+                        // See where the marker would actually end up
+                        IntVec3 wouldPlace = PrefabUtility.GetRoot(adjusted, size, rot);
+                        IntVec3 offset = wouldPlace - currentPosition;
+                        if (offset != IntVec3.Zero)
+                        {
+                            placementPos = currentPosition - offset;
+                        }
+                    }
+
+                    AcceptanceReport report = activeDesignator.CanDesignateCell(placementPos);
+                    if (report.Accepted)
+                    {
+                        activeDesignator.DesignateSingleCell(placementPos);
+                        TolkHelper.Speak($"Gravship positioned at {currentPosition.x}, {currentPosition.z}. Select landing marker and use gizmos to confirm landing.");
+                        // DesignateSingleCell auto-deselects the designator
+                    }
+                    else
+                    {
+                        string reason = report.Reason ?? "Cannot place here";
+                        TolkHelper.Speak($"Invalid: {reason}");
+                    }
                 }
             }
 

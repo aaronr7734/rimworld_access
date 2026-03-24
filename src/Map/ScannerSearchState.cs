@@ -228,6 +228,40 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Clears the active search filter and removes the search temporary category.
+        /// Called by Ctrl+Z when not actively searching.
+        /// If the user is currently in the search category, restores focus to pre-search position.
+        /// Does nothing if there is no active filter.
+        /// </summary>
+        public static void ClearActiveFilter()
+        {
+            if (!HasActiveFilter || IsActive)
+                return;
+
+            if (activeFilterIsWorldMap)
+            {
+                bool wasInFilter = WorldScannerState.IsInTemporaryCategory();
+                WorldScannerState.RemoveTemporaryCategory();
+                if (wasInFilter)
+                    WorldScannerState.RestoreFocus();
+            }
+            else
+            {
+                bool wasInFilter = ScannerState.IsInTemporaryCategory();
+                ScannerState.RemoveTemporaryCategory();
+                if (wasInFilter)
+                    ScannerState.RestoreFocus();
+            }
+
+            activeFilterQuery = "";
+            activeFilterIsWorldMap = false;
+            savedFilterQuery = "";
+            savedFilterIsWorldMap = false;
+
+            TolkHelper.Speak("Search filter cleared", SpeechPriority.Normal);
+        }
+
+        /// <summary>
         /// Clears the search without announcement.
         /// Used when map is invalidated or switched.
         /// Also clears any active filter.
@@ -242,7 +276,7 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Refreshes the active filter with fresh items from the map.
-        /// Called by ScannerState.RefreshItems() when there's an active filter.
+        /// Called by CancelSearch when restoring a previous filter.
         /// Returns the updated list of matching items, or null if no active filter.
         /// </summary>
         public static List<ScannerItem> RefreshMapFilter(Map map, IntVec3 cursorPosition)
@@ -250,8 +284,29 @@ namespace RimWorldAccess
             if (string.IsNullOrEmpty(activeFilterQuery) || activeFilterIsWorldMap)
                 return null;
 
-            // Collect all items from all categories
-            var allItems = CollectAllMapItemsFlat(map, cursorPosition);
+            var categories = ScannerHelper.CollectMapItems(map, cursorPosition);
+            return RefreshMapFilter(categories);
+        }
+
+        /// <summary>
+        /// Refreshes the active filter from pre-collected categories.
+        /// Called by ScannerState.RefreshItems() to avoid double-collecting.
+        /// Returns the updated list of matching items, or null if no active filter.
+        /// </summary>
+        public static List<ScannerItem> RefreshMapFilter(List<ScannerCategory> preCollectedCategories)
+        {
+            if (string.IsNullOrEmpty(activeFilterQuery) || activeFilterIsWorldMap)
+                return null;
+
+            // Flatten all items from pre-collected categories
+            var allItems = new List<ScannerItem>();
+            foreach (var category in preCollectedCategories)
+            {
+                foreach (var subcat in category.Subcategories)
+                {
+                    allItems.AddRange(subcat.Items);
+                }
+            }
 
             // Filter and prioritize by match type
             var firstWordMatches = new List<ScannerItem>();
@@ -501,56 +556,12 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Collects all world scanner items flattened into a single list.
-        /// This triggers a fresh collection from world objects.
+        /// Delegates to WorldScannerState which builds all categories (settlements, biomes, roads, etc.)
+        /// and returns them flattened, mirroring how CollectAllMapItemsFlat uses ScannerHelper.
         /// </summary>
         private static List<WorldScannerItem> CollectAllWorldItemsFlat()
         {
-            var allItems = new List<WorldScannerItem>();
-            var originTile = WorldNavigationState.CurrentSelectedTile;
-
-            // Collect settlements
-            var settlements = Find.WorldObjects?.Settlements;
-            if (settlements != null)
-            {
-                foreach (var settlement in settlements)
-                {
-                    if (settlement.Faction == null || !settlement.Tile.Valid)
-                        continue;
-
-                    allItems.Add(new WorldScannerItem(settlement));
-                }
-            }
-
-            // Collect caravans
-            var caravans = Find.WorldObjects?.Caravans?
-                .Where(c => c.Faction == RimWorld.Faction.OfPlayer)
-                .ToList();
-
-            if (caravans != null)
-            {
-                foreach (var caravan in caravans)
-                {
-                    allItems.Add(new WorldScannerItem(caravan));
-                }
-            }
-
-            // Collect other world objects (sites, etc.)
-            var allObjects = Find.WorldObjects?.AllWorldObjects;
-            if (allObjects != null)
-            {
-                foreach (var worldObj in allObjects)
-                {
-                    // Skip settlements and caravans (already added)
-                    if (worldObj is RimWorld.Planet.Settlement || worldObj is RimWorld.Planet.Caravan)
-                        continue;
-                    if (!worldObj.Tile.Valid)
-                        continue;
-
-                    allItems.Add(new WorldScannerItem(worldObj));
-                }
-            }
-
-            return allItems;
+            return WorldScannerState.CollectAllItemsFlat();
         }
 
         /// <summary>

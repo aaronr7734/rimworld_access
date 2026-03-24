@@ -778,7 +778,7 @@ namespace RimWorldAccess
             // Use KeyCode instead of Event.current.character (which is empty in Unity IMGUI)
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
-            bool alt = Event.current.alt;
+            bool alt = KeyboardHelper.IsAltHeld;
 
             if ((isLetter || isNumber) && !alt && !ctrl)
             {

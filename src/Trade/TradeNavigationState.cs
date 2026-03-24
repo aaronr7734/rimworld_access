@@ -943,9 +943,8 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Sets quantity to "top of list" based on context (Home/Shift+Home).
-        /// Selling-primary: GetMinimumToTransfer() (most negative = most selling/gifting)
-        /// Buying/shared: GetMaximumToTransfer() (most positive = most buying)
+        /// Sets quantity to maximum (End/Shift+End).
+        /// Always goes to GetMaximumToTransfer() (most positive = most buying/gifting).
         /// </summary>
         public static void SetToMaximumAction()
         {
@@ -963,15 +962,7 @@ namespace RimWorldAccess
                 return;
             }
 
-            int targetAmount;
-            if (IsSellingPrimaryContext())
-            {
-                targetAmount = tradeable.GetMinimumToTransfer(); // Most negative
-            }
-            else
-            {
-                targetAmount = tradeable.GetMaximumToTransfer(); // Most positive
-            }
+            int targetAmount = tradeable.GetMaximumToTransfer();
 
             if (tradeable.CanAdjustTo(targetAmount))
             {
@@ -989,11 +980,10 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Sets quantity to "bottom of list" based on context (End/Shift+End).
-        /// Shared items (not gift): GetMinimumToTransfer() (opposite of Home)
-        /// Non-shared or gift: reset to 0
+        /// Sets quantity to minimum (Home/Shift+Home).
+        /// Always goes to GetMinimumToTransfer() (most negative = most selling).
         /// </summary>
-        public static void SetToOppositeOrReset()
+        public static void SetToMinimumAction()
         {
             Tradeable tradeable = GetCurrentTradeable();
             if (tradeable == null)
@@ -1009,21 +999,7 @@ namespace RimWorldAccess
                 return;
             }
 
-            int colonyCount = tradeable.CountHeldBy(Transactor.Colony);
-            int traderCount = tradeable.CountHeldBy(Transactor.Trader);
-            bool isShared = colonyCount > 0 && traderCount > 0;
-
-            int targetAmount;
-            if (isShared && !TradeSession.giftMode)
-            {
-                // Shared: go to opposite end (max sell)
-                targetAmount = tradeable.GetMinimumToTransfer();
-            }
-            else
-            {
-                // Non-shared or gift: reset to 0
-                targetAmount = 0;
-            }
+            int targetAmount = tradeable.GetMinimumToTransfer();
 
             if (tradeable.CanAdjustTo(targetAmount))
             {
@@ -1035,7 +1011,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("Cannot adjust");
+                TolkHelper.Speak("Cannot adjust to minimum");
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
             }
         }

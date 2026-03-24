@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Verse;
 using RimWorld;
 
@@ -94,6 +95,12 @@ namespace RimWorldAccess
             if (IsWatchableBuilding(thingDef))
             {
                 return GetWatchableInfo(thingDef, rotation);
+            }
+
+            // Check buildings with multiple interaction cells (school desks, etc.)
+            if (!thingDef.multipleInteractionCellOffsets.NullOrEmpty())
+            {
+                return GetMultiInteractionCellInfo(thingDef, position, rotation, cursorPosition);
             }
 
             // Check buildings with interaction cells (fallback for workbenches, etc.)
@@ -541,6 +548,12 @@ namespace RimWorldAccess
                 }
             }
 
+            // Multiple interaction cell buildings (school desks, etc.)
+            if (!def.multipleInteractionCellOffsets.NullOrEmpty())
+            {
+                return GetMultiInteractionPlacementInfo(def, rotation);
+            }
+
             // Interaction cell buildings (fallback)
             if (def.hasInteractionCell)
             {
@@ -557,6 +570,11 @@ namespace RimWorldAccess
                         return $"Interact from {distance} tiles {direction}";
                 }
             }
+
+            // Facility linking info (for buildings that provide or receive facility bonuses)
+            string facilityInfo = FacilityLinkHelper.GetPlacementInfo(def);
+            if (!string.IsNullOrEmpty(facilityInfo))
+                return facilityInfo;
 
             return null;
         }
@@ -623,6 +641,82 @@ namespace RimWorldAccess
             {
                 return $"Fuel port {distance} tiles {direction} of cursor";
             }
+        }
+
+        /// <summary>
+        /// Gets interaction cell info for buildings with multiple interaction cells.
+        /// Handles school desks (student/teacher spots) and other multi-cell buildings generically.
+        /// </summary>
+        private static string GetMultiInteractionCellInfo(ThingDef thingDef, IntVec3 position, Rot4 rotation, IntVec3 cursorPosition)
+        {
+            var cells = ThingUtility.InteractionCellsWhenAt(thingDef, position, rotation, null);
+
+            for (int i = 0; i < cells.Count; i++)
+            {
+                IntVec3 cell = cells[i];
+                string spotLabel = GetInteractionSpotLabel(thingDef, i);
+
+                if (cursorPosition == cell)
+                {
+                    return spotLabel;
+                }
+
+                IntVec3 offset = cell - cursorPosition;
+                bool isAdjacent = (System.Math.Abs(offset.x) + System.Math.Abs(offset.z)) == 1;
+                if (isAdjacent)
+                {
+                    string direction = GetCardinalDirection(offset);
+                    if (!string.IsNullOrEmpty(direction))
+                        return $"{spotLabel} {direction}";
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Gets placement info for buildings with multiple interaction cells.
+        /// Announces the direction of each interaction spot relative to the building.
+        /// </summary>
+        private static string GetMultiInteractionPlacementInfo(ThingDef def, Rot4 rotation)
+        {
+            var parts = new List<string>();
+
+            for (int i = 0; i < def.multipleInteractionCellOffsets.Count; i++)
+            {
+                IntVec3 offset = def.multipleInteractionCellOffsets[i].RotatedBy(rotation);
+                string direction = GetCardinalDirection(offset);
+                string label = GetInteractionSpotLabel(def, i);
+
+                if (!string.IsNullOrEmpty(direction))
+                {
+                    parts.Add($"{label} {direction}");
+                }
+            }
+
+            if (parts.Count > 0)
+                return string.Join(", ", parts);
+
+            return null;
+        }
+
+        /// <summary>
+        /// Gets a human-readable label for a specific interaction cell index.
+        /// School desks have known spots: index 0 = student, index 1 = teacher.
+        /// Other buildings get generic numbered labels.
+        /// </summary>
+        private static string GetInteractionSpotLabel(ThingDef thingDef, int index)
+        {
+            if (thingDef == ThingDefOf.SchoolDesk)
+            {
+                if (index == 0) return "student spot";
+                if (index == 1) return "teacher spot";
+            }
+
+            if (thingDef.multipleInteractionCellOffsets != null && thingDef.multipleInteractionCellOffsets.Count == 1)
+                return "interaction spot";
+
+            return $"interaction spot {index + 1}";
         }
 
         /// <summary>

@@ -26,8 +26,9 @@ namespace RimWorldAccess
         {
             if (msg != null && !string.IsNullOrEmpty(msg.text))
             {
-                // Announce the message to screen reader via clipboard
-                string announcement = $"Message: {msg.text}";
+                // Strip rich text tags like (*Name)...(/Name) and Unity tags
+                string cleanText = msg.text.StripTags();
+                string announcement = $"Message: {cleanText}";
                 TolkHelper.Speak(announcement);
                 Log.Message($"[Notification] {announcement}");
             }
@@ -44,8 +45,10 @@ namespace RimWorldAccess
         {
             if (let != null && let.CanShowInLetterStack)
             {
-                // Announce the letter to screen reader via clipboard
-                string announcement = $"Letter: {let.Label}";
+                // Strip rich text tags like (*Name)...(/Name) and Unity tags
+                // Label is TaggedString, so resolve it to string first
+                string cleanLabel = let.Label.Resolve().StripTags();
+                string announcement = $"Letter: {cleanLabel}";
                 TolkHelper.Speak(announcement);
                 Log.Message($"[Notification] {announcement}");
             }
@@ -72,7 +75,8 @@ namespace RimWorldAccess
             {
                 if (alert != null && alert.Active)
                 {
-                    string label = alert.Label;
+                    // Strip rich text tags from alert label
+                    string label = alert.Label?.StripTags();
                     if (!string.IsNullOrEmpty(label))
                     {
                         currentAlerts.Add(label);

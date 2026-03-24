@@ -6,7 +6,7 @@ Generic dialog navigation and windowless menu systems used across all modules.
 ## Files
 **Patches:** DialogInterceptionPatch.cs, MessageBoxAccessibilityPatch.cs
 **States:** WindowlessDialogState.cs, WindowlessFloatMenuState.cs, WindowlessPauseMenuState.cs, WindowlessSaveMenuState.cs, WindowlessOptionsMenuState.cs, WindowlessConfirmationState.cs, GiveNameDialogState.cs
-**Utilities:** Dialog_NameAllowedArea.cs, DialogElementExtractor.cs, StatsHelper.cs, MenuHelper.cs, TypeaheadSearchHelper.cs, TabularMenuHelper.cs, TwoLevelMenuHelper.cs
+**Utilities:** Dialog_NameAllowedArea.cs, DialogElementExtractor.cs, StatsHelper.cs, MenuHelper.cs, TypeaheadSearchHelper.cs, TabularMenuHelper.cs, TwoLevelMenuHelper.cs, BulkSoundQueue.cs
 
 ## Key Shortcuts
 - **Escape** - Pause menu

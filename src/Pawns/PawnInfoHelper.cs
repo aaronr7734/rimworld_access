@@ -202,6 +202,16 @@ namespace RimWorldAccess
                 {
                     float percentage = need.CurLevelPercentage * 100f;
                     sb.AppendLine($"  {need.LabelCap}: {percentage:F0}%.");
+
+                    // After the Learning need, list active learning desires (Biotech children only)
+                    if (need.def == NeedDefOf.Learning && pawn.learning?.ActiveLearningDesires != null
+                        && pawn.learning.ActiveLearningDesires.Count > 0)
+                    {
+                        var desireLabels = pawn.learning.ActiveLearningDesires
+                            .Select(d => d.LabelCap.ToString())
+                            .ToArray();
+                        sb.AppendLine($"    Learning desires: {string.Join(", ", desireLabels)}.");
+                    }
                 }
             }
             else
@@ -529,6 +539,44 @@ namespace RimWorldAccess
                         sb.AppendLine($"  - {skill.def.LabelCap}: {skill.Level}{passion}");
                     }
                 }
+            }
+
+            return sb.ToString().TrimEnd();
+        }
+
+        /// <summary>
+        /// Gets a concise summary of the pawn's top 3 skills with passion levels.
+        /// </summary>
+        public static string GetTopSkillsInfo(Pawn pawn)
+        {
+            if (pawn == null)
+                return "No pawn selected";
+
+            if (pawn.skills == null || pawn.skills.skills == null)
+                return $"{pawn.LabelShort}: No skills";
+
+            var topSkills = pawn.skills.skills
+                .Where(s => !s.TotallyDisabled && s.Level > 0)
+                .OrderByDescending(s => s.Level)
+                .Take(3)
+                .ToList();
+
+            if (!topSkills.Any())
+                return $"{pawn.LabelShort}: No skills";
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append($"{pawn.LabelShort}'s Top Skills. ");
+
+            foreach (var skill in topSkills)
+            {
+                sb.Append($"{skill.def.LabelCap}: {skill.Level}.");
+
+                if (skill.passion == Passion.Minor)
+                    sb.Append(" (passion.)");
+                else if (skill.passion == Passion.Major)
+                    sb.Append(" (double passion.)");
+
+                sb.Append(" ");
             }
 
             return sb.ToString().TrimEnd();

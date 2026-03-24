@@ -340,6 +340,13 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Sanitize text: strip tags, fix punctuation, collapse whitespace
+            text = SpeechSanitizer.Sanitize(text);
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+
             try
             {
                 // If we're in direct NVDA mode, bypass Tolk

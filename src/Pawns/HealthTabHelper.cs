@@ -325,19 +325,43 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets all available recipe types (operations) for a pawn, without body part specifics.
+        /// Gets available recipe types (operations) for a pawn, matching vanilla's
+        /// dynamic ingredient-aware filtering from HealthCardUtility.DrawMedOperationsTab.
         /// </summary>
         public static List<RecipeDef> GetAvailableRecipes(Pawn pawn)
         {
             if (pawn?.health == null)
                 return new List<RecipeDef>();
 
-            // Get all medical recipes that can be performed on this pawn
-            var recipes = DefDatabase<RecipeDef>.AllDefs
-                .Where(r => r.AllRecipeUsers != null &&
-                           r.AllRecipeUsers.Contains(pawn.def) &&
-                           r.AvailableNow)
-                .ToList();
+            var recipes = new List<RecipeDef>();
+
+            foreach (RecipeDef recipe in pawn.def.AllRecipes)
+            {
+                if (!recipe.AvailableNow)
+                    continue;
+
+                AcceptanceReport report = recipe.Worker.AvailableReport(pawn);
+                if (!report.Accepted && report.Reason.NullOrEmpty())
+                    continue;
+
+                // Match vanilla: hide recipes where required tech hediffs or drugs are missing
+                if (pawn.MapHeld != null)
+                {
+                    var missing = recipe.PotentiallyMissingIngredients(null, pawn.MapHeld);
+                    if (missing.Any(x => x.isTechHediff) || missing.Any(x => x.IsDrug))
+                        continue;
+                    if (missing.Any() && recipe.dontShowIfAnyIngredientMissing)
+                        continue;
+                }
+
+                // Match vanilla: for non-body-part recipes that add a hediff,
+                // hide if pawn already has that hediff
+                if (!recipe.targetsBodyPart && recipe.addsHediff != null
+                    && pawn.health.hediffSet.HasHediff(recipe.addsHediff))
+                    continue;
+
+                recipes.Add(recipe);
+            }
 
             return recipes;
         }

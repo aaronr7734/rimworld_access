@@ -18,6 +18,7 @@ namespace RimWorldAccess
 
         private static Pawn currentPawn = null;
         private static HediffWithParents currentPregnancy = null;
+        private static GeneSetHolderBase currentHolder = null;
         private static InspectionTreeItem rootItem = null;
         private static List<InspectionTreeItem> visibleItems = null;
         private static int selectedIndex = 0;
@@ -74,6 +75,69 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Opens the gene inspection accessibility state for a GeneSetHolderBase item
+        /// (embryo, genepack, or xenogerm).
+        /// </summary>
+        public static void OpenForGeneSetHolder(GeneSetHolderBase holder)
+        {
+            try
+            {
+                if (holder == null || holder.GeneSet == null)
+                    return;
+
+                currentPawn = null;
+                currentPregnancy = null;
+                currentHolder = holder;
+                IsActive = true;
+
+                // Get parent names for embryos
+                string motherName = null;
+                string fatherName = null;
+                if (holder is HumanEmbryo embryo)
+                {
+                    try
+                    {
+                        motherName = embryo.Mother?.LabelShort;
+                        fatherName = embryo.Father?.LabelShort;
+                    }
+                    catch { /* CompHasPawnSources may not be available */ }
+                }
+
+                // Build the tree
+                rootItem = GeneTreeBuilder.BuildTree(holder.GeneSet, motherName, fatherName);
+
+                // Override root label based on item type
+                int geneCount = holder.GeneSet.GenesListForReading?.Count ?? 0;
+                string countStr = $"({geneCount} {(geneCount == 1 ? "gene" : "genes")})";
+                string xenotype = holder.GeneSet.Label;
+                bool hasXenotype = !string.IsNullOrEmpty(xenotype) && xenotype != "ERR";
+
+                if (holder is HumanEmbryo)
+                    rootItem.Label = hasXenotype ? $"Embryo Genes: {xenotype} {countStr}" : $"Embryo Genes {countStr}";
+                else if (holder is Xenogerm xg && !string.IsNullOrEmpty(xg.xenotypeName))
+                    rootItem.Label = $"Xenogerm Genes: {xg.xenotypeName} {countStr}";
+                else if (holder is Genepack)
+                    rootItem.Label = hasXenotype ? $"Genepack: {xenotype} {countStr}" : $"Genepack Genes {countStr}";
+                else
+                    rootItem.Label = hasXenotype ? $"Genes: {xenotype} {countStr}" : $"Genes {countStr}";
+
+                RebuildVisibleList();
+                selectedIndex = 0;
+
+                MenuHelper.ResetLevel("GeneInspection");
+                typeahead.ClearSearch();
+
+                SoundDefOf.TabOpen.PlayOneShotOnCamera();
+                AnnounceOpening();
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[GeneInspectionState] Error opening for GeneSetHolder: {ex.Message}");
+                Close();
+            }
+        }
+
+        /// <summary>
         /// Closes the gene inspection accessibility state.
         /// </summary>
         public static void Close()
@@ -81,6 +145,7 @@ namespace RimWorldAccess
             IsActive = false;
             currentPawn = null;
             currentPregnancy = null;
+            currentHolder = null;
             rootItem = null;
             visibleItems = null;
             selectedIndex = 0;
@@ -407,6 +472,12 @@ namespace RimWorldAccess
             if (item.IsExpandable && item.IsExpanded)
             {
                 item.IsExpanded = false;
+
+                // Restore rich label for gene nodes (Description stores the rich collapsed label)
+                if (item.Data is GeneDef && !string.IsNullOrEmpty(item.Description))
+                {
+                    item.Label = item.Description;
+                }
                 RebuildVisibleList();
 
                 if (selectedIndex >= visibleItems.Count)

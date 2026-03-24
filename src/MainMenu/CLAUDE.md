@@ -5,7 +5,7 @@ Provides keyboard navigation for main menu and all game setup screens (scenario 
 
 ## Files in This Module
 
-### Patches (10 files)
+### Patches (11 files)
 - **MainMenuAccessibilityPatch.cs** - Main menu navigation (Prefix + Postfix)
 - **ModListPatch.cs** - Mod manager (Page_ModsConfig) keyboard navigation
 - **ModSettingsDialogPatch.cs** - Mod settings dialog announcements
@@ -13,20 +13,25 @@ Provides keyboard navigation for main menu and all game setup screens (scenario 
 - **ScenarioSelectionPatch.cs** - Scenario picker
 - **StorytellerSelectionPatch.cs** - Storyteller selection (both main menu and in-game)
 - **IdeologySelectionPatch.cs** - Ideology selection
-- **ColonistEditorPatch.cs** - Character editor (Prepare Carefully mode)
+- **StartingPawnPatch.cs** - Pawn selection screen (Page_ConfigureStartingPawns). PreOpen/PostClose lifecycle, DoWindowContents sync, DoNext/DoBack reflection.
 - **StartingSitePatch.cs** - Starting location selection
 - **WorldParamsPatch.cs** - World generation parameters
+- **FactionLandingPatch.cs** - Faction relations dialog during starting site selection (PostOpen/PostClose lifecycle)
 
-### States (9 files)
+### States (10 files)
 - **MenuNavigationState.cs** - Main menu navigation
 - **ModListState.cs** - Mod manager keyboard navigation
 - **ScenarioNavigationState.cs** - Scenario selection
 - **StorytellerNavigationState.cs** - Storyteller picker
 - **StorytellerSelectionState.cs** - In-game storyteller change
 - **IdeologyNavigationState.cs** - Ideology picker
-- **ColonistEditorNavigationState.cs** - Character customization
-- **StartingSiteNavigationState.cs** - Map site picker
+- **StartingPawnState.cs** - Pawn selection tree view. Pawns grouped under Selected/Left behind headers, expandable to Bio/Traits/IncapableOf/Skills/Health/Possessions categories. Page Up/Down preserves position. Ctrl+Up/Down reorders. Alt+R randomizes, Alt+N renames, ] context menu.
+- **StartingSiteContext.cs** - World-gen-only features (I-menu, R random, Ctrl+arrows biome jump, faction warnings, tile validation). Navigation shared with in-game via WorldNavigationState.
 - **WorldParamsNavigationState.cs** - World gen settings
+- **FactionLandingState.cs** - Faction relations dialog navigation (F key from starting site). Flat list with typeahead search, Alt+I for info card.
+
+### Helpers (1 file)
+- **StartingPawnHelper.cs** - Builds tree data from game pawn data, context menu options, Biotech dev stage/xenotype submenus.
 
 ## Key Architecture
 

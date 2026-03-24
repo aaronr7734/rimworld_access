@@ -19,8 +19,7 @@ namespace RimWorldAccess
             Slider,           // Quality or hit points slider (press Enter to edit)
             SpecialFilter,    // Special filter checkbox (marked with *)
             Category,         // Category with children (can expand/collapse)
-            ThingDef,         // Individual thing/item checkbox
-            SaveAndReturn     // Special action to save and return to assign menu
+            ThingDef          // Individual thing/item checkbox
         }
 
         public class NavigationNode
@@ -36,13 +35,14 @@ namespace RimWorldAccess
 
         private static bool isActive = false;
         private static ThingFilter currentFilter = null;
+        private static ThingFilter parentFilter = null;
         private static TreeNode_ThingCategory rootNode = null;
         private static List<NavigationNode> flattenedNodes = new List<NavigationNode>();
         private static int selectedIndex = 0;
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
 
-        // Track collapsed categories by defName (default is expanded)
-        private static HashSet<string> collapsedCategories = new HashSet<string>();
+        // Track expanded categories by defName (default is collapsed, matching vanilla)
+        private static HashSet<string> expandedCategories = new HashSet<string>();
 
         // Slider states
         private enum SliderMode { None, Quality, HitPoints }
@@ -59,21 +59,44 @@ namespace RimWorldAccess
         public static bool HasNoMatches => typeahead.HasNoMatches;
 
         /// <summary>
+        /// Gets the current selected index in the flattened navigation list.
+        /// Used by ReadingPolicyEditorState to save position when switching panels.
+        /// </summary>
+        public static int GetCurrentIndex() => selectedIndex;
+
+        /// <summary>
+        /// Sets the current selected index with bounds checking.
+        /// Used by ReadingPolicyEditorState to restore position when switching panels.
+        /// </summary>
+        public static void SetCurrentIndex(int index)
+        {
+            if (flattenedNodes.Count > 0 && index >= 0 && index < flattenedNodes.Count)
+            {
+                selectedIndex = index;
+            }
+        }
+
+        /// <summary>
         /// Activates filter navigation for a given ThingFilter.
         /// </summary>
-        public static void Activate(ThingFilter filter, TreeNode_ThingCategory root, bool showQuality, bool showHitPoints)
+        /// <param name="initialIndex">Optional starting index (used by ReadingPolicyEditorState to restore position when switching panels).</param>
+        public static void Activate(ThingFilter filter, ThingFilter parentFilter, TreeNode_ThingCategory root, bool showQuality, bool showHitPoints, int initialIndex = 0)
         {
             isActive = true;
             currentFilter = filter;
+            ThingFilterNavigationState.parentFilter = parentFilter;
             rootNode = root;
             hasQualitySlider = showQuality;
             hasHitPointsSlider = showHitPoints;
-            selectedIndex = 0;
             currentSliderMode = SliderMode.None;
+            currentSliderPart = SliderPart.Min;
+            isEditingSlider = false;
             typeahead.ClearSearch();
+            expandedCategories.Clear();
             MenuHelper.ResetLevel("ThingFilter");
 
             RebuildNavigationList();
+            selectedIndex = (initialIndex >= 0 && initialIndex < flattenedNodes.Count) ? initialIndex : 0;
             AnnounceCurrentNode();
         }
 
@@ -84,11 +107,12 @@ namespace RimWorldAccess
         {
             isActive = false;
             currentFilter = null;
+            parentFilter = null;
             rootNode = null;
             flattenedNodes.Clear();
             selectedIndex = 0;
             typeahead.ClearSearch();
-            collapsedCategories.Clear();
+            expandedCategories.Clear();
             MenuHelper.ResetLevel("ThingFilter");
         }
 
@@ -106,8 +130,8 @@ namespace RimWorldAccess
                 {
                     Type = NodeType.Slider,
                     IndentLevel = 0,
-                    Label = "Hit Points Range",
-                    Description = "Allowed hit points percentage range",
+                    Label = "HitPointsBasic".Translate().CapitalizeFirst(),
+                    Description = "",
                     Data = "HitPoints"
                 });
             }
@@ -118,8 +142,8 @@ namespace RimWorldAccess
                 {
                     Type = NodeType.Slider,
                     IndentLevel = 0,
-                    Label = "Quality Range",
-                    Description = "Allowed quality levels",
+                    Label = "Quality".Translate(),
+                    Description = "",
                     Data = "Quality"
                 });
             }
@@ -127,34 +151,46 @@ namespace RimWorldAccess
             // Build tree
             if (rootNode != null)
             {
-                AddCategoryChildren(rootNode, 0);
+                AddCategoryChildren(rootNode, 0, isRoot: true);
             }
 
-            // Add "Save and Return" action at the bottom
-            flattenedNodes.Add(new NavigationNode
-            {
-                Type = NodeType.SaveAndReturn,
-                IndentLevel = 0,
-                Label = "Save and Return to Assign Menu",
-                Description = "Save filter changes and return to the assign menu"
-            });
         }
 
         /// <summary>
         /// Recursively adds category children to the flattened list.
         /// </summary>
-        private static void AddCategoryChildren(TreeNode_ThingCategory node, int indentLevel)
+        private static void AddCategoryChildren(TreeNode_ThingCategory node, int indentLevel, bool isRoot = false)
         {
+            // Add parent special filters at root level (e.g., AllowRotten, AllowFresh from Root category)
+            if (isRoot)
+            {
+                foreach (var specialFilter in node.catDef.ParentsSpecialThingFilterDefs)
+                {
+                    if (specialFilter.configurable && ThingFilterHelper.IsVisibleSpecialFilter(specialFilter, parentFilter))
+                    {
+                        flattenedNodes.Add(new NavigationNode
+                        {
+                            Type = NodeType.SpecialFilter,
+                            IndentLevel = indentLevel,
+                            Label = specialFilter.LabelCap,
+                            Description = specialFilter.description,
+                            IsChecked = currentFilter.Allows(specialFilter),
+                            Data = specialFilter
+                        });
+                    }
+                }
+            }
+
             // Add special filters
             foreach (var specialFilter in node.catDef.childSpecialFilters)
             {
-                if (specialFilter.configurable)
+                if (specialFilter.configurable && ThingFilterHelper.IsVisibleSpecialFilter(specialFilter, parentFilter))
                 {
                     flattenedNodes.Add(new NavigationNode
                     {
                         Type = NodeType.SpecialFilter,
                         IndentLevel = indentLevel,
-                        Label = "*" + specialFilter.LabelCap,
+                        Label = specialFilter.LabelCap,
                         Description = specialFilter.description,
                         IsChecked = currentFilter.Allows(specialFilter),
                         Data = specialFilter
@@ -165,20 +201,25 @@ namespace RimWorldAccess
             // Add child categories
             foreach (var childCategory in node.ChildCategoryNodes)
             {
-                // Check if category has any allowed items to determine if it's "allowed"
-                bool hasAllowedChildren = childCategory.catDef.DescendantThingDefs.Any(t => currentFilter.Allows(t));
-                // Check if this category was explicitly collapsed (default is expanded)
+                if (!ThingFilterHelper.IsVisibleCategory(childCategory, parentFilter))
+                    continue;
+
+                // Tri-state: check if any visible descendants are allowed
+                var allowanceState = ThingFilterHelper.GetAllowanceState(
+                    childCategory.catDef, currentFilter, td => ThingFilterHelper.IsVisible(td, parentFilter));
+                bool isChecked = (allowanceState != ThingFilterHelper.CategoryAllowanceState.NoneAllowed);
+
                 string categoryKey = childCategory.catDef.defName;
-                bool isExpanded = !collapsedCategories.Contains(categoryKey);
+                bool isExpanded = expandedCategories.Contains(categoryKey);
 
                 flattenedNodes.Add(new NavigationNode
                 {
                     Type = NodeType.Category,
                     IndentLevel = indentLevel,
                     Label = childCategory.LabelCap,
-                    Description = $"Category: {childCategory.LabelCap}",
+                    Description = childCategory.catDef.description,
                     IsExpanded = isExpanded,
-                    IsChecked = hasAllowedChildren,
+                    IsChecked = isChecked,
                     Data = childCategory
                 });
 
@@ -189,17 +230,17 @@ namespace RimWorldAccess
                 }
             }
 
-            // Add thing defs
+            // Add thing defs (with full vanilla visibility check)
             foreach (var thingDef in node.catDef.childThingDefs.OrderBy(t => t.label))
             {
-                if (!Find.HiddenItemsManager.Hidden(thingDef))
+                if (ThingFilterHelper.IsVisible(thingDef, parentFilter))
                 {
                     flattenedNodes.Add(new NavigationNode
                     {
                         Type = NodeType.ThingDef,
                         IndentLevel = indentLevel,
                         Label = thingDef.LabelCap,
-                        Description = thingDef.description ?? thingDef.LabelCap,
+                        Description = thingDef.DescriptionDetailed,
                         IsChecked = currentFilter.Allows(thingDef),
                         Data = thingDef
                     });
@@ -235,7 +276,6 @@ namespace RimWorldAccess
         /// Activates the current selection:
         /// - Sliders: Enter editing mode
         /// - Checkboxes (SpecialFilter, Category, ThingDef): Toggle checked state
-        /// - SaveAndReturn: Execute action
         /// </summary>
         public static void ActivateSelected()
         {
@@ -257,11 +297,6 @@ namespace RimWorldAccess
 
                 AnnounceSliderEditMode();
             }
-            else if (node.Type == NodeType.SaveAndReturn)
-            {
-                // Save and return to assign menu
-                SaveAndReturnToAssign();
-            }
             else if (node.Type == NodeType.SpecialFilter || node.Type == NodeType.Category || node.Type == NodeType.ThingDef)
             {
                 // Toggle checkbox (Enter key works same as Space for checkboxes)
@@ -278,6 +313,7 @@ namespace RimWorldAccess
             {
                 isEditingSlider = false;
                 currentSliderMode = SliderMode.None;
+                currentSliderPart = SliderPart.Min;
                 AnnounceCurrentNode();
             }
         }
@@ -290,7 +326,7 @@ namespace RimWorldAccess
             if (isEditingSlider)
             {
                 currentSliderPart = (currentSliderPart == SliderPart.Min) ? SliderPart.Max : SliderPart.Min;
-                AnnounceSliderEditMode();
+                AnnounceSliderPartValue(includePartName: true);
             }
         }
 
@@ -299,13 +335,15 @@ namespace RimWorldAccess
         /// </summary>
         private static void AnnounceSliderEditMode()
         {
-            string sliderName = currentSliderMode == SliderMode.Quality ? "Quality" : "Hit Points";
+            string sliderName = currentSliderMode == SliderMode.Quality
+                ? "Quality".Translate()
+                : "HitPointsBasic".Translate().CapitalizeFirst();
             string partName = currentSliderPart == SliderPart.Min ? "Minimum" : "Maximum";
 
             if (currentSliderMode == SliderMode.Quality)
             {
                 var range = currentFilter.AllowedQualityLevels;
-                string value = currentSliderPart == SliderPart.Min ? range.min.ToString() : range.max.ToString();
+                string value = currentSliderPart == SliderPart.Min ? range.min.GetLabel() : range.max.GetLabel();
                 TolkHelper.Speak($"{sliderName} - {partName}: {value}. Use Left/Right to adjust, Up/Down to switch Min/Max, Enter to confirm.");
             }
             else if (currentSliderMode == SliderMode.HitPoints)
@@ -317,28 +355,24 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Saves changes and returns to the assign menu.
+        /// Announces just the current slider value, without help text instructions.
+        /// Used during value adjustment (Left/Right) and part switching (Up/Down).
         /// </summary>
-        private static void SaveAndReturnToAssign()
+        private static void AnnounceSliderPartValue(bool includePartName)
         {
-            // Deactivate filter navigation
-            Deactivate();
+            string partName = currentSliderPart == SliderPart.Min ? "Minimum" : "Maximum";
 
-            // Close whichever policy manager is active
-            if (WindowlessOutfitPolicyState.IsActive)
+            if (currentSliderMode == SliderMode.Quality)
             {
-                WindowlessOutfitPolicyState.Close();
+                var range = currentFilter.AllowedQualityLevels;
+                string value = currentSliderPart == SliderPart.Min ? range.min.GetLabel() : range.max.GetLabel();
+                TolkHelper.Speak(includePartName ? $"{partName}: {value}" : value);
             }
-            if (WindowlessFoodPolicyState.IsActive)
+            else if (currentSliderMode == SliderMode.HitPoints)
             {
-                WindowlessFoodPolicyState.Close();
-            }
-
-            // Reopen assign menu
-            if (Find.CurrentMap != null && Find.CurrentMap.mapPawns.FreeColonists.Any())
-            {
-                Pawn firstPawn = Find.CurrentMap.mapPawns.FreeColonists.First();
-                AssignMenuState.Open(firstPawn);
+                var range = currentFilter.AllowedHitPointsPercents;
+                string value = currentSliderPart == SliderPart.Min ? $"{range.min:P0}" : $"{range.max:P0}";
+                TolkHelper.Speak(includePartName ? $"{partName}: {value}" : value);
             }
         }
 
@@ -352,8 +386,7 @@ namespace RimWorldAccess
 
             var node = flattenedNodes[selectedIndex];
 
-            // Strip asterisks from labels for announcements
-            string cleanLabel = StripAsterisks(node.Label);
+            string cleanLabel = node.Label;
 
             switch (node.Type)
             {
@@ -361,10 +394,11 @@ namespace RimWorldAccess
                     var specialFilter = node.Data as SpecialThingFilterDef;
                     if (specialFilter != null)
                     {
-                        bool newValue = !currentFilter.Allows(specialFilter);
-                        currentFilter.SetAllow(specialFilter, newValue);
-                        node.IsChecked = newValue;
-                        TolkHelper.Speak($"{cleanLabel}: {(newValue ? "Allowed" : "Disallowed")}");
+                        bool desired = !currentFilter.Allows(specialFilter);
+                        currentFilter.SetAllow(specialFilter, desired);
+                        // Re-read from game to verify actual state
+                        node.IsChecked = currentFilter.Allows(specialFilter);
+                        TolkHelper.Speak($"{cleanLabel}: {(node.IsChecked ? "Allowed" : "Disallowed")}");
                     }
                     break;
 
@@ -372,13 +406,21 @@ namespace RimWorldAccess
                     var category = node.Data as TreeNode_ThingCategory;
                     if (category != null)
                     {
-                        // Toggle all items in this category
-                        bool hasAnyAllowed = category.catDef.DescendantThingDefs.Any(t => currentFilter.Allows(t));
-                        bool newValue = !hasAnyAllowed;
-                        currentFilter.SetAllow(category.catDef, newValue);
-                        node.IsChecked = newValue;
-                        RebuildNavigationList(); // Rebuild because children may change
-                        TolkHelper.Speak($"{cleanLabel}: {(newValue ? "Allowed" : "Disallowed")}");
+                        // Tri-state toggle matching vanilla: Off→On, Partial→On, On→Off
+                        var state = ThingFilterHelper.GetAllowanceState(
+                            category.catDef, currentFilter, td => ThingFilterHelper.IsVisible(td, parentFilter));
+                        bool desired = (state != ThingFilterHelper.CategoryAllowanceState.AllAllowed);
+                        currentFilter.SetAllow(category.catDef, desired);
+                        // Rebuild re-reads all states from the game
+                        RebuildNavigationList();
+                        // Restore selection after rebuild using stable data reference
+                        int restored = FindNodeByData(NodeType.Category, category);
+                        if (restored >= 0) selectedIndex = restored;
+                        // Re-read actual state for announcement
+                        var actualState = ThingFilterHelper.GetAllowanceState(
+                            category.catDef, currentFilter, td => ThingFilterHelper.IsVisible(td, parentFilter));
+                        string catResult = actualState == ThingFilterHelper.CategoryAllowanceState.NoneAllowed ? "Disallowed" : "Allowed";
+                        TolkHelper.Speak($"{cleanLabel}: {catResult}");
                     }
                     break;
 
@@ -386,10 +428,11 @@ namespace RimWorldAccess
                     var thingDef = node.Data as ThingDef;
                     if (thingDef != null)
                     {
-                        bool newValue = !currentFilter.Allows(thingDef);
-                        currentFilter.SetAllow(thingDef, newValue);
-                        node.IsChecked = newValue;
-                        TolkHelper.Speak($"{cleanLabel}: {(newValue ? "Allowed" : "Disallowed")}");
+                        bool desired = !currentFilter.Allows(thingDef);
+                        currentFilter.SetAllow(thingDef, desired);
+                        // Re-read from game to verify actual state
+                        node.IsChecked = currentFilter.Allows(thingDef);
+                        TolkHelper.Speak($"{cleanLabel}: {(node.IsChecked ? "Allowed" : "Disallowed")}");
                     }
                     break;
 
@@ -419,10 +462,10 @@ namespace RimWorldAccess
             // Case 1: Collapsed category - expand it, focus stays
             if (node.Type == NodeType.Category && !node.IsExpanded)
             {
-                // Remove from collapsed set
+                // Add to expanded set
                 if (node.Data is TreeNode_ThingCategory catNode)
                 {
-                    collapsedCategories.Remove(catNode.catDef.defName);
+                    expandedCategories.Add(catNode.catDef.defName);
                 }
                 node.IsExpanded = true;
                 int oldIndex = selectedIndex;
@@ -456,7 +499,7 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Case 3: End node (ThingDef, Slider, SpecialFilter, SaveAndReturn) - reject
+            // Case 3: End node (ThingDef, Slider, SpecialFilter) - reject
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
             TolkHelper.Speak("Cannot expand this item.");
         }
@@ -480,10 +523,10 @@ namespace RimWorldAccess
             // Case 1: Expanded category - collapse it, focus stays
             if (node.Type == NodeType.Category && node.IsExpanded)
             {
-                // Add to collapsed set so it stays collapsed after rebuild
+                // Remove from expanded set so it stays collapsed after rebuild
                 if (node.Data is TreeNode_ThingCategory catNode)
                 {
-                    collapsedCategories.Add(catNode.catDef.defName);
+                    expandedCategories.Remove(catNode.catDef.defName);
                 }
                 node.IsExpanded = false;
                 int oldIndex = selectedIndex;
@@ -512,13 +555,23 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Finds the index of a node in the flattened list by reference.
+        /// Finds the index of a node in the flattened list by type and data identity.
+        /// Data objects (TreeNode_ThingCategory, ThingDef, SpecialThingFilterDef) are
+        /// game singletons that survive list rebuilds.
         /// </summary>
         private static int FindNodeIndex(NavigationNode node)
         {
+            return FindNodeByData(node.Type, node.Data);
+        }
+
+        /// <summary>
+        /// Finds a node index by type and data reference.
+        /// </summary>
+        private static int FindNodeByData(NodeType type, object data)
+        {
             for (int i = 0; i < flattenedNodes.Count; i++)
             {
-                if (flattenedNodes[i] == node)
+                if (flattenedNodes[i].Type == type && Equals(flattenedNodes[i].Data, data))
                     return i;
             }
             return -1;
@@ -596,6 +649,8 @@ namespace RimWorldAccess
                 if (node.IndentLevel == currentIndent && node.Type == NodeType.Category && !node.IsExpanded)
                 {
                     node.IsExpanded = true;
+                    if (node.Data is TreeNode_ThingCategory expandCat)
+                        expandedCategories.Add(expandCat.catDef.defName);
                     expandedCount++;
                 }
             }
@@ -776,7 +831,7 @@ namespace RimWorldAccess
                 }
 
                 currentFilter.AllowedQualityLevels = range;
-                AnnounceSliderEditMode();
+                AnnounceSliderPartValue(includePartName: false);
             }
             else if (currentSliderMode == SliderMode.HitPoints)
             {
@@ -797,7 +852,7 @@ namespace RimWorldAccess
                 }
 
                 currentFilter.AllowedHitPointsPercents = range;
-                AnnounceSliderEditMode();
+                AnnounceSliderPartValue(includePartName: false);
             }
         }
 
@@ -811,12 +866,12 @@ namespace RimWorldAccess
             if (sliderType == "Quality")
             {
                 var range = currentFilter.AllowedQualityLevels;
-                TolkHelper.Speak($"Quality: {range.min} to {range.max}");
+                TolkHelper.Speak($"{"Quality".Translate()}: {range.min.GetLabel()} - {range.max.GetLabel()}");
             }
             else if (sliderType == "HitPoints")
             {
                 var range = currentFilter.AllowedHitPointsPercents;
-                TolkHelper.Speak($"Hit Points: {range.min:P0} to {range.max:P0}");
+                TolkHelper.Speak($"{"HitPointsBasic".Translate().CapitalizeFirst()}: {range.min:P0} - {range.max:P0}");
             }
         }
 
@@ -827,9 +882,9 @@ namespace RimWorldAccess
         {
             if (currentFilter != null)
             {
-                currentFilter.SetAllowAll(null);
+                currentFilter.SetAllowAll(parentFilter);
                 RebuildNavigationList();
-                TolkHelper.Speak("Allowed all items");
+                TolkHelper.Speak("AllowAll".Translate());
             }
         }
 
@@ -842,13 +897,13 @@ namespace RimWorldAccess
             {
                 currentFilter.SetDisallowAll();
                 RebuildNavigationList();
-                TolkHelper.Speak("Disallowed all items");
+                TolkHelper.Speak("ClearAll".Translate());
             }
         }
 
         /// <summary>
-        /// Announces the current node using WCAG-compliant format.
-        /// Format: "[level N. ]{name} {state}. {X of Y}"
+        /// Announces the current node.
+        /// Format: "{name}. {state}. {X of Y}. level N"
         /// </summary>
         private static void AnnounceCurrentNode()
         {
@@ -864,44 +919,47 @@ namespace RimWorldAccess
             var node = flattenedNodes[selectedIndex];
             var (position, total) = GetSiblingPosition(node);
             string suffix = MenuHelper.GetLevelSuffix("ThingFilter", node.IndentLevel);
+            string posStr = MenuHelper.FormatPosition(position - 1, total);
 
             string announcement;
 
-            // Strip asterisks from labels (they're visual indicators for special filters)
-            string cleanLabel = StripAsterisks(node.Label);
+            string cleanLabel = node.Label;
 
             switch (node.Type)
             {
                 case NodeType.Slider:
-                    // Sliders show their current value
                     string sliderValue = GetSliderValueString(node);
-                    announcement = $"{cleanLabel} {sliderValue}. {MenuHelper.FormatPosition(position - 1, total)}{suffix}";
+                    announcement = $"{cleanLabel} {sliderValue}. {posStr}{suffix}";
                     break;
 
                 case NodeType.SpecialFilter:
-                    // Special filters show checked state
-                    string specialState = node.IsChecked ? "checked" : "not checked";
-                    announcement = $"{cleanLabel} {specialState}. {MenuHelper.FormatPosition(position - 1, total)}{suffix}";
+                    string specialState = node.IsChecked ? "allowed" : "disallowed";
+                    string specialDesc = string.IsNullOrEmpty(node.Description) ? "" : $" {node.Description}";
+                    announcement = $"{cleanLabel}. {specialState}.{specialDesc} {posStr}{suffix}";
                     break;
 
                 case NodeType.Category:
-                    // Categories show expanded/collapsed state
-                    string categoryState = node.IsExpanded ? "expanded" : "collapsed";
-                    announcement = $"{cleanLabel} {categoryState}. {MenuHelper.FormatPosition(position - 1, total)}{suffix}";
+                    var catNodeAnnounce = node.Data as TreeNode_ThingCategory;
+                    string categorySummary = "disallowed";
+                    if (catNodeAnnounce != null)
+                    {
+                        var summary = ThingFilterHelper.GetCategorySummary(
+                            catNodeAnnounce.catDef, currentFilter, td => ThingFilterHelper.IsVisible(td, parentFilter));
+                        categorySummary = ThingFilterHelper.FormatCategorySummary(summary);
+                    }
+                    string categoryExpanded = node.IsExpanded ? "expanded" : "collapsed";
+                    string categoryDesc = string.IsNullOrEmpty(node.Description) ? "" : $" {node.Description}";
+                    announcement = $"{cleanLabel}. {categorySummary}, {categoryExpanded}.{categoryDesc} {posStr}{suffix}";
                     break;
 
                 case NodeType.ThingDef:
-                    // ThingDefs show checked state
-                    string thingState = node.IsChecked ? "checked" : "not checked";
-                    announcement = $"{cleanLabel} {thingState}. {MenuHelper.FormatPosition(position - 1, total)}{suffix}";
-                    break;
-
-                case NodeType.SaveAndReturn:
-                    announcement = $"{cleanLabel}. {MenuHelper.FormatPosition(position - 1, total)}{suffix}";
+                    string thingState = node.IsChecked ? "allowed" : "disallowed";
+                    string thingDesc = string.IsNullOrEmpty(node.Description) ? "" : $" {node.Description}";
+                    announcement = $"{cleanLabel}. {thingState}.{thingDesc} {posStr}{suffix}";
                     break;
 
                 default:
-                    announcement = $"{cleanLabel}. {MenuHelper.FormatPosition(position - 1, total)}{suffix}";
+                    announcement = $"{cleanLabel}. {posStr}{suffix}";
                     break;
             }
 
@@ -918,27 +976,15 @@ namespace RimWorldAccess
             if (sliderType == "Quality")
             {
                 var range = currentFilter.AllowedQualityLevels;
-                return $"{range.min} to {range.max}";
+                return $"{range.min.GetLabel()} - {range.max.GetLabel()}";
             }
             else if (sliderType == "HitPoints")
             {
                 var range = currentFilter.AllowedHitPointsPercents;
-                return $"{range.min:P0} to {range.max:P0}";
+                return $"{range.min:P0} - {range.max:P0}";
             }
 
             return "";
-        }
-
-        /// <summary>
-        /// Strips leading asterisks and whitespace from a label.
-        /// Asterisks are visual indicators for special filters that shouldn't be read aloud.
-        /// </summary>
-        private static string StripAsterisks(string label)
-        {
-            if (string.IsNullOrEmpty(label))
-                return label;
-
-            return label.TrimStart('*', ' ');
         }
 
         #region Typeahead Support
@@ -951,7 +997,7 @@ namespace RimWorldAccess
             var labels = new List<string>();
             foreach (var node in flattenedNodes)
             {
-                labels.Add(StripAsterisks(node.Label));
+                labels.Add(node.Label);
             }
             return labels;
         }
@@ -1070,7 +1116,7 @@ namespace RimWorldAccess
                 return;
 
             var node = flattenedNodes[selectedIndex];
-            string cleanLabel = StripAsterisks(node.Label);
+            string cleanLabel = node.Label;
 
             // Build state string based on node type
             string stateStr = "";
@@ -1078,10 +1124,19 @@ namespace RimWorldAccess
             {
                 case NodeType.SpecialFilter:
                 case NodeType.ThingDef:
-                    stateStr = node.IsChecked ? " checked" : " not checked";
+                    stateStr = node.IsChecked ? " allowed" : " disallowed";
                     break;
                 case NodeType.Category:
-                    stateStr = node.IsExpanded ? " expanded" : " collapsed";
+                    var searchCatNode = node.Data as TreeNode_ThingCategory;
+                    string searchCatState = "disallowed";
+                    if (searchCatNode != null)
+                    {
+                        var searchSummary = ThingFilterHelper.GetCategorySummary(
+                            searchCatNode.catDef, currentFilter, td => ThingFilterHelper.IsVisible(td, parentFilter));
+                        searchCatState = ThingFilterHelper.FormatCategorySummary(searchSummary);
+                    }
+                    string searchCatExpand = node.IsExpanded ? "expanded" : "collapsed";
+                    stateStr = $" {searchCatState}, {searchCatExpand}";
                     break;
                 case NodeType.Slider:
                     stateStr = " " + GetSliderValueString(node);

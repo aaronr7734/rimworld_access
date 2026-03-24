@@ -47,7 +47,7 @@ namespace RimWorldAccess
                 handled = true;
             }
             // Handle Alt+C: Jump to selected pawn
-            else if (key == KeyCode.C && Event.current.alt)
+            else if (key == KeyCode.C && KeyboardHelper.IsAltHeld)
             {
                 HandleJumpToSelectedPawn();
                 handled = true;

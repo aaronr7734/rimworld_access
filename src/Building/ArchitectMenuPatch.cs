@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Verse;
+using Verse.Sound;
 using RimWorld;
 using RimWorld.Planet;
 
@@ -27,7 +28,7 @@ namespace RimWorldAccess
         public static void Prefix()
         {
             // Handle architect tree menu keyboard input first
-            if (ArchitectTreeState.IsActive)
+            if (ArchitectTreeState.IsActive && !InfoCardState.IsActive)
             {
                 if (Event.current.type == EventType.KeyDown)
                 {
@@ -127,6 +128,7 @@ namespace RimWorldAccess
                 return;
 
             KeyCode key = Event.current.keyCode;
+            key = KeyboardHelper.RemapCharacterToKeyCode(key);
 
             // Handle Escape - clear search first, then close
             if (key == KeyCode.Escape)
@@ -245,9 +247,17 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Handle Alt+I - open info card for selected designator
+            if (key == KeyCode.I && KeyboardHelper.IsAltHeld)
+            {
+                OpenDesignatorInfoCard();
+                Event.current.Use();
+                return;
+            }
+
             // Handle typeahead search characters (letters only)
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
-            if (isLetter && !Event.current.alt && !Event.current.shift)
+            if (isLetter && !KeyboardHelper.IsAltHeld && !Event.current.shift)
             {
                 char c = (char)('a' + (key - KeyCode.A));
                 ArchitectTreeState.ProcessTypeaheadCharacter(c);
@@ -299,6 +309,34 @@ namespace RimWorldAccess
             WindowlessFloatMenuState.Open(options, false);
 
             Log.Message($"Opened right-click options for designator: {designator.LabelCap}");
+        }
+
+        /// <summary>
+        /// Opens the info card for the currently selected designator's building/terrain def.
+        /// Only available for Designator_Build items; non-build designators show a message.
+        /// </summary>
+        private static void OpenDesignatorInfoCard()
+        {
+            Designator designator = ArchitectTreeState.GetSelectedDesignator();
+            if (designator == null)
+            {
+                TolkHelper.Speak("Select a building to view its info card");
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                return;
+            }
+
+            if (designator is Designator_Build buildDesignator)
+            {
+                BuildableDef placingDef = buildDesignator.PlacingDef;
+                if (placingDef != null)
+                {
+                    InfoCardState.OpenInfoCardForDef(placingDef);
+                    return;
+                }
+            }
+
+            TolkHelper.Speak("No info card available for this tool");
+            SoundDefOf.ClickReject.PlayOneShotOnCamera();
         }
 
         /// <summary>

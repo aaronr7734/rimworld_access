@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
+using Verse.Sound;
 using RimWorld;
 using UnityEngine;
 
@@ -283,6 +284,24 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Opens an info card for the currently selected plant.
+        /// </summary>
+        public static void OpenInfoCard()
+        {
+            if (availablePlants != null && selectedIndex >= 0 && selectedIndex < availablePlants.Count)
+            {
+                ThingDef plantDef = availablePlants[selectedIndex].plantDef;
+                if (plantDef != null)
+                {
+                    InfoCardState.OpenInfoCardForDef(plantDef);
+                    return;
+                }
+            }
+            TolkHelper.Speak("No info card available");
+            SoundDefOf.ClickReject.PlayOneShotOnCamera();
+        }
+
+        /// <summary>
         /// Handles typeahead character input for the plant selection menu.
         /// Called from StorageSettingsMenuPatch to process alphanumeric characters.
         /// </summary>
@@ -444,12 +463,31 @@ namespace RimWorldAccess
                 return true;
             }
 
+            // Handle Alt+I - open info card for selected plant
+            if (key == KeyCode.I && KeyboardHelper.IsAltHeld)
+            {
+                if (availablePlants != null && selectedIndex >= 0 && selectedIndex < availablePlants.Count)
+                {
+                    ThingDef plantDef = availablePlants[selectedIndex].plantDef;
+                    if (plantDef != null)
+                    {
+                        InfoCardState.OpenInfoCardForDef(plantDef);
+                        Event.current.Use();
+                        return true;
+                    }
+                }
+                TolkHelper.Speak("No info card available");
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                Event.current.Use();
+                return true;
+            }
+
             // Handle typeahead characters
             // Use KeyCode instead of Event.current.character (which is empty in Unity IMGUI)
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-            if (isLetter || isNumber)
+            if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
             {
                 char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                 var labels = GetPlantLabels();

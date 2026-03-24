@@ -28,6 +28,13 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Handle InfoCardState - let UnifiedKeyboardPatch handle it at higher priority
+            // This ensures info cards opened from menus get proper input handling
+            if (InfoCardState.IsActive)
+            {
+                return;
+            }
+
             // Handle TempControlMenuState (high priority - it's a building settings menu)
             if (TempControlMenuState.IsActive)
             {
@@ -39,6 +46,12 @@ namespace RimWorldAccess
             if (BedAssignmentState.IsActive)
             {
                 HandleBedAssignmentInput();
+                return;
+            }
+            // Handle BuildingOwnerAssignmentState (generic owner assignment menu)
+            if (BuildingOwnerAssignmentState.IsActive)
+            {
+                HandleBuildingOwnerAssignmentInput();
                 return;
             }
             // Handle FlickableComponentState (building component menu)
@@ -74,8 +87,12 @@ namespace RimWorldAccess
                 return;
             }
 
-
-
+            // Handle FishingZoneMenuState (zone settings menu - Odyssey DLC)
+            if (FishingZoneMenuState.IsActive)
+            {
+                HandleFishingZoneMenuInput();
+                return;
+            }
 
 
             // Handle ThingFilterMenuState (second highest priority - it's a submenu)
@@ -190,13 +207,21 @@ namespace RimWorldAccess
             // Exclude keys used for other purposes: C for copy (with Ctrl)
             bool isExcludedLetter = key == KeyCode.C && Event.current.control;
 
-            if ((isLetter || isNumber) && !isExcludedLetter)
+            if ((isLetter || isNumber) && !isExcludedLetter && !KeyboardHelper.IsAltHeld)
             {
                 char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                 if (!BillsMenuState.ProcessTypeaheadCharacter(c))
                 {
                     TolkHelper.Speak($"No matches for '{BillsMenuState.GetLastFailedSearch()}'");
                 }
+                Event.current.Use();
+                return;
+            }
+
+            // Handle Alt+I for info card
+            if (KeyboardHelper.IsAltHeld && key == KeyCode.I)
+            {
+                BillsMenuState.OpenInfoCard();
                 Event.current.Use();
                 return;
             }
@@ -287,9 +312,23 @@ namespace RimWorldAccess
 
         private static void HandleBillConfigInput()
         {
+            // Handle range edit submenu first (HP range, quality range)
+            if (RangeEditMenuState.IsActive)
+            {
+                HandleBillConfigRangeEditInput();
+                return;
+            }
+
+            // Handle text input mode (bill rename)
+            if (BillConfigState.IsTextInputMode)
+            {
+                HandleBillRenameInput();
+                return;
+            }
+
             KeyCode key = Event.current.keyCode;
 
-            // Handle numeric input mode first
+            // Handle numeric input mode
             if (BillConfigState.IsNumericInputMode)
             {
                 if (key == KeyCode.Escape)
@@ -329,6 +368,14 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Handle Alt+I for info card
+            if (KeyboardHelper.IsAltHeld && key == KeyCode.I)
+            {
+                BillConfigState.OpenInfoCard();
+                Event.current.Use();
+                return;
+            }
+
             // Handle Escape - clear search FIRST, then close
             if (key == KeyCode.Escape)
             {
@@ -358,7 +405,7 @@ namespace RimWorldAccess
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
-            if (isLetter || isNumber)
+            if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
             {
                 char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
                 if (!BillConfigState.ProcessTypeaheadCharacter(c))
@@ -413,13 +460,29 @@ namespace RimWorldAccess
             // Min/Max jumps
             if (key == KeyCode.Home && shift)
             {
-                BillConfigState.JumpToMax();
+                BillConfigState.JumpToMin();
                 Event.current.Use();
                 return;
             }
             if (key == KeyCode.End && shift)
             {
-                BillConfigState.JumpToMin();
+                BillConfigState.JumpToMax();
+                Event.current.Use();
+                return;
+            }
+
+            // Handle Home - jump to first item
+            if (key == KeyCode.Home && !shift)
+            {
+                BillConfigState.JumpToFirst();
+                Event.current.Use();
+                return;
+            }
+
+            // Handle End - jump to last item
+            if (key == KeyCode.End && !shift)
+            {
+                BillConfigState.JumpToLast();
                 Event.current.Use();
                 return;
             }
@@ -484,6 +547,87 @@ namespace RimWorldAccess
             }
         }
 
+        private static void HandleBillConfigRangeEditInput()
+        {
+            KeyCode key = Event.current.keyCode;
+
+            switch (key)
+            {
+                case KeyCode.UpArrow:
+                    RangeEditMenuState.SelectPrevious();
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.DownArrow:
+                    RangeEditMenuState.SelectNext();
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.LeftArrow:
+                    RangeEditMenuState.DecreaseValue();
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.RightArrow:
+                    RangeEditMenuState.IncreaseValue();
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.Return:
+                case KeyCode.KeypadEnter:
+                    if (RangeEditMenuState.ApplyAndClose(out var hitPoints, out var quality))
+                    {
+                        BillConfigState.ApplyRangeChanges(hitPoints, quality);
+                    }
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.Escape:
+                    RangeEditMenuState.Close();
+                    TolkHelper.Speak("Cancelled range editing");
+                    Event.current.Use();
+                    break;
+            }
+        }
+
+        private static void HandleBillRenameInput()
+        {
+            KeyCode key = Event.current.keyCode;
+
+            if (key == KeyCode.Escape)
+            {
+                BillConfigState.CancelTextInput();
+                Event.current.Use();
+                return;
+            }
+            if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+            {
+                BillConfigState.ConfirmTextInput();
+                Event.current.Use();
+                return;
+            }
+            if (key == KeyCode.Backspace)
+            {
+                TextInputHelper.HandleBackspace();
+                Event.current.Use();
+                return;
+            }
+            // Handle Ctrl+V paste
+            if (Event.current.control && key == KeyCode.V)
+            {
+                TextInputHelper.HandlePaste();
+                Event.current.Use();
+                return;
+            }
+            // Handle character input
+            char c = Event.current.character;
+            if (c != '\0' && !char.IsControl(c))
+            {
+                TextInputHelper.HandleCharacter(c);
+                Event.current.Use();
+            }
+        }
+
         private static void HandleThingFilterInput()
         {
             // Check if range edit submenu is active
@@ -494,6 +638,34 @@ namespace RimWorldAccess
             }
 
             KeyCode key = Event.current.keyCode;
+
+            // Asterisk (*) - expand all sibling categories (WCAG tree view pattern)
+            bool isStar = key == KeyCode.KeypadMultiply || (Event.current.shift && key == KeyCode.Alpha8);
+            if (isStar)
+            {
+                ThingFilterMenuState.ExpandAllSiblings();
+                Event.current.Use();
+                return;
+            }
+
+            // Handle typeahead character input BEFORE the switch on keyCode.
+            // Unity IMGUI sends two KeyDown events per key press:
+            //   1. keyCode = KeyCode.T, character = '\0'
+            //   2. keyCode = KeyCode.None, character = 't'
+            // Checking Event.current.character (the old approach) only catches event 2,
+            // letting event 1 leak to UnifiedKeyboardPatch where it triggers game shortcuts.
+            // Checking keyCode ranges (like HandleBillsMenuInput does) catches event 1.
+            // Exclude shift+number (e.g., Shift+8 = *) to avoid eating modifier combos.
+            bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
+            bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
+
+            if ((isLetter || (isNumber && !Event.current.shift)) && !KeyboardHelper.IsAltHeld && !Event.current.control)
+            {
+                char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
+                ThingFilterMenuState.ProcessTypeaheadCharacter(c);
+                Event.current.Use();
+                return;
+            }
 
             switch (key)
             {
@@ -537,8 +709,8 @@ namespace RimWorldAccess
                     if (ThingFilterMenuState.HasActiveSearch)
                     {
                         ThingFilterMenuState.ProcessBackspace();
-                        Event.current.Use();
                     }
+                    Event.current.Use();
                     break;
 
                 case KeyCode.Return:
@@ -561,13 +733,8 @@ namespace RimWorldAccess
                     break;
 
                 default:
-                    // Handle typeahead character input
-                    char c = Event.current.character;
-                    if (c != '\0' && !char.IsControl(c))
-                    {
-                        ThingFilterMenuState.ProcessTypeaheadCharacter(c);
-                        Event.current.Use();
-                    }
+                    // Consume all remaining keys to prevent leaking to UnifiedKeyboardPatch
+                    Event.current.Use();
                     break;
             }
         }
@@ -645,6 +812,36 @@ namespace RimWorldAccess
                     break;
             }
         }
+
+        private static void HandleBuildingOwnerAssignmentInput()
+        {
+            KeyCode key = Event.current.keyCode;
+
+            switch (key)
+            {
+                case KeyCode.UpArrow:
+                    BuildingOwnerAssignmentState.SelectPrevious();
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.DownArrow:
+                    BuildingOwnerAssignmentState.SelectNext();
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.Return:
+                case KeyCode.KeypadEnter:
+                    BuildingOwnerAssignmentState.ExecuteSelected();
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.Escape:
+                    BuildingOwnerAssignmentState.GoBack();
+                    Event.current.Use();
+                    break;
+            }
+        }
+
         private static void HandleFlickableComponentInput()
         {
             KeyCode key = Event.current.keyCode;
@@ -782,7 +979,225 @@ namespace RimWorldAccess
             }
         }
 
+        private static void HandleFishingZoneMenuInput()
+        {
+            KeyCode key = Event.current.keyCode;
 
+            // Handle numeric input mode first
+            if (FishingZoneMenuState.IsNumericInputMode)
+            {
+                if (key == KeyCode.Escape)
+                {
+                    FishingZoneMenuState.CancelNumericInput();
+                    Event.current.Use();
+                    return;
+                }
+                if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                {
+                    FishingZoneMenuState.ConfirmNumericInput();
+                    Event.current.Use();
+                    return;
+                }
+                if (key == KeyCode.Backspace)
+                {
+                    FishingZoneMenuState.HandleNumericBackspace();
+                    Event.current.Use();
+                    return;
+                }
+                // Handle digit keys using keyCode
+                if (key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9)
+                {
+                    char c = (char)('0' + (key - KeyCode.Alpha0));
+                    FishingZoneMenuState.HandleNumericDigit(c);
+                    Event.current.Use();
+                    return;
+                }
+                if (key >= KeyCode.Keypad0 && key <= KeyCode.Keypad9)
+                {
+                    char c = (char)('0' + (key - KeyCode.Keypad0));
+                    FishingZoneMenuState.HandleNumericDigit(c);
+                    Event.current.Use();
+                    return;
+                }
+                // Ignore other keys in numeric mode
+                return;
+            }
+
+            // Handle Escape - clear search FIRST, then close
+            if (key == KeyCode.Escape)
+            {
+                if (FishingZoneMenuState.HasActiveSearch)
+                {
+                    FishingZoneMenuState.ClearTypeaheadSearch();
+                    FishingZoneMenuState.AnnounceWithSearch();
+                    Event.current.Use();
+                    return;
+                }
+                FishingZoneMenuState.Close();
+                TolkHelper.Speak("Closed fishing zone menu");
+                Event.current.Use();
+                return;
+            }
+
+            // Handle Backspace for search
+            if (key == KeyCode.Backspace && FishingZoneMenuState.HasActiveSearch)
+            {
+                FishingZoneMenuState.ProcessBackspace();
+                Event.current.Use();
+                return;
+            }
+
+            // Handle Alt+I for fish info card
+            if (key == KeyCode.I && KeyboardHelper.IsAltHeld)
+            {
+                FishingZoneMenuState.OpenFishInfoCard();
+                Event.current.Use();
+                return;
+            }
+
+            // Handle typeahead characters
+            bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
+            bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
+
+            if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
+            {
+                char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
+                if (!FishingZoneMenuState.ProcessTypeaheadCharacter(c))
+                {
+                    TolkHelper.Speak($"No matches for '{FishingZoneMenuState.GetLastFailedSearch()}'");
+                }
+                Event.current.Use();
+                return;
+            }
+
+            bool shift = Event.current.shift;
+            bool ctrl = Event.current.control;
+
+            // Modifier key adjustments
+            if (key == KeyCode.UpArrow && shift && !ctrl)
+            {
+                FishingZoneMenuState.AdjustValue(1, 10);  // Shift+Up = +10
+                Event.current.Use();
+                return;
+            }
+            if (key == KeyCode.DownArrow && shift && !ctrl)
+            {
+                FishingZoneMenuState.AdjustValue(-1, 10); // Shift+Down = -10
+                Event.current.Use();
+                return;
+            }
+            if (key == KeyCode.UpArrow && ctrl && !shift)
+            {
+                FishingZoneMenuState.AdjustValue(1, 100); // Ctrl+Up = +100
+                Event.current.Use();
+                return;
+            }
+            if (key == KeyCode.DownArrow && ctrl && !shift)
+            {
+                FishingZoneMenuState.AdjustValue(-1, 100); // Ctrl+Down = -100
+                Event.current.Use();
+                return;
+            }
+            if (key == KeyCode.UpArrow && shift && ctrl)
+            {
+                FishingZoneMenuState.AdjustValue(1, 1000); // Shift+Ctrl+Up = +1000
+                Event.current.Use();
+                return;
+            }
+            if (key == KeyCode.DownArrow && shift && ctrl)
+            {
+                FishingZoneMenuState.AdjustValue(-1, 1000); // Shift+Ctrl+Down = -1000
+                Event.current.Use();
+                return;
+            }
+
+            // Min/Max jumps (Shift+Home/End for values)
+            if (key == KeyCode.Home && shift && !ctrl)
+            {
+                FishingZoneMenuState.JumpToMin();
+                Event.current.Use();
+                return;
+            }
+            if (key == KeyCode.End && shift && !ctrl)
+            {
+                FishingZoneMenuState.JumpToMax();
+                Event.current.Use();
+                return;
+            }
+
+            // Menu navigation jumps (Home/End and Ctrl+Home/Ctrl+End)
+            if (key == KeyCode.Home && !shift)
+            {
+                FishingZoneMenuState.JumpToFirst(ctrl);
+                Event.current.Use();
+                return;
+            }
+            if (key == KeyCode.End && !shift)
+            {
+                FishingZoneMenuState.JumpToLast(ctrl);
+                Event.current.Use();
+                return;
+            }
+
+            // Handle Arrow Up - navigate with search awareness
+            if (key == KeyCode.UpArrow)
+            {
+                if (FishingZoneMenuState.HasActiveSearch && !FishingZoneMenuState.HasNoMatches)
+                {
+                    int newIndex = FishingZoneMenuState.SelectPreviousMatch();
+                    if (newIndex >= 0)
+                    {
+                        FishingZoneMenuState.SetSelectedIndex(newIndex);
+                        FishingZoneMenuState.AnnounceWithSearch();
+                    }
+                }
+                else
+                {
+                    FishingZoneMenuState.SelectPrevious();
+                }
+                Event.current.Use();
+                return;
+            }
+
+            // Handle Arrow Down - navigate with search awareness
+            if (key == KeyCode.DownArrow)
+            {
+                if (FishingZoneMenuState.HasActiveSearch && !FishingZoneMenuState.HasNoMatches)
+                {
+                    int newIndex = FishingZoneMenuState.SelectNextMatch();
+                    if (newIndex >= 0)
+                    {
+                        FishingZoneMenuState.SetSelectedIndex(newIndex);
+                        FishingZoneMenuState.AnnounceWithSearch();
+                    }
+                }
+                else
+                {
+                    FishingZoneMenuState.SelectNext();
+                }
+                Event.current.Use();
+                return;
+            }
+
+            switch (key)
+            {
+                case KeyCode.LeftArrow:
+                    FishingZoneMenuState.AdjustValue(-1);
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.RightArrow:
+                    FishingZoneMenuState.AdjustValue(1);
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.Return:
+                case KeyCode.KeypadEnter:
+                    FishingZoneMenuState.StartNumericInput();
+                    Event.current.Use();
+                    break;
+            }
+        }
 
     }
 }

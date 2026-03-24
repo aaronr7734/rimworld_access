@@ -21,6 +21,7 @@ namespace RimWorldAccess
             if (KeyboardHelper.IsAnyAccessibilityMenuActive() &&
                 !ZoneRenameState.IsActive &&
                 !StorageRenameState.IsActive &&
+                !PenRenameState.IsActive &&
                 !PlaySettingsMenuState.IsActive &&
                 !StorageSettingsMenuState.IsActive &&
                 !PlantSelectionMenuState.IsActive &&
@@ -41,8 +42,20 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Handle pen marker rename text input
+            if (PenRenameState.IsActive)
+            {
+                HandlePenRenameInput();
+                return;
+            }
+
             // Only process keyboard events for other menus
             if (Event.current.type != EventType.KeyDown)
+                return;
+
+            // Handle InfoCardState - let UnifiedKeyboardPatch handle it
+            // This ensures info cards opened from menus get proper input handling
+            if (InfoCardState.IsActive)
                 return;
 
             // Handle play settings menu
@@ -265,6 +278,14 @@ namespace RimWorldAccess
                     Event.current.Use();
                     break;
 
+                case KeyCode.I:
+                    if (KeyboardHelper.IsAltHeld)
+                    {
+                        PlantSelectionMenuState.OpenInfoCard();
+                        Event.current.Use();
+                    }
+                    break;
+
             }
         }
 
@@ -388,6 +409,50 @@ namespace RimWorldAccess
                 if (character != '\0' && !char.IsControl(character))
                 {
                     StorageRenameState.HandleCharacter(character);
+                    currentEvent.Use();
+                    return;
+                }
+            }
+        }
+
+        private static void HandlePenRenameInput()
+        {
+            Event currentEvent = Event.current;
+
+            if (currentEvent.type == EventType.KeyDown)
+            {
+                KeyCode key = currentEvent.keyCode;
+
+                if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                {
+                    PenRenameState.Confirm();
+                    currentEvent.Use();
+                    return;
+                }
+                else if (key == KeyCode.Escape)
+                {
+                    PenRenameState.Cancel();
+                    currentEvent.Use();
+                    return;
+                }
+                else if (key == KeyCode.Backspace)
+                {
+                    PenRenameState.HandleBackspace();
+                    currentEvent.Use();
+                    return;
+                }
+                else if (key == KeyCode.Tab)
+                {
+                    PenRenameState.ReadCurrentText();
+                    currentEvent.Use();
+                    return;
+                }
+
+                char character = currentEvent.character;
+
+                if (character != '\0' && !char.IsControl(character))
+                {
+                    PenRenameState.HandleCharacter(character);
                     currentEvent.Use();
                     return;
                 }

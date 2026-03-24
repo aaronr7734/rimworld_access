@@ -234,11 +234,14 @@ namespace RimWorldAccess
             // Close menu before loading
             Close();
 
-            // Perform the load
+            // Use synchronous loading for in-game reload. Async loading causes an
+            // intermittent DXGI deadlock: the main thread's rendering pipeline blocks
+            // inside DirectX while the background loading thread does heavy memory
+            // operations. Sync loading avoids this by not rendering during the load.
             LongEventHandler.QueueLongEvent(delegate
             {
                 GameDataSaveLoader.LoadGame(fileName);
-            }, "LoadingLongEvent", doAsynchronously: true, GameAndMapInitExceptionHandlers.ErrorWhileLoadingGame);
+            }, "LoadingLongEvent", doAsynchronously: false, GameAndMapInitExceptionHandlers.ErrorWhileLoadingGame);
 
             TolkHelper.Speak($"Loading {fileName}");
         }

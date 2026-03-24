@@ -52,10 +52,11 @@ namespace RimWorldAccess
                 getColumnName: WildlifeMenuHelper.GetColumnName,
                 getColumnValue: WildlifeMenuHelper.GetColumnValue,
                 sortByColumn: (items, col, desc) => WildlifeMenuHelper.SortWildlifeByColumn(items.ToList(), col, desc),
-                defaultSortColumn: 4,  // BodySize
-                defaultSortDescending: true
+                defaultSortColumn: 1,  // Predator
+                defaultSortDescending: false,
+                getColumnTooltip: (pawn, col) => WildlifeMenuHelper.GetColumnTooltip(pawn, col)
             );
-            tableHelper.Reset(4, true);
+            tableHelper.Reset(1, false);
 
             IsActive = true;
 
@@ -133,12 +134,38 @@ namespace RimWorldAccess
 
             switch (type)
             {
+                case WildlifeMenuHelper.ColumnType.Name:
+                    JumpToAnimalOnMap(currentAnimal);
+                    break;
                 case WildlifeMenuHelper.ColumnType.Hunt:
                     ToggleHunt(currentAnimal);
                     break;
                 case WildlifeMenuHelper.ColumnType.Tame:
                     ToggleTame(currentAnimal);
                     break;
+            }
+        }
+
+        /// <summary>
+        /// Opens an info card for the currently selected wild animal.
+        /// </summary>
+        public static void OpenInfoCard()
+        {
+            if (wildlifeList == null || wildlifeList.Count == 0)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No info card available");
+                return;
+            }
+            Pawn animal = wildlifeList[tableHelper.CurrentRowIndex];
+            if (animal != null)
+            {
+                Find.WindowStack.Add(new Dialog_InfoCard(animal));
+            }
+            else
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No info card available");
             }
         }
 
@@ -180,6 +207,25 @@ namespace RimWorldAccess
             }
 
             AnnounceCurrentCell(includeAnimalName: false);
+        }
+
+        private static void JumpToAnimalOnMap(Pawn pawn)
+        {
+            if (pawn == null || pawn.Map == null)
+            {
+                TolkHelper.Speak("Animal not on map", SpeechPriority.High);
+                return;
+            }
+
+            IntVec3 position = pawn.Position;
+
+            Close();
+
+            MapNavigationState.CurrentCursorPosition = position;
+            Find.CameraDriver?.JumpToCurrentMapLoc(position);
+
+            string animalName = WildlifeMenuHelper.GetAnimalName(pawn);
+            TolkHelper.Speak($"Jumped to {animalName}");
         }
 
         public static void ToggleSortByCurrentColumn()
@@ -283,6 +329,178 @@ namespace RimWorldAccess
             tableHelper.JumpToLast(wildlifeList.Count);
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
             AnnounceCurrentCell(includeAnimalName: true);
+        }
+
+        #endregion
+
+        #region Painting
+
+        /// <summary>
+        /// Paints the current cell's value to the next row and moves down.
+        /// </summary>
+        public static void PaintDown()
+        {
+            if (wildlifeList.Count <= 1) return;
+
+            int col = tableHelper.CurrentColumnIndex;
+            if (!WildlifeMenuHelper.CanPaintColumn(col))
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("Cannot paint this column");
+                return;
+            }
+
+            Pawn sourcePawn = wildlifeList[tableHelper.CurrentRowIndex];
+            bool brushValue = WildlifeMenuHelper.GetPaintableValue(sourcePawn, col);
+
+            tableHelper.SelectNextRow(wildlifeList.Count);
+            Pawn targetPawn = wildlifeList[tableHelper.CurrentRowIndex];
+
+            string colName = WildlifeMenuHelper.GetColumnName(col);
+            string valueLabel = WildlifeMenuHelper.GetPaintValueLabel(col, brushValue);
+            string pos = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, wildlifeList.Count);
+
+            bool targetValue = WildlifeMenuHelper.GetPaintableValue(targetPawn, col);
+            if (targetValue == brushValue)
+            {
+                TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} already {valueLabel}. {pos}");
+                return;
+            }
+
+            bool applied = WildlifeMenuHelper.SetPaintableValue(targetPawn, col, brushValue);
+            SoundDef sound = applied
+                ? WildlifeMenuHelper.GetPaintSound(col, brushValue)
+                : SoundDefOf.ClickReject;
+            sound.PlayOneShotOnCamera();
+
+            TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} {valueLabel}. {pos}");
+        }
+
+        /// <summary>
+        /// Paints the current cell's value to the previous row and moves up.
+        /// </summary>
+        public static void PaintUp()
+        {
+            if (wildlifeList.Count <= 1) return;
+
+            int col = tableHelper.CurrentColumnIndex;
+            if (!WildlifeMenuHelper.CanPaintColumn(col))
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("Cannot paint this column");
+                return;
+            }
+
+            Pawn sourcePawn = wildlifeList[tableHelper.CurrentRowIndex];
+            bool brushValue = WildlifeMenuHelper.GetPaintableValue(sourcePawn, col);
+
+            tableHelper.SelectPreviousRow(wildlifeList.Count);
+            Pawn targetPawn = wildlifeList[tableHelper.CurrentRowIndex];
+
+            string colName = WildlifeMenuHelper.GetColumnName(col);
+            string valueLabel = WildlifeMenuHelper.GetPaintValueLabel(col, brushValue);
+            string pos = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, wildlifeList.Count);
+
+            bool targetValue = WildlifeMenuHelper.GetPaintableValue(targetPawn, col);
+            if (targetValue == brushValue)
+            {
+                TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} already {valueLabel}. {pos}");
+                return;
+            }
+
+            bool applied = WildlifeMenuHelper.SetPaintableValue(targetPawn, col, brushValue);
+            SoundDef sound = applied
+                ? WildlifeMenuHelper.GetPaintSound(col, brushValue)
+                : SoundDefOf.ClickReject;
+            sound.PlayOneShotOnCamera();
+
+            TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} {valueLabel}. {pos}");
+        }
+
+        /// <summary>
+        /// Bulk paints the current value from the current row to the last row.
+        /// </summary>
+        public static void PaintToLast()
+        {
+            PaintBulk(towardFirst: false, entireColumn: false);
+        }
+
+        /// <summary>
+        /// Bulk paints the current value from the current row to the first row.
+        /// </summary>
+        public static void PaintToFirst()
+        {
+            PaintBulk(towardFirst: true, entireColumn: false);
+        }
+
+        /// <summary>
+        /// Paints the current value to the entire column.
+        /// </summary>
+        public static void PaintEntireColumn(bool towardFirst)
+        {
+            PaintBulk(towardFirst, entireColumn: true);
+        }
+
+        private static void PaintBulk(bool towardFirst, bool entireColumn)
+        {
+            if (wildlifeList.Count == 0) return;
+
+            int col = tableHelper.CurrentColumnIndex;
+            if (!WildlifeMenuHelper.CanPaintColumn(col))
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("Cannot paint this column");
+                return;
+            }
+
+            int currentRow = tableHelper.CurrentRowIndex;
+            string colName = WildlifeMenuHelper.GetColumnName(col);
+
+            int startRow, endRow;
+            if (entireColumn)
+            {
+                startRow = 0;
+                endRow = wildlifeList.Count - 1;
+            }
+            else if (towardFirst)
+            {
+                startRow = 0;
+                endRow = currentRow;
+            }
+            else
+            {
+                startRow = currentRow;
+                endRow = wildlifeList.Count - 1;
+            }
+
+            Pawn sourcePawn = wildlifeList[currentRow];
+            bool brushValue = WildlifeMenuHelper.GetPaintableValue(sourcePawn, col);
+            string valueLabel = WildlifeMenuHelper.GetPaintValueLabel(col, brushValue);
+            SoundDef paintSound = WildlifeMenuHelper.GetPaintSound(col, brushValue);
+
+            var changed = new List<string>();
+            for (int i = startRow; i <= endRow; i++)
+            {
+                Pawn pawn = wildlifeList[i];
+                bool currentValue = WildlifeMenuHelper.GetPaintableValue(pawn, col);
+                if (currentValue != brushValue)
+                {
+                    if (WildlifeMenuHelper.SetPaintableValue(pawn, col, brushValue))
+                        changed.Add(pawn.LabelShort);
+                }
+            }
+
+            tableHelper.CurrentRowIndex = towardFirst ? startRow : endRow;
+
+            if (changed.Count > 0)
+            {
+                BulkSoundQueue.Queue(changed.Count, paintSound);
+                TolkHelper.Speak($"Painted {colName} {valueLabel} for {MenuHelper.FormatNameList(changed)}");
+            }
+            else
+            {
+                TolkHelper.Speak($"{colName} already {valueLabel} for all wildlife");
+            }
         }
 
         #endregion

@@ -84,14 +84,14 @@ namespace RimWorldAccess
         public static void SelectNext()
         {
             if (TotalOptions == 0) return;
-            selectedIndex = (selectedIndex + 1) % TotalOptions;
+            selectedIndex = MenuHelper.SelectNext(selectedIndex, TotalOptions);
             AnnounceCurrentSelection();
         }
 
         public static void SelectPrevious()
         {
             if (TotalOptions == 0) return;
-            selectedIndex = (selectedIndex - 1 + TotalOptions) % TotalOptions;
+            selectedIndex = MenuHelper.SelectPrevious(selectedIndex, TotalOptions);
             AnnounceCurrentSelection();
         }
 

@@ -214,6 +214,12 @@ namespace RimWorldAccess
         /// </summary>
         private static string AddContextPrefix(string tileInfo, IntVec3 position)
         {
+            // Jump targeting mode - announce per-tile jump validity
+            if (JumpTargetingState.IsActive)
+            {
+                return JumpTargetingState.GetJumpValidityPrefix(position) + tileInfo;
+            }
+
             // Zone creation mode - single tile selection
             if (ZoneCreationState.IsInCreationMode &&
                 ZoneCreationState.SelectionMode == ZoneSelectionMode.SingleTile &&
@@ -311,6 +317,16 @@ namespace RimWorldAccess
                     position.InBounds(targetArea.Map) && targetArea[position])
                 {
                     return "In area, " + tileInfo;
+                }
+            }
+
+            // Substructure overlay - check engine's overlay toggle and announce disconnected tiles
+            SubstructureOverlayState.CheckOverlayState();
+            if (SubstructureOverlayState.IsOverlayActive(Find.CurrentMap))
+            {
+                if (SubstructureOverlayState.IsDisconnectedAt(position, Find.CurrentMap))
+                {
+                    tileInfo = "Disconnected, " + tileInfo;
                 }
             }
 

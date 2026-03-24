@@ -157,6 +157,31 @@ namespace RimWorldAccess
                 IsActive = true;
                 SoundDefOf.TabOpen.PlayOneShotOnCamera();
                 typeahead.ClearSearch();
+
+                // Auto-expand the single object node and position on first child
+                if (visibleItems.Count > 0)
+                {
+                    var singleItem = visibleItems[0];
+                    if (singleItem.IsExpandable)
+                    {
+                        TolkHelper.Speak(singleItem.Label.StripTags());
+
+                        if (singleItem.OnActivate != null && singleItem.Children.Count == 0)
+                        {
+                            singleItem.OnActivate();
+                        }
+
+                        if (singleItem.Children.Count > 0)
+                        {
+                            singleItem.IsExpanded = true;
+                            RebuildVisibleList();
+                            selectedIndex = 1;
+                            AnnounceCurrentSelection();
+                            return;
+                        }
+                    }
+                }
+
                 AnnounceCurrentSelection();
             }
             catch (Exception ex)
@@ -308,6 +333,30 @@ namespace RimWorldAccess
                 selectedIndex = Math.Max(0, visibleItems.Count - 1);
 
             AnnounceCurrentSelection();
+        }
+
+        /// <summary>
+        /// Re-flattens the visible items list after tree children have been modified,
+        /// preserving the current cursor position.
+        /// </summary>
+        public static void RefreshVisibleList()
+        {
+            if (!IsActive || visibleItems == null)
+                return;
+
+            var currentItem = (selectedIndex >= 0 && selectedIndex < visibleItems.Count)
+                ? visibleItems[selectedIndex] : null;
+
+            RebuildVisibleList();
+
+            if (currentItem != null)
+            {
+                int newIndex = visibleItems.IndexOf(currentItem);
+                if (newIndex >= 0)
+                    selectedIndex = newIndex;
+                else if (selectedIndex >= visibleItems.Count)
+                    selectedIndex = Math.Max(0, visibleItems.Count - 1);
+            }
         }
 
         /// <summary>
@@ -622,7 +671,30 @@ namespace RimWorldAccess
             if (item.OnActivate != null)
             {
                 item.OnActivate();
+
+                // If the action closed this state (e.g., opening HealthTabState), stop here
+                if (!IsActive)
+                    return;
+
                 SoundDefOf.Click.PlayOneShotOnCamera();
+
+                // Rebuild visible list, then restore cursor to the acted-upon item
+                // or its nearest visible ancestor (the item itself may have been removed
+                // when its parent's children were cleared)
+                RebuildVisibleList();
+                int restoredIndex = -1;
+                var candidate = item;
+                while (candidate != null && restoredIndex < 0)
+                {
+                    restoredIndex = visibleItems.IndexOf(candidate);
+                    candidate = candidate.Parent;
+                }
+                if (restoredIndex >= 0)
+                    selectedIndex = restoredIndex;
+                else if (selectedIndex >= visibleItems.Count)
+                    selectedIndex = Math.Max(0, visibleItems.Count - 1);
+
+                AnnounceCurrentSelection();
                 return;
             }
 
@@ -872,11 +944,14 @@ namespace RimWorldAccess
                 {
                     adjustedLevel = Math.Max(0, adjustedLevel - 1);
                 }
+                // Check if this item has a direct info card available
+                string inspectable = HasDirectInfoCard(item) ? " Inspectable." : "";
+
                 // Build full announcement: "{name} {state}. {X} of {Y}. level N"
                 string levelSuffix = MenuHelper.GetLevelSuffix("Inspection", adjustedLevel);
                 string positionPart = MenuHelper.FormatPosition(position - 1, total);
                 string positionSection = string.IsNullOrEmpty(positionPart) ? "." : $". {positionPart}.";
-                string announcement = $"{label}{stateIndicator}{positionSection}{levelSuffix}";
+                string announcement = $"{label}{stateIndicator}{positionSection}{inspectable}{levelSuffix}";
 
                 TolkHelper.Speak(announcement);
             }
@@ -1045,6 +1120,14 @@ namespace RimWorldAccess
                     return true;
                 }
 
+                // Handle Alt+I - open info card for current item
+                if (ev.alt && key == KeyCode.I)
+                {
+                    TryOpenInfoCard();
+                    ev.Use();
+                    return true;
+                }
+
                 // Handle typeahead characters
                 bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                 bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
@@ -1073,6 +1156,96 @@ namespace RimWorldAccess
             catch (Exception ex)
             {
                 Log.Error($"[RimWorldAccess] Error handling input in inspection menu: {ex}");
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns true if the item has a direct info card (gear, hediff, gene, or LinkedDef).
+        /// Only matches types the game natively offers info card buttons for.
+        /// </summary>
+        private static bool HasDirectInfoCard(InspectionTreeItem item)
+        {
+            if (item.OnInfo != null) return true;
+            if (item.Data is InteractiveGearHelper.GearItem gi && gi.Thing != null) return true;
+            if (item.Data is Hediff) return true;
+            if (item.Data is Gene || item.Data is GeneDef) return true;
+            if (item.LinkedDef != null) return true;
+            return false;
+        }
+
+        /// <summary>
+        /// Opens an info card for the currently selected item, or walks up to parent.
+        /// Supports gear, hediffs, genes, and LinkedDef items.
+        /// </summary>
+        private static void TryOpenInfoCard()
+        {
+            if (selectedIndex < 0 || selectedIndex >= visibleItems.Count)
+                return;
+
+            var item = visibleItems[selectedIndex];
+
+            // Try to open info card for the item directly, or walk up to parent
+            if (TryOpenInfoCardForItem(item))
+                return;
+
+            // Walk up to parent for children of inspectable items
+            var parent = item.Parent;
+            while (parent != null)
+            {
+                if (TryOpenInfoCardForItem(parent))
+                    return;
+                parent = parent.Parent;
+            }
+
+            TolkHelper.Speak("No info card available for this item");
+            SoundDefOf.ClickReject.PlayOneShotOnCamera();
+        }
+
+        /// <summary>
+        /// Attempts to open an info card for a single item. Returns true if successful.
+        /// </summary>
+        private static bool TryOpenInfoCardForItem(InspectionTreeItem item)
+        {
+            // Custom info action (e.g. romance factor breakdown via StatBreakdownState)
+            if (item.OnInfo != null)
+            {
+                item.OnInfo();
+                return true;
+            }
+
+            // Gear items (game shows info cards on Gear tab)
+            if (item.Data is InteractiveGearHelper.GearItem gearItem && gearItem.Thing != null)
+            {
+                Find.WindowStack.Add(new Dialog_InfoCard(gearItem.Thing));
+                return true;
+            }
+
+            // Hediffs (game shows info cards on Health tab)
+            if (item.Data is Hediff hediff)
+            {
+                Find.WindowStack.Add(new Dialog_InfoCard(hediff));
+                return true;
+            }
+
+            // Genes (game shows info cards on Genes tab)
+            if (item.Data is Gene gene)
+            {
+                InfoCardState.OpenInfoCardForDef(gene.def);
+                return true;
+            }
+            if (item.Data is GeneDef geneDef)
+            {
+                InfoCardState.OpenInfoCardForDef(geneDef);
+                return true;
+            }
+
+            // LinkedDef fallback (for items explicitly marked)
+            if (item.LinkedDef != null)
+            {
+                InfoCardState.OpenInfoCardForDef(item.LinkedDef);
+                return true;
             }
 
             return false;

@@ -5,6 +5,7 @@ using System.Text;
 using RimWorld;
 using Verse;
 using Verse.AI;
+using Verse.Sound;
 
 namespace RimWorldAccess
 {
@@ -232,10 +233,19 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        // Fallback to detailed info display
-                        item.IsExpandable = true;
-                        item.IsExpanded = false;
-                        item.OnActivate = () => BuildDetailedInfoChildren(item, obj, categoryKey);
+                        if (categoryKey == "Meditation Focus")
+                        {
+                            // No focus objects nearby - show non-expandable warning
+                            item.Label = "Meditation Focus - No focus objects within range";
+                            item.IsExpandable = false;
+                        }
+                        else
+                        {
+                            // Fallback to detailed info display
+                            item.IsExpandable = true;
+                            item.IsExpanded = false;
+                            item.OnActivate = () => BuildDetailedInfoChildren(item, obj, categoryKey);
+                        }
                     }
                     break;
 
@@ -483,21 +493,22 @@ namespace RimWorldAccess
             {
                 return (category == "Bills" && building is IBillGiver) ||
                        (category == "Bed Assignment" && building is Building_Bed) ||
+                       (category == "Owner Assignment" && !(building is Building_Bed) && building.TryGetComp<CompAssignableToPawn>() != null) ||
                        (category == "Temperature" && building.TryGetComp<CompTempControl>() != null) ||
                        (category == "Storage" && building is IStoreSettingsParent) ||
                        (category == "Shells" && building is Building_TurretGun) ||
                        (category == "Plant Selection" && building is IPlantToGrowSettable) ||
                        (category == "Pen Animals" && building.TryGetComp<CompAnimalPenMarker>() != null) ||
-                       (category == "Pen Auto-Cut" && building.TryGetComp<CompAnimalPenMarker>() != null) ||
+                       (category == "Rename" && building.TryGetComp<CompAnimalPenMarker>() != null) ||
                        BuildingComponentsHelper.GetDiscoverableComponents(building).Any(c => c.CategoryName == category && !c.IsReadOnly);
             }
 
             // Check for zone-specific actionable categories
             if (obj is Zone zone)
             {
-                string renameLabel = "Rename".Translate().ToString();
                 return (category == "Storage" && zone is IStoreSettingsParent)
-                    || category == renameLabel;
+                    || category == "Rename"
+                    || (category == "Fishing" && zone.GetType().Name == "Zone_Fishing");
             }
 
             return false;
@@ -520,9 +531,27 @@ namespace RimWorldAccess
                 category == "Job Queue")
                 return true;
 
-            // Pen Food is expandable if building has pen marker
-            if (category == "Pen Food" && obj is Building building)
+            // Genes tab is expandable for pawns with gene data or GeneSetHolderBase items (Biotech DLC)
+            if (category == "Genes")
+            {
+                Pawn genePawn = GetPawnFromThing(obj);
+                if (genePawn?.genes != null && ModsConfig.BiotechActive)
+                    return true;
+
+                // Also expandable for GeneSetHolderBase items (embryos, genepacks, xenogerms)
+                if (obj is GeneSetHolderBase holder && holder.GeneSet != null && ModsConfig.BiotechActive)
+                    return true;
+
+                return false;
+            }
+
+            // Pen Food and Pen Auto-Cut are expandable if building has pen marker
+            if ((category == "Pen Food" || category == "Pen Auto-Cut") && obj is Building building)
                 return building.TryGetComp<CompAnimalPenMarker>() != null;
+
+            // Meditation Focus is expandable only if there are nearby focus objects
+            if (category == "Meditation Focus" && obj is Building meditationBuilding && meditationBuilding.Spawned)
+                return HasNearbyMeditationFocusObjects(meditationBuilding);
 
             return false;
         }
@@ -546,8 +575,7 @@ namespace RimWorldAccess
             // Handle zone-specific actions
             if (obj is Zone zone)
             {
-                string renameLabel = "Rename".Translate().ToString();
-                if (category == renameLabel)
+                if (category == "Rename")
                 {
                     WindowlessInspectionState.Close();
                     ZoneRenameState.Open(zone);
@@ -562,6 +590,13 @@ namespace RimWorldAccess
                         WindowlessInspectionState.Close();
                         StorageSettingsMenuState.Open(settings);
                     }
+                    return;
+                }
+
+                if (category == "Fishing" && zone.GetType().Name == "Zone_Fishing")
+                {
+                    WindowlessInspectionState.Close();
+                    FishingZoneMenuState.Open(zone);
                     return;
                 }
             }
@@ -591,6 +626,14 @@ namespace RimWorldAccess
             else if (category == "Bed Assignment" && building is Building_Bed bed)
             {
                 BedAssignmentState.Open(bed);
+            }
+            else if (category == "Owner Assignment")
+            {
+                var comp = (building as ThingWithComps)?.TryGetComp<CompAssignableToPawn>();
+                if (comp != null)
+                {
+                    BuildingOwnerAssignmentState.Open(building as ThingWithComps, comp);
+                }
             }
             else if (category == "Temperature")
             {
@@ -633,13 +676,12 @@ namespace RimWorldAccess
                     ThingFilterMenuState.Open(penMarker.AnimalFilter, AnimalPenUtility.GetFixedAnimalFilter(), "Pen Animals");
                 }
             }
-            else if (category == "Pen Auto-Cut")
+            else if (category == "Rename")
             {
                 var penMarker = building.TryGetComp<CompAnimalPenMarker>();
                 if (penMarker != null)
                 {
-                    var fixedFilter = penMarker.parent.Map?.animalPenManager?.GetFixedAutoCutFilter();
-                    ThingFilterMenuState.Open(penMarker.AutoCutFilter, fixedFilter, "Pen Auto-Cut");
+                    PenRenameState.Open(penMarker);
                 }
             }
             else
@@ -697,6 +739,28 @@ namespace RimWorldAccess
                     BuildPenFoodChildren(categoryItem, building);
                     return;
                 }
+                if (category == "Pen Auto-Cut")
+                {
+                    BuildPenAutoCutChildren(categoryItem, building);
+                    return;
+                }
+                if (category == "Linked Facilities")
+                {
+                    BuildFacilityChildren(categoryItem, building);
+                    return;
+                }
+                if (category == "Meditation Focus")
+                {
+                    BuildMeditationFocusChildren(categoryItem, building);
+                    return;
+                }
+            }
+
+            // Handle GeneSetHolderBase (embryos, genepacks, xenogerms) gene category
+            if (category == "Genes" && obj is GeneSetHolderBase geneHolder)
+            {
+                BuildGeneSetHolderGenesChildren(categoryItem, geneHolder);
+                return;
             }
 
             // Handle Pawn-specific categories (supports both live pawns and corpses)
@@ -718,7 +782,7 @@ namespace RimWorldAccess
             }
             else if (category == "Needs")
             {
-                BuildDetailedInfoChildren(categoryItem, obj, category);
+                BuildNeedsChildren(categoryItem, pawn);
             }
             else if (category == "Mood")
             {
@@ -726,7 +790,7 @@ namespace RimWorldAccess
             }
             else if (category == "Social")
             {
-                BuildSocialChildren(categoryItem, pawn);
+                BuildSocialChildren(categoryItem, pawn, mode);
             }
             else if (category == "Training")
             {
@@ -735,6 +799,31 @@ namespace RimWorldAccess
             else if (category == "Character")
             {
                 BuildDetailedInfoChildren(categoryItem, obj, category);
+
+                // Favorite color — visual-only in vanilla, add as text for accessibility
+                if (pawn != null && ModsConfig.IdeologyActive
+                    && !pawn.DevelopmentalStage.Baby()
+                    && pawn.story?.favoriteColor != null)
+                {
+                    string orIdeoColor = string.Empty;
+                    if (pawn.Ideo != null && !pawn.Ideo.classicMode)
+                    {
+                        orIdeoColor = "OrIdeoColor".Translate(pawn.Named("PAWN"));
+                    }
+                    string colorLabel = "FavoriteColorTooltip".Translate(
+                        pawn.Named("PAWN"),
+                        pawn.story.favoriteColor.label.Named("COLOR"),
+                        0.6f.ToStringPercent().Named("PERCENTAGE"),
+                        orIdeoColor.Named("ORIDEO")
+                    ).Resolve();
+                    AddChild(categoryItem, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = colorLabel,
+                        IndentLevel = categoryItem.IndentLevel + 1,
+                        IsExpandable = false
+                    });
+                }
             }
             else if (category == "Log")
             {
@@ -743,6 +832,10 @@ namespace RimWorldAccess
             else if (category == "Job Queue")
             {
                 BuildJobQueueChildren(categoryItem, pawn, mode);
+            }
+            else if (category == "Genes")
+            {
+                BuildGenesChildren(categoryItem, pawn);
             }
         }
 
@@ -983,6 +1076,69 @@ namespace RimWorldAccess
         /// <summary>
         /// Builds children for Skills category.
         /// </summary>
+        /// <summary>
+        /// Builds children for the Needs category.
+        /// Lists all visible needs sorted by urgency, with learning desires shown
+        /// immediately after the Learning need (Biotech children only).
+        /// </summary>
+        private static void BuildNeedsChildren(InspectionTreeItem parentItem, Pawn pawn)
+        {
+            if (parentItem.Children.Count > 0)
+                return; // Already built
+
+            if (pawn.needs == null)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+
+            var needs = pawn.needs.AllNeeds;
+            if (needs == null || needs.Count == 0)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "No needs to display.",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            // Filter to visible needs and sort by percentage (lowest first = most urgent)
+            var sortedNeeds = needs
+                .Where(n => n.def.showOnNeedList)
+                .OrderBy(n => n.CurLevelPercentage)
+                .ToList();
+
+            foreach (var need in sortedNeeds)
+            {
+                float percentage = need.CurLevelPercentage * 100f;
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = $"{need.LabelCap}: {percentage:F0}%",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+
+                // After the Learning need, add learning desires with label and description
+                if (need.def == NeedDefOf.Learning && pawn.learning?.ActiveLearningDesires != null)
+                {
+                    foreach (var desire in pawn.learning.ActiveLearningDesires)
+                    {
+                        string description = desire.description ?? "";
+                        AddChild(parentItem, new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.DetailText,
+                            Label = $"Learning desire: {desire.LabelCap}. {description}".TrimEnd(),
+                            IndentLevel = indent + 1,
+                            IsExpandable = false
+                        });
+                    }
+                }
+            }
+        }
+
         private static void BuildSkillsChildren(InspectionTreeItem parentItem, Pawn pawn)
         {
             if (pawn.skills?.skills == null)
@@ -1050,7 +1206,7 @@ namespace RimWorldAccess
         /// <summary>
         /// Builds children for Social category.
         /// </summary>
-        private static void BuildSocialChildren(InspectionTreeItem parentItem, Pawn pawn)
+        private static void BuildSocialChildren(InspectionTreeItem parentItem, Pawn pawn, InspectionMode mode)
         {
             if (parentItem.Children.Count > 0)
                 return; // Already built
@@ -1082,6 +1238,12 @@ namespace RimWorldAccess
                 };
                 ideologyItem.OnActivate = () => BuildIdeologyChildren(ideologyItem, pawn);
                 AddChild(parentItem, ideologyItem);
+            }
+
+            // Add Try Romance if applicable (Biotech DLC, eligible pawn, full inspection mode)
+            if (mode != InspectionMode.ReadOnly && SocialTabHelper.CanTryRomance(pawn))
+            {
+                BuildRomanceMenu(parentItem, pawn);
             }
         }
 
@@ -1120,7 +1282,7 @@ namespace RimWorldAccess
                     IsExpandable = true,
                     IsExpanded = false
                 };
-                relationItem.OnActivate = () => BuildRelationDetailChildren(relationItem, relation);
+                relationItem.OnActivate = () => BuildRelationDetailChildren(relationItem, pawn, relation);
                 AddChild(parentItem, relationItem);
             }
         }
@@ -1128,13 +1290,14 @@ namespace RimWorldAccess
         /// <summary>
         /// Builds detail children for a specific relation.
         /// </summary>
-        private static void BuildRelationDetailChildren(InspectionTreeItem relationItem, SocialTabHelper.RelationInfo relation)
+        private static void BuildRelationDetailChildren(InspectionTreeItem relationItem, Pawn inspectedPawn, SocialTabHelper.RelationInfo relation)
         {
             if (relationItem.Children.Count > 0)
                 return; // Already built
 
             string detailedInfo = relation.DetailedInfo.StripTags();
             var lines = detailedInfo.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            bool pregnancyApproachInserted = false;
 
             foreach (var line in lines.Where(l => !string.IsNullOrWhiteSpace(l)))
             {
@@ -1146,7 +1309,224 @@ namespace RimWorldAccess
                     IsExpandable = false
                 };
                 AddChild(relationItem, detailItem);
+
+                // Insert pregnancy approach right after the Relationship line
+                if (!pregnancyApproachInserted && line.TrimStart().StartsWith("Relationship:")
+                    && relation.CanChangePregnancyApproach && ModsConfig.BiotechActive)
+                {
+                    BuildPregnancyApproachMenu(relationItem, inspectedPawn, relation);
+                    pregnancyApproachInserted = true;
+                }
             }
+
+            // Fallback: if no Relationship line was found, still add pregnancy approach at end
+            if (!pregnancyApproachInserted && relation.CanChangePregnancyApproach && ModsConfig.BiotechActive)
+            {
+                BuildPregnancyApproachMenu(relationItem, inspectedPawn, relation);
+            }
+        }
+
+        /// <summary>
+        /// Builds a pregnancy approach sub-menu within a relation's detail children.
+        /// </summary>
+        private static void BuildPregnancyApproachMenu(InspectionTreeItem parentItem, Pawn pawn, SocialTabHelper.RelationInfo relation)
+        {
+            var currentApproach = relation.CurrentPregnancyApproach;
+
+            var approachItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = $"{"PregnancyApproach".Translate()}: {currentApproach.GetLabel().CapitalizeFirst()}",
+                Data = relation,
+                IndentLevel = parentItem.IndentLevel + 1,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+
+            approachItem.OnActivate = () =>
+            {
+                if (approachItem.Children.Count > 0)
+                    return; // Already built
+
+                int childIndent = approachItem.IndentLevel + 1;
+
+                // Check if pregnancy is possible between these two pawns
+                AcceptanceReport canProduce = PregnancyUtility.CanEverProduceChild(pawn, relation.OtherPawn);
+                if (!canProduce.Accepted)
+                {
+                    AddChild(approachItem, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = $"{"PregnancyNotPossible".Translate()}: {canProduce.Reason.CapitalizeFirst()}",
+                        IndentLevel = childIndent,
+                        IsExpandable = false
+                    });
+                    return;
+                }
+
+                foreach (PregnancyApproach approach in Enum.GetValues(typeof(PregnancyApproach)))
+                {
+                    bool isCurrent = approach == relation.CurrentPregnancyApproach;
+                    string optionLabel = isCurrent
+                        ? $"{"Current".Translate()}: {approach.GetDescription()}"
+                        : approach.GetDescription();
+
+                    var optionItem = new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.Action,
+                        Label = optionLabel,
+                        IndentLevel = childIndent,
+                        IsExpandable = false
+                    };
+
+                    if (!isCurrent)
+                    {
+                        var capturedApproach = approach;
+                        optionItem.OnActivate = () =>
+                        {
+                            SocialTabHelper.SetPregnancyApproach(pawn, relation.OtherPawn, capturedApproach);
+                            relation.CurrentPregnancyApproach = capturedApproach;
+                            approachItem.Children.Clear();
+                            approachItem.IsExpanded = false;
+                            approachItem.Label = $"{"PregnancyApproach".Translate()}: {capturedApproach.GetLabel().CapitalizeFirst()}";
+                        };
+                    }
+
+                    AddChild(approachItem, optionItem);
+                }
+            };
+
+            AddChild(parentItem, approachItem);
+        }
+
+        /// <summary>
+        /// Builds the Try Romance sub-menu within the Social category.
+        /// Shows romance targets with success chance, gated behind Biotech DLC and pawn eligibility.
+        /// Follows the same lazy-loading pattern as BuildPregnancyApproachMenu.
+        /// </summary>
+        private static void BuildRomanceMenu(InspectionTreeItem parentItem, Pawn pawn)
+        {
+            string romanceLabel = "TryRomanceButtonLabel".Translate();
+            int childIndent = parentItem.IndentLevel + 1;
+
+            // Check cooldown first
+            if (SocialTabHelper.IsRomanceOnCooldown(pawn, out string cooldownText))
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = $"{romanceLabel}: {cooldownText}",
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            // Check initiator eligibility
+            var eligibility = SocialTabHelper.GetRomanceInitiatorEligibility(pawn);
+            if (!eligibility.Accepted)
+            {
+                if (!eligibility.Reason.NullOrEmpty())
+                {
+                    AddChild(parentItem, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = $"{romanceLabel}: {eligibility.Reason}",
+                        IndentLevel = childIndent,
+                        IsExpandable = false
+                    });
+                }
+                return;
+            }
+
+            // Eligible: create expandable SubCategory with lazy-loaded targets
+            var romanceItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = romanceLabel,
+                Data = pawn,
+                IndentLevel = childIndent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+
+            romanceItem.OnActivate = () =>
+            {
+                if (romanceItem.Children.Count > 0)
+                    return; // Already built
+
+                var targets = SocialTabHelper.GetRomanceTargets(pawn);
+
+                if (targets.Count == 0)
+                {
+                    AddChild(romanceItem, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = "TryRomanceNoOptsMessage".Translate(pawn),
+                        IndentLevel = romanceItem.IndentLevel + 1,
+                        IsExpandable = false
+                    });
+                    return;
+                }
+
+                int targetIndent = romanceItem.IndentLevel + 1;
+
+                foreach (var target in targets)
+                {
+                    if (target.IsViable)
+                    {
+                        string targetLabel = string.Format("{0} ({1} {2})",
+                            target.TargetName,
+                            target.Chance.ToStringPercent(),
+                            "chance".Translate());
+
+                        var capturedTarget = target;
+                        var targetItem = new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.Action,
+                            Label = targetLabel,
+                            Data = target.Target,
+                            IndentLevel = targetIndent,
+                            IsExpandable = false
+                        };
+
+                        targetItem.OnActivate = () =>
+                        {
+                            if (SocialTabHelper.InitiateRomance(pawn, capturedTarget.Target))
+                            {
+                                TolkHelper.Speak($"{pawn.LabelShort} will try to romance {capturedTarget.TargetName}");
+                            }
+                            else
+                            {
+                                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                            }
+                        };
+
+                        targetItem.OnInfo = () =>
+                        {
+                            string breakdown = SocialTabHelper.BuildRomanceBreakdown(
+                                pawn, capturedTarget.Target);
+                            StatBreakdownState.Open(
+                                $"{capturedTarget.TargetName} - {"RomanceChance".Translate()}: {capturedTarget.Chance.ToStringPercent()}",
+                                breakdown);
+                        };
+
+                        AddChild(romanceItem, targetItem);
+                    }
+                    else
+                    {
+                        AddChild(romanceItem, new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.DetailText,
+                            Label = $"{target.TargetName} ({target.Reason})",
+                            IndentLevel = targetIndent,
+                            IsExpandable = false
+                        });
+                    }
+                }
+            };
+
+            AddChild(parentItem, romanceItem);
         }
 
         /// <summary>
@@ -1171,73 +1551,335 @@ namespace RimWorldAccess
                 return;
             }
 
+            int childIndent = parentItem.IndentLevel + 1;
+
             // Add ideology name
-            var ideoNameItem = new InspectionTreeItem
+            AddChild(parentItem, new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.DetailText,
                 Label = $"Ideology: {ideologyInfo.IdeoName}",
-                IndentLevel = parentItem.IndentLevel + 1,
+                IndentLevel = childIndent,
                 IsExpandable = false
-            };
-            AddChild(parentItem, ideoNameItem);
+            });
 
-            // Add certainty
-            var certaintyItem = new InspectionTreeItem
+            // Add combined certainty with change rate (matches game tooltip format)
+            string certaintyText = "Certainty".Translate().CapitalizeFirst();
+            string certaintyLabel = $"{certaintyText}: {ideologyInfo.Certainty:P0}";
+            float changePerDay = pawn.ideo.CertaintyChangePerDay;
+            if (Math.Abs(changePerDay) > 0.001f)
+            {
+                string rateText = changePerDay.ToStringPercent();
+                if (changePerDay > 0) rateText = "+" + rateText;
+                certaintyLabel += $" ({"CertaintyChangePerDay".Translate()}: {rateText})";
+            }
+            AddChild(parentItem, new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.DetailText,
-                Label = $"Certainty: {ideologyInfo.Certainty:P0}",
-                IndentLevel = parentItem.IndentLevel + 1,
+                Label = certaintyLabel,
+                IndentLevel = childIndent,
                 IsExpandable = false
-            };
-            AddChild(parentItem, certaintyItem);
+            });
 
-            // Add role if available
-            if (!string.IsNullOrEmpty(ideologyInfo.RoleName))
+            // Add Roles expandable section with assign/unassign actions
+            var availableRoles = SocialTabHelper.GetAvailableRoles(pawn);
+            if (availableRoles.Count > 0)
             {
+                var rolesItem = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.SubCategory,
+                    Label = "IdeoRoles".Translate().CapitalizeFirst(),
+                    Data = pawn,
+                    IndentLevel = childIndent,
+                    IsExpandable = true,
+                    IsExpanded = false
+                };
+                rolesItem.OnActivate = () => BuildRolesChildren(rolesItem, pawn, availableRoles);
+                AddChild(parentItem, rolesItem);
+            }
+        }
+
+        /// <summary>
+        /// Builds children for the Roles section under Ideology.
+        /// Lists each active role with its current holder and assign/unassign actions.
+        /// </summary>
+        private static void BuildRolesChildren(InspectionTreeItem parentItem, Pawn pawn, List<Precept_Role> roles)
+        {
+            if (parentItem.Children.Count > 0)
+                return; // Already built
+
+            int childIndent = parentItem.IndentLevel + 1;
+
+            foreach (var role in roles)
+            {
+                Pawn currentHolder = role.ChosenPawnSingle();
+                string holderName = currentHolder != null ? currentHolder.LabelShort.StripTags() : (string)"NoRoleAssigned".Translate();
+                string roleLabel = $"{role.LabelCap}: {holderName}";
+
                 var roleItem = new InspectionTreeItem
                 {
-                    Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = $"Role: {ideologyInfo.RoleName}",
-                    IndentLevel = parentItem.IndentLevel + 1,
-                    IsExpandable = false
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = roleLabel,
+                    Data = role,
+                    IndentLevel = childIndent,
+                    IsExpandable = true,
+                    IsExpanded = false
                 };
+
+                var capturedRole = role;
+                roleItem.OnActivate = () => BuildRoleDetailChildren(roleItem, pawn, capturedRole);
                 AddChild(parentItem, roleItem);
             }
+        }
 
-            // Add detailed certainty info
-            if (!string.IsNullOrEmpty(ideologyInfo.CertaintyDetails))
+        /// <summary>
+        /// Builds detail children for a specific role, including assign/unassign actions.
+        /// </summary>
+        private static void BuildRoleDetailChildren(InspectionTreeItem roleItem, Pawn pawn, Precept_Role role)
+        {
+            if (roleItem.Children.Count > 0)
+                return; // Already built
+
+            int childIndent = roleItem.IndentLevel + 1;
+            bool pawnHoldsRole = role.IsAssigned(pawn);
+            bool pawnIsEligible = SocialTabHelper.IsEligibleForRole(role, pawn);
+
+            // Add Assign action if pawn is eligible and not already assigned
+            if (!pawnHoldsRole && pawnIsEligible)
             {
-                var certaintyDetails = ideologyInfo.CertaintyDetails.StripTags();
-                var lines = certaintyDetails.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var line in lines.Where(l => !string.IsNullOrWhiteSpace(l)))
+                var assignItem = new InspectionTreeItem
                 {
-                    var detailItem = new InspectionTreeItem
-                    {
-                        Type = InspectionTreeItem.ItemType.DetailText,
-                        Label = line.Trim(),
-                        IndentLevel = parentItem.IndentLevel + 1,
-                        IsExpandable = false
-                    };
-                    AddChild(parentItem, detailItem);
-                }
+                    Type = InspectionTreeItem.ItemType.Action,
+                    Label = $"Assign {pawn.LabelShort.StripTags()}",
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                };
+                assignItem.OnActivate = () =>
+                {
+                    SocialTabHelper.AssignRole(role, pawn);
+                    // Rebuild: clear children so they refresh with updated holder
+                    roleItem.Children.Clear();
+                    roleItem.IsExpanded = false;
+                    // Update the role label
+                    roleItem.Label = $"{role.LabelCap}: {pawn.LabelShort.StripTags()}";
+                };
+                AddChild(roleItem, assignItem);
             }
 
-            // Add role details if available
-            if (!string.IsNullOrEmpty(ideologyInfo.RoleDetails))
+            // Add Unassign action if pawn holds this role
+            if (pawnHoldsRole)
             {
-                var roleDetails = ideologyInfo.RoleDetails.StripTags();
-                var lines = roleDetails.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var line in lines.Where(l => !string.IsNullOrWhiteSpace(l)))
+                var unassignItem = new InspectionTreeItem
                 {
-                    var detailItem = new InspectionTreeItem
+                    Type = InspectionTreeItem.ItemType.Action,
+                    Label = $"Unassign {pawn.LabelShort.StripTags()}",
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                };
+                unassignItem.OnActivate = () =>
+                {
+                    SocialTabHelper.UnassignRole(role, pawn);
+                    // Rebuild: clear children so they refresh with updated holder
+                    roleItem.Children.Clear();
+                    roleItem.IsExpanded = false;
+                    // Update the role label
+                    roleItem.Label = $"{role.LabelCap}: {"NoRoleAssigned".Translate()}";
+                };
+                AddChild(roleItem, unassignItem);
+            }
+
+            // Show why pawn can't be assigned if not eligible
+            if (!pawnHoldsRole && !pawnIsEligible)
+            {
+                var unmetReq = role.GetFirstUnmetRequirement(pawn);
+                string reason = unmetReq != null
+                    ? $"Cannot assign: {unmetReq.GetLabelCap(role).StripTags()}"
+                    : "Cannot assign: requirements not met";
+                AddChild(roleItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = reason,
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                });
+            }
+
+            // Add role description
+            if (!string.IsNullOrEmpty(role.def.description))
+            {
+                AddChild(roleItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = role.def.description.StripTags(),
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                });
+            }
+
+            // Add role requirements
+            if (role.def.roleRequirements != null && role.def.roleRequirements.Count > 0)
+            {
+                var reqsItem = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.SubCategory,
+                    Label = "Requirements",
+                    IndentLevel = childIndent,
+                    IsExpandable = true,
+                    IsExpanded = false
+                };
+                reqsItem.OnActivate = () =>
+                {
+                    if (reqsItem.Children.Count > 0) return;
+                    foreach (var req in role.def.roleRequirements)
                     {
-                        Type = InspectionTreeItem.ItemType.DetailText,
-                        Label = line.Trim(),
-                        IndentLevel = parentItem.IndentLevel + 1,
-                        IsExpandable = false
-                    };
-                    AddChild(parentItem, detailItem);
+                        string reqLabel = req.GetLabelCap(role).StripTags();
+                        if (!string.IsNullOrEmpty(reqLabel))
+                        {
+                            AddChild(reqsItem, new InspectionTreeItem
+                            {
+                                Type = InspectionTreeItem.ItemType.DetailText,
+                                Label = reqLabel,
+                                IndentLevel = reqsItem.IndentLevel + 1,
+                                IsExpandable = false
+                            });
+                        }
+                    }
+                };
+                AddChild(roleItem, reqsItem);
+            }
+
+            // Add role effects
+            if (role.def.roleEffects != null && role.def.roleEffects.Count > 0)
+            {
+                var effectsItem = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.SubCategory,
+                    Label = "Effects".Translate().CapitalizeFirst(),
+                    IndentLevel = childIndent,
+                    IsExpandable = true,
+                    IsExpanded = false
+                };
+                effectsItem.OnActivate = () =>
+                {
+                    if (effectsItem.Children.Count > 0) return;
+                    foreach (var effect in role.def.roleEffects)
+                    {
+                        string effectLabel = effect.Label(pawn, role).StripTags();
+                        if (!string.IsNullOrEmpty(effectLabel))
+                        {
+                            AddChild(effectsItem, new InspectionTreeItem
+                            {
+                                Type = InspectionTreeItem.ItemType.DetailText,
+                                Label = effectLabel,
+                                IndentLevel = effectsItem.IndentLevel + 1,
+                                IsExpandable = false
+                            });
+                        }
+                    }
+                };
+                AddChild(roleItem, effectsItem);
+            }
+        }
+
+        /// <summary>
+        /// Builds children for Genes category using GeneTreeBuilder.
+        /// </summary>
+        private static void BuildGenesChildren(InspectionTreeItem categoryItem, Pawn pawn)
+        {
+            if (categoryItem.Children.Count > 0)
+                return; // Already built
+
+            if (pawn?.genes == null || !ModsConfig.BiotechActive)
+            {
+                AddChild(categoryItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "No gene information available",
+                    IndentLevel = categoryItem.IndentLevel + 1,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            var geneTree = GeneTreeBuilder.BuildAdultGeneTree(pawn);
+
+            // Copy children from the gene tree root into our category item
+            foreach (var child in geneTree.Children)
+            {
+                child.Parent = categoryItem;
+                child.IndentLevel = categoryItem.IndentLevel + 1;
+                AdjustChildIndents(child, categoryItem.IndentLevel + 1);
+                categoryItem.Children.Add(child);
+            }
+
+            // Update category label with xenotype info
+            string xenotypeLabel = pawn.genes.XenotypeLabelCap;
+            int geneCount = pawn.genes.GenesListForReading?.Count ?? 0;
+            categoryItem.Label = $"Genes: {xenotypeLabel} ({geneCount} {(geneCount == 1 ? "gene" : "genes")})";
+        }
+
+        /// <summary>
+        /// Builds children for Genes category for GeneSetHolderBase items (embryos, genepacks, xenogerms).
+        /// Uses GeneTreeBuilder.BuildTree() to create the gene tree from the item's GeneSet.
+        /// </summary>
+        private static void BuildGeneSetHolderGenesChildren(InspectionTreeItem categoryItem, GeneSetHolderBase holder)
+        {
+            if (categoryItem.Children.Count > 0)
+                return; // Already built
+
+            if (holder.GeneSet == null || !ModsConfig.BiotechActive)
+            {
+                AddChild(categoryItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "No gene information available",
+                    IndentLevel = categoryItem.IndentLevel + 1,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            // Get parent names for embryos (HumanEmbryo has Mother/Father via CompHasPawnSources)
+            string motherName = null;
+            string fatherName = null;
+            if (holder is HumanEmbryo embryo)
+            {
+                try
+                {
+                    motherName = embryo.Mother?.LabelShort;
+                    fatherName = embryo.Father?.LabelShort;
                 }
+                catch { /* CompHasPawnSources may not be available */ }
+            }
+
+            var geneTree = GeneTreeBuilder.BuildTree(holder.GeneSet, motherName, fatherName);
+
+            // Copy children from the gene tree root into our category item
+            foreach (var child in geneTree.Children)
+            {
+                child.Parent = categoryItem;
+                child.IndentLevel = categoryItem.IndentLevel + 1;
+                AdjustChildIndents(child, categoryItem.IndentLevel + 1);
+                categoryItem.Children.Add(child);
+            }
+
+            // Update category label with gene count info
+            int geneCount = holder.GeneSet.GenesListForReading?.Count ?? 0;
+            string xenotype = holder.GeneSet.Label;
+            if (!string.IsNullOrEmpty(xenotype) && xenotype != "ERR")
+                categoryItem.Label = $"Genes: {xenotype} ({geneCount} {(geneCount == 1 ? "gene" : "genes")})";
+            else
+                categoryItem.Label = $"Genes ({geneCount} {(geneCount == 1 ? "gene" : "genes")})";
+        }
+
+        /// <summary>
+        /// Recursively adjusts indent levels of children relative to a new base indent.
+        /// </summary>
+        private static void AdjustChildIndents(InspectionTreeItem item, int baseIndent)
+        {
+            item.IndentLevel = baseIndent;
+            foreach (var child in item.Children)
+            {
+                AdjustChildIndents(child, baseIndent + 1);
             }
         }
 
@@ -2156,36 +2798,73 @@ namespace RimWorldAccess
             int indent = parentItem.IndentLevel + 1;
             var calculator = penMarker.PenFoodCalculator;
 
-            // Summary item
+            // Unenclosed check - game shows only this message when pen is not enclosed
+            if (calculator.Unenclosed)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = "Not Enclosed - pen must be fully enclosed to function",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            // Pen size description
+            string penSize = calculator.PenSizeDescription();
+            if (!string.IsNullOrEmpty(penSize))
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = $"Pen Size: {penSize}",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+            }
+
+            // Nutrition balance summary
             float growth = calculator.NutritionPerDayToday;
             float consumption = calculator.SumNutritionConsumptionPerDay;
             float balance = growth - consumption;
             string balanceStr = balance >= 0 ? $"+{balance:F1}" : $"{balance:F1}";
             string summaryText = $"Balance: {balanceStr} nutrition/day (growth: {growth:F1}, consumption: {consumption:F1})";
 
-            var summaryItem = new InspectionTreeItem
+            AddChild(parentItem, new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.Item,
                 Label = summaryText,
                 IndentLevel = indent,
                 IsExpandable = false
-            };
-            AddChild(parentItem, summaryItem);
+            });
 
             // Stockpiled food
             if (calculator.sumStockpiledNutritionAvailableNow > 0)
             {
-                var stockpileItem = new InspectionTreeItem
+                AddChild(parentItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
                     Label = $"Stockpiled: {calculator.sumStockpiledNutritionAvailableNow:F1} nutrition",
                     IndentLevel = indent,
                     IsExpandable = false
-                };
-                AddChild(parentItem, stockpileItem);
+                });
+
+                // Days until stockpile is empty (only when in deficit)
+                if (balance < 0)
+                {
+                    float daysUntilEmpty = calculator.sumStockpiledNutritionAvailableNow / (-balance);
+                    AddChild(parentItem, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.Item,
+                        Label = $"Stockpile lasts: {daysUntilEmpty:F1} days",
+                        IndentLevel = indent,
+                        IsExpandable = false
+                    });
+                }
             }
 
-            // Animals category
+            // Animals in pen
             var animalInfos = calculator.ActualAnimalInfos;
             if (animalInfos != null && animalInfos.Count > 0)
             {
@@ -2208,19 +2887,156 @@ namespace RimWorldAccess
                             int count = info.count;
                             string animalText = $"{animalLabel} ({count}): -{animalConsumption:F2}/day";
 
-                            var animalItem = new InspectionTreeItem
+                            AddChild(animalsCategory, new InspectionTreeItem
                             {
                                 Type = InspectionTreeItem.ItemType.Item,
                                 Label = animalText,
                                 IndentLevel = indent + 1,
                                 IsExpandable = false
-                            };
-                            AddChild(animalsCategory, animalItem);
+                            });
                         }
                     }
                 };
                 AddChild(parentItem, animalsCategory);
             }
+
+            // Example Animals and Add Example Animal — these cross-reference each other
+            // so changes in one rebuild both sections and refresh the visible list.
+            var examplesCategory = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = "Example Animals",
+                IndentLevel = indent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+
+            var addExampleCategory = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = "Add Example Animal",
+                IndentLevel = indent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+
+            // Shared helper to rebuild both sections' children from current data
+            System.Action rebuildExampleSections = null;
+            rebuildExampleSections = () =>
+            {
+                // Rebuild "Example Animals" children
+                examplesCategory.Children.Clear();
+                var currentDefs = penMarker.ForceDisplayedAnimalDefs;
+                if (currentDefs != null && currentDefs.Count > 0)
+                {
+                    var infos = calculator.ComputeExampleAnimals(currentDefs);
+                    Quadrum bestQuadrum = calculator.GetSummerOrBestQuadrum();
+                    examplesCategory.Label = $"Example Animals ({(infos?.Count ?? 0)} types)";
+                    if (infos != null)
+                    {
+                        foreach (var info in infos)
+                        {
+                            if (info.animalDef == null) continue;
+                            string label = info.animalDef.label?.CapitalizeFirst() ?? "Unknown";
+                            float capacity = calculator.CapacityOf(bestQuadrum, info.animalDef);
+                            float perAnimal = info.nutritionConsumptionPerDay;
+                            string text = $"{label}: max {capacity:F0}, consumes {perAnimal:F2}/day (Enter to remove)";
+
+                            var exampleItem = new InspectionTreeItem
+                            {
+                                Type = InspectionTreeItem.ItemType.Action,
+                                Label = text,
+                                IndentLevel = indent + 1,
+                                IsExpandable = false
+                            };
+                            ThingDef capturedDef = info.animalDef;
+                            exampleItem.OnActivate = () =>
+                            {
+                                penMarker.RemoveForceDisplayedAnimal(capturedDef);
+                                string removedName = capturedDef.label?.CapitalizeFirst() ?? "Unknown";
+                                TolkHelper.Speak($"Removed example: {removedName}");
+                                rebuildExampleSections();
+                            };
+                            AddChild(examplesCategory, exampleItem);
+                        }
+                    }
+                }
+                else
+                {
+                    examplesCategory.Label = "Example Animals (0 types)";
+                }
+
+                // Rebuild "Add Example Animal" children
+                addExampleCategory.Children.Clear();
+                var map = building.Map;
+                if (map != null)
+                {
+                    var grazingAnimals = map.plantGrowthRateCalculator.GrazingAnimals;
+                    var currentExamples = penMarker.ForceDisplayedAnimalDefs ?? new List<ThingDef>();
+                    var available = new List<ThingDef>();
+                    foreach (var animal in grazingAnimals)
+                    {
+                        if (!currentExamples.Contains(animal))
+                            available.Add(animal);
+                    }
+
+                    if (available.Count == 0)
+                    {
+                        AddChild(addExampleCategory, new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.Item,
+                            Label = "No more animals available",
+                            IndentLevel = indent + 1,
+                            IsExpandable = false
+                        });
+                    }
+                    else
+                    {
+                        foreach (var animal in available)
+                        {
+                            string animalName = animal.label?.CapitalizeFirst() ?? "Unknown";
+                            ThingDef capturedAnimal = animal;
+                            var animalChoice = new InspectionTreeItem
+                            {
+                                Type = InspectionTreeItem.ItemType.Action,
+                                Label = animalName,
+                                IndentLevel = indent + 1,
+                                IsExpandable = false
+                            };
+                            animalChoice.OnActivate = () =>
+                            {
+                                penMarker.AddForceDisplayedAnimal(capturedAnimal);
+                                TolkHelper.Speak($"Added example: {animalName}");
+                                rebuildExampleSections();
+                            };
+                            AddChild(addExampleCategory, animalChoice);
+                        }
+                    }
+                }
+
+                // Re-flatten the visible items list so the UI reflects changes
+                WindowlessInspectionState.RefreshVisibleList();
+            };
+
+            // Wire up OnActivate to lazy-load via the shared rebuild
+            examplesCategory.OnActivate = () =>
+            {
+                if (examplesCategory.Children.Count == 0)
+                    rebuildExampleSections();
+            };
+            addExampleCategory.OnActivate = () =>
+            {
+                if (addExampleCategory.Children.Count == 0)
+                    rebuildExampleSections();
+            };
+
+            // Update the example animals label with current count
+            var initialDefs = penMarker.ForceDisplayedAnimalDefs;
+            int initialCount = (initialDefs != null) ? initialDefs.Count : 0;
+            examplesCategory.Label = $"Example Animals ({initialCount} types)";
+
+            AddChild(parentItem, examplesCategory);
+            AddChild(parentItem, addExampleCategory);
 
             // Stockpiled items breakdown
             var stockpileInfos = calculator.AllStockpiledInfos;
@@ -2244,19 +3060,227 @@ namespace RimWorldAccess
                             float nutrition = info.totalNutritionAvailable;
                             string foodText = $"{foodLabel}: {nutrition:F1} nutrition";
 
-                            var foodItem = new InspectionTreeItem
+                            AddChild(foodCategory, new InspectionTreeItem
                             {
                                 Type = InspectionTreeItem.ItemType.Item,
                                 Label = foodText,
                                 IndentLevel = indent + 1,
                                 IsExpandable = false
-                            };
-                            AddChild(foodCategory, foodItem);
+                            });
                         }
                     }
                 };
                 AddChild(parentItem, foodCategory);
             }
+        }
+
+        /// <summary>
+        /// Builds children for the Pen Auto-Cut category.
+        /// Shows auto-cut toggle, Cut Now button, and plant filter access.
+        /// </summary>
+        private static void BuildPenAutoCutChildren(InspectionTreeItem parentItem, Building building)
+        {
+            var penMarker = building.TryGetComp<CompAnimalPenMarker>();
+            if (penMarker == null)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+            bool penEnclosed = penMarker.PenState.Enclosed;
+
+            // Auto-cut toggle
+            string toggleLabel = penMarker.autoCut
+                ? "Auto-Cut Plants: Enabled"
+                : "Auto-Cut Plants: Disabled";
+            if (!penEnclosed)
+                toggleLabel += " (pen not enclosed)";
+
+            var toggleItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.Action,
+                Label = toggleLabel,
+                IndentLevel = indent,
+                IsExpandable = false
+            };
+            toggleItem.OnActivate = () =>
+            {
+                penMarker.autoCut = !penMarker.autoCut;
+                string state = penMarker.autoCut ? "Enabled" : "Disabled";
+                toggleItem.Label = penMarker.autoCut
+                    ? "Auto-Cut Plants: Enabled"
+                    : "Auto-Cut Plants: Disabled";
+                if (!penMarker.PenState.Enclosed)
+                    toggleItem.Label += " (pen not enclosed)";
+                TolkHelper.Speak($"Auto-cut {state}");
+            };
+            AddChild(parentItem, toggleItem);
+
+            // Cut Now button
+            var cutNowItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.Action,
+                Label = penEnclosed ? "Cut Now" : "Cut Now (pen not enclosed)",
+                IndentLevel = indent,
+                IsExpandable = false
+            };
+            cutNowItem.OnActivate = () =>
+            {
+                if (penMarker.PenState.Enclosed)
+                {
+                    penMarker.DesignatePlantsToCut();
+                    TolkHelper.Speak("Designated plants for cutting");
+                }
+                else
+                {
+                    TolkHelper.Speak("Cannot cut: pen is not enclosed");
+                }
+            };
+            AddChild(parentItem, cutNowItem);
+
+            // Plant filter action
+            var filterItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.Action,
+                Label = "Plant Filter",
+                IndentLevel = indent,
+                IsExpandable = false
+            };
+            filterItem.OnActivate = () =>
+            {
+                var fixedFilter = penMarker.parent.Map?.animalPenManager?.GetFixedAutoCutFilter();
+                ThingFilterMenuState.Open(penMarker.AutoCutFilter, fixedFilter, "Pen Auto-Cut Plants");
+            };
+            AddChild(parentItem, filterItem);
+        }
+
+        /// <summary>
+        /// Builds children for the Linked Facilities category.
+        /// Shows facility provider info, consumer info, linked buildings, and compatible facilities.
+        /// </summary>
+        private static void BuildFacilityChildren(InspectionTreeItem parentItem, Building building)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+            var entries = FacilityLinkHelper.GetFacilityEntries(building);
+
+            if (entries.Count == 0)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "No facility linking information.",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            foreach (var entry in entries)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = entry.Label,
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+            }
+        }
+
+        /// <summary>
+        /// Builds children for the Meditation Focus category, listing nearby focus objects.
+        /// </summary>
+        private static void BuildMeditationFocusChildren(InspectionTreeItem parentItem, Building building)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+
+            if (!building.Spawned)
+                return;
+
+            var map = building.Map;
+            var center = building.Position;
+            float searchRadius = MeditationUtility.FocusObjectSearchRadius;
+
+            foreach (Thing thing in GenRadial.RadialDistinctThingsAround(center, map, searchRadius, useCenter: false))
+            {
+                CompMeditationFocus focusComp = thing.TryGetComp<CompMeditationFocus>();
+                if (focusComp == null)
+                    continue;
+
+                if (thing is Building_Throne)
+                    continue;
+
+                var sb = new System.Text.StringBuilder();
+                sb.Append(thing.LabelCap.ToString().StripTags());
+
+                // Focus types
+                if (focusComp.Props.focusTypes != null && focusComp.Props.focusTypes.Count > 0)
+                {
+                    string types = string.Join(", ",
+                        focusComp.Props.focusTypes.Select(f => f.label.CapitalizeFirst()));
+                    sb.Append($" - {types}");
+                }
+
+                // Focus strength
+                float strength = thing.GetStatValue(StatDefOf.MeditationFocusStrength);
+                sb.Append($" - Strength: {strength.ToStringPercent()}");
+
+                // Distance
+                float distance = center.DistanceTo(thing.Position);
+                sb.Append($" - {distance:F1} cells");
+
+                // Line of sight
+                if (!GenSight.LineOfSightToThing(center, thing, map))
+                {
+                    sb.Append(" - No line of sight");
+                }
+
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = sb.ToString(),
+                    IndentLevel = indent,
+                    IsExpandable = false,
+                    LinkedDef = thing.def,
+                    Data = thing
+                });
+            }
+
+            if (parentItem.Children.Count == 0)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = $"No meditation focus objects within {searchRadius:F0} cells.",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+            }
+        }
+
+        /// <summary>
+        /// Checks if there are any meditation focus objects near a building.
+        /// </summary>
+        private static bool HasNearbyMeditationFocusObjects(Building building)
+        {
+            if (!building.Spawned)
+                return false;
+
+            foreach (Thing thing in GenRadial.RadialDistinctThingsAround(
+                building.Position, building.Map, MeditationUtility.FocusObjectSearchRadius, useCenter: false))
+            {
+                if (thing is Building_Throne)
+                    continue;
+
+                if (thing.TryGetComp<CompMeditationFocus>() != null)
+                    return true;
+            }
+
+            return false;
         }
     }
 }

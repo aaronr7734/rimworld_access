@@ -357,6 +357,27 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Opens an info card for the currently selected research project.
+        /// For category nodes, announces that no info card is available.
+        /// </summary>
+        public static void OpenInfoCard()
+        {
+            if (flatNavigationList.Count == 0) return;
+
+            var current = flatNavigationList[currentIndex];
+
+            if (current.Type == ResearchMenuNodeType.Project && current.Project != null)
+            {
+                Find.WindowStack.Add(new Dialog_InfoCard(current.Project));
+            }
+            else
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No info card available for categories");
+            }
+        }
+
+        /// <summary>
         /// Helper method that clears typeahead search and announces the current selection.
         /// Used as callback for MenuHelper tree navigation methods.
         /// </summary>

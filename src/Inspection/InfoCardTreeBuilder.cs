@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
+using RimWorld.Planet;
 using Verse;
+using Verse.Sound;
 
 namespace RimWorldAccess
 {
@@ -76,7 +78,43 @@ namespace RimWorldAccess
                 return $"{infoCardLabel}: {thing.LabelCapNoCount}";
             }
 
+            var worldObject = InfoCardDataExtractor.GetWorldObject(dialog);
+            if (worldObject != null)
+            {
+                return $"{infoCardLabel}: {worldObject.LabelCap}";
+            }
+
+            var hediff = InfoCardDataExtractor.GetHediff(dialog);
+            if (hediff != null)
+            {
+                return $"{infoCardLabel}: {hediff.def.LabelCap}";
+            }
+
             var def = InfoCardDataExtractor.GetDef(dialog);
+            var stuff = InfoCardDataExtractor.GetStuff(dialog);
+
+            if (def is ThingDef thingDef && stuff != null)
+            {
+                return $"{infoCardLabel}: {GenLabel.ThingLabel(thingDef, stuff).CapitalizeFirst()}";
+            }
+
+            if (def is AbilityDef abilityDef)
+            {
+                return $"{infoCardLabel}: {abilityDef.LabelCap}";
+            }
+
+            var titleDef = InfoCardDataExtractor.GetTitleDef(dialog);
+            if (titleDef != null)
+            {
+                return $"{infoCardLabel}: {titleDef.GetLabelCapForBothGenders()}";
+            }
+
+            var faction = InfoCardDataExtractor.GetFaction(dialog);
+            if (faction != null)
+            {
+                return $"{infoCardLabel}: {faction.Name}";
+            }
+
             if (def != null)
             {
                 return $"{infoCardLabel}: {def.LabelCap}";
@@ -167,6 +205,11 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Pre-fetch the dialog's thing for gene label enrichment (avoids repeated reflection)
+            var dialogThing = InfoCardDataExtractor.GetThing(dialog);
+            GeneSetHolderBase geneSetHolder = dialogThing as GeneSetHolderBase;
+            string genesTranslated = ModsConfig.BiotechActive ? "Genes".Translate().CapitalizeFirst().ToString() : null;
+
             // Group by category label (not object) to avoid duplicate headers for same-named categories
             var grouped = entries
                 .GroupBy(e => e.category.LabelCap.ToString())
@@ -180,21 +223,114 @@ namespace RimWorldAccess
 
                 // Add stat items under this category
                 var sortedEntries = group.Entries.OrderByDescending(e => e.DisplayPriorityWithinCategory);
+                // Get the dialog's Def for xenotype-specific handling
+                var dialogDef = InfoCardDataExtractor.GetDef(dialog);
+
                 foreach (var entry in sortedEntries)
                 {
-                    string label = $"{entry.LabelCap}: {entry.ValueString}";
+                    string value = entry.ValueString;
+                    bool emptyValue = string.IsNullOrEmpty(value);
+
+                    // When value is empty (e.g. Description), use first line of explanation text
+                    if (emptyValue)
+                    {
+                        try
+                        {
+                            string explanation = entry.GetExplanationText(StatRequest.ForEmpty())?.Trim();
+                            if (!string.IsNullOrEmpty(explanation))
+                            {
+                                int firstBreak = explanation.IndexOfAny(new[] { '\n', '\r' });
+                                value = firstBreak > 0 ? explanation.Substring(0, firstBreak).Trim() : explanation;
+                            }
+                        }
+                        catch { }
+                    }
+
+                    string label = string.IsNullOrEmpty(value)
+                        ? entry.LabelCap.ToString()
+                        : $"{entry.LabelCap}: {value}";
+
+                    // Enrich gene labels for GeneSetHolderBase items with shade-aware descriptions.
+                    // Also suppress the useless explanation (just a header like "Genes:") since
+                    // the label already contains all gene names with shade descriptions.
+                    bool suppressExplanation = false;
+                    if (geneSetHolder?.GeneSet != null &&
+                        genesTranslated != null &&
+                        entry.LabelCap.ToString() == genesTranslated)
+                    {
+                        var genes = geneSetHolder.GeneSet.GenesListForReading;
+                        if (genes != null && genes.Count > 0)
+                        {
+                            string shadeAwareValue = string.Join(", ", genes.Select(g => GeneTreeBuilder.GetGeneDisplayLabel(g)));
+                            label = $"{entry.LabelCap}: {shadeAwareValue}";
+                        }
+                        suppressExplanation = true;
+                    }
+
+                    // Enrich label with hyperlink def names when the entry has a real value.
+                    // Skip for empty-value entries (like Description) — those get explanation text
+                    // as their label instead, and hyperlinks remain accessible via Alt+I.
+                    if (!emptyValue)
+                    {
+                        try
+                        {
+                            var hyperlinks = entry.GetHyperlinks(StatRequest.ForEmpty());
+                            if (hyperlinks != null)
+                            {
+                                var defNames = new List<string>();
+                                foreach (var link in hyperlinks)
+                                {
+                                    string name = link.def?.label ?? link.thing?.def?.label;
+                                    if (!string.IsNullOrEmpty(name) && !label.ToLower().Contains(name.ToLower()))
+                                        defNames.Add(name.CapitalizeFirst());
+                                }
+                                if (defNames.Count > 0)
+                                    label += $" ({string.Join(", ", defNames)})";
+                            }
+                        }
+                        catch { }
+                    }
+
+                    // Check explanation text upfront to determine expandability
+                    bool hasExplanation = false;
+                    if (!suppressExplanation)
+                    {
+                        try
+                        {
+                            string explanation = entry.GetExplanationText(StatRequest.ForEmpty())?.Trim();
+                            hasExplanation = !string.IsNullOrEmpty(explanation);
+                        }
+                        catch { }
+                    }
+
+                    // Skip entries with no value and no explanation (e.g., Description for things without one)
+                    if (emptyValue && !hasExplanation)
+                        continue;
 
                     var statNode = new InspectionTreeItem
                     {
                         Type = InspectionTreeItem.ItemType.Item,
                         Label = label,
-                        Data = entry,
-                        IsExpandable = true,
+                        Data = emptyValue ? null : (object)entry,
+                        IsExpandable = hasExplanation,
                         IsExpanded = false,
                         IndentLevel = tabNode.IndentLevel + 1
                     };
 
-                    statNode.OnActivate = () => BuildStatDetailChildren(statNode, entry);
+                    if (hasExplanation)
+                    {
+                        // For the "Genes" entry on a XenotypeDef, build individual inspectable gene nodes
+                        if (dialogDef is XenotypeDef xenoDef && genesTranslated != null &&
+                            entry.LabelCap.ToString() == genesTranslated)
+                        {
+                            statNode.Data = xenoDef.genes;
+                            statNode.OnActivate = () => BuildXenotypeGeneChildren(statNode, xenoDef);
+                        }
+                        else
+                        {
+                            statNode.OnActivate = () => BuildStatDetailChildren(statNode, entry);
+                        }
+                    }
 
                     AddChild(tabNode, statNode);
                 }
@@ -229,6 +365,32 @@ namespace RimWorldAccess
                 Log.Error($"[InfoCardTreeBuilder] Error building stat details: {ex.Message}");
                 AddChild(statNode, CreateInfoItem("Unable to load details", statNode.IndentLevel + 1));
             }
+        }
+
+        private static void BuildXenotypeGeneChildren(InspectionTreeItem statNode, XenotypeDef xenoDef)
+        {
+            if (statNode.Children.Count > 0) return;
+
+            foreach (var geneDef in xenoDef.genes)
+            {
+                string geneLabel = geneDef.LabelCap;
+                if (!string.IsNullOrEmpty(geneDef.description))
+                    geneLabel += ". " + geneDef.description;
+
+                var geneNode = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = geneLabel,
+                    Data = geneDef,
+                    IsExpandable = false,
+                    IsExpanded = false,
+                    IndentLevel = statNode.IndentLevel + 1
+                };
+                AddChild(statNode, geneNode);
+            }
+
+            if (statNode.Children.Count == 0)
+                AddChild(statNode, CreateInfoItem("No genes", statNode.IndentLevel + 1));
         }
 
         #endregion
@@ -319,9 +481,9 @@ namespace RimWorldAccess
                 {
                     string passionStr = "";
                     if (passion == Passion.Minor)
-                        passionStr = " *";
+                        passionStr = " (Minor passion)";
                     else if (passion == Passion.Major)
-                        passionStr = " **";
+                        passionStr = " (Major passion)";
 
                     string label = disabled
                         ? $"{def.skillLabel.CapitalizeFirst()}: Disabled"
@@ -331,14 +493,47 @@ namespace RimWorldAccess
                 }
             }
 
-            // Incapable Of
-            var incapableInfo = InfoCardDataExtractor.GetIncapableWorkTypes(pawn);
-            if (incapableInfo.Count > 0)
+            // Incapable Of - organized by WorkTag with inline causes, expandable to show affected work types
+            AddChild(tabNode, CreateCategoryHeader("Incapable Of", tabNode.IndentLevel + 1));
+            var incapableTagsInfo = InfoCardDataExtractor.GetIncapableWorkTagsInfo(pawn);
+            if (incapableTagsInfo.Count == 0)
             {
-                AddChild(tabNode, CreateCategoryHeader("Incapable Of", tabNode.IndentLevel + 1));
-                foreach (var workType in incapableInfo)
+                AddChild(tabNode, CreateInfoItem("None".Translate(), tabNode.IndentLevel + 1));
+            }
+            else
+            {
+                foreach (var (tagLabel, affectedWorkTypes) in incapableTagsInfo)
                 {
-                    AddChild(tabNode, CreateInfoItem(workType, tabNode.IndentLevel + 1));
+                    bool hasWorkTypes = affectedWorkTypes.Count > 0;
+
+                    var tagNode = new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.Item,
+                        Label = tagLabel,
+                        IsExpandable = hasWorkTypes,
+                        IsExpanded = false,
+                        IndentLevel = tabNode.IndentLevel + 1
+                    };
+
+                    if (hasWorkTypes)
+                    {
+                        var capturedWorkTypes = affectedWorkTypes;
+
+                        tagNode.OnActivate = () =>
+                        {
+                            if (tagNode.Children.Count > 0) return;
+
+                            foreach (var workTypeDef in capturedWorkTypes)
+                            {
+                                string label = !string.IsNullOrEmpty(workTypeDef.description)
+                                    ? workTypeDef.pawnLabel + ": " + workTypeDef.description
+                                    : workTypeDef.pawnLabel;
+                                AddChild(tagNode, CreateInfoItem(label, tagNode.IndentLevel + 1));
+                            }
+                        };
+                    }
+
+                    AddChild(tabNode, tagNode);
                 }
             }
 
@@ -427,12 +622,37 @@ namespace RimWorldAccess
                     {
                         AddChild(xenoNode, CreateInfoItem(xenotypeInfo.Value.description.StripTags(), xenoNode.IndentLevel + 1));
                     }
-                    foreach (var gene in xenotypeInfo.Value.genes)
+                    foreach (var (name, def) in xenotypeInfo.Value.genes)
                     {
-                        AddChild(xenoNode, CreateInfoItem($"Gene: {gene}", xenoNode.IndentLevel + 1));
+                        var geneNode = new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.Item,
+                            Label = $"Gene: {name}",
+                            IsExpandable = false,
+                            IsExpanded = false,
+                            IndentLevel = xenoNode.IndentLevel + 1
+                        };
+                        AddChild(xenoNode, geneNode);
                     }
                 };
                 AddChild(tabNode, xenoNode);
+            }
+
+            // Favorite color (Ideology DLC)
+            if (ModsConfig.IdeologyActive && !pawn.DevelopmentalStage.Baby() && pawn.story?.favoriteColor != null)
+            {
+                string orIdeoColor = string.Empty;
+                if (pawn.Ideo != null && !pawn.Ideo.classicMode)
+                {
+                    orIdeoColor = "OrIdeoColor".Translate(pawn.Named("PAWN"));
+                }
+                string colorLabel = "FavoriteColorTooltip".Translate(
+                    pawn.Named("PAWN"),
+                    pawn.story.favoriteColor.label.Named("COLOR"),
+                    0.6f.ToStringPercent().Named("PERCENTAGE"),
+                    orIdeoColor.Named("ORIDEO")
+                ).Resolve();
+                AddChild(tabNode, CreateInfoItem(colorLabel, tabNode.IndentLevel + 1));
             }
         }
 
@@ -473,7 +693,13 @@ namespace RimWorldAccess
                         capacityNode.OnActivate = () =>
                         {
                             if (capacityNode.Children.Count > 0) return;
-                            AddChild(capacityNode, CreateInfoItem(tip.StripTags(), capacityNode.IndentLevel + 1));
+                            var lines = tip.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                            foreach (var line in lines)
+                            {
+                                string trimmedLine = line.Trim().StripTags();
+                                if (!string.IsNullOrEmpty(trimmedLine))
+                                    AddChild(capacityNode, CreateInfoItem(trimmedLine, capacityNode.IndentLevel + 1));
+                            }
                         };
                     }
                     AddChild(tabNode, capacityNode);
@@ -569,7 +795,7 @@ namespace RimWorldAccess
         private static void BuildPermitsTabChildren(InspectionTreeItem tabNode, Dialog_InfoCard dialog)
         {
             var pawn = InfoCardDataExtractor.GetPawn(dialog);
-            if (pawn == null)
+            if (pawn == null || !ModsConfig.RoyaltyActive || pawn.royalty == null)
             {
                 AddChild(tabNode, CreateInfoItem("No permits available", tabNode.IndentLevel + 1));
                 return;
@@ -583,35 +809,242 @@ namespace RimWorldAccess
             }
 
             // Group by faction
-            var grouped = permitsInfo.GroupBy(p => p.factionName);
+            var grouped = permitsInfo.GroupBy(p => p.faction);
             foreach (var group in grouped)
             {
-                // Add faction as category header
-                AddChild(tabNode, CreateCategoryHeader(group.Key, tabNode.IndentLevel + 1));
+                var faction = group.Key;
 
-                foreach (var (permitName, factionName, available, description) in group)
+                // Faction header
+                AddChild(tabNode, CreateCategoryHeader(faction.Name, tabNode.IndentLevel + 1));
+
+                // Title / points / favor info
+                var currentTitle = pawn.royalty.GetCurrentTitle(faction);
+                string titleLabel = currentTitle != null
+                    ? currentTitle.GetLabelFor(pawn).CapitalizeFirst()
+                    : (string)"None".Translate();
+                AddChild(tabNode, CreateInfoItem(
+                    $"{"CurrentTitle".Translate()}: {titleLabel}",
+                    tabNode.IndentLevel + 1));
+
+                int permitPoints = pawn.royalty.GetPermitPoints(faction);
+                AddChild(tabNode, CreateInfoItem(
+                    $"{"UnusedPermits".Translate()}: {permitPoints}",
+                    tabNode.IndentLevel + 1));
+
+                if (!faction.def.royalFavorLabel.NullOrEmpty())
                 {
-                    string availStr = available ? "Available" : "Unavailable";
-                    var permitNode = new InspectionTreeItem
+                    int favor = pawn.royalty.GetFavor(faction);
+                    AddChild(tabNode, CreateInfoItem(
+                        $"{faction.def.royalFavorLabel.CapitalizeFirst()}: {favor}",
+                        tabNode.IndentLevel + 1));
+                }
+
+                // "Return all permits" action
+                if (faction.def.HasRoyalTitles)
+                {
+                    int returnCost = InfoCardDataExtractor.TotalReturnPermitsCost(pawn);
+                    string favorLabel = faction.def.royalFavorLabel.NullOrEmpty()
+                        ? "favor" : faction.def.royalFavorLabel;
+
+                    var returnNode = new InspectionTreeItem
                     {
-                        Type = InspectionTreeItem.ItemType.Item,
-                        Label = $"{permitName} ({availStr})",
-                        IsExpandable = !string.IsNullOrEmpty(description),
+                        Type = InspectionTreeItem.ItemType.Action,
+                        Label = "ReturnAllPermits".Translate() + $" ({returnCost} {favorLabel})",
+                        IsExpandable = false,
                         IsExpanded = false,
                         IndentLevel = tabNode.IndentLevel + 1
                     };
 
-                    if (!string.IsNullOrEmpty(description))
+                    var capturedFaction = faction;
+                    var capturedPawn = pawn;
+                    var capturedTabNode = tabNode;
+                    var capturedDialog = dialog;
+
+                    returnNode.OnActivate = () =>
                     {
+                        if (!capturedPawn.royalty.PermitsFromFaction(capturedFaction).Any())
+                        {
+                            SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                            TolkHelper.Speak(
+                                "NoPermitsToReturn".Translate(capturedPawn.Named("PAWN")).Resolve(),
+                                SpeechPriority.High);
+                            return;
+                        }
+
+                        int cost = InfoCardDataExtractor.TotalReturnPermitsCost(capturedPawn);
+                        int currentFavor = capturedPawn.royalty.GetFavor(capturedFaction);
+                        if (currentFavor < cost)
+                        {
+                            SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                            TolkHelper.Speak(
+                                "NotEnoughFavor".Translate(
+                                    cost.Named("FAVORCOST"),
+                                    capturedFaction.def.royalFavorLabel.Named("FAVOR"),
+                                    capturedPawn.Named("PAWN"),
+                                    currentFavor.Named("CURFAVOR")
+                                ).Resolve(),
+                                SpeechPriority.High);
+                            return;
+                        }
+
+                        int baseCost = 8;
+                        string confirmText = "ReturnAllPermits_Confirm".Translate(
+                            baseCost.Named("BASEFAVORCOST"),
+                            cost.Named("FAVORCOST"),
+                            capturedFaction.def.royalFavorLabel.Named("FAVOR"),
+                            capturedFaction.Named("FACTION")
+                        ).Resolve();
+
+                        Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(confirmText, delegate
+                        {
+                            capturedPawn.royalty.RefundPermits(baseCost, capturedFaction);
+                            SoundDefOf.Quest_Accepted.PlayOneShotOnCamera();
+                            TolkHelper.Speak(
+                                "ReturnAllPermits".Translate() + ". " +
+                                "UnusedPermits".Translate() + ": " +
+                                capturedPawn.royalty.GetPermitPoints(capturedFaction),
+                                SpeechPriority.High);
+                            RebuildPermitsTab(capturedTabNode, capturedDialog);
+                        }, destructive: true));
+                    };
+
+                    AddChild(tabNode, returnNode);
+                }
+
+                // Individual permit nodes
+                foreach (var (permitName, _, status, description, requiredTitle, def) in group)
+                {
+                    string label = $"{permitName} - {status}";
+                    bool isUnlocked = InfoCardDataExtractor.IsPermitUnlocked(def, pawn, faction);
+                    bool isAvailable = def.AvailableForPawn(pawn, faction) && !isUnlocked;
+
+                    // Always expandable - permits have details (description, cooldown, requirements)
+                    bool hasDetails = !string.IsNullOrEmpty(description) || def.minTitle != null ||
+                                      def.prerequisite != null || def.cooldownDays > 0 || isAvailable;
+
+                    var permitNode = new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.Item,
+                        Label = label,
+                        IsExpandable = hasDetails,
+                        IsExpanded = false,
+                        IndentLevel = tabNode.IndentLevel + 1
+                    };
+
+                    if (hasDetails)
+                    {
+                        var capturedDef = def;
+                        var capturedFaction = faction;
+                        var capturedPawn = pawn;
+                        var capturedTabNode = tabNode;
+                        var capturedDialog = dialog;
+                        var capturedDescription = description;
+
                         permitNode.OnActivate = () =>
                         {
                             if (permitNode.Children.Count > 0) return;
-                            AddChild(permitNode, CreateInfoItem(description.StripTags(), permitNode.IndentLevel + 1));
+
+                            // Required title
+                            if (capturedDef.minTitle != null)
+                            {
+                                var curTitle = capturedPawn.royalty.GetCurrentTitle(capturedFaction);
+                                bool titleMet = curTitle != null && curTitle.seniority >= capturedDef.minTitle.seniority;
+                                string titleStatus = titleMet ? "" : " (not met)";
+                                AddChild(permitNode, CreateInfoItem(
+                                    "RequiresTitle".Translate(capturedDef.minTitle.GetLabelForBothGenders()).Resolve() + titleStatus,
+                                    permitNode.IndentLevel + 1));
+                            }
+
+                            // Prerequisite
+                            if (capturedDef.prerequisite != null)
+                            {
+                                bool prereqMet = InfoCardDataExtractor.IsPermitUnlocked(
+                                    capturedDef.prerequisite, capturedPawn, capturedFaction);
+                                string prereqStatus = prereqMet ? "" : " (not met)";
+                                AddChild(permitNode, CreateInfoItem(
+                                    "UpgradeFrom".Translate(capturedDef.prerequisite.LabelCap).Resolve() + prereqStatus,
+                                    permitNode.IndentLevel + 1));
+                            }
+
+                            // Cooldown
+                            if (capturedDef.cooldownDays > 0)
+                            {
+                                AddChild(permitNode, CreateInfoItem(
+                                    "Cooldown".Translate() + ": " + "PeriodDays".Translate(capturedDef.cooldownDays),
+                                    permitNode.IndentLevel + 1));
+                            }
+
+                            // Favor cost if used during cooldown
+                            if (capturedDef.royalAid != null && capturedDef.royalAid.favorCost > 0 &&
+                                !capturedFaction.def.royalFavorLabel.NullOrEmpty())
+                            {
+                                AddChild(permitNode, CreateInfoItem(
+                                    "CooldownUseFavorCost".Translate(
+                                        capturedFaction.def.royalFavorLabel.Named("HONOR")
+                                    ).CapitalizeFirst().Resolve() + ": " + capturedDef.royalAid.favorCost,
+                                    permitNode.IndentLevel + 1));
+                            }
+
+                            // Description
+                            if (!string.IsNullOrEmpty(capturedDescription))
+                            {
+                                AddChild(permitNode, CreateInfoItem(
+                                    capturedDescription.StripTags(), permitNode.IndentLevel + 1));
+                            }
+
+                            // "Accept permit" action (only if currently available)
+                            bool currentlyAvailable = capturedDef.AvailableForPawn(capturedPawn, capturedFaction)
+                                && !InfoCardDataExtractor.IsPermitUnlocked(capturedDef, capturedPawn, capturedFaction);
+
+                            if (currentlyAvailable)
+                            {
+                                var acceptNode = new InspectionTreeItem
+                                {
+                                    Type = InspectionTreeItem.ItemType.Action,
+                                    Label = "AcceptPermit".Translate(),
+                                    IsExpandable = false,
+                                    IsExpanded = false,
+                                    IndentLevel = permitNode.IndentLevel + 1
+                                };
+
+                                acceptNode.OnActivate = () =>
+                                {
+                                    // Re-validate at activation time
+                                    if (!capturedDef.AvailableForPawn(capturedPawn, capturedFaction))
+                                    {
+                                        SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                                        TolkHelper.Speak("Permit no longer available.", SpeechPriority.High);
+                                        return;
+                                    }
+
+                                    capturedPawn.royalty.AddPermit(capturedDef, capturedFaction);
+                                    SoundDefOf.Quest_Accepted.PlayOneShotOnCamera();
+
+                                    int remainingPoints = capturedPawn.royalty.GetPermitPoints(capturedFaction);
+                                    TolkHelper.Speak(
+                                        capturedDef.LabelCap + " granted. " +
+                                        "UnusedPermits".Translate() + ": " + remainingPoints,
+                                        SpeechPriority.High);
+
+                                    RebuildPermitsTab(capturedTabNode, capturedDialog);
+                                };
+
+                                AddChild(permitNode, acceptNode);
+                            }
                         };
                     }
+
                     AddChild(tabNode, permitNode);
                 }
             }
+        }
+
+        private static void RebuildPermitsTab(InspectionTreeItem tabNode, Dialog_InfoCard dialog)
+        {
+            tabNode.Children.Clear();
+            BuildPermitsTabChildren(tabNode, dialog);
+            tabNode.IsExpanded = true;
+            InfoCardState.RefreshVisibleListAndAnnounce();
         }
 
         #endregion

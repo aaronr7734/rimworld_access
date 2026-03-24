@@ -172,6 +172,12 @@ namespace RimWorldAccess
                 try
                 {
                     Label = thing.LabelNoParenthesis ?? thing.def.label ?? "Unknown";
+
+                    // Add door open/closed state
+                    if (thing is Building_Door door)
+                    {
+                        Label += door.Open ? " (open)" : " (closed)";
+                    }
                 }
                 catch (Exception)
                 {
@@ -203,6 +209,12 @@ namespace RimWorldAccess
                 try
                 {
                     Label = Thing.LabelNoParenthesis ?? Thing.def.label ?? "Unknown";
+
+                    // Add door open/closed state
+                    if (Thing is Building_Door door)
+                    {
+                        Label += door.Open ? " (open)" : " (closed)";
+                    }
                 }
                 catch (Exception)
                 {
@@ -365,15 +377,26 @@ namespace RimWorldAccess
             // Calculate center position of zone, ensuring it's within the zone for irregular shapes
             if (zone.cells != null && zone.cells.Count > 0)
             {
-                int avgX = (int)zone.cells.Average(c => c.x);
-                int avgZ = (int)zone.cells.Average(c => c.z);
+                int sumX = 0, sumZ = 0;
+                foreach (var c in zone.cells) { sumX += c.x; sumZ += c.z; }
+                int avgX = (int)Math.Round((double)sumX / zone.cells.Count);
+                int avgZ = (int)Math.Round((double)sumZ / zone.cells.Count);
                 var centerCandidate = new IntVec3(avgX, 0, avgZ);
-                // Use center if it's in the zone; otherwise use the cell closest to the center
-                Position = zone.cells.Contains(centerCandidate)
-                    ? centerCandidate
-                    : zone.cells
-                        .OrderBy(c => (c - centerCandidate).LengthHorizontal)
-                        .First();
+                if (zone.cells.Contains(centerCandidate))
+                {
+                    Position = centerCandidate;
+                }
+                else
+                {
+                    IntVec3 closest = zone.cells[0];
+                    float closestDist = float.MaxValue;
+                    foreach (var c in zone.cells)
+                    {
+                        float dist = (c - centerCandidate).LengthHorizontal;
+                        if (dist < closestDist) { closestDist = dist; closest = c; }
+                    }
+                    Position = closest;
+                }
             }
             else
             {
@@ -398,15 +421,26 @@ namespace RimWorldAccess
             var cells = room.Cells.ToList();
             if (cells.Count > 0)
             {
-                int avgX = (int)cells.Average(c => c.x);
-                int avgZ = (int)cells.Average(c => c.z);
+                int sumX = 0, sumZ = 0;
+                foreach (var c in cells) { sumX += c.x; sumZ += c.z; }
+                int avgX = (int)Math.Round((double)sumX / cells.Count);
+                int avgZ = (int)Math.Round((double)sumZ / cells.Count);
                 var centerCandidate = new IntVec3(avgX, 0, avgZ);
-                // Use center if it's in the room; otherwise use the cell closest to the center
-                Position = cells.Contains(centerCandidate)
-                    ? centerCandidate
-                    : cells
-                        .OrderBy(c => (c - centerCandidate).LengthHorizontal)
-                        .First();
+                if (cells.Contains(centerCandidate))
+                {
+                    Position = centerCandidate;
+                }
+                else
+                {
+                    IntVec3 closest = cells[0];
+                    float closestDist = float.MaxValue;
+                    foreach (var c in cells)
+                    {
+                        float dist = (c - centerCandidate).LengthHorizontal;
+                        if (dist < closestDist) { closestDist = dist; closest = c; }
+                    }
+                    Position = closest;
+                }
             }
             else
             {
@@ -417,6 +451,47 @@ namespace RimWorldAccess
 
             // Build label with role
             Label = room.GetRoomRoleLabel();
+        }
+
+        /// <summary>
+        /// Re-derives the label from the live game object.
+        /// Call before announcing to get fresh labels without a full scanner refresh.
+        /// </summary>
+        public void RefreshLabel()
+        {
+            if (Thing != null)
+            {
+                if (Thing is Pawn pawn)
+                {
+                    Label = pawn.LabelShort + TileInfoHelper.GetPawnSuffix(pawn);
+                }
+                else
+                {
+                    try
+                    {
+                        Label = Thing.LabelNoParenthesis ?? Thing.def.label ?? "Unknown";
+                        if (Thing is Building_Door door)
+                        {
+                            Label += door.Open ? " (open)" : " (closed)";
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        Label = Thing.def?.label ?? "Corrupted object";
+                    }
+                }
+            }
+            else if (Zone != null)
+            {
+                Label = Zone is Zone_Growing growZone && growZone.PlantDefToGrow != null
+                    ? $"{Zone.label} ({growZone.PlantDefToGrow.label})"
+                    : Zone.label;
+            }
+            else if (Room != null)
+            {
+                Label = Room.GetRoomRoleLabel();
+            }
+            // Terrain and designations: labels derived from defs, don't change
         }
 
         public string GetDirectionFrom(IntVec3 fromPosition)
@@ -484,10 +559,12 @@ namespace RimWorldAccess
             var pawnsCategory = new ScannerCategory("Pawns");
             var pawnsPlayerSubcat = new ScannerSubcategory("Pawns-Player");
             var pawnsNPCSubcat = new ScannerSubcategory("Pawns-NPC");
-            var pawnsMechanoidsSubcat = new ScannerSubcategory("Pawns-Mechanoids");
+            var pawnsPlayerMechSubcat = new ScannerSubcategory("Pawns-Player Mechanoids");
+            var pawnsHostileMechSubcat = new ScannerSubcategory("Pawns-Hostile Mechanoids");
             pawnsCategory.Subcategories.Add(pawnsPlayerSubcat);
             pawnsCategory.Subcategories.Add(pawnsNPCSubcat);
-            pawnsCategory.Subcategories.Add(pawnsMechanoidsSubcat);
+            pawnsCategory.Subcategories.Add(pawnsPlayerMechSubcat);
+            pawnsCategory.Subcategories.Add(pawnsHostileMechSubcat);
 
             // Tame Animals with Pen/Non-Pen split
             var tameAnimalsCategory = new ScannerCategory("Tame");
@@ -619,6 +696,10 @@ namespace RimWorldAccess
             var roomsAllSubcat = new ScannerSubcategory("Rooms-All");
             roomsCategory.Subcategories.Add(roomsAllSubcat);
 
+            // Uncategorized category (populated during first AllThings loop to avoid double iteration)
+            var uncategorizedCategory = new ScannerCategory("Uncategorized");
+            var uncategorizedByDef = new Dictionary<string, ScannerSubcategory>();
+
             // Collect all things from the map
             var allThings = map.listerThings.AllThings;
             var playerFaction = Faction.OfPlayer;
@@ -640,8 +721,19 @@ namespace RimWorldAccess
                     // Categorize pawns
                     if (pawn.RaceProps.IsMechanoid)
                     {
-                        // Mechanoids subcategory (all mechanoids regardless of faction)
-                        pawnsMechanoidsSubcat.Items.Add(item);
+                        if (pawn.Faction == playerFaction)
+                        {
+                            pawnsPlayerMechSubcat.Items.Add(item);
+                        }
+                        else if (pawn.HostileTo(Faction.OfPlayer))
+                        {
+                            pawnsHostileMechSubcat.Items.Add(item);
+                        }
+                        else
+                        {
+                            // Neutral/ally mechanoids go with NPCs
+                            pawnsNPCSubcat.Items.Add(item);
+                        }
                         categorizedThings.Add(thing);
                     }
                     else if (pawn.RaceProps.Humanlike)
@@ -836,144 +928,175 @@ namespace RimWorldAccess
                         categorizedThings.Add(thing);
                     }
                 }
-            }
 
-            // Collect mineable tiles and terrain
-            var allCells = map.AllCells;
-
-            // Collect mineables by def type for later adjacency grouping
-            var mineableRareByDef = new Dictionary<string, List<(IntVec3 position, Thing thing)>>();
-            var mineableStoneByDef = new Dictionary<string, List<(IntVec3 position, Thing thing)>>();
-
-            foreach (var cell in allCells)
-            {
-                // Skip fogged cells
-                if (fogGrid.IsFogged(cell))
-                    continue;
-
-                var terrain = map.terrainGrid.TerrainAt(cell);
-
-                // Check for mineable rocks (both ore and plain stone)
-                var edifice = cell.GetEdifice(map);
-                if (edifice != null && edifice.def.building != null && edifice.def.building.isNaturalRock)
+                // If we reach here without categorizing, this is an uncategorized item
+                if (!categorizedThings.Contains(thing) && thing.def.selectable)
                 {
-                    string defKey = edifice.def.defName;
-
-                    // Separate rare minerals (ore) from plain stone
-                    if (edifice.def.building.isResourceRock && edifice.def.building.mineableYield > 0)
+                    string subcatName = thing.def.label ?? thing.def.defName;
+                    if (!uncategorizedByDef.ContainsKey(subcatName))
                     {
-                        // Rare minerals (steel, gold, plasteel, uranium, etc.)
-                        if (!mineableRareByDef.ContainsKey(defKey))
-                            mineableRareByDef[defKey] = new List<(IntVec3, Thing)>();
-                        mineableRareByDef[defKey].Add((cell, edifice));
-                        categorizedThings.Add(edifice);
+                        var newSubcat = new ScannerSubcategory($"Uncategorized-{subcatName}");
+                        uncategorizedByDef[subcatName] = newSubcat;
+                        uncategorizedCategory.Subcategories.Add(newSubcat);
                     }
-                    else
-                    {
-                        // Plain stone (granite, marble, slate, limestone, sandstone)
-                        if (!mineableStoneByDef.ContainsKey(defKey))
-                            mineableStoneByDef[defKey] = new List<(IntVec3, Thing)>();
-                        mineableStoneByDef[defKey].Add((cell, edifice));
-                        categorizedThings.Add(edifice);
-                    }
-                }
-
-                // Collect terrain tiles
-                if (terrain != null)
-                {
-                    // Natural terrain (rich soil, etc.)
-                    if (!terrain.layerable && terrain.natural)
-                    {
-                        // Only include interesting natural terrain (rich soil, water, marsh, etc.)
-                        if (terrain.fertility >= 1.4f || // Rich soil
-                            terrain.HasTag("Water") ||
-                            terrain.defName.Contains("Marsh") ||
-                            terrain.defName.Contains("Sand") ||
-                            terrain.defName.Contains("Gravel") ||
-                            terrain.defName.Contains("Ice"))
-                        {
-                            var terrainItem = new ScannerItem(cell, terrain.label, cursorPosition);
-                            terrainNaturalSubcat.Items.Add(terrainItem);
-                        }
-                    }
-                    // Constructed floors
-                    else if (terrain.layerable || !terrain.natural)
-                    {
-                        // Only include actually constructed floors (not natural dirt/soil)
-                        if (!terrain.natural)
-                        {
-                            var terrainItem = new ScannerItem(cell, terrain.label, cursorPosition);
-                            terrainConstructedSubcat.Items.Add(terrainItem);
-                        }
-                    }
+                    uncategorizedByDef[subcatName].Items.Add(item);
                 }
             }
 
-            // Group rare mineables (ore) by adjacency
-            foreach (var kvp in mineableRareByDef)
-            {
-                var positions = kvp.Value.Select(x => x.position).ToList();
-                var regions = GroupTerrainByAdjacency(positions, cursorPosition);
-                var primaryThing = kvp.Value[0].thing;
-                string label = primaryThing.def.label ?? "Unknown";
+            // Collect mineable tiles, terrain, and deep ore in a single pass over all cells
+            int currentCellHash = map.listerThings.StateHashOfGroup(ThingRequestGroup.BuildingArtificial);
 
-                // Create item with regions (like terrain does)
-                var item = new ScannerItem(regions, label, cursorPosition, primaryThing);
-                mineableRareSubcat.Items.Add(item);
+            if (cachedTerrainNatural != null && currentCellHash == lastCellHash)
+            {
+                // Reuse cached cell data — skip 60K+ cell iteration entirely
+                terrainNaturalSubcat.Items.AddRange(cachedTerrainNatural);
+                terrainConstructedSubcat.Items.AddRange(cachedTerrainConstructed);
+                mineableRareSubcat.Items.AddRange(cachedMineableRare);
+                mineableStoneSubcat.Items.AddRange(cachedMineableStone);
+                mineableScannedSubcat.Items.AddRange(cachedMineableScanned);
             }
-
-            // Group stone mineables by adjacency
-            foreach (var kvp in mineableStoneByDef)
+            else
             {
-                var positions = kvp.Value.Select(x => x.position).ToList();
-                var regions = GroupTerrainByAdjacency(positions, cursorPosition);
-                var primaryThing = kvp.Value[0].thing;
-                string label = primaryThing.def.label ?? "Unknown";
-
-                // Create item with regions (like terrain does)
-                var item = new ScannerItem(regions, label, cursorPosition, primaryThing);
-                mineableStoneSubcat.Items.Add(item);
-            }
-
-            // Collect deep ore deposits (only if active ground-penetrating scanner exists)
-            // NOTE: Deep ore is underground and NOT filtered by fog of war.
-            // When a powered scanner exists, deep resources are visible on the entire map,
-            // just like sighted players see the overlay everywhere including unexplored areas.
-            if (map.deepResourceGrid.AnyActiveDeepScannersOnMap())
-            {
-                // Collect deep ore cells by def type with quantities
+                var allCells = map.AllCells;
+                bool hasDeepScanner = map.deepResourceGrid.AnyActiveDeepScannersOnMap();
                 var deepOreByDef = new Dictionary<string, List<(IntVec3 position, int count, ThingDef oreDef)>>();
+
+                // Collect mineables by def type for later adjacency grouping
+                var mineableRareByDef = new Dictionary<string, List<(IntVec3 position, Thing thing)>>();
+                var mineableStoneByDef = new Dictionary<string, List<(IntVec3 position, Thing thing)>>();
 
                 foreach (var cell in allCells)
                 {
-                    // Deep ore is underground - no fog check needed (matches RimWorld's behavior)
-                    var oreDef = map.deepResourceGrid.ThingDefAt(cell);
-                    if (oreDef != null)
+                    // Fog-dependent collection: mineables and terrain
+                    if (!fogGrid.IsFogged(cell))
                     {
-                        int count = map.deepResourceGrid.CountAt(cell);
-                        if (count > 0)
+                        var terrain = map.terrainGrid.TerrainAt(cell);
+
+                        // Check for mineable rocks (both ore and plain stone)
+                        var edifice = cell.GetEdifice(map);
+                        if (edifice != null && edifice.def.building != null && edifice.def.building.isNaturalRock)
                         {
-                            string defKey = oreDef.defName;
-                            if (!deepOreByDef.ContainsKey(defKey))
-                                deepOreByDef[defKey] = new List<(IntVec3, int, ThingDef)>();
-                            deepOreByDef[defKey].Add((cell, count, oreDef));
+                            string defKey = edifice.def.defName;
+
+                            // Separate rare minerals (ore) from plain stone
+                            if (edifice.def.building.isResourceRock && edifice.def.building.mineableYield > 0)
+                            {
+                                // Rare minerals (steel, gold, plasteel, uranium, etc.)
+                                if (!mineableRareByDef.ContainsKey(defKey))
+                                    mineableRareByDef[defKey] = new List<(IntVec3, Thing)>();
+                                mineableRareByDef[defKey].Add((cell, edifice));
+                                categorizedThings.Add(edifice);
+                            }
+                            else
+                            {
+                                // Plain stone (granite, marble, slate, limestone, sandstone)
+                                if (!mineableStoneByDef.ContainsKey(defKey))
+                                    mineableStoneByDef[defKey] = new List<(IntVec3, Thing)>();
+                                mineableStoneByDef[defKey].Add((cell, edifice));
+                                categorizedThings.Add(edifice);
+                            }
+                        }
+
+                        // Collect terrain tiles
+                        if (terrain != null)
+                        {
+                            // Natural terrain (rich soil, etc.)
+                            if (!terrain.layerable && terrain.natural)
+                            {
+                                // Only include interesting natural terrain (rich soil, water, marsh, etc.)
+                                if (terrain.fertility >= 1.4f || // Rich soil
+                                    terrain.HasTag("Water") ||
+                                    terrain.defName.Contains("Marsh") ||
+                                    terrain.defName.Contains("Sand") ||
+                                    terrain.defName.Contains("Gravel") ||
+                                    terrain.defName.Contains("Ice"))
+                                {
+                                    var terrainItem = new ScannerItem(cell, terrain.label, cursorPosition);
+                                    terrainNaturalSubcat.Items.Add(terrainItem);
+                                }
+                            }
+                            // Constructed floors
+                            else if (terrain.layerable || !terrain.natural)
+                            {
+                                // Only include actually constructed floors (not natural dirt/soil)
+                                if (!terrain.natural)
+                                {
+                                    var terrainItem = new ScannerItem(cell, terrain.label, cursorPosition);
+                                    terrainConstructedSubcat.Items.Add(terrainItem);
+                                }
+                            }
+                        }
+                    }
+
+                    // Collect deep ore in same pass (only if active scanner exists)
+                    // Deep ore is underground - no fog check needed (matches RimWorld's behavior)
+                    if (hasDeepScanner)
+                    {
+                        var oreDef = map.deepResourceGrid.ThingDefAt(cell);
+                        if (oreDef != null)
+                        {
+                            int count = map.deepResourceGrid.CountAt(cell);
+                            if (count > 0)
+                            {
+                                string defKey = oreDef.defName;
+                                if (!deepOreByDef.ContainsKey(defKey))
+                                    deepOreByDef[defKey] = new List<(IntVec3, int, ThingDef)>();
+                                deepOreByDef[defKey].Add((cell, count, oreDef));
+                            }
                         }
                     }
                 }
 
-                // Group deep ore by adjacency and create scanner items
-                foreach (var kvp in deepOreByDef)
+                // Group rare mineables (ore) by adjacency
+                foreach (var kvp in mineableRareByDef)
                 {
-                    var positionsWithCounts = kvp.Value.Select(x => (x.position, x.count)).ToList();
-                    var oreDef = kvp.Value[0].oreDef;
-                    var regions = GroupDeepOreByAdjacency(positionsWithCounts, cursorPosition);
+                    var positions = kvp.Value.Select(x => x.position).ToList();
+                    var regions = GroupTerrainByAdjacency(positions, cursorPosition);
+                    var primaryThing = kvp.Value[0].thing;
+                    string label = primaryThing.def.label ?? "Unknown";
 
-                    if (regions.Count > 0)
+                    // Create item with regions (like terrain does)
+                    var item = new ScannerItem(regions, label, cursorPosition, primaryThing);
+                    mineableRareSubcat.Items.Add(item);
+                }
+
+                // Group stone mineables by adjacency
+                foreach (var kvp in mineableStoneByDef)
+                {
+                    var positions = kvp.Value.Select(x => x.position).ToList();
+                    var regions = GroupTerrainByAdjacency(positions, cursorPosition);
+                    var primaryThing = kvp.Value[0].thing;
+                    string label = primaryThing.def.label ?? "Unknown";
+
+                    // Create item with regions (like terrain does)
+                    var item = new ScannerItem(regions, label, cursorPosition, primaryThing);
+                    mineableStoneSubcat.Items.Add(item);
+                }
+
+                // Group deep ore by adjacency and create scanner items (collected during cell loop above)
+                if (hasDeepScanner)
+                {
+                    foreach (var kvp in deepOreByDef)
                     {
-                        var item = new ScannerItem(regions, oreDef, cursorPosition);
-                        mineableScannedSubcat.Items.Add(item);
+                        var positionsWithCounts = kvp.Value.Select(x => (x.position, x.count)).ToList();
+                        var oreDef = kvp.Value[0].oreDef;
+                        var regions = GroupDeepOreByAdjacency(positionsWithCounts, cursorPosition);
+
+                        if (regions.Count > 0)
+                        {
+                            var item = new ScannerItem(regions, oreDef, cursorPosition);
+                            mineableScannedSubcat.Items.Add(item);
+                        }
                     }
                 }
+
+                // Save results to cell cache
+                cachedTerrainNatural = new List<ScannerItem>(terrainNaturalSubcat.Items);
+                cachedTerrainConstructed = new List<ScannerItem>(terrainConstructedSubcat.Items);
+                cachedMineableRare = new List<ScannerItem>(mineableRareSubcat.Items);
+                cachedMineableStone = new List<ScannerItem>(mineableStoneSubcat.Items);
+                cachedMineableScanned = new List<ScannerItem>(mineableScannedSubcat.Items);
+                lastCellHash = currentCellHash;
             }
 
             // Collect all designations/orders
@@ -1077,30 +1200,6 @@ namespace RimWorldAccess
 
             roomsAllSubcat.Items.AddRange(
                 visibleIndoorRooms.Select(room => new ScannerItem(room, cursorPosition)));
-
-            // Collect all map things not yet categorized
-            var uncategorizedCategory = new ScannerCategory("Uncategorized");
-            var uncategorizedByDef = new Dictionary<string, ScannerSubcategory>();
-
-            foreach (var thing in map.listerThings.AllThings)
-            {
-                if (!categorizedThings.Contains(thing) &&
-                    thing.Spawned &&
-                    thing.Position.IsValid &&
-                    thing.def.selectable &&
-                    !thing.Position.Fogged(map))
-                {
-                    // Group by def label as subcategory
-                    string subcat = thing.def.label ?? thing.def.defName;
-                    if (!uncategorizedByDef.ContainsKey(subcat))
-                    {
-                        var newSubcat = new ScannerSubcategory($"Uncategorized-{subcat}");
-                        uncategorizedByDef[subcat] = newSubcat;
-                        uncategorizedCategory.Subcategories.Add(newSubcat);
-                    }
-                    uncategorizedByDef[subcat].Items.Add(new ScannerItem(thing, cursorPosition));
-                }
-            }
 
             // Group identical items and sort all subcategories by distance
             foreach (var category in new[] { pawnsCategory, tameAnimalsCategory, wildAnimalsCategory,
@@ -1266,7 +1365,7 @@ namespace RimWorldAccess
         /// <param name="startPos">The starting position for the flood fill</param>
         /// <param name="validPositions">Set of all valid positions to consider (must be of same terrain type)</param>
         /// <returns>Set of all contiguous positions found</returns>
-        private static HashSet<IntVec3> FloodFillTerrainRegion(IntVec3 startPos, HashSet<IntVec3> validPositions)
+        internal static HashSet<IntVec3> FloodFillTerrainRegion(IntVec3 startPos, HashSet<IntVec3> validPositions)
         {
             var region = new HashSet<IntVec3>();
             var queue = new Queue<IntVec3>();
@@ -1306,7 +1405,7 @@ namespace RimWorldAccess
         /// <param name="positions">All positions with the same terrain label</param>
         /// <param name="cursorPosition">Current cursor position for distance calculation</param>
         /// <returns>List of TerrainRegion objects sorted by distance from cursor</returns>
-        private static List<TerrainRegion> GroupTerrainByAdjacency(List<IntVec3> positions, IntVec3 cursorPosition)
+        internal static List<TerrainRegion> GroupTerrainByAdjacency(List<IntVec3> positions, IntVec3 cursorPosition)
         {
             var regions = new List<TerrainRegion>();
             var remaining = new HashSet<IntVec3>(positions);
@@ -1383,150 +1482,110 @@ namespace RimWorldAccess
         private static List<ScannerItem> GroupIdenticalItems(List<ScannerItem> items, IntVec3 cursorPosition)
         {
             var grouped = new List<ScannerItem>();
-            var processedThings = new HashSet<Thing>();
-            var processedPositions = new HashSet<IntVec3>(); // For terrain items
-            var processedDesignations = new HashSet<Designation>(); // For designation items
 
+            // Separate items by type for dictionary-based grouping
+            var terrainByLabel = new Dictionary<string, List<ScannerItem>>();
+            var designationsByDef = new Dictionary<DesignationDef, List<ScannerItem>>();
+            var thingsByKey = new Dictionary<(ThingDef def, ThingDef stuff, QualityCategory? quality), List<ScannerItem>>();
+            var passthrough = new List<ScannerItem>(); // items that don't get grouped
+
+            // Single pass: categorize all items into buckets
             foreach (var item in items)
             {
-                // Skip items that already have terrain regions (e.g., deep ore deposits, pre-grouped mineables)
-                // These were already grouped during collection and shouldn't be re-processed
+                // Items with terrain regions are already grouped - pass through
                 if (item.HasTerrainRegions)
                 {
-                    grouped.Add(item);
-                    continue;
+                    passthrough.Add(item);
                 }
-
-                // Group terrain items by adjacency into regions
-                if (item.IsTerrain)
+                // Terrain items: group by label
+                else if (item.IsTerrain)
                 {
-                    // Skip if we already processed this position
-                    if (processedPositions.Contains(item.Position))
-                        continue;
-
-                    // Find all terrain tiles with the same label
-                    var allPositionsWithLabel = new List<IntVec3> { item.Position };
-                    processedPositions.Add(item.Position);
-
-                    foreach (var otherItem in items)
-                    {
-                        if (!otherItem.IsTerrain || processedPositions.Contains(otherItem.Position))
-                            continue;
-
-                        if (otherItem.Label == item.Label)
-                        {
-                            allPositionsWithLabel.Add(otherItem.Position);
-                            processedPositions.Add(otherItem.Position);
-                        }
-                    }
-
-                    // Group positions by adjacency into separate regions
-                    var regions = GroupTerrainByAdjacency(allPositionsWithLabel, cursorPosition);
-
-                    if (regions.Count > 0)
-                    {
-                        // Create a terrain item with regions
-                        grouped.Add(new ScannerItem(regions, item.Label, cursorPosition));
-                    }
-                    else if (allPositionsWithLabel.Count == 1)
-                    {
-                        // Single tile, just add the original item
-                        grouped.Add(item);
-                    }
-                    continue;
+                    if (!terrainByLabel.ContainsKey(item.Label))
+                        terrainByLabel[item.Label] = new List<ScannerItem>();
+                    terrainByLabel[item.Label].Add(item);
                 }
-
-                // Group designation items by designation def (type)
-                if (item.IsDesignation)
+                // Designation items: group by designation def
+                else if (item.IsDesignation)
                 {
-                    // Skip if we already processed this designation
-                    if (processedDesignations.Contains(item.Designation))
-                        continue;
-
-                    // Find all designations with the same def (type)
-                    var identicalDesignations = new List<Designation> { item.Designation };
-                    processedDesignations.Add(item.Designation);
-
-                    foreach (var otherItem in items)
-                    {
-                        if (!otherItem.IsDesignation || processedDesignations.Contains(otherItem.Designation))
-                            continue;
-
-                        if (otherItem.Designation.def == item.Designation.def)
-                        {
-                            identicalDesignations.Add(otherItem.Designation);
-                            processedDesignations.Add(otherItem.Designation);
-                        }
-                    }
-
-                    // Create grouped designation item if multiple found, otherwise add single item
-                    if (identicalDesignations.Count > 1)
-                    {
-                        // Sort by distance for the bulk group
-                        identicalDesignations = identicalDesignations.OrderBy(d => (d.target.Cell - cursorPosition).LengthHorizontal).ToList();
-                        grouped.Add(new ScannerItem(identicalDesignations, cursorPosition));
-                    }
-                    else
-                    {
-                        grouped.Add(item);
-                    }
-                    continue;
+                    var def = item.Designation.def;
+                    if (!designationsByDef.ContainsKey(def))
+                        designationsByDef[def] = new List<ScannerItem>();
+                    designationsByDef[def].Add(item);
                 }
-
-                // Zones are never grouped - each zone is unique
-                if (item.IsZone)
+                // Zones and rooms are unique - pass through
+                else if (item.IsZone || item.IsRoom)
                 {
-                    grouped.Add(item);
-                    continue;
+                    passthrough.Add(item);
                 }
-
-                // Rooms are never grouped - each room is unique
-                if (item.IsRoom)
+                // Pawns are unique individuals - pass through
+                else if (item.Thing is Pawn)
                 {
-                    grouped.Add(item);
-                    continue;
+                    passthrough.Add(item);
                 }
-
-                // Skip if already processed
-                if (processedThings.Contains(item.Thing))
-                    continue;
-
-                // Pawns are never grouped - they're unique individuals
-                if (item.Thing is Pawn)
+                // Regular things: group by (def, stuff, quality)
+                else if (item.Thing != null)
                 {
-                    grouped.Add(item);
-                    processedThings.Add(item.Thing);
-                    continue;
-                }
-
-                // Find all identical items
-                var identicalThings = new List<Thing> { item.Thing };
-                processedThings.Add(item.Thing);
-
-                foreach (var otherItem in items)
-                {
-                    if (processedThings.Contains(otherItem.Thing))
-                        continue;
-
-                    if (AreThingsIdentical(item.Thing, otherItem.Thing))
-                    {
-                        identicalThings.Add(otherItem.Thing);
-                        processedThings.Add(otherItem.Thing);
-                    }
-                }
-
-                // Create grouped item if multiple found, otherwise add single item
-                if (identicalThings.Count > 1)
-                {
-                    // Sort by distance for the bulk group
-                    identicalThings = identicalThings.OrderBy(t => (t.Position - cursorPosition).LengthHorizontal).ToList();
-                    grouped.Add(new ScannerItem(identicalThings, cursorPosition));
+                    var actualThing = GetActualThing(item.Thing);
+                    var quality = actualThing.TryGetComp<CompQuality>()?.Quality;
+                    var key = (actualThing.def, actualThing.Stuff, quality);
+                    if (!thingsByKey.ContainsKey(key))
+                        thingsByKey[key] = new List<ScannerItem>();
+                    thingsByKey[key].Add(item);
                 }
                 else
                 {
-                    grouped.Add(item);
+                    passthrough.Add(item);
                 }
             }
+
+            // Process terrain groups: adjacency grouping per label
+            foreach (var kvp in terrainByLabel)
+            {
+                var positions = kvp.Value.Select(i => i.Position).ToList();
+                var regions = GroupTerrainByAdjacency(positions, cursorPosition);
+
+                if (regions.Count > 0)
+                {
+                    grouped.Add(new ScannerItem(regions, kvp.Key, cursorPosition));
+                }
+                else if (positions.Count == 1)
+                {
+                    grouped.Add(kvp.Value[0]);
+                }
+            }
+
+            // Process designation groups
+            foreach (var kvp in designationsByDef)
+            {
+                if (kvp.Value.Count > 1)
+                {
+                    var designations = kvp.Value.Select(i => i.Designation).ToList();
+                    designations = designations.OrderBy(d => (d.target.Cell - cursorPosition).LengthHorizontal).ToList();
+                    grouped.Add(new ScannerItem(designations, cursorPosition));
+                }
+                else
+                {
+                    grouped.Add(kvp.Value[0]);
+                }
+            }
+
+            // Process thing groups
+            foreach (var kvp in thingsByKey)
+            {
+                if (kvp.Value.Count > 1)
+                {
+                    var things = kvp.Value.Select(i => i.Thing).ToList();
+                    things = things.OrderBy(t => (t.Position - cursorPosition).LengthHorizontal).ToList();
+                    grouped.Add(new ScannerItem(things, cursorPosition));
+                }
+                else
+                {
+                    grouped.Add(kvp.Value[0]);
+                }
+            }
+
+            // Add all passthrough items
+            grouped.AddRange(passthrough);
 
             return grouped;
         }
@@ -1579,39 +1638,69 @@ namespace RimWorldAccess
             return true;
         }
 
+        // Cell-based collection cache (terrain, mineables, deep ore)
+        private static List<ScannerItem> cachedTerrainNatural = null;
+        private static List<ScannerItem> cachedTerrainConstructed = null;
+        private static List<ScannerItem> cachedMineableRare = null;
+        private static List<ScannerItem> cachedMineableStone = null;
+        private static List<ScannerItem> cachedMineableScanned = null;
+        private static int lastCellHash = 0;
+
+        /// <summary>
+        /// Invalidates all cell-based caches. Call when the map state changes
+        /// in ways not captured by StateHashOfGroup (e.g., map change, mod reload).
+        /// </summary>
+        public static void InvalidateCache()
+        {
+            cachedTerrainNatural = null;
+            cachedTerrainConstructed = null;
+            cachedMineableRare = null;
+            cachedMineableStone = null;
+            cachedMineableScanned = null;
+            lastCellHash = 0;
+            designatorLabelCache = null;
+        }
+
         /// <summary>
         /// Gets the localized label for a DesignationDef by finding its Designator.
+        /// Uses a static cache built on first call to avoid repeated reflection lookups.
         /// </summary>
+        private static Dictionary<DesignationDef, string> designatorLabelCache = null;
+
         public static string GetLocalizedDesignationLabel(DesignationDef def)
         {
             if (def == null)
                 return "Unknown";
 
-            // Try to find the Designator that uses this DesignationDef
-            var designators = Find.ReverseDesignatorDatabase?.AllDesignators;
-            if (designators != null)
+            // Build cache on first call
+            if (designatorLabelCache == null)
             {
-                foreach (var designator in designators)
+                designatorLabelCache = new Dictionary<DesignationDef, string>();
+                var designators = Find.ReverseDesignatorDatabase?.AllDesignators;
+                if (designators != null)
                 {
-                    // Use reflection to get the protected Designation property
-                    var designationProp = designator.GetType().GetProperty("Designation",
-                        System.Reflection.BindingFlags.Instance |
-                        System.Reflection.BindingFlags.NonPublic |
-                        System.Reflection.BindingFlags.Public);
-
-                    if (designationProp != null)
+                    foreach (var designator in designators)
                     {
-                        var designatorDef = designationProp.GetValue(designator) as DesignationDef;
-                        if (designatorDef == def)
+                        var designationProp = designator.GetType().GetProperty("Designation",
+                            System.Reflection.BindingFlags.Instance |
+                            System.Reflection.BindingFlags.NonPublic |
+                            System.Reflection.BindingFlags.Public);
+
+                        if (designationProp != null)
                         {
-                            return designator.Label;
+                            var designatorDef = designationProp.GetValue(designator) as DesignationDef;
+                            if (designatorDef != null && !designatorLabelCache.ContainsKey(designatorDef))
+                                designatorLabelCache[designatorDef] = designator.Label;
                         }
                     }
                 }
             }
 
+            if (designatorLabelCache.TryGetValue(def, out string label))
+                return label;
+
             // Fallback: use LabelCap if available, otherwise format defName
-            string label = def.LabelCap;
+            label = def.LabelCap;
             if (string.IsNullOrEmpty(label))
             {
                 label = GenText.SplitCamelCase(def.defName);

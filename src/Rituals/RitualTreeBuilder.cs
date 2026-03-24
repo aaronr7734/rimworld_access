@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using HarmonyLib;
 using RimWorld;
 using Verse;
 
@@ -15,7 +17,7 @@ namespace RimWorldAccess
         /// Builds the role list from RitualRoleAssignments.
         /// Groups roles by mergeId and adds Spectators and Not Participating sections.
         /// </summary>
-        public static void BuildRoleList(RitualRoleAssignments assignments, TargetInfo ritualTarget, Precept_Ritual ritual, List<RitualRoleListItem> items)
+        public static void BuildRoleList(RitualRoleAssignments assignments, TargetInfo ritualTarget, Precept_Ritual ritual, List<RitualRoleListItem> items, Dialog_BeginRitual dialog = null)
         {
             items.Clear();
 
@@ -99,6 +101,65 @@ namespace RimWorldAccess
             // Showing "Not Participating" as a selectable role is confusing because:
             // 1. You're not "selecting pawns to not participate" - they already aren't participating
             // 2. The action would be to add them as spectators, which is done via Spectators
+
+            // Add gravship launch checkboxes at the bottom of the role list
+            if (dialog != null && dialog.GetType().Name == "Dialog_BeginGravshipLaunch")
+            {
+                AppendGravshipCheckboxes(dialog, items);
+            }
+        }
+
+        /// <summary>
+        /// Appends gravship launch checkboxes to the role list.
+        /// These appear at the bottom and are toggled with Enter/Space.
+        /// </summary>
+        private static void AppendGravshipCheckboxes(Dialog_BeginRitual dialog, List<RitualRoleListItem> items)
+        {
+            var dialogType = dialog.GetType();
+
+            // Force visitors to leave
+            AddCheckboxItem(dialog, dialogType, items,
+                "forceVisitorsToLeave",
+                "GravshipForceVisitorsToLeaveLabel",
+                "GravshipForceVisitorsToLeaveTooltip");
+
+            // Board colony animals
+            AddCheckboxItem(dialog, dialogType, items,
+                "boardColonyAnimals",
+                "GravshipBoardColonyAnimalsLabel",
+                "GravshipBoardColonyAnimalsTooltip");
+
+            // Board colony mechs (only if Biotech is active)
+            if (ModsConfig.BiotechActive)
+            {
+                AddCheckboxItem(dialog, dialogType, items,
+                    "boardColonyMechs",
+                    "GravshipBoardColonyMechsLabel",
+                    "GravshipBoardColonyMechsTooltip");
+            }
+        }
+
+        private static void AddCheckboxItem(Dialog_BeginRitual dialog, System.Type dialogType, List<RitualRoleListItem> items,
+            string fieldName, string labelKey, string tooltipKey)
+        {
+            var field = AccessTools.Field(dialogType, fieldName);
+            if (field == null) return;
+
+            bool currentValue = (bool)field.GetValue(dialog);
+
+            items.Add(new RitualRoleListItem
+            {
+                Type = RitualRoleListItem.ItemType.GravshipCheckbox,
+                Roles = null,
+                Label = labelKey.Translate(),
+                FieldName = fieldName,
+                TooltipKey = tooltipKey,
+                CheckboxValue = currentValue,
+                AssignedCount = 0,
+                MaxCount = 0,
+                IsRequired = false,
+                IsLocked = false
+            });
         }
 
         /// <summary>

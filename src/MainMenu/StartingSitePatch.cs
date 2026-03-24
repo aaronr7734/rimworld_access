@@ -13,173 +13,217 @@ namespace RimWorldAccess
     {
         private static bool patchActive = false;
         private static bool hasAnnouncedTitle = false;
+        private static bool advancingToNextPage = false;
+        private static PlanetTile savedTileForReturn = PlanetTile.Invalid;
 
         // Prefix: Initialize state and handle keyboard input
+        // NOTE: Most key handling here is duplicated in UnifiedKeyboardPatch at priority 0.55.
+        // UnifiedKeyboardPatch runs OUTSIDE GUI.Window context and handles keys reliably even
+        // when IMGUI focus is not properly established (e.g., after closing faction dialog).
+        // This handler serves as a defensive fallback when GUI.Window focus is working normally.
         static void Prefix(Page_SelectStartingSite __instance, Rect rect)
         {
             try
             {
-                // Initialize navigation state
-                StartingSiteNavigationState.Initialize();
+                // Don't initialize if pawn selection screen is active on top of us
+                if (StartingPawnState.IsActive)
+                    return;
 
-                // Announce window title and initial selection once
+                // Initialize shared world navigation state on first frame
+                if (!WorldNavigationState.IsActive)
+                {
+                    if (savedTileForReturn.Valid)
+                    {
+                        WorldNavigationState.Open(WorldNavContext.WorldGen, savedTileForReturn);
+                        savedTileForReturn = PlanetTile.Invalid;
+                    }
+                    else
+                    {
+                        WorldNavigationState.Open(WorldNavContext.WorldGen);
+                    }
+                    StartingSiteContext.Open();
+                }
+
+                // Announce window title once
                 if (!hasAnnouncedTitle)
                 {
-                    string pageTitle = "Select Starting Site";
-                    TolkHelper.Speak($"{pageTitle} - Arrow keys to navigate, Control+arrows to jump by biome, Space for basic info, I for detailed info menu, F for factions, Enter to validate selection");
+                    string pageTitle = "SelectStartingSite".Translate();
+                    TolkHelper.Speak($"{pageTitle} - Arrow keys to navigate, Control+arrows to jump by biome, " +
+                        "Page Up/Down for scanner, Z to search, 1-5 for tile info, " +
+                        "I for detailed info menu, F for factions, Enter to validate selection");
                     hasAnnouncedTitle = true;
                 }
 
-                // Auto-read current tile after a short delay (to not override title announcement)
-                if (!StartingSiteNavigationState.HasReadCurrentTile)
-                {
-                    StartingSiteNavigationState.ReadCurrentTile();
-                }
-
                 // Handle keyboard input
-                if (Event.current.type == EventType.KeyDown)
+                if (Event.current.type == EventType.KeyDown && !WindowlessDialogState.IsActive)
                 {
                     KeyCode keyCode = Event.current.keyCode;
-                    bool menuOpen = StartingSiteNavigationState.IsMenuOpen;
+                    bool shift = Event.current.shift;
+                    bool ctrl = Event.current.control;
+                    bool alt = KeyboardHelper.IsAltHeld;
 
-                    if (keyCode == KeyCode.R)
+                    // === Scanner search text input (highest priority) ===
+                    // When search is active, capture letters/numbers/Enter/Escape/Backspace.
+                    // This is a defensive fallback - UnifiedKeyboardPatch normally handles this
+                    // at priority -0.2, but may not fire during world gen (ProgramState.Entry).
+                    if (ScannerSearchState.IsActive)
                     {
-                        // Select random starting site
-                        StartingSiteNavigationState.SelectRandomTile();
-                        Event.current.Use();
-                        patchActive = true;
-                    }
-                    else if (keyCode == KeyCode.Space)
-                    {
-                        // Read basic information about current tile
-                        StartingSiteNavigationState.ReadCurrentTile();
-                        Event.current.Use();
-                        patchActive = true;
-                    }
-                    else if (keyCode == KeyCode.I)
-                    {
-                        // Open additional info menu or navigate down if already open
-                        StartingSiteNavigationState.OpenAdditionalInfoMenu();
-                        Event.current.Use();
-                        patchActive = true;
-                    }
-                    else if (keyCode == KeyCode.K || (keyCode == KeyCode.I && Event.current.shift))
-                    {
-                        // Navigate menu up
-                        if (menuOpen)
+                        if (keyCode == KeyCode.Return || keyCode == KeyCode.KeypadEnter)
                         {
-                            StartingSiteNavigationState.NavigateMenu(-1);
+                            ScannerSearchState.ConfirmSearch();
+                            Event.current.Use();
+                            patchActive = true;
+                            return;
+                        }
+                        if (keyCode == KeyCode.Escape)
+                        {
+                            ScannerSearchState.CancelSearch();
+                            Event.current.Use();
+                            patchActive = true;
+                            return;
+                        }
+                        if (keyCode == KeyCode.Backspace)
+                        {
+                            ScannerSearchState.HandleBackspace();
+                            Event.current.Use();
+                            patchActive = true;
+                            return;
+                        }
+                        if (keyCode >= KeyCode.A && keyCode <= KeyCode.Z && !ctrl && !alt)
+                        {
+                            char c = shift ? (char)('A' + (keyCode - KeyCode.A)) : (char)('a' + (keyCode - KeyCode.A));
+                            ScannerSearchState.HandleCharacter(c);
+                            Event.current.Use();
+                            patchActive = true;
+                            return;
+                        }
+                        if (keyCode >= KeyCode.Alpha0 && keyCode <= KeyCode.Alpha9 && !ctrl && !alt)
+                        {
+                            char c = (char)('0' + (keyCode - KeyCode.Alpha0));
+                            ScannerSearchState.HandleCharacter(c);
+                            Event.current.Use();
+                            patchActive = true;
+                            return;
+                        }
+                        // Arrow keys, PgUp/PgDn, Home/End, Space: pass through to navigation below
+                    }
+
+                    bool menuOpen = StartingSiteContext.IsMenuOpen;
+
+                    // When I-menu is open, route Up/Down/Enter/Escape to menu and block other keys
+                    if (menuOpen)
+                    {
+                        if (keyCode == KeyCode.UpArrow)
+                        {
+                            StartingSiteContext.NavigateMenu(-1);
+                            Event.current.Use();
+                            patchActive = true;
+                        }
+                        else if (keyCode == KeyCode.DownArrow)
+                        {
+                            StartingSiteContext.NavigateMenu(1);
+                            Event.current.Use();
+                            patchActive = true;
+                        }
+                        else if (keyCode == KeyCode.Return || keyCode == KeyCode.KeypadEnter)
+                        {
+                            StartingSiteContext.ReadSelectedMenuItem();
+                            Event.current.Use();
+                            patchActive = true;
+                        }
+                        else if (keyCode == KeyCode.Escape)
+                        {
+                            StartingSiteContext.CloseMenu();
+                            Event.current.Use();
+                            patchActive = true;
+                        }
+                        return; // Block all other keys while menu is open
+                    }
+
+                    // Arrow keys: route to shared WorldNavigationState (3D compass)
+                    if (keyCode == KeyCode.UpArrow || keyCode == KeyCode.DownArrow ||
+                        keyCode == KeyCode.LeftArrow || keyCode == KeyCode.RightArrow)
+                    {
+                        if (ctrl)
+                        {
+                            // Ctrl+arrows: biome jump
+                            StartingSiteContext.JumpToNextBiomeInDirection(keyCode);
+                            Event.current.Use();
+                            patchActive = true;
+                        }
+                        else
+                        {
+                            // Plain arrows: standard 3D compass navigation
+                            WorldNavigationState.HandleArrowKey(keyCode);
                             Event.current.Use();
                             patchActive = true;
                         }
                     }
-                    else if (keyCode == KeyCode.F)
+                    else if (keyCode == KeyCode.R && !shift && !ctrl && !alt)
                     {
-                        // Open factions tab
+                        StartingSiteContext.SelectRandomTile();
+                        Event.current.Use();
+                        patchActive = true;
+                    }
+                    else if (keyCode == KeyCode.Space && !shift && !ctrl && !alt)
+                    {
+                        // Re-announce current tile
+                        WorldNavigationState.AnnounceTile();
+                        Event.current.Use();
+                        patchActive = true;
+                    }
+                    else if (keyCode == KeyCode.I && !shift && !ctrl && !alt)
+                    {
+                        // Open additional info menu
+                        StartingSiteContext.OpenAdditionalInfoMenu();
+                        Event.current.Use();
+                        patchActive = true;
+                    }
+                    else if (keyCode == KeyCode.F && !shift && !ctrl && !alt)
+                    {
                         Find.WindowStack.Add(new Dialog_FactionDuringLanding());
-                        TolkHelper.Speak("Opened faction relations dialog.");
+                        // Opening announcement handled by FactionLandingState via PostOpen patch
                         Event.current.Use();
                         patchActive = true;
                     }
-                    // Note: Enter key is handled by OnAcceptKeyPressed patch instead
-                    else if (keyCode == KeyCode.Escape)
+                    // === Z key: activate scanner search ===
+                    // Defensive fallback - also handled by UnifiedKeyboardPatch at priority 4.745
+                    else if (keyCode == KeyCode.Z && !shift && !ctrl && !alt && !ScannerSearchState.IsActive)
                     {
-                        // Close menu if open
-                        if (menuOpen)
+                        ScannerSearchState.Activate(true);
+                        // Block game's keybinding system from seeing Z
+                        Event.current.keyCode = KeyCode.None;
+                        Event.current.Use();
+                        patchActive = true;
+                    }
+                    // Ctrl+Z clears the active search filter
+                    // Defensive fallback - also handled by UnifiedKeyboardPatch at priority 4.745
+                    else if (keyCode == KeyCode.Z && ctrl && !shift && !alt && !ScannerSearchState.IsActive && ScannerSearchState.HasActiveFilter)
+                    {
+                        ScannerSearchState.ClearActiveFilter();
+                        Event.current.Use();
+                        patchActive = true;
+                    }
+                    // === Number keys 1-5: tile info categories ===
+                    // Defensive fallback - also handled by UnifiedKeyboardPatch at priority 5.45
+                    else if (!shift && !ctrl && !alt)
+                    {
+                        int category = 0;
+                        if (keyCode == KeyCode.Alpha1 || keyCode == KeyCode.Keypad1) category = 1;
+                        else if (keyCode == KeyCode.Alpha2 || keyCode == KeyCode.Keypad2) category = 2;
+                        else if (keyCode == KeyCode.Alpha3 || keyCode == KeyCode.Keypad3) category = 3;
+                        else if (keyCode == KeyCode.Alpha4 || keyCode == KeyCode.Keypad4) category = 4;
+                        else if (keyCode == KeyCode.Alpha5 || keyCode == KeyCode.Keypad5) category = 5;
+
+                        if (category > 0)
                         {
-                            StartingSiteNavigationState.CloseMenu();
+                            WorldNavigationState.AnnounceTileInfoCategory(category);
                             Event.current.Use();
                             patchActive = true;
                         }
                     }
-                    else if (keyCode == KeyCode.UpArrow)
-                    {
-                        if (menuOpen)
-                        {
-                            // Navigate menu up
-                            StartingSiteNavigationState.NavigateMenu(-1);
-                            Event.current.Use();
-                            patchActive = true;
-                        }
-                        else if (Event.current.control)
-                        {
-                            // Control + Up: Jump to next biome north
-                            StartingSiteNavigationState.JumpToNextBiomeInDirection(Direction8Way.North);
-                            Event.current.Use();
-                            patchActive = true;
-                        }
-                        else
-                        {
-                            // Move north
-                            StartingSiteNavigationState.MoveInDirection(Direction8Way.North);
-                            Event.current.Use();
-                            patchActive = true;
-                        }
-                    }
-                    else if (keyCode == KeyCode.DownArrow)
-                    {
-                        if (menuOpen)
-                        {
-                            // Navigate menu down
-                            StartingSiteNavigationState.NavigateMenu(1);
-                            Event.current.Use();
-                            patchActive = true;
-                        }
-                        else if (Event.current.control)
-                        {
-                            // Control + Down: Jump to next biome south
-                            StartingSiteNavigationState.JumpToNextBiomeInDirection(Direction8Way.South);
-                            Event.current.Use();
-                            patchActive = true;
-                        }
-                        else
-                        {
-                            // Move south
-                            StartingSiteNavigationState.MoveInDirection(Direction8Way.South);
-                            Event.current.Use();
-                            patchActive = true;
-                        }
-                    }
-                    else if (keyCode == KeyCode.LeftArrow)
-                    {
-                        if (!menuOpen)
-                        {
-                            if (Event.current.control)
-                            {
-                                // Control + Left: Jump to next biome west
-                                StartingSiteNavigationState.JumpToNextBiomeInDirection(Direction8Way.West);
-                                Event.current.Use();
-                                patchActive = true;
-                            }
-                            else
-                            {
-                                // Move west
-                                StartingSiteNavigationState.MoveInDirection(Direction8Way.West);
-                                Event.current.Use();
-                                patchActive = true;
-                            }
-                        }
-                    }
-                    else if (keyCode == KeyCode.RightArrow)
-                    {
-                        if (!menuOpen)
-                        {
-                            if (Event.current.control)
-                            {
-                                // Control + Right: Jump to next biome east
-                                StartingSiteNavigationState.JumpToNextBiomeInDirection(Direction8Way.East);
-                                Event.current.Use();
-                                patchActive = true;
-                            }
-                            else
-                            {
-                                // Move east
-                                StartingSiteNavigationState.MoveInDirection(Direction8Way.East);
-                                Event.current.Use();
-                                patchActive = true;
-                            }
-                        }
-                    }
+                    // Note: Scanner keys (PgUp/PgDn/Home/End) are handled by
+                    // UnifiedKeyboardPatch at priority 0.5 before this patch runs
                 }
             }
             catch (System.Exception ex)
@@ -188,33 +232,73 @@ namespace RimWorldAccess
             }
         }
 
-        // Add a method to reset state when page is opened
+        // Reset state when page is opened
         [HarmonyPatch(typeof(Page_SelectStartingSite), "PreOpen")]
         [HarmonyPostfix]
         static void PreOpen_Postfix()
         {
+            // Ensure clean state in case PostClose didn't fire (e.g., page re-entered without closing)
+            if (WorldNavigationState.IsActive)
+            {
+                WorldNavigationState.Close();
+                StartingSiteContext.Close();
+                WorldScannerState.Reset();
+            }
             hasAnnouncedTitle = false;
-            StartingSiteNavigationState.Reset();
+            patchActive = false;
+        }
+
+        // Clean up when page is closed
+        [HarmonyPatch(typeof(Page_SelectStartingSite), "PostClose")]
+        [HarmonyPostfix]
+        static void PostClose_Postfix()
+        {
+            // When advancing to the next page, keep world navigation state alive
+            // so the DoWindowContents Prefix doesn't re-initialize and re-announce
+            // the tile details during the page transition.
+            if (!advancingToNextPage)
+            {
+                WorldNavigationState.Close();
+                StartingSiteContext.Close();
+                WorldScannerState.Reset();
+                hasAnnouncedTitle = false;
+            }
+            patchActive = false;
+            advancingToNextPage = false;
         }
 
         // Patch OnAcceptKeyPressed to handle Enter key based on context
         [HarmonyPatch(typeof(Page_SelectStartingSite), "OnAcceptKeyPressed")]
         [HarmonyPrefix]
-        static bool OnAcceptKeyPressed_Prefix()
+        static bool OnAcceptKeyPressed_Prefix(Page_SelectStartingSite __instance)
         {
-            // If menu is open, handle menu interaction only - don't advance page
-            if (StartingSiteNavigationState.IsMenuOpen)
+            // Block Enter when a windowless dialog is active or was just closed this frame.
+            // Prevents settlement validation from re-triggering when confirming a Dialog_MessageBox.
+            if (WindowlessDialogState.IsActive || WindowlessDialogState.WasClosedThisFrame)
             {
-                StartingSiteNavigationState.ReadSelectedMenuItem();
-                return false; // Skip original method
+                return false;
             }
 
-            // If menu is closed, validate the tile
-            PlanetTile tile = Find.WorldInterface.SelectedTile;
+            // If scanner search is active, don't advance page - Enter confirms search
+            if (ScannerSearchState.IsActive)
+            {
+                ScannerSearchState.ConfirmSearch();
+                return false;
+            }
+
+            // If I-menu is open, handle menu interaction only - don't advance page
+            if (StartingSiteContext.IsMenuOpen)
+            {
+                StartingSiteContext.ReadSelectedMenuItem();
+                return false;
+            }
+
+            // Use shared navigation state's tile
+            PlanetTile tile = WorldNavigationState.CurrentSelectedTile;
             if (!tile.Valid)
             {
                 TolkHelper.Speak("No tile selected. Use arrow keys to navigate to a tile first.");
-                return false; // Don't proceed
+                return false;
             }
 
             // Check if tile is valid for settlement
@@ -223,14 +307,29 @@ namespace RimWorldAccess
 
             if (!isValid)
             {
-                // Tile is invalid - explain why and don't proceed
                 string errorMessage = "Cannot settle here: " + reason.ToString();
                 TolkHelper.Speak(errorMessage, SpeechPriority.High);
-                return false; // Skip original method - don't advance
+                return false;
             }
 
-            // Tile is valid - allow game to proceed normally
-            return true; // Allow original method to run and advance to next page
+            // Sync game selection state so the game's DoNext picks up our tile
+            WorldNavigationState.SyncSelectionWithGame();
+
+            // Announce confirmation before advancing
+            TolkHelper.Speak("Starting site selected.");
+
+            // Save tile so we can restore it if the user comes back from chargen
+            savedTileForReturn = WorldNavigationState.CurrentSelectedTile;
+
+            // Prevent PostClose from resetting state, which causes the DoWindowContents
+            // Prefix to re-initialize and re-announce during the page transition.
+            advancingToNextPage = true;
+
+            // Call the game's DoNext directly to advance to the next page.
+            // This handles CheckConfirmSettle (proximity warnings) internally.
+            AccessTools.Method(typeof(Page_SelectStartingSite), "DoNext").Invoke(__instance, null);
+
+            return false;
         }
 
         // Postfix: Draw help text and menu overlay
@@ -240,7 +339,7 @@ namespace RimWorldAccess
             {
                 if (!patchActive) return;
 
-                bool menuOpen = StartingSiteNavigationState.IsMenuOpen;
+                bool menuOpen = StartingSiteContext.IsMenuOpen;
 
                 if (menuOpen)
                 {
@@ -260,9 +359,9 @@ namespace RimWorldAccess
                     contentRect.y += 35f;
                     contentRect.height -= 35f;
 
-                    string currentItem = StartingSiteNavigationState.GetCurrentMenuItemName();
-                    int selectedIndex = StartingSiteNavigationState.SelectedMenuIndex;
-                    int totalItems = StartingSiteNavigationState.MenuItemCount;
+                    string currentItem = StartingSiteContext.GetCurrentMenuItemName();
+                    int selectedIndex = StartingSiteContext.SelectedMenuIndex;
+                    int totalItems = StartingSiteContext.MenuItemCount;
 
                     string menuContent = $"Selected: {currentItem}\n" +
                                        $"Item {selectedIndex + 1} of {totalItems}\n\n" +
@@ -285,8 +384,8 @@ namespace RimWorldAccess
                     Text.Anchor = TextAnchor.UpperLeft;
 
                     string helpText = "Starting Site Selection:\n" +
-                                    "Arrow Keys: Navigate map  |  Control+Arrows: Jump by biome  |  Space: Read basic info\n" +
-                                    "I: Additional info menu  |  F: Faction relations  |  R: Random site  |  Enter: Validate";
+                                    "Arrow Keys: Navigate  |  Ctrl+Arrows: Jump by biome  |  PgUp/PgDn: Scanner\n" +
+                                    "1-5: Tile info  |  Z: Search  |  I: Info menu  |  F: Factions  |  R: Random  |  Enter: Validate";
 
                     Widgets.Label(helpRect.ContractedBy(5f), helpText);
                     Text.Anchor = TextAnchor.UpperLeft;

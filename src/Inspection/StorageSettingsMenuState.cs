@@ -18,6 +18,7 @@ namespace RimWorldAccess
         private static int selectedIndex = 0;
         private static bool isActive = false;
         private static StorageSettings currentSettings = null;
+        private static ThingFilter parentFilter = null;
         private static HashSet<string> expandedCategories = new HashSet<string>(); // Track which categories are expanded
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
 
@@ -90,6 +91,7 @@ namespace RimWorldAccess
             selectedIndex = 0;
             isActive = false;
             currentSettings = null;
+            parentFilter = null;
             expandedCategories.Clear();
             MenuHelper.ResetLevel("StorageSettings");
             typeahead.ClearSearch();
@@ -111,7 +113,7 @@ namespace RimWorldAccess
 
             // Get the parent filter to determine what categories are configurable
             // This mirrors how ThingFilterUI.DoThingFilterConfigWindow works
-            ThingFilter parentFilter = currentSettings.owner?.GetParentStoreSettings()?.filter;
+            parentFilter = currentSettings.owner?.GetParentStoreSettings()?.filter;
 
             // Hit points range (use parent filter's configurability if available)
             bool hpConfigurable = parentFilter?.allowedHitPointsConfigurable ?? currentSettings.filter.allowedHitPointsConfigurable;
@@ -155,9 +157,9 @@ namespace RimWorldAccess
             // Add special filters for this category
             foreach (SpecialThingFilterDef specialFilter in node.catDef.childSpecialFilters)
             {
-                if (specialFilter.configurable)
+                if (specialFilter.configurable && IsVisibleSpecialFilter(specialFilter))
                 {
-                    MenuItem item = new MenuItem(MenuItemType.SpecialFilter, "*" + specialFilter.LabelCap, specialFilter, indent);
+                    MenuItem item = new MenuItem(MenuItemType.SpecialFilter, specialFilter.LabelCap, specialFilter, indent);
                     item.isAllowed = currentSettings.filter.Allows(specialFilter);
                     item.parent = parentItem;
                     menuItems.Add(item);
@@ -167,6 +169,9 @@ namespace RimWorldAccess
             // Add child categories
             foreach (TreeNode_ThingCategory childNode in node.ChildCategoryNodes)
             {
+                if (!IsVisibleCategory(childNode))
+                    continue;
+
                 MenuItem catItem = new MenuItem(MenuItemType.Category, childNode.LabelCap, childNode, indent);
                 catItem.isAllowed = IsCategoryAllowed(childNode);
                 catItem.parent = parentItem;
@@ -187,7 +192,7 @@ namespace RimWorldAccess
             // Add thing defs in this category
             foreach (ThingDef thingDef in node.catDef.childThingDefs)
             {
-                if (!Find.HiddenItemsManager.Hidden(thingDef))
+                if (IsVisible(thingDef) && !Find.HiddenItemsManager.Hidden(thingDef))
                 {
                     MenuItem item = new MenuItem(MenuItemType.ThingDef, thingDef.LabelCap, thingDef, indent);
                     item.isAllowed = currentSettings.filter.Allows(thingDef);
@@ -197,12 +202,51 @@ namespace RimWorldAccess
             }
         }
 
+        /// <summary>
+        /// Checks if a ThingDef should be visible in the filter tree.
+        /// Mirrors Listing_TreeThingFilter.Visible(ThingDef).
+        /// </summary>
+        private static bool IsVisible(ThingDef td)
+        {
+            if (!td.PlayerAcquirable)
+                return false;
+            if (td.virtualDefParent != null)
+                return false;
+            if (parentFilter != null)
+            {
+                if (!parentFilter.Allows(td))
+                    return false;
+                if (parentFilter.IsAlwaysDisallowedDueToSpecialFilters(td))
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Checks if a category node has any visible descendant ThingDefs.
+        /// Mirrors Listing_TreeThingFilter.Visible(TreeNode_ThingCategory).
+        /// </summary>
+        private static bool IsVisibleCategory(TreeNode_ThingCategory node)
+        {
+            return node.catDef.DescendantThingDefs.Any(td => IsVisible(td));
+        }
+
+        /// <summary>
+        /// Checks if a special filter should be visible.
+        /// Mirrors Listing_TreeThingFilter.Visible(SpecialThingFilterDef).
+        /// </summary>
+        private static bool IsVisibleSpecialFilter(SpecialThingFilterDef f)
+        {
+            if (parentFilter != null && !parentFilter.Allows(f))
+                return false;
+            return true;
+        }
+
         private static bool IsCategoryAllowed(TreeNode_ThingCategory node)
         {
-            // Check if any descendant thing def is allowed
             foreach (ThingDef thingDef in node.catDef.DescendantThingDefs)
             {
-                if (currentSettings.filter.Allows(thingDef))
+                if (IsVisible(thingDef) && currentSettings.filter.Allows(thingDef))
                 {
                     return true;
                 }
@@ -405,7 +449,7 @@ namespace RimWorldAccess
             switch (item.type)
             {
                 case MenuItemType.Category:
-                    ToggleCategory(item, !item.isAllowed);
+                    ToggleCategory(item);
                     break;
 
                 case MenuItemType.ThingDef:
@@ -490,29 +534,30 @@ namespace RimWorldAccess
             TolkHelper.Speak(GetPriorityLabel());
         }
 
-        private static void ToggleCategory(MenuItem item, bool allow)
+        private static void ToggleCategory(MenuItem item)
         {
             TreeNode_ThingCategory node = item.data as TreeNode_ThingCategory;
             if (node == null) return;
 
-            if (allow)
-            {
-                currentSettings.filter.SetAllow(node.catDef, true);
-            }
-            else
-            {
-                currentSettings.filter.SetAllow(node.catDef, false);
-            }
+            // Tri-state toggle matching vanilla: Off→On, Partial→On, On→Off
+            var state = ThingFilterHelper.GetAllowanceState(
+                node.catDef, currentSettings.filter, td => IsVisible(td));
+            bool desired = (state != ThingFilterHelper.CategoryAllowanceState.AllAllowed);
 
-            item.isAllowed = allow;
-            string state = allow ? "Allowed" : "Disallowed";
-            TolkHelper.Speak($"{state}: {item.label}");
+            currentSettings.filter.SetAllow(node.catDef, desired);
 
             // Update child items if expanded
             if (item.isExpanded)
             {
                 RebuildMenu();
             }
+
+            // Re-read actual state from the game
+            var actualState = ThingFilterHelper.GetAllowanceState(
+                node.catDef, currentSettings.filter, td => IsVisible(td));
+            item.isAllowed = (actualState != ThingFilterHelper.CategoryAllowanceState.NoneAllowed);
+            string stateStr = actualState == ThingFilterHelper.CategoryAllowanceState.NoneAllowed ? "Disallowed" : "Allowed";
+            TolkHelper.Speak($"{item.label}: {stateStr}");
         }
 
         private static void ToggleItem(MenuItem item, bool allow)
@@ -523,7 +568,8 @@ namespace RimWorldAccess
                 if (thingDef != null)
                 {
                     currentSettings.filter.SetAllow(thingDef, allow);
-                    item.isAllowed = allow;
+                    // Re-read from game to verify actual state
+                    item.isAllowed = currentSettings.filter.Allows(thingDef);
                 }
             }
             else if (item.type == MenuItemType.SpecialFilter)
@@ -532,12 +578,36 @@ namespace RimWorldAccess
                 if (specialFilter != null)
                 {
                     currentSettings.filter.SetAllow(specialFilter, allow);
-                    item.isAllowed = allow;
+                    // Re-read from game to verify actual state
+                    item.isAllowed = currentSettings.filter.Allows(specialFilter);
                 }
             }
 
-            string state = allow ? "Allowed" : "Disallowed";
-            TolkHelper.Speak($"{state}: {item.label}");
+            string state = item.isAllowed ? "Allowed" : "Disallowed";
+            TolkHelper.Speak($"{item.label}: {state}");
+        }
+
+        /// <summary>
+        /// Opens an info card for the currently selected ThingDef item.
+        /// </summary>
+        public static void OpenInfoCard()
+        {
+            if (menuItems == null || selectedIndex < 0 || selectedIndex >= menuItems.Count)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No info card available");
+                return;
+            }
+            var item = menuItems[selectedIndex];
+            if (item.type == MenuItemType.ThingDef && item.data is ThingDef thingDef)
+            {
+                InfoCardState.OpenInfoCardForDef(thingDef);
+            }
+            else
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No info card available");
+            }
         }
 
         private static void ClearAllItems()
@@ -549,7 +619,7 @@ namespace RimWorldAccess
 
         private static void AllowAllItems()
         {
-            currentSettings.filter.SetAllowAll(null);
+            currentSettings.filter.SetAllowAll(parentFilter);
             RebuildMenu();
             TolkHelper.Speak("Allowed all items");
         }
@@ -742,25 +812,33 @@ namespace RimWorldAccess
                 // Get sibling position
                 var (position, total) = GetSiblingPosition(item);
 
-                // Build announcement in WCAG format: "{name} {state}. {X of Y}. {allowed}. level N"
+                // Format: "{name}. {state}. {X of Y}. level N"
                 string announcement = item.label;
 
-                // Add expand/collapse state for categories
+                // Add allowed/disallowed state
                 if (item.type == MenuItemType.Category)
                 {
                     string expandState = item.isExpanded ? "expanded" : "collapsed";
-                    announcement += $" {expandState}";
+                    var catNode = item.data as TreeNode_ThingCategory;
+                    if (catNode != null)
+                    {
+                        var summary = ThingFilterHelper.GetCategorySummary(
+                            catNode.catDef, currentSettings.filter, td => IsVisible(td));
+                        announcement += $". {ThingFilterHelper.FormatCategorySummary(summary)}, {expandState}";
+                    }
+                    else
+                    {
+                        announcement += $" {expandState}";
+                    }
                 }
-
-                // Add period after label+state, then sibling position
-                announcement += $". {MenuHelper.FormatPosition(position - 1, total)}";
-
-                // Add allowed/disallowed state at the end for context with period
-                if (item.type == MenuItemType.Category || item.type == MenuItemType.ThingDef || item.type == MenuItemType.SpecialFilter)
+                else if (item.type == MenuItemType.ThingDef || item.type == MenuItemType.SpecialFilter)
                 {
                     string allowState = item.isAllowed ? "allowed" : "disallowed";
-                    announcement += $". {allowState}.";
+                    announcement += $". {allowState}";
                 }
+
+                // Add sibling position (X of Y) at the end
+                announcement += $". {MenuHelper.FormatPosition(position - 1, total)}";
 
                 // Add level suffix at the end (only announced when level changes)
                 announcement += MenuHelper.GetLevelSuffix("StorageSettings", item.indentLevel);

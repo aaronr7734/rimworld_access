@@ -261,34 +261,60 @@ namespace RimWorldAccess
                 currentPawn.workSettings.Notify_UseWorkPrioritiesChanged();
             }
 
-            // Preserve the current column when switching pawns
-            int preservedColumn = currentColumn;
+            // Preserve the current WorkTypeDef to follow it across pawn switches
+            WorkTypeDef preservedWorkType = GetCurrentEntry()?.WorkType;
 
             currentPawnIndex = newPawnIndex;
             currentPawn = allPawns[currentPawnIndex];
-            basicModeIndex = 0;
             typeahead.ClearSearch();
             searchJumpPending = false;
             hasUnsavedChanges = false;
 
             LoadWorkTypesForCurrentPawn();
 
-            if (IsManualMode)
+            // Restore cursor to the same work type on the new pawn
+            if (preservedWorkType != null)
             {
-                // Stay at the same priority level
-                currentColumn = preservedColumn;
-                currentRow = 0;
-            }
-
-            if (hadChanges)
-            {
-                TolkHelper.Speak($"{previousPawnName}'s work preferences saved. Now editing: {currentPawn.LabelShort}. {MenuHelper.FormatPosition(currentPawnIndex, allPawns.Count)}");
+                if (IsManualMode)
+                {
+                    if (FindWorkTypePosition(preservedWorkType, out int col, out int row))
+                    {
+                        currentColumn = col;
+                        currentRow = row;
+                    }
+                    else
+                    {
+                        FindFirstPopulatedColumn();
+                    }
+                }
+                else
+                {
+                    int idx = allEntries.FindIndex(e => e.WorkType == preservedWorkType);
+                    basicModeIndex = idx >= 0 ? idx : 0;
+                }
             }
             else
             {
-                TolkHelper.Speak($"Now editing: {currentPawn.LabelShort}. {MenuHelper.FormatPosition(currentPawnIndex, allPawns.Count)}");
+                if (IsManualMode)
+                {
+                    FindFirstPopulatedColumn();
+                }
+                else
+                {
+                    basicModeIndex = 0;
+                }
             }
-            AnnounceCurrentPosition(true);
+
+            // Brief announcement for rapid pawn cycling
+            string briefAnnouncement = BuildPawnSwitchAnnouncement();
+            if (hadChanges)
+            {
+                TolkHelper.Speak($"{previousPawnName} saved. {briefAnnouncement}");
+            }
+            else
+            {
+                TolkHelper.Speak(briefAnnouncement);
+            }
         }
 
         private static void CleanupState()
@@ -658,6 +684,154 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Sets the priority for the current work type across ALL eligible pawns.
+        /// Mirrors vanilla's shift-click header behavior from PawnColumnWorker_WorkPriority.
+        /// Manual mode only. Cursor stays in original column (same as single-pawn SetPriority).
+        /// </summary>
+        public static void SetPriorityForAllPawns(int priority)
+        {
+            if (priority < 0 || priority > 4) return;
+            if (!IsManualMode) return;
+
+            WorkTypeEntry entry = GetCurrentEntry();
+            if (entry == null)
+            {
+                TolkHelper.Speak("No work type selected");
+                return;
+            }
+
+            if (entry.IsPermanentlyDisabled)
+            {
+                AnnounceCannotEnable(entry);
+                return;
+            }
+
+            WorkTypeDef workType = entry.WorkType;
+            string jobName = workType.labelShort;
+
+            // Track results for announcement
+            var changedNames = new List<string>();
+            var alreadySetNames = new List<string>();
+            var incapableNames = new List<string>();
+
+            foreach (Pawn pawn in allPawns)
+            {
+                // Eligibility check matching vanilla's HeaderClicked logic
+                if (pawn.workSettings == null || !pawn.workSettings.EverWork || pawn.WorkTypeIsDisabled(workType))
+                {
+                    incapableNames.Add(pawn.LabelShort);
+                    continue;
+                }
+
+                int currentPriority = pawn.workSettings.GetPriority(workType);
+                if (currentPriority == priority)
+                {
+                    alreadySetNames.Add(pawn.LabelShort);
+                    continue;
+                }
+
+                pawn.workSettings.SetPriority(workType, priority);
+                changedNames.Add(pawn.LabelShort);
+            }
+
+            // Update the current pawn's internal column structure if their priority changed
+            bool currentPawnChanged = changedNames.Contains(currentPawn.LabelShort);
+            if (currentPawnChanged)
+            {
+                int newColumnIndex = PriorityToColumnIndex(priority);
+
+                // Remove from current column
+                var oldColumn = columns[currentColumn];
+                oldColumn.Remove(entry);
+
+                // Update entry's tracked priority
+                entry.CurrentPriority = priority;
+
+                // Add to new column in correct naturalPriority order
+                var newColumn = columns[newColumnIndex];
+                int insertIndex = FindInsertionIndex(newColumn, entry);
+                newColumn.Insert(insertIndex, entry);
+
+                hasUnsavedChanges = true;
+            }
+
+            // Speak bulk announcement first
+            string announcement = BuildBulkSetAnnouncement(jobName, priority, changedNames, alreadySetNames, incapableNames);
+            TolkHelper.Speak(announcement);
+
+            // Then handle cursor position (stays in original column, same as single-pawn SetPriority)
+            if (currentPawnChanged)
+            {
+                var oldColumn = columns[currentColumn];
+                if (oldColumn.Count == 0)
+                {
+                    TolkHelper.Speak($"Your cursor is now at {GetColumnName(currentColumn)}, which is empty");
+                }
+                else
+                {
+                    if (currentRow >= oldColumn.Count)
+                        currentRow = oldColumn.Count - 1;
+                    AnnounceCursorMovedTo();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Builds the announcement string for a bulk priority set operation.
+        /// Treats "already at target priority" as success. Only incapable pawns are exceptions.
+        /// </summary>
+        private static string BuildBulkSetAnnouncement(
+            string jobName,
+            int priority,
+            List<string> changedNames,
+            List<string> alreadySetNames,
+            List<string> incapableNames)
+        {
+            int totalPawns = allPawns.Count;
+            string priorityLabel = priority == 0 ? "disabled" : $"Priority {priority}";
+            int successCount = changedNames.Count + alreadySetNames.Count;
+
+            // Nobody can do this job
+            if (successCount == 0)
+            {
+                return $"No colonists can do {jobName}";
+            }
+
+            // Everyone was already at this priority
+            if (changedNames.Count == 0)
+            {
+                if (incapableNames.Count == 0)
+                {
+                    return $"{jobName} already {priorityLabel} for all colonists";
+                }
+                return $"{jobName} already {priorityLabel} for all capable colonists";
+            }
+
+            // All capable colonists were changed or already set (no incapable exceptions)
+            if (incapableNames.Count == 0)
+            {
+                return $"All colonists' {jobName} set to {priorityLabel}";
+            }
+
+            // Some incapable exceptions exist
+            if (incapableNames.Count <= 5 && incapableNames.Count <= totalPawns / 2)
+            {
+                string exceptList = FormatNameList(incapableNames);
+                return $"{jobName} set to {priorityLabel} for all except {exceptList}";
+            }
+            else
+            {
+                // Many incapable - list who was changed
+                string changedList = FormatNameList(changedNames);
+                if (alreadySetNames.Count > 0)
+                {
+                    return $"{jobName} set to {priorityLabel} for {changedList}. {alreadySetNames.Count} already set";
+                }
+                return $"{jobName} set to {priorityLabel} for {changedList}";
+            }
+        }
+
+        /// <summary>
         /// Toggles current task between enabled (priority 3) and disabled (priority 0).
         /// </summary>
         public static void ToggleSelected()
@@ -888,6 +1062,43 @@ namespace RimWorldAccess
             return entry != null ? allEntries.IndexOf(entry) : 0;
         }
 
+        /// <summary>
+        /// Finds the column and row position of a WorkTypeDef in the current columns.
+        /// Unlike FindEntryPosition which matches by object reference, this matches by
+        /// WorkTypeDef identity. Needed because WorkTypeEntry objects are recreated per
+        /// pawn by LoadWorkTypesForCurrentPawn().
+        /// </summary>
+        private static bool FindWorkTypePosition(WorkTypeDef workType, out int column, out int row)
+        {
+            for (int c = 0; c < 5; c++)
+            {
+                for (int r = 0; r < columns[c].Count; r++)
+                {
+                    if (columns[c][r].WorkType == workType)
+                    {
+                        column = c;
+                        row = r;
+                        return true;
+                    }
+                }
+            }
+            column = 0;
+            row = 0;
+            return false;
+        }
+
+        /// <summary>
+        /// Formats a list of names with proper English grammar.
+        /// 1 name: "Alice". 2 names: "Alice and Bob". 3+: "Alice, Bob, and Carol".
+        /// </summary>
+        private static string FormatNameList(List<string> names)
+        {
+            if (names.Count == 0) return "";
+            if (names.Count == 1) return names[0];
+            if (names.Count == 2) return $"{names[0]} and {names[1]}";
+            return string.Join(", ", names.Take(names.Count - 1)) + ", and " + names[names.Count - 1];
+        }
+
         #endregion
 
         #region Announcements
@@ -960,6 +1171,41 @@ namespace RimWorldAccess
 
                 TolkHelper.Speak($"{taskAnnouncement} {status}, {position}");
             }
+        }
+
+        /// <summary>
+        /// Builds a full announcement for pawn switching via Tab.
+        /// Includes pawn name, work type with priority, skill/passion details, and pawn position.
+        /// </summary>
+        private static string BuildPawnSwitchAnnouncement()
+        {
+            string pawnName = currentPawn?.LabelShort ?? "Unknown";
+            WorkTypeEntry entry = GetCurrentEntry();
+            string pawnPosition = MenuHelper.FormatPosition(currentPawnIndex, allPawns.Count);
+
+            if (entry == null)
+            {
+                return $"{pawnName}. {pawnPosition}";
+            }
+
+            // Get full task details from BuildTaskAnnouncement (starts with labelShort)
+            string fullDetails = BuildTaskAnnouncement(entry, true);
+            string labelShort = entry.WorkType.labelShort;
+            string detailsSuffix = fullDetails.Substring(labelShort.Length).TrimEnd('.');
+
+            if (entry.IsPermanentlyDisabled)
+            {
+                // "PawnName. mine. Permanently disabled: reasons. 2 of 19"
+                return $"{pawnName}. {labelShort}{detailsSuffix}. {pawnPosition}";
+            }
+
+            // Insert priority after work type name
+            string priorityLabel = entry.CurrentPriority == 0
+                ? "disabled"
+                : GetColumnName(PriorityToColumnIndex(entry.CurrentPriority));
+
+            // "PawnName. mine, Priority 2. Uses Mining. Skill level: 5, Skilled. No passion. 2 of 19"
+            return $"{pawnName}. {labelShort}, {priorityLabel}{detailsSuffix}. {pawnPosition}";
         }
 
         /// <summary>

@@ -30,7 +30,7 @@ namespace RimWorldAccess
 
             KeyCode key = Event.current.keyCode;
             bool shift = Event.current.shift;
-            bool alt = Event.current.alt;
+            bool alt = KeyboardHelper.IsAltHeld;
             var typeahead = WorkMenuState.Typeahead;
 
             // Handle Escape - clear search first, then cancel
@@ -151,6 +151,41 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Handle Shift+number keys: Set priority for ALL compatible pawns (manual mode only)
+            if (shift && !alt && WorkMenuState.IsManualMode)
+            {
+                if (key == KeyCode.Alpha0 || key == KeyCode.Keypad0)
+                {
+                    WorkMenuState.SetPriorityForAllPawns(0);
+                    Event.current.Use();
+                    return;
+                }
+                if (key == KeyCode.Alpha1 || key == KeyCode.Keypad1)
+                {
+                    WorkMenuState.SetPriorityForAllPawns(1);
+                    Event.current.Use();
+                    return;
+                }
+                if (key == KeyCode.Alpha2 || key == KeyCode.Keypad2)
+                {
+                    WorkMenuState.SetPriorityForAllPawns(2);
+                    Event.current.Use();
+                    return;
+                }
+                if (key == KeyCode.Alpha3 || key == KeyCode.Keypad3)
+                {
+                    WorkMenuState.SetPriorityForAllPawns(3);
+                    Event.current.Use();
+                    return;
+                }
+                if (key == KeyCode.Alpha4 || key == KeyCode.Keypad4)
+                {
+                    WorkMenuState.SetPriorityForAllPawns(4);
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // Handle number keys 0-4: Set priority (manual mode) or toggle (basic mode)
             if (!alt && !shift)
             {
@@ -264,7 +299,7 @@ namespace RimWorldAccess
             if (WorkMenuState.IsManualMode)
             {
                 instructions1 = "Up/Down: Switch priorities | Left/Right: Navigate tasks";
-                instructions2 = "0-4: Set priority | Tab/Shift+Tab: Switch pawn";
+                instructions2 = "0-4: Set priority | Shift+0-4: Set for all | Tab/Shift+Tab: Switch pawn";
                 instructions3 = "Enter: Confirm | Escape: Cancel | Alt+M: Switch to basic mode";
             }
             else

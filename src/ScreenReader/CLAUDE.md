@@ -8,6 +8,9 @@ Provides direct screen reader integration via Tolk library and custom audio feed
 ### Screen Reader Bridge (1 file)
 - **TolkHelper.cs** - P/Invoke wrapper for Tolk.dll and nvdaControllerClient64.dll, provides Speak() method
 
+### Speech Sanitization (1 file)
+- **SpeechSanitizer.cs** - Centralized text cleanup pipeline (tag stripping, punctuation fixes, whitespace normalization). Runs automatically in TolkHelper.Speak() before text reaches the screen reader.
+
 ### Audio Feedback (2 files)
 - **EmbeddedAudioHelper.cs** - Loads and plays custom audio files embedded in DLL
 - **TerrainAudioHelper.cs** - Provides terrain-based audio cues for map navigation

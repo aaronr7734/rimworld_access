@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using RimWorld;
 using UnityEngine;
@@ -48,6 +49,10 @@ namespace RimWorldAccess
         private static readonly List<string> operationActions = new List<string> { "View Details", "Remove Operation", "Go Back" };
         private static int operationActionIndex = 0;
 
+        // Typeahead search for recipe and body part lists
+        private static TypeaheadSearchHelper recipeTypeahead = new TypeaheadSearchHelper();
+        private static TypeaheadSearchHelper bodyPartTypeahead = new TypeaheadSearchHelper();
+
         public static bool IsActive => isActive;
 
         /// <summary>
@@ -62,6 +67,8 @@ namespace RimWorldAccess
             isActive = true;
             currentLevel = MenuLevel.OperationsList;
             operationIndex = 0;
+            recipeTypeahead.ClearSearch();
+            bodyPartTypeahead.ClearSearch();
 
             // Build operations list
             queuedOperations.Clear();
@@ -99,8 +106,17 @@ namespace RimWorldAccess
         {
             isActive = false;
             currentPawn = null;
+            recipeTypeahead.ClearSearch();
+            bodyPartTypeahead.ClearSearch();
             SoundDefOf.TabClose.PlayOneShotOnCamera();
         }
+
+        /// <summary>
+        /// Whether a typeahead search is active for the current menu level.
+        /// </summary>
+        private static bool HasActiveSearch =>
+            (currentLevel == MenuLevel.AddRecipeList && recipeTypeahead.HasActiveSearch) ||
+            (currentLevel == MenuLevel.SelectBodyPart && bodyPartTypeahead.HasActiveSearch);
 
         /// <summary>
         /// Handles keyboard input.
@@ -112,26 +128,58 @@ namespace RimWorldAccess
 
             KeyCode key = evt.keyCode;
 
-            // Handle Escape - go back or close
+            // Handle Escape - clear search first, then go back
             if (key == KeyCode.Escape)
             {
                 evt.Use();
-                GoBack();
+                if (HasActiveSearch)
+                {
+                    if (currentLevel == MenuLevel.AddRecipeList)
+                        recipeTypeahead.ClearSearchAndAnnounce();
+                    else if (currentLevel == MenuLevel.SelectBodyPart)
+                        bodyPartTypeahead.ClearSearchAndAnnounce();
+                    AnnounceCurrentSelection();
+                }
+                else
+                {
+                    GoBack();
+                }
                 return true;
             }
 
-            // Handle arrow keys
+            // Handle Up/Down - match navigation when searching, normal navigation otherwise
             if (key == KeyCode.UpArrow)
             {
                 evt.Use();
-                SelectPrevious();
+                if (HasActiveSearch)
+                    SelectPreviousMatch();
+                else
+                    SelectPrevious();
                 return true;
             }
 
             if (key == KeyCode.DownArrow)
             {
                 evt.Use();
-                SelectNext();
+                if (HasActiveSearch)
+                    SelectNextMatch();
+                else
+                    SelectNext();
+                return true;
+            }
+
+            // Handle Home/End
+            if (key == KeyCode.Home)
+            {
+                evt.Use();
+                NavigateHome();
+                return true;
+            }
+
+            if (key == KeyCode.End)
+            {
+                evt.Use();
+                NavigateEnd();
                 return true;
             }
 
@@ -143,7 +191,38 @@ namespace RimWorldAccess
                 return true;
             }
 
+            // Handle Backspace - typeahead
+            if (key == KeyCode.Backspace)
+            {
+                if (HandleTypeaheadBackspace())
+                {
+                    evt.Use();
+                    return true;
+                }
+                return false;
+            }
+
+            // Consume letter keys to prevent game shortcut leaking (R=draft, T=time, etc.)
+            // Actual typeahead handled via HandleCharacterInput on the character event
+            bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
+            if (isLetter && !KeyboardHelper.IsAltHeld)
+            {
+                evt.Use();
+                return true;
+            }
+
             return false;
+        }
+
+        /// <summary>
+        /// Handles character input for typeahead search.
+        /// Called from UnifiedKeyboardPatch's character routing section.
+        /// </summary>
+        public static bool HandleCharacterInput(char c)
+        {
+            if (!isActive)
+                return false;
+            return HandleTypeaheadInput(c);
         }
 
         private static void SelectNext()
@@ -172,12 +251,18 @@ namespace RimWorldAccess
 
                 case MenuLevel.AddRecipeList:
                     if (availableRecipes.Count > 0)
+                    {
+                        recipeTypeahead.ClearSearch();
                         recipeIndex = MenuHelper.SelectNext(recipeIndex, availableRecipes.Count);
+                    }
                     break;
 
                 case MenuLevel.SelectBodyPart:
                     if (partsForRecipe.Count > 0)
+                    {
+                        bodyPartTypeahead.ClearSearch();
                         partSelectionIndex = MenuHelper.SelectNext(partSelectionIndex, partsForRecipe.Count);
+                    }
                     break;
             }
 
@@ -211,12 +296,18 @@ namespace RimWorldAccess
 
                 case MenuLevel.AddRecipeList:
                     if (availableRecipes.Count > 0)
+                    {
+                        recipeTypeahead.ClearSearch();
                         recipeIndex = MenuHelper.SelectPrevious(recipeIndex, availableRecipes.Count);
+                    }
                     break;
 
                 case MenuLevel.SelectBodyPart:
                     if (partsForRecipe.Count > 0)
+                    {
+                        bodyPartTypeahead.ClearSearch();
                         partSelectionIndex = MenuHelper.SelectPrevious(partSelectionIndex, partsForRecipe.Count);
+                    }
                     break;
             }
 
@@ -224,8 +315,173 @@ namespace RimWorldAccess
             AnnounceCurrentSelection();
         }
 
+        private static void NavigateHome()
+        {
+            switch (currentLevel)
+            {
+                case MenuLevel.MedicalSettingsList:
+                    medicalSettingIndex = 0;
+                    break;
+                case MenuLevel.MedicalSettingChange:
+                    settingChoiceIndex = 0;
+                    break;
+                case MenuLevel.OperationsList:
+                    operationIndex = 0;
+                    break;
+                case MenuLevel.OperationActions:
+                    operationActionIndex = 0;
+                    break;
+                case MenuLevel.AddRecipeList:
+                    recipeTypeahead.ClearSearch();
+                    if (availableRecipes.Count > 0)
+                        recipeIndex = 0;
+                    break;
+                case MenuLevel.SelectBodyPart:
+                    bodyPartTypeahead.ClearSearch();
+                    if (partsForRecipe.Count > 0)
+                        partSelectionIndex = 0;
+                    break;
+            }
+
+            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            AnnounceCurrentSelection();
+        }
+
+        private static void NavigateEnd()
+        {
+            switch (currentLevel)
+            {
+                case MenuLevel.MedicalSettingsList:
+                    medicalSettingIndex = medicalSettings.Count - 1;
+                    break;
+                case MenuLevel.MedicalSettingChange:
+                    if (currentSettingName == "Food Restriction")
+                        settingChoiceIndex = availableFoodRestrictions.Count - 1;
+                    else if (currentSettingName == "Medical Care")
+                        settingChoiceIndex = availableMedicalCare.Count - 1;
+                    break;
+                case MenuLevel.OperationsList:
+                    operationIndex = queuedOperations.Count; // Last item is "Add Operation"
+                    break;
+                case MenuLevel.OperationActions:
+                    operationActionIndex = operationActions.Count - 1;
+                    break;
+                case MenuLevel.AddRecipeList:
+                    recipeTypeahead.ClearSearch();
+                    if (availableRecipes.Count > 0)
+                        recipeIndex = availableRecipes.Count - 1;
+                    break;
+                case MenuLevel.SelectBodyPart:
+                    bodyPartTypeahead.ClearSearch();
+                    if (partsForRecipe.Count > 0)
+                        partSelectionIndex = partsForRecipe.Count - 1;
+                    break;
+            }
+
+            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            AnnounceCurrentSelection();
+        }
+
+        private static void SelectNextMatch()
+        {
+            if (currentLevel == MenuLevel.AddRecipeList && recipeTypeahead.HasActiveSearch)
+            {
+                int next = recipeTypeahead.GetNextMatch(recipeIndex);
+                if (next >= 0) recipeIndex = next;
+            }
+            else if (currentLevel == MenuLevel.SelectBodyPart && bodyPartTypeahead.HasActiveSearch)
+            {
+                int next = bodyPartTypeahead.GetNextMatch(partSelectionIndex);
+                if (next >= 0) partSelectionIndex = next;
+            }
+
+            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            AnnounceWithSearch();
+        }
+
+        private static void SelectPreviousMatch()
+        {
+            if (currentLevel == MenuLevel.AddRecipeList && recipeTypeahead.HasActiveSearch)
+            {
+                int prev = recipeTypeahead.GetPreviousMatch(recipeIndex);
+                if (prev >= 0) recipeIndex = prev;
+            }
+            else if (currentLevel == MenuLevel.SelectBodyPart && bodyPartTypeahead.HasActiveSearch)
+            {
+                int prev = bodyPartTypeahead.GetPreviousMatch(partSelectionIndex);
+                if (prev >= 0) partSelectionIndex = prev;
+            }
+
+            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            AnnounceWithSearch();
+        }
+
+        private static bool HandleTypeaheadInput(char character)
+        {
+            if (currentLevel == MenuLevel.AddRecipeList && availableRecipes.Count > 0)
+            {
+                var labels = availableRecipes.Select(r => r.LabelCap.ToString().StripTags()).ToList();
+                if (recipeTypeahead.ProcessCharacterInput(character, labels, out int newIndex))
+                {
+                    if (newIndex >= 0) recipeIndex = newIndex;
+                    AnnounceWithSearch();
+                }
+                else
+                {
+                    TolkHelper.Speak($"No matches for '{recipeTypeahead.LastFailedSearch}'");
+                }
+                return true;
+            }
+            else if (currentLevel == MenuLevel.SelectBodyPart && partsForRecipe.Count > 0)
+            {
+                var labels = partsForRecipe.Select(p => p.Label).ToList();
+                if (bodyPartTypeahead.ProcessCharacterInput(character, labels, out int newIndex))
+                {
+                    if (newIndex >= 0) partSelectionIndex = newIndex;
+                    AnnounceWithSearch();
+                }
+                else
+                {
+                    TolkHelper.Speak($"No matches for '{bodyPartTypeahead.LastFailedSearch}'");
+                }
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool HandleTypeaheadBackspace()
+        {
+            if (currentLevel == MenuLevel.AddRecipeList && recipeTypeahead.HasActiveSearch)
+            {
+                var labels = availableRecipes.Select(r => r.LabelCap.ToString().StripTags()).ToList();
+                if (recipeTypeahead.ProcessBackspace(labels, out int newIndex))
+                {
+                    if (newIndex >= 0) recipeIndex = newIndex;
+                    AnnounceWithSearch();
+                }
+                return true;
+            }
+            else if (currentLevel == MenuLevel.SelectBodyPart && bodyPartTypeahead.HasActiveSearch)
+            {
+                var labels = partsForRecipe.Select(p => p.Label).ToList();
+                if (bodyPartTypeahead.ProcessBackspace(labels, out int newIndex))
+                {
+                    if (newIndex >= 0) partSelectionIndex = newIndex;
+                    AnnounceWithSearch();
+                }
+                return true;
+            }
+
+            return false;
+        }
+
         private static void DrillDown()
         {
+            // Clear any active search when drilling down
+            recipeTypeahead.ClearSearch();
+            bodyPartTypeahead.ClearSearch();
+
             switch (currentLevel)
             {
                 case MenuLevel.MedicalSettingsList:
@@ -299,6 +555,7 @@ namespace RimWorldAccess
                         }
                         currentLevel = MenuLevel.AddRecipeList;
                         recipeIndex = 0;
+                        recipeTypeahead.ClearSearch();
                         SoundDefOf.Click.PlayOneShotOnCamera();
                         AnnounceCurrentSelection();
                     }
@@ -374,6 +631,7 @@ namespace RimWorldAccess
                             // Multiple parts available, let user choose
                             currentLevel = MenuLevel.SelectBodyPart;
                             partSelectionIndex = 0;
+                            bodyPartTypeahead.ClearSearch();
                             SoundDefOf.Click.PlayOneShotOnCamera();
                             AnnounceCurrentSelection();
                         }
@@ -404,6 +662,9 @@ namespace RimWorldAccess
 
         private static void GoBack()
         {
+            recipeTypeahead.ClearSearch();
+            bodyPartTypeahead.ClearSearch();
+
             switch (currentLevel)
             {
                 case MenuLevel.MedicalSettingsList:
@@ -459,8 +720,10 @@ namespace RimWorldAccess
                         sb.AppendLine($"Current: {(enabled ? "Enabled" : "Disabled")}");
                     }
 
-                    sb.AppendLine($"Setting {MenuHelper.FormatPosition(medicalSettingIndex, medicalSettings.Count)}");
-                    sb.AppendLine("Press Enter to change");
+                    {
+                        string pos = MenuHelper.FormatPosition(medicalSettingIndex, medicalSettings.Count);
+                        if (!string.IsNullOrEmpty(pos)) sb.AppendLine(pos);
+                    }
                     break;
 
                 case MenuLevel.MedicalSettingChange:
@@ -482,29 +745,32 @@ namespace RimWorldAccess
                             sb.AppendLine($"Option {MenuHelper.FormatPosition(settingChoiceIndex, availableMedicalCare.Count)}");
                         }
                     }
-                    sb.AppendLine("Press Enter to confirm");
                     break;
 
                 case MenuLevel.OperationsList:
-                    if (operationIndex < queuedOperations.Count)
                     {
-                        var bill = queuedOperations[operationIndex];
-                        sb.AppendLine($"Queued: {bill.LabelCap.StripTags()}");
-                        sb.AppendLine($"Operation {MenuHelper.FormatPosition(operationIndex, queuedOperations.Count + 1)}");
-                        sb.AppendLine("Press Enter for actions");
-                    }
-                    else
-                    {
-                        sb.AppendLine("Add Operation");
-                        sb.AppendLine($"Operation {MenuHelper.FormatPosition(operationIndex, queuedOperations.Count + 1)}");
-                        sb.AppendLine("Press Enter to add");
+                        string opsPos = MenuHelper.FormatPosition(operationIndex, queuedOperations.Count + 1);
+                        if (operationIndex < queuedOperations.Count)
+                        {
+                            var bill = queuedOperations[operationIndex];
+                            sb.Append($"Queued: {bill.LabelCap.StripTags()}");
+                        }
+                        else
+                        {
+                            sb.Append("Add Operation");
+                        }
+                        if (!string.IsNullOrEmpty(opsPos)) sb.Append($" ({opsPos})");
+                        sb.AppendLine();
                     }
                     break;
 
                 case MenuLevel.OperationActions:
-                    sb.AppendLine($"{operationActions[operationActionIndex]}");
-                    sb.AppendLine($"Action {MenuHelper.FormatPosition(operationActionIndex, operationActions.Count)}");
-                    sb.AppendLine("Press Enter to execute");
+                    {
+                        sb.Append($"{operationActions[operationActionIndex]}");
+                        string actPos = MenuHelper.FormatPosition(operationActionIndex, operationActions.Count);
+                        if (!string.IsNullOrEmpty(actPos)) sb.Append($" ({actPos})");
+                        sb.AppendLine();
+                    }
                     break;
 
                 case MenuLevel.AddRecipeList:
@@ -530,8 +796,20 @@ namespace RimWorldAccess
                             sb.AppendLine();
                         }
 
-                        sb.AppendLine($"Recipe {MenuHelper.FormatPosition(recipeIndex, availableRecipes.Count)}");
-                        sb.AppendLine("Press Enter to select");
+                        // Announce missing (non-blocking) ingredients if any
+                        if (currentPawn.MapHeld != null)
+                        {
+                            var missingIngredients = recipe.PotentiallyMissingIngredients(null, currentPawn.MapHeld).ToList();
+                            if (missingIngredients.Count > 0)
+                            {
+                                sb.AppendLine("Missing: " + string.Join(", ", missingIngredients.Select(x => x.label)));
+                            }
+                        }
+
+                        {
+                            string recPos = MenuHelper.FormatPosition(recipeIndex, availableRecipes.Count);
+                            if (!string.IsNullOrEmpty(recPos)) sb.AppendLine(recPos);
+                        }
                     }
                     break;
 
@@ -547,13 +825,39 @@ namespace RimWorldAccess
                         float maxHealth = part.def.GetMaxHealth(currentPawn);
                         sb.AppendLine($"Health: {health:F0} / {maxHealth:F0}");
 
-                        sb.AppendLine($"Part {MenuHelper.FormatPosition(partSelectionIndex, partsForRecipe.Count)}");
-                        sb.AppendLine("Press Enter to add operation");
+                        {
+                            string partPos = MenuHelper.FormatPosition(partSelectionIndex, partsForRecipe.Count);
+                            if (!string.IsNullOrEmpty(partPos)) sb.AppendLine(partPos);
+                        }
                     }
                     break;
             }
 
             TolkHelper.Speak(sb.ToString());
+        }
+
+        private static void AnnounceWithSearch()
+        {
+            if (currentLevel == MenuLevel.AddRecipeList && recipeTypeahead.HasActiveSearch)
+            {
+                if (recipeIndex >= 0 && recipeIndex < availableRecipes.Count)
+                {
+                    var recipe = availableRecipes[recipeIndex];
+                    TolkHelper.Speak($"{recipe.LabelCap.ToString().StripTags()}, {recipeTypeahead.CurrentMatchPosition} of {recipeTypeahead.MatchCount} matches for '{recipeTypeahead.SearchBuffer}'");
+                }
+            }
+            else if (currentLevel == MenuLevel.SelectBodyPart && bodyPartTypeahead.HasActiveSearch)
+            {
+                if (partSelectionIndex >= 0 && partSelectionIndex < partsForRecipe.Count)
+                {
+                    var part = partsForRecipe[partSelectionIndex];
+                    TolkHelper.Speak($"{part.Label}, {bodyPartTypeahead.CurrentMatchPosition} of {bodyPartTypeahead.MatchCount} matches for '{bodyPartTypeahead.SearchBuffer}'");
+                }
+            }
+            else
+            {
+                AnnounceCurrentSelection();
+            }
         }
     }
 }

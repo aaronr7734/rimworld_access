@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using Verse;
+using Verse.Sound;
 
 namespace RimWorldAccess
 {
@@ -12,17 +13,16 @@ namespace RimWorldAccess
         public enum ColumnType
         {
             Name,
+            Predator,
             Gender,
             LifeStage,
-            Age,
-            BodySize,
-            Health,
-            Pregnant,
             Hunt,
-            Tame
+            ManhunterOnDamage,
+            Tame,
+            ManhunterOnTameFail
         }
 
-        private static int totalColumns = 9;
+        private static int totalColumns = 8;
 
         // Get total column count
         public static int GetTotalColumnCount()
@@ -40,14 +40,13 @@ namespace RimWorldAccess
             switch (type)
             {
                 case ColumnType.Name: return "Name";
+                case ColumnType.Predator: return "Predator";
                 case ColumnType.Gender: return "Sex".Translate().Resolve();
                 case ColumnType.LifeStage: return "LifeStage".Translate().Resolve();
-                case ColumnType.Age: return "Age";
-                case ColumnType.BodySize: return "BodySize".Translate().Resolve();
-                case ColumnType.Health: return "TabHealth".Translate().Resolve();
-                case ColumnType.Pregnant: return HediffDefOf.Pregnant.LabelCap.Resolve();
                 case ColumnType.Hunt: return "DesignatorHunt".Translate().Resolve();
+                case ColumnType.ManhunterOnDamage: return "RevengeChance".Translate().Resolve();
                 case ColumnType.Tame: return "DesignatorTame".Translate().Resolve();
+                case ColumnType.ManhunterOnTameFail: return "TameFailedManhunterChance".Translate().Resolve();
                 default: return "Unknown";
             }
         }
@@ -62,14 +61,13 @@ namespace RimWorldAccess
             switch (type)
             {
                 case ColumnType.Name: return GetAnimalNameWithActivity(pawn);
+                case ColumnType.Predator: return GetPredatorStatus(pawn);
                 case ColumnType.Gender: return GetGender(pawn);
                 case ColumnType.LifeStage: return GetLifeStage(pawn);
-                case ColumnType.Age: return GetAge(pawn);
-                case ColumnType.BodySize: return GetBodySize(pawn);
-                case ColumnType.Health: return GetHealth(pawn);
-                case ColumnType.Pregnant: return GetPregnancyStatus(pawn);
                 case ColumnType.Hunt: return GetHuntStatus(pawn);
+                case ColumnType.ManhunterOnDamage: return GetManhunterOnDamageChance(pawn);
                 case ColumnType.Tame: return GetTameStatus(pawn);
+                case ColumnType.ManhunterOnTameFail: return GetManhunterOnTameFailChance(pawn);
                 default: return "Unknown";
             }
         }
@@ -81,7 +79,31 @@ namespace RimWorldAccess
                 return false;
 
             ColumnType type = (ColumnType)columnIndex;
-            return type == ColumnType.Hunt || type == ColumnType.Tame;
+            return type == ColumnType.Name || type == ColumnType.Hunt || type == ColumnType.Tame;
+        }
+
+        // Get column tooltip (shown only on column navigation, not row navigation)
+        public static string GetColumnTooltip(Pawn pawn, int columnIndex)
+        {
+            if (columnIndex < 0 || columnIndex >= totalColumns)
+                return null;
+
+            ColumnType type = (ColumnType)columnIndex;
+            switch (type)
+            {
+                case ColumnType.Predator:
+                    return "IsPredator".Translate().Resolve();
+                case ColumnType.Hunt:
+                    return DefDatabase<PawnColumnDef>.GetNamedSilentFail("Hunt")?.headerTip;
+                case ColumnType.ManhunterOnDamage:
+                    return DefDatabase<PawnColumnDef>.GetNamedSilentFail("ManhunterOnDamageChance")?.headerTip;
+                case ColumnType.Tame:
+                    return DefDatabase<PawnColumnDef>.GetNamedSilentFail("Tame")?.headerTip;
+                case ColumnType.ManhunterOnTameFail:
+                    return DefDatabase<PawnColumnDef>.GetNamedSilentFail("ManhunterOnTameFailChance")?.headerTip;
+                default:
+                    return null;
+            }
         }
 
         // === Column Accessors ===
@@ -105,6 +127,12 @@ namespace RimWorldAccess
             return activity != null ? $"{name} - {activity}" : name;
         }
 
+        public static string GetPredatorStatus(Pawn pawn)
+        {
+            if (pawn.RaceProps == null) return "Unknown";
+            return pawn.RaceProps.predator ? "Yes".Translate().Resolve() : "No".Translate().Resolve();
+        }
+
         public static string GetGender(Pawn pawn)
         {
             // Use RimWorld's localized gender labels
@@ -117,79 +145,17 @@ namespace RimWorldAccess
             return pawn.ageTracker.CurLifeStage.label.CapitalizeFirst();
         }
 
-        public static string GetAge(Pawn pawn)
-        {
-            if (pawn.ageTracker == null) return "Unknown";
-            // Use RimWorld's localized age string
-            return pawn.ageTracker.AgeNumberString;
-        }
-
-        public static string GetBodySize(Pawn pawn)
-        {
-            if (pawn.RaceProps == null) return "Unknown";
-            return pawn.RaceProps.baseBodySize.ToString("F2");
-        }
-
-        public static string GetHealth(Pawn pawn)
-        {
-            if (pawn.health == null) return "Unknown";
-
-            float healthPercent = pawn.health.summaryHealth.SummaryHealthPercent;
-            string healthText = $"{(healthPercent * 100f):F0}%";
-
-            // Add injury/condition info if not at full health
-            if (healthPercent < 1f)
-            {
-                var hediffs = pawn.health.hediffSet.hediffs
-                    .Where(h => h.Visible && h.Label != null)
-                    .Take(3)
-                    .Select(h => h.Label);
-
-                if (hediffs.Any())
-                {
-                    healthText += " (" + string.Join(", ", hediffs) + ")";
-                }
-            }
-
-            return healthText;
-        }
-
-        public static string GetPregnancyStatus(Pawn pawn)
-        {
-            if (pawn.gender != Gender.Female) return "N/A";
-            if (pawn.health?.hediffSet == null) return "None".Translate().Resolve();
-
-            Hediff_Pregnant pregnancy = (Hediff_Pregnant)pawn.health.hediffSet.GetFirstHediffOfDef(HediffDefOf.Pregnant);
-            if (pregnancy != null)
-            {
-                // Use hediff's localized label and progress
-                return $"{pregnancy.LabelCap} ({pregnancy.GestationProgress.ToStringPercent()})";
-            }
-            return "None".Translate().Resolve();
-        }
-
         public static string GetHuntStatus(Pawn pawn)
         {
             if (pawn.Map == null) return "N/A";
 
             Designation designation = pawn.Map.designationManager.DesignationOn(pawn, DesignationDefOf.Hunt);
+            return designation != null ? "Yes".Translate().Resolve() : "No".Translate().Resolve();
+        }
 
-            // Get manhunter on damage chance
-            float manhunterChance = PawnUtility.GetManhunterOnDamageChance(pawn);
-            string revengeChanceLabel = "RevengeChance".Translate().Resolve();
-            string manhunterInfo = manhunterChance > 0f ? $", {revengeChanceLabel}: {manhunterChance.ToStringPercent()}" : "";
-
-            string markedLabel = DesignationDefOf.Hunt.label.CapitalizeFirst();
-            string notMarkedLabel = "None".Translate().Resolve();
-
-            if (designation != null)
-            {
-                return $"{markedLabel}{manhunterInfo}";
-            }
-            else
-            {
-                return manhunterChance > 0f ? $"{notMarkedLabel} ({revengeChanceLabel}: {manhunterChance.ToStringPercent()})" : notMarkedLabel;
-            }
+        public static string GetManhunterOnDamageChance(Pawn pawn)
+        {
+            return PawnUtility.GetManhunterOnDamageChance(pawn).ToStringPercent();
         }
 
         public static string GetTameStatus(Pawn pawn)
@@ -204,39 +170,28 @@ namespace RimWorldAccess
                 return "MessageMustDesignateTameable".Translate().Resolve();
             }
 
-            // Get minimum handling skill required
-            int minSkill = (int)pawn.GetStatValue(StatDefOf.MinimumHandlingSkill);
+            Designation designation = pawn.Map.designationManager.DesignationOn(pawn, DesignationDefOf.Tame);
+            string status = designation != null ? "Yes".Translate().Resolve() : "No".Translate().Resolve();
 
-            // Get manhunter on tame fail chance
-            float manhunterChance = PawnUtility.GetManhunterOnTameFailChance(pawn);
-
-            // Build info string using localized labels
+            // Append wildness and min handling skill
             string wildnessLabel = StatDefOf.Wildness.LabelCap.Resolve();
             string minHandlingLabel = StatDefOf.MinimumHandlingSkill.LabelCap.Resolve();
 
             List<string> infoParts = new List<string>();
             infoParts.Add($"{wildnessLabel}: {wildness.ToStringPercent()}");
+
+            int minSkill = (int)pawn.GetStatValue(StatDefOf.MinimumHandlingSkill);
             if (minSkill > 0)
             {
                 infoParts.Add($"{minHandlingLabel}: {minSkill}");
             }
-            if (manhunterChance > 0f)
-            {
-                string manhunterLabel = "TameFailedManhunterChance".Translate().Resolve();
-                infoParts.Add($"{manhunterLabel}: {manhunterChance.ToStringPercent()}");
-            }
-            string infoString = string.Join(", ", infoParts);
 
-            Designation designation = pawn.Map.designationManager.DesignationOn(pawn, DesignationDefOf.Tame);
-            string markedLabel = DesignationDefOf.Tame.label.CapitalizeFirst();
-            string notMarkedLabel = "None".Translate().Resolve();
+            return $"{status}, {string.Join(", ", infoParts)}";
+        }
 
-            if (designation != null)
-            {
-                return $"{markedLabel} ({infoString})";
-            }
-
-            return $"{notMarkedLabel} ({infoString})";
+        public static string GetManhunterOnTameFailChance(Pawn pawn)
+        {
+            return PawnUtility.GetManhunterOnTameFailChance(pawn).ToStringPercent();
         }
 
         // === Designation Toggles ===
@@ -288,6 +243,111 @@ namespace RimWorldAccess
             }
         }
 
+        // === Painting Support ===
+
+        private static readonly Dictionary<ColumnType, string> columnDefNames = new Dictionary<ColumnType, string>
+        {
+            { ColumnType.Hunt, "Hunt" },
+            { ColumnType.Tame, "Tame" },
+        };
+
+        /// <summary>
+        /// Checks if a column supports painting (drag-to-apply).
+        /// Uses runtime PawnColumnDef.paintable lookup.
+        /// </summary>
+        public static bool CanPaintColumn(int columnIndex)
+        {
+            if (columnIndex < 0 || columnIndex >= totalColumns)
+                return false;
+
+            ColumnType type = (ColumnType)columnIndex;
+            if (columnDefNames.TryGetValue(type, out string defName))
+            {
+                var def = DefDatabase<PawnColumnDef>.GetNamedSilentFail(defName);
+                return def?.paintable == true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Gets the current boolean value of a paintable column for a pawn.
+        /// </summary>
+        public static bool GetPaintableValue(Pawn pawn, int columnIndex)
+        {
+            ColumnType type = (ColumnType)columnIndex;
+            switch (type)
+            {
+                case ColumnType.Hunt:
+                    return pawn.Map?.designationManager.DesignationOn(pawn, DesignationDefOf.Hunt) != null;
+                case ColumnType.Tame:
+                    return pawn.Map?.designationManager.DesignationOn(pawn, DesignationDefOf.Tame) != null;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Sets a paintable column to a specific value (not toggle).
+        /// Returns false if the animal can't accept the value or is already in the desired state.
+        /// </summary>
+        public static bool SetPaintableValue(Pawn pawn, int columnIndex, bool value)
+        {
+            ColumnType type = (ColumnType)columnIndex;
+            switch (type)
+            {
+                case ColumnType.Hunt:
+                    if (pawn.Map == null) return false;
+                    var huntDes = pawn.Map.designationManager.DesignationOn(pawn, DesignationDefOf.Hunt);
+                    if (value && huntDes == null)
+                    {
+                        pawn.Map.designationManager.AddDesignation(new Designation(pawn, DesignationDefOf.Hunt));
+                        return true;
+                    }
+                    if (!value && huntDes != null)
+                    {
+                        pawn.Map.designationManager.RemoveDesignation(huntDes);
+                        return true;
+                    }
+                    return false;
+
+                case ColumnType.Tame:
+                    if (pawn.Map == null) return false;
+                    if (pawn.GetStatValue(StatDefOf.Wildness) >= 1f) return false;
+                    var tameDes = pawn.Map.designationManager.DesignationOn(pawn, DesignationDefOf.Tame);
+                    if (value && tameDes == null)
+                    {
+                        pawn.Map.designationManager.AddDesignation(new Designation(pawn, DesignationDefOf.Tame));
+                        return true;
+                    }
+                    if (!value && tameDes != null)
+                    {
+                        pawn.Map.designationManager.RemoveDesignation(tameDes);
+                        return true;
+                    }
+                    return false;
+
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Gets the appropriate sound for painting a column.
+        /// </summary>
+        public static SoundDef GetPaintSound(int columnIndex, bool value)
+        {
+            return value ? SoundDefOf.Checkbox_TurnedOn : SoundDefOf.Checkbox_TurnedOff;
+        }
+
+        /// <summary>
+        /// Gets the display label for a paint value (e.g., "checked", "unchecked").
+        /// </summary>
+        public static string GetPaintValueLabel(int columnIndex, bool value)
+        {
+            return value ? "checked" : "unchecked";
+        }
+
         // === Sorting ===
 
         public static List<Pawn> SortWildlifeByColumn(List<Pawn> wildlife, int columnIndex, bool descending)
@@ -302,29 +362,26 @@ namespace RimWorldAccess
                     case ColumnType.Name:
                         sorted = wildlife.OrderBy(p => p.def.label);
                         break;
+                    case ColumnType.Predator:
+                        sorted = wildlife.OrderBy(p => p.RaceProps?.predator == true ? 0 : 1);
+                        break;
                     case ColumnType.Gender:
                         sorted = wildlife.OrderBy(p => p.gender);
                         break;
                     case ColumnType.LifeStage:
                         sorted = wildlife.OrderBy(p => p.ageTracker?.CurLifeStageIndex ?? 0);
                         break;
-                    case ColumnType.Age:
-                        sorted = wildlife.OrderBy(p => p.ageTracker?.AgeBiologicalYearsFloat ?? 0);
-                        break;
-                    case ColumnType.BodySize:
-                        sorted = wildlife.OrderBy(p => p.RaceProps?.baseBodySize ?? 0);
-                        break;
-                    case ColumnType.Health:
-                        sorted = wildlife.OrderBy(p => p.health?.summaryHealth.SummaryHealthPercent ?? 0);
-                        break;
-                    case ColumnType.Pregnant:
-                        sorted = wildlife.OrderBy(p => GetPregnancyStatus(p));
-                        break;
                     case ColumnType.Hunt:
                         sorted = wildlife.OrderBy(p => GetHuntStatus(p));
                         break;
+                    case ColumnType.ManhunterOnDamage:
+                        sorted = wildlife.OrderBy(p => PawnUtility.GetManhunterOnDamageChance(p));
+                        break;
                     case ColumnType.Tame:
                         sorted = wildlife.OrderBy(p => GetTameStatus(p));
+                        break;
+                    case ColumnType.ManhunterOnTameFail:
+                        sorted = wildlife.OrderBy(p => PawnUtility.GetManhunterOnTameFailChance(p));
                         break;
                 }
             }
@@ -337,11 +394,12 @@ namespace RimWorldAccess
             return sorted.ToList();
         }
 
-        // Default sort: by body size descending, then by label (matches PawnTable_Wildlife)
+        // Default sort: predators first, then by body size descending, then by label
         public static List<Pawn> DefaultSort(List<Pawn> wildlife)
         {
             return wildlife
-                .OrderByDescending(p => p.RaceProps?.baseBodySize ?? 0)
+                .OrderByDescending(p => p.RaceProps?.predator == true ? 1 : 0)
+                .ThenByDescending(p => p.RaceProps?.baseBodySize ?? 0)
                 .ThenBy(p => p.def.label)
                 .ToList();
         }
