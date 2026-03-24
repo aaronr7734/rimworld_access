@@ -3982,6 +3982,147 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 4.772: Handle learning helper menu if active =====
+            if (LearningHelperState.IsActive)
+            {
+                bool handled = false;
+                var typeahead = LearningHelperState.Typeahead;
+
+                // Handle Home - jump to start of detail view or first item in list
+                if (key == KeyCode.Home)
+                {
+                    if (LearningHelperState.IsInDetailView)
+                        LearningHelperState.JumpToDetailStart();
+                    else
+                        LearningHelperState.JumpToFirst();
+                    handled = true;
+                }
+                // Handle End - jump to end of detail view (buttons) or last item in list
+                else if (key == KeyCode.End)
+                {
+                    if (LearningHelperState.IsInDetailView)
+                        LearningHelperState.JumpToDetailEnd();
+                    else
+                        LearningHelperState.JumpToLast();
+                    handled = true;
+                }
+                // Handle Escape - clear search FIRST, then go back (detail->list) or close menu
+                else if (key == KeyCode.Escape)
+                {
+                    if (typeahead.HasActiveSearch)
+                    {
+                        typeahead.ClearSearchAndAnnounce();
+                        LearningHelperState.AnnounceWithSearch();
+                        handled = true;
+                    }
+                    else
+                    {
+                        LearningHelperState.HandleEscape();
+                        handled = true;
+                    }
+                }
+                // Handle Tab - toggle between active/all modes
+                else if (key == KeyCode.Tab)
+                {
+                    LearningHelperState.ToggleMode();
+                    handled = true;
+                }
+                // Handle Backspace for search (only in list view, all mode only)
+                else if (key == KeyCode.Backspace && !LearningHelperState.IsInDetailView && LearningHelperState.ShowAllMode)
+                {
+                    LearningHelperState.HandleBackspace();
+                    handled = true;
+                }
+                // Handle Down arrow - navigate list or detail view
+                else if (key == KeyCode.DownArrow)
+                {
+                    if (!LearningHelperState.IsInDetailView && LearningHelperState.ShowAllMode &&
+                        typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                    {
+                        int newIndex = typeahead.GetNextMatch(LearningHelperState.CurrentIndex);
+                        if (newIndex >= 0)
+                        {
+                            LearningHelperState.SetCurrentIndex(newIndex);
+                            LearningHelperState.AnnounceWithSearch();
+                        }
+                    }
+                    else
+                    {
+                        LearningHelperState.SelectNext();
+                    }
+                    handled = true;
+                }
+                // Handle Up arrow - navigate list or detail view
+                else if (key == KeyCode.UpArrow)
+                {
+                    if (!LearningHelperState.IsInDetailView && LearningHelperState.ShowAllMode &&
+                        typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                    {
+                        int newIndex = typeahead.GetPreviousMatch(LearningHelperState.CurrentIndex);
+                        if (newIndex >= 0)
+                        {
+                            LearningHelperState.SetCurrentIndex(newIndex);
+                            LearningHelperState.AnnounceWithSearch();
+                        }
+                    }
+                    else
+                    {
+                        LearningHelperState.SelectPrevious();
+                    }
+                    handled = true;
+                }
+                // Handle Left arrow - navigate to previous button
+                else if (key == KeyCode.LeftArrow)
+                {
+                    LearningHelperState.SelectPreviousButton();
+                    handled = true;
+                }
+                // Handle Right arrow - navigate to next button
+                else if (key == KeyCode.RightArrow)
+                {
+                    LearningHelperState.SelectNextButton();
+                    handled = true;
+                }
+                // Handle Enter - open detail view or activate button
+                else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                {
+                    if (!LearningHelperState.IsInDetailView)
+                    {
+                        LearningHelperState.EnterDetailView();
+                    }
+                    else if (LearningHelperState.IsInButtonsSection)
+                    {
+                        LearningHelperState.ActivateCurrentButton();
+                    }
+                    handled = true;
+                }
+
+                if (handled)
+                {
+                    Event.current.Use();
+                    return;
+                }
+
+                // Handle typeahead characters for search (only in list view, all mode)
+                if (!LearningHelperState.IsInDetailView && LearningHelperState.ShowAllMode)
+                {
+                    bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
+                    bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
+
+                    if ((isLetter || isNumber) && !Event.current.alt)
+                    {
+                        char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
+                        LearningHelperState.HandleTypeahead(c);
+                        Event.current.Use();
+                        return;
+                    }
+                }
+
+                // Consume all other keys to prevent leakage
+                Event.current.Use();
+                return;
+            }
+
             // ===== PRIORITY 4.776: Handle policy content editor if active =====
             if (PolicyEditorState.IsActive && !WindowlessDialogState.IsActive)
             {
@@ -5422,6 +5563,22 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 7.15: Open learning helper with ? key (Shift+/ on US, remapped on non-US) =====
+            if (key == KeyCode.Slash && (Event.current.shift || KeyboardHelper.WasCharacterRemapped))
+            {
+                if (Current.ProgramState == ProgramState.Playing &&
+                    Find.CurrentMap != null &&
+                    !TutorSystem.TutorialMode &&
+                    TutorSystem.AdaptiveTrainingEnabled &&
+                    (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
+                    !ZoneCreationState.IsInCreationMode)
+                {
+                    Event.current.Use();
+                    LearningHelperState.Open();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 7.5: Open quest menu with F7 key (if no menu is active and we're in-game) =====
             if (key == KeyCode.F7)
             {
@@ -5542,6 +5699,7 @@ namespace RimWorldAccess
                     !WindowlessInspectionState.IsActive &&
                     !QuestMenuState.IsActive &&
                     !NotificationMenuState.IsActive &&
+                    !LearningHelperState.IsActive &&
                     !WindowlessFloatMenuState.IsActive &&
                     !PlantSelectionMenuState.IsActive &&
                     !MechControlGroupState.IsActive &&
