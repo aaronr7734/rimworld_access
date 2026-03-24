@@ -202,6 +202,15 @@ namespace RimWorldAccess
                 return false;
             }
 
+            // Consume letter keys to prevent game shortcut leaking (R=draft, T=time, etc.)
+            // Actual typeahead handled via HandleCharacterInput on the character event
+            bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
+            if (isLetter && !KeyboardHelper.IsAltHeld)
+            {
+                evt.Use();
+                return true;
+            }
+
             return false;
         }
 
