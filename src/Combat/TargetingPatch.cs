@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HarmonyLib;
 using UnityEngine;
 using Verse;
@@ -427,15 +428,61 @@ namespace RimWorldAccess
                         }
                     }
 
+                    // For multi-select: snapshot pawn jobs before executing the action
+                    Dictionary<Pawn, Verse.AI.Job> jobsBeforeTarget = null;
+                    Dictionary<Pawn, int> queueBeforeTarget = null;
+                    bool isMultiSelect = MultiSelectState.IsMultiSelectActive;
+                    List<Pawn> multiPawns = null;
+                    if (isMultiSelect)
+                    {
+                        multiPawns = Find.Selector.SelectedPawns.ToList();
+                        jobsBeforeTarget = new Dictionary<Pawn, Verse.AI.Job>();
+                        queueBeforeTarget = new Dictionary<Pawn, int>();
+                        foreach (var p in multiPawns)
+                        {
+                            jobsBeforeTarget[p] = p.jobs?.curJob;
+                            queueBeforeTarget[p] = p.jobs?.jobQueue?.Count ?? 0;
+                        }
+                    }
+
                     // Execute the action callback
                     action(target);
 
                     // Stop targeting mode
                     __instance.StopTargeting();
 
-                    // Announce success
+                    // Announce with multi-select feedback
                     string targetLabel = target.HasThing ? target.Thing.LabelShort : "location";
-                    TolkHelper.Speak($"Target selected: {targetLabel}");
+                    if (isMultiSelect && multiPawns != null && multiPawns.Count > 1)
+                    {
+                        string everyone = ((string)"ConfirmAbandonHomeNegativeThoughts_Everyone".Translate()).TrimEnd(':', ' ');
+                        var succeeded = multiPawns.Where(p =>
+                            p.jobs?.curJob != jobsBeforeTarget[p] ||
+                            (p.jobs?.jobQueue?.Count ?? 0) > queueBeforeTarget[p]).ToList();
+                        var unchanged = multiPawns.Where(p =>
+                            p.jobs?.curJob == jobsBeforeTarget[p] &&
+                            (p.jobs?.jobQueue?.Count ?? 0) <= queueBeforeTarget[p]).ToList();
+
+                        string actionLabel = $"Attack {targetLabel}";
+                        if (unchanged.Count == 0)
+                            TolkHelper.Speak($"{everyone} {actionLabel}");
+                        else if (succeeded.Count == 0)
+                            TolkHelper.Speak($"No one could {actionLabel}");
+                        else if (unchanged.Count <= succeeded.Count)
+                        {
+                            string names = MenuHelper.FormatNameList(unchanged.Select(p => p.LabelShort).ToList());
+                            TolkHelper.Speak($"{everyone} except {names} {actionLabel}");
+                        }
+                        else
+                        {
+                            string names = MenuHelper.FormatNameList(succeeded.Select(p => p.LabelShort).ToList());
+                            TolkHelper.Speak($"Only {names} {actionLabel}");
+                        }
+                    }
+                    else
+                    {
+                        TolkHelper.Speak($"Target selected: {targetLabel}");
+                    }
 
                     // Consume the event
                     Event.current.Use();

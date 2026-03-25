@@ -19,6 +19,7 @@ namespace RimWorldAccess
         private static int selectedGizmoIndex = 0;
         private static List<Gizmo> availableGizmos = new List<Gizmo>();
         private static Dictionary<Gizmo, ISelectable> gizmoOwners = new Dictionary<Gizmo, ISelectable>();
+        private static Dictionary<Gizmo, List<Gizmo>> gizmoGroups = new Dictionary<Gizmo, List<Gizmo>>();
         private static ISelectable lastAnnouncedOwner = null;
         private static bool pawnJustSelected = false;
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
@@ -64,8 +65,8 @@ namespace RimWorldAccess
                 return;
 
             // Collect gizmos from all selected objects
-            availableGizmos.Clear();
-            gizmoOwners.Clear();
+            var allGizmos = new List<Gizmo>();
+            var allOwners = new Dictionary<Gizmo, ISelectable>();
             lastAnnouncedOwner = null;
 
             foreach (object obj in Find.Selector.SelectedObjects)
@@ -75,9 +76,49 @@ namespace RimWorldAccess
                     var gizmos = selectable.GetGizmos().ToList();
                     foreach (var gizmo in gizmos.Where(g => g != null && g.Visible && !ShouldSkipGizmo(g)))
                     {
-                        availableGizmos.Add(gizmo);
-                        gizmoOwners[gizmo] = selectable;
+                        allGizmos.Add(gizmo);
+                        allOwners[gizmo] = selectable;
                     }
+                }
+            }
+
+            // Group gizmos using vanilla's GroupsWith/MergeWith logic
+            // (mirrors GizmoGridDrawer lines 148-169)
+            var groups = new List<List<Gizmo>>();
+            foreach (var gizmo in allGizmos)
+            {
+                bool grouped = false;
+                for (int i = 0; i < groups.Count; i++)
+                {
+                    if (groups[i][0].GroupsWith(gizmo))
+                    {
+                        groups[i].Add(gizmo);
+                        groups[i][0].MergeWith(gizmo);
+                        grouped = true;
+                        break;
+                    }
+                }
+                if (!grouped)
+                {
+                    groups.Add(new List<Gizmo> { gizmo });
+                }
+            }
+
+            // Store only the representative (first) gizmo of each group
+            availableGizmos.Clear();
+            gizmoOwners.Clear();
+            gizmoGroups.Clear();
+
+            foreach (var group in groups)
+            {
+                var representative = group[0];
+                availableGizmos.Add(representative);
+                gizmoGroups[representative] = group;
+
+                // Map the representative to the first gizmo's owner
+                if (allOwners.TryGetValue(representative, out var owner))
+                {
+                    gizmoOwners[representative] = owner;
                 }
             }
 
@@ -361,8 +402,50 @@ namespace RimWorldAccess
             selectedGizmoIndex = 0;
             availableGizmos.Clear();
             gizmoOwners.Clear();
+            gizmoGroups.Clear();
             typeahead.ClearSearch();
             lastAnnouncedOwner = null;
+        }
+
+        /// <summary>
+        /// Propagates a gizmo execution to all other gizmos in its group,
+        /// matching vanilla GizmoGridDrawer behavior (lines 338-351).
+        /// Called BEFORE the selected gizmo's own ProcessInput.
+        /// </summary>
+        private static void PropagateToGroupedGizmos(Gizmo selectedGizmo, Event fakeEvent)
+        {
+            if (!gizmoGroups.TryGetValue(selectedGizmo, out var group) || group.Count <= 1)
+                return;
+
+            for (int i = 0; i < group.Count; i++)
+            {
+                Gizmo other = group[i];
+                if (other != selectedGizmo && !other.Disabled &&
+                    selectedGizmo.InheritInteractionsFrom(other))
+                {
+                    try
+                    {
+                        other.ProcessInput(fakeEvent);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        ModLogger.Error($"Exception propagating gizmo to grouped member: {ex.Message}");
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Calls ProcessGroupInput on the gizmo with its full group list,
+        /// matching vanilla GizmoGridDrawer behavior.
+        /// Called AFTER the selected gizmo's own ProcessInput.
+        /// </summary>
+        private static void ProcessGroupInput(Gizmo selectedGizmo, Event fakeEvent)
+        {
+            if (gizmoGroups.TryGetValue(selectedGizmo, out var group))
+            {
+                selectedGizmo.ProcessGroupInput(fakeEvent, group);
+            }
         }
 
         /// <summary>
@@ -535,7 +618,8 @@ namespace RimWorldAccess
 
                 // For non-Designator gizmos, also select the owner so FloatMenu actions work correctly
                 // (some actions check Find.Selector.SelectedObjects or Find.WorldSelector.SelectedObjects)
-                if (!PawnJustSelected && gizmoOwners.ContainsKey(selectedGizmo))
+                // Skip when multi-select is active — selection is already correct and must not be cleared
+                if (!PawnJustSelected && !MultiSelectState.IsMultiSelectActive && gizmoOwners.ContainsKey(selectedGizmo))
                 {
                     ISelectable owner = gizmoOwners[selectedGizmo];
                     // Use WorldSelector for WorldObjects, Selector for map Things
@@ -611,8 +695,12 @@ namespace RimWorldAccess
                 {
                     try
                     {
+                        // Propagate to grouped gizmos first (vanilla order)
+                        PropagateToGroupedGizmos(selectedGizmo, fakeEvent);
                         // Execute the toggle
                         selectedGizmo.ProcessInput(fakeEvent);
+                        // Process group input
+                        ProcessGroupInput(selectedGizmo, fakeEvent);
 
                         // Announce the new state
                         bool toggleActive = toggle.isActive?.Invoke() ?? false;
@@ -633,8 +721,12 @@ namespace RimWorldAccess
                     {
                         try
                         {
-                            // Execute the command
+                            // Propagate to grouped gizmos first — adds other pawns
+                            // to targetingSourceAdditionalPawns for group targeting
+                            PropagateToGroupedGizmos(selectedGizmo, fakeEvent);
+                            // Execute the command (starts targeting for this pawn)
                             selectedGizmo.ProcessInput(fakeEvent);
+                            ProcessGroupInput(selectedGizmo, fakeEvent);
 
                             string weaponName = verbTarget.ownerThing?.LabelCap ?? "weapon";
                             string verbLabel = verbTarget.verb?.ReportLabel ?? "attack";
@@ -651,8 +743,11 @@ namespace RimWorldAccess
                     {
                         try
                         {
+                            // Propagate to grouped gizmos first (vanilla order)
+                            PropagateToGroupedGizmos(selectedGizmo, fakeEvent);
                             // Execute the command
                             selectedGizmo.ProcessInput(fakeEvent);
+                            ProcessGroupInput(selectedGizmo, fakeEvent);
 
                             // Detect animal attack target commands (Odyssey DLC) by icon match.
                             // Both group (from master's Pawn_PlayerSettings) and individual (from animal's
@@ -698,7 +793,9 @@ namespace RimWorldAccess
                     {
                         try
                         {
+                            PropagateToGroupedGizmos(selectedGizmo, fakeEvent);
                             selectedGizmo.ProcessInput(fakeEvent);
+                            ProcessGroupInput(selectedGizmo, fakeEvent);
 
                             // Self-cast abilities (targetRequired == false) don't enter targeting mode,
                             // so no AbilityTargetingPatch fires. Announce immediately.
@@ -719,8 +816,9 @@ namespace RimWorldAccess
                     {
                         try
                         {
-                            // Execute the command
+                            PropagateToGroupedGizmos(selectedGizmo, fakeEvent);
                             selectedGizmo.ProcessInput(fakeEvent);
+                            ProcessGroupInput(selectedGizmo, fakeEvent);
                         }
                         catch (System.Exception ex)
                         {

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using Verse;
@@ -13,6 +14,7 @@ namespace RimWorldAccess
         /// <summary>
         /// Displays mood information for the currently selected pawn.
         /// Shows mood level, mood description, and all thoughts affecting mood.
+        /// In multi-select mode, opens a pawn picker menu with mood info for each pawn.
         /// </summary>
         public static void DisplayMoodInfo()
         {
@@ -30,7 +32,7 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Try pawn at cursor first
+            // Try pawn at cursor first (takes priority over multi-select)
             Pawn pawnAtCursor = null;
             if (MapNavigationState.IsInitialized)
             {
@@ -42,20 +44,40 @@ namespace RimWorldAccess
                 }
             }
 
-            // Fall back to selected pawn
-            if (pawnAtCursor == null)
-                pawnAtCursor = Find.Selector?.FirstSelectedObject as Pawn;
+            if (pawnAtCursor != null)
+            {
+                TolkHelper.Speak(PawnInfoHelper.GetMoodInfo(pawnAtCursor));
+                return;
+            }
 
-            if (pawnAtCursor == null)
+            // Multi-select with no cursor pawn: open pawn picker menu
+            if (MultiSelectState.IsMultiSelectActive)
+            {
+                MultiSelectState.ValidateAndCleanupSelection();
+                var options = new List<FloatMenuOption>();
+                foreach (var pawn in MultiSelectState.SelectedPawns)
+                {
+                    string info = PawnInfoHelper.GetMoodInfo(pawn);
+                    string label = $"{pawn.LabelShort}: {info}";
+                    var p = pawn;
+                    options.Add(new FloatMenuOption(label, () =>
+                    {
+                        TolkHelper.Speak(PawnInfoHelper.GetMoodInfo(p));
+                    }));
+                }
+                WindowlessFloatMenuState.Open(options, false);
+                return;
+            }
+
+            // Fall back to selected pawn
+            Pawn selectedPawn = Find.Selector?.FirstSelectedObject as Pawn;
+            if (selectedPawn == null)
             {
                 TolkHelper.Speak("No pawn selected");
                 return;
             }
 
-            // Get mood information using PawnInfoHelper
-            string moodInfo = PawnInfoHelper.GetMoodInfo(pawnAtCursor);
-
-            TolkHelper.Speak(moodInfo);
+            TolkHelper.Speak(PawnInfoHelper.GetMoodInfo(selectedPawn));
         }
     }
 }

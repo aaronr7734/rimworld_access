@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using RimWorld;
@@ -14,6 +15,7 @@ namespace RimWorldAccess
         /// <summary>
         /// Displays needs information for the pawn at the current cursor position.
         /// Shows all needs with their current percentages and trends.
+        /// In multi-select mode, opens a pawn picker menu with needs info for each pawn.
         /// </summary>
         public static void DisplayNeedsInfo()
         {
@@ -31,7 +33,7 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Try pawn at cursor first
+            // Try pawn at cursor first (takes priority over multi-select)
             Pawn pawnAtCursor = null;
             if (MapNavigationState.IsInitialized)
             {
@@ -43,21 +45,39 @@ namespace RimWorldAccess
                 }
             }
 
-            // Fall back to selected pawn
-            if (pawnAtCursor == null)
-                pawnAtCursor = Find.Selector?.FirstSelectedObject as Pawn;
+            if (pawnAtCursor != null)
+            {
+                TolkHelper.Speak(PawnInfoHelper.GetNeedsInfo(pawnAtCursor));
+                return;
+            }
 
-            if (pawnAtCursor == null)
+            // Multi-select with no cursor pawn: open pawn picker menu
+            if (MultiSelectState.IsMultiSelectActive)
+            {
+                MultiSelectState.ValidateAndCleanupSelection();
+                var options = new List<FloatMenuOption>();
+                foreach (var pawn in MultiSelectState.SelectedPawns)
+                {
+                    string info = PawnInfoHelper.GetNeedsInfo(pawn);
+                    string label = $"{pawn.LabelShort}: {info}";
+                    var p = pawn;
+                    options.Add(new FloatMenuOption(label, () =>
+                    {
+                        TolkHelper.Speak(PawnInfoHelper.GetNeedsInfo(p));
+                    }));
+                }
+                WindowlessFloatMenuState.Open(options, false);
+                return;
+            }
+
+            Pawn selectedPawn = Find.Selector?.FirstSelectedObject as Pawn;
+            if (selectedPawn == null)
             {
                 TolkHelper.Speak("No pawn selected");
                 return;
             }
 
-            // Get needs information using PawnInfoHelper
-            string needsInfo = PawnInfoHelper.GetNeedsInfo(pawnAtCursor);
-
-            // Copy to clipboard for screen reader
-            TolkHelper.Speak(needsInfo);
+            TolkHelper.Speak(PawnInfoHelper.GetNeedsInfo(selectedPawn));
         }
     }
 }

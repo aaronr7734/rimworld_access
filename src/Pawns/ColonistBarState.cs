@@ -52,6 +52,11 @@ namespace RimWorldAccess
         /// </summary>
         public static int PositionInPage => barPosition % PageSize;
 
+        /// <summary>
+        /// Current 0-indexed bar position. Used by MultiSelectState for position announcements.
+        /// </summary>
+        public static int BarPosition => barPosition;
+
         // ===== DATA SOURCES =====
 
         /// <summary>
@@ -754,7 +759,7 @@ namespace RimWorldAccess
             if (string.IsNullOrEmpty(task))
                 task = "Idle";
 
-            string announcement = $"{pawn.LabelShort} selected";
+            string announcement = pawn.LabelShort;
 
             if (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
             {
@@ -830,6 +835,265 @@ namespace RimWorldAccess
             else
                 TolkHelper.Speak("No colonists on this map");
         }
+
+        // ===== FOCUS-ONLY NAVIGATION (for multi-select mode) =====
+
+        /// <summary>
+        /// Gets colonists on the current map in bar display order (public accessor for MultiSelectState).
+        /// </summary>
+        public static List<Pawn> GetColonistsPublic()
+        {
+            return GetColonists();
+        }
+
+        /// <summary>
+        /// Returns the pawn at the current bar position without selecting it.
+        /// </summary>
+        public static Pawn GetPawnAtCurrentPosition()
+        {
+            CheckMapChange();
+            ClampPosition();
+            var list = GetCurrentList();
+            if (list.Count == 0 || barPosition >= list.Count)
+                return null;
+            return list[barPosition];
+        }
+
+        /// <summary>
+        /// Moves the bar cursor right and returns the pawn at the new position.
+        /// Does NOT select the pawn in-game or move the camera.
+        /// Used for multi-select focus navigation and contiguous selection.
+        /// </summary>
+        public static Pawn NavigateFocusRight()
+        {
+            CheckMapChange();
+            var list = GetCurrentList();
+
+            if (list.Count == 0)
+            {
+                AnnounceEmpty();
+                return null;
+            }
+
+            ClampPosition();
+
+            if (barPosition < list.Count - 1)
+            {
+                barPosition++;
+            }
+            else
+            {
+                // At end of current section - try crossing to mech section
+                if (!onMechSection && GetMechs().Count > 0)
+                {
+                    onMechSection = true;
+                    barPosition = 0;
+                    AnnounceSectionChange();
+                }
+                else
+                {
+                    // Already at end, return current pawn
+                    return list[barPosition];
+                }
+            }
+
+            list = GetCurrentList();
+            ClampPosition();
+            return list.Count > 0 ? list[barPosition] : null;
+        }
+
+        /// <summary>
+        /// Moves the bar cursor left and returns the pawn at the new position.
+        /// Does NOT select the pawn in-game or move the camera.
+        /// Used for multi-select focus navigation and contiguous selection.
+        /// </summary>
+        public static Pawn NavigateFocusLeft()
+        {
+            CheckMapChange();
+            var list = GetCurrentList();
+
+            if (list.Count == 0)
+            {
+                AnnounceEmpty();
+                return null;
+            }
+
+            ClampPosition();
+
+            if (barPosition > 0)
+            {
+                barPosition--;
+            }
+            else
+            {
+                // At start of current section - try crossing back to colonist section
+                if (onMechSection)
+                {
+                    var colonists = GetColonists();
+                    if (colonists.Count > 0)
+                    {
+                        onMechSection = false;
+                        barPosition = colonists.Count - 1;
+                        AnnounceSectionChange();
+                    }
+                    else
+                    {
+                        return list.Count > 0 ? list[0] : null;
+                    }
+                }
+                else
+                {
+                    // Already at start, return current pawn
+                    return list[barPosition];
+                }
+            }
+
+            list = GetCurrentList();
+            ClampPosition();
+            return list.Count > 0 ? list[barPosition] : null;
+        }
+
+        /// <summary>
+        /// Jump to a position on the current page without selecting (focus-only for multi-select).
+        /// Returns the pawn at the target position, or null if invalid.
+        /// </summary>
+        public static Pawn JumpFocusToPosition(int positionOnPage)
+        {
+            CheckMapChange();
+            var list = GetCurrentList();
+            if (list.Count == 0)
+                return null;
+
+            int targetIndex = CurrentPage * PageSize + positionOnPage;
+            if (targetIndex >= list.Count)
+            {
+                TolkHelper.Speak($"No {(onMechSection ? "mech" : "colonist")} at position {positionOnPage + 1}");
+                return null;
+            }
+
+            barPosition = targetIndex;
+            return list[barPosition];
+        }
+
+        /// <summary>
+        /// Page down without selecting (focus-only for multi-select).
+        /// Returns the pawn at the new position, or null.
+        /// </summary>
+        public static Pawn PageFocusDown()
+        {
+            CheckMapChange();
+            int posInPage = PositionInPage;
+
+            if (!onMechSection)
+            {
+                var colonists = GetColonists();
+                if (colonists.Count == 0)
+                {
+                    var mechs = GetMechs();
+                    if (mechs.Count > 0)
+                    {
+                        onMechSection = true;
+                        barPosition = System.Math.Min(posInPage, mechs.Count - 1);
+                        AnnounceSectionChange();
+                        return GetMechs().Count > 0 ? GetMechs()[barPosition] : null;
+                    }
+                    return null;
+                }
+
+                int targetPosition = barPosition + PageSize;
+                if (targetPosition >= colonists.Count)
+                    targetPosition = colonists.Count - 1;
+
+                if (targetPosition / PageSize == CurrentPage)
+                {
+                    // Same page — try mechs
+                    var mechs = GetMechs();
+                    if (mechs.Count > 0)
+                    {
+                        onMechSection = true;
+                        barPosition = System.Math.Min(posInPage, mechs.Count - 1);
+                        AnnounceSectionChange();
+                        return GetMechs().Count > 0 ? GetMechs()[barPosition] : null;
+                    }
+                    return null;
+                }
+
+                barPosition = targetPosition;
+                AnnouncePageChange();
+            }
+            else
+            {
+                var mechs = GetMechs();
+                if (mechs.Count == 0)
+                    return null;
+
+                int targetPosition = barPosition + PageSize;
+                if (targetPosition >= mechs.Count)
+                    targetPosition = mechs.Count - 1;
+
+                if (targetPosition / PageSize == CurrentPage)
+                    return null; // Already on last mech page
+
+                barPosition = targetPosition;
+                AnnouncePageChange();
+            }
+
+            var list = GetCurrentList();
+            ClampPosition();
+            return list.Count > 0 ? list[barPosition] : null;
+        }
+
+        /// <summary>
+        /// Page up without selecting (focus-only for multi-select).
+        /// Returns the pawn at the new position, or null.
+        /// </summary>
+        public static Pawn PageFocusUp()
+        {
+            CheckMapChange();
+            int posInPage = PositionInPage;
+
+            if (onMechSection)
+            {
+                if (CurrentPage > 0)
+                {
+                    barPosition = (CurrentPage - 1) * PageSize + posInPage;
+                    AnnouncePageChange();
+                }
+                else
+                {
+                    // First mech page — go back to colonists
+                    var colonists = GetColonists();
+                    if (colonists.Count > 0)
+                    {
+                        onMechSection = false;
+                        barPosition = colonists.Count - 1;
+                        AnnounceSectionChange();
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
+            else
+            {
+                if (CurrentPage > 0)
+                {
+                    barPosition = (CurrentPage - 1) * PageSize + posInPage;
+                    AnnouncePageChange();
+                }
+                else
+                {
+                    return null; // Already on first page
+                }
+            }
+
+            var list = GetCurrentList();
+            ClampPosition();
+            return list.Count > 0 ? list[barPosition] : null;
+        }
+
+        // ===== RESET =====
 
         /// <summary>
         /// Resets bar state (e.g., when loading a new game).
