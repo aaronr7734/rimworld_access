@@ -241,6 +241,7 @@ namespace RimWorldAccess
             var node = new InspectionTreeItem
             {
                 Label = BuildFactionAnnouncement(faction),
+                ExpandedLabel = faction.Name,
                 IndentLevel = 0,
                 IsExpandable = true,
                 IsExpanded = false,

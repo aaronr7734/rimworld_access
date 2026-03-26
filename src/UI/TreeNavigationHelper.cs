@@ -553,6 +553,25 @@ namespace RimWorldAccess
                 return;
             }
 
+            // When ExpandedLabel is set, state changes always use the short label
+            // so the user doesn't hear the full summary on every expand/collapse
+            if (!string.IsNullOrEmpty(item.ExpandedLabel))
+            {
+                string shortLabel = item.ExpandedLabel;
+                string state = item.IsExpanded ? "expanded" : "collapsed";
+                if (AnnounceChildCounts)
+                {
+                    int childCount = item.Children.Count;
+                    string childWord = childCount == 1 ? "item" : "items";
+                    TolkHelper.Speak($"{shortLabel}, {state}, {childCount} {childWord}");
+                }
+                else
+                {
+                    TolkHelper.Speak($"{shortLabel}, {state}");
+                }
+                return;
+            }
+
             // Fall back to regular announcement
             AnnounceCurrentItem();
         }
@@ -579,10 +598,16 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Default item announcement: "Label, expanded, 3 items. 1 of 5. level 2"
+        /// When ExpandedLabel is set: uses short label when expanded, full label when collapsed.
         /// </summary>
         public string DefaultFormatItemAnnouncement(InspectionTreeItem item)
         {
-            string label = item.Label.TrimEnd('.', '!', '?');
+            // Smart labels: use ExpandedLabel (short form) when expanded, full Label when collapsed
+            string label;
+            if (item.IsExpandable && item.IsExpanded && !string.IsNullOrEmpty(item.ExpandedLabel))
+                label = item.ExpandedLabel;
+            else
+                label = item.Label.TrimEnd('.', '!', '?');
 
             string stateIndicator = "";
             if (item.IsExpandable)
@@ -615,7 +640,12 @@ namespace RimWorldAccess
         /// </summary>
         public string DefaultFormatSearchAnnouncement(InspectionTreeItem item)
         {
-            string label = item.Label.TrimEnd('.', '!', '?');
+            // Smart labels: use short form when expanded during search too
+            string label;
+            if (item.IsExpandable && item.IsExpanded && !string.IsNullOrEmpty(item.ExpandedLabel))
+                label = item.ExpandedLabel;
+            else
+                label = item.Label.TrimEnd('.', '!', '?');
 
             string stateIndicator = "";
             if (item.IsExpandable)
@@ -765,5 +795,77 @@ namespace RimWorldAccess
         }
 
         #endregion
+
+        #region Smart Label Utilities
+
+        /// <summary>
+        /// Walks the tree and builds aggregated "smart labels" for expandable nodes
+        /// with informational children. For each qualifying node:
+        /// - ExpandedLabel is set to the current Label (the short title)
+        /// - Label is rebuilt as: title + ". " + child1 + ". " + child2 + ...
+        ///
+        /// Nodes are skipped if shouldAggregate returns false. By default, nodes
+        /// whose children are all non-Action types are aggregated.
+        ///
+        /// Treeviews with custom summarization (inventory, architect) simply
+        /// don't call this and set ExpandedLabel manually where needed.
+        /// </summary>
+        /// <param name="root">Root of the tree to process</param>
+        /// <param name="shouldAggregate">Optional predicate to control which nodes get smart labels.
+        /// If null, defaults to: aggregate if no children are Action type.</param>
+        public static void BuildSmartLabels(InspectionTreeItem root, Func<InspectionTreeItem, bool> shouldAggregate = null)
+        {
+            if (root == null) return;
+
+            if (shouldAggregate == null)
+            {
+                shouldAggregate = node =>
+                    node.IsExpandable &&
+                    node.Children.Count > 0 &&
+                    !node.Children.Exists(c => c.Type == InspectionTreeItem.ItemType.Action);
+            }
+
+            BuildSmartLabelsRecursive(root, shouldAggregate);
+        }
+
+        private static void BuildSmartLabelsRecursive(InspectionTreeItem node, Func<InspectionTreeItem, bool> shouldAggregate)
+        {
+            // Process children first (bottom-up so child labels are finalized before aggregation)
+            foreach (var child in node.Children)
+            {
+                BuildSmartLabelsRecursive(child, shouldAggregate);
+            }
+
+            if (!shouldAggregate(node))
+                return;
+
+            // Save current label as the short form
+            node.ExpandedLabel = node.Label;
+
+            // Build aggregated label from children
+            var sb = new System.Text.StringBuilder(node.Label);
+            foreach (var child in node.Children)
+            {
+                string childText = child.Label;
+                if (string.IsNullOrEmpty(childText))
+                    continue;
+
+                // Use ". " as sentence separator, avoiding double periods
+                if (sb.Length > 0)
+                {
+                    char lastChar = sb[sb.Length - 1];
+                    if (lastChar == '.' || lastChar == '!' || lastChar == '?')
+                        sb.Append(' ');
+                    else
+                        sb.Append(". ");
+                }
+                sb.Append(childText);
+            }
+
+            node.Label = sb.ToString();
+        }
+
+        #endregion
     }
 }
+

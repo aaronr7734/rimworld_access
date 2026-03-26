@@ -21,6 +21,14 @@ namespace RimWorldAccess
 
         public ItemType Type { get; set; }
         public string Label { get; set; }
+        /// <summary>
+        /// Short label shown when node is expanded (e.g., just the title).
+        /// When set, Label contains the full summary (shown when collapsed)
+        /// and ExpandedLabel contains the short form (shown when expanded).
+        /// State change announcements (expand/collapse) always use this short form.
+        /// If null, Label is used in all contexts (standard behavior).
+        /// </summary>
+        public string ExpandedLabel { get; set; }
         public string Description { get; set; }
         public string Tooltip { get; set; }
         public int IndentLevel { get; set; }
