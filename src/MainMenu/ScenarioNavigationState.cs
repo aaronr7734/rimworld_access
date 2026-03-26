@@ -31,39 +31,16 @@ namespace RimWorldAccess
         private static int TotalNavigationCount =>
             flatScenarioList.Count + (hasScenarioBuilderEntry ? 1 : 0);
 
-        // Detail panel navigation with treeview structure
-        private static List<DetailItem> detailItemsHierarchy = new List<DetailItem>();
-        private static List<DetailItem> flattenedDetailItems = new List<DetailItem>();
-        private static int detailIndex = 0;
-        private const string LevelTrackingKey = "ScenarioDetails";
-
-        // Typeahead search for detail panel
-        private static TypeaheadSearchHelper detailTypeaheadHelper = new TypeaheadSearchHelper();
+        // Detail panel navigation using TreeNavigationHelper
+        private static TreeNavigationHelper detailTreeNav = new TreeNavigationHelper("ScenarioDetails");
 
         // Typeahead search for scenario list
         private static TypeaheadSearchHelper listTypeaheadHelper = new TypeaheadSearchHelper();
 
-        /// <summary>
-        /// Represents an item in the scenario detail treeview.
-        /// Items can be expandable (like "Start with:") or leaf nodes.
-        /// </summary>
-        private class DetailItem
+        static ScenarioNavigationState()
         {
-            public string Label { get; set; }
-            public int IndentLevel { get; set; }
-            public bool IsExpandable { get; set; }
-            public bool IsExpanded { get; set; }
-            public List<DetailItem> Children { get; set; } = new List<DetailItem>();
-            public DetailItem Parent { get; set; }
-
-            public DetailItem(string label, int indentLevel = 0, bool isExpandable = false)
-            {
-                Label = label;
-                IndentLevel = indentLevel;
-                IsExpandable = isExpandable;
-                IsExpanded = false;
-                Parent = null;
-            }
+            detailTreeNav.FormatItemAnnouncement = FormatDetailAnnouncement;
+            detailTreeNav.FormatSearchAnnouncement = FormatDetailSearchAnnouncement;
         }
 
         public static void Initialize(List<Scenario> scenarios)
@@ -82,12 +59,8 @@ namespace RimWorldAccess
             selectedIndex = 0;
             flatScenarioList.Clear();
             DetailPanelActive = false;
-            detailItemsHierarchy.Clear();
-            flattenedDetailItems.Clear();
-            detailIndex = 0;
-            MenuHelper.ResetLevel(LevelTrackingKey);
+            detailTreeNav.Reset();
             listTypeaheadHelper.ClearSearch();
-            detailTypeaheadHelper.ClearSearch();
         }
 
         public static int SelectedIndex
@@ -359,35 +332,47 @@ namespace RimWorldAccess
             DetailPanelActive = !DetailPanelActive;
             if (DetailPanelActive)
             {
-                MenuHelper.ResetLevel(LevelTrackingKey);
-                detailTypeaheadHelper.ClearSearch();
-                BuildDetailItems();
-                FlattenDetailItems();
-                detailIndex = 0;
+                var root = BuildDetailTree();
+
+                if (root.Children.Count == 0)
+                {
+                    root.Children.Add(new InspectionTreeItem
+                    {
+                        Label = "No additional details available",
+                        IndentLevel = 0,
+                        IsExpandable = false,
+                        Parent = root
+                    });
+                }
+
+                detailTreeNav.Initialize(root);
                 TolkHelper.Speak("Details");
-                AnnounceCurrentDetailItem();
+                detailTreeNav.ReannounceCurrentItem();
             }
             else
             {
-                detailItemsHierarchy.Clear();
-                flattenedDetailItems.Clear();
-                detailIndex = 0;
-                detailTypeaheadHelper.ClearSearch();
-                MenuHelper.ResetLevel(LevelTrackingKey);
+                detailTreeNav.Reset();
                 TolkHelper.Speak("Scenario list");
                 CopySelectedToClipboard();
             }
         }
 
         /// <summary>
-        /// Builds the detail items from the scenario's parts.
+        /// Builds the detail tree from the scenario's parts.
         /// Processes each ScenPart directly rather than parsing concatenated text.
         /// </summary>
-        private static void BuildDetailItems()
+        private static InspectionTreeItem BuildDetailTree()
         {
-            detailItemsHierarchy.Clear();
+            var root = new InspectionTreeItem
+            {
+                Label = "Details",
+                IndentLevel = -1,
+                IsExpanded = true,
+                IsExpandable = false
+            };
+
             Scenario selected = SelectedScenario;
-            if (selected == null) return;
+            if (selected == null) return root;
 
             var addedContent = new HashSet<string>(System.StringComparer.OrdinalIgnoreCase);
 
@@ -407,16 +392,34 @@ namespace RimWorldAccess
                     string mainDesc = desc.Substring(0, noteIndex).Trim();
                     noteFromDescription = desc.Substring(noteIndex).Trim();
 
-                    detailItemsHierarchy.Add(new DetailItem($"Description: {mainDesc}", 0, false));
+                    root.Children.Add(new InspectionTreeItem
+                    {
+                        Label = $"Description: {mainDesc}",
+                        IndentLevel = 0,
+                        IsExpandable = false,
+                        Parent = root
+                    });
                     addedContent.Add(mainDesc);
 
                     // Add note as separate item
-                    detailItemsHierarchy.Add(new DetailItem(noteFromDescription, 0, false));
+                    root.Children.Add(new InspectionTreeItem
+                    {
+                        Label = noteFromDescription,
+                        IndentLevel = 0,
+                        IsExpandable = false,
+                        Parent = root
+                    });
                     addedContent.Add(noteFromDescription);
                 }
                 else
                 {
-                    detailItemsHierarchy.Add(new DetailItem($"Description: {desc}", 0, false));
+                    root.Children.Add(new InspectionTreeItem
+                    {
+                        Label = $"Description: {desc}",
+                        IndentLevel = 0,
+                        IsExpandable = false,
+                        Parent = root
+                    });
                     addedContent.Add(desc);
                 }
             }
@@ -532,7 +535,13 @@ namespace RimWorldAccess
             // 3. Add other summaries (faction, notes, etc.) as root items
             foreach (string line in otherSummaries)
             {
-                detailItemsHierarchy.Add(new DetailItem(line, 0, false));
+                root.Children.Add(new InspectionTreeItem
+                {
+                    Label = line,
+                    IndentLevel = 0,
+                    IsExpandable = false,
+                    Parent = root
+                });
             }
 
             // 4. Build "Start with" treeview if we have any content
@@ -541,92 +550,151 @@ namespace RimWorldAccess
                                        researchLines.Count > 0;
             if (hasStartWithContent)
             {
-                var startWithSection = new DetailItem("Start with", 0, true);
+                var startWithSection = new InspectionTreeItem
+                {
+                    Label = "Start with",
+                    IndentLevel = 0,
+                    IsExpandable = true,
+                    IsExpanded = false,
+                    Parent = root
+                };
 
                 // Add pawn count first (e.g., "Start with 3 people")
                 if (pawnCountLine != null)
                 {
-                    var item = new DetailItem(pawnCountLine, 1, false);
-                    item.Parent = startWithSection;
-                    startWithSection.Children.Add(item);
+                    startWithSection.Children.Add(new InspectionTreeItem
+                    {
+                        Label = pawnCountLine,
+                        IndentLevel = 1,
+                        IsExpandable = false,
+                        Parent = startWithSection
+                    });
                 }
 
                 // Add starting items
                 foreach (string label in startWithItems)
                 {
-                    var item = new DetailItem(label, 1, false);
-                    item.Parent = startWithSection;
-                    startWithSection.Children.Add(item);
+                    startWithSection.Children.Add(new InspectionTreeItem
+                    {
+                        Label = label,
+                        IndentLevel = 1,
+                        IsExpandable = false,
+                        Parent = startWithSection
+                    });
                 }
 
                 // Add starting research
                 foreach (string research in researchLines)
                 {
-                    var item = new DetailItem(research, 1, false);
-                    item.Parent = startWithSection;
-                    startWithSection.Children.Add(item);
+                    startWithSection.Children.Add(new InspectionTreeItem
+                    {
+                        Label = research,
+                        IndentLevel = 1,
+                        IsExpandable = false,
+                        Parent = startWithSection
+                    });
                 }
 
-                detailItemsHierarchy.Add(startWithSection);
+                root.Children.Add(startWithSection);
             }
 
             // 5. Build "Map is scattered with" treeview
             if (mapScatteredItems.Count > 0)
             {
-                var mapScatteredSection = new DetailItem("Map is scattered with", 0, true);
+                var mapScatteredSection = new InspectionTreeItem
+                {
+                    Label = "Map is scattered with",
+                    IndentLevel = 0,
+                    IsExpandable = true,
+                    IsExpanded = false,
+                    Parent = root
+                };
                 foreach (string label in mapScatteredItems)
                 {
-                    var item = new DetailItem(label, 1, false);
-                    item.Parent = mapScatteredSection;
-                    mapScatteredSection.Children.Add(item);
+                    mapScatteredSection.Children.Add(new InspectionTreeItem
+                    {
+                        Label = label,
+                        IndentLevel = 1,
+                        IsExpandable = false,
+                        Parent = mapScatteredSection
+                    });
                 }
-                detailItemsHierarchy.Add(mapScatteredSection);
+                root.Children.Add(mapScatteredSection);
             }
 
             // 6. Build "Create incident" treeview
             if (createIncidentItems.Count > 0)
             {
-                var createIncidentSection = new DetailItem("Create incident", 0, true);
+                var createIncidentSection = new InspectionTreeItem
+                {
+                    Label = "Create incident",
+                    IndentLevel = 0,
+                    IsExpandable = true,
+                    IsExpanded = false,
+                    Parent = root
+                };
                 foreach (string label in createIncidentItems)
                 {
-                    var item = new DetailItem(label, 1, false);
-                    item.Parent = createIncidentSection;
-                    createIncidentSection.Children.Add(item);
+                    createIncidentSection.Children.Add(new InspectionTreeItem
+                    {
+                        Label = label,
+                        IndentLevel = 1,
+                        IsExpandable = false,
+                        Parent = createIncidentSection
+                    });
                 }
-                detailItemsHierarchy.Add(createIncidentSection);
+                root.Children.Add(createIncidentSection);
             }
 
             // 7. Build "Disable incident" treeview
             if (disableIncidentItems.Count > 0)
             {
-                var disableIncidentSection = new DetailItem("Disable incident", 0, true);
+                var disableIncidentSection = new InspectionTreeItem
+                {
+                    Label = "Disable incident",
+                    IndentLevel = 0,
+                    IsExpandable = true,
+                    IsExpanded = false,
+                    Parent = root
+                };
                 foreach (string label in disableIncidentItems)
                 {
-                    var item = new DetailItem(label, 1, false);
-                    item.Parent = disableIncidentSection;
-                    disableIncidentSection.Children.Add(item);
+                    disableIncidentSection.Children.Add(new InspectionTreeItem
+                    {
+                        Label = label,
+                        IndentLevel = 1,
+                        IsExpandable = false,
+                        Parent = disableIncidentSection
+                    });
                 }
-                detailItemsHierarchy.Add(disableIncidentSection);
+                root.Children.Add(disableIncidentSection);
             }
 
             // 8. Build "Permanent game condition" treeview
             if (permaGameConditionItems.Count > 0)
             {
-                var permaGameConditionSection = new DetailItem("Permanent game condition", 0, true);
+                var permaGameConditionSection = new InspectionTreeItem
+                {
+                    Label = "Permanent game condition",
+                    IndentLevel = 0,
+                    IsExpandable = true,
+                    IsExpanded = false,
+                    Parent = root
+                };
                 foreach (string label in permaGameConditionItems)
                 {
-                    var item = new DetailItem(label, 1, false);
-                    item.Parent = permaGameConditionSection;
-                    permaGameConditionSection.Children.Add(item);
+                    permaGameConditionSection.Children.Add(new InspectionTreeItem
+                    {
+                        Label = label,
+                        IndentLevel = 1,
+                        IsExpandable = false,
+                        Parent = permaGameConditionSection
+                    });
                 }
-                detailItemsHierarchy.Add(permaGameConditionSection);
+                root.Children.Add(permaGameConditionSection);
             }
 
-            // Fallback if nothing was added
-            if (detailItemsHierarchy.Count == 0)
-            {
-                detailItemsHierarchy.Add(new DetailItem("No additional details available", 0, false));
-            }
+            return root;
         }
 
         /// <summary>
@@ -664,43 +732,16 @@ namespace RimWorldAccess
             return text;
         }
 
-        /// <summary>
-        /// Flattens the hierarchical detail items into a list for navigation.
-        /// Only includes children of expanded nodes.
-        /// </summary>
-        private static void FlattenDetailItems()
-        {
-            flattenedDetailItems.Clear();
-
-            foreach (var item in detailItemsHierarchy)
-            {
-                flattenedDetailItems.Add(item);
-
-                // If this item is expanded, add its children
-                if (item.IsExpandable && item.IsExpanded)
-                {
-                    foreach (var child in item.Children)
-                    {
-                        flattenedDetailItems.Add(child);
-                    }
-                }
-            }
-        }
+        #region Detail Panel Navigation Wrappers (called by ScenarioSelectionPatch)
 
         public static void NavigateDetailUp()
         {
-            if (flattenedDetailItems.Count == 0) return;
-
-            detailIndex = MenuHelper.SelectPrevious(detailIndex, flattenedDetailItems.Count);
-            AnnounceCurrentDetailItem();
+            detailTreeNav.SelectPrevious();
         }
 
         public static void NavigateDetailDown()
         {
-            if (flattenedDetailItems.Count == 0) return;
-
-            detailIndex = MenuHelper.SelectNext(detailIndex, flattenedDetailItems.Count);
-            AnnounceCurrentDetailItem();
+            detailTreeNav.SelectNext();
         }
 
         /// <summary>
@@ -709,48 +750,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void ExpandOrDrillDown()
         {
-            if (flattenedDetailItems.Count == 0 || detailIndex >= flattenedDetailItems.Count)
-                return;
-
-            detailTypeaheadHelper.ClearSearch();
-            DetailItem item = flattenedDetailItems[detailIndex];
-
-            if (item.IsExpandable)
-            {
-                if (!item.IsExpanded)
-                {
-                    // Expand the item
-                    item.IsExpanded = true;
-                    FlattenDetailItems();
-                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                    AnnounceCurrentDetailItem();
-                }
-                else
-                {
-                    // Already expanded - move to first child
-                    if (item.Children.Count > 0)
-                    {
-                        // Find the first child in the flattened list
-                        for (int i = detailIndex + 1; i < flattenedDetailItems.Count; i++)
-                        {
-                            if (flattenedDetailItems[i].Parent == item)
-                            {
-                                detailIndex = i;
-                                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                                AnnounceCurrentDetailItem();
-                                return;
-                            }
-                        }
-                    }
-                    // No children found
-                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                }
-            }
-            else
-            {
-                // Not expandable - end node
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            }
+            detailTreeNav.ExpandOrDrillDown();
         }
 
         /// <summary>
@@ -759,110 +759,54 @@ namespace RimWorldAccess
         /// </summary>
         public static void CollapseOrDrillUp()
         {
-            if (flattenedDetailItems.Count == 0 || detailIndex >= flattenedDetailItems.Count)
-                return;
-
-            detailTypeaheadHelper.ClearSearch();
-            DetailItem item = flattenedDetailItems[detailIndex];
-
-            if (item.IsExpandable && item.IsExpanded)
-            {
-                // Collapse the item
-                item.IsExpanded = false;
-                FlattenDetailItems();
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                AnnounceCurrentDetailItem();
-            }
-            else if (item.Parent != null)
-            {
-                // Move to parent
-                for (int i = 0; i < flattenedDetailItems.Count; i++)
-                {
-                    if (flattenedDetailItems[i] == item.Parent)
-                    {
-                        detailIndex = i;
-                        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                        AnnounceCurrentDetailItem();
-                        return;
-                    }
-                }
-                // Parent not found - shouldn't happen
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            }
-            else
-            {
-                // At root level and not expanded - reject
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            }
+            detailTreeNav.CollapseOrDrillUp();
         }
 
         /// <summary>
         /// Handles Home key navigation.
         /// Jumps to first sibling at current level, or absolute first with Ctrl.
-        /// Uses MenuHelper.HandleTreeHomeKey for consistency with other treeviews.
         /// </summary>
         public static void HandleHomeKey(bool ctrlPressed)
         {
-            if (flattenedDetailItems.Count == 0) return;
-
-            MenuHelper.HandleTreeHomeKey(
-                flattenedDetailItems,
-                ref detailIndex,
-                item => item.IndentLevel,
-                ctrlPressed,
-                AnnounceCurrentDetailItem);
+            detailTreeNav.JumpToFirst(ctrlPressed);
         }
 
         /// <summary>
         /// Handles End key navigation.
-        /// For expanded nodes with children: jumps to last visible descendant.
-        /// For collapsed/leaf nodes: jumps to last sibling at current level.
         /// Ctrl+End jumps to absolute last.
-        /// Uses MenuHelper.HandleTreeEndKey for consistency with other treeviews.
         /// </summary>
         public static void HandleEndKey(bool ctrlPressed)
         {
-            if (flattenedDetailItems.Count == 0) return;
-
-            MenuHelper.HandleTreeEndKey(
-                flattenedDetailItems,
-                ref detailIndex,
-                item => item.IndentLevel,
-                item => item.IsExpanded,
-                item => item.IsExpandable && item.Children.Count > 0,
-                ctrlPressed,
-                AnnounceCurrentDetailItem);
+            detailTreeNav.JumpToLast(ctrlPressed);
         }
 
-        // Typeahead search support
-        public static bool HasActiveSearch => detailTypeaheadHelper.HasActiveSearch;
-        public static bool HasNoMatches => detailTypeaheadHelper.HasNoMatches;
+        // Typeahead search support for detail panel
+        public static bool HasActiveSearch => detailTreeNav.HasActiveSearch;
+        public static bool HasNoMatches => detailTreeNav.HasNoMatches;
 
         /// <summary>
         /// Processes a character input for typeahead search in the detail panel.
         /// </summary>
-        /// <param name="character">The character typed</param>
-        /// <returns>True if input was processed</returns>
         public static bool HandleTypeahead(char character)
         {
-            if (flattenedDetailItems.Count == 0)
+            if (detailTreeNav.Count == 0)
                 return false;
 
-            // Build list of labels from flattened items
-            var labels = flattenedDetailItems.Select(item => item.Label).ToList();
+            var labels = detailTreeNav.VisibleItems.Select(item => item.Label).ToList();
 
-            if (detailTypeaheadHelper.ProcessCharacterInput(character, labels, out int newIndex))
+            if (detailTreeNav.Typeahead.ProcessCharacterInput(character, labels, out int newIndex))
             {
                 if (newIndex >= 0)
                 {
-                    detailIndex = newIndex;
-                    AnnounceWithSearch();
+                    detailTreeNav.SetSelectedIndex(newIndex);
+                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                    AnnounceDetailWithSearch();
                 }
             }
             else
             {
                 // No matches - announce using LastFailedSearch (search was auto-cleared)
-                TolkHelper.Speak($"No matches for '{detailTypeaheadHelper.LastFailedSearch}'");
+                TolkHelper.Speak($"No matches for '{detailTreeNav.Typeahead.LastFailedSearch}'");
             }
 
             return true;
@@ -871,20 +815,20 @@ namespace RimWorldAccess
         /// <summary>
         /// Handles backspace for typeahead search.
         /// </summary>
-        /// <returns>True if backspace was handled (active search existed)</returns>
         public static bool HandleTypeaheadBackspace()
         {
-            if (!detailTypeaheadHelper.HasActiveSearch)
+            if (!detailTreeNav.HasActiveSearch)
                 return false;
 
-            var labels = flattenedDetailItems.Select(item => item.Label).ToList();
+            var labels = detailTreeNav.VisibleItems.Select(item => item.Label).ToList();
 
-            if (detailTypeaheadHelper.ProcessBackspace(labels, out int newIndex))
+            if (detailTreeNav.Typeahead.ProcessBackspace(labels, out int newIndex))
             {
                 if (newIndex >= 0)
                 {
-                    detailIndex = newIndex;
-                    AnnounceWithSearch();
+                    detailTreeNav.SetSelectedIndex(newIndex);
+                    SoundDefOf.Click.PlayOneShotOnCamera();
+                    AnnounceDetailWithSearch();
                 }
                 return true;
             }
@@ -895,12 +839,11 @@ namespace RimWorldAccess
         /// <summary>
         /// Clears the typeahead search and announces.
         /// </summary>
-        /// <returns>True if there was an active search to clear</returns>
         public static bool ClearTypeaheadSearch()
         {
-            if (detailTypeaheadHelper.ClearSearchAndAnnounce())
+            if (detailTreeNav.Typeahead.ClearSearchAndAnnounce())
             {
-                AnnounceCurrentDetailItem();
+                detailTreeNav.ReannounceCurrentItem();
                 return true;
             }
             return false;
@@ -909,17 +852,17 @@ namespace RimWorldAccess
         /// <summary>
         /// Moves to the next match in the current search.
         /// </summary>
-        /// <returns>True if there was an active search</returns>
         public static bool SelectNextMatch()
         {
-            if (!detailTypeaheadHelper.HasActiveSearch)
+            if (!detailTreeNav.HasActiveSearch)
                 return false;
 
-            int next = detailTypeaheadHelper.GetNextMatch(detailIndex);
+            int next = detailTreeNav.Typeahead.GetNextMatch(detailTreeNav.SelectedIndex);
             if (next >= 0)
             {
-                detailIndex = next;
-                AnnounceWithSearch();
+                detailTreeNav.SetSelectedIndex(next);
+                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                AnnounceDetailWithSearch();
             }
             return true;
         }
@@ -927,81 +870,46 @@ namespace RimWorldAccess
         /// <summary>
         /// Moves to the previous match in the current search.
         /// </summary>
-        /// <returns>True if there was an active search</returns>
         public static bool SelectPreviousMatch()
         {
-            if (!detailTypeaheadHelper.HasActiveSearch)
+            if (!detailTreeNav.HasActiveSearch)
                 return false;
 
-            int prev = detailTypeaheadHelper.GetPreviousMatch(detailIndex);
+            int prev = detailTreeNav.Typeahead.GetPreviousMatch(detailTreeNav.SelectedIndex);
             if (prev >= 0)
             {
-                detailIndex = prev;
-                AnnounceWithSearch();
+                detailTreeNav.SetSelectedIndex(prev);
+                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                AnnounceDetailWithSearch();
             }
             return true;
         }
 
         /// <summary>
-        /// Announces the current item with search match information.
+        /// Announces the current detail item with search match information.
         /// </summary>
-        private static void AnnounceWithSearch()
+        private static void AnnounceDetailWithSearch()
         {
-            if (detailIndex < 0 || detailIndex >= flattenedDetailItems.Count)
-                return;
+            var item = detailTreeNav.SelectedItem;
+            if (item == null) return;
 
-            string label = flattenedDetailItems[detailIndex].Label;
-
-            if (detailTypeaheadHelper.HasActiveSearch)
+            if (detailTreeNav.HasActiveSearch)
             {
-                TolkHelper.Speak($"{label}, {detailTypeaheadHelper.CurrentMatchPosition} of {detailTypeaheadHelper.MatchCount} matches for '{detailTypeaheadHelper.SearchBuffer}'");
+                TolkHelper.Speak($"{item.Label}, {detailTreeNav.Typeahead.CurrentMatchPosition} of {detailTreeNav.Typeahead.MatchCount} matches for '{detailTreeNav.Typeahead.SearchBuffer}'");
             }
             else
             {
-                AnnounceCurrentDetailItem();
+                detailTreeNav.ReannounceCurrentItem();
             }
         }
 
-        /// <summary>
-        /// Gets the sibling position (1-indexed) within the same level.
-        /// For children, counts siblings under the same parent.
-        /// For root items, counts all root items.
-        /// </summary>
-        private static (int position, int total) GetSiblingPosition(DetailItem item)
+        #endregion
+
+        #region Detail Announcement Formatters
+
+        private static string FormatDetailAnnouncement(InspectionTreeItem item)
         {
-            int position = 0;
-            int total = 0;
-
-            if (item.Parent != null)
-            {
-                // Count siblings among parent's children
-                foreach (var sibling in item.Parent.Children)
-                {
-                    total++;
-                    if (sibling == item)
-                        position = total;
-                }
-            }
-            else
-            {
-                // Count root-level siblings in hierarchy
-                foreach (var rootItem in detailItemsHierarchy)
-                {
-                    total++;
-                    if (rootItem == item)
-                        position = total;
-                }
-            }
-
-            return (position, total);
-        }
-
-        private static void AnnounceCurrentDetailItem()
-        {
-            if (detailIndex < 0 || detailIndex >= flattenedDetailItems.Count) return;
-
-            DetailItem item = flattenedDetailItems[detailIndex];
-            var (position, total) = GetSiblingPosition(item);
+            var (position, total) = detailTreeNav.GetSiblingPosition(item);
             string positionPart = MenuHelper.FormatPosition(position - 1, total);
 
             string announcement = "";
@@ -1037,10 +945,21 @@ namespace RimWorldAccess
             }
 
             // Add level suffix at the end (only announced when level changes)
-            announcement += MenuHelper.GetLevelSuffix(LevelTrackingKey, item.IndentLevel);
+            announcement += MenuHelper.GetLevelSuffix("ScenarioDetails", item.IndentLevel);
 
-            TolkHelper.Speak(announcement);
+            return announcement;
         }
+
+        private static string FormatDetailSearchAnnouncement(InspectionTreeItem item, TypeaheadSearchHelper typeahead)
+        {
+            if (typeahead.HasActiveSearch)
+            {
+                return $"{item.Label}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
+            }
+            return FormatDetailAnnouncement(item);
+        }
+
+        #endregion
 
         /// <summary>
         /// Checks if the currently selected scenario can be deleted.

@@ -1,0 +1,769 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using RimWorld;
+using UnityEngine;
+using Verse;
+using Verse.Sound;
+
+namespace RimWorldAccess
+{
+    /// <summary>
+    /// Reusable tree navigation helper that encapsulates all standard treeview keyboard
+    /// handling, typeahead search, expand/collapse, level tracking, and announcements.
+    ///
+    /// Usage:
+    ///   var tree = new TreeNavigationHelper("MyFeature");
+    ///   tree.OnActivate = item => { /* custom Enter behavior */ return false; };
+    ///   tree.Initialize(rootItem);
+    ///   // In input handler: tree.HandleInput(Event.current)
+    /// </summary>
+    public class TreeNavigationHelper
+    {
+        private readonly string levelTrackingKey;
+        private readonly TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
+
+        private InspectionTreeItem rootItem;
+        private List<InspectionTreeItem> visibleItems = new List<InspectionTreeItem>();
+        private int selectedIndex;
+        private Dictionary<InspectionTreeItem, InspectionTreeItem> lastChildPerParent;
+
+        #region Configuration
+
+        /// <summary>
+        /// Custom formatter for item announcements during normal navigation.
+        /// Receives the current item; returns the full announcement string.
+        /// If null, uses the default format: "Label, expanded, 3 items. 1 of 5. level 2"
+        /// </summary>
+        public Func<InspectionTreeItem, string> FormatItemAnnouncement { get; set; }
+
+        /// <summary>
+        /// Custom formatter for item announcements after expand/collapse state changes.
+        /// If null, falls back to FormatItemAnnouncement (or default).
+        /// Useful when you want a shorter announcement after toggling (e.g., just label + state).
+        /// </summary>
+        public Func<InspectionTreeItem, string> FormatStateChangeAnnouncement { get; set; }
+
+        /// <summary>
+        /// Custom formatter for announcements during typeahead search.
+        /// Receives the current item and typeahead helper; returns the full announcement string.
+        /// If null, uses default: "Label, expanded, 2 of 5 matches for 'w'"
+        /// </summary>
+        public Func<InspectionTreeItem, TypeaheadSearchHelper, string> FormatSearchAnnouncement { get; set; }
+
+        /// <summary>
+        /// Called when Enter is pressed on a node. Return true if handled;
+        /// false falls back to default toggle expand/collapse behavior.
+        /// </summary>
+        public Func<InspectionTreeItem, bool> OnActivate { get; set; }
+
+        /// <summary>
+        /// Called when Delete is pressed. Return true if handled.
+        /// </summary>
+        public Func<InspectionTreeItem, bool> OnDelete { get; set; }
+
+        /// <summary>
+        /// Called when Alt+I is pressed. Return true if handled.
+        /// If null, default behavior tries item.OnInfo, then opens info card for item.LinkedDef.
+        /// </summary>
+        public Func<InspectionTreeItem, bool> OnInfo { get; set; }
+
+        /// <summary>
+        /// Called before a node is expanded (right arrow or Enter toggle).
+        /// Use for lazy loading: populate item.Children in this callback.
+        /// </summary>
+        public Action<InspectionTreeItem> OnBeforeExpand { get; set; }
+
+        /// <summary>
+        /// Whether to include child counts in expand/collapse announcements.
+        /// Default: true ("expanded, 3 items"). Set to false for just "expanded".
+        /// </summary>
+        public bool AnnounceChildCounts { get; set; } = true;
+
+        /// <summary>
+        /// Whether to skip the root node in the visible list.
+        /// Default: true (root is hidden, children are top-level visible items).
+        /// </summary>
+        public bool SkipRootInVisibleList { get; set; } = true;
+
+        /// <summary>
+        /// Whether to track the last visited child per parent node for cursor restoration.
+        /// Default: false. Enable for inspection-style trees where returning to a parent
+        /// should restore the previously visited child.
+        /// </summary>
+        public bool TrackLastChild { get; set; } = false;
+
+        #endregion
+
+        #region Read-Only State
+
+        public bool HasActiveSearch => typeahead.HasActiveSearch;
+        public bool HasNoMatches => typeahead.HasNoMatches;
+        public int SelectedIndex => selectedIndex;
+
+        public InspectionTreeItem SelectedItem =>
+            (selectedIndex >= 0 && selectedIndex < visibleItems.Count)
+                ? visibleItems[selectedIndex]
+                : null;
+
+        public IReadOnlyList<InspectionTreeItem> VisibleItems => visibleItems;
+        public InspectionTreeItem RootItem => rootItem;
+        public int Count => visibleItems.Count;
+        public TypeaheadSearchHelper Typeahead => typeahead;
+
+        #endregion
+
+        public TreeNavigationHelper(string levelTrackingKey)
+        {
+            this.levelTrackingKey = levelTrackingKey;
+        }
+
+        #region Lifecycle
+
+        /// <summary>
+        /// Initializes the tree with a root node. Flattens visible items,
+        /// resets selection and search, and resets level tracking.
+        /// Does NOT announce — caller should announce opening in their own format.
+        /// </summary>
+        public void Initialize(InspectionTreeItem root, int initialIndex = 0)
+        {
+            rootItem = root;
+            selectedIndex = initialIndex;
+            typeahead.ClearSearch();
+            MenuHelper.ResetLevel(levelTrackingKey);
+            if (TrackLastChild)
+                lastChildPerParent = new Dictionary<InspectionTreeItem, InspectionTreeItem>();
+            RebuildVisibleList();
+            if (selectedIndex >= visibleItems.Count)
+                selectedIndex = Math.Max(0, visibleItems.Count - 1);
+        }
+
+        /// <summary>
+        /// Resets all tree state.
+        /// </summary>
+        public void Reset()
+        {
+            rootItem = null;
+            visibleItems.Clear();
+            selectedIndex = 0;
+            typeahead.ClearSearch();
+            MenuHelper.ResetLevel(levelTrackingKey);
+            lastChildPerParent?.Clear();
+        }
+
+        #endregion
+
+        #region Primary Input Handler
+
+        /// <summary>
+        /// Handles keyboard input for tree navigation.
+        /// Returns true if input was consumed; false for unhandled events
+        /// (Escape with no active search — caller decides close behavior).
+        /// </summary>
+        public bool HandleInput(Event ev)
+        {
+            if (ev.type != EventType.KeyDown)
+                return false;
+
+            KeyCode key = ev.keyCode;
+
+            // Alt+I — info card (use KeyboardHelper.IsAltHeld for AZERTY compatibility)
+            if (KeyboardHelper.IsAltHeld && key == KeyCode.I)
+            {
+                HandleInfoKey();
+                return true;
+            }
+
+            // Delete
+            if (key == KeyCode.Delete)
+            {
+                HandleDeleteKey();
+                return true;
+            }
+
+            // Escape — clear search only; return false if no search (caller handles close)
+            if (key == KeyCode.Escape)
+            {
+                if (typeahead.HasActiveSearch)
+                {
+                    typeahead.ClearSearchAndAnnounce();
+                    AnnounceCurrentItem();
+                    return true;
+                }
+                return false;
+            }
+
+            // Up arrow
+            if (key == KeyCode.UpArrow)
+            {
+                if (visibleItems.Count == 0) return true;
+                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                {
+                    int prev = typeahead.GetPreviousMatch(selectedIndex);
+                    if (prev >= 0)
+                    {
+                        selectedIndex = prev;
+                        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                        AnnounceWithSearch();
+                    }
+                }
+                else
+                {
+                    selectedIndex = MenuHelper.SelectPrevious(selectedIndex, visibleItems.Count);
+                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                    AnnounceCurrentItem();
+                }
+                return true;
+            }
+
+            // Down arrow
+            if (key == KeyCode.DownArrow)
+            {
+                if (visibleItems.Count == 0) return true;
+                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                {
+                    int next = typeahead.GetNextMatch(selectedIndex);
+                    if (next >= 0)
+                    {
+                        selectedIndex = next;
+                        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                        AnnounceWithSearch();
+                    }
+                }
+                else
+                {
+                    selectedIndex = MenuHelper.SelectNext(selectedIndex, visibleItems.Count);
+                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                    AnnounceCurrentItem();
+                }
+                return true;
+            }
+
+            // Right arrow — expand or drill down
+            if (key == KeyCode.RightArrow)
+            {
+                ExpandOrDrillDown();
+                return true;
+            }
+
+            // Left arrow — collapse or drill up
+            if (key == KeyCode.LeftArrow)
+            {
+                CollapseOrDrillUp();
+                return true;
+            }
+
+            // Home — first sibling (Ctrl = absolute first)
+            if (key == KeyCode.Home)
+            {
+                if (visibleItems.Count == 0) return true;
+                typeahead.ClearSearch();
+                MenuHelper.HandleTreeHomeKey(visibleItems, ref selectedIndex,
+                    item => item.IndentLevel, ev.control, PlayTickAndAnnounce);
+                return true;
+            }
+
+            // End — last sibling (Ctrl = absolute last)
+            if (key == KeyCode.End)
+            {
+                if (visibleItems.Count == 0) return true;
+                typeahead.ClearSearch();
+                MenuHelper.HandleTreeEndKey(visibleItems, ref selectedIndex,
+                    item => item.IndentLevel,
+                    item => item.IsExpanded,
+                    item => item.IsExpandable && item.Children.Count > 0,
+                    ev.control, PlayTickAndAnnounce);
+                return true;
+            }
+
+            // Space — re-announce current item
+            if (key == KeyCode.Space)
+            {
+                AnnounceCurrentItem();
+                return true;
+            }
+
+            // Enter — custom activate, then fall back to toggle expand/collapse
+            if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+            {
+                HandleEnterKey();
+                return true;
+            }
+
+            // * key — expand all siblings
+            bool isStar = key == KeyCode.KeypadMultiply
+                          || (ev.shift && key == KeyCode.Alpha8);
+            if (isStar)
+            {
+                ExpandAllSiblings();
+                return true;
+            }
+
+            // Backspace — delete last search character
+            if (key == KeyCode.Backspace && typeahead.HasActiveSearch)
+            {
+                var labels = GetVisibleLabels();
+                if (typeahead.ProcessBackspace(labels, out int newIndex))
+                {
+                    if (newIndex >= 0)
+                        selectedIndex = newIndex;
+                    SoundDefOf.Click.PlayOneShotOnCamera();
+                    AnnounceWithSearch();
+                }
+                return true;
+            }
+
+            // Typeahead search — alphanumeric keys
+            {
+                bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
+                bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
+
+                if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld && !ev.control)
+                {
+                    char c = isLetter
+                        ? (char)('a' + (key - KeyCode.A))
+                        : (char)('0' + (key - KeyCode.Alpha0));
+                    HandleTypeahead(c);
+                    return true;
+                }
+            }
+
+            // Consume all other keys to prevent pass-through
+            return true;
+        }
+
+        #endregion
+
+        #region Fine-Grained Navigation
+
+        public void SelectNext()
+        {
+            if (visibleItems.Count == 0) return;
+            selectedIndex = MenuHelper.SelectNext(selectedIndex, visibleItems.Count);
+            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            AnnounceCurrentItem();
+        }
+
+        public void SelectPrevious()
+        {
+            if (visibleItems.Count == 0) return;
+            selectedIndex = MenuHelper.SelectPrevious(selectedIndex, visibleItems.Count);
+            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            AnnounceCurrentItem();
+        }
+
+        public void ExpandOrDrillDown()
+        {
+            if (visibleItems.Count == 0 || selectedIndex < 0 || selectedIndex >= visibleItems.Count)
+                return;
+
+            typeahead.ClearSearch();
+            var item = visibleItems[selectedIndex];
+
+            if (!item.IsExpandable)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                return;
+            }
+
+            if (!item.IsExpanded)
+            {
+                OnBeforeExpand?.Invoke(item);
+                item.IsExpanded = true;
+                RebuildVisibleList();
+                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                AnnounceStateChange();
+            }
+            else if (item.Children.Count > 0)
+            {
+                int childIndex = visibleItems.IndexOf(item.Children[0]);
+                if (childIndex >= 0)
+                {
+                    if (TrackLastChild && lastChildPerParent != null)
+                        lastChildPerParent[item] = item.Children[0];
+                    selectedIndex = childIndex;
+                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                    AnnounceCurrentItem();
+                }
+            }
+        }
+
+        public void CollapseOrDrillUp()
+        {
+            if (visibleItems.Count == 0 || selectedIndex < 0 || selectedIndex >= visibleItems.Count)
+                return;
+
+            typeahead.ClearSearch();
+            var item = visibleItems[selectedIndex];
+
+            if (item.IsExpandable && item.IsExpanded)
+            {
+                item.IsExpanded = false;
+                RebuildVisibleList();
+                if (selectedIndex >= visibleItems.Count)
+                    selectedIndex = Math.Max(0, visibleItems.Count - 1);
+                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                AnnounceStateChange();
+            }
+            else if (item.Parent != null && item.Parent != rootItem)
+            {
+                int parentIndex = visibleItems.IndexOf(item.Parent);
+                if (parentIndex >= 0)
+                {
+                    if (TrackLastChild && lastChildPerParent != null)
+                        lastChildPerParent[item.Parent] = item;
+                    selectedIndex = parentIndex;
+                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                    AnnounceCurrentItem();
+                }
+            }
+            else
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+            }
+        }
+
+        public void ExpandAllSiblings()
+        {
+            if (visibleItems.Count == 0 || selectedIndex < 0 || selectedIndex >= visibleItems.Count)
+                return;
+
+            var currentItem = visibleItems[selectedIndex];
+            var siblings = (currentItem.Parent == null || currentItem.Parent == rootItem)
+                ? rootItem.Children
+                : currentItem.Parent.Children;
+
+            int expandedCount = 0;
+            foreach (var sibling in siblings)
+            {
+                if (sibling.IsExpandable && !sibling.IsExpanded)
+                {
+                    OnBeforeExpand?.Invoke(sibling);
+                    sibling.IsExpanded = true;
+                    expandedCount++;
+                }
+            }
+
+            if (expandedCount > 0)
+            {
+                RebuildVisibleList();
+                typeahead.ClearSearch();
+                TolkHelper.Speak($"Expanded {expandedCount} {(expandedCount == 1 ? "item" : "items")}");
+            }
+        }
+
+        public void JumpToFirst(bool absolute)
+        {
+            if (visibleItems.Count == 0) return;
+            typeahead.ClearSearch();
+            MenuHelper.HandleTreeHomeKey(visibleItems, ref selectedIndex,
+                item => item.IndentLevel, absolute, PlayTickAndAnnounce);
+        }
+
+        public void JumpToLast(bool absolute)
+        {
+            if (visibleItems.Count == 0) return;
+            typeahead.ClearSearch();
+            MenuHelper.HandleTreeEndKey(visibleItems, ref selectedIndex,
+                item => item.IndentLevel,
+                item => item.IsExpanded,
+                item => item.IsExpandable && item.Children.Count > 0,
+                absolute, PlayTickAndAnnounce);
+        }
+
+        /// <summary>
+        /// Re-announces the current item using the standard announcement format.
+        /// </summary>
+        public void ReannounceCurrentItem()
+        {
+            AnnounceCurrentItem();
+        }
+
+        /// <summary>
+        /// Rebuilds the flattened visible items list from the tree structure.
+        /// Call after modifying tree nodes externally (adding/removing children).
+        /// </summary>
+        public void RebuildVisibleList()
+        {
+            visibleItems.Clear();
+            if (rootItem == null) return;
+
+            if (SkipRootInVisibleList)
+            {
+                foreach (var child in rootItem.Children)
+                {
+                    visibleItems.AddRange(child.GetVisibleItems());
+                }
+            }
+            else
+            {
+                visibleItems.AddRange(rootItem.GetVisibleItems());
+            }
+        }
+
+        /// <summary>
+        /// Sets the selected index directly. Clamps to valid range.
+        /// </summary>
+        public void SetSelectedIndex(int index)
+        {
+            selectedIndex = Math.Max(0, Math.Min(index, Math.Max(0, visibleItems.Count - 1)));
+        }
+
+        /// <summary>
+        /// Gets the last visited child for a parent node (if TrackLastChild is enabled).
+        /// Returns null if no child was tracked for this parent.
+        /// </summary>
+        public InspectionTreeItem GetLastChild(InspectionTreeItem parent)
+        {
+            if (lastChildPerParent != null && lastChildPerParent.TryGetValue(parent, out var child))
+                return child;
+            return null;
+        }
+
+        #endregion
+
+        #region Announcements
+
+        private void AnnounceCurrentItem()
+        {
+            if (visibleItems.Count == 0 || selectedIndex < 0 || selectedIndex >= visibleItems.Count)
+                return;
+
+            var item = visibleItems[selectedIndex];
+
+            if (FormatItemAnnouncement != null)
+            {
+                TolkHelper.Speak(FormatItemAnnouncement(item));
+                return;
+            }
+
+            TolkHelper.Speak(DefaultFormatItemAnnouncement(item));
+        }
+
+        private void AnnounceStateChange()
+        {
+            if (visibleItems.Count == 0 || selectedIndex < 0 || selectedIndex >= visibleItems.Count)
+                return;
+
+            var item = visibleItems[selectedIndex];
+
+            if (FormatStateChangeAnnouncement != null)
+            {
+                TolkHelper.Speak(FormatStateChangeAnnouncement(item));
+                return;
+            }
+
+            // Fall back to regular announcement
+            AnnounceCurrentItem();
+        }
+
+        private void AnnounceWithSearch()
+        {
+            if (visibleItems.Count == 0 || selectedIndex < 0 || selectedIndex >= visibleItems.Count)
+                return;
+
+            var item = visibleItems[selectedIndex];
+
+            if (FormatSearchAnnouncement != null)
+            {
+                TolkHelper.Speak(FormatSearchAnnouncement(item, typeahead));
+                return;
+            }
+
+            TolkHelper.Speak(DefaultFormatSearchAnnouncement(item));
+        }
+
+        #endregion
+
+        #region Default Announcement Formats
+
+        /// <summary>
+        /// Default item announcement: "Label, expanded, 3 items. 1 of 5. level 2"
+        /// </summary>
+        public string DefaultFormatItemAnnouncement(InspectionTreeItem item)
+        {
+            string label = item.Label.TrimEnd('.', '!', '?');
+
+            string stateIndicator = "";
+            if (item.IsExpandable)
+            {
+                string state = item.IsExpanded ? "expanded" : "collapsed";
+                if (AnnounceChildCounts)
+                {
+                    int childCount = item.Children.Count;
+                    string childWord = childCount == 1 ? "item" : "items";
+                    stateIndicator = $", {state}, {childCount} {childWord}";
+                }
+                else
+                {
+                    stateIndicator = $", {state}";
+                }
+            }
+
+            var (position, total) = GetSiblingPosition(item);
+            string positionPart = MenuHelper.FormatPosition(position - 1, total);
+            string positionSection = string.IsNullOrEmpty(positionPart)
+                ? "" : $". {positionPart}";
+
+            string levelSuffix = MenuHelper.GetLevelSuffix(levelTrackingKey, item.IndentLevel);
+
+            return $"{label}{stateIndicator}{positionSection}{levelSuffix}";
+        }
+
+        /// <summary>
+        /// Default search announcement: "Label, expanded, 2 of 5 matches for 'w'"
+        /// </summary>
+        public string DefaultFormatSearchAnnouncement(InspectionTreeItem item)
+        {
+            string label = item.Label.TrimEnd('.', '!', '?');
+
+            string stateIndicator = "";
+            if (item.IsExpandable)
+                stateIndicator = item.IsExpanded ? ", expanded" : ", collapsed";
+
+            string searchInfo = $", {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
+            return $"{label}{stateIndicator}{searchInfo}";
+        }
+
+        #endregion
+
+        #region Internal Helpers
+
+        /// <summary>
+        /// Gets the sibling position (1-indexed) and total count for a node.
+        /// Uses the parent's children list (or root's children for top-level nodes).
+        /// </summary>
+        public (int position, int total) GetSiblingPosition(InspectionTreeItem item)
+        {
+            var siblings = (item.Parent == null || item.Parent == rootItem)
+                ? rootItem.Children
+                : item.Parent.Children;
+            int pos = siblings.IndexOf(item) + 1;
+            return (pos, siblings.Count);
+        }
+
+        private List<string> GetVisibleLabels()
+        {
+            return visibleItems.Select(item => item.Label).ToList();
+        }
+
+        private void HandleTypeahead(char c)
+        {
+            var labels = GetVisibleLabels();
+            if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
+            {
+                selectedIndex = newIndex;
+                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                AnnounceWithSearch();
+            }
+            else
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'.");
+            }
+        }
+
+        private void HandleEnterKey()
+        {
+            if (visibleItems.Count == 0 || selectedIndex < 0 || selectedIndex >= visibleItems.Count)
+                return;
+
+            var item = visibleItems[selectedIndex];
+
+            // Try custom activate first
+            if (OnActivate != null && OnActivate(item))
+                return;
+
+            // Try the item's own OnActivate callback
+            if (item.OnActivate != null)
+            {
+                item.OnActivate();
+                return;
+            }
+
+            // Default: toggle expand/collapse
+            if (item.IsExpandable)
+            {
+                typeahead.ClearSearch();
+                if (!item.IsExpanded)
+                    OnBeforeExpand?.Invoke(item);
+                item.IsExpanded = !item.IsExpanded;
+                RebuildVisibleList();
+                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                AnnounceStateChange();
+            }
+        }
+
+        private void HandleDeleteKey()
+        {
+            if (visibleItems.Count == 0 || selectedIndex < 0 || selectedIndex >= visibleItems.Count)
+                return;
+
+            var item = visibleItems[selectedIndex];
+
+            // Try custom delete handler
+            if (OnDelete != null && OnDelete(item))
+                return;
+
+            // Try item's own OnDelete callback
+            if (item.OnDelete != null)
+            {
+                item.OnDelete();
+                return;
+            }
+        }
+
+        private void HandleInfoKey()
+        {
+            if (visibleItems.Count == 0 || selectedIndex < 0 || selectedIndex >= visibleItems.Count)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No info card available.");
+                return;
+            }
+
+            var item = visibleItems[selectedIndex];
+
+            // Try custom info handler
+            if (OnInfo != null && OnInfo(item))
+                return;
+
+            // Try item's own OnInfo callback
+            if (item.OnInfo != null)
+            {
+                item.OnInfo();
+                return;
+            }
+
+            // Default: open info card for LinkedDef
+            if (item.LinkedDef != null)
+            {
+                InfoCardState.OpenInfoCardForDef(item.LinkedDef);
+                return;
+            }
+
+            // Walk up tree looking for a LinkedDef
+            var parent = item.Parent;
+            while (parent != null && parent != rootItem)
+            {
+                if (parent.LinkedDef != null)
+                {
+                    InfoCardState.OpenInfoCardForDef(parent.LinkedDef);
+                    return;
+                }
+                parent = parent.Parent;
+            }
+
+            SoundDefOf.ClickReject.PlayOneShotOnCamera();
+            TolkHelper.Speak("No info card available.");
+        }
+
+        private void PlayTickAndAnnounce()
+        {
+            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            AnnounceCurrentItem();
+        }
+
+        #endregion
+    }
+}

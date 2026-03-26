@@ -10,18 +10,25 @@ namespace RimWorldAccess
     /// <summary>
     /// Manages the windowless research menu state with hierarchical tree navigation.
     /// Organizes research projects by tab (Main/Anomaly) → status (Completed/Available/Locked/In Progress).
+    /// Uses TreeNavigationHelper for all navigation logic.
     /// </summary>
     public static class WindowlessResearchMenuState
     {
         private static bool isActive = false;
-        private static List<ResearchMenuNode> rootNodes = new List<ResearchMenuNode>();
-        private static List<ResearchMenuNode> flatNavigationList = new List<ResearchMenuNode>();
-        private static int currentIndex = 0;
-        private static HashSet<string> expandedNodes = new HashSet<string>();
-        private static Dictionary<string, string> lastChildIdPerParent = new Dictionary<string, string>();
-        private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
+        private static TreeNavigationHelper treeNav = new TreeNavigationHelper("ResearchMenu");
 
         public static bool IsActive => isActive;
+        public static bool HasActiveSearch => treeNav.HasActiveSearch;
+        public static bool HasNoMatches => treeNav.HasNoMatches;
+
+        static WindowlessResearchMenuState()
+        {
+            treeNav.FormatItemAnnouncement = FormatAnnouncement;
+            treeNav.FormatSearchAnnouncement = FormatSearchAnnouncement;
+            treeNav.OnActivate = HandleActivate;
+            treeNav.OnInfo = HandleInfoCard;
+            treeNav.TrackLastChild = true;
+        }
 
         /// <summary>
         /// Opens the research menu and builds the category tree.
@@ -29,15 +36,10 @@ namespace RimWorldAccess
         public static void Open()
         {
             isActive = true;
-            expandedNodes.Clear();
-            lastChildIdPerParent.Clear();
-            MenuHelper.ResetLevel("ResearchMenu");
-            typeahead.ClearSearch();
-            rootNodes = BuildCategoryTree();
-            flatNavigationList = BuildFlatNavigationList();
-            currentIndex = 0;
+            var root = BuildCategoryTree();
+            treeNav.Initialize(root);
             TolkHelper.Speak("Research menu");
-            AnnounceCurrentSelection();
+            treeNav.ReannounceCurrentItem();
         }
 
         /// <summary>
@@ -46,12 +48,7 @@ namespace RimWorldAccess
         public static void Close()
         {
             isActive = false;
-            rootNodes.Clear();
-            flatNavigationList.Clear();
-            expandedNodes.Clear();
-            lastChildIdPerParent.Clear();
-            MenuHelper.ResetLevel("ResearchMenu");
-            typeahead.ClearSearch();
+            treeNav.Reset();
             TolkHelper.Speak("Research menu closed");
         }
 
@@ -69,21 +66,17 @@ namespace RimWorldAccess
 
             // Open the menu normally first
             isActive = true;
-            expandedNodes.Clear();
-            lastChildIdPerParent.Clear();
-            MenuHelper.ResetLevel("ResearchMenu");
-            typeahead.ClearSearch();
-            rootNodes = BuildCategoryTree();
+            var root = BuildCategoryTree();
 
             // Expand all categories to find the project
-            ExpandAllCategoriesRecursive(rootNodes);
-            flatNavigationList = BuildFlatNavigationList();
+            ExpandAllCategoriesRecursive(root.Children);
+            treeNav.Initialize(root);
 
-            // Find the project in the flat navigation list
+            // Find the project in the visible items list
             int foundIndex = -1;
-            for (int i = 0; i < flatNavigationList.Count; i++)
+            for (int i = 0; i < treeNav.VisibleItems.Count; i++)
             {
-                if (flatNavigationList[i].Project == project)
+                if (treeNav.VisibleItems[i].Data is ResearchProjectDef proj && proj == project)
                 {
                     foundIndex = i;
                     break;
@@ -92,14 +85,12 @@ namespace RimWorldAccess
 
             if (foundIndex >= 0)
             {
-                currentIndex = foundIndex;
+                treeNav.SetSelectedIndex(foundIndex);
                 TolkHelper.Speak("Research menu");
-                AnnounceCurrentSelection();
+                treeNav.ReannounceCurrentItem();
             }
             else
             {
-                // Project not found
-                currentIndex = 0;
                 TolkHelper.Speak($"Research project {project.LabelCap} not found in menu");
             }
         }
@@ -107,29 +98,29 @@ namespace RimWorldAccess
         /// <summary>
         /// Recursively expands all category nodes.
         /// </summary>
-        private static void ExpandAllCategoriesRecursive(List<ResearchMenuNode> nodes)
+        private static void ExpandAllCategoriesRecursive(List<InspectionTreeItem> items)
         {
-            foreach (var node in nodes.Where(n => n.Type == ResearchMenuNodeType.Category))
+            foreach (var item in items)
             {
-                node.IsExpanded = true;
-                expandedNodes.Add(node.Id);
-
-                if (node.Children != null && node.Children.Count > 0)
+                if (item.Type == InspectionTreeItem.ItemType.Category && item.IsExpandable)
                 {
-                    ExpandAllCategoriesRecursive(node.Children);
+                    item.IsExpanded = true;
+                    if (item.Children.Count > 0)
+                    {
+                        ExpandAllCategoriesRecursive(item.Children);
+                    }
                 }
             }
         }
+
+        #region Navigation Wrappers (called by UnifiedKeyboardPatch)
 
         /// <summary>
         /// Navigates to the next item in the flat navigation list.
         /// </summary>
         public static void SelectNext()
         {
-            if (flatNavigationList.Count == 0) return;
-
-            currentIndex = MenuHelper.SelectNext(currentIndex, flatNavigationList.Count);
-            AnnounceCurrentSelection();
+            treeNav.SelectNext();
         }
 
         /// <summary>
@@ -137,78 +128,23 @@ namespace RimWorldAccess
         /// </summary>
         public static void SelectPrevious()
         {
-            if (flatNavigationList.Count == 0) return;
-
-            currentIndex = MenuHelper.SelectPrevious(currentIndex, flatNavigationList.Count);
-
-            AnnounceCurrentSelection();
+            treeNav.SelectPrevious();
         }
 
         /// <summary>
         /// Expands the currently selected category (right arrow).
-        /// WCAG behavior:
-        /// - On closed node: Open node, focus stays
-        /// - On open node: Move to first child
-        /// - On end node: Reject feedback
         /// </summary>
         public static void ExpandCategory()
         {
-            if (flatNavigationList.Count == 0) return;
-
-            var current = flatNavigationList[currentIndex];
-
-            // Case 1: Collapsed category - expand it, focus STAYS on current item
-            if (current.Type == ResearchMenuNodeType.Category && !current.IsExpanded)
-            {
-                current.IsExpanded = true;
-                expandedNodes.Add(current.Id);
-                flatNavigationList = BuildFlatNavigationList();
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                AnnounceCurrentSelection(); // Focus stays, just announce new state
-                return;
-            }
-
-            // Case 2: Already expanded category with children - move to first child
-            if (current.Type == ResearchMenuNodeType.Category && current.IsExpanded && current.Children.Count > 0)
-            {
-                MoveToFirstChild();
-                return;
-            }
-
-            // Case 3: End node (Project) or empty category - reject
-            SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            TolkHelper.Speak("Cannot expand this item.", SpeechPriority.High);
+            treeNav.ExpandOrDrillDown();
         }
 
         /// <summary>
-        /// Moves focus to the first child of the current node.
-        /// Used when pressing Right on an already-expanded category.
+        /// Collapses the currently selected category (left arrow).
         /// </summary>
-        private static void MoveToFirstChild()
+        public static void CollapseCategory()
         {
-            var current = flatNavigationList[currentIndex];
-
-            // Restore last selected child position if available
-            if (lastChildIdPerParent.TryGetValue(current.Id, out string savedChildId))
-            {
-                int savedIndex = flatNavigationList.FindIndex(n => n.Id == savedChildId);
-                if (savedIndex >= 0)
-                {
-                    currentIndex = savedIndex;
-                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                    AnnounceCurrentSelection();
-                    return;
-                }
-            }
-
-            // No saved position - move to first child (which is immediately after current in flat list)
-            int firstChildIndex = flatNavigationList.IndexOf(current) + 1;
-            if (firstChildIndex < flatNavigationList.Count)
-            {
-                currentIndex = firstChildIndex;
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                AnnounceCurrentSelection();
-            }
+            treeNav.CollapseOrDrillUp();
         }
 
         /// <summary>
@@ -217,118 +153,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void ExpandAllSiblings()
         {
-            if (flatNavigationList.Count == 0) return;
-
-            var current = flatNavigationList[currentIndex];
-
-            // Get siblings (nodes at the same level with the same parent)
-            List<ResearchMenuNode> siblings;
-            if (current.Parent == null)
-            {
-                // Top level - siblings are root nodes
-                siblings = rootNodes;
-            }
-            else
-            {
-                // Inside a category - siblings are parent's children
-                siblings = current.Parent.Children;
-            }
-
-            // Find all collapsed category siblings
-            var collapsedCategories = siblings
-                .Where(n => n.Type == ResearchMenuNodeType.Category && !expandedNodes.Contains(n.Id))
-                .ToList();
-
-            // Check if there are any expandable items at this level
-            var allCategories = siblings.Where(n => n.Type == ResearchMenuNodeType.Category).ToList();
-            if (allCategories.Count == 0)
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No categories to expand at this level", SpeechPriority.High);
-                return;
-            }
-
-            // Check if all are already expanded
-            if (collapsedCategories.Count == 0)
-            {
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                TolkHelper.Speak("All categories already expanded at this level", SpeechPriority.High);
-                return;
-            }
-
-            // Expand all collapsed siblings
-            foreach (var node in collapsedCategories)
-            {
-                expandedNodes.Add(node.Id);
-                node.IsExpanded = true;
-            }
-
-            // Clear typeahead search
-            typeahead.ClearSearch();
-
-            // Rebuild the flat navigation list
-            flatNavigationList = BuildFlatNavigationList();
-
-            // Announce result
-            string message = collapsedCategories.Count == 1
-                ? "Expanded 1 category"
-                : $"Expanded {collapsedCategories.Count} categories";
-            SoundDefOf.Click.PlayOneShotOnCamera();
-            TolkHelper.Speak(message, SpeechPriority.High);
-        }
-
-        /// <summary>
-        /// Collapses the currently selected category (left arrow).
-        /// WCAG behavior:
-        /// - On open node: Close node, focus stays
-        /// - On closed node: Move to parent
-        /// - On end node: Move to parent
-        /// </summary>
-        public static void CollapseCategory()
-        {
-            if (flatNavigationList.Count == 0) return;
-
-            var current = flatNavigationList[currentIndex];
-
-            // Case 1: Current is an expanded category - collapse it, focus STAYS
-            if (current.Type == ResearchMenuNodeType.Category && current.IsExpanded)
-            {
-                current.IsExpanded = false;
-                expandedNodes.Remove(current.Id);
-                flatNavigationList = BuildFlatNavigationList();
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                AnnounceCurrentSelection();
-                return;
-            }
-
-            // Case 2: Find parent to navigate to (do NOT collapse parent, just move to it)
-            var parent = current.Parent;
-
-            // Skip to find an expandable parent (categories only)
-            while (parent != null && parent.Type != ResearchMenuNodeType.Category)
-            {
-                parent = parent.Parent;
-            }
-
-            if (parent == null)
-            {
-                // No parent to navigate to - we're at the top level
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("Already at top level.", SpeechPriority.High);
-                return;
-            }
-
-            // Save current child position for this parent before moving away
-            lastChildIdPerParent[parent.Id] = current.Id;
-
-            // Move selection to the parent (do NOT collapse it)
-            int parentIndex = flatNavigationList.IndexOf(parent);
-            if (parentIndex >= 0)
-            {
-                currentIndex = parentIndex;
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                AnnounceCurrentSelection();
-            }
+            treeNav.ExpandAllSiblings();
         }
 
         /// <summary>
@@ -337,23 +162,8 @@ namespace RimWorldAccess
         /// </summary>
         public static void ExecuteSelected()
         {
-            if (flatNavigationList.Count == 0) return;
-
-            var current = flatNavigationList[currentIndex];
-
-            if (current.Type == ResearchMenuNodeType.Project && current.Project != null)
-            {
-                // Open detail view for this project
-                WindowlessResearchDetailState.Open(current.Project);
-            }
-            else if (current.Type == ResearchMenuNodeType.Category)
-            {
-                // Toggle expansion
-                if (current.IsExpanded)
-                    CollapseCategory();
-                else
-                    ExpandCategory();
-            }
+            if (treeNav.SelectedItem == null) return;
+            HandleActivate(treeNav.SelectedItem);
         }
 
         /// <summary>
@@ -362,29 +172,8 @@ namespace RimWorldAccess
         /// </summary>
         public static void OpenInfoCard()
         {
-            if (flatNavigationList.Count == 0) return;
-
-            var current = flatNavigationList[currentIndex];
-
-            if (current.Type == ResearchMenuNodeType.Project && current.Project != null)
-            {
-                Find.WindowStack.Add(new Dialog_InfoCard(current.Project));
-            }
-            else
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No info card available for categories");
-            }
-        }
-
-        /// <summary>
-        /// Helper method that clears typeahead search and announces the current selection.
-        /// Used as callback for MenuHelper tree navigation methods.
-        /// </summary>
-        private static void ClearAndAnnounce()
-        {
-            typeahead.ClearSearch();
-            AnnounceCurrentSelection();
+            if (treeNav.SelectedItem == null) return;
+            HandleInfoCard(treeNav.SelectedItem);
         }
 
         /// <summary>
@@ -392,21 +181,15 @@ namespace RimWorldAccess
         /// </summary>
         public static void JumpToFirst()
         {
-            if (flatNavigationList == null || flatNavigationList.Count == 0) return;
-            MenuHelper.HandleTreeHomeKey(flatNavigationList, ref currentIndex, node => node.Level, false, ClearAndAnnounce);
+            treeNav.JumpToFirst(false);
         }
 
         /// <summary>
         /// Jumps to the last item in the current scope (End key).
-        /// If on an expanded node with children, jumps to its last visible descendant.
-        /// Otherwise, jumps to last sibling at same level.
         /// </summary>
         public static void JumpToLast()
         {
-            if (flatNavigationList == null || flatNavigationList.Count == 0) return;
-            MenuHelper.HandleTreeEndKey(flatNavigationList, ref currentIndex, node => node.Level,
-                node => node.Type == ResearchMenuNodeType.Category && node.IsExpanded,
-                node => node.Children != null && node.Children.Count > 0, false, ClearAndAnnounce);
+            treeNav.JumpToLast(false);
         }
 
         /// <summary>
@@ -414,8 +197,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void JumpToAbsoluteFirst()
         {
-            if (flatNavigationList == null || flatNavigationList.Count == 0) return;
-            MenuHelper.HandleTreeHomeKey(flatNavigationList, ref currentIndex, node => node.Level, true, ClearAndAnnounce);
+            treeNav.JumpToFirst(true);
         }
 
         /// <summary>
@@ -423,28 +205,16 @@ namespace RimWorldAccess
         /// </summary>
         public static void JumpToAbsoluteLast()
         {
-            if (flatNavigationList == null || flatNavigationList.Count == 0) return;
-            MenuHelper.HandleTreeEndKey(flatNavigationList, ref currentIndex, node => node.Level,
-                node => node.Type == ResearchMenuNodeType.Category && node.IsExpanded,
-                node => node.Children != null && node.Children.Count > 0, true, ClearAndAnnounce);
+            treeNav.JumpToLast(true);
         }
-
-        /// <summary>
-        /// Checks if typeahead search has an active search buffer.
-        /// </summary>
-        public static bool HasActiveSearch => typeahead.HasActiveSearch;
-
-        /// <summary>
-        /// Checks if typeahead search has no matches.
-        /// </summary>
-        public static bool HasNoMatches => typeahead.HasNoMatches;
 
         /// <summary>
         /// Clears the current typeahead search (used by Escape key handler).
         /// </summary>
         public static void ClearTypeaheadSearch()
         {
-            typeahead.ClearSearchAndAnnounce();
+            treeNav.Typeahead.ClearSearchAndAnnounce();
+            treeNav.ReannounceCurrentItem();
         }
 
         /// <summary>
@@ -453,12 +223,13 @@ namespace RimWorldAccess
         /// <returns>True if backspace was handled.</returns>
         public static bool ProcessBackspace()
         {
-            if (!typeahead.HasActiveSearch) return false;
+            if (!treeNav.HasActiveSearch) return false;
 
-            var labels = GetVisibleItemLabels();
-            if (typeahead.ProcessBackspace(labels, out int newIndex))
+            var labels = treeNav.VisibleItems.Select(item => item.Label).ToList();
+            if (treeNav.Typeahead.ProcessBackspace(labels, out int newIndex))
             {
-                if (newIndex >= 0) currentIndex = newIndex;
+                if (newIndex >= 0) treeNav.SetSelectedIndex(newIndex);
+                SoundDefOf.Click.PlayOneShotOnCamera();
                 AnnounceWithSearch();
             }
             return true;
@@ -471,16 +242,14 @@ namespace RimWorldAccess
         /// <returns>True if the character was processed.</returns>
         public static bool ProcessTypeaheadCharacter(char c)
         {
-            // Character validation is now done by the caller using KeyCode
-            // Accept the character as-is since it was already validated
-            var labels = GetVisibleItemLabels();
-            if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
+            var labels = treeNav.VisibleItems.Select(item => item.Label).ToList();
+            if (treeNav.Typeahead.ProcessCharacterInput(c, labels, out int newIndex))
             {
-                if (newIndex >= 0) { currentIndex = newIndex; AnnounceWithSearch(); }
+                if (newIndex >= 0) { treeNav.SetSelectedIndex(newIndex); AnnounceWithSearch(); }
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+                TolkHelper.Speak($"No matches for '{treeNav.Typeahead.LastFailedSearch}'");
             }
             return true;
         }
@@ -491,12 +260,12 @@ namespace RimWorldAccess
         /// <returns>True if navigation occurred.</returns>
         public static bool SelectNextMatch()
         {
-            if (!typeahead.HasActiveSearch) return false;
+            if (!treeNav.HasActiveSearch) return false;
 
-            int next = typeahead.GetNextMatch(currentIndex);
+            int next = treeNav.Typeahead.GetNextMatch(treeNav.SelectedIndex);
             if (next >= 0)
             {
-                currentIndex = next;
+                treeNav.SetSelectedIndex(next);
                 AnnounceWithSearch();
             }
             return true;
@@ -508,28 +277,15 @@ namespace RimWorldAccess
         /// <returns>True if navigation occurred.</returns>
         public static bool SelectPreviousMatch()
         {
-            if (!typeahead.HasActiveSearch) return false;
+            if (!treeNav.HasActiveSearch) return false;
 
-            int prev = typeahead.GetPreviousMatch(currentIndex);
+            int prev = treeNav.Typeahead.GetPreviousMatch(treeNav.SelectedIndex);
             if (prev >= 0)
             {
-                currentIndex = prev;
+                treeNav.SetSelectedIndex(prev);
                 AnnounceWithSearch();
             }
             return true;
-        }
-
-        /// <summary>
-        /// Gets labels from visible items for typeahead search.
-        /// </summary>
-        private static List<string> GetVisibleItemLabels()
-        {
-            var labels = new List<string>();
-            foreach (var node in flatNavigationList)
-            {
-                labels.Add(node.Label);
-            }
-            return labels;
         }
 
         /// <summary>
@@ -537,29 +293,37 @@ namespace RimWorldAccess
         /// </summary>
         private static void AnnounceWithSearch()
         {
-            if (flatNavigationList.Count == 0) return;
+            var item = treeNav.SelectedItem;
+            if (item == null) return;
 
-            var current = flatNavigationList[currentIndex];
-            string label = current.Label;
-
-            if (typeahead.HasActiveSearch)
+            if (treeNav.HasActiveSearch)
             {
-                TolkHelper.Speak($"{label}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'");
+                TolkHelper.Speak($"{item.Label}, {treeNav.Typeahead.CurrentMatchPosition} of {treeNav.Typeahead.MatchCount} matches for '{treeNav.Typeahead.SearchBuffer}'");
             }
             else
             {
-                AnnounceCurrentSelection();
+                treeNav.ReannounceCurrentItem();
             }
         }
 
+        #endregion
+
+        #region Tree Building
+
         /// <summary>
-        /// Builds the hierarchical category tree structure.
+        /// Builds the hierarchical category tree structure using InspectionTreeItem.
         /// Organization: Tab → Status Group → Individual Projects
         /// When only one tab exists, skips the tab wrapper and shows status groups directly.
         /// </summary>
-        private static List<ResearchMenuNode> BuildCategoryTree()
+        private static InspectionTreeItem BuildCategoryTree()
         {
-            var tree = new List<ResearchMenuNode>();
+            var root = new InspectionTreeItem
+            {
+                Label = "Research",
+                IndentLevel = -1,
+                IsExpanded = true,
+                IsExpandable = false
+            };
 
             // Get all research projects
             var allProjects = DefDatabase<ResearchProjectDef>.AllDefsListForReading;
@@ -582,73 +346,43 @@ namespace RimWorldAccess
                 // When only one tab exists, skip the tab wrapper and add status groups directly
                 if (singleTab)
                 {
-                    // Add status groups directly to tree root (Level 0)
                     if (inProgress.Count > 0)
-                    {
-                        tree.Add(CreateStatusGroupNode($"Tab_{tab.defName}_InProgress", "In Progress", inProgress, 0));
-                    }
-
+                        root.Children.Add(CreateStatusGroupNode("In Progress", inProgress, 0, root));
                     if (available.Count > 0)
-                    {
-                        tree.Add(CreateStatusGroupNode($"Tab_{tab.defName}_Available", "Available", available, 0));
-                    }
-
+                        root.Children.Add(CreateStatusGroupNode("Available", available, 0, root));
                     if (completed.Count > 0)
-                    {
-                        tree.Add(CreateStatusGroupNode($"Tab_{tab.defName}_Completed", "Completed", completed, 0));
-                    }
-
+                        root.Children.Add(CreateStatusGroupNode("Completed", completed, 0, root));
                     if (locked.Count > 0)
-                    {
-                        tree.Add(CreateStatusGroupNode($"Tab_{tab.defName}_Locked", "Locked", locked, 0));
-                    }
+                        root.Children.Add(CreateStatusGroupNode("Locked", locked, 0, root));
                 }
                 else
                 {
                     // Multiple tabs - keep the tab wrapper structure
-                    var tabNode = new ResearchMenuNode
+                    var tabNode = new InspectionTreeItem
                     {
-                        Id = $"Tab_{tab.defName}",
-                        Type = ResearchMenuNodeType.Category,
+                        Type = InspectionTreeItem.ItemType.Category,
                         Label = tab.LabelCap.ToString(),
-                        Level = 0,
-                        Children = new List<ResearchMenuNode>()
+                        IndentLevel = 0,
+                        IsExpandable = true,
+                        IsExpanded = false,
+                        Parent = root
                     };
 
                     // Add status group nodes (only if they have projects)
                     if (inProgress.Count > 0)
-                    {
-                        var node = CreateStatusGroupNode("InProgress", "In Progress", inProgress, 1);
-                        node.Parent = tabNode;
-                        tabNode.Children.Add(node);
-                    }
-
+                        tabNode.Children.Add(CreateStatusGroupNode("In Progress", inProgress, 1, tabNode));
                     if (available.Count > 0)
-                    {
-                        var node = CreateStatusGroupNode("Available", "Available", available, 1);
-                        node.Parent = tabNode;
-                        tabNode.Children.Add(node);
-                    }
-
+                        tabNode.Children.Add(CreateStatusGroupNode("Available", available, 1, tabNode));
                     if (completed.Count > 0)
-                    {
-                        var node = CreateStatusGroupNode("Completed", "Completed", completed, 1);
-                        node.Parent = tabNode;
-                        tabNode.Children.Add(node);
-                    }
-
+                        tabNode.Children.Add(CreateStatusGroupNode("Completed", completed, 1, tabNode));
                     if (locked.Count > 0)
-                    {
-                        var node = CreateStatusGroupNode("Locked", "Locked", locked, 1);
-                        node.Parent = tabNode;
-                        tabNode.Children.Add(node);
-                    }
+                        tabNode.Children.Add(CreateStatusGroupNode("Locked", locked, 1, tabNode));
 
-                    tree.Add(tabNode);
+                    root.Children.Add(tabNode);
                 }
             }
 
-            return tree;
+            return root;
         }
 
         /// <summary>
@@ -686,28 +420,30 @@ namespace RimWorldAccess
         /// <summary>
         /// Creates a status group node (Completed, Available, Locked, In Progress).
         /// </summary>
-        private static ResearchMenuNode CreateStatusGroupNode(string id, string label, List<ResearchProjectDef> projects, int level)
+        private static InspectionTreeItem CreateStatusGroupNode(string label, List<ResearchProjectDef> projects, int level, InspectionTreeItem parent)
         {
-            var statusNode = new ResearchMenuNode
+            var statusNode = new InspectionTreeItem
             {
-                Id = id,
-                Type = ResearchMenuNodeType.Category,
+                Type = InspectionTreeItem.ItemType.Category,
                 Label = $"{label} ({projects.Count})",
-                Level = level,
-                Children = new List<ResearchMenuNode>()
+                IndentLevel = level,
+                IsExpandable = true,
+                IsExpanded = false,
+                Parent = parent
             };
 
             // Add individual project nodes
             foreach (var project in projects.OrderBy(p => p.LabelCap.ToString()))
             {
-                var projectNode = new ResearchMenuNode
+                var projectNode = new InspectionTreeItem
                 {
-                    Id = $"Project_{project.defName}",
-                    Type = ResearchMenuNodeType.Project,
+                    Type = InspectionTreeItem.ItemType.Item,
                     Label = FormatProjectLabel(project),
-                    Level = level + 1,
-                    Project = project,
-                    Children = new List<ResearchMenuNode>(),
+                    IndentLevel = level + 1,
+                    IsExpandable = false,
+                    IsExpanded = false,
+                    Data = project,
+                    LinkedDef = project,
                     Parent = statusNode
                 };
                 statusNode.Children.Add(projectNode);
@@ -758,112 +494,76 @@ namespace RimWorldAccess
             return label;
         }
 
-        /// <summary>
-        /// Flattens the hierarchical tree into a navigation list based on expanded categories.
-        /// </summary>
-        private static List<ResearchMenuNode> BuildFlatNavigationList()
+        #endregion
+
+        #region Announcement Formatters
+
+        private static string FormatAnnouncement(InspectionTreeItem item)
         {
-            var flatList = new List<ResearchMenuNode>();
-
-            foreach (var node in rootNodes)
-            {
-                AddNodeToFlatList(node, flatList);
-            }
-
-            return flatList;
-        }
-
-        /// <summary>
-        /// Recursively adds nodes to the flat navigation list.
-        /// Only adds children of expanded nodes.
-        /// </summary>
-        private static void AddNodeToFlatList(ResearchMenuNode node, List<ResearchMenuNode> flatList)
-        {
-            flatList.Add(node);
-
-            // Update expansion state based on expandedNodes set
-            node.IsExpanded = expandedNodes.Contains(node.Id);
-
-            if (node.IsExpanded && node.Children != null)
-            {
-                foreach (var child in node.Children)
-                {
-                    AddNodeToFlatList(child, flatList);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Announces the currently selected item to the clipboard for screen reader access.
-        /// WCAG format: "level N. {name} {state}. {X of Y}." or "{name} {state}. {X of Y}."
-        /// Level is only announced when it changes.
-        /// </summary>
-        private static void AnnounceCurrentSelection()
-        {
-            if (flatNavigationList.Count == 0)
-            {
-                TolkHelper.Speak("Research menu - No research projects available");
-                return;
-            }
-
-            var current = flatNavigationList[currentIndex];
-
             // Build announcement: "{name} {state}. {X of Y}. level N"
-            string announcement = current.Label;
+            string announcement = item.Label;
 
             // Add state for expandable nodes (categories)
-            if (current.Type == ResearchMenuNodeType.Category)
+            if (item.Type == InspectionTreeItem.ItemType.Category && item.IsExpandable)
             {
-                announcement += current.IsExpanded ? " expanded" : " collapsed";
+                announcement += item.IsExpanded ? " expanded" : " collapsed";
             }
 
             // Add sibling position (X of Y among siblings at same level)
-            List<ResearchMenuNode> siblings;
-            if (current.Parent == null)
-            {
-                // Top level - siblings are root nodes
-                siblings = rootNodes;
-            }
-            else
-            {
-                // Inside a category - siblings are parent's children
-                siblings = current.Parent.Children;
-            }
-            int siblingPosition = siblings.IndexOf(current) + 1;
-            string positionPart = MenuHelper.FormatPosition(siblingPosition - 1, siblings.Count);
+            var (position, total) = treeNav.GetSiblingPosition(item);
+            string positionPart = MenuHelper.FormatPosition(position - 1, total);
             announcement += string.IsNullOrEmpty(positionPart) ? "." : $". {positionPart}.";
 
             // Add level suffix at the end (only announced when level changes)
-            announcement += MenuHelper.GetLevelSuffix("ResearchMenu", current.Level);
+            announcement += MenuHelper.GetLevelSuffix("ResearchMenu", item.IndentLevel);
 
-            // Add level suffix at the end (only announced when level changes)
-            announcement += MenuHelper.GetLevelSuffix("ResearchMenu", current.Level);
-
-            TolkHelper.Speak(announcement);
+            return announcement;
         }
-    }
 
-    /// <summary>
-    /// Represents a node in the research menu tree (either a category or a project).
-    /// </summary>
-    public class ResearchMenuNode
-    {
-        public string Id { get; set; }
-        public ResearchMenuNodeType Type { get; set; }
-        public string Label { get; set; }
-        public int Level { get; set; }
-        public bool IsExpanded { get; set; }
-        public ResearchProjectDef Project { get; set; }
-        public List<ResearchMenuNode> Children { get; set; }
-        public ResearchMenuNode Parent { get; set; }  // Reference to parent node for upward navigation
-    }
+        private static string FormatSearchAnnouncement(InspectionTreeItem item, TypeaheadSearchHelper typeahead)
+        {
+            if (typeahead.HasActiveSearch)
+            {
+                return $"{item.Label}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
+            }
+            return FormatAnnouncement(item);
+        }
 
-    /// <summary>
-    /// Type of node in the research menu tree.
-    /// </summary>
-    public enum ResearchMenuNodeType
-    {
-        Category,
-        Project
+        #endregion
+
+        #region Custom Actions
+
+        private static bool HandleActivate(InspectionTreeItem item)
+        {
+            if (item.Type == InspectionTreeItem.ItemType.Item && item.Data is ResearchProjectDef project)
+            {
+                // Open detail view for this project
+                WindowlessResearchDetailState.Open(project);
+                return true;
+            }
+
+            if (item.Type == InspectionTreeItem.ItemType.Category)
+            {
+                // Toggle expansion (default behavior handles this)
+                return false;
+            }
+
+            return false;
+        }
+
+        private static bool HandleInfoCard(InspectionTreeItem item)
+        {
+            if (item.Type == InspectionTreeItem.ItemType.Item && item.Data is ResearchProjectDef project)
+            {
+                Find.WindowStack.Add(new Dialog_InfoCard(project));
+                return true;
+            }
+
+            SoundDefOf.ClickReject.PlayOneShotOnCamera();
+            TolkHelper.Speak("No info card available for categories");
+            return true;
+        }
+
+        #endregion
     }
 }

@@ -22,6 +22,7 @@ namespace RimWorldAccess
         public ItemType Type { get; set; }
         public string Label { get; set; }
         public string Description { get; set; }
+        public string Tooltip { get; set; }
         public int IndentLevel { get; set; }
         public bool IsExpandable { get; set; }
         public bool IsExpanded { get; set; }

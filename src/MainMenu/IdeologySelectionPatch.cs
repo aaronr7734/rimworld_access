@@ -175,61 +175,7 @@ namespace RimWorldAccess
 
         private static bool HandlePresetsInput(KeyCode key, bool shift, bool ctrl, bool alt)
         {
-            if (key == KeyCode.UpArrow)
-            {
-                IdeologyNavigationState.NavigateTreeUp();
-                return true;
-            }
-            if (key == KeyCode.DownArrow)
-            {
-                IdeologyNavigationState.NavigateTreeDown();
-                return true;
-            }
-            if (key == KeyCode.RightArrow)
-            {
-                IdeologyNavigationState.ExpandOrDrillDown();
-                return true;
-            }
-            if (key == KeyCode.LeftArrow)
-            {
-                IdeologyNavigationState.CollapseOrDrillUp();
-                return true;
-            }
-            if (key == KeyCode.Home)
-            {
-                IdeologyNavigationState.HandleTreeHome(ctrl);
-                return true;
-            }
-            if (key == KeyCode.End)
-            {
-                IdeologyNavigationState.HandleTreeEnd(ctrl);
-                return true;
-            }
-
-            // Enter — behavior depends on node type
-            if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
-            {
-                int level = IdeologyNavigationState.CurrentTreeNodeLevel;
-
-                if (level == 1)
-                {
-                    // Preset node — let Enter pass through to game DoNext
-                    return false;
-                }
-                else if (level == 0)
-                {
-                    // Category node — toggle expand/collapse
-                    IdeologyNavigationState.ToggleExpand();
-                    return true;
-                }
-                else
-                {
-                    // Meme node — re-announce
-                    IdeologyNavigationState.AnnounceCurrentTreeItem();
-                    return true;
-                }
-            }
-
+            // Escape — clear search or let game handle
             if (key == KeyCode.Escape)
             {
                 if (IdeologyNavigationState.HasPresetsSearch)
@@ -237,33 +183,11 @@ namespace RimWorldAccess
                     IdeologyNavigationState.ClearPresetsSearch();
                     return true;
                 }
-                // Let game handle Escape (go back)
                 return false;
             }
 
-            if (key == KeyCode.Backspace)
-            {
-                return IdeologyNavigationState.HandlePresetBackspace();
-            }
-
-            // * — expand all siblings
-            if (Event.current.character == '*')
-            {
-                IdeologyNavigationState.ExpandAllSiblings();
-                return true;
-            }
-
-            // Typeahead
-            if (!alt && !ctrl)
-            {
-                char c = Event.current.character;
-                if (c != '\0' && char.IsLetterOrDigit(c))
-                {
-                    return IdeologyNavigationState.HandlePresetTypeahead(c);
-                }
-            }
-
-            return false;
+            // Delegate all other input to TreeNavigationHelper via state
+            return IdeologyNavigationState.HandlePresetsInput(Event.current);
         }
 
         private static void SyncPageSelection(Page_ChooseIdeoPreset instance)

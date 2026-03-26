@@ -10,77 +10,52 @@ namespace RimWorldAccess
 {
     /// <summary>
     /// Manages the windowless colony-wide inventory menu (activated with 'I' key)
-    /// Displays all stored items organized by category with hierarchical navigation
+    /// Displays all stored items organized by category with hierarchical navigation.
+    /// Uses TreeNavigationHelper for all standard navigation logic.
     /// </summary>
     public static class WindowlessInventoryState
     {
-        private static bool isActive = false;
-        private static List<TreeNode> rootNodes = new List<TreeNode>();
-        private static List<TreeNode> flattenedVisibleNodes = new List<TreeNode>();
-        private static int selectedIndex = 0;
-        private static Dictionary<TreeNode, TreeNode> lastChildPerParent = new Dictionary<TreeNode, TreeNode>();
-        private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
-
-        public static bool IsActive => isActive;
-        public static TypeaheadSearchHelper Typeahead => typeahead;
+        /// <summary>
+        /// Node type enum preserved from the original TreeNode implementation.
+        /// Stored in InspectionTreeItem.Data via InventoryNodeData.
+        /// </summary>
+        public enum NodeType
+        {
+            Category,       // A ThingCategoryDef
+            DefGroup,       // All items of the same ThingDef (2+ variants) or same meal tier
+            MaterialGroup,  // All items of the same ThingDef + Stuff (within a DefGroup)
+            ItemGroup,      // An aggregated item type (single variant: def+stuff+quality)
+            Stack           // An individual physical stack at a specific location
+        }
 
         /// <summary>
-        /// Represents a node in the inventory tree (category, item group, or stack)
+        /// Domain-specific data stored in InspectionTreeItem.Data for inventory nodes.
         /// </summary>
-        public class TreeNode
+        public class InventoryNodeData
         {
-            public enum NodeType
-            {
-                Category,       // A ThingCategoryDef
-                DefGroup,       // All items of the same ThingDef (2+ variants) or same meal tier
-                MaterialGroup,  // All items of the same ThingDef + Stuff (within a DefGroup)
-                ItemGroup,      // An aggregated item type (single variant: def+stuff+quality)
-                Stack           // An individual physical stack at a specific location
-            }
-
             public NodeType Type { get; set; }
-            public string Label { get; set; }
-            public int Depth { get; set; }
-            public bool IsExpanded { get; set; }
-            public bool CanExpand { get; set; }
-
-            // For Category nodes
             public InventoryHelper.CategoryNode CategoryData { get; set; }
-
-            // For ItemGroup and Stack nodes
             public InventoryHelper.InventoryItem ItemData { get; set; }
-
-            // For Stack nodes
             public InventoryHelper.InventoryStack StackData { get; set; }
-
-            // For DefGroup and MaterialGroup nodes
             public ThingDef DefGroupDef { get; set; }
             public ThingDef DefGroupStuff { get; set; }
             public List<InventoryHelper.InventoryItem> DefGroupItems { get; set; }
+        }
 
-            // Tree structure
-            public TreeNode Parent { get; set; }
-            public List<TreeNode> Children { get; set; }
+        private static TreeNavigationHelper treeNav = new TreeNavigationHelper("Inventory");
+        private static bool isActive = false;
 
-            public TreeNode()
-            {
-                Children = new List<TreeNode>();
-                IsExpanded = false;
-                CanExpand = false;
-            }
+        public static bool IsActive => isActive;
+        public static TypeaheadSearchHelper Typeahead => treeNav.Typeahead;
 
-            public string GetDisplayString()
-            {
-                string indent = new string(' ', Depth * 2);
-                string expandIndicator = "";
-
-                if (CanExpand)
-                {
-                    expandIndicator = IsExpanded ? "▼ " : "► ";
-                }
-
-                return $"{indent}{expandIndicator}{Label}";
-            }
+        static WindowlessInventoryState()
+        {
+            treeNav.FormatItemAnnouncement = FormatItemAnnouncement;
+            treeNav.FormatSearchAnnouncement = FormatSearchAnnouncement;
+            treeNav.OnActivate = HandleActivate;
+            treeNav.OnDelete = HandleDeleteNode;
+            treeNav.OnInfo = HandleInfoNode;
+            treeNav.TrackLastChild = true;
         }
 
         /// <summary>
@@ -95,10 +70,6 @@ namespace RimWorldAccess
             }
 
             isActive = true;
-            selectedIndex = 0;
-            lastChildPerParent.Clear();
-            MenuHelper.ResetLevel("Inventory");
-            typeahead.ClearSearch();
 
             // Collect all items
             List<Thing> allStoredItems = InventoryHelper.GetAllStoredItems();
@@ -107,8 +78,14 @@ namespace RimWorldAccess
             if (allStoredItems.Count == 0 && pawnCarriedThings.Count == 0)
             {
                 TolkHelper.Speak("Inventory menu opened. No items in colony storage or carried by pawns.");
-                rootNodes = new List<TreeNode>();
-                flattenedVisibleNodes = new List<TreeNode>();
+                var emptyRoot = new InspectionTreeItem
+                {
+                    Label = "Root",
+                    IndentLevel = -1,
+                    IsExpanded = true,
+                    IsExpandable = false
+                };
+                treeNav.Initialize(emptyRoot);
                 SoundDefOf.TabOpen.PlayOneShotOnCamera();
                 return;
             }
@@ -119,68 +96,160 @@ namespace RimWorldAccess
             // Build category tree
             List<InventoryHelper.CategoryNode> categoryTree = InventoryHelper.BuildCategoryTree(allItems);
 
-            // Convert to TreeNode structure
-            rootNodes = BuildTreeNodes(categoryTree);
-
-            // Flatten to get initially visible nodes
-            RebuildFlattenedList();
+            // Build InspectionTreeItem tree
+            var root = BuildTree(categoryTree);
+            treeNav.Initialize(root);
 
             // Count distinct items (DefGroups and single-variant ItemGroups, not every variant)
-            int distinctItemCount = CountDistinctItems(rootNodes);
+            int distinctItemCount = CountDistinctItems(root);
 
             // Announcement
-            string announcement = $"Colony inventory opened. {distinctItemCount} item types. {rootNodes.Count} categories.";
+            string announcement = $"Colony inventory opened. {distinctItemCount} item types. {root.Children.Count} categories.";
             TolkHelper.Speak(announcement);
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
 
             // Announce first selection
-            if (flattenedVisibleNodes.Count > 0)
+            if (treeNav.Count > 0)
             {
-                AnnounceCurrentSelection();
+                treeNav.ReannounceCurrentItem();
             }
         }
 
         /// <summary>
-        /// Converts InventoryHelper.CategoryNode tree to TreeNode tree.
+        /// Closes the inventory menu
+        /// </summary>
+        public static void Close()
+        {
+            isActive = false;
+            treeNav.Reset();
+
+            TolkHelper.Speak("Inventory menu closed.");
+            SoundDefOf.TabClose.PlayOneShotOnCamera();
+        }
+
+        /// <summary>
+        /// Gets whether typeahead search is active.
+        /// </summary>
+        public static bool HasActiveSearch => treeNav.HasActiveSearch;
+
+        /// <summary>
+        /// Handles keyboard input for the inventory menu.
+        /// Returns true if the input was handled.
+        /// </summary>
+        public static bool HandleInput(Event ev)
+        {
+            if (!isActive) return false;
+
+            if (ev.type != EventType.KeyDown) return false;
+
+            KeyCode key = ev.keyCode;
+
+            // Right bracket - open context menu for current stack or item group
+            if (key == KeyCode.RightBracket)
+            {
+                ev.Use();
+                OpenContextMenu();
+                return true;
+            }
+
+            // Alt+J - Jump to item/pawn based on context (use KeyboardHelper.IsAltHeld for AZERTY)
+            if (KeyboardHelper.IsAltHeld && key == KeyCode.J)
+            {
+                ev.Use();
+                HandleJumpKey();
+                return true;
+            }
+
+            // * key — expand all categories recursively (inventory-specific: expands
+            // every Category node in the entire tree, NOT just siblings at current level)
+            bool isStar = key == KeyCode.KeypadMultiply || (ev.shift && key == KeyCode.Alpha8);
+            if (isStar)
+            {
+                ExpandAllCategories();
+                ev.Use();
+                return true;
+            }
+
+            // Delegate to TreeNavigationHelper for standard tree navigation
+            bool handled = treeNav.HandleInput(ev);
+            if (handled)
+            {
+                ev.Use();
+                return true;
+            }
+
+            // TreeNavigationHelper returns false for Escape with no active search
+            if (key == KeyCode.Escape)
+            {
+                ev.Use();
+                Close();
+                return true;
+            }
+
+            // Block all other keys to prevent pass-through
+            return false;
+        }
+
+        #region Tree Building
+
+        /// <summary>
+        /// Builds the root InspectionTreeItem from the category tree.
+        /// </summary>
+        private static InspectionTreeItem BuildTree(List<InventoryHelper.CategoryNode> categoryTree)
+        {
+            var root = new InspectionTreeItem
+            {
+                Label = "Root",
+                IndentLevel = -1,
+                IsExpanded = true,
+                IsExpandable = false
+            };
+
+            BuildCategoryChildren(categoryTree, root, 0);
+            return root;
+        }
+
+        /// <summary>
+        /// Converts InventoryHelper.CategoryNode tree to InspectionTreeItem tree.
         /// Creates hierarchy with DefGroup/MaterialGroup for multi-variant items,
         /// and flat ItemGroup for single-variant items.
         /// </summary>
-        private static List<TreeNode> BuildTreeNodes(List<InventoryHelper.CategoryNode> categoryNodes, TreeNode parent = null, int depth = 0)
+        private static void BuildCategoryChildren(List<InventoryHelper.CategoryNode> categoryNodes, InspectionTreeItem parent, int depth)
         {
-            List<TreeNode> nodes = new List<TreeNode>();
-
             foreach (InventoryHelper.CategoryNode categoryNode in categoryNodes)
             {
-                TreeNode catNode = new TreeNode
+                var catItem = new InspectionTreeItem
                 {
-                    Type = TreeNode.NodeType.Category,
+                    Type = InspectionTreeItem.ItemType.Category,
                     Label = categoryNode.GetDisplayLabel(),
-                    Depth = depth,
-                    CategoryData = categoryNode,
+                    IndentLevel = depth,
                     Parent = parent,
-                    CanExpand = (categoryNode.SubCategories.Count > 0 || categoryNode.Items.Count > 0)
+                    IsExpandable = (categoryNode.SubCategories.Count > 0 || categoryNode.Items.Count > 0),
+                    Data = new InventoryNodeData
+                    {
+                        Type = NodeType.Category,
+                        CategoryData = categoryNode
+                    }
                 };
 
                 // Build children (subcategories)
                 if (categoryNode.SubCategories.Count > 0)
                 {
-                    catNode.Children.AddRange(BuildTreeNodes(categoryNode.SubCategories, catNode, depth + 1));
+                    BuildCategoryChildren(categoryNode.SubCategories, catItem, depth + 1);
                 }
 
                 // Build item children with DefGroup/MaterialGroup/ItemGroup hierarchy
-                BuildItemChildren(categoryNode.Items, catNode, depth);
+                BuildItemChildren(categoryNode.Items, catItem, depth);
 
-                nodes.Add(catNode);
+                parent.Children.Add(catItem);
             }
-
-            return nodes;
         }
 
         /// <summary>
         /// Builds item children for a category node, creating DefGroups for multi-variant
         /// items and flat ItemGroups for single-variant items.
         /// </summary>
-        private static void BuildItemChildren(List<InventoryHelper.InventoryItem> items, TreeNode catNode, int depth)
+        private static void BuildItemChildren(List<InventoryHelper.InventoryItem> items, InspectionTreeItem catItem, int depth)
         {
             if (items.Count == 0) return;
 
@@ -205,7 +274,7 @@ namespace RimWorldAccess
                 .ToList();
 
             // Step 3: Build all child nodes into a single list for sorting
-            var childNodes = new List<(TreeNode node, int totalQty)>();
+            var childNodes = new List<(InspectionTreeItem node, int totalQty)>();
 
             // Build meal DefGroup nodes
             foreach (var mealGroup in mealGroups)
@@ -213,25 +282,30 @@ namespace RimWorldAccess
                 var mealItems = mealGroup.OrderByDescending(i => i.TotalQuantity).ToList();
                 int totalQty = mealItems.Sum(i => i.TotalQuantity);
 
-                TreeNode defGroupNode = new TreeNode
+                var defGroupItem = new InspectionTreeItem
                 {
-                    Type = TreeNode.NodeType.DefGroup,
+                    Type = InspectionTreeItem.ItemType.Category,
                     Label = BuildMealGroupLabel(mealItems),
-                    Depth = depth + 1,
-                    Parent = catNode,
-                    CanExpand = true,
-                    DefGroupDef = mealItems.OrderBy(i => i.Def.label.Length).First().Def,
-                    DefGroupItems = mealItems
+                    IndentLevel = depth + 1,
+                    Parent = catItem,
+                    IsExpandable = true,
+                    Data = new InventoryNodeData
+                    {
+                        Type = NodeType.DefGroup,
+                        DefGroupDef = mealItems.OrderBy(i => i.Def.label.Length).First().Def,
+                        DefGroupItems = mealItems
+                    },
+                    LinkedDef = mealItems.OrderBy(i => i.Def.label.Length).First().Def
                 };
 
                 // Meal DefGroup children are ItemGroups (each is a different ThingDef)
                 foreach (var item in mealItems)
                 {
-                    TreeNode itemGroupNode = BuildItemGroupNode(item, defGroupNode, depth + 2);
-                    defGroupNode.Children.Add(itemGroupNode);
+                    var itemGroupItem = BuildItemGroupNode(item, defGroupItem, depth + 2);
+                    defGroupItem.Children.Add(itemGroupItem);
                 }
 
-                childNodes.Add((defGroupNode, totalQty));
+                childNodes.Add((defGroupItem, totalQty));
             }
 
             // Build material/quality DefGroups and single-variant ItemGroups
@@ -242,8 +316,8 @@ namespace RimWorldAccess
                 if (groupItems.Count == 1)
                 {
                     // Single variant: regular ItemGroup
-                    TreeNode itemGroupNode = BuildItemGroupNode(groupItems[0], catNode, depth + 1);
-                    childNodes.Add((itemGroupNode, groupItems[0].TotalQuantity));
+                    var itemGroupItem = BuildItemGroupNode(groupItems[0], catItem, depth + 1);
+                    childNodes.Add((itemGroupItem, groupItems[0].TotalQuantity));
                 }
                 else
                 {
@@ -252,15 +326,20 @@ namespace RimWorldAccess
                     int totalQty = groupItems.Sum(i => i.TotalQuantity);
                     bool hasStuffVariations = groupItems.Any(i => i.Stuff != null);
 
-                    TreeNode defGroupNode = new TreeNode
+                    var defGroupItem = new InspectionTreeItem
                     {
-                        Type = TreeNode.NodeType.DefGroup,
+                        Type = InspectionTreeItem.ItemType.Category,
                         Label = BuildDefGroupLabel(def, groupItems),
-                        Depth = depth + 1,
-                        Parent = catNode,
-                        CanExpand = true,
-                        DefGroupDef = def,
-                        DefGroupItems = groupItems
+                        IndentLevel = depth + 1,
+                        Parent = catItem,
+                        IsExpandable = true,
+                        Data = new InventoryNodeData
+                        {
+                            Type = NodeType.DefGroup,
+                            DefGroupDef = def,
+                            DefGroupItems = groupItems
+                        },
+                        LinkedDef = def
                     };
 
                     if (hasStuffVariations)
@@ -276,15 +355,20 @@ namespace RimWorldAccess
                         {
                             int materialTotal = matGroup.Items.Sum(i => i.TotalQuantity);
 
-                            TreeNode matGroupNode = new TreeNode
+                            var matGroupItem = new InspectionTreeItem
                             {
-                                Type = TreeNode.NodeType.MaterialGroup,
+                                Type = InspectionTreeItem.ItemType.SubCategory,
                                 Label = BuildMaterialGroupLabel(def, matGroup.Stuff, materialTotal, matGroup.Items),
-                                Depth = depth + 2,
-                                Parent = defGroupNode,
-                                CanExpand = true,
-                                DefGroupDef = def,
-                                DefGroupStuff = matGroup.Stuff
+                                IndentLevel = depth + 2,
+                                Parent = defGroupItem,
+                                IsExpandable = true,
+                                Data = new InventoryNodeData
+                                {
+                                    Type = NodeType.MaterialGroup,
+                                    DefGroupDef = def,
+                                    DefGroupStuff = matGroup.Stuff
+                                },
+                                LinkedDef = def
                             };
 
                             // Collect all stacks, sort by quality desc then quantity desc
@@ -297,20 +381,11 @@ namespace RimWorldAccess
 
                             foreach (var pair in sortedStacks)
                             {
-                                TreeNode stackNode = new TreeNode
-                                {
-                                    Type = TreeNode.NodeType.Stack,
-                                    Label = BuildStackLabel(pair.Item, pair.Stack),
-                                    Depth = depth + 3,
-                                    StackData = pair.Stack,
-                                    ItemData = pair.Item,
-                                    Parent = matGroupNode,
-                                    CanExpand = false
-                                };
-                                matGroupNode.Children.Add(stackNode);
+                                var stackItem = BuildStackNode(pair.Item, pair.Stack, matGroupItem, depth + 3);
+                                matGroupItem.Children.Add(stackItem);
                             }
 
-                            defGroupNode.Children.Add(matGroupNode);
+                            defGroupItem.Children.Add(matGroupItem);
                         }
                     }
                     else
@@ -325,84 +400,77 @@ namespace RimWorldAccess
 
                         foreach (var pair in sortedStacks)
                         {
-                            TreeNode stackNode = new TreeNode
-                            {
-                                Type = TreeNode.NodeType.Stack,
-                                Label = BuildStackLabel(pair.Item, pair.Stack),
-                                Depth = depth + 2,
-                                StackData = pair.Stack,
-                                ItemData = pair.Item,
-                                Parent = defGroupNode,
-                                CanExpand = false
-                            };
-                            defGroupNode.Children.Add(stackNode);
+                            var stackItem = BuildStackNode(pair.Item, pair.Stack, defGroupItem, depth + 2);
+                            defGroupItem.Children.Add(stackItem);
                         }
                     }
 
-                    childNodes.Add((defGroupNode, totalQty));
+                    childNodes.Add((defGroupItem, totalQty));
                 }
             }
 
             // Sort all children by total quantity descending and add to category
             foreach (var (node, _) in childNodes.OrderByDescending(c => c.totalQty))
             {
-                catNode.Children.Add(node);
+                catItem.Children.Add(node);
             }
-        }
-
-        /// <summary>
-        /// Counts distinct items across all categories (DefGroups + single-variant ItemGroups).
-        /// </summary>
-        private static int CountDistinctItems(List<TreeNode> nodes)
-        {
-            int count = 0;
-            foreach (TreeNode node in nodes)
-            {
-                if (node.Type == TreeNode.NodeType.DefGroup || node.Type == TreeNode.NodeType.ItemGroup)
-                {
-                    count++;
-                }
-                else if (node.Type == TreeNode.NodeType.Category && node.Children.Count > 0)
-                {
-                    count += CountDistinctItems(node.Children);
-                }
-            }
-            return count;
         }
 
         /// <summary>
         /// Builds a standard ItemGroup node with Stack children.
         /// Used for single-variant items and for meal variants within a meal DefGroup.
         /// </summary>
-        private static TreeNode BuildItemGroupNode(InventoryHelper.InventoryItem item, TreeNode parent, int depth)
+        private static InspectionTreeItem BuildItemGroupNode(InventoryHelper.InventoryItem item, InspectionTreeItem parent, int depth)
         {
-            TreeNode itemGroupNode = new TreeNode
+            var itemGroupItem = new InspectionTreeItem
             {
-                Type = TreeNode.NodeType.ItemGroup,
+                Type = InspectionTreeItem.ItemType.Item,
                 Label = item.GetDisplayLabel(),
-                Depth = depth,
-                ItemData = item,
+                IndentLevel = depth,
                 Parent = parent,
-                CanExpand = true
+                IsExpandable = true,
+                Data = new InventoryNodeData
+                {
+                    Type = NodeType.ItemGroup,
+                    ItemData = item
+                },
+                LinkedDef = item.Def
             };
 
             foreach (InventoryHelper.InventoryStack stack in item.Stacks)
             {
-                TreeNode stackNode = new TreeNode
-                {
-                    Type = TreeNode.NodeType.Stack,
-                    Label = BuildStackLabel(item, stack),
-                    Depth = depth + 1,
-                    StackData = stack,
-                    ItemData = item,
-                    Parent = itemGroupNode,
-                    CanExpand = false
-                };
-                itemGroupNode.Children.Add(stackNode);
+                var stackItem = BuildStackNode(item, stack, itemGroupItem, depth + 1);
+                itemGroupItem.Children.Add(stackItem);
             }
 
-            return itemGroupNode;
+            return itemGroupItem;
         }
+
+        /// <summary>
+        /// Builds a Stack leaf node.
+        /// </summary>
+        private static InspectionTreeItem BuildStackNode(InventoryHelper.InventoryItem item, InventoryHelper.InventoryStack stack, InspectionTreeItem parent, int depth)
+        {
+            return new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.Item,
+                Label = BuildStackLabel(item, stack),
+                IndentLevel = depth,
+                Parent = parent,
+                IsExpandable = false,
+                Data = new InventoryNodeData
+                {
+                    Type = NodeType.Stack,
+                    StackData = stack,
+                    ItemData = item
+                },
+                LinkedDef = item.Def
+            };
+        }
+
+        #endregion
+
+        #region Label Building
 
         /// <summary>
         /// Checks if a FoodPreferability value represents a meal tier.
@@ -552,355 +620,254 @@ namespace RimWorldAccess
             return $"{name} x{stack.Quantity}, {stack.LocationLabel}{suffix}";
         }
 
-        /// <summary>
-        /// Rebuilds the flattened list of visible nodes based on expansion states
-        /// </summary>
-        private static void RebuildFlattenedList()
-        {
-            flattenedVisibleNodes.Clear();
-            AddVisibleNodes(rootNodes);
+        #endregion
 
-            // Clamp selection index
-            if (selectedIndex >= flattenedVisibleNodes.Count)
+        #region Announcements
+
+        /// <summary>
+        /// Custom announcement formatter for navigation.
+        /// Format: "Label expanded. 1 of 5. level 2"
+        /// </summary>
+        private static string FormatItemAnnouncement(InspectionTreeItem item)
+        {
+            // Get state info (only for expandable nodes)
+            string stateInfo = "";
+            if (item.IsExpandable)
             {
-                selectedIndex = Math.Max(0, flattenedVisibleNodes.Count - 1);
+                stateInfo = item.IsExpanded ? " expanded" : " collapsed";
+            }
+
+            // Get sibling position
+            var (position, total) = treeNav.GetSiblingPosition(item);
+            string positionPart = MenuHelper.FormatPosition(position - 1, total);
+            string positionSection = string.IsNullOrEmpty(positionPart) ? "." : $". {positionPart}.";
+
+            // Level suffix
+            string levelSuffix = MenuHelper.GetLevelSuffix("Inventory", item.IndentLevel);
+
+            return $"{item.Label}{stateInfo}{positionSection}{levelSuffix}".Trim();
+        }
+
+        /// <summary>
+        /// Custom announcement formatter for typeahead search.
+        /// </summary>
+        private static string FormatSearchAnnouncement(InspectionTreeItem item, TypeaheadSearchHelper typeahead)
+        {
+            // Get state info (only for expandable nodes)
+            string stateInfo = "";
+            if (item.IsExpandable)
+            {
+                stateInfo = item.IsExpanded ? " expanded" : " collapsed";
+            }
+
+            // Get sibling position
+            var (position, total) = treeNav.GetSiblingPosition(item);
+            string positionInfo = $"{position} of {total}";
+
+            // Build announcement with search context
+            string announcement;
+            if (string.IsNullOrEmpty(stateInfo))
+            {
+                announcement = $"{item.Label}";
+            }
+            else
+            {
+                announcement = $"{item.Label}{stateInfo}";
+            }
+
+            if (typeahead.HasActiveSearch)
+            {
+                announcement += $", {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
+            }
+            else
+            {
+                announcement += $". {positionInfo}";
+            }
+
+            return announcement.Trim();
+        }
+
+        #endregion
+
+        #region Recursive Category Expand
+
+        /// <summary>
+        /// Expands all category nodes in the entire tree recursively.
+        /// Does NOT expand ItemGroup, DefGroup, MaterialGroup, or Stack nodes.
+        /// This is inventory-specific: the standard TreeNavigationHelper * only expands siblings.
+        /// </summary>
+        private static void ExpandAllCategories()
+        {
+            if (treeNav.RootItem == null || treeNav.RootItem.Children.Count == 0)
+            {
+                TolkHelper.Speak("No categories to expand.");
+                return;
+            }
+
+            int expandedCount = ExpandCategoriesRecursively(treeNav.RootItem.Children);
+
+            if (expandedCount > 0)
+            {
+                treeNav.RebuildVisibleList();
+                SoundDefOf.Click.PlayOneShotOnCamera();
+                if (expandedCount == 1)
+                    TolkHelper.Speak("Expanded 1 category");
+                else
+                    TolkHelper.Speak($"Expanded {expandedCount} categories");
+            }
+            else
+            {
+                TolkHelper.Speak("All categories already expanded");
             }
         }
 
         /// <summary>
-        /// Recursively adds visible nodes to the flattened list
+        /// Recursively expands all category nodes but not ItemGroup/DefGroup/Stack nodes.
+        /// Only recurses into Category children since other node types can't contain categories.
         /// </summary>
-        private static void AddVisibleNodes(List<TreeNode> nodes)
+        private static int ExpandCategoriesRecursively(IEnumerable<InspectionTreeItem> nodes)
         {
-            foreach (TreeNode node in nodes)
-            {
-                flattenedVisibleNodes.Add(node);
+            int expandedCount = 0;
 
-                if (node.IsExpanded && node.Children.Count > 0)
+            foreach (var node in nodes)
+            {
+                var data = node.Data as InventoryNodeData;
+                if (data != null && data.Type == NodeType.Category && node.IsExpandable && !node.IsExpanded)
                 {
-                    AddVisibleNodes(node.Children);
+                    node.IsExpanded = true;
+                    expandedCount++;
+                }
+
+                // Only recurse into Category children
+                if (data != null && data.Type == NodeType.Category && node.Children.Count > 0)
+                {
+                    expandedCount += ExpandCategoriesRecursively(node.Children);
                 }
             }
+
+            return expandedCount;
         }
 
-        /// <summary>
-        /// Closes the inventory menu
-        /// </summary>
-        public static void Close()
-        {
-            isActive = false;
-            rootNodes.Clear();
-            flattenedVisibleNodes.Clear();
-            selectedIndex = 0;
-            lastChildPerParent.Clear();
-            MenuHelper.ResetLevel("Inventory");
-            typeahead.ClearSearch();
+        #endregion
 
-            TolkHelper.Speak("Inventory menu closed.");
-            SoundDefOf.TabClose.PlayOneShotOnCamera();
-        }
+        #region Activation and Domain Actions
 
         /// <summary>
-        /// Handles keyboard input for the inventory menu
-        /// Returns true if the input was handled
+        /// OnActivate callback for TreeNavigationHelper.
+        /// Returns true if handled (stack context menu), false to fall back to default toggle.
         /// </summary>
-        public static bool HandleInput(Event ev)
+        private static bool HandleActivate(InspectionTreeItem item)
         {
-            if (!isActive) return false;
+            var data = item.Data as InventoryNodeData;
+            if (data == null) return false;
 
-            KeyCode key = ev.keyCode;
-
-            // Home - jump to first (Ctrl+Home for absolute first)
-            if (key == KeyCode.Home)
+            if (data.Type == NodeType.Stack)
             {
-                ev.Use();
-                if (ev.control)
-                    JumpToAbsoluteFirst();
-                else
-                    JumpToFirst();
-                return true;
-            }
-
-            // End - jump to last (Ctrl+End for absolute last)
-            if (key == KeyCode.End)
-            {
-                ev.Use();
-                if (ev.control)
-                    JumpToAbsoluteLast();
-                else
-                    JumpToLast();
-                return true;
-            }
-
-            // Handle Escape - clear search FIRST, then close
-            if (key == KeyCode.Escape)
-            {
-                if (typeahead.HasActiveSearch)
-                {
-                    typeahead.ClearSearchAndAnnounce();
-                    ev.Use();
-                    return true;
-                }
-                ev.Use();
-                Close();
-                return true;
-            }
-
-            // Handle Backspace for search
-            if (key == KeyCode.Backspace && typeahead.HasActiveSearch)
-            {
-                var labels = GetItemLabels();
-                if (typeahead.ProcessBackspace(labels, out int newIndex))
-                {
-                    if (newIndex >= 0)
-                        selectedIndex = newIndex;
-                    AnnounceWithSearch();
-                }
-                ev.Use();
-                return true;
-            }
-
-            // Up arrow - navigate with search awareness
-            if (key == KeyCode.UpArrow)
-            {
-                ev.Use();
-                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
-                {
-                    int prevIndex = typeahead.GetPreviousMatch(selectedIndex);
-                    if (prevIndex >= 0)
-                    {
-                        selectedIndex = prevIndex;
-                        AnnounceWithSearch();
-                    }
-                }
-                else
-                {
-                    SelectPrevious();
-                }
-                return true;
-            }
-
-            // Down arrow - navigate with search awareness
-            if (key == KeyCode.DownArrow)
-            {
-                ev.Use();
-                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
-                {
-                    int nextIndex = typeahead.GetNextMatch(selectedIndex);
-                    if (nextIndex >= 0)
-                    {
-                        selectedIndex = nextIndex;
-                        AnnounceWithSearch();
-                    }
-                }
-                else
-                {
-                    SelectNext();
-                }
-                return true;
-            }
-
-            // Right arrow - expand current node
-            if (key == KeyCode.RightArrow)
-            {
-                ev.Use();
-                ExpandCurrent();
-                return true;
-            }
-
-            // Left arrow - collapse current node
-            if (key == KeyCode.LeftArrow)
-            {
-                ev.Use();
-                CollapseCurrent();
-                return true;
-            }
-
-            // Handle * key - expand all categories (not ItemGroups or Stacks)
-            bool isStar = key == KeyCode.KeypadMultiply || (ev.shift && key == KeyCode.Alpha8);
-            if (isStar)
-            {
-                ExpandAllCategories();
-                ev.Use();
-                return true;
-            }
-
-            // Right bracket - open context menu for current stack or item group
-            if (key == KeyCode.RightBracket)
-            {
-                ev.Use();
+                // Stack nodes: open context menu on Enter
                 OpenContextMenu();
                 return true;
             }
 
-            // Delete key - drop carried item (works on Stack nodes)
-            if (key == KeyCode.Delete)
+            // For expandable nodes (Category, DefGroup, MaterialGroup, ItemGroup),
+            // return false to let TreeNavigationHelper handle expand/collapse toggle
+            return false;
+        }
+
+        /// <summary>
+        /// OnDelete callback for TreeNavigationHelper.
+        /// </summary>
+        private static bool HandleDeleteNode(InspectionTreeItem item)
+        {
+            var data = item.Data as InventoryNodeData;
+            if (data == null)
             {
-                ev.Use();
-                HandleDeleteKey();
+                TolkHelper.Speak("Select a carried item to drop.");
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return true;
             }
 
-            // Alt+J - Jump to item/pawn based on context
-            if (ev.alt && key == KeyCode.J)
+            if (data.Type == NodeType.Stack && data.StackData != null)
             {
-                ev.Use();
-                HandleJumpKey();
-                return true;
-            }
-
-            // Enter - activate current node
-            if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
-            {
-                ev.Use();
-                ActivateCurrent();
-                return true;
-            }
-
-            // Alt+I - open info card for current item
-            if (ev.alt && key == KeyCode.I)
-            {
-                ev.Use();
-                var item = GetCurrentOrParentItem();
-                if (item != null && item.Def != null)
+                if (data.StackData.IsCarried)
                 {
-                    InfoCardState.OpenInfoCardForDef(item.Def);
+                    DropStack(data.StackData);
                 }
                 else
                 {
-                    TolkHelper.Speak("No info card available");
+                    TolkHelper.Speak("This item is in storage, not carried by a pawn.");
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 }
                 return true;
             }
 
-            // Handle typeahead characters
-            bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
-            bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
-
-            if ((isLetter || isNumber) && !ev.alt)
+            if (data.Type == NodeType.ItemGroup && data.ItemData != null)
             {
-                char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                var labels = GetItemLabels();
-                if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
+                if (data.ItemData.HasCarriedStacks)
                 {
-                    if (newIndex >= 0)
-                    {
-                        selectedIndex = newIndex;
-                        AnnounceWithSearch();
-                    }
+                    TolkHelper.Speak("Expand this item to select a specific stack to drop.");
                 }
                 else
                 {
-                    TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+                    TolkHelper.Speak("This item is in storage, not carried by a pawn.");
                 }
-                ev.Use();
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return true;
             }
 
+            if (data.Type == NodeType.DefGroup || data.Type == NodeType.MaterialGroup)
+            {
+                TolkHelper.Speak("Expand this group and select a specific stack to drop.");
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                return true;
+            }
+
+            TolkHelper.Speak("Select a carried item to drop.");
+            SoundDefOf.ClickReject.PlayOneShotOnCamera();
+            return true;
+        }
+
+        /// <summary>
+        /// OnInfo callback for TreeNavigationHelper.
+        /// </summary>
+        private static bool HandleInfoNode(InspectionTreeItem item)
+        {
+            var invItem = GetInventoryItemFromNode(item);
+            if (invItem != null && invItem.Def != null)
+            {
+                InfoCardState.OpenInfoCardForDef(invItem.Def);
+                return true;
+            }
+
+            // Let TreeNavigationHelper try LinkedDef fallback
             return false;
         }
 
         /// <summary>
-        /// Gets whether typeahead search is active.
+        /// Gets the InventoryItem for an InspectionTreeItem (ItemGroup, Stack, or their parent).
+        /// Returns null if the item is not related to an inventory item.
         /// </summary>
-        public static bool HasActiveSearch => typeahead.HasActiveSearch;
-
-        /// <summary>
-        /// Helper method that clears typeahead search, plays tick sound, and announces the current selection.
-        /// Used as callback for MenuHelper tree navigation methods.
-        /// </summary>
-        private static void ClearAndAnnounce()
+        private static InventoryHelper.InventoryItem GetInventoryItemFromNode(InspectionTreeItem item)
         {
-            typeahead.ClearSearch();
-            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentSelection();
-        }
+            var data = item.Data as InventoryNodeData;
+            if (data == null) return null;
 
-        /// <summary>
-        /// Jumps to the first sibling at the same indent level (Home key).
-        /// </summary>
-        private static void JumpToFirst()
-        {
-            if (flattenedVisibleNodes == null || flattenedVisibleNodes.Count == 0) return;
-            MenuHelper.HandleTreeHomeKey(flattenedVisibleNodes, ref selectedIndex, item => item.Depth, false, ClearAndAnnounce);
-        }
-
-        /// <summary>
-        /// Jumps to the last item in the current scope (End key).
-        /// </summary>
-        private static void JumpToLast()
-        {
-            if (flattenedVisibleNodes == null || flattenedVisibleNodes.Count == 0) return;
-            MenuHelper.HandleTreeEndKey(flattenedVisibleNodes, ref selectedIndex, item => item.Depth,
-                item => item.IsExpanded, item => item.Children != null && item.Children.Count > 0, false, ClearAndAnnounce);
-        }
-
-        /// <summary>
-        /// Jumps to the absolute first item in the entire tree (Ctrl+Home).
-        /// </summary>
-        private static void JumpToAbsoluteFirst()
-        {
-            if (flattenedVisibleNodes == null || flattenedVisibleNodes.Count == 0) return;
-            MenuHelper.HandleTreeHomeKey(flattenedVisibleNodes, ref selectedIndex, item => item.Depth, true, ClearAndAnnounce);
-        }
-
-        /// <summary>
-        /// Jumps to the absolute last item in the entire tree (Ctrl+End).
-        /// </summary>
-        private static void JumpToAbsoluteLast()
-        {
-            if (flattenedVisibleNodes == null || flattenedVisibleNodes.Count == 0) return;
-            MenuHelper.HandleTreeEndKey(flattenedVisibleNodes, ref selectedIndex, item => item.Depth,
-                item => item.IsExpanded, item => item.Children != null && item.Children.Count > 0, true, ClearAndAnnounce);
-        }
-
-        /// <summary>
-        /// Gets the list of labels for all visible items.
-        /// </summary>
-        private static List<string> GetItemLabels()
-        {
-            var labels = new List<string>();
-            foreach (var node in flattenedVisibleNodes)
-            {
-                labels.Add(node.Label ?? "");
-            }
-            return labels;
-        }
-
-        /// <summary>
-        /// Gets the InventoryItem for the current selection (ItemGroup, Stack, or their parent).
-        /// Returns null if the selection is not related to an inventory item.
-        /// </summary>
-        private static InventoryHelper.InventoryItem GetCurrentOrParentItem()
-        {
-            if (flattenedVisibleNodes.Count == 0 || selectedIndex >= flattenedVisibleNodes.Count)
-                return null;
-
-            TreeNode current = flattenedVisibleNodes[selectedIndex];
-
-            if (current.Type == TreeNode.NodeType.ItemGroup && current.ItemData != null)
-                return current.ItemData;
-
-            if (current.Type == TreeNode.NodeType.Stack && current.ItemData != null)
-                return current.ItemData;
+            if ((data.Type == NodeType.ItemGroup || data.Type == NodeType.Stack) && data.ItemData != null)
+                return data.ItemData;
 
             return null;
         }
 
         /// <summary>
-        /// Gets the InventoryStack for the current selection if it's a Stack node.
+        /// Gets the InventoryStack for an InspectionTreeItem if it's a Stack node.
         /// Returns null otherwise.
         /// </summary>
-        private static InventoryHelper.InventoryStack GetCurrentStack()
+        private static InventoryHelper.InventoryStack GetStackFromNode(InspectionTreeItem item)
         {
-            if (flattenedVisibleNodes.Count == 0 || selectedIndex >= flattenedVisibleNodes.Count)
-                return null;
+            var data = item.Data as InventoryNodeData;
+            if (data == null) return null;
 
-            TreeNode current = flattenedVisibleNodes[selectedIndex];
-
-            if (current.Type == TreeNode.NodeType.Stack && current.StackData != null)
-                return current.StackData;
+            if (data.Type == NodeType.Stack && data.StackData != null)
+                return data.StackData;
 
             return null;
         }
@@ -910,19 +877,31 @@ namespace RimWorldAccess
         /// </summary>
         private static void OpenContextMenu()
         {
-            if (flattenedVisibleNodes.Count == 0) return;
-
-            TreeNode current = flattenedVisibleNodes[selectedIndex];
-
-            if (current.Type == TreeNode.NodeType.Stack && current.StackData != null)
+            var item = treeNav.SelectedItem;
+            if (item == null)
             {
-                OpenStackContextMenu(current.StackData, current.ItemData);
+                TolkHelper.Speak("No context menu available");
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }
 
-            if (current.Type == TreeNode.NodeType.ItemGroup && current.ItemData != null)
+            var data = item.Data as InventoryNodeData;
+            if (data == null)
             {
-                OpenItemGroupContextMenu(current.ItemData);
+                TolkHelper.Speak("No context menu available");
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                return;
+            }
+
+            if (data.Type == NodeType.Stack && data.StackData != null)
+            {
+                OpenStackContextMenu(data.StackData, data.ItemData);
+                return;
+            }
+
+            if (data.Type == NodeType.ItemGroup && data.ItemData != null)
+            {
+                OpenItemGroupContextMenu(data.ItemData);
                 return;
             }
 
@@ -990,72 +969,32 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Handles the Delete key - drops carried items from specific stacks.
-        /// </summary>
-        private static void HandleDeleteKey()
-        {
-            var stack = GetCurrentStack();
-            if (stack != null)
-            {
-                if (stack.IsCarried)
-                {
-                    DropStack(stack);
-                }
-                else
-                {
-                    TolkHelper.Speak("This item is in storage, not carried by a pawn.");
-                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                }
-                return;
-            }
-
-            TreeNode current = flattenedVisibleNodes[selectedIndex];
-            if (current.Type == TreeNode.NodeType.ItemGroup && current.ItemData != null)
-            {
-                if (current.ItemData.HasCarriedStacks)
-                {
-                    TolkHelper.Speak("Expand this item to select a specific stack to drop.");
-                }
-                else
-                {
-                    TolkHelper.Speak("This item is in storage, not carried by a pawn.");
-                }
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                return;
-            }
-
-            if (current.Type == TreeNode.NodeType.DefGroup || current.Type == TreeNode.NodeType.MaterialGroup)
-            {
-                TolkHelper.Speak("Expand this group and select a specific stack to drop.");
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                return;
-            }
-
-            TolkHelper.Speak("Select a carried item to drop.");
-            SoundDefOf.ClickReject.PlayOneShotOnCamera();
-        }
-
-        /// <summary>
         /// Handles the Alt+J key - jumps to stack location or first stack of item group.
         /// </summary>
         private static void HandleJumpKey()
         {
-            typeahead.ClearSearch();
+            var item = treeNav.SelectedItem;
+            if (item == null)
+            {
+                TolkHelper.Speak("Select an item to jump to.");
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                return;
+            }
 
             // Stack-level: jump to that specific stack's location
-            var stack = GetCurrentStack();
+            var stack = GetStackFromNode(item);
             if (stack != null)
             {
                 JumpToStack(stack);
                 return;
             }
 
-            TreeNode current = flattenedVisibleNodes[selectedIndex];
+            var data = item.Data as InventoryNodeData;
 
             // ItemGroup-level: jump to first available stack location
-            if (current.Type == TreeNode.NodeType.ItemGroup && current.ItemData != null)
+            if (data != null && data.Type == NodeType.ItemGroup && data.ItemData != null)
             {
-                var firstStack = current.ItemData.Stacks.FirstOrDefault();
+                var firstStack = data.ItemData.Stacks.FirstOrDefault();
                 if (firstStack != null)
                 {
                     JumpToStack(firstStack);
@@ -1067,307 +1006,9 @@ namespace RimWorldAccess
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
         }
 
-        /// <summary>
-        /// Announces the current selection with search context if applicable.
-        /// </summary>
-        private static void AnnounceWithSearch()
-        {
-            if (flattenedVisibleNodes.Count == 0)
-            {
-                TolkHelper.Speak("Inventory is empty.");
-                return;
-            }
+        #endregion
 
-            TreeNode current = flattenedVisibleNodes[selectedIndex];
-
-            // Get state info (only for expandable nodes)
-            string stateInfo = "";
-            if (current.CanExpand)
-            {
-                stateInfo = current.IsExpanded ? "expanded" : "collapsed";
-            }
-
-            // Get sibling position
-            var (position, total) = GetSiblingPosition(current);
-            string positionInfo = $"{position} of {total}";
-
-            // Build announcement with search context
-            string announcement;
-            if (string.IsNullOrEmpty(stateInfo))
-            {
-                announcement = $"{current.Label}";
-            }
-            else
-            {
-                announcement = $"{current.Label} {stateInfo}";
-            }
-
-            if (typeahead.HasActiveSearch)
-            {
-                announcement += $", {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
-            }
-            else
-            {
-                announcement += $". {positionInfo}";
-            }
-
-            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            TolkHelper.Speak(announcement.Trim());
-        }
-
-        /// <summary>
-        /// Selects the previous item in the list
-        /// </summary>
-        private static void SelectPrevious()
-        {
-            if (flattenedVisibleNodes.Count == 0) return;
-
-            selectedIndex = MenuHelper.SelectPrevious(selectedIndex, flattenedVisibleNodes.Count);
-
-            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentSelection();
-        }
-
-        /// <summary>
-        /// Selects the next item in the list
-        /// </summary>
-        private static void SelectNext()
-        {
-            if (flattenedVisibleNodes.Count == 0) return;
-
-            selectedIndex = MenuHelper.SelectNext(selectedIndex, flattenedVisibleNodes.Count);
-
-            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentSelection();
-        }
-
-        /// <summary>
-        /// Expands the currently selected node (WCAG-compliant)
-        /// - If collapsed and expandable: expand, focus stays on current item
-        /// - If already expanded with children: move to first child
-        /// - If end node (not expandable): reject feedback
-        /// </summary>
-        private static void ExpandCurrent()
-        {
-            if (flattenedVisibleNodes.Count == 0) return;
-
-            // Clear search when expanding to avoid "no more search results" confusion
-            typeahead.ClearSearch();
-
-            TreeNode current = flattenedVisibleNodes[selectedIndex];
-
-            if (!current.CanExpand)
-            {
-                // End node - provide reject feedback
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("Cannot expand this item.", SpeechPriority.High);
-                return;
-            }
-
-            if (!current.IsExpanded)
-            {
-                // Collapsed node - expand it, focus stays on current item
-                current.IsExpanded = true;
-                RebuildFlattenedList();
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                AnnounceCurrentSelection();
-            }
-            else
-            {
-                // Already expanded - move to first child
-                MoveToFirstChild();
-            }
-        }
-
-        /// <summary>
-        /// Moves focus to the first child of the current expanded item
-        /// </summary>
-        private static void MoveToFirstChild()
-        {
-            TreeNode current = flattenedVisibleNodes[selectedIndex];
-
-            if (current.Children.Count > 0)
-            {
-                int firstChildIndex = flattenedVisibleNodes.IndexOf(current) + 1;
-                if (firstChildIndex < flattenedVisibleNodes.Count)
-                {
-                    selectedIndex = firstChildIndex;
-                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                    AnnounceCurrentSelection();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Expands all category nodes in the entire tree recursively.
-        /// Does NOT expand ItemGroup or Stack nodes.
-        /// </summary>
-        public static void ExpandAllCategories()
-        {
-            if (rootNodes.Count == 0)
-            {
-                TolkHelper.Speak("No categories to expand.");
-                return;
-            }
-
-            int expandedCount = ExpandCategoriesRecursively(rootNodes);
-
-            if (expandedCount > 0)
-            {
-                RebuildFlattenedList();
-                typeahead.ClearSearch();
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                if (expandedCount == 1)
-                    TolkHelper.Speak("Expanded 1 category");
-                else
-                    TolkHelper.Speak($"Expanded {expandedCount} categories");
-            }
-            else
-            {
-                TolkHelper.Speak("All categories already expanded");
-            }
-        }
-
-        /// <summary>
-        /// Recursively expands all category nodes but not ItemGroup or Stack nodes.
-        /// Only recurses into Category children since ItemGroups can't contain categories.
-        /// </summary>
-        private static int ExpandCategoriesRecursively(List<TreeNode> nodes)
-        {
-            int expandedCount = 0;
-
-            foreach (TreeNode node in nodes)
-            {
-                if (node.Type == TreeNode.NodeType.Category && node.CanExpand && !node.IsExpanded)
-                {
-                    node.IsExpanded = true;
-                    expandedCount++;
-                }
-
-                // Only recurse into Category children
-                if (node.Type == TreeNode.NodeType.Category && node.Children.Count > 0)
-                {
-                    expandedCount += ExpandCategoriesRecursively(node.Children);
-                }
-            }
-
-            return expandedCount;
-        }
-
-        /// <summary>
-        /// Collapses the currently selected node (WCAG-compliant)
-        /// - If expanded: collapse, focus stays on current item
-        /// - If collapsed or end node: move to parent WITHOUT collapsing it
-        /// </summary>
-        private static void CollapseCurrent()
-        {
-            if (flattenedVisibleNodes.Count == 0) return;
-
-            // Clear search when collapsing to avoid "no more search results" confusion
-            typeahead.ClearSearch();
-
-            TreeNode current = flattenedVisibleNodes[selectedIndex];
-
-            if (current.CanExpand && current.IsExpanded)
-            {
-                // Currently expanded - collapse it, focus stays on current item
-                current.IsExpanded = false;
-                RebuildFlattenedList();
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                AnnounceCurrentSelection();
-            }
-            else if (current.Parent != null)
-            {
-                // Collapsed or end node - move to parent WITHOUT collapsing it
-                lastChildPerParent[current.Parent] = current;
-
-                selectedIndex = flattenedVisibleNodes.IndexOf(current.Parent);
-                if (selectedIndex < 0) selectedIndex = 0;
-
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                AnnounceCurrentSelection();
-            }
-            else
-            {
-                // Already at top level with no parent
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("Already at top level.", SpeechPriority.High);
-            }
-        }
-
-        /// <summary>
-        /// Activates the currently selected node
-        /// </summary>
-        private static void ActivateCurrent()
-        {
-            if (flattenedVisibleNodes.Count == 0) return;
-
-            TreeNode current = flattenedVisibleNodes[selectedIndex];
-
-            // If it's a category or item group, toggle expansion
-            if (current.CanExpand)
-            {
-                if (current.IsExpanded)
-                {
-                    CollapseCurrent();
-                }
-                else
-                {
-                    ExpandCurrent();
-                }
-            }
-            else if (current.Type == TreeNode.NodeType.Stack)
-            {
-                // Stack nodes: open context menu on Enter
-                OpenContextMenu();
-            }
-            else
-            {
-                TolkHelper.Speak("This item has no actions.");
-            }
-        }
-
-        /// <summary>
-        /// Gets the sibling position (1-based) and total siblings for a node
-        /// </summary>
-        private static (int position, int total) GetSiblingPosition(TreeNode item)
-        {
-            List<TreeNode> siblings = item.Parent != null ? item.Parent.Children : rootNodes;
-            int position = siblings.IndexOf(item) + 1;
-            return (position, siblings.Count);
-        }
-
-        /// <summary>
-        /// Announces the currently selected item via screen reader
-        /// </summary>
-        private static void AnnounceCurrentSelection()
-        {
-            if (flattenedVisibleNodes.Count == 0)
-            {
-                TolkHelper.Speak("Inventory is empty.");
-                return;
-            }
-
-            TreeNode current = flattenedVisibleNodes[selectedIndex];
-
-            // Get state info (only for expandable nodes)
-            string stateInfo = "";
-            if (current.CanExpand)
-            {
-                stateInfo = current.IsExpanded ? " expanded" : " collapsed";
-            }
-
-            // Get sibling position
-            var (position, total) = GetSiblingPosition(current);
-
-            // Build announcement
-            string levelSuffix = MenuHelper.GetLevelSuffix("Inventory", current.Depth);
-            string positionPart = MenuHelper.FormatPosition(position - 1, total);
-            string positionSection = string.IsNullOrEmpty(positionPart) ? "." : $". {positionPart}.";
-            string announcement = $"{current.Label}{stateInfo}{positionSection}{levelSuffix}";
-
-            TolkHelper.Speak(announcement.Trim());
-        }
+        #region Item Actions
 
         /// <summary>
         /// Jumps the camera and cursor to a specific stack's location
@@ -1481,144 +1122,6 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets a unique key for a node to track expansion state across refreshes.
-        /// </summary>
-        private static string GetNodeKey(TreeNode node)
-        {
-            if (node.Type == TreeNode.NodeType.Category && node.CategoryData != null)
-            {
-                if (node.CategoryData.CategoryDef == null)
-                    return "cat:uncategorized";
-                return "cat:" + node.CategoryData.CategoryDef.defName;
-            }
-
-            if (node.Type == TreeNode.NodeType.DefGroup && node.DefGroupDef != null)
-            {
-                // Distinguish meal tier DefGroups from material/quality DefGroups
-                if (HasMealTierPreferability(node.DefGroupDef) && node.DefGroupItems != null
-                    && node.DefGroupItems.Any(i => i.Def != node.DefGroupDef))
-                {
-                    return "defgroup:meal:" + node.DefGroupDef.ingestible.preferability.ToString();
-                }
-                return "defgroup:" + node.DefGroupDef.defName;
-            }
-
-            if (node.Type == TreeNode.NodeType.MaterialGroup && node.DefGroupDef != null)
-            {
-                string key = "matgroup:" + node.DefGroupDef.defName;
-                if (node.DefGroupStuff != null)
-                    key += ":" + node.DefGroupStuff.defName;
-                return key;
-            }
-
-            if (node.Type == TreeNode.NodeType.ItemGroup && node.ItemData != null)
-            {
-                string key = "itemgroup:" + node.ItemData.Def.defName;
-                if (node.ItemData.Stuff != null)
-                    key += ":" + node.ItemData.Stuff.defName;
-                if (node.ItemData.Quality.HasValue)
-                    key += ":" + node.ItemData.Quality.Value.ToString();
-                return key;
-            }
-
-            if (node.Type == TreeNode.NodeType.Stack && node.StackData != null)
-            {
-                return "stack:" + node.StackData.Thing.ThingID;
-            }
-
-            return node.Label;
-        }
-
-        /// <summary>
-        /// Saves the expansion state of all nodes in the tree.
-        /// </summary>
-        private static void SaveExpansionState(List<TreeNode> nodes, Dictionary<string, bool> state)
-        {
-            foreach (TreeNode node in nodes)
-            {
-                string key = GetNodeKey(node);
-                if (!string.IsNullOrEmpty(key))
-                {
-                    state[key] = node.IsExpanded;
-                }
-                if (node.Children.Count > 0)
-                {
-                    SaveExpansionState(node.Children, state);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Restores the expansion state of nodes from a previously saved state.
-        /// </summary>
-        private static void RestoreExpansionState(List<TreeNode> nodes, Dictionary<string, bool> state)
-        {
-            foreach (TreeNode node in nodes)
-            {
-                string key = GetNodeKey(node);
-                if (!string.IsNullOrEmpty(key) && state.TryGetValue(key, out bool wasExpanded))
-                {
-                    node.IsExpanded = wasExpanded;
-                }
-                if (node.Children.Count > 0)
-                {
-                    RestoreExpansionState(node.Children, state);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Tries to restore cursor position to the old label, or clamps to valid range.
-        /// </summary>
-        private static void RestoreCursorPosition(string oldLabel)
-        {
-            if (string.IsNullOrEmpty(oldLabel) || flattenedVisibleNodes.Count == 0)
-            {
-                selectedIndex = 0;
-                return;
-            }
-
-            for (int i = 0; i < flattenedVisibleNodes.Count; i++)
-            {
-                if (flattenedVisibleNodes[i].Label == oldLabel)
-                {
-                    selectedIndex = i;
-                    return;
-                }
-            }
-
-            if (selectedIndex >= flattenedVisibleNodes.Count)
-            {
-                selectedIndex = Math.Max(0, flattenedVisibleNodes.Count - 1);
-            }
-        }
-
-        /// <summary>
-        /// Refreshes the inventory menu without closing it.
-        /// Preserves expansion state and selection position.
-        /// </summary>
-        private static void RefreshInventory()
-        {
-            Dictionary<string, bool> expansionState = new Dictionary<string, bool>();
-            SaveExpansionState(rootNodes, expansionState);
-
-            string oldLabel = (selectedIndex < flattenedVisibleNodes.Count)
-                ? flattenedVisibleNodes[selectedIndex].Label : null;
-
-            // Recollect all items with unified aggregation
-            List<Thing> allStoredItems = InventoryHelper.GetAllStoredItems();
-            Dictionary<Thing, Pawn> pawnCarriedThings = InventoryHelper.GetAllPawnCarriedItems();
-            List<InventoryHelper.InventoryItem> allItems = InventoryHelper.AggregateAllItems(allStoredItems, pawnCarriedThings);
-            List<InventoryHelper.CategoryNode> categoryTree = InventoryHelper.BuildCategoryTree(allItems);
-            rootNodes = BuildTreeNodes(categoryTree);
-
-            RestoreExpansionState(rootNodes, expansionState);
-            RebuildFlattenedList();
-            typeahead.ClearSearch();
-            RestoreCursorPosition(oldLabel);
-        }
-
-        /// <summary>
         /// Views detailed information about an item
         /// </summary>
         private static void ViewItemDetails(InventoryHelper.InventoryItem item)
@@ -1656,18 +1159,200 @@ namespace RimWorldAccess
             SoundDefOf.Click.PlayOneShotOnCamera();
         }
 
+        #endregion
+
+        #region Refresh and State Preservation
+
+        /// <summary>
+        /// Counts distinct items across all categories (DefGroups + single-variant ItemGroups).
+        /// </summary>
+        private static int CountDistinctItems(InspectionTreeItem node)
+        {
+            int count = 0;
+            var data = node.Data as InventoryNodeData;
+
+            if (data != null && (data.Type == NodeType.DefGroup || data.Type == NodeType.ItemGroup))
+            {
+                count++;
+            }
+            else if (data != null && data.Type == NodeType.Category && node.Children.Count > 0)
+            {
+                foreach (var child in node.Children)
+                {
+                    count += CountDistinctItems(child);
+                }
+            }
+            else if (data == null && node.Children.Count > 0)
+            {
+                // Root node
+                foreach (var child in node.Children)
+                {
+                    count += CountDistinctItems(child);
+                }
+            }
+
+            return count;
+        }
+
+        /// <summary>
+        /// Gets a unique key for a node to track expansion state across refreshes.
+        /// </summary>
+        private static string GetNodeKey(InspectionTreeItem node)
+        {
+            var data = node.Data as InventoryNodeData;
+            if (data == null) return node.Label;
+
+            if (data.Type == NodeType.Category && data.CategoryData != null)
+            {
+                if (data.CategoryData.CategoryDef == null)
+                    return "cat:uncategorized";
+                return "cat:" + data.CategoryData.CategoryDef.defName;
+            }
+
+            if (data.Type == NodeType.DefGroup && data.DefGroupDef != null)
+            {
+                // Distinguish meal tier DefGroups from material/quality DefGroups
+                if (HasMealTierPreferability(data.DefGroupDef) && data.DefGroupItems != null
+                    && data.DefGroupItems.Any(i => i.Def != data.DefGroupDef))
+                {
+                    return "defgroup:meal:" + data.DefGroupDef.ingestible.preferability.ToString();
+                }
+                return "defgroup:" + data.DefGroupDef.defName;
+            }
+
+            if (data.Type == NodeType.MaterialGroup && data.DefGroupDef != null)
+            {
+                string key = "matgroup:" + data.DefGroupDef.defName;
+                if (data.DefGroupStuff != null)
+                    key += ":" + data.DefGroupStuff.defName;
+                return key;
+            }
+
+            if (data.Type == NodeType.ItemGroup && data.ItemData != null)
+            {
+                string key = "itemgroup:" + data.ItemData.Def.defName;
+                if (data.ItemData.Stuff != null)
+                    key += ":" + data.ItemData.Stuff.defName;
+                if (data.ItemData.Quality.HasValue)
+                    key += ":" + data.ItemData.Quality.Value.ToString();
+                return key;
+            }
+
+            if (data.Type == NodeType.Stack && data.StackData != null)
+            {
+                return "stack:" + data.StackData.Thing.ThingID;
+            }
+
+            return node.Label;
+        }
+
+        /// <summary>
+        /// Saves the expansion state of all nodes in the tree.
+        /// </summary>
+        private static void SaveExpansionState(InspectionTreeItem node, Dictionary<string, bool> state)
+        {
+            if (node.IsExpandable)
+            {
+                string key = GetNodeKey(node);
+                if (!string.IsNullOrEmpty(key))
+                {
+                    state[key] = node.IsExpanded;
+                }
+            }
+            foreach (var child in node.Children)
+            {
+                SaveExpansionState(child, state);
+            }
+        }
+
+        /// <summary>
+        /// Restores the expansion state of nodes from a previously saved state.
+        /// </summary>
+        private static void RestoreExpansionState(InspectionTreeItem node, Dictionary<string, bool> state)
+        {
+            if (node.IsExpandable)
+            {
+                string key = GetNodeKey(node);
+                if (!string.IsNullOrEmpty(key) && state.TryGetValue(key, out bool wasExpanded))
+                {
+                    node.IsExpanded = wasExpanded;
+                }
+            }
+            foreach (var child in node.Children)
+            {
+                RestoreExpansionState(child, state);
+            }
+        }
+
+        /// <summary>
+        /// Refreshes the inventory menu without closing it.
+        /// Preserves expansion state and selection position.
+        /// </summary>
+        private static void RefreshInventory()
+        {
+            // Save expansion state
+            var expansionState = new Dictionary<string, bool>();
+            if (treeNav.RootItem != null)
+            {
+                SaveExpansionState(treeNav.RootItem, expansionState);
+            }
+
+            string oldLabel = treeNav.SelectedItem?.Label;
+            int oldIndex = treeNav.SelectedIndex;
+
+            // Recollect all items with unified aggregation
+            List<Thing> allStoredItems = InventoryHelper.GetAllStoredItems();
+            Dictionary<Thing, Pawn> pawnCarriedThings = InventoryHelper.GetAllPawnCarriedItems();
+            List<InventoryHelper.InventoryItem> allItems = InventoryHelper.AggregateAllItems(allStoredItems, pawnCarriedThings);
+            List<InventoryHelper.CategoryNode> categoryTree = InventoryHelper.BuildCategoryTree(allItems);
+            var root = BuildTree(categoryTree);
+
+            // Restore expansion state before initializing (so visible list reflects old state)
+            RestoreExpansionState(root, expansionState);
+
+            treeNav.Initialize(root);
+
+            // Try to restore cursor position by label
+            if (!string.IsNullOrEmpty(oldLabel))
+            {
+                for (int i = 0; i < treeNav.VisibleItems.Count; i++)
+                {
+                    if (treeNav.VisibleItems[i].Label == oldLabel)
+                    {
+                        treeNav.SetSelectedIndex(i);
+                        return;
+                    }
+                }
+            }
+
+            // Fall back to clamping old index
+            if (oldIndex < treeNav.Count)
+            {
+                treeNav.SetSelectedIndex(oldIndex);
+            }
+            else
+            {
+                treeNav.SetSelectedIndex(Math.Max(0, treeNav.Count - 1));
+            }
+        }
+
+        #endregion
+
+        #region Visual Highlight
+
         /// <summary>
         /// Draws visual highlights for the selected item (for sighted users)
         /// </summary>
         public static void DrawHighlight()
         {
-            if (!isActive || flattenedVisibleNodes.Count == 0) return;
+            if (!isActive || treeNav.Count == 0) return;
 
-            TreeNode current = flattenedVisibleNodes[selectedIndex];
+            var current = treeNav.SelectedItem;
+            if (current == null) return;
 
             // Calculate position for highlight
             float lineHeight = 24f;
-            float yOffset = selectedIndex * lineHeight;
+            float yOffset = treeNav.SelectedIndex * lineHeight;
             float xOffset = 20f;
             float width = 600f;
             float height = lineHeight;
@@ -1679,9 +1364,19 @@ namespace RimWorldAccess
             Widgets.DrawBoxSolid(highlightRect, highlightColor);
 
             // Draw label
+            string indent = new string(' ', current.IndentLevel * 2);
+            string expandIndicator = "";
+            if (current.IsExpandable)
+            {
+                expandIndicator = current.IsExpanded ? "▼ " : "► ";
+            }
+            string displayString = $"{indent}{expandIndicator}{current.Label}";
+
             Text.Anchor = TextAnchor.MiddleLeft;
-            Widgets.Label(highlightRect, current.GetDisplayString());
+            Widgets.Label(highlightRect, displayString);
             Text.Anchor = TextAnchor.UpperLeft;
         }
+
+        #endregion
     }
 }

@@ -202,213 +202,171 @@ if (MyMenuState.IsActive)
 
 ## TreeView (Hierarchical Menu)
 
-**Required Features:**
-- Up/Down navigation through visible (flattened) items
-- Left to collapse or go to parent
-- Right to expand or go to first child
-- Home/End for sibling navigation
-- Ctrl+Home/Ctrl+End for absolute first/last
-- Typeahead search with match navigation
-- Level change announcements
-- Expand/collapse state announcements
+**Use `TreeNavigationHelper`** for all treeview implementations. Do NOT implement treeview navigation manually.
 
-**Data Structure:**
+TreeNavigationHelper handles all standard WCAG tree keyboard patterns:
+- Up/Down navigation (search-aware when typeahead active)
+- Left to collapse or go to parent, Right to expand or go to first child
+- Home/End for sibling navigation, Ctrl+Home/Ctrl+End for absolute first/last
+- Enter to toggle expand/collapse (or custom activate via delegate)
+- Space to re-announce current item
+- `*` to expand all siblings at current level
+- Typeahead search with progressive backspace
+- Level change announcements, position announcements, sound effects
+
+**Node Type:** Always use `InspectionTreeItem` (from `Inspection/InspectionTreeItem.cs`).
+
+### Basic Usage
+
 ```csharp
-private class TreeItem
+public static class MyFeatureState
 {
-    public string Label { get; set; }
-    public int IndentLevel { get; set; }
-    public bool IsExpandable { get; set; }
-    public bool IsExpanded { get; set; }
-    public List<TreeItem> Children { get; set; } = new List<TreeItem>();
-    public TreeItem Parent { get; set; }
-}
+    public static bool IsActive { get; private set; }
+    private static TreeNavigationHelper treeNav = new TreeNavigationHelper("MyFeature");
 
-private static List<TreeItem> hierarchy = new List<TreeItem>();      // Root items
-private static List<TreeItem> flattenedItems = new List<TreeItem>(); // Visible items
-private static int selectedIndex = 0;
-private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
-private const string LevelTrackingKey = "MyTreeView"; // Unique key for level tracking
-```
-
-**Flattening (rebuild when expand/collapse changes):**
-```csharp
-private static void FlattenItems()
-{
-    flattenedItems.Clear();
-    foreach (var item in hierarchy)
+    static MyFeatureState()
     {
-        flattenedItems.Add(item);
-        if (item.IsExpandable && item.IsExpanded)
+        // Optional: customize announcements
+        treeNav.FormatItemAnnouncement = item => $"{item.Label} custom format";
+        // Optional: custom Enter behavior
+        treeNav.OnActivate = item => { DoSomething(item); return true; };
+        // Optional: lazy loading
+        treeNav.OnBeforeExpand = item => {
+            if (item.Children.Count == 0 && item.OnActivate != null)
+                item.OnActivate();
+        };
+    }
+
+    public static void Open(MyData data)
+    {
+        var root = BuildTree(data); // Your tree-building logic returns InspectionTreeItem
+        treeNav.Initialize(root);
+        IsActive = true;
+        AnnounceOpening(); // Custom opening announcement
+    }
+
+    public static void Close()
+    {
+        treeNav.Reset();
+        IsActive = false;
+    }
+
+    // Delegate all keyboard input to TreeNavigationHelper
+    public static bool HandleInput(Event ev)
+    {
+        if (!IsActive) return false;
+
+        // Handle feature-specific keys BEFORE standard tree nav
+        if (ev.type == EventType.KeyDown && ev.keyCode == KeyCode.PageDown)
         {
-            foreach (var child in item.Children)
-                flattenedItems.Add(child);
+            JumpToNextSection(); // Domain-specific
+            return true;
         }
-    }
-}
-```
 
-**Navigation Methods:**
-```csharp
-public static void NavigateUp()
-{
-    typeahead.ClearSearch();
-    selectedIndex = MenuHelper.SelectPrevious(selectedIndex, flattenedItems.Count);
-    AnnounceCurrentItem();
-}
+        // Standard tree navigation
+        if (treeNav.HandleInput(ev))
+            return true;
 
-public static void NavigateDown()
-{
-    typeahead.ClearSearch();
-    selectedIndex = MenuHelper.SelectNext(selectedIndex, flattenedItems.Count);
-    AnnounceCurrentItem();
-}
-
-public static void ExpandOrDrillDown()
-{
-    typeahead.ClearSearch();
-    var item = flattenedItems[selectedIndex];
-    if (item.IsExpandable)
-    {
-        if (!item.IsExpanded)
+        // HandleInput returned false = Escape with no active search
+        if (ev.keyCode == KeyCode.Escape)
         {
-            item.IsExpanded = true;
-            FlattenItems();
-            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentItem();
+            Close();
+            TolkHelper.Speak("Feature closed");
+            return true;
         }
-        else if (item.Children.Count > 0)
+
+        return true; // Consume all other keys
+    }
+
+    private static InspectionTreeItem BuildTree(MyData data)
+    {
+        var root = new InspectionTreeItem
         {
-            // Move to first child
-            selectedIndex = flattenedItems.IndexOf(item.Children[0]);
-            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentItem();
-        }
-    }
-    else
-    {
-        SoundDefOf.ClickReject.PlayOneShotOnCamera();
-    }
-}
+            Label = "Root",
+            IndentLevel = -1,
+            IsExpanded = true
+        };
 
-public static void CollapseOrDrillUp()
-{
-    typeahead.ClearSearch();
-    var item = flattenedItems[selectedIndex];
-    if (item.IsExpandable && item.IsExpanded)
-    {
-        item.IsExpanded = false;
-        FlattenItems();
-        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-        AnnounceCurrentItem();
-    }
-    else if (item.Parent != null)
-    {
-        selectedIndex = flattenedItems.IndexOf(item.Parent);
-        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-        AnnounceCurrentItem();
-    }
-    else
-    {
-        SoundDefOf.ClickReject.PlayOneShotOnCamera();
-    }
-}
+        // Add children...
+        var category = new InspectionTreeItem
+        {
+            Type = InspectionTreeItem.ItemType.Category,
+            Label = "Category Name",
+            IndentLevel = 0,
+            IsExpandable = true,
+            Parent = root
+        };
+        root.Children.Add(category);
 
-// Home/End use MenuHelper's tree navigation
-public static void HandleHomeKey(bool ctrlPressed)
-{
-    MenuHelper.HandleTreeHomeKey(
-        flattenedItems, ref selectedIndex,
-        item => item.IndentLevel,
-        ctrlPressed,
-        () => { typeahead.ClearSearch(); AnnounceCurrentItem(); });
-}
-
-public static void HandleEndKey(bool ctrlPressed)
-{
-    MenuHelper.HandleTreeEndKey(
-        flattenedItems, ref selectedIndex,
-        item => item.IndentLevel,
-        item => item.IsExpanded,
-        item => item.IsExpandable && item.Children.Count > 0,
-        ctrlPressed,
-        () => { typeahead.ClearSearch(); AnnounceCurrentItem(); });
+        return root;
+    }
 }
 ```
 
-**TreeView Announcements:**
+### Customizing Announcements
+
+Override `FormatItemAnnouncement` to change how items are announced:
+
 ```csharp
-private static void AnnounceCurrentItem()
+treeNav.FormatItemAnnouncement = item =>
 {
-    var item = flattenedItems[selectedIndex];
-    var (position, total) = GetSiblingPosition(item);
-    string positionPart = MenuHelper.FormatPosition(position - 1, total);
-    string announcement;
-
-    if (item.IsExpandable)
-    {
-        string state = item.IsExpanded ? "expanded" : "collapsed";
-        string itemCount = item.Children.Count == 1 ? "1 item" : $"{item.Children.Count} items";
-        announcement = $"{item.Label}, {state}, {itemCount}";
-    }
-    else
-    {
-        announcement = item.Label;
-    }
-
-    if (!string.IsNullOrEmpty(positionPart))
-        announcement += $" ({positionPart})";
-
-    // Add level change suffix (only announces when level changes)
-    announcement += MenuHelper.GetLevelSuffix(LevelTrackingKey, item.IndentLevel);
-
-    TolkHelper.Speak(announcement);
-}
-
-private static (int position, int total) GetSiblingPosition(TreeItem item)
-{
-    var siblings = item.Parent?.Children ?? hierarchy;
-    int position = siblings.IndexOf(item) + 1;
-    return (position, siblings.Count);
-}
+    // Use the default format as a starting point
+    string baseAnnouncement = treeNav.DefaultFormatItemAnnouncement(item);
+    // Add custom suffix
+    return baseAnnouncement + (HasInfoCard(item) ? " Inspectable." : "");
+};
 ```
 
-**TreeView Keyboard Handling:**
+Override `FormatStateChangeAnnouncement` for a different format after expand/collapse:
+
 ```csharp
-if (keyCode == KeyCode.UpArrow)
+treeNav.FormatStateChangeAnnouncement = item =>
 {
-    if (HasActiveSearch) SelectPreviousMatch();
-    else NavigateUp();
-    Event.current.Use();
-}
-else if (keyCode == KeyCode.DownArrow)
-{
-    if (HasActiveSearch) SelectNextMatch();
-    else NavigateDown();
-    Event.current.Use();
-}
-else if (keyCode == KeyCode.RightArrow)
-{
-    ExpandOrDrillDown();
-    Event.current.Use();
-}
-else if (keyCode == KeyCode.LeftArrow)
-{
-    CollapseOrDrillUp();
-    Event.current.Use();
-}
-else if (keyCode == KeyCode.Home)
-{
-    HandleHomeKey(Event.current.control);
-    Event.current.Use();
-}
-else if (keyCode == KeyCode.End)
-{
-    HandleEndKey(Event.current.control);
-    Event.current.Use();
-}
-// ... Escape, Backspace, character input same as flat menu
+    // Short announcement: just name + state
+    return $"{item.Label}, {(item.IsExpanded ? "expanded" : "collapsed")}";
+};
 ```
+
+### Keyboard Routing (in Patch or UnifiedKeyboardPatch)
+
+```csharp
+if (MyFeatureState.IsActive)
+{
+    if (MyFeatureState.HandleInput(Event.current))
+    {
+        Event.current.Use();
+        return;
+    }
+}
+```
+
+### TreeNavigationHelper Configuration Reference
+
+| Property | Default | Purpose |
+|----------|---------|---------|
+| `FormatItemAnnouncement` | `null` (uses default) | Custom announcement for navigation |
+| `FormatStateChangeAnnouncement` | `null` (falls back to item announcement) | Custom announcement after expand/collapse |
+| `FormatSearchAnnouncement` | `null` (uses default) | Custom announcement during search |
+| `OnActivate` | `null` | Custom Enter key handler (return true = handled) |
+| `OnDelete` | `null` | Custom Delete key handler |
+| `OnInfo` | `null` | Custom Alt+I handler |
+| `OnBeforeExpand` | `null` | Called before expanding (for lazy loading) |
+| `AnnounceChildCounts` | `true` | Include "3 items" in expand/collapse announcements |
+| `SkipRootInVisibleList` | `true` | Hide root node from navigation |
+| `TrackLastChild` | `false` | Remember last visited child per parent |
+
+### Examples in Codebase
+
+| Pattern | Example | Notes |
+|---------|---------|-------|
+| Non-static wrapper | `FactionTreeNavigation.cs` | Thin wrapper, custom Alt+I |
+| Non-static with custom formats | `IdeologyTreeNavigation.cs` | Smart label truncation, ritual sounds |
+| Static class, custom node conversion | `ArchitectTreeState.cs` | MenuItem→InspectionTreeItem |
+| HandleInput with pre-intercept | `GeneInspectionState.cs` | Page Up/Down, Left arrow label restore |
+| Card stacking + float menu | `InfoCardState.cs` | Most complex: nested cards, lazy loading |
+| Multiple instances (tabbed) | `XenogermState.cs` | 2 TreeNavigationHelper instances for 2 tree tabs |
+| Dual-tab (flat + tree) | `IdeologyNavigationState.cs` | Options flat list + Presets treeview |
+| Checkbox tree with sliders | `ThingFilterNavigationState.cs` | Toggle/slider editing modes |
 
 ## MenuHelper Reference
 

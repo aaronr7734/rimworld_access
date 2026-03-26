@@ -13,7 +13,7 @@ namespace RimWorldAccess
     {
         private const int TabOptions = 0;
         private const int TabPresets = 1;
-        private const string TreeLevelKey = "IdeoPresets";
+        // TreeLevelKey "IdeoPresets" is now managed internally by presetsTreeNav
 
         private static bool initialized;
         private static int currentTab;
@@ -26,11 +26,9 @@ namespace RimWorldAccess
         private static int optionsIndex;
         private static TypeaheadSearchHelper optionsTypeahead = new TypeaheadSearchHelper();
 
-        // Presets tab (tree)
-        private static InspectionTreeItem rootItem;
-        private static List<InspectionTreeItem> visibleItems = new List<InspectionTreeItem>();
-        private static int selectedTreeIndex;
-        private static TypeaheadSearchHelper presetsTypeahead = new TypeaheadSearchHelper();
+        // Presets tab (tree) — uses TreeNavigationHelper for navigation
+        private static TreeNavigationHelper presetsTreeNav = new TreeNavigationHelper("IdeoPresets");
+        private static bool presetsTreeNavConfigured = false;
 
         public static int CurrentTab => currentTab;
 
@@ -39,6 +37,50 @@ namespace RimWorldAccess
             public string Label;
             public string Description;
             public int EnumValue; // 0=Classic, 1=CustomFluid, 2=CustomFixed, 3=Load
+        }
+
+        private static void EnsurePresetsTreeNavConfigured()
+        {
+            if (presetsTreeNavConfigured) return;
+            presetsTreeNavConfigured = true;
+
+            presetsTreeNav.FormatItemAnnouncement = FormatPresetsItemAnnouncement;
+            presetsTreeNav.FormatSearchAnnouncement = FormatPresetsSearchAnnouncement;
+        }
+
+        private static string FormatPresetsItemAnnouncement(InspectionTreeItem item)
+        {
+            var sb = new StringBuilder();
+            sb.Append(item.Label);
+
+            if (item.IsExpandable)
+            {
+                string state = item.IsExpanded ? "expanded" : "collapsed";
+                int childCount = item.Children.Count;
+                sb.Append($". {state}, {childCount} items");
+            }
+
+            var (pos, total) = presetsTreeNav.GetSiblingPosition(item);
+            sb.Append($". {pos} of {total}");
+
+            string levelSuffix = MenuHelper.GetLevelSuffix("IdeoPresets", item.IndentLevel, skipLevelOne: false);
+            if (!string.IsNullOrEmpty(levelSuffix))
+                sb.Append(levelSuffix);
+
+            return sb.ToString();
+        }
+
+        private static string FormatPresetsSearchAnnouncement(InspectionTreeItem item, TypeaheadSearchHelper typeahead)
+        {
+            string label = item.Label;
+            string searchInfo = $", {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
+            return $"{label}{searchInfo}";
+        }
+
+        private static string FormatPresetsStateChangeAnnouncement(InspectionTreeItem item)
+        {
+            string state = item.IsExpanded ? "Expanded" : "Collapsed";
+            return state + ". " + FormatPresetsItemAnnouncement(item);
         }
 
         #region Initialize / Reset
@@ -78,12 +120,10 @@ namespace RimWorldAccess
             // Build preset tree
             BuildPresetTree();
 
+            EnsurePresetsTreeNavConfigured();
             currentTab = TabOptions;
             optionsIndex = 0;
-            selectedTreeIndex = 0;
             optionsTypeahead.ClearSearch();
-            presetsTypeahead.ClearSearch();
-            MenuHelper.ResetLevel(TreeLevelKey);
             IsActive = true;
             hasShownPresetsHint = false;
             initialized = true;
@@ -95,18 +135,14 @@ namespace RimWorldAccess
             IsActive = false;
             currentTab = TabOptions;
             optionsIndex = 0;
-            selectedTreeIndex = 0;
             options.Clear();
-            rootItem = null;
-            visibleItems.Clear();
+            presetsTreeNav.Reset();
             optionsTypeahead.ClearSearch();
-            presetsTypeahead.ClearSearch();
-            MenuHelper.ResetLevel(TreeLevelKey);
         }
 
         private static void BuildPresetTree()
         {
-            rootItem = new InspectionTreeItem
+            var rootItem = new InspectionTreeItem
             {
                 Label = "Root",
                 IndentLevel = -1,
@@ -182,32 +218,7 @@ namespace RimWorldAccess
                 rootItem.Children.Add(categoryNode);
             }
 
-            RebuildVisibleItems();
-        }
-
-        private static void RebuildVisibleItems()
-        {
-            visibleItems.Clear();
-            if (rootItem == null)
-                return;
-
-            // Root is hidden — add only its visible descendants
-            foreach (var child in rootItem.Children)
-            {
-                AddVisibleRecursive(child);
-            }
-        }
-
-        private static void AddVisibleRecursive(InspectionTreeItem item)
-        {
-            visibleItems.Add(item);
-            if (item.IsExpanded && item.Children.Count > 0)
-            {
-                foreach (var child in item.Children)
-                {
-                    AddVisibleRecursive(child);
-                }
-            }
+            presetsTreeNav.Initialize(rootItem);
         }
 
         #endregion
@@ -217,14 +228,10 @@ namespace RimWorldAccess
         public static void SwitchTab()
         {
             optionsTypeahead.ClearSearch();
-            presetsTypeahead.ClearSearch();
 
             if (currentTab == TabOptions)
             {
                 currentTab = TabPresets;
-                if (visibleItems.Count > 0 && selectedTreeIndex >= visibleItems.Count)
-                    selectedTreeIndex = 0;
-                MenuHelper.ResetLevel(TreeLevelKey);
                 AnnounceTabSwitch();
             }
             else
@@ -244,7 +251,7 @@ namespace RimWorldAccess
             else
             {
                 string tabName = "Presets";
-                if (visibleItems.Count > 0)
+                if (presetsTreeNav.Count > 0)
                 {
                     string hint = "";
                     if (!hasShownPresetsHint)
@@ -407,229 +414,62 @@ namespace RimWorldAccess
 
         #region Presets Tab Tree Navigation
 
-        public static void NavigateTreeUp()
+        /// <summary>
+        /// Handles keyboard input for the presets tree tab.
+        /// Returns true if input was consumed; false if caller should handle (e.g., Escape, Enter pass-through).
+        /// </summary>
+        public static bool HandlePresetsInput(Event ev)
         {
-            if (visibleItems.Count == 0) return;
-
-            if (presetsTypeahead.HasActiveSearch && !presetsTypeahead.HasNoMatches)
-            {
-                int prev = presetsTypeahead.GetPreviousMatch(selectedTreeIndex);
-                if (prev >= 0)
-                {
-                    selectedTreeIndex = prev;
-                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                    AnnounceTreeWithSearch();
-                }
-                return;
-            }
-
-            int newIndex = MenuHelper.SelectPrevious(selectedTreeIndex, visibleItems.Count);
-            if (newIndex != selectedTreeIndex)
-            {
-                selectedTreeIndex = newIndex;
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            }
-            TolkHelper.Speak(BuildTreeItemAnnouncement());
-        }
-
-        public static void NavigateTreeDown()
-        {
-            if (visibleItems.Count == 0) return;
-
-            if (presetsTypeahead.HasActiveSearch && !presetsTypeahead.HasNoMatches)
-            {
-                int next = presetsTypeahead.GetNextMatch(selectedTreeIndex);
-                if (next >= 0)
-                {
-                    selectedTreeIndex = next;
-                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                    AnnounceTreeWithSearch();
-                }
-                return;
-            }
-
-            int newIndex = MenuHelper.SelectNext(selectedTreeIndex, visibleItems.Count);
-            if (newIndex != selectedTreeIndex)
-            {
-                selectedTreeIndex = newIndex;
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            }
-            TolkHelper.Speak(BuildTreeItemAnnouncement());
-        }
-
-        public static void ExpandOrDrillDown()
-        {
-            if (visibleItems.Count == 0 || selectedTreeIndex < 0 || selectedTreeIndex >= visibleItems.Count)
-                return;
-
-            var item = visibleItems[selectedTreeIndex];
-
-            if (item.IsExpandable && !item.IsExpanded)
-            {
-                // Expand
-                item.IsExpanded = true;
-                RebuildVisibleItems();
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                TolkHelper.Speak("Expanded. " + BuildTreeItemAnnouncement());
-            }
-            else if (item.IsExpanded && item.Children.Count > 0)
-            {
-                // Drill to first child
-                int childIndex = visibleItems.IndexOf(item.Children[0]);
-                if (childIndex >= 0)
-                {
-                    selectedTreeIndex = childIndex;
-                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                    TolkHelper.Speak(BuildTreeItemAnnouncement());
-                }
-            }
-        }
-
-        public static void CollapseOrDrillUp()
-        {
-            if (visibleItems.Count == 0 || selectedTreeIndex < 0 || selectedTreeIndex >= visibleItems.Count)
-                return;
-
-            var item = visibleItems[selectedTreeIndex];
-
-            if (item.IsExpandable && item.IsExpanded)
-            {
-                // Collapse
-                item.IsExpanded = false;
-                RebuildVisibleItems();
-                // Clamp index
-                if (selectedTreeIndex >= visibleItems.Count)
-                    selectedTreeIndex = visibleItems.Count - 1;
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                TolkHelper.Speak("Collapsed. " + BuildTreeItemAnnouncement());
-            }
-            else if (item.Parent != null && item.Parent != rootItem)
-            {
-                // Drill up to parent
-                int parentIndex = visibleItems.IndexOf(item.Parent);
-                if (parentIndex >= 0)
-                {
-                    selectedTreeIndex = parentIndex;
-                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                    TolkHelper.Speak(BuildTreeItemAnnouncement());
-                }
-            }
-        }
-
-        public static void ToggleExpand()
-        {
-            if (visibleItems.Count == 0 || selectedTreeIndex < 0 || selectedTreeIndex >= visibleItems.Count)
-                return;
-
-            var item = visibleItems[selectedTreeIndex];
-            if (!item.IsExpandable)
-                return;
-
-            item.IsExpanded = !item.IsExpanded;
-            RebuildVisibleItems();
-            if (selectedTreeIndex >= visibleItems.Count)
-                selectedTreeIndex = visibleItems.Count - 1;
-            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            string state = item.IsExpanded ? "Expanded" : "Collapsed";
-            TolkHelper.Speak(state + ". " + BuildTreeItemAnnouncement());
-        }
-
-        public static void ExpandAllSiblings()
-        {
-            if (visibleItems.Count == 0 || selectedTreeIndex < 0 || selectedTreeIndex >= visibleItems.Count)
-                return;
-
-            var current = visibleItems[selectedTreeIndex];
-            int currentLevel = current.IndentLevel;
-            int expanded = 0;
-
-            // Find parent's children at same level
-            var parent = current.Parent ?? rootItem;
-            foreach (var sibling in parent.Children)
-            {
-                if (sibling.IndentLevel == currentLevel && sibling.IsExpandable && !sibling.IsExpanded)
-                {
-                    sibling.IsExpanded = true;
-                    expanded++;
-                }
-            }
-
-            if (expanded > 0)
-            {
-                RebuildVisibleItems();
-                // Maintain selection on same item
-                int newIndex = visibleItems.IndexOf(current);
-                if (newIndex >= 0)
-                    selectedTreeIndex = newIndex;
-                TolkHelper.Speak($"Expanded {expanded} items");
-            }
-        }
-
-        public static void HandleTreeHome(bool ctrl)
-        {
-            if (visibleItems.Count == 0) return;
-            presetsTypeahead.ClearSearch();
-
-            MenuHelper.HandleTreeHomeKey(
-                visibleItems, ref selectedTreeIndex,
-                item => item.IndentLevel, ctrl,
-                () => TolkHelper.Speak(BuildTreeItemAnnouncement()));
-        }
-
-        public static void HandleTreeEnd(bool ctrl)
-        {
-            if (visibleItems.Count == 0) return;
-            presetsTypeahead.ClearSearch();
-
-            MenuHelper.HandleTreeEndKey(
-                visibleItems, ref selectedTreeIndex,
-                item => item.IndentLevel,
-                item => item.IsExpanded,
-                item => item.Children.Count > 0,
-                ctrl,
-                () => TolkHelper.Speak(BuildTreeItemAnnouncement()));
-        }
-
-        public static bool HandlePresetTypeahead(char c)
-        {
-            var labels = visibleItems.Select(v => v.Label).ToList();
-            if (presetsTypeahead.ProcessCharacterInput(c, labels, out int newIndex))
-            {
-                selectedTreeIndex = newIndex;
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                AnnounceTreeWithSearch();
-                return true;
-            }
-            else
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak($"No matches for '{presetsTypeahead.LastFailedSearch}'.");
-                return true;
-            }
-        }
-
-        public static bool HandlePresetBackspace()
-        {
-            if (!presetsTypeahead.HasActiveSearch)
+            if (ev.type != EventType.KeyDown)
                 return false;
 
-            var labels = visibleItems.Select(v => v.Label).ToList();
-            if (presetsTypeahead.ProcessBackspace(labels, out int newIndex))
+            KeyCode key = ev.keyCode;
+
+            // Enter — behavior depends on node type (handled before treeNav)
+            if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
             {
-                if (newIndex >= 0)
-                    selectedTreeIndex = newIndex;
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                AnnounceTreeWithSearch();
+                int level = CurrentTreeNodeLevel;
+                if (level == 0)
+                {
+                    // Category node — toggle expand/collapse
+                    var item = presetsTreeNav.SelectedItem;
+                    if (item != null && item.IsExpandable)
+                    {
+                        item.IsExpanded = !item.IsExpanded;
+                        presetsTreeNav.RebuildVisibleList();
+                        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                        TolkHelper.Speak(FormatPresetsStateChangeAnnouncement(item));
+                    }
+                    return true;
+                }
+                else if (level == 1)
+                {
+                    // Preset node — let Enter pass through to game DoNext
+                    return false;
+                }
+                else
+                {
+                    // Meme node — re-announce
+                    presetsTreeNav.ReannounceCurrentItem();
+                    return true;
+                }
             }
-            return true;
+
+            // Delegate standard tree navigation to TreeNavigationHelper
+            if (presetsTreeNav.HandleInput(ev))
+                return true;
+
+            // HandleInput returned false = Escape with no active search
+            // Let caller handle (go back to options tab or close)
+            return false;
         }
 
-        public static bool HasPresetsSearch => presetsTypeahead.HasActiveSearch;
+        public static bool HasPresetsSearch => presetsTreeNav.HasActiveSearch;
 
         public static void ClearPresetsSearch()
         {
-            presetsTypeahead.ClearSearchAndAnnounce();
-            TolkHelper.Speak(BuildTreeItemAnnouncement());
+            presetsTreeNav.Typeahead.ClearSearchAndAnnounce();
+            presetsTreeNav.ReannounceCurrentItem();
         }
 
         /// <summary>
@@ -640,55 +480,21 @@ namespace RimWorldAccess
         {
             get
             {
-                if (visibleItems.Count == 0 || selectedTreeIndex < 0 || selectedTreeIndex >= visibleItems.Count)
-                    return -1;
-                return visibleItems[selectedTreeIndex].IndentLevel;
+                var item = presetsTreeNav.SelectedItem;
+                return item?.IndentLevel ?? -1;
             }
         }
 
         public static void AnnounceCurrentTreeItem()
         {
-            TolkHelper.Speak(BuildTreeItemAnnouncement());
+            presetsTreeNav.ReannounceCurrentItem();
         }
 
         private static string BuildTreeItemAnnouncement()
         {
-            if (visibleItems.Count == 0 || selectedTreeIndex < 0 || selectedTreeIndex >= visibleItems.Count)
-                return "";
-
-            var item = visibleItems[selectedTreeIndex];
-            var sb = new StringBuilder();
-
-            sb.Append(item.Label);
-
-            // Expand state for expandable items
-            if (item.IsExpandable)
-            {
-                string state = item.IsExpanded ? "expanded" : "collapsed";
-                int childCount = item.Children.Count;
-                sb.Append($". {state}, {childCount} items");
-            }
-
-            // Position among siblings
-            var (pos, total) = MenuHelper.GetSiblingPosition(visibleItems, selectedTreeIndex, i => i.IndentLevel);
-            sb.Append($". {pos} of {total}");
-
-            // Level suffix
-            string levelSuffix = MenuHelper.GetLevelSuffix(TreeLevelKey, item.IndentLevel, skipLevelOne: false);
-            if (!string.IsNullOrEmpty(levelSuffix))
-                sb.Append(levelSuffix);
-
-            return sb.ToString();
-        }
-
-        private static void AnnounceTreeWithSearch()
-        {
-            if (visibleItems.Count == 0 || selectedTreeIndex < 0 || selectedTreeIndex >= visibleItems.Count)
-                return;
-
-            string label = visibleItems[selectedTreeIndex].Label;
-            string searchInfo = $", {presetsTypeahead.CurrentMatchPosition} of {presetsTypeahead.MatchCount} matches for '{presetsTypeahead.SearchBuffer}'";
-            TolkHelper.Speak($"{label}{searchInfo}");
+            var item = presetsTreeNav.SelectedItem;
+            if (item == null) return "";
+            return FormatPresetsItemAnnouncement(item);
         }
 
         #endregion
@@ -717,10 +523,9 @@ namespace RimWorldAccess
         /// </summary>
         public static IdeoPresetDef GetSelectedPresetDef()
         {
-            if (visibleItems.Count == 0 || selectedTreeIndex < 0 || selectedTreeIndex >= visibleItems.Count)
+            var item = presetsTreeNav.SelectedItem;
+            if (item == null)
                 return null;
-
-            var item = visibleItems[selectedTreeIndex];
 
             // Level 1: preset node
             if (item.IndentLevel == 1 && item.Data is IdeoPresetDef preset)

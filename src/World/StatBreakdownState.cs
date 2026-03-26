@@ -9,33 +9,24 @@ namespace RimWorldAccess
     /// State management for viewing stat breakdown tree views.
     /// Parses game explanation strings into navigable tree structures.
     /// Used when pressing Alt+I on caravan stats in summary view.
+    /// Uses TreeNavigationHelper for all standard treeview keyboard handling.
     /// </summary>
     public static class StatBreakdownState
     {
         private static bool isActive = false;
         private static string statName = "";
-        private static List<TreeItem> rootItems = new List<TreeItem>();
-        private static List<TreeItem> flattenedItems = new List<TreeItem>();
-        private static int selectedIndex = 0;
-
-        /// <summary>
-        /// Represents an item in the breakdown tree.
-        /// </summary>
-        private class TreeItem
-        {
-            public string Text { get; set; }
-            public string ResultValue { get; set; } // The calculated result for this section
-            public int IndentLevel { get; set; }
-            public bool IsExpandable { get; set; }
-            public bool IsExpanded { get; set; }
-            public List<TreeItem> Children { get; set; } = new List<TreeItem>();
-            public TreeItem Parent { get; set; }
-        }
+        private static TreeNavigationHelper treeNav = new TreeNavigationHelper("Breakdown");
 
         /// <summary>
         /// Gets whether the stat breakdown viewer is currently active.
         /// </summary>
         public static bool IsActive => isActive;
+
+        static StatBreakdownState()
+        {
+            treeNav.FormatItemAnnouncement = FormatItemAnnouncement;
+            treeNav.AnnounceChildCounts = false;
+        }
 
         /// <summary>
         /// Opens the stat breakdown viewer with the given explanation text.
@@ -52,25 +43,23 @@ namespace RimWorldAccess
 
             isActive = true;
             statName = name;
-            selectedIndex = 0;
 
-            ParseExplanation(explanation);
+            var root = ParseExplanation(explanation);
 
-            if (rootItems.Count == 0)
+            if (root.Children.Count == 0)
             {
                 TolkHelper.Speak($"No breakdown factors for {name}");
                 Close();
                 return;
             }
 
-            // Count top-level items for announcement
-            FlattenItems();
+            treeNav.Initialize(root);
 
             // Only say "treeview" if there are expandable nodes
-            bool hasExpandableNodes = rootItems.Exists(item => item.IsExpandable);
+            bool hasExpandableNodes = root.Children.Exists(item => item.IsExpandable);
             string suffix = hasExpandableNodes ? " treeview" : "";
-            TolkHelper.Speak($"{name} breakdown ({rootItems.Count} factors){suffix}.");
-            AnnounceCurrentItem();
+            TolkHelper.Speak($"{name} breakdown ({root.Children.Count} factors){suffix}.");
+            treeNav.ReannounceCurrentItem();
         }
 
         /// <summary>
@@ -80,30 +69,34 @@ namespace RimWorldAccess
         {
             isActive = false;
             statName = "";
-            rootItems.Clear();
-            flattenedItems.Clear();
-            selectedIndex = 0;
+            treeNav.Reset();
             TolkHelper.Speak("Breakdown closed");
         }
 
         /// <summary>
-        /// Parses the explanation string into tree items.
+        /// Parses the explanation string into a tree of InspectionTreeItems.
         /// Detects indentation to create hierarchy.
         /// Result lines (starting with "= ") are attached to their parent section.
         /// </summary>
-        private static void ParseExplanation(string explanation)
+        private static InspectionTreeItem ParseExplanation(string explanation)
         {
-            rootItems.Clear();
+            var root = new InspectionTreeItem
+            {
+                Label = "Root",
+                IndentLevel = -1,
+                IsExpanded = true,
+                IsExpandable = false
+            };
 
             if (string.IsNullOrEmpty(explanation))
-                return;
+                return root;
 
             string[] lines = explanation.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
 
-            // First pass: build the tree structure
-            TreeItem currentParent = null;
+            // First pass: build the tree structure using temporary data
+            InspectionTreeItem currentParent = null;
             int lastIndentLevel = 0;
-            List<TreeItem> allItems = new List<TreeItem>();
+            List<InspectionTreeItem> allItems = new List<InspectionTreeItem>();
 
             foreach (string rawLine in lines)
             {
@@ -137,20 +130,20 @@ namespace RimWorldAccess
                     string resultValue = line.Substring(2).Trim();
 
                     // Find the appropriate parent to attach this result to
-                    TreeItem targetParent = currentParent;
+                    InspectionTreeItem targetParent = currentParent;
                     while (targetParent != null && targetParent.IndentLevel >= indentLevel)
                     {
                         targetParent = targetParent.Parent;
                     }
 
-                    if (targetParent != null)
+                    if (targetParent != null && targetParent != root)
                     {
-                        targetParent.ResultValue = resultValue;
+                        targetParent.Tooltip = resultValue;
                     }
-                    else if (rootItems.Count > 0)
+                    else if (root.Children.Count > 0)
                     {
                         // Attach to the last top-level item
-                        rootItems[rootItems.Count - 1].ResultValue = resultValue;
+                        root.Children[root.Children.Count - 1].Tooltip = resultValue;
                     }
                     continue; // Don't add result lines as separate items
                 }
@@ -169,9 +162,9 @@ namespace RimWorldAccess
                     line = line.Substring(0, line.Length - 1);
                 }
 
-                var item = new TreeItem
+                var item = new InspectionTreeItem
                 {
-                    Text = line,
+                    Label = line,
                     IndentLevel = indentLevel,
                     IsExpandable = false,
                     IsExpanded = false // Default to collapsed
@@ -183,14 +176,16 @@ namespace RimWorldAccess
                 if (indentLevel == 0)
                 {
                     // Top-level item
-                    rootItems.Add(item);
+                    item.Parent = root;
+                    root.Children.Add(item);
                     currentParent = item;
                 }
                 else if (currentParent == null)
                 {
                     // First item starts at non-zero indent (e.g., "  - Abby: +35 kg")
                     // Treat as root item since there's no parent to attach to
-                    rootItems.Add(item);
+                    item.Parent = root;
+                    root.Children.Add(item);
                     currentParent = item;
                 }
                 else if (indentLevel > lastIndentLevel)
@@ -204,13 +199,13 @@ namespace RimWorldAccess
                 else if (indentLevel <= lastIndentLevel)
                 {
                     // Find appropriate parent
-                    TreeItem parent = currentParent;
-                    while (parent != null && parent.IndentLevel >= indentLevel)
+                    InspectionTreeItem parent = currentParent;
+                    while (parent != null && parent != root && parent.IndentLevel >= indentLevel)
                     {
                         parent = parent.Parent;
                     }
 
-                    if (parent != null)
+                    if (parent != null && parent != root)
                     {
                         item.Parent = parent;
                         parent.Children.Add(item);
@@ -219,7 +214,8 @@ namespace RimWorldAccess
                     else
                     {
                         // Top-level item
-                        rootItems.Add(item);
+                        item.Parent = root;
+                        root.Children.Add(item);
                     }
                     currentParent = item;
                 }
@@ -228,40 +224,37 @@ namespace RimWorldAccess
             }
 
             // Second pass: inline single children into their parents
-            // When a node has exactly one child, merge the child's text into the parent
-            InlineSingleChildren(rootItems);
+            InlineSingleChildren(root.Children);
 
             // Third pass: extract result values from children that look like results
             foreach (var item in allItems)
             {
-                if (item.IsExpandable && string.IsNullOrEmpty(item.ResultValue) && item.Children.Count > 0)
+                if (item.IsExpandable && string.IsNullOrEmpty(item.Tooltip) && item.Children.Count > 0)
                 {
                     // Look for the last child that contains a result-like pattern
                     for (int i = item.Children.Count - 1; i >= 0; i--)
                     {
                         var child = item.Children[i];
-                        string childText = child.Text;
+                        string childText = child.Label;
 
                         // Check for patterns like "= X.X tiles/day" in the text
                         var equalsMatch = Regex.Match(childText, @"=\s*([\d.]+\s*\S+.*?)$");
                         if (equalsMatch.Success)
                         {
-                            item.ResultValue = equalsMatch.Groups[1].Value.Trim();
+                            item.Tooltip = equalsMatch.Groups[1].Value.Trim();
                             break;
                         }
 
                         // Check for "Final" or "Total" or result-like lines with colon
-                        // e.g., "Caravan members speed: 25.2 tiles/day" or "Final speed: X"
                         if (childText.StartsWith("Final", StringComparison.OrdinalIgnoreCase) ||
                             childText.StartsWith("Total", StringComparison.OrdinalIgnoreCase) ||
                             childText.Contains(" speed:") ||
                             childText.Contains(" Speed:"))
                         {
-                            // Extract the value after the colon
                             var colonMatch = Regex.Match(childText, @":\s*(.+)$");
                             if (colonMatch.Success)
                             {
-                                item.ResultValue = colonMatch.Groups[1].Value.Trim();
+                                item.Tooltip = colonMatch.Groups[1].Value.Trim();
                                 break;
                             }
                         }
@@ -269,8 +262,7 @@ namespace RimWorldAccess
                 }
             }
 
-            // Flatten for navigation
-            FlattenItems();
+            return root;
         }
 
         /// <summary>
@@ -278,7 +270,7 @@ namespace RimWorldAccess
         /// When a node has exactly one child, the child's text is appended to the parent
         /// and any grandchildren become the parent's children.
         /// </summary>
-        private static void InlineSingleChildren(List<TreeItem> items)
+        private static void InlineSingleChildren(List<InspectionTreeItem> items)
         {
             foreach (var item in items)
             {
@@ -288,12 +280,12 @@ namespace RimWorldAccess
                     var singleChild = item.Children[0];
 
                     // Append the child's text to the parent
-                    item.Text += ", " + singleChild.Text;
+                    item.Label += ", " + singleChild.Label;
 
                     // Merge result value if the child has one and parent doesn't
-                    if (!string.IsNullOrEmpty(singleChild.ResultValue) && string.IsNullOrEmpty(item.ResultValue))
+                    if (!string.IsNullOrEmpty(singleChild.Tooltip) && string.IsNullOrEmpty(item.Tooltip))
                     {
-                        item.ResultValue = singleChild.ResultValue;
+                        item.Tooltip = singleChild.Tooltip;
                     }
 
                     // Promote grandchildren to become children
@@ -315,73 +307,20 @@ namespace RimWorldAccess
             }
         }
 
-        /// <summary>
-        /// Flattens the tree into a single list for navigation.
-        /// Respects expanded/collapsed state.
-        /// </summary>
-        private static void FlattenItems()
-        {
-            flattenedItems.Clear();
-            foreach (var item in rootItems)
-            {
-                FlattenItem(item);
-            }
-        }
-
-        private static void FlattenItem(TreeItem item)
-        {
-            flattenedItems.Add(item);
-            if (item.IsExpanded && item.Children.Count > 0)
-            {
-                foreach (var child in item.Children)
-                {
-                    FlattenItem(child);
-                }
-            }
-        }
+        #region Announcement Formatters
 
         /// <summary>
-        /// Gets the position of an item among its siblings.
+        /// Custom item announcement formatter.
         /// </summary>
-        private static (int position, int total) GetSiblingPosition(TreeItem item)
+        private static string FormatItemAnnouncement(InspectionTreeItem item)
         {
-            List<TreeItem> siblings;
-            if (item.Parent == null)
-            {
-                siblings = rootItems;
-            }
-            else
-            {
-                siblings = item.Parent.Children;
-            }
-            int position = siblings.IndexOf(item) + 1;
-            return (position, siblings.Count);
-        }
-
-        /// <summary>
-        /// Announces the currently selected item.
-        /// </summary>
-        private static void AnnounceCurrentItem()
-        {
-            if (flattenedItems.Count == 0)
-            {
-                TolkHelper.Speak("No items");
-                return;
-            }
-
-            if (selectedIndex < 0 || selectedIndex >= flattenedItems.Count)
-            {
-                selectedIndex = 0;
-            }
-
-            var item = flattenedItems[selectedIndex];
-
-            string announcement = item.Text;
+            string announcement = item.Label;
 
             // Add result value for expandable items (sections with a calculated result)
-            if (!string.IsNullOrEmpty(item.ResultValue))
+            // Tooltip is used to store ResultValue
+            if (!string.IsNullOrEmpty(item.Tooltip))
             {
-                announcement += $" ({item.ResultValue})";
+                announcement += $" ({item.Tooltip})";
             }
 
             // Add expand/collapse indicator for items with children
@@ -390,9 +329,9 @@ namespace RimWorldAccess
                 announcement += item.IsExpanded ? ", expanded" : ", collapsed";
             }
 
-            // Add sibling position (position among items at same level)
-            var (position, total) = GetSiblingPosition(item);
-            string positionStr = MenuHelper.FormatPosition(position - 1, total); // GetSiblingPosition returns 1-indexed
+            // Add sibling position
+            var (position, total) = treeNav.GetSiblingPosition(item);
+            string positionStr = MenuHelper.FormatPosition(position - 1, total);
             if (!string.IsNullOrEmpty(positionStr))
             {
                 announcement += $". {positionStr}";
@@ -405,19 +344,17 @@ namespace RimWorldAccess
                 announcement += levelSuffix;
             }
 
-            TolkHelper.Speak(announcement);
+            return announcement;
         }
+
+        #endregion
 
         /// <summary>
         /// Selects the next item.
         /// </summary>
         public static void SelectNext()
         {
-            if (flattenedItems.Count == 0)
-                return;
-
-            selectedIndex = MenuHelper.SelectNext(selectedIndex, flattenedItems.Count);
-            AnnounceCurrentItem();
+            treeNav.SelectNext();
         }
 
         /// <summary>
@@ -425,11 +362,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void SelectPrevious()
         {
-            if (flattenedItems.Count == 0)
-                return;
-
-            selectedIndex = MenuHelper.SelectPrevious(selectedIndex, flattenedItems.Count);
-            AnnounceCurrentItem();
+            treeNav.SelectPrevious();
         }
 
         /// <summary>
@@ -437,10 +370,10 @@ namespace RimWorldAccess
         /// </summary>
         public static void Expand()
         {
-            if (flattenedItems.Count == 0 || selectedIndex < 0 || selectedIndex >= flattenedItems.Count)
+            if (treeNav.SelectedItem == null)
                 return;
 
-            var item = flattenedItems[selectedIndex];
+            var item = treeNav.SelectedItem;
             if (!item.IsExpandable)
             {
                 TolkHelper.Speak("Not expandable");
@@ -449,13 +382,19 @@ namespace RimWorldAccess
 
             if (item.IsExpanded)
             {
-                TolkHelper.Speak("Already expanded");
+                // Already expanded - drill down to first child
+                if (item.Children.Count > 0)
+                {
+                    treeNav.ExpandOrDrillDown();
+                }
+                else
+                {
+                    TolkHelper.Speak("Already expanded");
+                }
                 return;
             }
 
-            item.IsExpanded = true;
-            FlattenItems();
-            TolkHelper.Speak("Expanded");
+            treeNav.ExpandOrDrillDown();
         }
 
         /// <summary>
@@ -463,27 +402,18 @@ namespace RimWorldAccess
         /// </summary>
         public static void CollapseOrGoToParent()
         {
-            if (flattenedItems.Count == 0 || selectedIndex < 0 || selectedIndex >= flattenedItems.Count)
+            if (treeNav.SelectedItem == null)
                 return;
 
-            var item = flattenedItems[selectedIndex];
+            var item = treeNav.SelectedItem;
 
             if (item.IsExpanded && item.IsExpandable)
             {
-                // Collapse this item
-                item.IsExpanded = false;
-                FlattenItems();
-                TolkHelper.Speak("Collapsed");
+                treeNav.CollapseOrDrillUp();
             }
-            else if (item.Parent != null)
+            else if (item.Parent != null && item.Parent != treeNav.RootItem)
             {
-                // Go to parent
-                int parentIndex = flattenedItems.IndexOf(item.Parent);
-                if (parentIndex >= 0)
-                {
-                    selectedIndex = parentIndex;
-                    AnnounceCurrentItem();
-                }
+                treeNav.CollapseOrDrillUp();
             }
             else
             {
@@ -500,34 +430,26 @@ namespace RimWorldAccess
             if (!isActive)
                 return false;
 
-            switch (key)
+            // Tab always closes (not a standard tree key)
+            if (key == KeyCode.Tab)
             {
-                case KeyCode.UpArrow:
-                    SelectPrevious();
-                    return true;
-
-                case KeyCode.DownArrow:
-                    SelectNext();
-                    return true;
-
-                case KeyCode.Return:
-                case KeyCode.KeypadEnter:
-                case KeyCode.RightArrow:
-                    Expand();
-                    return true;
-
-                case KeyCode.LeftArrow:
-                    CollapseOrGoToParent();
-                    return true;
-
-                case KeyCode.Escape:
-                case KeyCode.Tab:
-                    Close();
-                    return true;
-
-                default:
-                    return false;
+                Close();
+                return true;
             }
+
+            // Delegate to TreeNavigationHelper for all standard tree keys
+            if (treeNav.HandleInput(Event.current))
+                return true;
+
+            // HandleInput returned false = Escape with no active search
+            if (key == KeyCode.Escape)
+            {
+                Close();
+                return true;
+            }
+
+            // Consume all other keys to prevent pass-through
+            return true;
         }
     }
 }

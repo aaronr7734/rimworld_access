@@ -17,39 +17,40 @@ namespace RimWorldAccess
 
     public static class StartingPawnState
     {
-        private static List<PawnTreeItem> hierarchy = new List<PawnTreeItem>();
-        private static List<PawnTreeItem> flattenedItems = new List<PawnTreeItem>();
-        private static int selectedIndex = 0;
+        private static TreeNavigationHelper treeNav = new TreeNavigationHelper("PawnSelection");
         private static bool isActive = false;
         private static int openedOnFrame = -1;
         private static bool awaitingRenameRebuild = false;
-        private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
-
-        private const string LevelTrackingKey = "PawnSelection";
 
         public static bool IsActive => isActive;
-        public static bool HasActiveSearch => typeahead.HasActiveSearch;
+        public static bool HasActiveSearch => treeNav.HasActiveSearch;
         public static PawnEditorContext Context { get; private set; } = PawnEditorContext.GameStart;
+
+        static StartingPawnState()
+        {
+            treeNav.FormatItemAnnouncement = FormatItemAnnouncement;
+            treeNav.FormatSearchAnnouncement = FormatSearchAnnouncement;
+            treeNav.AnnounceChildCounts = false;
+        }
 
         public static void Open(PawnEditorContext context = PawnEditorContext.GameStart)
         {
             Context = context;
             isActive = true;
             openedOnFrame = Time.frameCount;
-            selectedIndex = 0;
-            typeahead.ClearSearch();
-            MenuHelper.ResetLevel(LevelTrackingKey);
 
             RebuildTree();
 
-            if (flattenedItems.Count > 0)
+            var visibleItems = treeNav.VisibleItems;
+            if (visibleItems.Count > 0)
             {
                 // Select first pawn (skip group header if present)
-                for (int i = 0; i < flattenedItems.Count; i++)
+                for (int i = 0; i < visibleItems.Count; i++)
                 {
-                    if (flattenedItems[i].NodeType == PawnNodeType.Pawn)
+                    var ptd = StartingPawnHelper.GetPawnData(visibleItems[i]);
+                    if (ptd != null && ptd.NodeType == PawnNodeType.Pawn)
                     {
-                        selectedIndex = i;
+                        treeNav.SetSelectedIndex(i);
                         break;
                     }
                 }
@@ -57,7 +58,7 @@ namespace RimWorldAccess
                     ? "ChooseNewWanderers".Translate() + ". Alt+A to add, Delete to remove."
                     : "CreateCharacters".Translate();
                 TolkHelper.Speak(title);
-                AnnounceCurrentItem();
+                treeNav.ReannounceCurrentItem();
             }
         }
 
@@ -65,11 +66,7 @@ namespace RimWorldAccess
         {
             isActive = false;
             awaitingRenameRebuild = false;
-            hierarchy.Clear();
-            flattenedItems.Clear();
-            selectedIndex = 0;
-            typeahead.ClearSearch();
-            MenuHelper.ResetLevel(LevelTrackingKey);
+            treeNav.Reset();
         }
 
         public static void CheckPendingRenameRebuild()
@@ -78,137 +75,125 @@ namespace RimWorldAccess
             {
                 awaitingRenameRebuild = false;
                 RebuildTree();
-                AnnounceCurrentItem();
+                treeNav.ReannounceCurrentItem();
             }
         }
 
         public static int GetSelectedPawnIndex()
         {
-            if (flattenedItems.Count == 0 || selectedIndex < 0 || selectedIndex >= flattenedItems.Count)
-                return 0;
-            return flattenedItems[selectedIndex].PawnIndex >= 0
-                ? flattenedItems[selectedIndex].PawnIndex
-                : 0;
+            var item = treeNav.SelectedItem;
+            if (item == null) return 0;
+            var ptd = StartingPawnHelper.GetPawnData(item);
+            if (ptd != null && ptd.PawnIndex >= 0)
+                return ptd.PawnIndex;
+            return 0;
         }
 
         private static void RebuildTree()
         {
             // Save expansion state
             var expandedPawns = new Dictionary<int, HashSet<PawnCategoryType>>();
-            foreach (var item in flattenedItems)
+            foreach (var item in treeNav.VisibleItems)
             {
-                if (item.NodeType == PawnNodeType.Pawn && item.IsExpanded && item.PawnIndex >= 0)
+                var ptd = StartingPawnHelper.GetPawnData(item);
+                if (ptd == null) continue;
+                if (ptd.NodeType == PawnNodeType.Pawn && item.IsExpanded && ptd.PawnIndex >= 0)
                 {
                     var expandedCats = new HashSet<PawnCategoryType>();
                     foreach (var child in item.Children)
                     {
-                        if (child.IsExpanded && child.CategoryType.HasValue)
-                            expandedCats.Add(child.CategoryType.Value);
+                        var childPtd = StartingPawnHelper.GetPawnData(child);
+                        if (childPtd != null && child.IsExpanded && childPtd.CategoryType.HasValue)
+                            expandedCats.Add(childPtd.CategoryType.Value);
                     }
-                    expandedPawns[item.PawnIndex] = expandedCats;
+                    expandedPawns[ptd.PawnIndex] = expandedCats;
                 }
             }
 
-            hierarchy = StartingPawnHelper.BuildTree();
-            FlattenItems();
+            var root = StartingPawnHelper.BuildTree();
+            int savedIndex = treeNav.SelectedIndex;
+            treeNav.Initialize(root, savedIndex);
 
-            // Restore expansion state
-            foreach (var item in flattenedItems)
+            // Restore expansion state - expand pawns first
+            foreach (var item in treeNav.VisibleItems)
             {
-                if (item.NodeType == PawnNodeType.Pawn && expandedPawns.ContainsKey(item.PawnIndex))
+                var ptd = StartingPawnHelper.GetPawnData(item);
+                if (ptd != null && ptd.NodeType == PawnNodeType.Pawn && expandedPawns.ContainsKey(ptd.PawnIndex))
                 {
                     item.IsExpanded = true;
                 }
             }
-            // Re-flatten after restoring pawn expansion
-            FlattenItems();
+            treeNav.RebuildVisibleList();
 
             // Restore category expansion
-            foreach (var item in flattenedItems)
+            foreach (var item in treeNav.VisibleItems)
             {
-                if (item.NodeType == PawnNodeType.Category && item.CategoryType.HasValue
-                    && item.Parent != null && expandedPawns.ContainsKey(item.Parent.PawnIndex)
-                    && expandedPawns[item.Parent.PawnIndex].Contains(item.CategoryType.Value))
+                var ptd = StartingPawnHelper.GetPawnData(item);
+                if (ptd == null || ptd.NodeType != PawnNodeType.Category || !ptd.CategoryType.HasValue)
+                    continue;
+                if (item.Parent == null) continue;
+                var parentPtd = StartingPawnHelper.GetPawnData(item.Parent);
+                if (parentPtd != null && expandedPawns.ContainsKey(parentPtd.PawnIndex)
+                    && expandedPawns[parentPtd.PawnIndex].Contains(ptd.CategoryType.Value))
                 {
                     item.IsExpanded = true;
                 }
             }
-            // Final flatten with all state restored
-            FlattenItems();
+            treeNav.RebuildVisibleList();
 
             // Clamp selection
-            if (selectedIndex >= flattenedItems.Count)
-                selectedIndex = flattenedItems.Count - 1;
-            if (selectedIndex < 0)
-                selectedIndex = 0;
+            if (treeNav.SelectedIndex >= treeNav.Count)
+                treeNav.SetSelectedIndex(Math.Max(0, treeNav.Count - 1));
         }
 
         public static void RebuildAndAnnounce()
         {
             RebuildTree();
-            AnnounceCurrentItem();
-        }
-
-        private static void FlattenItems()
-        {
-            flattenedItems.Clear();
-            foreach (var item in hierarchy)
-            {
-                flattenedItems.Add(item);
-                if (item.IsExpandable && item.IsExpanded)
-                    FlattenChildren(item);
-            }
-        }
-
-        private static void FlattenChildren(PawnTreeItem parent)
-        {
-            foreach (var child in parent.Children)
-            {
-                flattenedItems.Add(child);
-                if (child.IsExpandable && child.IsExpanded)
-                    FlattenChildren(child);
-            }
+            treeNav.ReannounceCurrentItem();
         }
 
         // ===== INPUT HANDLING =====
 
-        public static bool HandleInput(KeyCode key, Event currentEvent)
+        public static bool HandleInput(Event ev)
         {
-            if (!isActive || flattenedItems.Count == 0) return false;
+            if (!isActive || ev.type != EventType.KeyDown) return false;
+            if (treeNav.Count == 0) return false;
 
-            bool ctrl = currentEvent.control;
-            bool alt = currentEvent.alt;
+            KeyCode key = ev.keyCode;
+            bool ctrl = ev.control;
+
+            // --- Pre-intercept custom keys before delegating to treeNav ---
 
             // Alt+F: Open filter editor
-            if (alt && key == KeyCode.F)
+            if (KeyboardHelper.IsAltHeld && key == KeyCode.F)
             {
                 PawnFilterState.Open();
                 return true;
             }
 
             // Alt+R: Randomize
-            if (alt && key == KeyCode.R)
+            if (KeyboardHelper.IsAltHeld && key == KeyCode.R)
             {
                 RandomizeCurrentPawn();
                 return true;
             }
 
             // Alt+N: Rename
-            if (alt && key == KeyCode.N)
+            if (KeyboardHelper.IsAltHeld && key == KeyCode.N)
             {
                 RenameCurrentPawn();
                 return true;
             }
 
             // Alt+I: Open info card
-            if (alt && key == KeyCode.I)
+            if (KeyboardHelper.IsAltHeld && key == KeyCode.I)
             {
                 OpenInfoCard();
                 return true;
             }
 
             // Alt+A: Add pawn (wanderer only)
-            if (alt && key == KeyCode.A && Context == PawnEditorContext.Wanderer)
+            if (KeyboardHelper.IsAltHeld && key == KeyCode.A && Context == PawnEditorContext.Wanderer)
             {
                 AddWandererPawn();
                 return true;
@@ -245,50 +230,6 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Up/Down: Navigate
-            if (key == KeyCode.UpArrow)
-            {
-                if (typeahead.HasActiveSearch)
-                    SelectPreviousMatch();
-                else
-                    NavigateUp();
-                return true;
-            }
-            if (key == KeyCode.DownArrow)
-            {
-                if (typeahead.HasActiveSearch)
-                    SelectNextMatch();
-                else
-                    NavigateDown();
-                return true;
-            }
-
-            // Right: Expand or drill down
-            if (key == KeyCode.RightArrow)
-            {
-                ExpandOrDrillDown();
-                return true;
-            }
-
-            // Left: Collapse or drill up
-            if (key == KeyCode.LeftArrow)
-            {
-                CollapseOrDrillUp();
-                return true;
-            }
-
-            // Home/End
-            if (key == KeyCode.Home)
-            {
-                HandleHomeKey(ctrl);
-                return true;
-            }
-            if (key == KeyCode.End)
-            {
-                HandleEndKey(ctrl);
-                return true;
-            }
-
             // ] Right bracket: Context menu
             if (key == KeyCode.RightBracket)
             {
@@ -296,7 +237,7 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Enter: Confirm (context-dependent)
+            // Enter: Confirm (context-dependent) — override treeNav's default toggle
             if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
             {
                 if (Time.frameCount <= openedOnFrame + 1)
@@ -311,10 +252,10 @@ namespace RimWorldAccess
             // Escape: Clear search or go back/close (context-dependent)
             if (key == KeyCode.Escape)
             {
-                if (typeahead.HasActiveSearch)
+                if (treeNav.HasActiveSearch)
                 {
-                    typeahead.ClearSearchAndAnnounce();
-                    AnnounceCurrentItem();
+                    treeNav.Typeahead.ClearSearchAndAnnounce();
+                    treeNav.ReannounceCurrentItem();
                 }
                 else if (Context == PawnEditorContext.Wanderer)
                 {
@@ -327,185 +268,31 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Backspace: Remove search character
-            if (key == KeyCode.Backspace)
-            {
-                if (HandleTypeaheadBackspace())
-                    return true;
-            }
-
-            return false;
+            // Delegate all standard tree navigation to treeNav
+            // (Up/Down, Left/Right, Home/End, *, Space, typeahead, Backspace)
+            return treeNav.HandleInput(ev);
         }
 
-        public static bool HandleCharacterInput(char c)
+        /// <summary>
+        /// Finds the index of an item in the visible items list.
+        /// IReadOnlyList does not have IndexOf, so we use a loop.
+        /// </summary>
+        private static int FindVisibleIndex(InspectionTreeItem target)
         {
-            if (!isActive || flattenedItems.Count == 0) return false;
-
-            // ] Right bracket: Context menu (fallback for keyboards where ] arrives as character only)
-            if (c == ']')
+            var items = treeNav.VisibleItems;
+            for (int i = 0; i < items.Count; i++)
             {
-                OpenContextMenu();
-                return true;
+                if (ReferenceEquals(items[i], target))
+                    return i;
             }
-
-            // Asterisk: Expand all siblings
-            if (c == '*')
-            {
-                ExpandAllSiblings();
-                return true;
-            }
-
-            if (char.IsLetterOrDigit(c))
-            {
-                HandleTypeahead(c);
-                return true;
-            }
-
-            return false;
-        }
-
-        // ===== NAVIGATION =====
-
-        private static void NavigateUp()
-        {
-            typeahead.ClearSearch();
-            selectedIndex = MenuHelper.SelectPrevious(selectedIndex, flattenedItems.Count);
-            AnnounceCurrentItem();
-        }
-
-        private static void NavigateDown()
-        {
-            typeahead.ClearSearch();
-            selectedIndex = MenuHelper.SelectNext(selectedIndex, flattenedItems.Count);
-            AnnounceCurrentItem();
-        }
-
-        private static void ExpandOrDrillDown()
-        {
-            typeahead.ClearSearch();
-            var item = flattenedItems[selectedIndex];
-
-            if (!item.IsExpandable)
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                return;
-            }
-
-            if (!item.IsExpanded)
-            {
-                item.IsExpanded = true;
-                FlattenItems();
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                AnnounceCurrentItem();
-            }
-            else if (item.Children.Count > 0)
-            {
-                // Move to first child
-                int childIdx = flattenedItems.IndexOf(item.Children[0]);
-                if (childIdx >= 0)
-                {
-                    selectedIndex = childIdx;
-                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                    AnnounceCurrentItem();
-                }
-            }
-        }
-
-        private static void CollapseOrDrillUp()
-        {
-            typeahead.ClearSearch();
-            var item = flattenedItems[selectedIndex];
-
-            if (item.IsExpandable && item.IsExpanded)
-            {
-                item.IsExpanded = false;
-                FlattenItems();
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                AnnounceCurrentItem();
-            }
-            else if (item.Parent != null)
-            {
-                int parentIdx = flattenedItems.IndexOf(item.Parent);
-                if (parentIdx >= 0)
-                {
-                    selectedIndex = parentIdx;
-                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                    AnnounceCurrentItem();
-                }
-            }
-            else
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            }
-        }
-
-        private static void HandleHomeKey(bool ctrl)
-        {
-            typeahead.ClearSearch();
-            MenuHelper.HandleTreeHomeKey(
-                flattenedItems, ref selectedIndex,
-                item => item.IndentLevel,
-                ctrl,
-                () => AnnounceCurrentItem());
-        }
-
-        private static void HandleEndKey(bool ctrl)
-        {
-            typeahead.ClearSearch();
-            MenuHelper.HandleTreeEndKey(
-                flattenedItems, ref selectedIndex,
-                item => item.IndentLevel,
-                item => item.IsExpanded,
-                item => item.IsExpandable && item.Children.Count > 0,
-                ctrl,
-                () => AnnounceCurrentItem());
-        }
-
-        private static void ExpandAllSiblings()
-        {
-            typeahead.ClearSearch();
-            var current = flattenedItems[selectedIndex];
-            int level = current.IndentLevel;
-            bool anyExpanded = false;
-
-            // Find sibling range
-            foreach (var item in flattenedItems)
-            {
-                if (item.IndentLevel == level && item.IsExpandable && !item.IsExpanded
-                    && IsSibling(item, current))
-                {
-                    item.IsExpanded = true;
-                    anyExpanded = true;
-                }
-            }
-
-            if (anyExpanded)
-            {
-                FlattenItems();
-                // Re-find our item after flatten
-                for (int i = 0; i < flattenedItems.Count; i++)
-                {
-                    if (ReferenceEquals(flattenedItems[i], current))
-                    {
-                        selectedIndex = i;
-                        break;
-                    }
-                }
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                TolkHelper.Speak("All siblings expanded");
-            }
-        }
-
-        private static bool IsSibling(PawnTreeItem a, PawnTreeItem b)
-        {
-            return ReferenceEquals(a.Parent, b.Parent);
+            return -1;
         }
 
         // ===== PAGE UP/DOWN: SWITCH PAWN =====
 
         private static void SwitchPawn(int direction)
         {
-            typeahead.ClearSearch();
+            treeNav.Typeahead.ClearSearch();
 
             // Find current pawn index
             int currentPawnIdx = GetCurrentPawnIndex();
@@ -514,29 +301,38 @@ namespace RimWorldAccess
             // Save position within current pawn
             var position = SaveTreePosition();
 
-            // Find all pawn nodes (top-level in wanderer mode, under group headers in game-start)
-            var pawnNodes = new List<PawnTreeItem>();
-            foreach (var item in hierarchy)
+            // Find all pawn nodes
+            var pawnNodes = new List<InspectionTreeItem>();
+            foreach (var item in treeNav.VisibleItems)
             {
-                if (item.NodeType == PawnNodeType.Pawn)
-                {
+                var ptd = StartingPawnHelper.GetPawnData(item);
+                if (ptd != null && ptd.NodeType == PawnNodeType.Pawn)
                     pawnNodes.Add(item);
-                }
-                else if (item.NodeType == PawnNodeType.GroupHeader)
+            }
+            // Also check collapsed pawns from root children
+            if (treeNav.RootItem != null)
+            {
+                foreach (var child in treeNav.RootItem.Children)
                 {
-                    foreach (var child in item.Children)
-                    {
-                        if (child.NodeType == PawnNodeType.Pawn)
-                            pawnNodes.Add(child);
-                    }
+                    var ptd = StartingPawnHelper.GetPawnData(child);
+                    if (ptd != null && ptd.NodeType == PawnNodeType.Pawn && !pawnNodes.Contains(child))
+                        pawnNodes.Add(child);
                 }
+                // Sort by PawnIndex for consistent ordering
+                pawnNodes.Sort((a, b) =>
+                {
+                    var pa = StartingPawnHelper.GetPawnData(a);
+                    var pb = StartingPawnHelper.GetPawnData(b);
+                    return (pa?.PawnIndex ?? 0).CompareTo(pb?.PawnIndex ?? 0);
+                });
             }
 
             // Find current pawn position in pawn list
             int pawnListIdx = -1;
             for (int i = 0; i < pawnNodes.Count; i++)
             {
-                if (pawnNodes[i].PawnIndex == currentPawnIdx)
+                var ptd = StartingPawnHelper.GetPawnData(pawnNodes[i]);
+                if (ptd != null && ptd.PawnIndex == currentPawnIdx)
                 {
                     pawnListIdx = i;
                     break;
@@ -558,27 +354,27 @@ namespace RimWorldAccess
             if (position.WasExpanded && !targetPawn.IsExpanded)
             {
                 targetPawn.IsExpanded = true;
-                FlattenItems();
+                treeNav.RebuildVisibleList();
             }
 
             // Restore position
             RestoreTreePosition(targetPawn, position);
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentItem();
+            treeNav.ReannounceCurrentItem();
         }
 
         private static int GetCurrentPawnIndex()
         {
-            if (selectedIndex < 0 || selectedIndex >= flattenedItems.Count)
-                return -1;
-
-            var current = flattenedItems[selectedIndex];
+            var item = treeNav.SelectedItem;
+            if (item == null) return -1;
 
             // Walk up to find the pawn node
+            var current = item;
             while (current != null)
             {
-                if (current.NodeType == PawnNodeType.Pawn)
-                    return current.PawnIndex;
+                var ptd = StartingPawnHelper.GetPawnData(current);
+                if (ptd != null && ptd.NodeType == PawnNodeType.Pawn)
+                    return ptd.PawnIndex;
                 current = current.Parent;
             }
 
@@ -588,11 +384,14 @@ namespace RimWorldAccess
 
         private static TreePosition SaveTreePosition()
         {
-            var current = flattenedItems[selectedIndex];
+            var current = treeNav.SelectedItem;
+            if (current == null) return TreePosition.Default;
+
             var position = TreePosition.Default;
+            var currentPtd = StartingPawnHelper.GetPawnData(current);
 
             // Check if we're on a pawn node
-            if (current.NodeType == PawnNodeType.Pawn)
+            if (currentPtd != null && currentPtd.NodeType == PawnNodeType.Pawn)
             {
                 position.WasExpanded = current.IsExpanded;
                 return position;
@@ -602,13 +401,16 @@ namespace RimWorldAccess
             var item = current;
             while (item != null)
             {
-                if (item.NodeType == PawnNodeType.Category && item.CategoryType.HasValue)
+                var ptd = StartingPawnHelper.GetPawnData(item);
+                if (ptd == null) { item = item.Parent; continue; }
+
+                if (ptd.NodeType == PawnNodeType.Category && ptd.CategoryType.HasValue)
                 {
-                    position.Category = item.CategoryType;
+                    position.Category = ptd.CategoryType;
                     position.WasCategoryExpanded = item.IsExpanded;
 
                     // Find item index within category
-                    if (current.NodeType == PawnNodeType.Leaf)
+                    if (currentPtd != null && currentPtd.NodeType == PawnNodeType.Leaf)
                     {
                         position.ItemIndex = item.Children.IndexOf(current);
                     }
@@ -617,7 +419,7 @@ namespace RimWorldAccess
                         position.ItemIndex = -1; // On the category node itself
                     }
                 }
-                if (item.NodeType == PawnNodeType.Pawn)
+                if (ptd.NodeType == PawnNodeType.Pawn)
                 {
                     position.WasExpanded = item.IsExpanded;
                     break;
@@ -628,21 +430,22 @@ namespace RimWorldAccess
             return position;
         }
 
-        private static void RestoreTreePosition(PawnTreeItem targetPawn, TreePosition position)
+        private static void RestoreTreePosition(InspectionTreeItem targetPawn, TreePosition position)
         {
             if (!position.Category.HasValue)
             {
                 // Navigate to the pawn node itself
-                int idx = flattenedItems.IndexOf(targetPawn);
-                if (idx >= 0) selectedIndex = idx;
+                int idx = FindVisibleIndex(targetPawn);
+                if (idx >= 0) treeNav.SetSelectedIndex(idx);
                 return;
             }
 
             // Find matching category
-            PawnTreeItem targetCategory = null;
+            InspectionTreeItem targetCategory = null;
             foreach (var child in targetPawn.Children)
             {
-                if (child.CategoryType == position.Category)
+                var ptd = StartingPawnHelper.GetPawnData(child);
+                if (ptd != null && ptd.CategoryType == position.Category)
                 {
                     targetCategory = child;
                     break;
@@ -652,8 +455,8 @@ namespace RimWorldAccess
             if (targetCategory == null)
             {
                 // Category doesn't exist on target, land on pawn
-                int idx = flattenedItems.IndexOf(targetPawn);
-                if (idx >= 0) selectedIndex = idx;
+                int idx = FindVisibleIndex(targetPawn);
+                if (idx >= 0) treeNav.SetSelectedIndex(idx);
                 return;
             }
 
@@ -661,33 +464,33 @@ namespace RimWorldAccess
             {
                 // Was on the category node itself, preserve its expand/collapse state
                 targetCategory.IsExpanded = position.WasCategoryExpanded;
-                FlattenItems();
-                int idx = flattenedItems.IndexOf(targetCategory);
-                if (idx >= 0) selectedIndex = idx;
+                treeNav.RebuildVisibleList();
+                int idx = FindVisibleIndex(targetCategory);
+                if (idx >= 0) treeNav.SetSelectedIndex(idx);
                 return;
             }
 
             // Was on a leaf, expand category and navigate
             targetCategory.IsExpanded = true;
-            FlattenItems();
+            treeNav.RebuildVisibleList();
 
             // Clamp item index
             int clampedIdx = Math.Min(position.ItemIndex, targetCategory.Children.Count - 1);
             if (clampedIdx >= 0 && clampedIdx < targetCategory.Children.Count)
             {
-                int idx = flattenedItems.IndexOf(targetCategory.Children[clampedIdx]);
+                int idx = FindVisibleIndex(targetCategory.Children[clampedIdx]);
                 if (idx >= 0)
-                    selectedIndex = idx;
+                    treeNav.SetSelectedIndex(idx);
                 else
                 {
-                    idx = flattenedItems.IndexOf(targetCategory);
-                    if (idx >= 0) selectedIndex = idx;
+                    idx = FindVisibleIndex(targetCategory);
+                    if (idx >= 0) treeNav.SetSelectedIndex(idx);
                 }
             }
             else
             {
-                int idx = flattenedItems.IndexOf(targetCategory);
-                if (idx >= 0) selectedIndex = idx;
+                int idx = FindVisibleIndex(targetCategory);
+                if (idx >= 0) treeNav.SetSelectedIndex(idx);
             }
         }
 
@@ -726,7 +529,7 @@ namespace RimWorldAccess
                     randomizeAnnouncement += $". No match after {PawnFilterData.LastRerollAttempts} attempts, keeping last result.";
             }
             TolkHelper.Speak(randomizeAnnouncement);
-            AnnounceCurrentItem();
+            treeNav.ReannounceCurrentItem();
         }
 
         public static void OnRerollComplete(bool success, int attempts, bool cancelled)
@@ -744,15 +547,16 @@ namespace RimWorldAccess
                 announcement = $"No match after {attempts} attempts, keeping last result.";
 
             TolkHelper.Speak(announcement);
-            AnnounceCurrentItem();
+            treeNav.ReannounceCurrentItem();
         }
 
         private static void RestoreRerollPosition()
         {
             if (rerollPawnIdx < 0) return;
-            foreach (var item in flattenedItems)
+            foreach (var item in treeNav.VisibleItems)
             {
-                if (item.NodeType == PawnNodeType.Pawn && item.PawnIndex == rerollPawnIdx)
+                var ptd = StartingPawnHelper.GetPawnData(item);
+                if (ptd != null && ptd.NodeType == PawnNodeType.Pawn && ptd.PawnIndex == rerollPawnIdx)
                 {
                     RestoreTreePosition(item, rerollSavedPosition);
                     break;
@@ -800,11 +604,12 @@ namespace RimWorldAccess
             RebuildTree();
 
             // Navigate to the swapped pawn's new position
-            for (int i = 0; i < flattenedItems.Count; i++)
+            foreach (var item in treeNav.VisibleItems)
             {
-                if (flattenedItems[i].NodeType == PawnNodeType.Pawn && flattenedItems[i].PawnIndex == targetIdx)
+                var ptd = StartingPawnHelper.GetPawnData(item);
+                if (ptd != null && ptd.NodeType == PawnNodeType.Pawn && ptd.PawnIndex == targetIdx)
                 {
-                    selectedIndex = i;
+                    treeNav.SetSelectedIndex(FindVisibleIndex(item));
                     break;
                 }
             }
@@ -839,7 +644,7 @@ namespace RimWorldAccess
                 announceParts.Add($"before {nextName}");
 
             TolkHelper.Speak(string.Join(", ", announceParts));
-            AnnounceCurrentItem();
+            treeNav.ReannounceCurrentItem();
         }
 
         private static void OpenContextMenu()
@@ -918,19 +723,20 @@ namespace RimWorldAccess
             WandererPatch.AddPawn();
             RebuildTree();
 
-            // Navigate to the newly added pawn
-            for (int i = flattenedItems.Count - 1; i >= 0; i--)
+            // Navigate to the newly added pawn (last pawn node)
+            for (int i = treeNav.Count - 1; i >= 0; i--)
             {
-                if (flattenedItems[i].NodeType == PawnNodeType.Pawn)
+                var ptd = StartingPawnHelper.GetPawnData(treeNav.VisibleItems[i]);
+                if (ptd != null && ptd.NodeType == PawnNodeType.Pawn)
                 {
-                    selectedIndex = i;
+                    treeNav.SetSelectedIndex(i);
                     break;
                 }
             }
 
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
             TolkHelper.Speak("Pawn added");
-            AnnounceCurrentItem();
+            treeNav.ReannounceCurrentItem();
         }
 
         private static void RemoveWandererPawn()
@@ -951,73 +757,31 @@ namespace RimWorldAccess
             RebuildTree();
 
             // Clamp selection
-            if (selectedIndex >= flattenedItems.Count)
-                selectedIndex = flattenedItems.Count - 1;
+            if (treeNav.SelectedIndex >= treeNav.Count)
+                treeNav.SetSelectedIndex(Math.Max(0, treeNav.Count - 1));
 
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
             TolkHelper.Speak(removedName + " removed");
-            AnnounceCurrentItem();
-        }
-
-        // ===== TYPEAHEAD SEARCH =====
-
-        private static void HandleTypeahead(char c)
-        {
-            var labels = flattenedItems.Select(i => i.Label).ToList();
-            if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
-            {
-                if (newIndex >= 0)
-                {
-                    selectedIndex = newIndex;
-                    AnnounceWithSearch();
-                }
-            }
-            else
-            {
-                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
-            }
-        }
-
-        private static bool HandleTypeaheadBackspace()
-        {
-            if (!typeahead.HasActiveSearch) return false;
-            var labels = flattenedItems.Select(i => i.Label).ToList();
-            if (typeahead.ProcessBackspace(labels, out int newIndex))
-            {
-                if (newIndex >= 0) selectedIndex = newIndex;
-                AnnounceWithSearch();
-            }
-            return true;
-        }
-
-        private static void SelectNextMatch()
-        {
-            if (!typeahead.HasActiveSearch) return;
-            int next = typeahead.GetNextMatch(selectedIndex);
-            if (next >= 0) { selectedIndex = next; AnnounceWithSearch(); }
-        }
-
-        private static void SelectPreviousMatch()
-        {
-            if (!typeahead.HasActiveSearch) return;
-            int prev = typeahead.GetPreviousMatch(selectedIndex);
-            if (prev >= 0) { selectedIndex = prev; AnnounceWithSearch(); }
+            treeNav.ReannounceCurrentItem();
         }
 
         // ===== ANNOUNCEMENTS =====
 
-        private static void AnnounceCurrentItem()
+        private static string FormatItemAnnouncement(InspectionTreeItem item)
         {
-            if (selectedIndex < 0 || selectedIndex >= flattenedItems.Count) return;
+            var ptd = StartingPawnHelper.GetPawnData(item);
+            if (ptd == null)
+            {
+                // Fallback for items without PawnTreeData
+                return treeNav.DefaultFormatItemAnnouncement(item);
+            }
 
-            var item = flattenedItems[selectedIndex];
-            var (position, total) = MenuHelper.GetSiblingPosition(
-                flattenedItems, selectedIndex, i => i.IndentLevel);
+            var (position, total) = treeNav.GetSiblingPosition(item);
             string positionPart = MenuHelper.FormatPosition(position - 1, total);
 
             string announcement;
 
-            switch (item.NodeType)
+            switch (ptd.NodeType)
             {
                 case PawnNodeType.GroupHeader:
                     // Group headers are structural dividers — no position or level suffix
@@ -1029,7 +793,7 @@ namespace RimWorldAccess
                     announcement = $"{item.Label}, {pawnState}";
                     if (!string.IsNullOrEmpty(positionPart))
                         announcement += $" ({positionPart})";
-                    announcement += MenuHelper.GetLevelSuffix(LevelTrackingKey, item.IndentLevel, skipLevelOne: false);
+                    announcement += MenuHelper.GetLevelSuffix("PawnSelection", item.IndentLevel, skipLevelOne: false);
                     if (HasInfoCard(item)) announcement += " Inspectable.";
                     break;
 
@@ -1057,7 +821,7 @@ namespace RimWorldAccess
                     }
                     if (!string.IsNullOrEmpty(positionPart))
                         announcement += $" ({positionPart})";
-                    announcement += MenuHelper.GetLevelSuffix(LevelTrackingKey, item.IndentLevel, skipLevelOne: false);
+                    announcement += MenuHelper.GetLevelSuffix("PawnSelection", item.IndentLevel, skipLevelOne: false);
                     break;
 
                 default: // Leaf
@@ -1074,28 +838,29 @@ namespace RimWorldAccess
                     }
                     if (!string.IsNullOrEmpty(positionPart))
                         announcement += $" ({positionPart})";
-                    announcement += MenuHelper.GetLevelSuffix(LevelTrackingKey, item.IndentLevel, skipLevelOne: false);
+                    announcement += MenuHelper.GetLevelSuffix("PawnSelection", item.IndentLevel, skipLevelOne: false);
                     if (HasInfoCard(item)) announcement += " Inspectable.";
                     break;
             }
 
-            TolkHelper.Speak(announcement);
+            return announcement;
         }
 
-        private static void AnnounceWithSearch()
+        private static string FormatSearchAnnouncement(InspectionTreeItem item, TypeaheadSearchHelper typeahead)
         {
-            if (!typeahead.HasActiveSearch) { AnnounceCurrentItem(); return; }
-            var item = flattenedItems[selectedIndex];
-            TolkHelper.Speak($"{item.Label}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'");
+            return $"{item.Label}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
         }
 
-        private static bool HasInfoCard(PawnTreeItem item)
+        private static bool HasInfoCard(InspectionTreeItem item)
         {
-            if (item.NodeType == PawnNodeType.Pawn && item.Data is Pawn)
+            var ptd = StartingPawnHelper.GetPawnData(item);
+            if (ptd == null) return false;
+
+            if (ptd.NodeType == PawnNodeType.Pawn && ptd.DomainData is Pawn)
                 return true;
-            if (item.NodeType == PawnNodeType.Leaf)
+            if (ptd.NodeType == PawnNodeType.Leaf)
             {
-                if (item.Data is ThingDefCount || item.Data is Hediff || item.Data is XenotypeDef)
+                if (ptd.DomainData is ThingDefCount || ptd.DomainData is Hediff || ptd.DomainData is XenotypeDef)
                     return true;
             }
             return false;
@@ -1103,8 +868,8 @@ namespace RimWorldAccess
 
         private static void OpenInfoCard()
         {
-            if (selectedIndex < 0 || selectedIndex >= flattenedItems.Count) return;
-            var item = flattenedItems[selectedIndex];
+            var item = treeNav.SelectedItem;
+            if (item == null) return;
 
             if (!HasInfoCard(item))
             {
@@ -1112,13 +877,16 @@ namespace RimWorldAccess
                 return;
             }
 
-            if (item.NodeType == PawnNodeType.Pawn && item.Data is Pawn pawn)
+            var ptd = StartingPawnHelper.GetPawnData(item);
+            if (ptd == null) return;
+
+            if (ptd.NodeType == PawnNodeType.Pawn && ptd.DomainData is Pawn pawn)
                 Find.WindowStack.Add(new Dialog_InfoCard(pawn));
-            else if (item.Data is ThingDefCount tdc)
+            else if (ptd.DomainData is ThingDefCount tdc)
                 Find.WindowStack.Add(new Dialog_InfoCard(tdc.ThingDef));
-            else if (item.Data is Hediff hediff)
+            else if (ptd.DomainData is Hediff hediff)
                 Find.WindowStack.Add(new Dialog_InfoCard(hediff));
-            else if (item.Data is XenotypeDef xenotype)
+            else if (ptd.DomainData is XenotypeDef xenotype)
                 Find.WindowStack.Add(new Dialog_InfoCard(xenotype));
         }
     }

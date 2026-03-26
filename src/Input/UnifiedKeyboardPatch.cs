@@ -1465,17 +1465,7 @@ namespace RimWorldAccess
             if (StartingPawnState.IsActive && !WindowlessFloatMenuState.IsActive && !WindowlessDialogState.IsActive
                 && !PawnFilterState.IsActive && !Find.WindowStack.IsOpen<Dialog_NamePawn>())
             {
-                // Character input for typeahead
-                if (Event.current.character != '\0' && !Event.current.control && !KeyboardHelper.IsAltHeld)
-                {
-                    if (StartingPawnState.HandleCharacterInput(Event.current.character))
-                    {
-                        Event.current.Use();
-                        return;
-                    }
-                }
-
-                if (StartingPawnState.HandleInput(key, Event.current))
+                if (StartingPawnState.HandleInput(Event.current))
                 {
                     Event.current.Use();
                     return;

@@ -25,19 +25,18 @@ namespace RimWorldAccess
         Possessions
     }
 
-    public class PawnTreeItem
+    /// <summary>
+    /// Holds pawn-specific tree metadata stored in InspectionTreeItem.Data.
+    /// </summary>
+    public class PawnTreeData
     {
-        public string Label { get; set; }
-        public string Tooltip { get; set; }
-        public int IndentLevel { get; set; }
-        public bool IsExpandable { get; set; }
-        public bool IsExpanded { get; set; }
-        public List<PawnTreeItem> Children { get; set; } = new List<PawnTreeItem>();
-        public PawnTreeItem Parent { get; set; }
         public PawnNodeType NodeType { get; set; }
         public int PawnIndex { get; set; } = -1;
         public PawnCategoryType? CategoryType { get; set; }
-        public object Data { get; set; }
+        /// <summary>
+        /// Domain-specific data (Pawn, Trait, SkillRecord, Hediff, ThingDefCount, XenotypeDef, WorkTags, etc.)
+        /// </summary>
+        public object DomainData { get; set; }
     }
 
     public struct TreePosition
@@ -58,64 +57,82 @@ namespace RimWorldAccess
 
     public static class StartingPawnHelper
     {
-        public static List<PawnTreeItem> BuildTree()
+        /// <summary>
+        /// Builds the pawn tree as InspectionTreeItem nodes under a hidden root.
+        /// The root is hidden (SkipRootInVisibleList = true in TreeNavigationHelper).
+        /// </summary>
+        public static InspectionTreeItem BuildTree()
         {
             var pawns = Find.GameInitData.startingAndOptionalPawns;
             int startingCount = Find.GameInitData.startingPawnCount;
-            var hierarchy = new List<PawnTreeItem>();
+
+            var root = new InspectionTreeItem
+            {
+                Label = "Root",
+                IndentLevel = -1,
+                IsExpandable = true,
+                IsExpanded = true,
+                Data = new PawnTreeData { NodeType = PawnNodeType.GroupHeader }
+            };
 
             // Wanderer mode: all pawns are selected, no group headers
             if (StartingPawnState.Context == PawnEditorContext.Wanderer)
             {
                 for (int i = 0; i < pawns.Count; i++)
                 {
-                    var pawnNode = BuildPawnNode(pawns[i], i, null);
-                    hierarchy.Add(pawnNode);
+                    var pawnNode = BuildPawnNode(pawns[i], i, root);
+                    root.Children.Add(pawnNode);
                 }
-                return hierarchy;
+                return root;
             }
 
             // Game-start mode: pawns grouped under Selected/Left Behind headers
-            var selectedHeader = new PawnTreeItem
+            var selectedHeader = new InspectionTreeItem
             {
                 Label = "StartingPawnsSelected".Translate(),
                 IndentLevel = 0,
-                NodeType = PawnNodeType.GroupHeader,
-                IsExpandable = false
+                Type = InspectionTreeItem.ItemType.Category,
+                IsExpandable = false,
+                Parent = root,
+                Data = new PawnTreeData { NodeType = PawnNodeType.GroupHeader }
             };
-            hierarchy.Add(selectedHeader);
+            root.Children.Add(selectedHeader);
 
             for (int i = 0; i < startingCount && i < pawns.Count; i++)
             {
-                var pawnNode = BuildPawnNode(pawns[i], i, selectedHeader);
+                var pawnNode = BuildPawnNode(pawns[i], i, root);
+                // GroupHeader's Children tracks pawns for structural queries
                 selectedHeader.Children.Add(pawnNode);
-                hierarchy.Add(pawnNode);
+                // But pawnNode is a direct child of root for navigation (flat at indent 1)
+                root.Children.Add(pawnNode);
             }
 
             // Left behind group
             if (pawns.Count > startingCount)
             {
-                var leftBehindHeader = new PawnTreeItem
+                var leftBehindHeader = new InspectionTreeItem
                 {
                     Label = "StartingPawnsLeftBehind".Translate(),
                     IndentLevel = 0,
-                    NodeType = PawnNodeType.GroupHeader,
-                    IsExpandable = false
+                    Type = InspectionTreeItem.ItemType.Category,
+                    IsExpandable = false,
+                    Parent = root,
+                    Data = new PawnTreeData { NodeType = PawnNodeType.GroupHeader }
                 };
-                hierarchy.Add(leftBehindHeader);
+                root.Children.Add(leftBehindHeader);
 
                 for (int i = startingCount; i < pawns.Count; i++)
                 {
-                    var pawnNode = BuildPawnNode(pawns[i], i, leftBehindHeader);
+                    var pawnNode = BuildPawnNode(pawns[i], i, root);
                     leftBehindHeader.Children.Add(pawnNode);
-                    hierarchy.Add(pawnNode);
+                    root.Children.Add(pawnNode);
                 }
             }
 
-            return hierarchy;
+            return root;
         }
 
-        private static PawnTreeItem BuildPawnNode(Pawn pawn, int index, PawnTreeItem groupParent)
+        private static InspectionTreeItem BuildPawnNode(Pawn pawn, int index, InspectionTreeItem parent)
         {
             string nick = pawn.Name is NameTriple nameTriple
                 ? (string.IsNullOrEmpty(nameTriple.Nick) ? nameTriple.First : nameTriple.Nick)
@@ -124,109 +141,137 @@ namespace RimWorldAccess
 
             string label = string.IsNullOrEmpty(title) ? nick : $"{nick}, {title}";
 
-            var pawnNode = new PawnTreeItem
+            var pawnNode = new InspectionTreeItem
             {
                 Label = label,
                 IndentLevel = 1,
-                NodeType = PawnNodeType.Pawn,
+                Type = InspectionTreeItem.ItemType.Object,
                 IsExpandable = true,
                 IsExpanded = false,
-                PawnIndex = index,
-                Data = pawn,
-                Parent = groupParent
+                Parent = parent,
+                Data = new PawnTreeData
+                {
+                    NodeType = PawnNodeType.Pawn,
+                    PawnIndex = index,
+                    DomainData = pawn
+                }
             };
 
             BuildPawnCategories(pawn, index, pawnNode);
             return pawnNode;
         }
 
-        private static void BuildPawnCategories(Pawn pawn, int pawnIndex, PawnTreeItem pawnNode)
+        private static void BuildPawnCategories(Pawn pawn, int pawnIndex, InspectionTreeItem pawnNode)
         {
             pawnNode.Children.Clear();
 
             // Bio
-            var bioNode = new PawnTreeItem
+            var bioNode = new InspectionTreeItem
             {
                 Label = "Bio",
                 IndentLevel = 2,
-                NodeType = PawnNodeType.Category,
+                Type = InspectionTreeItem.ItemType.Category,
                 IsExpandable = true,
-                CategoryType = PawnCategoryType.Bio,
-                PawnIndex = pawnIndex,
-                Parent = pawnNode
+                Parent = pawnNode,
+                Data = new PawnTreeData
+                {
+                    NodeType = PawnNodeType.Category,
+                    CategoryType = PawnCategoryType.Bio,
+                    PawnIndex = pawnIndex
+                }
             };
             BuildBioItems(pawn, pawnIndex, bioNode);
             pawnNode.Children.Add(bioNode);
 
             // Traits
-            var traitsNode = new PawnTreeItem
+            var traitsNode = new InspectionTreeItem
             {
                 Label = "Traits".Translate(),
                 IndentLevel = 2,
-                NodeType = PawnNodeType.Category,
+                Type = InspectionTreeItem.ItemType.Category,
                 IsExpandable = true,
-                CategoryType = PawnCategoryType.Traits,
-                PawnIndex = pawnIndex,
-                Parent = pawnNode
+                Parent = pawnNode,
+                Data = new PawnTreeData
+                {
+                    NodeType = PawnNodeType.Category,
+                    CategoryType = PawnCategoryType.Traits,
+                    PawnIndex = pawnIndex
+                }
             };
             BuildTraitItems(pawn, traitsNode);
             CollapseIfEmpty(traitsNode);
             pawnNode.Children.Add(traitsNode);
 
             // Incapable of
-            var incapableNode = new PawnTreeItem
+            var incapableNode = new InspectionTreeItem
             {
                 Label = "IncapableOf".Translate(pawn),
                 IndentLevel = 2,
-                NodeType = PawnNodeType.Category,
+                Type = InspectionTreeItem.ItemType.Category,
                 IsExpandable = true,
-                CategoryType = PawnCategoryType.IncapableOf,
-                PawnIndex = pawnIndex,
-                Parent = pawnNode
+                Parent = pawnNode,
+                Data = new PawnTreeData
+                {
+                    NodeType = PawnNodeType.Category,
+                    CategoryType = PawnCategoryType.IncapableOf,
+                    PawnIndex = pawnIndex
+                }
             };
             BuildIncapableOfItems(pawn, incapableNode);
             CollapseIfEmpty(incapableNode);
             pawnNode.Children.Add(incapableNode);
 
             // Skills
-            var skillsNode = new PawnTreeItem
+            var skillsNode = new InspectionTreeItem
             {
                 Label = "Skills".Translate(),
                 IndentLevel = 2,
-                NodeType = PawnNodeType.Category,
+                Type = InspectionTreeItem.ItemType.Category,
                 IsExpandable = true,
-                CategoryType = PawnCategoryType.Skills,
-                PawnIndex = pawnIndex,
-                Parent = pawnNode
+                Parent = pawnNode,
+                Data = new PawnTreeData
+                {
+                    NodeType = PawnNodeType.Category,
+                    CategoryType = PawnCategoryType.Skills,
+                    PawnIndex = pawnIndex
+                }
             };
             BuildSkillItems(pawn, skillsNode);
             pawnNode.Children.Add(skillsNode);
 
             // Health
-            var healthNode = new PawnTreeItem
+            var healthNode = new InspectionTreeItem
             {
                 Label = "Health".Translate(),
                 IndentLevel = 2,
-                NodeType = PawnNodeType.Category,
+                Type = InspectionTreeItem.ItemType.Category,
                 IsExpandable = true,
-                CategoryType = PawnCategoryType.Health,
-                PawnIndex = pawnIndex,
-                Parent = pawnNode
+                Parent = pawnNode,
+                Data = new PawnTreeData
+                {
+                    NodeType = PawnNodeType.Category,
+                    CategoryType = PawnCategoryType.Health,
+                    PawnIndex = pawnIndex
+                }
             };
             BuildHealthItems(pawn, healthNode);
             CollapseIfEmpty(healthNode);
             pawnNode.Children.Add(healthNode);
 
             // Possessions
-            var possessionsNode = new PawnTreeItem
+            var possessionsNode = new InspectionTreeItem
             {
                 Label = "Possessions".Translate(),
                 IndentLevel = 2,
-                NodeType = PawnNodeType.Category,
+                Type = InspectionTreeItem.ItemType.Category,
                 IsExpandable = true,
-                CategoryType = PawnCategoryType.Possessions,
-                PawnIndex = pawnIndex,
-                Parent = pawnNode
+                Parent = pawnNode,
+                Data = new PawnTreeData
+                {
+                    NodeType = PawnNodeType.Category,
+                    CategoryType = PawnCategoryType.Possessions,
+                    PawnIndex = pawnIndex
+                }
             };
             BuildPossessionItems(pawn, pawnIndex, possessionsNode);
             CollapseIfEmpty(possessionsNode);
@@ -237,7 +282,7 @@ namespace RimWorldAccess
         /// If a category has only a single "None" child, make it non-expandable
         /// and fold "none" into the category label.
         /// </summary>
-        private static void CollapseIfEmpty(PawnTreeItem categoryNode)
+        private static void CollapseIfEmpty(InspectionTreeItem categoryNode)
         {
             if (categoryNode.Children.Count == 1
                 && categoryNode.Children[0].Label == "None".Translate())
@@ -248,22 +293,34 @@ namespace RimWorldAccess
             }
         }
 
-        private static void BuildBioItems(Pawn pawn, int pawnIndex, PawnTreeItem bioNode)
+        private static InspectionTreeItem MakeLeaf(string label, int indentLevel, PawnCategoryType category, int pawnIndex, InspectionTreeItem parent, string tooltip = null, object domainData = null)
+        {
+            return new InspectionTreeItem
+            {
+                Label = label,
+                Tooltip = tooltip,
+                IndentLevel = indentLevel,
+                Type = InspectionTreeItem.ItemType.Item,
+                Parent = parent,
+                Data = new PawnTreeData
+                {
+                    NodeType = PawnNodeType.Leaf,
+                    CategoryType = category,
+                    PawnIndex = pawnIndex,
+                    DomainData = domainData
+                }
+            };
+        }
+
+        private static void BuildBioItems(Pawn pawn, int pawnIndex, InspectionTreeItem bioNode)
         {
             bioNode.Children.Clear();
 
             // Gender and age
             string genderAge = pawn.MainDesc(writeFaction: false);
-            bioNode.Children.Add(new PawnTreeItem
-            {
-                Label = genderAge.CapitalizeFirst(),
-                Tooltip = pawn.ageTracker?.AgeTooltipString,
-                IndentLevel = 3,
-                NodeType = PawnNodeType.Leaf,
-                CategoryType = PawnCategoryType.Bio,
-                PawnIndex = pawnIndex,
-                Parent = bioNode
-            });
+            bioNode.Children.Add(MakeLeaf(
+                genderAge.CapitalizeFirst(), 3, PawnCategoryType.Bio, pawnIndex, bioNode,
+                tooltip: pawn.ageTracker?.AgeTooltipString));
 
             // Childhood backstory
             if (pawn.story != null)
@@ -271,46 +328,28 @@ namespace RimWorldAccess
                 var childhood = pawn.story.GetBackstory(BackstorySlot.Childhood);
                 if (childhood != null)
                 {
-                    bioNode.Children.Add(new PawnTreeItem
-                    {
-                        Label = "Childhood".Translate() + ": " + childhood.TitleCapFor(pawn.gender),
-                        Tooltip = childhood.FullDescriptionFor(pawn).Resolve(),
-                        IndentLevel = 3,
-                        NodeType = PawnNodeType.Leaf,
-                        CategoryType = PawnCategoryType.Bio,
-                        PawnIndex = pawnIndex,
-                        Parent = bioNode
-                    });
+                    bioNode.Children.Add(MakeLeaf(
+                        "Childhood".Translate() + ": " + childhood.TitleCapFor(pawn.gender),
+                        3, PawnCategoryType.Bio, pawnIndex, bioNode,
+                        tooltip: childhood.FullDescriptionFor(pawn).Resolve()));
                 }
 
                 // Adulthood backstory
                 var adulthood = pawn.story.GetBackstory(BackstorySlot.Adulthood);
                 if (adulthood != null)
                 {
-                    bioNode.Children.Add(new PawnTreeItem
-                    {
-                        Label = "Adulthood".Translate() + ": " + adulthood.TitleCapFor(pawn.gender),
-                        Tooltip = adulthood.FullDescriptionFor(pawn).Resolve(),
-                        IndentLevel = 3,
-                        NodeType = PawnNodeType.Leaf,
-                        CategoryType = PawnCategoryType.Bio,
-                        PawnIndex = pawnIndex,
-                        Parent = bioNode
-                    });
+                    bioNode.Children.Add(MakeLeaf(
+                        "Adulthood".Translate() + ": " + adulthood.TitleCapFor(pawn.gender),
+                        3, PawnCategoryType.Bio, pawnIndex, bioNode,
+                        tooltip: adulthood.FullDescriptionFor(pawn).Resolve()));
                 }
 
                 // Custom title
                 if (pawn.story.title != null)
                 {
-                    bioNode.Children.Add(new PawnTreeItem
-                    {
-                        Label = "BackstoryTitle".Translate() + ": " + pawn.story.title,
-                        IndentLevel = 3,
-                        NodeType = PawnNodeType.Leaf,
-                        CategoryType = PawnCategoryType.Bio,
-                        PawnIndex = pawnIndex,
-                        Parent = bioNode
-                    });
+                    bioNode.Children.Add(MakeLeaf(
+                        "BackstoryTitle".Translate() + ": " + pawn.story.title,
+                        3, PawnCategoryType.Bio, pawnIndex, bioNode));
                 }
             }
 
@@ -319,60 +358,35 @@ namespace RimWorldAccess
             {
                 string xenotypeLabel = pawn.genes.XenotypeLabelCap;
                 string xenotypeDesc = pawn.genes.XenotypeDescShort;
-                bioNode.Children.Add(new PawnTreeItem
-                {
-                    Label = "Xenotype".Translate() + ": " + xenotypeLabel,
-                    Tooltip = xenotypeDesc,
-                    IndentLevel = 3,
-                    NodeType = PawnNodeType.Leaf,
-                    CategoryType = PawnCategoryType.Bio,
-                    PawnIndex = pawnIndex,
-                    Parent = bioNode,
-                    Data = pawn.genes?.Xenotype
-                });
+                bioNode.Children.Add(MakeLeaf(
+                    "Xenotype".Translate() + ": " + xenotypeLabel,
+                    3, PawnCategoryType.Bio, pawnIndex, bioNode,
+                    tooltip: xenotypeDesc, domainData: pawn.genes?.Xenotype));
             }
 
             // Faction
             if (pawn.Faction != null && !pawn.Faction.Hidden)
             {
-                bioNode.Children.Add(new PawnTreeItem
-                {
-                    Label = "Faction".Translate() + ": " + pawn.Faction.Name,
-                    IndentLevel = 3,
-                    NodeType = PawnNodeType.Leaf,
-                    CategoryType = PawnCategoryType.Bio,
-                    PawnIndex = pawnIndex,
-                    Parent = bioNode
-                });
+                bioNode.Children.Add(MakeLeaf(
+                    "Faction".Translate() + ": " + pawn.Faction.Name,
+                    3, PawnCategoryType.Bio, pawnIndex, bioNode));
             }
 
             // Ideology
             if (ModsConfig.IdeologyActive && !Find.IdeoManager.classicMode && pawn.Ideo != null)
             {
-                bioNode.Children.Add(new PawnTreeItem
-                {
-                    Label = pawn.Ideo.name,
-                    IndentLevel = 3,
-                    NodeType = PawnNodeType.Leaf,
-                    CategoryType = PawnCategoryType.Bio,
-                    PawnIndex = pawnIndex,
-                    Parent = bioNode
-                });
+                bioNode.Children.Add(MakeLeaf(
+                    pawn.Ideo.name,
+                    3, PawnCategoryType.Bio, pawnIndex, bioNode));
 
                 // Role
                 var role = pawn.Ideo.GetRole(pawn);
                 if (role != null)
                 {
-                    bioNode.Children.Add(new PawnTreeItem
-                    {
-                        Label = role.LabelForPawn(pawn),
-                        Tooltip = role.GetTip(),
-                        IndentLevel = 3,
-                        NodeType = PawnNodeType.Leaf,
-                        CategoryType = PawnCategoryType.Bio,
-                        PawnIndex = pawnIndex,
-                        Parent = bioNode
-                    });
+                    bioNode.Children.Add(MakeLeaf(
+                        role.LabelForPawn(pawn),
+                        3, PawnCategoryType.Bio, pawnIndex, bioNode,
+                        tooltip: role.GetTip()));
                 }
             }
 
@@ -390,36 +404,23 @@ namespace RimWorldAccess
                     0.6f.ToStringPercent().Named("PERCENTAGE"),
                     orIdeoColor.Named("ORIDEO")
                 ).Resolve();
-                bioNode.Children.Add(new PawnTreeItem
-                {
-                    Label = colorLabel,
-                    IndentLevel = 3,
-                    NodeType = PawnNodeType.Leaf,
-                    CategoryType = PawnCategoryType.Bio,
-                    PawnIndex = pawnIndex,
-                    Parent = bioNode
-                });
+                bioNode.Children.Add(MakeLeaf(
+                    colorLabel, 3, PawnCategoryType.Bio, pawnIndex, bioNode));
             }
         }
 
-        private static void BuildTraitItems(Pawn pawn, PawnTreeItem traitsNode)
+        private static void BuildTraitItems(Pawn pawn, InspectionTreeItem traitsNode)
         {
             traitsNode.Children.Clear();
+            var ptd = (PawnTreeData)traitsNode.Data;
 
             if (pawn.story?.traits == null || pawn.story.traits.allTraits.Count == 0)
             {
                 string noTraitsLabel = pawn.DevelopmentalStage.Baby()
                     ? "TraitsDevelopLaterBaby".Translate()
                     : "None".Translate();
-                traitsNode.Children.Add(new PawnTreeItem
-                {
-                    Label = noTraitsLabel,
-                    IndentLevel = 3,
-                    NodeType = PawnNodeType.Leaf,
-                    CategoryType = PawnCategoryType.Traits,
-                    PawnIndex = traitsNode.PawnIndex,
-                    Parent = traitsNode
-                });
+                traitsNode.Children.Add(MakeLeaf(
+                    noTraitsLabel, 3, PawnCategoryType.Traits, ptd.PawnIndex, traitsNode));
                 return;
             }
 
@@ -429,36 +430,22 @@ namespace RimWorldAccess
                 if (trait.Suppressed)
                     label += " (" + "Suppressed".Translate() + ")";
 
-                traitsNode.Children.Add(new PawnTreeItem
-                {
-                    Label = label,
-                    Tooltip = trait.TipString(pawn),
-                    IndentLevel = 3,
-                    NodeType = PawnNodeType.Leaf,
-                    CategoryType = PawnCategoryType.Traits,
-                    PawnIndex = traitsNode.PawnIndex,
-                    Data = trait,
-                    Parent = traitsNode
-                });
+                traitsNode.Children.Add(MakeLeaf(
+                    label, 3, PawnCategoryType.Traits, ptd.PawnIndex, traitsNode,
+                    tooltip: trait.TipString(pawn), domainData: trait));
             }
         }
 
-        private static void BuildIncapableOfItems(Pawn pawn, PawnTreeItem incapableNode)
+        private static void BuildIncapableOfItems(Pawn pawn, InspectionTreeItem incapableNode)
         {
             incapableNode.Children.Clear();
+            var ptd = (PawnTreeData)incapableNode.Data;
 
             WorkTags disabledTags = pawn.CombinedDisabledWorkTags;
             if (disabledTags == WorkTags.None)
             {
-                incapableNode.Children.Add(new PawnTreeItem
-                {
-                    Label = "None".Translate(),
-                    IndentLevel = 3,
-                    NodeType = PawnNodeType.Leaf,
-                    CategoryType = PawnCategoryType.IncapableOf,
-                    PawnIndex = incapableNode.PawnIndex,
-                    Parent = incapableNode
-                });
+                incapableNode.Children.Add(MakeLeaf(
+                    "None".Translate(), 3, PawnCategoryType.IncapableOf, ptd.PawnIndex, incapableNode));
                 return;
             }
 
@@ -469,17 +456,9 @@ namespace RimWorldAccess
                 string tagLabel = tag.LabelTranslated().CapitalizeFirst();
                 string tooltip = GetWorkTypeDisabledCausedBy(pawn, tag);
 
-                incapableNode.Children.Add(new PawnTreeItem
-                {
-                    Label = tagLabel,
-                    Tooltip = tooltip,
-                    IndentLevel = 3,
-                    NodeType = PawnNodeType.Leaf,
-                    CategoryType = PawnCategoryType.IncapableOf,
-                    PawnIndex = incapableNode.PawnIndex,
-                    Data = tag,
-                    Parent = incapableNode
-                });
+                incapableNode.Children.Add(MakeLeaf(
+                    tagLabel, 3, PawnCategoryType.IncapableOf, ptd.PawnIndex, incapableNode,
+                    tooltip: tooltip, domainData: tag));
             }
         }
 
@@ -585,21 +564,15 @@ namespace RimWorldAccess
             return sb.ToString().TrimEnd();
         }
 
-        private static void BuildSkillItems(Pawn pawn, PawnTreeItem skillsNode)
+        private static void BuildSkillItems(Pawn pawn, InspectionTreeItem skillsNode)
         {
             skillsNode.Children.Clear();
+            var ptd = (PawnTreeData)skillsNode.Data;
 
             if (pawn.DevelopmentalStage.Baby())
             {
-                skillsNode.Children.Add(new PawnTreeItem
-                {
-                    Label = "SkillsDevelopLaterBaby".Translate(),
-                    IndentLevel = 3,
-                    NodeType = PawnNodeType.Leaf,
-                    CategoryType = PawnCategoryType.Skills,
-                    PawnIndex = skillsNode.PawnIndex,
-                    Parent = skillsNode
-                });
+                skillsNode.Children.Add(MakeLeaf(
+                    "SkillsDevelopLaterBaby".Translate(), 3, PawnCategoryType.Skills, ptd.PawnIndex, skillsNode));
                 return;
             }
 
@@ -622,17 +595,9 @@ namespace RimWorldAccess
 
                 string tooltip = BuildSkillTooltip(pawn, skill);
 
-                skillsNode.Children.Add(new PawnTreeItem
-                {
-                    Label = label,
-                    Tooltip = tooltip,
-                    IndentLevel = 3,
-                    NodeType = PawnNodeType.Leaf,
-                    CategoryType = PawnCategoryType.Skills,
-                    PawnIndex = skillsNode.PawnIndex,
-                    Data = skill,
-                    Parent = skillsNode
-                });
+                skillsNode.Children.Add(MakeLeaf(
+                    label, 3, PawnCategoryType.Skills, ptd.PawnIndex, skillsNode,
+                    tooltip: tooltip, domainData: skill));
             }
         }
 
@@ -662,9 +627,10 @@ namespace RimWorldAccess
             return sb.ToString().TrimEnd();
         }
 
-        private static void BuildHealthItems(Pawn pawn, PawnTreeItem healthNode)
+        private static void BuildHealthItems(Pawn pawn, InspectionTreeItem healthNode)
         {
             healthNode.Children.Clear();
+            var ptd = (PawnTreeData)healthNode.Data;
 
             if (pawn.health?.hediffSet == null)
                 return;
@@ -672,15 +638,8 @@ namespace RimWorldAccess
             var hediffs = pawn.health.hediffSet.hediffs;
             if (hediffs == null || hediffs.Count == 0)
             {
-                healthNode.Children.Add(new PawnTreeItem
-                {
-                    Label = "None".Translate(),
-                    IndentLevel = 3,
-                    NodeType = PawnNodeType.Leaf,
-                    CategoryType = PawnCategoryType.Health,
-                    PawnIndex = healthNode.PawnIndex,
-                    Parent = healthNode
-                });
+                healthNode.Children.Add(MakeLeaf(
+                    "None".Translate(), 3, PawnCategoryType.Health, ptd.PawnIndex, healthNode));
                 return;
             }
 
@@ -696,36 +655,21 @@ namespace RimWorldAccess
                     ? tipExtra.Replace("\n", ", ").TrimEnd(',', ' ')
                     : null;
 
-                healthNode.Children.Add(new PawnTreeItem
-                {
-                    Label = label,
-                    Tooltip = tooltip,
-                    IndentLevel = 3,
-                    NodeType = PawnNodeType.Leaf,
-                    CategoryType = PawnCategoryType.Health,
-                    PawnIndex = healthNode.PawnIndex,
-                    Data = hediff,
-                    Parent = healthNode
-                });
+                healthNode.Children.Add(MakeLeaf(
+                    label, 3, PawnCategoryType.Health, ptd.PawnIndex, healthNode,
+                    tooltip: tooltip, domainData: hediff));
             }
         }
 
-        private static void BuildPossessionItems(Pawn pawn, int pawnIndex, PawnTreeItem possessionsNode)
+        private static void BuildPossessionItems(Pawn pawn, int pawnIndex, InspectionTreeItem possessionsNode)
         {
             possessionsNode.Children.Clear();
 
             var possessions = Find.GameInitData?.startingPossessions;
             if (possessions == null || !possessions.TryGetValue(pawn, out var items) || items.Count == 0)
             {
-                possessionsNode.Children.Add(new PawnTreeItem
-                {
-                    Label = "None".Translate(),
-                    IndentLevel = 3,
-                    NodeType = PawnNodeType.Leaf,
-                    CategoryType = PawnCategoryType.Possessions,
-                    PawnIndex = pawnIndex,
-                    Parent = possessionsNode
-                });
+                possessionsNode.Children.Add(MakeLeaf(
+                    "None".Translate(), 3, PawnCategoryType.Possessions, pawnIndex, possessionsNode));
                 return;
             }
 
@@ -737,17 +681,9 @@ namespace RimWorldAccess
 
                 string tooltip = item.ThingDef.LabelCap + "\n" + item.ThingDef.description;
 
-                possessionsNode.Children.Add(new PawnTreeItem
-                {
-                    Label = label,
-                    Tooltip = tooltip,
-                    IndentLevel = 3,
-                    NodeType = PawnNodeType.Leaf,
-                    CategoryType = PawnCategoryType.Possessions,
-                    PawnIndex = pawnIndex,
-                    Data = item,
-                    Parent = possessionsNode
-                });
+                possessionsNode.Children.Add(MakeLeaf(
+                    label, 3, PawnCategoryType.Possessions, pawnIndex, possessionsNode,
+                    tooltip: tooltip, domainData: item));
             }
         }
 
@@ -883,7 +819,7 @@ namespace RimWorldAccess
             var options = new List<FloatMenuOption>();
             infoCardDefs = new List<Def>();
 
-            // "Any (non-archite)" — no info card
+            // "Any (non-archite)" -- no info card
             options.Add(new FloatMenuOption("AnyNonArchite".Translate(), () =>
             {
                 var req = StartingPawnUtility.GetGenerationRequest(pawnIndex);
@@ -940,12 +876,13 @@ namespace RimWorldAccess
         /// Builds a summary string for a category node when collapsed.
         /// Returns null if no summary is appropriate (e.g. Skills).
         /// </summary>
-        public static string GetCategorySummary(PawnTreeItem categoryNode)
+        public static string GetCategorySummary(InspectionTreeItem categoryNode)
         {
-            if (!categoryNode.CategoryType.HasValue || categoryNode.Children.Count == 0)
+            var ptd = categoryNode.Data as PawnTreeData;
+            if (ptd == null || !ptd.CategoryType.HasValue || categoryNode.Children.Count == 0)
                 return null;
 
-            switch (categoryNode.CategoryType.Value)
+            switch (ptd.CategoryType.Value)
             {
                 case PawnCategoryType.Bio:
                     // Summarize key bio fields: first child is gender/age, then backstories
@@ -1010,6 +947,14 @@ namespace RimWorldAccess
         public static int GetStartingPawnCount()
         {
             return Find.GameInitData?.startingPawnCount ?? 0;
+        }
+
+        /// <summary>
+        /// Gets the PawnTreeData from an InspectionTreeItem, or null if not present.
+        /// </summary>
+        public static PawnTreeData GetPawnData(InspectionTreeItem item)
+        {
+            return item?.Data as PawnTreeData;
         }
     }
 }

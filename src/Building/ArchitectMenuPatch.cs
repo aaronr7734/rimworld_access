@@ -120,6 +120,8 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Handles keyboard input when the architect tree menu is active.
+        /// Delegates standard tree navigation to TreeNavigationHelper via ArchitectTreeState.HandleInput,
+        /// and handles architect-specific keys (Right Bracket, Escape close) here.
         /// </summary>
         private static void HandleArchitectTreeInput()
         {
@@ -130,116 +132,8 @@ namespace RimWorldAccess
             KeyCode key = Event.current.keyCode;
             key = KeyboardHelper.RemapCharacterToKeyCode(key);
 
-            // Handle Escape - clear search first, then close
-            if (key == KeyCode.Escape)
-            {
-                if (ArchitectTreeState.HasActiveSearch)
-                {
-                    ArchitectTreeState.ClearTypeaheadSearch();
-                }
-                else
-                {
-                    ArchitectTreeState.Close();
-                    ArchitectState.Reset(); // Also reset ArchitectState so Tab works again
-                    TolkHelper.Speak("Architect menu closed");
-                }
-                Event.current.Use();
-                return;
-            }
-
-            // Handle Home - jump to first (Ctrl = absolute, otherwise = within node)
-            if (key == KeyCode.Home)
-            {
-                if (Event.current.control)
-                    ArchitectTreeState.JumpToAbsoluteFirst();
-                else
-                    ArchitectTreeState.JumpToFirst();
-                Event.current.Use();
-                return;
-            }
-
-            // Handle End - jump to last (Ctrl = absolute, otherwise = within node)
-            if (key == KeyCode.End)
-            {
-                if (Event.current.control)
-                    ArchitectTreeState.JumpToAbsoluteLast();
-                else
-                    ArchitectTreeState.JumpToLast();
-                Event.current.Use();
-                return;
-            }
-
-            // Handle Backspace for search
-            if (key == KeyCode.Backspace && ArchitectTreeState.HasActiveSearch)
-            {
-                ArchitectTreeState.ProcessBackspace();
-                Event.current.Use();
-                return;
-            }
-
-            // Handle * key - expand all sibling categories
-            bool isStar = key == KeyCode.KeypadMultiply || (Event.current.shift && key == KeyCode.Alpha8);
-            if (isStar)
-            {
-                ArchitectTreeState.ExpandAllSiblings();
-                Event.current.Use();
-                return;
-            }
-
-            // Handle Up/Down with typeahead filtering
-            if (key == KeyCode.UpArrow)
-            {
-                if (ArchitectTreeState.HasActiveSearch && !ArchitectTreeState.HasNoMatches)
-                {
-                    ArchitectTreeState.SelectPreviousMatch();
-                }
-                else
-                {
-                    ArchitectTreeState.SelectPrevious();
-                }
-                Event.current.Use();
-                return;
-            }
-
-            if (key == KeyCode.DownArrow)
-            {
-                if (ArchitectTreeState.HasActiveSearch && !ArchitectTreeState.HasNoMatches)
-                {
-                    ArchitectTreeState.SelectNextMatch();
-                }
-                else
-                {
-                    ArchitectTreeState.SelectNext();
-                }
-                Event.current.Use();
-                return;
-            }
-
-            // Handle Right arrow - expand or move to first child
-            if (key == KeyCode.RightArrow)
-            {
-                ArchitectTreeState.ExpandCurrent();
-                Event.current.Use();
-                return;
-            }
-
-            // Handle Left arrow - collapse or move to parent
-            if (key == KeyCode.LeftArrow)
-            {
-                ArchitectTreeState.CollapseCurrent();
-                Event.current.Use();
-                return;
-            }
-
-            // Handle Enter - activate current item
-            if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
-            {
-                ArchitectTreeState.ActivateCurrent();
-                Event.current.Use();
-                return;
-            }
-
             // Handle Right Bracket - open right-click options for selected designator
+            // (architect-specific, not part of standard tree navigation)
             if (key == KeyCode.RightBracket)
             {
                 OpenDesignatorRightClickOptions();
@@ -247,7 +141,8 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Handle Alt+I - open info card for selected designator
+            // Handle Alt+I - open info card for selected designator's PlacingDef
+            // (architect-specific: needs Designator_Build awareness, not generic tree LinkedDef)
             if (key == KeyCode.I && KeyboardHelper.IsAltHeld)
             {
                 OpenDesignatorInfoCard();
@@ -255,12 +150,19 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Handle typeahead search characters (letters only)
-            bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
-            if (isLetter && !KeyboardHelper.IsAltHeld && !Event.current.shift)
+            // Delegate standard tree navigation to TreeNavigationHelper
+            if (ArchitectTreeState.HandleInput(Event.current))
             {
-                char c = (char)('a' + (key - KeyCode.A));
-                ArchitectTreeState.ProcessTypeaheadCharacter(c);
+                Event.current.Use();
+                return;
+            }
+
+            // HandleInput returned false = Escape with no active search
+            if (key == KeyCode.Escape)
+            {
+                ArchitectTreeState.Close();
+                ArchitectState.Reset(); // Also reset ArchitectState so Tab works again
+                TolkHelper.Speak("Architect menu closed");
                 Event.current.Use();
                 return;
             }

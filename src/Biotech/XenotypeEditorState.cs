@@ -13,8 +13,8 @@ namespace RimWorldAccess
     /// <summary>
     /// Manages accessible keyboard navigation for Dialog_CreateXenotype (xenotype editor).
     /// Uses a tabbed treeview architecture: Tab/Shift+Tab switches between Selected Genes,
-    /// Gene Library (organized by GeneCategoryDef), and Controls. Each gene tab is an
-    /// InspectionTreeItem treeview with WCAG tree keyboard navigation.
+    /// Gene Library (organized by GeneCategoryDef), and Controls. Each gene tab uses a
+    /// TreeNavigationHelper instance with WCAG tree keyboard navigation.
     /// </summary>
     public static class XenotypeEditorState
     {
@@ -30,16 +30,10 @@ namespace RimWorldAccess
         private static Tab currentTab;
 
         // ===== Per-Tab State: Selected Genes =====
-        private static InspectionTreeItem selectedRoot;
-        private static List<InspectionTreeItem> selectedVisible = new List<InspectionTreeItem>();
-        private static int selectedIdx;
-        private static TypeaheadSearchHelper selectedTypeahead = new TypeaheadSearchHelper();
+        private static TreeNavigationHelper selectedTreeNav = new TreeNavigationHelper("XenotypeEditorSelected");
 
         // ===== Per-Tab State: Gene Library =====
-        private static InspectionTreeItem libraryRoot;
-        private static List<InspectionTreeItem> libraryVisible = new List<InspectionTreeItem>();
-        private static int libraryIdx;
-        private static TypeaheadSearchHelper libraryTypeahead = new TypeaheadSearchHelper();
+        private static TreeNavigationHelper libraryTreeNav = new TreeNavigationHelper("XenotypeEditorLibrary");
 
         // ===== Controls Tab =====
         private static List<ControlItem> controlItems = new List<ControlItem>();
@@ -92,6 +86,20 @@ namespace RimWorldAccess
             mi_onGenesChanged = AccessTools.Method(typeof(GeneCreationDialogBase), "OnGenesChanged");
             mi_accept = AccessTools.Method(typeof(Dialog_CreateXenotype), "Accept");
             mi_canAccept = AccessTools.Method(typeof(Dialog_CreateXenotype), "CanAccept");
+
+            // Configure Selected tree helper
+            selectedTreeNav.FormatItemAnnouncement = FormatTreeItemAnnouncement;
+            selectedTreeNav.FormatSearchAnnouncement = FormatTreeSearchAnnouncement;
+            selectedTreeNav.OnActivate = item => HandleTreeEnter(item, isSelectedTab: true);
+            selectedTreeNav.OnBeforeExpand = LazyLoadChildren;
+            selectedTreeNav.AnnounceChildCounts = false;
+
+            // Configure Library tree helper
+            libraryTreeNav.FormatItemAnnouncement = FormatTreeItemAnnouncement;
+            libraryTreeNav.FormatSearchAnnouncement = FormatTreeSearchAnnouncement;
+            libraryTreeNav.OnActivate = item => HandleTreeEnter(item, isSelectedTab: false);
+            libraryTreeNav.OnBeforeExpand = LazyLoadChildren;
+            libraryTreeNav.AnnounceChildCounts = false;
         }
 
         // ===== Lifecycle =====
@@ -115,11 +123,7 @@ namespace RimWorldAccess
                 currentTab = (selected != null && selected.Count > 0) ? Tab.Selected : Tab.Library;
 
                 // Reset navigation
-                selectedIdx = 0;
-                libraryIdx = 0;
                 controlIdx = 0;
-                selectedTypeahead.ClearSearch();
-                libraryTypeahead.ClearSearch();
                 MenuHelper.ResetLevel(LevelKey);
 
                 SoundDefOf.TabOpen.PlayOneShotOnCamera();
@@ -137,16 +141,10 @@ namespace RimWorldAccess
             isActive = false;
             isRenaming = false;
             dialog = null;
-            selectedRoot = null;
-            selectedVisible.Clear();
-            libraryRoot = null;
-            libraryVisible.Clear();
+            selectedTreeNav.Reset();
+            libraryTreeNav.Reset();
             controlItems.Clear();
-            selectedIdx = 0;
-            libraryIdx = 0;
             controlIdx = 0;
-            selectedTypeahead.ClearSearch();
-            libraryTypeahead.ClearSearch();
             MenuHelper.ResetLevel(LevelKey);
         }
 
@@ -201,11 +199,9 @@ namespace RimWorldAccess
             switch (currentTab)
             {
                 case Tab.Selected:
-                    return HandleTreeInput(ev, key, shift, ctrl, alt,
-                        selectedVisible, selectedTypeahead, selectedRoot, true);
+                    return HandleTreeTabInput(ev, key, alt, selectedTreeNav, true);
                 case Tab.Library:
-                    return HandleTreeInput(ev, key, shift, ctrl, alt,
-                        libraryVisible, libraryTypeahead, libraryRoot, false);
+                    return HandleTreeTabInput(ev, key, alt, libraryTreeNav, false);
                 case Tab.Controls:
                     return HandleControlsInput(key, shift, ctrl, alt, ev);
             }
@@ -213,164 +209,67 @@ namespace RimWorldAccess
             return false;
         }
 
-        private static bool HandleTreeInput(Event ev, KeyCode key, bool shift, bool ctrl, bool alt,
-            List<InspectionTreeItem> visible, TypeaheadSearchHelper typeahead,
-            InspectionTreeItem root, bool isSelectedTab)
+        private static bool HandleTreeTabInput(Event ev, KeyCode key, bool alt, TreeNavigationHelper treeNav, bool isSelectedTab)
         {
-            if (visible == null || visible.Count == 0)
-            {
+            if (treeNav.Count == 0)
                 return false;
-            }
 
-            int idx = GetTreeIdx(isSelectedTab);
-
-            // Up arrow
-            if (key == KeyCode.UpArrow && !alt)
+            // Space - same as Enter (toggle gene / expand / collapse)
+            if (key == KeyCode.Space)
             {
-                if (typeahead.HasActiveSearch)
+                var item = treeNav.SelectedItem;
+                if (item != null)
                 {
-                    int prev = typeahead.GetPreviousMatch(idx);
-                    if (prev >= 0) idx = prev;
+                    if (!HandleTreeEnter(item, isSelectedTab))
+                    {
+                        // HandleTreeEnter returned false — fall through to default expand/collapse
+                        treeNav.ExpandOrDrillDown();
+                    }
                 }
-                else
-                {
-                    idx = MenuHelper.SelectPrevious(idx, visible.Count);
-                }
-                SetTreeIdx(isSelectedTab, idx);
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                AnnounceTreeItem(visible, idx, root);
-                return true;
-            }
-
-            // Down arrow
-            if (key == KeyCode.DownArrow && !alt)
-            {
-                if (typeahead.HasActiveSearch)
-                {
-                    int next = typeahead.GetNextMatch(idx);
-                    if (next >= 0) idx = next;
-                }
-                else
-                {
-                    idx = MenuHelper.SelectNext(idx, visible.Count);
-                }
-                SetTreeIdx(isSelectedTab, idx);
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                AnnounceTreeItem(visible, idx, root);
-                return true;
-            }
-
-            // Right arrow - expand
-            if (key == KeyCode.RightArrow && !alt)
-            {
-                ExpandNode(visible, isSelectedTab, root);
-                return true;
-            }
-
-            // Left arrow - collapse
-            if (key == KeyCode.LeftArrow && !alt)
-            {
-                CollapseNode(visible, isSelectedTab, root);
-                return true;
-            }
-
-            // Home
-            if (key == KeyCode.Home && !alt)
-            {
-                typeahead.ClearSearch();
-                int homeIdx = GetTreeIdx(isSelectedTab);
-                MenuHelper.HandleTreeHomeKey(visible, ref homeIdx,
-                    item => item.IndentLevel, ctrl,
-                    () => { });
-                SetTreeIdx(isSelectedTab, homeIdx);
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                AnnounceTreeItem(visible, homeIdx, root);
-                return true;
-            }
-
-            // End
-            if (key == KeyCode.End && !alt)
-            {
-                typeahead.ClearSearch();
-                int endIdx = GetTreeIdx(isSelectedTab);
-                MenuHelper.HandleTreeEndKey(visible, ref endIdx,
-                    item => item.IndentLevel,
-                    item => item.IsExpanded,
-                    item => item.IsExpandable && item.Children.Count > 0,
-                    ctrl,
-                    () => { });
-                SetTreeIdx(isSelectedTab, endIdx);
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                AnnounceTreeItem(visible, endIdx, root);
                 return true;
             }
 
             // Page Down - jump to next top-level item (gene in Selected, category in Library)
             if (key == KeyCode.PageDown && !alt)
             {
-                JumpToNextTopLevel(visible, isSelectedTab, root, forward: true);
+                JumpToNextTopLevel(treeNav, forward: true);
                 return true;
             }
 
             // Page Up - jump to previous top-level item
             if (key == KeyCode.PageUp && !alt)
             {
-                JumpToNextTopLevel(visible, isSelectedTab, root, forward: false);
+                JumpToNextTopLevel(treeNav, forward: false);
                 return true;
             }
 
-            // Asterisk (*) - expand all siblings
-            bool isStar = key == KeyCode.KeypadMultiply || (shift && key == KeyCode.Alpha8);
-            if (isStar)
+            // Left arrow - intercept to restore GeneDef label on collapse
+            if (key == KeyCode.LeftArrow && !alt)
             {
-                ExpandAllSiblings(visible, isSelectedTab, root);
+                HandleLeftArrow(treeNav);
                 return true;
             }
 
-            // Enter / Space - context action
-            if (key == KeyCode.Return || key == KeyCode.KeypadEnter || key == KeyCode.Space)
+            // Delegate all other input to TreeNavigationHelper
+            return treeNav.HandleInput(ev);
+        }
+
+        /// <summary>
+        /// Handles left arrow with GeneDef label restoration on collapse.
+        /// </summary>
+        private static void HandleLeftArrow(TreeNavigationHelper treeNav)
+        {
+            var item = treeNav.SelectedItem;
+            if (item == null)
+                return;
+
+            // If this is an expanded GeneDef node, restore the rich label before collapsing
+            if (item.IsExpandable && item.IsExpanded && item.Data is GeneDef && !string.IsNullOrEmpty(item.Description))
             {
-                HandleTreeEnter(visible, isSelectedTab, root);
-                return true;
+                item.Label = item.Description;
             }
 
-            // Backspace - clear search
-            if (key == KeyCode.Backspace)
-            {
-                if (typeahead.HasActiveSearch)
-                {
-                    var labels = BuildSearchLabels(visible);
-                    if (typeahead.ProcessBackspace(labels, out int newIndex))
-                    {
-                        if (newIndex >= 0) SetTreeIdx(isSelectedTab, newIndex);
-                        AnnounceWithSearch(visible, GetTreeIdx(isSelectedTab), root, typeahead);
-                    }
-                    return true;
-                }
-                return false;
-            }
-
-            // Typeahead - alphanumeric characters (not with Alt modifier)
-            if (!alt && ev.character != '\0' && char.IsLetterOrDigit(ev.character))
-            {
-                var labels = BuildSearchLabels(visible);
-                if (typeahead.ProcessCharacterInput(ev.character, labels, out int newIndex))
-                {
-                    if (newIndex >= 0)
-                    {
-                        SetTreeIdx(isSelectedTab, newIndex);
-                        AnnounceWithSearch(visible, newIndex, root, typeahead);
-                    }
-                }
-                else
-                {
-                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'.");
-                }
-                return true;
-            }
-
-            return false;
+            treeNav.CollapseOrDrillUp();
         }
 
         private static bool HandleControlsInput(KeyCode key, bool shift, bool ctrl, bool alt, Event ev)
@@ -437,7 +336,7 @@ namespace RimWorldAccess
         private static void SwitchTab(bool forward)
         {
             // Clear current tab's search
-            GetCurrentTypeahead()?.ClearSearch();
+            GetCurrentTreeNav()?.Typeahead.ClearSearch();
 
             int tabCount = 3; // Selected, Library, Controls
             int idx = (int)currentTab;
@@ -466,23 +365,11 @@ namespace RimWorldAccess
         private static bool HandleEscape()
         {
             // First: clear search if active
-            var typeahead = GetCurrentTypeahead();
-            if (typeahead != null && typeahead.HasActiveSearch)
+            var treeNav = GetCurrentTreeNav();
+            if (treeNav != null && treeNav.HasActiveSearch)
             {
-                typeahead.ClearSearchAndAnnounce();
-                // Re-announce current item
-                switch (currentTab)
-                {
-                    case Tab.Selected:
-                        if (selectedVisible.Count > 0) AnnounceTreeItem(selectedVisible, selectedIdx, selectedRoot);
-                        break;
-                    case Tab.Library:
-                        if (libraryVisible.Count > 0) AnnounceTreeItem(libraryVisible, libraryIdx, libraryRoot);
-                        break;
-                    case Tab.Controls:
-                        AnnounceControlItem();
-                        break;
-                }
+                treeNav.Typeahead.ClearSearchAndAnnounce();
+                treeNav.ReannounceCurrentItem();
                 return true;
             }
 
@@ -588,137 +475,51 @@ namespace RimWorldAccess
             TolkHelper.Speak($"Renamed to {newName}. Name locked.");
         }
 
-        // ===== Tree Operations =====
+        // ===== Lazy Loading =====
 
-        private static void ExpandNode(List<InspectionTreeItem> visible, bool isSelectedTab, InspectionTreeItem root)
+        private static void LazyLoadChildren(InspectionTreeItem item)
         {
-            int idx = GetTreeIdx(isSelectedTab);
-            if (idx < 0 || idx >= visible.Count)
-                return;
-
-            var item = visible[idx];
-
-            // Leaf node - reject
-            if (!item.IsExpandable)
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                return;
-            }
-
-            // Already expanded - move to first child
-            if (item.IsExpanded)
-            {
-                if (idx + 1 < visible.Count && visible[idx + 1].Parent == item)
-                {
-                    SetTreeIdx(isSelectedTab, idx + 1);
-                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                    AnnounceTreeItem(visible, idx + 1, root);
-                }
-                return;
-            }
-
-            // Collapsed - expand
             if (item.OnActivate != null && item.Children.Count == 0)
-            {
                 item.OnActivate();
-            }
-
-            if (item.Children.Count == 0)
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                return;
-            }
-
-            item.IsExpanded = true;
-            RebuildCurrentVisibleList(isSelectedTab, idx);
-            SoundDefOf.Click.PlayOneShotOnCamera();
-            AnnounceTreeItem(visible, idx, root);
         }
 
-        private static void CollapseNode(List<InspectionTreeItem> visible, bool isSelectedTab, InspectionTreeItem root)
+        // ===== Enter Key Actions =====
+
+        private static bool HandleTreeEnter(InspectionTreeItem item, bool isSelectedTab)
         {
-            int idx = GetTreeIdx(isSelectedTab);
-            if (idx < 0 || idx >= visible.Count)
-                return;
+            if (item == null)
+                return true;
 
-            var item = visible[idx];
-
-            // Expanded - collapse
-            if (item.IsExpandable && item.IsExpanded)
+            // Gene item (IndentLevel 0 in Selected, IndentLevel 1 in Library) - toggle selection
+            if (item.Data is GeneDef gene)
             {
-                item.IsExpanded = false;
-
-                // Restore rich label for gene nodes (Description stores the rich collapsed label)
-                if (item.Data is GeneDef && !string.IsNullOrEmpty(item.Description))
-                {
-                    item.Label = item.Description;
-                }
-
-                RebuildCurrentVisibleList(isSelectedTab, idx);
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                AnnounceTreeItem(visible, idx, root);
-                return;
+                ToggleGene(gene);
+                return true;
             }
 
-            // Move to parent
-            var parent = item.Parent;
-            if (parent == null || parent == root)
+            // Category node in Library (IndentLevel 0, Data is GeneCategoryDef) - let default handle expand/collapse
+            if (item.Data is GeneCategoryDef)
             {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                return;
+                return false; // fall through to default toggle behavior
             }
 
-            int parentIdx = visible.IndexOf(parent);
-            if (parentIdx >= 0)
-            {
-                SetTreeIdx(isSelectedTab, parentIdx);
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                AnnounceTreeItem(visible, parentIdx, root);
-            }
+            // Expandable node - let default handle expand/collapse
+            if (item.IsExpandable)
+                return false;
+
+            SoundDefOf.ClickReject.PlayOneShotOnCamera();
+            return true;
         }
 
-        private static void ExpandAllSiblings(List<InspectionTreeItem> visible, bool isSelectedTab, InspectionTreeItem root)
+        // ===== Page Up/Down: Jump Between Top-Level Items =====
+
+        private static void JumpToNextTopLevel(TreeNavigationHelper treeNav, bool forward)
         {
-            int idx = GetTreeIdx(isSelectedTab);
-            if (idx < 0 || idx >= visible.Count)
+            if (treeNav.Count == 0)
                 return;
 
-            var item = visible[idx];
-            var siblings = (item.Parent == null || item.Parent == root) ? root.Children : item.Parent.Children;
-
-            int expandedCount = 0;
-            foreach (var sibling in siblings)
-            {
-                if (sibling.IsExpandable && !sibling.IsExpanded)
-                {
-                    if (sibling.OnActivate != null && sibling.Children.Count == 0)
-                        sibling.OnActivate();
-                    if (sibling.Children.Count > 0)
-                    {
-                        sibling.IsExpanded = true;
-                        expandedCount++;
-                    }
-                }
-            }
-
-            if (expandedCount > 0)
-            {
-                RebuildCurrentVisibleList(isSelectedTab, idx);
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                TolkHelper.Speak($"Expanded {expandedCount} {(expandedCount == 1 ? "item" : "items")}.");
-            }
-            else
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            }
-        }
-
-        private static void JumpToNextTopLevel(List<InspectionTreeItem> visible, bool isSelectedTab, InspectionTreeItem root, bool forward)
-        {
-            if (visible == null || visible.Count == 0)
-                return;
-
-            int idx = GetTreeIdx(isSelectedTab);
+            var visible = treeNav.VisibleItems;
+            int idx = treeNav.SelectedIndex;
             int start = idx;
             int direction = forward ? 1 : -1;
             int current = idx + direction;
@@ -727,9 +528,9 @@ namespace RimWorldAccess
             {
                 if (visible[current].IndentLevel == 0)
                 {
-                    SetTreeIdx(isSelectedTab, current);
+                    treeNav.SetSelectedIndex(current);
                     SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                    AnnounceTreeItem(visible, current, root);
+                    treeNav.ReannounceCurrentItem();
                     return;
                 }
                 current += direction;
@@ -743,59 +544,15 @@ namespace RimWorldAccess
                 {
                     if (visible[current].IndentLevel == 0)
                     {
-                        SetTreeIdx(isSelectedTab, current);
+                        treeNav.SetSelectedIndex(current);
                         SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                        AnnounceTreeItem(visible, current, root);
+                        treeNav.ReannounceCurrentItem();
                         return;
                     }
                     current += direction;
                     if (current < 0 || current >= visible.Count)
                         break;
                 }
-            }
-
-            SoundDefOf.ClickReject.PlayOneShotOnCamera();
-        }
-
-        // ===== Enter Key Actions =====
-
-        private static void HandleTreeEnter(List<InspectionTreeItem> visible, bool isSelectedTab, InspectionTreeItem root)
-        {
-            int idx = GetTreeIdx(isSelectedTab);
-            if (idx < 0 || idx >= visible.Count)
-                return;
-
-            var item = visible[idx];
-
-            // Gene item (IndentLevel 0 in Selected, IndentLevel 1 in Library) - toggle selection
-            if (item.Data is GeneDef gene)
-            {
-                ToggleGene(gene);
-                return;
-            }
-
-            // Category node in Library (IndentLevel 0, Data is GeneCategoryDef) - expand/collapse
-            if (item.Data is GeneCategoryDef)
-            {
-                if (!item.IsExpanded)
-                    ExpandNode(visible, isSelectedTab, root);
-                else
-                    CollapseNode(visible, isSelectedTab, root);
-                return;
-            }
-
-            // Expandable node - expand/collapse it (standard tree behavior)
-            if (item.IsExpandable)
-            {
-                if (!item.IsExpanded)
-                {
-                    ExpandNode(visible, isSelectedTab, root);
-                }
-                else
-                {
-                    CollapseNode(visible, isSelectedTab, root);
-                }
-                return;
             }
 
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
@@ -863,27 +620,21 @@ namespace RimWorldAccess
         {
             if (cursorGene == null) return;
 
-            List<InspectionTreeItem> visible;
             switch (currentTab)
             {
                 case Tab.Selected:
-                    visible = selectedVisible;
-                    for (int i = 0; i < visible.Count; i++)
+                    for (int i = 0; i < selectedTreeNav.VisibleItems.Count; i++)
                     {
-                        if (visible[i].Data is GeneDef g && g == cursorGene) { selectedIdx = i; return; }
+                        if (selectedTreeNav.VisibleItems[i].Data is GeneDef g && g == cursorGene) { selectedTreeNav.SetSelectedIndex(i); return; }
                     }
-                    // Gene was removed from selected - clamp index
-                    if (selectedIdx >= visible.Count)
-                        selectedIdx = Math.Max(0, visible.Count - 1);
+                    // Gene was removed from selected - index already clamped by Initialize
                     break;
                 case Tab.Library:
-                    visible = libraryVisible;
-                    for (int i = 0; i < visible.Count; i++)
+                    for (int i = 0; i < libraryTreeNav.VisibleItems.Count; i++)
                     {
-                        if (visible[i].Data is GeneDef g && g == cursorGene) { libraryIdx = i; return; }
+                        if (libraryTreeNav.VisibleItems[i].Data is GeneDef g && g == cursorGene) { libraryTreeNav.SetSelectedIndex(i); return; }
                     }
-                    if (libraryIdx >= visible.Count)
-                        libraryIdx = Math.Max(0, visible.Count - 1);
+                    // Index already clamped by Initialize
                     break;
             }
         }
@@ -1113,18 +864,12 @@ namespace RimWorldAccess
             bool ignoreRestr = dialog != null && (bool)fi_ignoreRestrictions.GetValue(dialog);
 
             // Build Selected tree (flat list of selected genes)
-            selectedRoot = BuildSelectedTree(selectedList);
-            selectedVisible.Clear();
-            CollectVisibleItems(selectedRoot, selectedVisible);
-            if (selectedIdx >= selectedVisible.Count)
-                selectedIdx = Math.Max(0, selectedVisible.Count - 1);
+            var selRoot = BuildSelectedTree(selectedList);
+            selectedTreeNav.Initialize(selRoot);
 
             // Build Library tree (categories with gene children)
-            libraryRoot = BuildLibraryTree(selectedList, ignoreRestr);
-            libraryVisible.Clear();
-            CollectVisibleItems(libraryRoot, libraryVisible);
-            if (libraryIdx >= libraryVisible.Count)
-                libraryIdx = Math.Max(0, libraryVisible.Count - 1);
+            var libRoot = BuildLibraryTree(selectedList, ignoreRestr);
+            libraryTreeNav.Initialize(libRoot);
         }
 
         private static InspectionTreeItem BuildSelectedTree(List<GeneDef> selectedGenes)
@@ -1389,38 +1134,6 @@ namespace RimWorldAccess
             });
         }
 
-        // ===== Visible List Management =====
-
-        private static void RebuildVisibleList(InspectionTreeItem root, List<InspectionTreeItem> visible, ref int idx, int preserveIdx)
-        {
-            visible.Clear();
-            CollectVisibleItems(root, visible);
-            if (preserveIdx >= 0 && preserveIdx < visible.Count)
-                idx = preserveIdx;
-            else if (idx >= visible.Count)
-                idx = Math.Max(0, visible.Count - 1);
-        }
-
-        private static void RebuildCurrentVisibleList(bool isSelectedTab, int preserveIdx)
-        {
-            if (isSelectedTab)
-                RebuildVisibleList(selectedRoot, selectedVisible, ref selectedIdx, preserveIdx);
-            else
-                RebuildVisibleList(libraryRoot, libraryVisible, ref libraryIdx, preserveIdx);
-        }
-
-        private static void CollectVisibleItems(InspectionTreeItem item, List<InspectionTreeItem> list)
-        {
-            if (item.IndentLevel >= 0)
-                list.Add(item);
-
-            if (item.IsExpanded || item.IndentLevel < 0)
-            {
-                foreach (var child in item.Children)
-                    CollectVisibleItems(child, list);
-            }
-        }
-
         // ===== Announcements =====
 
         private static void AnnounceOpening()
@@ -1447,10 +1160,10 @@ namespace RimWorldAccess
             {
                 case Tab.Selected:
                     string selLabel = ((string)"SelectedGenes".Translate()).StripTags();
-                    return $"{selLabel}, {selectedVisible.Count} {(selectedVisible.Count == 1 ? "item" : "items")}.";
+                    return $"{selLabel}, {selectedTreeNav.Count} {(selectedTreeNav.Count == 1 ? "item" : "items")}.";
                 case Tab.Library:
                     string libLabel = ((string)"Genes".Translate()).CapitalizeFirst().StripTags();
-                    int categoryCount = libraryRoot?.Children?.Count ?? 0;
+                    int categoryCount = libraryTreeNav.RootItem?.Children?.Count ?? 0;
                     return $"{libLabel}, {categoryCount} {(categoryCount == 1 ? "category" : "categories")}.";
                 case Tab.Controls:
                     return "Controls.";
@@ -1458,15 +1171,12 @@ namespace RimWorldAccess
             return "";
         }
 
-        private static void AnnounceTreeItem(List<InspectionTreeItem> visible, int idx, InspectionTreeItem root)
+        /// <summary>
+        /// Custom announcement format for tree items.
+        /// Format: "{label stripped}{punctuation}{space+expanded/collapsed}. {position}.{levelSuffix}"
+        /// </summary>
+        private static string FormatTreeItemAnnouncement(InspectionTreeItem item)
         {
-            if (visible == null || visible.Count == 0 || idx < 0 || idx >= visible.Count)
-            {
-                TolkHelper.Speak("Empty.");
-                return;
-            }
-
-            var item = visible[idx];
             string label = item.Label.StripTags().TrimEnd();
 
             string stateIndicator = "";
@@ -1478,7 +1188,8 @@ namespace RimWorldAccess
                 stateIndicator = item.IsExpanded ? " expanded" : " collapsed";
             }
 
-            var (position, total) = GetSiblingPosition(item, root);
+            var treeNav = GetTreeNavForItem(item);
+            var (position, total) = treeNav.GetSiblingPosition(item);
             string positionPart = MenuHelper.FormatPosition(position - 1, total);
             string levelSuffix = MenuHelper.GetLevelSuffix(LevelKey, item.IndentLevel);
 
@@ -1486,20 +1197,18 @@ namespace RimWorldAccess
                 ? $"{label}{stateIndicator}.{levelSuffix}"
                 : $"{label}{stateIndicator}. {positionPart}.{levelSuffix}";
 
-            TolkHelper.Speak(announcement);
+            return announcement;
         }
 
-        private static void AnnounceWithSearch(List<InspectionTreeItem> visible, int idx, InspectionTreeItem root, TypeaheadSearchHelper typeahead)
+        /// <summary>
+        /// Custom search announcement format for tree items.
+        /// </summary>
+        private static string FormatTreeSearchAnnouncement(InspectionTreeItem item, TypeaheadSearchHelper typeahead)
         {
-            if (visible == null || visible.Count == 0 || idx < 0 || idx >= visible.Count)
-                return;
-
-            var item = visible[idx];
             string label = item.Label.StripTags();
             string stateIndicator = item.IsExpandable ? (item.IsExpanded ? " expanded" : " collapsed") : "";
 
-            string announcement = $"{label}{stateIndicator}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
-            TolkHelper.Speak(announcement);
+            return $"{label}{stateIndicator}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
         }
 
         private static void AnnounceControlItem()
@@ -1617,11 +1326,27 @@ namespace RimWorldAccess
 
         // ===== Helpers =====
 
-        private static (int position, int total) GetSiblingPosition(InspectionTreeItem item, InspectionTreeItem root)
+        private static TreeNavigationHelper GetCurrentTreeNav()
         {
-            var siblings = (item.Parent == null || item.Parent == root) ? root.Children : item.Parent.Children;
-            int position = siblings.IndexOf(item) + 1;
-            return (position, siblings.Count);
+            switch (currentTab)
+            {
+                case Tab.Selected: return selectedTreeNav;
+                case Tab.Library: return libraryTreeNav;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the TreeNavigationHelper that owns a given item by checking which tree contains it.
+        /// Falls back to the current tab's tree.
+        /// </summary>
+        private static TreeNavigationHelper GetTreeNavForItem(InspectionTreeItem item)
+        {
+            if (selectedTreeNav.VisibleItems.Contains(item))
+                return selectedTreeNav;
+            if (libraryTreeNav.VisibleItems.Contains(item))
+                return libraryTreeNav;
+            return GetCurrentTreeNav() ?? selectedTreeNav;
         }
 
         private static InspectionTreeItem GetCurrentItem()
@@ -1629,41 +1354,11 @@ namespace RimWorldAccess
             switch (currentTab)
             {
                 case Tab.Selected:
-                    if (selectedIdx >= 0 && selectedIdx < selectedVisible.Count)
-                        return selectedVisible[selectedIdx];
-                    break;
+                    return selectedTreeNav.SelectedItem;
                 case Tab.Library:
-                    if (libraryIdx >= 0 && libraryIdx < libraryVisible.Count)
-                        return libraryVisible[libraryIdx];
-                    break;
+                    return libraryTreeNav.SelectedItem;
             }
             return null;
-        }
-
-        private static TypeaheadSearchHelper GetCurrentTypeahead()
-        {
-            switch (currentTab)
-            {
-                case Tab.Selected: return selectedTypeahead;
-                case Tab.Library: return libraryTypeahead;
-            }
-            return null;
-        }
-
-        private static int GetTreeIdx(bool isSelectedTab)
-        {
-            return isSelectedTab ? selectedIdx : libraryIdx;
-        }
-
-        private static void SetTreeIdx(bool isSelectedTab, int value)
-        {
-            if (isSelectedTab) selectedIdx = value;
-            else libraryIdx = value;
-        }
-
-        private static List<string> BuildSearchLabels(List<InspectionTreeItem> visible)
-        {
-            return visible.Select(item => item.Label.StripTags()).ToList();
         }
 
         // ===== Reflection Accessors =====
