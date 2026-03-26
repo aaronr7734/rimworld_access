@@ -1218,8 +1218,8 @@ namespace RimWorldAccess
                 !CaravanInspectState.IsActive &&
                 !KeyboardHelper.IsAnyAccessibilityMenuActive())
             {
-                // L key: cycle planet layer (Surface ↔ Orbit)
-                if (key == KeyCode.L && !Event.current.shift && !Event.current.control && !KeyboardHelper.IsAltHeld)
+                // Tab/Shift+Tab: cycle planet layer (Surface ↔ Orbit)
+                if (key == KeyCode.Tab && !Event.current.control && !KeyboardHelper.IsAltHeld)
                 {
                     WorldNavigationState.CyclePlanetLayer();
                     Event.current.Use();
@@ -1235,7 +1235,7 @@ namespace RimWorldAccess
                     key == KeyCode.Q ||
                     key == KeyCode.Return || key == KeyCode.KeypadEnter ||
                     key == KeyCode.P || key == KeyCode.S ||
-                    key == KeyCode.Tab ||
+                    key == KeyCode.L ||
                     (key == KeyCode.M && KeyboardHelper.IsAltHeld) ||
                     (key == KeyCode.H && KeyboardHelper.IsAltHeld) ||
                     (key == KeyCode.N && KeyboardHelper.IsAltHeld) ||

@@ -195,6 +195,7 @@ namespace RimWorldAccess
         {
             var stats = new List<string>();
             var processedStats = new HashSet<StatDef>();
+            var processedSkills = new HashSet<SkillDef>();
 
             foreach (var role in allRoles)
             {
@@ -217,8 +218,9 @@ namespace RimWorldAccess
                     }
 
                     // Add used skill if present
-                    if (colonistRole.usedSkill != null && pawn.skills != null)
+                    if (colonistRole.usedSkill != null && !processedSkills.Contains(colonistRole.usedSkill) && pawn.skills != null)
                     {
+                        processedSkills.Add(colonistRole.usedSkill);
                         var skill = pawn.skills.GetSkill(colonistRole.usedSkill);
                         if (skill != null)
                         {

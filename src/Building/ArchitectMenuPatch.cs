@@ -30,11 +30,22 @@ namespace RimWorldAccess
             // Handle architect tree menu keyboard input first
             if (ArchitectTreeState.IsActive && !InfoCardState.IsActive)
             {
-                if (Event.current.type == EventType.KeyDown)
+                // Clean up stale architect state when on the world map
+                // (user may have opened architect then switched to world view without closing it)
+                if (WorldNavigationState.IsActive)
                 {
-                    HandleArchitectTreeInput();
+                    ArchitectTreeState.Close();
+                    ArchitectState.Reset();
+                    // Fall through to normal handling
                 }
-                return;
+                else
+                {
+                    if (Event.current.type == EventType.KeyDown)
+                    {
+                        HandleArchitectTreeInput();
+                    }
+                    return;
+                }
             }
 
             // If any accessibility menu is active, don't intercept - let UnifiedKeyboardPatch handle it
@@ -61,22 +72,9 @@ namespace RimWorldAccess
             if (Find.CurrentMap == null || !MapNavigationState.IsInitialized)
                 return;
 
-            // If on the world map, switch to colony map first (mimics game's default Tab behavior)
-            if (Find.World?.renderer?.wantedMode == WorldRenderMode.Planet)
-            {
-                // Switch from world view to colony map
-                CameraJumper.TryHideWorld();
-
-                // Restore cursor to last known position for this map (or 0,0 if unknown)
-                MapNavigationState.RestoreCursorForCurrentMap();
-
-                // Open our architect menu
-                OpenArchitectTreeMenu();
-
-                // Consume the event so game doesn't open its inaccessible architect menu
-                Event.current.Use();
+            // Never open architect menu while on the world map
+            if (WorldNavigationState.IsActive)
                 return;
-            }
 
             // Don't process if any dialog or window that prevents camera motion is open
             if (Find.WindowStack != null && Find.WindowStack.WindowsPreventCameraMotion)

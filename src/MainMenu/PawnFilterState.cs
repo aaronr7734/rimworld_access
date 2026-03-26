@@ -104,7 +104,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    Close(save: false);
+                    Close(save: true);
                 }
                 return true;
             }

@@ -528,12 +528,22 @@ namespace RimWorldAccess
                 else
                     randomizeAnnouncement += $". No match after {PawnFilterData.LastRerollAttempts} attempts, keeping last result.";
             }
+
+            // Append pawn summary (age, traits, top skills)
+            var pawn = StartingPawnHelper.GetPawnAtIndex(pawnIdx);
+            if (pawn != null)
+            {
+                string summary = StartingPawnHelper.GetPawnRollSummary(pawn);
+                if (!string.IsNullOrEmpty(summary))
+                    randomizeAnnouncement += $". {summary}";
+            }
             TolkHelper.Speak(randomizeAnnouncement);
             treeNav.ReannounceCurrentItem();
         }
 
         public static void OnRerollComplete(bool success, int attempts, bool cancelled)
         {
+            int savedPawnIdx = rerollPawnIdx;
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
             RebuildTree();
             RestoreRerollPosition();
@@ -545,6 +555,15 @@ namespace RimWorldAccess
                 announcement = $"Found match in {attempts} attempts.";
             else
                 announcement = $"No match after {attempts} attempts, keeping last result.";
+
+            // Append pawn summary (age, traits, top skills)
+            var pawn = StartingPawnHelper.GetPawnAtIndex(savedPawnIdx);
+            if (pawn != null)
+            {
+                string summary = StartingPawnHelper.GetPawnRollSummary(pawn);
+                if (!string.IsNullOrEmpty(summary))
+                    announcement += $". {summary}";
+            }
 
             TolkHelper.Speak(announcement);
             treeNav.ReannounceCurrentItem();

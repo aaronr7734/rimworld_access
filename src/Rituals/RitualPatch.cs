@@ -96,6 +96,18 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Runtime prefix for Dialog_BeginGravshipLaunch.Start().
+        /// Applied via manual Harmony patch in rimworld_access.cs (DLC-safe).
+        /// Dialog_BeginGravshipLaunch overrides Start(), so the base class patch above doesn't intercept it.
+        /// </summary>
+        public static bool GravshipStartPrefix()
+        {
+            if (RitualState.IsActive)
+                return false;
+            return true;
+        }
+
+        /// <summary>
         /// CRITICAL: Block Window.OnAcceptKeyPressed when RitualState is active.
         /// This catches Enter at the Window level BEFORE it reaches the dialog.
         ///

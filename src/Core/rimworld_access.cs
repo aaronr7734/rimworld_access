@@ -31,6 +31,9 @@ namespace RimWorldAccess
             Log.Message("[RimWorld Access] Applying Harmony patches...");
             harmony.PatchAll();
 
+            // DLC-safe: patch Dialog_BeginGravshipLaunch.Start if the type exists (Odyssey DLC)
+            ApplyGravshipStartPatch(harmony);
+
             // Log which patches were applied
             var patchedMethods = harmony.GetPatchedMethods();
             int patchCount = 0;
@@ -46,6 +49,19 @@ namespace RimWorldAccess
 
             // Register shutdown handler
             Application.quitting += OnApplicationQuit;
+        }
+
+        private static void ApplyGravshipStartPatch(Harmony harmony)
+        {
+            var gravshipDialogType = AccessTools.TypeByName("RimWorld.Dialog_BeginGravshipLaunch");
+            if (gravshipDialogType == null) return;
+
+            var startMethod = AccessTools.Method(gravshipDialogType, "Start");
+            if (startMethod == null) return;
+
+            var prefixMethod = AccessTools.Method(typeof(RitualPatch), nameof(RitualPatch.GravshipStartPrefix));
+            harmony.Patch(startMethod, prefix: new HarmonyMethod(prefixMethod));
+            Log.Message("[RimWorld Access] Applied gravship launch Start() patch");
         }
 
         private static void OnApplicationQuit()

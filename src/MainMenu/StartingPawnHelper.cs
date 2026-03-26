@@ -614,6 +614,54 @@ namespace RimWorldAccess
             }
         }
 
+        /// <summary>
+        /// Gets a brief summary of a pawn for reroll announcements.
+        /// Includes age, traits (names only), and top 3 skills with passion levels.
+        /// </summary>
+        public static string GetPawnRollSummary(Pawn pawn)
+        {
+            if (pawn == null) return "";
+
+            var parts = new List<string>();
+
+            // Age
+            parts.Add($"{"Stat_Age_Label".Translate()}: {pawn.ageTracker.AgeBiologicalYears}");
+
+            // Traits (names only, no descriptions)
+            if (pawn.story?.traits?.allTraits != null && pawn.story.traits.allTraits.Count > 0)
+            {
+                var traitNames = pawn.story.traits.allTraits
+                    .Select(t => t.LabelCap)
+                    .ToList();
+                parts.Add($"{"Traits".Translate()}: {string.Join(", ", traitNames)}");
+            }
+            else
+            {
+                parts.Add($"{"Traits".Translate()}: {"None".Translate()}");
+            }
+
+            // Top 3 skills (excluding TotallyDisabled, sorted by level descending)
+            if (pawn.skills?.skills != null)
+            {
+                var topSkills = pawn.skills.skills
+                    .Where(s => !s.TotallyDisabled)
+                    .OrderByDescending(s => s.Level)
+                    .Take(3)
+                    .Select(s =>
+                    {
+                        string passion = GetPassionLabel(s.passion);
+                        string passionSuffix = !string.IsNullOrEmpty(passion) ? $" ({passion})" : "";
+                        return $"{s.def.skillLabel.CapitalizeFirst()}{passionSuffix}: {s.Level}";
+                    })
+                    .ToList();
+
+                if (topSkills.Count > 0)
+                    parts.Add($"{"Skills".Translate()}: {string.Join(", ", topSkills)}");
+            }
+
+            return string.Join(". ", parts);
+        }
+
         private static string BuildSkillTooltip(Pawn pawn, SkillRecord skill)
         {
             var sb = new StringBuilder();

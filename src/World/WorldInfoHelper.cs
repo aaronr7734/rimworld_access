@@ -61,14 +61,18 @@ namespace RimWorldAccess
                 summary.Append($", {fuelCostInfo}");
             }
 
-            // Add hilliness
-            if (tile.hilliness != Hilliness.Impassable && tile.hilliness != Hilliness.Undefined)
+            // Add hilliness and temperature (surface layers only - orbit tiles have default/meaningless values)
+            bool isSpaceLayer = planetTile.LayerDef?.isSpace == true;
+            if (!isSpaceLayer)
             {
-                summary.Append($", {tile.hilliness.GetLabelCap()}");
-            }
+                if (tile.hilliness != Hilliness.Impassable && tile.hilliness != Hilliness.Undefined)
+                {
+                    summary.Append($", {tile.hilliness.GetLabelCap()}");
+                }
 
-            // Add temperature (average, respects user's temperature mode preference)
-            summary.Append($", {MenuHelper.FormatTemperature(tile.temperature, "F0")}");
+                // Add temperature (average, respects user's temperature mode preference)
+                summary.Append($", {MenuHelper.FormatTemperature(tile.temperature, "F0")}");
+            }
 
             // Check for world objects at this tile (excluding route planner waypoints - we handle those separately above)
             if (Find.WorldObjects != null)
@@ -274,22 +278,27 @@ namespace RimWorldAccess
                 info.AppendLine($"Biome: {tile.PrimaryBiome.LabelCap}");
             }
 
-            // Hilliness
-            if (tile.hilliness != Hilliness.Undefined)
+            // Surface-only data (orbit tiles have default/meaningless values for these)
+            bool isSpaceLayer = planetTile.LayerDef?.isSpace == true;
+            if (!isSpaceLayer)
             {
-                info.AppendLine($"Hilliness: {tile.hilliness.GetLabelCap()}");
-            }
+                // Hilliness
+                if (tile.hilliness != Hilliness.Undefined)
+                {
+                    info.AppendLine($"Hilliness: {tile.hilliness.GetLabelCap()}");
+                }
 
-            // Elevation
-            info.AppendLine($"Elevation: {tile.elevation:F0}m");
+                // Elevation
+                info.AppendLine($"Elevation: {tile.elevation:F0}m");
 
-            // Temperature (respects user's temperature mode preference)
-            info.AppendLine($"Temperature: Average {MenuHelper.FormatTemperature(tile.temperature, "F0")}");
+                // Temperature (respects user's temperature mode preference)
+                info.AppendLine($"Temperature: Average {MenuHelper.FormatTemperature(tile.temperature, "F0")}");
 
-            // Pollution (if Biotech active)
-            if (ModsConfig.BiotechActive && tile.pollution > 0)
-            {
-                info.AppendLine($"Pollution: {tile.pollution:F0}%");
+                // Pollution (if Biotech active)
+                if (ModsConfig.BiotechActive && tile.pollution > 0)
+                {
+                    info.AppendLine($"Pollution: {tile.pollution:F0}%");
+                }
             }
 
             // World objects at this tile
@@ -798,6 +807,9 @@ namespace RimWorldAccess
             if (!planetTile.Valid || Find.WorldGrid == null)
                 return "Invalid tile";
 
+            if (planetTile.LayerDef?.isSpace == true)
+                return "No growing information for space tiles.";
+
             Tile tile = planetTile.Tile;
             if (tile == null)
                 return "Unknown tile";
@@ -849,6 +861,9 @@ namespace RimWorldAccess
         {
             if (!planetTile.Valid || Find.WorldGrid == null)
                 return "Invalid tile";
+
+            if (planetTile.LayerDef?.isSpace == true)
+                return "No movement information for space tiles.";
 
             Tile tile = planetTile.Tile;
             if (tile == null)
@@ -973,6 +988,9 @@ namespace RimWorldAccess
         {
             if (!planetTile.Valid || Find.WorldGrid == null)
                 return "Invalid tile";
+
+            if (planetTile.LayerDef?.isSpace == true)
+                return "No health information for space tiles.";
 
             Tile tile = planetTile.Tile;
             if (tile == null)
