@@ -34,6 +34,9 @@ namespace RimWorldAccess
         // Flag to prevent PostClose from interfering when CloseInfoCard is driving
         private static bool closingFromAccessibility = false;
 
+        // Tracks the last announced section name for section boundary announcements
+        private static string lastAnnouncedSection = null;
+
         // Tracks whether InfoCardState opened the current float menu (for multi-hyperlink selection).
         // When true, InfoCardState delegates input to the float menu instead of handling it.
         // When false, a float menu from another context (e.g., recipe selection) is active
@@ -80,6 +83,7 @@ namespace RimWorldAccess
                 treeNav.Initialize(rootItem);
 
                 ownsFloatMenu = false;
+                lastAnnouncedSection = null;
 
                 if (announceOpening)
                 {
@@ -107,6 +111,7 @@ namespace RimWorldAccess
                 // Rebuild tree now that stats are populated
                 var rootItem = InfoCardTreeBuilder.BuildTree(currentDialog);
                 treeNav.Initialize(rootItem);
+                lastAnnouncedSection = null;
 
                 SoundDefOf.TabOpen.PlayOneShotOnCamera();
                 AnnounceOpening();
@@ -130,7 +135,8 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Jumps to the next category or subcategory header (Page Down).
+        /// Jumps to the next section (Page Down).
+        /// Finds the next item whose Description (section name) differs from the current item's Description.
         /// </summary>
         public static void JumpToNextCategory()
         {
@@ -140,13 +146,13 @@ namespace RimWorldAccess
             treeNav.Typeahead.ClearSearch();
             var visibleItems = treeNav.VisibleItems;
             int selectedIndex = treeNav.SelectedIndex;
+            string currentSection = visibleItems[selectedIndex].Description ?? "";
 
-            // Search forward from current position
+            // Search forward for item with different section
             for (int i = selectedIndex + 1; i < visibleItems.Count; i++)
             {
-                var item = visibleItems[i];
-                if (item.Type == InspectionTreeItem.ItemType.Category ||
-                    item.Type == InspectionTreeItem.ItemType.SubCategory)
+                string section = visibleItems[i].Description ?? "";
+                if (section != currentSection)
                 {
                     treeNav.SetSelectedIndex(i);
                     SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
@@ -160,9 +166,8 @@ namespace RimWorldAccess
             {
                 for (int i = 0; i <= selectedIndex; i++)
                 {
-                    var item = visibleItems[i];
-                    if (item.Type == InspectionTreeItem.ItemType.Category ||
-                        item.Type == InspectionTreeItem.ItemType.SubCategory)
+                    string section = visibleItems[i].Description ?? "";
+                    if (section != currentSection)
                     {
                         treeNav.SetSelectedIndex(i);
                         SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
@@ -172,12 +177,13 @@ namespace RimWorldAccess
                 }
             }
 
-            // No categories found or wrap disabled
+            // No different section found or wrap disabled
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
         }
 
         /// <summary>
-        /// Jumps to the previous category or subcategory header (Page Up).
+        /// Jumps to the previous section (Page Up).
+        /// Finds the first item of the previous section whose Description differs from the current item's Description.
         /// </summary>
         public static void JumpToPreviousCategory()
         {
@@ -187,31 +193,61 @@ namespace RimWorldAccess
             treeNav.Typeahead.ClearSearch();
             var visibleItems = treeNav.VisibleItems;
             int selectedIndex = treeNav.SelectedIndex;
+            string currentSection = visibleItems[selectedIndex].Description ?? "";
 
-            // Search backward from current position
+            // Search backward for first item of a different section
+            // First, find any item with a different section
+            int diffIndex = -1;
             for (int i = selectedIndex - 1; i >= 0; i--)
             {
-                var item = visibleItems[i];
-                if (item.Type == InspectionTreeItem.ItemType.Category ||
-                    item.Type == InspectionTreeItem.ItemType.SubCategory)
+                string section = visibleItems[i].Description ?? "";
+                if (section != currentSection)
                 {
-                    treeNav.SetSelectedIndex(i);
-                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                    treeNav.ReannounceCurrentItem();
-                    return;
+                    diffIndex = i;
+                    break;
                 }
+            }
+
+            if (diffIndex >= 0)
+            {
+                // Now find the first item of that section
+                string targetSection = visibleItems[diffIndex].Description ?? "";
+                int firstOfSection = diffIndex;
+                for (int i = diffIndex - 1; i >= 0; i--)
+                {
+                    string section = visibleItems[i].Description ?? "";
+                    if (section == targetSection)
+                        firstOfSection = i;
+                    else
+                        break;
+                }
+                treeNav.SetSelectedIndex(firstOfSection);
+                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                treeNav.ReannounceCurrentItem();
+                return;
             }
 
             // Wrap to end (if enabled)
             if (RimWorldAccessMod_Settings.Settings?.WrapNavigation == true)
             {
-                for (int i = visibleItems.Count - 1; i >= selectedIndex; i--)
+                // Find last section that differs from current
+                for (int i = visibleItems.Count - 1; i > selectedIndex; i--)
                 {
-                    var item = visibleItems[i];
-                    if (item.Type == InspectionTreeItem.ItemType.Category ||
-                        item.Type == InspectionTreeItem.ItemType.SubCategory)
+                    string section = visibleItems[i].Description ?? "";
+                    if (section != currentSection)
                     {
-                        treeNav.SetSelectedIndex(i);
+                        // Find first item of that section
+                        string targetSection = section;
+                        int firstOfSection = i;
+                        for (int j = i - 1; j >= 0; j--)
+                        {
+                            string s = visibleItems[j].Description ?? "";
+                            if (s == targetSection)
+                                firstOfSection = j;
+                            else
+                                break;
+                        }
+                        treeNav.SetSelectedIndex(firstOfSection);
                         SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
                         treeNav.ReannounceCurrentItem();
                         return;
@@ -219,7 +255,7 @@ namespace RimWorldAccess
                 }
             }
 
-            // No categories found or wrap disabled
+            // No different section found or wrap disabled
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
         }
 
@@ -519,8 +555,13 @@ namespace RimWorldAccess
         {
             try
             {
-                // Strip XML tags from label
-                string label = item.Label.StripTags().TrimEnd('.', '!', '?');
+                // Smart labels: use ExpandedLabel (short form) when expanded
+                string rawLabel;
+                if (item.IsExpandable && item.IsExpanded && !string.IsNullOrEmpty(item.ExpandedLabel))
+                    rawLabel = item.ExpandedLabel;
+                else
+                    rawLabel = item.Label;
+                string label = rawLabel.StripTags().TrimEnd('.', '!', '?');
 
                 // Build state indicator (only for expandable items)
                 string stateIndicator = "";
@@ -543,6 +584,19 @@ namespace RimWorldAccess
                 string announcement = string.IsNullOrEmpty(positionPart)
                     ? $"{label}{stateIndicator}.{levelSuffix}{inspectableHint}"
                     : $"{label}{stateIndicator}.{levelSuffix} {positionPart}.{inspectableHint}";
+
+                // Append section suffix when crossing section boundaries
+                string sectionName = item.Description;
+                if (!string.IsNullOrEmpty(sectionName) && sectionName != lastAnnouncedSection)
+                {
+                    announcement += $" {sectionName} section";
+                    lastAnnouncedSection = sectionName;
+                }
+                else if (string.IsNullOrEmpty(sectionName) && lastAnnouncedSection != null)
+                {
+                    // Moving from a section to an item without a section
+                    lastAnnouncedSection = null;
+                }
 
                 return announcement;
             }

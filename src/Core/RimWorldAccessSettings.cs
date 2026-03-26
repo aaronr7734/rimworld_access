@@ -34,12 +34,19 @@ namespace RimWorldAccess
         /// </summary>
         public bool ShowCoverInfo = true;
 
+        /// <summary>
+        /// When true, treeview announcements include heading level changes (e.g., "level 2").
+        /// Default: true.
+        /// </summary>
+        public bool AnnounceLevels = true;
+
         public override void ExposeData()
         {
             Scribe_Values.Look(ref WrapNavigation, "WrapNavigation", false);
             Scribe_Values.Look(ref AnnouncePosition, "AnnouncePosition", true);
             Scribe_Values.Look(ref ShowPawnActivityOnMap, "ShowPawnActivityOnMap", true);
             Scribe_Values.Look(ref ShowCoverInfo, "ShowCoverInfo", true);
+            Scribe_Values.Look(ref AnnounceLevels, "AnnounceLevels", true);
             base.ExposeData();
         }
     }
@@ -71,6 +78,7 @@ namespace RimWorldAccess
             listing.CheckboxLabeled("Announce position (e.g., '3 of 7')", ref Settings.AnnouncePosition);
             listing.CheckboxLabeled("Show pawn activity on map cursor movement", ref Settings.ShowPawnActivityOnMap);
             listing.CheckboxLabeled("Show cover info for drafted and hostile pawns", ref Settings.ShowCoverInfo);
+            listing.CheckboxLabeled("Announce depth levels in treeviews (e.g., 'level 2')", ref Settings.AnnounceLevels);
 
             listing.End();
         }

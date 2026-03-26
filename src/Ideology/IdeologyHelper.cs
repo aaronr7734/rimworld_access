@@ -976,7 +976,8 @@ namespace RimWorldAccess
                 IsExpandable = true,
                 IsExpanded = false,
                 Parent = root,
-                Type = InspectionTreeItem.ItemType.Category
+                Type = InspectionTreeItem.ItemType.Category,
+                ExpandedLabel = sectionName
             };
 
             // Build aggregated label

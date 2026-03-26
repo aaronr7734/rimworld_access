@@ -34,6 +34,9 @@ namespace RimWorldAccess
         /// <param name="skipLevelOne">If true, don't announce level 1 (for menus always starting at level 1)</param>
         public static string GetLevelSuffix(string menuKey, int currentLevel, bool skipLevelOne = true)
         {
+            if (RimWorldAccessMod_Settings.Settings?.AnnounceLevels == false)
+                return "";
+
             int displayLevel = currentLevel + 1; // 1-indexed for users
 
             if (!lastAnnouncedLevels.TryGetValue(menuKey, out int lastLevel))
