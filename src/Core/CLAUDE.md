@@ -1,7 +1,7 @@
 # Core Module
 
 ## Purpose
-Mod entry point and initialization. Applies all Harmony patches and sets up TolkHelper for screen reader integration.
+Mod entry point and initialization. Applies all Harmony patches and sets up TolkHelper (backed by Prism) for screen reader integration.
 
 ## Files in This Module
 
@@ -28,7 +28,7 @@ No direct input handling - this module sets up the infrastructure used by other 
 1. **Static Constructor Runs** - `[StaticConstructorOnStartup]` triggers when RimWorld loads
 2. **Create Harmony Instance** - `new Harmony("com.rimworldaccess.mainmenukeyboard")`
 3. **Apply All Patches** - `harmony.PatchAll()` automatically finds and applies all `[HarmonyPatch]` classes
-4. **Initialize TolkHelper** - `TolkHelper.Initialize()` loads screen reader libraries
+4. **Initialize TolkHelper** - `TolkHelper.Initialize()` loads Prism native library and connects to screen reader
 5. **Log Success** - Outputs patch count to RimWorld console
 
 ## Integration with Core Systems
@@ -36,8 +36,8 @@ No direct input handling - this module sets up the infrastructure used by other 
 ### UnifiedKeyboardPatch
 Not applicable - Core module initializes Harmony which enables patching.
 
-### TolkHelper (Screen Reader)
-TolkHelper is initialized in this module's static constructor. All other modules depend on this initialization.
+### TolkHelper (Screen Reader via Prism)
+TolkHelper is initialized in this module's static constructor. It loads the platform-specific Prism native library and connects to the best available screen reader or TTS backend. All other modules depend on this initialization.
 
 ### MapNavigationState
 Not applicable

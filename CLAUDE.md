@@ -4,12 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-RimWorld Access is a C# mod for RimWorld that provides screen reader accessibility. It uses Harmony patches to inject keyboard navigation into RimWorld's UI and the Tolk library to communicate with screen readers (NVDA, JAWS) with SAPI fallback.
+RimWorld Access is a C# mod for RimWorld that provides screen reader accessibility. It uses Harmony patches to inject keyboard navigation into RimWorld's UI and the Prism library for cross-platform screen reader integration (NVDA, JAWS, VoiceOver, Orca, SAPI, and more).
 
 **Technology Stack:**
 - .NET Framework 4.7.2
 - HarmonyLib 2.3.3 (runtime patching)
-- Tolk.dll + nvdaControllerClient64.dll (screen reader integration via P/Invoke)
+- Prism (screen reader integration via P/Invoke — supports Windows, macOS, Linux)
 - RimWorld 1.6 assemblies
 
 ## Building and Testing
@@ -26,7 +26,7 @@ dotnet build -c Release
 **Build Output:**
 - DLL: `bin/Debug/net472/rimworld_access.dll`
 - Auto-deploys to: `$(RimWorldDir)\Mods\RimWorldAccess\Assemblies\`
-- Native DLLs (Tolk.dll, nvdaControllerClient64.dll) copied to mod root
+- Native Prism libraries (prism.dll / libprism.dylib / libprism.so) copied to mod root
 
 ## Code Architecture
 
@@ -58,7 +58,7 @@ The codebase is organized into 18 modules by game feature:
 | Module | Files | Purpose |
 |--------|-------|---------|
 | **Core/** | 2 | Mod entry point, Harmony initialization |
-| **ScreenReader/** | 3 | TolkHelper and audio integration |
+| **ScreenReader/** | 5 | Prism screen reader integration and audio |
 | **Input/** | 1 | UnifiedKeyboardPatch - central input router |
 | **MainMenu/** | 19 | Main menu and game setup flow |
 | **Map/** | 9 | Map navigation, cursor, scanner |
@@ -87,9 +87,10 @@ Each module has its own `CLAUDE.md` with detailed documentation.
 - Calls `Event.current.Use()` to consume events and prevent default game behavior
 
 **TolkHelper** (`ScreenReader/TolkHelper.cs`)
-- Direct screen reader integration via P/Invoke
+- Cross-platform screen reader integration via Prism library
 - `TolkHelper.Speak(text, priority)` used by all modules
 - Three priorities: Low (don't interrupt), Normal, High (interrupt)
+- Backed by: `NativeLibraryLoader.cs` (cross-platform DLL loading) and `PrismNative.cs` (Prism C API bindings)
 - Initialized in `Core/rimworld_access.cs`
 
 **MapNavigationState** (`Map/MapNavigationState.cs`)
@@ -209,8 +210,9 @@ All menus and treeviews must use:
 
 ## Screen Reader Integration
 
-- TolkHelper uses P/Invoke to native Tolk.dll functions
-- Fallback chain: Detected screen reader → Direct NVDA → SAPI
+- TolkHelper uses Prism for cross-platform screen reader access
+- Prism auto-selects the best available backend (screen readers prioritized over TTS)
+- Supported backends: NVDA, JAWS, SAPI, OneCore (Windows), VoiceOver (macOS), Orca, Speech Dispatcher (Linux)
 - All navigation actions should announce via `TolkHelper.Speak()`
 - Use `SpeechPriority.Low` for rapid navigation (don't interrupt)
 - Use `SpeechPriority.High` for critical alerts
@@ -353,8 +355,10 @@ mod/
 │   └── [15 other modules]
 ├── About/                 # About.xml (mod metadata)
 ├── Sounds/                # Embedded audio resources
-├── Tolk.dll               # Native screen reader library
-├── nvdaControllerClient64.dll
+├── native/                # Prism native libraries (downloaded, gitignored)
+│   ├── prism.dll          # Windows x64
+│   ├── libprism.dylib     # macOS universal (Intel + Apple Silicon)
+│   └── libprism.so        # Linux x64
 ├── rimworld_access.csproj # MSBuild project file
 └── GamePaths.props.template
 

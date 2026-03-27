@@ -25,6 +25,32 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Download Prism native libraries
+        shell: bash
+        run: |
+          mkdir -p native
+
+          # Download Windows x64
+          curl -sL "https://github.com/ethindp/prism/releases/latest/download/prism-windows-x64.zip" -o prism-win.zip
+          unzip -o prism-win.zip -d prism-win-tmp
+          cp prism-win-tmp/dynamic/release/bin/prism.dll native/prism.dll
+          rm -rf prism-win.zip prism-win-tmp
+
+          # Download macOS universal
+          curl -sL "https://github.com/ethindp/prism/releases/latest/download/prism-macos-universal.zip" -o prism-mac.zip
+          unzip -o prism-mac.zip -d prism-mac-tmp
+          cp prism-mac-tmp/dynamic/release/lib/libprism.dylib native/libprism.dylib
+          rm -rf prism-mac.zip prism-mac-tmp
+
+          # Download Linux x64
+          curl -sL "https://github.com/ethindp/prism/releases/latest/download/prism-linux-x64.zip" -o prism-linux.zip
+          unzip -o prism-linux.zip -d prism-linux-tmp
+          cp prism-linux-tmp/dynamic/release/lib/libprism.so native/libprism.so
+          rm -rf prism-linux.zip prism-linux-tmp
+
+          echo "Native libraries downloaded:"
+          ls -la native/
+
       - name: Cache NuGet packages
         uses: actions/cache@v4
         with:
@@ -46,8 +72,9 @@ jobs:
           $expected = @(
             "release/RimWorldAccess/Assemblies/rimworld_access.dll",
             "release/RimWorldAccess/About/About.xml",
-            "release/RimWorldAccess/Tolk.dll",
-            "release/RimWorldAccess/nvdaControllerClient64.dll"
+            "release/RimWorldAccess/prism.dll",
+            "release/RimWorldAccess/libprism.dylib",
+            "release/RimWorldAccess/libprism.so"
           )
           foreach ($file in $expected) {
             if (-not (Test-Path $file)) {

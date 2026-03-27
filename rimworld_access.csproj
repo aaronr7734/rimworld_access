@@ -25,12 +25,15 @@
     <EmbeddedResource Include="Sounds\**\*.mp3" />
   </ItemGroup>
 
-  <!-- Include native DLLs for deployment (NOT as references) -->
+  <!-- Include native Prism libraries for deployment (NOT as references) -->
   <ItemGroup>
-    <None Include="Tolk.dll">
+    <None Include="native\prism.dll" Condition="Exists('native\prism.dll')">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
-    <None Include="nvdaControllerClient64.dll">
+    <None Include="native\libprism.dylib" Condition="Exists('native\libprism.dylib')">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Include="native\libprism.so" Condition="Exists('native\libprism.so')">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -72,14 +75,21 @@
       DestinationFolder="$(ModOutputDir)\Assemblies\"
     />
 
-    <!-- Copy native DLLs to mod root (for P/Invoke) -->
+    <!-- Copy native Prism libraries to mod root (for runtime loading) -->
     <Copy
-      SourceFiles="$(ProjectDir)Tolk.dll"
+      SourceFiles="$(ProjectDir)native\prism.dll"
       DestinationFolder="$(ModOutputDir)\"
+      Condition="Exists('$(ProjectDir)native\prism.dll')"
     />
     <Copy
-      SourceFiles="$(ProjectDir)nvdaControllerClient64.dll"
+      SourceFiles="$(ProjectDir)native\libprism.dylib"
       DestinationFolder="$(ModOutputDir)\"
+      Condition="Exists('$(ProjectDir)native\libprism.dylib')"
+    />
+    <Copy
+      SourceFiles="$(ProjectDir)native\libprism.so"
+      DestinationFolder="$(ModOutputDir)\"
+      Condition="Exists('$(ProjectDir)native\libprism.so')"
     />
 
     <Message Text="--- Mod deployed successfully ---" Importance="high" />
@@ -109,14 +119,21 @@
       DestinationFolder="$(ReleaseFolderPath)Assemblies\"
     />
 
-    <!-- Copy native DLLs to mod root -->
+    <!-- Copy native Prism libraries to mod root -->
     <Copy
-      SourceFiles="$(ProjectDir)Tolk.dll"
+      SourceFiles="$(ProjectDir)native\prism.dll"
       DestinationFolder="$(ReleaseFolderPath)"
+      Condition="Exists('$(ProjectDir)native\prism.dll')"
     />
     <Copy
-      SourceFiles="$(ProjectDir)nvdaControllerClient64.dll"
+      SourceFiles="$(ProjectDir)native\libprism.dylib"
       DestinationFolder="$(ReleaseFolderPath)"
+      Condition="Exists('$(ProjectDir)native\libprism.dylib')"
+    />
+    <Copy
+      SourceFiles="$(ProjectDir)native\libprism.so"
+      DestinationFolder="$(ReleaseFolderPath)"
+      Condition="Exists('$(ProjectDir)native\libprism.so')"
     />
 
     <!-- Copy README.md to release folder -->
