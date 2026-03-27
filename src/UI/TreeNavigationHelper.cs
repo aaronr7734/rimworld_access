@@ -371,7 +371,7 @@ namespace RimWorldAccess
                 OnBeforeExpand?.Invoke(item);
                 item.IsExpanded = true;
                 RebuildVisibleList();
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                SoundDefOf.FloatMenu_Open.PlayOneShotOnCamera();
                 AnnounceStateChange();
             }
             else if (item.Children.Count > 0)
@@ -402,7 +402,7 @@ namespace RimWorldAccess
                 RebuildVisibleList();
                 if (selectedIndex >= visibleItems.Count)
                     selectedIndex = Math.Max(0, visibleItems.Count - 1);
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                SoundDefOf.FloatMenu_Cancel.PlayOneShotOnCamera();
                 AnnounceStateChange();
             }
             else if (item.Parent != null && item.Parent != rootItem)
@@ -448,6 +448,7 @@ namespace RimWorldAccess
             {
                 RebuildVisibleList();
                 typeahead.ClearSearch();
+                EmbeddedAudioHelper.PlaySoundDefWithReverb(SoundDefOf.FloatMenu_Open);
                 TolkHelper.Speak($"Expanded {expandedCount} {(expandedCount == 1 ? "item" : "items")}");
             }
         }
@@ -719,7 +720,10 @@ namespace RimWorldAccess
                     OnBeforeExpand?.Invoke(item);
                 item.IsExpanded = !item.IsExpanded;
                 RebuildVisibleList();
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                if (item.IsExpanded)
+                    SoundDefOf.FloatMenu_Open.PlayOneShotOnCamera();
+                else
+                    SoundDefOf.FloatMenu_Cancel.PlayOneShotOnCamera();
                 AnnounceStateChange();
             }
         }

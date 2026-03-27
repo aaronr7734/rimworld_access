@@ -709,7 +709,7 @@ namespace RimWorldAccess
             if (expandedCount > 0)
             {
                 treeNav.RebuildVisibleList();
-                SoundDefOf.Click.PlayOneShotOnCamera();
+                EmbeddedAudioHelper.PlaySoundDefWithReverb(SoundDefOf.FloatMenu_Open);
                 if (expandedCount == 1)
                     TolkHelper.Speak("Expanded 1 category");
                 else

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
@@ -231,6 +232,81 @@ namespace RimWorldAccess
             catch (Exception ex)
             {
                 ModLogger.Error($"Failed to play sound: {ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
+        // Dedicated reverb AudioSource, lazy-initialized and reused
+        private static GameObject reverbSourceObj;
+        private static AudioSource reverbSource;
+        private static AudioReverbFilter reverbFilter;
+
+        /// <summary>
+        /// Plays a RimWorld SoundDef through a dedicated AudioSource with reverb applied.
+        /// Useful for giving a "bigger" feel to sounds like bulk expand-all operations.
+        /// </summary>
+        public static void PlaySoundDefWithReverb(SoundDef soundDef, float volume = 0.05f)
+        {
+            if (soundDef == null || soundDef.subSounds.Count == 0)
+                return;
+
+            try
+            {
+                // Extract the AudioClip from the SoundDef
+                var grain = soundDef.subSounds[0].RandomizedResolvedGrain();
+                if (!(grain is ResolvedGrain_Clip clipGrain) || clipGrain.clip == null)
+                    return;
+
+                EnsureReverbSource();
+                if (reverbSource == null)
+                    return;
+
+                reverbSource.PlayOneShot(clipGrain.clip, volume);
+            }
+            catch (Exception ex)
+            {
+                ModLogger.Error($"Failed to play sound with reverb: {ex.Message}");
+            }
+        }
+
+        private static void EnsureReverbSource()
+        {
+            if (reverbSource != null)
+                return;
+
+            try
+            {
+                Camera mainCamera = Find.Camera;
+                if (mainCamera == null)
+                    return;
+
+                reverbSourceObj = new GameObject("RimWorldAccess_ReverbSource");
+                reverbSourceObj.transform.parent = mainCamera.transform;
+                reverbSourceObj.transform.localPosition = Vector3.zero;
+
+                reverbSource = reverbSourceObj.AddComponent<AudioSource>();
+                reverbSource.spatialBlend = 0f;
+                reverbSource.playOnAwake = false;
+
+                reverbFilter = reverbSourceObj.AddComponent<AudioReverbFilter>();
+                // Manual settings for a strong, audible reverb tail
+                reverbFilter.reverbPreset = AudioReverbPreset.User;
+                reverbFilter.dryLevel = 0f;           // Full dry signal
+                reverbFilter.room = -400f;             // Room effect level (mild cut)
+                reverbFilter.roomHF = -200f;           // High-frequency room level
+                reverbFilter.roomLF = 0f;              // Low-frequency room level
+                reverbFilter.decayTime = 2.5f;         // Long tail
+                reverbFilter.decayHFRatio = 0.6f;      // HF decays faster (warmth)
+                reverbFilter.reflectionsLevel = -300f;  // Early reflections
+                reverbFilter.reflectionsDelay = 0.02f;  // Slight early reflection delay
+                reverbFilter.reverbLevel = 800f;       // Strong late reverb
+                reverbFilter.reverbDelay = 0.04f;      // Late reverb delay
+                reverbFilter.diffusion = 100f;         // Full diffusion
+                reverbFilter.density = 100f;           // Full density
+            }
+            catch (Exception ex)
+            {
+                ModLogger.Error($"Failed to create reverb AudioSource: {ex.Message}");
+                reverbSource = null;
             }
         }
     }
