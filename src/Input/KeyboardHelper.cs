@@ -21,6 +21,15 @@ namespace RimWorldAccess
         /// </summary>
         public static bool IsAltHeld => Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
 
+        /// <summary>
+        /// True if a Ctrl-equivalent key is physically held down.
+        /// On macOS, includes Cmd (Command) keys since Cmd is the primary modifier.
+        /// Use instead of Input.GetKey(KeyCode.LeftControl) for cross-platform compatibility.
+        /// </summary>
+        public static bool IsCtrlHeld =>
+            Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl) ||
+            (NativeLibraryLoader.IsMacOS && (Input.GetKey(KeyCode.LeftCommand) || Input.GetKey(KeyCode.RightCommand)));
+
         // Tracks the frame when a real KeyCode.RightBracket was seen, so we don't
         // also remap the follow-up character event that Unity sends for the same keypress.
         private static int lastRightBracketFrame = -1;
@@ -120,6 +129,15 @@ namespace RimWorldAccess
         /// </summary>
         public static void ApplyGlobalRemap()
         {
+            // macOS: Remap Cmd → Ctrl so all Windows-style Ctrl shortcuts work with Cmd.
+            // This runs before any other keyboard processing, so all downstream code
+            // that checks Event.current.control will see Cmd presses as Ctrl.
+            if (NativeLibraryLoader.IsMacOS && (Event.current.modifiers & EventModifiers.Command) != 0)
+            {
+                Event.current.modifiers |= EventModifiers.Control;
+                Event.current.modifiers &= ~EventModifiers.Command;
+            }
+
             if (Event.current.type != EventType.KeyDown)
                 return;
 
