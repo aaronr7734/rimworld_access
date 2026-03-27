@@ -40,6 +40,13 @@ namespace RimWorldAccess
         /// </summary>
         public bool AnnounceLevels = true;
 
+        /// <summary>
+        /// When true, treeviews use submenu-style navigation where expanded parents
+        /// are hidden and only their children are shown in the navigation list.
+        /// Default: false (standard treeview navigation).
+        /// </summary>
+        public bool SubmenuTreeNavigation = false;
+
         public override void ExposeData()
         {
             Scribe_Values.Look(ref WrapNavigation, "WrapNavigation", false);
@@ -47,6 +54,7 @@ namespace RimWorldAccess
             Scribe_Values.Look(ref ShowPawnActivityOnMap, "ShowPawnActivityOnMap", true);
             Scribe_Values.Look(ref ShowCoverInfo, "ShowCoverInfo", true);
             Scribe_Values.Look(ref AnnounceLevels, "AnnounceLevels", true);
+            Scribe_Values.Look(ref SubmenuTreeNavigation, "SubmenuTreeNavigation", false);
             base.ExposeData();
         }
     }
@@ -79,6 +87,8 @@ namespace RimWorldAccess
             listing.CheckboxLabeled("Show pawn activity on map cursor movement", ref Settings.ShowPawnActivityOnMap);
             listing.CheckboxLabeled("Show cover info for drafted and hostile pawns", ref Settings.ShowCoverInfo);
             listing.CheckboxLabeled("Announce depth levels in treeviews (e.g., 'level 2')", ref Settings.AnnounceLevels);
+            listing.CheckboxLabeled("Rashad Hates Treeviews (submenu-style navigation)", ref Settings.SubmenuTreeNavigation,
+                "Changes how treeviews work. When you expand a category, it disappears and you navigate only its items. Press Left Arrow to go back. Your position is remembered when you return.");
 
             listing.End();
         }
