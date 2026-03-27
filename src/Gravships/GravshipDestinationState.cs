@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
@@ -17,6 +18,11 @@ namespace RimWorldAccess
         private static float cachedTotalFuel = 0f;
         private static int cachedMaxRange = 0;
         private static float cachedFuelPerTile = 0f;
+
+        // Single-BFS cache: all tiles reachable within maxRange, with traversal distances.
+        // Built once on Open(), used for O(1) reachability checks during scanner filtering.
+        // Keyed by tile ID (int) to avoid PlanetTile layer mismatch with biome center tiles.
+        private static Dictionary<int, int> reachableTileDistances = null;
 
         // Cached reflection fields for TilePicker
         private static FieldInfo tilePickerValidatorField;
@@ -48,6 +54,8 @@ namespace RimWorldAccess
             cachedMaxRange = currentEngine.MaxLaunchDistance;
             cachedFuelPerTile = currentEngine.FuelPerTile;
 
+            BuildReachableTileCache();
+
             if (launching)
             {
                 TolkHelper.Speak(
@@ -73,6 +81,50 @@ namespace RimWorldAccess
             cachedTotalFuel = 0f;
             cachedMaxRange = 0;
             cachedFuelPerTile = 0f;
+            reachableTileDistances = null;
+        }
+
+        /// <summary>
+        /// Performs a single BFS FloodFill on the Surface layer, collecting all tiles
+        /// within maxRange along with their traversal distances.
+        /// Built on Surface because landing destinations are always surface tiles.
+        /// If the origin is on a different layer (e.g., orbit), converts to its
+        /// surface equivalent first, matching how GravshipUtility.TryGetPathFuelCost works.
+        /// </summary>
+        private static void BuildReachableTileCache()
+        {
+            reachableTileDistances = new Dictionary<int, int>();
+
+            if (currentConsole?.parent?.Map == null || cachedMaxRange <= 0 || Find.WorldGrid == null)
+                return;
+
+            PlanetTile origin = currentConsole.parent.Map.Tile;
+            if (!origin.Valid)
+                return;
+
+            // Build BFS on the Surface layer — landing destinations are always on the surface.
+            // If origin is on a different layer (e.g., orbit), find its surface equivalent,
+            // matching GravshipUtility.TryGetPathFuelCost's cross-layer handling.
+            PlanetLayer surface = Find.WorldGrid.Surface;
+            PlanetTile surfaceOrigin = (origin.Layer == surface)
+                ? origin
+                : surface.GetClosestTile_NewTemp(origin);
+
+            if (!surfaceOrigin.Valid)
+                return;
+
+            int maxTiles = Find.WorldGrid.TilesNumWithinTraversalDistance(cachedMaxRange + 1);
+            surface.Filler.FloodFill(
+                surfaceOrigin,
+                (PlanetTile tile) => true,
+                (PlanetTile tile, int dist) =>
+                {
+                    if (dist > cachedMaxRange)
+                        return true;
+                    reachableTileDistances[(int)tile] = dist;
+                    return false;
+                },
+                maxTiles);
         }
 
         public static bool HandleInput(KeyCode key, bool shift, bool ctrl, bool alt)
@@ -257,6 +309,30 @@ namespace RimWorldAccess
             {
                 return "CannotLaunchDestination".Translate();
             }
+        }
+
+        /// <summary>
+        /// Checks if a destination tile is reachable using the pre-built BFS cache.
+        /// O(1) lookup — no pathfinding per call. Used for scanner filtering.
+        /// Fuel cost is only checked during individual item announcement (GetFuelCostAnnouncement).
+        /// </summary>
+        public static bool CanReachDestination(PlanetTile destinationTile)
+        {
+            if (reachableTileDistances == null || cachedMaxRange <= 0)
+                return false;
+
+            return reachableTileDistances.ContainsKey((int)destinationTile);
+        }
+
+        /// <summary>
+        /// Gets the BFS traversal distance for a tile from the cache.
+        /// Returns -1 if the tile is not in the reachable cache.
+        /// </summary>
+        public static int GetCachedDistance(PlanetTile tile)
+        {
+            if (reachableTileDistances != null && reachableTileDistances.TryGetValue((int)tile, out int dist))
+                return dist;
+            return -1;
         }
 
         /// <summary>

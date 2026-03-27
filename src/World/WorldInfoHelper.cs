@@ -55,6 +55,12 @@ namespace RimWorldAccess
                 summary.Append(tile.PrimaryBiome.LabelCap);
             }
 
+            // Add landmark name (Odyssey DLC) - sighted players see this in inspect pane header
+            if (ModsConfig.OdysseyActive && tile.Landmark != null)
+            {
+                summary.Append($", {tile.Landmark.name}");
+            }
+
             // Add fuel cost right after biome (for transport pod targeting)
             if (!string.IsNullOrEmpty(fuelCostInfo))
             {
@@ -1077,14 +1083,24 @@ namespace RimWorldAccess
             StringBuilder info = new StringBuilder();
             bool hasContent = false;
 
-            // Mutators (Odyssey DLC)
+            // Mutators (Odyssey DLC) - show labels and descriptions
             if (tile.Mutators.Any())
             {
-                var mutatorLabels = tile.Mutators
+                var mutators = tile.Mutators
                     .OrderByDescending(m => m.displayPriority)
-                    .Select(m => m.Label(planetTile))
                     .ToList();
-                info.Append($"Tile features: {mutatorLabels.ToCommaList().CapitalizeFirst()}.");
+
+                var mutatorParts = new List<string>();
+                foreach (var m in mutators)
+                {
+                    string label = m.Label(planetTile);
+                    string desc = m.Description(planetTile);
+                    if (!string.IsNullOrEmpty(desc) && desc != label)
+                        mutatorParts.Add($"{label}: {desc}");
+                    else
+                        mutatorParts.Add(label);
+                }
+                info.Append($"Tile features: {string.Join(". ", mutatorParts)}.");
                 hasContent = true;
             }
 
@@ -1092,7 +1108,7 @@ namespace RimWorldAccess
             if (ModsConfig.OdysseyActive && tile.Landmark != null)
             {
                 if (hasContent) info.Append(" ");
-                info.Append($"Landmark: {tile.Landmark.name}.");
+                info.Append($"Landmark: {tile.Landmark.name}, {tile.Landmark.def.LabelCap}.");
                 hasContent = true;
             }
 
