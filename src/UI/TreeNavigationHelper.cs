@@ -27,6 +27,7 @@ namespace RimWorldAccess
         private List<InspectionTreeItem> visibleItems = new List<InspectionTreeItem>();
         private int selectedIndex;
         private Dictionary<InspectionTreeItem, InspectionTreeItem> lastChildPerParent;
+        private InspectionTreeItem lastAnnouncedParent;
 
         #region Configuration
 
@@ -93,6 +94,13 @@ namespace RimWorldAccess
         /// </summary>
         public bool TrackLastChild { get; set; } = false;
 
+        /// <summary>
+        /// Returns true if submenu-style treeview navigation is enabled in settings.
+        /// In submenu mode, expanded parents are hidden from the visible list.
+        /// </summary>
+        private bool IsSubmenuMode =>
+            RimWorldAccessMod_Settings.Settings?.SubmenuTreeNavigation ?? false;
+
         #endregion
 
         #region Read-Only State
@@ -131,8 +139,9 @@ namespace RimWorldAccess
             selectedIndex = initialIndex;
             typeahead.ClearSearch();
             MenuHelper.ResetLevel(levelTrackingKey);
-            if (TrackLastChild)
+            if (TrackLastChild || IsSubmenuMode)
                 lastChildPerParent = new Dictionary<InspectionTreeItem, InspectionTreeItem>();
+            lastAnnouncedParent = null;
             RebuildVisibleList();
             if (selectedIndex >= visibleItems.Count)
                 selectedIndex = Math.Max(0, visibleItems.Count - 1);
@@ -149,6 +158,7 @@ namespace RimWorldAccess
             typeahead.ClearSearch();
             MenuHelper.ResetLevel(levelTrackingKey);
             lastChildPerParent?.Clear();
+            lastAnnouncedParent = null;
         }
 
         #endregion
@@ -370,12 +380,43 @@ namespace RimWorldAccess
             {
                 OnBeforeExpand?.Invoke(item);
                 item.IsExpanded = true;
-                RebuildVisibleList();
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                AnnounceStateChange();
+                SoundDefOf.FloatMenu_Open.PlayOneShotOnCamera();
+
+                if (IsSubmenuMode)
+                {
+                    // Parent disappears — land on remembered or first child
+                    InspectionTreeItem targetChild = null;
+                    if (lastChildPerParent != null && lastChildPerParent.TryGetValue(item, out var remembered))
+                        targetChild = remembered;
+                    if (targetChild == null && item.Children.Count > 0)
+                        targetChild = item.Children[0];
+
+                    RebuildVisibleList();
+
+                    if (targetChild != null)
+                    {
+                        int idx = visibleItems.IndexOf(targetChild);
+                        if (idx >= 0)
+                            selectedIndex = idx;
+                        else
+                            selectedIndex = Math.Max(0, Math.Min(selectedIndex, visibleItems.Count - 1));
+                    }
+                    else
+                    {
+                        selectedIndex = Math.Max(0, Math.Min(selectedIndex, visibleItems.Count - 1));
+                    }
+                    AnnounceCurrentItem();
+                }
+                else
+                {
+                    RebuildVisibleList();
+                    AnnounceStateChange();
+                }
             }
             else if (item.Children.Count > 0)
             {
+                // Already expanded — drill into first child (standard mode only;
+                // in submenu mode expanded items aren't visible)
                 int childIndex = visibleItems.IndexOf(item.Children[0]);
                 if (childIndex >= 0)
                 {
@@ -396,13 +437,42 @@ namespace RimWorldAccess
             typeahead.ClearSearch();
             var item = visibleItems[selectedIndex];
 
+            if (IsSubmenuMode)
+            {
+                // In submenu mode, expanded parents are never visible.
+                // Left arrow always means: collapse my parent and go to it.
+                var parent = item.Parent;
+                if (parent != null && parent != rootItem)
+                {
+                    if (lastChildPerParent != null)
+                        lastChildPerParent[parent] = item;
+
+                    parent.IsExpanded = false;
+                    RebuildVisibleList();
+                    SoundDefOf.FloatMenu_Cancel.PlayOneShotOnCamera();
+
+                    int parentIndex = visibleItems.IndexOf(parent);
+                    if (parentIndex >= 0)
+                        selectedIndex = parentIndex;
+                    else
+                        selectedIndex = Math.Max(0, Math.Min(selectedIndex, visibleItems.Count - 1));
+                    AnnounceCurrentItem();
+                }
+                else
+                {
+                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                }
+                return;
+            }
+
+            // Standard mode
             if (item.IsExpandable && item.IsExpanded)
             {
                 item.IsExpanded = false;
                 RebuildVisibleList();
                 if (selectedIndex >= visibleItems.Count)
                     selectedIndex = Math.Max(0, visibleItems.Count - 1);
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                SoundDefOf.FloatMenu_Cancel.PlayOneShotOnCamera();
                 AnnounceStateChange();
             }
             else if (item.Parent != null && item.Parent != rootItem)
@@ -446,9 +516,45 @@ namespace RimWorldAccess
 
             if (expandedCount > 0)
             {
-                RebuildVisibleList();
-                typeahead.ClearSearch();
-                TolkHelper.Speak($"Expanded {expandedCount} {(expandedCount == 1 ? "item" : "items")}");
+                if (IsSubmenuMode)
+                {
+                    // All expanded siblings disappear — land on current item's first/remembered child
+                    InspectionTreeItem targetChild = null;
+                    if (currentItem.IsExpandable && currentItem.Children.Count > 0)
+                    {
+                        if (lastChildPerParent != null && lastChildPerParent.TryGetValue(currentItem, out var remembered))
+                            targetChild = remembered;
+                        if (targetChild == null)
+                            targetChild = currentItem.Children[0];
+                    }
+
+                    RebuildVisibleList();
+                    typeahead.ClearSearch();
+
+                    if (targetChild != null)
+                    {
+                        int idx = visibleItems.IndexOf(targetChild);
+                        if (idx >= 0)
+                            selectedIndex = idx;
+                        else
+                            selectedIndex = Math.Max(0, Math.Min(selectedIndex, visibleItems.Count - 1));
+                    }
+                    else
+                    {
+                        selectedIndex = Math.Max(0, Math.Min(selectedIndex, visibleItems.Count - 1));
+                    }
+
+                    EmbeddedAudioHelper.PlaySoundDefWithReverb(SoundDefOf.FloatMenu_Open);
+                    TolkHelper.Speak($"Expanded {expandedCount} {(expandedCount == 1 ? "item" : "items")}");
+                    AnnounceCurrentItem();
+                }
+                else
+                {
+                    RebuildVisibleList();
+                    typeahead.ClearSearch();
+                    EmbeddedAudioHelper.PlaySoundDefWithReverb(SoundDefOf.FloatMenu_Open);
+                    TolkHelper.Speak($"Expanded {expandedCount} {(expandedCount == 1 ? "item" : "items")}");
+                }
             }
         }
 
@@ -488,7 +594,12 @@ namespace RimWorldAccess
             visibleItems.Clear();
             if (rootItem == null) return;
 
-            if (SkipRootInVisibleList)
+            if (IsSubmenuMode)
+            {
+                foreach (var child in rootItem.Children)
+                    GetVisibleItemsSubmenuMode(child, visibleItems);
+            }
+            else if (SkipRootInVisibleList)
             {
                 foreach (var child in rootItem.Children)
                 {
@@ -530,14 +641,11 @@ namespace RimWorldAccess
                 return;
 
             var item = visibleItems[selectedIndex];
-
-            if (FormatItemAnnouncement != null)
-            {
-                TolkHelper.Speak(FormatItemAnnouncement(item));
-                return;
-            }
-
-            TolkHelper.Speak(DefaultFormatItemAnnouncement(item));
+            string announcement = FormatItemAnnouncement != null
+                ? FormatItemAnnouncement(item)
+                : DefaultFormatItemAnnouncement(item);
+            announcement += GetSubmenuParentSuffix(item);
+            TolkHelper.Speak(announcement);
         }
 
         private void AnnounceStateChange()
@@ -582,14 +690,11 @@ namespace RimWorldAccess
                 return;
 
             var item = visibleItems[selectedIndex];
-
-            if (FormatSearchAnnouncement != null)
-            {
-                TolkHelper.Speak(FormatSearchAnnouncement(item, typeahead));
-                return;
-            }
-
-            TolkHelper.Speak(DefaultFormatSearchAnnouncement(item));
+            string announcement = FormatSearchAnnouncement != null
+                ? FormatSearchAnnouncement(item, typeahead)
+                : DefaultFormatSearchAnnouncement(item);
+            announcement += GetSubmenuParentSuffix(item);
+            TolkHelper.Speak(announcement);
         }
 
         #endregion
@@ -711,16 +816,26 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Default: toggle expand/collapse
+            // Default: expand-and-enter (submenu mode) or toggle (standard mode)
             if (item.IsExpandable)
             {
-                typeahead.ClearSearch();
-                if (!item.IsExpanded)
-                    OnBeforeExpand?.Invoke(item);
-                item.IsExpanded = !item.IsExpanded;
-                RebuildVisibleList();
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                AnnounceStateChange();
+                if (IsSubmenuMode)
+                {
+                    ExpandOrDrillDown();
+                }
+                else
+                {
+                    typeahead.ClearSearch();
+                    if (!item.IsExpanded)
+                        OnBeforeExpand?.Invoke(item);
+                    item.IsExpanded = !item.IsExpanded;
+                    RebuildVisibleList();
+                    if (item.IsExpanded)
+                        SoundDefOf.FloatMenu_Open.PlayOneShotOnCamera();
+                    else
+                        SoundDefOf.FloatMenu_Cancel.PlayOneShotOnCamera();
+                    AnnounceStateChange();
+                }
             }
         }
 
@@ -786,6 +901,50 @@ namespace RimWorldAccess
 
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
             TolkHelper.Speak("No info card available.");
+        }
+
+        /// <summary>
+        /// Returns a parent label suffix when the current item's parent differs from
+        /// the last announced parent. Only active in submenu mode. Used to announce
+        /// parent boundary crossings during up/down navigation.
+        /// </summary>
+        private string GetSubmenuParentSuffix(InspectionTreeItem item)
+        {
+            if (!IsSubmenuMode) return "";
+
+            var parent = item.Parent;
+            if (parent == null || parent == rootItem)
+            {
+                if (lastAnnouncedParent != null)
+                    lastAnnouncedParent = null;
+                return "";
+            }
+
+            if (parent == lastAnnouncedParent) return "";
+
+            lastAnnouncedParent = parent;
+            string parentLabel = !string.IsNullOrEmpty(parent.ExpandedLabel)
+                ? parent.ExpandedLabel
+                : parent.Label;
+            return $". {parentLabel}";
+        }
+
+        /// <summary>
+        /// Builds visible items for submenu mode. Expanded parents with children
+        /// are excluded — only their children appear. Collapsed expandable nodes
+        /// and leaf nodes are included normally.
+        /// </summary>
+        private void GetVisibleItemsSubmenuMode(InspectionTreeItem node, List<InspectionTreeItem> result)
+        {
+            if (node.IsExpandable && node.IsExpanded && node.Children.Count > 0)
+            {
+                foreach (var child in node.Children)
+                    GetVisibleItemsSubmenuMode(child, result);
+            }
+            else
+            {
+                result.Add(node);
+            }
         }
 
         private void PlayTickAndAnnounce()

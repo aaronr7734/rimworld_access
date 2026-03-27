@@ -723,7 +723,7 @@ namespace RimWorldAccess
             // Has children - expand normally
             item.IsExpanded = true;
             treeNav.RebuildVisibleList();
-            SoundDefOf.Click.PlayOneShotOnCamera();
+            SoundDefOf.FloatMenu_Open.PlayOneShotOnCamera();
             treeNav.ReannounceCurrentItem();
         }
 

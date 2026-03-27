@@ -714,7 +714,7 @@ namespace RimWorldAccess
 
             item.IsExpanded = true;
             treeNav.RebuildVisibleList();
-            SoundDefOf.Click.PlayOneShotOnCamera();
+            SoundDefOf.FloatMenu_Open.PlayOneShotOnCamera();
 
             // Focus stays on current item - just announce the state change
             treeNav.ReannounceCurrentItem();
@@ -747,7 +747,7 @@ namespace RimWorldAccess
                 if (treeNav.SelectedIndex >= treeNav.Count)
                     treeNav.SetSelectedIndex(Math.Max(0, treeNav.Count - 1));
 
-                SoundDefOf.Click.PlayOneShotOnCamera();
+                SoundDefOf.FloatMenu_Cancel.PlayOneShotOnCamera();
                 treeNav.ReannounceCurrentItem();
                 return;
             }

@@ -399,6 +399,7 @@ namespace RimWorldAccess
             {
                 RebuildMenu();
                 typeahead.ClearSearch();
+                EmbeddedAudioHelper.PlaySoundDefWithReverb(SoundDefOf.FloatMenu_Open);
                 if (expandedCount == 1)
                     TolkHelper.Speak("Expanded 1 category");
                 else

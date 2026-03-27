@@ -627,6 +627,7 @@ namespace RimWorldAccess
             if (expandedCount > 0)
             {
                 RebuildTree();
+                EmbeddedAudioHelper.PlaySoundDefWithReverb(SoundDefOf.FloatMenu_Open);
                 if (expandedCount == 1)
                     TolkHelper.Speak("Expanded 1 category");
                 else

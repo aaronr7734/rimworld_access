@@ -640,6 +640,10 @@ namespace RimWorldAccess
             accessSettings.Settings.Add(new CheckboxSetting("Announce Depth Levels in Treeviews",
                 () => RimWorldAccessMod_Settings.Settings?.AnnounceLevels ?? true,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.AnnounceLevels = v; }));
+            accessSettings.Settings.Add(new CheckboxSetting("Rashad Hates Treeviews (Submenu-Style Navigation)",
+                () => RimWorldAccessMod_Settings.Settings?.SubmenuTreeNavigation ?? false,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.SubmenuTreeNavigation = v; },
+                "Changes how treeviews work. When you expand a category, it disappears and you navigate only its items. Press Left Arrow to go back. Your position is remembered when you return."));
             categories.Add(accessSettings);
 
             // Mod Settings Category - list all mods that have settings
