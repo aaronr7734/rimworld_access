@@ -194,6 +194,7 @@ namespace RimWorldAccess
             {
                 Type = InspectionTreeItem.ItemType.Category,
                 Label = GetCategoryLabel(obj, categoryKey, displayName),
+                ExpandedLabel = displayName, // Short form for submenu mode section announcements
                 Data = obj,
                 IndentLevel = indent
             };
@@ -379,6 +380,7 @@ namespace RimWorldAccess
             {
                 Type = InspectionTreeItem.ItemType.Category,
                 Label = GetCategoryLabel(obj, category),
+                ExpandedLabel = category, // Short form for submenu mode section announcements
                 Data = obj,
                 IndentLevel = indent
             };

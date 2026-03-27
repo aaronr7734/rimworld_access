@@ -405,6 +405,9 @@ namespace RimWorldAccess
                     {
                         selectedIndex = Math.Max(0, Math.Min(selectedIndex, visibleItems.Count - 1));
                     }
+                    // User just expanded this node — they know which section they're in,
+                    // so suppress the parent prefix on the first announcement
+                    lastAnnouncedParent = item;
                     AnnounceCurrentItem();
                 }
                 else
@@ -631,6 +634,19 @@ namespace RimWorldAccess
             return null;
         }
 
+        /// <summary>
+        /// Marks the current selected item's parent as already announced.
+        /// Call this before ReannounceCurrentItem() when the user already knows
+        /// which section they're in (e.g., they just expanded a node or opened
+        /// inspection). This prevents GetSubmenuParentPrefix from announcing
+        /// the section name redundantly.
+        /// </summary>
+        public void MarkCurrentParentAsAnnounced()
+        {
+            if (visibleItems.Count > 0 && selectedIndex >= 0 && selectedIndex < visibleItems.Count)
+                lastAnnouncedParent = visibleItems[selectedIndex].Parent;
+        }
+
         #endregion
 
         #region Announcements
@@ -644,7 +660,7 @@ namespace RimWorldAccess
             string announcement = FormatItemAnnouncement != null
                 ? FormatItemAnnouncement(item)
                 : DefaultFormatItemAnnouncement(item);
-            announcement += GetSubmenuParentSuffix(item);
+            announcement = GetSubmenuParentPrefix(item) + announcement;
             TolkHelper.Speak(announcement);
         }
 
@@ -693,7 +709,7 @@ namespace RimWorldAccess
             string announcement = FormatSearchAnnouncement != null
                 ? FormatSearchAnnouncement(item, typeahead)
                 : DefaultFormatSearchAnnouncement(item);
-            announcement += GetSubmenuParentSuffix(item);
+            announcement = GetSubmenuParentPrefix(item) + announcement;
             TolkHelper.Speak(announcement);
         }
 
@@ -904,11 +920,14 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Returns a parent label suffix when the current item's parent differs from
+        /// Returns a parent label prefix when the current item's parent differs from
         /// the last announced parent. Only active in submenu mode. Used to announce
         /// parent boundary crossings during up/down navigation.
+        /// The section name is announced before the item so the user hears the
+        /// context first (e.g., "Gear. Steel sword" rather than "Steel sword. Gear").
+        /// Always uses ExpandedLabel (short form) when available.
         /// </summary>
-        private string GetSubmenuParentSuffix(InspectionTreeItem item)
+        private string GetSubmenuParentPrefix(InspectionTreeItem item)
         {
             if (!IsSubmenuMode) return "";
 
@@ -926,7 +945,7 @@ namespace RimWorldAccess
             string parentLabel = !string.IsNullOrEmpty(parent.ExpandedLabel)
                 ? parent.ExpandedLabel
                 : parent.Label;
-            return $". {parentLabel}";
+            return $"{parentLabel}. ";
         }
 
         /// <summary>

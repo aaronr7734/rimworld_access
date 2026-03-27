@@ -91,7 +91,11 @@ namespace RimWorldAccess
                         {
                             singleItem.IsExpanded = true;
                             treeNav.RebuildVisibleList();
-                            treeNav.SetSelectedIndex(1); // First child
+                            // In submenu mode, the expanded parent is removed from the visible list,
+                            // so the first child is at index 0 instead of 1
+                            int firstChildIndex = (RimWorldAccessMod_Settings.Settings?.SubmenuTreeNavigation ?? false) ? 0 : 1;
+                            treeNav.SetSelectedIndex(firstChildIndex);
+                            treeNav.MarkCurrentParentAsAnnounced();
                             treeNav.ReannounceCurrentItem();
                         }
                         return; // Early return - skip normal announcement
@@ -174,7 +178,11 @@ namespace RimWorldAccess
                         {
                             singleItem.IsExpanded = true;
                             treeNav.RebuildVisibleList();
-                            treeNav.SetSelectedIndex(1);
+                            // In submenu mode, the expanded parent is removed from the visible list,
+                            // so the first child is at index 0 instead of 1
+                            int firstChildIndex = (RimWorldAccessMod_Settings.Settings?.SubmenuTreeNavigation ?? false) ? 0 : 1;
+                            treeNav.SetSelectedIndex(firstChildIndex);
+                            treeNav.MarkCurrentParentAsAnnounced();
                             treeNav.ReannounceCurrentItem();
                             return;
                         }
@@ -247,7 +255,11 @@ namespace RimWorldAccess
                         {
                             singleItem.IsExpanded = true;
                             treeNav.RebuildVisibleList();
-                            treeNav.SetSelectedIndex(1); // First child
+                            // In submenu mode, the expanded parent is removed from the visible list,
+                            // so the first child is at index 0 instead of 1
+                            int firstChildIndex = (RimWorldAccessMod_Settings.Settings?.SubmenuTreeNavigation ?? false) ? 0 : 1;
+                            treeNav.SetSelectedIndex(firstChildIndex);
+                            treeNav.MarkCurrentParentAsAnnounced();
                             treeNav.ReannounceCurrentItem();
                         }
                         return; // Early return - skip normal announcement
@@ -716,7 +728,8 @@ namespace RimWorldAccess
             treeNav.RebuildVisibleList();
             SoundDefOf.FloatMenu_Open.PlayOneShotOnCamera();
 
-            // Focus stays on current item - just announce the state change
+            // User just expanded this node — suppress section prefix announcement
+            treeNav.MarkCurrentParentAsAnnounced();
             treeNav.ReannounceCurrentItem();
         }
 

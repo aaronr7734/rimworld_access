@@ -585,11 +585,11 @@ namespace RimWorldAccess
                     ? $"{label}{stateIndicator}.{levelSuffix}{inspectableHint}"
                     : $"{label}{stateIndicator}.{levelSuffix} {positionPart}.{inspectableHint}";
 
-                // Append section suffix when crossing section boundaries
+                // Prepend section name when crossing section boundaries
                 string sectionName = item.Description;
                 if (!string.IsNullOrEmpty(sectionName) && sectionName != lastAnnouncedSection)
                 {
-                    announcement += $" {sectionName} section";
+                    announcement = $"{sectionName} section. {announcement}";
                     lastAnnouncedSection = sectionName;
                 }
                 else if (string.IsNullOrEmpty(sectionName) && lastAnnouncedSection != null)
@@ -700,6 +700,9 @@ namespace RimWorldAccess
             // Already expanded - drill down to first child
             if (item.IsExpanded)
             {
+                // Pre-set section to suppress section announcement on the child we drill into
+                if (item.Children.Count > 0)
+                    lastAnnouncedSection = item.Children[0].Description;
                 treeNav.ExpandOrDrillDown();
                 return;
             }
@@ -724,6 +727,13 @@ namespace RimWorldAccess
             item.IsExpanded = true;
             treeNav.RebuildVisibleList();
             SoundDefOf.FloatMenu_Open.PlayOneShotOnCamera();
+
+            // Suppress parent/section announcements — user just chose to expand this node
+            treeNav.MarkCurrentParentAsAnnounced();
+            var selectedItem = treeNav.SelectedItem;
+            if (selectedItem != null)
+                lastAnnouncedSection = selectedItem.Description;
+
             treeNav.ReannounceCurrentItem();
         }
 
