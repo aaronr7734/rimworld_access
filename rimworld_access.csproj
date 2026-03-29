@@ -5,12 +5,17 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <!-- RimWorld install path - only used for deployment (override in GamePaths.props for custom locations) -->
+    <!-- RimWorld install path - auto-detected per platform (override in GamePaths.props for custom locations) -->
+    <RimWorldDir Condition="'$(RimWorldDir)'=='' And $([MSBuild]::IsOSPlatform('OSX'))">$(HOME)/Library/Application Support/Steam/steamapps/common/RimWorld/RimWorldMac.app</RimWorldDir>
+    <RimWorldDir Condition="'$(RimWorldDir)'=='' And $([MSBuild]::IsOSPlatform('Linux'))">$(HOME)/.steam/steam/steamapps/common/RimWorld</RimWorldDir>
     <RimWorldDir Condition="'$(RimWorldDir)'==''">C:\Program Files (x86)\Steam\steamapps\common\RimWorld</RimWorldDir>
     <!-- Mod output folder -->
-    <ModOutputDir>$(RimWorldDir)\Mods\RimWorldAccess</ModOutputDir>
+    <ModOutputDir>$([System.IO.Path]::Combine('$(RimWorldDir)', 'Mods', 'RimWorldAccess'))</ModOutputDir>
     <!-- Disable default compile includes to avoid picking up decompiled game source -->
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <!-- Native Prism library directory: local native/ or shared ../shared/native/ for worktree setups -->
+    <NativeDir Condition="Exists('$(ProjectDir)native')">$(ProjectDir)native</NativeDir>
+    <NativeDir Condition="'$(NativeDir)'=='' And Exists('$(ProjectDir)..\shared\native')">$(ProjectDir)..\shared\native</NativeDir>
   </PropertyGroup>
 
   <!-- Explicitly include only our source files -->
@@ -26,14 +31,14 @@
   </ItemGroup>
 
   <!-- Include native Prism libraries for deployment (NOT as references) -->
-  <ItemGroup>
-    <None Include="native\prism.dll" Condition="Exists('native\prism.dll')">
+  <ItemGroup Condition="'$(NativeDir)'!=''">
+    <None Include="$(NativeDir)\prism.dll" Condition="Exists('$(NativeDir)\prism.dll')">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
-    <None Include="native\libprism.dylib" Condition="Exists('native\libprism.dylib')">
+    <None Include="$(NativeDir)\libprism.dylib" Condition="Exists('$(NativeDir)\libprism.dylib')">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
-    <None Include="native\libprism.so" Condition="Exists('native\libprism.so')">
+    <None Include="$(NativeDir)\libprism.so" Condition="Exists('$(NativeDir)\libprism.so')">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -77,19 +82,19 @@
 
     <!-- Copy native Prism libraries to mod root (for runtime loading) -->
     <Copy
-      SourceFiles="$(ProjectDir)native\prism.dll"
+      SourceFiles="$(NativeDir)\prism.dll"
       DestinationFolder="$(ModOutputDir)\"
-      Condition="Exists('$(ProjectDir)native\prism.dll')"
+      Condition="'$(NativeDir)'!='' And Exists('$(NativeDir)\prism.dll')"
     />
     <Copy
-      SourceFiles="$(ProjectDir)native\libprism.dylib"
+      SourceFiles="$(NativeDir)\libprism.dylib"
       DestinationFolder="$(ModOutputDir)\"
-      Condition="Exists('$(ProjectDir)native\libprism.dylib')"
+      Condition="'$(NativeDir)'!='' And Exists('$(NativeDir)\libprism.dylib')"
     />
     <Copy
-      SourceFiles="$(ProjectDir)native\libprism.so"
+      SourceFiles="$(NativeDir)\libprism.so"
       DestinationFolder="$(ModOutputDir)\"
-      Condition="Exists('$(ProjectDir)native\libprism.so')"
+      Condition="'$(NativeDir)'!='' And Exists('$(NativeDir)\libprism.so')"
     />
 
     <Message Text="--- Mod deployed successfully ---" Importance="high" />
@@ -121,19 +126,19 @@
 
     <!-- Copy native Prism libraries to mod root -->
     <Copy
-      SourceFiles="$(ProjectDir)native\prism.dll"
+      SourceFiles="$(NativeDir)\prism.dll"
       DestinationFolder="$(ReleaseFolderPath)"
-      Condition="Exists('$(ProjectDir)native\prism.dll')"
+      Condition="'$(NativeDir)'!='' And Exists('$(NativeDir)\prism.dll')"
     />
     <Copy
-      SourceFiles="$(ProjectDir)native\libprism.dylib"
+      SourceFiles="$(NativeDir)\libprism.dylib"
       DestinationFolder="$(ReleaseFolderPath)"
-      Condition="Exists('$(ProjectDir)native\libprism.dylib')"
+      Condition="'$(NativeDir)'!='' And Exists('$(NativeDir)\libprism.dylib')"
     />
     <Copy
-      SourceFiles="$(ProjectDir)native\libprism.so"
+      SourceFiles="$(NativeDir)\libprism.so"
       DestinationFolder="$(ReleaseFolderPath)"
-      Condition="Exists('$(ProjectDir)native\libprism.so')"
+      Condition="'$(NativeDir)'!='' And Exists('$(NativeDir)\libprism.so')"
     />
 
     <!-- Copy README.md to release folder -->
