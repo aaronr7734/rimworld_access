@@ -21,6 +21,9 @@ dotnet build
 
 # Build release package to release/RimWorldAccess/
 dotnet build -c Release
+
+# Update Prism native libraries to latest release
+dotnet msbuild -t:UpdatePrism
 ```
 
 **Build Output:**

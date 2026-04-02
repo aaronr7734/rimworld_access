@@ -29,6 +29,20 @@ The project defaults to the standard Steam install path (`C:\Program Files (x86)
 
 The `GamePaths.props` file is gitignored, so your local configuration won't affect the repository.
 
+### Prism Native Libraries
+
+The mod depends on [Prism](https://github.com/ethindp/prism) native libraries for screen reader integration. These are **not** checked into Git.
+
+**First build:** Libraries are downloaded automatically when you run `dotnet build` for the first time.
+
+**Updating to latest Prism:** Run this when you want to pull the latest Prism release:
+
+```bash
+dotnet msbuild -t:UpdatePrism
+```
+
+The CI pipeline always uses the latest Prism release, so your local copy only needs updating if you want to test against a newer version.
+
 ### Building a Release Package
 
 To create a release package:

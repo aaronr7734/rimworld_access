@@ -1,6 +1,6 @@
 bin/
 obj/
-.claude/
+.claude
 release/
 GamePaths.props
 /decompiled/

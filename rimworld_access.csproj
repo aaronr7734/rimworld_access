@@ -158,4 +158,40 @@
     <Message Text="--- Release package created at $(ReleaseFolderPath) ---" Importance="high" />
   </Target>
 
+  <!-- Download latest Prism native libraries from GitHub -->
+  <Target Name="UpdatePrism">
+    <Message Text="Downloading latest Prism native libraries from GitHub..." Importance="high" />
+    <MakeDir Directories="$(ProjectDir)native" />
+
+    <!-- Windows x64 -->
+    <Exec Command="curl -sL &quot;https://github.com/ethindp/prism/releases/latest/download/prism-windows-x64.zip&quot; -o &quot;$(ProjectDir)native/prism-win.zip&quot;" />
+    <Exec Command="unzip -o &quot;$(ProjectDir)native/prism-win.zip&quot; -d &quot;$(ProjectDir)native/prism-win-tmp&quot;" />
+    <Copy SourceFiles="$(ProjectDir)native/prism-win-tmp/dynamic/release/bin/prism.dll" DestinationFiles="$(ProjectDir)native/prism.dll" />
+    <RemoveDir Directories="$(ProjectDir)native/prism-win-tmp" />
+    <Delete Files="$(ProjectDir)native/prism-win.zip" />
+
+    <!-- macOS universal -->
+    <Exec Command="curl -sL &quot;https://github.com/ethindp/prism/releases/latest/download/prism-macos-universal.zip&quot; -o &quot;$(ProjectDir)native/prism-mac.zip&quot;" />
+    <Exec Command="unzip -o &quot;$(ProjectDir)native/prism-mac.zip&quot; -d &quot;$(ProjectDir)native/prism-mac-tmp&quot;" />
+    <Copy SourceFiles="$(ProjectDir)native/prism-mac-tmp/dynamic/release/lib/libprism.dylib" DestinationFiles="$(ProjectDir)native/libprism.dylib" />
+    <RemoveDir Directories="$(ProjectDir)native/prism-mac-tmp" />
+    <Delete Files="$(ProjectDir)native/prism-mac.zip" />
+
+    <!-- Linux x64 -->
+    <Exec Command="curl -sL &quot;https://github.com/ethindp/prism/releases/latest/download/prism-linux-x64.zip&quot; -o &quot;$(ProjectDir)native/prism-linux.zip&quot;" />
+    <Exec Command="unzip -o &quot;$(ProjectDir)native/prism-linux.zip&quot; -d &quot;$(ProjectDir)native/prism-linux-tmp&quot;" />
+    <Copy SourceFiles="$(ProjectDir)native/prism-linux-tmp/dynamic/release/lib/libprism.so" DestinationFiles="$(ProjectDir)native/libprism.so" />
+    <RemoveDir Directories="$(ProjectDir)native/prism-linux-tmp" />
+    <Delete Files="$(ProjectDir)native/prism-linux.zip" />
+
+    <Message Text="Prism native libraries updated successfully." Importance="high" />
+  </Target>
+
+  <!-- Auto-download Prism on first build when native libraries are missing (skipped in CI) -->
+  <Target Name="BootstrapPrism" BeforeTargets="Build"
+          Condition="'$(CI)' != 'true' And !Exists('$(ProjectDir)native/prism.dll') And !Exists('$(ProjectDir)..\shared\native\prism.dll')">
+    <Message Text="Native Prism libraries not found. Running first-time download..." Importance="high" />
+    <CallTarget Targets="UpdatePrism" />
+  </Target>
+
 </Project>
