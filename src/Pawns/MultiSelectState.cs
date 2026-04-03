@@ -300,7 +300,7 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Activates multi-select with the given set of pawns.
-        /// Used by group recall (Alt+F1-F5).
+        /// Used by group recall (Ctrl+F1-F5).
         /// </summary>
         public static void SetSelection(IEnumerable<Pawn> pawns)
         {

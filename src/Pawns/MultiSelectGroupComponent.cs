@@ -41,7 +41,7 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Saves the current selection to a group slot (Alt+Ctrl+F1-F5).
+        /// Saves the current selection to a group slot (Ctrl+Shift+F1-F5).
         /// </summary>
         public void SaveGroup(int slot, IReadOnlyCollection<Pawn> pawns)
         {
@@ -58,7 +58,7 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Recalls a group from a slot and activates multi-select (Alt+F1-F5).
+        /// Recalls a group from a slot and activates multi-select (Ctrl+F1-F5).
         /// Filters to pawns on the current map that are alive and spawned.
         /// </summary>
         public void RecallGroup(int slot)

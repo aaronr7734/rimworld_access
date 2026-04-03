@@ -5047,8 +5047,8 @@ namespace RimWorldAccess
                     return;
                 }
 
-                // Alt+Ctrl+F1-F5: save current selection to group slot
-                if (alt && ctrl && MultiSelectState.IsMultiSelectActive &&
+                // Ctrl+Shift+F1-F5: save current selection to group slot
+                if (ctrl && shift && !alt && MultiSelectState.IsMultiSelectActive &&
                     key >= KeyCode.F1 && key <= KeyCode.F5)
                 {
                     int slot = key - KeyCode.F1;
@@ -5065,8 +5065,8 @@ namespace RimWorldAccess
                     return;
                 }
 
-                // Alt+F1-F5: recall group from slot
-                if (alt && !ctrl && !shift && key >= KeyCode.F1 && key <= KeyCode.F5)
+                // Ctrl+F1-F5: recall group from slot
+                if (ctrl && !shift && !alt && key >= KeyCode.F1 && key <= KeyCode.F5)
                 {
                     int slot = key - KeyCode.F1;
                     var component = Current.Game?.GetComponent<MultiSelectGroupComponent>();
