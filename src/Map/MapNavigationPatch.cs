@@ -205,8 +205,8 @@ namespace RimWorldAccess
 
             // Switch to the next/previous map
             Pawn focusPawn = forward
-                ? PawnSelectionState.SwitchToNextMap(out string mapName, out int pawnCount)
-                : PawnSelectionState.SwitchToPreviousMap(out mapName, out pawnCount);
+                ? PawnSelectionState.SwitchToNextMap(out string mapName, out string presenceInfo)
+                : PawnSelectionState.SwitchToPreviousMap(out mapName, out presenceInfo);
 
             // Check if map switch actually happened (mapName will be set if successful)
             if (string.IsNullOrEmpty(mapName))
@@ -228,16 +228,15 @@ namespace RimWorldAccess
                 Find.Selector.ClearSelection();
             }
 
-            // Build announcement: "Now at [MapName] ([X] colonists)"
-            string colonistWord = pawnCount == 1 ? "colonist" : "colonists";
+            // Build announcement: "Now at [MapName] (3 colonists, 2 mechs)"
             string fullAnnouncement;
-            if (pawnCount == 0)
+            if (string.IsNullOrEmpty(presenceInfo))
             {
-                fullAnnouncement = $"Now at {mapName}. No colonists here.";
+                fullAnnouncement = $"Now at {mapName}. No player pawns here.";
             }
             else
             {
-                fullAnnouncement = $"Now at {mapName} ({pawnCount} {colonistWord})";
+                fullAnnouncement = $"Now at {mapName} ({presenceInfo})";
             }
             TolkHelper.Speak(fullAnnouncement);
             MapNavigationState.LastAnnouncedInfo = fullAnnouncement;
