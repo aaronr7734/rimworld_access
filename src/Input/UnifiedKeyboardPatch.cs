@@ -5294,7 +5294,7 @@ namespace RimWorldAccess
                 }
                 else if (!Event.current.shift && !KeyboardHelper.IsAltHeld)
                 {
-                    BookmarkHelper.PeekAtBookmark(slot);
+                    BookmarkHelper.PeekOrJumpToBookmark(slot);
                 }
 
                 Event.current.Use();

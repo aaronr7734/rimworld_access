@@ -6,6 +6,27 @@ namespace RimWorldAccess
 {
     public static class BookmarkHelper
     {
+        private static int lastPeekedSlot = -1;
+        private static float lastPeekTime = -1f;
+        private const float DoubleTapThreshold = 0.5f;
+
+        public static void PeekOrJumpToBookmark(int slot)
+        {
+            float now = UnityEngine.Time.realtimeSinceStartup;
+            if (lastPeekedSlot == slot && now - lastPeekTime <= DoubleTapThreshold)
+            {
+                lastPeekedSlot = -1;
+                lastPeekTime = -1f;
+                JumpToBookmark(slot);
+            }
+            else
+            {
+                lastPeekedSlot = slot;
+                lastPeekTime = now;
+                PeekAtBookmark(slot);
+            }
+        }
+
         public static void SetBookmark(int slot)
         {
             var component = GetComponent();
