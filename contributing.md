@@ -31,7 +31,7 @@ The `GamePaths.props` file is gitignored, so your local configuration won't affe
 
 ### Prism Native Libraries
 
-The mod depends on [Prism](https://github.com/ethindp/prism) native libraries for screen reader integration. These are **not** checked into Git.
+The mod depends on [Prism](https://github.com/ethindp/prism) native libraries for screen reader integration. These are **not** checked into Git and are stored in `../shared/native/` (shared across worktrees).
 
 **First build:** Libraries are downloaded automatically when you run `dotnet build` for the first time.
 
