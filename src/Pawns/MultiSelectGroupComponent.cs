@@ -7,18 +7,17 @@ namespace RimWorldAccess
 {
     /// <summary>
     /// GameComponent that persists multi-select pawn groups across save/load.
-    /// Provides 5 group slots (F1-F5) that can be saved and recalled.
+    /// Provides 4 group slots (F1-F4) that can be saved and recalled.
     /// Automatically discovered by RimWorld via reflection.
     /// </summary>
     public class MultiSelectGroupComponent : GameComponent
     {
-        private const int GroupCount = 5;
+        private const int GroupCount = 4;
 
         private List<Pawn> group0 = new List<Pawn>();
         private List<Pawn> group1 = new List<Pawn>();
         private List<Pawn> group2 = new List<Pawn>();
         private List<Pawn> group3 = new List<Pawn>();
-        private List<Pawn> group4 = new List<Pawn>();
 
         public MultiSelectGroupComponent(Game game) : base()
         {
@@ -35,7 +34,6 @@ namespace RimWorldAccess
                 case 1: return group1;
                 case 2: return group2;
                 case 3: return group3;
-                case 4: return group4;
                 default: return null;
             }
         }
@@ -130,7 +128,6 @@ namespace RimWorldAccess
             Scribe_Collections.Look(ref group1, "multiSelectGroup1", LookMode.Reference);
             Scribe_Collections.Look(ref group2, "multiSelectGroup2", LookMode.Reference);
             Scribe_Collections.Look(ref group3, "multiSelectGroup3", LookMode.Reference);
-            Scribe_Collections.Look(ref group4, "multiSelectGroup4", LookMode.Reference);
 
             // Initialize null lists after loading
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
@@ -139,7 +136,6 @@ namespace RimWorldAccess
                 if (group1 == null) group1 = new List<Pawn>();
                 if (group2 == null) group2 = new List<Pawn>();
                 if (group3 == null) group3 = new List<Pawn>();
-                if (group4 == null) group4 = new List<Pawn>();
             }
         }
     }

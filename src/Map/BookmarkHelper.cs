@@ -17,7 +17,7 @@ namespace RimWorldAccess
             {
                 lastPeekedSlot = -1;
                 lastPeekTime = -1f;
-                JumpToBookmark(slot);
+                JumpToBookmark(slot, announceJumped: true);
             }
             else
             {
@@ -41,7 +41,7 @@ namespace RimWorldAccess
             TolkHelper.Speak($"Bookmark {slot} set: {tileSummary}");
         }
 
-        public static void JumpToBookmark(int slot)
+        public static void JumpToBookmark(int slot, bool announceJumped = false)
         {
             var component = GetComponent();
             if (component == null)
@@ -72,7 +72,17 @@ namespace RimWorldAccess
 
             // Reset last announced info so AnnouncePosition always speaks
             MapNavigationState.LastAnnouncedInfo = "";
-            MapArrowKeyHandler.AnnouncePosition(bookmarkPos, map);
+
+            if (announceJumped)
+            {
+                string tileInfo = TileInfoHelper.GetTileSummary(bookmarkPos, map);
+                TolkHelper.Speak($"Jumped. {tileInfo}");
+                MapNavigationState.LastAnnouncedInfo = tileInfo;
+            }
+            else
+            {
+                MapArrowKeyHandler.AnnouncePosition(bookmarkPos, map);
+            }
         }
 
         public static void PeekAtBookmark(int slot)
