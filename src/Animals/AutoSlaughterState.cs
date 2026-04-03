@@ -943,12 +943,11 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Typeahead: letter keys only (use KeyCode, not evt.character which is often empty in IMGUI)
+            // Typeahead: letter keys only
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             if (isLetter && !KeyboardHelper.IsAltHeld)
             {
-                char c = (char)('a' + (key - KeyCode.A));
-                HandleTypeahead(c);
+                TypeaheadCharacterBuffer.RequestCharacter(c => HandleTypeahead(c));
                 return true;
             }
 

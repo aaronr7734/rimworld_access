@@ -315,8 +315,7 @@ namespace RimWorldAccess
 
                 if (isLetter || isNumber)
                 {
-                    char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                    HandleTypeahead(c);
+                    TypeaheadCharacterBuffer.RequestCharacter(c => HandleTypeahead(c));
                     return true;
                 }
             }

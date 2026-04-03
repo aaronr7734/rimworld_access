@@ -710,21 +710,23 @@ namespace RimWorldAccess
 
             if (isLetter || isNumber)
             {
-                char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                var labels = GetItemLabels();
-                if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
+                TypeaheadCharacterBuffer.RequestCharacter(c =>
                 {
-                    if (newIndex >= 0)
+                    var labels = GetItemLabels();
+                    if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
                     {
-                        selectedIndex = newIndex;
-                        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                        AnnounceWithSearch();
+                        if (newIndex >= 0)
+                        {
+                            selectedIndex = newIndex;
+                            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                            AnnounceWithSearch();
+                        }
                     }
-                }
-                else
-                {
-                    TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
-                }
+                    else
+                    {
+                        TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+                    }
+                });
                 ev.Use();
                 return true;
             }

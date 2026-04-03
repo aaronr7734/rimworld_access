@@ -775,28 +775,29 @@ namespace RimWorldAccess
             }
 
             // Handle typeahead characters (but not when Alt is held - those are action keys)
-            // Use KeyCode instead of Event.current.character (which is empty in Unity IMGUI)
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
             bool alt = KeyboardHelper.IsAltHeld;
 
             if ((isLetter || isNumber) && !alt && !ctrl)
             {
-                char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                var labels = GetModLabels();
-                if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
+                TypeaheadCharacterBuffer.RequestCharacter(c =>
                 {
-                    if (newIndex >= 0)
+                    var labels = GetModLabels();
+                    if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
                     {
-                        selectedIndex = newIndex;
-                        SyncSelection();
-                        AnnounceWithSearch();
+                        if (newIndex >= 0)
+                        {
+                            selectedIndex = newIndex;
+                            SyncSelection();
+                            AnnounceWithSearch();
+                        }
                     }
-                }
-                else
-                {
-                    TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
-                }
+                    else
+                    {
+                        TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+                    }
+                });
                 return true;
             }
 

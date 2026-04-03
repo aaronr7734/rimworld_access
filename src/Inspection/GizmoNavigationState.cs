@@ -1039,26 +1039,27 @@ namespace RimWorldAccess
             }
 
             // Handle typeahead characters
-            // Use KeyCode instead of Event.current.character (which is empty in Unity IMGUI)
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
             if (isLetter || isNumber)
             {
-                char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                var labels = GetGizmoLabels();
-                if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
+                TypeaheadCharacterBuffer.RequestCharacter(c =>
                 {
-                    if (newIndex >= 0)
+                    var labels = GetGizmoLabels();
+                    if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
                     {
-                        selectedGizmoIndex = newIndex;
-                        AnnounceWithSearch();
+                        if (newIndex >= 0)
+                        {
+                            selectedGizmoIndex = newIndex;
+                            AnnounceWithSearch();
+                        }
                     }
-                }
-                else
-                {
-                    TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
-                }
+                    else
+                    {
+                        TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+                    }
+                });
                 Event.current.Use();
                 return true;
             }

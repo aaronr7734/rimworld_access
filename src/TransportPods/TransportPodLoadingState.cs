@@ -328,23 +328,28 @@ namespace RimWorldAccess
             // Alphanumeric - typeahead search
             if (!shift && !ctrl && !alt && !showingSummary)
             {
-                char? typedChar = GetTypedCharacter(key);
-                if (typedChar.HasValue)
+                bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
+                bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
+
+                if (isLetter || isNumber)
                 {
-                    List<TransferableOneWay> transferables = GetCurrentTabTransferables();
-                    var labels = CaravanUIHelper.GetTransferableLabels(transferables);
-                    if (typeahead.ProcessCharacterInput(typedChar.Value, labels, out int newIndex))
+                    TypeaheadCharacterBuffer.RequestCharacter(c =>
                     {
-                        if (newIndex >= 0)
+                        List<TransferableOneWay> transferables = GetCurrentTabTransferables();
+                        var labels = CaravanUIHelper.GetTransferableLabels(transferables);
+                        if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
                         {
-                            selectedIndex = newIndex;
-                            AnnounceWithSearch();
+                            if (newIndex >= 0)
+                            {
+                                selectedIndex = newIndex;
+                                AnnounceWithSearch();
+                            }
                         }
-                    }
-                    else
-                    {
-                        TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
-                    }
+                        else
+                        {
+                            TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+                        }
+                    });
                     return true;
                 }
             }
@@ -1231,23 +1236,6 @@ namespace RimWorldAccess
         #endregion
 
         #region Typeahead Support
-
-        /// <summary>
-        /// Gets the character typed for the given key code.
-        /// </summary>
-        private static char? GetTypedCharacter(KeyCode key)
-        {
-            if (key >= KeyCode.A && key <= KeyCode.Z)
-            {
-                return (char)('a' + (key - KeyCode.A));
-            }
-            if (key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9)
-            {
-                return (char)('0' + (key - KeyCode.Alpha0));
-            }
-            return null;
-        }
-
         #endregion
     }
 }

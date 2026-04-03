@@ -233,8 +233,7 @@ namespace RimWorldAccess
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             if (isLetter && !alt && !shift)
             {
-                char c = (char)('a' + (key - KeyCode.A));
-                WorkMenuState.ProcessSearchCharacter(c);
+                TypeaheadCharacterBuffer.RequestCharacter(c => WorkMenuState.ProcessSearchCharacter(c));
                 Event.current.Use();
                 return;
             }

@@ -209,11 +209,13 @@ namespace RimWorldAccess
 
             if ((isLetter || isNumber) && !isExcludedLetter && !KeyboardHelper.IsAltHeld)
             {
-                char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                if (!BillsMenuState.ProcessTypeaheadCharacter(c))
+                TypeaheadCharacterBuffer.RequestCharacter(c =>
                 {
-                    TolkHelper.Speak($"No matches for '{BillsMenuState.GetLastFailedSearch()}'");
-                }
+                    if (!BillsMenuState.ProcessTypeaheadCharacter(c))
+                    {
+                        TolkHelper.Speak($"No matches for '{BillsMenuState.GetLastFailedSearch()}'");
+                    }
+                });
                 Event.current.Use();
                 return;
             }
@@ -407,11 +409,13 @@ namespace RimWorldAccess
 
             if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
             {
-                char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                if (!BillConfigState.ProcessTypeaheadCharacter(c))
+                TypeaheadCharacterBuffer.RequestCharacter(c =>
                 {
-                    TolkHelper.Speak($"No matches for '{BillConfigState.GetLastFailedSearch()}'");
-                }
+                    if (!BillConfigState.ProcessTypeaheadCharacter(c))
+                    {
+                        TolkHelper.Speak($"No matches for '{BillConfigState.GetLastFailedSearch()}'");
+                    }
+                });
                 Event.current.Use();
                 return;
             }
@@ -649,20 +653,13 @@ namespace RimWorldAccess
             }
 
             // Handle typeahead character input BEFORE the switch on keyCode.
-            // Unity IMGUI sends two KeyDown events per key press:
-            //   1. keyCode = KeyCode.T, character = '\0'
-            //   2. keyCode = KeyCode.None, character = 't'
-            // Checking Event.current.character (the old approach) only catches event 2,
-            // letting event 1 leak to UnifiedKeyboardPatch where it triggers game shortcuts.
-            // Checking keyCode ranges (like HandleBillsMenuInput does) catches event 1.
             // Exclude shift+number (e.g., Shift+8 = *) to avoid eating modifier combos.
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
             if ((isLetter || (isNumber && !Event.current.shift)) && !KeyboardHelper.IsAltHeld && !Event.current.control)
             {
-                char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                ThingFilterMenuState.ProcessTypeaheadCharacter(c);
+                TypeaheadCharacterBuffer.RequestCharacter(c => ThingFilterMenuState.ProcessTypeaheadCharacter(c));
                 Event.current.Use();
                 return;
             }
@@ -1061,11 +1058,13 @@ namespace RimWorldAccess
 
             if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
             {
-                char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                if (!FishingZoneMenuState.ProcessTypeaheadCharacter(c))
+                TypeaheadCharacterBuffer.RequestCharacter(c =>
                 {
-                    TolkHelper.Speak($"No matches for '{FishingZoneMenuState.GetLastFailedSearch()}'");
-                }
+                    if (!FishingZoneMenuState.ProcessTypeaheadCharacter(c))
+                    {
+                        TolkHelper.Speak($"No matches for '{FishingZoneMenuState.GetLastFailedSearch()}'");
+                    }
+                });
                 Event.current.Use();
                 return;
             }

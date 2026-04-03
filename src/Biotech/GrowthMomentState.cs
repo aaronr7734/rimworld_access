@@ -248,24 +248,23 @@ namespace RimWorldAccess
 
                 if ((isLetter || isNumber) && !alt)
                 {
-                    char c = isLetter
-                        ? (char)('a' + (key - KeyCode.A))
-                        : (char)('0' + (key - KeyCode.Alpha0));
-
-                    var typeahead = GetCurrentTypeahead();
-                    var labels = GetCurrentLabels();
-                    if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
+                    TypeaheadCharacterBuffer.RequestCharacter(c =>
                     {
-                        if (newIndex >= 0)
+                        var typeahead = GetCurrentTypeahead();
+                        var labels = GetCurrentLabels();
+                        if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
                         {
-                            SetCurrentIndex(newIndex);
-                            AnnounceWithSearch();
+                            if (newIndex >= 0)
+                            {
+                                SetCurrentIndex(newIndex);
+                                AnnounceWithSearch();
+                            }
                         }
-                    }
-                    else
-                    {
-                        TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
-                    }
+                        else
+                        {
+                            TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+                        }
+                    });
                     return true;
                 }
             }

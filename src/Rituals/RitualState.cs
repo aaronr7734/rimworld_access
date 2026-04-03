@@ -351,7 +351,7 @@ namespace RimWorldAccess
             }
 
             // Typeahead search
-            if (HandleTypeahead(key, shift, ctrl, alt, roleItems.Select(r => r.Label).ToList(), ref roleIndex, AnnounceCurrentRole))
+            if (HandleTypeahead(key, shift, ctrl, alt, roleItems.Select(r => r.Label).ToList(), roleIndex, i => roleIndex = i, AnnounceCurrentRole))
             {
                 return true;
             }
@@ -469,7 +469,7 @@ namespace RimWorldAccess
             }
 
             // Typeahead search for pawn names
-            if (HandleTypeahead(key, shift, ctrl, alt, pawnItems.Select(p => p.Pawn.LabelShort).ToList(), ref pawnIndex, AnnounceCurrentPawn))
+            if (HandleTypeahead(key, shift, ctrl, alt, pawnItems.Select(p => p.Pawn.LabelShort).ToList(), pawnIndex, i => pawnIndex = i, AnnounceCurrentPawn))
             {
                 return true;
             }
@@ -537,7 +537,7 @@ namespace RimWorldAccess
             return true;
         }
 
-        private static bool HandleTypeahead(KeyCode key, bool shift, bool ctrl, bool alt, List<string> labels, ref int currentIndex, Action announceAction)
+        private static bool HandleTypeahead(KeyCode key, bool shift, bool ctrl, bool alt, List<string> labels, int currentIndex, Action<int> setIndex, Action announceAction)
         {
             if (ctrl || alt) return false;
 
@@ -551,7 +551,7 @@ namespace RimWorldAccess
                     {
                         if (newIndex >= 0 && newIndex != currentIndex)
                         {
-                            currentIndex = newIndex;
+                            setIndex(newIndex);
                             announceAction?.Invoke();
                         }
                         else if (newIndex < 0 && !typeahead.HasActiveSearch)
@@ -565,55 +565,32 @@ namespace RimWorldAccess
             }
 
             // Letter/number keys for search
-            char? c = KeyCodeToChar(key, shift);
-            if (c.HasValue)
+            bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
+            bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
+            bool isKeypad = key >= KeyCode.Keypad0 && key <= KeyCode.Keypad9;
+
+            if (isLetter || isNumber || isKeypad)
             {
-                int newIndex;
-                if (typeahead.ProcessCharacterInput(c.Value, labels, out newIndex))
+                TypeaheadCharacterBuffer.RequestCharacter(c =>
                 {
-                    if (newIndex >= 0 && newIndex != currentIndex)
+                    int newIndex;
+                    if (typeahead.ProcessCharacterInput(c, labels, out newIndex))
                     {
-                        currentIndex = newIndex;
-                        announceAction?.Invoke();
+                        if (newIndex >= 0 && newIndex != currentIndex)
+                        {
+                            setIndex(newIndex);
+                            announceAction?.Invoke();
+                        }
                     }
-                }
-                else
-                {
-                    // No matches found
-                    TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
-                }
+                    else
+                    {
+                        TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+                    }
+                });
                 return true;
             }
 
             return false;
-        }
-
-        private static char? KeyCodeToChar(KeyCode key, bool shift)
-        {
-            // Letters
-            if (key >= KeyCode.A && key <= KeyCode.Z)
-            {
-                char c = (char)('a' + (key - KeyCode.A));
-                return shift ? char.ToUpper(c) : c;
-            }
-
-            // Numbers
-            if (key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9)
-            {
-                return (char)('0' + (key - KeyCode.Alpha0));
-            }
-            if (key >= KeyCode.Keypad0 && key <= KeyCode.Keypad9)
-            {
-                return (char)('0' + (key - KeyCode.Keypad0));
-            }
-
-            // Space
-            if (key == KeyCode.Space)
-            {
-                return ' ';
-            }
-
-            return null;
         }
 
         #endregion

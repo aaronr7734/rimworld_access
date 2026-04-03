@@ -123,6 +123,14 @@ namespace RimWorldAccess
         /// </summary>
         private static void HandleArchitectTreeInput()
         {
+            // Forward character events to TypeaheadCharacterBuffer (this patch runs before
+            // UnifiedKeyboardPatch, so character events must be dispatched here)
+            if (TypeaheadCharacterBuffer.TryForwardCharacterEvent())
+            {
+                Event.current.Use();
+                return;
+            }
+
             // Don't handle input if a float menu (like right-click options) is open
             if (WindowlessFloatMenuState.IsActive)
                 return;

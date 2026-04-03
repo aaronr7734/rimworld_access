@@ -330,10 +330,7 @@ namespace RimWorldAccess
 
                 if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld && !ev.control)
                 {
-                    char c = isLetter
-                        ? (char)('a' + (key - KeyCode.A))
-                        : (char)('0' + (key - KeyCode.Alpha0));
-                    HandleTypeahead(c);
+                    TypeaheadCharacterBuffer.RequestCharacter(c => HandleTypeahead(c));
                     return true;
                 }
             }

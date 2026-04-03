@@ -264,22 +264,21 @@ namespace RimWorldAccess
 
                 if ((isLetter || isNumber) && !ev.alt && !ev.control)
                 {
-                    char c = isLetter
-                        ? (char)('a' + (key - KeyCode.A))
-                        : (char)('0' + (key - KeyCode.Alpha0));
-
-                    var labels = GetIdeoLabels();
-                    if (listTypeahead.ProcessCharacterInput(c, labels, out int newIndex))
+                    TypeaheadCharacterBuffer.RequestCharacter(c =>
                     {
-                        selectedIdeoIndex = newIndex;
-                        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                        AnnounceListWithSearch();
-                    }
-                    else
-                    {
-                        SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                        TolkHelper.Speak($"No matches for '{listTypeahead.LastFailedSearch}'.");
-                    }
+                        var labels = GetIdeoLabels();
+                        if (listTypeahead.ProcessCharacterInput(c, labels, out int newIndex))
+                        {
+                            selectedIdeoIndex = newIndex;
+                            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                            AnnounceListWithSearch();
+                        }
+                        else
+                        {
+                            SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                            TolkHelper.Speak($"No matches for '{listTypeahead.LastFailedSearch}'.");
+                        }
+                    });
                     return true;
                 }
             }

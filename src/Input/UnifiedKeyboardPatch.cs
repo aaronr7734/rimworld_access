@@ -43,6 +43,13 @@ namespace RimWorldAccess
                 char c = Event.current.character;
                 if (!char.IsControl(c))
                 {
+                    // Dispatch to any pending typeahead callback (from KeyCode handler earlier this frame)
+                    if (TypeaheadCharacterBuffer.TryConsumePendingCharacter(c))
+                    {
+                        Event.current.Use();
+                        return;
+                    }
+
                     // ScenarioBuilderState text editing (title, summary, description)
                     if (ScenarioBuilderState.IsActive && ScenarioBuilderState.IsEditingText)
                     {
@@ -314,10 +321,10 @@ namespace RimWorldAccess
                 }
 
                 // Letter keys (A-Z): add to search buffer
+                // Request layout-aware character for typeahead (supports non-Latin keyboards)
                 if (key >= KeyCode.A && key <= KeyCode.Z && !ctrl && !alt)
                 {
-                    char c = shift ? (char)('A' + (key - KeyCode.A)) : (char)('a' + (key - KeyCode.A));
-                    ScannerSearchState.HandleCharacter(c);
+                    TypeaheadCharacterBuffer.RequestCharacter(c => ScannerSearchState.HandleCharacter(c));
                     Event.current.Use();
                     return;
                 }
@@ -325,8 +332,7 @@ namespace RimWorldAccess
                 // Number keys (0-9): add to search buffer
                 if (key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9 && !ctrl && !alt)
                 {
-                    char c = (char)('0' + (key - KeyCode.Alpha0));
-                    ScannerSearchState.HandleCharacter(c);
+                    TypeaheadCharacterBuffer.RequestCharacter(c => ScannerSearchState.HandleCharacter(c));
                     Event.current.Use();
                     return;
                 }
@@ -370,8 +376,7 @@ namespace RimWorldAccess
                 // Number keys (0-9) from main keyboard
                 if (key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9 && !ctrl && !alt)
                 {
-                    char c = (char)('0' + (key - KeyCode.Alpha0));
-                    GoToState.HandleCharacter(c);
+                    TypeaheadCharacterBuffer.RequestCharacter(c => GoToState.HandleCharacter(c));
                     Event.current.Use();
                     return;
                 }
@@ -379,8 +384,7 @@ namespace RimWorldAccess
                 // Number keys (0-9) from numpad
                 if (key >= KeyCode.Keypad0 && key <= KeyCode.Keypad9 && !ctrl && !alt)
                 {
-                    char c = (char)('0' + (key - KeyCode.Keypad0));
-                    GoToState.HandleCharacter(c);
+                    TypeaheadCharacterBuffer.RequestCharacter(c => GoToState.HandleCharacter(c));
                     Event.current.Use();
                     return;
                 }
@@ -550,7 +554,7 @@ namespace RimWorldAccess
 
                 // === Consume ALL alphanumeric + * for typeahead ===
                 // This MUST be at the end to catch any unhandled characters
-                // Use KeyCode instead of Event.current.character (which is empty in Unity IMGUI)
+                // Request layout-aware character for typeahead (supports non-Latin keyboards)
                 bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                 bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
                 bool isStar = key == KeyCode.KeypadMultiply || (Event.current.shift && key == KeyCode.Alpha8);
@@ -563,8 +567,7 @@ namespace RimWorldAccess
                         Event.current.Use();
                         return;
                     }
-                    char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                    SettlementBrowserState.HandleTypeahead(c);
+                    TypeaheadCharacterBuffer.RequestCharacter(c => SettlementBrowserState.HandleTypeahead(c));
                     Event.current.Use();
                     return;  // CRITICAL: Don't fall through to other handlers
                 }
@@ -1573,8 +1576,7 @@ namespace RimWorldAccess
 
                         if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                         {
-                            char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                            WindowlessAreaState.HandleActionsTypeahead(c);
+                            TypeaheadCharacterBuffer.RequestCharacter(c => WindowlessAreaState.HandleActionsTypeahead(c));
                             areaHandled = true;
                         }
                     }
@@ -1861,23 +1863,20 @@ namespace RimWorldAccess
 
                     if ((isLetter || isNumber || isKeypadNumber) && !shift && !ctrl && !alt)
                     {
-                        char c;
-                        if (isLetter)
-                            c = (char)('a' + (key - KeyCode.A));
-                        else if (isNumber)
-                            c = (char)('0' + (key - KeyCode.Alpha0));
-                        else
-                            c = (char)('0' + (key - KeyCode.Keypad0));
-
-                        // In quantity mode, numbers go to numeric input; in list mode, go to typeahead
-                        if (TradeNavigationState.IsInQuantityMode && (isNumber || isKeypadNumber))
+                        // Capture these before the lambda since they may change
+                        bool isNumeric = isNumber || isKeypadNumber;
+                        TypeaheadCharacterBuffer.RequestCharacter(c =>
                         {
-                            TradeNavigationState.HandleNumericInput(c);
-                        }
-                        else
-                        {
-                            TradeNavigationState.ProcessTypeaheadCharacter(c);
-                        }
+                            // In quantity mode, numbers go to numeric input; in list mode, go to typeahead
+                            if (TradeNavigationState.IsInQuantityMode && isNumeric)
+                            {
+                                TradeNavigationState.HandleNumericInput(c);
+                            }
+                            else
+                            {
+                                TradeNavigationState.ProcessTypeaheadCharacter(c);
+                            }
+                        });
                         handled = true;
                     }
                 }
@@ -1960,8 +1959,7 @@ namespace RimWorldAccess
 
                     if ((isLetter || isNumber) && !Event.current.shift && !Event.current.control && !KeyboardHelper.IsAltHeld)
                     {
-                        char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                        SellableItemsState.ProcessTypeaheadCharacter(c);
+                        TypeaheadCharacterBuffer.RequestCharacter(c => SellableItemsState.ProcessTypeaheadCharacter(c));
                         handled = true;
                     }
                 }
@@ -2039,8 +2037,7 @@ namespace RimWorldAccess
 
                     if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                     {
-                        char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                        WindowlessSaveMenuState.ProcessTypeaheadCharacter(c);
+                        TypeaheadCharacterBuffer.RequestCharacter(c => WindowlessSaveMenuState.ProcessTypeaheadCharacter(c));
                         handled = true;
                     }
                 }
@@ -2289,31 +2286,22 @@ namespace RimWorldAccess
                         handled = true;
                     }
                 }
-                // Typeahead character input - check for printable characters
+                // Typeahead character input - request layout-aware character (supports non-Latin keyboards)
                 else if (!KeyboardHelper.IsAltHeld && !Event.current.control)
                 {
-                    // Use character from event if available, otherwise map from keycode
-                    char c = Event.current.character;
-                    if (c == '\0')
-                    {
-                        // Map keycode to character for letter keys
-                        if (key >= KeyCode.A && key <= KeyCode.Z)
-                        {
-                            c = (char)('a' + (key - KeyCode.A));
-                        }
-                        else if (key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9)
-                        {
-                            c = (char)('0' + (key - KeyCode.Alpha0));
-                        }
-                        else if (key >= KeyCode.Keypad0 && key <= KeyCode.Keypad9)
-                        {
-                            c = (char)('0' + (key - KeyCode.Keypad0));
-                        }
-                    }
+                    bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
+                    bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
+                    bool isKeypadNumber = key >= KeyCode.Keypad0 && key <= KeyCode.Keypad9;
 
-                    if (char.IsLetterOrDigit(c))
+                    if (isLetter || isNumber || isKeypadNumber)
                     {
-                        StorytellerSelectionState.ProcessTypeaheadCharacter(char.ToLower(c));
+                        TypeaheadCharacterBuffer.RequestCharacter(c =>
+                        {
+                            if (char.IsLetterOrDigit(c))
+                            {
+                                StorytellerSelectionState.ProcessTypeaheadCharacter(char.ToLower(c));
+                            }
+                        });
                         handled = true;
                     }
                 }
@@ -2419,8 +2407,7 @@ namespace RimWorldAccess
 
                     if ((isLetter || isNumber) && !Event.current.shift && !Event.current.control && !KeyboardHelper.IsAltHeld)
                     {
-                        char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                        WindowlessOptionsMenuState.ProcessTypeaheadCharacter(c);
+                        TypeaheadCharacterBuffer.RequestCharacter(c => WindowlessOptionsMenuState.ProcessTypeaheadCharacter(c));
                         handled = true;
                     }
                 }
@@ -2661,8 +2648,7 @@ namespace RimWorldAccess
                     bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                     if (isLetter)
                     {
-                        char c = (char)('a' + (key - KeyCode.A));
-                        WindowlessScheduleState.HandleTypeahead(c);
+                        TypeaheadCharacterBuffer.RequestCharacter(c => WindowlessScheduleState.HandleTypeahead(c));
                         handled = true;
                     }
                 }
@@ -2777,8 +2763,7 @@ namespace RimWorldAccess
 
                     if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                     {
-                        char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                        WindowlessResearchDetailState.ProcessTypeaheadCharacter(c);
+                        TypeaheadCharacterBuffer.RequestCharacter(c => WindowlessResearchDetailState.ProcessTypeaheadCharacter(c));
                         handled = true;
                     }
                 }
@@ -2890,7 +2875,7 @@ namespace RimWorldAccess
                     handled = true;
                 }
                 // Handle typeahead characters
-                // Use KeyCode instead of Event.current.character (which is empty in Unity IMGUI)
+                // Request layout-aware character for typeahead (supports non-Latin keyboards)
                 else
                 {
                     bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
@@ -2898,8 +2883,7 @@ namespace RimWorldAccess
 
                     if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                     {
-                        char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                        WindowlessResearchMenuState.ProcessTypeaheadCharacter(c);
+                        TypeaheadCharacterBuffer.RequestCharacter(c => WindowlessResearchMenuState.ProcessTypeaheadCharacter(c));
                         handled = true;
                     }
                 }
@@ -3203,8 +3187,7 @@ namespace RimWorldAccess
 
                         if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                         {
-                            char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                            QuestMenuState.HandleTypeahead(c);
+                            TypeaheadCharacterBuffer.RequestCharacter(c => QuestMenuState.HandleTypeahead(c));
                             Event.current.Use();
                             return;
                         }
@@ -3368,15 +3351,14 @@ namespace RimWorldAccess
                 }
 
                 // Handle typeahead characters
-                // Use KeyCode instead of Event.current.character (which is empty in Unity IMGUI)
+                // Request layout-aware character for typeahead (supports non-Latin keyboards)
                 // Skip if Alt is held - Alt+key combos are shortcuts, not search input
                 bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                 bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
                 if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                 {
-                    char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                    WildlifeMenuState.HandleTypeahead(c);
+                    TypeaheadCharacterBuffer.RequestCharacter(c => WildlifeMenuState.HandleTypeahead(c));
                     Event.current.Use();
                     return;
                 }
@@ -3474,8 +3456,7 @@ namespace RimWorldAccess
 
                     if (isSubmenuLetter || isSubmenuNumber)
                     {
-                        char c = isSubmenuLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                        AnimalsMenuState.SubmenuHandleTypeahead(c);
+                        TypeaheadCharacterBuffer.RequestCharacter(c => AnimalsMenuState.SubmenuHandleTypeahead(c));
                         Event.current.Use();
                         return;
                     }
@@ -3644,15 +3625,14 @@ namespace RimWorldAccess
                 }
 
                 // Handle typeahead characters
-                // Use KeyCode instead of Event.current.character (which is empty in Unity IMGUI)
+                // Request layout-aware character for typeahead (supports non-Latin keyboards)
                 // Skip if Alt is held - Alt+key combos are shortcuts, not search input
                 bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                 bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
                 if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                 {
-                    char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                    AnimalsMenuState.HandleTypeahead(c);
+                    TypeaheadCharacterBuffer.RequestCharacter(c => AnimalsMenuState.HandleTypeahead(c));
                     Event.current.Use();
                     return;
                 }
@@ -3988,8 +3968,7 @@ namespace RimWorldAccess
 
                     if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                     {
-                        char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                        NotificationMenuState.HandleTypeahead(c);
+                        TypeaheadCharacterBuffer.RequestCharacter(c => NotificationMenuState.HandleTypeahead(c));
                         Event.current.Use();
                         return;
                     }
@@ -4125,8 +4104,7 @@ namespace RimWorldAccess
 
                     if ((isLetter || isNumber) && !Event.current.alt)
                     {
-                        char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                        LearningHelperState.HandleTypeahead(c);
+                        TypeaheadCharacterBuffer.RequestCharacter(c => LearningHelperState.HandleTypeahead(c));
                         Event.current.Use();
                         return;
                     }
@@ -4320,8 +4298,7 @@ namespace RimWorldAccess
 
                     if (isSubmenuLetter || isSubmenuNumber)
                     {
-                        char c = isSubmenuLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                        AssignMenuState.SubmenuHandleTypeahead(c);
+                        TypeaheadCharacterBuffer.RequestCharacter(c => AssignMenuState.SubmenuHandleTypeahead(c));
                         Event.current.Use();
                         return;
                     }
@@ -4480,8 +4457,7 @@ namespace RimWorldAccess
 
                 if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                 {
-                    char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                    AssignMenuState.HandleTypeahead(c);
+                    TypeaheadCharacterBuffer.RequestCharacter(c => AssignMenuState.HandleTypeahead(c));
                     Event.current.Use();
                     return;
                 }
@@ -4508,8 +4484,7 @@ namespace RimWorldAccess
 
                 if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                 {
-                    char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                    StorageSettingsMenuState.ProcessTypeaheadCharacter(c);
+                    TypeaheadCharacterBuffer.RequestCharacter(c => StorageSettingsMenuState.ProcessTypeaheadCharacter(c));
                     Event.current.Use();
                     return;
                 }
@@ -4530,8 +4505,7 @@ namespace RimWorldAccess
 
                 if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                 {
-                    char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                    PlantSelectionMenuState.HandleTypeahead(c);
+                    TypeaheadCharacterBuffer.RequestCharacter(c => PlantSelectionMenuState.HandleTypeahead(c));
                     Event.current.Use();
                     return;
                 }
@@ -4750,7 +4724,7 @@ namespace RimWorldAccess
 
                 // === Consume ALL alphanumeric + * for typeahead ===
                 // This MUST be at the end to catch any unhandled characters
-                // Use KeyCode instead of Event.current.character (which is empty in Unity IMGUI)
+                // Request layout-aware character for typeahead (supports non-Latin keyboards)
                 // Skip if Alt is held - Alt+key combos are shortcuts, not search input
                 bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                 bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
@@ -4764,8 +4738,7 @@ namespace RimWorldAccess
                         Event.current.Use();
                         return;
                     }
-                    char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                    WindowlessFloatMenuState.HandleTypeahead(c);
+                    TypeaheadCharacterBuffer.RequestCharacter(c => WindowlessFloatMenuState.HandleTypeahead(c));
                     Event.current.Use();
                     return;  // CRITICAL: Don't fall through to T=time, R=draft, etc.
                 }
@@ -6609,15 +6582,13 @@ namespace RimWorldAccess
             }
 
             // Handle typeahead character input via keyCode ranges.
-            // Must use keyCode (not Event.current.character) because the keyCode==None
-            // guard at line 108 kills character-only events before reaching this handler.
+            // Request layout-aware character for typeahead (supports non-Latin keyboards)
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
             if ((isLetter || (isNumber && !Event.current.shift)) && !KeyboardHelper.IsAltHeld && !Event.current.control)
             {
-                char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                ThingFilterNavigationState.ProcessTypeaheadCharacter(c);
+                TypeaheadCharacterBuffer.RequestCharacter(c => ThingFilterNavigationState.ProcessTypeaheadCharacter(c));
                 return true;
             }
 
