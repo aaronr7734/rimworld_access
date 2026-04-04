@@ -79,7 +79,8 @@ namespace RimWorldAccess
             // Don't let placement mode steal keys from overlay screens
             if (WindowlessInventoryState.IsActive
                 || GizmoNavigationState.IsActive
-                || WindowlessInspectionState.IsActive)
+                || WindowlessInspectionState.IsActive
+                || WindowlessFloatMenuState.IsActive)
                 return;
 
             if (ViewingModeState.IsActive && !ShapePlacementState.IsActive)

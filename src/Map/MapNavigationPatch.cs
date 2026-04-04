@@ -327,7 +327,7 @@ namespace RimWorldAccess
             if (Find.Selector != null)
             {
                 Find.Selector.ClearSelection();
-                Find.Selector.Select(selectedPawn);
+                Find.Selector.Select(selectedPawn, playSound: true, forceDesignatorDeselect: !ShapePlacementState.IsActive);
             }
 
             // Notify MultiSelectState that a single-select occurred
@@ -413,7 +413,7 @@ namespace RimWorldAccess
             if (Find.Selector != null)
             {
                 Find.Selector.ClearSelection();
-                Find.Selector.Select(selectedPawn);
+                Find.Selector.Select(selectedPawn, playSound: true, forceDesignatorDeselect: !ShapePlacementState.IsActive);
             }
 
             // Notify MultiSelectState that a single-select occurred
