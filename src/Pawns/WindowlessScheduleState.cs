@@ -128,9 +128,7 @@ namespace RimWorldAccess
                 getItemLabel: pawn => pawn.LabelShort,
                 getColumnName: GetHourColumnName,
                 getColumnValue: GetCellValue,
-                sortByColumn: SortPawnsByColumn,
-                defaultSortColumn: 0,
-                defaultSortDescending: false
+                sortByColumn: SortPawnsByColumn
             );
             tableHelper.Reset();
 

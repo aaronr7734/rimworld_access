@@ -50,6 +50,9 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Initialize column defs for game-native sorting
+            AnimalsMenuHelper.InitColumnDefs();
+
             // Initialize table helper
             tableHelper = new TabularMenuHelper<Pawn>(
                 getColumnCount: AnimalsMenuHelper.GetTotalColumnCount,
@@ -57,15 +60,15 @@ namespace RimWorldAccess
                 getColumnName: AnimalsMenuHelper.GetColumnName,
                 getColumnValue: AnimalsMenuHelper.GetColumnValue,
                 sortByColumn: (items, col, desc) => AnimalsMenuHelper.SortAnimalsByColumn(items.ToList(), col, desc),
-                defaultSortColumn: 0,  // Name
-                defaultSortDescending: false,
-                getColumnTooltip: (pawn, col) => AnimalsMenuHelper.GetColumnTooltip(pawn, col)
+                getColumnTooltip: (pawn, col) => AnimalsMenuHelper.GetColumnTooltip(pawn, col),
+                isColumnSortable: AnimalsMenuHelper.IsColumnSortable
             );
 
-            // Apply default sort (by name)
+            // Apply default sort (by name ascending using game's label compare)
             animalsList = AnimalsMenuHelper.SortAnimalsByColumn(animalsList, 0, false);
 
-            tableHelper.Reset(0, false);
+            tableHelper.Reset();
+            tableHelper.SetDefaultOrder(animalsList);
             activeSubmenu = SubmenuType.None;
             IsActive = true;
 
@@ -301,6 +304,7 @@ namespace RimWorldAccess
             }
 
             AnnounceCurrentCell(includeAnimalName: false);
+            ResortAfterEdit();
         }
 
         private static void ToggleTraining(Pawn pawn, int columnIndex)
@@ -328,6 +332,7 @@ namespace RimWorldAccess
             }
 
             AnnounceCurrentCell(includeAnimalName: false);
+            ResortAfterEdit();
         }
 
         private static void ToggleFollowDrafted(Pawn pawn)
@@ -353,6 +358,7 @@ namespace RimWorldAccess
             }
 
             AnnounceCurrentCell(includeAnimalName: false);
+            ResortAfterEdit();
         }
 
         private static void ToggleFollowFieldwork(Pawn pawn)
@@ -378,6 +384,7 @@ namespace RimWorldAccess
             }
 
             AnnounceCurrentCell(includeAnimalName: false);
+            ResortAfterEdit();
         }
 
         private static void ToggleAnimalDig(Pawn pawn)
@@ -403,6 +410,7 @@ namespace RimWorldAccess
             }
 
             AnnounceCurrentCell(includeAnimalName: false);
+            ResortAfterEdit();
         }
 
         private static void ToggleAnimalForage(Pawn pawn)
@@ -428,6 +436,7 @@ namespace RimWorldAccess
             }
 
             AnnounceCurrentCell(includeAnimalName: false);
+            ResortAfterEdit();
         }
 
         private static void ToggleSpecialTrainable(Pawn pawn)
@@ -469,6 +478,7 @@ namespace RimWorldAccess
             }
 
             AnnounceCurrentCell(includeAnimalName: false);
+            ResortAfterEdit();
         }
 
         private static void ToggleReleaseToWild(Pawn pawn)
@@ -489,6 +499,7 @@ namespace RimWorldAccess
             }
 
             AnnounceCurrentCell(includeAnimalName: false);
+            ResortAfterEdit();
         }
 
         private static void ToggleSterilization(Pawn pawn)
@@ -528,6 +539,7 @@ namespace RimWorldAccess
             }
 
             AnnounceCurrentCell(includeAnimalName: false);
+            ResortAfterEdit();
         }
 
         // === Submenu System ===
@@ -858,6 +870,7 @@ namespace RimWorldAccess
             SoundDefOf.Click.PlayOneShotOnCamera();
             CloseSubmenu();
             AnnounceCurrentCell(includeAnimalName: false);
+            ResortAfterEdit();
         }
 
         private static void CloseSubmenu()
@@ -868,16 +881,47 @@ namespace RimWorldAccess
             submenuTypeahead.ClearSearch();
         }
 
+        /// <summary>
+        /// Re-sorts the list if currently sorted by the column that was just edited.
+        /// Keeps cursor at same index and announces the new item at that position.
+        /// </summary>
+        private static void ResortAfterEdit()
+        {
+            var resorted = tableHelper.ResortAfterEdit(animalsList);
+            if (resorted != null)
+            {
+                animalsList = resorted.ToList();
+                string announcement = "Now at " + tableHelper.BuildCellAnnouncement(
+                    animalsList[tableHelper.CurrentRowIndex], animalsList.Count, includeItemName: true);
+                TolkHelper.Speak(announcement);
+            }
+        }
+
         public static void ToggleSortByCurrentColumn()
         {
-            animalsList = tableHelper.ToggleSortByCurrentColumn(animalsList, out string direction).ToList();
+            var result = tableHelper.ToggleSortByCurrentColumn(animalsList, out string direction, out bool sortCleared);
 
-            string columnName = tableHelper.GetCurrentColumnName();
+            if (result == null)
+            {
+                string colName = tableHelper.GetCurrentColumnName();
+                TolkHelper.Speak($"{colName} cannot be sorted");
+                return;
+            }
 
-            SoundDefOf.Click.PlayOneShotOnCamera();
-            TolkHelper.Speak($"Sorted by {columnName} ({direction})");
+            animalsList = result.ToList();
 
-            // Announce current cell after sorting (include animal name since position may have changed)
+            if (sortCleared)
+            {
+                SoundDefOf.Tick_Low.PlayOneShotOnCamera();
+                TolkHelper.Speak("Sort cleared, default order");
+            }
+            else
+            {
+                string columnName = tableHelper.GetCurrentColumnName();
+                SoundDefOf.Tick_High.PlayOneShotOnCamera();
+                TolkHelper.Speak($"Sorted by {columnName} ({direction})");
+            }
+
             AnnounceCurrentCell(includeAnimalName: true);
         }
 
