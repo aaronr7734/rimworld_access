@@ -2519,15 +2519,49 @@ namespace RimWorldAccess
                             WindowlessScheduleState.OpenAreaContextMenu();
                             handled = true;
                         }
-                        // Home/End and Ctrl+Home/End: In Areas column, all jump between pawns
-                        else if (key == KeyCode.Home)
+                        // Home/End navigation and painting in Areas column:
+                        // Home/End = jump to first/last area
+                        // Ctrl+Home/End = jump to first/last pawn
+                        // Shift+Home/End = paint area to first/last pawn
+                        // Ctrl+Shift+Home/End = paint area to ALL pawns
+                        else if (key == KeyCode.Home && !ctrl && !shift)
+                        {
+                            WindowlessScheduleState.JumpToFirstArea();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.End && !ctrl && !shift)
+                        {
+                            WindowlessScheduleState.JumpToLastArea();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.Home && ctrl && !shift)
                         {
                             WindowlessScheduleState.JumpToFirstPawn();
                             handled = true;
                         }
-                        else if (key == KeyCode.End)
+                        else if (key == KeyCode.End && ctrl && !shift)
                         {
                             WindowlessScheduleState.JumpToLastPawn();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.Home && shift && !ctrl)
+                        {
+                            WindowlessScheduleState.PaintAreaToFirstPawn();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.End && shift && !ctrl)
+                        {
+                            WindowlessScheduleState.PaintAreaToLastPawn();
+                            handled = true;
+                        }
+                        else if (key == KeyCode.Home && shift && ctrl)
+                        {
+                            WindowlessScheduleState.PaintAreaToAllPawns(towardFirst: true);
+                            handled = true;
+                        }
+                        else if (key == KeyCode.End && shift && ctrl)
+                        {
+                            WindowlessScheduleState.PaintAreaToAllPawns(towardFirst: false);
                             handled = true;
                         }
                         else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
