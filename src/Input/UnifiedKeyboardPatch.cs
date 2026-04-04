@@ -631,7 +631,8 @@ namespace RimWorldAccess
                 // opened on top of it (inventory, gizmos, inspection, etc.)
                 bool overlayActive = WindowlessInventoryState.IsActive
                     || GizmoNavigationState.IsActive
-                    || WindowlessInspectionState.IsActive;
+                    || WindowlessInspectionState.IsActive
+                    || WindowlessFloatMenuState.IsActive;
 
                 if (!overlayActive && ViewingModeState.HandleInput(key, Event.current.shift))
                 {

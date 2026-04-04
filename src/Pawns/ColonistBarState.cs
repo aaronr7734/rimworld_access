@@ -734,7 +734,7 @@ namespace RimWorldAccess
             if (Find.Selector != null)
             {
                 Find.Selector.ClearSelection();
-                Find.Selector.Select(pawn);
+                Find.Selector.Select(pawn, playSound: true, forceDesignatorDeselect: !ShapePlacementState.IsActive);
             }
 
             if (Find.CameraDriver != null)
