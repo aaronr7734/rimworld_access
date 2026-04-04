@@ -76,14 +76,14 @@ namespace RimWorldAccess
                 getColumnName: AssignMenuHelper.GetColumnName,
                 getColumnValue: AssignMenuHelper.GetColumnValue,
                 sortByColumn: (items, col, desc) => AssignMenuHelper.SortByColumn(items.ToList(), col, desc),
-                defaultSortColumn: 0,
-                defaultSortDescending: false,
-                getColumnTooltip: (pawn, col) => AssignMenuHelper.GetColumnTooltip(pawn, col)
+                getColumnTooltip: (pawn, col) => AssignMenuHelper.GetColumnTooltip(pawn, col),
+                isColumnSortable: AssignMenuHelper.IsColumnSortable
             );
 
-            // Sort by name
+            // Sort by name (default order)
             pawnsList = AssignMenuHelper.SortByColumn(pawnsList, 0, false);
-            tableHelper.Reset(0, false);
+            tableHelper.Reset();
+            tableHelper.SetDefaultOrder(pawnsList);
 
             isInSubmenu = false;
             IsActive = true;
@@ -191,11 +191,29 @@ namespace RimWorldAccess
 
         public static void ToggleSortByCurrentColumn()
         {
-            pawnsList = tableHelper.ToggleSortByCurrentColumn(pawnsList, out string direction).ToList();
-            string columnName = tableHelper.GetCurrentColumnName();
+            var result = tableHelper.ToggleSortByCurrentColumn(pawnsList, out string direction, out bool sortCleared);
 
-            SoundDefOf.Click.PlayOneShotOnCamera();
-            TolkHelper.Speak($"Sorted by {columnName} ({direction})");
+            if (result == null)
+            {
+                string colName = tableHelper.GetCurrentColumnName();
+                TolkHelper.Speak($"{colName} cannot be sorted");
+                return;
+            }
+
+            pawnsList = result.ToList();
+
+            if (sortCleared)
+            {
+                SoundDefOf.Tick_Low.PlayOneShotOnCamera();
+                TolkHelper.Speak("Sort cleared, default order");
+            }
+            else
+            {
+                string columnName = tableHelper.GetCurrentColumnName();
+                SoundDefOf.Tick_High.PlayOneShotOnCamera();
+                TolkHelper.Speak($"Sorted by {columnName} ({direction})");
+            }
+
             AnnounceCurrentCell(includeItemName: true);
         }
 
@@ -336,6 +354,23 @@ namespace RimWorldAccess
             TolkHelper.Speak($"{currentPawn.LabelShort}: {colName} set to {option.Label}");
 
             CloseSubmenu();
+            ResortAfterEdit();
+        }
+
+        /// <summary>
+        /// Re-sorts the list if currently sorted by the column that was just edited.
+        /// Keeps cursor at same index and announces the new item at that position.
+        /// </summary>
+        private static void ResortAfterEdit()
+        {
+            var resorted = tableHelper.ResortAfterEdit(pawnsList);
+            if (resorted != null)
+            {
+                pawnsList = resorted.ToList();
+                string announcement = "Now at " + tableHelper.BuildCellAnnouncement(
+                    pawnsList[tableHelper.CurrentRowIndex], pawnsList.Count, includeItemName: true);
+                TolkHelper.Speak(announcement);
+            }
         }
 
         public static void SubmenuCancel()

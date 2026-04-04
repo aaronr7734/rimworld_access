@@ -32,14 +32,31 @@ namespace RimWorldAccess
         }
 
         private static List<AssignColumnType> activeColumns = new List<AssignColumnType>();
+        private static List<PawnColumnDef> columnDefs = new List<PawnColumnDef>();
 
         public static List<AssignColumnType> ActiveColumns => activeColumns;
+
+        // Mapping from AssignColumnType to PawnColumnDef defName
+        private static readonly Dictionary<AssignColumnType, string> columnTypeToDefName = new Dictionary<AssignColumnType, string>
+        {
+            { AssignColumnType.Name, "LabelShortWithIcon" },
+            { AssignColumnType.Ideo, "Ideo" },
+            { AssignColumnType.Xenotype, "Xenotype" },
+            { AssignColumnType.HostilityResponse, "HostilityResponse" },
+            { AssignColumnType.MedicalCare, "MedicalCare" },
+            { AssignColumnType.Outfit, "Outfit" },
+            { AssignColumnType.FoodRestriction, "FoodRestriction" },
+            { AssignColumnType.DrugPolicy, "DrugPolicy" },
+            { AssignColumnType.ReadingPolicy, "Reading" },
+            { AssignColumnType.MedicineCarry, "Carry" },
+        };
 
         // === Column Setup ===
 
         public static void BuildActiveColumns()
         {
             activeColumns.Clear();
+            columnDefs.Clear();
 
             activeColumns.Add(AssignColumnType.Name);
 
@@ -63,7 +80,23 @@ namespace RimWorldAccess
             {
                 activeColumns.Add(AssignColumnType.MedicineCarry);
             }
+
+            // Build parallel PawnColumnDef list for sorting
+            foreach (var colType in activeColumns)
+            {
+                if (columnTypeToDefName.TryGetValue(colType, out string defName))
+                {
+                    columnDefs.Add(DefDatabase<PawnColumnDef>.GetNamedSilentFail(defName));
+                }
+                else
+                {
+                    columnDefs.Add(null);
+                }
+            }
         }
+
+        public static bool IsColumnSortable(int columnIndex)
+            => PawnColumnSortHelper.IsColumnSortable(columnDefs, columnIndex);
 
         // === TabularMenuHelper Delegates ===
 
@@ -276,27 +309,7 @@ namespace RimWorldAccess
         // === Sorting ===
 
         public static List<Pawn> SortByColumn(List<Pawn> pawns, int columnIndex, bool descending)
-        {
-            if (columnIndex < 0 || columnIndex >= activeColumns.Count || pawns == null)
-                return pawns;
-
-            IEnumerable<Pawn> sorted;
-
-            switch (activeColumns[columnIndex])
-            {
-                case AssignColumnType.Name:
-                    sorted = pawns.OrderBy(p => p.LabelShort);
-                    break;
-                default:
-                    sorted = pawns.OrderBy(p => GetColumnValue(p, columnIndex));
-                    break;
-            }
-
-            if (descending)
-                sorted = sorted.Reverse();
-
-            return sorted.ToList();
-        }
+            => PawnColumnSortHelper.SortByColumnDef(pawns, columnDefs, columnIndex, descending);
 
         // === Submenu Option Builders ===
 

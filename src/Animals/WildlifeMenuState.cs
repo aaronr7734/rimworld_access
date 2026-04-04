@@ -42,8 +42,15 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Apply default sort (by body size descending, then by label)
-            wildlifeList = WildlifeMenuHelper.DefaultSort(wildlifeList);
+            // Initialize column defs for game-native sorting
+            WildlifeMenuHelper.InitColumnDefs();
+
+            // Apply vanilla's default sort (by body size descending, then by label)
+            // Matches PawnTable_Wildlife.LabelSortFunction
+            wildlifeList = wildlifeList
+                .OrderByDescending(p => p.RaceProps?.baseBodySize ?? 0)
+                .ThenBy(p => p.def.label)
+                .ToList();
 
             // Initialize table helper
             tableHelper = new TabularMenuHelper<Pawn>(
@@ -52,11 +59,11 @@ namespace RimWorldAccess
                 getColumnName: WildlifeMenuHelper.GetColumnName,
                 getColumnValue: WildlifeMenuHelper.GetColumnValue,
                 sortByColumn: (items, col, desc) => WildlifeMenuHelper.SortWildlifeByColumn(items.ToList(), col, desc),
-                defaultSortColumn: 1,  // Predator
-                defaultSortDescending: false,
-                getColumnTooltip: (pawn, col) => WildlifeMenuHelper.GetColumnTooltip(pawn, col)
+                getColumnTooltip: (pawn, col) => WildlifeMenuHelper.GetColumnTooltip(pawn, col),
+                isColumnSortable: WildlifeMenuHelper.IsColumnSortable
             );
-            tableHelper.Reset(1, false);
+            tableHelper.Reset();
+            tableHelper.SetDefaultOrder(wildlifeList);
 
             IsActive = true;
 
@@ -183,6 +190,7 @@ namespace RimWorldAccess
             }
 
             AnnounceCurrentCell(includeAnimalName: false);
+            ResortAfterEdit();
         }
 
         private static void ToggleTame(Pawn pawn)
@@ -207,6 +215,23 @@ namespace RimWorldAccess
             }
 
             AnnounceCurrentCell(includeAnimalName: false);
+            ResortAfterEdit();
+        }
+
+        /// <summary>
+        /// Re-sorts the list if currently sorted by the column that was just edited.
+        /// Keeps cursor at same index and announces the new item at that position.
+        /// </summary>
+        private static void ResortAfterEdit()
+        {
+            var resorted = tableHelper.ResortAfterEdit(wildlifeList);
+            if (resorted != null)
+            {
+                wildlifeList = resorted.ToList();
+                string announcement = "Now at " + tableHelper.BuildCellAnnouncement(
+                    wildlifeList[tableHelper.CurrentRowIndex], wildlifeList.Count, includeItemName: true);
+                TolkHelper.Speak(announcement);
+            }
         }
 
         private static void JumpToAnimalOnMap(Pawn pawn)
@@ -230,14 +255,30 @@ namespace RimWorldAccess
 
         public static void ToggleSortByCurrentColumn()
         {
-            wildlifeList = tableHelper.ToggleSortByCurrentColumn(wildlifeList, out string direction).ToList();
+            var result = tableHelper.ToggleSortByCurrentColumn(wildlifeList, out string direction, out bool sortCleared);
 
-            string columnName = tableHelper.GetCurrentColumnName();
+            if (result == null)
+            {
+                // Column not sortable
+                string colName = tableHelper.GetCurrentColumnName();
+                TolkHelper.Speak($"{colName} cannot be sorted");
+                return;
+            }
 
-            SoundDefOf.Click.PlayOneShotOnCamera();
-            TolkHelper.Speak($"Sorted by {columnName} ({direction})");
+            wildlifeList = result.ToList();
 
-            // Announce current cell after sorting (include animal name since position may have changed)
+            if (sortCleared)
+            {
+                SoundDefOf.Tick_Low.PlayOneShotOnCamera();
+                TolkHelper.Speak("Sort cleared, default order");
+            }
+            else
+            {
+                string columnName = tableHelper.GetCurrentColumnName();
+                SoundDefOf.Tick_High.PlayOneShotOnCamera();
+                TolkHelper.Speak($"Sorted by {columnName} ({direction})");
+            }
+
             AnnounceCurrentCell(includeAnimalName: true);
         }
 

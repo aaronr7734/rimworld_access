@@ -44,9 +44,9 @@ namespace RimWorldAccess
                 case ColumnType.Gender: return "Sex".Translate().Resolve();
                 case ColumnType.LifeStage: return "LifeStage".Translate().Resolve();
                 case ColumnType.Hunt: return "DesignatorHunt".Translate().Resolve();
-                case ColumnType.ManhunterOnDamage: return "RevengeChance".Translate().Resolve();
+                case ColumnType.ManhunterOnDamage: return "HarmedRevengeChance".Translate().Resolve();
                 case ColumnType.Tame: return "DesignatorTame".Translate().Resolve();
-                case ColumnType.ManhunterOnTameFail: return "TameFailedManhunterChance".Translate().Resolve();
+                case ColumnType.ManhunterOnTameFail: return "TameFailedRevengeChance".Translate().Resolve();
                 default: return "Unknown";
             }
         }
@@ -245,29 +245,15 @@ namespace RimWorldAccess
 
         // === Painting Support ===
 
-        private static readonly Dictionary<ColumnType, string> columnDefNames = new Dictionary<ColumnType, string>
-        {
-            { ColumnType.Hunt, "Hunt" },
-            { ColumnType.Tame, "Tame" },
-        };
-
         /// <summary>
         /// Checks if a column supports painting (drag-to-apply).
         /// Uses runtime PawnColumnDef.paintable lookup.
         /// </summary>
         public static bool CanPaintColumn(int columnIndex)
         {
-            if (columnIndex < 0 || columnIndex >= totalColumns)
+            if (columnDefs == null || columnIndex < 0 || columnIndex >= totalColumns)
                 return false;
-
-            ColumnType type = (ColumnType)columnIndex;
-            if (columnDefNames.TryGetValue(type, out string defName))
-            {
-                var def = DefDatabase<PawnColumnDef>.GetNamedSilentFail(defName);
-                return def?.paintable == true;
-            }
-
-            return false;
+            return columnDefs[columnIndex]?.paintable == true;
         }
 
         /// <summary>
@@ -348,60 +334,38 @@ namespace RimWorldAccess
             return value ? "checked" : "unchecked";
         }
 
+        // === Column Defs (for sorting via game logic) ===
+
+        private static readonly string[] columnDefNames = new string[]
+        {
+            "LabelWithIcon",             // Name
+            "Predator",                  // Predator
+            "Gender",                    // Gender
+            "LifeStage",                 // LifeStage
+            "Hunt",                      // Hunt
+            "ManhunterOnDamageChance",   // ManhunterOnDamage
+            "Tame",                      // Tame
+            "ManhunterOnTameFailChance"  // ManhunterOnTameFail
+        };
+
+        private static PawnColumnDef[] columnDefs;
+
+        public static void InitColumnDefs()
+        {
+            columnDefs = new PawnColumnDef[totalColumns];
+            for (int i = 0; i < totalColumns; i++)
+            {
+                columnDefs[i] = DefDatabase<PawnColumnDef>.GetNamedSilentFail(columnDefNames[i]);
+            }
+        }
+
+        public static bool IsColumnSortable(int columnIndex)
+            => PawnColumnSortHelper.IsColumnSortable(columnDefs, columnIndex);
+
         // === Sorting ===
 
         public static List<Pawn> SortWildlifeByColumn(List<Pawn> wildlife, int columnIndex, bool descending)
-        {
-            IEnumerable<Pawn> sorted = wildlife;
+            => PawnColumnSortHelper.SortByColumnDef(wildlife, columnDefs, columnIndex, descending);
 
-            if (columnIndex >= 0 && columnIndex < totalColumns)
-            {
-                ColumnType type = (ColumnType)columnIndex;
-                switch (type)
-                {
-                    case ColumnType.Name:
-                        sorted = wildlife.OrderBy(p => p.def.label);
-                        break;
-                    case ColumnType.Predator:
-                        sorted = wildlife.OrderBy(p => p.RaceProps?.predator == true ? 0 : 1);
-                        break;
-                    case ColumnType.Gender:
-                        sorted = wildlife.OrderBy(p => p.gender);
-                        break;
-                    case ColumnType.LifeStage:
-                        sorted = wildlife.OrderBy(p => p.ageTracker?.CurLifeStageIndex ?? 0);
-                        break;
-                    case ColumnType.Hunt:
-                        sorted = wildlife.OrderBy(p => GetHuntStatus(p));
-                        break;
-                    case ColumnType.ManhunterOnDamage:
-                        sorted = wildlife.OrderBy(p => PawnUtility.GetManhunterOnDamageChance(p));
-                        break;
-                    case ColumnType.Tame:
-                        sorted = wildlife.OrderBy(p => GetTameStatus(p));
-                        break;
-                    case ColumnType.ManhunterOnTameFail:
-                        sorted = wildlife.OrderBy(p => PawnUtility.GetManhunterOnTameFailChance(p));
-                        break;
-                }
-            }
-
-            if (descending)
-            {
-                sorted = sorted.Reverse();
-            }
-
-            return sorted.ToList();
-        }
-
-        // Default sort: predators first, then by body size descending, then by label
-        public static List<Pawn> DefaultSort(List<Pawn> wildlife)
-        {
-            return wildlife
-                .OrderByDescending(p => p.RaceProps?.predator == true ? 1 : 0)
-                .ThenByDescending(p => p.RaceProps?.baseBodySize ?? 0)
-                .ThenBy(p => p.def.label)
-                .ToList();
-        }
     }
 }
