@@ -360,34 +360,12 @@ namespace RimWorldAccess
         }
 
         public static bool IsColumnSortable(int columnIndex)
-        {
-            if (columnDefs == null || columnIndex < 0 || columnIndex >= totalColumns)
-                return false;
-            return columnDefs[columnIndex]?.sortable ?? false;
-        }
+            => PawnColumnSortHelper.IsColumnSortable(columnDefs, columnIndex);
 
         // === Sorting ===
 
         public static List<Pawn> SortWildlifeByColumn(List<Pawn> wildlife, int columnIndex, bool descending)
-        {
-            if (columnDefs == null || columnIndex < 0 || columnIndex >= totalColumns)
-                return wildlife;
-
-            var columnDef = columnDefs[columnIndex];
-            if (columnDef == null)
-                return wildlife;
-
-            var sorted = new List<Pawn>(wildlife);
-            if (descending)
-            {
-                sorted.SortStable(columnDef.Worker.Compare);
-            }
-            else
-            {
-                sorted.SortStable((Pawn a, Pawn b) => columnDef.Worker.Compare(b, a));
-            }
-            return sorted;
-        }
+            => PawnColumnSortHelper.SortByColumnDef(wildlife, columnDefs, columnIndex, descending);
 
     }
 }

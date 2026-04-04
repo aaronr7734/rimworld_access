@@ -96,11 +96,7 @@ namespace RimWorldAccess
         }
 
         public static bool IsColumnSortable(int columnIndex)
-        {
-            if (columnDefs == null || columnIndex < 0 || columnIndex >= columnDefs.Count)
-                return false;
-            return columnDefs[columnIndex]?.sortable ?? false;
-        }
+            => PawnColumnSortHelper.IsColumnSortable(columnDefs, columnIndex);
 
         // DLC detection
         private static bool IsOdysseyActive => ModsConfig.IsActive("Ludeon.RimWorld.Odyssey");
@@ -1079,24 +1075,6 @@ namespace RimWorldAccess
         // === Sorting ===
 
         public static List<Pawn> SortAnimalsByColumn(List<Pawn> animals, int columnIndex, bool descending)
-        {
-            if (columnDefs == null || columnIndex < 0 || columnIndex >= columnDefs.Count)
-                return animals;
-
-            var columnDef = columnDefs[columnIndex];
-            if (columnDef == null)
-                return animals;
-
-            var sorted = new List<Pawn>(animals);
-            if (descending)
-            {
-                sorted.SortStable(columnDef.Worker.Compare);
-            }
-            else
-            {
-                sorted.SortStable((Pawn a, Pawn b) => columnDef.Worker.Compare(b, a));
-            }
-            return sorted;
-        }
+            => PawnColumnSortHelper.SortByColumnDef(animals, columnDefs, columnIndex, descending);
     }
 }

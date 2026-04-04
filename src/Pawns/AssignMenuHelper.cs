@@ -96,11 +96,7 @@ namespace RimWorldAccess
         }
 
         public static bool IsColumnSortable(int columnIndex)
-        {
-            if (columnIndex < 0 || columnIndex >= columnDefs.Count)
-                return false;
-            return columnDefs[columnIndex]?.sortable ?? false;
-        }
+            => PawnColumnSortHelper.IsColumnSortable(columnDefs, columnIndex);
 
         // === TabularMenuHelper Delegates ===
 
@@ -313,25 +309,7 @@ namespace RimWorldAccess
         // === Sorting ===
 
         public static List<Pawn> SortByColumn(List<Pawn> pawns, int columnIndex, bool descending)
-        {
-            if (columnIndex < 0 || columnIndex >= columnDefs.Count || pawns == null)
-                return pawns;
-
-            var columnDef = columnDefs[columnIndex];
-            if (columnDef == null)
-                return pawns;
-
-            var sorted = new List<Pawn>(pawns);
-            if (descending)
-            {
-                sorted.SortStable(columnDef.Worker.Compare);
-            }
-            else
-            {
-                sorted.SortStable((Pawn a, Pawn b) => columnDef.Worker.Compare(b, a));
-            }
-            return sorted;
-        }
+            => PawnColumnSortHelper.SortByColumnDef(pawns, columnDefs, columnIndex, descending);
 
         // === Submenu Option Builders ===
 
