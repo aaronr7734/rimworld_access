@@ -694,7 +694,7 @@ namespace RimWorldAccess
             }
             else if (option == null)
             {
-                return activeSubmenu == SubmenuType.Master ? "None" : "Unrestricted";
+                return activeSubmenu == SubmenuType.Master ? "None".Translate().Resolve() : "Unrestricted".Translate().Resolve();
             }
             else if (option is Pawn colonist)
             {
@@ -1051,7 +1051,7 @@ namespace RimWorldAccess
 
             SoundDefOf.Click.PlayOneShotOnCamera();
 
-            string areaName = lastAppliedArea?.Label ?? "Unrestricted";
+            string areaName = lastAppliedArea?.Label ?? "Unrestricted".Translate().Resolve();
             string position = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, animalsList.Count);
             TolkHelper.Speak($"{animal.LabelShort}: {areaName} applied. {position}");
         }
@@ -1078,7 +1078,7 @@ namespace RimWorldAccess
 
             SoundDefOf.Click.PlayOneShotOnCamera();
 
-            string areaName = lastAppliedArea?.Label ?? "Unrestricted";
+            string areaName = lastAppliedArea?.Label ?? "Unrestricted".Translate().Resolve();
             string position = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, animalsList.Count);
             TolkHelper.Speak($"{animal.LabelShort}: {areaName} applied. {position}");
         }
@@ -1111,7 +1111,7 @@ namespace RimWorldAccess
                 lastAppliedArea = sourcePawn.playerSettings?.AreaRestrictionInPawnCurrentMap;
                 tableHelper.SelectNextRow(animalsList.Count);
                 Pawn target = animalsList[tableHelper.CurrentRowIndex];
-                string areaName = lastAppliedArea?.Label ?? "Unrestricted";
+                string areaName = lastAppliedArea?.Label ?? "Unrestricted".Translate().Resolve();
                 string position = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, animalsList.Count);
                 Area targetArea = target.playerSettings?.AreaRestrictionInPawnCurrentMap;
                 if (targetArea == lastAppliedArea)
@@ -1226,7 +1226,7 @@ namespace RimWorldAccess
                 lastAppliedArea = sourcePawn.playerSettings?.AreaRestrictionInPawnCurrentMap;
                 tableHelper.SelectPreviousRow(animalsList.Count);
                 Pawn target = animalsList[tableHelper.CurrentRowIndex];
-                string areaName = lastAppliedArea?.Label ?? "Unrestricted";
+                string areaName = lastAppliedArea?.Label ?? "Unrestricted".Translate().Resolve();
                 string position = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, animalsList.Count);
                 Area targetArea = target.playerSettings?.AreaRestrictionInPawnCurrentMap;
                 if (targetArea == lastAppliedArea)
@@ -1381,7 +1381,7 @@ namespace RimWorldAccess
             {
                 Pawn source = animalsList[currentRow];
                 lastAppliedArea = source.playerSettings?.AreaRestrictionInPawnCurrentMap;
-                string areaName = lastAppliedArea?.Label ?? "Unrestricted";
+                string areaName = lastAppliedArea?.Label ?? "Unrestricted".Translate().Resolve();
 
                 var changedNames = new List<string>();
                 for (int i = startRow; i <= endRow; i++)

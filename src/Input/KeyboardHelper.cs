@@ -223,6 +223,7 @@ namespace RimWorldAccess
                 || ArchitectTreeState.IsActive
                 || AnimalsMenuState.IsActive
                 || WildlifeMenuState.IsActive
+                || MechsMenuState.IsActive
                 || ModListState.IsActive
                 || StorytellerSelectionState.IsActive
                 || PlaySettingsMenuState.IsActive

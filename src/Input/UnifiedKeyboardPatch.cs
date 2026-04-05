@@ -3677,6 +3677,241 @@ namespace RimWorldAccess
                 return;
             }
 
+            // ===== PRIORITY 4.741: Handle mechs menu if active =====
+            // Skip if placement mode is active (e.g., after Manage Areas → Expand Area)
+            // Skip if dialog is active (e.g., Rename Area dialog)
+            if (MechsMenuState.IsActive && !ShapePlacementState.IsActive && !ViewingModeState.IsActive &&
+                !WindowlessDialogState.IsActive)
+            {
+                bool handled = false;
+                var typeahead = MechsMenuState.Typeahead;
+
+                // Check if in submenu
+                if (MechsMenuState.IsInSubmenu)
+                {
+                    var submenuTypeahead = MechsMenuState.SubmenuTypeahead;
+
+                    if (key == KeyCode.Escape)
+                    {
+                        if (submenuTypeahead.HasActiveSearch)
+                        {
+                            submenuTypeahead.ClearSearchAndAnnounce();
+                            MechsMenuState.AnnounceSubmenuWithSearch();
+                        }
+                        else
+                        {
+                            MechsMenuState.SubmenuCancel();
+                        }
+                        handled = true;
+                    }
+                    else if (key == KeyCode.Backspace)
+                    {
+                        MechsMenuState.SubmenuHandleBackspace();
+                        handled = true;
+                    }
+                    else if (key == KeyCode.DownArrow)
+                    {
+                        if (submenuTypeahead.HasActiveSearch && !submenuTypeahead.HasNoMatches)
+                        {
+                            int newIndex = submenuTypeahead.GetNextMatch(MechsMenuState.SubmenuSelectedIndex);
+                            if (newIndex >= 0)
+                            {
+                                MechsMenuState.SetSubmenuSelectedIndex(newIndex);
+                                MechsMenuState.AnnounceSubmenuWithSearch();
+                            }
+                        }
+                        else
+                        {
+                            MechsMenuState.SubmenuSelectNext();
+                        }
+                        handled = true;
+                    }
+                    else if (key == KeyCode.UpArrow)
+                    {
+                        if (submenuTypeahead.HasActiveSearch && !submenuTypeahead.HasNoMatches)
+                        {
+                            int newIndex = submenuTypeahead.GetPreviousMatch(MechsMenuState.SubmenuSelectedIndex);
+                            if (newIndex >= 0)
+                            {
+                                MechsMenuState.SetSubmenuSelectedIndex(newIndex);
+                                MechsMenuState.AnnounceSubmenuWithSearch();
+                            }
+                        }
+                        else
+                        {
+                            MechsMenuState.SubmenuSelectPrevious();
+                        }
+                        handled = true;
+                    }
+                    else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                    {
+                        MechsMenuState.SubmenuApply();
+                        handled = true;
+                    }
+
+                    if (handled)
+                    {
+                        Event.current.Use();
+                        return;
+                    }
+
+                    bool isSubmenuLetter = key >= KeyCode.A && key <= KeyCode.Z;
+                    bool isSubmenuNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
+
+                    if (isSubmenuLetter || isSubmenuNumber)
+                    {
+                        TypeaheadCharacterBuffer.RequestCharacter(c => MechsMenuState.SubmenuHandleTypeahead(c));
+                        Event.current.Use();
+                        return;
+                    }
+
+                    Event.current.Use();
+                    return;
+                }
+
+                // Main menu handling
+                if ((key == KeyCode.Home || key == KeyCode.End) && Event.current.control && Event.current.shift)
+                {
+                    MechsMenuState.PaintEntireColumn(key == KeyCode.Home);
+                    handled = true;
+                }
+                else if (key == KeyCode.Home && Event.current.shift)
+                {
+                    MechsMenuState.PaintToFirst();
+                    handled = true;
+                }
+                else if (key == KeyCode.End && Event.current.shift)
+                {
+                    MechsMenuState.PaintToLast();
+                    handled = true;
+                }
+                else if (key == KeyCode.Home)
+                {
+                    MechsMenuState.JumpToFirst();
+                    handled = true;
+                }
+                else if (key == KeyCode.End)
+                {
+                    MechsMenuState.JumpToLast();
+                    handled = true;
+                }
+                else if (key == KeyCode.Escape)
+                {
+                    if (typeahead.HasActiveSearch)
+                    {
+                        typeahead.ClearSearchAndAnnounce();
+                        MechsMenuState.AnnounceWithSearch();
+                        handled = true;
+                    }
+                    else
+                    {
+                        MechsMenuState.Close();
+                        handled = true;
+                    }
+                }
+                else if (key == KeyCode.Backspace)
+                {
+                    MechsMenuState.HandleBackspace();
+                    handled = true;
+                }
+                else if (key == KeyCode.DownArrow && Event.current.shift)
+                {
+                    MechsMenuState.PaintDown();
+                    handled = true;
+                }
+                else if (key == KeyCode.UpArrow && Event.current.shift)
+                {
+                    MechsMenuState.PaintUp();
+                    handled = true;
+                }
+                else if (key == KeyCode.DownArrow)
+                {
+                    if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                    {
+                        int newIndex = typeahead.GetNextMatch(MechsMenuState.CurrentMechIndex);
+                        if (newIndex >= 0)
+                        {
+                            MechsMenuState.SetCurrentMechIndex(newIndex);
+                            MechsMenuState.AnnounceWithSearch();
+                        }
+                    }
+                    else
+                    {
+                        MechsMenuState.SelectNextMech();
+                    }
+                    handled = true;
+                }
+                else if (key == KeyCode.UpArrow)
+                {
+                    if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                    {
+                        int newIndex = typeahead.GetPreviousMatch(MechsMenuState.CurrentMechIndex);
+                        if (newIndex >= 0)
+                        {
+                            MechsMenuState.SetCurrentMechIndex(newIndex);
+                            MechsMenuState.AnnounceWithSearch();
+                        }
+                    }
+                    else
+                    {
+                        MechsMenuState.SelectPreviousMech();
+                    }
+                    handled = true;
+                }
+                else if (key == KeyCode.RightArrow)
+                {
+                    MechsMenuState.SelectNextColumn();
+                    handled = true;
+                }
+                else if (key == KeyCode.LeftArrow)
+                {
+                    MechsMenuState.SelectPreviousColumn();
+                    handled = true;
+                }
+                else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                {
+                    if (typeahead.HasActiveSearch)
+                    {
+                        typeahead.ClearSearch();
+                        MechsMenuState.AnnounceWithSearch();
+                    }
+                    else
+                    {
+                        MechsMenuState.InteractWithCurrentCell();
+                    }
+                    handled = true;
+                }
+                else if (key == KeyCode.S && KeyboardHelper.IsAltHeld)
+                {
+                    MechsMenuState.ToggleSortByCurrentColumn();
+                    handled = true;
+                }
+                else if (KeyboardHelper.IsAltHeld && key == KeyCode.I)
+                {
+                    MechsMenuState.OpenInfoCard();
+                    handled = true;
+                }
+
+                if (handled)
+                {
+                    Event.current.Use();
+                    return;
+                }
+
+                bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
+                bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
+
+                if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
+                {
+                    TypeaheadCharacterBuffer.RequestCharacter(c => MechsMenuState.HandleTypeahead(c));
+                    Event.current.Use();
+                    return;
+                }
+
+                Event.current.Use();
+                return;
+            }
+
             // ===== PRIORITY 4.745: Handle scanner search (Z key activates, letters go to buffer) =====
             // Z key activates search; when search is active, letter keys filter items
             // Works during placement mode (architect build or designator from gizmos)
@@ -5667,6 +5902,56 @@ namespace RimWorldAccess
                     else
                     {
                         TolkHelper.Speak("No colonists available");
+                    }
+
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 6.55: Open animals/mechs with F4 key =====
+            if (key == KeyCode.F4)
+            {
+                if (Current.ProgramState == ProgramState.Playing &&
+                    Find.CurrentMap != null &&
+                    (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
+                    !ZoneCreationState.IsInCreationMode &&
+                    !KeyboardHelper.IsAnyAccessibilityMenuActive())
+                {
+                    Event.current.Use();
+
+                    if (WorldNavigationState.IsActive)
+                    {
+                        CameraJumper.TryHideWorld();
+                        MapNavigationState.RestoreCursorForCurrentMap();
+                    }
+
+                    bool hasAnimals = Find.CurrentMap.mapPawns.ColonyAnimals.Any();
+                    bool hasMechs = ModsConfig.BiotechActive &&
+                        Find.CurrentMap.mapPawns.PawnsInFaction(Faction.OfPlayer)
+                            .Any(p => p.RaceProps.IsMechanoid && p.OverseerSubject != null);
+
+                    if (hasAnimals && hasMechs)
+                    {
+                        string animalsLabel = DefDatabase<MainButtonDef>.GetNamed("Animals", false)?.label?.CapitalizeFirst() ?? "Animals";
+                        string mechsLabel = DefDatabase<MainButtonDef>.GetNamed("Mechs", false)?.label?.CapitalizeFirst() ?? "Mechs";
+                        var options = new List<FloatMenuOption>
+                        {
+                            new FloatMenuOption(animalsLabel, () => AnimalsMenuState.Open()),
+                            new FloatMenuOption(mechsLabel, () => MechsMenuState.Open())
+                        };
+                        WindowlessFloatMenuState.Open(options, colonistOrders: false);
+                    }
+                    else if (hasAnimals)
+                    {
+                        AnimalsMenuState.Open();
+                    }
+                    else if (hasMechs)
+                    {
+                        MechsMenuState.Open();
+                    }
+                    else
+                    {
+                        TolkHelper.Speak("No animals or mechs");
                     }
 
                     return;
