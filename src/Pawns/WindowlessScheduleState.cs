@@ -858,6 +858,30 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Jumps to first available area (Home in Areas column).
+        /// </summary>
+        public static void JumpToFirstArea()
+        {
+            if (currentColumn != ScheduleColumnMode.Areas || availableAreas.Count == 0)
+                return;
+
+            selectedAreaIndex = UnrestrictedIndex;
+            AnnounceAreaFocus();
+        }
+
+        /// <summary>
+        /// Jumps to last available area (End in Areas column).
+        /// </summary>
+        public static void JumpToLastArea()
+        {
+            if (currentColumn != ScheduleColumnMode.Areas || availableAreas.Count == 0)
+                return;
+
+            selectedAreaIndex = availableAreas.Count - 1;
+            AnnounceAreaFocus();
+        }
+
+        /// <summary>
         /// Announces the currently focused area.
         /// </summary>
         private static void AnnounceAreaFocus()
@@ -997,6 +1021,137 @@ namespace RimWorldAccess
             string areaName = sourceArea?.Label ?? "NoAreaAllowed".Translate();
             string pawnPosition = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, pawns.Count);
             TolkHelper.Speak($"{targetPawn.LabelShort}: {areaName} applied. Pawn {pawnPosition}");
+        }
+
+        /// <summary>
+        /// Paints the current pawn's area to all pawns from first to current (Shift+Home in Areas column).
+        /// </summary>
+        public static void PaintAreaToFirstPawn()
+        {
+            if (currentColumn != ScheduleColumnMode.Areas || pawns.Count == 0) return;
+            if (tableHelper.CurrentRowIndex < 0 || tableHelper.CurrentRowIndex >= pawns.Count) return;
+
+            Pawn sourcePawn = pawns[tableHelper.CurrentRowIndex];
+            Area sourceArea = sourcePawn.playerSettings?.AreaRestrictionInPawnCurrentMap;
+            int startIndex = tableHelper.CurrentRowIndex;
+            var changedNames = new List<string>();
+
+            for (int i = 0; i <= startIndex; i++)
+            {
+                Pawn pawn = pawns[i];
+                if (pawn.playerSettings == null) continue;
+
+                if (pawn.playerSettings.AreaRestrictionInPawnCurrentMap != sourceArea)
+                {
+                    pawn.playerSettings.AreaRestrictionInPawnCurrentMap = sourceArea;
+                    changedNames.Add(pawn.LabelShort);
+                }
+            }
+
+            int savedColumn = tableHelper.CurrentColumnIndex;
+            tableHelper.JumpToFirst(pawns.Count);
+            tableHelper.CurrentColumnIndex = savedColumn;
+            SyncAreaIndexToCurrentPawn();
+
+            BulkSoundQueue.Queue(changedNames.Count, BulkPaintSound);
+
+            string areaName = sourceArea?.Label ?? "NoAreaAllowed".Translate();
+            if (changedNames.Count > 0)
+            {
+                TolkHelper.Speak($"Painted {areaName} for {MenuHelper.FormatNameList(changedNames)}");
+            }
+            else
+            {
+                TolkHelper.Speak($"All pawns already set to {areaName}");
+            }
+        }
+
+        /// <summary>
+        /// Paints the current pawn's area to all pawns from current to last (Shift+End in Areas column).
+        /// </summary>
+        public static void PaintAreaToLastPawn()
+        {
+            if (currentColumn != ScheduleColumnMode.Areas || pawns.Count == 0) return;
+            if (tableHelper.CurrentRowIndex < 0 || tableHelper.CurrentRowIndex >= pawns.Count) return;
+
+            Pawn sourcePawn = pawns[tableHelper.CurrentRowIndex];
+            Area sourceArea = sourcePawn.playerSettings?.AreaRestrictionInPawnCurrentMap;
+            int startIndex = tableHelper.CurrentRowIndex;
+            var changedNames = new List<string>();
+
+            for (int i = startIndex; i < pawns.Count; i++)
+            {
+                Pawn pawn = pawns[i];
+                if (pawn.playerSettings == null) continue;
+
+                if (pawn.playerSettings.AreaRestrictionInPawnCurrentMap != sourceArea)
+                {
+                    pawn.playerSettings.AreaRestrictionInPawnCurrentMap = sourceArea;
+                    changedNames.Add(pawn.LabelShort);
+                }
+            }
+
+            int savedColumn = tableHelper.CurrentColumnIndex;
+            tableHelper.JumpToLast(pawns.Count);
+            tableHelper.CurrentColumnIndex = savedColumn;
+            SyncAreaIndexToCurrentPawn();
+
+            BulkSoundQueue.Queue(changedNames.Count, BulkPaintSound);
+
+            string areaName = sourceArea?.Label ?? "NoAreaAllowed".Translate();
+            if (changedNames.Count > 0)
+            {
+                TolkHelper.Speak($"Painted {areaName} for {MenuHelper.FormatNameList(changedNames)}");
+            }
+            else
+            {
+                TolkHelper.Speak($"All pawns already set to {areaName}");
+            }
+        }
+
+        /// <summary>
+        /// Paints the current pawn's area to ALL pawns (Ctrl+Shift+Home/End in Areas column).
+        /// </summary>
+        public static void PaintAreaToAllPawns(bool towardFirst)
+        {
+            if (currentColumn != ScheduleColumnMode.Areas || pawns.Count == 0) return;
+            if (tableHelper.CurrentRowIndex < 0 || tableHelper.CurrentRowIndex >= pawns.Count) return;
+
+            Pawn sourcePawn = pawns[tableHelper.CurrentRowIndex];
+            Area sourceArea = sourcePawn.playerSettings?.AreaRestrictionInPawnCurrentMap;
+            var changedNames = new List<string>();
+
+            for (int i = 0; i < pawns.Count; i++)
+            {
+                Pawn pawn = pawns[i];
+                if (pawn.playerSettings == null) continue;
+
+                if (pawn.playerSettings.AreaRestrictionInPawnCurrentMap != sourceArea)
+                {
+                    pawn.playerSettings.AreaRestrictionInPawnCurrentMap = sourceArea;
+                    changedNames.Add(pawn.LabelShort);
+                }
+            }
+
+            int savedColumn = tableHelper.CurrentColumnIndex;
+            if (towardFirst)
+                tableHelper.JumpToFirst(pawns.Count);
+            else
+                tableHelper.JumpToLast(pawns.Count);
+            tableHelper.CurrentColumnIndex = savedColumn;
+            SyncAreaIndexToCurrentPawn();
+
+            BulkSoundQueue.Queue(changedNames.Count, BulkPaintSound);
+
+            string areaName = sourceArea?.Label ?? "NoAreaAllowed".Translate();
+            if (changedNames.Count > 0)
+            {
+                TolkHelper.Speak($"Painted {areaName} for {MenuHelper.FormatNameList(changedNames)}");
+            }
+            else
+            {
+                TolkHelper.Speak($"All pawns already set to {areaName}");
+            }
         }
 
         /// <summary>
