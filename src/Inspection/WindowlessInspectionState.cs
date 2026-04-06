@@ -528,8 +528,13 @@ namespace RimWorldAccess
         {
             try
             {
-                // Strip XML tags from label and trailing punctuation to avoid double periods
-                string label = item.Label.StripTags().TrimEnd('.', '!', '?');
+                // Smart labels: use ExpandedLabel (short form) when expanded, full Label when collapsed
+                string rawLabel;
+                if (item.IsExpandable && item.IsExpanded && !string.IsNullOrEmpty(item.ExpandedLabel))
+                    rawLabel = item.ExpandedLabel;
+                else
+                    rawLabel = item.Label;
+                string label = rawLabel.StripTags().TrimEnd('.', '!', '?');
 
                 // Build state indicator (only for expandable items)
                 string stateIndicator = "";
@@ -572,7 +577,13 @@ namespace RimWorldAccess
         /// </summary>
         private static string FormatSearchAnnouncement(InspectionTreeItem item, TypeaheadSearchHelper typeahead)
         {
-            string label = item.Label.StripTags();
+            // Smart labels: use ExpandedLabel (short form) when expanded
+            string rawLabel;
+            if (item.IsExpandable && item.IsExpanded && !string.IsNullOrEmpty(item.ExpandedLabel))
+                rawLabel = item.ExpandedLabel;
+            else
+                rawLabel = item.Label;
+            string label = rawLabel.StripTags();
 
             // Build state indicator (only for expandable items)
             string stateIndicator = "";
