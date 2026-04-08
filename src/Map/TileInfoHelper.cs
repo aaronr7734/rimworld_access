@@ -768,6 +768,10 @@ namespace RimWorldAccess
             if (map == null || !position.InBounds(map))
                 return "Out of bounds";
 
+            string penInfo = PenInfoHelper.GetPenStatsInfo(position, map);
+            if (!string.IsNullOrEmpty(penInfo))
+                return penInfo;
+
             Room room = position.GetRoom(map);
 
             if (room == null)
