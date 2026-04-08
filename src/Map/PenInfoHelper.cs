@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using RimWorld;
 using Verse;
@@ -31,19 +32,22 @@ namespace RimWorldAccess
             if (pen == null)
                 return null;
 
+            PenFoodCalculator calculator = pen.MarkerComp?.PenFoodCalculator;
+            List<string> warnings = GetWarnings(pen, calculator);
+            string animalComposition = GetAnimalComposition(calculator);
+
             var sb = new StringBuilder();
+            sb.Append("Pen");
+            sb.Append(": ");
             sb.Append(GetPenLabel(pen.Marker));
             sb.Append($", size: {pen.Cells.Count} cells");
 
-            if (!pen.IsEnclosed)
+            if (warnings.Count > 0)
             {
-                sb.Append(", not enclosed");
-                return sb.ToString();
+                sb.Append(", warnings: ");
+                sb.Append(string.Join("; ", warnings));
             }
 
-            sb.Append(", enclosed");
-
-            PenFoodCalculator calculator = pen.MarkerComp?.PenFoodCalculator;
             if (calculator == null)
                 return sb.ToString();
 
@@ -55,25 +59,22 @@ namespace RimWorldAccess
             sb.Append($", nutrition balance: {balanceSign}{balance:F1} per day");
             sb.Append($", growth: {growth:F1}");
             sb.Append($", consumption: {consumption:F1}");
+            sb.Append($", stockpiled: {calculator.sumStockpiledNutritionAvailableNow:F1}");
 
-            if (calculator.sumStockpiledNutritionAvailableNow > 0f)
-            {
-                sb.Append($", stockpiled: {calculator.sumStockpiledNutritionAvailableNow:F1}");
-            }
-
-            int animalCount = 0;
-            int animalTypes = 0;
-            if (calculator.ActualAnimalInfos != null)
-            {
-                animalTypes = calculator.ActualAnimalInfos.Count;
-                animalCount = calculator.ActualAnimalInfos.Sum(info => info.count);
-            }
+            int animalCount = calculator.ActualAnimalInfos?.Sum(info => info.count) ?? 0;
+            int animalTypes = calculator.ActualAnimalInfos?.Count ?? 0;
 
             if (animalCount > 0)
             {
                 sb.Append($", animals: {animalCount}");
                 if (animalTypes > 1)
                     sb.Append($" ({animalTypes} types)");
+
+                if (!string.IsNullOrEmpty(animalComposition))
+                {
+                    sb.Append(", composition: ");
+                    sb.Append(animalComposition);
+                }
             }
             else
             {
@@ -215,8 +216,74 @@ namespace RimWorldAccess
             if (marker == null)
                 return "Animal pen";
 
-            string label = marker.LabelCap?.StripTags();
+            PropertyInfo renamableLabelProp = marker.GetType().GetProperty("RenamableLabel");
+            string label = renamableLabelProp?.GetValue(marker) as string;
+            if (string.IsNullOrWhiteSpace(label))
+                label = marker.LabelCap;
+
             return string.IsNullOrWhiteSpace(label) ? "Animal pen" : label;
+        }
+
+        private static List<string> GetWarnings(PenData pen, PenFoodCalculator calculator)
+        {
+            var warnings = new List<string>();
+
+            if (pen == null)
+                return warnings;
+
+            if (!pen.IsEnclosed)
+                warnings.Add("AlertAnimalPenNotEnclosed".Translate().RawText);
+
+            if (calculator == null)
+                return warnings;
+
+            float balance = calculator.NutritionPerDayToday - calculator.SumNutritionConsumptionPerDay;
+            if (balance < 0f)
+                warnings.Add($"losing nutrition ({balance:F1} per day)");
+
+            if (calculator.sumStockpiledNutritionAvailableNow <= 0f)
+                warnings.Add("no stockpiled food");
+
+            int animalCount = calculator.ActualAnimalInfos?.Sum(info => info.count) ?? 0;
+            if (animalCount == 0)
+                warnings.Add("no animals assigned");
+
+            return warnings;
+        }
+
+        private static string GetAnimalComposition(PenFoodCalculator calculator)
+        {
+            if (calculator?.ActualAnimalInfos == null || calculator.ActualAnimalInfos.Count == 0)
+                return null;
+
+            var parts = new List<string>();
+            foreach (var info in calculator.ActualAnimalInfos.OrderByDescending(info => info.count))
+            {
+                string animalLabel = info.animalDef?.label?.CapitalizeFirst() ?? "Unknown";
+                parts.Add($"{animalLabel} {info.count}");
+            }
+
+            return string.Join(", ", parts);
+        }
+
+        /// <summary>
+        /// Jumps to the pen marker for the pen at the given position.
+        /// Returns a spoken message describing the result.
+        /// </summary>
+        public static string JumpToPenMarker(IntVec3 position, Map map)
+        {
+            PenData pen = FindContainingPen(position, map);
+            if (pen?.Marker == null || map == null)
+                return "No pen at cursor";
+
+            IntVec3 markerPosition = pen.Marker.Position;
+            if (!markerPosition.InBounds(map))
+                return "Pen marker not found";
+
+            MapNavigationState.CurrentCursorPosition = markerPosition;
+            Find.CameraDriver?.JumpToCurrentMapLoc(markerPosition);
+
+            return $"Jumped to pen marker: {GetPenLabel(pen.Marker)}";
         }
     }
 }
