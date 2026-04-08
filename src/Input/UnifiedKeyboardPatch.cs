@@ -6729,6 +6729,27 @@ namespace RimWorldAccess
 
             // ===== PRIORITY 10.5: Handle local map arrow key navigation =====
             // Uses Event.current for OS key repeat support (unlike CameraDriver.Update() which uses Input.GetKeyDown)
+            if (key == KeyCode.M && Event.current.shift && !Event.current.control && !Event.current.alt)
+            {
+                if (WorldRendererUtility.WorldRendered)
+                    return;
+
+                if (Current.ProgramState != ProgramState.Playing || Find.CurrentMap == null)
+                    return;
+
+                if (Find.WindowStack?.WindowsPreventCameraMotion == true)
+                    return;
+
+                if (!MapNavigationState.IsInitialized || MapNavigationState.SuppressMapNavigation)
+                    return;
+
+                if (MapNavigationPatch.MoveCursorToLastMouseCell())
+                {
+                    Event.current.Use();
+                }
+                return;
+            }
+
             if (key == KeyCode.UpArrow || key == KeyCode.DownArrow ||
                 key == KeyCode.LeftArrow || key == KeyCode.RightArrow)
             {

@@ -293,6 +293,31 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Moves the keyboard cursor to the last valid cell discovered by mouse exploration.
+        /// Returns true if the cursor was moved.
+        /// </summary>
+        public static bool MoveCursorToLastMouseCell()
+        {
+            if (Find.CurrentMap == null || !lastMouseCell.IsValid || lastMouseCellMapId != Find.CurrentMap.uniqueID)
+            {
+                TolkHelper.Speak("No valid mouse position", SpeechPriority.Normal);
+                return false;
+            }
+
+            if (!lastMouseCell.InBounds(Find.CurrentMap))
+            {
+                TolkHelper.Speak("No valid mouse position", SpeechPriority.Normal);
+                return false;
+            }
+
+            MapNavigationState.CurrentCursorPosition = lastMouseCell;
+            MapNavigationState.CurrentCameraMode = CameraFollowMode.Cursor;
+            Find.CameraDriver?.JumpToCurrentMapLoc(lastMouseCell);
+            MapArrowKeyHandler.AnnouncePosition(lastMouseCell, Find.CurrentMap);
+            return true;
+        }
+
+        /// <summary>
         /// Handles switching between maps when Shift+comma or Shift+period is pressed.
         /// Restores cursor to last known position on the target map.
         /// </summary>

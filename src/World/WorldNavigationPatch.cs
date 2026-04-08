@@ -146,6 +146,13 @@ namespace RimWorldAccess
                 return;
             }
 
+            if (key == KeyCode.M && shift && !ctrl && !alt)
+            {
+                MoveSelectionToLastMouseTile();
+                Event.current.Use();
+                return;
+            }
+
             // Note: Comma and Period keys for caravan cycling are handled in UnifiedKeyboardPatch
             // at a higher priority to prevent colonist selection from intercepting them
 
@@ -395,6 +402,40 @@ namespace RimWorldAccess
                     lastWorldMouseTile = -1;
                 }
             }
+        }
+
+        /// <summary>
+        /// Moves world navigation to the last valid tile discovered by mouse exploration.
+        /// </summary>
+        private static void MoveSelectionToLastMouseTile()
+        {
+            if (lastWorldMouseTile < 0)
+            {
+                TolkHelper.Speak("No valid mouse position", SpeechPriority.Normal);
+                return;
+            }
+
+            PlanetTile tile = new PlanetTile(lastWorldMouseTile);
+            if (!tile.Valid)
+            {
+                TolkHelper.Speak("No valid mouse position", SpeechPriority.Normal);
+                return;
+            }
+
+            WorldNavigationState.CurrentSelectedTile = tile;
+
+            if (Find.WorldSelector != null)
+            {
+                Find.WorldSelector.ClearSelection();
+                Find.WorldSelector.SelectedTile = tile;
+            }
+
+            if (Find.WorldCameraDriver != null)
+            {
+                Find.WorldCameraDriver.JumpTo(tile);
+            }
+
+            WorldNavigationState.AnnounceTile();
         }
     }
 }
