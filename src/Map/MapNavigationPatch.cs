@@ -238,11 +238,19 @@ namespace RimWorldAccess
                                     tileInfo = "Selected, " + tileInfo;
                                 }
                             }
-                            else if (ArchitectState.IsInPlacementMode && ArchitectState.IsZoneDesignator())
+                            else if (ArchitectState.IsInPlacementMode)
                             {
-                                if (ArchitectState.IsInPreviewMode && ArchitectState.PreviewCells.Contains(mouseCell))
+                                if (ShapePlacementState.IsActive && ShapePlacementState.PreviewCells.Contains(mouseCell))
                                 {
-                                    tileInfo = "Preview, " + tileInfo;
+                                    if (ShapePlacementState.FirstPoint.HasValue && mouseCell == ShapePlacementState.FirstPoint.Value)
+                                    {
+                                        tileInfo = "First point, " + tileInfo;
+                                    }
+                                    else if (ShapePlacementState.CurrentPhase == PlacementPhase.Previewing &&
+                                             ShapePlacementState.SecondPoint.HasValue && mouseCell == ShapePlacementState.SecondPoint.Value)
+                                    {
+                                        tileInfo = "Second point, " + tileInfo;
+                                    }
                                 }
                                 else if (ArchitectState.SelectedCells.Contains(mouseCell))
                                 {

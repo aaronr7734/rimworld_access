@@ -338,10 +338,10 @@ namespace RimWorldAccess
             if (!WorldNavigationState.IsActive || !WorldNavigationState.IsInitialized)
                 return;
 
-            // Check if left Ctrl is held down
-            bool ctrlHeldForMouse = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+            // Check if left Shift is held down to avoid screen reader Ctrl interruption
+            bool shiftHeldForMouse = Input.GetKey(KeyCode.LeftShift);
 
-            if (ctrlHeldForMouse)
+            if (shiftHeldForMouse)
             {
                 // Get current mouse tile on world map
                 int mouseTile = -1;
@@ -389,7 +389,7 @@ namespace RimWorldAccess
             }
             else
             {
-                // Ctrl is not held - reset tracking to ensure clean state
+                // Shift is not held - reset tracking to ensure clean state
                 if (lastWorldMouseTile != -1)
                 {
                     lastWorldMouseTile = -1;
