@@ -35,16 +35,21 @@ namespace RimWorldAccess
             PenFoodCalculator calculator = pen.MarkerComp?.PenFoodCalculator;
             List<string> warnings = GetWarnings(pen, calculator);
             string animalComposition = GetAnimalComposition(calculator);
+            string growthLabel = "PenFoodTab_NaturalNutritionGrowthRate".Translate().RawText;
+            string consumptionLabel = "PenFoodTab_TotalNutritionConsumptionRate".Translate().RawText;
+            string stockpiledLabel = "PenFoodTab_StockpileTotal".Translate().RawText;
+            string countLabel = "PenFoodTab_Count".Translate().RawText;
+            string animalTypeLabel = "PenFoodTab_AnimalType".Translate().RawText;
+            string noneLabel = "NoneLower".Translate().RawText;
+            string balanceLabel = $"{growthLabel} - {consumptionLabel}";
 
             var sb = new StringBuilder();
-            sb.Append("Pen");
-            sb.Append(": ");
             sb.Append(GetPenLabel(pen.Marker));
             sb.Append($", size: {pen.Cells.Count} cells");
 
             if (warnings.Count > 0)
             {
-                sb.Append(", warnings: ");
+                sb.Append(", ");
                 sb.Append(string.Join("; ", warnings));
             }
 
@@ -56,30 +61,14 @@ namespace RimWorldAccess
             float balance = growth - consumption;
             string balanceSign = balance >= 0f ? "+" : "";
 
-            sb.Append($", nutrition balance: {balanceSign}{balance:F1} per day");
-            sb.Append($", growth: {growth:F1}");
-            sb.Append($", consumption: {consumption:F1}");
-            sb.Append($", stockpiled: {calculator.sumStockpiledNutritionAvailableNow:F1}");
+            sb.Append($", {growthLabel}: {growth:F1}");
+            sb.Append($", {consumptionLabel}: {consumption:F1}");
+            sb.Append($", {stockpiledLabel}: {calculator.sumStockpiledNutritionAvailableNow:F1}");
+            sb.Append($", {balanceLabel}: {balanceSign}{balance:F1}");
 
             int animalCount = calculator.ActualAnimalInfos?.Sum(info => info.count) ?? 0;
-            int animalTypes = calculator.ActualAnimalInfos?.Count ?? 0;
-
-            if (animalCount > 0)
-            {
-                sb.Append($", animals: {animalCount}");
-                if (animalTypes > 1)
-                    sb.Append($" ({animalTypes} types)");
-
-                if (!string.IsNullOrEmpty(animalComposition))
-                {
-                    sb.Append(", composition: ");
-                    sb.Append(animalComposition);
-                }
-            }
-            else
-            {
-                sb.Append(", no animals");
-            }
+            sb.Append($", {countLabel}: {animalCount}");
+            sb.Append($", {animalTypeLabel}: {animalComposition ?? noneLabel}");
 
             return sb.ToString();
         }
@@ -239,14 +228,11 @@ namespace RimWorldAccess
 
             float balance = calculator.NutritionPerDayToday - calculator.SumNutritionConsumptionPerDay;
             if (balance < 0f)
-                warnings.Add($"losing nutrition ({balance:F1} per day)");
-
-            if (calculator.sumStockpiledNutritionAvailableNow <= 0f)
-                warnings.Add("no stockpiled food");
+                warnings.Add($"{ "PenFoodTab_NaturalNutritionGrowthRate".Translate().RawText } < { "PenFoodTab_TotalNutritionConsumptionRate".Translate().RawText }");
 
             int animalCount = calculator.ActualAnimalInfos?.Sum(info => info.count) ?? 0;
             if (animalCount == 0)
-                warnings.Add("no animals assigned");
+                warnings.Add($"{ "PenFoodTab_AnimalType".Translate().RawText }: { "NoneLower".Translate().RawText }");
 
             return warnings;
         }
@@ -274,16 +260,16 @@ namespace RimWorldAccess
         {
             PenData pen = FindContainingPen(position, map);
             if (pen?.Marker == null || map == null)
-                return "No pen at cursor";
+                return "None".Translate().RawText;
 
             IntVec3 markerPosition = pen.Marker.Position;
             if (!markerPosition.InBounds(map))
-                return "Pen marker not found";
+                return "None".Translate().RawText;
 
             MapNavigationState.CurrentCursorPosition = markerPosition;
             Find.CameraDriver?.JumpToCurrentMapLoc(markerPosition);
 
-            return $"Jumped to pen marker: {GetPenLabel(pen.Marker)}";
+            return GetPenLabel(pen.Marker);
         }
     }
 }
