@@ -4818,6 +4818,17 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 4.79: Handle health tab if active =====
+            // Must be checked before inspection (4.8) because health tab opens
+            // as an overlay while inspection stays active in the background.
+            if (HealthTabState.IsActive)
+            {
+                if (HealthTabState.HandleInput(Event.current))
+                {
+                    return;
+                }
+            }
+
             // ===== PRIORITY 4.8: Handle inspection menu if active =====
             if (WindowlessInspectionState.IsActive)
             {
@@ -4832,15 +4843,6 @@ namespace RimWorldAccess
             if (WindowlessInventoryState.IsActive && !WindowlessFloatMenuState.IsActive)
             {
                 if (WindowlessInventoryState.HandleInput(Event.current))
-                {
-                    return;
-                }
-            }
-
-            // ===== PRIORITY 4.81: Handle health tab if active =====
-            if (HealthTabState.IsActive)
-            {
-                if (HealthTabState.HandleInput(Event.current))
                 {
                     return;
                 }
@@ -6338,6 +6340,10 @@ namespace RimWorldAccess
             // Handle Enter key for opening the inspection menu (same as I key)
             if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
             {
+                // Don't open inspection if HealthTabState is active (safety net)
+                if (HealthTabState.IsActive)
+                    return;
+
                 // Only process during normal gameplay with a valid map
                 if (Find.CurrentMap == null)
                     return;

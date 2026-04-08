@@ -540,7 +540,7 @@ namespace RimWorldAccess
                 string stateIndicator = "";
                 if (item.IsExpandable)
                 {
-                    stateIndicator = item.IsExpanded ? " expanded" : " collapsed";
+                    stateIndicator = item.IsExpanded ? ". expanded" : ". collapsed";
                 }
 
                 // Get sibling position
@@ -589,7 +589,7 @@ namespace RimWorldAccess
             string stateIndicator = "";
             if (item.IsExpandable)
             {
-                stateIndicator = item.IsExpanded ? " expanded" : " collapsed";
+                stateIndicator = item.IsExpanded ? ". expanded" : ". collapsed";
             }
 
             string announcement = $"{label}{stateIndicator}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
@@ -812,9 +812,31 @@ namespace RimWorldAccess
             }
             else
             {
-                // Parent not visible (shouldn't happen, but handle it)
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("Cannot navigate to parent.", SpeechPriority.High);
+                // Parent not visible (hidden in submenu mode) — collapse it to make it visible
+                parent.IsExpanded = false;
+                treeNav.RebuildVisibleList();
+
+                parentIndex = -1;
+                for (int j = 0; j < treeNav.VisibleItems.Count; j++)
+                {
+                    if (treeNav.VisibleItems[j] == parent)
+                    {
+                        parentIndex = j;
+                        break;
+                    }
+                }
+
+                if (parentIndex >= 0)
+                {
+                    treeNav.SetSelectedIndex(parentIndex);
+                    SoundDefOf.FloatMenu_Cancel.PlayOneShotOnCamera();
+                    treeNav.ReannounceCurrentItem();
+                }
+                else
+                {
+                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                    TolkHelper.Speak("Already at top level.", SpeechPriority.High);
+                }
             }
         }
 

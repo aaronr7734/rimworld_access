@@ -42,23 +42,6 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Checks if a hediff is a missing part caused by surgical addition (bionic).
-        /// These clutter the display since they're just side effects of having bionics.
-        /// </summary>
-        private static bool IsSurgicallyRemovedPart(Hediff hediff, Pawn pawn)
-        {
-            // Only filter Hediff_MissingPart
-            if (!(hediff is Hediff_MissingPart missingPart))
-                return false;
-
-            // Filter if the parent part has a bionic/added part
-            if (hediff.Part != null && pawn.health.hediffSet.PartOrAnyAncestorHasDirectlyAddedParts(hediff.Part))
-                return true;
-
-            return false;
-        }
-
-        /// <summary>
         /// Extracts a pawn from a thing (pawn or corpse).
         /// Returns null if the thing is neither a pawn nor a corpse with an inner pawn.
         /// </summary>
@@ -951,17 +934,18 @@ namespace RimWorldAccess
 
             foreach (var gearCat in gearCategories)
             {
+                string localCat = gearCat;
                 var gearItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.SubCategory,
-                    Label = gearCat,
+                    Label = gearCat.Translate().ToString(),
                     Data = pawn,
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = true,
                     IsExpanded = false
                 };
 
-                gearItem.OnActivate = () => BuildGearItemsChildren(gearItem, pawn, gearCat, mode);
+                gearItem.OnActivate = () => BuildGearItemsChildren(gearItem, pawn, localCat, mode);
                 AddChild(parentItem, gearItem);
             }
         }
@@ -1115,10 +1099,21 @@ namespace RimWorldAccess
             foreach (var need in sortedNeeds)
             {
                 float percentage = need.CurLevelPercentage * 100f;
+                string label = $"{need.LabelCap}: {percentage:F0}%";
+
+                string needDescription = need.def.description;
+                if (!string.IsNullOrEmpty(needDescription))
+                {
+                    string cleanDesc = needDescription.StripTags().Trim();
+                    cleanDesc = System.Text.RegularExpressions.Regex.Replace(cleanDesc, @"\s+", " ");
+                    label += $". {cleanDesc}";
+                }
+
                 AddChild(parentItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = $"{need.LabelCap}: {percentage:F0}%",
+                    Label = label,
+                    Data = need,
                     IndentLevel = indent,
                     IsExpandable = false
                 });
@@ -1128,11 +1123,11 @@ namespace RimWorldAccess
                 {
                     foreach (var desire in pawn.learning.ActiveLearningDesires)
                     {
-                        string description = desire.description ?? "";
+                        string desireDesc = desire.description ?? "";
                         AddChild(parentItem, new InspectionTreeItem
                         {
                             Type = InspectionTreeItem.ItemType.DetailText,
-                            Label = $"Learning desire: {desire.LabelCap}. {description}".TrimEnd(),
+                            Label = $"{desire.LabelCap}. {desireDesc}".TrimEnd(),
                             IndentLevel = indent + 1,
                             IsExpandable = false
                         });
@@ -1150,20 +1145,25 @@ namespace RimWorldAccess
 
             foreach (var skill in skills)
             {
-                string passionText = skill.passion == Passion.None ? "" : $" ({skill.passion})";
-                string disabledText = skill.TotallyDisabled ? " [DISABLED]" : "";
+                string skillName = skill.def.skillLabel.CapitalizeFirst();
 
                 var skillItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
-                    Label = $"{skill.def.skillLabel}: Level {skill.Level}{passionText}{disabledText}",
+                    Label = skillName,
+                    ExpandedLabel = skillName,
                     Data = skill,
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = true,
                     IsExpanded = false
                 };
 
-                skillItem.OnActivate = () => BuildSkillDetailChildren(skillItem, skill);
+                // Build children eagerly for collapsed summary
+                BuildSkillDetailChildren(skillItem, skill);
+                var skillChildLabels = skillItem.Children.Select(c => c.Label).ToList();
+                if (skillChildLabels.Count > 0)
+                    skillItem.Label += $": {string.Join(". ", skillChildLabels)}";
+
                 AddChild(parentItem, skillItem);
             }
         }
@@ -1176,33 +1176,62 @@ namespace RimWorldAccess
             if (skillItem.Children.Count > 0)
                 return; // Already built
 
-            var sb = new StringBuilder();
-            sb.Append($"XP: {skill.xpSinceLastLevel:F0} / {skill.XpRequiredForLevelUp:F0}");
+            int childIndent = skillItem.IndentLevel + 1;
 
-            if (skill.passion != Passion.None)
-            {
-                sb.Append($", Passion: {skill.passion}");
-            }
-
-            if (skill.TotallyDisabled)
-            {
-                sb.Append(", Status: DISABLED");
-            }
-
-            if (!string.IsNullOrEmpty(skill.def.description))
-            {
-                sb.Append($". {skill.def.description}");
-            }
-
-            var detailItem = new InspectionTreeItem
+            // Level
+            AddChild(skillItem, new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.DetailText,
-                Label = sb.ToString(),
-                IndentLevel = skillItem.IndentLevel + 1,
+                Label = $"{"Level".Translate()} {skill.Level}",
+                IndentLevel = childIndent,
                 IsExpandable = false
-            };
+            });
 
-            AddChild(skillItem, detailItem);
+            // Passion
+            if (skill.passion != Passion.None)
+            {
+                string passionKey = skill.passion == Passion.Major ? "PassionMajor" : "PassionMinor";
+                AddChild(skillItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = passionKey.Translate().ToString(),
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                });
+            }
+
+            // Disabled
+            if (skill.TotallyDisabled)
+            {
+                AddChild(skillItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "DisabledLower".Translate().ToString().ToUpper(),
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                });
+            }
+
+            // XP progress
+            AddChild(skillItem, new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.DetailText,
+                Label = $"XP: {skill.xpSinceLastLevel:F0} / {skill.XpRequiredForLevelUp:F0}",
+                IndentLevel = childIndent,
+                IsExpandable = false
+            });
+
+            // Description
+            if (!string.IsNullOrEmpty(skill.def.description))
+            {
+                AddChild(skillItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = skill.def.description,
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                });
+            }
         }
 
         /// <summary>
@@ -1217,7 +1246,7 @@ namespace RimWorldAccess
             var relationsItem = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.SubCategory,
-                Label = "Relations",
+                Label = "Relations".Translate().ToString(),
                 Data = pawn,
                 IndentLevel = parentItem.IndentLevel + 1,
                 IsExpandable = true,
@@ -1232,7 +1261,7 @@ namespace RimWorldAccess
                 var ideologyItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.SubCategory,
-                    Label = "Ideology & Role",
+                    Label = "StatsReport_Ideoligion".Translate().ToString(),
                     Data = pawn,
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = true,
@@ -2230,10 +2259,15 @@ namespace RimWorldAccess
                 categoryItem.Children.Add(child);
             }
 
-            // Update category label with xenotype info
+            // Build collapsed summary from xenotype info and children
+            string genesLabel = "TabGenes".Translate().ToString();
+            categoryItem.ExpandedLabel = genesLabel;
             string xenotypeLabel = pawn.genes.XenotypeLabelCap;
-            int geneCount = pawn.genes.GenesListForReading?.Count ?? 0;
-            categoryItem.Label = $"Genes: {xenotypeLabel} ({geneCount} {(geneCount == 1 ? "gene" : "genes")})";
+            var geneChildLabels = categoryItem.Children.Select(c => c.Label).ToList();
+            if (geneChildLabels.Count > 0)
+                categoryItem.Label = $"{genesLabel}, {xenotypeLabel}: {string.Join(". ", geneChildLabels)}";
+            else
+                categoryItem.Label = $"{genesLabel}: {xenotypeLabel}";
         }
 
         /// <summary>
@@ -2281,13 +2315,22 @@ namespace RimWorldAccess
                 categoryItem.Children.Add(child);
             }
 
-            // Update category label with gene count info
-            int geneCount = holder.GeneSet.GenesListForReading?.Count ?? 0;
+            // Build collapsed summary from children
+            string holderGenesLabel = "TabGenes".Translate().ToString();
+            categoryItem.ExpandedLabel = holderGenesLabel;
             string xenotype = holder.GeneSet.Label;
-            if (!string.IsNullOrEmpty(xenotype) && xenotype != "ERR")
-                categoryItem.Label = $"Genes: {xenotype} ({geneCount} {(geneCount == 1 ? "gene" : "genes")})";
-            else
-                categoryItem.Label = $"Genes ({geneCount} {(geneCount == 1 ? "gene" : "genes")})";
+            var holderGeneChildLabels = categoryItem.Children.Select(c => c.Label).ToList();
+            if (holderGeneChildLabels.Count > 0)
+            {
+                string prefix = !string.IsNullOrEmpty(xenotype) && xenotype != "ERR"
+                    ? $"{holderGenesLabel}, {xenotype}"
+                    : holderGenesLabel;
+                categoryItem.Label = $"{prefix}: {string.Join(". ", holderGeneChildLabels)}";
+            }
+            else if (!string.IsNullOrEmpty(xenotype) && xenotype != "ERR")
+            {
+                categoryItem.Label = $"{holderGenesLabel}: {xenotype}";
+            }
         }
 
         /// <summary>
@@ -2310,25 +2353,29 @@ namespace RimWorldAccess
             if (parentItem.Children.Count > 0)
                 return; // Already built
 
-            // Add Operations option (Full mode only)
+            // Operations action (Full mode only)
             if (mode == InspectionMode.Full)
             {
+                // Use mech-specific label for mechanoids
+                string operationsLabel = (pawn.RaceProps.IsMechanoid
+                    ? "MedicalOperationsMechanoidsShort"
+                    : "MedicalOperationsShort").Translate();
+
                 var operationsItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Action,
-                    Label = "Operations",
+                    Label = operationsLabel,
                     Data = pawn,
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = false
                 };
                 operationsItem.OnActivate = () =>
                 {
-                    WindowlessInspectionState.Close();
                     HealthTabState.OpenOperations(pawn);
                 };
                 AddChild(parentItem, operationsItem);
 
-                // Add Health Settings option
+                // Medical care settings action (opens the Overview tab)
                 var healthSettingsItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Action,
@@ -2339,479 +2386,342 @@ namespace RimWorldAccess
                 };
                 healthSettingsItem.OnActivate = () =>
                 {
-                    WindowlessInspectionState.Close();
                     HealthTabState.OpenMedicalSettings(pawn);
                 };
                 AddChild(parentItem, healthSettingsItem);
             }
 
-            // Add overall health state
-            var stateItem = new InspectionTreeItem
+            // Pain level (flesh pawns only, skip if no pain)
+            string painLabel = HealthTabHelper.GetPainLabel(pawn);
+            if (painLabel != null)
             {
-                Type = InspectionTreeItem.ItemType.DetailText,
-                Label = $"State: {pawn.health.State}",
-                IndentLevel = parentItem.IndentLevel + 1,
-                IsExpandable = false
-            };
-            AddChild(parentItem, stateItem);
-
-            // Add bleeding info if applicable
-            if (pawn.health.hediffSet.BleedRateTotal > 0.01f)
-            {
-                var bleedingItem = new InspectionTreeItem
+                AddChild(parentItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = $"BLEEDING: {pawn.health.hediffSet.BleedRateTotal:F2} per day",
+                    Label = painLabel,
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = false
-                };
-                AddChild(parentItem, bleedingItem);
+                });
             }
 
-            // Add blood loss level if applicable
-            var bloodLoss = pawn.health.hediffSet.GetFirstHediffOfDef(HediffDefOf.BloodLoss);
-            if (bloodLoss != null)
+            // Bleeding rate with time-to-death
+            string bleedingLabel = HealthTabHelper.GetBleedingLabel(pawn);
+            if (bleedingLabel != null)
             {
-                var bloodLossItem = new InspectionTreeItem
+                AddChild(parentItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = $"Blood Loss: {bloodLoss.Severity:P0}",
+                    Label = bleedingLabel,
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = false
-                };
-                AddChild(parentItem, bloodLossItem);
+                });
             }
 
-            // Add pain level if applicable
-            float painTotal = pawn.health.hediffSet.PainTotal;
-            if (painTotal > 0.01f)
-            {
-                var painItem = new InspectionTreeItem
-                {
-                    Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = $"Pain: {painTotal:P0}",
-                    IndentLevel = parentItem.IndentLevel + 1,
-                    IsExpandable = false
-                };
-                AddChild(parentItem, painItem);
-            }
+            // Body part nodes — flat list using vanilla's hediff filtering and sort order
+            var visibleHediffs = HealthTabHelper.GetVisibleHediffs(pawn).ToList();
 
-            // Add Conditions as expandable subcategory
-            var hediffs = pawn.health.hediffSet.hediffs;
-            if (hediffs != null && hediffs.Count > 0)
+            if (visibleHediffs.Count > 0)
             {
-                int totalVisible = hediffs.Count(h => h.Visible);
-                int afterFiltering = hediffs.Count(h => h.Visible && !IsSurgicallyRemovedPart(h, pawn));
-                int filteredCount = totalVisible - afterFiltering;
+                // Group by body part, sorted by vanilla's height/coverage priority
+                var hediffsByPart = visibleHediffs
+                    .GroupBy(h => h.Part)
+                    .OrderByDescending(g => HealthTabHelper.GetHediffListPriority(g.Key));
 
-                string conditionsLabel = $"Conditions ({afterFiltering})";
-                if (filteredCount > 0)
+                foreach (var group in hediffsByPart)
                 {
-                    conditionsLabel += $" ({filteredCount} filtered)";
+                    var part = group.Key;
+                    var partHediffs = group.ToList();
+                    string partLabel = part != null ? part.LabelCap.ToString() : "WholeBody".Translate().ToString();
+
+                    var bodyPartItem = new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.Item,
+                        Label = partLabel,
+                        ExpandedLabel = partLabel,
+                        IndentLevel = parentItem.IndentLevel + 1,
+                        IsExpandable = true,
+                        IsExpanded = false
+                    };
+                    // Build children eagerly so collapsed labels include full content immediately
+                    BuildBodyPartHediffChildren(bodyPartItem, pawn, part, partHediffs);
+                    AddChild(parentItem, bodyPartItem);
                 }
-
-                var conditionsItem = new InspectionTreeItem
-                {
-                    Type = InspectionTreeItem.ItemType.SubCategory,
-                    Label = conditionsLabel,
-                    Data = pawn,
-                    IndentLevel = parentItem.IndentLevel + 1,
-                    IsExpandable = true,
-                    IsExpanded = false
-                };
-                conditionsItem.OnActivate = () => BuildConditionsChildren(conditionsItem, pawn);
-                AddChild(parentItem, conditionsItem);
             }
             else
             {
-                var noConditionsItem = new InspectionTreeItem
+                AddChild(parentItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = "No injuries or conditions",
+                    Label = $"({"NoHealthConditions".Translate()})",
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = false
-                };
-                AddChild(parentItem, noConditionsItem);
+                });
             }
 
-            // Add key capacities
-            if (pawn.health.capacities != null)
+            // Capacities subcategory — build children eagerly for collapsed summary
+            if (pawn.health.capacities != null && !pawn.Dead)
             {
-                var capacitiesItem = new InspectionTreeItem
+                var capacities = HealthTabHelper.GetCapacities(pawn);
+                if (capacities.Count > 0)
                 {
-                    Type = InspectionTreeItem.ItemType.SubCategory,
-                    Label = "Capacities",
-                    Data = pawn,
-                    IndentLevel = parentItem.IndentLevel + 1,
-                    IsExpandable = true,
-                    IsExpanded = false
-                };
-                capacitiesItem.OnActivate = () => BuildCapacitiesChildren(capacitiesItem, pawn);
-                AddChild(parentItem, capacitiesItem);
+                    string capacitiesLabel = "Capacities";
+                    var capacitiesItem = new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.SubCategory,
+                        Label = capacitiesLabel,
+                        ExpandedLabel = capacitiesLabel,
+                        Data = pawn,
+                        IndentLevel = parentItem.IndentLevel + 1,
+                        IsExpandable = true,
+                        IsExpanded = false
+                    };
+                    BuildCapacitiesChildren(capacitiesItem, pawn);
+                    // Build collapsed summary from children
+                    var capChildLabels = capacitiesItem.Children.Select(c => c.Label).ToList();
+                    if (capChildLabels.Count > 0)
+                        capacitiesItem.Label += $": {string.Join(". ", capChildLabels)}";
+                    AddChild(parentItem, capacitiesItem);
+                }
             }
         }
 
         /// <summary>
-        /// Builds children for Conditions subcategory, grouping hediffs by body part.
+        /// Builds children for a body part node — groups hediffs by UIGroupKey (like vanilla)
+        /// so identical conditions show as "Gunshot wound x3" instead of 3 separate items.
         /// </summary>
-        private static void BuildConditionsChildren(InspectionTreeItem parentItem, Pawn pawn)
+        private static void BuildBodyPartHediffChildren(InspectionTreeItem parentItem, Pawn pawn, BodyPartRecord part, List<Hediff> hediffs)
         {
             if (parentItem.Children.Count > 0)
-                return; // Already built
+                return;
 
-            var hediffs = pawn.health.hediffSet.hediffs
-                .Where(h => h.Visible)
-                .Where(h => !IsSurgicallyRemovedPart(h, pawn))
-                .ToList();
-
-            // Group hediffs by body part (null for whole-body conditions)
-            // Sort by: whole-body first, then by part health percentage (most damaged first)
-            var hediffsByPart = hediffs
-                .GroupBy(h => h.Part)
-                .OrderBy(g => g.Key == null ? 0 : 1)
-                .ThenBy(g => g.Key != null
-                    ? pawn.health.hediffSet.GetPartHealth(g.Key) / g.Key.def.GetMaxHealth(pawn)
-                    : 0f);
-
-            foreach (var group in hediffsByPart)
+            // Add body part condition/HP child if damaged
+            if (part != null)
             {
-                var part = group.Key;
-                var partHediffs = group.ToList();
-
-                // Build label for this body part with health info and condition count
-                string label;
-                if (part == null)
+                float partHealth = pawn.health.hediffSet.GetPartHealth(part);
+                float maxHealth = part.def.GetMaxHealth(pawn);
+                if (partHealth < maxHealth * 0.999f)
                 {
-                    // Whole-body conditions (no specific body part)
-                    // Get summary of effects for whole body
-                    var effectTypes = new List<string>();
-                    bool hasBleeding = false;
-                    bool hasCapacityImpact = false;
-                    bool hasPain = false;
-                    bool hasLifeThreat = false;
+                    var conditionLabel = HealthUtility.GetPartConditionLabel(pawn, part);
+                    string conditionText = $"{conditionLabel.First}, {partHealth} / {maxHealth}";
+                    float efficiency = PawnCapacityUtility.CalculatePartEfficiency(pawn.health.hediffSet, part);
+                    if (efficiency != 1f)
+                        conditionText += $", {"Efficiency".Translate()}: {efficiency.ToStringPercent()}";
 
-                    foreach (var hediff in partHediffs)
+                    AddChild(parentItem, new InspectionTreeItem
                     {
-                        if (hediff.Bleeding)
-                            hasBleeding = true;
-                        if (hediff.PainOffset > 0.01f)
-                            hasPain = true;
-                        if (hediff.IsCurrentlyLifeThreatening)
-                            hasLifeThreat = true;
-                        if (hediff.CapMods != null && hediff.CapMods.Count > 0)
-                            hasCapacityImpact = true;
-                    }
-
-                    if (hasLifeThreat)
-                        effectTypes.Add("Life Threatening");
-                    if (hasBleeding)
-                        effectTypes.Add("Bleeding");
-                    if (hasCapacityImpact)
-                        effectTypes.Add("Reduced Capacity");
-                    if (hasPain)
-                        effectTypes.Add("Painful");
-
-                    string effectSummary = effectTypes.Count > 0 ? " : " + string.Join(", ", effectTypes) : "";
-                    label = $"Whole body : Conditions: {partHediffs.Count}{effectSummary}";
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = conditionText,
+                        IndentLevel = parentItem.IndentLevel + 1,
+                        IsExpandable = false
+                    });
                 }
-                else
-                {
-                    // Get part health
-                    float partHealth = pawn.health.hediffSet.GetPartHealth(part);
-                    float maxHealth = part.def.GetMaxHealth(pawn);
-
-                    // Get summary of effects for this body part
-                    var effectTypes = new List<string>();
-                    bool hasBleeding = false;
-                    bool hasCapacityImpact = false;
-                    bool hasPain = false;
-                    bool hasLifeThreat = false;
-
-                    foreach (var hediff in partHediffs)
-                    {
-                        if (hediff.Bleeding)
-                            hasBleeding = true;
-                        if (hediff.PainOffset > 0.01f)
-                            hasPain = true;
-                        if (hediff.IsCurrentlyLifeThreatening)
-                            hasLifeThreat = true;
-                        if (hediff.CapMods != null && hediff.CapMods.Count > 0)
-                            hasCapacityImpact = true;
-                    }
-
-                    if (hasLifeThreat)
-                        effectTypes.Add("Life Threatening");
-                    if (hasBleeding)
-                        effectTypes.Add("Bleeding");
-                    if (hasCapacityImpact)
-                        effectTypes.Add("Reduced Capacity");
-                    if (hasPain)
-                        effectTypes.Add("Painful");
-
-                    string effectSummary = effectTypes.Count > 0 ? " : " + string.Join(", ", effectTypes) : "";
-                    label = $"{part.LabelCap} : Health: {partHealth:F0} / {maxHealth:F0} : Conditions: {partHediffs.Count}{effectSummary}";
-                }
-
-                var bodyPartItem = new InspectionTreeItem
-                {
-                    Type = InspectionTreeItem.ItemType.Item,
-                    Label = label,
-                    Data = new { Pawn = pawn, BodyPart = part, Hediffs = partHediffs },
-                    IndentLevel = parentItem.IndentLevel + 1,
-                    IsExpandable = true,
-                    IsExpanded = false
-                };
-
-                bodyPartItem.OnActivate = () => BuildBodyPartConditionsChildren(bodyPartItem, pawn, part, partHediffs);
-                AddChild(parentItem, bodyPartItem);
             }
-        }
 
-        /// <summary>
-        /// Builds children showing individual conditions for a specific body part.
-        /// </summary>
-        private static void BuildBodyPartConditionsChildren(InspectionTreeItem bodyPartItem, Pawn pawn, BodyPartRecord part, List<Hediff> hediffs)
-        {
-            if (bodyPartItem.Children.Count > 0)
-                return; // Already built
+            var groups = hediffs.GroupBy(h => h.UIGroupKey).ToList();
 
-            // Sort hediffs by severity (most severe first)
-            var sortedHediffs = hediffs.OrderByDescending(h => h.Severity).ToList();
-
-            foreach (var hediff in sortedHediffs)
+            // Single hediff group: skip intermediate node, attach details directly to body part
+            if (groups.Count == 1)
             {
-                // Get hediff label with inline impacts
-                string hediffLabel = hediff.LabelCap.StripTags();
-                string impacts = GetHediffImpactsSummary(hediff);
-                if (!string.IsNullOrEmpty(impacts))
+                var representative = groups[0].First();
+                int count = groups[0].Count();
+
+                // Build hediff name as first child so it leads the collapsed summary
+                string hediffName = representative.LabelCap.StripTags();
+                if (count > 1)
+                    hediffName += $" x{count}";
+
+                AddChild(parentItem, new InspectionTreeItem
                 {
-                    hediffLabel += $". {impacts}";
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = hediffName,
+                    IndentLevel = parentItem.IndentLevel + 1,
+                    IsExpandable = false
+                });
+
+                // Build detail children (TipStringExtra lines + description)
+                int childrenBefore = parentItem.Children.Count;
+                BuildHediffDetailChildren(parentItem, representative, pawn);
+                bool hasDetailChildren = parentItem.Children.Count > childrenBefore;
+
+                if (!hasDetailChildren)
+                {
+                    // No detail content beyond hediff name — not expandable
+                    parentItem.IsExpandable = false;
                 }
 
-                // Expandable if TipStringExtra has effects OR Description exists
-                bool hasExpandableContent = !string.IsNullOrWhiteSpace(hediff.TipStringExtra)
-                                         || !string.IsNullOrWhiteSpace(hediff.Description);
+                // Build collapsed summary from all children
+                var childLabels = parentItem.Children.Select(c => c.Label).ToList();
+                if (childLabels.Count > 0)
+                {
+                    parentItem.Label += $": {string.Join(". ", childLabels)}";
+                }
+                return;
+            }
+
+            // Multiple hediff groups: create a child node for each
+            foreach (var hediffGroup in groups)
+            {
+                var representative = hediffGroup.First();
+                int count = hediffGroup.Count();
+
+                string hediffName = representative.LabelCap.StripTags();
+                if (count > 1)
+                    hediffName += $" x{count}";
+
+                bool hasExpandableContent = !string.IsNullOrWhiteSpace(representative.TipStringExtra)
+                                         || !string.IsNullOrWhiteSpace(representative.Description);
 
                 var hediffItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
-                    Label = hediffLabel,
-                    Data = hediff,
-                    IndentLevel = bodyPartItem.IndentLevel + 1,
+                    Label = hediffName,
+                    ExpandedLabel = hediffName,
+                    Data = representative,
+                    IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = hasExpandableContent,
                     IsExpanded = false
                 };
 
                 if (hasExpandableContent)
                 {
-                    hediffItem.OnActivate = () => BuildHediffDetailChildren(hediffItem, hediff, pawn);
+                    // Build children eagerly for collapsed summary
+                    BuildHediffDetailChildren(hediffItem, representative, pawn);
+                    var hediffChildLabels = hediffItem.Children.Select(c => c.Label).ToList();
+                    if (hediffChildLabels.Count > 0)
+                        hediffItem.Label += $": {string.Join(". ", hediffChildLabels)}";
                 }
-                AddChild(bodyPartItem, hediffItem);
+                AddChild(parentItem, hediffItem);
+            }
+
+            // Build collapsed summary from all children
+            var multiChildLabels = parentItem.Children.Select(c => c.Label).ToList();
+            if (multiChildLabels.Count > 0)
+            {
+                parentItem.Label += $": {string.Join(". ", multiChildLabels)}";
             }
         }
 
         /// <summary>
-        /// Gets a compact summary of hediff impacts for inline display.
-        /// </summary>
-        private static string GetHediffImpactsSummary(Hediff hediff)
-        {
-            var impacts = new List<string>();
-
-            // Bleeding
-            if (hediff.Bleeding)
-            {
-                impacts.Add($"Bleeding {hediff.BleedRate:F1}/day");
-            }
-
-            // Pain
-            float pain = hediff.PainOffset;
-            if (pain > 0.01f)
-            {
-                impacts.Add($"Pain +{pain:P0}");
-            }
-
-            // Capacity impacts
-            if (hediff.CapMods != null)
-            {
-                foreach (var capMod in hediff.CapMods)
-                {
-                    if (capMod.capacity == null)
-                        continue;
-
-                    string capName = capMod.capacity.LabelCap.ToString().StripTags();
-
-                    if (capMod.offset != 0f)
-                    {
-                        string sign = capMod.offset > 0 ? "+" : "";
-                        impacts.Add($"{capName} {sign}{capMod.offset:P0}");
-                    }
-                    else if (capMod.postFactor != 1f)
-                    {
-                        float percentChange = (capMod.postFactor - 1f) * 100f;
-                        string sign = percentChange > 0 ? "+" : "";
-                        impacts.Add($"{capName} {sign}{percentChange:F0}%");
-                    }
-                }
-            }
-
-            // Tend status
-            var tendComp = hediff.TryGetComp<HediffComp_TendDuration>();
-            if (tendComp != null)
-            {
-                if (tendComp.IsTended)
-                {
-                    impacts.Add($"Tended {tendComp.tendQuality:P0}");
-                }
-                else if (hediff.TendableNow())
-                {
-                    impacts.Add("Needs tending");
-                }
-            }
-
-            if (impacts.Count == 0)
-                return string.Empty;
-
-            return string.Join(", ", impacts);
-        }
-
-        /// <summary>
-        /// Builds detail children for a specific hediff (condition/wound).
-        /// Shows comprehensive effects rather than raw health numbers.
+        /// Builds detail children for a specific hediff showing vanilla tooltip content and description.
         /// </summary>
         private static void BuildHediffDetailChildren(InspectionTreeItem hediffItem, Hediff hediff, Pawn pawn)
         {
-            if (hediffItem.Children.Count > 0)
-                return; // Already built
-
-            // Get comprehensive effect information from helper
+            // Show comprehensive effects (vanilla's TipStringExtra content)
             string effectsText = HealthTabHelper.GetComprehensiveHediffEffects(hediff, pawn);
 
             if (!string.IsNullOrEmpty(effectsText))
             {
-                // Split effects into individual lines for better navigation
                 string[] effectLines = effectsText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
                 foreach (string line in effectLines)
                 {
                     string trimmedLine = line.Trim();
                     if (!string.IsNullOrEmpty(trimmedLine))
                     {
-                        var effectItem = new InspectionTreeItem
+                        AddChild(hediffItem, new InspectionTreeItem
                         {
                             Type = InspectionTreeItem.ItemType.DetailText,
                             Label = trimmedLine,
                             IndentLevel = hediffItem.IndentLevel + 1,
                             IsExpandable = false
-                        };
-                        AddChild(hediffItem, effectItem);
+                        });
                     }
                 }
             }
 
-            // Add description at the end for context
+            // Description at the end
             string description = hediff.Description;
             if (!string.IsNullOrEmpty(description))
             {
-                // Strip tags, replace newlines with spaces, and collapse multiple spaces
                 description = description.StripTags().Trim();
                 description = System.Text.RegularExpressions.Regex.Replace(description, @"\s+", " ");
 
-                // Add a separator before description
-                var separatorItem = new InspectionTreeItem
-                {
-                    Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = "---",
-                    IndentLevel = hediffItem.IndentLevel + 1,
-                    IsExpandable = false
-                };
-                AddChild(hediffItem, separatorItem);
-
-                var descItem = new InspectionTreeItem
+                AddChild(hediffItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
                     Label = description,
                     IndentLevel = hediffItem.IndentLevel + 1,
                     IsExpandable = false
-                };
-                AddChild(hediffItem, descItem);
+                });
             }
         }
 
         /// <summary>
         /// Builds children for Capacities subcategory.
-        /// Uses HealthTabHelper for consistent capacity data with descriptions.
+        /// Uses vanilla's filtering, sorting, and pawn-type-specific labels.
         /// </summary>
         private static void BuildCapacitiesChildren(InspectionTreeItem parentItem, Pawn pawn)
         {
             if (parentItem.Children.Count > 0)
-                return; // Already built
+                return;
 
-            // Use HealthTabHelper for consistent capacity data (already sorted by level)
             var capacities = HealthTabHelper.GetCapacities(pawn);
 
             foreach (var capacity in capacities)
             {
+                string capName = capacity.Label;
+                bool hasBreakdown = !string.IsNullOrEmpty(capacity.DetailedBreakdown);
+
                 var capacityItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
-                    Label = $"{capacity.Label}: {capacity.LevelLabel}",
+                    Label = capName,
+                    ExpandedLabel = capName,
                     Data = capacity,
                     IndentLevel = parentItem.IndentLevel + 1,
-                    IsExpandable = true,
+                    IsExpandable = hasBreakdown,
                     IsExpanded = false
                 };
 
-                capacityItem.OnActivate = () => BuildCapacityDetailChildren(capacityItem, capacity);
+                if (hasBreakdown)
+                {
+                    // Add level as first child
+                    AddChild(capacityItem, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = capacity.LevelLabel,
+                        IndentLevel = capacityItem.IndentLevel + 1,
+                        IsExpandable = false
+                    });
+                    // Build breakdown children eagerly
+                    BuildCapacityDetailChildren(capacityItem, capacity);
+                    // Build collapsed summary from children
+                    var capDetailLabels = capacityItem.Children.Select(c => c.Label).ToList();
+                    if (capDetailLabels.Count > 0)
+                        capacityItem.Label += $": {string.Join(". ", capDetailLabels)}";
+                }
+                else
+                {
+                    // No breakdown — show level inline (non-expandable)
+                    capacityItem.Label = $"{capName}: {capacity.LevelLabel}";
+                }
                 AddChild(parentItem, capacityItem);
             }
         }
 
         /// <summary>
-        /// Builds detail children for a capacity showing description and factors.
+        /// Builds detail children for a capacity showing impactors.
         /// </summary>
         private static void BuildCapacityDetailChildren(InspectionTreeItem capacityItem, HealthTabHelper.CapacityInfo capacity)
         {
             if (capacityItem.Children.Count > 0)
-                return; // Already built
+                return;
 
-            // Add description if available
-            if (!string.IsNullOrEmpty(capacity.Description))
-            {
-                var descItem = new InspectionTreeItem
-                {
-                    Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = capacity.Description,
-                    IndentLevel = capacityItem.IndentLevel + 1,
-                    IsExpandable = false
-                };
-                AddChild(capacityItem, descItem);
-            }
-
-            // Add breakdown factors
             if (!string.IsNullOrEmpty(capacity.DetailedBreakdown))
             {
                 var lines = capacity.DetailedBreakdown.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-
                 foreach (var line in lines)
                 {
                     string trimmedLine = line.Trim();
-                    if (string.IsNullOrEmpty(trimmedLine))
-                        continue;
-
-                    // Skip header and current level (already in parent label)
-                    if (trimmedLine.EndsWith(":") && trimmedLine == $"{capacity.Label}:")
-                        continue;
-                    if (trimmedLine.StartsWith("Current level:"))
-                        continue;
-
-                    var detailItem = new InspectionTreeItem
+                    if (!string.IsNullOrEmpty(trimmedLine))
                     {
-                        Type = InspectionTreeItem.ItemType.DetailText,
-                        Label = trimmedLine,
-                        IndentLevel = capacityItem.IndentLevel + 1,
-                        IsExpandable = false
-                    };
-                    AddChild(capacityItem, detailItem);
+                        AddChild(capacityItem, new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.DetailText,
+                            Label = trimmedLine,
+                            IndentLevel = capacityItem.IndentLevel + 1,
+                            IsExpandable = false
+                        });
+                    }
                 }
             }
         }
@@ -3550,7 +3460,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak("Cannot cut: pen is not enclosed");
+                    TolkHelper.Speak("AutocutUnenclosedPen".Translate());
                 }
             };
             AddChild(parentItem, cutNowItem);

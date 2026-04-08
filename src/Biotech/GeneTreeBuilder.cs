@@ -592,30 +592,40 @@ namespace RimWorldAccess
             // Add Endogenes group
             if (endogenes != null && endogenes.Count > 0)
             {
+                string endoLabel = "Endogenes".Translate().CapitalizeFirst();
                 var endoGroup = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.SubCategory,
-                    Label = $"Endogenes ({endogenes.Count})",
+                    Label = endoLabel,
+                    ExpandedLabel = endoLabel,
                     IsExpandable = true,
                     IsExpanded = false,
                     IndentLevel = 0
                 };
-                endoGroup.OnActivate = () => BuildGeneGroupChildren(endoGroup, endogenes);
+                BuildGeneGroupChildren(endoGroup, endogenes);
+                var endoChildLabels = endoGroup.Children.Select(c => c.Label).ToList();
+                if (endoChildLabels.Count > 0)
+                    endoGroup.Label += $": {string.Join(", ", endoChildLabels)}";
                 AddChild(root, endoGroup);
             }
 
             // Add Xenogenes group
             if (xenogenes != null && xenogenes.Count > 0)
             {
+                string xenoLabel = "Xenogenes".Translate().CapitalizeFirst();
                 var xenoGroup = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.SubCategory,
-                    Label = $"Xenogenes ({xenogenes.Count})",
+                    Label = xenoLabel,
+                    ExpandedLabel = xenoLabel,
                     IsExpandable = true,
                     IsExpanded = false,
                     IndentLevel = 0
                 };
-                xenoGroup.OnActivate = () => BuildGeneGroupChildren(xenoGroup, xenogenes);
+                BuildGeneGroupChildren(xenoGroup, xenogenes);
+                var xenoChildLabels = xenoGroup.Children.Select(c => c.Label).ToList();
+                if (xenoChildLabels.Count > 0)
+                    xenoGroup.Label += $": {string.Join(", ", xenoChildLabels)}";
                 AddChild(root, xenoGroup);
             }
 
@@ -630,8 +640,6 @@ namespace RimWorldAccess
         /// </summary>
         private static void BuildGeneGroupChildren(InspectionTreeItem groupItem, List<Gene> genes)
         {
-            if (groupItem.Children.Count > 0)
-                return; // Already built
 
             // Sort by display category priority, then by display order, then alphabetically
             var sorted = genes
