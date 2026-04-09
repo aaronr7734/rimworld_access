@@ -328,6 +328,7 @@ namespace RimWorldAccess
 
             // Initialize Prism context
             PrismConfig config = PrismNative.prism_config_init();
+            Log.Message($"[RimWorld Access] Prism config version: {config.version}");
             prismContext = PrismNative.prism_init(ref config);
             if (prismContext == IntPtr.Zero)
             {
