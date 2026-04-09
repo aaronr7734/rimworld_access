@@ -25,6 +25,14 @@ namespace RimWorldAccess
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
         private static bool isExecutingGizmo = false;
 
+        // Slider adjustment mode state
+        private static bool isAdjustingSlider = false;
+        private static Gizmo sliderGizmo = null;
+        private static float sliderValue = 0f;
+        private static float sliderStep = 0.05f;
+        private static float sliderMin = 0f;
+        private static float sliderMax = 1f;
+
         /// <summary>
         /// Gets whether gizmo navigation is currently active.
         /// </summary>
@@ -405,6 +413,8 @@ namespace RimWorldAccess
             gizmoGroups.Clear();
             typeahead.ClearSearch();
             lastAnnouncedOwner = null;
+            isAdjustingSlider = false;
+            sliderGizmo = null;
         }
 
         /// <summary>
@@ -934,6 +944,21 @@ namespace RimWorldAccess
 
             KeyCode key = Event.current.keyCode;
 
+            // Slider adjustment mode takes over all input
+            if (isAdjustingSlider)
+            {
+                bool shift = Event.current.shift;
+                int multiplier = shift ? 5 : 1;
+
+                if (key == KeyCode.LeftArrow) { AdjustSliderValue(-1, multiplier); Event.current.Use(); return true; }
+                if (key == KeyCode.RightArrow) { AdjustSliderValue(1, multiplier); Event.current.Use(); return true; }
+                if (key == KeyCode.Escape || key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                { ExitSliderAdjust(); Event.current.Use(); return true; }
+                // Consume all other keys while in slider mode
+                Event.current.Use();
+                return true;
+            }
+
             // Handle Home - jump to first
             if (key == KeyCode.Home)
             {
@@ -1025,6 +1050,16 @@ namespace RimWorldAccess
             // Handle Enter - execute selected (skip if Alt held, Alt+Enter opens pawn inspection)
             if ((key == KeyCode.Return || key == KeyCode.KeypadEnter) && !KeyboardHelper.IsAltHeld)
             {
+                // Slider gizmos with no other Enter action enter adjustment mode directly.
+                // PsychicEntropyGizmo already has Enter = toggle neural heat limiter,
+                // so it keeps its existing behavior and uses right bracket for slider adjustment.
+                Gizmo enterGizmo = availableGizmos[selectedGizmoIndex];
+                if (IsAdjustableSlider(enterGizmo) && enterGizmo.GetType().Name != "PsychicEntropyGizmo")
+                {
+                    EnterSliderAdjustMode(enterGizmo);
+                    Event.current.Use();
+                    return true;
+                }
                 ExecuteSelected();
                 Event.current.Use();
                 return true;
@@ -1034,6 +1069,20 @@ namespace RimWorldAccess
             if (KeyboardHelper.IsAltHeld && key == KeyCode.I)
             {
                 OpenInfoCardForCurrentGizmo();
+                Event.current.Use();
+                return true;
+            }
+
+            // Handle right bracket - right-click options or slider adjustment
+            if (key == KeyCode.RightBracket)
+            {
+                Gizmo rbGizmo = availableGizmos[selectedGizmoIndex];
+                if (HasRightClickOptions(rbGizmo))
+                    ExecuteRightClick();
+                else if (IsAdjustableSlider(rbGizmo))
+                    EnterSliderAdjustMode(rbGizmo);
+                else
+                    TolkHelper.Speak("No additional options");
                 Event.current.Use();
                 return true;
             }
@@ -1296,6 +1345,21 @@ namespace RimWorldAccess
                 string context = GetDisabledGizmoContext(gizmo, gizmoOwner);
                 if (!string.IsNullOrEmpty(context))
                     announcement += $". {context}";
+            }
+
+            // Add interaction hints for right-click options and adjustable sliders
+            if (!gizmo.Disabled)
+            {
+                if (HasRightClickOptions(gizmo))
+                    announcement += ". Press right bracket for more options";
+                else if (IsAdjustableSlider(gizmo))
+                {
+                    // PsychicEntropyGizmo has two actions: Enter toggles limiter, right bracket adjusts psyfocus
+                    if (gizmo.GetType().Name == "PsychicEntropyGizmo")
+                        announcement += ". Press Enter to toggle limiter, right bracket to set psyfocus target";
+                    else
+                        announcement += ". Press Enter to adjust";
+                }
             }
 
             TolkHelper.Speak(announcement);
@@ -1715,6 +1779,14 @@ namespace RimWorldAccess
                 float psyfocus = (float)psyfocusProp.GetValue(tracker);
 
                 string status = $"Neural heat: {entropy:F0} / {maxEntropy:F0}, Psyfocus: {psyfocus * 100:F0}%";
+
+                // Add psyfocus target (sighted players see a target indicator on the bar)
+                var targetPsyfocusProp = tracker.GetType().GetProperty("TargetPsyfocus");
+                if (targetPsyfocusProp != null)
+                {
+                    float target = (float)targetPsyfocusProp.GetValue(tracker);
+                    status += $", Target: {target * 100:F0}%";
+                }
 
                 // Add limiter state
                 if (limitField != null)
@@ -2303,6 +2375,480 @@ namespace RimWorldAccess
                 ModLogger.Error($"Exception in gizmo material selection: {ex.Message}");
                 TolkHelper.Speak($"Error: {ex.Message}", SpeechPriority.High);
             }
+        }
+
+        // ===== Right-click float menu support =====
+
+        /// <summary>
+        /// Checks whether the given gizmo has any right-click float menu options.
+        /// </summary>
+        private static bool HasRightClickOptions(Gizmo gizmo)
+        {
+            try
+            {
+                return gizmo.RightClickFloatMenuOptions.Any();
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Checks whether the given gizmo is an adjustable slider.
+        /// </summary>
+        private static bool IsAdjustableSlider(Gizmo gizmo)
+        {
+            try
+            {
+                if (gizmo is Gizmo_Slider)
+                {
+                    var isDraggableProp = gizmo.GetType().GetProperty("IsDraggable",
+                        System.Reflection.BindingFlags.Instance |
+                        System.Reflection.BindingFlags.NonPublic |
+                        System.Reflection.BindingFlags.Public);
+                    if (isDraggableProp != null)
+                        return (bool)isDraggableProp.GetValue(gizmo);
+                    return false;
+                }
+
+                string typeName = gizmo.GetType().Name;
+                if (typeName == "PsychicEntropyGizmo")
+                {
+                    // Only adjustable for colonist-player-controlled pawns
+                    var tracker = GetPsychicEntropyTracker(gizmo);
+                    if (tracker == null) return false;
+                    var pawnProp = tracker.GetType().GetProperty("Pawn");
+                    if (pawnProp == null) return false;
+                    var pawn = pawnProp.GetValue(tracker) as Pawn;
+                    return pawn != null && pawn.IsColonistPlayerControlled;
+                }
+
+                if (typeName == "Gizmo_PruningConfig" || typeName == "MechCarrierGizmo")
+                    return true;
+
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Collects right-click float menu options from the gizmo and its grouped gizmos,
+        /// mirroring vanilla GizmoGridDrawer behavior.
+        /// </summary>
+        private static List<FloatMenuOption> CollectRightClickOptions(Gizmo gizmo)
+        {
+            var options = new List<FloatMenuOption>();
+
+            try
+            {
+                // Collect from the primary gizmo
+                foreach (var opt in gizmo.RightClickFloatMenuOptions)
+                    options.Add(opt);
+
+                // Merge from grouped gizmos (mirrors vanilla GizmoGridDrawer lines 368-405)
+                if (gizmoGroups.TryGetValue(gizmo, out var group))
+                {
+                    for (int i = 0; i < group.Count; i++)
+                    {
+                        Gizmo other = group[i];
+                        if (other == gizmo || other.Disabled || !gizmo.InheritFloatMenuInteractionsFrom(other))
+                            continue;
+
+                        foreach (var opt in other.RightClickFloatMenuOptions)
+                        {
+                            var existing = options.FirstOrDefault(o => o.Label == opt.Label);
+                            if (existing == null)
+                            {
+                                options.Add(opt);
+                            }
+                            else if (!opt.Disabled && existing.Disabled)
+                            {
+                                int idx = options.IndexOf(existing);
+                                options[idx] = opt;
+                            }
+                            else if (!opt.Disabled && !existing.Disabled)
+                            {
+                                System.Action prevAction = existing.action;
+                                System.Action localAction = opt.action;
+                                existing.action = delegate { prevAction(); localAction(); };
+                            }
+                        }
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                ModLogger.Error($"Exception collecting right-click options: {ex.Message}");
+            }
+
+            return options;
+        }
+
+        /// <summary>
+        /// Executes the right-click action for the currently selected gizmo,
+        /// opening its float menu options in the accessible WindowlessFloatMenuState.
+        /// </summary>
+        public static void ExecuteRightClick()
+        {
+            if (!isActive || availableGizmos.Count == 0)
+                return;
+
+            Gizmo gizmo = availableGizmos[selectedGizmoIndex];
+
+            if (gizmo.Disabled)
+            {
+                string reason = gizmo.disabledReason;
+                if (string.IsNullOrEmpty(reason))
+                    reason = "Command not available";
+                TolkHelper.Speak($"Disabled: {reason}");
+                return;
+            }
+
+            var options = CollectRightClickOptions(gizmo);
+            if (options.Count == 0)
+            {
+                TolkHelper.Speak("No additional options");
+                return;
+            }
+
+            WindowlessFloatMenuState.Open(options, colonistOrders: false);
+        }
+
+        // ===== Slider adjustment support =====
+
+        /// <summary>
+        /// Enters slider adjustment mode for the given gizmo.
+        /// Reads the current target value, step size, and range via reflection.
+        /// </summary>
+        private static void EnterSliderAdjustMode(Gizmo gizmo)
+        {
+            sliderGizmo = gizmo;
+            string title = "";
+
+            try
+            {
+                if (gizmo is Gizmo_Slider)
+                {
+                    var flags = System.Reflection.BindingFlags.Instance |
+                        System.Reflection.BindingFlags.NonPublic |
+                        System.Reflection.BindingFlags.Public;
+
+                    var targetProp = gizmo.GetType().GetProperty("Target", flags);
+                    var dragRangeProp = gizmo.GetType().GetProperty("DragRange", flags);
+                    var incrementsProp = gizmo.GetType().GetProperty("Increments", flags);
+                    var titleProp = gizmo.GetType().GetProperty("Title", flags);
+
+                    if (targetProp == null) { TolkHelper.Speak("Could not read slider value"); return; }
+
+                    sliderValue = (float)targetProp.GetValue(gizmo);
+
+                    if (dragRangeProp != null)
+                    {
+                        var range = (FloatRange)dragRangeProp.GetValue(gizmo);
+                        sliderMin = range.min;
+                        sliderMax = range.max;
+                    }
+                    else
+                    {
+                        sliderMin = 0f;
+                        sliderMax = 1f;
+                    }
+
+                    int increments = 20;
+                    if (incrementsProp != null)
+                        increments = (int)incrementsProp.GetValue(gizmo);
+
+                    sliderStep = (sliderMax - sliderMin) / increments;
+                    if (titleProp != null)
+                        title = (string)titleProp.GetValue(gizmo) ?? "";
+                }
+                else
+                {
+                    string typeName = gizmo.GetType().Name;
+                    var flags = System.Reflection.BindingFlags.Instance |
+                        System.Reflection.BindingFlags.NonPublic |
+                        System.Reflection.BindingFlags.Public;
+
+                    if (typeName == "PsychicEntropyGizmo")
+                    {
+                        var targetField = gizmo.GetType().GetField("targetValue", flags);
+                        if (targetField == null) { TolkHelper.Speak("Could not read psyfocus value"); return; }
+
+                        sliderValue = (float)targetField.GetValue(gizmo);
+                        sliderMin = 0f;
+                        sliderMax = 1f;
+                        sliderStep = 1f / 16f;
+                        title = "PsyfocusLabelGizmo".Translate();
+                    }
+                    else if (typeName == "Gizmo_PruningConfig")
+                    {
+                        var connectionField = gizmo.GetType().GetField("connection", flags);
+                        if (connectionField == null) { TolkHelper.Speak("Could not read pruning value"); return; }
+                        var connection = connectionField.GetValue(gizmo);
+                        if (connection == null) { TolkHelper.Speak("Could not read pruning value"); return; }
+
+                        var desiredProp = connection.GetType().GetProperty("DesiredConnectionStrength", flags);
+                        if (desiredProp == null) { TolkHelper.Speak("Could not read pruning value"); return; }
+
+                        sliderValue = (float)desiredProp.GetValue(connection);
+                        sliderMin = 0f;
+                        sliderMax = 1f;
+                        sliderStep = 1f / 20f;
+                        title = "ConnectionStrength".Translate();
+                    }
+                    else if (typeName == "MechCarrierGizmo")
+                    {
+                        var targetField = gizmo.GetType().GetField("targetValue", flags);
+                        if (targetField == null) { TolkHelper.Speak("Could not read carrier value"); return; }
+
+                        sliderValue = (float)targetField.GetValue(gizmo);
+                        sliderMin = 0f;
+                        sliderMax = 1f;
+                        sliderStep = 1f / 24f;
+                        title = GetMechCarrierTitle(gizmo);
+                    }
+                    else
+                    {
+                        TolkHelper.Speak("Could not adjust this control");
+                        return;
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                ModLogger.Error($"Exception entering slider mode: {ex.Message}");
+                TolkHelper.Speak("Could not adjust this control");
+                return;
+            }
+
+            isAdjustingSlider = true;
+            string valueStr = $"{sliderValue * 100:F0}%";
+            TolkHelper.Speak($"Adjusting {title}. Current target: {valueStr}. Left and Right to adjust, Shift for larger steps, Escape to finish.");
+        }
+
+        /// <summary>
+        /// Adjusts the slider value by step * multiplier in the given direction.
+        /// </summary>
+        private static void AdjustSliderValue(int direction, int multiplier = 1)
+        {
+            if (sliderGizmo == null) return;
+
+            float oldValue = sliderValue;
+            sliderValue += direction * sliderStep * multiplier;
+            sliderValue = Mathf.Clamp(sliderValue, sliderMin, sliderMax);
+
+            // Snap to nearest step to avoid floating point drift
+            float stepsFromMin = Mathf.Round((sliderValue - sliderMin) / sliderStep);
+            sliderValue = sliderMin + stepsFromMin * sliderStep;
+            sliderValue = Mathf.Clamp(sliderValue, sliderMin, sliderMax);
+
+            if (Mathf.Approximately(sliderValue, oldValue))
+            {
+                TolkHelper.Speak(direction > 0 ? "Maximum" : "Minimum");
+                return;
+            }
+
+            // Play the drag slider sound (matches vanilla behavior)
+            SoundDefOf.DragSlider.PlayOneShotOnCamera();
+
+            // Write value back to the gizmo
+            try
+            {
+                WriteSliderValue(sliderGizmo, sliderValue);
+            }
+            catch (System.Exception ex)
+            {
+                ModLogger.Error($"Exception writing slider value: {ex.Message}");
+            }
+
+            // Announce the new value
+            string announcement = GetSliderAnnouncement(sliderGizmo, sliderValue);
+            TolkHelper.Speak(announcement);
+        }
+
+        /// <summary>
+        /// Writes the adjusted slider value back to the gizmo via reflection.
+        /// </summary>
+        private static void WriteSliderValue(Gizmo gizmo, float value)
+        {
+            var flags = System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic |
+                System.Reflection.BindingFlags.Public;
+
+            if (gizmo is Gizmo_Slider)
+            {
+                var targetProp = gizmo.GetType().GetProperty("Target", flags);
+                targetProp?.SetValue(gizmo, value);
+            }
+            else
+            {
+                string typeName = gizmo.GetType().Name;
+
+                if (typeName == "PsychicEntropyGizmo")
+                {
+                    // Write to both the gizmo's targetValue and the tracker
+                    var targetField = gizmo.GetType().GetField("targetValue", flags);
+                    targetField?.SetValue(gizmo, value);
+
+                    var tracker = GetPsychicEntropyTracker(gizmo);
+                    if (tracker != null)
+                    {
+                        var setMethod = tracker.GetType().GetMethod("SetPsyfocusTarget", flags);
+                        setMethod?.Invoke(tracker, new object[] { value });
+                    }
+                }
+                else if (typeName == "Gizmo_PruningConfig")
+                {
+                    var connectionField = gizmo.GetType().GetField("connection", flags);
+                    var connection = connectionField?.GetValue(gizmo);
+                    if (connection != null)
+                    {
+                        var desiredProp = connection.GetType().GetProperty("DesiredConnectionStrength", flags);
+                        desiredProp?.SetValue(connection, value);
+                    }
+                }
+                else if (typeName == "MechCarrierGizmo")
+                {
+                    // Write targetValue on gizmo
+                    var targetField = gizmo.GetType().GetField("targetValue", flags);
+                    targetField?.SetValue(gizmo, value);
+
+                    // Also update carrier.maxToFill = Round(value * maxIngredientCount)
+                    var carrierField = gizmo.GetType().GetField("carrier", flags);
+                    var carrier = carrierField?.GetValue(gizmo);
+                    if (carrier != null)
+                    {
+                        var propsProp = carrier.GetType().GetProperty("Props");
+                        var props = propsProp?.GetValue(carrier);
+                        if (props != null)
+                        {
+                            var maxField = props.GetType().GetField("maxIngredientCount");
+                            if (maxField != null)
+                            {
+                                int maxCount = (int)maxField.GetValue(props);
+                                int newFill = Mathf.RoundToInt(value * maxCount);
+                                var maxToFillField = carrier.GetType().GetField("maxToFill",
+                                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public);
+                                maxToFillField?.SetValue(carrier, newFill);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the announcement text for the current slider value.
+        /// Uses BarLabel where available for richer info (e.g., "75 / 200 fuel").
+        /// </summary>
+        private static string GetSliderAnnouncement(Gizmo gizmo, float value)
+        {
+            var flags = System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic |
+                System.Reflection.BindingFlags.Public;
+
+            try
+            {
+                if (gizmo is Gizmo_Slider)
+                {
+                    // Try to get BarLabel for richer display
+                    var barLabelProp = gizmo.GetType().GetProperty("BarLabel", flags);
+                    if (barLabelProp != null)
+                    {
+                        string barLabel = (string)barLabelProp.GetValue(gizmo);
+                        if (!string.IsNullOrEmpty(barLabel))
+                            return $"Target: {value * 100:F0}%, {barLabel}";
+                    }
+                }
+                else if (gizmo.GetType().Name == "MechCarrierGizmo")
+                {
+                    // Show count / max for carrier
+                    var carrierField = gizmo.GetType().GetField("carrier", flags);
+                    var carrier = carrierField?.GetValue(gizmo);
+                    if (carrier != null)
+                    {
+                        var propsProp = carrier.GetType().GetProperty("Props");
+                        var props = propsProp?.GetValue(carrier);
+                        if (props != null)
+                        {
+                            var maxField = props.GetType().GetField("maxIngredientCount");
+                            if (maxField != null)
+                            {
+                                int maxCount = (int)maxField.GetValue(props);
+                                int targetCount = Mathf.RoundToInt(value * maxCount);
+                                return $"Target: {targetCount} / {maxCount}";
+                            }
+                        }
+                    }
+                }
+                else if (gizmo.GetType().Name == "Gizmo_PruningConfig")
+                {
+                    // Show percentage and pruning hours
+                    var connectionField = gizmo.GetType().GetField("connection", flags);
+                    var connection = connectionField?.GetValue(gizmo);
+                    if (connection != null)
+                    {
+                        var hoursMethod = connection.GetType().GetMethod("PruningHoursToMaintain", flags);
+                        if (hoursMethod != null)
+                        {
+                            float hours = (float)hoursMethod.Invoke(connection, new object[] { value });
+                            return $"Target: {value * 100:F0}%, {hours:F1} " + "PruningHoursToMaintain".Translate().ToString().Split(':')[0].Trim();
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Fall through to default
+            }
+
+            return $"{value * 100:F0}%";
+        }
+
+        /// <summary>
+        /// Gets the title/label for a MechCarrierGizmo (the ingredient name).
+        /// </summary>
+        private static string GetMechCarrierTitle(Gizmo gizmo)
+        {
+            try
+            {
+                var flags = System.Reflection.BindingFlags.Instance |
+                    System.Reflection.BindingFlags.NonPublic |
+                    System.Reflection.BindingFlags.Public;
+                var carrierField = gizmo.GetType().GetField("carrier", flags);
+                var carrier = carrierField?.GetValue(gizmo);
+                if (carrier != null)
+                {
+                    var propsProp = carrier.GetType().GetProperty("Props");
+                    var props = propsProp?.GetValue(carrier);
+                    if (props != null)
+                    {
+                        var ingredientField = props.GetType().GetField("fixedIngredient");
+                        if (ingredientField != null)
+                        {
+                            var ingredient = ingredientField.GetValue(props) as Def;
+                            if (ingredient != null)
+                                return ingredient.LabelCap;
+                        }
+                    }
+                }
+            }
+            catch { }
+            return "Carrier";
+        }
+
+        /// <summary>
+        /// Exits slider adjustment mode and re-announces the current gizmo.
+        /// </summary>
+        private static void ExitSliderAdjust()
+        {
+            isAdjustingSlider = false;
+            sliderGizmo = null;
+            AnnounceCurrentGizmo();
         }
     }
 }

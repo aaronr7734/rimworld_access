@@ -4798,7 +4798,7 @@ namespace RimWorldAccess
             }
 
             // ===== PRIORITY 4.78: Handle gizmo navigation if active =====
-            if (GizmoNavigationState.IsActive)
+            if (GizmoNavigationState.IsActive && !WindowlessFloatMenuState.IsActive)
             {
                 // Let GizmoNavigationState.HandleInput() process all input
                 // It handles typeahead-aware navigation, Home/End, Escape, Enter, etc.
