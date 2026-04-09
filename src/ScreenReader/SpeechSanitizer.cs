@@ -23,6 +23,7 @@ namespace RimWorldAccess
                 return text;
 
             text = StripTags(text);
+            text = text.Replace("<", "").Replace(">", "");
             text = CollapseSpaces(text);
 
             text = text.Replace("...", EllipsisPlaceholder);

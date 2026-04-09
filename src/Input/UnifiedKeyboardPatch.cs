@@ -31,6 +31,13 @@ namespace RimWorldAccess
             if (Event.current.type != EventType.KeyDown)
                 return;
 
+            // Interrupt speech on key press for backends that don't handle it
+            // (e.g., macOS AVSpeechSynthesizer when VoiceOver is not running)
+            if (TolkHelper.ShouldInterruptOnKeyPress)
+            {
+                TolkHelper.StopSpeech();
+            }
+
             KeyCode key = Event.current.keyCode;
 
             // ===== PRIORITY -1.5: Handle character input for scenario builder states =====
