@@ -372,7 +372,8 @@ namespace RimWorldAccess
 
             /// <summary>
             /// Builds the announcement for list view.
-            /// Format: "Pinned, Letter, Date, Label. X of Y"
+            /// Format: "Pinned, Label, Letter, Date. X of Y"
+            /// Content first so users can stop listening once they've heard what they need.
             /// </summary>
             public string BuildListAnnouncement(int index, int total)
             {
@@ -381,9 +382,9 @@ namespace RimWorldAccess
                 if (IsPinned)
                     parts.Add("Pinned");
 
+                parts.Add(Label);
                 parts.Add(TypeLabel);
                 parts.Add(DateLabel);
-                parts.Add(Label);
 
                 string announcement = string.Join(", ", parts);
                 string position = MenuHelper.FormatPosition(index, total);

@@ -88,13 +88,30 @@ namespace RimWorldAccess
             );
             detailHelper.RefreshButtons();
 
+            string hotkeyHint = "Alt+L to show or hide letters, Alt+M to show or hide messages";
+
             if (items.Count == 0)
             {
-                TolkHelper.Speak("No archived messages. Press Alt+L to toggle letters, Alt+M to toggle messages.");
+                TolkHelper.Speak($"No archived items. {hotkeyHint}.");
                 return;
             }
 
-            AnnounceCurrentSelection();
+            AnnounceCurrentSelectionWithSuffix(". " + hotkeyHint);
+        }
+
+        /// <summary>
+        /// Announces the current selection with a suffix (e.g. hotkey hints on tab entry).
+        /// </summary>
+        private static void AnnounceCurrentSelectionWithSuffix(string suffix)
+        {
+            if (items == null || items.Count == 0)
+                return;
+            if (selectedIndex < 0 || selectedIndex >= items.Count)
+                return;
+
+            var item = items[selectedIndex];
+            string announcement = item.BuildListAnnouncement(selectedIndex, items.Count) + suffix;
+            TolkHelper.Speak(announcement);
         }
 
         /// <summary>
@@ -143,8 +160,8 @@ namespace RimWorldAccess
             detailHelper?.ResetDetailPosition();
             detailHelper?.RefreshButtons();
 
-            string status = showLetters ? "on" : "off";
-            TolkHelper.Speak($"Letters filter {status}. {items.Count} items.");
+            string status = showLetters ? "Showing letters" : "Hiding letters";
+            TolkHelper.Speak($"{status}. {items.Count} items.");
 
             if (items.Count > 0)
             {
@@ -178,8 +195,8 @@ namespace RimWorldAccess
             detailHelper?.ResetDetailPosition();
             detailHelper?.RefreshButtons();
 
-            string status = showMessages ? "on" : "off";
-            TolkHelper.Speak($"Messages filter {status}. {items.Count} items.");
+            string status = showMessages ? "Showing messages" : "Hiding messages";
+            TolkHelper.Speak($"{status}. {items.Count} items.");
 
             if (items.Count > 0)
             {
