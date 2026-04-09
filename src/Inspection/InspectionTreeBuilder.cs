@@ -513,7 +513,13 @@ namespace RimWorldAccess
                 category == "Training" ||
                 category == "Character" ||
                 category == "Log" ||
-                category == "Job Queue")
+                category == "Job Queue" ||
+                category == "Feeding" ||
+                category == "Guest" ||
+                category == "Art" ||
+                category == "Book" ||
+                category == "Books" ||
+                category == "Auto-Cut Plants")
                 return true;
 
             // Genes tab is expandable for pawns with gene data or GeneSetHolderBase items (Biotech DLC)
@@ -533,6 +539,10 @@ namespace RimWorldAccess
             // Pen Food and Pen Auto-Cut are expandable if building has pen marker
             if ((category == "Pen Food" || category == "Pen Auto-Cut") && obj is Building building)
                 return building.TryGetComp<CompAnimalPenMarker>() != null;
+
+            // Contents is expandable for transporters
+            if (category == "Contents" && obj is Thing contentsThing)
+                return contentsThing.TryGetComp<CompTransporter>() != null;
 
             // Meditation Focus is expandable only if there are nearby focus objects
             if (category == "Meditation Focus" && obj is Building meditationBuilding && meditationBuilding.Spawned)
@@ -739,6 +749,35 @@ namespace RimWorldAccess
                     BuildMeditationFocusChildren(categoryItem, building);
                     return;
                 }
+                if (category == "Auto-Cut Plants")
+                {
+                    BuildWindTurbineAutoCutChildren(categoryItem, building, mode);
+                    return;
+                }
+                if (category == "Books" && building is Building_Bookcase bookcase)
+                {
+                    BuildContentsBooksChildren(categoryItem, bookcase, mode);
+                    return;
+                }
+                if (category == "Contents" && building.TryGetComp<CompTransporter>() != null)
+                {
+                    BuildContentsTransporterChildren(categoryItem, building, mode);
+                    return;
+                }
+            }
+
+            // Art — works on any Thing with CompArt
+            if (category == "Art" && obj is Thing artThing)
+            {
+                BuildArtChildren(categoryItem, artThing);
+                return;
+            }
+
+            // Book — works on Book things
+            if (category == "Book" && obj is Book book)
+            {
+                BuildBookChildren(categoryItem, book);
+                return;
             }
 
             // Handle GeneSetHolderBase (embryos, genepacks, xenogerms) gene category
@@ -821,6 +860,14 @@ namespace RimWorldAccess
             else if (category == "Genes")
             {
                 BuildGenesChildren(categoryItem, pawn);
+            }
+            else if (category == "Feeding")
+            {
+                BuildFeedingChildren(categoryItem, pawn, mode);
+            }
+            else if (category == "Guest")
+            {
+                BuildGuestChildren(categoryItem, pawn, mode);
             }
         }
 
@@ -3610,6 +3657,653 @@ namespace RimWorldAccess
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Builds children for the Feeding tab (Biotech babies).
+        /// Two sections: auto-breastfeed feeder list and baby food consumables.
+        /// Matches vanilla ITab_Pawn_Feeding exactly.
+        /// </summary>
+        private static void BuildFeedingChildren(InspectionTreeItem parentItem, Pawn baby, InspectionMode mode)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            if (!ModsConfig.BiotechActive)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+            bool isReadOnly = (mode == InspectionMode.ReadOnly);
+
+            // === Auto-breastfeed section ===
+            string autoHeader = "AutofeedSectionHeader".Translate().CapitalizeFirst();
+            var autoSection = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = autoHeader,
+                ExpandedLabel = autoHeader,
+                IndentLevel = indent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+            autoSection.OnActivate = () => BuildAutobreastfeedChildren(autoSection, baby, isReadOnly);
+            AddChild(parentItem, autoSection);
+
+            // === Baby Food Consumables section ===
+            string foodHeader = "BabyFoodConsumables".Translate().CapitalizeFirst();
+            var foodSection = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = foodHeader,
+                ExpandedLabel = foodHeader,
+                IndentLevel = indent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+            foodSection.OnActivate = () => BuildBabyFoodChildren(foodSection, baby, isReadOnly);
+            AddChild(parentItem, foodSection);
+        }
+
+        /// <summary>
+        /// Builds the auto-breastfeed feeder list, matching vanilla's filtering and sorting.
+        /// </summary>
+        private static void BuildAutobreastfeedChildren(InspectionTreeItem parentItem, Pawn baby, bool isReadOnly)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+
+            // Gather feeders using vanilla's exact filtering logic
+            var feeders = PawnsFinder.AllMapsCaravansAndTravellingTransporters_Alive_OfPlayerFaction
+                .Where(f => f != baby
+                    && f.RaceProps.Humanlike
+                    && !ChildcareUtility.CanSuckle(f, out _)
+                    && !f.IsWorkTypeDisabledByAge(WorkTypeDefOf.Childcare, out _))
+                .ToList();
+
+            if (feeders.Count == 0)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "AutofeedNone".Translate(),
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            // Sort using vanilla's exact order: lactating first, then mother, father, surrogate
+            Pawn mother = baby.GetMother();
+            Pawn father = baby.GetFather();
+            Pawn surrogate = baby.GetBirthParent();
+
+            feeders.Sort((lhs, rhs) =>
+            {
+                int cmp = rhs.health.hediffSet.HasHediff(HediffDefOf.Lactating)
+                    .CompareTo(lhs.health.hediffSet.HasHediff(HediffDefOf.Lactating));
+                if (cmp != 0) return cmp;
+                if (lhs == mother) return -1;
+                if (rhs == mother) return 1;
+                if (lhs == father) return -1;
+                if (rhs == father) return 1;
+                if (lhs == surrogate) return -1;
+                if (rhs == surrogate) return 1;
+                return 0;
+            });
+
+            foreach (var feeder in feeders)
+            {
+                var localFeeder = feeder;
+                AutofeedMode currentMode = baby.mindState.AutofeedSetting(localFeeder);
+
+                // Build feeder name with lactation status
+                string feederName = localFeeder.LabelShortCap;
+                var lactatingHediff = localFeeder.health.hediffSet.GetFirstHediffOfDef(HediffDefOf.Lactating);
+                if (lactatingHediff != null)
+                    feederName += $" ({lactatingHediff.LabelBaseCap})";
+
+                // Build relation label
+                string relation = "";
+                if (localFeeder == mother)
+                    relation = $", {PawnRelationDefOf.Parent.labelFemale.CapitalizeFirst()}";
+                else if (localFeeder == father)
+                    relation = $", {PawnRelationDefOf.Parent.label.CapitalizeFirst()}";
+                else if (localFeeder == surrogate)
+                    relation = $", {PawnRelationDefOf.ParentBirth.GetGenderSpecificLabelCap(localFeeder)}";
+
+                string modeLabel = currentMode.Translate().CapitalizeFirst();
+                string fullLabel = $"{feederName}: {modeLabel}{relation}";
+
+                var feederItem = new InspectionTreeItem
+                {
+                    Type = isReadOnly ? InspectionTreeItem.ItemType.DetailText : InspectionTreeItem.ItemType.Action,
+                    Label = fullLabel,
+                    Data = localFeeder,
+                    IndentLevel = indent,
+                    IsExpandable = false
+                };
+
+                if (!isReadOnly)
+                {
+                    feederItem.OnActivate = () =>
+                    {
+                        // Open float menu with all three mode options
+                        var options = new List<FloatMenuOption>();
+                        foreach (AutofeedMode modeOption in System.Enum.GetValues(typeof(AutofeedMode)))
+                        {
+                            var localMode = modeOption;
+                            string optLabel = localMode.Translate().CapitalizeFirst();
+                            string tooltip = localMode.GetTooltip(baby, localFeeder);
+                            options.Add(new FloatMenuOption(
+                                $"{optLabel}. {tooltip}",
+                                () =>
+                                {
+                                    baby.mindState.SetAutofeeder(localFeeder, localMode);
+                                    string newModeLabel = localMode.Translate().CapitalizeFirst();
+                                    feederItem.Label = $"{feederName}: {newModeLabel}{relation}";
+                                }));
+                        }
+                        WindowlessFloatMenuState.Open(options, false);
+                    };
+                }
+
+                AddChild(parentItem, feederItem);
+            }
+        }
+
+        /// <summary>
+        /// Builds the baby food consumables list with toggleable food allowances.
+        /// </summary>
+        private static void BuildBabyFoodChildren(InspectionTreeItem parentItem, Pawn baby, bool isReadOnly)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+
+            var foods = ITab_Pawn_Feeding.BabyConsumableFoods;
+            if (foods == null || foods.Count == 0)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "NoneLower".Translate(),
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            string allowedStr = "On".Translate().ToString();
+            string notAllowedStr = "Off".Translate().ToString();
+
+            foreach (var food in foods)
+            {
+                var localFood = food;
+                bool allowed = baby.foodRestriction?.BabyFoodAllowed(localFood) ?? true;
+                string stateStr = allowed ? allowedStr : notAllowedStr;
+
+                var foodItem = new InspectionTreeItem
+                {
+                    Type = isReadOnly ? InspectionTreeItem.ItemType.DetailText : InspectionTreeItem.ItemType.Action,
+                    Label = $"{localFood.LabelCap}: {stateStr}",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                };
+
+                if (!isReadOnly)
+                {
+                    foodItem.OnActivate = () =>
+                    {
+                        if (baby.foodRestriction == null) return;
+                        bool current = baby.foodRestriction.BabyFoodAllowed(localFood);
+                        baby.foodRestriction.SetBabyFoodAllowed(localFood, !current);
+                        string newState = !current ? allowedStr : notAllowedStr;
+                        foodItem.Label = $"{localFood.LabelCap}: {newState}";
+                        TolkHelper.Speak(newState);
+                        SoundDefOf.Click.PlayOneShotOnCamera();
+                    };
+                }
+
+                AddChild(parentItem, foodItem);
+            }
+        }
+
+        /// <summary>
+        /// Builds children for the Art tab. Read-only: title and description.
+        /// </summary>
+        private static void BuildArtChildren(InspectionTreeItem parentItem, Thing thing)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+
+            // Handle minified (uninstalled) things
+            Thing inner = thing is MinifiedThing mini ? mini.InnerThing : thing;
+            var artComp = inner?.TryGetComp<CompArt>();
+
+            if (artComp == null || !artComp.Active)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "(" + "NoneLower".Translate() + ")",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            // Title
+            string title = artComp.Title;
+            if (!title.NullOrEmpty())
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = title,
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+            }
+
+            // Description
+            string desc = artComp.GenerateImageDescription();
+            if (!desc.NullOrEmpty())
+            {
+                desc = desc.StripTags().Trim();
+                desc = System.Text.RegularExpressions.Regex.Replace(desc, @"\s+", " ");
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = desc,
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+            }
+        }
+
+        /// <summary>
+        /// Builds children for the Book tab. Read-only: title, benefits, dangers, description.
+        /// </summary>
+        private static void BuildBookChildren(InspectionTreeItem parentItem, Book book)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+
+            // Benefits
+            if (book.BookComp?.Doers != null)
+            {
+                foreach (var doer in book.BookComp.Doers)
+                {
+                    string benefits = doer.GetBenefitsString();
+                    if (!benefits.NullOrEmpty())
+                    {
+                        string cleaned = benefits.StripTags().Trim();
+                        cleaned = System.Text.RegularExpressions.Regex.Replace(cleaned, @"\s+", " ");
+                        if (!cleaned.NullOrEmpty())
+                        {
+                            AddChild(parentItem, new InspectionTreeItem
+                            {
+                                Type = InspectionTreeItem.ItemType.DetailText,
+                                Label = cleaned,
+                                IndentLevel = indent,
+                                IsExpandable = false
+                            });
+                        }
+                    }
+                }
+            }
+
+            // Dangers
+            if (book.MentalBreakChancePerHour > 0f)
+            {
+                string dangerLabel = $"{"Dangers".Translate()}: {"BookMentalBreak".Translate()}, {book.MentalBreakChancePerHour.ToStringPercent("0.0")} {"PerHour".Translate()}";
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = dangerLabel,
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+            }
+
+            // Description / flavor text
+            string flavor = book.FlavorUI;
+            if (!flavor.NullOrEmpty())
+            {
+                flavor = flavor.StripTags().Trim();
+                flavor = System.Text.RegularExpressions.Regex.Replace(flavor, @"\s+", " ");
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = flavor,
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+            }
+        }
+
+        /// <summary>
+        /// Builds children for the Contents (Books) tab on bookcases.
+        /// Lists books with eject action.
+        /// </summary>
+        private static void BuildContentsBooksChildren(InspectionTreeItem parentItem, Building_Bookcase bookcase, InspectionMode mode)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+            bool isReadOnly = (mode == InspectionMode.ReadOnly);
+
+            var books = bookcase.GetDirectlyHeldThings()?.OfType<Book>().ToList();
+            if (books == null || books.Count == 0)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "(" + "NoneLower".Translate() + ")",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            foreach (var book in books)
+            {
+                var localBook = book;
+                // DescriptionDetailed already starts with the title + quality, so use it as the full label
+                string label = localBook.DescriptionDetailed ?? localBook.LabelCap;
+                label = label.StripTags().Trim();
+                label = System.Text.RegularExpressions.Regex.Replace(label, @"\s+", " ");
+
+                var bookItem = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = label,
+                    Data = localBook,
+                    IndentLevel = indent,
+                    IsExpandable = false
+                };
+
+                if (!isReadOnly)
+                {
+                    bookItem.OnDelete = () =>
+                    {
+                        // Eject book to adjacent walkable cell
+                        IntVec3 dropCell = bookcase.Position;
+                        if (bookcase.Spawned)
+                        {
+                            foreach (var cell in bookcase.OccupiedRect().AdjacentCells)
+                            {
+                                if (cell.Walkable(bookcase.Map))
+                                {
+                                    dropCell = cell;
+                                    break;
+                                }
+                            }
+                        }
+
+                        bookcase.GetDirectlyHeldThings().TryDrop(localBook, dropCell, bookcase.Map, ThingPlaceMode.Near, 1, out var dropped);
+                        if (dropped?.TryGetComp<CompForbiddable>() is CompForbiddable forbiddable)
+                            forbiddable.Forbidden = true;
+
+                        TolkHelper.Speak($"{"EjectBookTooltip".Translate()}. {localBook.LabelCap}");
+                        SoundDefOf.Click.PlayOneShotOnCamera();
+
+                        // Rebuild children
+                        parentItem.Children.Clear();
+                        BuildContentsBooksChildren(parentItem, bookcase, mode);
+                    };
+                }
+
+                AddChild(parentItem, bookItem);
+            }
+        }
+
+        /// <summary>
+        /// Builds children for the Wind Turbine Auto-Cut tab.
+        /// Toggle for auto-cut, Cut Now action, and plant filter.
+        /// </summary>
+        private static void BuildWindTurbineAutoCutChildren(InspectionTreeItem parentItem, Building building, InspectionMode mode)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            var autoCut = building.TryGetComp<CompAutoCut>();
+            if (autoCut == null)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+            bool isReadOnly = (mode == InspectionMode.ReadOnly);
+
+            // Auto-cut toggle
+            string toggleLabel = "WindTurbineAutoCut_EnabledCheckbox".Translate();
+            string stateStr = autoCut.autoCut ? "On".Translate().ToString() : "Off".Translate().ToString();
+
+            var toggleItem = new InspectionTreeItem
+            {
+                Type = isReadOnly ? InspectionTreeItem.ItemType.DetailText : InspectionTreeItem.ItemType.Action,
+                Label = $"{toggleLabel}: {stateStr}",
+                IndentLevel = indent,
+                IsExpandable = false
+            };
+
+            if (!isReadOnly)
+            {
+                toggleItem.OnActivate = () =>
+                {
+                    autoCut.autoCut = !autoCut.autoCut;
+                    string newState = autoCut.autoCut ? "On".Translate().ToString() : "Off".Translate().ToString();
+                    toggleItem.Label = $"{toggleLabel}: {newState}";
+                    TolkHelper.Speak(newState);
+                    SoundDefOf.Click.PlayOneShotOnCamera();
+                };
+            }
+            AddChild(parentItem, toggleItem);
+
+            // Cut Now action
+            if (!isReadOnly)
+            {
+                var cutNowItem = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Action,
+                    Label = "AutoCutNow".Translate(),
+                    IndentLevel = indent,
+                    IsExpandable = false
+                };
+                cutNowItem.OnActivate = () =>
+                {
+                    autoCut.DesignatePlantsToCut();
+                    TolkHelper.Speak("AutoCutNow".Translate());
+                    SoundDefOf.Designate_PlanAdd.PlayOneShotOnCamera();
+                };
+                AddChild(parentItem, cutNowItem);
+            }
+        }
+
+        /// <summary>
+        /// Builds children for the Guest tab (non-prisoner, non-slave guests).
+        /// Shows medical care selector.
+        /// </summary>
+        private static void BuildGuestChildren(InspectionTreeItem parentItem, Pawn pawn, InspectionMode mode)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+            bool isReadOnly = (mode == InspectionMode.ReadOnly);
+
+            if (pawn.playerSettings == null)
+                return;
+
+            // Medical care selector
+            string careLabel = "AllowMedicine".Translate();
+            string currentCare = pawn.playerSettings.medCare.GetLabel();
+
+            var careItem = new InspectionTreeItem
+            {
+                Type = isReadOnly ? InspectionTreeItem.ItemType.DetailText : InspectionTreeItem.ItemType.Action,
+                Label = $"{careLabel}: {currentCare}",
+                IndentLevel = indent,
+                IsExpandable = false
+            };
+
+            if (!isReadOnly)
+            {
+                careItem.OnActivate = () =>
+                {
+                    // Open float menu with all medical care options
+                    var options = new List<FloatMenuOption>();
+                    foreach (MedicalCareCategory care in System.Enum.GetValues(typeof(MedicalCareCategory)))
+                    {
+                        var localCare = care;
+                        options.Add(new FloatMenuOption(localCare.GetLabel(), () =>
+                        {
+                            pawn.playerSettings.medCare = localCare;
+                            careItem.Label = $"{careLabel}: {localCare.GetLabel()}";
+                        }));
+                    }
+                    WindowlessFloatMenuState.Open(options, false);
+                };
+            }
+            AddChild(parentItem, careItem);
+        }
+
+        /// <summary>
+        /// Builds children for the Contents (Transporter) tab.
+        /// Two sections: items to load and contained items.
+        /// </summary>
+        private static void BuildContentsTransporterChildren(InspectionTreeItem parentItem, Building building, InspectionMode mode)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            var transporter = building.TryGetComp<CompTransporter>();
+            if (transporter == null)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+            bool isReadOnly = (mode == InspectionMode.ReadOnly);
+
+            // Items to Load section
+            string toLoadHeader = "ItemsToLoad".Translate();
+            var toLoadSection = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = toLoadHeader,
+                ExpandedLabel = toLoadHeader,
+                IndentLevel = indent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+            toLoadSection.OnActivate = () =>
+            {
+                if (toLoadSection.Children.Count > 0) return;
+                int childIndent = toLoadSection.IndentLevel + 1;
+
+                if (transporter.leftToLoad != null)
+                {
+                    foreach (var transferable in transporter.leftToLoad)
+                    {
+                        if (transferable.CountToTransfer <= 0 || !transferable.HasAnyThing)
+                            continue;
+
+                        string itemLabel = $"{transferable.ThingDef.LabelCap} x{transferable.CountToTransfer}";
+                        AddChild(toLoadSection, new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.DetailText,
+                            Label = itemLabel,
+                            IndentLevel = childIndent,
+                            IsExpandable = false
+                        });
+                    }
+                }
+
+                if (toLoadSection.Children.Count == 0)
+                {
+                    AddChild(toLoadSection, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = "(" + "NoneLower".Translate() + ")",
+                        IndentLevel = childIndent,
+                        IsExpandable = false
+                    });
+                }
+            };
+            AddChild(parentItem, toLoadSection);
+
+            // Contained Items section
+            string containedHeader = "ContainedItems".Translate();
+            var containedSection = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = containedHeader,
+                ExpandedLabel = containedHeader,
+                IndentLevel = indent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+            containedSection.OnActivate = () =>
+            {
+                if (containedSection.Children.Count > 0) return;
+                int childIndent = containedSection.IndentLevel + 1;
+
+                if (transporter.innerContainer != null && transporter.innerContainer.Count > 0)
+                {
+                    foreach (var thing in transporter.innerContainer.ToList())
+                    {
+                        var localThing = thing;
+                        string itemLabel = localThing is Pawn p ? p.LabelShortCap : localThing.LabelCap;
+                        if (localThing.stackCount > 1)
+                            itemLabel += $" x{localThing.stackCount}";
+
+                        var containedItem = new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.Item,
+                            Label = itemLabel,
+                            Data = localThing,
+                            IndentLevel = childIndent,
+                            IsExpandable = false
+                        };
+
+                        if (!isReadOnly)
+                        {
+                            containedItem.OnDelete = () =>
+                            {
+                                GenDrop.TryDropSpawn(localThing.SplitOff(localThing.stackCount),
+                                    building.Position, building.Map, ThingPlaceMode.Near, out _);
+                                transporter.Notify_ThingRemoved(localThing);
+                                TolkHelper.Speak($"{itemLabel}");
+                                SoundDefOf.Click.PlayOneShotOnCamera();
+
+                                // Rebuild
+                                containedSection.Children.Clear();
+                                containedSection.OnActivate();
+                            };
+                        }
+
+                        AddChild(containedSection, containedItem);
+                    }
+                }
+
+                if (containedSection.Children.Count == 0)
+                {
+                    AddChild(containedSection, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = "(" + "NoneLower".Translate() + ")",
+                        IndentLevel = childIndent,
+                        IsExpandable = false
+                    });
+                }
+            };
+            AddChild(parentItem, containedSection);
         }
     }
 }

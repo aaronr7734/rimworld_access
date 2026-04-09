@@ -122,16 +122,16 @@ namespace RimWorldAccess
             { "ITab_Pawn_Slave", TabHandlerType.Action },
 
             // Basic info tabs (use GetInspectString)
-            { "ITab_Pawn_Guest", TabHandlerType.BasicInspectString },
-            { "ITab_Pawn_Visitor", TabHandlerType.BasicInspectString },
-            { "ITab_Pawn_Feeding", TabHandlerType.BasicInspectString },
+            { "ITab_Pawn_Guest", TabHandlerType.RichNavigation },
+            { "ITab_Pawn_Visitor", TabHandlerType.RichNavigation },
+            { "ITab_Pawn_Feeding", TabHandlerType.RichNavigation },
             { "ITab_Pawn_FormingCaravan", TabHandlerType.BasicInspectString },
-            { "ITab_WindTurbineAutoCut", TabHandlerType.BasicInspectString },
-            { "ITab_Art", TabHandlerType.BasicInspectString },
+            { "ITab_WindTurbineAutoCut", TabHandlerType.RichNavigation },
+            { "ITab_Art", TabHandlerType.RichNavigation },
             { "ITab_ContentsBase", TabHandlerType.BasicInspectString },
             { "ITab_ContentsCasket", TabHandlerType.BasicInspectString },
-            { "ITab_ContentsTransporter", TabHandlerType.BasicInspectString },
-            { "ITab_ContentsBooks", TabHandlerType.BasicInspectString },
+            { "ITab_ContentsTransporter", TabHandlerType.RichNavigation },
+            { "ITab_ContentsBooks", TabHandlerType.RichNavigation },
             { "ITab_ContentsGenepackHolder", TabHandlerType.BasicInspectString },
             { "ITab_ContentsOutfitStand", TabHandlerType.BasicInspectString },
             { "ITab_ContentsMapPortal", TabHandlerType.BasicInspectString },
@@ -142,7 +142,7 @@ namespace RimWorldAccess
             { "ITab_StudyNotesUnnaturalCorpse", TabHandlerType.BasicInspectString },
             { "ITab_StudyNotesVoidMonolith", TabHandlerType.BasicInspectString },
             { "ITab_Fishing", TabHandlerType.Action },
-            { "ITab_Book", TabHandlerType.BasicInspectString },
+            { "ITab_Book", TabHandlerType.RichNavigation },
             { "ITab_PenBase", TabHandlerType.BasicInspectString },
             { "ITab_PenAnimals", TabHandlerType.Action },
             { "ITab_PenFood", TabHandlerType.RichNavigation },
@@ -192,7 +192,13 @@ namespace RimWorldAccess
             if (tab == null)
                 return "Unknown";
 
-            // First priority: use the game's translated label key (supports i18n)
+            // First priority: use our explicit mapping for known tabs
+            // This ensures dispatch works correctly (e.g., ITab_ContentsBooks -> "Books")
+            string tabTypeName = tab.GetType().Name;
+            if (tabTypeToCategory.TryGetValue(tabTypeName, out string category))
+                return category;
+
+            // Second priority: use the game's translated label key (supports i18n)
             if (!string.IsNullOrEmpty(tab.labelKey))
             {
                 try
@@ -206,11 +212,6 @@ namespace RimWorldAccess
                     // Translation failed, continue to fallbacks
                 }
             }
-
-            // Fallback: use hardcoded mapping for known tabs without proper labelKey
-            string tabTypeName = tab.GetType().Name;
-            if (tabTypeToCategory.TryGetValue(tabTypeName, out string category))
-                return category;
 
             // Try base type match (for subclasses), stopping at InspectTabBase
             Type baseType = tab.GetType().BaseType;
@@ -318,6 +319,14 @@ namespace RimWorldAccess
                 case "ITab_PenFood": return "Pen Food";
                 case "ITab_Fishing": return "Fishing";
                 case "ITab_Genes": return "Genes";
+                case "ITab_Pawn_Feeding": return "Feeding";
+                case "ITab_Art": return "Art";
+                case "ITab_Book": return "Book";
+                case "ITab_ContentsBooks": return "Books";
+                case "ITab_WindTurbineAutoCut": return "Auto-Cut Plants";
+                case "ITab_Pawn_Guest": return "Guest";
+                case "ITab_Pawn_Visitor": return "Guest";
+                case "ITab_ContentsTransporter": return "Contents";
                 default: return GetCategoryNameForTab(tab);
             }
         }

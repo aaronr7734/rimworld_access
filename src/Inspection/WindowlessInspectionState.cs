@@ -442,6 +442,10 @@ namespace RimWorldAccess
             if (!IsActive)
                 return false;
 
+            // Yield to float menu when it's open (e.g., opened from an OnActivate callback)
+            if (WindowlessFloatMenuState.IsActive)
+                return false;
+
             if (ev.type != EventType.KeyDown)
                 return false;
 
@@ -492,6 +496,19 @@ namespace RimWorldAccess
                     HandleEnterKey();
                     ev.Use();
                     return true;
+                }
+
+                // Handle Space on Action items as toggle/activate (e.g., food checkboxes)
+                if (key == KeyCode.Space)
+                {
+                    var currentItem = treeNav.SelectedItem;
+                    if (currentItem?.Type == InspectionTreeItem.ItemType.Action && currentItem.OnActivate != null)
+                    {
+                        HandleEnterKey();
+                        ev.Use();
+                        return true;
+                    }
+                    // Otherwise fall through to TreeNavigationHelper (re-announce)
                 }
 
                 // Handle Alt+I - use KeyboardHelper.IsAltHeld for AZERTY compatibility
