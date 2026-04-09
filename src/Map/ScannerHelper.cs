@@ -171,7 +171,7 @@ namespace RimWorldAccess
             {
                 try
                 {
-                    Label = thing.LabelNoParenthesis ?? thing.def.label ?? "Unknown";
+                    Label = GetNoParenthesisLabel(thing) ?? thing.def.label ?? "Unknown";
 
                     // Add door open/closed state
                     if (thing is Building_Door door)
@@ -185,6 +185,18 @@ namespace RimWorldAccess
                     Label = thing.def?.label ?? "Corrupted object";
                 }
             }
+        }
+
+        // MinifiedThing does not override LabelNoParenthesis, so it returns the generic
+        // "minified thing" string from its own def instead of the inner thing's name.
+        // Unwrap to reveal what's actually inside (monument marker, bed, table, etc.).
+        private static string GetNoParenthesisLabel(Thing thing)
+        {
+            if (thing is MinifiedThing minified && minified.InnerThing != null)
+            {
+                return minified.InnerThing.LabelNoParenthesis ?? minified.InnerThing.def.label;
+            }
+            return thing.LabelNoParenthesis;
         }
 
         // Constructor for bulk groups
@@ -208,7 +220,7 @@ namespace RimWorldAccess
             {
                 try
                 {
-                    Label = Thing.LabelNoParenthesis ?? Thing.def.label ?? "Unknown";
+                    Label = GetNoParenthesisLabel(Thing) ?? Thing.def.label ?? "Unknown";
 
                     // Add door open/closed state
                     if (Thing is Building_Door door)
@@ -469,7 +481,7 @@ namespace RimWorldAccess
                 {
                     try
                     {
-                        Label = Thing.LabelNoParenthesis ?? Thing.def.label ?? "Unknown";
+                        Label = GetNoParenthesisLabel(Thing) ?? Thing.def.label ?? "Unknown";
                         if (Thing is Building_Door door)
                         {
                             Label += door.Open ? " (open)" : " (closed)";
