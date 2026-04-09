@@ -5818,10 +5818,10 @@ namespace RimWorldAccess
                 }
             }
 
-            // ===== PRIORITY 6.55: Announce time, date, and season with T key =====
-            if (key == KeyCode.T)
+            // ===== PRIORITY 6.55: Announce time (T) or performance (Shift+T) =====
+            if (key == KeyCode.T && !Event.current.control && !KeyboardHelper.IsAltHeld)
             {
-                // Only announce time if:
+                // Only announce if:
                 // 1. We're in gameplay (not at main menu)
                 // 2. On a map or world view
                 // 3. No windows are preventing camera motion (means a dialog is open)
@@ -5831,8 +5831,16 @@ namespace RimWorldAccess
                     (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
                     !ZoneCreationState.IsInCreationMode)
                 {
-                    // Announce time information
-                    TimeAnnouncementState.AnnounceTime();
+                    if (Event.current.shift)
+                    {
+                        // Announce performance (actual vs requested TPS)
+                        PerformanceAnnouncementState.AnnouncePerformance();
+                    }
+                    else
+                    {
+                        // Announce time information
+                        TimeAnnouncementState.AnnounceTime();
+                    }
 
                     // Prevent the default T key behavior
                     Event.current.Use();
