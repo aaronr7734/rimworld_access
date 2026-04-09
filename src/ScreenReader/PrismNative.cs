@@ -91,17 +91,12 @@ namespace RimWorldAccess
 
     /// <summary>
     /// PrismConfig struct matching the C header layout.
-    /// On Windows: version (byte) + padding (7 bytes) + hwnd (IntPtr, 8 bytes) = 16 bytes.
-    /// On Unix: version (byte) only, but we use the max-size layout for simplicity.
+    /// In Prism v0.11+, this is just a single byte for version (PRISM_CONFIG_VERSION = 2).
     /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 1)]
     public struct PrismConfig
     {
         public byte version;
-        // Padding + platform-specific pointer field.
-        // On Windows this is HWND (deprecated, pass IntPtr.Zero).
-        // Using IntPtr ensures correct alignment on all platforms.
-        public IntPtr platformPointer;
     }
 
     /// <summary>
