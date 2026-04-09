@@ -79,6 +79,7 @@ namespace RimWorldAccess
         private static IntPtr prismLibraryHandle = IntPtr.Zero;
         private static IntPtr prismContext = IntPtr.Zero;
         private static IntPtr prismBackend = IntPtr.Zero;
+        private static string activeBackendName = null;
 
         private static bool isInitialized = false;
 
@@ -351,12 +352,12 @@ namespace RimWorldAccess
             isInitialized = true;
 
             // Log backend info
-            string backendName = PrismNative.ReadUtf8(PrismNative.prism_backend_name(prismBackend)) ?? "Unknown";
+            activeBackendName = PrismNative.ReadUtf8(PrismNative.prism_backend_name(prismBackend)) ?? "Unknown";
             ulong features = PrismNative.prism_backend_get_features(prismBackend);
             PrismBackendFeature featureFlags = (PrismBackendFeature)features;
 
             Log.Message($"[RimWorld Access] Prism screen reader integration initialized successfully.");
-            Log.Message($"[RimWorld Access] Active backend: {backendName}");
+            Log.Message($"[RimWorld Access] Active backend: {activeBackendName}");
             Log.Message($"[RimWorld Access] Speech support: {featureFlags.HasFlag(PrismBackendFeature.SupportsSpeak)}");
             Log.Message($"[RimWorld Access] Braille support: {featureFlags.HasFlag(PrismBackendFeature.SupportsBraille)}");
             Log.Message($"[RimWorld Access] Output (speech+braille) support: {featureFlags.HasFlag(PrismBackendFeature.SupportsOutput)}");
@@ -406,6 +407,8 @@ namespace RimWorldAccess
                     prismLibraryHandle = IntPtr.Zero;
                 }
 
+                activeBackendName = null;
+
                 Log.Message("[RimWorld Access] Prism screen reader integration shut down.");
             }
             catch (Exception ex)
@@ -437,6 +440,33 @@ namespace RimWorldAccess
             }
 
             return prismBackend != IntPtr.Zero;
+        }
+
+        /// <summary>
+        /// True when the active backend doesn't handle speech interruption on key press.
+        /// macOS AVSpeechSynthesizer queues speech but never interrupts it;
+        /// VoiceOver and Windows screen readers handle interruption themselves.
+        /// </summary>
+        public static bool ShouldInterruptOnKeyPress =>
+            isInitialized && !useTolk && activeBackendName == "AVSpeech";
+
+        /// <summary>
+        /// Stops any currently playing speech. Used to manually interrupt backends
+        /// that don't interrupt on key press (e.g., AVSpeech on macOS).
+        /// </summary>
+        public static void StopSpeech()
+        {
+            if (!isInitialized || useTolk)
+                return;
+
+            try
+            {
+                PrismNative.prism_backend_stop?.Invoke(prismBackend);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[RimWorld Access] Error stopping speech: {ex.Message}");
+            }
         }
 
         /// <summary>
