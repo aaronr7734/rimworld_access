@@ -162,7 +162,17 @@ namespace RimWorldAccess
                 pitch * FootstepClassifier.GetPitchMultiplier(pawn) * spatialProfile.PitchFactor,
                 0.5f,
                 1.75f);
-            pooledSource.Source.panStereo = RimWorldAccessMod_Settings.Settings.FootstepStereoPan && pawn != null ? spatialProfile.Pan : 0f;
+
+            if (RimWorldAccessMod_Settings.Settings.FootstepStereoPan && pawn != null)
+            {
+                pooledSource.Source.spatialBlend = 1f;
+                pooledSource.Source.transform.position = pawn.DrawPos;
+            }
+            else
+            {
+                pooledSource.Source.spatialBlend = 0f;
+            }
+
             ApplySpatialMix(pooledSource, pawn, spatialProfile);
             pooledSource.Source.PlayOneShot(clip, Mathf.Clamp(volume * volumeMultiplier * spatialProfile.Presence, 0f, 1.4f));
             return true;
@@ -261,7 +271,6 @@ namespace RimWorldAccess
             audioSources.Clear();
             ClearRoomOpennessCache(); // Clear cache on camera change
             audioSourceRoot = new GameObject("RimWorldAccessFootstepAudioPool");
-            audioSourceRoot.transform.SetParent(activeCamera.transform, false);
 
             for (int i = 0; i < InitialAudioSourcePoolSize; i++)
             {
@@ -282,8 +291,12 @@ namespace RimWorldAccess
             AudioSource source = sourceObject.AddComponent<AudioSource>();
             source.loop = false;
             source.playOnAwake = false;
-            source.spatialBlend = 0f;
+            source.spatialBlend = 1f;
             source.dopplerLevel = 0f;
+            source.rolloffMode = AudioRolloffMode.Linear;
+            source.minDistance = 200f;
+            source.maxDistance = 300f;
+            source.spread = 0f;
 
             // Optimized: Create low pass filter only once and reuse configuration
             AudioLowPassFilter lowPassFilter = sourceObject.AddComponent<AudioLowPassFilter>();
