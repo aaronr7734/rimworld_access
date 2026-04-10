@@ -30,8 +30,9 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Gets a combat-focused health summary for the pawn.
-        /// Shows critical triage info: pain, bleeding/time-to-death, impaired capacities,
-        /// body parts with bad conditions, and whole-body hediffs.
+        /// Shows critical triage info: pain, bleeding/time-to-death, impaired
+        /// sight/manipulation/moving capacities, body parts with bad conditions,
+        /// and whole-body hediffs.
         /// Skips bionics/implants unless the part is actually injured, and skips
         /// chronic conditions that aren't combat-relevant.
         /// </summary>
@@ -56,10 +57,13 @@ namespace RimWorldAccess
             if (bleedingLabel != null)
                 sb.Append($"{bleedingLabel}. ");
 
-            // Capacities — only show if not at 100%
+            // Capacities — only show sight, manipulation, and moving, and only when not at 100%
             if (pawn.health.capacities != null && !pawn.Dead)
             {
                 var impaired = HealthTabHelper.GetCapacities(pawn)
+                    .Where(c => c.Def == PawnCapacityDefOf.Sight
+                             || c.Def == PawnCapacityDefOf.Manipulation
+                             || c.Def == PawnCapacityDefOf.Moving)
                     .Where(c => c.Level < 0.999f || c.Level > 1.001f)
                     .ToList();
 
