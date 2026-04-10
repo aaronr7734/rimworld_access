@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using RimWorld;
 using UnityEngine;
 using Verse;
 
@@ -115,9 +116,18 @@ namespace RimWorldAccess
         private const int InitialAudioSourcePoolSize = 16;
         private const int MaxAudioSourcePoolSize = 32;
 
-        // Optimized: Room openness cache to avoid recomputing every footstep
-        private static readonly Dictionary<Room, (float openness, int cacheTick)> roomOpennessCache = new Dictionary<Room, (float, int)>();
-        private static int currentCacheTick = 0;
+        private static bool debugTerrainLogging;
+        private static int debugFootstepCounter;
+
+        // Wall occlusion: cached listener room (refreshed once per tick)
+        private static Room cachedListenerRoom;
+        private static int cachedListenerRoomTick = -1;
+        private const int MaxOcclusionBFSRegions = 30;
+        private const float FullOcclusionFactor = 0.15f;
+        private const float WallOcclusionBase = 0.3f;
+        private const float OpenDoorBonus = 0.2f;
+        private const float ClosedDoorBonus = 0.05f;
+        private const float OccludedCutoffHz = 4000f;
 
         public static bool EnsureInitialized()
         {
@@ -140,7 +150,8 @@ namespace RimWorldAccess
                 audioSourceRoot = null;
             }
             cachedCamera = null;
-            ClearRoomOpennessCache();
+            cachedListenerRoom = null;
+            cachedListenerRoomTick = -1;
             ScreenPanUtility.ClearCachedCamera();
             CameraZoomUtility.ClearCachedCamera();
         }
@@ -173,7 +184,8 @@ namespace RimWorldAccess
                 pooledSource.Source.spatialBlend = 0f;
             }
 
-            ApplySpatialMix(pooledSource, pawn, spatialProfile);
+            float wallOcclusion = GetWallOcclusion(pawn);
+            ApplySpatialMix(pooledSource, pawn, spatialProfile, wallOcclusion);
 
             if (RimWorldAccessMod_Settings.Settings.FootstepStereoPan && pawn != null)
             {
@@ -185,7 +197,7 @@ namespace RimWorldAccess
                 pooledSource.ITDProcessor.SetEnabled(false);
             }
 
-            pooledSource.Source.PlayOneShot(clip, Mathf.Clamp(volume * volumeMultiplier * spatialProfile.Presence, 0f, 1.4f));
+            pooledSource.Source.PlayOneShot(clip, Mathf.Clamp(volume * volumeMultiplier * spatialProfile.Presence * wallOcclusion, 0f, 1.4f));
             return true;
         }
 
@@ -217,7 +229,15 @@ namespace RimWorldAccess
             RimWorldAccessSettings settings = RimWorldAccessMod_Settings.Settings;
             if (settings != null && settings.FootstepTerrainVariation && category == FootstepCategory.Human)
             {
-                FootstepSoundCollection terrainCollection = GetCollection(categoryPath + "/" + GetTerrainSuffix(terrain));
+                string suffix = GetTerrainSuffix(terrain);
+                string terrainPath = categoryPath + "/" + suffix;
+                FootstepSoundCollection terrainCollection = GetCollection(terrainPath);
+
+                if (debugTerrainLogging && ++debugFootstepCounter % 120 == 0)
+                {
+                    Log.Message($"[RimWorld Access] Terrain debug: defName={terrain?.defName ?? "null"} → suffix={suffix} → path={terrainPath} → clips={terrainCollection?.ClipCount ?? 0}");
+                }
+
                 if (terrainCollection != null && terrainCollection.HasClips)
                 {
                     return terrainCollection;
@@ -259,7 +279,11 @@ namespace RimWorldAccess
             }
 
             int totalClips = collections.Values.Sum(collection => collection.ClipCount);
-            Log.Message($"[RimWorld Access] Footstep sound bank initialized with {totalClips} clips.");
+            Log.Message($"[RimWorld Access] Footstep sound bank initialized with {totalClips} clips:");
+            foreach (KeyValuePair<string, FootstepSoundCollection> entry in collections)
+            {
+                Log.Message($"[RimWorld Access]   {entry.Key}: {entry.Value.ClipCount} clips, hasClips={entry.Value.HasClips}");
+            }
         }
 
         private static bool EnsureAudioSource()
@@ -280,7 +304,6 @@ namespace RimWorldAccess
 
             cachedCamera = activeCamera;
             audioSources.Clear();
-            ClearRoomOpennessCache(); // Clear cache on camera change
             audioSourceRoot = new GameObject("RimWorldAccessFootstepAudioPool");
 
             for (int i = 0; i < InitialAudioSourcePoolSize; i++)
@@ -343,9 +366,10 @@ namespace RimWorldAccess
             return null;
         }
 
-        private static void ApplySpatialMix(PooledAudioSource pooledSource, Pawn pawn, FootstepSpatialProfile spatialProfile)
+        private static void ApplySpatialMix(PooledAudioSource pooledSource, Pawn pawn, FootstepSpatialProfile spatialProfile, float wallOcclusion)
         {
-            pooledSource.LowPassFilter.cutoffFrequency = Mathf.Lerp(9000f, 16500f, spatialProfile.Brightness);
+            float baseCutoff = Mathf.Lerp(9000f, 16500f, spatialProfile.Brightness);
+            pooledSource.LowPassFilter.cutoffFrequency = Mathf.Lerp(OccludedCutoffHz, baseCutoff, wallOcclusion);
             pooledSource.LowPassFilter.lowpassResonanceQ = 1.05f;
 
             Room room = pawn?.GetRoom();
@@ -361,87 +385,154 @@ namespace RimWorldAccess
             pooledSource.Source.reverbZoneMix = GetRoomReverbIntensity(room);
         }
 
+        private static Room GetListenerRoom()
+        {
+            int tick = Find.TickManager?.TicksGame ?? -1;
+            if (tick == cachedListenerRoomTick)
+                return cachedListenerRoom;
+
+            Map map = Find.CurrentMap;
+            if (map == null) return null;
+
+            IntVec3 listenerPos = MapNavigationState.CurrentCursorPosition;
+            if (listenerPos.IsValid && listenerPos.InBounds(map))
+            {
+                cachedListenerRoom = listenerPos.GetRoom(map);
+                cachedListenerRoomTick = tick;
+            }
+            return cachedListenerRoom;
+        }
+
+        private static float GetWallOcclusion(Pawn pawn)
+        {
+            if (pawn == null) return 1f;
+
+            Room pawnRoom = pawn.GetRoom();
+            Room listenerRoom = GetListenerRoom();
+
+            if (pawnRoom == null || listenerRoom == null) return 1f;
+            if (pawnRoom == listenerRoom) return 1f;
+            if (pawnRoom.PsychologicallyOutdoors && listenerRoom.PsychologicallyOutdoors) return 1f;
+
+            Map map = pawn.Map;
+            if (map == null) return WallOcclusionBase;
+
+            Region pawnRegion = pawn.Position.GetRegion(map, RegionType.Set_All);
+            IntVec3 listenerPos = MapNavigationState.CurrentCursorPosition;
+            Region listenerRegion = listenerPos.IsValid && listenerPos.InBounds(map)
+                ? listenerPos.GetRegion(map, RegionType.Set_All)
+                : null;
+
+            if (pawnRegion == null || listenerRegion == null) return WallOcclusionBase;
+            if (pawnRegion == listenerRegion) return 1f;
+
+            int openDoors = 0;
+            int closedDoors = 0;
+            bool reachedListener = false;
+
+            RegionTraverser.BreadthFirstTraverse(
+                pawnRegion,
+                RegionTraverser.PassAll,
+                (Region reg) =>
+                {
+                    if (reg == listenerRegion)
+                    {
+                        reachedListener = true;
+                        return true;
+                    }
+                    if (reg.IsDoorway && reg.door != null)
+                    {
+                        if (reg.door.FreePassage)
+                            openDoors++;
+                        else
+                            closedDoors++;
+                    }
+                    return false;
+                },
+                MaxOcclusionBFSRegions,
+                RegionType.Set_All);
+
+            if (!reachedListener) return FullOcclusionFactor;
+
+            float occlusion = WallOcclusionBase
+                + openDoors * OpenDoorBonus
+                + closedDoors * ClosedDoorBonus;
+
+            return Mathf.Clamp01(occlusion);
+        }
+
         private static AudioReverbPreset GetRoomReverbPreset(Room room)
         {
             if (room == null) return AudioReverbPreset.Room;
-
-            float openness = GetRoomOpenness(room);
-            if (openness >= 4f) return AudioReverbPreset.StoneCorridor;
-            if (openness >= 2.5f) return AudioReverbPreset.Livingroom;
+            int cellCount = room.CellCount;
+            if (cellCount >= 100) return AudioReverbPreset.StoneCorridor;
+            if (cellCount >= 25) return AudioReverbPreset.Livingroom;
             return AudioReverbPreset.Room;
         }
 
         private static float GetRoomReverbIntensity(Room room)
         {
             if (room == null) return 0f;
-            float openness = GetRoomOpenness(room);
-            return Mathf.Clamp01(Mathf.Lerp(0.15f, 0.6f, Mathf.InverseLerp(1f, 5f, openness)));
-        }
-
-        private static float GetRoomOpenness(Room room)
-        {
-            // Optimized: Use cached room openness value
-            if (room == null || room.CellCount == 0) return 0f;
-
-            // Check cache (valid for ~60 ticks)
-            if (roomOpennessCache.TryGetValue(room, out var cached))
-            {
-                if (currentCacheTick - cached.cacheTick < 60)
-                {
-                    return cached.openness;
-                }
-            }
-
-            int minX = int.MaxValue, maxX = int.MinValue;
-            int minZ = int.MaxValue, maxZ = int.MinValue;
-
-            foreach (IntVec3 cell in room.Cells)
-            {
-                if (cell.x < minX) minX = cell.x;
-                if (cell.x > maxX) maxX = cell.x;
-                if (cell.z < minZ) minZ = cell.z;
-                if (cell.z > maxZ) maxZ = cell.z;
-            }
-
-            int width = maxX - minX + 1;
-            int depth = maxZ - minZ + 1;
-
-            if (width == 0 || depth == 0) return 0f;
-
-            int boundingArea = width * depth;
-            float cellRatio = (float)room.CellCount / boundingArea;
-
-            // Aspect ratio: wide rooms (squares) = 1, narrow corridors < 1
-            float aspectRatio = (float)Mathf.Min(width, depth) / Mathf.Max(width, depth);
-
-            // Combine: cellRatio (how filled) * aspectRatio (how square)
-            float openness = cellRatio * aspectRatio;
-
-            // Cache the result
-            roomOpennessCache[room] = (openness, currentCacheTick);
-            return openness;
-        }
-
-        private static void ClearRoomOpennessCache()
-        {
-            roomOpennessCache.Clear();
-            currentCacheTick = 0;
+            int cellCount = room.CellCount;
+            return Mathf.Clamp01(Mathf.Lerp(0.15f, 0.6f, Mathf.InverseLerp(10f, 120f, (float)cellCount)));
         }
 
         private static string GetTerrainSuffix(TerrainDef terrain)
         {
-            string terrainDefName = terrain?.defName ?? string.Empty;
-            if (string.IsNullOrEmpty(terrainDefName)) return "dirt";
+            return TerrainAudioHelper.GetFootstepCategory(terrain);
+        }
 
-            string name = terrainDefName.ToLowerInvariant();
-            if (name.Contains("bridge")) return "bridge";
-            if (name.Contains("carpet")) return "carpet";
-            if (name.Contains("water") || name.Contains("marsh")) return "water";
-            if (name.Contains("snow") || name.Contains("ice")) return "snow";
-            if (name.Contains("metal") || name.Contains("steel")) return "metal";
-            if (name.Contains("wood") || name.Contains("plank") || name.Contains("hardwood")) return "wood";
-            if (name.Contains("stone") || name.Contains("tile") || name.Contains("concrete") || name.Contains("marble") || name.Contains("granite")) return "stone";
-            return "dirt";
+        public static bool PlayTerrainSound(TerrainDef terrain, float volume)
+        {
+            if (!EnsureInitialized()) return false;
+
+            string suffix = GetTerrainSuffix(terrain);
+            FootstepSoundCollection collection = GetCollection("Sounds/human/" + suffix);
+            if (collection == null || !collection.HasClips)
+            {
+                collection = GetCollection("Sounds/human/dirt");
+            }
+            if (collection == null || !collection.HasClips) return false;
+
+            (AudioClip clip, float pitch, float volumeMultiplier) = collection.GetRandomSound();
+            if (clip == null) return false;
+
+            PooledAudioSource pooledSource = GetAvailableAudioSource();
+            if (pooledSource == null) return false;
+
+            pooledSource.Source.pitch = Mathf.Clamp(pitch, 0.5f, 1.75f);
+            pooledSource.Source.spatialBlend = 0f;
+            pooledSource.ITDProcessor.SetEnabled(false);
+
+            // Apply room reverb at the cursor position
+            IntVec3 cursorPos = MapNavigationState.CurrentCursorPosition;
+            Map map = Find.CurrentMap;
+            Room room = (map != null && cursorPos.IsValid && cursorPos.InBounds(map))
+                ? cursorPos.GetRoom(map)
+                : null;
+
+            if (room == null || room.PsychologicallyOutdoors)
+            {
+                pooledSource.LowPassFilter.cutoffFrequency = 16500f;
+                pooledSource.ReverbFilter.enabled = false;
+                pooledSource.Source.reverbZoneMix = 0f;
+            }
+            else
+            {
+                pooledSource.LowPassFilter.cutoffFrequency = 16500f;
+                pooledSource.ReverbFilter.enabled = true;
+                pooledSource.ReverbFilter.reverbPreset = GetRoomReverbPreset(room);
+                pooledSource.Source.reverbZoneMix = GetRoomReverbIntensity(room);
+            }
+
+            pooledSource.Source.PlayOneShot(clip, Mathf.Clamp(volume * volumeMultiplier, 0f, 1f));
+            return true;
+        }
+
+        public static void ToggleDebugTerrainLogging()
+        {
+            debugTerrainLogging = !debugTerrainLogging;
+            Log.Message($"[RimWorld Access] Terrain footstep debug logging: {(debugTerrainLogging ? "ON" : "OFF")}");
         }
 
         private sealed class PooledAudioSource
