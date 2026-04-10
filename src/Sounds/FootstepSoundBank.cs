@@ -174,6 +174,17 @@ namespace RimWorldAccess
             }
 
             ApplySpatialMix(pooledSource, pawn, spatialProfile);
+
+            if (RimWorldAccessMod_Settings.Settings.FootstepStereoPan && pawn != null)
+            {
+                pooledSource.ITDProcessor.SetEnabled(true);
+                pooledSource.ITDProcessor.SetPan(spatialProfile.Pan);
+            }
+            else
+            {
+                pooledSource.ITDProcessor.SetEnabled(false);
+            }
+
             pooledSource.Source.PlayOneShot(clip, Mathf.Clamp(volume * volumeMultiplier * spatialProfile.Presence, 0f, 1.4f));
             return true;
         }
@@ -307,7 +318,10 @@ namespace RimWorldAccess
             AudioReverbFilter reverbFilter = sourceObject.AddComponent<AudioReverbFilter>();
             reverbFilter.enabled = false;
 
-            audioSources.Add(new PooledAudioSource(source, lowPassFilter, reverbFilter));
+            ITDProcessor itdProcessor = sourceObject.AddComponent<ITDProcessor>();
+            itdProcessor.SetEnabled(false);
+
+            audioSources.Add(new PooledAudioSource(source, lowPassFilter, reverbFilter, itdProcessor));
         }
 
         private static PooledAudioSource GetAvailableAudioSource()
@@ -432,16 +446,18 @@ namespace RimWorldAccess
 
         private sealed class PooledAudioSource
         {
-            public PooledAudioSource(AudioSource source, AudioLowPassFilter lowPassFilter, AudioReverbFilter reverbFilter)
+            public PooledAudioSource(AudioSource source, AudioLowPassFilter lowPassFilter, AudioReverbFilter reverbFilter, ITDProcessor itdProcessor)
             {
                 Source = source;
                 LowPassFilter = lowPassFilter;
                 ReverbFilter = reverbFilter;
+                ITDProcessor = itdProcessor;
             }
 
             public AudioSource Source { get; }
             public AudioLowPassFilter LowPassFilter { get; }
             public AudioReverbFilter ReverbFilter { get; }
+            public ITDProcessor ITDProcessor { get; }
         }
     }
 }
