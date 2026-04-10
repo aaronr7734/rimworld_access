@@ -25,8 +25,6 @@ namespace RimWorldAccess
         private static string savedFilterQuery = "";
         private static bool savedFilterIsWorldMap = false;
 
-        // Word separators for match type detection
-        private static readonly char[] WordSeparators = { ' ', '-', '_', '(', ')', '[', ']', '/', '\\', '.', ',' };
 
         /// <summary>
         /// Returns true if search input mode is active (user is typing).
@@ -298,45 +296,26 @@ namespace RimWorldAccess
             if (string.IsNullOrEmpty(activeFilterQuery) || activeFilterIsWorldMap)
                 return null;
 
-            // Flatten all items from pre-collected categories
+            // Flatten all items from pre-collected categories with reference dedup.
+            // Items appear in multiple subcategories (specialized + category-All + top-level All),
+            // and some categories (Rooms, top-level All) only have a single "-All" subcategory,
+            // so we iterate everything and deduplicate by ScannerItem reference.
             var allItems = new List<ScannerItem>();
+            var seen = new HashSet<ScannerItem>();
             foreach (var category in preCollectedCategories)
             {
                 foreach (var subcat in category.Subcategories)
                 {
-                    allItems.AddRange(subcat.Items);
+                    foreach (var item in subcat.Items)
+                    {
+                        if (seen.Add(item))
+                            allItems.Add(item);
+                    }
                 }
             }
 
-            // Filter and prioritize by match type
-            var firstWordMatches = new List<ScannerItem>();
-            var otherWordMatches = new List<ScannerItem>();
-            var containsMatches = new List<ScannerItem>();
-
-            foreach (var item in allItems)
-            {
-                var matchType = GetMatchType(activeFilterQuery, item.Label);
-                switch (matchType)
-                {
-                    case MatchType.FirstWord:
-                        firstWordMatches.Add(item);
-                        break;
-                    case MatchType.OtherWord:
-                        otherWordMatches.Add(item);
-                        break;
-                    case MatchType.Contains:
-                        containsMatches.Add(item);
-                        break;
-                }
-            }
-
-            // Sort by relevance first, then distance within each tier
-            var matching = firstWordMatches.OrderBy(i => i.Distance)
-                .Concat(otherWordMatches.OrderBy(i => i.Distance))
-                .Concat(containsMatches.OrderBy(i => i.Distance))
-                .ToList();
-
-            return matching;
+            return ScannerSearchEngine.FilterAndRank(
+                allItems, activeFilterQuery, item => item.Label, item => item.Distance);
         }
 
         /// <summary>
@@ -350,39 +329,12 @@ namespace RimWorldAccess
                 return null;
 
             var originTile = WorldNavigationState.CurrentSelectedTile;
-
-            // Collect all items from world
             var allItems = CollectAllWorldItemsFlat();
 
-            // Filter and prioritize by match type
-            var firstWordMatches = new List<WorldScannerItem>();
-            var otherWordMatches = new List<WorldScannerItem>();
-            var containsMatches = new List<WorldScannerItem>();
-
-            foreach (var item in allItems)
-            {
-                var matchType = GetMatchType(activeFilterQuery, item.Label);
-                switch (matchType)
-                {
-                    case MatchType.FirstWord:
-                        firstWordMatches.Add(item);
-                        break;
-                    case MatchType.OtherWord:
-                        otherWordMatches.Add(item);
-                        break;
-                    case MatchType.Contains:
-                        containsMatches.Add(item);
-                        break;
-                }
-            }
-
-            // Sort by relevance first, then distance within each tier
-            var matching = firstWordMatches.OrderBy(i => i.GetDistance(originTile, 0))
-                .Concat(otherWordMatches.OrderBy(i => i.GetDistance(originTile, 0)))
-                .Concat(containsMatches.OrderBy(i => i.GetDistance(originTile, 0)))
-                .ToList();
-
-            return matching;
+            return ScannerSearchEngine.FilterAndRank(
+                allItems, activeFilterQuery,
+                item => item.Label,
+                item => item.GetDistance(originTile, 0));
         }
 
         /// <summary>
@@ -428,33 +380,8 @@ namespace RimWorldAccess
             // Collect all items from all categories
             var allItems = CollectAllMapItemsFlat(map, cursor);
 
-            // Filter and prioritize by match type
-            var firstWordMatches = new List<ScannerItem>();
-            var otherWordMatches = new List<ScannerItem>();
-            var containsMatches = new List<ScannerItem>();
-
-            foreach (var item in allItems)
-            {
-                var matchType = GetMatchType(searchBuffer, item.Label);
-                switch (matchType)
-                {
-                    case MatchType.FirstWord:
-                        firstWordMatches.Add(item);
-                        break;
-                    case MatchType.OtherWord:
-                        otherWordMatches.Add(item);
-                        break;
-                    case MatchType.Contains:
-                        containsMatches.Add(item);
-                        break;
-                }
-            }
-
-            // Sort by relevance first, then distance within each tier
-            var matching = firstWordMatches.OrderBy(i => i.Distance)
-                .Concat(otherWordMatches.OrderBy(i => i.Distance))
-                .Concat(containsMatches.OrderBy(i => i.Distance))
-                .ToList();
+            var matching = ScannerSearchEngine.FilterAndRank(
+                allItems, searchBuffer, item => item.Label, item => item.Distance);
 
             // Group identical items
             matching = GroupIdenticalItems(matching, cursor);
@@ -491,33 +418,10 @@ namespace RimWorldAccess
             // Collect all items from all categories (world scanner collects on refresh)
             var allItems = CollectAllWorldItemsFlat();
 
-            // Filter and prioritize by match type
-            var firstWordMatches = new List<WorldScannerItem>();
-            var otherWordMatches = new List<WorldScannerItem>();
-            var containsMatches = new List<WorldScannerItem>();
-
-            foreach (var item in allItems)
-            {
-                var matchType = GetMatchType(searchBuffer, item.Label);
-                switch (matchType)
-                {
-                    case MatchType.FirstWord:
-                        firstWordMatches.Add(item);
-                        break;
-                    case MatchType.OtherWord:
-                        otherWordMatches.Add(item);
-                        break;
-                    case MatchType.Contains:
-                        containsMatches.Add(item);
-                        break;
-                }
-            }
-
-            // Sort by relevance first, then distance within each tier
-            var matching = firstWordMatches.OrderBy(i => i.GetDistance(originTile, 0))
-                .Concat(otherWordMatches.OrderBy(i => i.GetDistance(originTile, 0)))
-                .Concat(containsMatches.OrderBy(i => i.GetDistance(originTile, 0)))
-                .ToList();
+            var matching = ScannerSearchEngine.FilterAndRank(
+                allItems, searchBuffer,
+                item => item.Label,
+                item => item.GetDistance(originTile, 0));
 
             if (matching.Count == 0)
             {
@@ -536,18 +440,26 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Collects all scanner items from all categories flattened into a single list.
+        /// Collects all scanner items from all categories flattened into a single list,
+        /// deduplicating by ScannerItem reference. Items appear in multiple subcategories
+        /// (specialized + category-All + top-level All), so a naive flatten would return
+        /// every item multiple times.
         /// </summary>
         private static List<ScannerItem> CollectAllMapItemsFlat(Map map, IntVec3 cursorPosition)
         {
             var categories = ScannerHelper.CollectMapItems(map, cursorPosition);
             var allItems = new List<ScannerItem>();
+            var seen = new HashSet<ScannerItem>();
 
             foreach (var category in categories)
             {
                 foreach (var subcat in category.Subcategories)
                 {
-                    allItems.AddRange(subcat.Items);
+                    foreach (var item in subcat.Items)
+                    {
+                        if (seen.Add(item))
+                            allItems.Add(item);
+                    }
                 }
             }
 
@@ -633,92 +545,5 @@ namespace RimWorldAccess
             }
         }
 
-        #region Match Type Detection
-
-        private enum MatchType
-        {
-            None,
-            FirstWord,      // Match at start of label/first word
-            OtherWord,      // Match on other words in name
-            Contains        // Match anywhere in label
-        }
-
-        /// <summary>
-        /// Determines what type of match (if any) exists between search and label.
-        /// Uses same prioritization as TypeaheadSearchHelper.
-        /// </summary>
-        private static MatchType GetMatchType(string search, string label)
-        {
-            if (string.IsNullOrEmpty(search) || string.IsNullOrEmpty(label))
-                return MatchType.None;
-
-            string searchLower = search.ToLowerInvariant();
-            string labelLower = label.ToLowerInvariant().Trim();
-
-            // Strip parenthetical content for name-based matching
-            string nameOnly = StripParentheticalContent(labelLower);
-
-            // Check if label/first word starts with search
-            if (nameOnly.StartsWith(searchLower))
-            {
-                return MatchType.FirstWord;
-            }
-
-            // Check first word specifically (before any separator)
-            string[] nameWords = nameOnly.Split(WordSeparators, StringSplitOptions.RemoveEmptyEntries);
-            if (nameWords.Length > 0 && nameWords[0].StartsWith(searchLower))
-            {
-                return MatchType.FirstWord;
-            }
-
-            // Check other words in the name
-            for (int i = 1; i < nameWords.Length; i++)
-            {
-                if (nameWords[i].StartsWith(searchLower))
-                {
-                    return MatchType.OtherWord;
-                }
-            }
-
-            // Check if search appears anywhere in label (contains match)
-            if (labelLower.Contains(searchLower))
-            {
-                return MatchType.Contains;
-            }
-
-            return MatchType.None;
-        }
-
-        /// <summary>
-        /// Strips content inside parentheses from a string.
-        /// </summary>
-        private static string StripParentheticalContent(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-                return text;
-
-            var result = new System.Text.StringBuilder();
-            int depth = 0;
-
-            foreach (char c in text)
-            {
-                if (c == '(')
-                {
-                    depth++;
-                }
-                else if (c == ')')
-                {
-                    if (depth > 0) depth--;
-                }
-                else if (depth == 0)
-                {
-                    result.Append(c);
-                }
-            }
-
-            return result.ToString().Trim();
-        }
-
-        #endregion
     }
 }

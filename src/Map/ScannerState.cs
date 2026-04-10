@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -13,6 +14,11 @@ namespace RimWorldAccess
         private static int currentSubcategoryIndex = 0;
         private static int currentItemIndex = 0;
         private static int currentBulkIndex = 0; // Index within a bulk group
+
+        // The cursor position used to sort the current subcategory's items.
+        // When the cursor moves, EnsureSortedForCurrentCursor detects the mismatch,
+        // re-sorts by live distance, and jumps the selection to index 0 (closest item).
+        private static IntVec3 lastSortedCursorPosition = IntVec3.Invalid;
         private static bool autoJumpMode = false; // Auto-jump to items when navigating
 
         // Saved focus state for temporary category operations
@@ -122,25 +128,347 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Recalculates distances for items in the current subcategory from the current cursor position.
-        /// Does NOT re-sort items or refresh the list from the map.
+        /// Computes the live distance from a cursor to a scanner item.
+        /// For area-backed items (terrain regions, zones, rooms) this returns the distance
+        /// to the NEAREST cell in the area — so the cursor being inside the area naturally
+        /// returns 0 and the cursor being adjacent returns 1, instead of returning the
+        /// (often misleading) distance to the area's geometric center.
         /// </summary>
-        private static void RecalculateDistances()
+        private static float ComputeLiveDistance(ScannerItem item, IntVec3 cursor)
+        {
+            if (item == null) return float.MaxValue;
+
+            // Area-backed: terrain regions / mineable deposits with adjacency grouping.
+            if (item.HasTerrainRegions && item.TerrainRegions.Count > 0)
+            {
+                float minDist = float.MaxValue;
+                foreach (var region in item.TerrainRegions)
+                {
+                    if (region.AllPositions == null) continue;
+                    foreach (var cell in region.AllPositions)
+                    {
+                        if (cell == cursor) return 0f;
+                        float d = (cell - cursor).LengthHorizontal;
+                        if (d < minDist) minDist = d;
+                    }
+                }
+                return minDist == float.MaxValue ? (item.Position - cursor).LengthHorizontal : minDist;
+            }
+
+            // Zone: nearest cell in the zone's cell list.
+            if (item.IsZone && item.Zone != null && item.Zone.cells != null && item.Zone.cells.Count > 0)
+            {
+                float minDist = float.MaxValue;
+                foreach (var cell in item.Zone.cells)
+                {
+                    if (cell == cursor) return 0f;
+                    float d = (cell - cursor).LengthHorizontal;
+                    if (d < minDist) minDist = d;
+                }
+                return minDist;
+            }
+
+            // Room: nearest cell in the room's cells.
+            if (item.IsRoom && item.Room != null)
+            {
+                float minDist = float.MaxValue;
+                foreach (var cell in item.Room.Cells)
+                {
+                    if (cell == cursor) return 0f;
+                    float d = (cell - cursor).LengthHorizontal;
+                    if (d < minDist) minDist = d;
+                }
+                return minDist == float.MaxValue ? (item.Position - cursor).LengthHorizontal : minDist;
+            }
+
+            // Legacy bulk-terrain (list of positions, no region structure).
+            if (item.IsTerrain && item.BulkTerrainPositions != null && item.BulkTerrainPositions.Count > 0)
+            {
+                float minDist = float.MaxValue;
+                foreach (var cell in item.BulkTerrainPositions)
+                {
+                    if (cell == cursor) return 0f;
+                    float d = (cell - cursor).LengthHorizontal;
+                    if (d < minDist) minDist = d;
+                }
+                return minDist;
+            }
+
+            // Point-based items fall through to single-position distance.
+            IntVec3 pos;
+            if (item.Thing != null && item.Thing.Spawned && !item.Thing.Destroyed)
+                pos = item.Thing.Position;
+            else if (item.IsDesignation && item.Designation != null)
+                pos = item.Designation.target.Cell;
+            else
+                pos = item.Position;
+
+            return (pos - cursor).LengthHorizontal;
+        }
+
+        /// <summary>
+        /// For a multi-region item, returns the index of the region whose nearest cell is
+        /// closest to the cursor. Short-circuits to the containing region if the cursor is
+        /// on one of its cells. Returns 0 if the item has no regions.
+        /// </summary>
+        private static int FindNearestRegionIndex(ScannerItem item, IntVec3 cursor)
+        {
+            if (!item.HasTerrainRegions || item.TerrainRegions.Count == 0)
+                return 0;
+
+            int bestIdx = 0;
+            float bestDist = float.MaxValue;
+            for (int i = 0; i < item.TerrainRegions.Count; i++)
+            {
+                var region = item.TerrainRegions[i];
+                if (region.AllPositions == null) continue;
+                foreach (var cell in region.AllPositions)
+                {
+                    if (cell == cursor) return i;
+                    float d = (cell - cursor).LengthHorizontal;
+                    if (d < bestDist)
+                    {
+                        bestDist = d;
+                        bestIdx = i;
+                    }
+                }
+            }
+            return bestIdx;
+        }
+
+        /// <summary>
+        /// Builds the announcement string for a specific terrain region of an item.
+        /// Used by both the primary announcement (with the nearest region) and the bulk
+        /// navigation announcement (with the user-selected region) so the format stays
+        /// consistent: "label: size, distance direction[, area N of M]".
+        /// </summary>
+        private static string BuildRegionAnnouncement(ScannerItem item, int regionIndex)
+        {
+            if (regionIndex < 0 || regionIndex >= item.TerrainRegions.Count)
+                return item.Label;
+
+            var region = item.TerrainRegions[regionIndex];
+            var cursorPos = MapNavigationState.CurrentCursorPosition;
+
+            // Find the nearest cell within THIS region (or 0 if cursor is on it).
+            float distance = float.MaxValue;
+            IntVec3 nearestCell = IntVec3.Invalid;
+            if (region.AllPositions != null)
+            {
+                foreach (var cell in region.AllPositions)
+                {
+                    if (cell == cursorPos) { distance = 0f; nearestCell = cell; break; }
+                    float d = (cell - cursorPos).LengthHorizontal;
+                    if (d < distance) { distance = d; nearestCell = cell; }
+                }
+            }
+            if (!nearestCell.IsValid)
+            {
+                nearestCell = region.CenterPosition;
+                distance = (region.CenterPosition - cursorPos).LengthHorizontal;
+            }
+
+            var direction = GetDirectionFromCursor(nearestCell);
+
+            // Build size description — include quantity for deep ore deposits.
+            string sizeAndQuantity;
+            if (region.TotalQuantity.HasValue && item.DeepOreDef != null)
+            {
+                sizeAndQuantity = $"{region.TileCount} tiles ({region.TotalQuantity.Value} {item.DeepOreDef.label})";
+            }
+            else
+            {
+                sizeAndQuantity = region.SizeDescription;
+            }
+
+            string announcement;
+            if (direction != null)
+            {
+                announcement = $"{item.Label}: {sizeAndQuantity}, {distance:F1} tiles {direction}";
+            }
+            else
+            {
+                announcement = $"{item.Label}: {sizeAndQuantity}, here";
+            }
+
+            if (item.RegionCount > 1)
+            {
+                int regionPosition = regionIndex + 1;
+                announcement += $", area {regionPosition} of {item.RegionCount}";
+            }
+
+            return announcement;
+        }
+
+        /// <summary>
+        /// For an area-backed item, finds the cell in the item that is nearest to the cursor.
+        /// Used for announcement direction/distance so the scanner says "rich soil, 2 tiles east"
+        /// pointing at the nearest edge of the patch, not "12 tiles east" pointing at the center.
+        /// Returns IntVec3.Invalid if the item is not area-backed or has no cells.
+        /// </summary>
+        private static IntVec3 FindNearestCell(ScannerItem item, IntVec3 cursor)
+        {
+            if (item == null) return IntVec3.Invalid;
+
+            IntVec3 best = IntVec3.Invalid;
+            float bestDist = float.MaxValue;
+
+            void consider(IntVec3 cell)
+            {
+                float d = (cell - cursor).LengthHorizontal;
+                if (d < bestDist)
+                {
+                    bestDist = d;
+                    best = cell;
+                }
+            }
+
+            if (item.HasTerrainRegions)
+            {
+                foreach (var region in item.TerrainRegions)
+                {
+                    if (region.AllPositions == null) continue;
+                    foreach (var cell in region.AllPositions)
+                    {
+                        if (cell == cursor) return cell;
+                        consider(cell);
+                    }
+                }
+                return best;
+            }
+
+            if (item.IsZone && item.Zone?.cells != null)
+            {
+                foreach (var cell in item.Zone.cells)
+                {
+                    if (cell == cursor) return cell;
+                    consider(cell);
+                }
+                return best;
+            }
+
+            if (item.IsRoom && item.Room != null)
+            {
+                foreach (var cell in item.Room.Cells)
+                {
+                    if (cell == cursor) return cell;
+                    consider(cell);
+                }
+                return best;
+            }
+
+            if (item.IsTerrain && item.BulkTerrainPositions != null)
+            {
+                foreach (var cell in item.BulkTerrainPositions)
+                {
+                    if (cell == cursor) return cell;
+                    consider(cell);
+                }
+                return best;
+            }
+
+            return IntVec3.Invalid;
+        }
+
+        /// <summary>
+        /// Re-sorts the current subcategory by live distance from the cursor IF the cursor has
+        /// moved since the last sort. Does NOT modify currentItemIndex — callers that need to
+        /// preserve their position across the re-sort should use EnsureSortedPreservingCurrent
+        /// instead. This method is used by category/subcategory switches that explicitly reset
+        /// the index to 0 or Count-1 before calling.
+        /// </summary>
+        private static bool EnsureSortedForCurrentCursor()
         {
             if (!MapNavigationState.IsInitialized)
-                return;
+                return false;
 
-            var cursorPos = MapNavigationState.CurrentCursorPosition;
-            var currentSubcat = GetCurrentSubcategory();
-            if (currentSubcat == null) return;
+            var cursor = MapNavigationState.CurrentCursorPosition;
+            if (cursor == lastSortedCursorPosition)
+                return false;
 
-            foreach (var item in currentSubcat.Items)
+            var subcat = GetCurrentSubcategory();
+            if (subcat == null || subcat.Items.Count == 0)
             {
-                if (item.IsTerrain)
-                    item.Distance = (item.Position - cursorPos).LengthHorizontal;
-                else if (item.Thing != null)
-                    item.Distance = (item.Thing.Position - cursorPos).LengthHorizontal;
+                lastSortedCursorPosition = cursor;
+                return false;
             }
+
+            foreach (var item in subcat.Items)
+                item.Distance = ComputeLiveDistance(item, cursor);
+
+            // Stable sort (OrderBy) — so tied distances preserve input order across re-sorts.
+            // Using in-place List.Sort here would be unstable and cause bouncing between
+            // tied items on successive navigation presses.
+            subcat.Items = subcat.Items.OrderBy(i => i.Distance).ToList();
+            lastSortedCursorPosition = cursor;
+            return true;
+        }
+
+        /// <summary>
+        /// Re-sorts the current subcategory by live distance from the cursor UNCONDITIONALLY
+        /// (even if the cursor hasn't moved — to catch moving Things like pawns), while
+        /// preserving the user's scanner position by reference. The user's current ScannerItem
+        /// is captured, the list is re-sorted, and currentItemIndex is restored to wherever
+        /// that item ends up in the new order.
+        ///
+        /// This is the "navigation" entry point used by NextItem/PreviousItem/Home/End so
+        /// browsing does not get disorienting reshuffles that lose the user's place.
+        ///
+        /// NOTE (experimental): Fix 2 — always re-sorts, not just on cursor change. This ensures
+        /// fresh sort order when Things move around a stationary cursor. May be reverted if it
+        /// causes a worse experience (e.g., noisy order on fast-moving pawns).
+        /// </summary>
+        private static void EnsureSortedPreservingCurrent()
+        {
+            if (!MapNavigationState.IsInitialized) return;
+
+            var subcat = GetCurrentSubcategory();
+            if (subcat == null || subcat.Items.Count == 0) return;
+
+            // Capture the currently selected item by reference.
+            ScannerItem currentRef = null;
+            if (currentItemIndex >= 0 && currentItemIndex < subcat.Items.Count)
+                currentRef = subcat.Items[currentItemIndex];
+
+            // Re-sort unconditionally with live distances (Fix 2).
+            // Stable sort (OrderBy) — critical for avoiding bouncing between items at
+            // equal distances. In-place List.Sort is unstable and causes user-visible
+            // "trapped" navigation when two items share the same distance (e.g., rich
+            // soil at 11.0 South and dandelions at 11.0 South tied).
+            var cursor = MapNavigationState.CurrentCursorPosition;
+            foreach (var item in subcat.Items)
+                item.Distance = ComputeLiveDistance(item, cursor);
+            subcat.Items = subcat.Items.OrderBy(i => i.Distance).ToList();
+            lastSortedCursorPosition = cursor;
+
+            // Restore position by reference — find where the old current item ended up (Fix 1).
+            if (currentRef != null)
+            {
+                int newIdx = subcat.Items.IndexOf(currentRef);
+                if (newIdx >= 0)
+                {
+                    currentItemIndex = newIdx;
+                    return;
+                }
+            }
+
+            // Fallback: the item is gone (rare — usually only on the very first call before
+            // anything was selected). Land on the closest item.
+            currentItemIndex = 0;
+            currentBulkIndex = 0;
+        }
+
+        /// <summary>
+        /// Updates only the Distance of the currently selected item (and bulk-group entries)
+        /// without re-sorting. Used by bulk navigation where list order must not change.
+        /// </summary>
+        private static void UpdateCurrentItemDistance()
+        {
+            var cursor = MapNavigationState.CurrentCursorPosition;
+            var item = GetCurrentItem();
+            if (item == null) return;
+
+            item.Distance = ComputeLiveDistance(item, cursor);
         }
 
         /// <summary>
@@ -156,6 +484,7 @@ namespace RimWorldAccess
             currentSubcategoryIndex = 0;
             currentItemIndex = 0;
             currentBulkIndex = 0;
+            lastSortedCursorPosition = IntVec3.Invalid;
 
             // Clear the collection cache
             cachedCategories = null;
@@ -218,6 +547,10 @@ namespace RimWorldAccess
                         categories.Add(temporaryCategory);
                 }
 
+                // On cache hit, the items may have been sorted at a previous cursor position.
+                // Force EnsureSortedForCurrentCursor to re-sort on the next navigation.
+                lastSortedCursorPosition = IntVec3.Invalid;
+
                 ValidateIndices();
                 return;
             }
@@ -235,6 +568,7 @@ namespace RimWorldAccess
                 lastThingStateHash = currentThingHash;
                 lastDesignationCount = currentDesignationCount;
                 lastZoneCount = currentZoneCount;
+                lastSortedCursorPosition = cursorPos;
 
                 // Get filtered items from already-collected categories
                 var filteredItems = ScannerSearchState.RefreshMapFilter(categories);
@@ -292,6 +626,9 @@ namespace RimWorldAccess
             lastThingStateHash = currentThingHash;
             lastDesignationCount = currentDesignationCount;
             lastZoneCount = currentZoneCount;
+            // CollectMapItems sorted items by distance from cursorPos, so the current cursor
+            // matches the sort order. Skip the next EnsureSortedForCurrentCursor re-sort.
+            lastSortedCursorPosition = cursorPos;
 
             // Re-add temporary category if it existed
             if (savedTemporaryCategory != null)
@@ -325,16 +662,17 @@ namespace RimWorldAccess
             var currentSubcat = GetCurrentSubcategory();
             if (currentSubcat == null || currentSubcat.Items.Count == 0) return;
 
+            // Re-sort unconditionally, preserving the user's position by reference.
+            // Then advance normally to the next item after their current position in the
+            // fresh sort order.
+            EnsureSortedPreservingCurrent();
+
             currentItemIndex++;
             if (currentItemIndex >= currentSubcat.Items.Count)
             {
                 currentItemIndex = 0; // Wrap to first item
             }
-
             currentBulkIndex = 0; // Reset bulk index when changing items
-
-            // Recalculate distances from current cursor position
-            RecalculateDistances();
 
             // Auto-jump if enabled
             if (autoJumpMode)
@@ -362,16 +700,15 @@ namespace RimWorldAccess
             var currentSubcat = GetCurrentSubcategory();
             if (currentSubcat == null || currentSubcat.Items.Count == 0) return;
 
+            // Re-sort unconditionally, preserving the user's position by reference.
+            EnsureSortedPreservingCurrent();
+
             currentItemIndex--;
             if (currentItemIndex < 0)
             {
                 currentItemIndex = currentSubcat.Items.Count - 1; // Wrap to last item
             }
-
             currentBulkIndex = 0; // Reset bulk index when changing items
-
-            // Recalculate distances from current cursor position
-            RecalculateDistances();
 
             // Auto-jump if enabled
             if (autoJumpMode)
@@ -405,8 +742,8 @@ namespace RimWorldAccess
                 currentBulkIndex = 0; // Wrap to first bulk item
             }
 
-            // Recalculate distances from current cursor position
-            RecalculateDistances();
+            // Update distance for the current bulk entry (no re-sort — bulk order is stable).
+            UpdateCurrentItemDistance();
 
             // Auto-jump if enabled
             if (autoJumpMode)
@@ -440,8 +777,8 @@ namespace RimWorldAccess
                 currentBulkIndex = currentItem.BulkCount - 1; // Wrap to last bulk item
             }
 
-            // Recalculate distances from current cursor position
-            RecalculateDistances();
+            // Update distance for the current bulk entry (no re-sort — bulk order is stable).
+            UpdateCurrentItemDistance();
 
             // Auto-jump if enabled
             if (autoJumpMode)
@@ -467,12 +804,16 @@ namespace RimWorldAccess
                 currentCategoryIndex = 0; // Wrap to first category
             }
 
-            // Reset subcategory and item indices
+            // Reset subcategory, item, and bulk indices — always land on first subcategory / first item.
             currentSubcategoryIndex = 0;
             currentItemIndex = 0;
+            currentBulkIndex = 0;
 
             // Skip empty subcategories
             SkipEmptySubcategories(forward: true);
+
+            // Ensure the newly-entered subcategory is sorted for the current cursor position.
+            EnsureSortedForCurrentCursor();
 
             AnnounceCurrentCategory();
             AnnounceCurrentItem();
@@ -491,12 +832,16 @@ namespace RimWorldAccess
                 currentCategoryIndex = categories.Count - 1; // Wrap to last category
             }
 
-            // Reset subcategory and item indices
+            // Reset subcategory, item, and bulk indices — always land on first subcategory / first item.
             currentSubcategoryIndex = 0;
             currentItemIndex = 0;
+            currentBulkIndex = 0;
 
             // Skip empty subcategories
             SkipEmptySubcategories(forward: true);
+
+            // Ensure the newly-entered subcategory is sorted for the current cursor position.
+            EnsureSortedForCurrentCursor();
 
             AnnounceCurrentCategory();
             AnnounceCurrentItem();
@@ -527,8 +872,12 @@ namespace RimWorldAccess
 
             } while (GetCurrentSubcategory()?.IsEmpty ?? true);
 
-            // Reset item index
+            // Reset item and bulk indices
             currentItemIndex = 0;
+            currentBulkIndex = 0;
+
+            // Ensure the newly-entered subcategory is sorted for the current cursor.
+            EnsureSortedForCurrentCursor();
 
             AnnounceCurrentSubcategory();
             AnnounceCurrentItem();
@@ -559,8 +908,12 @@ namespace RimWorldAccess
 
             } while (GetCurrentSubcategory()?.IsEmpty ?? true);
 
-            // Reset item index
+            // Reset item and bulk indices
             currentItemIndex = 0;
+            currentBulkIndex = 0;
+
+            // Ensure the newly-entered subcategory is sorted for the current cursor.
+            EnsureSortedForCurrentCursor();
 
             AnnounceCurrentSubcategory();
             AnnounceCurrentItem();
@@ -578,11 +931,27 @@ namespace RimWorldAccess
                 AnnounceCurrentCategory();
             }
 
-            var currentItem = GetCurrentItem();
-            if (currentItem == null)
+            ScannerItem currentItem;
+            bool removedStale = false;
+            while (true)
             {
-                TolkHelper.Speak("No item selected", SpeechPriority.High);
-                return;
+                currentItem = GetCurrentItem();
+                if (currentItem == null)
+                {
+                    TolkHelper.Speak(removedStale ? "Item no longer exists" : "No item selected", SpeechPriority.High);
+                    return;
+                }
+
+                currentItem.RefreshLabel();
+                if (!currentItem.IsStale) break;
+
+                RemoveCurrentStaleItem();
+                removedStale = true;
+            }
+
+            if (removedStale)
+            {
+                TolkHelper.Speak("Item no longer exists", SpeechPriority.High);
             }
 
             IntVec3 targetPosition;
@@ -634,7 +1003,7 @@ namespace RimWorldAccess
                 {
                     targetThing = currentItem.BulkThings[currentBulkIndex];
                 }
-                if (targetThing == null)
+                if (targetThing == null || targetThing.Destroyed || !targetThing.Spawned)
                 {
                     TolkHelper.Speak("Item no longer exists", SpeechPriority.High);
                     return;
@@ -702,34 +1071,44 @@ namespace RimWorldAccess
                 AnnounceCurrentCategory();
             }
 
-            var currentItem = GetCurrentItem();
-            if (currentItem == null)
+            ScannerItem currentItem;
+            bool removedStale = false;
+            while (true)
             {
-                TolkHelper.Speak("No item selected", SpeechPriority.High);
-                return;
+                currentItem = GetCurrentItem();
+                if (currentItem == null)
+                {
+                    TolkHelper.Speak(removedStale ? "Item no longer exists" : "No item selected", SpeechPriority.High);
+                    return;
+                }
+
+                currentItem.RefreshLabel();
+                if (!currentItem.IsStale) break;
+
+                RemoveCurrentStaleItem();
+                removedStale = true;
             }
 
-            // Recalculate distances from current cursor position
-            RecalculateDistances();
+            if (removedStale)
+            {
+                TolkHelper.Speak("Item no longer exists", SpeechPriority.High);
+            }
 
+            // Re-sort unconditionally, preserving position by reference. currentItem stays
+            // pointing at the same ScannerItem; its index in the list may change but
+            // currentItem is still valid.
+            EnsureSortedPreservingCurrent();
+
+            var cursorPos = MapNavigationState.CurrentCursorPosition;
             IntVec3 targetPos;
 
-            if (currentItem.IsTerrain || currentItem.HasTerrainRegions)
+            // Area-backed items: use the nearest cell in the area, not the center.
+            // Makes "here" register when the cursor is inside the region/zone/room.
+            if (currentItem.HasTerrainRegions || currentItem.IsZone || currentItem.IsRoom ||
+                (currentItem.IsTerrain && currentItem.BulkTerrainPositions != null))
             {
-                // For terrain regions, use region center
-                if (currentItem.HasTerrainRegions && currentBulkIndex < currentItem.TerrainRegions.Count)
-                {
-                    targetPos = currentItem.TerrainRegions[currentBulkIndex].CenterPosition;
-                }
-                // Legacy: bulk terrain positions
-                else if (currentItem.BulkTerrainPositions != null && currentBulkIndex < currentItem.BulkTerrainPositions.Count)
-                {
-                    targetPos = currentItem.BulkTerrainPositions[currentBulkIndex];
-                }
-                else
-                {
-                    targetPos = currentItem.Position;
-                }
+                var nearestCell = FindNearestCell(currentItem, cursorPos);
+                targetPos = nearestCell.IsValid ? nearestCell : currentItem.Position;
             }
             else
             {
@@ -753,7 +1132,6 @@ namespace RimWorldAccess
                 }
             }
 
-            var cursorPos = MapNavigationState.CurrentCursorPosition;
             var distance = (targetPos - cursorPos).LengthHorizontal;
             // Use our calculated targetPos for direction, not item.Position which may be stale
             var direction = GetDirectionFromCursor(targetPos);
@@ -796,6 +1174,24 @@ namespace RimWorldAccess
                 return null;
 
             return subcat.Items[currentItemIndex];
+        }
+
+        // Removes the current item from its subcategory (used when RefreshLabel marks it stale).
+        // Clamps currentItemIndex to the remaining range and resets bulk navigation state.
+        private static void RemoveCurrentStaleItem()
+        {
+            var subcat = GetCurrentSubcategory();
+            if (subcat == null) return;
+            if (currentItemIndex < 0 || currentItemIndex >= subcat.Items.Count) return;
+
+            subcat.Items.RemoveAt(currentItemIndex);
+
+            if (currentItemIndex >= subcat.Items.Count)
+            {
+                currentItemIndex = Math.Max(0, subcat.Items.Count - 1);
+            }
+
+            currentBulkIndex = 0;
         }
 
         private static void ValidateIndices()
@@ -869,28 +1265,14 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Calculates the compass direction from the cursor to a target position.
+        /// Calculates the compass direction from the current cursor to a target position.
         /// Returns null if the cursor is at or very close to the target.
+        /// Delegates to ScannerDirectionHelper.
         /// </summary>
         private static string GetDirectionFromCursor(IntVec3 targetPosition)
         {
-            var cursorPos = MapNavigationState.CurrentCursorPosition;
-            IntVec3 offset = targetPosition - cursorPos;
-
-            if (offset.LengthHorizontal < 0.5f)
-                return null; // Same position
-
-            double angle = System.Math.Atan2(offset.x, offset.z) * (180.0 / System.Math.PI);
-            if (angle < 0) angle += 360;
-
-            if (angle >= 337.5 || angle < 22.5) return "North";
-            if (angle >= 22.5 && angle < 67.5) return "Northeast";
-            if (angle >= 67.5 && angle < 112.5) return "East";
-            if (angle >= 112.5 && angle < 157.5) return "Southeast";
-            if (angle >= 157.5 && angle < 202.5) return "South";
-            if (angle >= 202.5 && angle < 247.5) return "Southwest";
-            if (angle >= 247.5 && angle < 292.5) return "West";
-            return "Northwest";
+            return ScannerDirectionHelper.GetCompassDirection(
+                MapNavigationState.CurrentCursorPosition, targetPosition);
         }
 
         private static void AnnounceCurrentCategory()
@@ -911,67 +1293,60 @@ namespace RimWorldAccess
 
         private static void AnnounceCurrentItem()
         {
-            var item = GetCurrentItem();
-            if (item == null)
+            ScannerItem item;
+            bool removedStale = false;
+            while (true)
             {
-                TolkHelper.Speak("No items in this category", SpeechPriority.Normal);
-                return;
+                item = GetCurrentItem();
+                if (item == null)
+                {
+                    if (removedStale)
+                        TolkHelper.Speak("Item no longer exists", SpeechPriority.High);
+                    else
+                        TolkHelper.Speak("No items in this category", SpeechPriority.Normal);
+                    return;
+                }
+
+                item.RefreshLabel();
+                if (!item.IsStale) break;
+
+                RemoveCurrentStaleItem();
+                removedStale = true;
             }
 
-            item.RefreshLabel();
+            if (removedStale)
+            {
+                TolkHelper.Speak("Item no longer exists", SpeechPriority.High);
+            }
 
-            // Special handling for terrain with regions
+            // Special handling for terrain with regions.
+            // The primary announcement describes the SPECIFIC region the cursor is on or
+            // nearest to, not an aggregated view across all regions. This matches the bulk
+            // announcement format ("area N of M") and avoids the misleading "290 tiles, here"
+            // when only 100 of those tiles are the region the cursor is actually on.
             if (item.HasTerrainRegions)
             {
-                var region = item.TerrainRegions[currentBulkIndex];
-                var cursorPos = MapNavigationState.CurrentCursorPosition;
-                var distance = (region.CenterPosition - cursorPos).LengthHorizontal;
-                var direction = GetDirectionFromCursor(region.CenterPosition);
-
-                // Build size description - include quantity for deep ore deposits
-                string sizeAndQuantity;
-                if (region.TotalQuantity.HasValue && item.DeepOreDef != null)
-                {
-                    sizeAndQuantity = $"{region.TileCount} tiles ({region.TotalQuantity.Value} {item.DeepOreDef.label})";
-                }
-                else
-                {
-                    sizeAndQuantity = region.SizeDescription;
-                }
-
-                string announcement;
-                if (direction != null)
-                {
-                    announcement = $"{item.Label}: {sizeAndQuantity}, {distance:F1} tiles {direction}";
-                }
-                else
-                {
-                    announcement = $"{item.Label}: {sizeAndQuantity}, here";
-                }
-
-                if (item.RegionCount > 1)
-                {
-                    int position = currentBulkIndex + 1;
-                    announcement += $", region {position} of {item.RegionCount}";
-
-                    // Show total across all regions only when there are multiple regions
-                    if (item.HasQuantityInfo && item.DeepOreDef != null)
-                    {
-                        announcement += $", {item.TotalTileCount} tiles total ({item.TotalQuantityAcrossRegions} {item.DeepOreDef.label})";
-                    }
-                    else
-                    {
-                        announcement += $", {item.TotalTileCount} tiles total";
-                    }
-                }
-
-                TolkHelper.Speak(announcement, SpeechPriority.Normal);
+                // Pick the region the cursor is inside, or the one with the nearest cell.
+                // Update currentBulkIndex so subsequent Alt+PgDn navigates from that region.
+                currentBulkIndex = FindNearestRegionIndex(item, MapNavigationState.CurrentCursorPosition);
+                TolkHelper.Speak(BuildRegionAnnouncement(item, currentBulkIndex), SpeechPriority.Normal);
                 return;
             }
 
-            // Get target position (use live position for things that might be moving)
-            IntVec3 targetPos = item.Thing != null ? item.Thing.Position : item.Position;
+            // Get target position — for area-backed items (zones, rooms), use the nearest cell
+            // in the area so "inside the zone" registers as "here" and "2 tiles from the edge"
+            // registers as "2 tiles direction", not the distance to the geometric center.
             var currentCursorPos = MapNavigationState.CurrentCursorPosition;
+            IntVec3 targetPos;
+            if (item.IsZone || item.IsRoom)
+            {
+                var nearestCell = FindNearestCell(item, currentCursorPos);
+                targetPos = nearestCell.IsValid ? nearestCell : item.Position;
+            }
+            else
+            {
+                targetPos = item.Thing != null ? item.Thing.Position : item.Position;
+            }
             var freshDistance = (targetPos - currentCursorPos).LengthHorizontal;  // Calculate fresh distance
             var itemDirection = GetDirectionFromCursor(targetPos);
 
@@ -1028,47 +1403,40 @@ namespace RimWorldAccess
 
         private static void AnnounceCurrentBulkItem()
         {
-            var item = GetCurrentItem();
-            if (item == null || !item.IsBulkGroup)
-                return;
+            ScannerItem item;
+            bool removedStale = false;
+            while (true)
+            {
+                item = GetCurrentItem();
+                if (item == null || !item.IsBulkGroup)
+                {
+                    if (removedStale)
+                        TolkHelper.Speak("Item no longer exists", SpeechPriority.High);
+                    return;
+                }
 
-            item.RefreshLabel();
+                item.RefreshLabel();
+                if (!item.IsStale) break;
+
+                RemoveCurrentStaleItem();
+                removedStale = true;
+            }
+
+            if (removedStale)
+            {
+                TolkHelper.Speak("Item no longer exists", SpeechPriority.High);
+            }
 
             if (currentBulkIndex < 0 || currentBulkIndex >= item.BulkCount)
                 return;
 
-            // For terrain regions (adjacency-grouped)
+            // For terrain regions (adjacency-grouped). Delegate to the shared region builder
+            // so primary and bulk announcements stay formatted consistently.
             if (item.HasTerrainRegions)
             {
                 if (currentBulkIndex >= item.TerrainRegions.Count)
                     return;
-
-                var region = item.TerrainRegions[currentBulkIndex];
-                var regionDistance = (region.CenterPosition - MapNavigationState.CurrentCursorPosition).LengthHorizontal;
-                var regionDirection = GetDirectionFromCursor(region.CenterPosition);
-                int regionPosition = currentBulkIndex + 1;
-
-                // Build size description - include quantity for deep ore deposits
-                string sizeAndQuantity;
-                if (region.TotalQuantity.HasValue && item.DeepOreDef != null)
-                {
-                    sizeAndQuantity = $"{region.TileCount} tiles ({region.TotalQuantity.Value} {item.DeepOreDef.label})";
-                }
-                else
-                {
-                    sizeAndQuantity = region.SizeDescription;
-                }
-
-                string announcement;
-                if (regionDirection != null)
-                {
-                    announcement = $"{item.Label}: {sizeAndQuantity}, {regionDistance:F1} tiles {regionDirection}, region {regionPosition} of {item.RegionCount}";
-                }
-                else
-                {
-                    announcement = $"{item.Label}: {sizeAndQuantity}, here, region {regionPosition} of {item.RegionCount}";
-                }
-                TolkHelper.Speak(announcement, SpeechPriority.Normal);
+                TolkHelper.Speak(BuildRegionAnnouncement(item, currentBulkIndex), SpeechPriority.Normal);
                 return;
             }
 
@@ -1159,9 +1527,10 @@ namespace RimWorldAccess
             var currentSubcat = GetCurrentSubcategory();
             if (currentSubcat == null || currentSubcat.Items.Count == 0) return;
 
+            // Ensure freshly sorted for current cursor, then jump to the closest (index 0).
+            EnsureSortedForCurrentCursor();
             currentItemIndex = 0;
             currentBulkIndex = 0;
-            RecalculateDistances();
 
             if (autoJumpMode)
             {
@@ -1191,9 +1560,10 @@ namespace RimWorldAccess
             var currentSubcat = GetCurrentSubcategory();
             if (currentSubcat == null || currentSubcat.Items.Count == 0) return;
 
+            // Ensure freshly sorted for current cursor, then jump to the farthest (last index).
+            EnsureSortedForCurrentCursor();
             currentItemIndex = currentSubcat.Items.Count - 1;
             currentBulkIndex = 0;
-            RecalculateDistances();
 
             if (autoJumpMode)
             {
