@@ -13,12 +13,18 @@ namespace RimWorldAccess
         private static readonly FootstepManager instance = new FootstepManager();
         public static FootstepManager Instance => instance;
 
+        private const int PerformanceModeCap = 18;
+        private int _perfModeLastTick = -1;
+        private int _perfModeTickCount;
+
         private FootstepManager()
         {
         }
 
         public void Reset()
         {
+            _perfModeLastTick = -1;
+            _perfModeTickCount = 0;
         }
 
         /// <summary>
@@ -31,6 +37,19 @@ namespace RimWorldAccess
             if (!FootstepClassifier.IsValidPawn(pawn)) return;
             if (!FootstepSoundBank.EnsureInitialized()) return;
 
+            FootstepCategory category = FootstepClassifier.ClassifyPawn(pawn);
+            float categoryVolume = FootstepClassifier.IsAnimal(pawn)
+                ? RimWorldAccessMod_Settings.Settings.FootstepAnimalVolume
+                : category == FootstepCategory.Mechanoid
+                    ? RimWorldAccessMod_Settings.Settings.FootstepMechVolume
+                    : RimWorldAccessMod_Settings.Settings.FootstepHumanVolume;
+            if (categoryVolume <= 0f) return;
+
+            if (RimWorldAccessMod_Settings.Settings.FootstepPerformanceMode)
+            {
+                if (ShouldThrottleFootstep(pawn)) return;
+            }
+
             FootstepSpatialProfile profile;
             if (!ScreenPanUtility.TryGetSpatialProfile(pawn, out profile)) return;
 
@@ -38,20 +57,7 @@ namespace RimWorldAccess
             TerrainDef terrain = pawn.Map?.terrainGrid?.TerrainAt(pawn.Position);
 
             float volume = FootstepClassifier.GetVolumeMultiplier(pawn);
-
-            FootstepCategory category = FootstepClassifier.ClassifyPawn(pawn);
-            if (FootstepClassifier.IsAnimal(pawn))
-            {
-                volume *= RimWorldAccessMod_Settings.Settings.FootstepAnimalVolume;
-            }
-            else if (category == FootstepCategory.Mechanoid)
-            {
-                volume *= RimWorldAccessMod_Settings.Settings.FootstepMechVolume;
-            }
-            else
-            {
-                volume *= RimWorldAccessMod_Settings.Settings.FootstepHumanVolume;
-            }
+            volume *= categoryVolume;
 
             volume *= profile.Audibility;
             volume *= GetMixVolumeScale(profile, focused, pawn);
@@ -88,6 +94,37 @@ namespace RimWorldAccess
             }
 
             return Mathf.Clamp(scale, 0.25f, 1.15f);
+        }
+
+        private bool ShouldThrottleFootstep(Pawn pawn)
+        {
+            int currentTick = Find.TickManager?.TicksGame ?? -1;
+            if (currentTick != _perfModeLastTick)
+            {
+                _perfModeLastTick = currentTick;
+                _perfModeTickCount = 0;
+            }
+
+            int priority = GetFootstepPriority(pawn);
+            if (priority <= 1) return false;
+
+            if (_perfModeTickCount >= PerformanceModeCap) return true;
+
+            _perfModeTickCount++;
+            return false;
+        }
+
+        private static int GetFootstepPriority(Pawn pawn)
+        {
+            if (IsSelected(pawn)) return 0;
+            if (pawn.Drafted) return 1;
+
+            bool hostile = Faction.OfPlayer != null && pawn.HostileTo(Faction.OfPlayer);
+            if (hostile && FootstepClassifier.IsHumanlike(pawn)) return 2;
+            if (hostile) return 3;
+
+            if (pawn.Faction?.IsPlayer == true && FootstepClassifier.IsHumanlike(pawn)) return 4;
+            return 5;
         }
 
         private static bool IsFocusedPawn(Pawn pawn)
