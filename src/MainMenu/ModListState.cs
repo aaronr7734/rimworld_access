@@ -48,6 +48,7 @@ namespace RimWorldAccess
         private static MethodInfo trySetModInactiveMethod;
         private static MethodInfo recacheSelectedModInfoMethod;
         private static MethodInfo selectModMethod;
+        private static MethodInfo modListsInOrderMethod;
 
         public static bool IsActive => isActive;
         public static ModListColumn CurrentColumn => currentColumn;
@@ -74,6 +75,7 @@ namespace RimWorldAccess
             trySetModInactiveMethod = pageType.GetMethod("TrySetModInactive", bindingFlags);
             recacheSelectedModInfoMethod = pageType.GetMethod("RecacheSelectedModInfo", bindingFlags);
             selectModMethod = pageType.GetMethod("SelectMod", BindingFlags.Public | BindingFlags.Instance);
+            modListsInOrderMethod = pageType.GetMethod("ModListsInOrder", bindingFlags);
         }
 
         /// <summary>
@@ -661,6 +663,7 @@ namespace RimWorldAccess
             }
 
             modListsDirtyField?.SetValue(currentPage, true);
+            ForceRefreshModLists();
 
             // After toggling from detail view, go back to list
             detailHelper.GoBackToList();
@@ -712,6 +715,7 @@ namespace RimWorldAccess
             }
 
             modListsDirtyField?.SetValue(currentPage, true);
+            ForceRefreshModLists();
 
             // Stay in current column, adjust index since the mod left this list
             var currentList = GetCurrentList();
@@ -968,6 +972,18 @@ namespace RimWorldAccess
         {
             var activeMods = ModsConfig.ActiveModsInLoadOrder.ToList();
             return activeMods.IndexOf(mod);
+        }
+
+        /// <summary>
+        /// Forces the game's filtered mod lists to rebuild immediately
+        /// instead of waiting for the next render pass.
+        /// </summary>
+        private static void ForceRefreshModLists()
+        {
+            if (currentPage != null)
+            {
+                modListsInOrderMethod?.Invoke(currentPage, null);
+            }
         }
 
         private static void SyncSelection()

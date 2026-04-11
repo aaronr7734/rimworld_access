@@ -38,16 +38,18 @@ namespace RimWorldAccess
                     return true;
                 }
                 // Shift+Left/Right adjusts preset distance (only in PresetDistance mode)
+                // Ctrl+Shift+Left/Right adjusts by 10 tiles
                 else if (MapNavigationState.CurrentJumpMode == JumpMode.PresetDistance)
                 {
+                    int step = ctrlHeld ? 10 : 1;
                     if (key == KeyCode.LeftArrow)
                     {
-                        MapNavigationState.DecreasePresetDistance();
+                        MapNavigationState.DecreasePresetDistance(step);
                         return true;
                     }
                     else if (key == KeyCode.RightArrow)
                     {
-                        MapNavigationState.IncreasePresetDistance();
+                        MapNavigationState.IncreasePresetDistance(step);
                         return true;
                     }
                 }

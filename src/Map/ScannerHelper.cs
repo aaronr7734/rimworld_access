@@ -656,8 +656,8 @@ namespace RimWorldAccess
 
                     if (plant.def.plant.IsTree)
                     {
-                        // Trees
-                        if (plant.def.plant.harvestYield > 0)
+                        // Trees: only "Harvestable" if fully mature and ready to harvest
+                        if (plant.HarvestableNow && plant.LifeStage == PlantLifeStage.Mature)
                         {
                             AddTo(treesCategory, harvestableTreesSubcat, item);
                             categorizedThings.Add(thing);
@@ -670,15 +670,15 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        // Non-tree plants
-                        if (plant.HarvestableNow || plant.def.plant.harvestYield > 0)
+                        // Non-tree plants: only "Harvestable" if fully mature and ready to harvest
+                        if (plant.HarvestableNow && plant.LifeStage == PlantLifeStage.Mature)
                         {
                             AddTo(plantsCategory, harvestablePlantsSubcat, item);
                             categorizedThings.Add(thing);
                         }
                         else
                         {
-                            // Debris (grass, etc.)
+                            // Not fully mature (includes grass, immature crops, etc.)
                             AddTo(plantsCategory, debrisSubcat, item);
                             categorizedThings.Add(thing);
                         }
