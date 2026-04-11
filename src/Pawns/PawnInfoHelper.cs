@@ -46,16 +46,23 @@ namespace RimWorldAccess
 
             StringBuilder sb = new StringBuilder();
             sb.Append($"{pawn.LabelShort}. ");
+            bool hasHealthDetails = false;
 
             // Pain (uses vanilla translation keys and qualitative labels)
             string painLabel = HealthTabHelper.GetPainLabel(pawn);
             if (painLabel != null)
+            {
                 sb.Append($"{painLabel}. ");
+                hasHealthDetails = true;
+            }
 
             // Bleeding with time-to-death (uses vanilla translation keys)
             string bleedingLabel = HealthTabHelper.GetBleedingLabel(pawn);
             if (bleedingLabel != null)
+            {
                 sb.Append($"{bleedingLabel}. ");
+                hasHealthDetails = true;
+            }
 
             // Capacities — only show sight, manipulation, and moving, and only when not at 100%
             if (pawn.health.capacities != null && !pawn.Dead)
@@ -68,7 +75,10 @@ namespace RimWorldAccess
                     .ToList();
 
                 foreach (var cap in impaired)
+                {
                     sb.Append($"{cap.Label}: {cap.LevelLabel}. ");
+                    hasHealthDetails = true;
+                }
             }
 
             // Body parts — only show parts that have at least one bad hediff, with HP
@@ -91,7 +101,10 @@ namespace RimWorldAccess
                     .ToList();
 
                 foreach (var p in damagedParts)
+                {
                     sb.Append($"{p.Part.LabelCap}: {p.Health:F0}/{p.MaxHealth:F0}. ");
+                    hasHealthDetails = true;
+                }
             }
 
             // Whole-body hediffs — show all visible ones
@@ -100,7 +113,15 @@ namespace RimWorldAccess
                 .ToList();
 
             foreach (var hediff in wholeBodyHediffs)
+            {
                 sb.Append($"{hediff.LabelCap}. ");
+                hasHealthDetails = true;
+            }
+
+            if (!hasHealthDetails)
+            {
+                sb.Append($"{ "Healthy".Translate()}.");
+            }
 
             return sb.ToString().TrimEnd();
         }
