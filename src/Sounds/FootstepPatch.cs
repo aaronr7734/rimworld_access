@@ -12,10 +12,17 @@ namespace RimWorldAccess
     [HarmonyPatch("TryEnterNextPathCell")]
     public static class FootstepPatch
     {
+        [HarmonyPrefix]
+        public static void Prefix(Pawn ___pawn, out IntVec3 __state)
+        {
+            __state = ___pawn?.Position ?? IntVec3.Invalid;
+        }
+
         [HarmonyPostfix]
-        public static void Postfix(Pawn ___pawn)
+        public static void Postfix(Pawn ___pawn, IntVec3 __state)
         {
             if (___pawn == null || !___pawn.Spawned) return;
+            if (___pawn.Position == __state) return;
             if (___pawn.Map != Find.CurrentMap) return;
 
             RimWorldAccessSettings settings = RimWorldAccessMod_Settings.Settings;
