@@ -644,6 +644,45 @@ namespace RimWorldAccess
                 () => RimWorldAccessMod_Settings.Settings?.SubmenuTreeNavigation ?? false,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.SubmenuTreeNavigation = v; },
                 "Changes how treeviews work. When you expand a category, it disappears and you navigate only its items. Press Left Arrow to go back. Your position is remembered when you return."));
+
+            // Sound Effects settings
+            accessSettings.Settings.Add(new CheckboxSetting("Enable Sound Effects",
+                () => RimWorldAccessMod_Settings.Settings?.EnableSoundEffects ?? true,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.EnableSoundEffects = v; },
+                "Master toggle for custom sound effects added by RimWorld Access. When off, only vanilla RimWorld sounds play."));
+            accessSettings.Settings.Add(new CheckboxSetting("Enable Footstep Audio",
+                () => RimWorldAccessMod_Settings.Settings?.FootstepsEnabled ?? true,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.FootstepsEnabled = v; },
+                "Play footstep sounds when pawns move."));
+            accessSettings.Settings.Add(new SliderSetting("Footstep Human Volume",
+                () => RimWorldAccessMod_Settings.Settings?.FootstepHumanVolume ?? 1f,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.FootstepHumanVolume = v; },
+                0f, 2f, 0.1f, true));
+            accessSettings.Settings.Add(new SliderSetting("Footstep Animal Volume",
+                () => RimWorldAccessMod_Settings.Settings?.FootstepAnimalVolume ?? 1f,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.FootstepAnimalVolume = v; },
+                0f, 2f, 0.1f, true));
+            accessSettings.Settings.Add(new SliderSetting("Footstep Mechanoid Volume",
+                () => RimWorldAccessMod_Settings.Settings?.FootstepMechVolume ?? 1f,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.FootstepMechVolume = v; },
+                0f, 2f, 0.1f, true));
+            accessSettings.Settings.Add(new CheckboxSetting("Footstep Terrain Variation",
+                () => RimWorldAccessMod_Settings.Settings?.FootstepTerrainVariation ?? true,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.FootstepTerrainVariation = v; },
+                "Play different sounds based on terrain type."));
+            accessSettings.Settings.Add(new CheckboxSetting("Footstep Stereo Panning",
+                () => RimWorldAccessMod_Settings.Settings?.FootstepStereoPan ?? true,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.FootstepStereoPan = v; },
+                "Pan footsteps left and right based on the pawn's screen position."));
+            accessSettings.Settings.Add(new CheckboxSetting("Footstep Zoom Volume Scaling",
+                () => RimWorldAccessMod_Settings.Settings?.FootstepZoomScaling ?? true,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.FootstepZoomScaling = v; },
+                "Reduce footstep volume when zoomed out."));
+            accessSettings.Settings.Add(new CheckboxSetting("Footstep Performance Mode",
+                () => RimWorldAccessMod_Settings.Settings?.FootstepPerformanceMode ?? false,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.FootstepPerformanceMode = v; },
+                "Limit footsteps to about 18 highest-priority pawns per tick."));
+
             categories.Add(accessSettings);
 
             // Mod Settings Category - list all mods that have settings
