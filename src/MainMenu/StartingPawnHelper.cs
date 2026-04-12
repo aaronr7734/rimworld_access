@@ -86,47 +86,24 @@ namespace RimWorldAccess
                 return root;
             }
 
-            // Game-start mode: pawns grouped under Selected/Left Behind headers
-            var selectedHeader = new InspectionTreeItem
-            {
-                Label = "StartingPawnsSelected".Translate(),
-                IndentLevel = 0,
-                Type = InspectionTreeItem.ItemType.Category,
-                IsExpandable = false,
-                Parent = root,
-                Data = new PawnTreeData { NodeType = PawnNodeType.GroupHeader }
-            };
-            root.Children.Add(selectedHeader);
+            // Game-start mode: pawns tagged with section name (Selected / Left Behind).
+            // Sections are announced on crossing (like Dialog_InfoCard) rather than
+            // occupying their own navigation row.
+            string selectedSection = "StartingPawnsSelected".Translate();
+            string leftBehindSection = "StartingPawnsLeftBehind".Translate();
 
             for (int i = 0; i < startingCount && i < pawns.Count; i++)
             {
                 var pawnNode = BuildPawnNode(pawns[i], i, root);
-                // GroupHeader's Children tracks pawns for structural queries
-                selectedHeader.Children.Add(pawnNode);
-                // But pawnNode is a direct child of root for navigation (flat at indent 1)
+                pawnNode.Description = selectedSection;
                 root.Children.Add(pawnNode);
             }
 
-            // Left behind group
-            if (pawns.Count > startingCount)
+            for (int i = startingCount; i < pawns.Count; i++)
             {
-                var leftBehindHeader = new InspectionTreeItem
-                {
-                    Label = "StartingPawnsLeftBehind".Translate(),
-                    IndentLevel = 0,
-                    Type = InspectionTreeItem.ItemType.Category,
-                    IsExpandable = false,
-                    Parent = root,
-                    Data = new PawnTreeData { NodeType = PawnNodeType.GroupHeader }
-                };
-                root.Children.Add(leftBehindHeader);
-
-                for (int i = startingCount; i < pawns.Count; i++)
-                {
-                    var pawnNode = BuildPawnNode(pawns[i], i, root);
-                    leftBehindHeader.Children.Add(pawnNode);
-                    root.Children.Add(pawnNode);
-                }
+                var pawnNode = BuildPawnNode(pawns[i], i, root);
+                pawnNode.Description = leftBehindSection;
+                root.Children.Add(pawnNode);
             }
 
             return root;
@@ -697,11 +674,18 @@ namespace RimWorldAccess
                 if (hediff.Part != null)
                     label += " (" + hediff.Part.Label + ")";
 
-                // Tooltip contains only the mechanical effects (label + body part already in Label)
+                // Inline the full hediff info: mechanical effects + def description
+                // (so screen-reader users don't need to open an info card)
                 string tipExtra = hediff.TipStringExtra;
-                string tooltip = !string.IsNullOrEmpty(tipExtra)
+                string mechanical = !string.IsNullOrEmpty(tipExtra)
                     ? tipExtra.Replace("\n", ", ").TrimEnd(',', ' ')
                     : null;
+                string description = hediff.def?.description;
+                string tooltip;
+                if (!string.IsNullOrEmpty(mechanical) && !string.IsNullOrEmpty(description))
+                    tooltip = mechanical + ". " + description;
+                else
+                    tooltip = mechanical ?? description;
 
                 healthNode.Children.Add(MakeLeaf(
                     label, 3, PawnCategoryType.Health, ptd.PawnIndex, healthNode,
@@ -746,9 +730,7 @@ namespace RimWorldAccess
             // Randomize (Alt+R)
             var randomizeOption = new FloatMenuOption("Randomize".Translate(), () =>
             {
-                StartingPawnUtility.RandomizePawn(pawnIndex);
-                TolkHelper.Speak("Pawn randomized");
-                rebuildCallback?.Invoke();
+                StartingPawnState.RandomizePawnAt(pawnIndex);
             });
             randomizeOption.tooltip = new TipSignal("Alt+R");
             options.Add(randomizeOption);
@@ -756,8 +738,7 @@ namespace RimWorldAccess
             // Rename (Alt+N)
             var renameOption = new FloatMenuOption("Rename".Translate(), () =>
             {
-                var allFields = NameFilter.First | NameFilter.Nick | NameFilter.Last | NameFilter.Title;
-                Find.WindowStack.Add(new Dialog_NamePawn(pawn, allFields, allFields, null));
+                StartingPawnState.RenamePawnAt(pawnIndex);
             });
             renameOption.tooltip = new TipSignal("Alt+N");
             options.Add(renameOption);
