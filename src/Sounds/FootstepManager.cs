@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -14,8 +15,10 @@ namespace RimWorldAccess
         public static FootstepManager Instance => instance;
 
         private const int PerformanceModeCap = 18;
+        private const int StepsPerFootstep = 2;
         private int _perfModeLastTick = -1;
         private int _perfModeTickCount;
+        private readonly Dictionary<int, int> _pawnStepCounters = new Dictionary<int, int>();
 
         private FootstepManager()
         {
@@ -25,6 +28,7 @@ namespace RimWorldAccess
         {
             _perfModeLastTick = -1;
             _perfModeTickCount = 0;
+            _pawnStepCounters.Clear();
         }
 
         /// <summary>
@@ -35,6 +39,18 @@ namespace RimWorldAccess
         {
             if (pawn == null || !pawn.Spawned || pawn.Destroyed) return;
             if (!FootstepClassifier.IsValidPawn(pawn)) return;
+
+            int pawnId = pawn.thingIDNumber;
+            int stepCount;
+            _pawnStepCounters.TryGetValue(pawnId, out stepCount);
+            stepCount++;
+            if (stepCount < StepsPerFootstep)
+            {
+                _pawnStepCounters[pawnId] = stepCount;
+                return;
+            }
+            _pawnStepCounters[pawnId] = 0;
+
             if (!FootstepSoundBank.EnsureInitialized()) return;
 
             FootstepCategory category = FootstepClassifier.ClassifyPawn(pawn);
