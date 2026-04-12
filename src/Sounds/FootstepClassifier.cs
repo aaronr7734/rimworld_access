@@ -1,4 +1,5 @@
 using RimWorld;
+using UnityEngine;
 using Verse;
 
 namespace RimWorldAccess
@@ -103,31 +104,43 @@ namespace RimWorldAccess
             }
         }
 
+        private const float MechPitchBase = 0.9f;
+        private const float MechPitchReferenceSize = 4f;
+        private const float MechPitchExponent = 0.4f;
+        private const float MechHighPassMinCutoff = 50f;
+        private const float MechHighPassMaxCutoff = 400f;
+        private const float MechHighPassExponent = 1.5f;
+
         public static float GetPitchMultiplier(Pawn pawn)
         {
             FootstepCategory category = ClassifyPawn(pawn);
-            float pitchMultiplier;
-            
+
             switch (category)
             {
                 case FootstepCategory.Human:
-                    pitchMultiplier = 1.0f;
-                    break;
+                    return 1.0f;
                 case FootstepCategory.LargeAnimal:
-                    pitchMultiplier = 0.85f;
-                    break;
+                    return 0.85f;
                 case FootstepCategory.SmallAnimal:
-                    pitchMultiplier = 1.2f;
-                    break;
+                    return 1.2f;
                 case FootstepCategory.Mechanoid:
-                    pitchMultiplier = 0.9f;
-                    break;
+                    return GetMechPitchMultiplier(pawn);
                 default:
-                    pitchMultiplier = 1.0f;
-                    break;
+                    return 1.0f;
             }
+        }
 
-            return pitchMultiplier;
+        public static float GetMechHighPassCutoff(Pawn pawn)
+        {
+            float bodySize = Mathf.Clamp(pawn.BodySize, 0.1f, MechPitchReferenceSize);
+            float normalized = 1f - (bodySize / MechPitchReferenceSize);
+            return MechHighPassMinCutoff + (MechHighPassMaxCutoff - MechHighPassMinCutoff) * Mathf.Pow(normalized, MechHighPassExponent);
+        }
+
+        private static float GetMechPitchMultiplier(Pawn pawn)
+        {
+            float bodySize = Mathf.Clamp(pawn.BodySize, 0.1f, MechPitchReferenceSize);
+            return MechPitchBase * Mathf.Pow(MechPitchReferenceSize / bodySize, MechPitchExponent);
         }
     }
 }

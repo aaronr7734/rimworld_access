@@ -184,6 +184,16 @@ namespace RimWorldAccess
                 pooledSource.Source.spatialBlend = 0f;
             }
 
+            if (pawn != null && FootstepClassifier.ClassifyPawn(pawn) == FootstepCategory.Mechanoid)
+            {
+                pooledSource.HighPassFilter.enabled = true;
+                pooledSource.HighPassFilter.cutoffFrequency = FootstepClassifier.GetMechHighPassCutoff(pawn);
+            }
+            else
+            {
+                pooledSource.HighPassFilter.enabled = false;
+            }
+
             float wallOcclusion = GetWallOcclusion(pawn);
             ApplySpatialMix(pooledSource, pawn, spatialProfile, wallOcclusion);
 
@@ -344,7 +354,11 @@ namespace RimWorldAccess
             ITDProcessor itdProcessor = sourceObject.AddComponent<ITDProcessor>();
             itdProcessor.SetEnabled(false);
 
-            audioSources.Add(new PooledAudioSource(source, lowPassFilter, reverbFilter, itdProcessor));
+            AudioHighPassFilter highPassFilter = sourceObject.AddComponent<AudioHighPassFilter>();
+            highPassFilter.enabled = false;
+            highPassFilter.highpassResonanceQ = 1.0f;
+
+            audioSources.Add(new PooledAudioSource(source, lowPassFilter, highPassFilter, reverbFilter, itdProcessor));
         }
 
         private static PooledAudioSource GetAvailableAudioSource()
@@ -537,16 +551,18 @@ namespace RimWorldAccess
 
         private sealed class PooledAudioSource
         {
-            public PooledAudioSource(AudioSource source, AudioLowPassFilter lowPassFilter, AudioReverbFilter reverbFilter, ITDProcessor itdProcessor)
+            public PooledAudioSource(AudioSource source, AudioLowPassFilter lowPassFilter, AudioHighPassFilter highPassFilter, AudioReverbFilter reverbFilter, ITDProcessor itdProcessor)
             {
                 Source = source;
                 LowPassFilter = lowPassFilter;
+                HighPassFilter = highPassFilter;
                 ReverbFilter = reverbFilter;
                 ITDProcessor = itdProcessor;
             }
 
             public AudioSource Source { get; }
             public AudioLowPassFilter LowPassFilter { get; }
+            public AudioHighPassFilter HighPassFilter { get; }
             public AudioReverbFilter ReverbFilter { get; }
             public ITDProcessor ITDProcessor { get; }
         }
