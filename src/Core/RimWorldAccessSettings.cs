@@ -159,8 +159,8 @@ namespace RimWorldAccess
                 "Play different sounds based on terrain type.");
             listing.CheckboxLabeled("  Stereo panning", ref Settings.FootstepStereoPan,
                 "Pan footsteps left and right based on the pawn's screen position.");
-            listing.CheckboxLabeled("  Zoom volume scaling", ref Settings.FootstepZoomScaling,
-                "Reduce footstep volume when zoomed out.");
+            listing.CheckboxLabeled("  Wall occlusion", ref Settings.FootstepZoomScaling,
+                "Muffle footsteps behind walls, fading with zoom so distant pawns become audible as you zoom out. Off = all footsteps audible regardless of walls.");
             listing.CheckboxLabeled("  Performance mode", ref Settings.FootstepPerformanceMode,
                 "Limit footsteps to about 18 highest-priority pawns per tick.");
 

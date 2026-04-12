@@ -119,9 +119,12 @@ namespace RimWorldAccess
         private static bool debugTerrainLogging;
         private static int debugFootstepCounter;
 
-        // Wall occlusion: cached listener room (refreshed once per tick)
-        private static Room cachedListenerRoom;
-        private static int cachedListenerRoomTick = -1;
+        // Wall occlusion: cached listener context (refreshed once per tick).
+        // Normal cells resolve to one room / one region. Wall cells resolve to up to 4
+        // adjacent rooms/regions (the rooms the wall separates).
+        private static readonly List<Room> cachedListenerRooms = new List<Room>();
+        private static readonly HashSet<Region> cachedListenerRegions = new HashSet<Region>();
+        private static int cachedListenerContextTick = -1;
         private const int MaxOcclusionBFSRegions = 30;
         private const float FullOcclusionFactor = 0.15f;
         private const float WallOcclusionBase = 0.3f;
@@ -150,10 +153,10 @@ namespace RimWorldAccess
                 audioSourceRoot = null;
             }
             cachedCamera = null;
-            cachedListenerRoom = null;
-            cachedListenerRoomTick = -1;
+            cachedListenerRooms.Clear();
+            cachedListenerRegions.Clear();
+            cachedListenerContextTick = -1;
             ScreenPanUtility.ClearCachedCamera();
-            CameraZoomUtility.ClearCachedCamera();
         }
 
         public static bool PlayFootstep(Pawn pawn, TerrainDef terrain, float volume, FootstepSpatialProfile spatialProfile)
@@ -386,7 +389,9 @@ namespace RimWorldAccess
             pooledSource.LowPassFilter.cutoffFrequency = Mathf.Lerp(OccludedCutoffHz, baseCutoff, wallOcclusion);
             pooledSource.LowPassFilter.lowpassResonanceQ = 1.05f;
 
-            Room room = pawn?.GetRoom();
+            Room room = (pawn != null && pawn.Map != null)
+                ? ResolveReverbRoom(pawn.Position, pawn.Map)
+                : null;
             if (room == null || room.PsychologicallyOutdoors)
             {
                 pooledSource.ReverbFilter.enabled = false;
@@ -399,46 +404,87 @@ namespace RimWorldAccess
             pooledSource.Source.reverbZoneMix = GetRoomReverbIntensity(room);
         }
 
-        private static Room GetListenerRoom()
+        // Refreshes cachedListenerRooms / cachedListenerRegions for the current tick.
+        // Cursor on a normal cell -> one room/region. Cursor on a wall cell (null room)
+        // -> up to four adjacent rooms/regions (the rooms the wall separates).
+        private static void EnsureListenerContext(Map map)
         {
             int tick = Find.TickManager?.TicksGame ?? -1;
-            if (tick == cachedListenerRoomTick)
-                return cachedListenerRoom;
+            if (tick == cachedListenerContextTick) return;
 
-            Map map = Find.CurrentMap;
-            if (map == null) return null;
+            cachedListenerRooms.Clear();
+            cachedListenerRegions.Clear();
+            cachedListenerContextTick = tick;
 
-            IntVec3 listenerPos = MapNavigationState.CurrentCursorPosition;
-            if (listenerPos.IsValid && listenerPos.InBounds(map))
+            if (map == null) return;
+
+            IntVec3 cell = MapNavigationState.CurrentCursorPosition;
+            if (!cell.IsValid || !cell.InBounds(map)) return;
+
+            Room direct = cell.GetRoom(map);
+            if (direct != null)
             {
-                cachedListenerRoom = listenerPos.GetRoom(map);
-                cachedListenerRoomTick = tick;
+                cachedListenerRooms.Add(direct);
+                Region reg = cell.GetRegion(map, RegionType.Set_All);
+                if (reg != null) cachedListenerRegions.Add(reg);
+                return;
             }
-            return cachedListenerRoom;
+
+            // Wall cell — gather rooms/regions from cardinal neighbors so the listener
+            // "hears from" whichever adjacent room the pawn is in.
+            foreach (IntVec3 dir in GenAdj.CardinalDirections)
+            {
+                IntVec3 adj = cell + dir;
+                if (!adj.InBounds(map)) continue;
+
+                Room r = adj.GetRoom(map);
+                if (r != null && !cachedListenerRooms.Contains(r)) cachedListenerRooms.Add(r);
+
+                Region adjReg = adj.GetRegion(map, RegionType.Set_All);
+                if (adjReg != null) cachedListenerRegions.Add(adjReg);
+            }
         }
 
         private static float GetWallOcclusion(Pawn pawn)
         {
+            float raw = ComputeRawWallOcclusion(pawn);
+            float strength = CameraZoomUtility.GetOcclusionStrength();
+            return Mathf.Lerp(1f, raw, strength);
+        }
+
+        private static float ComputeRawWallOcclusion(Pawn pawn)
+        {
             if (pawn == null) return 1f;
 
-            Room pawnRoom = pawn.GetRoom();
-            Room listenerRoom = GetListenerRoom();
-
-            if (pawnRoom == null || listenerRoom == null) return 1f;
-            if (pawnRoom == listenerRoom) return 1f;
-            if (pawnRoom.PsychologicallyOutdoors && listenerRoom.PsychologicallyOutdoors) return 1f;
-
             Map map = pawn.Map;
-            if (map == null) return WallOcclusionBase;
+            if (map == null) return 1f;
+
+            EnsureListenerContext(map);
+
+            // No listener context at all (cursor in void / off-map) -> no occlusion.
+            if (cachedListenerRooms.Count == 0) return 1f;
+
+            Room pawnRoom = pawn.GetRoom();
+            if (pawnRoom == null) return 1f;
+
+            // Same-room — covers both literal same-room and "pawn is in one of the rooms
+            // a shared wall separates" (cursor on shared wall -> hear both sides).
+            if (cachedListenerRooms.Contains(pawnRoom)) return 1f;
+
+            // Pawn outdoors and every listener-candidate room outdoors -> no occlusion.
+            if (pawnRoom.PsychologicallyOutdoors)
+            {
+                bool anyIndoorListener = false;
+                for (int i = 0; i < cachedListenerRooms.Count; i++)
+                {
+                    if (!cachedListenerRooms[i].PsychologicallyOutdoors) { anyIndoorListener = true; break; }
+                }
+                if (!anyIndoorListener) return 1f;
+            }
 
             Region pawnRegion = pawn.Position.GetRegion(map, RegionType.Set_All);
-            IntVec3 listenerPos = MapNavigationState.CurrentCursorPosition;
-            Region listenerRegion = listenerPos.IsValid && listenerPos.InBounds(map)
-                ? listenerPos.GetRegion(map, RegionType.Set_All)
-                : null;
-
-            if (pawnRegion == null || listenerRegion == null) return WallOcclusionBase;
-            if (pawnRegion == listenerRegion) return 1f;
+            if (pawnRegion == null || cachedListenerRegions.Count == 0) return WallOcclusionBase;
+            if (cachedListenerRegions.Contains(pawnRegion)) return 1f;
 
             int openDoors = 0;
             int closedDoors = 0;
@@ -449,7 +495,7 @@ namespace RimWorldAccess
                 RegionTraverser.PassAll,
                 (Region reg) =>
                 {
-                    if (reg == listenerRegion)
+                    if (cachedListenerRegions.Contains(reg))
                     {
                         reachedListener = true;
                         return true;
@@ -473,6 +519,31 @@ namespace RimWorldAccess
                 + closedDoors * ClosedDoorBonus;
 
             return Mathf.Clamp01(occlusion);
+        }
+
+        // Resolves the best Room for reverb purposes. Doorway and wall cells often inherit
+        // the larger adjacent room's acoustics; prefer the smaller adjacent indoor room instead
+        // so a cursor on a doorway doesn't boom like the hall it connects to.
+        private static Room ResolveReverbRoom(IntVec3 cell, Map map)
+        {
+            if (map == null || !cell.IsValid || !cell.InBounds(map)) return null;
+
+            Region reg = cell.GetRegion(map, RegionType.Set_All);
+            bool isDoorway = reg != null && reg.IsDoorway;
+            Room direct = cell.GetRoom(map);
+
+            if (!isDoorway && direct != null) return direct;
+
+            Room best = null;
+            foreach (IntVec3 dir in GenAdj.CardinalDirections)
+            {
+                IntVec3 adj = cell + dir;
+                if (!adj.InBounds(map)) continue;
+                Room r = adj.GetRoom(map);
+                if (r == null || r.PsychologicallyOutdoors) continue;
+                if (best == null || r.CellCount < best.CellCount) best = r;
+            }
+            return best ?? direct;
         }
 
         private static AudioReverbPreset GetRoomReverbPreset(Room room)
@@ -518,12 +589,10 @@ namespace RimWorldAccess
             pooledSource.Source.spatialBlend = 0f;
             pooledSource.ITDProcessor.SetEnabled(false);
 
-            // Apply room reverb at the cursor position
+            // Apply room reverb at the cursor position (doorway/wall-aware).
             IntVec3 cursorPos = MapNavigationState.CurrentCursorPosition;
             Map map = Find.CurrentMap;
-            Room room = (map != null && cursorPos.IsValid && cursorPos.InBounds(map))
-                ? cursorPos.GetRoom(map)
-                : null;
+            Room room = ResolveReverbRoom(cursorPos, map);
 
             if (room == null || room.PsychologicallyOutdoors)
             {

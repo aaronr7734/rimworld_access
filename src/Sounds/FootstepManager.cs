@@ -78,11 +78,6 @@ namespace RimWorldAccess
             volume *= profile.Audibility;
             volume *= GetMixVolumeScale(profile, focused, pawn);
 
-            if (RimWorldAccessMod_Settings.Settings.FootstepZoomScaling)
-            {
-                volume *= CameraZoomUtility.GetZoomVolumeScale();
-            }
-
             volume = Mathf.Clamp(volume, 0f, 1.35f);
             if (volume <= 0.025f) return;
 

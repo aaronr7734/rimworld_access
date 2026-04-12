@@ -674,10 +674,10 @@ namespace RimWorldAccess
                 () => RimWorldAccessMod_Settings.Settings?.FootstepStereoPan ?? true,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.FootstepStereoPan = v; },
                 "Pan footsteps left and right based on the pawn's screen position."));
-            accessSettings.Settings.Add(new CheckboxSetting("Footstep Zoom Volume Scaling",
+            accessSettings.Settings.Add(new CheckboxSetting("Footstep Wall Occlusion",
                 () => RimWorldAccessMod_Settings.Settings?.FootstepZoomScaling ?? true,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.FootstepZoomScaling = v; },
-                "Reduce footstep volume when zoomed out."));
+                "Muffle footsteps behind walls, fading with zoom so distant pawns become audible as you zoom out. Off = all footsteps audible regardless of walls."));
             accessSettings.Settings.Add(new CheckboxSetting("Footstep Performance Mode",
                 () => RimWorldAccessMod_Settings.Settings?.FootstepPerformanceMode ?? false,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.FootstepPerformanceMode = v; },
