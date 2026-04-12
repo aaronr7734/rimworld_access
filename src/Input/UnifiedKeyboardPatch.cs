@@ -5844,8 +5844,9 @@ namespace RimWorldAccess
                 }
             }
 
-            // ===== PRIORITY 6.55: Announce time (T) or performance (Shift+T) =====
-            if (key == KeyCode.T && !Event.current.control && !KeyboardHelper.IsAltHeld)
+            // ===== PRIORITY 6.55: Announce time (T) or performance (Alt+T) =====
+            // Shift+T is intentionally ignored here so it can reach any gizmo whose hotkey is T.
+            if (key == KeyCode.T && !Event.current.control && !Event.current.shift)
             {
                 // Only announce if:
                 // 1. We're in gameplay (not at main menu)
@@ -5857,7 +5858,7 @@ namespace RimWorldAccess
                     (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
                     !ZoneCreationState.IsInCreationMode)
                 {
-                    if (Event.current.shift)
+                    if (KeyboardHelper.IsAltHeld)
                     {
                         // Announce performance (actual vs requested TPS)
                         PerformanceAnnouncementState.AnnouncePerformance();
