@@ -1,5 +1,7 @@
+using RimWorld;
 using UnityEngine;
 using Verse;
+using Verse.Sound;
 
 namespace RimWorldAccess
 {
@@ -69,6 +71,58 @@ namespace RimWorldAccess
         {
             cachedCamera = null;
             lastFrameCameraChecked = -1;
+        }
+
+        private const float ZoomStep = 4f;
+        private static Verse.CameraZoomRange? lastAnnouncedZoom;
+
+        public static void ZoomIn()
+        {
+            AdjustZoom(-ZoomStep, "in");
+        }
+
+        public static void ZoomOut()
+        {
+            AdjustZoom(ZoomStep, "out");
+        }
+
+        private static void AdjustZoom(float delta, string directionWord)
+        {
+            CameraDriver driver = Find.CameraDriver;
+            if (driver == null) return;
+
+            var range = driver.config.sizeRange;
+            float previousSize = driver.RootSize;
+            float newSize = Mathf.Clamp(previousSize + delta, range.min, range.max);
+
+            if (Mathf.Approximately(newSize, previousSize))
+            {
+                TolkHelper.Speak("Zoom limit", SpeechPriority.Low);
+                return;
+            }
+
+            driver.SetRootSize(newSize);
+            SoundDefOf.DragSlider?.PlayOneShotOnCamera();
+
+            Verse.CameraZoomRange currentZoom = driver.CurrentZoom;
+            if (lastAnnouncedZoom != currentZoom)
+            {
+                lastAnnouncedZoom = currentZoom;
+                TolkHelper.Speak(GetZoomLabel(currentZoom), SpeechPriority.Low);
+            }
+        }
+
+        private static string GetZoomLabel(Verse.CameraZoomRange zoom)
+        {
+            switch (zoom)
+            {
+                case Verse.CameraZoomRange.Closest: return "Zoom: closest";
+                case Verse.CameraZoomRange.Close: return "Zoom: close";
+                case Verse.CameraZoomRange.Middle: return "Zoom: middle";
+                case Verse.CameraZoomRange.Far: return "Zoom: far";
+                case Verse.CameraZoomRange.Furthest: return "Zoom: furthest";
+                default: return "Zoom changed";
+            }
         }
     }
 }

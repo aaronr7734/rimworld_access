@@ -4098,6 +4098,32 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 4.76: Camera zoom (equals/minus keys on map) =====
+            if (Current.ProgramState == ProgramState.Playing &&
+                Find.CurrentMap != null &&
+                MapNavigationState.IsInitialized &&
+                !WorldNavigationState.IsActive &&
+                !GoToState.IsActive &&
+                !ScannerSearchState.IsActive &&
+                !KeyboardHelper.IsAnyAccessibilityMenuActive() &&
+                !Event.current.shift &&
+                !Event.current.control &&
+                !KeyboardHelper.IsAltHeld)
+            {
+                if (key == KeyCode.Equals || key == KeyCode.KeypadPlus)
+                {
+                    CameraZoomUtility.ZoomIn();
+                    Event.current.Use();
+                    return;
+                }
+                if (key == KeyCode.Minus || key == KeyCode.KeypadMinus)
+                {
+                    CameraZoomUtility.ZoomOut();
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 4.77: Handle notification menu if active =====
             if (NotificationMenuState.IsActive)
             {
