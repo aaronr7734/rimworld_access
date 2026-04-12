@@ -847,6 +847,52 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Focuses the colonist/mech bar on whatever pawn is standing under the map cursor.
+        /// Announces "Not on colonist bar" if the cursor is not over a bar-eligible pawn.
+        /// </summary>
+        public static void FocusPawnByCursor()
+        {
+            Map map = Find.CurrentMap;
+            if (map == null)
+            {
+                TolkHelper.Speak("Not on colonist bar");
+                return;
+            }
+
+            IntVec3 cursor = MapNavigationState.CurrentCursorPosition;
+            if (!cursor.IsValid || !cursor.InBounds(map))
+            {
+                TolkHelper.Speak("Not on colonist bar");
+                return;
+            }
+
+            Pawn pawn = cursor.GetThingList(map)
+                .OfType<Pawn>()
+                .FirstOrDefault(p => p != null && p.Spawned);
+
+            if (pawn == null)
+            {
+                TolkHelper.Speak("Not on colonist bar");
+                return;
+            }
+
+            CheckMapChange();
+            var colonists = GetColonists();
+            var mechs = GetMechs();
+            bool inColonists = colonists.Contains(pawn);
+            bool inMechs = !inColonists && mechs.Contains(pawn);
+            if (!inColonists && !inMechs)
+            {
+                TolkHelper.Speak("Not on colonist bar");
+                return;
+            }
+
+            SelectPawnInGame(pawn);
+            SyncBarPosition(pawn);
+            AnnouncePawn(pawn, (onMechSection ? mechs : colonists).Count);
+        }
+
+        /// <summary>
         /// Returns the pawn at the current bar position without selecting it.
         /// </summary>
         public static Pawn GetPawnAtCurrentPosition()

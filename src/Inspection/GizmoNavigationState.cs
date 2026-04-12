@@ -1269,6 +1269,10 @@ namespace RimWorldAccess
 
             string announcement = ownerPrefix + label;
 
+            // Hotkey immediately after the title, before any description / stats.
+            if (!string.IsNullOrEmpty(hotkey))
+                announcement += $" ({hotkey})";
+
             // For Command_Toggle, include current ON/OFF state (sighted players see a checkbox)
             if (gizmo is Command_Toggle toggle)
             {
@@ -1280,12 +1284,12 @@ namespace RimWorldAccess
             if (!string.IsNullOrEmpty(statusValue))
                 announcement += $": {statusValue}";
 
-            // For non-ability gizmos, add description before hotkey
             bool isAbility = gizmo is Command_Ability;
+
+            // For non-ability gizmos, append description after the hotkey/state
             if (!string.IsNullOrEmpty(description) && !isAbility)
             {
-                // Toggles already have ": ON/OFF", so use period separator instead of colon
-                string descSep = (gizmo is Command_Toggle)
+                string descSep = (gizmo is Command_Toggle || !string.IsNullOrEmpty(statusValue))
                     ? (announcement.EndsWith(".") ? " " : ". ")
                     : ": ";
                 announcement += descSep + description;
@@ -1300,34 +1304,24 @@ namespace RimWorldAccess
                 announcement += $"{sep}Range: {attackRange:F0} tiles from master";
             }
 
-            // For abilities, hotkey goes at the end; for everything else, add it here
-            if (!isAbility && !string.IsNullOrEmpty(hotkey))
-                announcement += $" ({hotkey})";
-
-            // For Command_Ability (psycasts, abilities), add cost, range, cooldown, description, then hotkey
+            // For Command_Ability (psycasts, abilities), append cost, range, cooldown, then description.
+            // The hotkey was already spoken right after the title.
             if (isAbility && gizmo is Command_Ability commandAbility && commandAbility.Ability != null)
             {
                 string costInfo = GetAbilityCostInfo(commandAbility.Ability);
                 if (!string.IsNullOrEmpty(costInfo))
                     announcement += (announcement.EndsWith(".") ? " " : ". ") + costInfo;
 
-                // Add range info after cost
                 string rangeInfo = GetAbilityRangeInfo(commandAbility.Ability);
                 if (!string.IsNullOrEmpty(rangeInfo))
                     announcement += (announcement.EndsWith(".") ? " " : ". ") + rangeInfo;
 
-                // Add cooldown info after range
                 string cooldownInfo = GetAbilityCooldownInfo(commandAbility.Ability);
                 if (!string.IsNullOrEmpty(cooldownInfo))
                     announcement += (announcement.EndsWith(".") ? " " : ". ") + cooldownInfo;
 
-                // Add ability description after cooldown info
                 if (!string.IsNullOrEmpty(description))
                     announcement += (announcement.EndsWith(".") ? " " : ". ") + description;
-
-                // Hotkey last for abilities
-                if (!string.IsNullOrEmpty(hotkey))
-                    announcement += $" ({hotkey})";
             }
 
             // Add disabled status if applicable
@@ -2213,7 +2207,10 @@ namespace RimWorldAccess
                 KeyCode key = cmd.hotKey.MainKey;
                 if (key != KeyCode.None)
                 {
-                    return key.ToStringReadable();
+                    string prefix = GizmoHotkeyShiftPatch.IsShiftExempt(cmd.hotKey)
+                        ? ""
+                        : GizmoHotkeyShiftPatch.ShiftPrefix;
+                    return prefix + key.ToStringReadable();
                 }
             }
             return "";

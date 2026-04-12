@@ -5844,8 +5844,9 @@ namespace RimWorldAccess
                 }
             }
 
-            // ===== PRIORITY 6.55: Announce time (T) or performance (Shift+T) =====
-            if (key == KeyCode.T && !Event.current.control && !KeyboardHelper.IsAltHeld)
+            // ===== PRIORITY 6.55: Announce time (T) or performance (Alt+T) =====
+            // Shift+T is intentionally ignored here so it can reach any gizmo whose hotkey is T.
+            if (key == KeyCode.T && !Event.current.control && !Event.current.shift)
             {
                 // Only announce if:
                 // 1. We're in gameplay (not at main menu)
@@ -5857,7 +5858,7 @@ namespace RimWorldAccess
                     (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
                     !ZoneCreationState.IsInCreationMode)
                 {
-                    if (Event.current.shift)
+                    if (KeyboardHelper.IsAltHeld)
                     {
                         // Announce performance (actual vs requested TPS)
                         PerformanceAnnouncementState.AnnouncePerformance();
@@ -6143,6 +6144,21 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 7.14: Bare / - focus colonist/mech bar on pawn under cursor =====
+            if (key == KeyCode.Slash && !Event.current.shift && !Event.current.control && !KeyboardHelper.IsAltHeld)
+            {
+                if (Current.ProgramState == ProgramState.Playing &&
+                    Find.CurrentMap != null &&
+                    (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
+                    !ZoneCreationState.IsInCreationMode &&
+                    MapNavigationState.IsInitialized)
+                {
+                    ColonistBarState.FocusPawnByCursor();
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 7.15: Open learning helper with ? key (Shift+/ on US, remapped on non-US) =====
             if (key == KeyCode.Slash && (Event.current.shift || KeyboardHelper.WasCharacterRemapped))
             {
@@ -6422,6 +6438,90 @@ namespace RimWorldAccess
                 return;
             }
 
+            // ===== PRIORITY 10: Handle left bracket [ key - execute top context menu option =====
+            // Bare [  => issue order immediately ("PawnName: action")
+            // Shift+[ => queue order (KeyBindingDefOf.QueueOrder picks up the shift during action())
+            if (key == KeyCode.LeftBracket)
+            {
+                if (Find.World?.renderer?.wantedMode == RimWorld.Planet.WorldRenderMode.Planet)
+                    return;
+                if (Find.CurrentMap == null)
+                    return;
+                if (Find.WindowStack != null && Find.WindowStack.WindowsPreventCameraMotion)
+                    return;
+                if (!MapNavigationState.IsInitialized)
+                    return;
+
+                IntVec3 lbCursor = MapNavigationState.CurrentCursorPosition;
+                Map lbMap = Find.CurrentMap;
+                if (!lbCursor.IsValid || !lbCursor.InBounds(lbMap))
+                {
+                    TolkHelper.Speak("Invalid position");
+                    Event.current.Use();
+                    return;
+                }
+
+                if (Find.Selector == null || !Find.Selector.SelectedPawns.Any())
+                {
+                    TolkHelper.Speak("No pawn selected");
+                    Event.current.Use();
+                    return;
+                }
+
+                List<Pawn> lbPawns = Find.Selector.SelectedPawns.ToList();
+                Vector3 lbClickPos = lbCursor.ToVector3Shifted();
+                List<FloatMenuOption> lbOptions = FloatMenuMakerMap.GetOptions(
+                    lbPawns,
+                    lbClickPos,
+                    out FloatMenuContext _
+                );
+
+                if (lbOptions == null || lbOptions.Count == 0)
+                {
+                    TolkHelper.Speak("No available actions");
+                    Event.current.Use();
+                    return;
+                }
+
+                bool queueing = Event.current.shift;
+                bool multiFeedback = MultiSelectState.IsMultiSelectActive && lbPawns.Count > 1;
+
+                // For multi-select, wrap all options so the invoked action announces per-pawn
+                // success/failure (same behavior as pressing Enter on the top option from the
+                // right-bracket menu). For single pawn we announce ourselves below.
+                if (multiFeedback)
+                    WrapOptionsForMultiSelectFeedback(lbOptions, lbPawns);
+
+                FloatMenuOption top = lbOptions[0];
+
+                if (top.Disabled)
+                {
+                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                    string singlePrefix = lbPawns.Count == 1 ? lbPawns[0].LabelShort + ": " : "";
+                    TolkHelper.Speak($"{singlePrefix}{top.Label}, unavailable");
+                    Event.current.Use();
+                    return;
+                }
+
+                // Action is invoked with Event.current.shift intact so KeyBindingDefOf.QueueOrder.IsDownEvent
+                // evaluates true when queueing — no need to pass colonistOrdering=true (we play the sound ourselves).
+                SoundDefOf.ColonistOrdered.PlayOneShotOnCamera();
+                top.Chosen(false, null);
+
+                // Multi-select: the wrapped action already announced per-pawn feedback.
+                if (!multiFeedback)
+                {
+                    string prefix = lbPawns[0].LabelShort;
+                    if (queueing)
+                        TolkHelper.Speak($"{prefix}: {top.Label}, {"Queued".Translate()}");
+                    else
+                        TolkHelper.Speak($"{prefix}: {top.Label}");
+                }
+
+                Event.current.Use();
+                return;
+            }
+
             // ===== PRIORITY 10: Handle right bracket ] key for colonist orders =====
             if (key == KeyCode.RightBracket)
             {
@@ -6477,82 +6577,11 @@ namespace RimWorldAccess
                     // If multi-select is active, wrap actions with feedback and inject formation option
                     if (MultiSelectState.IsMultiSelectActive && selectedPawns.Count > 1)
                     {
-                        // 1. FIRST: Wrap existing options with job-diff feedback
-                        // (before inserting formation, so formation doesn't get wrapped)
-                        var capturedPawns = selectedPawns.ToList();
-                        string everyone = ((string)"ConfirmAbandonHomeNegativeThoughts_Everyone".Translate()).TrimEnd(':', ' ');
-                        for (int i = 0; i < options.Count; i++)
-                        {
-                            var opt = options[i];
-                            if (!opt.Disabled && opt.action != null)
-                            {
-                                var originalAction = opt.action;
-                                var optLabel = opt.Label;
-                                opt.action = () =>
-                                {
-                                    // Snapshot jobs AND queue counts before action
-                                    var jobsBefore = new Dictionary<Pawn, Verse.AI.Job>();
-                                    var queueCountsBefore = new Dictionary<Pawn, int>();
-                                    foreach (var p in capturedPawns)
-                                    {
-                                        jobsBefore[p] = p.jobs?.curJob;
-                                        queueCountsBefore[p] = p.jobs?.jobQueue?.Count ?? 0;
-                                    }
+                        // Wrap existing options first (formation option injected below stays unwrapped
+                        // — it enters placement mode and issues jobs later in LineFormationState.Confirm).
+                        WrapOptionsForMultiSelectFeedback(options, selectedPawns);
 
-                                    bool targeterWasActive = Find.Targeter?.IsTargeting ?? false;
-
-                                    originalAction.Invoke();
-
-                                    // Check if targeting mode was activated (attack/ability actions)
-                                    bool targeterNowActive = Find.Targeter?.IsTargeting ?? false;
-                                    if (!targeterWasActive && targeterNowActive)
-                                    {
-                                        TolkHelper.Speak($"{everyone} {optLabel}", SpeechPriority.Low);
-                                        return;
-                                    }
-
-                                    // Determine which pawns got new jobs or had jobs queued
-                                    var succeeded = capturedPawns
-                                        .Where(p =>
-                                            p.jobs?.curJob != jobsBefore[p] ||
-                                            (p.jobs?.jobQueue?.Count ?? 0) > queueCountsBefore[p])
-                                        .ToList();
-                                    var unchanged = capturedPawns
-                                        .Where(p =>
-                                            p.jobs?.curJob == jobsBefore[p] &&
-                                            (p.jobs?.jobQueue?.Count ?? 0) <= queueCountsBefore[p])
-                                        .ToList();
-
-                                    if (unchanged.Count == 0)
-                                    {
-                                        TolkHelper.Speak($"{everyone} {optLabel}", SpeechPriority.Low);
-                                    }
-                                    else if (succeeded.Count == 0)
-                                    {
-                                        TolkHelper.Speak($"No one could {optLabel}", SpeechPriority.Low);
-                                    }
-                                    else if (unchanged.Count <= succeeded.Count)
-                                    {
-                                        string names = MenuHelper.FormatNameList(
-                                            unchanged.Select(p => p.LabelShort).ToList());
-                                        TolkHelper.Speak(
-                                            $"{everyone} except {names} {optLabel}",
-                                            SpeechPriority.Low);
-                                    }
-                                    else
-                                    {
-                                        string names = MenuHelper.FormatNameList(
-                                            succeeded.Select(p => p.LabelShort).ToList());
-                                        TolkHelper.Speak(
-                                            $"Only {names} {optLabel}",
-                                            SpeechPriority.Low);
-                                    }
-                                };
-                            }
-                        }
-
-                        // 2. THEN: Insert formation option (unwrapped, since it enters
-                        // placement mode — jobs are issued later in LineFormationState.Confirm)
+                        // Insert formation option just after the GoHere entry.
                         int goHereIndex = options.FindIndex(o =>
                             o.Label != null && (
                                 o.Label == "GoHere".Translate() ||
@@ -7113,6 +7142,84 @@ namespace RimWorldAccess
         }
 
         #endregion
+
+        /// <summary>
+        /// Wraps each option's action so that, after invocation, it announces per-pawn
+        /// success/failure feedback ("Everyone X", "No one could X", "Everyone except A, B X",
+        /// "Only A, B X"). Used for both right-bracket (navigated menu) and left-bracket
+        /// (top-option execution) when multi-select is active.
+        /// </summary>
+        private static void WrapOptionsForMultiSelectFeedback(List<FloatMenuOption> options, List<Pawn> selectedPawns)
+        {
+            var capturedPawns = selectedPawns.ToList();
+            string everyone = ((string)"ConfirmAbandonHomeNegativeThoughts_Everyone".Translate()).TrimEnd(':', ' ');
+            for (int i = 0; i < options.Count; i++)
+            {
+                var opt = options[i];
+                if (opt.Disabled || opt.action == null)
+                    continue;
+
+                var originalAction = opt.action;
+                var optLabel = opt.Label;
+                opt.action = () =>
+                {
+                    var jobsBefore = new Dictionary<Pawn, Verse.AI.Job>();
+                    var queueCountsBefore = new Dictionary<Pawn, int>();
+                    foreach (var p in capturedPawns)
+                    {
+                        jobsBefore[p] = p.jobs?.curJob;
+                        queueCountsBefore[p] = p.jobs?.jobQueue?.Count ?? 0;
+                    }
+
+                    bool targeterWasActive = Find.Targeter?.IsTargeting ?? false;
+
+                    originalAction.Invoke();
+
+                    bool targeterNowActive = Find.Targeter?.IsTargeting ?? false;
+                    if (!targeterWasActive && targeterNowActive)
+                    {
+                        TolkHelper.Speak($"{everyone} {optLabel}", SpeechPriority.Low);
+                        return;
+                    }
+
+                    var succeeded = capturedPawns
+                        .Where(p =>
+                            p.jobs?.curJob != jobsBefore[p] ||
+                            (p.jobs?.jobQueue?.Count ?? 0) > queueCountsBefore[p])
+                        .ToList();
+                    var unchanged = capturedPawns
+                        .Where(p =>
+                            p.jobs?.curJob == jobsBefore[p] &&
+                            (p.jobs?.jobQueue?.Count ?? 0) <= queueCountsBefore[p])
+                        .ToList();
+
+                    if (unchanged.Count == 0)
+                    {
+                        TolkHelper.Speak($"{everyone} {optLabel}", SpeechPriority.Low);
+                    }
+                    else if (succeeded.Count == 0)
+                    {
+                        TolkHelper.Speak($"No one could {optLabel}", SpeechPriority.Low);
+                    }
+                    else if (unchanged.Count <= succeeded.Count)
+                    {
+                        string names = MenuHelper.FormatNameList(
+                            unchanged.Select(p => p.LabelShort).ToList());
+                        TolkHelper.Speak(
+                            $"{everyone} except {names} {optLabel}",
+                            SpeechPriority.Low);
+                    }
+                    else
+                    {
+                        string names = MenuHelper.FormatNameList(
+                            succeeded.Select(p => p.LabelShort).ToList());
+                        TolkHelper.Speak(
+                            $"Only {names} {optLabel}",
+                            SpeechPriority.Low);
+                    }
+                };
+            }
+        }
 
 }
 }
