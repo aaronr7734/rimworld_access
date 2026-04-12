@@ -19,6 +19,19 @@ namespace RimWorldAccess
 
         public static float GetFixedListenerY() => FixedListenerY;
 
+        // World-space position of the current audio listener anchor (pawn when camera is
+        // following a pawn, camera otherwise). Consumers reading this for pan/distance
+        // math should use XZ only; Y is pinned and not meaningful for map-space geometry.
+        public static Vector3 GetListenerWorldPosition()
+        {
+            if (proxyGO != null) return proxyGO.transform.position;
+            Camera cam = Find.Camera;
+            if (cam == null) return Vector3.zero;
+            Vector3 p = cam.transform.position;
+            p.y = FixedListenerY;
+            return p;
+        }
+
         [HarmonyPostfix]
         public static void Postfix()
         {
@@ -36,9 +49,7 @@ namespace RimWorldAccess
                 initialized = true;
             }
 
-            Vector3 p = cam.transform.position;
-            p.y = FixedListenerY;
-            proxyGO.transform.position = p;
+            proxyGO.transform.position = ResolveListenerAnchor(cam);
             proxyGO.transform.rotation = cam.transform.rotation;
 
             // RimWorld's "OneShotOnCamera" sources are parented to the camera so they sit
@@ -50,6 +61,28 @@ namespace RimWorldAccess
                 camContainer.transform.SetParent(proxyGO.transform, worldPositionStays: false);
                 camContainer.transform.localPosition = Vector3.zero;
             }
+        }
+
+        // When the user is following a specific pawn (camera mode = Pawn), anchor the
+        // listener directly on the pawn so audio pans relative to that pawn rather than
+        // to the camera (which lags behind pawn motion). Any arrow-key pan flips the
+        // mode back to Cursor and the listener falls back to the camera anchor.
+        private static Vector3 ResolveListenerAnchor(Camera cam)
+        {
+            if (MapNavigationState.CurrentCameraMode == CameraFollowMode.Pawn)
+            {
+                Pawn pawn = Find.Selector?.SingleSelectedThing as Pawn;
+                if (pawn != null && pawn.Spawned && pawn.Map == Find.CurrentMap)
+                {
+                    Vector3 p = pawn.DrawPos;
+                    p.y = FixedListenerY;
+                    return p;
+                }
+            }
+
+            Vector3 camPos = cam.transform.position;
+            camPos.y = FixedListenerY;
+            return camPos;
         }
     }
 

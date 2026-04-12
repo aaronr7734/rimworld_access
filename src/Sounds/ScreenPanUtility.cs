@@ -80,14 +80,14 @@ namespace RimWorldAccess
                 return false;
             }
 
-            Vector3 cameraMapPosition;
-            if (!TryGetCameraMapPosition(out cameraMapPosition))
+            Vector3 listenerMapPosition;
+            if (!TryGetListenerMapPosition(out listenerMapPosition))
             {
                 return false;
             }
 
-            float horizontalTileOffset = pawn.DrawPos.x - cameraMapPosition.x;
-            float depthTileOffset = pawn.DrawPos.z - cameraMapPosition.z;
+            float horizontalTileOffset = pawn.DrawPos.x - listenerMapPosition.x;
+            float depthTileOffset = pawn.DrawPos.z - listenerMapPosition.z;
             float radialDistance = Mathf.Sqrt((horizontalTileOffset * horizontalTileOffset) + (depthTileOffset * depthTileOffset));
 
             if (radialDistance > MaxHearableRangeTiles)
@@ -140,9 +140,25 @@ namespace RimWorldAccess
             lastFrameCameraChecked = -1;
         }
 
-        private static bool TryGetCameraMapPosition(out Vector3 cameraMapPosition)
+        // Pan/distance reference is the audio listener anchor (pawn when following, camera
+        // otherwise), not the camera — so a followed pawn's own footsteps stay centered
+        // instead of drifting as the camera catches up to the moving pawn.
+        private static bool TryGetListenerMapPosition(out Vector3 listenerMapPosition)
         {
-            cameraMapPosition = Vector3.zero;
+            listenerMapPosition = Vector3.zero;
+
+            try
+            {
+                Vector3 world = AudioZoomDecouplePatch.GetListenerWorldPosition();
+                if (world != Vector3.zero)
+                {
+                    listenerMapPosition = new Vector3(world.x, 0f, world.z);
+                    return true;
+                }
+            }
+            catch
+            {
+            }
 
             try
             {
@@ -150,7 +166,7 @@ namespace RimWorldAccess
                 if (cam != null)
                 {
                     Vector3 worldPos = cam.transform.position;
-                    cameraMapPosition = new Vector3(worldPos.x, 0f, worldPos.z);
+                    listenerMapPosition = new Vector3(worldPos.x, 0f, worldPos.z);
                     return true;
                 }
             }
@@ -163,7 +179,7 @@ namespace RimWorldAccess
                 if (Find.CameraDriver != null)
                 {
                     IntVec3 mapPosition = Find.CameraDriver.MapPosition;
-                    cameraMapPosition = new Vector3(mapPosition.x, 0f, mapPosition.z);
+                    listenerMapPosition = new Vector3(mapPosition.x, 0f, mapPosition.z);
                     return true;
                 }
             }
