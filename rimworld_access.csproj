@@ -22,11 +22,10 @@
     <Compile Include="src/**/*.cs" />
   </ItemGroup>
 
-  <!-- Embed top-level audio files as resources (used by EmbeddedAudioHelper / TerrainAudioHelper).
+  <!-- Embed top-level audio files as resources (used by EmbeddedAudioHelper).
        Subdirectories (Sounds/human, Sounds/animal, Sounds/mechanoid, Sounds/default) are loose-file
        deployed below and loaded via ContentFinder<AudioClip>.GetAllInFolder at runtime. -->
   <ItemGroup>
-    <EmbeddedResource Include="Sounds\*.wav" />
     <EmbeddedResource Include="Sounds\*.ogg" />
     <EmbeddedResource Include="Sounds\*.mp3" />
   </ItemGroup>
