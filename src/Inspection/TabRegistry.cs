@@ -67,7 +67,6 @@ namespace RimWorldAccess
             { "ITab_Bills", "Bills" },
             { "ITab_Storage", "Storage" },
             { "ITab_BiosculpterNutritionStorage", "Nutrition Storage" },
-            { "ITab_Shells", "Ammunition" },
             { "ITab_WindTurbineAutoCut", "Auto-Cut Plants" },
             { "ITab_Art", "Art" },
 
@@ -314,6 +313,7 @@ namespace RimWorldAccess
                 case "ITab_Pawn_Prisoner": return "Prisoner";
                 case "ITab_Bills": return "Bills";
                 case "ITab_Storage": return "Storage";
+                case "ITab_Shells": return "Shells";
                 case "ITab_PenAnimals": return "Pen Animals";
                 case "ITab_PenAutoCut": return "Pen Auto-Cut";
                 case "ITab_PenFood": return "Pen Food";

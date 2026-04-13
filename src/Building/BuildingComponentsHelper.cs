@@ -60,11 +60,12 @@ namespace RimWorldAccess
             var refuelable = building.TryGetComp<CompRefuelable>();
             if (refuelable != null)
             {
+                string label = (refuelable.Props?.FuelGizmoLabel ?? "Fuel".TranslateSimple()).CapitalizeFirst();
                 discovered.Add(new DiscoveredComponent
                 {
                     ComponentType = "CompRefuelable",
-                    DisplayName = "Fuel Settings",
-                    CategoryName = "Fuel Settings",
+                    DisplayName = label,
+                    CategoryName = label,
                     Component = refuelable,
                     IsReadOnly = false
                 });
