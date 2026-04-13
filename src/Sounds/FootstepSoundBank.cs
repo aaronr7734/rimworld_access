@@ -177,7 +177,7 @@ namespace RimWorldAccess
                 0.5f,
                 1.75f);
 
-            if (RimWorldAccessMod_Settings.Settings.FootstepStereoPan && pawn != null)
+            if (pawn != null)
             {
                 pooledSource.Source.spatialBlend = 1f;
                 pooledSource.Source.transform.position = pawn.DrawPos;
@@ -200,7 +200,7 @@ namespace RimWorldAccess
             float wallOcclusion = GetWallOcclusion(pawn);
             ApplySpatialMix(pooledSource, pawn, spatialProfile, wallOcclusion);
 
-            if (RimWorldAccessMod_Settings.Settings.FootstepStereoPan && pawn != null)
+            if (pawn != null)
             {
                 pooledSource.ITDProcessor.SetEnabled(true);
                 pooledSource.ITDProcessor.SetPan(spatialProfile.Pan);
@@ -609,6 +609,50 @@ namespace RimWorldAccess
             }
 
             pooledSource.Source.PlayOneShot(clip, Mathf.Clamp(volume * volumeMultiplier, 0f, 1f));
+            return true;
+        }
+
+        /// <summary>
+        /// Plays a single representative footstep clip for UI preview (no pawn, no map context).
+        /// Applies the given volume and stereo pan (-1..1). Used by the options menu's
+        /// toggleable-volume sliders so the user can hear adjustments in real time.
+        /// </summary>
+        public static bool PlayPreview(string categoryPath, float volume, float pan, float pitchMultiplier, float highPassCutoffHz = 0f)
+        {
+            if (!EnsureInitialized()) return false;
+            if (string.IsNullOrEmpty(categoryPath)) return false;
+
+            FootstepSoundCollection collection = GetCollection(categoryPath);
+            if (collection == null || !collection.HasClips)
+            {
+                collection = GetCollection("Sounds/human/dirt");
+            }
+            if (collection == null || !collection.HasClips) return false;
+
+            (AudioClip clip, float pitch, float volumeMultiplier) = collection.GetRandomSound();
+            if (clip == null) return false;
+
+            PooledAudioSource pooledSource = GetAvailableAudioSource();
+            if (pooledSource == null) return false;
+
+            pooledSource.Source.pitch = Mathf.Clamp(pitch * pitchMultiplier, 0.5f, 1.75f);
+            pooledSource.Source.spatialBlend = 0f;
+            pooledSource.LowPassFilter.cutoffFrequency = 16500f;
+            if (highPassCutoffHz > 0f)
+            {
+                pooledSource.HighPassFilter.enabled = true;
+                pooledSource.HighPassFilter.cutoffFrequency = highPassCutoffHz;
+            }
+            else
+            {
+                pooledSource.HighPassFilter.enabled = false;
+            }
+            pooledSource.ReverbFilter.enabled = false;
+            pooledSource.Source.reverbZoneMix = 0f;
+            pooledSource.ITDProcessor.SetEnabled(false);
+            pooledSource.Source.panStereo = Mathf.Clamp(pan, -1f, 1f);
+
+            pooledSource.Source.PlayOneShot(clip, Mathf.Clamp(volume * volumeMultiplier, 0f, 1.4f));
             return true;
         }
 

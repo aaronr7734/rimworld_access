@@ -40,6 +40,13 @@ namespace RimWorldAccess
             if (pawn == null || !pawn.Spawned || pawn.Destroyed) return;
             if (!FootstepClassifier.IsValidPawn(pawn)) return;
 
+            // Per-category enable check before any per-pawn state mutation — a disabled
+            // category pays nothing beyond this lookup.
+            FootstepAudioCategory audioCat = FootstepClassifier.ClassifyPawnAudio(pawn);
+            if (!FootstepClassifier.IsEnabled(audioCat)) return;
+            float categoryVolume = FootstepClassifier.GetVolume(audioCat);
+            if (categoryVolume <= 0f) return;
+
             int pawnId = pawn.thingIDNumber;
             int stepCount;
             _pawnStepCounters.TryGetValue(pawnId, out stepCount);
@@ -54,12 +61,6 @@ namespace RimWorldAccess
             if (!FootstepSoundBank.EnsureInitialized()) return;
 
             FootstepCategory category = FootstepClassifier.ClassifyPawn(pawn);
-            float categoryVolume = FootstepClassifier.IsAnimal(pawn)
-                ? RimWorldAccessMod_Settings.Settings.FootstepAnimalVolume
-                : category == FootstepCategory.Mechanoid
-                    ? RimWorldAccessMod_Settings.Settings.FootstepMechVolume
-                    : RimWorldAccessMod_Settings.Settings.FootstepHumanVolume;
-            if (categoryVolume <= 0f) return;
 
             if (RimWorldAccessMod_Settings.Settings.FootstepPerformanceMode)
             {

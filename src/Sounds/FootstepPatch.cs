@@ -28,6 +28,18 @@ namespace RimWorldAccess
             RimWorldAccessSettings settings = RimWorldAccessMod_Settings.Settings;
             if (settings == null || !settings.EnableSoundEffects || !settings.FootstepsEnabled) return;
 
+            // Cheap race-level short-circuit: if every category for this race is disabled,
+            // we never need to touch the pawn again — zero footprint per tile entry.
+            bool humanlike = ___pawn.RaceProps?.Humanlike == true;
+            bool animal = ___pawn.RaceProps?.Animal == true;
+            bool mech = !humanlike && !animal && (___pawn.RaceProps?.IsMechanoid == true ||
+                ___pawn.def?.defName?.ToLowerInvariant().Contains("mech") == true);
+
+            if (humanlike && !FootstepClassifier.AnyHumanlikeEnabled) return;
+            if (animal && !FootstepClassifier.AnyAnimalEnabled) return;
+            if (mech && !FootstepClassifier.AnyMechEnabled) return;
+            if (!humanlike && !animal && !mech) return;
+
             FootstepManager.Instance.ProcessFootstep(___pawn);
         }
     }
