@@ -251,23 +251,25 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Escape: Clear search or go back/close (context-dependent)
+            // Escape: Clear search / close wanderer / else fall through.
+            // When falling through, the game's Page.DoBottomButtons will call DoBack
+            // from InnerWindowOnGUI (before our UnifiedKeyboardPatch can consume the
+            // event reliably). StartingPawnDoBackBlockPatch intercepts that call and
+            // invokes StartingPawnState.RequestBackConfirm() to show the confirm dialog.
             if (key == KeyCode.Escape)
             {
                 if (treeNav.HasActiveSearch)
                 {
                     treeNav.Typeahead.ClearSearchAndAnnounce();
                     treeNav.ReannounceCurrentItem();
+                    return true;
                 }
-                else if (Context == PawnEditorContext.Wanderer)
+                if (Context == PawnEditorContext.Wanderer)
                 {
                     WandererPatch.CloseDialog();
+                    return true;
                 }
-                else
-                {
-                    StartingPawnPatch.DoBack();
-                }
-                return true;
+                return false;
             }
 
             // Delegate all standard tree navigation to treeNav
@@ -766,6 +768,36 @@ namespace RimWorldAccess
                 message,
                 () => StartingPawnPatch.DoNext(),
                 destructive: false));
+        }
+
+        /// <summary>
+        /// Called from StartingPawnDoBackBlockPatch when the game tries to DoBack
+        /// on our page from any source other than our own confirmed dialog.
+        /// Shows a confirmation dialog; OK runs DoBack, Cancel keeps the page.
+        /// </summary>
+        public static void RequestBackConfirm()
+        {
+            // If a confirm dialog is already open (double-Escape), let the dialog's
+            // own cancel handler deal with it.
+            if (WindowlessDialogState.IsActive) return;
+
+            // Consume the triggering Escape event so the dialog we're about to open
+            // doesn't immediately catch the same Cancel press and close itself.
+            if (Event.current != null && Event.current.type == EventType.KeyDown)
+                Event.current.Use();
+
+            string message = "Going back will discard the current starting colonists. Continue?";
+            Action confirm = () => StartingPawnPatch.DoBack();
+            Find.WindowStack.Add(new Dialog_MessageBox(
+                message,
+                buttonAText: "Continue",
+                buttonAAction: confirm,
+                buttonBText: "Cancel",
+                buttonBAction: null,
+                title: null,
+                buttonADestructive: true,
+                acceptAction: confirm,
+                cancelAction: delegate { }));
         }
 
         // ===== WANDERER-SPECIFIC ACTIONS =====

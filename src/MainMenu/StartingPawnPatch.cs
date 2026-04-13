@@ -120,9 +120,31 @@ namespace RimWorldAccess
         {
             if (__instance is Page_ConfigureStartingPawns)
             {
+                // Our own explicit DoBack (from the confirm dialog's Continue button)
+                // must always go through — bypass the overlay-blocked check, which
+                // would otherwise reject it because the confirm dialog is still open
+                // (WindowlessDialogState.IsActive) at the moment the button fires.
+                if (explicitDoBack)
+                {
+                    StartingPawnPatch.backHandledOnFrame = Time.frameCount;
+                    return true;
+                }
+
                 bool blocked = WindowlessFloatMenuState.IsActive || WindowlessDialogState.IsActive || InfoCardState.IsActive || PawnFilterState.IsActive || RerollState.IsActive;
                 if (blocked)
                     return false;
+
+                // Intercept DoBack on char gen to show a confirmation dialog first.
+                // Page.DoBottomButtons invokes DoBack during InnerWindowOnGUI from the
+                // Escape key before our UnifiedKeyboardPatch can consume the event, so
+                // we block it here and hand off to StartingPawnState.RequestBackConfirm().
+                if (StartingPawnState.IsActive
+                    && StartingPawnState.Context != PawnEditorContext.Wanderer)
+                {
+                    StartingPawnState.RequestBackConfirm();
+                    return false;
+                }
+
                 // Mark the frame so cascading DoBack on the previous page is blocked
                 StartingPawnPatch.backHandledOnFrame = Time.frameCount;
             }
@@ -133,6 +155,9 @@ namespace RimWorldAccess
             }
             return true;
         }
+
+        // Set to true around our own confirmed DoBack call so the prefix lets it through.
+        internal static bool explicitDoBack = false;
     }
 
     public static class StartingPawnPatch
@@ -184,7 +209,15 @@ namespace RimWorldAccess
             try
             {
                 backHandledOnFrame = Time.frameCount;
-                AccessTools.Method(typeof(Page), "DoBack").Invoke(instance, null);
+                StartingPawnDoBackBlockPatch.explicitDoBack = true;
+                try
+                {
+                    AccessTools.Method(typeof(Page), "DoBack").Invoke(instance, null);
+                }
+                finally
+                {
+                    StartingPawnDoBackBlockPatch.explicitDoBack = false;
+                }
             }
             catch (System.Exception ex)
             {
