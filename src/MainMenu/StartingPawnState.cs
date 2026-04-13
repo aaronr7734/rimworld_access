@@ -21,6 +21,7 @@ namespace RimWorldAccess
         private static bool isActive = false;
         private static int openedOnFrame = -1;
         private static bool awaitingRenameRebuild = false;
+        private static string lastAnnouncedSection = null;
 
         public static bool IsActive => isActive;
         public static bool HasActiveSearch => treeNav.HasActiveSearch;
@@ -38,6 +39,7 @@ namespace RimWorldAccess
             Context = context;
             isActive = true;
             openedOnFrame = Time.frameCount;
+            lastAnnouncedSection = null;
 
             RebuildTree();
 
@@ -66,6 +68,7 @@ namespace RimWorldAccess
         {
             isActive = false;
             awaitingRenameRebuild = false;
+            lastAnnouncedSection = null;
             treeNav.Reset();
         }
 
@@ -91,16 +94,20 @@ namespace RimWorldAccess
 
         private static void RebuildTree()
         {
-            // Save expansion state
+            // Save expansion state. Walk the full tree rather than VisibleItems
+            // because "Rashad Hates Treeviews" submenu mode hides expanded
+            // parents from the flat list.
             var expandedPawns = new Dictionary<int, HashSet<PawnCategoryType>>();
-            foreach (var item in treeNav.VisibleItems)
+            if (treeNav.RootItem != null)
             {
-                var ptd = StartingPawnHelper.GetPawnData(item);
-                if (ptd == null) continue;
-                if (ptd.NodeType == PawnNodeType.Pawn && item.IsExpanded && ptd.PawnIndex >= 0)
+                foreach (var pawnItem in GetAllNodes(treeNav.RootItem))
                 {
+                    var ptd = StartingPawnHelper.GetPawnData(pawnItem);
+                    if (ptd == null) continue;
+                    if (ptd.NodeType != PawnNodeType.Pawn || !pawnItem.IsExpanded || ptd.PawnIndex < 0)
+                        continue;
                     var expandedCats = new HashSet<PawnCategoryType>();
-                    foreach (var child in item.Children)
+                    foreach (var child in pawnItem.Children)
                     {
                         var childPtd = StartingPawnHelper.GetPawnData(child);
                         if (childPtd != null && child.IsExpanded && childPtd.CategoryType.HasValue)
@@ -114,29 +121,24 @@ namespace RimWorldAccess
             int savedIndex = treeNav.SelectedIndex;
             treeNav.Initialize(root, savedIndex);
 
-            // Restore expansion state - expand pawns first
-            foreach (var item in treeNav.VisibleItems)
+            // Restore expansion state across the full tree.
+            foreach (var node in GetAllNodes(root))
             {
-                var ptd = StartingPawnHelper.GetPawnData(item);
-                if (ptd != null && ptd.NodeType == PawnNodeType.Pawn && expandedPawns.ContainsKey(ptd.PawnIndex))
+                var ptd = StartingPawnHelper.GetPawnData(node);
+                if (ptd == null) continue;
+                if (ptd.NodeType == PawnNodeType.Pawn && expandedPawns.ContainsKey(ptd.PawnIndex))
                 {
-                    item.IsExpanded = true;
+                    node.IsExpanded = true;
                 }
-            }
-            treeNav.RebuildVisibleList();
-
-            // Restore category expansion
-            foreach (var item in treeNav.VisibleItems)
-            {
-                var ptd = StartingPawnHelper.GetPawnData(item);
-                if (ptd == null || ptd.NodeType != PawnNodeType.Category || !ptd.CategoryType.HasValue)
-                    continue;
-                if (item.Parent == null) continue;
-                var parentPtd = StartingPawnHelper.GetPawnData(item.Parent);
-                if (parentPtd != null && expandedPawns.ContainsKey(parentPtd.PawnIndex)
-                    && expandedPawns[parentPtd.PawnIndex].Contains(ptd.CategoryType.Value))
+                else if (ptd.NodeType == PawnNodeType.Category && ptd.CategoryType.HasValue && node.Parent != null)
                 {
-                    item.IsExpanded = true;
+                    var parentPtd = StartingPawnHelper.GetPawnData(node.Parent);
+                    if (parentPtd != null
+                        && expandedPawns.TryGetValue(parentPtd.PawnIndex, out var cats)
+                        && cats.Contains(ptd.CategoryType.Value))
+                    {
+                        node.IsExpanded = true;
+                    }
                 }
             }
             treeNav.RebuildVisibleList();
@@ -249,23 +251,25 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Escape: Clear search or go back/close (context-dependent)
+            // Escape: Clear search / close wanderer / else fall through.
+            // When falling through, the game's Page.DoBottomButtons will call DoBack
+            // from InnerWindowOnGUI (before our UnifiedKeyboardPatch can consume the
+            // event reliably). StartingPawnDoBackBlockPatch intercepts that call and
+            // invokes StartingPawnState.RequestBackConfirm() to show the confirm dialog.
             if (key == KeyCode.Escape)
             {
                 if (treeNav.HasActiveSearch)
                 {
                     treeNav.Typeahead.ClearSearchAndAnnounce();
                     treeNav.ReannounceCurrentItem();
+                    return true;
                 }
-                else if (Context == PawnEditorContext.Wanderer)
+                if (Context == PawnEditorContext.Wanderer)
                 {
                     WandererPatch.CloseDialog();
+                    return true;
                 }
-                else
-                {
-                    StartingPawnPatch.DoBack();
-                }
-                return true;
+                return false;
             }
 
             // Delegate all standard tree navigation to treeNav
@@ -460,6 +464,14 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Ensure the pawn itself is expanded so the category/leaf is reachable.
+            // Matters in submenu mode, where an unexpanded pawn hides its entire subtree.
+            if (!targetPawn.IsExpanded)
+            {
+                targetPawn.IsExpanded = true;
+                treeNav.RebuildVisibleList();
+            }
+
             if (position.ItemIndex < 0)
             {
                 // Was on the category node itself, preserve its expand/collapse state
@@ -501,18 +513,24 @@ namespace RimWorldAccess
 
         private static void RandomizeCurrentPawn()
         {
-            int pawnIdx = GetCurrentPawnIndex();
+            RandomizePawnAt(GetCurrentPawnIndex());
+        }
+
+        public static void RandomizePawnAt(int pawnIdx)
+        {
             if (pawnIdx < 0) return;
 
             // Save position so user returns to same logical location after reroll
             rerollPawnIdx = pawnIdx;
             rerollSavedPosition = SaveTreePosition();
 
+            // If filters are active, PawnFilterRandomizePatch routes the call
+            // into RerollState, which owns tree rebuild, position restore, and
+            // announcement via OnRerollComplete (synchronously on first-attempt
+            // match, otherwise across frames). Don't duplicate that work here.
+            bool filtersActive = PawnFilterData.HasActiveFilters();
             StartingPawnUtility.RandomizePawn(pawnIdx);
-
-            // If RerollState is active, the reroll is spread across frames —
-            // OnRerollComplete will handle tree rebuild and announcement.
-            if (RerollState.IsActive)
+            if (filtersActive)
                 return;
 
             // No filters active or immediate match — finalize now
@@ -572,21 +590,62 @@ namespace RimWorldAccess
         private static void RestoreRerollPosition()
         {
             if (rerollPawnIdx < 0) return;
-            foreach (var item in treeNav.VisibleItems)
-            {
-                var ptd = StartingPawnHelper.GetPawnData(item);
-                if (ptd != null && ptd.NodeType == PawnNodeType.Pawn && ptd.PawnIndex == rerollPawnIdx)
-                {
-                    RestoreTreePosition(item, rerollSavedPosition);
-                    break;
-                }
-            }
+            var pawnNode = FindPawnNode(rerollPawnIdx);
+            if (pawnNode != null)
+                RestoreTreePosition(pawnNode, rerollSavedPosition);
             rerollPawnIdx = -1;
+        }
+
+        // Walk the full tree (not just VisibleItems). In submenu mode
+        // ("Rashad Hates Treeviews"), expanded parents are hidden from the
+        // flat visible list, so scanning VisibleItems would miss a pawn node
+        // whose children are currently the ones visible.
+        private static InspectionTreeItem FindPawnNode(int pawnIdx)
+        {
+            var root = treeNav.RootItem;
+            if (root == null) return null;
+            foreach (var child in root.Children)
+            {
+                var found = FindPawnNodeRecursive(child, pawnIdx);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private static InspectionTreeItem FindPawnNodeRecursive(InspectionTreeItem node, int pawnIdx)
+        {
+            var ptd = StartingPawnHelper.GetPawnData(node);
+            if (ptd != null && ptd.NodeType == PawnNodeType.Pawn && ptd.PawnIndex == pawnIdx)
+                return node;
+            foreach (var child in node.Children)
+            {
+                var found = FindPawnNodeRecursive(child, pawnIdx);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private static IEnumerable<InspectionTreeItem> GetAllNodes(InspectionTreeItem root)
+        {
+            if (root == null) yield break;
+            var stack = new Stack<InspectionTreeItem>();
+            stack.Push(root);
+            while (stack.Count > 0)
+            {
+                var node = stack.Pop();
+                yield return node;
+                foreach (var child in node.Children)
+                    stack.Push(child);
+            }
         }
 
         private static void RenameCurrentPawn()
         {
-            int pawnIdx = GetCurrentPawnIndex();
+            RenamePawnAt(GetCurrentPawnIndex());
+        }
+
+        public static void RenamePawnAt(int pawnIdx)
+        {
             if (pawnIdx < 0) return;
 
             var pawn = StartingPawnHelper.GetPawnAtIndex(pawnIdx);
@@ -711,6 +770,36 @@ namespace RimWorldAccess
                 destructive: false));
         }
 
+        /// <summary>
+        /// Called from StartingPawnDoBackBlockPatch when the game tries to DoBack
+        /// on our page from any source other than our own confirmed dialog.
+        /// Shows a confirmation dialog; OK runs DoBack, Cancel keeps the page.
+        /// </summary>
+        public static void RequestBackConfirm()
+        {
+            // If a confirm dialog is already open (double-Escape), let the dialog's
+            // own cancel handler deal with it.
+            if (WindowlessDialogState.IsActive) return;
+
+            // Consume the triggering Escape event so the dialog we're about to open
+            // doesn't immediately catch the same Cancel press and close itself.
+            if (Event.current != null && Event.current.type == EventType.KeyDown)
+                Event.current.Use();
+
+            string message = "Going back will discard the current starting colonists. Continue?";
+            Action confirm = () => StartingPawnPatch.DoBack();
+            Find.WindowStack.Add(new Dialog_MessageBox(
+                message,
+                buttonAText: "Continue",
+                buttonAAction: confirm,
+                buttonBText: "Cancel",
+                buttonBAction: null,
+                title: null,
+                buttonADestructive: true,
+                acceptAction: confirm,
+                cancelAction: delegate { }));
+        }
+
         // ===== WANDERER-SPECIFIC ACTIONS =====
 
         private static void ConfirmWanderers()
@@ -802,11 +891,6 @@ namespace RimWorldAccess
 
             switch (ptd.NodeType)
             {
-                case PawnNodeType.GroupHeader:
-                    // Group headers are structural dividers — no position or level suffix
-                    announcement = item.Label;
-                    break;
-
                 case PawnNodeType.Pawn:
                     string pawnState = item.IsExpanded ? "expanded" : "collapsed";
                     announcement = $"{item.Label}, {pawnState}";
@@ -862,7 +946,33 @@ namespace RimWorldAccess
                     break;
             }
 
+            // Prepend "Selected / Left behind" section name when crossing the
+            // boundary (info-card style). Section lives on the pawn node's
+            // Description; leaves/categories inherit via their pawn ancestor.
+            string sectionName = GetSectionForItem(item);
+            if (!string.IsNullOrEmpty(sectionName) && sectionName != lastAnnouncedSection)
+            {
+                announcement = $"{sectionName}. {announcement}";
+                lastAnnouncedSection = sectionName;
+            }
+            else if (string.IsNullOrEmpty(sectionName))
+            {
+                lastAnnouncedSection = null;
+            }
+
             return announcement;
+        }
+
+        private static string GetSectionForItem(InspectionTreeItem item)
+        {
+            var walk = item;
+            while (walk != null)
+            {
+                if (!string.IsNullOrEmpty(walk.Description))
+                    return walk.Description;
+                walk = walk.Parent;
+            }
+            return null;
         }
 
         private static string FormatSearchAnnouncement(InspectionTreeItem item, TypeaheadSearchHelper typeahead)
@@ -875,11 +985,9 @@ namespace RimWorldAccess
             var ptd = StartingPawnHelper.GetPawnData(item);
             if (ptd == null) return false;
 
-            if (ptd.NodeType == PawnNodeType.Pawn && ptd.DomainData is Pawn)
-                return true;
             if (ptd.NodeType == PawnNodeType.Leaf)
             {
-                if (ptd.DomainData is ThingDefCount || ptd.DomainData is Hediff || ptd.DomainData is XenotypeDef)
+                if (ptd.DomainData is ThingDefCount || ptd.DomainData is XenotypeDef)
                     return true;
             }
             return false;
@@ -899,12 +1007,8 @@ namespace RimWorldAccess
             var ptd = StartingPawnHelper.GetPawnData(item);
             if (ptd == null) return;
 
-            if (ptd.NodeType == PawnNodeType.Pawn && ptd.DomainData is Pawn pawn)
-                Find.WindowStack.Add(new Dialog_InfoCard(pawn));
-            else if (ptd.DomainData is ThingDefCount tdc)
+            if (ptd.DomainData is ThingDefCount tdc)
                 Find.WindowStack.Add(new Dialog_InfoCard(tdc.ThingDef));
-            else if (ptd.DomainData is Hediff hediff)
-                Find.WindowStack.Add(new Dialog_InfoCard(hediff));
             else if (ptd.DomainData is XenotypeDef xenotype)
                 Find.WindowStack.Add(new Dialog_InfoCard(xenotype));
         }

@@ -311,7 +311,10 @@ namespace RimWorldAccess
         }
 
         public bool IsEmpty => Subcategories == null || Subcategories.All(sc => sc.IsEmpty);
-        public int TotalItemCount => Subcategories?.Sum(sc => sc.Items?.Count ?? 0) ?? 0;
+        public int TotalItemCount =>
+            (Subcategories != null && Subcategories.Count > 0)
+                ? (Subcategories[0].Items?.Count ?? 0)
+                : 0;
     }
 
     /// <summary>

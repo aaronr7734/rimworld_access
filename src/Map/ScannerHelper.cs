@@ -441,7 +441,7 @@ namespace RimWorldAccess
 
         public bool IsEmpty => Subcategories == null || Subcategories.All(sc => sc.IsEmpty);
 
-        public int TotalItemCount => Subcategories.Sum(sc => sc.Items.Count);
+        public int TotalItemCount => AllSubcategory?.Items.Count ?? 0;
     }
 
     public static class ScannerHelper
