@@ -706,7 +706,7 @@ namespace RimWorldAccess
             // accessibility options stays scannable by category.
             var accessSettings = new OptionCategory("RimWorld Access");
 
-            var navSub = new OptionSubsection("Navigation");
+            var navSub = new OptionSubsection("General");
             navSub.Settings.Add(new CheckboxSetting("Wrap Navigation",
                 () => RimWorldAccessMod_Settings.Settings?.WrapNavigation ?? false,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.WrapNavigation = v; }));
