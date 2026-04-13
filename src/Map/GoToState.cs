@@ -210,7 +210,7 @@ namespace RimWorldAccess
 
             // Play terrain audio feedback
             TerrainDef terrain = targetPos.GetTerrain(map);
-            TerrainAudioHelper.PlayTerrainAudio(terrain, 0.5f);
+            TerrainAudioHelper.PlayTerrainAudio(terrain);
 
             // Announce position with all contextual prefixes (deep ore, "in area", shape dimensions, etc.)
             // This uses the same announcement path as arrow key movement

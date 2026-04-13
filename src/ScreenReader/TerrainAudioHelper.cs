@@ -166,7 +166,7 @@ namespace RimWorldAccess
         /// Delegates to FootstepSoundBank so cursor cues share the same sound pool as
         /// pawn footsteps.
         /// </summary>
-        public static bool PlayTerrainAudio(TerrainDef terrain, float volume = 0.5f)
+        public static bool PlayTerrainAudio(TerrainDef terrain, float volume = 1f)
         {
             if (terrain == null) return false;
             return FootstepSoundBank.PlayTerrainSound(terrain, volume);

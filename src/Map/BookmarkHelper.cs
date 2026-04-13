@@ -68,7 +68,7 @@ namespace RimWorldAccess
 
             // Play terrain audio feedback (matches arrow key movement behavior)
             TerrainDef terrain = bookmarkPos.GetTerrain(map);
-            TerrainAudioHelper.PlayTerrainAudio(terrain, 0.5f);
+            TerrainAudioHelper.PlayTerrainAudio(terrain);
 
             // Reset last announced info so AnnouncePosition always speaks
             MapNavigationState.LastAnnouncedInfo = "";

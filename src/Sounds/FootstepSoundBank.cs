@@ -240,20 +240,37 @@ namespace RimWorldAccess
             }
 
             RimWorldAccessSettings settings = RimWorldAccessMod_Settings.Settings;
-            if (settings != null && settings.FootstepTerrainVariation && category == FootstepCategory.Human)
+            if (settings != null && settings.FootstepTerrainVariation && terrain != null)
             {
-                string suffix = GetTerrainSuffix(terrain);
-                string terrainPath = categoryPath + "/" + suffix;
-                FootstepSoundCollection terrainCollection = GetCollection(terrainPath);
-
-                if (debugTerrainLogging && ++debugFootstepCounter % 120 == 0)
+                // Tier 1: per-terrain override (works for every pawn category).
+                // e.g., Sounds/human/SoilRich, Sounds/animal/heavy/TileSandstone.
+                string overridePath = categoryPath + "/" + terrain.defName;
+                FootstepSoundCollection overrideCollection = GetCollection(overridePath);
+                if (overrideCollection != null && overrideCollection.HasClips)
                 {
-                    Log.Message($"[RimWorld Access] Terrain debug: defName={terrain?.defName ?? "null"} → suffix={suffix} → path={terrainPath} → clips={terrainCollection?.ClipCount ?? 0}");
+                    if (debugTerrainLogging && ++debugFootstepCounter % 120 == 0)
+                    {
+                        Log.Message($"[RimWorld Access] Terrain debug: defName={terrain.defName} → tier=override → path={overridePath} → clips={overrideCollection.ClipCount}");
+                    }
+                    return overrideCollection;
                 }
 
-                if (terrainCollection != null && terrainCollection.HasClips)
+                // Tier 2: 8-category suffix (Human-only, existing behavior).
+                if (category == FootstepCategory.Human)
                 {
-                    return terrainCollection;
+                    string suffix = GetTerrainSuffix(terrain);
+                    string terrainPath = categoryPath + "/" + suffix;
+                    FootstepSoundCollection terrainCollection = GetCollection(terrainPath);
+
+                    if (debugTerrainLogging && ++debugFootstepCounter % 120 == 0)
+                    {
+                        Log.Message($"[RimWorld Access] Terrain debug: defName={terrain.defName} → tier=category → suffix={suffix} → path={terrainPath} → clips={terrainCollection?.ClipCount ?? 0}");
+                    }
+
+                    if (terrainCollection != null && terrainCollection.HasClips)
+                    {
+                        return terrainCollection;
+                    }
                 }
             }
 
@@ -274,7 +291,16 @@ namespace RimWorldAccess
 
         private static FootstepSoundCollection GetCollection(string path)
         {
-            collections.TryGetValue(path, out FootstepSoundCollection collection);
+            if (collections.TryGetValue(path, out FootstepSoundCollection collection))
+            {
+                return collection;
+            }
+
+            // Lazy-create on miss so terrain-specific override folders (e.g., Sounds/human/SoilRich)
+            // can be dropped in without code changes. Cache empty collections to avoid re-scanning.
+            collection = new FootstepSoundCollection(path, 0.10f, 0.10f);
+            collection.Load();
+            collections[path] = collection;
             return collection;
         }
 
@@ -571,8 +597,19 @@ namespace RimWorldAccess
         {
             if (!EnsureInitialized()) return false;
 
-            string suffix = GetTerrainSuffix(terrain);
-            FootstepSoundCollection collection = GetCollection("Sounds/human/" + suffix);
+            // Tier 1: per-terrain override (e.g., Sounds/human/SoilRich).
+            FootstepSoundCollection collection = null;
+            if (terrain != null)
+            {
+                collection = GetCollection("Sounds/human/" + terrain.defName);
+            }
+            // Tier 2: 8-category suffix.
+            if (collection == null || !collection.HasClips)
+            {
+                string suffix = GetTerrainSuffix(terrain);
+                collection = GetCollection("Sounds/human/" + suffix);
+            }
+            // Tier 3: dirt safety net.
             if (collection == null || !collection.HasClips)
             {
                 collection = GetCollection("Sounds/human/dirt");
@@ -587,6 +624,8 @@ namespace RimWorldAccess
 
             pooledSource.Source.pitch = Mathf.Clamp(pitch, 0.5f, 1.75f);
             pooledSource.Source.spatialBlend = 0f;
+            pooledSource.Source.panStereo = 0f;
+            pooledSource.HighPassFilter.enabled = false;
             pooledSource.ITDProcessor.SetEnabled(false);
 
             // Apply room reverb at the cursor position (doorway/wall-aware).

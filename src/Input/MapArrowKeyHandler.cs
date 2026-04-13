@@ -166,7 +166,7 @@ namespace RimWorldAccess
 
             // Play terrain audio feedback
             TerrainDef terrain = newPosition.GetTerrain(Find.CurrentMap);
-            TerrainAudioHelper.PlayTerrainAudio(terrain, 0.5f);
+            TerrainAudioHelper.PlayTerrainAudio(terrain);
 
             // Announce the position with all contextual info
             AnnouncePosition(newPosition, Find.CurrentMap);
