@@ -190,7 +190,7 @@ namespace RimWorldAccess
             if (s == null) return GetDefaultVolume(cat);
             if (s.FootstepCategoryVolume == null || !s.FootstepCategoryVolume.TryGetValue(cat.ToString(), out float v))
                 return GetDefaultVolume(cat);
-            return v;
+            return Mathf.Clamp(v, 0f, 1f);
         }
 
         public static float GetLastVolume(FootstepAudioCategory cat)
@@ -199,7 +199,7 @@ namespace RimWorldAccess
             if (s == null) return GetDefaultVolume(cat);
             if (s.FootstepCategoryLastVolume == null || !s.FootstepCategoryLastVolume.TryGetValue(cat.ToString(), out float v))
                 return GetDefaultVolume(cat);
-            return v;
+            return Mathf.Clamp(v, 0f, 1f);
         }
 
         public static void SetEnabled(FootstepAudioCategory cat, bool enabled)

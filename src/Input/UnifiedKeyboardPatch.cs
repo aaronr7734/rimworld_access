@@ -2386,11 +2386,17 @@ namespace RimWorldAccess
                     handled = true;
                 }
                 // Handle Left/Right arrows - only for settings level to adjust values
+                // Plain: ±1 step. Shift: ±10% of positions. Ctrl: ±25% of positions.
                 else if (key == KeyCode.LeftArrow)
                 {
                     if (WindowlessOptionsMenuState.CurrentLevel == OptionsMenuLevel.SettingsList)
                     {
-                        WindowlessOptionsMenuState.AdjustSetting(-1);  // Decrease slider or cycle left
+                        if (Event.current.control)
+                            WindowlessOptionsMenuState.AdjustSettingByPercent(-0.25f);
+                        else if (Event.current.shift)
+                            WindowlessOptionsMenuState.AdjustSettingByPercent(-0.1f);
+                        else
+                            WindowlessOptionsMenuState.AdjustSetting(-1);
                         handled = true;
                     }
                 }
@@ -2398,11 +2404,16 @@ namespace RimWorldAccess
                 {
                     if (WindowlessOptionsMenuState.CurrentLevel == OptionsMenuLevel.SettingsList)
                     {
-                        WindowlessOptionsMenuState.AdjustSetting(1);   // Increase slider or cycle right
+                        if (Event.current.control)
+                            WindowlessOptionsMenuState.AdjustSettingByPercent(0.25f);
+                        else if (Event.current.shift)
+                            WindowlessOptionsMenuState.AdjustSettingByPercent(0.1f);
+                        else
+                            WindowlessOptionsMenuState.AdjustSetting(1);
                         handled = true;
                     }
                 }
-                else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                else if (key == KeyCode.Return || key == KeyCode.KeypadEnter || key == KeyCode.Space)
                 {
                     WindowlessOptionsMenuState.ExecuteSelected();
                     handled = true;

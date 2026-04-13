@@ -247,6 +247,26 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Adjusts the current slider by a percentage of its total positions
+        /// (e.g. 0.1 = +10%, -0.25 = -25%). Intended for Shift/Ctrl+Arrow.
+        /// </summary>
+        public static void AdjustSettingByPercent(float percent)
+        {
+            if (currentLevel != OptionsMenuLevel.SettingsList)
+                return;
+
+            var settings = CurrentSettingsList;
+            if (settings.Count == 0) return;
+            var setting = settings[selectedSettingIndex];
+            setting.AdjustByPercent(percent);
+            string terse = setting.GetPostAdjustAnnouncement();
+            if (terse != null)
+                TolkHelper.Speak(terse);
+            else
+                AnnounceCurrentState();
+        }
+
+        /// <summary>
         /// Goes back one level or closes the menu.
         /// </summary>
         public static void GoBack()
@@ -748,7 +768,7 @@ namespace RimWorldAccess
                     () => FootstepClassifier.GetVolume(local),
                     v => FootstepClassifier.SetVolume(local, v),
                     () => FootstepClassifier.GetLastVolume(local),
-                    0f, 2f, 0.1f,
+                    0f, 1f, 0.05f,
                     () => FootstepPreview.Play(local),
                     FootstepClassifier.GetCategoryDescription(local)));
             }
@@ -841,6 +861,11 @@ namespace RimWorldAccess
             public abstract string GetAnnouncement();
             public abstract void Toggle();
             public abstract void Adjust(int direction);
+
+            public virtual void AdjustByPercent(float percent)
+            {
+                Adjust(percent >= 0 ? 1 : -1);
+            }
 
             /// <summary>
             /// Optional concise announcement after Toggle() (Enter key). When non-null,
@@ -946,6 +971,17 @@ namespace RimWorldAccess
                 float newValue = Mathf.Clamp(current + (step * direction), min, max);
                 setter(newValue);
             }
+
+            public override void AdjustByPercent(float percent)
+            {
+                float current = getter();
+                int totalPositions = Mathf.Max(1, Mathf.RoundToInt((max - min) / step));
+                int stepsToMove = Mathf.Max(1, Mathf.RoundToInt(totalPositions * Mathf.Abs(percent)));
+                if (percent < 0) stepsToMove = -stepsToMove;
+                float newValue = Mathf.Clamp(current + step * stepsToMove, min, max);
+                newValue = GenMath.RoundTo(newValue, step);
+                setter(newValue);
+            }
         }
 
         /// <summary>
@@ -1035,6 +1071,19 @@ namespace RimWorldAccess
                 if (!enabledGetter()) return;
                 float current = volumeGetter();
                 float newValue = Mathf.Clamp(current + (step * direction), min, max);
+                volumeSetter(newValue);
+                onAdjustPreview?.Invoke();
+            }
+
+            public override void AdjustByPercent(float percent)
+            {
+                if (!enabledGetter()) return;
+                float current = volumeGetter();
+                int totalPositions = Mathf.Max(1, Mathf.RoundToInt((max - min) / step));
+                int stepsToMove = Mathf.Max(1, Mathf.RoundToInt(totalPositions * Mathf.Abs(percent)));
+                if (percent < 0) stepsToMove = -stepsToMove;
+                float newValue = Mathf.Clamp(current + step * stepsToMove, min, max);
+                newValue = GenMath.RoundTo(newValue, step);
                 volumeSetter(newValue);
                 onAdjustPreview?.Invoke();
             }
