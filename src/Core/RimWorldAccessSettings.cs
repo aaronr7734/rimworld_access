@@ -15,6 +15,7 @@ namespace RimWorldAccess
         public bool ShowCoverInfo = true;
         public bool AnnounceLevels = true;
         public bool SubmenuTreeNavigation = false;
+        public bool AnnounceTerrainOnCursor = true;
 
         // ===== Sound Effects =====
         public bool EnableSoundEffects = true;
@@ -41,6 +42,7 @@ namespace RimWorldAccess
             Scribe_Values.Look(ref ShowCoverInfo, "ShowCoverInfo", true);
             Scribe_Values.Look(ref AnnounceLevels, "AnnounceLevels", true);
             Scribe_Values.Look(ref SubmenuTreeNavigation, "SubmenuTreeNavigation", false);
+            Scribe_Values.Look(ref AnnounceTerrainOnCursor, "AnnounceTerrainOnCursor", true);
             Scribe_Values.Look(ref EnableSoundEffects, "EnableSoundEffects", true);
             Scribe_Values.Look(ref FootstepsEnabled, "FootstepsEnabled", true);
             Scribe_Values.Look(ref FootstepTerrainVariation, "FootstepTerrainVariation", true);
@@ -92,6 +94,8 @@ namespace RimWorldAccess
 
             listing.CheckboxLabeled("Wrap navigation (loop from end to beginning)", ref Settings.WrapNavigation);
             listing.CheckboxLabeled("Announce position (e.g., '3 of 7')", ref Settings.AnnouncePosition);
+            listing.CheckboxLabeled("Announce terrain on cursor movement", ref Settings.AnnounceTerrainOnCursor,
+                "Include the terrain name in the tile summary when you move the cursor. Helps distinguish specific terrains that share a footstep sound category (e.g., Rich Soil vs Packed Dirt both play the 'dirt' sound).");
             listing.CheckboxLabeled("Show pawn activity on map cursor movement", ref Settings.ShowPawnActivityOnMap);
             listing.CheckboxLabeled("Show cover info for drafted and hostile pawns", ref Settings.ShowCoverInfo);
             listing.CheckboxLabeled("Announce depth levels in treeviews (e.g., 'level 2')", ref Settings.AnnounceLevels);

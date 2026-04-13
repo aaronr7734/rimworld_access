@@ -733,6 +733,10 @@ namespace RimWorldAccess
             navSub.Settings.Add(new CheckboxSetting("Announce Position",
                 () => RimWorldAccessMod_Settings.Settings?.AnnouncePosition ?? true,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.AnnouncePosition = v; }));
+            navSub.Settings.Add(new CheckboxSetting("Announce Terrain on Cursor Movement",
+                () => RimWorldAccessMod_Settings.Settings?.AnnounceTerrainOnCursor ?? true,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.AnnounceTerrainOnCursor = v; },
+                "Include the terrain name in the tile summary when you move the cursor. Helps distinguish specific terrains that share a footstep sound category (e.g., Rich Soil vs Packed Dirt both play the 'dirt' sound)."));
             navSub.Settings.Add(new CheckboxSetting("Show Pawn Activity on Map",
                 () => RimWorldAccessMod_Settings.Settings?.ShowPawnActivityOnMap ?? true,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.ShowPawnActivityOnMap = v; }));
