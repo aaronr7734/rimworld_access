@@ -457,17 +457,31 @@ namespace RimWorldAccess
                 }
             }
 
-            // Change bed owner type
-            selectedBed.ForPrisoners = (newOwnerType == BedOwnerType.Prisoner);
-            if (ModsConfig.IdeologyActive)
+            // SetBedOwnerTypeByInterface fires Room.Notify_RoomShapeChanged so Room.isPrisonCell
+            // updates immediately; the raw ForPrisoners setter does not. It iterates
+            // Find.Selector.SelectedObjects, so ensure our bed is selected first.
+            var selector = Find.Selector;
+            var previousSelection = selector.SelectedObjects.ToList();
+            var bedAlreadySelected = previousSelection.Contains(selectedBed);
+            if (!bedAlreadySelected)
             {
-                // Use the proper method if Ideology is active
+                selector.ClearSelection();
+                selector.Select(selectedBed, playSound: false, forceDesignatorDeselect: false);
+            }
+            try
+            {
                 selectedBed.SetBedOwnerTypeByInterface(newOwnerType);
             }
-            else
+            finally
             {
-                // Manually set ForPrisoners for non-Ideology
-                selectedBed.ForPrisoners = (newOwnerType == BedOwnerType.Prisoner);
+                if (!bedAlreadySelected)
+                {
+                    selector.ClearSelection();
+                    foreach (var obj in previousSelection)
+                    {
+                        selector.Select(obj, playSound: false, forceDesignatorDeselect: false);
+                    }
+                }
             }
 
             TolkHelper.Speak($"Bed type changed to: {menuOptions[selectedIndex]}");
