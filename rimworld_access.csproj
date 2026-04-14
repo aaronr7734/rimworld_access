@@ -22,12 +22,11 @@
     <Compile Include="src/**/*.cs" />
   </ItemGroup>
 
-  <!-- Embed top-level audio files as resources (used by EmbeddedAudioHelper).
-       Subdirectories (Sounds/human, Sounds/animal, Sounds/mechanoid, Sounds/default) are loose-file
-       deployed below and loaded via ContentFinder<AudioClip>.GetAllInFolder at runtime. -->
+  <!-- Embed audio files as resources -->
   <ItemGroup>
-    <EmbeddedResource Include="Sounds\*.ogg" />
-    <EmbeddedResource Include="Sounds\*.mp3" />
+    <EmbeddedResource Include="Sounds\**\*.wav" />
+    <EmbeddedResource Include="Sounds\**\*.ogg" />
+    <EmbeddedResource Include="Sounds\**\*.mp3" />
   </ItemGroup>
 
   <!-- Include native Prism libraries for deployment (NOT as references) -->
@@ -97,22 +96,6 @@
       Condition="'$(NativeDir)'!='' And Exists('$(NativeDir)\libprism.so')"
     />
 
-    <!-- Copy loose footstep sound files to the deployed mod folder.
-         These are loaded at runtime via ContentFinder<AudioClip>.GetAllInFolder,
-         which only scans the mod's Sounds/ directory on disk (not embedded resources).
-         The glob root is Sounds\ so %(RecursiveDir) preserves the full relative path
-         (e.g. human\dirt\). Top-level .wav/.ogg/.mp3 files are excluded because they
-         are embedded into the DLL instead (see EmbeddedResource items above). -->
-    <ItemGroup>
-      <LooseSoundFiles Include="$(ProjectDir)Sounds\**\*" Exclude="$(ProjectDir)Sounds\*.wav;$(ProjectDir)Sounds\*.ogg;$(ProjectDir)Sounds\*.mp3" />
-    </ItemGroup>
-    <MakeDir Directories="$(ModOutputDir)\Sounds" />
-    <Copy
-      SourceFiles="@(LooseSoundFiles)"
-      DestinationFiles="@(LooseSoundFiles->'$(ModOutputDir)\Sounds\%(RecursiveDir)%(Filename)%(Extension)')"
-      SkipUnchangedFiles="true"
-    />
-
     <Message Text="--- Mod deployed successfully ---" Importance="high" />
   </Target>
 
@@ -169,17 +152,6 @@
       SourceFiles="$(ProjectDir)LICENSE"
       DestinationFolder="$(ReleaseFolderPath)"
       Condition="Exists('$(ProjectDir)LICENSE')"
-    />
-
-    <!-- Copy loose footstep sound files to the release package. -->
-    <ItemGroup>
-      <ReleaseLooseSoundFiles Include="$(ProjectDir)Sounds\**\*" Exclude="$(ProjectDir)Sounds\*.wav;$(ProjectDir)Sounds\*.ogg;$(ProjectDir)Sounds\*.mp3" />
-    </ItemGroup>
-    <MakeDir Directories="$(ReleaseFolderPath)Sounds" />
-    <Copy
-      SourceFiles="@(ReleaseLooseSoundFiles)"
-      DestinationFiles="@(ReleaseLooseSoundFiles->'$(ReleaseFolderPath)Sounds\%(RecursiveDir)%(Filename)%(Extension)')"
-      SkipUnchangedFiles="true"
     />
 
     <Message Text="--- Release package created at $(ReleaseFolderPath) ---" Importance="high" />

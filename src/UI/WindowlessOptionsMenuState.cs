@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Verse;
 using Verse.Steam;
 using RimWorld;
@@ -13,8 +14,7 @@ namespace RimWorldAccess
     public enum OptionsMenuLevel
     {
         CategoryList,    // Top level: choosing a category
-        SubsectionList,  // Middle level: choosing a subsection within a category (only for categories with Subsections)
-        SettingsList     // Leaf level: adjusting settings
+        SettingsList     // Inside a category: adjusting settings
     }
 
     /// <summary>
@@ -27,31 +27,9 @@ namespace RimWorldAccess
         private static bool isActive = false;
         private static OptionsMenuLevel currentLevel = OptionsMenuLevel.CategoryList;
         private static int selectedCategoryIndex = 0;
-        private static int selectedSubsectionIndex = 0;
         private static int selectedSettingIndex = 0;
         private static List<OptionCategory> categories = new List<OptionCategory>();
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
-        private static bool toggleableSliderHintSpoken = false;
-
-        private static bool CurrentCategoryHasSubsections =>
-            categories.Count > selectedCategoryIndex &&
-            categories[selectedCategoryIndex].Subsections != null &&
-            categories[selectedCategoryIndex].Subsections.Count > 0;
-
-        private static List<OptionSetting> CurrentSettingsList
-        {
-            get
-            {
-                if (categories.Count == 0) return new List<OptionSetting>();
-                var cat = categories[selectedCategoryIndex];
-                if (cat.Subsections != null && cat.Subsections.Count > 0)
-                {
-                    int idx = Mathf.Clamp(selectedSubsectionIndex, 0, cat.Subsections.Count - 1);
-                    return cat.Subsections[idx].Settings;
-                }
-                return cat.Settings;
-            }
-        }
 
         public static bool IsActive => isActive;
         public static bool HasActiveSearch => typeahead.HasActiveSearch;
@@ -84,7 +62,6 @@ namespace RimWorldAccess
         {
             isActive = true;
             typeahead.ClearSearch();
-            toggleableSliderHintSpoken = false;
 
             // Close pause menu
             WindowlessPauseMenuState.Close();
@@ -94,10 +71,9 @@ namespace RimWorldAccess
 
             // Set selected category (clamped to valid range)
             selectedCategoryIndex = Mathf.Clamp(categoryIndex, 0, Mathf.Max(0, categories.Count - 1));
-            selectedSubsectionIndex = 0;
 
             // Set level and setting index
-            if (settingIndex >= 0 && categories.Count > selectedCategoryIndex && !CurrentCategoryHasSubsections)
+            if (settingIndex >= 0 && categories.Count > selectedCategoryIndex)
             {
                 var settings = categories[selectedCategoryIndex].Settings;
                 selectedSettingIndex = Mathf.Clamp(settingIndex, 0, Mathf.Max(0, settings.Count - 1));
@@ -140,15 +116,9 @@ namespace RimWorldAccess
             {
                 selectedCategoryIndex = MenuHelper.SelectNext(selectedCategoryIndex, categories.Count);
             }
-            else if (currentLevel == OptionsMenuLevel.SubsectionList)
-            {
-                var subs = categories[selectedCategoryIndex].Subsections;
-                if (subs.Count > 0)
-                    selectedSubsectionIndex = MenuHelper.SelectNext(selectedSubsectionIndex, subs.Count);
-            }
             else // SettingsList
             {
-                var settings = CurrentSettingsList;
+                var settings = categories[selectedCategoryIndex].Settings;
                 if (settings.Count > 0)
                 {
                     selectedSettingIndex = MenuHelper.SelectNext(selectedSettingIndex, settings.Count);
@@ -167,15 +137,9 @@ namespace RimWorldAccess
             {
                 selectedCategoryIndex = MenuHelper.SelectPrevious(selectedCategoryIndex, categories.Count);
             }
-            else if (currentLevel == OptionsMenuLevel.SubsectionList)
-            {
-                var subs = categories[selectedCategoryIndex].Subsections;
-                if (subs.Count > 0)
-                    selectedSubsectionIndex = MenuHelper.SelectPrevious(selectedSubsectionIndex, subs.Count);
-            }
             else // SettingsList
             {
-                var settings = CurrentSettingsList;
+                var settings = categories[selectedCategoryIndex].Settings;
                 if (settings.Count > 0)
                 {
                     selectedSettingIndex = MenuHelper.SelectPrevious(selectedSettingIndex, settings.Count);
@@ -192,22 +156,7 @@ namespace RimWorldAccess
         {
             if (currentLevel == OptionsMenuLevel.CategoryList)
             {
-                // Enter: subsection list if category has subsections, otherwise straight to settings.
-                if (CurrentCategoryHasSubsections)
-                {
-                    currentLevel = OptionsMenuLevel.SubsectionList;
-                    selectedSubsectionIndex = 0;
-                }
-                else
-                {
-                    currentLevel = OptionsMenuLevel.SettingsList;
-                    selectedSettingIndex = 0;
-                }
-                typeahead.ClearSearch();
-                AnnounceCurrentState();
-            }
-            else if (currentLevel == OptionsMenuLevel.SubsectionList)
-            {
+                // Enter the selected category
                 currentLevel = OptionsMenuLevel.SettingsList;
                 selectedSettingIndex = 0;
                 typeahead.ClearSearch();
@@ -215,15 +164,10 @@ namespace RimWorldAccess
             }
             else // SettingsList
             {
-                var settings = CurrentSettingsList;
-                if (settings.Count == 0) return;
-                var setting = settings[selectedSettingIndex];
+                // Toggle or cycle the current setting
+                var setting = categories[selectedCategoryIndex].Settings[selectedSettingIndex];
                 setting.Toggle();
-                string terse = setting.GetPostToggleAnnouncement();
-                if (terse != null)
-                    TolkHelper.Speak(terse);
-                else
-                    AnnounceCurrentState();
+                AnnounceCurrentState();
             }
         }
 
@@ -235,35 +179,9 @@ namespace RimWorldAccess
             if (currentLevel != OptionsMenuLevel.SettingsList)
                 return;
 
-            var settings = CurrentSettingsList;
-            if (settings.Count == 0) return;
-            var setting = settings[selectedSettingIndex];
+            var setting = categories[selectedCategoryIndex].Settings[selectedSettingIndex];
             setting.Adjust(direction);
-            string terse = setting.GetPostAdjustAnnouncement();
-            if (terse != null)
-                TolkHelper.Speak(terse);
-            else
-                AnnounceCurrentState();
-        }
-
-        /// <summary>
-        /// Adjusts the current slider by a percentage of its total positions
-        /// (e.g. 0.1 = +10%, -0.25 = -25%). Intended for Shift/Ctrl+Arrow.
-        /// </summary>
-        public static void AdjustSettingByPercent(float percent)
-        {
-            if (currentLevel != OptionsMenuLevel.SettingsList)
-                return;
-
-            var settings = CurrentSettingsList;
-            if (settings.Count == 0) return;
-            var setting = settings[selectedSettingIndex];
-            setting.AdjustByPercent(percent);
-            string terse = setting.GetPostAdjustAnnouncement();
-            if (terse != null)
-                TolkHelper.Speak(terse);
-            else
-                AnnounceCurrentState();
+            AnnounceCurrentState();
         }
 
         /// <summary>
@@ -273,14 +191,7 @@ namespace RimWorldAccess
         {
             if (currentLevel == OptionsMenuLevel.SettingsList)
             {
-                currentLevel = CurrentCategoryHasSubsections
-                    ? OptionsMenuLevel.SubsectionList
-                    : OptionsMenuLevel.CategoryList;
-                typeahead.ClearSearch();
-                AnnounceCurrentState();
-            }
-            else if (currentLevel == OptionsMenuLevel.SubsectionList)
-            {
+                // Go back to category list
                 currentLevel = OptionsMenuLevel.CategoryList;
                 typeahead.ClearSearch();
                 AnnounceCurrentState();
@@ -309,7 +220,10 @@ namespace RimWorldAccess
             {
                 if (newIndex >= 0)
                 {
-                    SetSelectedIndexForCurrentLevel(newIndex);
+                    if (currentLevel == OptionsMenuLevel.CategoryList)
+                        selectedCategoryIndex = newIndex;
+                    else
+                        selectedSettingIndex = newIndex;
                     AnnounceWithSearch();
                 }
             }
@@ -317,23 +231,6 @@ namespace RimWorldAccess
             {
                 TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
             }
-        }
-
-        private static void SetSelectedIndexForCurrentLevel(int newIndex)
-        {
-            if (currentLevel == OptionsMenuLevel.CategoryList)
-                selectedCategoryIndex = newIndex;
-            else if (currentLevel == OptionsMenuLevel.SubsectionList)
-                selectedSubsectionIndex = newIndex;
-            else
-                selectedSettingIndex = newIndex;
-        }
-
-        private static int GetSelectedIndexForCurrentLevel()
-        {
-            if (currentLevel == OptionsMenuLevel.CategoryList) return selectedCategoryIndex;
-            if (currentLevel == OptionsMenuLevel.SubsectionList) return selectedSubsectionIndex;
-            return selectedSettingIndex;
         }
 
         /// <summary>
@@ -349,7 +246,10 @@ namespace RimWorldAccess
             {
                 if (newIndex >= 0)
                 {
-                    SetSelectedIndexForCurrentLevel(newIndex);
+                    if (currentLevel == OptionsMenuLevel.CategoryList)
+                        selectedCategoryIndex = newIndex;
+                    else
+                        selectedSettingIndex = newIndex;
                 }
                 AnnounceWithSearch();
             }
@@ -369,10 +269,16 @@ namespace RimWorldAccess
         public static void JumpToFirst()
         {
             typeahead.ClearSearch();
-            int count = GetItemLabels().Count;
-            if (count > 0)
+            if (currentLevel == OptionsMenuLevel.CategoryList)
             {
-                SetSelectedIndexForCurrentLevel(MenuHelper.JumpToFirst());
+                if (categories.Count > 0)
+                    selectedCategoryIndex = MenuHelper.JumpToFirst();
+            }
+            else
+            {
+                var settings = categories[selectedCategoryIndex].Settings;
+                if (settings.Count > 0)
+                    selectedSettingIndex = MenuHelper.JumpToFirst();
             }
             AnnounceCurrentState();
         }
@@ -383,10 +289,16 @@ namespace RimWorldAccess
         public static void JumpToLast()
         {
             typeahead.ClearSearch();
-            int count = GetItemLabels().Count;
-            if (count > 0)
+            if (currentLevel == OptionsMenuLevel.CategoryList)
             {
-                SetSelectedIndexForCurrentLevel(MenuHelper.JumpToLast(count));
+                if (categories.Count > 0)
+                    selectedCategoryIndex = MenuHelper.JumpToLast(categories.Count);
+            }
+            else
+            {
+                var settings = categories[selectedCategoryIndex].Settings;
+                if (settings.Count > 0)
+                    selectedSettingIndex = MenuHelper.JumpToLast(settings.Count);
             }
             AnnounceCurrentState();
         }
@@ -396,10 +308,14 @@ namespace RimWorldAccess
         /// </summary>
         public static void SelectNextMatch()
         {
-            int newIndex = typeahead.GetNextMatch(GetSelectedIndexForCurrentLevel());
+            int currentIndex = currentLevel == OptionsMenuLevel.CategoryList ? selectedCategoryIndex : selectedSettingIndex;
+            int newIndex = typeahead.GetNextMatch(currentIndex);
             if (newIndex >= 0)
             {
-                SetSelectedIndexForCurrentLevel(newIndex);
+                if (currentLevel == OptionsMenuLevel.CategoryList)
+                    selectedCategoryIndex = newIndex;
+                else
+                    selectedSettingIndex = newIndex;
                 AnnounceWithSearch();
             }
         }
@@ -409,10 +325,14 @@ namespace RimWorldAccess
         /// </summary>
         public static void SelectPreviousMatch()
         {
-            int newIndex = typeahead.GetPreviousMatch(GetSelectedIndexForCurrentLevel());
+            int currentIndex = currentLevel == OptionsMenuLevel.CategoryList ? selectedCategoryIndex : selectedSettingIndex;
+            int newIndex = typeahead.GetPreviousMatch(currentIndex);
             if (newIndex >= 0)
             {
-                SetSelectedIndexForCurrentLevel(newIndex);
+                if (currentLevel == OptionsMenuLevel.CategoryList)
+                    selectedCategoryIndex = newIndex;
+                else
+                    selectedSettingIndex = newIndex;
                 AnnounceWithSearch();
             }
         }
@@ -426,17 +346,17 @@ namespace RimWorldAccess
             if (currentLevel == OptionsMenuLevel.CategoryList)
             {
                 foreach (var category in categories)
+                {
                     labels.Add(category.Name);
-            }
-            else if (currentLevel == OptionsMenuLevel.SubsectionList)
-            {
-                foreach (var sub in categories[selectedCategoryIndex].Subsections)
-                    labels.Add(sub.Name);
+                }
             }
             else
             {
-                foreach (var setting in CurrentSettingsList)
+                var settings = categories[selectedCategoryIndex].Settings;
+                foreach (var setting in settings)
+                {
                     labels.Add(setting.Name);
+                }
             }
             return labels;
         }
@@ -448,14 +368,17 @@ namespace RimWorldAccess
         {
             if (typeahead.HasActiveSearch)
             {
-                string body;
+                string itemName;
                 if (currentLevel == OptionsMenuLevel.CategoryList)
-                    body = categories[selectedCategoryIndex].Name;
-                else if (currentLevel == OptionsMenuLevel.SubsectionList)
-                    body = categories[selectedCategoryIndex].Subsections[selectedSubsectionIndex].Name;
+                {
+                    itemName = categories[selectedCategoryIndex].Name;
+                    TolkHelper.Speak($"{itemName}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'");
+                }
                 else
-                    body = CurrentSettingsList[selectedSettingIndex].GetAnnouncement();
-                TolkHelper.Speak($"{body}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'");
+                {
+                    var setting = categories[selectedCategoryIndex].Settings[selectedSettingIndex];
+                    TolkHelper.Speak($"{setting.GetAnnouncement()}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'");
+                }
             }
             else
             {
@@ -465,8 +388,6 @@ namespace RimWorldAccess
 
         private static void AnnounceCurrentState()
         {
-            if (categories.Count == 0) return;
-
             if (currentLevel == OptionsMenuLevel.CategoryList)
             {
                 string categoryName = categories[selectedCategoryIndex].Name;
@@ -476,34 +397,14 @@ namespace RimWorldAccess
                     : $"{categoryName}. {positionPart}";
                 TolkHelper.Speak(announcement);
             }
-            else if (currentLevel == OptionsMenuLevel.SubsectionList)
-            {
-                var subs = categories[selectedCategoryIndex].Subsections;
-                string subName = subs[selectedSubsectionIndex].Name;
-                string positionPart = MenuHelper.FormatPosition(selectedSubsectionIndex, subs.Count);
-                string announcement = string.IsNullOrEmpty(positionPart)
-                    ? $"{subName}."
-                    : $"{subName}. {positionPart}";
-                TolkHelper.Speak(announcement);
-            }
             else // SettingsList
             {
-                var settings = CurrentSettingsList;
-                if (settings.Count == 0)
-                {
-                    TolkHelper.Speak("No settings.");
-                    return;
-                }
-                var setting = settings[selectedSettingIndex];
-                string positionPart = MenuHelper.FormatPosition(selectedSettingIndex, settings.Count);
+                var setting = categories[selectedCategoryIndex].Settings[selectedSettingIndex];
+                var currentSettings = categories[selectedCategoryIndex].Settings;
+                string positionPart = MenuHelper.FormatPosition(selectedSettingIndex, currentSettings.Count);
                 string announcement = string.IsNullOrEmpty(positionPart)
                     ? $"{setting.GetAnnouncement()}."
                     : $"{setting.GetAnnouncement()}. {positionPart}";
-                if (setting is ToggleableSliderSetting && !toggleableSliderHintSpoken)
-                {
-                    announcement += " Press Enter to toggle, Left and Right to adjust volume.";
-                    toggleableSliderHintSpoken = true;
-                }
                 TolkHelper.Speak(announcement);
             }
         }
@@ -722,79 +623,27 @@ namespace RimWorldAccess
                 categories.Add(dev);
             }
 
-            // RimWorld Access settings — nested as subsections so the growing list of
-            // accessibility options stays scannable by category.
+            // RimWorld Access settings - directly editable here
             var accessSettings = new OptionCategory("RimWorld Access");
-
-            var navSub = new OptionSubsection("General");
-            navSub.Settings.Add(new CheckboxSetting("Wrap Navigation",
+            accessSettings.Settings.Add(new CheckboxSetting("Wrap Navigation",
                 () => RimWorldAccessMod_Settings.Settings?.WrapNavigation ?? false,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.WrapNavigation = v; }));
-            navSub.Settings.Add(new CheckboxSetting("Announce Position",
+            accessSettings.Settings.Add(new CheckboxSetting("Announce Position",
                 () => RimWorldAccessMod_Settings.Settings?.AnnouncePosition ?? true,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.AnnouncePosition = v; }));
-            navSub.Settings.Add(new CheckboxSetting("Announce Terrain on Cursor Movement",
-                () => RimWorldAccessMod_Settings.Settings?.AnnounceTerrainOnCursor ?? true,
-                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.AnnounceTerrainOnCursor = v; },
-                "Include the terrain name in the tile summary when you move the cursor. Helps distinguish specific terrains that share a footstep sound category (e.g., Rich Soil vs Packed Dirt both play the 'dirt' sound)."));
-            navSub.Settings.Add(new CheckboxSetting("Show Pawn Activity on Map",
+            accessSettings.Settings.Add(new CheckboxSetting("Show Pawn Activity on Map",
                 () => RimWorldAccessMod_Settings.Settings?.ShowPawnActivityOnMap ?? true,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.ShowPawnActivityOnMap = v; }));
-            navSub.Settings.Add(new CheckboxSetting("Show Cover Info for Drafted and Hostile Pawns",
+            accessSettings.Settings.Add(new CheckboxSetting("Show Cover Info for Drafted and Hostile Pawns",
                 () => RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.ShowCoverInfo = v; }));
-            navSub.Settings.Add(new CheckboxSetting("Announce Depth Levels in Treeviews",
+            accessSettings.Settings.Add(new CheckboxSetting("Announce Depth Levels in Treeviews",
                 () => RimWorldAccessMod_Settings.Settings?.AnnounceLevels ?? true,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.AnnounceLevels = v; }));
-            navSub.Settings.Add(new CheckboxSetting("Rashad Hates Treeviews (Submenu-Style Navigation)",
+            accessSettings.Settings.Add(new CheckboxSetting("Rashad Hates Treeviews (Submenu-Style Navigation)",
                 () => RimWorldAccessMod_Settings.Settings?.SubmenuTreeNavigation ?? false,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.SubmenuTreeNavigation = v; },
                 "Changes how treeviews work. When you expand a category, it disappears and you navigate only its items. Press Left Arrow to go back. Your position is remembered when you return."));
-            accessSettings.Subsections.Add(navSub);
-
-            var soundSub = new OptionSubsection("Sound Effects");
-            soundSub.Settings.Add(new CheckboxSetting("Enable Sound Effects",
-                () => RimWorldAccessMod_Settings.Settings?.EnableSoundEffects ?? true,
-                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.EnableSoundEffects = v; },
-                "Master toggle for custom sound effects added by RimWorld Access. When off, only vanilla RimWorld sounds play."));
-            soundSub.Settings.Add(new CheckboxSetting("Enable Footstep Audio",
-                () => RimWorldAccessMod_Settings.Settings?.FootstepsEnabled ?? true,
-                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.FootstepsEnabled = v; },
-                "Play footstep sounds when pawns move."));
-
-            foreach (var cat in FootstepClassifier.AllAudioCategories)
-            {
-                FootstepAudioCategory local = cat; // closure capture
-                soundSub.Settings.Add(new ToggleableSliderSetting(
-                    FootstepClassifier.GetCategoryDisplayName(local),
-                    () => FootstepClassifier.IsEnabled(local),
-                    v => FootstepClassifier.SetEnabled(local, v),
-                    () => FootstepClassifier.GetVolume(local),
-                    v => FootstepClassifier.SetVolume(local, v),
-                    () => FootstepClassifier.GetLastVolume(local),
-                    0f, 1f, 0.05f,
-                    () => FootstepPreview.Play(local),
-                    FootstepClassifier.GetCategoryDescription(local)));
-            }
-
-            soundSub.Settings.Add(new CheckboxSetting("Footstep Terrain Variation",
-                () => RimWorldAccessMod_Settings.Settings?.FootstepTerrainVariation ?? true,
-                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.FootstepTerrainVariation = v; },
-                "Play different sounds based on terrain type."));
-            soundSub.Settings.Add(new CheckboxSetting("Footstep Wall Occlusion",
-                () => RimWorldAccessMod_Settings.Settings?.FootstepZoomScaling ?? true,
-                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.FootstepZoomScaling = v; },
-                "Muffle footsteps behind walls, fading with zoom so distant pawns become audible as you zoom out. Off = all footsteps audible regardless of walls."));
-            soundSub.Settings.Add(new CheckboxSetting("Footstep Performance Mode",
-                () => RimWorldAccessMod_Settings.Settings?.FootstepPerformanceMode ?? false,
-                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.FootstepPerformanceMode = v; },
-                "Limit footsteps to about 18 highest-priority pawns per tick."));
-            accessSettings.Subsections.Add(soundSub);
-
-            // Refresh the race-level enabled cache after building, in case any new categories
-            // were missing from saved settings (defaults to enabled).
-            FootstepClassifier.RecomputeRaceCache();
-
             categories.Add(accessSettings);
 
             // Mod Settings Category - list all mods that have settings
@@ -826,22 +675,8 @@ namespace RimWorldAccess
         {
             public string Name { get; }
             public List<OptionSetting> Settings { get; }
-            public List<OptionSubsection> Subsections { get; }
 
             public OptionCategory(string name)
-            {
-                Name = name;
-                Settings = new List<OptionSetting>();
-                Subsections = new List<OptionSubsection>();
-            }
-        }
-
-        private class OptionSubsection
-        {
-            public string Name { get; }
-            public List<OptionSetting> Settings { get; }
-
-            public OptionSubsection(string name)
             {
                 Name = name;
                 Settings = new List<OptionSetting>();
@@ -865,24 +700,6 @@ namespace RimWorldAccess
             public abstract string GetAnnouncement();
             public abstract void Toggle();
             public abstract void Adjust(int direction);
-
-            public virtual void AdjustByPercent(float percent)
-            {
-                Adjust(percent >= 0 ? 1 : -1);
-            }
-
-            /// <summary>
-            /// Optional concise announcement after Toggle() (Enter key). When non-null,
-            /// the menu state speaks this instead of the full GetAnnouncement() text —
-            /// useful for settings where the user just wants the new state, not the name.
-            /// </summary>
-            public virtual string GetPostToggleAnnouncement() => null;
-
-            /// <summary>
-            /// Optional concise announcement after Adjust() (Left/Right keys). Same contract
-            /// as GetPostToggleAnnouncement.
-            /// </summary>
-            public virtual string GetPostAdjustAnnouncement() => null;
 
             protected string AppendTooltip(string announcement)
             {
@@ -974,122 +791,6 @@ namespace RimWorldAccess
                 float current = getter();
                 float newValue = Mathf.Clamp(current + (step * direction), min, max);
                 setter(newValue);
-            }
-
-            public override void AdjustByPercent(float percent)
-            {
-                float current = getter();
-                int totalPositions = Mathf.Max(1, Mathf.RoundToInt((max - min) / step));
-                int stepsToMove = Mathf.Max(1, Mathf.RoundToInt(totalPositions * Mathf.Abs(percent)));
-                if (percent < 0) stepsToMove = -stepsToMove;
-                float newValue = Mathf.Clamp(current + step * stepsToMove, min, max);
-                newValue = GenMath.RoundTo(newValue, step);
-                setter(newValue);
-            }
-        }
-
-        /// <summary>
-        /// Combined toggle + volume slider. Enter flips the enable flag; Left/Right
-        /// adjusts the volume. When enabled is false, the slider is inert and the
-        /// announcement just says "Off". Turning back on restores the remembered
-        /// prior volume so a category's setting survives a toggle round trip.
-        /// </summary>
-        private class ToggleableSliderSetting : OptionSetting
-        {
-            private readonly Func<bool> enabledGetter;
-            private readonly Action<bool> enabledSetter;
-            private readonly Func<float> volumeGetter;
-            private readonly Action<float> volumeSetter;
-            private readonly Func<float> lastVolumeGetter;
-            private readonly float min;
-            private readonly float max;
-            private readonly float step;
-            private readonly Action onAdjustPreview;
-
-            public ToggleableSliderSetting(
-                string name,
-                Func<bool> enabledGetter,
-                Action<bool> enabledSetter,
-                Func<float> volumeGetter,
-                Action<float> volumeSetter,
-                Func<float> lastVolumeGetter,
-                float min,
-                float max,
-                float step,
-                Action onAdjustPreview = null,
-                string tooltip = null)
-                : base(name, tooltip)
-            {
-                this.enabledGetter = enabledGetter;
-                this.enabledSetter = enabledSetter;
-                this.volumeGetter = volumeGetter;
-                this.volumeSetter = volumeSetter;
-                this.lastVolumeGetter = lastVolumeGetter;
-                this.min = min;
-                this.max = max;
-                this.step = step;
-                this.onAdjustPreview = onAdjustPreview;
-            }
-
-            public override string GetAnnouncement()
-            {
-                bool on = enabledGetter();
-                string onOff = on ? "On".Translate().ToString() : "Off".Translate().ToString();
-                string core = on
-                    ? $"{Name}, {onOff}, volume {Mathf.RoundToInt(volumeGetter() * 100)}%"
-                    : $"{Name}, {onOff}";
-                return AppendTooltip(core);
-            }
-
-            public override string GetPostToggleAnnouncement()
-            {
-                bool on = enabledGetter();
-                return on ? "On".Translate().ToString() : "Off".Translate().ToString();
-            }
-
-            public override string GetPostAdjustAnnouncement()
-            {
-                if (!enabledGetter()) return "Off".Translate().ToString();
-                return $"{Mathf.RoundToInt(volumeGetter() * 100)}%";
-            }
-
-            public override void Toggle()
-            {
-                bool current = enabledGetter();
-                bool next = !current;
-                enabledSetter(next);
-                if (next)
-                {
-                    float v = volumeGetter();
-                    if (v <= 0.0001f)
-                    {
-                        float restore = lastVolumeGetter();
-                        if (restore <= 0.0001f) restore = 1f;
-                        volumeSetter(Mathf.Clamp(restore, min, max));
-                    }
-                }
-            }
-
-            public override void Adjust(int direction)
-            {
-                if (!enabledGetter()) return;
-                float current = volumeGetter();
-                float newValue = Mathf.Clamp(current + (step * direction), min, max);
-                volumeSetter(newValue);
-                onAdjustPreview?.Invoke();
-            }
-
-            public override void AdjustByPercent(float percent)
-            {
-                if (!enabledGetter()) return;
-                float current = volumeGetter();
-                int totalPositions = Mathf.Max(1, Mathf.RoundToInt((max - min) / step));
-                int stepsToMove = Mathf.Max(1, Mathf.RoundToInt(totalPositions * Mathf.Abs(percent)));
-                if (percent < 0) stepsToMove = -stepsToMove;
-                float newValue = Mathf.Clamp(current + step * stepsToMove, min, max);
-                newValue = GenMath.RoundTo(newValue, step);
-                volumeSetter(newValue);
-                onAdjustPreview?.Invoke();
             }
         }
 
