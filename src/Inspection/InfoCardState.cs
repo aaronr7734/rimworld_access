@@ -293,7 +293,7 @@ namespace RimWorldAccess
 
                 Close();
                 SoundDefOf.Click.PlayOneShotOnCamera();
-                TolkHelper.Speak("Info card closed.");
+                InspectionReturnHelper.AnnounceParentOrFallback("Info card closed.");
             }
         }
 

@@ -152,10 +152,9 @@ namespace RimWorldAccess
                 };
                 infoCardItem.OnActivate = () =>
                 {
-                    // Close inspection menu before opening Info Card
-                    WindowlessInspectionState.Close();
-
-                    // Open the visual Dialog_InfoCard (InfoCardPatch will activate InfoCardState)
+                    // Leave inspection active underneath; BuildingInspectPatch returns early
+                    // when InfoCardState.IsActive, and Window_PostClose_Patch re-announces
+                    // the inspection row on close.
                     var dialog = new Dialog_InfoCard(thing);
                     Find.WindowStack.Add(dialog);
                 };
@@ -561,7 +560,6 @@ namespace RimWorldAccess
             {
                 if (category == "Prisoner" && (pawn.IsPrisonerOfColony || pawn.IsSlaveOfColony))
                 {
-                    WindowlessInspectionState.Close();
                     PrisonerTabState.Open(pawn);
                     return;
                 }
@@ -572,7 +570,6 @@ namespace RimWorldAccess
             {
                 if (category == "Rename")
                 {
-                    WindowlessInspectionState.Close();
                     ZoneRenameState.Open(zone);
                     return;
                 }
@@ -582,7 +579,6 @@ namespace RimWorldAccess
                     var settings = zoneStorageParent.GetStoreSettings();
                     if (settings != null)
                     {
-                        WindowlessInspectionState.Close();
                         StorageSettingsMenuState.Open(settings);
                     }
                     return;
@@ -590,7 +586,6 @@ namespace RimWorldAccess
 
                 if (category == "Fishing" && zone.GetType().Name == "Zone_Fishing")
                 {
-                    WindowlessInspectionState.Close();
                     FishingZoneMenuState.Open(zone);
                     return;
                 }
@@ -602,7 +597,6 @@ namespace RimWorldAccess
                 var settings = storeParent.GetStoreSettings();
                 if (settings != null)
                 {
-                    WindowlessInspectionState.Close();
                     StorageSettingsMenuState.Open(settings);
                 }
                 return;
@@ -611,8 +605,6 @@ namespace RimWorldAccess
             // Handle building-specific actions
             if (!(obj is Building building))
                 return;
-
-            WindowlessInspectionState.Close();
 
             if (category == "Bills" && building is IBillGiver billGiver)
             {
@@ -655,7 +647,8 @@ namespace RimWorldAccess
                     var parentSettings = shellComp.GetParentStoreSettings();
                     if (settings != null)
                     {
-                        ThingFilterMenuState.Open(settings.filter, parentSettings?.filter, "Ammunition");
+                        ThingFilterMenuState.Open(settings.filter, parentSettings?.filter, "TabShells".Translate(),
+                            forceHideHitPointsConfig: true, forceHideQualityConfig: true);
                     }
                 }
             }

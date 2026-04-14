@@ -20,6 +20,8 @@ namespace RimWorldAccess
         private static ThingFilter parentFilter = null;  // Defines what's possible (tree structure)
         private static HashSet<string> expandedCategories = new HashSet<string>();
         private static string menuTitle = "";
+        private static bool forceHideHitPoints = false;
+        private static bool forceHideQuality = false;
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
 
         private enum MenuItemType
@@ -63,7 +65,8 @@ namespace RimWorldAccess
         /// <param name="filter">The filter being edited (what's currently selected)</param>
         /// <param name="fixedFilter">Optional parent filter that defines what's possible (tree structure)</param>
         /// <param name="title">Menu title for announcements</param>
-        public static void Open(ThingFilter filter, ThingFilter fixedFilter = null, string title = "Thing Filter")
+        public static void Open(ThingFilter filter, ThingFilter fixedFilter = null, string title = "Thing Filter",
+            bool forceHideHitPointsConfig = false, bool forceHideQualityConfig = false)
         {
             if (filter == null)
             {
@@ -74,6 +77,8 @@ namespace RimWorldAccess
             currentFilter = filter;
             parentFilter = fixedFilter;
             menuTitle = title;
+            forceHideHitPoints = forceHideHitPointsConfig;
+            forceHideQuality = forceHideQualityConfig;
             menuItems = new List<MenuItem>();
             selectedIndex = 0;
             isActive = true;
@@ -110,7 +115,7 @@ namespace RimWorldAccess
 
             // Hit points range (use parent filter's configurability if available)
             bool hpConfigurable = parentFilter?.allowedHitPointsConfigurable ?? currentFilter.allowedHitPointsConfigurable;
-            if (hpConfigurable)
+            if (hpConfigurable && !forceHideHitPoints)
             {
                 FloatRange hpRange = currentFilter.AllowedHitPointsPercents;
                 string hpLabel = $"{"HitPointsBasic".Translate().CapitalizeFirst()}: {hpRange.min:P0} - {hpRange.max:P0}";
@@ -119,7 +124,7 @@ namespace RimWorldAccess
 
             // Quality range (use parent filter's configurability if available)
             bool qualityConfigurable = parentFilter?.allowedQualitiesConfigurable ?? currentFilter.allowedQualitiesConfigurable;
-            if (qualityConfigurable)
+            if (qualityConfigurable && !forceHideQuality)
             {
                 QualityRange qualityRange = currentFilter.AllowedQualityLevels;
                 string qualityLabel = $"{"Quality".Translate()}: {qualityRange.min.GetLabel()} - {qualityRange.max.GetLabel()}";
@@ -230,13 +235,25 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Checks if a special filter should be visible.
-        /// Mirrors Listing_TreeThingFilter.Visible(SpecialThingFilterDef).
+        /// Mirrors Listing_TreeThingFilter.Visible(SpecialThingFilterDef) — hidden when
+        /// no visible ThingDef in the scope can ever be matched by the filter's worker
+        /// (e.g. "Allow rotten" on an ammunition filter has no rottable shells to apply to).
         /// </summary>
         private static bool IsVisibleSpecialFilter(SpecialThingFilterDef f)
         {
             if (parentFilter != null && !parentFilter.Allows(f))
                 return false;
-            return true;
+
+            TreeNode_ThingCategory root = parentFilter?.DisplayRootCategory ?? currentFilter.DisplayRootCategory;
+            if (root == null || f.Worker == null)
+                return true;
+
+            foreach (ThingDef td in root.catDef.DescendantThingDefs)
+            {
+                if (!IsVisible(td)) continue;
+                if (f.Worker.CanEverMatch(td)) return true;
+            }
+            return false;
         }
 
         private static bool IsCategoryAllowed(TreeNode_ThingCategory node)

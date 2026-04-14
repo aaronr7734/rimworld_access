@@ -1799,6 +1799,8 @@ namespace RimWorldAccess
             }
         }
 
+        public static void Reannounce() => AnnounceCurrentSelection();
+
         private static void AnnounceCurrentSelection()
         {
             if (selectedIndex >= 0 && selectedIndex < menuItems.Count)

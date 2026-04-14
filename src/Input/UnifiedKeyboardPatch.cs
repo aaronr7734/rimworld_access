@@ -4919,6 +4919,7 @@ namespace RimWorldAccess
                 else if (key == KeyCode.Escape)
                 {
                     PrisonerTabState.Close();
+                    InspectionReturnHelper.AnnounceParentOrFallback(null);
                     handled = true;
                 }
 

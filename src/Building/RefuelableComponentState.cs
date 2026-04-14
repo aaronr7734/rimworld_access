@@ -1,5 +1,6 @@
-using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Verse;
 using RimWorld;
 using Verse.Sound;
@@ -7,22 +8,35 @@ using Verse.Sound;
 namespace RimWorldAccess
 {
     /// <summary>
-    /// Manages keyboard navigation for fuel settings (CompRefuelable).
-    /// Allows viewing fuel status and toggling auto-refuel setting.
+    /// Keyboard navigation for CompRefuelable. Options are built dynamically from
+    /// Props flags so buildings only expose what actually applies (e.g. a mortar's
+    /// reinforced barrel shows only the view option; a fueled smelter shows all three).
     /// </summary>
     public static class RefuelableComponentState
     {
+        private enum OptionKind
+        {
+            ViewStatus,
+            ToggleAutoRefuel,
+            AdjustTargetFuel,
+        }
+
+        private class Option
+        {
+            public OptionKind Kind;
+            public string Label;
+        }
+
         private static CompRefuelable refuelable = null;
         private static Building building = null;
         private static bool isActive = false;
-        private static int currentOption = 0;
-        private static readonly int optionCount = 3; // View status, Toggle auto-refuel, Adjust target fuel
+        private static List<Option> options = new List<Option>();
+        private static int selectedIndex = 0;
+        private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
 
         public static bool IsActive => isActive;
+        public static bool HasActiveSearch => typeahead.HasActiveSearch;
 
-        /// <summary>
-        /// Opens the fuel management menu for the given building.
-        /// </summary>
         public static void Open(Building targetBuilding)
         {
             if (targetBuilding == null)
@@ -42,259 +56,269 @@ namespace RimWorldAccess
             building = targetBuilding;
             refuelable = comp;
             isActive = true;
-            currentOption = 0;
+            selectedIndex = 0;
+            typeahead.ClearSearch();
 
-            AnnounceCurrentStatus();
+            BuildOptions();
+            TolkHelper.Speak(BuildVanillaFuelStatus());
         }
 
-        /// <summary>
-        /// Closes the fuel management menu.
-        /// </summary>
         public static void Close()
         {
             MapNavigationState.SuppressMapNavigation = false;
             refuelable = null;
             building = null;
             isActive = false;
-            currentOption = 0;
+            selectedIndex = 0;
+            options.Clear();
+            typeahead.ClearSearch();
         }
 
-        /// <summary>
-        /// Moves to the next option in the menu.
-        /// </summary>
+        private static void BuildOptions()
+        {
+            options.Clear();
+            options.Add(new Option { Kind = OptionKind.ViewStatus, Label = "View detailed fuel status" });
+
+            if (refuelable.Props.showAllowAutoRefuelToggle)
+                options.Add(new Option { Kind = OptionKind.ToggleAutoRefuel, Label = AutoRefuelLabel() });
+
+            if (refuelable.Props.targetFuelLevelConfigurable)
+                options.Add(new Option { Kind = OptionKind.AdjustTargetFuel, Label = TargetFuelLabel() });
+        }
+
+        private static string AutoRefuelLabel()
+            => $"Auto-refuel: {(refuelable.allowAutoRefuel ? "on" : "off")}";
+
+        private static string TargetFuelLabel()
+            => $"Target fuel level: {refuelable.TargetFuelLevel.ToStringDecimalIfSmall()} / {refuelable.Props.fuelCapacity.ToStringDecimalIfSmall()}";
+
         public static void SelectNext()
         {
-            currentOption = (currentOption + 1) % optionCount;
+            if (options.Count == 0) return;
+            typeahead.ClearSearch();
+            selectedIndex = MenuHelper.SelectNext(selectedIndex, options.Count);
             AnnounceCurrentOption();
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
         }
 
-        /// <summary>
-        /// Moves to the previous option in the menu.
-        /// </summary>
         public static void SelectPrevious()
         {
-            currentOption--;
-            if (currentOption < 0)
-                currentOption = optionCount - 1;
+            if (options.Count == 0) return;
+            typeahead.ClearSearch();
+            selectedIndex = MenuHelper.SelectPrevious(selectedIndex, options.Count);
             AnnounceCurrentOption();
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
         }
 
-        /// <summary>
-        /// Executes the currently selected option.
-        /// </summary>
+        public static void JumpToFirst()
+        {
+            if (options.Count == 0) return;
+            typeahead.ClearSearch();
+            selectedIndex = 0;
+            AnnounceCurrentOption();
+        }
+
+        public static void JumpToLast()
+        {
+            if (options.Count == 0) return;
+            typeahead.ClearSearch();
+            selectedIndex = options.Count - 1;
+            AnnounceCurrentOption();
+        }
+
         public static void ExecuteSelected()
         {
-            if (refuelable == null || building == null)
-                return;
+            if (refuelable == null || building == null || options.Count == 0) return;
 
-            switch (currentOption)
+            switch (options[selectedIndex].Kind)
             {
-                case 0: // View detailed status
+                case OptionKind.ViewStatus:
                     AnnounceDetailedStatus();
                     break;
-                case 1: // Toggle auto-refuel
+                case OptionKind.ToggleAutoRefuel:
                     ToggleAutoRefuel();
                     break;
-                case 2: // Adjust target fuel level
-                    AnnounceTargetFuelHelp();
+                case OptionKind.AdjustTargetFuel:
+                    TolkHelper.Speak("Use Left and Right arrows to adjust. Current: "
+                        + refuelable.TargetFuelLevel.ToStringDecimalIfSmall()
+                        + " of " + refuelable.Props.fuelCapacity.ToStringDecimalIfSmall());
                     break;
             }
         }
 
-        /// <summary>
-        /// Toggles the auto-refuel setting.
-        /// </summary>
-        public static void ToggleAutoRefuel()
-        {
-            if (refuelable == null || building == null)
-                return;
+        private static bool IsOnTargetFuelOption()
+            => options.Count > 0 && options[selectedIndex].Kind == OptionKind.AdjustTargetFuel;
 
-            // Check if auto-refuel toggle is available for this building
-            if (!refuelable.Props.showAllowAutoRefuelToggle)
+        public static void IncreaseTargetFuel()
+        {
+            if (refuelable == null || building == null) return;
+            if (!IsOnTargetFuelOption())
             {
-                TolkHelper.Speak("Auto-refuel not available for this building", SpeechPriority.High);
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }
 
+            float increment = refuelable.Props.fuelCapacity * 0.1f;
+            refuelable.TargetFuelLevel += increment;
+            RefreshSelectedLabel();
+            TolkHelper.Speak(options[selectedIndex].Label);
+        }
+
+        public static void DecreaseTargetFuel()
+        {
+            if (refuelable == null || building == null) return;
+            if (!IsOnTargetFuelOption())
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                return;
+            }
+
+            float decrement = refuelable.Props.fuelCapacity * 0.1f;
+            refuelable.TargetFuelLevel -= decrement;
+            RefreshSelectedLabel();
+            TolkHelper.Speak(options[selectedIndex].Label);
+        }
+
+        private static void ToggleAutoRefuel()
+        {
             refuelable.allowAutoRefuel = !refuelable.allowAutoRefuel;
-            string status = refuelable.allowAutoRefuel ? "enabled" : "disabled";
-            TolkHelper.Speak($"Auto-refuel {status}");
+            RefreshSelectedLabel();
+            TolkHelper.Speak(refuelable.allowAutoRefuel ? "on" : "off");
             SoundDefOf.Checkbox_TurnedOn.PlayOneShotOnCamera();
         }
 
-        /// <summary>
-        /// Increases target fuel level.
-        /// </summary>
-        public static void IncreaseTargetFuel()
+        private static void RefreshSelectedLabel()
         {
-            if (refuelable == null || building == null)
-                return;
-
-            if (!refuelable.Props.targetFuelLevelConfigurable)
+            if (options.Count == 0) return;
+            var opt = options[selectedIndex];
+            switch (opt.Kind)
             {
-                TolkHelper.Speak("Target fuel level cannot be configured", SpeechPriority.High);
-                return;
+                case OptionKind.ToggleAutoRefuel: opt.Label = AutoRefuelLabel(); break;
+                case OptionKind.AdjustTargetFuel: opt.Label = TargetFuelLabel(); break;
+            }
+        }
+
+        private static void AnnounceCurrentOption()
+        {
+            if (options.Count == 0) return;
+            string label = options[selectedIndex].Label;
+            string position = MenuHelper.FormatPosition(selectedIndex, options.Count);
+            TolkHelper.Speak(string.IsNullOrEmpty(position) ? label : $"{label}. {position}");
+        }
+
+        /// <summary>
+        /// Top-line fuel status mirroring CompRefuelable.CompInspectStringExtra — what a
+        /// sighted player sees in the inspect panel. Uses ". " separators per project
+        /// convention (no newlines in screen reader announcements).
+        /// </summary>
+        private static string BuildVanillaFuelStatus()
+        {
+            if (refuelable.Props.fuelIsMortarBarrel && Find.Storyteller.difficulty.classicMortars)
+                return $"{building.LabelCap}. Classic mortars mode, no barrel wear.";
+
+            var sb = new StringBuilder();
+            sb.Append(refuelable.Props.FuelLabel.CapitalizeFirst()).Append(": ");
+            sb.Append(refuelable.Fuel.ToStringDecimalIfSmall()).Append(" / ");
+            sb.Append(refuelable.Props.fuelCapacity.ToStringDecimalIfSmall());
+
+            if (!refuelable.Props.consumeFuelOnlyWhenUsed && refuelable.HasFuel)
+            {
+                int numTicks = (int)(refuelable.Fuel / refuelable.Props.fuelConsumptionRate * 60000f);
+                sb.Append(" (").Append(numTicks.ToStringTicksToPeriod()).Append(")");
             }
 
-            float increment = refuelable.Props.fuelCapacity * 0.1f; // 10% increments
-            refuelable.TargetFuelLevel += increment;
-            AnnounceTargetFuelLevel();
-        }
-
-        /// <summary>
-        /// Decreases target fuel level.
-        /// </summary>
-        public static void DecreaseTargetFuel()
-        {
-            if (refuelable == null || building == null)
-                return;
-
-            if (!refuelable.Props.targetFuelLevelConfigurable)
+            if (!refuelable.HasFuel && !refuelable.Props.outOfFuelMessage.NullOrEmpty())
             {
-                TolkHelper.Speak("Target fuel level cannot be configured", SpeechPriority.High);
-                return;
+                sb.Append(". ").Append(refuelable.Props.outOfFuelMessage);
             }
-
-            float decrement = refuelable.Props.fuelCapacity * 0.1f; // 10% increments
-            refuelable.TargetFuelLevel -= decrement;
-            AnnounceTargetFuelLevel();
-        }
-
-        private static void AnnounceTargetFuelLevel()
-        {
-            if (refuelable == null)
-                return;
-
-            float percent = (refuelable.TargetFuelLevel / refuelable.Props.fuelCapacity) * 100f;
-            TolkHelper.Speak(
-                $"Target fuel: {refuelable.TargetFuelLevel:F1}/{refuelable.Props.fuelCapacity:F1} ({percent:F0}%)");
-        }
-
-        private static void AnnounceTargetFuelHelp()
-        {
-            if (refuelable == null)
-                return;
 
             if (refuelable.Props.targetFuelLevelConfigurable)
             {
-                string help = "Use Left/Right arrows to adjust target fuel level. " +
-                             $"Current: {refuelable.TargetFuelLevel:F1}/{refuelable.Props.fuelCapacity:F1}";
-                TolkHelper.Speak(help);
+                sb.Append(". ").Append("ConfiguredTargetFuelLevel".Translate(refuelable.TargetFuelLevel.ToStringDecimalIfSmall()));
+            }
+
+            return sb.ToString();
+        }
+
+        private static void AnnounceDetailedStatus()
+        {
+            if (refuelable == null || building == null) return;
+
+            var sb = new StringBuilder();
+            sb.Append(BuildVanillaFuelStatus());
+
+            if (refuelable.Props.fuelFilter != null && refuelable.Props.fuelFilter.AllowedDefCount == 1)
+            {
+                var fuelDef = refuelable.Props.fuelFilter.AllowedThingDefs.First();
+                sb.Append(". Fuel type: ").Append(fuelDef.label);
+            }
+
+            if (refuelable.Props.showAllowAutoRefuelToggle)
+            {
+                sb.Append(". ").Append(AutoRefuelLabel());
+            }
+
+            TolkHelper.Speak(sb.ToString());
+        }
+
+        // Typeahead plumbing
+
+        public static bool ProcessTypeaheadCharacter(char c)
+        {
+            var labels = options.Select(o => o.Label).ToList();
+            if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
+            {
+                if (newIndex >= 0) { selectedIndex = newIndex; AnnounceWithSearch(); }
             }
             else
             {
-                TolkHelper.Speak("Target fuel level cannot be configured for this building", SpeechPriority.High);
+                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
             }
+            return true;
         }
 
-        /// <summary>
-        /// Announces the current option in the menu.
-        /// </summary>
-        private static void AnnounceCurrentOption()
+        public static bool ProcessBackspace()
         {
-            if (refuelable == null)
-                return;
-
-            string option;
-            switch (currentOption)
+            if (!typeahead.HasActiveSearch) return false;
+            var labels = options.Select(o => o.Label).ToList();
+            if (typeahead.ProcessBackspace(labels, out int newIndex))
             {
-                case 0:
-                    option = "View detailed fuel status";
-                    break;
-                case 1:
-                    option = "Toggle auto-refuel";
-                    break;
-                case 2:
-                    option = "Adjust target fuel level";
-                    break;
-                default:
-                    option = "Unknown option";
-                    break;
+                if (newIndex >= 0) selectedIndex = newIndex;
+                AnnounceWithSearch();
             }
-
-            TolkHelper.Speak($"Option {currentOption + 1}/{optionCount}: {option}");
+            return true;
         }
 
-        /// <summary>
-        /// Announces the current fuel status to the clipboard for screen readers.
-        /// </summary>
-        private static void AnnounceCurrentStatus()
+        public static void ClearTypeaheadSearch()
         {
-            if (refuelable == null || building == null)
-                return;
-
-            float fuel = refuelable.Fuel;
-            float maxFuel = refuelable.Props.fuelCapacity;
-            float percent = (maxFuel > 0) ? (fuel / maxFuel * 100f) : 0f;
-
-            string announcement = $"{building.LabelCap} - Fuel: {percent:F0}% ({fuel:F1}/{maxFuel:F1})";
-
-            if (refuelable.Props.showAllowAutoRefuelToggle)
-            {
-                string autoRefuel = refuelable.allowAutoRefuel ? "On" : "Off";
-                announcement += $" - Auto-refuel: {autoRefuel}";
-            }
-
-            TolkHelper.Speak(announcement);
+            typeahead.ClearSearchAndAnnounce();
+            AnnounceCurrentOption();
         }
 
-        /// <summary>
-        /// Gets a detailed status report including fuel type and consumption.
-        /// </summary>
-        public static void AnnounceDetailedStatus()
+        public static bool SelectNextMatch()
         {
-            if (refuelable == null || building == null)
-                return;
+            if (!typeahead.HasActiveSearch) return false;
+            int next = typeahead.GetNextMatch(selectedIndex);
+            if (next >= 0) { selectedIndex = next; AnnounceWithSearch(); }
+            return true;
+        }
 
-            float fuel = refuelable.Fuel;
-            float maxFuel = refuelable.Props.fuelCapacity;
-            float percent = (maxFuel > 0) ? (fuel / maxFuel * 100f) : 0f;
+        public static bool SelectPreviousMatch()
+        {
+            if (!typeahead.HasActiveSearch) return false;
+            int prev = typeahead.GetPreviousMatch(selectedIndex);
+            if (prev >= 0) { selectedIndex = prev; AnnounceWithSearch(); }
+            return true;
+        }
 
-            string details = $"{building.LabelCap}\n";
-            details += $"Fuel: {fuel:F1}/{maxFuel:F1} ({percent:F0}%)";
-
-            // Fuel type
-            if (refuelable.Props.fuelFilter.AllowedDefCount == 1)
-            {
-                var fuelDef = refuelable.Props.fuelFilter.AllowedThingDefs.First();
-                details += $"\nFuel type: {fuelDef.label}";
-            }
-
-            // Auto-refuel status
-            if (refuelable.Props.showAllowAutoRefuelToggle)
-            {
-                string autoRefuel = refuelable.allowAutoRefuel ? "Enabled" : "Disabled";
-                details += $"\nAuto-refuel: {autoRefuel}";
-            }
-
-            // Target fuel level
-            if (refuelable.Props.targetFuelLevelConfigurable)
-            {
-                float targetPercent = (refuelable.TargetFuelLevel / maxFuel) * 100f;
-                details += $"\nTarget: {refuelable.TargetFuelLevel:F1} ({targetPercent:F0}%)";
-            }
-
-            // Consumption rate
-            if (!refuelable.Props.consumeFuelOnlyWhenUsed && refuelable.HasFuel)
-            {
-                float consumptionPerDay = refuelable.Props.fuelConsumptionRate;
-                if (consumptionPerDay > 0)
-                {
-                    float daysRemaining = fuel / consumptionPerDay;
-                    details += $"\nConsumption: {consumptionPerDay:F2}/day";
-                    details += $"\nTime remaining: {daysRemaining:F1} days";
-                }
-            }
-
-            // Out of fuel warning
-            if (!refuelable.HasFuel && !string.IsNullOrEmpty(refuelable.Props.outOfFuelMessage))
-            {
-                details += $"\nWarning: {refuelable.Props.outOfFuelMessage}";
-            }
-
-            TolkHelper.Speak(details);
+        private static void AnnounceWithSearch()
+        {
+            if (options.Count == 0 || selectedIndex < 0 || selectedIndex >= options.Count) return;
+            string label = options[selectedIndex].Label;
+            if (typeahead.HasActiveSearch)
+                TolkHelper.Speak($"{label}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'");
+            else
+                AnnounceCurrentOption();
         }
     }
 }

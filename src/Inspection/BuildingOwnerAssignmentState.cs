@@ -119,7 +119,7 @@ namespace RimWorldAccess
             if (currentMenuLevel == MenuLevel.MainMenu)
             {
                 Close();
-                TolkHelper.Speak("Assignment menu closed");
+                InspectionReturnHelper.AnnounceParentOrFallback("Assignment menu closed");
             }
             else
             {

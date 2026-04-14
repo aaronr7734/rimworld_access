@@ -120,7 +120,7 @@ namespace RimWorldAccess
             if (currentMenuLevel == MenuLevel.MainMenu)
             {
                 Close();
-                TolkHelper.Speak("Bed menu closed");
+                InspectionReturnHelper.AnnounceParentOrFallback("Bed menu closed");
             }
             else
             {

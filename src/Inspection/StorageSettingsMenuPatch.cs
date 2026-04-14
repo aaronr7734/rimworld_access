@@ -117,7 +117,7 @@ namespace RimWorldAccess
                     return;
                 }
                 StorageSettingsMenuState.Close();
-                TolkHelper.Speak("Closed storage settings menu");
+                InspectionReturnHelper.AnnounceParentOrFallback("Closed storage settings menu");
                 Event.current.Use();
                 return;
             }
@@ -263,7 +263,7 @@ namespace RimWorldAccess
 
                 case KeyCode.Escape:
                     PlantSelectionMenuState.Close();
-                    TolkHelper.Speak("Closed plant selection menu");
+                    InspectionReturnHelper.AnnounceParentOrFallback("Closed plant selection menu");
                     Event.current.Use();
                     break;
 

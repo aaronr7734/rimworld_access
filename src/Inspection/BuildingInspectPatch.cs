@@ -150,7 +150,7 @@ namespace RimWorldAccess
 
                 case KeyCode.Escape:
                     TempControlMenuState.Close();
-                    TolkHelper.Speak("Closed temperature control menu");
+                    InspectionReturnHelper.AnnounceParentOrFallback("Closed temperature control menu");
                     Event.current.Use();
                     break;
             }
@@ -187,7 +187,7 @@ namespace RimWorldAccess
                     return;
                 }
                 BillsMenuState.Close();
-                TolkHelper.Speak("Closed bills menu");
+                InspectionReturnHelper.AnnounceParentOrFallback("Closed bills menu");
                 Event.current.Use();
                 return;
             }
@@ -389,8 +389,7 @@ namespace RimWorldAccess
                     return;
                 }
                 BillConfigState.Close();
-                TolkHelper.Speak("Closed bill configuration");
-                // Note: BillsMenuState stays active in background, no need to reopen
+                InspectionReturnHelper.AnnounceParentOrFallback("Closed bill configuration");
                 Event.current.Use();
                 return;
             }
@@ -588,7 +587,7 @@ namespace RimWorldAccess
 
                 case KeyCode.Escape:
                     RangeEditMenuState.Close();
-                    TolkHelper.Speak("Cancelled range editing");
+                    InspectionReturnHelper.AnnounceParentOrFallback("Cancelled range editing");
                     Event.current.Use();
                     break;
             }
@@ -724,7 +723,7 @@ namespace RimWorldAccess
                     else
                     {
                         ThingFilterMenuState.Close();
-                        TolkHelper.Speak("Closed thing filter menu");
+                        InspectionReturnHelper.AnnounceParentOrFallback("Closed thing filter menu");
                     }
                     Event.current.Use();
                     break;
@@ -775,7 +774,7 @@ namespace RimWorldAccess
 
                 case KeyCode.Escape:
                     RangeEditMenuState.Close();
-                    TolkHelper.Speak("Cancelled range editing");
+                    InspectionReturnHelper.AnnounceParentOrFallback("Cancelled range editing");
                     Event.current.Use();
                     break;
             }
@@ -859,7 +858,7 @@ namespace RimWorldAccess
 
                 case KeyCode.Escape:
                     FlickableComponentState.Close();
-                    TolkHelper.Speak("Closed power control menu");
+                    InspectionReturnHelper.AnnounceParentOrFallback("Closed power control menu");
                     Event.current.Use();
                     break;
             }
@@ -869,15 +868,41 @@ namespace RimWorldAccess
         {
             KeyCode key = Event.current.keyCode;
 
+            // Typeahead character input (before the keyCode switch)
+            bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
+            bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
+            if ((isLetter || (isNumber && !Event.current.shift)) && !KeyboardHelper.IsAltHeld && !Event.current.control)
+            {
+                TypeaheadCharacterBuffer.RequestCharacter(c => RefuelableComponentState.ProcessTypeaheadCharacter(c));
+                Event.current.Use();
+                return;
+            }
+
             switch (key)
             {
                 case KeyCode.UpArrow:
-                    RefuelableComponentState.SelectPrevious();
+                    if (RefuelableComponentState.HasActiveSearch)
+                        RefuelableComponentState.SelectPreviousMatch();
+                    else
+                        RefuelableComponentState.SelectPrevious();
                     Event.current.Use();
                     break;
 
                 case KeyCode.DownArrow:
-                    RefuelableComponentState.SelectNext();
+                    if (RefuelableComponentState.HasActiveSearch)
+                        RefuelableComponentState.SelectNextMatch();
+                    else
+                        RefuelableComponentState.SelectNext();
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.Home:
+                    RefuelableComponentState.JumpToFirst();
+                    Event.current.Use();
+                    break;
+
+                case KeyCode.End:
+                    RefuelableComponentState.JumpToLast();
                     Event.current.Use();
                     break;
 
@@ -897,9 +922,22 @@ namespace RimWorldAccess
                     Event.current.Use();
                     break;
 
+                case KeyCode.Backspace:
+                    if (RefuelableComponentState.HasActiveSearch)
+                        RefuelableComponentState.ProcessBackspace();
+                    Event.current.Use();
+                    break;
+
                 case KeyCode.Escape:
-                    RefuelableComponentState.Close();
-                    TolkHelper.Speak("Closed fuel settings menu");
+                    if (RefuelableComponentState.HasActiveSearch)
+                    {
+                        RefuelableComponentState.ClearTypeaheadSearch();
+                    }
+                    else
+                    {
+                        RefuelableComponentState.Close();
+                        InspectionReturnHelper.AnnounceParentOrFallback("Closed fuel settings menu");
+                    }
                     Event.current.Use();
                     break;
             }
@@ -918,7 +956,7 @@ namespace RimWorldAccess
 
                 case KeyCode.Escape:
                     BreakdownableComponentState.Close();
-                    TolkHelper.Speak("Closed breakdown status view");
+                    InspectionReturnHelper.AnnounceParentOrFallback("Closed breakdown status view");
                     Event.current.Use();
                     break;
             }
@@ -944,7 +982,7 @@ namespace RimWorldAccess
 
                 case KeyCode.Escape:
                     DoorControlState.Close();
-                    TolkHelper.Speak("Closed door controls");
+                    InspectionReturnHelper.AnnounceParentOrFallback("Closed door controls");
                     Event.current.Use();
                     break;
             }
@@ -970,7 +1008,7 @@ namespace RimWorldAccess
 
                 case KeyCode.Escape:
                     ForbidControlState.Close();
-                    TolkHelper.Speak("Closed forbid controls");
+                    InspectionReturnHelper.AnnounceParentOrFallback("Closed forbid controls");
                     Event.current.Use();
                     break;
             }
@@ -1031,7 +1069,7 @@ namespace RimWorldAccess
                     return;
                 }
                 FishingZoneMenuState.Close();
-                TolkHelper.Speak("Closed fishing zone menu");
+                InspectionReturnHelper.AnnounceParentOrFallback("Closed fishing zone menu");
                 Event.current.Use();
                 return;
             }

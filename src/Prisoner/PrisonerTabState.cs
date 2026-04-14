@@ -51,12 +51,6 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Close the inspection menu if it's active
-            if (WindowlessInspectionState.IsActive)
-            {
-                WindowlessInspectionState.Close();
-            }
-
             isActive = true;
             currentPawn = pawn;
             currentSection = TabSection.Information;

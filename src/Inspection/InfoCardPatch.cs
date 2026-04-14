@@ -126,6 +126,8 @@ namespace RimWorldAccess
                         {
                             InfoCardState.Close();
                         }
+                        // Return to whatever opened the info card (inspection tree row, etc.)
+                        InspectionReturnHelper.AnnounceParentOrFallback(null);
                     }
                 }
             }
