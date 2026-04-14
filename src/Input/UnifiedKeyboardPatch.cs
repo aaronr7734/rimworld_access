@@ -6481,7 +6481,17 @@ namespace RimWorldAccess
                 // Action is invoked with Event.current.shift intact so KeyBindingDefOf.QueueOrder.IsDownEvent
                 // evaluates true when queueing — no need to pass colonistOrdering=true (we play the sound ourselves).
                 SoundDefOf.ColonistOrdered.PlayOneShotOnCamera();
-                top.Chosen(false, null);
+                // Capture option label so callback-based Targeter.BeginTargeting calls inside
+                // the action (e.g., force-wear) can announce it as the second-phase prompt.
+                PendingTargetingContext.Set(top.Label);
+                try
+                {
+                    top.Chosen(false, null);
+                }
+                finally
+                {
+                    PendingTargetingContext.Clear();
+                }
 
                 // Multi-select: the wrapped action already announced per-pawn feedback.
                 if (!multiFeedback)

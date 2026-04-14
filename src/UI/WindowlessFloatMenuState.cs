@@ -143,8 +143,19 @@ namespace RimWorldAccess
             if (givesColonistOrders)
                 SoundDefOf.ColonistOrdered.PlayOneShotOnCamera();
 
-            // Pass colonistOrdering: false to Chosen() since we handle the sound ourselves
-            selectedOption.Chosen(false, null);
+            // Pass colonistOrdering: false to Chosen() since we handle the sound ourselves.
+            // Capture the option's localized label so any callback-based Targeter.BeginTargeting
+            // call inside the action (e.g., "Force [pawn] to wear [apparel]") can announce it
+            // as the second-phase prompt. Cleared in finally to prevent leaking to unrelated calls.
+            PendingTargetingContext.Set(selectedOption.Label);
+            try
+            {
+                selectedOption.Chosen(false, null);
+            }
+            finally
+            {
+                PendingTargetingContext.Clear();
+            }
 
             // Announce selection - but skip if the action entered placement mode
             // (placement mode already announces its own message, e.g., "bed selected. Size: 1 by 2...")

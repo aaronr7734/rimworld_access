@@ -45,6 +45,21 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Opens item targeting state for a callback-based targeter (no ITargetingSource).
+        /// Used by float-menu actions that call Find.Targeter.BeginTargeting(parameters, action)
+        /// directly — e.g., "Force [pawn] to wear [apparel]" from FloatMenuOptionProvider_DressOtherPawn.
+        /// The label is the float-menu option's already-localized text.
+        /// </summary>
+        public static void Open(string label, TargetingParameters parameters)
+        {
+            isActive = true;
+            itemLabel = !string.IsNullOrEmpty(label) ? label : InferLabelFromParameters(parameters);
+
+            string announcement = $"{itemLabel}. Navigate with arrow keys, Enter to confirm, Escape to cancel.";
+            TolkHelper.Speak(announcement, SpeechPriority.Normal);
+        }
+
+        /// <summary>
         /// Closes item targeting state.
         /// </summary>
         public static void Close()
@@ -91,6 +106,29 @@ namespace RimWorldAccess
                 return "TargetGizmoMouse".Translate();
             if (source is CompUsable)
                 return "UseGizmoMouse".Translate();
+
+            return "Select a target";
+        }
+
+        /// <summary>
+        /// Fallback label when no float-menu label was captured (e.g., a third-party caller
+        /// invokes Targeter.BeginTargeting directly). Infers a coarse description from the
+        /// allowed target kinds so the user at least knows targeting started.
+        /// </summary>
+        private static string InferLabelFromParameters(TargetingParameters parameters)
+        {
+            if (parameters == null)
+                return "Select a target";
+
+            if (parameters.canTargetPawns || parameters.canTargetHumans
+                || parameters.canTargetAnimals || parameters.canTargetMechs)
+                return "Select pawn to target";
+            if (parameters.canTargetBuildings)
+                return "Select building to target";
+            if (parameters.canTargetItems)
+                return "Select item to target";
+            if (parameters.canTargetLocations)
+                return "Select location";
 
             return "Select a target";
         }

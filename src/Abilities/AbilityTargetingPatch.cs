@@ -94,6 +94,77 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Patch the callback-based BeginTargeting overload (TargetingParameters + Action + Pawn + ...).
+        /// Used by float-menu actions like "Force [pawn] to wear [apparel]" that open a targeter
+        /// without an ITargetingSource. We capture the option's localized label from
+        /// PendingTargetingContext (set by WindowlessFloatMenuState / UnifiedKeyboardPatch
+        /// before invoking option.Chosen).
+        /// </summary>
+        [HarmonyPatch(typeof(Targeter), "BeginTargeting", new Type[] {
+            typeof(TargetingParameters),
+            typeof(Action<LocalTargetInfo>),
+            typeof(Pawn),
+            typeof(Action),
+            typeof(UnityEngine.Texture2D),
+            typeof(bool)
+        })]
+        [HarmonyPostfix]
+        public static void BeginTargeting_Callback_Postfix(TargetingParameters targetParams)
+        {
+            OpenCallbackTargetingState(targetParams);
+        }
+
+        /// <summary>
+        /// Patch the callback-based BeginTargeting overload with onGuiAction.
+        /// </summary>
+        [HarmonyPatch(typeof(Targeter), "BeginTargeting", new Type[] {
+            typeof(TargetingParameters),
+            typeof(Action<LocalTargetInfo>),
+            typeof(Action<LocalTargetInfo>)
+        })]
+        [HarmonyPostfix]
+        public static void BeginTargeting_CallbackOnGui_Postfix(TargetingParameters targetParams)
+        {
+            OpenCallbackTargetingState(targetParams);
+        }
+
+        /// <summary>
+        /// Patch the full-featured callback-based BeginTargeting overload (with highlight + validator).
+        /// </summary>
+        [HarmonyPatch(typeof(Targeter), "BeginTargeting", new Type[] {
+            typeof(TargetingParameters),
+            typeof(Action<LocalTargetInfo>),
+            typeof(Action<LocalTargetInfo>),
+            typeof(Func<LocalTargetInfo, bool>),
+            typeof(Pawn),
+            typeof(Action),
+            typeof(UnityEngine.Texture2D),
+            typeof(bool),
+            typeof(Action<LocalTargetInfo>),
+            typeof(Action<LocalTargetInfo>)
+        })]
+        [HarmonyPostfix]
+        public static void BeginTargeting_CallbackFull_Postfix(TargetingParameters targetParams)
+        {
+            OpenCallbackTargetingState(targetParams);
+        }
+
+        /// <summary>
+        /// Shared logic for the callback-based BeginTargeting postfixes. Closes any prior
+        /// ItemTargetingState (e.g., a phase-1 catalyst announcement) before opening a new one
+        /// so multi-phase flows announce each phase distinctly.
+        /// </summary>
+        private static void OpenCallbackTargetingState(TargetingParameters targetParams)
+        {
+            string label = PendingTargetingContext.ConsumeLabel();
+
+            if (ItemTargetingState.IsActive)
+                ItemTargetingState.Close();
+
+            ItemTargetingState.Open(label, targetParams);
+        }
+
+        /// <summary>
         /// Patch Targeter.StopTargeting to close ability targeting state.
         /// </summary>
         [HarmonyPatch(typeof(Targeter), "StopTargeting")]
