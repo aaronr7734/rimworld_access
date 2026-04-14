@@ -31,6 +31,8 @@ namespace RimWorldAccess
             treeNav.FormatItemAnnouncement = FormatAnnouncement;
             treeNav.FormatSearchAnnouncement = FormatSearchAnnouncement;
             treeNav.OnActivate = HandleActivate;
+            // Typeahead searches across all categories without requiring '*' first.
+            treeNav.ShouldExpandForSearch = _ => true;
         }
 
         /// <summary>

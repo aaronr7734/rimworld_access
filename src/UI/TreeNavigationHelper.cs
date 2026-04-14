@@ -28,6 +28,9 @@ namespace RimWorldAccess
         private int selectedIndex;
         private Dictionary<InspectionTreeItem, InspectionTreeItem> lastChildPerParent;
         private InspectionTreeItem lastAnnouncedParent;
+        // Snapshot of pre-search expansion state — non-null while a typeahead search
+        // is auto-expanding the tree to surface matches across collapsed nodes.
+        private Dictionary<InspectionTreeItem, bool> preSearchExpansion;
 
         #region Configuration
 
@@ -74,6 +77,16 @@ namespace RimWorldAccess
         /// Use for lazy loading: populate item.Children in this callback.
         /// </summary>
         public Action<InspectionTreeItem> OnBeforeExpand { get; set; }
+
+        /// <summary>
+        /// Predicate selecting which expandable nodes should be auto-expanded for
+        /// the duration of a typeahead search, so matches inside collapsed nodes
+        /// become reachable without the user pressing '*' first. The original
+        /// expansion state is restored when the search ends (Escape, navigation,
+        /// or backspace-to-empty). If null, search is scoped to currently-visible
+        /// items only (legacy behavior).
+        /// </summary>
+        public Func<InspectionTreeItem, bool> ShouldExpandForSearch { get; set; }
 
         /// <summary>
         /// Whether to include child counts in expand/collapse announcements.
@@ -159,6 +172,77 @@ namespace RimWorldAccess
             MenuHelper.ResetLevel(levelTrackingKey);
             lastChildPerParent?.Clear();
             lastAnnouncedParent = null;
+            preSearchExpansion = null;
+        }
+
+        /// <summary>
+        /// Snapshots current expansion state and expands all eligible nodes per
+        /// ShouldExpandForSearch. No-op if a snapshot is already active or the
+        /// feature is not configured. Returns true if the visible list changed.
+        /// </summary>
+        private bool EnsureSearchExpansion()
+        {
+            if (ShouldExpandForSearch == null) return false;
+            if (preSearchExpansion != null) return false;
+            if (rootItem == null) return false;
+
+            preSearchExpansion = new Dictionary<InspectionTreeItem, bool>();
+            bool changed = SnapshotAndExpand(rootItem);
+            if (changed)
+                RebuildVisibleList();
+            return changed;
+        }
+
+        private bool SnapshotAndExpand(InspectionTreeItem node)
+        {
+            bool changed = false;
+            foreach (var child in node.Children)
+            {
+                if (child.IsExpandable)
+                {
+                    preSearchExpansion[child] = child.IsExpanded;
+                    if (!child.IsExpanded && ShouldExpandForSearch(child))
+                    {
+                        OnBeforeExpand?.Invoke(child);
+                        child.IsExpanded = true;
+                        changed = true;
+                    }
+                }
+                if (SnapshotAndExpand(child)) changed = true;
+            }
+            return changed;
+        }
+
+        /// <summary>
+        /// Restores expansion state from the snapshot taken when search began.
+        /// Repositions the cursor onto the previously-selected item if it remains
+        /// visible; otherwise walks up to its nearest visible ancestor. No-op if
+        /// no snapshot is active.
+        /// </summary>
+        private void RestorePreSearchExpansion()
+        {
+            if (preSearchExpansion == null) return;
+
+            var prevSelected = (selectedIndex >= 0 && selectedIndex < visibleItems.Count)
+                ? visibleItems[selectedIndex] : null;
+
+            foreach (var kv in preSearchExpansion)
+                kv.Key.IsExpanded = kv.Value;
+            preSearchExpansion = null;
+
+            RebuildVisibleList();
+
+            int newIdx = -1;
+            var target = prevSelected;
+            while (target != null && newIdx < 0)
+            {
+                newIdx = visibleItems.IndexOf(target);
+                if (newIdx < 0) target = target.Parent;
+            }
+            if (newIdx >= 0)
+                selectedIndex = newIdx;
+            else
+                selectedIndex = Math.Max(0, Math.Min(selectedIndex, visibleItems.Count - 1));
         }
 
         #endregion
@@ -197,6 +281,15 @@ namespace RimWorldAccess
                 if (typeahead.HasActiveSearch)
                 {
                     typeahead.ClearSearchAndAnnounce();
+                    RestorePreSearchExpansion();
+                    AnnounceCurrentItem();
+                    return true;
+                }
+                if (preSearchExpansion != null)
+                {
+                    // Search was already cleared (e.g., no-match) but expansion is still
+                    // in search mode — restore on Escape so the tree returns to normal.
+                    RestorePreSearchExpansion();
                     AnnounceCurrentItem();
                     return true;
                 }
@@ -268,6 +361,7 @@ namespace RimWorldAccess
             {
                 if (visibleItems.Count == 0) return true;
                 typeahead.ClearSearch();
+                RestorePreSearchExpansion();
                 MenuHelper.HandleTreeHomeKey(visibleItems, ref selectedIndex,
                     item => item.IndentLevel, ev.control, PlayTickAndAnnounce);
                 return true;
@@ -278,6 +372,7 @@ namespace RimWorldAccess
             {
                 if (visibleItems.Count == 0) return true;
                 typeahead.ClearSearch();
+                RestorePreSearchExpansion();
                 MenuHelper.HandleTreeEndKey(visibleItems, ref selectedIndex,
                     item => item.IndentLevel,
                     item => item.IsExpanded,
@@ -312,13 +407,22 @@ namespace RimWorldAccess
             // Backspace — delete last search character
             if (key == KeyCode.Backspace && typeahead.HasActiveSearch)
             {
-                var labels = GetVisibleLabels();
+                var labels = GetSearchableLabels();
                 if (typeahead.ProcessBackspace(labels, out int newIndex))
                 {
                     if (newIndex >= 0)
                         selectedIndex = newIndex;
                     SoundDefOf.Click.PlayOneShotOnCamera();
-                    AnnounceWithSearch();
+                    if (!typeahead.HasActiveSearch)
+                    {
+                        // Buffer fully emptied — restore the pre-search tree shape.
+                        RestorePreSearchExpansion();
+                        AnnounceCurrentItem();
+                    }
+                    else
+                    {
+                        AnnounceWithSearch();
+                    }
                 }
                 return true;
             }
@@ -365,6 +469,9 @@ namespace RimWorldAccess
                 return;
 
             typeahead.ClearSearch();
+            // User is interacting with a search result — commit the auto-expansion
+            // (don't undo what the search opened up).
+            preSearchExpansion = null;
             var item = visibleItems[selectedIndex];
 
             if (!item.IsExpandable)
@@ -435,6 +542,7 @@ namespace RimWorldAccess
                 return;
 
             typeahead.ClearSearch();
+            preSearchExpansion = null;
             var item = visibleItems[selectedIndex];
 
             if (IsSubmenuMode)
@@ -530,6 +638,9 @@ namespace RimWorldAccess
 
                     RebuildVisibleList();
                     typeahead.ClearSearch();
+                    // User explicitly chose to expand; commit those expansions
+                    // (don't restore the pre-search snapshot).
+                    preSearchExpansion = null;
 
                     if (targetChild != null)
                     {
@@ -552,6 +663,7 @@ namespace RimWorldAccess
                 {
                     RebuildVisibleList();
                     typeahead.ClearSearch();
+                    preSearchExpansion = null;
                     EmbeddedAudioHelper.PlaySoundDefWithReverb(SoundDefOf.FloatMenu_Open);
                     TolkHelper.Speak($"Expanded {expandedCount} {(expandedCount == 1 ? "item" : "items")}");
                 }
@@ -562,6 +674,7 @@ namespace RimWorldAccess
         {
             if (visibleItems.Count == 0) return;
             typeahead.ClearSearch();
+            RestorePreSearchExpansion();
             MenuHelper.HandleTreeHomeKey(visibleItems, ref selectedIndex,
                 item => item.IndentLevel, absolute, PlayTickAndAnnounce);
         }
@@ -570,6 +683,7 @@ namespace RimWorldAccess
         {
             if (visibleItems.Count == 0) return;
             typeahead.ClearSearch();
+            RestorePreSearchExpansion();
             MenuHelper.HandleTreeEndKey(visibleItems, ref selectedIndex,
                 item => item.IndentLevel,
                 item => item.IsExpanded,
@@ -795,9 +909,35 @@ namespace RimWorldAccess
             return visibleItems.Select(item => item.Label).ToList();
         }
 
+        /// <summary>
+        /// Labels used for typeahead matching. When ShouldExpandForSearch is in
+        /// effect, the structural nodes we auto-expanded are excluded from results
+        /// (an empty string never matches), so the cursor lands on leaf items the
+        /// expansion exposed rather than on the freshly-opened parent itself.
+        /// Indexes line up with visibleItems.
+        /// </summary>
+        private List<string> GetSearchableLabels()
+        {
+            if (ShouldExpandForSearch == null)
+                return GetVisibleLabels();
+
+            var result = new List<string>(visibleItems.Count);
+            foreach (var item in visibleItems)
+            {
+                bool skip = item.IsExpandable && ShouldExpandForSearch(item);
+                result.Add(skip ? "" : item.Label);
+            }
+            return result;
+        }
+
         private void HandleTypeahead(char c)
         {
-            var labels = GetVisibleLabels();
+            // Auto-expand collapsed nodes for menus that opt in, so typeahead matches
+            // items across the whole tree without the user pressing '*' first.
+            if (!typeahead.HasActiveSearch)
+                EnsureSearchExpansion();
+
+            var labels = GetSearchableLabels();
             if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
             {
                 selectedIndex = newIndex;
@@ -808,6 +948,7 @@ namespace RimWorldAccess
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'.");
+                // Snapshot remains so the next typed character reuses the expanded view.
             }
         }
 
@@ -818,13 +959,20 @@ namespace RimWorldAccess
 
             var item = visibleItems[selectedIndex];
 
-            // Try custom activate first
+            // Try custom activate first. The user committed to this item, so drop
+            // the search-expansion snapshot (don't restore it on a later Escape).
             if (OnActivate != null && OnActivate(item))
+            {
+                typeahead.ClearSearch();
+                preSearchExpansion = null;
                 return;
+            }
 
             // Try the item's own OnActivate callback
             if (item.OnActivate != null)
             {
+                typeahead.ClearSearch();
+                preSearchExpansion = null;
                 item.OnActivate();
                 return;
             }
@@ -839,6 +987,7 @@ namespace RimWorldAccess
                 else
                 {
                     typeahead.ClearSearch();
+                    preSearchExpansion = null;
                     if (!item.IsExpanded)
                         OnBeforeExpand?.Invoke(item);
                     item.IsExpanded = !item.IsExpanded;
