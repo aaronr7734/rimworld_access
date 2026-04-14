@@ -170,38 +170,75 @@ namespace RimWorldAccess
         /// 1. First word prefix matches (e.g., 'w' matches "Wall" before "5 wood")
         /// 2. Other word prefix matches in the name (before parenthetical content)
         /// 3. Matches in parenthetical content (descriptions) as fallback
+        ///
+        /// Within each tier, matches are sorted by name length ascending so closer
+        /// matches win (e.g., "Wall" ranks above "Wall lamp" when searching "wall").
         /// </summary>
         private void FindMatches(List<string> labels)
         {
             matchingIndices.Clear();
 
-            List<int> firstWordMatches = new List<int>();
-            List<int> otherWordMatches = new List<int>();
-            List<int> descriptionMatches = new List<int>();
+            // Each entry: (originalIndex, nameLength) — we sort by nameLength ascending,
+            // then by originalIndex as a stable tiebreak.
+            var firstWordMatches = new List<(int idx, int nameLen)>();
+            var otherWordMatches = new List<(int idx, int nameLen)>();
+            var descriptionMatches = new List<(int idx, int nameLen)>();
 
             for (int i = 0; i < labels.Count; i++)
             {
                 string label = labels[i];
                 MatchType matchType = GetMatchType(searchBuffer, label);
 
+                if (matchType == MatchType.None)
+                    continue;
+
+                int nameLen = GetNameLength(label);
+
                 switch (matchType)
                 {
                     case MatchType.FirstWord:
-                        firstWordMatches.Add(i);
+                        firstWordMatches.Add((i, nameLen));
                         break;
                     case MatchType.OtherWord:
-                        otherWordMatches.Add(i);
+                        otherWordMatches.Add((i, nameLen));
                         break;
                     case MatchType.Description:
-                        descriptionMatches.Add(i);
+                        descriptionMatches.Add((i, nameLen));
                         break;
                 }
             }
 
-            // Add matches in priority order
-            matchingIndices.AddRange(firstWordMatches);
-            matchingIndices.AddRange(otherWordMatches);
-            matchingIndices.AddRange(descriptionMatches);
+            SortByNameLength(firstWordMatches);
+            SortByNameLength(otherWordMatches);
+            SortByNameLength(descriptionMatches);
+
+            foreach (var m in firstWordMatches) matchingIndices.Add(m.idx);
+            foreach (var m in otherWordMatches) matchingIndices.Add(m.idx);
+            foreach (var m in descriptionMatches) matchingIndices.Add(m.idx);
+        }
+
+        /// <summary>
+        /// Returns the length of the displayed "name" portion of a label — the part
+        /// before any cost/description annotations introduced by ':' or '(' (and with
+        /// parenthetical content stripped). Used to rank closer matches first.
+        /// </summary>
+        private static int GetNameLength(string label)
+        {
+            if (string.IsNullOrEmpty(label)) return 0;
+            string nameOnly = StripParentheticalContent(label.ToLowerInvariant().Trim());
+            int colon = nameOnly.IndexOf(':');
+            if (colon >= 0) nameOnly = nameOnly.Substring(0, colon);
+            return nameOnly.TrimEnd().Length;
+        }
+
+        private static void SortByNameLength(List<(int idx, int nameLen)> list)
+        {
+            list.Sort((a, b) =>
+            {
+                int cmp = a.nameLen.CompareTo(b.nameLen);
+                if (cmp != 0) return cmp;
+                return a.idx.CompareTo(b.idx);
+            });
         }
 
         private enum MatchType

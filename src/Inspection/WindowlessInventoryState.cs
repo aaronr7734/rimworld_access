@@ -56,6 +56,13 @@ namespace RimWorldAccess
             treeNav.OnDelete = HandleDeleteNode;
             treeNav.OnInfo = HandleInfoNode;
             treeNav.TrackLastChild = true;
+            // For typeahead, behave as if '*' was pressed first: expand only Category
+            // nodes so item-level matches across the whole tree are reachable.
+            treeNav.ShouldExpandForSearch = node =>
+            {
+                var data = node.Data as InventoryNodeData;
+                return data != null && data.Type == NodeType.Category;
+            };
         }
 
         /// <summary>
