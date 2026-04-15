@@ -33,7 +33,7 @@ namespace RimWorldAccess
             bool alt = KeyboardHelper.IsAltHeld;
             var typeahead = WorkMenuState.Typeahead;
 
-            // Handle Escape - clear search first, then cancel
+            // Handle Escape - clear search first, then save & close
             if (key == KeyCode.Escape)
             {
                 if (WorkMenuState.ClearSearchIfActive())
@@ -41,7 +41,7 @@ namespace RimWorldAccess
                     Event.current.Use();
                     return;
                 }
-                WorkMenuState.Cancel();
+                WorkMenuState.Confirm();
                 Event.current.Use();
                 return;
             }
@@ -299,13 +299,13 @@ namespace RimWorldAccess
             {
                 instructions1 = "Up/Down: Switch priorities | Left/Right: Navigate tasks";
                 instructions2 = "0-4: Set priority | Shift+0-4: Set for all | Tab/Shift+Tab: Switch pawn";
-                instructions3 = "Enter: Confirm | Escape: Cancel | Alt+M: Switch to basic mode";
+                instructions3 = "Enter/Escape: Save & close | Alt+M: Switch to basic mode";
             }
             else
             {
                 instructions1 = "Left/Right: Navigate tasks | Space: Toggle";
                 instructions2 = "Tab/Shift+Tab: Switch pawn";
-                instructions3 = "Enter: Confirm | Escape: Cancel | Alt+M: Switch to manual mode";
+                instructions3 = "Enter/Escape: Save & close | Alt+M: Switch to manual mode";
             }
 
             // Show current position info

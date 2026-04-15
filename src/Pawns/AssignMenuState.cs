@@ -60,8 +60,11 @@ namespace RimWorldAccess
             // Build active columns
             AssignMenuHelper.BuildActiveColumns();
 
-            // Get free colonists
-            pawnsList = Find.CurrentMap.mapPawns.FreeColonists.ToList();
+            // Match vanilla MainTabWindow_Assign: all maps + caravans + travelling transporters,
+            // free colonists, no babies.
+            pawnsList = PawnsFinder.AllMapsCaravansAndTravellingTransporters_Alive_FreeColonists
+                .Where(p => !p.DevelopmentalStage.Baby())
+                .ToList();
 
             if (pawnsList.Count == 0)
             {
@@ -80,8 +83,8 @@ namespace RimWorldAccess
                 isColumnSortable: AssignMenuHelper.IsColumnSortable
             );
 
-            // Sort by name (default order)
-            pawnsList = AssignMenuHelper.SortByColumn(pawnsList, 0, false);
+            // Default order matches vanilla: colonist-bar order via playerSettings.displayOrder.
+            pawnsList = PlayerPawnsDisplayOrderUtility.InOrder(pawnsList).ToList();
             tableHelper.Reset();
             tableHelper.SetDefaultOrder(pawnsList);
 

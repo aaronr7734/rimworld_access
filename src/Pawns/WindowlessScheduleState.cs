@@ -101,18 +101,19 @@ namespace RimWorldAccess
             selectedAreaIndex = 0;
 
             // Build pawn list (colonists + controllable subhumans, excluding babies)
+            // Matches MainTabWindow_Schedule: free colonists + ColonySubhumansControllable.
             pawns.Clear();
             if (Find.CurrentMap?.mapPawns?.FreeColonists != null)
             {
                 pawns.AddRange(Find.CurrentMap.mapPawns.FreeColonists
                     .Where(p => !p.DevelopmentalStage.Baby()));
             }
-            if (Find.CurrentMap?.mapPawns?.SpawnedColonyAnimals != null)
+            if (Find.CurrentMap?.mapPawns?.ColonySubhumansControllable != null)
             {
-                pawns.AddRange(Find.CurrentMap.mapPawns.SpawnedColonyAnimals
-                    .Where(p => p.RaceProps.intelligence >= Intelligence.ToolUser));
+                pawns.AddRange(Find.CurrentMap.mapPawns.ColonySubhumansControllable
+                    .Where(p => !p.DevelopmentalStage.Baby()));
             }
-            pawns = pawns.OrderBy(p => p.LabelShort).ToList();
+            pawns = PlayerPawnsDisplayOrderUtility.InOrder(pawns).ToList();
 
             // Build assignment list from game data (order matches vanilla UI)
             availableAssignments = DefDatabase<TimeAssignmentDef>.AllDefsListForReading.ToList();

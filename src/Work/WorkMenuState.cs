@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Verse;
+using Verse.Sound;
 using RimWorld;
 
 namespace RimWorldAccess
@@ -83,8 +84,9 @@ namespace RimWorldAccess
             allPawns.Clear();
             if (Find.CurrentMap != null)
             {
-                allPawns = Find.CurrentMap.mapPawns.FreeColonists
-                    .Where(p => !p.DevelopmentalStage.Baby())
+                allPawns = PlayerPawnsDisplayOrderUtility.InOrder(
+                        Find.CurrentMap.mapPawns.FreeColonists
+                            .Where(p => !p.DevelopmentalStage.Baby()))
                     .ToList();
                 currentPawnIndex = allPawns.IndexOf(pawn);
                 if (currentPawnIndex < 0)
@@ -234,8 +236,6 @@ namespace RimWorldAccess
                 return;
             }
 
-            string pawnName = currentPawn.LabelShort;
-
             // Changes are already applied in real-time, just need to finalize
             // Force refresh of work givers cache
             currentPawn.workSettings.Notify_UseWorkPrioritiesChanged();
@@ -244,7 +244,7 @@ namespace RimWorldAccess
             RefreshAllPawnsWorkGivers();
 
             CleanupState();
-            TolkHelper.Speak($"{pawnName}'s work preferences saved");
+            TolkHelper.Speak("Work preferences saved");
         }
 
         /// <summary>
@@ -618,6 +618,8 @@ namespace RimWorldAccess
                 return;
             }
 
+            bool wasActive = currentPawn.workSettings.WorkIsActive(entry.WorkType);
+
             if (IsManualMode)
             {
                 int newColumnIndex = PriorityToColumnIndex(priority);
@@ -625,7 +627,7 @@ namespace RimWorldAccess
                 if (newColumnIndex == currentColumn)
                 {
                     // Already in this column
-                    TolkHelper.Speak($"{entry.WorkType.labelShort} already at {GetColumnName(newColumnIndex)}");
+                    TolkHelper.Speak($"{entry.WorkType.labelShort} already at {PriorityWord(newColumnIndex)}");
                     return;
                 }
 
@@ -643,21 +645,25 @@ namespace RimWorldAccess
                 int insertIndex = FindInsertionIndex(newColumn, entry);
                 newColumn.Insert(insertIndex, entry);
 
+                SoundDefOf.DragSlider.PlayOneShotOnCamera();
+                PlayActivationSounds(currentPawn, entry.WorkType, wasActive);
+
                 // Announce the move with placement context (except for disabled)
                 if (newColumnIndex == 4) // Disabled
                 {
-                    TolkHelper.Speak($"{entry.WorkType.labelShort} disabled");
+                    TolkHelper.Speak($"{entry.WorkType.labelShort}, disabled");
                 }
                 else
                 {
                     string placementContext = GetPlacementContext(newColumn, insertIndex);
-                    if (string.IsNullOrEmpty(placementContext))
+                    string trimmed = StripPlacedPrefix(placementContext);
+                    if (string.IsNullOrEmpty(trimmed))
                     {
-                        TolkHelper.Speak($"{entry.WorkType.labelShort} set to {GetColumnName(newColumnIndex)}");
+                        TolkHelper.Speak($"{entry.WorkType.labelShort}, {PriorityWord(newColumnIndex)}");
                     }
                     else
                     {
-                        TolkHelper.Speak($"{entry.WorkType.labelShort} set to {GetColumnName(newColumnIndex)}, {placementContext}");
+                        TolkHelper.Speak($"{entry.WorkType.labelShort}, {PriorityWord(newColumnIndex)}, {trimmed}");
                     }
                 }
 
@@ -679,8 +685,64 @@ namespace RimWorldAccess
                 entry.CurrentPriority = priority;
                 currentPawn.workSettings.SetPriority(entry.WorkType, priority);
                 hasUnsavedChanges = true;
+
+                bool nowActive = currentPawn.workSettings.WorkIsActive(entry.WorkType);
+                if (!wasActive && nowActive)
+                    SoundDefOf.Checkbox_TurnedOn.PlayOneShotOnCamera();
+                else if (wasActive && !nowActive)
+                    SoundDefOf.Checkbox_TurnedOff.PlayOneShotOnCamera();
+                PlayActivationSounds(currentPawn, entry.WorkType, wasActive);
+
                 AnnounceCurrentPosition(false);
             }
+        }
+
+        /// <summary>
+        /// Plays vanilla warning sounds when work transitions from inactive to active:
+        /// Crunch for low-skill pawns, DislikedWorkTypeActivated for ideo-opposed work.
+        /// Mirrors WidgetsWork.DrawWorkBoxFor.
+        /// </summary>
+        private static void PlayActivationSounds(Pawn pawn, WorkTypeDef workType, bool wasActive)
+        {
+            if (wasActive) return;
+            if (!pawn.workSettings.WorkIsActive(workType)) return;
+
+            if (workType.relevantSkills.Any() && pawn.skills.AverageOfRelevantSkillsFor(workType) <= 2f)
+            {
+                SoundDefOf.Crunch.PlayOneShotOnCamera();
+            }
+            if (pawn.Ideo != null && pawn.Ideo.IsWorkTypeConsideredDangerous(workType))
+            {
+                Messages.Message("MessageIdeoOpposedWorkTypeSelected".Translate(pawn, workType.gerundLabel), pawn, MessageTypeDefOf.CautionInput, historical: false);
+                SoundDefOf.DislikedWorkTypeActivated.PlayOneShotOnCamera();
+            }
+        }
+
+        /// <summary>
+        /// Returns the bare priority word for announcements: "1".."4" or "disabled".
+        /// </summary>
+        private static string PriorityWord(int columnIndex)
+        {
+            switch (columnIndex)
+            {
+                case 0: return "1";
+                case 1: return "2";
+                case 2: return "3";
+                case 3: return "4";
+                case 4: return "disabled";
+                default: return "";
+            }
+        }
+
+        /// <summary>
+        /// Strips the leading "placed " from a placement context string.
+        /// </summary>
+        private static string StripPlacedPrefix(string placement)
+        {
+            if (string.IsNullOrEmpty(placement)) return placement;
+            const string prefix = "placed ";
+            if (placement.StartsWith(prefix)) return placement.Substring(prefix.Length);
+            return placement;
         }
 
         /// <summary>
@@ -713,6 +775,9 @@ namespace RimWorldAccess
             var changedNames = new List<string>();
             var alreadySetNames = new List<string>();
             var incapableNames = new List<string>();
+            bool anyLowSkillActivated = false;
+            bool anyIdeoOpposedActivated = false;
+            var ideoOpposedPawns = new List<Pawn>();
 
             foreach (Pawn pawn in allPawns)
             {
@@ -730,8 +795,31 @@ namespace RimWorldAccess
                     continue;
                 }
 
+                bool wasActive = pawn.workSettings.WorkIsActive(workType);
                 pawn.workSettings.SetPriority(workType, priority);
                 changedNames.Add(pawn.LabelShort);
+
+                if (!wasActive && pawn.workSettings.WorkIsActive(workType))
+                {
+                    if (workType.relevantSkills.Any() && pawn.skills.AverageOfRelevantSkillsFor(workType) <= 2f)
+                        anyLowSkillActivated = true;
+                    if (pawn.Ideo != null && pawn.Ideo.IsWorkTypeConsideredDangerous(workType))
+                    {
+                        anyIdeoOpposedActivated = true;
+                        ideoOpposedPawns.Add(pawn);
+                    }
+                }
+            }
+
+            if (changedNames.Count > 0)
+                SoundDefOf.DragSlider.PlayOneShotOnCamera();
+            if (anyLowSkillActivated)
+                SoundDefOf.Crunch.PlayOneShotOnCamera();
+            if (anyIdeoOpposedActivated)
+            {
+                SoundDefOf.DislikedWorkTypeActivated.PlayOneShotOnCamera();
+                foreach (var p in ideoOpposedPawns)
+                    Messages.Message("MessageIdeoOpposedWorkTypeSelected".Translate(p, workType.gerundLabel), p, MessageTypeDefOf.CautionInput, historical: false);
             }
 
             // Update the current pawn's internal column structure if their priority changed
@@ -1116,14 +1204,14 @@ namespace RimWorldAccess
                 var col = columns[currentColumn];
                 string taskAnnouncement = BuildTaskAnnouncement(entry, true);
                 string position = MenuHelper.FormatPosition(currentRow, col.Count);
-                TolkHelper.Speak($"Your cursor is now at: {taskAnnouncement} {position}");
+                TolkHelper.Speak($"{taskAnnouncement} {position}");
             }
             else
             {
                 string taskAnnouncement = BuildTaskAnnouncement(entry, true);
                 string position = MenuHelper.FormatPosition(basicModeIndex, allEntries.Count);
                 string status = entry.CurrentPriority > 0 ? "enabled" : "disabled";
-                TolkHelper.Speak($"Your cursor is now at: {taskAnnouncement} {status}, {position}");
+                TolkHelper.Speak($"{taskAnnouncement} {status}, {position}");
             }
         }
 
@@ -1238,7 +1326,7 @@ namespace RimWorldAccess
 
             if (relevantSkills == null || relevantSkills.Count == 0)
             {
-                sb.Append(". No relevant skills or passions.");
+                sb.Append(". Unskilled labor.");
                 return sb.ToString();
             }
 
@@ -1246,55 +1334,48 @@ namespace RimWorldAccess
             bool skillNamesRedundant = relevantSkills.Count == 1 &&
                 string.Equals(relevantSkills[0].skillLabel, workType.labelShort, StringComparison.OrdinalIgnoreCase);
 
-            if (!skillNamesRedundant && relevantSkills.Count > 0)
-            {
-                sb.Append(". Uses ");
-                if (relevantSkills.Count == 1)
-                {
-                    sb.Append(relevantSkills[0].skillLabel);
-                }
-                else
-                {
-                    for (int i = 0; i < relevantSkills.Count; i++)
-                    {
-                        if (i > 0)
-                        {
-                            sb.Append(i == relevantSkills.Count - 1 ? " and " : ", ");
-                        }
-                        sb.Append(relevantSkills[i].skillLabel);
-                    }
-                }
-            }
-
-            // Get skill level (average of relevant skills)
             float avgSkill = currentPawn.skills.AverageOfRelevantSkillsFor(workType);
             int skillLevel = Math.Min(20, Math.Max(0, (int)Math.Round(avgSkill)));
-            string descriptor = $"Skill{skillLevel}".Translate();
 
-            sb.Append($". Skill level: {skillLevel}, {descriptor}");
+            if (skillNamesRedundant)
+            {
+                sb.Append($". Level {skillLevel}");
+            }
+            else
+            {
+                sb.Append(". ");
+                for (int i = 0; i < relevantSkills.Count; i++)
+                {
+                    if (i > 0)
+                    {
+                        sb.Append(i == relevantSkills.Count - 1 ? " and " : ", ");
+                    }
+                    sb.Append(relevantSkills[i].skillLabel);
+                }
+                sb.Append($": level {skillLevel}");
+            }
 
-            // Get passion
+            // Get passion (only announced when present)
             Passion passion = currentPawn.skills.MaxPassionOfRelevantSkillsFor(workType);
-            string passionText;
             switch (passion)
             {
                 case Passion.Major:
-                    passionText = "Burning passion";
+                    sb.Append(". Burning passion.");
                     break;
                 case Passion.Minor:
-                    passionText = "Passion";
+                    sb.Append(". Passion.");
                     break;
                 default:
-                    passionText = "No passion";
+                    sb.Append(".");
                     break;
             }
-            sb.Append($". {passionText}.");
 
             return sb.ToString();
         }
 
         private static void AnnounceCannotEnable(WorkTypeEntry entry)
         {
+            SoundDefOf.ClickReject.PlayOneShotOnCamera();
             var reasons = currentPawn.GetReasonsForDisabledWorkType(entry.WorkType);
             string reasonText = string.Join(", ", reasons.Select(r => r.ToString()));
             TolkHelper.Speak($"Cannot enable - permanently disabled due to: {reasonText}", SpeechPriority.High);
