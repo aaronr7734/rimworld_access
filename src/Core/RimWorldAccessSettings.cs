@@ -9,6 +9,14 @@ namespace RimWorldAccess
     public class RimWorldAccessSettings : ModSettings
     {
         /// <summary>
+        /// When true, terrain names are spoken during map navigation
+        /// (arrow keys, scanner Home jump, bookmark jumps, Go To coordinate).
+        /// The terrain sound effect plays independently of this setting.
+        /// Default: true.
+        /// </summary>
+        public bool AnnounceTerrain = true;
+
+        /// <summary>
         /// When true, navigation wraps from end to beginning and vice versa.
         /// Default: false (stop at boundaries).
         /// </summary>
@@ -55,6 +63,7 @@ namespace RimWorldAccess
             Scribe_Values.Look(ref ShowCoverInfo, "ShowCoverInfo", true);
             Scribe_Values.Look(ref AnnounceLevels, "AnnounceLevels", true);
             Scribe_Values.Look(ref SubmenuTreeNavigation, "SubmenuTreeNavigation", false);
+            Scribe_Values.Look(ref AnnounceTerrain, "AnnounceTerrain", true);
             base.ExposeData();
         }
     }
@@ -86,6 +95,7 @@ namespace RimWorldAccess
             listing.CheckboxLabeled("Announce position (e.g., '3 of 7')", ref Settings.AnnouncePosition);
             listing.CheckboxLabeled("Show pawn activity on map cursor movement", ref Settings.ShowPawnActivityOnMap);
             listing.CheckboxLabeled("Show cover info for drafted and hostile pawns", ref Settings.ShowCoverInfo);
+            listing.CheckboxLabeled("Announce terrain on cursor movement", ref Settings.AnnounceTerrain);
             listing.CheckboxLabeled("Announce depth levels in treeviews (e.g., 'level 2')", ref Settings.AnnounceLevels);
             listing.CheckboxLabeled("Rashad Hates Treeviews (submenu-style navigation)", ref Settings.SubmenuTreeNavigation,
                 "Changes how treeviews work. When you expand a category, it disappears and you navigate only its items. Press Left Arrow to go back. Your position is remembered when you return.");

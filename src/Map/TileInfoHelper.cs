@@ -236,9 +236,9 @@ namespace RimWorldAccess
                 addedSomething = true;
             }
 
-            // 4. Terrain (only if no audio match)
+            // 4. Terrain (gated by AnnounceTerrain setting)
             TerrainDef terrain = position.GetTerrain(map);
-            if (terrain != null && !TerrainAudioHelper.HasAudioMatch(terrain))
+            if (terrain != null && RimWorldAccessMod_Settings.Settings.AnnounceTerrain)
             {
                 if (addedSomething) sb.Append(", ");
                 bool isPolluted = position.IsPolluted(map);

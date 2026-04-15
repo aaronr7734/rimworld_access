@@ -637,6 +637,9 @@ namespace RimWorldAccess
             accessSettings.Settings.Add(new CheckboxSetting("Show Cover Info for Drafted and Hostile Pawns",
                 () => RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.ShowCoverInfo = v; }));
+            accessSettings.Settings.Add(new CheckboxSetting("Announce Terrain on Cursor Movement",
+                () => RimWorldAccessMod_Settings.Settings?.AnnounceTerrain ?? true,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.AnnounceTerrain = v; }));
             accessSettings.Settings.Add(new CheckboxSetting("Announce Depth Levels in Treeviews",
                 () => RimWorldAccessMod_Settings.Settings?.AnnounceLevels ?? true,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.AnnounceLevels = v; }));
