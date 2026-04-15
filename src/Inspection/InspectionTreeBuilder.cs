@@ -2743,9 +2743,6 @@ namespace RimWorldAccess
         /// </summary>
         private static void BuildCapacityDetailChildren(InspectionTreeItem capacityItem, HealthTabHelper.CapacityInfo capacity)
         {
-            if (capacityItem.Children.Count > 0)
-                return;
-
             if (!string.IsNullOrEmpty(capacity.DetailedBreakdown))
             {
                 var lines = capacity.DetailedBreakdown.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
