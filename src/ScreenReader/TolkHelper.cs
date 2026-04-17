@@ -88,7 +88,12 @@ namespace RimWorldAccess
         /// On Windows, checks for a user-supplied Tolk.dll first; falls back to Prism.
         /// On macOS/Linux, uses Prism directly.
         /// </summary>
-        public static void Initialize()
+        /// <param name="modRootOverride">
+        /// Optional mod root directory. When the mod assembly was loaded via Assembly.Load(byte[])
+        /// (hot-reload path), Assembly.Location is empty, so the caller must supply the path
+        /// where native libraries live. Null means compute from the current assembly's location.
+        /// </param>
+        public static void Initialize(string modRootOverride = null)
         {
             if (isInitialized)
             {
@@ -122,7 +127,7 @@ namespace RimWorldAccess
                 }
 
                 // Prism initialization (default path)
-                InitializePrism();
+                InitializePrism(modRootOverride);
             }
             catch (DllNotFoundException ex)
             {
@@ -287,16 +292,23 @@ namespace RimWorldAccess
         /// <summary>
         /// Initializes the Prism screen reader library (default backend).
         /// </summary>
-        private static void InitializePrism()
+        private static void InitializePrism(string modRootOverride = null)
         {
             // Get mod folder path
             // The assembly is in: Mods/RimWorldAccess/Assemblies/rimworld_access.dll
             // Native libraries are in: Mods/RimWorldAccess/
-            string modAssemblyPath = Assembly.GetExecutingAssembly().Location;
-            string assemblyFolder = Path.GetDirectoryName(modAssemblyPath);
-
-            // Go up from Assemblies to mod root (one level up)
-            string modRoot = Path.GetFullPath(Path.Combine(assemblyFolder, ".."));
+            string modRoot;
+            if (!string.IsNullOrEmpty(modRootOverride))
+            {
+                modRoot = modRootOverride;
+            }
+            else
+            {
+                string modAssemblyPath = Assembly.GetExecutingAssembly().Location;
+                string assemblyFolder = Path.GetDirectoryName(modAssemblyPath);
+                // Go up from Assemblies to mod root (one level up)
+                modRoot = Path.GetFullPath(Path.Combine(assemblyFolder, ".."));
+            }
 
             // Resolve platform-specific library name
             string libraryName = NativeLibraryLoader.GetNativeLibraryName("prism");

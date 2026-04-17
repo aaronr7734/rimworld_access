@@ -40,6 +40,22 @@ namespace RimWorldAccess
 
             KeyCode key = Event.current.keyCode;
 
+#if DEBUG
+            // ===== DEV: Hot-reload the mod assembly (Alt+F5) =====
+            // Debug-only shortcut that unloads the current mod assembly, loads the
+            // freshly-built DLL from disk, and re-applies Harmony patches without
+            // restarting RimWorld. Entire block is stripped from Release builds.
+            if (key == KeyCode.F5
+                && KeyboardHelper.IsAltHeld
+                && !Event.current.control
+                && !Event.current.shift)
+            {
+                Event.current.Use();
+                ReloadHelper.Reload();
+                return;
+            }
+#endif
+
             // ===== PRIORITY -1.5: Handle character input for scenario builder states =====
             // Unity IMGUI sends two KeyDown events for printable chars:
             // 1. keyCode = KeyCode.A (the key itself)
