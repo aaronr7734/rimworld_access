@@ -56,30 +56,45 @@ namespace RimWorldAccess
             }
 #endif
 
-            // ===== PRIORITY -1.5: Handle character input for scenario builder states =====
+            // ===== PRIORITY -1.6: Active text-edit session takes ALL keystrokes =====
+            // When TextInputManager has an active controller, every key is routed to it
+            // (chars + Enter/Escape/Backspace + Ctrl+C/V + cursor nav). NOTHING else
+            // fires. We consume the event unconditionally — even keys the controller
+            // didn't recognize — so downstream window-specific patches (world-gen,
+            // scenario builder, etc.) that hook DoWindowContents can't grab the key
+            // out from under the modal edit session. MarkHandledThisFrame tags the
+            // frame so Window.OnAcceptKeyPressed / OnCancelKeyPressed patches can
+            // block the game's Enter/Escape even after HandleEnter clears IsActive.
+            if (TextInputManager.IsActive)
+            {
+                TextInputManager.Active.HandleEvent(Event.current);
+                TextInputManager.MarkHandledThisFrame();
+                Event.current.Use();
+                return;
+            }
+
+            // ===== PRIORITY -1.5: Handle character input =====
             // Unity IMGUI sends two KeyDown events for printable chars:
             // 1. keyCode = KeyCode.A (the key itself)
             // 2. keyCode = KeyCode.None, character = 'a' (the character)
-            // We need to capture the second event BEFORE filtering out KeyCode.None
+            // We need to capture the second event BEFORE filtering out KeyCode.None.
+            // For typeahead consumers we use Event.character (layout-aware) directly —
+            // never a KeyCode-range gate, which broke on non-Latin layouts where keys
+            // producing letters are reported as KeyCode.Comma etc.
             if (key == KeyCode.None && Event.current.character != '\0')
             {
                 char c = Event.current.character;
                 if (!char.IsControl(c))
                 {
-                    // Dispatch to any pending typeahead callback (from KeyCode handler earlier this frame)
-                    if (TypeaheadCharacterBuffer.TryConsumePendingCharacter(c))
+                    // Layout-aware typeahead: walk the registered consumers.
+                    if (TypeaheadDispatcher.TryDispatchChar(c))
                     {
                         Event.current.Use();
                         return;
                     }
 
-                    // ScenarioBuilderState text editing (title, summary, description)
-                    if (ScenarioBuilderState.IsActive && ScenarioBuilderState.IsEditingText)
-                    {
-                        TextInputHelper.HandleCharacter(c);
-                        Event.current.Use();
-                        return;
-                    }
+                    // ScenarioBuilderState text editing now flows through TextInputManager
+                    // at priority -1.6 above. No branch needed here.
 
                     // ScenarioBuilderPartEditState dropdown typeahead
                     if (ScenarioBuilderPartEditState.IsActive)
@@ -152,21 +167,8 @@ namespace RimWorldAccess
                         }
                     }
 
-                    // XenogermState xenotype name rename
-                    if (XenogermState.IsActive && XenogermState.IsRenaming)
-                    {
-                        TextInputHelper.HandleCharacter(c);
-                        Event.current.Use();
-                        return;
-                    }
-
-                    // XenotypeEditorState xenotype name rename
-                    if (XenotypeEditorState.IsActive && XenotypeEditorState.IsRenaming)
-                    {
-                        TextInputHelper.HandleCharacter(c);
-                        Event.current.Use();
-                        return;
-                    }
+                    // Xenogerm/XenotypeEditor renames flow through TextInputManager
+                    // at priority -1.6 above.
                 }
             }
 
@@ -189,44 +191,9 @@ namespace RimWorldAccess
                 return;
             }
 
-            // ===== PRIORITY -1: Block ALL keys if text input mode is active =====
-            // Zone/storage rename needs to capture text input, so block everything here
-            // TextInputCapturePatch will handle the input
-            if (ZoneRenameState.IsActive || StorageRenameState.IsActive || PenRenameState.IsActive)
-            {
-                // Don't process any keys in this patch when renaming
-                return;
-            }
-
-            // ===== PRIORITY -0.95: Block ALL keys if xenogerm rename is active =====
-            // Control keys (Enter/Escape/Backspace/Ctrl+V/Tab) handled by XenogermState,
-            // character input handled in keyCode==None section above
-            if (XenogermState.IsActive && XenogermState.IsRenaming)
-            {
-                if (XenogermState.HandleRenameInput(Event.current))
-                {
-                    Event.current.Use();
-                }
-                else
-                {
-                    Event.current.Use(); // Block all other keys while renaming
-                }
-                return;
-            }
-
-            // ===== PRIORITY -0.94: Block ALL keys if xenotype editor rename is active =====
-            if (XenotypeEditorState.IsActive && XenotypeEditorState.IsRenaming)
-            {
-                if (XenotypeEditorState.HandleRenameInput(Event.current))
-                {
-                    Event.current.Use();
-                }
-                else
-                {
-                    Event.current.Use(); // Block all other keys while renaming
-                }
-                return;
-            }
+            // (Old priority -1 / -0.95 / -0.94 modal text-input blocks moved to TextInputManager
+            // at priority -1.6 above. Zone/storage/pen renames + xenogerm/xenotype renames are
+            // all driven by TextInputController now.)
 
             // ===== PRIORITY -0.5: Block game hotkeys if windowless dialog is active =====
             // WindowlessDialogInputPatch handles navigation keys for the dialog
@@ -347,7 +314,6 @@ namespace RimWorldAccess
                 // Request layout-aware character for typeahead (supports non-Latin keyboards)
                 if (key >= KeyCode.A && key <= KeyCode.Z && !ctrl && !alt)
                 {
-                    TypeaheadCharacterBuffer.RequestCharacter(c => ScannerSearchState.HandleCharacter(c));
                     Event.current.Use();
                     return;
                 }
@@ -355,7 +321,6 @@ namespace RimWorldAccess
                 // Number keys (0-9): add to search buffer
                 if (key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9 && !ctrl && !alt)
                 {
-                    TypeaheadCharacterBuffer.RequestCharacter(c => ScannerSearchState.HandleCharacter(c));
                     Event.current.Use();
                     return;
                 }
@@ -399,7 +364,6 @@ namespace RimWorldAccess
                 // Number keys (0-9) from main keyboard
                 if (key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9 && !ctrl && !alt)
                 {
-                    TypeaheadCharacterBuffer.RequestCharacter(c => GoToState.HandleCharacter(c));
                     Event.current.Use();
                     return;
                 }
@@ -407,7 +371,6 @@ namespace RimWorldAccess
                 // Number keys (0-9) from numpad
                 if (key >= KeyCode.Keypad0 && key <= KeyCode.Keypad9 && !ctrl && !alt)
                 {
-                    TypeaheadCharacterBuffer.RequestCharacter(c => GoToState.HandleCharacter(c));
                     Event.current.Use();
                     return;
                 }
@@ -590,7 +553,6 @@ namespace RimWorldAccess
                         Event.current.Use();
                         return;
                     }
-                    TypeaheadCharacterBuffer.RequestCharacter(c => SettlementBrowserState.HandleTypeahead(c));
                     Event.current.Use();
                     return;  // CRITICAL: Don't fall through to other handlers
                 }
@@ -1600,7 +1562,6 @@ namespace RimWorldAccess
 
                         if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                         {
-                            TypeaheadCharacterBuffer.RequestCharacter(c => WindowlessAreaState.HandleActionsTypeahead(c));
                             areaHandled = true;
                         }
                     }
@@ -1887,20 +1848,8 @@ namespace RimWorldAccess
 
                     if ((isLetter || isNumber || isKeypadNumber) && !shift && !ctrl && !alt)
                     {
-                        // Capture these before the lambda since they may change
-                        bool isNumeric = isNumber || isKeypadNumber;
-                        TypeaheadCharacterBuffer.RequestCharacter(c =>
-                        {
-                            // In quantity mode, numbers go to numeric input; in list mode, go to typeahead
-                            if (TradeNavigationState.IsInQuantityMode && isNumeric)
-                            {
-                                TradeNavigationState.HandleNumericInput(c);
-                            }
-                            else
-                            {
-                                TradeNavigationState.ProcessTypeaheadCharacter(c);
-                            }
-                        });
+                        // Layout-aware character dispatch routes to TradeNavigationState.HandleTypeahead.
+                        // Just consume the KeyCode here so default game handlers don't fire.
                         handled = true;
                     }
                 }
@@ -1983,7 +1932,6 @@ namespace RimWorldAccess
 
                     if ((isLetter || isNumber) && !Event.current.shift && !Event.current.control && !KeyboardHelper.IsAltHeld)
                     {
-                        TypeaheadCharacterBuffer.RequestCharacter(c => SellableItemsState.ProcessTypeaheadCharacter(c));
                         handled = true;
                     }
                 }
@@ -2061,7 +2009,6 @@ namespace RimWorldAccess
 
                     if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                     {
-                        TypeaheadCharacterBuffer.RequestCharacter(c => WindowlessSaveMenuState.ProcessTypeaheadCharacter(c));
                         handled = true;
                     }
                 }
@@ -2319,13 +2266,8 @@ namespace RimWorldAccess
 
                     if (isLetter || isNumber || isKeypadNumber)
                     {
-                        TypeaheadCharacterBuffer.RequestCharacter(c =>
-                        {
-                            if (char.IsLetterOrDigit(c))
-                            {
-                                StorytellerSelectionState.ProcessTypeaheadCharacter(char.ToLower(c));
-                            }
-                        });
+                        // Layout-aware character dispatch routes to StorytellerSelectionState.HandleTypeahead.
+                        // Just consume the KeyCode here so default game handlers don't fire.
                         handled = true;
                     }
                 }
@@ -2431,7 +2373,6 @@ namespace RimWorldAccess
 
                     if ((isLetter || isNumber) && !Event.current.shift && !Event.current.control && !KeyboardHelper.IsAltHeld)
                     {
-                        TypeaheadCharacterBuffer.RequestCharacter(c => WindowlessOptionsMenuState.ProcessTypeaheadCharacter(c));
                         handled = true;
                     }
                 }
@@ -2706,7 +2647,6 @@ namespace RimWorldAccess
                     bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                     if (isLetter)
                     {
-                        TypeaheadCharacterBuffer.RequestCharacter(c => WindowlessScheduleState.HandleTypeahead(c));
                         handled = true;
                     }
                 }
@@ -2821,7 +2761,6 @@ namespace RimWorldAccess
 
                     if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                     {
-                        TypeaheadCharacterBuffer.RequestCharacter(c => WindowlessResearchDetailState.ProcessTypeaheadCharacter(c));
                         handled = true;
                     }
                 }
@@ -2941,7 +2880,6 @@ namespace RimWorldAccess
 
                     if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                     {
-                        TypeaheadCharacterBuffer.RequestCharacter(c => WindowlessResearchMenuState.ProcessTypeaheadCharacter(c));
                         handled = true;
                     }
                 }
@@ -3245,7 +3183,6 @@ namespace RimWorldAccess
 
                         if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                         {
-                            TypeaheadCharacterBuffer.RequestCharacter(c => QuestMenuState.HandleTypeahead(c));
                             Event.current.Use();
                             return;
                         }
@@ -3416,7 +3353,6 @@ namespace RimWorldAccess
 
                 if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                 {
-                    TypeaheadCharacterBuffer.RequestCharacter(c => WildlifeMenuState.HandleTypeahead(c));
                     Event.current.Use();
                     return;
                 }
@@ -3514,7 +3450,6 @@ namespace RimWorldAccess
 
                     if (isSubmenuLetter || isSubmenuNumber)
                     {
-                        TypeaheadCharacterBuffer.RequestCharacter(c => AnimalsMenuState.SubmenuHandleTypeahead(c));
                         Event.current.Use();
                         return;
                     }
@@ -3690,7 +3625,6 @@ namespace RimWorldAccess
 
                 if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                 {
-                    TypeaheadCharacterBuffer.RequestCharacter(c => AnimalsMenuState.HandleTypeahead(c));
                     Event.current.Use();
                     return;
                 }
@@ -3783,7 +3717,6 @@ namespace RimWorldAccess
 
                     if (isSubmenuLetter || isSubmenuNumber)
                     {
-                        TypeaheadCharacterBuffer.RequestCharacter(c => MechsMenuState.SubmenuHandleTypeahead(c));
                         Event.current.Use();
                         return;
                     }
@@ -3926,7 +3859,6 @@ namespace RimWorldAccess
 
                 if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                 {
-                    TypeaheadCharacterBuffer.RequestCharacter(c => MechsMenuState.HandleTypeahead(c));
                     Event.current.Use();
                     return;
                 }
@@ -4261,7 +4193,6 @@ namespace RimWorldAccess
 
                     if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                     {
-                        TypeaheadCharacterBuffer.RequestCharacter(c => NotificationMenuState.HandleTypeahead(c));
                         Event.current.Use();
                         return;
                     }
@@ -4397,7 +4328,6 @@ namespace RimWorldAccess
 
                     if ((isLetter || isNumber) && !Event.current.alt)
                     {
-                        TypeaheadCharacterBuffer.RequestCharacter(c => LearningHelperState.HandleTypeahead(c));
                         Event.current.Use();
                         return;
                     }
@@ -4591,7 +4521,6 @@ namespace RimWorldAccess
 
                     if (isSubmenuLetter || isSubmenuNumber)
                     {
-                        TypeaheadCharacterBuffer.RequestCharacter(c => AssignMenuState.SubmenuHandleTypeahead(c));
                         Event.current.Use();
                         return;
                     }
@@ -4750,7 +4679,6 @@ namespace RimWorldAccess
 
                 if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                 {
-                    TypeaheadCharacterBuffer.RequestCharacter(c => AssignMenuState.HandleTypeahead(c));
                     Event.current.Use();
                     return;
                 }
@@ -4777,7 +4705,6 @@ namespace RimWorldAccess
 
                 if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                 {
-                    TypeaheadCharacterBuffer.RequestCharacter(c => StorageSettingsMenuState.ProcessTypeaheadCharacter(c));
                     Event.current.Use();
                     return;
                 }
@@ -4798,7 +4725,6 @@ namespace RimWorldAccess
 
                 if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                 {
-                    TypeaheadCharacterBuffer.RequestCharacter(c => PlantSelectionMenuState.HandleTypeahead(c));
                     Event.current.Use();
                     return;
                 }
@@ -5034,7 +4960,6 @@ namespace RimWorldAccess
                         Event.current.Use();
                         return;
                     }
-                    TypeaheadCharacterBuffer.RequestCharacter(c => WindowlessFloatMenuState.HandleTypeahead(c));
                     Event.current.Use();
                     return;  // CRITICAL: Don't fall through to T=time, R=draft, etc.
                 }
@@ -6985,7 +6910,6 @@ namespace RimWorldAccess
 
             if ((isLetter || (isNumber && !Event.current.shift)) && !KeyboardHelper.IsAltHeld && !Event.current.control)
             {
-                TypeaheadCharacterBuffer.RequestCharacter(c => ThingFilterNavigationState.ProcessTypeaheadCharacter(c));
                 return true;
             }
 

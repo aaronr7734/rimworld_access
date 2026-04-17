@@ -434,13 +434,18 @@ namespace RimWorldAccess
 
                 if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld && !ev.control)
                 {
-                    TypeaheadCharacterBuffer.RequestCharacter(c => HandleTypeahead(c));
+                    // Consume the first half of Unity's two-event pair so game
+                    // hotkeys (e.g. vanilla 'G' gizmo shortcut) don't fire.
+                    // The second half (keyCode=None, char='x') is handled below.
                     return true;
                 }
             }
 
-            // Consume all other keys to prevent pass-through
-            return true;
+            // Consume all other keys to prevent pass-through — EXCEPT the
+            // KeyCode.None character event. UnifiedKeyboardPatch's priority -1.5
+            // TypeaheadDispatcher needs that event to route the layout-aware
+            // character to the registered consumer (e.g. ArchitectTreeState).
+            return key != KeyCode.None;
         }
 
         #endregion
@@ -930,7 +935,7 @@ namespace RimWorldAccess
             return result;
         }
 
-        private void HandleTypeahead(char c)
+        public void HandleTypeahead(char c)
         {
             // Auto-expand collapsed nodes for menus that opt in, so typeahead matches
             // items across the whole tree without the user pressing '*' first.

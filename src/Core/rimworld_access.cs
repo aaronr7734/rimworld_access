@@ -57,6 +57,11 @@ namespace RimWorldAccess
 
             HarmonyInstance = new Harmony(HarmonyId);
 
+            // Register all typeahead-consuming States so the priority -1.5 dispatch in
+            // UnifiedKeyboardPatch can route layout-aware characters from non-Latin
+            // keyboard layouts (fixes the OlegTheSnowman Cyrillic-typeahead bug).
+            TypeaheadConsumerRegistry.RegisterAll();
+
             Log.Message("[RimWorld Access] Applying Harmony patches...");
             HarmonyInstance.PatchAll(Assembly.GetExecutingAssembly());
 

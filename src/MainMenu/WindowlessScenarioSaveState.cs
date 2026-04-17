@@ -22,6 +22,12 @@ namespace RimWorldAccess
         private static int selectedIndex = 0;
         private static bool isTypingFilename = true;
         private static TypeaheadSearchHelper typeaheadHelper = new TypeaheadSearchHelper();
+        private static readonly TextInputController filenameController = new TextInputController();
+        private static readonly TextFieldSpec filenameSpec = new TextFieldSpec(
+            labelKey: "RimWorldAccess.TextInput.LabelFilename",
+            maxLength: 64,
+            minLength: 1,
+            mustBeFilename: true);
 
         /// <summary>
         /// Opens the scenario save menu.
@@ -32,8 +38,10 @@ namespace RimWorldAccess
             onSaveComplete = onComplete;
             typeaheadHelper.ClearSearch();
 
-            // Set initial filename from scenario name
-            TextInputHelper.SetText(GenFile.SanitizedFileName(scenario.name ?? "NewScenario"));
+            string initialName = GenFile.SanitizedFileName(scenario.name ?? "NewScenario");
+            // Embedded controller — Up/Down arrows must reach the surrounding list, so
+            // we own routing rather than going through TextInputManager.
+            filenameController.Begin(initialName, filenameSpec, _ => { }, null, replaceOnType: true, modal: false);
 
             ReloadFiles();
 
@@ -41,7 +49,7 @@ namespace RimWorldAccess
             isTypingFilename = true;
             IsActive = true;
 
-            TolkHelper.Speak($"Save Scenario. Type filename or press Down to select existing file to overwrite. Current name: {TextInputHelper.CurrentText}");
+            TolkHelper.Speak($"Save Scenario. Type filename or press Down to select existing file to overwrite. Current name: {filenameController.CurrentText}");
         }
 
         /// <summary>
@@ -54,7 +62,7 @@ namespace RimWorldAccess
             onSaveComplete = null;
             existingFiles.Clear();
             typeaheadHelper.ClearSearch();
-            TextInputHelper.Clear();
+            filenameController.Cancel();
         }
 
         /// <summary>
@@ -95,7 +103,7 @@ namespace RimWorldAccess
             if (selectedIndex == 0)
             {
                 // Create new with typed name
-                TolkHelper.Speak($"Save as: {TextInputHelper.CurrentText} ({MenuHelper.FormatPosition(0, TotalCount)})");
+                TolkHelper.Speak($"Save as: {filenameController.CurrentText} ({MenuHelper.FormatPosition(0, TotalCount)})");
             }
             else if (selectedIndex > 0 && selectedIndex <= existingFiles.Count)
             {
@@ -178,7 +186,7 @@ namespace RimWorldAccess
             if (selectedIndex == 0)
             {
                 // Save with typed name
-                fileName = TextInputHelper.CurrentText;
+                fileName = filenameController.CurrentText;
             }
             else if (selectedIndex > 0 && selectedIndex <= existingFiles.Count)
             {
@@ -242,6 +250,24 @@ namespace RimWorldAccess
         {
             if (!IsActive) return false;
 
+            // Cursor review: Left/Right (with Shift/Ctrl) let the user audit the filename
+            // while they're actually typing. When browsing the existing-file list
+            // (isTypingFilename == false), arrows aren't used by the state either, so we leave
+            // them untouched rather than steal them for a hidden filename cursor move.
+            if (isTypingFilename && selectedIndex == 0)
+            {
+                if (key == KeyCode.LeftArrow)
+                {
+                    filenameController.HandleArrowLeft(shift, ctrl);
+                    return true;
+                }
+                if (key == KeyCode.RightArrow)
+                {
+                    filenameController.HandleArrowRight(shift, ctrl);
+                    return true;
+                }
+            }
+
             switch (key)
             {
                 case KeyCode.UpArrow:
@@ -273,7 +299,21 @@ namespace RimWorldAccess
                 case KeyCode.Backspace:
                     if (isTypingFilename && selectedIndex == 0)
                     {
-                        TextInputHelper.HandleBackspace();
+                        filenameController.HandleBackspace();
+                        return true;
+                    }
+                    break;
+                case KeyCode.C:
+                    if (ctrl && isTypingFilename && selectedIndex == 0)
+                    {
+                        filenameController.HandleCopy();
+                        return true;
+                    }
+                    break;
+                case KeyCode.V:
+                    if (ctrl && isTypingFilename && selectedIndex == 0)
+                    {
+                        filenameController.HandlePaste();
                         return true;
                     }
                     break;
@@ -295,7 +335,7 @@ namespace RimWorldAccess
                 // Filter out invalid filename characters
                 if (char.IsLetterOrDigit(character) || character == ' ' || character == '-' || character == '_')
                 {
-                    TextInputHelper.HandleCharacter(character);
+                    filenameController.HandleCharacter(character);
                     return true;
                 }
             }

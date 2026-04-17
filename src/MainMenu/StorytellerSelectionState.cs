@@ -522,6 +522,18 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Handles typeahead character input from the layout-aware dispatcher.
+        /// Wraps <see cref="ProcessTypeaheadCharacter"/> with the same letter-or-digit
+        /// gate and ToLower normalization as the legacy KeyCode-based dispatch.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!isActive) return;
+            if (!char.IsLetterOrDigit(c)) return;
+            ProcessTypeaheadCharacter(char.ToLower(c));
+        }
+
+        /// <summary>
         /// Processes typeahead character input.
         /// </summary>
         public static void ProcessTypeaheadCharacter(char c)

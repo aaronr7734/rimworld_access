@@ -23,8 +23,12 @@ namespace RimWorldAccess
         // ===== Global State =====
         private static bool isActive;
         public static bool IsActive => isActive;
-        private static bool isRenaming;
-        public static bool IsRenaming => isRenaming;
+        private static readonly TextInputController renameController = new TextInputController();
+        private static readonly TextFieldSpec renameSpec = new TextFieldSpec(
+            labelKey: "RimWorldAccess.TextInput.LabelXenogerm",
+            maxLength: 64,
+            minLength: 1);
+        public static bool IsRenaming => TextInputManager.Active == renameController;
 
         private static Window dialog;
         private static Tab currentTab;
@@ -134,7 +138,7 @@ namespace RimWorldAccess
         public static void Close()
         {
             isActive = false;
-            isRenaming = false;
+            if (TextInputManager.Active == renameController) TextInputManager.Clear();
             dialog = null;
             selectedTreeNav.Reset();
             libraryTreeNav.Reset();
@@ -379,87 +383,20 @@ namespace RimWorldAccess
             TolkHelper.Speak((string)"Close".Translate());
         }
 
-        // ===== Rename Input =====
-        // Character input is captured separately in UnifiedKeyboardPatch's keyCode==None section.
-        // This method handles control keys only (Enter, Escape, Backspace, Ctrl+V, Tab).
+        // Rename input flows through TextInputManager (priority -1.6 in UnifiedKeyboardPatch).
 
-        public static bool HandleRenameInput(Event ev)
+        private static void OnRenameCancel()
         {
-            KeyCode key = ev.keyCode;
-
-            // Enter - confirm rename
-            if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
-            {
-                ConfirmRename();
-                return true;
-            }
-
-            // Escape - cancel rename
-            if (key == KeyCode.Escape)
-            {
-                CancelRename();
-                return true;
-            }
-
-            // Backspace
-            if (key == KeyCode.Backspace)
-            {
-                TextInputHelper.HandleBackspace();
-                return true;
-            }
-
-            // Ctrl+V - paste
-            if (key == KeyCode.V && ev.control)
-            {
-                TextInputHelper.HandlePaste();
-                return true;
-            }
-
-            // Tab - read current text
-            if (key == KeyCode.Tab)
-            {
-                TextInputHelper.ReadCurrentText();
-                return true;
-            }
-
-            return false;
-        }
-
-        public static void CancelRename()
-        {
-            isRenaming = false;
-            TextInputHelper.Clear();
             SoundDefOf.Click.PlayOneShotOnCamera();
             TolkHelper.Speak("Rename cancelled.");
         }
 
-        private static void ConfirmRename()
+        private static void OnRenameConfirm(string newName)
         {
-            string newName = TextInputHelper.CurrentText;
-
-            if (string.IsNullOrWhiteSpace(newName))
-            {
-                TolkHelper.Speak("Cannot set empty name. Enter a name or press Escape to cancel.", SpeechPriority.High);
-                return;
-            }
-
-            if (dialog == null)
-            {
-                isRenaming = false;
-                TextInputHelper.Clear();
-                return;
-            }
-
-            // Apply the new name
+            if (dialog == null) return;
             fi_xenotypeName.SetValue(dialog, newName);
-
             // Auto-lock the name so it doesn't get overwritten by gene changes
             fi_xenotypeNameLocked.SetValue(dialog, true);
-
-            isRenaming = false;
-            TextInputHelper.Clear();
-
-            // Rebuild controls to reflect new name and lock state
             BuildControlItems();
 
             SoundDefOf.Tick_High.PlayOneShotOnCamera();
@@ -928,9 +865,7 @@ namespace RimWorldAccess
                 {
                     if (dialog == null) return;
                     string currentName = (string)fi_xenotypeName.GetValue(dialog);
-                    isRenaming = true;
-                    TextInputHelper.SetText(currentName ?? "", replaceOnType: true);
-                    TolkHelper.Speak($"Renaming {currentName}. Type new name and press Enter, Escape to cancel.");
+                    renameController.Begin(currentName ?? string.Empty, renameSpec, OnRenameConfirm, OnRenameCancel, replaceOnType: true);
                 }
             });
 

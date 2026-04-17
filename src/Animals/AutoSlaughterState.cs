@@ -947,7 +947,6 @@ namespace RimWorldAccess
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             if (isLetter && !KeyboardHelper.IsAltHeld)
             {
-                TypeaheadCharacterBuffer.RequestCharacter(c => HandleTypeahead(c));
                 return true;
             }
 

@@ -5,8 +5,20 @@ Central keyboard input routing system that coordinates all keyboard accessibilit
 
 ## Files in This Module
 
-### Central Input Handler (1 file)
+### Central Input Handler
 - **UnifiedKeyboardPatch.cs** - Patches `UIRoot.UIRootOnGUI` at Prefix level with High priority, handles ALL keyboard input routing
+- **KeyboardHelper.cs** - Layout remapping helpers (AltGr `]`, AZERTY `*`, etc.) and `IsCtrlHeld` / `IsAltHeld`
+- **KeyboardIsolationPatch.cs** - Blocks game keybindings while overlays are active
+- **MapArrowKeyHandler.cs** - Map arrow-key navigation
+
+### Unified Text Input Pipeline (`TextInput/`)
+- **TextFieldSpec.cs** - Immutable per-field constraints (max length, allowed-chars regex, grammar specials, filename rules, custom validator). Static factories: `ForRimWorldDialog`, `ForIRenameable`, `Unrestricted`.
+- **TextFieldValidator.cs** - Pure validation returning `ValidationResult`. `AnnounceRejection` produces the localized speech string.
+- **TextInputController.cs** - One editing session: Begin/HandleCharacter/HandleBackspace/HandleDelete/HandleCopy/HandlePaste/HandleEnter/HandleEscape + cursor-review methods (HandleArrowLeft/Right, HandleHome/End — each takes `shift` and `ctrl` modifiers). `HandleEvent(Event)` dispatches IMGUI key events through the full set. Modal mode registers with `TextInputManager` and owns all keys including cursor nav; embedded mode leaves arrow keys for the surrounding state (cursor nav is only reachable if the site explicitly forwards arrow events).
+- **TextInputManager.cs** - Static single-active-session registry. UnifiedKeyboardPatch's priority -1.6 dispatch routes ALL keys to `Active` when set.
+- **RimWorldDialogIntrospector.cs** - Reflection-cached extractor for vanilla dialog constraints (`Dialog_Rename<T>.MaxNameLength` + `NameIsValid`, `Dialog_GiveName.FirstCharLimit` + `IsValidName`, etc.). Pawn-name fields use `CharacterCardUtility.ValidNameRegex`.
+- **ITypeaheadConsumer.cs** - Delegate-based typeahead consumer (`TypeaheadConsumer` + `TypeaheadDispatcher`). Decouples typeahead detection from KeyCode gating — fixes the OlegTheSnowman Cyrillic-layout bug.
+- **TypeaheadConsumerRegistry.cs** - Registers every typeahead-consuming State at mod init.
 
 ## Key Architecture
 
@@ -15,7 +27,8 @@ Does not manage its own state - routes input to all other State classes based on
 
 ### Input Handling
 **Priority System** - Processes input in priority order (lower number = higher priority):
-- Priority -1: Zone rename (blocks everything)
+- Priority -1.6: `TextInputManager.Active` — modal text-edit session swallows ALL keys (chars + Enter/Escape/Backspace + Ctrl+C/V). Replaces the old per-state -1 / -0.95 / -0.94 modal blocks.
+- Priority -1.5: Layout-aware character dispatch. `TypeaheadDispatcher.TryDispatchChar` walks registered consumers and routes the layout-aware `Event.character` to the first active one. Per-state branches handle embedded text fields below.
 - Priority 0: Settlement browser, caravan stats/destination
 - Priority 1-2: Confirmations (delete, general)
 - Priority 2.5-4.8: Menus (area, trade, save, pause, options, research, quests, health, prisoner)
@@ -24,6 +37,32 @@ Does not manage its own state - routes input to all other State classes based on
 - Priority 8: Pause menu (Escape key)
 - Priority 9: Enter key (inspection)
 - Priority 10: Right bracket (colonist orders)
+
+### Text Input Architecture
+
+All text-edit sites in the mod (renames, scenario editor, pawn naming, xenotype/xenogerm, etc.) flow through `TextInputController`:
+
+```csharp
+// Modal — controller registers as TextInputManager.Active and the priority -1.6
+// dispatch in UnifiedKeyboardPatch routes every key to it. Architect/scanner/etc.
+// shortcuts are blocked.
+private static readonly TextInputController controller = new TextInputController();
+
+public static void Open(IRenameable target)
+{
+    var spec = TextFieldSpec.ForIRenameable(target, "RimWorldAccess.TextInput.LabelZone");
+    controller.Begin(target.RenamableLabel, spec, OnConfirm, OnCancel, replaceOnType: true);
+}
+
+private static void OnConfirm(string newName) { target.RenamableLabel = newName; }
+private static void OnCancel() { TolkHelper.Speak("Cancelled"); }
+```
+
+For text fields embedded inside a larger menu (where Up/Down should still navigate the surrounding list), pass `modal: false` to `Begin`. The surrounding state's input handler then forwards Enter/Escape/Backspace/chars/Ctrl+C/V to the controller's individual methods.
+
+### Typeahead Architecture
+
+Typeahead-consuming States register with `TypeaheadDispatcher` at mod init (see `TypeaheadConsumerRegistry`). The priority -1.5 character handler dispatches the layout-aware `Event.character` to the first registered consumer whose `IsActive()` returns true. This works on any keyboard layout because the gate is `char.IsLetter(c) || char.IsDigit(c)`, not a `KeyCode.A..Z` range — fixing the bug where Cyrillic/Ukrainian "б" was reported by Unity as `KeyCode.Comma` and silently dropped.
 
 ### Dependencies
 **Requires:** All State modules (checks their IsActive flags)

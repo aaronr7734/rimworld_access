@@ -78,6 +78,9 @@ namespace RimWorldAccess
                         }
                     );
                     textField.MaxLength = maxLength;
+                    // Vanilla pawn-name constraint: Unicode letters/digits/space/'-./
+                    // (CharacterCardUtility.ValidNameRegex). Spec rejects other characters.
+                    textField.AllowedChars = CharacterCardUtility.ValidNameRegex;
                     elements.Add(textField);
                 }
             }

@@ -25,10 +25,9 @@ namespace RimWorldAccess
         private static int metadataIndex = 0;
         private const int MetadataFieldCount = 3; // Title, Summary, Description
 
-        // Text editing state
-        private static bool isEditingText = false;
+        // Text editing state — driven by the unified TextInputManager pipeline.
+        private static readonly TextInputController metadataController = new TextInputController();
         private static string editingFieldName = "";
-        private static string originalValue = "";
 
         // Parts tree state - proper treeview pattern
         private static List<PartTreeItem> partsHierarchy = new List<PartTreeItem>(); // Root items (parts)
@@ -91,7 +90,7 @@ namespace RimWorldAccess
         /// <summary>
         /// Gets whether we're in text editing mode.
         /// </summary>
-        public static bool IsEditingText => isEditingText;
+        public static bool IsEditingText => TextInputManager.Active == metadataController;
 
         /// <summary>
         /// Gets the current scenario being edited.
@@ -177,7 +176,7 @@ namespace RimWorldAccess
 
             currentSection = Section.Metadata;
             metadataIndex = 0;
-            isEditingText = false;
+            if (TextInputManager.Active == metadataController) TextInputManager.Clear();
 
             BuildPartsTree();
             RebuildPartsInspectionTree();
@@ -195,7 +194,7 @@ namespace RimWorldAccess
         public static void Close()
         {
             IsActive = false;
-            isEditingText = false;
+            if (TextInputManager.Active == metadataController) TextInputManager.Clear();
             currentScenario = null;
             currentPage = null;
             partsHierarchy.Clear();
@@ -2617,7 +2616,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void NextSection()
         {
-            if (isEditingText)
+            if (IsEditingText)
             {
                 TolkHelper.Speak("Press Enter to confirm or Escape to cancel editing first");
                 return;
@@ -2659,7 +2658,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void MetadataNext()
         {
-            if (isEditingText) return;
+            if (IsEditingText) return;
 
             metadataIndex = MenuHelper.SelectNext(metadataIndex, MetadataFieldCount);
             AnnounceCurrentMetadataField();
@@ -2670,7 +2669,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void MetadataPrevious()
         {
-            if (isEditingText) return;
+            if (IsEditingText) return;
 
             metadataIndex = MenuHelper.SelectPrevious(metadataIndex, MetadataFieldCount);
             AnnounceCurrentMetadataField();
@@ -2681,7 +2680,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void MetadataHome()
         {
-            if (isEditingText) return;
+            if (IsEditingText) return;
 
             metadataIndex = 0;
             AnnounceCurrentMetadataField();
@@ -2692,7 +2691,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void MetadataEnd()
         {
-            if (isEditingText) return;
+            if (IsEditingText) return;
 
             metadataIndex = MetadataFieldCount - 1;
             AnnounceCurrentMetadataField();
@@ -2707,7 +2706,7 @@ namespace RimWorldAccess
 
             string fieldName;
             string fieldValue;
-            string hint = isEditingText ? "" : " Press Enter to edit.";
+            string hint = IsEditingText ? "" : " Press Enter to edit.";
 
             switch (metadataIndex)
             {
@@ -2739,71 +2738,71 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Begins editing the current metadata field.
+        /// Begins editing the current metadata field via the unified TextInputController.
+        /// Per-field max lengths mirror RimWorld's <c>TrimmedToLength</c> caps and
+        /// ForbidGrammarSpecials blocks <c>[ ] { }</c> since these strings flow through
+        /// GrammarResolver.
         /// </summary>
         public static void BeginEditMetadataField()
         {
             if (currentScenario == null) return;
 
+            string current;
+            int maxLen;
+            string labelKey;
             switch (metadataIndex)
             {
                 case 0:
                     editingFieldName = "Title";
-                    originalValue = currentScenario.name ?? "";
+                    current = currentScenario.name ?? string.Empty;
+                    maxLen = 55;
+                    labelKey = "RimWorldAccess.TextInput.LabelScenarioTitle";
                     break;
                 case 1:
                     editingFieldName = "Summary";
-                    originalValue = currentScenario.summary ?? "";
+                    current = currentScenario.summary ?? string.Empty;
+                    maxLen = 300;
+                    labelKey = "RimWorldAccess.TextInput.LabelScenarioSummary";
                     break;
                 case 2:
                     editingFieldName = "Description";
-                    originalValue = currentScenario.description ?? "";
+                    current = currentScenario.description ?? string.Empty;
+                    maxLen = 1000;
+                    labelKey = "RimWorldAccess.TextInput.LabelScenarioDescription";
                     break;
                 default:
                     return;
             }
 
-            TextInputHelper.SetText(originalValue);
-            isEditingText = true;
-            TolkHelper.Speak($"Editing {editingFieldName}. Current value: {(string.IsNullOrEmpty(originalValue) ? "empty" : originalValue)}. Type to replace, Enter to confirm, Escape to cancel.");
+            // Title is single-line; Summary and Description are long-form narrative
+            // fields rendered via Widgets.TextArea in vanilla and should support
+            // Shift+Enter line breaks + Up/Down line navigation.
+            bool multiLine = metadataIndex == 1 || metadataIndex == 2;
+            var spec = new TextFieldSpec(
+                labelKey: labelKey,
+                maxLength: maxLen,
+                minLength: 0,
+                forbidGrammarSpecials: true,
+                multiLine: multiLine);
+
+            metadataController.Begin(current, spec, ApplyEditedMetadata, OnMetadataCancel, replaceOnType: true);
         }
 
-        /// <summary>
-        /// Confirms the current text edit.
-        /// </summary>
-        public static void ConfirmEdit()
+        private static void ApplyEditedMetadata(string newValue)
         {
-            if (!isEditingText || currentScenario == null) return;
-
-            string newValue = TextInputHelper.CurrentText;
-
+            if (currentScenario == null) return;
             switch (metadataIndex)
             {
-                case 0:
-                    currentScenario.name = newValue.TrimmedToLength(55);
-                    break;
-                case 1:
-                    currentScenario.summary = newValue.TrimmedToLength(300);
-                    break;
-                case 2:
-                    currentScenario.description = newValue.TrimmedToLength(1000);
-                    break;
+                case 0: currentScenario.name = newValue; break;
+                case 1: currentScenario.summary = newValue; break;
+                case 2: currentScenario.description = newValue; break;
             }
-
             isDirty = true;
-            isEditingText = false;
             TolkHelper.Speak($"{editingFieldName} set to: {(string.IsNullOrEmpty(newValue) ? "empty" : newValue)}");
         }
 
-        /// <summary>
-        /// Cancels the current text edit.
-        /// </summary>
-        public static void CancelEdit()
+        private static void OnMetadataCancel()
         {
-            if (!isEditingText) return;
-
-            isEditingText = false;
-            TextInputHelper.SetText(originalValue);
             TolkHelper.Speak($"Cancelled. {editingFieldName} unchanged.");
         }
 
@@ -3693,11 +3692,9 @@ namespace RimWorldAccess
         /// </summary>
         public static bool HandleInput(KeyCode key, bool shift, bool ctrl, bool alt)
         {
-            // Handle text editing mode separately
-            if (isEditingText)
-            {
-                return HandleTextEditInput(key, shift, ctrl, alt);
-            }
+            // Text-editing mode is handled by TextInputManager at priority -1.6 in
+            // UnifiedKeyboardPatch — that path absorbs Enter/Escape/Backspace/chars and
+            // never reaches HandleInput. Nothing to dispatch here.
 
             // Alt key combinations (global hotkeys)
             if (alt)
@@ -3738,26 +3735,6 @@ namespace RimWorldAccess
             {
                 return HandlePartsInput(key, shift, ctrl);
             }
-        }
-
-        private static bool HandleTextEditInput(KeyCode key, bool shift, bool ctrl, bool alt)
-        {
-            switch (key)
-            {
-                case KeyCode.Return:
-                case KeyCode.KeypadEnter:
-                    ConfirmEdit();
-                    return true;
-                case KeyCode.Escape:
-                    CancelEdit();
-                    return true;
-                case KeyCode.Backspace:
-                    TextInputHelper.HandleBackspace();
-                    return true;
-            }
-
-            // Character input is handled via Event.current.character in the patch
-            return false;
         }
 
         private static bool HandleMetadataInput(KeyCode key, bool shift, bool ctrl)
@@ -3879,11 +3856,9 @@ namespace RimWorldAccess
             if (WindowlessScenarioSaveState.IsActive || WindowlessScenarioLoadState.IsActive)
                 return false;
 
-            if (isEditingText)
-            {
-                TextInputHelper.HandleCharacter(character);
-                return true;
-            }
+            // Text-edit characters never reach here — TextInputManager catches them at
+            // priority -1.6. Treat IsEditingText as a no-op guard for parts typeahead.
+            if (IsEditingText) return true;
 
             if (currentSection == Section.Parts)
             {

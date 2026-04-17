@@ -35,6 +35,10 @@ namespace RimWorldAccess
         private static bool isIntegerDisplay; // True for floats that should display without decimals (e.g., days)
         private static string quantityTypedBuffer = "";
 
+        // Embedded text-edit controller (uses TextInputController without TextInputManager
+        // registration so the surrounding navigation keys still flow to HandleInput).
+        private static readonly TextInputController textController = new TextInputController();
+
         /// <summary>
         /// Opens the field editor for the given field.
         /// </summary>
@@ -142,9 +146,15 @@ namespace RimWorldAccess
                 currentField = field;
                 onComplete = onCompleteCallback;
 
-                // Initialize text helper with full text from Data
                 string fullText = field.Data as string ?? "";
-                TextInputHelper.SetText(fullText);
+                var spec = new TextFieldSpec(
+                    labelKey: "RimWorldAccess.TextInput.LabelDefault",
+                    maxLength: null,
+                    minLength: 0,
+                    forbidGrammarSpecials: true,
+                    multiLine: true);
+                // Embedded — local input handlers route to controller below.
+                textController.Begin(fullText, spec, _ => { }, null, replaceOnType: false, modal: false);
 
                 IsActive = true;
                 AnnounceText();
@@ -187,7 +197,7 @@ namespace RimWorldAccess
             currentField = null;
             dropdownOptions = null;
             dropdownTypeahead.ClearSearch();
-            TextInputHelper.Clear();
+            textController.Cancel();
 
             onComplete?.Invoke();
         }
@@ -246,7 +256,7 @@ namespace RimWorldAccess
             }
             else if (currentField.Type == ScenarioBuilderState.FieldType.Text)
             {
-                string newText = TextInputHelper.CurrentText;
+                string newText = textController.CurrentText;
                 currentField.SetValue?.Invoke(newText);
 
                 // Update display value (truncated for tree view)
@@ -447,7 +457,7 @@ namespace RimWorldAccess
 
         private static void AnnounceText()
         {
-            string text = TextInputHelper.CurrentText;
+            string text = textController.CurrentText;
             int lineCount = text.Split('\n').Length;
             int wordCount = text.Split(new[] { ' ', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Length;
 
@@ -685,15 +695,23 @@ namespace RimWorldAccess
 
         private static bool HandleTextInput(KeyCode key, bool shift, bool ctrl)
         {
+            // Cursor review: Left/Right/Home/End/Delete (with Shift/Ctrl variants) let the
+            // user audit and edit the current text without leaving the field. Up/Down still
+            // own list nav (handled in the outer switch below).
+            if (textController.HandleCursorNavEvent(Event.current))
+            {
+                return true;
+            }
+
             switch (key)
             {
                 case KeyCode.Return:
                 case KeyCode.KeypadEnter:
                     if (shift)
                     {
-                        // Shift+Enter inserts a newline
-                        TextInputHelper.HandleCharacter('\n');
-                        TolkHelper.Speak("New line", SpeechPriority.High);
+                        // Shift+Enter inserts a newline. HandleCharacter announces
+                        // "New line" itself in multi-line mode.
+                        textController.HandleCharacter('\n');
                         return true;
                     }
                     else
@@ -708,27 +726,37 @@ namespace RimWorldAccess
                     TolkHelper.Speak("Cancelled");
                     return true;
                 case KeyCode.Backspace:
-                    TextInputHelper.HandleBackspace();
+                    textController.HandleBackspace();
                     return true;
                 case KeyCode.Insert:
-                    TextInputHelper.ReadCurrentText();
+                    textController.ReadCurrentText();
                     return true;
-                case KeyCode.V:
+                case KeyCode.C:
                     if (ctrl)
                     {
-                        TextInputHelper.HandlePaste();
+                        textController.HandleCopy();
                         return true;
                     }
                     break;
-                // Consume navigation keys to prevent leaking to parent state
+                case KeyCode.V:
+                    if (ctrl)
+                    {
+                        textController.HandlePaste();
+                        return true;
+                    }
+                    break;
+                // Multi-line text fields: Up/Down navigate lines within the buffer.
+                // The enclosing parts editor owns Up/Down at the list level, but once
+                // the user has committed to editing a text field, line nav here is
+                // more useful than list nav (they can't jump between fields without
+                // Enter/Escape anyway). Consumes the key so it doesn't leak upward.
                 case KeyCode.UpArrow:
+                    textController.HandleArrowUp(shift);
+                    return true;
                 case KeyCode.DownArrow:
-                case KeyCode.LeftArrow:
-                case KeyCode.RightArrow:
+                    textController.HandleArrowDown(shift);
+                    return true;
                 case KeyCode.Tab:
-                case KeyCode.Home:
-                case KeyCode.End:
-                case KeyCode.Delete:
                     return true;
             }
             return false;
@@ -766,7 +794,7 @@ namespace RimWorldAccess
                 // Accept all printable characters for text editing
                 if (character >= ' ')
                 {
-                    TextInputHelper.HandleCharacter(character);
+                    textController.HandleCharacter(character);
                     return true;
                 }
             }

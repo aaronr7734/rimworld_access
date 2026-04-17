@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <RimWorldAccess.TextInput.LabelDefault>field</RimWorldAccess.TextInput.LabelDefault>
+  <RimWorldAccess.TextInput.LabelFaction>faction name</RimWorldAccess.TextInput.LabelFaction>
+  <RimWorldAccess.TextInput.LabelSettlement>settlement name</RimWorldAccess.TextInput.LabelSettlement>
+  <RimWorldAccess.TextInput.LabelPawnFirstName>first name</RimWorldAccess.TextInput.LabelPawnFirstName>
+  <RimWorldAccess.TextInput.LabelPawnNickName>nickname</RimWorldAccess.TextInput.LabelPawnNickName>
+  <RimWorldAccess.TextInput.LabelPawnLastName>last name</RimWorldAccess.TextInput.LabelPawnLastName>
+  <RimWorldAccess.TextInput.LabelZone>zone name</RimWorldAccess.TextInput.LabelZone>
+  <RimWorldAccess.TextInput.LabelStorage>storage name</RimWorldAccess.TextInput.LabelStorage>
+  <RimWorldAccess.TextInput.LabelPen>pen name</RimWorldAccess.TextInput.LabelPen>
+  <RimWorldAccess.TextInput.LabelScenarioTitle>scenario title</RimWorldAccess.TextInput.LabelScenarioTitle>
+  <RimWorldAccess.TextInput.LabelScenarioSummary>scenario summary</RimWorldAccess.TextInput.LabelScenarioSummary>
+  <RimWorldAccess.TextInput.LabelScenarioDescription>scenario description</RimWorldAccess.TextInput.LabelScenarioDescription>
+  <RimWorldAccess.TextInput.LabelFilename>filename</RimWorldAccess.TextInput.LabelFilename>
+  <RimWorldAccess.TextInput.LabelXenotype>xenotype name</RimWorldAccess.TextInput.LabelXenotype>
+  <RimWorldAccess.TextInput.LabelXenogerm>xenogerm name</RimWorldAccess.TextInput.LabelXenogerm>
+  <RimWorldAccess.TextInput.LabelWorldSeed>world seed</RimWorldAccess.TextInput.LabelWorldSeed>
+
+  <RimWorldAccess.TextInput.EditingField>Editing {0}: {1}. Type new value, Enter to confirm, Escape to cancel.</RimWorldAccess.TextInput.EditingField>
+  <RimWorldAccess.TextInput.EditingMultiLineField>Editing multi-line field {0}: {1}. Type, Shift+Enter for new line, Up/Down for line navigation, Enter to confirm, Escape to cancel.</RimWorldAccess.TextInput.EditingMultiLineField>
+  <RimWorldAccess.TextInput.Empty>empty</RimWorldAccess.TextInput.Empty>
+  <RimWorldAccess.TextInput.Deleted>Deleted {0}</RimWorldAccess.TextInput.Deleted>
+  <RimWorldAccess.TextInput.NewLine>New line</RimWorldAccess.TextInput.NewLine>
+  <RimWorldAccess.TextInput.BlankLine>blank line</RimWorldAccess.TextInput.BlankLine>
+
+  <RimWorldAccess.TextInput.Copied>Copied</RimWorldAccess.TextInput.Copied>
+  <RimWorldAccess.TextInput.Cut>Cut</RimWorldAccess.TextInput.Cut>
+  <RimWorldAccess.TextInput.SelectedAll>Selected all: {0}</RimWorldAccess.TextInput.SelectedAll>
+  <RimWorldAccess.TextInput.SelectedAllLong>Selected all, {0} characters</RimWorldAccess.TextInput.SelectedAllLong>
+  <RimWorldAccess.TextInput.ClipboardEmpty>Clipboard is empty</RimWorldAccess.TextInput.ClipboardEmpty>
+  <RimWorldAccess.TextInput.PastedShort>Pasted: {0}</RimWorldAccess.TextInput.PastedShort>
+  <RimWorldAccess.TextInput.PastedWords>Pasted {0} words</RimWorldAccess.TextInput.PastedWords>
+  <RimWorldAccess.TextInput.PastedLines>Pasted {0} lines, {1} words</RimWorldAccess.TextInput.PastedLines>
+
+  <RimWorldAccess.TextInput.RejectedEmpty>Cannot accept empty value</RimWorldAccess.TextInput.RejectedEmpty>
+  <RimWorldAccess.TextInput.RejectedTooLong>Cannot paste, exceeds maximum of {0} characters</RimWorldAccess.TextInput.RejectedTooLong>
+  <RimWorldAccess.TextInput.RejectedTooShort>Cannot paste, minimum {0} characters required</RimWorldAccess.TextInput.RejectedTooShort>
+  <RimWorldAccess.TextInput.RejectedDisallowed>Cannot paste, contains disallowed characters: {0}</RimWorldAccess.TextInput.RejectedDisallowed>
+  <RimWorldAccess.TextInput.RejectedSpecial>Cannot paste, contains forbidden grammar characters</RimWorldAccess.TextInput.RejectedSpecial>
+  <RimWorldAccess.TextInput.RejectedFilename>Cannot paste, contains characters not allowed in filenames</RimWorldAccess.TextInput.RejectedFilename>
+  <RimWorldAccess.TextInput.RejectedCustom>Cannot accept value: {0}</RimWorldAccess.TextInput.RejectedCustom>
+</LanguageData>

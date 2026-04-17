@@ -178,6 +178,11 @@ namespace RimWorldAccess
         [HarmonyPostfix]
         public static void Postfix(Rect rect, bool anyMapFiles)
         {
+            // Mark main menu as active for the layout-aware typeahead dispatcher.
+            // DoMainMenuControls runs every frame the main menu is visible, so
+            // MenuNavigationState.IsActive (frame-recency check) stays true while drawn.
+            MenuNavigationState.MarkRendered();
+
             // Initialize menu navigation state with our rebuilt lists
             if (cachedColumn0.Count > 0 && cachedColumn1.Count > 0)
             {
@@ -279,22 +284,6 @@ namespace RimWorldAccess
 
             if (isLetter || isNumber)
             {
-                TypeaheadCharacterBuffer.RequestCharacter(c =>
-                {
-                    var labels = MenuNavigationState.GetCurrentColumnLabels();
-                    if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
-                    {
-                        if (newIndex >= 0)
-                        {
-                            MenuNavigationState.SetSelectedIndex(newIndex);
-                            MenuNavigationState.AnnounceWithSearch();
-                        }
-                    }
-                    else
-                    {
-                        TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
-                    }
-                });
                 Event.current.Use();
                 return;
             }

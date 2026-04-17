@@ -251,14 +251,17 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Determines what type of match (if any) exists between search and label.
+        /// Both sides are normalized via <see cref="TextNormalization.RemoveDiacritics"/>
+        /// so a French user typing "cafe" matches "café", a German user typing "strasse"
+        /// matches "Straße", etc. Mirrors OniAccess's accent-insensitive matching.
         /// </summary>
         private MatchType GetMatchType(string search, string label)
         {
             if (string.IsNullOrEmpty(search) || string.IsNullOrEmpty(label))
                 return MatchType.None;
 
-            string searchLower = search.ToLowerInvariant();
-            string labelLower = label.ToLowerInvariant().Trim();
+            string searchLower = TextNormalization.RemoveDiacritics(search.ToLowerInvariant());
+            string labelLower = TextNormalization.RemoveDiacritics(label.ToLowerInvariant().Trim());
 
             // Strip parenthetical content for name-based matching
             string nameOnly = StripParentheticalContent(labelLower);

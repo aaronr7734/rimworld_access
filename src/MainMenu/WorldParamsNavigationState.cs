@@ -51,9 +51,9 @@ namespace RimWorldAccess
         private static int landmarkDensityIndex = 3; // Default: Normal
         private static float pollutionValue = 0f;
 
-        // Text input state for seed editing
+        // Text input state for seed editing — flows through the unified controller.
+        private static readonly TextInputController seedController = new TextInputController();
         private static bool isEditingSeed = false;
-        private static string seedInputBuffer = "";
 
         // Map sizes - pulled dynamically based on dev mode (Prefs.TestMapSizes)
         private static int[] activeMapSizes;
@@ -70,7 +70,7 @@ namespace RimWorldAccess
 
         // ===== PUBLIC PROPERTIES =====
         public static bool IsEditingSeed => isEditingSeed;
-        public static string SeedInputBuffer => seedInputBuffer;
+        public static string SeedInputBuffer => isEditingSeed ? seedController.CurrentText : string.Empty;
         public static bool HasActiveSearch => fieldTypeahead.HasActiveSearch;
 
         public static int FieldCount => availableFields.Count;
@@ -116,8 +116,8 @@ namespace RimWorldAccess
 
                 // Reset navigation state — start with no field selected so Enter advances
                 fieldIndex = -1;
+                if (isEditingSeed) seedController.Cancel();
                 isEditingSeed = false;
-                seedInputBuffer = "";
                 fieldTypeahead.ClearSearch();
 
                 initialized = true;
@@ -180,8 +180,8 @@ namespace RimWorldAccess
             fieldIndex = -1;
             availableFields.Clear();
             fieldTypeahead.ClearSearch();
+            if (isEditingSeed) seedController.Cancel();
             isEditingSeed = false;
-            seedInputBuffer = "";
         }
 
         /// <summary>
@@ -401,50 +401,32 @@ namespace RimWorldAccess
         {
             if (currentInstance == null) return;
             string currentSeed = (string)AccessTools.Field(typeof(Page_CreateWorldParams), "seedString").GetValue(currentInstance);
+            var spec = TextFieldSpec.Unrestricted("RimWorldAccess.TextInput.LabelWorldSeed");
             isEditingSeed = true;
-            seedInputBuffer = currentSeed ?? "";
-            TolkHelper.Speak($"Editing Seed. Type seed, Enter to confirm, Escape to cancel. Current: {seedInputBuffer}");
-        }
-
-        public static void CancelSeedEdit()
-        {
-            isEditingSeed = false;
-            seedInputBuffer = "";
-            TolkHelper.Speak("Seed editing canceled");
-        }
-
-        public static void ConfirmSeedEdit()
-        {
-            if (currentInstance == null) return;
-            isEditingSeed = false;
-            if (!string.IsNullOrEmpty(seedInputBuffer))
-            {
-                AccessTools.Field(typeof(Page_CreateWorldParams), "seedString").SetValue(currentInstance, seedInputBuffer);
-                TolkHelper.Speak($"World Seed: {seedInputBuffer} (Confirmed)");
-            }
-            else
-            {
-                TolkHelper.Speak("Seed input canceled (empty)");
-            }
-            seedInputBuffer = "";
-        }
-
-        public static void AddCharToSeedBuffer(char c)
-        {
-            seedInputBuffer += c;
-            TolkHelper.Speak(seedInputBuffer);
-        }
-
-        public static void RemoveCharFromSeedBuffer()
-        {
-            if (seedInputBuffer.Length > 0)
-            {
-                seedInputBuffer = seedInputBuffer.Substring(0, seedInputBuffer.Length - 1);
-                if (seedInputBuffer.Length > 0)
-                    TolkHelper.Speak(seedInputBuffer);
-                else
-                    TolkHelper.Speak("Empty");
-            }
+            seedController.Begin(
+                currentSeed ?? string.Empty,
+                spec,
+                onConfirm: seed =>
+                {
+                    isEditingSeed = false;
+                    if (currentInstance == null) return;
+                    if (!string.IsNullOrEmpty(seed))
+                    {
+                        AccessTools.Field(typeof(Page_CreateWorldParams), "seedString").SetValue(currentInstance, seed);
+                        TolkHelper.Speak($"World Seed: {seed} (Confirmed)");
+                    }
+                    else
+                    {
+                        TolkHelper.Speak("Seed input canceled (empty)");
+                    }
+                },
+                onCancel: () =>
+                {
+                    isEditingSeed = false;
+                    TolkHelper.Speak("Seed editing canceled");
+                },
+                replaceOnType: false,
+                modal: true);
         }
 
         public static void RandomizeSeed()

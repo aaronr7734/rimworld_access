@@ -147,6 +147,29 @@ namespace RimWorldAccess
             });
         }
 
+        /// <summary>
+        /// Handles typeahead character input from the layout-aware dispatcher.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!isActive) return;
+            if (typeaheadHelper == null) return;
+
+            var labels = GetAreaLabels();
+            if (typeaheadHelper.ProcessCharacterInput(c, labels, out int newIndex))
+            {
+                if (newIndex >= 0)
+                {
+                    selectedIndex = newIndex;
+                    AnnounceWithSearch();
+                }
+            }
+            else
+            {
+                TolkHelper.Speak($"No matches for '{typeaheadHelper.LastFailedSearch}'");
+            }
+        }
+
         private static List<string> GetAreaLabels()
         {
             var labels = new List<string>();
@@ -305,22 +328,6 @@ namespace RimWorldAccess
 
             if (isLetter || isNumber)
             {
-                TypeaheadCharacterBuffer.RequestCharacter(c =>
-                {
-                    var labels = GetAreaLabels();
-                    if (typeaheadHelper.ProcessCharacterInput(c, labels, out int newIndex))
-                    {
-                        if (newIndex >= 0)
-                        {
-                            selectedIndex = newIndex;
-                            AnnounceWithSearch();
-                        }
-                    }
-                    else
-                    {
-                        TolkHelper.Speak($"No matches for '{typeaheadHelper.LastFailedSearch}'");
-                    }
-                });
                 return true;
             }
 

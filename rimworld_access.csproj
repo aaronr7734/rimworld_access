@@ -49,6 +49,11 @@
     </None>
   </ItemGroup>
 
+  <!-- Localization XML files -->
+  <ItemGroup>
+    <LanguageFiles Include="Languages\**\*.xml" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- Harmony reference - reference-only package (runtime provided by Harmony mod) -->
     <PackageReference Include="Lib.Harmony" Version="2.3.3">
@@ -77,6 +82,12 @@
     <Copy
       SourceFiles="$(TargetPath)"
       DestinationFolder="$(ModOutputDir)\Assemblies\"
+    />
+
+    <!-- Copy Languages folder, preserving subdirectory structure -->
+    <Copy
+      SourceFiles="@(LanguageFiles)"
+      DestinationFiles="@(LanguageFiles->'$(ModOutputDir)\Languages\%(RecursiveDir)%(Filename)%(Extension)')"
     />
 
     <!-- Copy native Prism libraries to mod root (for runtime loading) -->
@@ -121,6 +132,12 @@
     <Copy
       SourceFiles="$(TargetPath)"
       DestinationFolder="$(ReleaseFolderPath)Assemblies\"
+    />
+
+    <!-- Copy Languages folder, preserving subdirectory structure -->
+    <Copy
+      SourceFiles="@(LanguageFiles)"
+      DestinationFiles="@(LanguageFiles->'$(ReleaseFolderPath)Languages\%(RecursiveDir)%(Filename)%(Extension)')"
     />
 
     <!-- Copy native Prism libraries to mod root -->
