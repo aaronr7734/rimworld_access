@@ -1033,7 +1033,7 @@ namespace RimWorldAccess
             else
             {
                 // Manual jump (Home key) - just announce the jump
-                TolkHelper.Speak($"Jumped to {currentItem.Label}", SpeechPriority.Normal);
+                MapNavigationState.SpeakJumpedTo(currentItem.Label);
             }
         }
 

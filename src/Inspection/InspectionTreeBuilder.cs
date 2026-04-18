@@ -3079,7 +3079,7 @@ namespace RimWorldAccess
                     logItem.OnActivate = () =>
                     {
                         entry.ClickedFromPOV(pawn);
-                        TolkHelper.Speak("Jumped to target");
+                        MapNavigationState.SpeakJumpedTo(null);
                     };
                 }
 
@@ -3144,7 +3144,7 @@ namespace RimWorldAccess
                     logItem.OnActivate = () =>
                     {
                         entry.ClickedFromPOV(pawn);
-                        TolkHelper.Speak("Jumped to target");
+                        MapNavigationState.SpeakJumpedTo(null);
                     };
                 }
 

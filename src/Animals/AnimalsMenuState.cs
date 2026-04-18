@@ -264,7 +264,7 @@ namespace RimWorldAccess
 
             // Announce the jump
             string animalName = pawn.Name != null ? pawn.Name.ToStringShort : pawn.def.LabelCap.ToString();
-            TolkHelper.Speak($"Jumped to {animalName}");
+            MapNavigationState.SpeakJumpedTo(animalName);
         }
 
         // === Cell Interaction Methods ===

@@ -182,7 +182,7 @@ namespace RimWorldAccess
                 }
 
                 selectedCells.Add(cell);
-                TolkHelper.Speak($"Selected, {cell.x}, {cell.z}. Total: {selectedCells.Count}");
+                TolkHelper.Speak($"{MapNavigationState.FormatSelectedCell(cell)}. Total: {selectedCells.Count}");
             }
         }
 

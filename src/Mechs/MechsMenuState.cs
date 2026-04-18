@@ -220,7 +220,7 @@ namespace RimWorldAccess
             Find.CameraDriver?.JumpToCurrentMapLoc(position);
 
             string mechName = pawn.Name != null ? pawn.Name.ToStringShort : pawn.def.LabelCap.ToString();
-            TolkHelper.Speak($"Jumped to {mechName}");
+            MapNavigationState.SpeakJumpedTo(mechName);
         }
 
         private static void ToggleDraft(Pawn pawn)

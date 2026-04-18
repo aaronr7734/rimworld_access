@@ -243,7 +243,7 @@ namespace RimWorldAccess
             Find.CameraDriver?.JumpToCurrentMapLoc(position);
 
             string animalName = WildlifeMenuHelper.GetAnimalName(pawn);
-            TolkHelper.Speak($"Jumped to {animalName}");
+            MapNavigationState.SpeakJumpedTo(animalName);
         }
 
         public static void ToggleSortByCurrentColumn()

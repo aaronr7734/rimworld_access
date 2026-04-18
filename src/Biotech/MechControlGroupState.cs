@@ -420,7 +420,7 @@ namespace RimWorldAccess
             membersTypeahead.ClearSearch();
 
             CameraJumper.TryJumpAndSelect(mech);
-            TolkHelper.Speak($"Jumped to {mech.LabelCap}");
+            MapNavigationState.SpeakJumpedTo(mech.LabelCap);
         }
 
         // ========== Work Mode Menu ==========

@@ -349,7 +349,7 @@ namespace RimWorldAccess
             else
             {
                 stagedCells.Add(currentPos);
-                TolkHelper.Speak($"Selected, {currentPos.x}, {currentPos.z}");
+                TolkHelper.Speak(MapNavigationState.FormatSelectedCell(currentPos));
             }
         }
 

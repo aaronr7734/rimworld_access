@@ -208,7 +208,7 @@ namespace RimWorldAccess
                 {
                     // For jump actions, close the menu after jumping
                     Close();
-                    TolkHelper.Speak($"Jumped to location");
+                    MapNavigationState.SpeakJumpedTo("location");
                 }
                 else
                 {
@@ -745,7 +745,7 @@ namespace RimWorldAccess
                     }
 
                     Close();
-                    TolkHelper.Speak($"Jumped to {GetTargetDescription(target)}");
+                    MapNavigationState.SpeakJumpedTo(GetTargetDescription(target));
                 }
             };
         }
@@ -806,7 +806,7 @@ namespace RimWorldAccess
 
                         Find.LetterStack.RemoveLetter(letter);
                         Close();
-                        TolkHelper.Speak($"Jumped to {GetTargetDescription(target)}");
+                        MapNavigationState.SpeakJumpedTo(GetTargetDescription(target));
                     }
                     else
                     {
@@ -943,7 +943,7 @@ namespace RimWorldAccess
                     string locationDesc = target.HasThing ? target.Thing.LabelShort :
                                          target.Cell.IsValid ? $"position {target.Cell.x}, {target.Cell.z}" :
                                          "target location";
-                    TolkHelper.Speak($"Jumped to {locationDesc}");
+                    MapNavigationState.SpeakJumpedTo(locationDesc);
                 }
                 else
                 {

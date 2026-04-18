@@ -920,5 +920,31 @@ namespace RimWorldAccess
             TolkHelper.Speak("No wall found");
             return false;
         }
+
+        // ===== JUMP / SELECTION ANNOUNCEMENTS =====
+
+        /// <summary>
+        /// Announces a jump to a named target (e.g., scanner item, menu row,
+        /// quest location). Canonical phrasing: "Jumped to {target}".
+        /// Pass null or empty targetLabel to announce "Jumped to target".
+        /// </summary>
+        public static void SpeakJumpedTo(string targetLabel, SpeechPriority priority = SpeechPriority.Normal)
+        {
+            string phrase = string.IsNullOrEmpty(targetLabel)
+                ? "Jumped to target"
+                : $"Jumped to {targetLabel}";
+            TolkHelper.Speak(phrase, priority);
+        }
+
+        /// <summary>
+        /// Formats the "Selected, {x}, {z}" cell announcement used when the
+        /// user picks a single map tile (architect placement, shape anchors,
+        /// area paint start, etc.). Caller is responsible for speaking the
+        /// returned string.
+        /// </summary>
+        public static string FormatSelectedCell(IntVec3 cell)
+        {
+            return $"Selected, {cell.x}, {cell.z}";
+        }
     }
 }

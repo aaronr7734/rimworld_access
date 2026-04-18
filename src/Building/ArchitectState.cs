@@ -467,7 +467,7 @@ namespace RimWorldAccess
                     }
                 }
                 selectedCells.Add(cell);
-                TolkHelper.Speak($"Selected, {cell.x}, {cell.z}");
+                TolkHelper.Speak(MapNavigationState.FormatSelectedCell(cell));
             }
             else
             {

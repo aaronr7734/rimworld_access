@@ -112,7 +112,7 @@ namespace RimWorldAccess
             MapNavigationState.CurrentCursorPosition = pawnPosition;
             MapNavigationState.CurrentCameraMode = CameraFollowMode.Cursor;
 
-            TolkHelper.Speak($"Jumped to {pawn.LabelShort}");
+            MapNavigationState.SpeakJumpedTo(pawn.LabelShort);
         }
 
         /// <summary>

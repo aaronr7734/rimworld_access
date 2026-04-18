@@ -330,7 +330,7 @@ namespace RimWorldAccess
                         MapNavigationState.CurrentCursorPosition = PrimaryTarget.Cell;
                     }
 
-                    TolkHelper.Speak($"Jumped to {GetTargetDescription()}");
+                    MapNavigationState.SpeakJumpedTo(GetTargetDescription());
                 }
                 catch (Exception ex)
                 {

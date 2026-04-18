@@ -264,7 +264,7 @@ namespace RimWorldAccess
 
             MapNavigationState.CurrentCursorPosition = position;
             Find.CameraDriver?.JumpToCurrentMapLoc(position);
-            TolkHelper.Speak($"Jumped to {pawn.LabelShort}");
+            MapNavigationState.SpeakJumpedTo(pawn.LabelShort);
         }
 
         public static void OpenInfoCard()
