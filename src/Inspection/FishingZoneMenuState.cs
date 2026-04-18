@@ -701,7 +701,7 @@ namespace RimWorldAccess
 
             if (newValue == oldValue)
             {
-                TolkHelper.Speak(direction > 0 ? "Maximum" : "Minimum");
+                NumericStepperHelper.SpeakBoundary(direction);
                 return;
             }
 
@@ -730,7 +730,7 @@ namespace RimWorldAccess
 
             if (newValue == oldValue)
             {
-                TolkHelper.Speak(direction > 0 ? "Maximum" : "Minimum");
+                NumericStepperHelper.SpeakBoundary(direction);
                 return;
             }
 
@@ -775,7 +775,7 @@ namespace RimWorldAccess
 
             if (newValue == oldValue)
             {
-                TolkHelper.Speak(direction > 0 ? "Maximum" : "Minimum");
+                NumericStepperHelper.SpeakBoundary(direction);
                 return;
             }
 
@@ -821,7 +821,7 @@ namespace RimWorldAccess
 
             if (Mathf.Approximately(newValue, oldValue))
             {
-                TolkHelper.Speak(direction > 0 ? "Maximum" : "Minimum");
+                NumericStepperHelper.SpeakBoundary(direction);
                 return;
             }
 

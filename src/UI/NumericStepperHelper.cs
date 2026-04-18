@@ -35,6 +35,19 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Directional variant of <see cref="SpeakAtMinimumBoundary"/> /
+        /// <see cref="SpeakAtMaximumBoundary"/>: announces "Maximum" when
+        /// <paramref name="direction"/> is positive (user pressed increment
+        /// and got stuck) and "Minimum" otherwise. Collapses the
+        /// <c>direction &gt; 0 ? "Maximum" : "Minimum"</c> pattern that
+        /// repeats across every stepper.
+        /// </summary>
+        public static void SpeakBoundary(int direction, SpeechPriority priority = SpeechPriority.Normal)
+        {
+            TolkHelper.Speak(direction > 0 ? "Maximum" : "Minimum", priority);
+        }
+
+        /// <summary>
         /// Announces "{valueLabel}, minimum" — used when a stepper adjusts
         /// INTO its floor (value actually changed and is now at the minimum).
         /// Caller provides the formatted value label; the helper owns the

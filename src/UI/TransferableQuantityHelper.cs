@@ -120,11 +120,7 @@ namespace RimWorldAccess
 
             if (newQty == currentQty)
             {
-                // Already at limit
-                if (delta > 0)
-                    TolkHelper.Speak("Maximum");
-                else
-                    TolkHelper.Speak("Minimum");
+                NumericStepperHelper.SpeakBoundary(delta);
                 return;
             }
 

@@ -2628,7 +2628,7 @@ namespace RimWorldAccess
 
             if (Mathf.Approximately(sliderValue, oldValue))
             {
-                TolkHelper.Speak(direction > 0 ? "Maximum" : "Minimum");
+                NumericStepperHelper.SpeakBoundary(direction);
                 return;
             }
 

@@ -83,12 +83,10 @@ namespace RimWorldAccess
                 if (remainingCapacity < itemMass && itemMass > 0f)
                 {
                     result.NoCapacity = true;
-                    result.Announcement = "Not enough capacity for more";
                 }
                 else
                 {
                     result.AlreadyAtMax = true;
-                    result.Announcement = "Already at maximum";
                 }
                 return result;
             }
@@ -164,7 +162,15 @@ namespace RimWorldAccess
             MaxAddResult result,
             Action notifyChanged)
         {
-            if (!string.IsNullOrEmpty(result.Announcement))
+            if (result.NoCapacity)
+            {
+                TolkHelper.Speak("Not enough capacity for more");
+            }
+            else if (result.AlreadyAtMax)
+            {
+                MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Maximum);
+            }
+            else if (!string.IsNullOrEmpty(result.Announcement))
             {
                 TolkHelper.Speak(result.Announcement);
             }

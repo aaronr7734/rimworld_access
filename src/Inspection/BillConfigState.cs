@@ -868,7 +868,7 @@ namespace RimWorldAccess
             // Check if we hit a boundary
             if (bill.repeatCount == oldValue)
             {
-                TolkHelper.Speak(direction > 0 ? "Maximum" : "Minimum");
+                NumericStepperHelper.SpeakBoundary(direction);
                 return;
             }
             if (bill.repeatCount == 1 && direction < 0)
@@ -907,7 +907,7 @@ namespace RimWorldAccess
             // Check if we hit a boundary
             if (bill.targetCount == oldValue)
             {
-                TolkHelper.Speak(direction > 0 ? "Maximum" : "Minimum");
+                NumericStepperHelper.SpeakBoundary(direction);
                 return;
             }
             if (bill.targetCount == 1 && direction < 0)
@@ -932,7 +932,7 @@ namespace RimWorldAccess
             // Check if we hit a boundary
             if (bill.unpauseWhenYouHave == oldValue)
             {
-                TolkHelper.Speak(direction > 0 ? "Maximum" : "Minimum");
+                NumericStepperHelper.SpeakBoundary(direction);
                 return;
             }
             if (bill.unpauseWhenYouHave == 0 && direction < 0)
@@ -957,7 +957,7 @@ namespace RimWorldAccess
             int newMin = Mathf.Clamp(oldMin + direction, 0, bill.allowedSkillRange.max);
             if (newMin == oldMin)
             {
-                TolkHelper.Speak(direction > 0 ? "Maximum" : "Minimum");
+                NumericStepperHelper.SpeakBoundary(direction);
                 return;
             }
             bill.allowedSkillRange = new IntRange(newMin, bill.allowedSkillRange.max);
@@ -971,7 +971,7 @@ namespace RimWorldAccess
             int newMax = Mathf.Clamp(oldMax + direction, bill.allowedSkillRange.min, 20);
             if (newMax == oldMax)
             {
-                TolkHelper.Speak(direction > 0 ? "Maximum" : "Minimum");
+                NumericStepperHelper.SpeakBoundary(direction);
                 return;
             }
             bill.allowedSkillRange = new IntRange(bill.allowedSkillRange.min, newMax);
@@ -1442,7 +1442,7 @@ namespace RimWorldAccess
             // Check if we hit a boundary
             if (bill.ingredientSearchRadius == oldValue)
             {
-                TolkHelper.Speak(direction > 0 ? "Maximum" : "Minimum");
+                NumericStepperHelper.SpeakBoundary(direction);
                 return;
             }
 
