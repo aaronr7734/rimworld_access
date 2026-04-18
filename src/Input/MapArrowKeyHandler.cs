@@ -22,9 +22,10 @@ namespace RimWorldAccess
         /// <returns>True if the key was handled, false otherwise</returns>
         public static bool HandleArrowKey(KeyCode key, bool ctrlHeld, bool shiftHeld)
         {
-            // Handle Shift+Up/Down for jump mode cycling
-            // NOTE: Jump mode cycling now works EVERYWHERE including zone creation mode
-            // (previously blocked by incorrect blockJumpModeCycling check)
+            // Handle Shift+arrow for jump mode adjustments.
+            // Shift+Up/Down cycles jump modes; Shift+Left/Right adjusts preset distance.
+            // These adjustments must NEVER move the cursor or camera — the user is only
+            // configuring the jump, not performing it.
             if (shiftHeld)
             {
                 if (key == KeyCode.UpArrow)
@@ -37,21 +38,19 @@ namespace RimWorldAccess
                     MapNavigationState.CycleJumpModeBackward();
                     return true;
                 }
-                // Shift+Left/Right adjusts preset distance (only in PresetDistance mode)
-                // Ctrl+Shift+Left/Right adjusts by 10 tiles
-                else if (MapNavigationState.CurrentJumpMode == JumpMode.PresetDistance)
+                else if (key == KeyCode.LeftArrow || key == KeyCode.RightArrow)
                 {
-                    int step = ctrlHeld ? 10 : 1;
-                    if (key == KeyCode.LeftArrow)
+                    // Preset distance adjustment applies only in PresetDistance mode;
+                    // in other modes we still consume the key so the cursor stays put.
+                    if (MapNavigationState.CurrentJumpMode == JumpMode.PresetDistance)
                     {
-                        MapNavigationState.DecreasePresetDistance(step);
-                        return true;
+                        int step = ctrlHeld ? 10 : 1;
+                        if (key == KeyCode.LeftArrow)
+                            MapNavigationState.DecreasePresetDistance(step);
+                        else
+                            MapNavigationState.IncreasePresetDistance(step);
                     }
-                    else if (key == KeyCode.RightArrow)
-                    {
-                        MapNavigationState.IncreasePresetDistance(step);
-                        return true;
-                    }
+                    return true;
                 }
             }
 

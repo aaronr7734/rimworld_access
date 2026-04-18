@@ -352,6 +352,12 @@ namespace RimWorldAccess
                 currentTask = "Idle";
 
             string announcement = selectedPawn.LabelShort;
+            if (selectedPawn.Spawned && selectedPawn.Map != null)
+            {
+                string location = TileInfoHelper.GetLocationContextPlain(selectedPawn.Position, selectedPawn.Map);
+                if (!string.IsNullOrEmpty(location))
+                    announcement += $", {location}";
+            }
             if (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
             {
                 string coverInfo = CoverHelper.GetCoverInfo(selectedPawn);
@@ -438,6 +444,12 @@ namespace RimWorldAccess
                 currentTask = "Idle";
 
             string announcement = selectedPawn.LabelShort;
+            if (selectedPawn.Spawned && selectedPawn.Map != null)
+            {
+                string location = TileInfoHelper.GetLocationContextPlain(selectedPawn.Position, selectedPawn.Map);
+                if (!string.IsNullOrEmpty(location))
+                    announcement += $", {location}";
+            }
             if (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
             {
                 string coverInfo = CoverHelper.GetCoverInfo(selectedPawn);
@@ -469,6 +481,36 @@ namespace RimWorldAccess
                 return false;
 
             return true;
+        }
+    }
+
+    /// <summary>
+    /// Blocks RimWorld's built-in arrow-key camera dolly while the mod owns
+    /// arrow-key navigation. We translate arrow keys into cursor movement
+    /// (which does its own JumpToCurrentMapLoc) or jump-mode adjustments
+    /// (which must leave the camera alone). The vanilla dolly would otherwise
+    /// pan the camera in parallel — and with Shift held it pans 2.4× faster,
+    /// producing the "large amount" drift the user reported.
+    /// </summary>
+    [HarmonyPatch(typeof(CameraDriver))]
+    [HarmonyPatch("CameraDriverOnGUI")]
+    public static class CameraDriverOnGUIPatch
+    {
+        [HarmonyPostfix]
+        public static void Postfix(CameraDriver __instance)
+        {
+            if (Find.CurrentMap == null)
+                return;
+
+            if (!WorldRendererUtility.DrawingMap)
+                return;
+
+            if (!MapNavigationState.IsInitialized)
+                return;
+
+            // Zero the keyboard-driven dolly set by vanilla from MapDolly_* bindings.
+            // Mouse-drag dolly (desiredDollyRaw) is preserved in non-Cursor modes.
+            Traverse.Create(__instance).Field("desiredDolly").SetValue(Vector2.zero);
         }
     }
 }

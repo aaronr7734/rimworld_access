@@ -5456,39 +5456,20 @@ namespace RimWorldAccess
                     return;
                 }
 
-                // Alt+1 through Alt+9: jump to position 1-9 on current page
+                // Alt+1 through Alt+9: focus/jump to position 1-9 on current page.
+                // Double-tap within 0.5s forces a full camera jump, bypassing multi-select focus mode.
                 if (alt && !ctrl && key >= KeyCode.Alpha1 && key <= KeyCode.Alpha9)
                 {
                     int position = key - KeyCode.Alpha1; // 0-indexed
-                    if (MultiSelectState.IsMultiSelectActive)
-                    {
-                        var pawn = ColonistBarState.JumpFocusToPosition(position);
-                        if (pawn != null)
-                        {
-                            MultiSelectState.SetFocusedPawn(pawn);
-                            MultiSelectState.AnnounceFocusedPawn(pawn);
-                        }
-                    }
-                    else
-                        ColonistBarState.JumpToPosition(position);
+                    ColonistBarState.HandleAltNumberPress(position);
                     Event.current.Use();
                     return;
                 }
 
-                // Alt+0: jump to position 10 on current page
+                // Alt+0: focus/jump to position 10 on current page (same double-tap behavior).
                 if (alt && !ctrl && key == KeyCode.Alpha0)
                 {
-                    if (MultiSelectState.IsMultiSelectActive)
-                    {
-                        var pawn = ColonistBarState.JumpFocusToPosition(9);
-                        if (pawn != null)
-                        {
-                            MultiSelectState.SetFocusedPawn(pawn);
-                            MultiSelectState.AnnounceFocusedPawn(pawn);
-                        }
-                    }
-                    else
-                        ColonistBarState.JumpToPosition(9);
+                    ColonistBarState.HandleAltNumberPress(9);
                     Event.current.Use();
                     return;
                 }
@@ -5679,6 +5660,27 @@ namespace RimWorldAccess
                     // Prevent the default K key behavior
                     Event.current.Use();
                     return;
+                }
+            }
+
+            // ===== PRIORITY 6.5278: Announce cursor coordinates with K (local map) =====
+            if (key == KeyCode.K && !Event.current.shift && !Event.current.control && !KeyboardHelper.IsAltHeld)
+            {
+                if (Current.ProgramState == ProgramState.Playing &&
+                    Find.CurrentMap != null &&
+                    WorldRendererUtility.DrawingMap &&
+                    MapNavigationState.IsInitialized &&
+                    (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
+                    !KeyboardHelper.IsAnyAccessibilityMenuActive() &&
+                    !ScannerSearchState.IsActive)
+                {
+                    IntVec3 pos = MapNavigationState.CurrentCursorPosition;
+                    if (pos.IsValid)
+                    {
+                        TolkHelper.Speak($"{pos.x}, {pos.z}");
+                        Event.current.Use();
+                        return;
+                    }
                 }
             }
 

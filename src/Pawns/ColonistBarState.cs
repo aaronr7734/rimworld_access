@@ -440,6 +440,100 @@ namespace RimWorldAccess
             SelectAndAnnounce();
         }
 
+        // Double-tap tracking for Alt+number: a second press of the same position
+        // within the threshold forces a full camera jump, overriding multi-select focus mode.
+        private static int lastAltNumberPosition = -1;
+        private static float lastAltNumberTime = -1f;
+        private const float AltNumberDoubleTapThreshold = 0.5f;
+
+        /// <summary>
+        /// Handle Alt+number press with double-tap support.
+        /// First press: current behavior (select + camera snap in normal mode, focus-only in multi-select).
+        /// Second press of the same position within 0.5s: full jump — move cursor to pawn,
+        /// snap camera, select pawn, and announce "Jumped to {pawn}" (distinct from single-press).
+        /// </summary>
+        public static void HandleAltNumberPress(int positionOnPage)
+        {
+            float now = UnityEngine.Time.realtimeSinceStartup;
+            bool isDoubleTap = lastAltNumberPosition == positionOnPage &&
+                               now - lastAltNumberTime <= AltNumberDoubleTapThreshold;
+
+            if (isDoubleTap)
+            {
+                lastAltNumberPosition = -1;
+                lastAltNumberTime = -1f;
+                JumpCursorAndCameraToPosition(positionOnPage);
+                return;
+            }
+
+            lastAltNumberPosition = positionOnPage;
+            lastAltNumberTime = now;
+
+            if (MultiSelectState.IsMultiSelectActive)
+            {
+                var pawn = JumpFocusToPosition(positionOnPage);
+                if (pawn != null)
+                {
+                    MultiSelectState.SetFocusedPawn(pawn);
+                    MultiSelectState.AnnounceFocusedPawn(pawn);
+                }
+            }
+            else
+            {
+                JumpToPosition(positionOnPage);
+            }
+        }
+
+        /// <summary>
+        /// Full jump — acts like the cursor was moved to the pawn's tile: selects the pawn,
+        /// moves the map cursor there, snaps the camera, plays terrain audio, and announces
+        /// "Jumped to {pawn}. {tile info}". Mirrors BookmarkHelper.JumpToBookmark semantics.
+        /// </summary>
+        private static void JumpCursorAndCameraToPosition(int positionOnPage)
+        {
+            CheckMapChange();
+            var list = GetCurrentList();
+
+            if (list.Count == 0)
+            {
+                AnnounceEmpty();
+                return;
+            }
+
+            int targetIndex = CurrentPage * PageSize + positionOnPage;
+
+            if (targetIndex >= list.Count)
+            {
+                TolkHelper.Speak($"No {(onMechSection ? "mech" : "colonist")} at position {positionOnPage + 1}");
+                return;
+            }
+
+            barPosition = targetIndex;
+            Pawn pawn = list[targetIndex];
+            var map = Find.CurrentMap;
+            var pos = pawn.Position;
+
+            if (Find.Selector != null)
+            {
+                Find.Selector.ClearSelection();
+                Find.Selector.Select(pawn, playSound: false, forceDesignatorDeselect: !ShapePlacementState.IsActive);
+            }
+            PawnSelectionState.SyncFromBarNavigation(pawn);
+
+            MapNavigationState.CurrentCursorPosition = pos;
+            if (Find.CameraDriver != null)
+                Find.CameraDriver.JumpToCurrentMapLoc(pos);
+            MapNavigationState.CurrentCameraMode = CameraFollowMode.Cursor;
+
+            TerrainDef terrain = pos.GetTerrain(map);
+            TerrainAudioHelper.PlayTerrainAudio(terrain, 0.5f);
+
+            MapNavigationState.LastAnnouncedInfo = "";
+            string tileInfo = TileInfoHelper.GetTileSummary(pos, map);
+            TolkHelper.Speak($"Jumped to {pawn.LabelShort}. {tileInfo}");
+            MapNavigationState.LastAnnouncedInfo = tileInfo;
+        }
+
         // ===== REORDERING =====
 
         /// <summary>
@@ -760,6 +854,13 @@ namespace RimWorldAccess
                 task = "Idle";
 
             string announcement = pawn.LabelShort;
+
+            if (pawn.Spawned && pawn.Map != null)
+            {
+                string location = TileInfoHelper.GetLocationContextPlain(pawn.Position, pawn.Map);
+                if (!string.IsNullOrEmpty(location))
+                    announcement += $", {location}";
+            }
 
             if (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
             {

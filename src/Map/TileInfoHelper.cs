@@ -1152,6 +1152,21 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Plain form of GetLocationContext (no surrounding parentheses) for use in
+        /// direct pawn announcements like "Bob, in kitchen, cooking meals". Returns
+        /// null if the pawn is outdoors or in a room with no meaningful role.
+        /// </summary>
+        public static string GetLocationContextPlain(IntVec3 position, Map map)
+        {
+            string ctx = GetLocationContext(position, map);
+            if (string.IsNullOrEmpty(ctx))
+                return null;
+            if (ctx.Length >= 2 && ctx[0] == '(' && ctx[ctx.Length - 1] == ')')
+                return ctx.Substring(1, ctx.Length - 2);
+            return ctx;
+        }
+
+        /// <summary>
         /// Gets designation labels for a specific thing (e.g., "chop" for a tree, "hunt" for an animal).
         /// Returns comma-separated labels or null if no designations target this thing.
         /// </summary>
