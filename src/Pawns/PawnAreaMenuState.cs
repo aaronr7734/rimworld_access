@@ -30,11 +30,7 @@ namespace RimWorldAccess
 
         public static void Open(Pawn pawn)
         {
-            if (pawn == null)
-            {
-                TolkHelper.Speak("No pawn selected");
-                return;
-            }
+            if (!GuardHelper.RequirePawn(pawn)) return;
 
             if (pawn.playerSettings == null || !pawn.playerSettings.SupportsAllowedAreas)
             {

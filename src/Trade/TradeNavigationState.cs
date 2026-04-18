@@ -781,11 +781,7 @@ namespace RimWorldAccess
 
             // Otherwise, try to enter quantity mode
             Tradeable tradeable = GetCurrentTradeable();
-            if (tradeable == null)
-            {
-                TolkHelper.Speak("No item selected");
-                return;
-            }
+            if (!GuardHelper.RequireItem(tradeable)) return;
 
             if (!tradeable.Interactive)
             {
@@ -949,11 +945,7 @@ namespace RimWorldAccess
         public static void SetToMaximumAction()
         {
             Tradeable tradeable = GetCurrentTradeable();
-            if (tradeable == null)
-            {
-                TolkHelper.Speak("No item selected");
-                return;
-            }
+            if (!GuardHelper.RequireItem(tradeable)) return;
 
             // In gift mode, any item can be gifted regardless of TraderWillTrade
             if (!tradeable.TraderWillTrade && !TradeSession.giftMode)
@@ -986,11 +978,7 @@ namespace RimWorldAccess
         public static void SetToMinimumAction()
         {
             Tradeable tradeable = GetCurrentTradeable();
-            if (tradeable == null)
-            {
-                TolkHelper.Speak("No item selected");
-                return;
-            }
+            if (!GuardHelper.RequireItem(tradeable)) return;
 
             // In gift mode, any item can be gifted regardless of TraderWillTrade
             if (!tradeable.TraderWillTrade && !TradeSession.giftMode)
@@ -1055,11 +1043,7 @@ namespace RimWorldAccess
             }
 
             Tradeable tradeable = GetCurrentTradeable();
-            if (tradeable == null)
-            {
-                TolkHelper.Speak("No item selected");
-                return;
-            }
+            if (!GuardHelper.RequireItem(tradeable)) return;
 
             if (tradeable.CanAdjustTo(0))
             {
@@ -1920,11 +1904,7 @@ namespace RimWorldAccess
         public static void AnnounceDetailedInfo()
         {
             Tradeable tradeable = GetCurrentTradeable();
-            if (tradeable == null)
-            {
-                TolkHelper.Speak("No item selected");
-                return;
-            }
+            if (!GuardHelper.RequireItem(tradeable)) return;
 
             string announcement = BuildDetailedAnnouncement(tradeable);
             TolkHelper.Speak(announcement);
@@ -1937,11 +1917,7 @@ namespace RimWorldAccess
         public static void ShowPriceBreakdown()
         {
             Tradeable tradeable = GetCurrentTradeable();
-            if (tradeable == null)
-            {
-                TolkHelper.Speak("No item selected");
-                return;
-            }
+            if (!GuardHelper.RequireItem(tradeable)) return;
 
             if (!tradeable.TraderWillTrade)
             {
@@ -1999,11 +1975,7 @@ namespace RimWorldAccess
         public static void InspectCurrentItem()
         {
             Tradeable tradeable = GetCurrentTradeable();
-            if (tradeable == null)
-            {
-                TolkHelper.Speak("No item selected");
-                return;
-            }
+            if (!GuardHelper.RequireItem(tradeable)) return;
 
             Thing thing = tradeable.AnyThing;
             if (thing == null)
@@ -2371,11 +2343,7 @@ namespace RimWorldAccess
         private static void AnnounceWithSearch()
         {
             Tradeable tradeable = GetCurrentTradeable();
-            if (tradeable == null)
-            {
-                TolkHelper.Speak("No item selected");
-                return;
-            }
+            if (!GuardHelper.RequireItem(tradeable)) return;
 
             string baseAnnouncement = BuildTradeableAnnouncement(tradeable);
 

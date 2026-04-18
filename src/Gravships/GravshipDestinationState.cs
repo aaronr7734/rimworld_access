@@ -178,11 +178,7 @@ namespace RimWorldAccess
 
         private static void ConfirmCurrentDestination()
         {
-            if (!WorldNavigationState.IsActive)
-            {
-                TolkHelper.Speak("World navigation not active", SpeechPriority.High);
-                return;
-            }
+            if (!GuardHelper.RequireWorldNav(SpeechPriority.High)) return;
 
             PlanetTile selectedTile = WorldNavigationState.CurrentSelectedTile;
             if (!selectedTile.Valid)

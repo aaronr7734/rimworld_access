@@ -51,11 +51,7 @@ namespace RimWorldAccess
 
             if (IsActive) return;
 
-            if (Find.CurrentMap == null)
-            {
-                TolkHelper.Speak("No map loaded");
-                return;
-            }
+            if (!GuardHelper.RequireMap()) return;
 
             // Build active columns
             AssignMenuHelper.BuildActiveColumns();

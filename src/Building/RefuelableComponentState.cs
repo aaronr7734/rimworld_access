@@ -39,11 +39,7 @@ namespace RimWorldAccess
 
         public static void Open(Building targetBuilding)
         {
-            if (targetBuilding == null)
-            {
-                TolkHelper.Speak("No building to configure");
-                return;
-            }
+            if (!GuardHelper.RequireBuilding(targetBuilding)) return;
 
             CompRefuelable comp = targetBuilding.TryGetComp<CompRefuelable>();
             if (comp == null)

@@ -1795,11 +1795,7 @@ namespace RimWorldAccess
             }
 
             var item = GetCurrentItem();
-            if (item == null)
-            {
-                TolkHelper.Speak("No item selected", SpeechPriority.High);
-                return;
-            }
+            if (!GuardHelper.RequireItem(item, SpeechPriority.High)) return;
 
             PlanetTile targetTile = item.GetTileAtInstance(currentInstanceIndex);
 
@@ -1843,11 +1839,7 @@ namespace RimWorldAccess
             }
 
             var item = GetCurrentItem();
-            if (item == null)
-            {
-                TolkHelper.Speak("No item selected", SpeechPriority.High);
-                return;
-            }
+            if (!GuardHelper.RequireItem(item, SpeechPriority.High)) return;
 
             PlanetTile originTile = WorldNavigationState.CurrentSelectedTile;
             float distance = item.GetDistance(originTile, currentInstanceIndex);

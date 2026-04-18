@@ -452,13 +452,7 @@ namespace RimWorldAccess
                 return null;
             }
 
-            Map map = Find.CurrentMap;
-            if (map == null)
-            {
-                TolkHelper.Speak("No map available", SpeechPriority.High);
-                return null;
-            }
-
+            if (!GuardHelper.RequireMap(out Map map, SpeechPriority.High)) return null;
             return map;
         }
 

@@ -35,11 +35,7 @@ namespace RimWorldAccess
             // Prevent double-opening
             if (IsActive) return;
 
-            if (Find.CurrentMap == null)
-            {
-                TolkHelper.Speak("No map loaded");
-                return;
-            }
+            if (!GuardHelper.RequireMap()) return;
 
             // Get all colony animals
             animalsList = Find.CurrentMap.mapPawns.ColonyAnimals.ToList();

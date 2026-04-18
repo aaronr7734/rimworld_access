@@ -40,11 +40,7 @@ namespace RimWorldAccess
                 return;
             }
 
-            if (Find.CurrentMap == null)
-            {
-                TolkHelper.Speak("No map loaded");
-                return;
-            }
+            if (!GuardHelper.RequireMap()) return;
 
             // Get all player mechs with overseers (matches MainTabWindow_Mechs.Pawns)
             mechsList = Find.CurrentMap.mapPawns.PawnsInFaction(Faction.OfPlayer)

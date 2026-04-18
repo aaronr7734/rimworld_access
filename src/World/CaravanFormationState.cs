@@ -111,13 +111,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void TriggerReformation()
         {
-            Map currentMap = Find.CurrentMap;
-
-            if (currentMap == null)
-            {
-                TolkHelper.Speak("No map loaded", SpeechPriority.High);
-                return;
-            }
+            if (!GuardHelper.RequireMap(out Map currentMap, SpeechPriority.High)) return;
 
             if (currentMap.IsPlayerHome)
             {

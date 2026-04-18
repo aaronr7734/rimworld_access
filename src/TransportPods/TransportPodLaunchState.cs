@@ -353,18 +353,10 @@ namespace RimWorldAccess
         /// </summary>
         private static void ConfirmCurrentDestination()
         {
-            if (!WorldNavigationState.IsActive)
-            {
-                TolkHelper.Speak("World navigation not active", SpeechPriority.High);
-                return;
-            }
+            if (!GuardHelper.RequireWorldNav(SpeechPriority.High)) return;
 
             PlanetTile selectedTile = WorldNavigationState.CurrentSelectedTile;
-            if (!selectedTile.Valid)
-            {
-                TolkHelper.Speak("No valid tile selected", SpeechPriority.High);
-                return;
-            }
+            if (!GuardHelper.RequireValidTile(selectedTile, SpeechPriority.High)) return;
 
             // No pre-check for range — let the game's own ChoseWorldTarget handle validation.
             // It uses TraversalDistanceBetween and shows proper messages like "Beyond maximum range".

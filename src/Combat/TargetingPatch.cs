@@ -62,11 +62,7 @@ namespace RimWorldAccess
             }
 
             IntVec3 cursorPos = MapNavigationState.CurrentCursorPosition;
-            if (!cursorPos.IsValid)
-            {
-                TolkHelper.Speak("Invalid cursor position", SpeechPriority.Normal);
-                return;
-            }
+            if (!GuardHelper.RequireValidCursor(cursorPos)) return;
 
             float distance = (cursorPos - contextCasterPos).LengthHorizontal;
             string announcement = $"Distance: {distance:F0} tiles";

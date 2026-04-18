@@ -6686,12 +6686,7 @@ namespace RimWorldAccess
         /// </summary>
         private static void UnforbidAllItems()
         {
-            Map map = Find.CurrentMap;
-            if (map == null)
-            {
-                TolkHelper.Speak("No map available");
-                return;
-            }
+            if (!GuardHelper.RequireMap(out Map map)) return;
 
             // Get all things on the map
             List<Thing> allThings = map.listerThings.AllThings;

@@ -41,11 +41,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void Open(CompTransporter sourceTransporter)
         {
-            if (Find.CurrentMap == null)
-            {
-                TolkHelper.Speak("No map available", SpeechPriority.High);
-                return;
-            }
+            if (!GuardHelper.RequireMap(SpeechPriority.High)) return;
 
             if (sourceTransporter == null)
             {

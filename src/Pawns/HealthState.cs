@@ -19,19 +19,8 @@ namespace RimWorldAccess
         /// </summary>
         public static void DisplayHealthInfo()
         {
-            // Check if we're in-game
-            if (Current.ProgramState != ProgramState.Playing)
-            {
-                TolkHelper.Speak("Not in game");
-                return;
-            }
-
-            // Check if there's a current map
-            if (Find.CurrentMap == null)
-            {
-                TolkHelper.Speak("No map loaded");
-                return;
-            }
+            if (!GuardHelper.RequireInGame()) return;
+            if (!GuardHelper.RequireMap()) return;
 
             // Try pawn at cursor first (takes priority over multi-select)
             Pawn pawnAtCursor = null;
@@ -73,11 +62,7 @@ namespace RimWorldAccess
 
             // Fall back to selected pawn
             Pawn selectedPawn = Find.Selector?.FirstSelectedObject as Pawn;
-            if (selectedPawn == null)
-            {
-                TolkHelper.Speak("No pawn selected");
-                return;
-            }
+            if (!GuardHelper.RequirePawn(selectedPawn)) return;
 
             TolkHelper.Speak(PawnInfoHelper.GetHealthInfo(selectedPawn));
         }

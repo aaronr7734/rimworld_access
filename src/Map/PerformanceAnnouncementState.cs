@@ -13,11 +13,7 @@ namespace RimWorldAccess
     {
         public static void AnnouncePerformance()
         {
-            if (Current.ProgramState != ProgramState.Playing)
-            {
-                TolkHelper.Speak("Not in game");
-                return;
-            }
+            if (!GuardHelper.RequireInGame()) return;
 
             TickManager tm = Find.TickManager;
             if (tm == null)

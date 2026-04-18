@@ -44,11 +44,7 @@ namespace RimWorldAccess
         /// <param name="source">The source storage to link from</param>
         public static void Open(IStorageGroupMember source)
         {
-            if (Find.CurrentMap == null)
-            {
-                TolkHelper.Speak("No map available", SpeechPriority.High);
-                return;
-            }
+            if (!GuardHelper.RequireMap(SpeechPriority.High)) return;
 
             if (source == null)
             {

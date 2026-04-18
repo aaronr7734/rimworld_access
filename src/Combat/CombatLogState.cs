@@ -18,19 +18,8 @@ namespace RimWorldAccess
         /// </summary>
         public static void DisplayCombatLog()
         {
-            // Check if we're in-game
-            if (Current.ProgramState != ProgramState.Playing)
-            {
-                TolkHelper.Speak("Not in game");
-                return;
-            }
-
-            // Check if there's a current map
-            if (Find.CurrentMap == null)
-            {
-                TolkHelper.Speak("No map loaded");
-                return;
-            }
+            if (!GuardHelper.RequireInGame()) return;
+            if (!GuardHelper.RequireMap()) return;
 
             // Try pawn at cursor first
             Pawn pawn = null;
@@ -48,11 +37,7 @@ namespace RimWorldAccess
             if (pawn == null)
                 pawn = Find.Selector?.FirstSelectedObject as Pawn;
 
-            if (pawn == null)
-            {
-                TolkHelper.Speak("No pawn selected");
-                return;
-            }
+            if (!GuardHelper.RequirePawn(pawn)) return;
 
             // Check if battle log exists
             if (Find.BattleLog == null)

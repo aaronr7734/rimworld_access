@@ -46,11 +46,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void Open()
         {
-            if (Find.CurrentMap == null)
-            {
-                TolkHelper.Speak("No map available");
-                return;
-            }
+            if (!GuardHelper.RequireMap()) return;
 
             // Collect all notifications
             notifications = CollectNotifications();

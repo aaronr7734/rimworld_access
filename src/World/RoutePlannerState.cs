@@ -86,11 +86,7 @@ namespace RimWorldAccess
 
             // Get current tile's layer for the route planner
             PlanetTile currentTile = WorldNavigationState.CurrentSelectedTile;
-            if (!currentTile.Valid)
-            {
-                TolkHelper.Speak("No valid tile selected", SpeechPriority.High);
-                return;
-            }
+            if (!GuardHelper.RequireValidTile(currentTile, SpeechPriority.High)) return;
 
             // Start the route planner
             planner.Start(currentTile.Layer);
@@ -168,11 +164,7 @@ namespace RimWorldAccess
             }
 
             PlanetTile currentTile = WorldNavigationState.CurrentSelectedTile;
-            if (!currentTile.Valid)
-            {
-                TolkHelper.Speak("No valid tile selected", SpeechPriority.High);
-                return;
-            }
+            if (!GuardHelper.RequireValidTile(currentTile, SpeechPriority.High)) return;
 
             // Check waypoint limit (game uses 25)
             if (planner.waypoints.Count >= 25)
@@ -227,11 +219,7 @@ namespace RimWorldAccess
             }
 
             PlanetTile currentTile = WorldNavigationState.CurrentSelectedTile;
-            if (!currentTile.Valid)
-            {
-                TolkHelper.Speak("No valid tile selected", SpeechPriority.High);
-                return;
-            }
+            if (!GuardHelper.RequireValidTile(currentTile, SpeechPriority.High)) return;
 
             // Find waypoint at current tile
             RoutePlannerWaypoint waypointAtCursor = null;

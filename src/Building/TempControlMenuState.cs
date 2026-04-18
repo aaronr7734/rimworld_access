@@ -22,11 +22,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void Open(Building targetBuilding)
         {
-            if (targetBuilding == null)
-            {
-                TolkHelper.Speak("No building to configure");
-                return;
-            }
+            if (!GuardHelper.RequireBuilding(targetBuilding)) return;
 
             CompTempControl comp = targetBuilding.TryGetComp<CompTempControl>();
             if (comp == null)

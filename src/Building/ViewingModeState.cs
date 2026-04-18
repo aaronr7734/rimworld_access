@@ -1072,12 +1072,7 @@ namespace RimWorldAccess
                 return;
             }
 
-            Map map = Find.CurrentMap;
-            if (map == null)
-            {
-                TolkHelper.Speak("No map available", SpeechPriority.High);
-                return;
-            }
+            if (!GuardHelper.RequireMap(out Map map, SpeechPriority.High)) return;
 
             IntVec3 cursorPos = MapNavigationState.CurrentCursorPosition;
 
@@ -1145,12 +1140,7 @@ namespace RimWorldAccess
             if (!isActive)
                 return;
 
-            Map map = Find.CurrentMap;
-            if (map == null)
-            {
-                TolkHelper.Speak("No map available", SpeechPriority.High);
-                return;
-            }
+            if (!GuardHelper.RequireMap(out Map map, SpeechPriority.High)) return;
 
             IntVec3 cursorPos = MapNavigationState.CurrentCursorPosition;
 

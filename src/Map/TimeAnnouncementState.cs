@@ -18,12 +18,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void AnnounceTime()
         {
-            // Check if we're in-game
-            if (Current.ProgramState != ProgramState.Playing)
-            {
-                TolkHelper.Speak("Not in game");
-                return;
-            }
+            if (!GuardHelper.RequireInGame()) return;
 
             // Check if there's a tick manager
             if (Find.TickManager == null)

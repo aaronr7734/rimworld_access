@@ -57,11 +57,7 @@ namespace RimWorldAccess
         /// <param name="callback">Called when user confirms with the new quantity</param>
         public static void Open(TransferableOneWay transferable, Action<int> callback)
         {
-            if (transferable == null)
-            {
-                TolkHelper.Speak("No item selected");
-                return;
-            }
+            if (!GuardHelper.RequireItem(transferable)) return;
 
             currentTransferable = transferable;
             onConfirm = callback;

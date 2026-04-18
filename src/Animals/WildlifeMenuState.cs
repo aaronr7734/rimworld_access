@@ -21,11 +21,7 @@ namespace RimWorldAccess
             // Prevent double-opening
             if (IsActive) return;
 
-            if (Find.CurrentMap == null)
-            {
-                TolkHelper.Speak("No map loaded");
-                return;
-            }
+            if (!GuardHelper.RequireMap()) return;
 
             // Get all wild animals using same filter as MainTabWindow_Wildlife
             wildlifeList = Find.CurrentMap.mapPawns.AllPawns

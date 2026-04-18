@@ -134,11 +134,7 @@ namespace RimWorldAccess
             if (!IsMultiSelectActive)
             {
                 var currentPawn = Find.Selector?.SingleSelectedThing as Pawn;
-                if (currentPawn == null)
-                {
-                    TolkHelper.Speak("No pawn selected");
-                    return;
-                }
+                if (!GuardHelper.RequirePawn(currentPawn)) return;
                 selectedPawns.Add(currentPawn);
                 focusedPawn = currentPawn;
                 ColonistBarState.SyncBarPosition(currentPawn);
@@ -179,11 +175,7 @@ namespace RimWorldAccess
             if (!IsMultiSelectActive)
             {
                 var currentPawn = Find.Selector?.SingleSelectedThing as Pawn;
-                if (currentPawn == null)
-                {
-                    TolkHelper.Speak("No pawn selected");
-                    return;
-                }
+                if (!GuardHelper.RequirePawn(currentPawn)) return;
                 selectedPawns.Add(currentPawn);
                 focusedPawn = currentPawn;
                 ColonistBarState.SyncBarPosition(currentPawn);
