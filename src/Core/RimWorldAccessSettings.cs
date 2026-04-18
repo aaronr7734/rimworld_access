@@ -61,6 +61,13 @@ namespace RimWorldAccess
         /// </summary>
         public WorkMenuView DefaultWorkMenuView = WorkMenuView.Focused;
 
+        /// <summary>
+        /// When true, announces messages when the game forces Normal speed due to threats
+        /// ("Game slowed down by presence of threat." / "Threat passed. Game speed resumed.").
+        /// Default: false (silent).
+        /// </summary>
+        public bool AnnounceForcedSlowdowns = false;
+
         public override void ExposeData()
         {
             Scribe_Values.Look(ref WrapNavigation, "WrapNavigation", false);
@@ -71,6 +78,7 @@ namespace RimWorldAccess
             Scribe_Values.Look(ref SubmenuTreeNavigation, "SubmenuTreeNavigation", false);
             Scribe_Values.Look(ref AnnounceTerrain, "AnnounceTerrain", true);
             Scribe_Values.Look(ref DefaultWorkMenuView, "DefaultWorkMenuView", WorkMenuView.Focused);
+            Scribe_Values.Look(ref AnnounceForcedSlowdowns, "AnnounceForcedSlowdowns", false);
             base.ExposeData();
         }
     }

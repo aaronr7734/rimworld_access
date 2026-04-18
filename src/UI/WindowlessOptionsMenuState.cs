@@ -651,6 +651,10 @@ namespace RimWorldAccess
                 () => RimWorldAccessMod_Settings.Settings?.DefaultWorkMenuView ?? WorkMenuView.Focused,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.DefaultWorkMenuView = v; },
                 $"Focused: priority-grouped per-pawn view (less verbose). Table: pawn rows by work-type columns (mirrors vanilla, supports sorting and painting). {KeyboardHelper.CtrlLabel}+Tab swaps views from inside either menu and updates this setting."));
+            accessSettings.Settings.Add(new CheckboxSetting("Announce Forced Slowdowns From Threats",
+                () => RimWorldAccessMod_Settings.Settings?.AnnounceForcedSlowdowns ?? false,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.AnnounceForcedSlowdowns = v; },
+                "When on, announces when the game forces Normal speed because of a nearby threat, and when the slowdown lifts. Only fires if your chosen speed is faster than Normal."));
             categories.Add(accessSettings);
 
             // Mod Settings Category - list all mods that have settings
