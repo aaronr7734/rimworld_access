@@ -1,9 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using RimWorld;
-using Verse;
-
 namespace RimWorldAccess
 {
     /// <summary>
@@ -17,54 +11,7 @@ namespace RimWorldAccess
         /// Shows health state, conditions, bleeding, pain, and capacities.
         /// In multi-select mode, opens a pawn picker menu with health info for each pawn.
         /// </summary>
-        public static void DisplayHealthInfo()
-        {
-            if (!GuardHelper.RequireInGame()) return;
-            if (!GuardHelper.RequireMap()) return;
-
-            // Try pawn at cursor first (takes priority over multi-select)
-            Pawn pawnAtCursor = null;
-            if (MapNavigationState.IsInitialized)
-            {
-                IntVec3 cursorPosition = MapNavigationState.CurrentCursorPosition;
-                if (cursorPosition.IsValid && cursorPosition.InBounds(Find.CurrentMap))
-                {
-                    pawnAtCursor = Find.CurrentMap.thingGrid.ThingsListAt(cursorPosition)
-                        .OfType<Pawn>().FirstOrDefault();
-                }
-            }
-
-            // If cursor is on a pawn, show that pawn's info regardless of multi-select
-            if (pawnAtCursor != null)
-            {
-                TolkHelper.Speak(PawnInfoHelper.GetHealthInfo(pawnAtCursor));
-                return;
-            }
-
-            // Multi-select with no cursor pawn: open pawn picker menu
-            if (MultiSelectState.IsMultiSelectActive)
-            {
-                MultiSelectState.ValidateAndCleanupSelection();
-                var options = new List<FloatMenuOption>();
-                foreach (var pawn in MultiSelectState.SelectedPawns)
-                {
-                    string info = PawnInfoHelper.GetHealthInfo(pawn);
-                    string label = $"{pawn.LabelShort}: {info}";
-                    var p = pawn;
-                    options.Add(new FloatMenuOption(label, () =>
-                    {
-                        TolkHelper.Speak(PawnInfoHelper.GetHealthInfo(p));
-                    }));
-                }
-                WindowlessFloatMenuState.Open(options, false);
-                return;
-            }
-
-            // Fall back to selected pawn
-            Pawn selectedPawn = Find.Selector?.FirstSelectedObject as Pawn;
-            if (!GuardHelper.RequirePawn(selectedPawn)) return;
-
-            TolkHelper.Speak(PawnInfoHelper.GetHealthInfo(selectedPawn));
-        }
+        public static void DisplayHealthInfo() =>
+            PawnQuickInfo.Display(PawnInfoHelper.GetHealthInfo);
     }
 }
