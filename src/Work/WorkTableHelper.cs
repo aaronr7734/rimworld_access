@@ -71,7 +71,10 @@ namespace RimWorldAccess
                 return "incapable";
 
             if (pawn.WorkTypeIsDisabled(workType))
-                return "incapable";
+            {
+                string reasons = BuildDisabledReasons(pawn, workType);
+                return string.IsNullOrEmpty(reasons) ? "incapable" : $"incapable, {reasons}";
+            }
 
             int priority = pawn.workSettings.GetPriority(workType);
             string state = FormatState(priority);

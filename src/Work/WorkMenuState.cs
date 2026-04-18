@@ -1418,7 +1418,6 @@ namespace RimWorldAccess
                 sb.Append(". Permanently disabled: ");
                 var reasons = currentPawn.GetReasonsForDisabledWorkType(workType);
                 sb.Append(string.Join(", ", reasons.Select(r => r.ToString())));
-                return sb.ToString();
             }
 
             if (!includeFullDetails)
@@ -1426,45 +1425,48 @@ namespace RimWorldAccess
                 return sb.ToString();
             }
 
-            // Skills
-            var relevantSkills = workType.relevantSkills;
-            if (relevantSkills == null || relevantSkills.Count == 0)
+            if (!entry.IsPermanentlyDisabled)
             {
-                sb.Append(". Unskilled labor");
-            }
-            else
-            {
-                bool skillNamesRedundant = relevantSkills.Count == 1 &&
-                    string.Equals(relevantSkills[0].skillLabel, workType.labelShort, StringComparison.OrdinalIgnoreCase);
-
-                float avgSkill = currentPawn.skills.AverageOfRelevantSkillsFor(workType);
-                int skillLevel = Math.Min(20, Math.Max(0, (int)Math.Round(avgSkill)));
-
-                if (skillNamesRedundant)
+                // Skills
+                var relevantSkills = workType.relevantSkills;
+                if (relevantSkills == null || relevantSkills.Count == 0)
                 {
-                    sb.Append($". Level {skillLevel}");
+                    sb.Append(". Unskilled labor");
                 }
                 else
                 {
-                    sb.Append(". ");
-                    for (int i = 0; i < relevantSkills.Count; i++)
-                    {
-                        if (i > 0)
-                            sb.Append(i == relevantSkills.Count - 1 ? " and " : ", ");
-                        sb.Append(relevantSkills[i].skillLabel);
-                    }
-                    sb.Append($": level {skillLevel}");
-                }
-            }
+                    bool skillNamesRedundant = relevantSkills.Count == 1 &&
+                        string.Equals(relevantSkills[0].skillLabel, workType.labelShort, StringComparison.OrdinalIgnoreCase);
 
-            // Passion (only announced when present). Uses vanilla's keyed strings
-            // so the label is localized (e.g. English: "Burning passion"/"Passion").
-            string passionLabel = WorkTableHelper.PassionLabel(
-                currentPawn.skills.MaxPassionOfRelevantSkillsFor(workType));
-            if (!string.IsNullOrEmpty(passionLabel))
-            {
-                sb.Append(". ");
-                sb.Append(passionLabel);
+                    float avgSkill = currentPawn.skills.AverageOfRelevantSkillsFor(workType);
+                    int skillLevel = Math.Min(20, Math.Max(0, (int)Math.Round(avgSkill)));
+
+                    if (skillNamesRedundant)
+                    {
+                        sb.Append($". Level {skillLevel}");
+                    }
+                    else
+                    {
+                        sb.Append(". ");
+                        for (int i = 0; i < relevantSkills.Count; i++)
+                        {
+                            if (i > 0)
+                                sb.Append(i == relevantSkills.Count - 1 ? " and " : ", ");
+                            sb.Append(relevantSkills[i].skillLabel);
+                        }
+                        sb.Append($": level {skillLevel}");
+                    }
+                }
+
+                // Passion (only announced when present). Uses vanilla's keyed strings
+                // so the label is localized (e.g. English: "Burning passion"/"Passion").
+                string passionLabel = WorkTableHelper.PassionLabel(
+                    currentPawn.skills.MaxPassionOfRelevantSkillsFor(workType));
+                if (!string.IsNullOrEmpty(passionLabel))
+                {
+                    sb.Append(". ");
+                    sb.Append(passionLabel);
+                }
             }
 
             // Work type description (mirrors the table view's column tooltip so
