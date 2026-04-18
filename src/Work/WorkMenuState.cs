@@ -39,12 +39,6 @@ namespace RimWorldAccess
         // Flat list for basic mode and searching
         private static List<WorkTypeEntry> allEntries = new List<WorkTypeEntry>();
 
-        // Original priorities for tracking changes
-        private static Dictionary<WorkTypeDef, int> originalPriorities = new Dictionary<WorkTypeDef, int>();
-
-        // Original order for each priority level (for revert)
-        private static Dictionary<WorkTypeDef, int> originalNaturalPriorities = new Dictionary<WorkTypeDef, int>();
-
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
         private static bool searchJumpPending = false;
         private static int searchTargetColumn = -1;
@@ -101,7 +95,7 @@ namespace RimWorldAccess
                 FindFirstPopulatedColumn();
             }
 
-            TolkHelper.Speak("Work menu");
+            TolkHelper.Speak("Work, focused view");
             AnnounceCurrentPosition(true);
         }
 
@@ -119,8 +113,6 @@ namespace RimWorldAccess
                 columns.Add(new List<WorkTypeEntry>());
 
             allEntries.Clear();
-            originalPriorities.Clear();
-            originalNaturalPriorities.Clear();
 
             // Build the list of work types
             var allWorkTypes = DefDatabase<WorkTypeDef>.AllDefsListForReading
@@ -141,8 +133,6 @@ namespace RimWorldAccess
                 };
 
                 allEntries.Add(entry);
-                originalPriorities[workType] = priority;
-                originalNaturalPriorities[workType] = workType.naturalPriority;
 
                 // Add to appropriate column
                 int columnIndex = PriorityToColumnIndex(priority);
@@ -196,51 +186,14 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Closes the menu without applying changes (reverts all).
-        /// </summary>
-        public static void Cancel()
-        {
-            // Revert all priorities to original
-            if (currentPawn != null && currentPawn.workSettings != null)
-            {
-                foreach (var kvp in originalPriorities)
-                {
-                    if (!currentPawn.WorkTypeIsDisabled(kvp.Key))
-                    {
-                        currentPawn.workSettings.SetPriority(kvp.Key, kvp.Value);
-                    }
-                }
-
-                // Revert natural priorities (execution order)
-                foreach (var kvp in originalNaturalPriorities)
-                {
-                    kvp.Key.naturalPriority = kvp.Value;
-                }
-
-                // Refresh work givers cache
-                currentPawn.workSettings.Notify_UseWorkPrioritiesChanged();
-            }
-
-            CleanupState();
-            TolkHelper.Speak("Work menu cancelled, changes discarded");
-        }
-
-        /// <summary>
-        /// Closes the menu and applies all pending changes.
+        /// Closes the menu. Changes are applied in real-time, so this just
+        /// finalizes the work givers cache and announces.
         /// </summary>
         public static void Confirm()
         {
-            if (currentPawn == null || currentPawn.workSettings == null)
-            {
-                Cancel();
-                return;
-            }
+            if (currentPawn != null && currentPawn.workSettings != null)
+                currentPawn.workSettings.Notify_UseWorkPrioritiesChanged();
 
-            // Changes are already applied in real-time, just need to finalize
-            // Force refresh of work givers cache
-            currentPawn.workSettings.Notify_UseWorkPrioritiesChanged();
-
-            // Refresh all pawns if natural priorities changed
             RefreshAllPawnsWorkGivers();
 
             CleanupState();
@@ -325,8 +278,6 @@ namespace RimWorldAccess
             allPawns.Clear();
             columns.Clear();
             allEntries.Clear();
-            originalPriorities.Clear();
-            originalNaturalPriorities.Clear();
             typeahead.ClearSearch();
             searchJumpPending = false;
         }
@@ -664,7 +615,7 @@ namespace RimWorldAccess
                 // Announce the move with placement context (except for disabled)
                 if (newColumnIndex == 4) // Disabled
                 {
-                    TolkHelper.Speak($"{entry.WorkType.labelShort}, disabled");
+                    TolkHelper.Speak($"{entry.WorkType.labelShort}, {PriorityWord(newColumnIndex)}");
                 }
                 else
                 {
@@ -742,7 +693,7 @@ namespace RimWorldAccess
                 case 1: return "2";
                 case 2: return "3";
                 case 3: return "4";
-                case 4: return "disabled";
+                case 4: return "0";
                 default: return "";
             }
         }
@@ -889,7 +840,7 @@ namespace RimWorldAccess
             List<string> incapableNames)
         {
             int totalPawns = allPawns.Count;
-            string priorityLabel = priority == 0 ? "disabled" : $"Priority {priority}";
+            string priorityLabel = $"Priority {priority}";
             int successCount = changedNames.Count + alreadySetNames.Count;
 
             // Nobody can do this job
@@ -1353,10 +1304,10 @@ namespace RimWorldAccess
             }
             else
             {
-                string taskAnnouncement = BuildTaskAnnouncement(entry, true);
-                string position = MenuHelper.FormatPosition(basicModeIndex, allEntries.Count);
                 string status = entry.CurrentPriority > 0 ? "enabled" : "disabled";
-                TolkHelper.Speak($"{taskAnnouncement} {status}, {position}");
+                string taskAnnouncement = BuildTaskAnnouncement(entry, true, status);
+                string position = MenuHelper.FormatPosition(basicModeIndex, allEntries.Count);
+                TolkHelper.Speak($"{taskAnnouncement}. {position}");
             }
         }
 
@@ -1398,11 +1349,11 @@ namespace RimWorldAccess
                     return;
                 }
 
-                string taskAnnouncement = BuildTaskAnnouncement(entry, true);
-                string position = MenuHelper.FormatPosition(basicModeIndex, allEntries.Count);
                 string status = entry.CurrentPriority > 0 ? "enabled" : "disabled";
+                string taskAnnouncement = BuildTaskAnnouncement(entry, true, status);
+                string position = MenuHelper.FormatPosition(basicModeIndex, allEntries.Count);
 
-                TolkHelper.Speak($"{taskAnnouncement} {status}, {position}");
+                TolkHelper.Speak($"{taskAnnouncement}. {position}");
             }
         }
 
@@ -1433,9 +1384,7 @@ namespace RimWorldAccess
             }
 
             // Insert priority after work type name
-            string priorityLabel = entry.CurrentPriority == 0
-                ? "disabled"
-                : GetColumnName(PriorityToColumnIndex(entry.CurrentPriority));
+            string priorityLabel = GetColumnName(PriorityToColumnIndex(entry.CurrentPriority));
 
             // "PawnName. mine, Priority 2. Uses Mining. Skill level: 5, Skilled. No passion. 2 of 19"
             return $"{pawnName}. {labelShort}, {priorityLabel}{detailsSuffix}. {pawnPosition}";
@@ -1443,8 +1392,14 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Builds the task announcement string with skills and passions.
+        /// When <paramref name="statusAfterLabel"/> is provided (basic mode), the
+        /// enabled/disabled state is placed directly after the work type name so
+        /// screen reader users hear the actionable state before the long details.
         /// </summary>
-        private static string BuildTaskAnnouncement(WorkTypeEntry entry, bool includeFullDetails)
+        private static string BuildTaskAnnouncement(
+            WorkTypeEntry entry,
+            bool includeFullDetails,
+            string statusAfterLabel = null)
         {
             if (entry == null) return "No task selected";
 
@@ -1452,6 +1407,11 @@ namespace RimWorldAccess
             var sb = new StringBuilder();
 
             sb.Append(workType.labelShort);
+            if (!string.IsNullOrEmpty(statusAfterLabel))
+            {
+                sb.Append(", ");
+                sb.Append(statusAfterLabel);
+            }
 
             if (entry.IsPermanentlyDisabled)
             {
@@ -1466,53 +1426,53 @@ namespace RimWorldAccess
                 return sb.ToString();
             }
 
-            // Get relevant skills
+            // Skills
             var relevantSkills = workType.relevantSkills;
-
             if (relevantSkills == null || relevantSkills.Count == 0)
             {
-                sb.Append(". Unskilled labor.");
-                return sb.ToString();
-            }
-
-            // Check if skill names are redundant with task name
-            bool skillNamesRedundant = relevantSkills.Count == 1 &&
-                string.Equals(relevantSkills[0].skillLabel, workType.labelShort, StringComparison.OrdinalIgnoreCase);
-
-            float avgSkill = currentPawn.skills.AverageOfRelevantSkillsFor(workType);
-            int skillLevel = Math.Min(20, Math.Max(0, (int)Math.Round(avgSkill)));
-
-            if (skillNamesRedundant)
-            {
-                sb.Append($". Level {skillLevel}");
+                sb.Append(". Unskilled labor");
             }
             else
             {
-                sb.Append(". ");
-                for (int i = 0; i < relevantSkills.Count; i++)
+                bool skillNamesRedundant = relevantSkills.Count == 1 &&
+                    string.Equals(relevantSkills[0].skillLabel, workType.labelShort, StringComparison.OrdinalIgnoreCase);
+
+                float avgSkill = currentPawn.skills.AverageOfRelevantSkillsFor(workType);
+                int skillLevel = Math.Min(20, Math.Max(0, (int)Math.Round(avgSkill)));
+
+                if (skillNamesRedundant)
                 {
-                    if (i > 0)
-                    {
-                        sb.Append(i == relevantSkills.Count - 1 ? " and " : ", ");
-                    }
-                    sb.Append(relevantSkills[i].skillLabel);
+                    sb.Append($". Level {skillLevel}");
                 }
-                sb.Append($": level {skillLevel}");
+                else
+                {
+                    sb.Append(". ");
+                    for (int i = 0; i < relevantSkills.Count; i++)
+                    {
+                        if (i > 0)
+                            sb.Append(i == relevantSkills.Count - 1 ? " and " : ", ");
+                        sb.Append(relevantSkills[i].skillLabel);
+                    }
+                    sb.Append($": level {skillLevel}");
+                }
             }
 
-            // Get passion (only announced when present)
-            Passion passion = currentPawn.skills.MaxPassionOfRelevantSkillsFor(workType);
-            switch (passion)
+            // Passion (only announced when present). Uses vanilla's keyed strings
+            // so the label is localized (e.g. English: "Burning passion"/"Passion").
+            string passionLabel = WorkTableHelper.PassionLabel(
+                currentPawn.skills.MaxPassionOfRelevantSkillsFor(workType));
+            if (!string.IsNullOrEmpty(passionLabel))
             {
-                case Passion.Major:
-                    sb.Append(". Burning passion.");
-                    break;
-                case Passion.Minor:
-                    sb.Append(". Passion.");
-                    break;
-                default:
-                    sb.Append(".");
-                    break;
+                sb.Append(". ");
+                sb.Append(passionLabel);
+            }
+
+            // Work type description (mirrors the table view's column tooltip so
+            // basic-mode users aren't missing context the table view provides).
+            if (!string.IsNullOrEmpty(workType.description))
+            {
+                sb.Append(". ");
+                sb.Append(workType.description);
             }
 
             // Specific work givers (mirrors vanilla column-header tooltip).
@@ -1520,9 +1480,8 @@ namespace RimWorldAccess
             string workList = WorkTableHelper.BuildSpecificWorkList(workType);
             if (!string.IsNullOrEmpty(workList))
             {
-                sb.Append(" Includes: ");
+                sb.Append(". Includes: ");
                 sb.Append(workList);
-                sb.Append(".");
             }
 
             return sb.ToString();
@@ -1544,7 +1503,7 @@ namespace RimWorldAccess
                 case 1: return "Priority 2";
                 case 2: return "Priority 3";
                 case 3: return "Priority 4";
-                case 4: return "Disabled";
+                case 4: return "Priority 0";
                 default: return "Unknown";
             }
         }

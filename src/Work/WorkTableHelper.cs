@@ -179,14 +179,15 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Returns "*" for Minor, "**" for Major, "" for None.
+        /// Localized passion label matching vanilla's keyed strings
+        /// (e.g. English: "Passion" / "Burning passion"). Empty when no passion.
         /// </summary>
-        public static string PassionStars(Passion passion)
+        public static string PassionLabel(Passion passion)
         {
             switch (passion)
             {
-                case Passion.Minor: return "*";
-                case Passion.Major: return "**";
+                case Passion.Minor: return "PassionMinor".Translate();
+                case Passion.Major: return "PassionMajor".Translate();
                 default: return "";
             }
         }
@@ -195,7 +196,7 @@ namespace RimWorldAccess
         {
             if (!Find.PlaySettings.useWorkPriorities)
                 return priority > 0 ? "on" : "off";
-            return priority > 0 ? priority.ToString() : "off";
+            return priority.ToString();
         }
 
         /// <summary>
@@ -210,8 +211,10 @@ namespace RimWorldAccess
 
             string skillNames = string.Join(", ", skills.Select(s => s.skillLabel ?? s.label ?? s.defName));
             int level = SkillLevel(pawn, workType);
-            string stars = PassionStars(pawn.skills.MaxPassionOfRelevantSkillsFor(workType));
-            return $"{skillNames}: {level}{stars}";
+            string passionLabel = PassionLabel(pawn.skills.MaxPassionOfRelevantSkillsFor(workType));
+            return passionLabel.Length > 0
+                ? $"{skillNames}: {level}, {passionLabel}"
+                : $"{skillNames}: {level}";
         }
 
         private static int SkillLevel(Pawn pawn, WorkTypeDef workType)

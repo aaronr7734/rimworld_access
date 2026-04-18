@@ -178,71 +178,55 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Handle Shift+number keys: Set priority for ALL compatible pawns (manual mode only)
-            if (shift && !alt && WorkMenuState.IsManualMode)
+            // Handle Shift+0-4: Set priority for ALL compatible pawns in manual mode.
+            // In basic mode, shift+digit is a no-op but still consumed so vanilla
+            // TimeSpeed_* KeyBindingDefs can't interpret Shift+1/2/3 as game speed.
+            if (shift && !alt)
             {
-                if (key == KeyCode.Alpha0 || key == KeyCode.Keypad0)
+                bool isDigit04 =
+                    key == KeyCode.Alpha0 || key == KeyCode.Keypad0 ||
+                    key == KeyCode.Alpha1 || key == KeyCode.Keypad1 ||
+                    key == KeyCode.Alpha2 || key == KeyCode.Keypad2 ||
+                    key == KeyCode.Alpha3 || key == KeyCode.Keypad3 ||
+                    key == KeyCode.Alpha4 || key == KeyCode.Keypad4;
+                if (isDigit04)
                 {
-                    WorkMenuState.SetPriorityForAllPawns(0);
-                    Event.current.Use();
-                    return;
-                }
-                if (key == KeyCode.Alpha1 || key == KeyCode.Keypad1)
-                {
-                    WorkMenuState.SetPriorityForAllPawns(1);
-                    Event.current.Use();
-                    return;
-                }
-                if (key == KeyCode.Alpha2 || key == KeyCode.Keypad2)
-                {
-                    WorkMenuState.SetPriorityForAllPawns(2);
-                    Event.current.Use();
-                    return;
-                }
-                if (key == KeyCode.Alpha3 || key == KeyCode.Keypad3)
-                {
-                    WorkMenuState.SetPriorityForAllPawns(3);
-                    Event.current.Use();
-                    return;
-                }
-                if (key == KeyCode.Alpha4 || key == KeyCode.Keypad4)
-                {
-                    WorkMenuState.SetPriorityForAllPawns(4);
+                    if (WorkMenuState.IsManualMode)
+                    {
+                        int digit =
+                            (key == KeyCode.Alpha0 || key == KeyCode.Keypad0) ? 0 :
+                            (key == KeyCode.Alpha1 || key == KeyCode.Keypad1) ? 1 :
+                            (key == KeyCode.Alpha2 || key == KeyCode.Keypad2) ? 2 :
+                            (key == KeyCode.Alpha3 || key == KeyCode.Keypad3) ? 3 : 4;
+                        WorkMenuState.SetPriorityForAllPawns(digit);
+                    }
                     Event.current.Use();
                     return;
                 }
             }
 
-            // Handle number keys 0-4: Set priority (manual mode) or toggle (basic mode)
+            // Handle number keys 0-4: Set priority (manual mode only).
+            // In basic mode digits are no-ops (Space toggles, [ / ] cycle) but we
+            // still consume them so vanilla time controls don't hear them.
             if (!alt && !shift)
             {
-                if (key == KeyCode.Alpha0 || key == KeyCode.Keypad0)
+                bool isDigit04 =
+                    key == KeyCode.Alpha0 || key == KeyCode.Keypad0 ||
+                    key == KeyCode.Alpha1 || key == KeyCode.Keypad1 ||
+                    key == KeyCode.Alpha2 || key == KeyCode.Keypad2 ||
+                    key == KeyCode.Alpha3 || key == KeyCode.Keypad3 ||
+                    key == KeyCode.Alpha4 || key == KeyCode.Keypad4;
+                if (isDigit04)
                 {
-                    WorkMenuState.SetPriority(0);
-                    Event.current.Use();
-                    return;
-                }
-                if (key == KeyCode.Alpha1 || key == KeyCode.Keypad1)
-                {
-                    WorkMenuState.SetPriority(1);
-                    Event.current.Use();
-                    return;
-                }
-                if (key == KeyCode.Alpha2 || key == KeyCode.Keypad2)
-                {
-                    WorkMenuState.SetPriority(2);
-                    Event.current.Use();
-                    return;
-                }
-                if (key == KeyCode.Alpha3 || key == KeyCode.Keypad3)
-                {
-                    WorkMenuState.SetPriority(3);
-                    Event.current.Use();
-                    return;
-                }
-                if (key == KeyCode.Alpha4 || key == KeyCode.Keypad4)
-                {
-                    WorkMenuState.SetPriority(4);
+                    if (WorkMenuState.IsManualMode)
+                    {
+                        int digit =
+                            (key == KeyCode.Alpha0 || key == KeyCode.Keypad0) ? 0 :
+                            (key == KeyCode.Alpha1 || key == KeyCode.Keypad1) ? 1 :
+                            (key == KeyCode.Alpha2 || key == KeyCode.Keypad2) ? 2 :
+                            (key == KeyCode.Alpha3 || key == KeyCode.Keypad3) ? 3 : 4;
+                        WorkMenuState.SetPriority(digit);
+                    }
                     Event.current.Use();
                     return;
                 }
@@ -318,7 +302,7 @@ namespace RimWorldAccess
             int totalPawns = WorkMenuState.TotalPawns;
             string mode = WorkMenuState.IsManualMode ? "Manual Priority Mode" : "Basic Mode";
 
-            string title = $"Work Menu - {pawnName} ({pawnIndex}/{totalPawns}) - {mode}";
+            string title = $"Work (Focused View) - {pawnName} ({pawnIndex}/{totalPawns}) - {mode}";
 
             string instructions1, instructions2, instructions3;
 
@@ -656,13 +640,31 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Number keys 0-4 — absolute priority
+            // Number keys 0-4 — absolute priority for current cell (manual mode only).
+            // In basic mode digits are no-ops (Space toggles, [ / ] cycle) but we
+            // still consume them so vanilla time controls don't hear them.
             if (!alt && !shift && !ctrl)
             {
                 int? digit = DigitFromKey(key);
                 if (digit.HasValue && digit.Value <= 4)
                 {
-                    WorkTableState.SetPriorityForCurrentCell(digit.Value);
+                    if (WorkTableState.IsManualMode)
+                        WorkTableState.SetPriorityForCurrentCell(digit.Value);
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // Shift+0-4 — set priority for ALL eligible colonists in current column
+            // (manual mode only; in basic mode we still consume to block vanilla
+            // TimeSpeed_* KeyBindingDefs from interpreting Shift+1/2/3 as game speed).
+            if (shift && !alt && !ctrl)
+            {
+                int? digit = DigitFromKey(key);
+                if (digit.HasValue && digit.Value <= 4)
+                {
+                    if (WorkTableState.IsManualMode)
+                        WorkTableState.SetPriorityForAllColonists(digit.Value);
                     Event.current.Use();
                     return;
                 }
@@ -733,7 +735,7 @@ namespace RimWorldAccess
             string colName = pawnCount > 0
                 ? WorkTableState.TableHelper?.GetCurrentColumnName() ?? ""
                 : "";
-            string title = $"Work Table - {mode} ({row}/{pawnCount}) - Column: {colName}";
+            string title = $"Work (Table View) - {mode} ({row}/{pawnCount}) - Column: {colName}";
 
             Rect titleRect = new Rect(overlayX, overlayY + 10f, overlayWidth, 25f);
             Widgets.Label(titleRect, title);

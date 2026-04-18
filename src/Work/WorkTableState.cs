@@ -20,8 +20,6 @@ namespace RimWorldAccess
 
         private static List<Pawn> pawns = new List<Pawn>();
         private static TabularMenuHelper<Pawn> tableHelper;
-        private static Dictionary<Pawn, Dictionary<WorkTypeDef, int>> originalPriorities
-            = new Dictionary<Pawn, Dictionary<WorkTypeDef, int>>();
 
         public static TabularMenuHelper<Pawn> TableHelper => tableHelper;
         public static TypeaheadSearchHelper Typeahead => tableHelper?.Typeahead;
@@ -63,8 +61,6 @@ namespace RimWorldAccess
                 return;
             }
 
-            SnapshotOriginalPriorities();
-
             tableHelper = new TabularMenuHelper<Pawn>(
                 getColumnCount: () => WorkTableHelper.TotalColumnCount,
                 getItemLabel: WorkTableHelper.GetPawnLabel,
@@ -88,8 +84,27 @@ namespace RimWorldAccess
             IsActive = true;
             string mode = IsManualMode ? "manual priority mode" : "basic mode";
             TolkHelper.Speak(
-                $"Work table, {pawns.Count} colonists, {WorkTableHelper.WorkTypes.Count} work types, {mode}");
-            AnnounceCurrentCell(includePawnName: true);
+                $"Work, table view, {pawns.Count} colonists, {WorkTableHelper.WorkTypes.Count} work types, {mode}");
+            AnnounceInitialCell();
+        }
+
+        /// <summary>
+        /// Initial-entry announcement: pawn name + column value + column tooltip.
+        /// BuildCellAnnouncement normally only plays the tooltip on column change
+        /// (to avoid repetition on row navigation), but the first cell has no prior
+        /// context, so we include the tooltip once on entry.
+        /// </summary>
+        private static void AnnounceInitialCell()
+        {
+            if (pawns.Count == 0) return;
+            Pawn pawn = CurrentPawn;
+            if (pawn == null) return;
+
+            string cellAnnouncement = tableHelper.BuildCellAnnouncement(pawn, pawns.Count, includeItemName: true);
+            string tooltip = WorkTableHelper.GetColumnTooltip(pawn, CurrentColumnIndex);
+            TolkHelper.Speak(string.IsNullOrEmpty(tooltip)
+                ? cellAnnouncement
+                : $"{cellAnnouncement}. {tooltip}");
         }
 
         public static void Confirm()
@@ -98,24 +113,6 @@ namespace RimWorldAccess
             RefreshAllPawnsWorkGivers();
             CleanupState();
             TolkHelper.Speak("Work preferences saved");
-        }
-
-        public static void Cancel()
-        {
-            if (!IsActive) return;
-            foreach (var pair in originalPriorities)
-            {
-                Pawn pawn = pair.Key;
-                if (pawn?.workSettings == null) continue;
-                foreach (var kvp in pair.Value)
-                {
-                    if (!pawn.WorkTypeIsDisabled(kvp.Key))
-                        pawn.workSettings.SetPriority(kvp.Key, kvp.Value);
-                }
-                pawn.workSettings.Notify_UseWorkPrioritiesChanged();
-            }
-            CleanupState();
-            TolkHelper.Speak("Work menu cancelled, changes discarded");
         }
 
         /// <summary>
@@ -134,24 +131,8 @@ namespace RimWorldAccess
         {
             IsActive = false;
             pawns.Clear();
-            originalPriorities.Clear();
             tableHelper?.ClearSearch();
             tableHelper = null;
-        }
-
-        private static void SnapshotOriginalPriorities()
-        {
-            originalPriorities.Clear();
-            foreach (var p in pawns)
-            {
-                var snap = new Dictionary<WorkTypeDef, int>();
-                foreach (var w in WorkTableHelper.WorkTypes)
-                {
-                    if (!p.WorkTypeIsDisabled(w))
-                        snap[w] = p.workSettings.GetPriority(w);
-                }
-                originalPriorities[p] = snap;
-            }
         }
 
         private static void RefreshAllPawnsWorkGivers()
@@ -287,6 +268,77 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Sets the current column's priority to an absolute value for every
+        /// eligible colonist. Manual mode only — in basic mode, number keys
+        /// don't set priorities, so shift-digit is a no-op. Mirrors
+        /// WorkMenuState.SetPriorityForAllPawns for the table view.
+        /// </summary>
+        public static void SetPriorityForAllColonists(int priority)
+        {
+            if (priority < 0 || priority > 4) return;
+            if (!IsManualMode) return;
+
+            WorkTypeDef workType = CurrentWorkType;
+            if (workType == null)
+            {
+                RejectAndAnnounce("Select a work type column first");
+                return;
+            }
+
+            var changed = new List<string>();
+            bool anyLowSkillActivated = false;
+            bool anyIdeoOpposedActivated = false;
+            var ideoOpposedPawns = new List<Pawn>();
+
+            foreach (var pawn in pawns)
+            {
+                if (pawn.workSettings == null || !pawn.workSettings.EverWork) continue;
+                if (pawn.WorkTypeIsDisabled(workType)) continue;
+
+                int current = pawn.workSettings.GetPriority(workType);
+                if (current == priority) continue;
+
+                bool wasActive = pawn.workSettings.WorkIsActive(workType);
+                pawn.workSettings.SetPriority(workType, priority);
+                changed.Add(pawn.LabelShort);
+
+                if (!wasActive && pawn.workSettings.WorkIsActive(workType))
+                {
+                    if (workType.relevantSkills.Any() &&
+                        pawn.skills.AverageOfRelevantSkillsFor(workType) <= 2f)
+                        anyLowSkillActivated = true;
+                    if (pawn.Ideo != null && pawn.Ideo.IsWorkTypeConsideredDangerous(workType))
+                    {
+                        anyIdeoOpposedActivated = true;
+                        ideoOpposedPawns.Add(pawn);
+                    }
+                }
+            }
+
+            if (changed.Count == 0)
+            {
+                RejectAndAnnounce($"No change for {workType.labelShort}");
+                return;
+            }
+
+            PlayPriorityChangeSound();
+            if (anyLowSkillActivated) SoundDefOf.Crunch.PlayOneShotOnCamera();
+            if (anyIdeoOpposedActivated)
+            {
+                SoundDefOf.DislikedWorkTypeActivated.PlayOneShotOnCamera();
+                foreach (var p in ideoOpposedPawns)
+                    Messages.Message(
+                        "MessageIdeoOpposedWorkTypeSelected".Translate(p, workType.gerundLabel),
+                        p, MessageTypeDefOf.CautionInput, historical: false);
+            }
+
+            string stateLabel = StateLabel(priority);
+            TolkHelper.Speak(
+                $"{workType.labelShort} {stateLabel} for {MenuHelper.FormatNameList(changed)}");
+            ResortIfNeeded();
+        }
+
+        /// <summary>
         /// Applies the same cycle operation to every eligible colonist in the
         /// current column. Matches vanilla PawnColumnWorker_WorkPriority.HeaderClicked
         /// with shift held.
@@ -412,9 +464,9 @@ namespace RimWorldAccess
             if (announceChange)
             {
                 string stateLabel = StateLabel(newPriority);
-                string stars = WorkTableHelper.PassionStars(
+                string passionLabel = WorkTableHelper.PassionLabel(
                     pawn.skills.MaxPassionOfRelevantSkillsFor(workType));
-                if (!string.IsNullOrEmpty(stars)) stateLabel += " " + stars;
+                if (!string.IsNullOrEmpty(passionLabel)) stateLabel += ", " + passionLabel;
                 TolkHelper.Speak(stateLabel);
             }
         }
@@ -423,7 +475,7 @@ namespace RimWorldAccess
         {
             if (!Find.PlaySettings.useWorkPriorities)
                 return priority > 0 ? "on" : "off";
-            return priority > 0 ? $"priority {priority}" : "off";
+            return $"priority {priority}";
         }
 
         private static void PlayPriorityChangeSound()

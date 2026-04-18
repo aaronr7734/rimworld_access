@@ -97,6 +97,7 @@ namespace RimWorldAccess
             return ScannerSearchState.IsActive ||
                    GoToState.IsActive ||
                    WorkMenuState.IsActive ||
+                   WorkTableState.IsActive ||
                    BillConfigState.IsActive ||
                    BillsMenuState.IsActive ||
                    FishingZoneMenuState.IsActive ||
