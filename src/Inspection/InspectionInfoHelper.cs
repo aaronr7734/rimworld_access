@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using RimWorld;
 using Verse;
-using Verse.Sound;
 
 namespace RimWorldAccess
 {
@@ -306,22 +305,6 @@ namespace RimWorldAccess
 
                 }
 
-                // Add growth info for plants
-                if (obj is Plant)
-                {
-                    if (!categories.Any(c => c.Name == "Growth Info"))
-                    {
-                        categories.Add(new TabCategoryInfo
-                        {
-                            Name = "Growth Info",
-                            Tab = null,
-                            Handler = TabHandlerType.RichNavigation,
-                            IsKnown = true,
-                            OriginalCategoryName = "Growth Info"
-                        });
-                    }
-                }
-
             }
 
             // Zone-specific categories
@@ -459,7 +442,6 @@ namespace RimWorldAccess
             else if (obj is Plant plant)
             {
                 categories.Add("Overview");
-                categories.Add("Growth Info");
             }
             else if (obj is Zone zone)
             {
@@ -1079,9 +1061,6 @@ namespace RimWorldAccess
                 case "Overview":
                     return GetPlantOverview(plant);
 
-                case "Growth Info":
-                    return GetPlantGrowthInfo(plant);
-
                 default:
                     return "Category not found.";
             }
@@ -1113,27 +1092,6 @@ namespace RimWorldAccess
                 description = System.Text.RegularExpressions.Regex.Replace(description, @"\s+", " ");
                 sb.AppendLine(description);
             }
-
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// Gets detailed growth information for a plant.
-        /// </summary>
-        private static string GetPlantGrowthInfo(Plant plant)
-        {
-            var sb = new StringBuilder();
-
-            sb.AppendLine($"Growth: {plant.Growth:P0}");
-            sb.AppendLine($"Lifespan: {plant.Age} / {plant.def.plant.LifespanTicks.TicksToDays():F1} days");
-
-            if (plant.Blighted)
-                sb.AppendLine("Status: Blighted");
-            else if (plant.Dying)
-                sb.AppendLine("Status: Dying");
-
-            if (plant.HarvestableNow)
-                sb.AppendLine("Ready to harvest!");
 
             return sb.ToString();
         }
