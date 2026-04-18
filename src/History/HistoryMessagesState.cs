@@ -83,8 +83,9 @@ namespace RimWorldAccess
                     && idx >= 0 && idx < items[selectedIndex].TooltipLines.Length
                     ? items[selectedIndex].TooltipLines[idx]
                     : "",
-                endOfItemMessage: "End of letter",
-                startOfItemMessage: "Start of letter"
+                endOfItemMessage: "End of message",
+                startOfItemMessage: "Start of message",
+                openFirstMessage: "Press Enter to open message first"
             );
             detailHelper.RefreshButtons();
 
@@ -262,7 +263,7 @@ namespace RimWorldAccess
             detailHelper?.RefreshButtons();
 
             if (wasInDetailView)
-                TolkHelper.Speak("Back to list");
+                TwoLevelMenuHelper.SpeakReturnToList();
             AnnounceCurrentSelection();
         }
 
@@ -282,7 +283,7 @@ namespace RimWorldAccess
             detailHelper?.RefreshButtons();
 
             if (wasInDetailView)
-                TolkHelper.Speak("Back to list");
+                TwoLevelMenuHelper.SpeakReturnToList();
             AnnounceCurrentSelection();
         }
 
@@ -371,7 +372,7 @@ namespace RimWorldAccess
             if (detailHelper != null && detailHelper.GoBackToList())
             {
                 typeahead.ClearSearch();
-                TolkHelper.Speak("Back to list");
+                TwoLevelMenuHelper.SpeakReturnToList();
                 AnnounceCurrentSelection();
             }
         }

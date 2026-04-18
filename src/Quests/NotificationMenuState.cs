@@ -284,7 +284,7 @@ namespace RimWorldAccess
             if (detailHelper.IsInDetailView)
             {
                 GoBackToList();
-                TolkHelper.Speak("Back to list");
+                TwoLevelMenuHelper.SpeakReturnToList();
             }
             else
             {
@@ -977,7 +977,7 @@ namespace RimWorldAccess
             detailHelper.RefreshButtons();
 
             if (wasInDetailView)
-                TolkHelper.Speak("Back to list");
+                TwoLevelMenuHelper.SpeakReturnToList();
             AnnounceCurrentSelection();
         }
 
@@ -997,7 +997,7 @@ namespace RimWorldAccess
             detailHelper.RefreshButtons();
 
             if (wasInDetailView)
-                TolkHelper.Speak("Back to list");
+                TwoLevelMenuHelper.SpeakReturnToList();
             AnnounceCurrentSelection();
         }
 

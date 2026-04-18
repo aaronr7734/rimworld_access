@@ -282,11 +282,11 @@ namespace RimWorldAccess
                 {
                     if (showAllMode)
                     {
-                        TolkHelper.Speak("Back to list. No lessons available");
+                        TwoLevelMenuHelper.SpeakReturnToList("No lessons available");
                     }
                     else
                     {
-                        TolkHelper.Speak("Back to list. No active lessons remaining. Press Tab to browse all lessons.");
+                        TwoLevelMenuHelper.SpeakReturnToList("No active lessons remaining. Press Tab to browse all lessons.");
                     }
                     return;
                 }
@@ -296,7 +296,7 @@ namespace RimWorldAccess
 
                 detailHelper.ResetDetailPosition();
                 detailHelper.RefreshButtons();
-                TolkHelper.Speak("Back to list");
+                TwoLevelMenuHelper.SpeakReturnToList();
                 AnnounceCurrentSelection();
             }
             else
@@ -373,7 +373,7 @@ namespace RimWorldAccess
                 RefreshConcepts();
                 if (currentIndex >= concepts.Count && concepts.Count > 0)
                     currentIndex = concepts.Count - 1;
-                TolkHelper.Speak("Back to list");
+                TwoLevelMenuHelper.SpeakReturnToList();
             }
             AnnounceCurrentSelection();
         }
@@ -400,7 +400,7 @@ namespace RimWorldAccess
                 RefreshConcepts();
                 if (currentIndex >= concepts.Count && concepts.Count > 0)
                     currentIndex = concepts.Count - 1;
-                TolkHelper.Speak("Back to list");
+                TwoLevelMenuHelper.SpeakReturnToList();
             }
             AnnounceCurrentSelection();
         }
@@ -544,7 +544,8 @@ namespace RimWorldAccess
                     return idx >= 0 && idx < lines.Length ? lines[idx] : "";
                 },
                 endOfItemMessage: "End of lesson",
-                startOfItemMessage: "Start of lesson"
+                startOfItemMessage: "Start of lesson",
+                openFirstMessage: "Press Enter to open lesson first"
             );
             detailHelper.RefreshButtons();
         }

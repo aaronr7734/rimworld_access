@@ -101,7 +101,8 @@ namespace RimWorldAccess
                 getContentLineAnnouncement: (idx) =>
                     idx >= 0 && idx < contentLines.Count ? contentLines[idx] : "",
                 endOfItemMessage: "End of mod details",
-                startOfItemMessage: "Start of mod details"
+                startOfItemMessage: "Start of mod details",
+                openFirstMessage: "Press Enter to open mod details first"
             );
 
             // Sync with the page's selection

@@ -320,7 +320,7 @@ namespace RimWorldAccess
                 detailHelper.GoBackToList();
                 currentMode = QuestMenuMode.QuestList;
                 typeahead.ClearSearch();
-                TolkHelper.Speak("Back to list");
+                TwoLevelMenuHelper.SpeakReturnToList();
                 AnnounceCurrentSelection();
             }
             else
@@ -960,7 +960,8 @@ namespace RimWorldAccess
                 getContentLineAnnouncement: (idx) =>
                     idx >= 0 && idx < cachedDetailLines.Count ? cachedDetailLines[idx].Text : "",
                 endOfItemMessage: "End of quest details",
-                startOfItemMessage: "Start of quest details"
+                startOfItemMessage: "Start of quest details",
+                openFirstMessage: "Press Enter to open quest details first"
             );
         }
 

@@ -55,6 +55,9 @@ namespace RimWorldAccess
         // === Customizable messages ===
         private readonly string endOfItemMessage;
         private readonly string startOfItemMessage;
+        private readonly string openFirstMessage;
+        private readonly string navigateDownMessage;
+        private readonly string noButtonsMessage;
 
         // === Properties ===
 
@@ -99,13 +102,19 @@ namespace RimWorldAccess
         /// <param name="getContentLineAnnouncement">Returns the content line at the given index</param>
         /// <param name="endOfItemMessage">Message to speak when at the last position (default: "End of letter")</param>
         /// <param name="startOfItemMessage">Message to speak when at the first position (default: "Start of letter")</param>
+        /// <param name="openFirstMessage">Message when attempting button nav before entering detail view (default: "Press Enter to open letter first")</param>
+        /// <param name="navigateDownMessage">Message when attempting button nav outside the button section (default: "Navigate down to buttons first")</param>
+        /// <param name="noButtonsMessage">Message when the current item has no buttons (default: "No buttons available")</param>
         public TwoLevelMenuHelper(
             Func<int> getContentLineCount,
             Action<List<ButtonInfo>> populateButtons,
             Func<string> getHeaderAnnouncement,
             Func<int, string> getContentLineAnnouncement,
             string endOfItemMessage = "End of letter",
-            string startOfItemMessage = "Start of letter")
+            string startOfItemMessage = "Start of letter",
+            string openFirstMessage = "Press Enter to open letter first",
+            string navigateDownMessage = "Navigate down to buttons first",
+            string noButtonsMessage = "No buttons available")
         {
             this.getContentLineCount = getContentLineCount ?? throw new ArgumentNullException(nameof(getContentLineCount));
             this.populateButtons = populateButtons ?? throw new ArgumentNullException(nameof(populateButtons));
@@ -113,6 +122,9 @@ namespace RimWorldAccess
             this.getContentLineAnnouncement = getContentLineAnnouncement ?? throw new ArgumentNullException(nameof(getContentLineAnnouncement));
             this.endOfItemMessage = endOfItemMessage;
             this.startOfItemMessage = startOfItemMessage;
+            this.openFirstMessage = openFirstMessage;
+            this.navigateDownMessage = navigateDownMessage;
+            this.noButtonsMessage = noButtonsMessage;
         }
 
         // === Public Methods ===
@@ -322,7 +334,7 @@ namespace RimWorldAccess
         {
             if (!isInDetailView)
             {
-                TolkHelper.Speak("Press Enter to open letter first");
+                TolkHelper.Speak(openFirstMessage);
                 return;
             }
 
@@ -338,7 +350,7 @@ namespace RimWorldAccess
         {
             if (!isInDetailView)
             {
-                TolkHelper.Speak("Press Enter to open letter first");
+                TolkHelper.Speak(openFirstMessage);
                 return;
             }
 
@@ -357,6 +369,16 @@ namespace RimWorldAccess
             }
 
             AnnounceDetailPosition();
+        }
+
+        /// <summary>
+        /// Announces the canonical "Back to list" message. Callers pass an optional
+        /// suffix for context (e.g., "No lessons available").
+        /// </summary>
+        public static void SpeakReturnToList(string suffix = null)
+        {
+            string phrase = string.IsNullOrEmpty(suffix) ? "Back to list" : "Back to list. " + suffix;
+            TolkHelper.Speak(phrase);
         }
 
         /// <summary>
@@ -446,19 +468,19 @@ namespace RimWorldAccess
         {
             if (!isInDetailView)
             {
-                TolkHelper.Speak("Press Enter to open letter first");
+                TolkHelper.Speak(openFirstMessage);
                 return false;
             }
 
             if (!IsPositionInButtonsSection())
             {
-                TolkHelper.Speak("Navigate down to buttons first");
+                TolkHelper.Speak(navigateDownMessage);
                 return false;
             }
 
             if (currentButtons == null || currentButtons.Count == 0)
             {
-                TolkHelper.Speak("No buttons available");
+                TolkHelper.Speak(noButtonsMessage);
                 return false;
             }
 
