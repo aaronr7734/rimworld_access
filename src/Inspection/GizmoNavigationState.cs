@@ -2847,5 +2847,341 @@ namespace RimWorldAccess
             sliderGizmo = null;
             AnnounceCurrentGizmo();
         }
+
+        /// <summary>
+        /// Tries to activate a gizmo whose hotkey matches the given key by searching
+        /// both the current selection and the cursor-tile objects. Always returns true
+        /// (event consumed): single match activates directly, multiple matches open a
+        /// WindowlessFloatMenuState for disambiguation, zero matches plays a rejection
+        /// sound and announces "no command for Shift+X" so the user knows the keypress
+        /// was received.
+        ///
+        /// Collects cursor-tile gizmos using the same temp-select-then-restore pattern
+        /// as OpenAtCursor, because some gizmos (e.g. Designator_Install) only expose
+        /// themselves when their owning Thing is selected.
+        /// </summary>
+        public static bool TryHotkeyActivate(KeyCode key)
+        {
+            if (key == KeyCode.None)
+                return false;
+            if (Find.Selector == null || Find.CurrentMap == null)
+                return false;
+
+            var collected = CollectHotkeyCandidates(key);
+
+            // Group matching gizmos using vanilla's GroupsWith/MergeWith logic so that
+            // identical gizmos from multiple selected pawns collapse to a single entry.
+            var rawGizmos = collected.Select(c => c.gizmo).ToList();
+            var rawOwners = new Dictionary<Gizmo, ISelectable>();
+            foreach (var (gizmo, owner) in collected)
+            {
+                if (!rawOwners.ContainsKey(gizmo))
+                    rawOwners[gizmo] = owner;
+            }
+
+            var groups = new List<List<Gizmo>>();
+            foreach (var gizmo in rawGizmos)
+            {
+                bool grouped = false;
+                for (int i = 0; i < groups.Count; i++)
+                {
+                    if (groups[i][0].GroupsWith(gizmo))
+                    {
+                        groups[i].Add(gizmo);
+                        groups[i][0].MergeWith(gizmo);
+                        grouped = true;
+                        break;
+                    }
+                }
+                if (!grouped)
+                    groups.Add(new List<Gizmo> { gizmo });
+            }
+
+            var representatives = groups
+                .Select(g => g[0])
+                .OrderBy(g => g.Order)
+                .ToList();
+
+            if (representatives.Count == 0)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak($"No command for Shift plus {key.ToStringReadable()}");
+                return true;
+            }
+
+            if (representatives.Count == 1)
+            {
+                Gizmo only = representatives[0];
+                ISelectable owner = rawOwners.TryGetValue(only, out var o) ? o : null;
+                List<Gizmo> group = groups.First(g => g[0] == only);
+                ActivateSingleGizmo(only, owner, group);
+                return true;
+            }
+
+            // Multiple matches — open a WindowlessFloatMenuState so the user hears the
+            // familiar menu-open sound and can pick one. Each option's Label is the full
+            // rich gizmo announcement (owner, hotkey, description, stats, disabled reason)
+            // so the user hears the same info they would in the G menu.
+            var options = new List<FloatMenuOption>();
+            foreach (var rep in representatives)
+            {
+                ISelectable owner = rawOwners.TryGetValue(rep, out var o) ? o : null;
+                List<Gizmo> group = groups.First(g => g[0] == rep);
+                string label = BuildGizmoMenuLabel(rep, owner);
+
+                if (rep.Disabled)
+                {
+                    options.Add(new FloatMenuOption(label, null) { Disabled = true });
+                    continue;
+                }
+
+                Gizmo capturedGizmo = rep;
+                ISelectable capturedOwner = owner;
+                List<Gizmo> capturedGroup = group;
+                options.Add(new FloatMenuOption(label, () =>
+                {
+                    ActivateSingleGizmo(capturedGizmo, capturedOwner, capturedGroup);
+                }));
+            }
+
+            WindowlessFloatMenuState.Open(options, colonistOrders: false);
+            return true;
+        }
+
+        /// <summary>
+        /// Seeds GizmoNavigationState with a single gizmo and invokes ExecuteSelected so
+        /// the existing activation paths (designator, toggle, verb-target, ability, float-
+        /// menu, etc) all apply unchanged. Closes the state afterward so we don't leak a
+        /// phantom single-item G menu.
+        /// </summary>
+        private static void ActivateSingleGizmo(Gizmo gizmo, ISelectable owner, List<Gizmo> group)
+        {
+            availableGizmos.Clear();
+            gizmoOwners.Clear();
+            gizmoGroups.Clear();
+            availableGizmos.Add(gizmo);
+            if (owner != null)
+                gizmoOwners[gizmo] = owner;
+            gizmoGroups[gizmo] = group ?? new List<Gizmo> { gizmo };
+            selectedGizmoIndex = 0;
+            isActive = true;
+            typeahead.ClearSearch();
+            lastAnnouncedOwner = null;
+            pawnJustSelected = false;
+
+            ExecuteSelected();
+
+            // ExecuteSelected closes the state for designator/build paths but leaves it
+            // open for toggle/verb-target/target so the G menu can keep navigating. In
+            // hotkey context the user is done, so close here unconditionally.
+            if (isActive)
+                Close();
+        }
+
+        /// <summary>
+        /// Builds the rich announcement string for a gizmo, mirroring AnnounceCurrentGizmo
+        /// but as a pure function that always includes the owner prefix. Used for
+        /// FloatMenuOption labels when Shift+hotkey has multiple matches.
+        /// </summary>
+        private static string BuildGizmoMenuLabel(Gizmo gizmo, ISelectable owner)
+        {
+            string label = GetGizmoLabel(gizmo);
+            string description = GetGizmoDescription(gizmo);
+            string hotkey = GetGizmoHotkey(gizmo);
+            string statusValue = GetGizmoStatusValue(gizmo);
+
+            string ownerLabel = "";
+            if (owner is Thing thing)
+                ownerLabel = thing.LabelCap.StripTags();
+            else if (owner is WorldObject worldObj)
+                ownerLabel = worldObj.LabelCap.StripTags();
+
+            string announcement = label;
+
+            if (!string.IsNullOrEmpty(ownerLabel))
+                announcement += $" ({ownerLabel})";
+
+            if (!string.IsNullOrEmpty(hotkey))
+                announcement += $" ({hotkey})";
+
+            if (gizmo is Command_Toggle toggle)
+            {
+                bool isOn = toggle.isActive?.Invoke() ?? false;
+                announcement += isOn ? ": ON" : ": OFF";
+            }
+
+            if (!string.IsNullOrEmpty(statusValue))
+                announcement += $": {statusValue}";
+
+            bool isAbility = gizmo is Command_Ability;
+
+            if (!string.IsNullOrEmpty(description) && !isAbility)
+            {
+                string descSep = (gizmo is Command_Toggle || !string.IsNullOrEmpty(statusValue))
+                    ? (announcement.EndsWith(".") ? " " : ". ")
+                    : ": ";
+                announcement += descSep + description;
+            }
+
+            if (gizmo is Command_Target cmdTargetGizmo
+                && cmdTargetGizmo.icon == Pawn_TrainingTracker.AttackTargetTexture)
+            {
+                float attackRange = Pawn_TrainingTracker.AttackTargetRange;
+                string sep = announcement.EndsWith(".") ? " " : ". ";
+                announcement += $"{sep}Range: {attackRange:F0} tiles from master";
+            }
+
+            if (isAbility && gizmo is Command_Ability commandAbility && commandAbility.Ability != null)
+            {
+                string costInfo = GetAbilityCostInfo(commandAbility.Ability);
+                if (!string.IsNullOrEmpty(costInfo))
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + costInfo;
+
+                string rangeInfo = GetAbilityRangeInfo(commandAbility.Ability);
+                if (!string.IsNullOrEmpty(rangeInfo))
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + rangeInfo;
+
+                string cooldownInfo = GetAbilityCooldownInfo(commandAbility.Ability);
+                if (!string.IsNullOrEmpty(cooldownInfo))
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + cooldownInfo;
+
+                if (!string.IsNullOrEmpty(description))
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + description;
+            }
+
+            if (gizmo.Disabled)
+            {
+                string reason = gizmo.disabledReason;
+                if (string.IsNullOrEmpty(reason))
+                    reason = "Not available";
+                announcement += $" Disabled: {reason}";
+
+                string context = GetDisabledGizmoContext(gizmo, owner);
+                if (!string.IsNullOrEmpty(context))
+                    announcement += $". {context}";
+            }
+
+            return announcement;
+        }
+
+        /// <summary>
+        /// Collects all visible gizmos whose hotkey.MainKey matches the given key,
+        /// drawn from both the current selection and the objects at the cursor tile.
+        /// Uses the same temporary-selection pattern as OpenAtCursor for the cursor tile
+        /// so lazy gizmos (e.g. Designator_Install) become visible.
+        /// </summary>
+        private static List<(Gizmo gizmo, ISelectable owner)> CollectHotkeyCandidates(KeyCode key)
+        {
+            var results = new List<(Gizmo, ISelectable)>();
+            var seenGizmos = new HashSet<Gizmo>();
+            var ownersAlreadyProcessed = new HashSet<ISelectable>();
+
+            // 1. Current selection — no need to mutate; these objects' gizmos are live.
+            foreach (object obj in Find.Selector.SelectedObjects)
+            {
+                if (!(obj is ISelectable selectable))
+                    continue;
+                ownersAlreadyProcessed.Add(selectable);
+                foreach (var gizmo in selectable.GetGizmos())
+                {
+                    if (gizmo == null || !gizmo.Visible || ShouldSkipGizmo(gizmo))
+                        continue;
+                    if (!MatchesHotkey(gizmo, key))
+                        continue;
+                    if (seenGizmos.Add(gizmo))
+                        results.Add((gizmo, selectable));
+                }
+            }
+
+            // 2. Cursor tile — temp-select each thing so lazy gizmos appear, then restore.
+            if (!MapNavigationState.IsInitialized)
+                return results;
+
+            IntVec3 cursor = MapNavigationState.CurrentCursorPosition;
+            Map map = Find.CurrentMap;
+            if (!cursor.IsValid || !cursor.InBounds(map))
+                return results;
+
+            var previousSelection = Find.Selector.SelectedObjects.ToList();
+            try
+            {
+                var sortedThings = cursor.GetThingList(map)
+                    .Where(t => !(t is Mote) && t.def.category != ThingCategory.Mote)
+                    .OrderByDescending(t => (int)t.def.altitudeLayer)
+                    .ToList();
+
+                foreach (ISelectable selectable in sortedThings.OfType<ISelectable>())
+                {
+                    if (ownersAlreadyProcessed.Contains(selectable))
+                        continue;
+
+                    Find.Selector.ClearSelection();
+                    Find.Selector.Select(selectable, playSound: false, forceDesignatorDeselect: false);
+
+                    foreach (var gizmo in selectable.GetGizmos())
+                    {
+                        if (gizmo == null || !gizmo.Visible || ShouldSkipGizmo(gizmo))
+                            continue;
+                        if (!MatchesHotkey(gizmo, key))
+                            continue;
+                        if (seenGizmos.Add(gizmo))
+                            results.Add((gizmo, selectable));
+                    }
+
+                    if (selectable is Thing thing)
+                    {
+                        List<Designator> reverseDesignators = Find.ReverseDesignatorDatabase.AllDesignators;
+                        for (int i = 0; i < reverseDesignators.Count; i++)
+                        {
+                            Command_Action reverseGizmo = reverseDesignators[i].CreateReverseDesignationGizmo(thing);
+                            if (reverseGizmo == null || ShouldSkipGizmo(reverseGizmo))
+                                continue;
+                            if (!MatchesHotkey(reverseGizmo, key))
+                                continue;
+                            if (seenGizmos.Add(reverseGizmo))
+                                results.Add((reverseGizmo, selectable));
+                        }
+                    }
+                }
+
+                Zone zone = cursor.GetZone(map);
+                if (zone != null && !ownersAlreadyProcessed.Contains(zone))
+                {
+                    Find.Selector.ClearSelection();
+                    Find.Selector.Select(zone, playSound: false, forceDesignatorDeselect: false);
+
+                    foreach (var gizmo in zone.GetGizmos())
+                    {
+                        if (gizmo == null || !gizmo.Visible || ShouldSkipGizmo(gizmo))
+                            continue;
+                        if (!MatchesHotkey(gizmo, key))
+                            continue;
+                        if (seenGizmos.Add(gizmo))
+                            results.Add((gizmo, zone));
+                    }
+                }
+            }
+            finally
+            {
+                Find.Selector.ClearSelection();
+                foreach (var obj in previousSelection.OfType<ISelectable>())
+                {
+                    Find.Selector.Select(obj, playSound: false, forceDesignatorDeselect: false);
+                }
+            }
+
+            return results;
+        }
+
+        private static bool MatchesHotkey(Gizmo gizmo, KeyCode key)
+        {
+            if (!(gizmo is Command command))
+                return false;
+            if (command.hotKey == null)
+                return false;
+            if (GizmoHotkeyShiftPatch.IsShiftExempt(command.hotKey))
+                return false;
+            return command.hotKey.MainKey == key;
+        }
     }
 }

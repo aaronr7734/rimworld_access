@@ -11,7 +11,7 @@ namespace RimWorldAccess
 {
     /// <summary>
     /// Unified Harmony patch for UIRoot.UIRootOnGUI to handle all keyboard accessibility features.
-    /// Handles: Escape key for pause menu, Enter key for building inspection/beds, ] key for colonist orders, I key for inspection menu, J key for scanner, L key for notification menu, F7 key for quest menu, Alt+M for mood info, Alt+H for health info, Alt+N for needs info, Alt+K for top skills, Alt+F for unforbid all items, Alt+Home for scanner auto-jump toggle, Shift+C for reform caravan (temporary maps), F2 for schedule, F3 for assign, F6 for research, and all windowless menu navigation.
+    /// Handles: Escape key for pause menu, Enter key for building inspection/beds, ] key for colonist orders, I key for inspection menu, J key for scanner, L key for notification menu, F7 key for quest menu, Alt+M for mood info, Alt+H for health info, Alt+N for needs info, Alt+K for top skills, Alt+F for unforbid all items, Alt+Home for scanner auto-jump toggle, C for reform caravan (temporary maps), F2 for schedule, F3 for assign, F6 for research, and all windowless menu navigation.
     /// Note: Dialog navigation (including research completion dialogs) is handled by DialogAccessibilityPatch.
     /// </summary>
     [HarmonyPatch(typeof(UIRoot))]
@@ -5790,8 +5790,9 @@ namespace RimWorldAccess
                 }
             }
 
-            // ===== PRIORITY 6.54: Reform caravan with Shift+C (temporary maps only) =====
-            if (key == KeyCode.C && Event.current.shift)
+            // ===== PRIORITY 6.54: Reform caravan with C (temporary maps only) =====
+            // Bare C only — Shift+C is reserved for gizmo hotkey activation (see priority 7.04).
+            if (key == KeyCode.C && !Event.current.shift && !Event.current.control && !KeyboardHelper.IsAltHeld)
             {
                 // Only reform caravan if:
                 // 1. We're in gameplay (not at main menu)
@@ -6044,6 +6045,33 @@ namespace RimWorldAccess
             }
 
             // J key is no longer used - scanner is always available via Page Up/Down keys
+
+            // ===== PRIORITY 7.04: Shift+<letter> activates a matching gizmo from selection or cursor tile =====
+            // Gizmo hotkeys normally only fire while their gizmo is being rendered (i.e. its owner is
+            // selected). When the user is arrow-navigating the map, nothing is implicitly selected, so
+            // Shift+<letter> hits would otherwise silently do nothing. This handler matches the pressed
+            // letter against gizmos from both the current selection and the objects under the cursor,
+            // activating a single match directly and opening a filtered gizmo menu when several match.
+            if (Event.current.shift && !Event.current.control && !KeyboardHelper.IsAltHeld &&
+                key >= KeyCode.A && key <= KeyCode.Z)
+            {
+                if (Current.ProgramState == ProgramState.Playing &&
+                    Find.CurrentMap != null &&
+                    !WorldRendererUtility.WorldSelected &&
+                    !ShapePlacementState.IsActive &&
+                    !(ViewingModeState.IsActive && !ViewingModeState.JustConfirmed) &&
+                    !ZoneCreationState.IsInCreationMode &&
+                    MapNavigationState.IsInitialized &&
+                    !KeyboardHelper.IsAnyAccessibilityMenuActive() &&
+                    (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion))
+                {
+                    if (GizmoNavigationState.TryHotkeyActivate(key))
+                    {
+                        Event.current.Use();
+                        return;
+                    }
+                }
+            }
 
             // ===== PRIORITY 7.05: Open gizmo navigation with G key (if pawn or building is selected) =====
             if (key == KeyCode.G)

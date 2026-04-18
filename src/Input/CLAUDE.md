@@ -45,7 +45,7 @@ ALL keyboard shortcuts route through this module. Key bindings include:
 - **Alt+N** - Needs info
 - **Alt+A** - Assign allowed area to selected pawn
 - **Alt+F** - Unforbid all items
-- **Shift+C** - Reform caravan
+- **C** - Reform caravan
 - **F2** - Schedule
 - **F3** - Assign menu
 - **F6** - Research

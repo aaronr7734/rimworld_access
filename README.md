@@ -494,7 +494,7 @@ The gizmo menu is for what the caravan does where it currently is, while the ord
 
 When ready to leave a temporary camp or quest location:
 
-1. Press **Shift+C** to reform the caravan
+1. Press **C** to reform the caravan
 2. Use the formation screen to select pawns and items
 3. Press **Alt+S** to finalize
 
