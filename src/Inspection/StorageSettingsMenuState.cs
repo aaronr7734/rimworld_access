@@ -592,22 +592,14 @@ namespace RimWorldAccess
         /// </summary>
         public static void OpenInfoCard()
         {
-            if (menuItems == null || selectedIndex < 0 || selectedIndex >= menuItems.Count)
+            ThingDef thingDef = null;
+            if (menuItems != null && selectedIndex >= 0 && selectedIndex < menuItems.Count)
             {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No info card available");
-                return;
+                var item = menuItems[selectedIndex];
+                if (item.type == MenuItemType.ThingDef)
+                    thingDef = item.data as ThingDef;
             }
-            var item = menuItems[selectedIndex];
-            if (item.type == MenuItemType.ThingDef && item.data is ThingDef thingDef)
-            {
-                InfoCardState.OpenInfoCardForDef(thingDef);
-            }
-            else
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No info card available");
-            }
+            InfoCardState.TryOpenInfoCardForDef(thingDef);
         }
 
         private static void ClearAllItems()

@@ -409,6 +409,36 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Opens a Dialog_InfoCard for a Def if non-null; otherwise announces the fallback
+        /// message and plays the reject sound. Returns true on success, false on failure.
+        /// </summary>
+        /// <param name="def">The def to open (may be null).</param>
+        /// <param name="fallbackAnnouncement">Optional override for the null-def announcement.
+        /// Defaults to "No info card available".</param>
+        public static bool TryOpenInfoCardForDef(Def def, string fallbackAnnouncement = null)
+        {
+            if (def == null)
+            {
+                SpeakNoInfoCardAvailable(fallbackAnnouncement);
+                return false;
+            }
+            OpenInfoCardForDef(def);
+            return true;
+        }
+
+        /// <summary>
+        /// Announces that no info card is available and plays the reject sound.
+        /// Use when a site has already determined there is no eligible target and only
+        /// needs to emit the canonical "no info card" feedback.
+        /// </summary>
+        /// <param name="fallbackAnnouncement">Optional override. Defaults to "No info card available".</param>
+        public static void SpeakNoInfoCardAvailable(string fallbackAnnouncement = null)
+        {
+            TolkHelper.Speak(fallbackAnnouncement ?? "No info card available");
+            SoundDefOf.ClickReject.PlayOneShotOnCamera();
+        }
+
+        /// <summary>
         /// Saves current state to the stack and opens a nested info card for a Def.
         /// Used by both the direct Alt+I handler and the multi-hyperlink selection menu.
         /// </summary>
@@ -764,8 +794,7 @@ namespace RimWorldAccess
             }
             else
             {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No info card available");
+                SpeakNoInfoCardAvailable();
             }
             return true;
         }

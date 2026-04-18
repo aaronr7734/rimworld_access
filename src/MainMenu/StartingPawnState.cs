@@ -1000,7 +1000,7 @@ namespace RimWorldAccess
 
             if (!HasInfoCard(item))
             {
-                TolkHelper.Speak("No info card available");
+                InfoCardState.SpeakNoInfoCardAvailable();
                 return;
             }
 

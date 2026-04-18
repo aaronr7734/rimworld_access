@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
-using Verse.Sound;
 using RimWorld;
 using UnityEngine;
 
@@ -1771,23 +1770,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void OpenInfoCard()
         {
-            if (bill == null)
-            {
-                TolkHelper.Speak("No info card available");
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                return;
-            }
-
-            ThingDef productDef = bill.recipe?.ProducedThingDef;
-            if (productDef != null)
-            {
-                InfoCardState.OpenInfoCardForDef(productDef);
-            }
-            else
-            {
-                TolkHelper.Speak("No info card available for this bill");
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            }
+            InfoCardState.TryOpenInfoCardForDef(bill?.recipe?.ProducedThingDef);
         }
 
         public static void Reannounce() => AnnounceCurrentSelection();

@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-using System.Linq;
 using Verse;
-using Verse.Sound;
 using RimWorld;
 using UnityEngine;
 
@@ -288,17 +286,12 @@ namespace RimWorldAccess
         /// </summary>
         public static void OpenInfoCard()
         {
+            ThingDef plantDef = null;
             if (availablePlants != null && selectedIndex >= 0 && selectedIndex < availablePlants.Count)
             {
-                ThingDef plantDef = availablePlants[selectedIndex].plantDef;
-                if (plantDef != null)
-                {
-                    InfoCardState.OpenInfoCardForDef(plantDef);
-                    return;
-                }
+                plantDef = availablePlants[selectedIndex].plantDef;
             }
-            TolkHelper.Speak("No info card available");
-            SoundDefOf.ClickReject.PlayOneShotOnCamera();
+            InfoCardState.TryOpenInfoCardForDef(plantDef);
         }
 
         /// <summary>
@@ -466,18 +459,7 @@ namespace RimWorldAccess
             // Handle Alt+I - open info card for selected plant
             if (key == KeyCode.I && KeyboardHelper.IsAltHeld)
             {
-                if (availablePlants != null && selectedIndex >= 0 && selectedIndex < availablePlants.Count)
-                {
-                    ThingDef plantDef = availablePlants[selectedIndex].plantDef;
-                    if (plantDef != null)
-                    {
-                        InfoCardState.OpenInfoCardForDef(plantDef);
-                        Event.current.Use();
-                        return true;
-                    }
-                }
-                TolkHelper.Speak("No info card available");
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                OpenInfoCard();
                 Event.current.Use();
                 return true;
             }

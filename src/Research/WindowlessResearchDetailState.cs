@@ -828,13 +828,7 @@ namespace RimWorldAccess
                     return false;
 
                 case DetailNodeType.UnlockedItem:
-                    if (item.LinkedDef != null)
-                    {
-                        InfoCardState.OpenInfoCardForDef(item.LinkedDef);
-                        return true;
-                    }
-                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak("No info card available for this item");
+                    InfoCardState.TryOpenInfoCardForDef(item.LinkedDef);
                     return true;
 
                 case DetailNodeType.Info:

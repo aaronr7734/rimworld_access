@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
-using Verse.Sound;
 using RimWorld;
-using UnityEngine;
 
 namespace RimWorldAccess
 {
@@ -732,23 +730,8 @@ namespace RimWorldAccess
 
             MenuItem item = menuItems[selectedIndex];
 
-            if (item.type != MenuItemType.ExistingBill || !(item.data is Bill bill))
-            {
-                TolkHelper.Speak("No info card available");
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                return;
-            }
-
-            ThingDef productDef = bill.recipe?.ProducedThingDef;
-            if (productDef != null)
-            {
-                InfoCardState.OpenInfoCardForDef(productDef);
-            }
-            else
-            {
-                TolkHelper.Speak("No info card available for this bill");
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            }
+            Bill bill = (item.type == MenuItemType.ExistingBill ? item.data : null) as Bill;
+            InfoCardState.TryOpenInfoCardForDef(bill?.recipe?.ProducedThingDef);
         }
 
         public static void Reannounce() => AnnounceCurrentSelection();

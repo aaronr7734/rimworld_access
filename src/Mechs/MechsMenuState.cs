@@ -151,21 +151,18 @@ namespace RimWorldAccess
 
         public static void OpenInfoCard()
         {
-            if (mechsList == null || mechsList.Count == 0)
+            Pawn mech = null;
+            if (mechsList != null && mechsList.Count > 0)
             {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No info card available");
-                return;
+                mech = mechsList[tableHelper.CurrentRowIndex];
             }
-            Pawn mech = mechsList[tableHelper.CurrentRowIndex];
             if (mech != null)
             {
                 Find.WindowStack.Add(new Dialog_InfoCard(mech));
             }
             else
             {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No info card available");
+                InfoCardState.SpeakNoInfoCardAvailable();
             }
         }
 

@@ -497,8 +497,7 @@ namespace RimWorldAccess
         {
             if (currentOptions == null || selectedIndex < 0 || selectedIndex >= currentOptions.Count)
             {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No info card available");
+                InfoCardState.SpeakNoInfoCardAvailable();
                 return;
             }
 
@@ -531,15 +530,7 @@ namespace RimWorldAccess
                 def = option.revalidateClickTarget.def;
             }
 
-            if (def != null)
-            {
-                InfoCardState.OpenInfoCardForDef(def);
-            }
-            else
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No info card available");
-            }
+            InfoCardState.TryOpenInfoCardForDef(def);
         }
 
         /// <summary>

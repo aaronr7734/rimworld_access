@@ -226,18 +226,8 @@ namespace RimWorldAccess
                 return;
             }
 
-            if (designator is Designator_Build buildDesignator)
-            {
-                BuildableDef placingDef = buildDesignator.PlacingDef;
-                if (placingDef != null)
-                {
-                    InfoCardState.OpenInfoCardForDef(placingDef);
-                    return;
-                }
-            }
-
-            TolkHelper.Speak("No info card available for this tool");
-            SoundDefOf.ClickReject.PlayOneShotOnCamera();
+            BuildableDef placingDef = (designator as Designator_Build)?.PlacingDef;
+            InfoCardState.TryOpenInfoCardForDef(placingDef);
         }
 
         /// <summary>

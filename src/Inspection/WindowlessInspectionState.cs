@@ -875,8 +875,7 @@ namespace RimWorldAccess
                 parent = parent.Parent;
             }
 
-            TolkHelper.Speak("No info card available for this item");
-            SoundDefOf.ClickReject.PlayOneShotOnCamera();
+            InfoCardState.SpeakNoInfoCardAvailable();
             return true;
         }
 
@@ -887,8 +886,7 @@ namespace RimWorldAccess
         {
             if (treeNav.Count == 0 || treeNav.SelectedItem == null)
             {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No info card available.");
+                InfoCardState.SpeakNoInfoCardAvailable();
                 return;
             }
 

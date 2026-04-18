@@ -346,8 +346,7 @@ namespace RimWorldAccess
         {
             if (detailHelper == null || !detailHelper.IsInDetailView)
             {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No info card available");
+                InfoCardState.SpeakNoInfoCardAvailable();
                 return;
             }
 
@@ -357,8 +356,7 @@ namespace RimWorldAccess
 
             if (lineIndex < 0 || lineIndex >= cachedDetailLines.Count)
             {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No info card available");
+                InfoCardState.SpeakNoInfoCardAvailable();
                 return;
             }
 
@@ -376,8 +374,7 @@ namespace RimWorldAccess
                 return;
             }
 
-            SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            TolkHelper.Speak("No info card available");
+            InfoCardState.SpeakNoInfoCardAvailable();
         }
 
         // =====================================================================
@@ -817,8 +814,7 @@ namespace RimWorldAccess
             int idx = WindowlessFloatMenuState.SelectedIndex;
             if (idx < 0 || idx >= currentInspectionItems.Count)
             {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No info card available");
+                InfoCardState.SpeakNoInfoCardAvailable();
                 return;
             }
 
@@ -833,8 +829,7 @@ namespace RimWorldAccess
             }
             else
             {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No info card available");
+                InfoCardState.SpeakNoInfoCardAvailable();
             }
         }
 

@@ -559,8 +559,7 @@ namespace RimWorldAccess
                 return true;
             }
 
-            SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            TolkHelper.Speak("No info card available for categories");
+            InfoCardState.SpeakNoInfoCardAvailable();
             return true;
         }
 

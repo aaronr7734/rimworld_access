@@ -140,21 +140,18 @@ namespace RimWorldAccess
         /// </summary>
         public static void OpenInfoCard()
         {
-            if (animalsList == null || animalsList.Count == 0)
+            Pawn animal = null;
+            if (animalsList != null && animalsList.Count > 0)
             {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No info card available");
-                return;
+                animal = animalsList[tableHelper.CurrentRowIndex];
             }
-            Pawn animal = animalsList[tableHelper.CurrentRowIndex];
             if (animal != null)
             {
                 Find.WindowStack.Add(new Dialog_InfoCard(animal));
             }
             else
             {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No info card available");
+                InfoCardState.SpeakNoInfoCardAvailable();
             }
         }
 

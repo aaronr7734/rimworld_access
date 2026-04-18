@@ -1158,8 +1158,7 @@ namespace RimWorldAccess
             }
 
             // Nothing applicable
-            TolkHelper.Speak("No info card available for this command");
-            SoundDefOf.ClickReject.PlayOneShotOnCamera();
+            InfoCardState.SpeakNoInfoCardAvailable();
         }
 
         /// <summary>

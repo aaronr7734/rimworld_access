@@ -173,8 +173,7 @@ namespace RimWorldAccess
             var defs = GetInspectableDefs();
             if (defs.Count == 0)
             {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No info card available.");
+                InfoCardState.SpeakNoInfoCardAvailable();
                 return true;
             }
 
