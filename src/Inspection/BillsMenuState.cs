@@ -468,7 +468,7 @@ namespace RimWorldAccess
             int billIndex = billGiver.BillStack.IndexOf(bill);
             if (billIndex <= 0)
             {
-                TolkHelper.Speak("Already at top");
+                MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Top);
                 return;
             }
 
@@ -510,7 +510,7 @@ namespace RimWorldAccess
             int billIndex = billGiver.BillStack.IndexOf(bill);
             if (billIndex >= billGiver.BillStack.Count - 1)
             {
-                TolkHelper.Speak("Already at bottom");
+                MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Bottom);
                 return;
             }
 

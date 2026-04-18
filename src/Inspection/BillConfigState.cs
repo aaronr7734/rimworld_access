@@ -994,7 +994,7 @@ namespace RimWorldAccess
                 case MenuItemType.RepeatCount:
                     if (bill.repeatCount == 1)
                     {
-                        TolkHelper.Speak("Already at minimum");
+                        MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Minimum);
                         return;
                     }
                     bill.repeatCount = 1;
@@ -1004,7 +1004,7 @@ namespace RimWorldAccess
                 case MenuItemType.TargetCount:
                     if (bill.targetCount == 1)
                     {
-                        TolkHelper.Speak("Already at minimum");
+                        MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Minimum);
                         return;
                     }
                     bill.targetCount = 1;
@@ -1018,7 +1018,7 @@ namespace RimWorldAccess
                 case MenuItemType.UnpauseAt:
                     if (bill.unpauseWhenYouHave == 0)
                     {
-                        TolkHelper.Speak("Already at minimum");
+                        MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Minimum);
                         return;
                     }
                     bill.unpauseWhenYouHave = 0;
@@ -1028,7 +1028,7 @@ namespace RimWorldAccess
                 case MenuItemType.IngredientSearchRadius:
                     if (bill.ingredientSearchRadius <= 3f)
                     {
-                        TolkHelper.Speak("Already at minimum");
+                        MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Minimum);
                         return;
                     }
                     bill.ingredientSearchRadius = 3f;
@@ -1038,7 +1038,7 @@ namespace RimWorldAccess
                 case MenuItemType.SkillRangeMin:
                     if (bill.allowedSkillRange.min == 0)
                     {
-                        TolkHelper.Speak("Already at minimum");
+                        MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Minimum);
                         return;
                     }
                     bill.allowedSkillRange = new IntRange(0, bill.allowedSkillRange.max);
@@ -1048,7 +1048,7 @@ namespace RimWorldAccess
                 case MenuItemType.SkillRangeMax:
                     if (bill.allowedSkillRange.max == bill.allowedSkillRange.min)
                     {
-                        TolkHelper.Speak("Already at minimum");
+                        MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Minimum);
                         return;
                     }
                     bill.allowedSkillRange = new IntRange(bill.allowedSkillRange.min, bill.allowedSkillRange.min);
@@ -1082,7 +1082,7 @@ namespace RimWorldAccess
                 case MenuItemType.TargetCount:
                     if (bill.targetCount >= 999999)
                     {
-                        TolkHelper.Speak("Already at maximum");
+                        MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Maximum);
                         return;
                     }
                     bill.targetCount = 999999;
@@ -1093,7 +1093,7 @@ namespace RimWorldAccess
                     int maxValue = bill.targetCount - 1;
                     if (bill.unpauseWhenYouHave == maxValue)
                     {
-                        TolkHelper.Speak("Already at maximum");
+                        MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Maximum);
                         return;
                     }
                     bill.unpauseWhenYouHave = maxValue;
@@ -1103,7 +1103,7 @@ namespace RimWorldAccess
                 case MenuItemType.IngredientSearchRadius:
                     if (bill.ingredientSearchRadius >= 999f)
                     {
-                        TolkHelper.Speak("Already at maximum");
+                        MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Maximum);
                         return;
                     }
                     bill.ingredientSearchRadius = 999f;
@@ -1113,7 +1113,7 @@ namespace RimWorldAccess
                 case MenuItemType.SkillRangeMin:
                     if (bill.allowedSkillRange.min == bill.allowedSkillRange.max)
                     {
-                        TolkHelper.Speak("Already at maximum");
+                        MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Maximum);
                         return;
                     }
                     bill.allowedSkillRange = new IntRange(bill.allowedSkillRange.max, bill.allowedSkillRange.max);
@@ -1123,7 +1123,7 @@ namespace RimWorldAccess
                 case MenuItemType.SkillRangeMax:
                     if (bill.allowedSkillRange.max == 20)
                     {
-                        TolkHelper.Speak("Already at maximum");
+                        MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Maximum);
                         return;
                     }
                     bill.allowedSkillRange = new IntRange(bill.allowedSkillRange.min, 20);
@@ -1384,7 +1384,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak("Already at maximum");
+                    MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Maximum);
                 }
                 menuItems[selectedIndex].label = GetIngredientRadiusLabel();
                 return;

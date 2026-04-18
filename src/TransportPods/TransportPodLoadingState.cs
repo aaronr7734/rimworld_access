@@ -619,7 +619,7 @@ namespace RimWorldAccess
 
             if (transferable.CountToTransfer == 0)
             {
-                TolkHelper.Speak("Already at zero");
+                MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Zero);
                 return;
             }
 

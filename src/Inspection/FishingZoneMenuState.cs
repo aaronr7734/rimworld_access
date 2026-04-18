@@ -865,7 +865,7 @@ namespace RimWorldAccess
                         int current = (int)repeatCountField.GetValue(fishingZone);
                         if (current == 1)
                         {
-                            TolkHelper.Speak("Already at minimum");
+                            MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Minimum);
                             return;
                         }
                         repeatCountField.SetValue(fishingZone, 1);
@@ -880,7 +880,7 @@ namespace RimWorldAccess
                         int current = (int)targetCountField.GetValue(fishingZone);
                         if (current == 1)
                         {
-                            TolkHelper.Speak("Already at minimum");
+                            MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Minimum);
                             return;
                         }
                         targetCountField.SetValue(fishingZone, 1);
@@ -903,7 +903,7 @@ namespace RimWorldAccess
                         int current = (int)unpauseAtCountField.GetValue(fishingZone);
                         if (current == 0)
                         {
-                            TolkHelper.Speak("Already at minimum");
+                            MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Minimum);
                             return;
                         }
                         unpauseAtCountField.SetValue(fishingZone, 0);
@@ -923,7 +923,7 @@ namespace RimWorldAccess
                         float current = (float)targetPopulationPctField.GetValue(fishingZone);
                         if (Mathf.Approximately(current, minPct))
                         {
-                            TolkHelper.Speak("Already at minimum");
+                            MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Minimum);
                             return;
                         }
                         targetPopulationPctField.SetValue(fishingZone, minPct);
@@ -962,7 +962,7 @@ namespace RimWorldAccess
                         int current = (int)unpauseAtCountField.GetValue(fishingZone);
                         if (current == maxValue)
                         {
-                            TolkHelper.Speak("Already at maximum");
+                            MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Maximum);
                             return;
                         }
                         unpauseAtCountField.SetValue(fishingZone, maxValue);
@@ -977,7 +977,7 @@ namespace RimWorldAccess
                         float current = (float)targetPopulationPctField.GetValue(fishingZone);
                         if (Mathf.Approximately(current, 1.0f))
                         {
-                            TolkHelper.Speak("Already at maximum");
+                            MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Maximum);
                             return;
                         }
                         targetPopulationPctField.SetValue(fishingZone, 1.0f);

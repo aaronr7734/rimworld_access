@@ -593,7 +593,7 @@ namespace RimWorldAccess
 
             // Case 3: At root level - reject
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            TolkHelper.Speak("Already at top level");
+            MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.TopLevel);
         }
 
         /// <summary>

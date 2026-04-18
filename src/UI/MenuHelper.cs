@@ -63,6 +63,48 @@ namespace RimWorldAccess
             lastAnnouncedLevels.Remove(menuKey);
         }
 
+        // ===== EDGE ANNOUNCEMENTS =====
+
+        /// <summary>
+        /// Directions for <see cref="SpeakAlreadyAtEdge"/>. Each value maps to a single
+        /// canonical announcement phrasing so menus stay consistent when the user
+        /// tries to navigate past the end.
+        /// </summary>
+        public enum EdgeDirection
+        {
+            Top,
+            Bottom,
+            First,
+            Last,
+            Minimum,
+            Maximum,
+            TopLevel,
+            Zero,
+        }
+
+        /// <summary>
+        /// Announces that navigation reached an edge and can go no further.
+        /// Produces canonical phrasings ("Already at top", "Already at minimum", etc.)
+        /// so every menu emits the same message for the same edge.
+        /// </summary>
+        public static void SpeakAlreadyAtEdge(EdgeDirection direction, SpeechPriority priority = SpeechPriority.Normal)
+        {
+            string phrase;
+            switch (direction)
+            {
+                case EdgeDirection.Top: phrase = "Already at top"; break;
+                case EdgeDirection.Bottom: phrase = "Already at bottom"; break;
+                case EdgeDirection.First: phrase = "Already at first position"; break;
+                case EdgeDirection.Last: phrase = "Already at last position"; break;
+                case EdgeDirection.Minimum: phrase = "Already at minimum"; break;
+                case EdgeDirection.Maximum: phrase = "Already at maximum"; break;
+                case EdgeDirection.TopLevel: phrase = "Already at top level"; break;
+                case EdgeDirection.Zero: phrase = "Already at zero"; break;
+                default: phrase = "Already at edge"; break;
+            }
+            TolkHelper.Speak(phrase, priority);
+        }
+
         // ===== NAVIGATION =====
 
         /// <summary>

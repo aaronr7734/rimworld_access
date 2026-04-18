@@ -464,7 +464,7 @@ namespace RimWorldAccess
 
             if (barPosition >= colonists.Count - 1)
             {
-                TolkHelper.Speak("Already at last position");
+                MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Last);
                 return;
             }
 
@@ -510,7 +510,7 @@ namespace RimWorldAccess
 
             if (barPosition <= 0)
             {
-                TolkHelper.Speak("Already at first position");
+                MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.First);
                 return;
             }
 

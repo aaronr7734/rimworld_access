@@ -771,7 +771,7 @@ namespace RimWorldAccess
 
             if (currentPos <= 0)
             {
-                TolkHelper.Speak("Already at top of load order");
+                MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Top);
                 return;
             }
 
@@ -807,7 +807,7 @@ namespace RimWorldAccess
 
             if (currentPos >= maxPos)
             {
-                TolkHelper.Speak("Already at bottom of load order");
+                MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Bottom);
                 return;
             }
 

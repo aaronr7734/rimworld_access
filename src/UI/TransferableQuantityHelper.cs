@@ -149,7 +149,7 @@ namespace RimWorldAccess
 
             if (transferable.CountToTransfer == maxQty)
             {
-                TolkHelper.Speak("Already at maximum");
+                MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Maximum);
                 return;
             }
 
@@ -175,7 +175,7 @@ namespace RimWorldAccess
 
             if (transferable.CountToTransfer == 0)
             {
-                TolkHelper.Speak("Already at zero");
+                MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Zero);
                 return;
             }
 

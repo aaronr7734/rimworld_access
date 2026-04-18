@@ -960,12 +960,12 @@ namespace RimWorldAccess
 
             if (newIndex < 0)
             {
-                TolkHelper.Speak("Already at top");
+                MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Top);
                 return;
             }
             if (newIndex >= queuedOperations.Count)
             {
-                TolkHelper.Speak("Already at bottom");
+                MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Bottom);
                 return;
             }
 

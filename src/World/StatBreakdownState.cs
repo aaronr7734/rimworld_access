@@ -417,7 +417,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("Already at top level");
+                MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.TopLevel);
             }
         }
 

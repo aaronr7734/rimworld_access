@@ -806,7 +806,7 @@ namespace RimWorldAccess
             {
                 // No expandable parent - we're at the top level
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("Already at top level.", SpeechPriority.High);
+                MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.TopLevel, SpeechPriority.High);
                 return;
             }
 
@@ -852,7 +852,7 @@ namespace RimWorldAccess
                 else
                 {
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak("Already at top level.", SpeechPriority.High);
+                    MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.TopLevel, SpeechPriority.High);
                 }
             }
         }

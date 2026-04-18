@@ -120,7 +120,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak("Already at zero");
+                    MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Zero);
                     return true;
                 }
             }
@@ -143,7 +143,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak("Already at zero");
+                    MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Zero);
                     return true;
                 }
             }
