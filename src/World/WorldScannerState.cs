@@ -735,6 +735,11 @@ namespace RimWorldAccess
         /// <summary>
         /// Collects all world scanner items from all categories into a flat list.
         /// Used by ScannerSearchState for Z search to match against biomes, roads, settlements, etc.
+        /// Deduplicates by underlying identity rather than item reference. Some categories share
+        /// references between "All" and specialized subcategories (Settlements), which ref-dedup
+        /// could handle — but Landmarks create distinct WorldScannerItem instances with different
+        /// labels ("name, type" in All vs. just "name" in the type subcategory), so a ref-based
+        /// dedup would miss those and every landmark would appear twice in search.
         /// </summary>
         public static List<WorldScannerItem> CollectAllItemsFlat()
         {
@@ -744,6 +749,13 @@ namespace RimWorldAccess
 
             var source = cachedCategories ?? categories;
             var allItems = new List<WorldScannerItem>();
+
+            var seenWorldObjects = new HashSet<WorldObject>();
+            var seenTiles = new HashSet<PlanetTile>();
+            var seenBiomes = new HashSet<string>();
+            var seenRoads = new HashSet<string>();
+            var seenRefs = new HashSet<WorldScannerItem>();
+
             foreach (var category in source)
             {
                 // Skip temporary search category to avoid including old search results
@@ -752,10 +764,40 @@ namespace RimWorldAccess
 
                 foreach (var subcat in category.Subcategories)
                 {
-                    allItems.AddRange(subcat.Items);
+                    foreach (var item in subcat.Items)
+                    {
+                        if (IsDuplicateWorldItem(item, seenWorldObjects, seenTiles, seenBiomes, seenRoads, seenRefs))
+                            continue;
+                        allItems.Add(item);
+                    }
                 }
             }
             return allItems;
+        }
+
+        /// <summary>
+        /// Returns true when this item's underlying identity has already been seen.
+        /// Identity precedence: WorldObject &gt; biome label &gt; road label &gt; tile &gt; item ref.
+        /// Landmark items have no WorldObject and are keyed by Tile, which correctly matches
+        /// a landmark's "name, type" All-subcategory copy against its "name"-only type-subcategory copy.
+        /// </summary>
+        private static bool IsDuplicateWorldItem(
+            WorldScannerItem item,
+            HashSet<WorldObject> seenWorldObjects,
+            HashSet<PlanetTile> seenTiles,
+            HashSet<string> seenBiomes,
+            HashSet<string> seenRoads,
+            HashSet<WorldScannerItem> seenRefs)
+        {
+            if (item.WorldObject != null)
+                return !seenWorldObjects.Add(item.WorldObject);
+            if (item.BiomeRegions != null)
+                return !seenBiomes.Add(item.Label ?? "");
+            if (item.RoadSegments != null)
+                return !seenRoads.Add(item.Label ?? "");
+            if (item.Tile.Valid)
+                return !seenTiles.Add(item.Tile);
+            return !seenRefs.Add(item);
         }
 
         #region Category Creators

@@ -296,26 +296,31 @@ namespace RimWorldAccess
             if (string.IsNullOrEmpty(activeFilterQuery) || activeFilterIsWorldMap)
                 return null;
 
-            // Flatten all items from pre-collected categories with reference dedup.
-            // Items appear in multiple subcategories (specialized + category-All + top-level All),
-            // and some categories (Rooms, top-level All) only have a single "-All" subcategory,
-            // so we iterate everything and deduplicate by ScannerItem reference.
-            var allItems = new List<ScannerItem>();
-            var seen = new HashSet<ScannerItem>();
-            foreach (var category in preCollectedCategories)
-            {
-                foreach (var subcat in category.Subcategories)
-                {
-                    foreach (var item in subcat.Items)
-                    {
-                        if (seen.Add(item))
-                            allItems.Add(item);
-                    }
-                }
-            }
+            var allItems = FlattenFromAllCategory(preCollectedCategories);
 
             return ScannerSearchEngine.FilterAndRank(
                 allItems, activeFilterQuery, item => item.Label, item => item.Distance);
+        }
+
+        /// <summary>
+        /// Returns the items from the top-level "All" category's "All-All" subcategory.
+        /// That subcategory is the authoritative, reference-deduped, grouped-once view of
+        /// every item on the map. Falls back to an empty list if the "All" category wasn't
+        /// produced (e.g., an empty map). See CollectAllMapItemsFlat for why we don't
+        /// iterate every subcategory ourselves.
+        /// </summary>
+        private static List<ScannerItem> FlattenFromAllCategory(List<ScannerCategory> categories)
+        {
+            if (categories == null)
+                return new List<ScannerItem>();
+
+            foreach (var category in categories)
+            {
+                if (category.Name == "All")
+                    return category.AllSubcategory?.Items.ToList() ?? new List<ScannerItem>();
+            }
+
+            return new List<ScannerItem>();
         }
 
         /// <summary>
@@ -440,30 +445,17 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Collects all scanner items from all categories flattened into a single list,
-        /// deduplicating by ScannerItem reference. Items appear in multiple subcategories
-        /// (specialized + category-All + top-level All), so a naive flatten would return
-        /// every item multiple times.
+        /// Collects all scanner items into a single flat list by reading from the top-level
+        /// "All" category's "All-All" subcategory. That subcategory is built with reference
+        /// dedup and then grouped exactly once, so every unique item/bulk appears here once.
+        /// A naive flatten of every subcategory would over-count: the per-subcategory
+        /// GroupIdenticalItems pass creates a distinct bulk ScannerItem per subcategory even
+        /// when they all wrap the same underlying Things, which reference-dedup cannot catch.
         /// </summary>
         private static List<ScannerItem> CollectAllMapItemsFlat(Map map, IntVec3 cursorPosition)
         {
             var categories = ScannerHelper.CollectMapItems(map, cursorPosition);
-            var allItems = new List<ScannerItem>();
-            var seen = new HashSet<ScannerItem>();
-
-            foreach (var category in categories)
-            {
-                foreach (var subcat in category.Subcategories)
-                {
-                    foreach (var item in subcat.Items)
-                    {
-                        if (seen.Add(item))
-                            allItems.Add(item);
-                    }
-                }
-            }
-
-            return allItems;
+            return FlattenFromAllCategory(categories);
         }
 
         /// <summary>
