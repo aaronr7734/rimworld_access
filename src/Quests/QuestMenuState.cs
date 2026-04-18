@@ -910,7 +910,7 @@ namespace RimWorldAccess
 
             if (typeahead.HasActiveSearch)
             {
-                announcement += $", match {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} for '{typeahead.SearchBuffer}'";
+                announcement += typeahead.BuildSearchContextSuffix();
             }
 
             TolkHelper.Speak(announcement);
@@ -943,7 +943,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+                typeahead.SpeakNoMatches();
             }
         }
 

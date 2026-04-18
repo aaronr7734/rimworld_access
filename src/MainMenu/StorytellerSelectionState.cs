@@ -551,7 +551,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+                typeahead.SpeakNoMatches();
             }
         }
 
@@ -738,7 +738,7 @@ namespace RimWorldAccess
             if (typeahead.HasActiveSearch)
             {
                 string itemName = GetCurrentItemAnnouncement();
-                TolkHelper.Speak($"{itemName}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'");
+                TolkHelper.Speak(typeahead.BuildItemAnnouncement(itemName));
             }
             else
             {

@@ -296,7 +296,7 @@ namespace RimWorldAccess
             else
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak($"No matches for '{listTypeahead.LastFailedSearch}'.");
+                listTypeahead.SpeakNoMatches();
             }
         }
 
@@ -365,8 +365,7 @@ namespace RimWorldAccess
                 return;
 
             string name = ideologies[selectedIdeoIndex].name;
-            string searchInfo = $", {listTypeahead.CurrentMatchPosition} of {listTypeahead.MatchCount} matches for '{listTypeahead.SearchBuffer}'";
-            TolkHelper.Speak($"{name}{searchInfo}");
+            TolkHelper.Speak(listTypeahead.BuildItemAnnouncement(name));
         }
 
         #endregion

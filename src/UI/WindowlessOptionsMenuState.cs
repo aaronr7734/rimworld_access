@@ -229,7 +229,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+                typeahead.SpeakNoMatches();
             }
         }
 
@@ -372,12 +372,12 @@ namespace RimWorldAccess
                 if (currentLevel == OptionsMenuLevel.CategoryList)
                 {
                     itemName = categories[selectedCategoryIndex].Name;
-                    TolkHelper.Speak($"{itemName}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'");
+                    TolkHelper.Speak(typeahead.BuildItemAnnouncement(itemName));
                 }
                 else
                 {
                     var setting = categories[selectedCategoryIndex].Settings[selectedSettingIndex];
-                    TolkHelper.Speak($"{setting.GetAnnouncement()}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'");
+                    TolkHelper.Speak(typeahead.BuildItemAnnouncement(setting.GetAnnouncement()));
                 }
             }
             else

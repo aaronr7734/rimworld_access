@@ -1007,7 +1007,7 @@ namespace RimWorldAccess
             string label = item.Label.StripTags();
             string stateIndicator = TreeNavigationHelper.FormatExpansionSpaceSuffix(item);
 
-            return $"{label}{stateIndicator}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
+            return typeahead.BuildItemAnnouncement($"{label}{stateIndicator}");
         }
 
         private static void AnnounceControlItem()

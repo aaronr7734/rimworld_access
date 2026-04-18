@@ -120,7 +120,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{typeaheadHelper.LastFailedSearch}'");
+                typeaheadHelper.SpeakNoMatches();
             }
         }
 
@@ -296,13 +296,13 @@ namespace RimWorldAccess
 
             if (focused == ManageAreasSentinel)
             {
-                TolkHelper.Speak($"Manage Areas, {typeaheadHelper.CurrentMatchPosition} of {typeaheadHelper.MatchCount} matches for '{typeaheadHelper.SearchBuffer}'");
+                TolkHelper.Speak(typeaheadHelper.BuildItemAnnouncement("Manage Areas"));
             }
             else
             {
                 Area area = focused as Area;
                 string areaName = area?.Label ?? "Unrestricted";
-                TolkHelper.Speak($"{areaName}, {typeaheadHelper.CurrentMatchPosition} of {typeaheadHelper.MatchCount} matches for '{typeaheadHelper.SearchBuffer}'");
+                TolkHelper.Speak(typeaheadHelper.BuildItemAnnouncement(areaName));
             }
         }
 

@@ -101,7 +101,7 @@ namespace RimWorldAccess
 
             if (typeaheadHelper.HasActiveSearch)
             {
-                text += $", {typeaheadHelper.CurrentMatchPosition} of {typeaheadHelper.MatchCount} matches for '{typeaheadHelper.SearchBuffer}'";
+                text += typeaheadHelper.BuildSearchContextSuffix();
             }
             else if (!string.IsNullOrEmpty(positionPart))
             {
@@ -208,7 +208,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{typeaheadHelper.LastFailedSearch}'");
+                typeaheadHelper.SpeakNoMatches();
             }
 
             return true;

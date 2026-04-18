@@ -216,7 +216,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+                typeahead.SpeakNoMatches();
             }
         }
 
@@ -559,11 +559,11 @@ namespace RimWorldAccess
             {
                 if (!string.IsNullOrEmpty(tooltipText))
                 {
-                    TolkHelper.Speak($"{optionText}. {tooltipText} {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'");
+                    TolkHelper.Speak($"{optionText}. {tooltipText}" + typeahead.BuildSearchContextSuffix());
                 }
                 else
                 {
-                    TolkHelper.Speak($"{optionText}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'");
+                    TolkHelper.Speak(typeahead.BuildItemAnnouncement(optionText));
                 }
             }
             else

@@ -144,7 +144,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{listTypeaheadHelper.LastFailedSearch}'");
+                listTypeaheadHelper.SpeakNoMatches();
             }
 
             return true;
@@ -228,7 +228,7 @@ namespace RimWorldAccess
 
             if (listTypeaheadHelper.HasActiveSearch)
             {
-                TolkHelper.Speak($"{selected.name}{categorySuffix}, {listTypeaheadHelper.CurrentMatchPosition} of {listTypeaheadHelper.MatchCount} matches for '{listTypeaheadHelper.SearchBuffer}'");
+                TolkHelper.Speak(listTypeaheadHelper.BuildItemAnnouncement($"{selected.name}{categorySuffix}"));
             }
             else
             {
@@ -805,8 +805,7 @@ namespace RimWorldAccess
             }
             else
             {
-                // No matches - announce using LastFailedSearch (search was auto-cleared)
-                TolkHelper.Speak($"No matches for '{detailTreeNav.Typeahead.LastFailedSearch}'");
+                detailTreeNav.Typeahead.SpeakNoMatches();
             }
 
             return true;
@@ -895,7 +894,7 @@ namespace RimWorldAccess
 
             if (detailTreeNav.HasActiveSearch)
             {
-                TolkHelper.Speak($"{item.Label}, {detailTreeNav.Typeahead.CurrentMatchPosition} of {detailTreeNav.Typeahead.MatchCount} matches for '{detailTreeNav.Typeahead.SearchBuffer}'");
+                TolkHelper.Speak(detailTreeNav.Typeahead.BuildItemAnnouncement(item.Label));
             }
             else
             {
@@ -952,7 +951,7 @@ namespace RimWorldAccess
         {
             if (typeahead.HasActiveSearch)
             {
-                return $"{item.Label}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
+                return typeahead.BuildItemAnnouncement(item.Label);
             }
             return FormatDetailAnnouncement(item);
         }

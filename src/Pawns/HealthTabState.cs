@@ -601,9 +601,8 @@ namespace RimWorldAccess
 
         private static void AnnounceNoMatches(TypeaheadSearchHelper typeahead)
         {
-            string failed = typeahead.LastFailedSearch;
-            if (!string.IsNullOrEmpty(failed))
-                TolkHelper.Speak($"No matches for '{failed}'");
+            if (!string.IsNullOrEmpty(typeahead.LastFailedSearch))
+                typeahead.SpeakNoMatches();
         }
 
         private static bool HandleTypeaheadBackspace()
@@ -1170,7 +1169,7 @@ namespace RimWorldAccess
 
             if (activeTypeahead != null && itemLabel != null)
             {
-                TolkHelper.Speak($"{itemLabel}, {activeTypeahead.CurrentMatchPosition} of {activeTypeahead.MatchCount} matches for '{activeTypeahead.SearchBuffer}'");
+                TolkHelper.Speak(activeTypeahead.BuildItemAnnouncement(itemLabel));
             }
             else
             {

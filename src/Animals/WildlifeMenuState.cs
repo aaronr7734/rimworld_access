@@ -311,7 +311,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{tableHelper.Typeahead.LastFailedSearch}'");
+                tableHelper.Typeahead.SpeakNoMatches();
             }
         }
 

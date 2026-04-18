@@ -439,10 +439,7 @@ namespace RimWorldAccess
                 announcement = $"{itemLabel} - {columnName}: {columnValue}{separator}{position}";
             }
 
-            if (typeahead.HasActiveSearch)
-            {
-                announcement += $", match {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} for '{typeahead.SearchBuffer}'";
-            }
+            announcement += typeahead.BuildSearchContextSuffix();
 
             return announcement;
         }

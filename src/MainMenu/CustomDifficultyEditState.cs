@@ -283,7 +283,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak($"No matches for '{sectionTypeahead.LastFailedSearch}'");
+                    sectionTypeahead.SpeakNoMatches();
                 }
                 return true;
             }
@@ -301,7 +301,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak($"No matches for '{settingTypeahead.LastFailedSearch}'");
+                    settingTypeahead.SpeakNoMatches();
                 }
                 return true;
             }
@@ -500,7 +500,7 @@ namespace RimWorldAccess
 
             if (sectionTypeahead.HasActiveSearch)
             {
-                TolkHelper.Speak($"{section.Name}, {sectionTypeahead.CurrentMatchPosition} of {sectionTypeahead.MatchCount} matches for '{sectionTypeahead.SearchBuffer}'");
+                TolkHelper.Speak(sectionTypeahead.BuildItemAnnouncement(section.Name));
             }
             else
             {
@@ -534,7 +534,7 @@ namespace RimWorldAccess
 
             if (settingTypeahead.HasActiveSearch)
             {
-                TolkHelper.Speak($"{setting.Label}, {settingTypeahead.CurrentMatchPosition} of {settingTypeahead.MatchCount} matches for '{settingTypeahead.SearchBuffer}'");
+                TolkHelper.Speak(settingTypeahead.BuildItemAnnouncement(setting.Label));
             }
             else
             {

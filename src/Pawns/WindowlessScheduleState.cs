@@ -228,7 +228,7 @@ namespace RimWorldAccess
 
             // Add search context if active
             if (tableHelper.Typeahead.HasActiveSearch)
-                message += $", match {tableHelper.Typeahead.CurrentMatchPosition} of {tableHelper.Typeahead.MatchCount} for '{tableHelper.Typeahead.SearchBuffer}'";
+                message += tableHelper.Typeahead.BuildSearchContextSuffix();
 
             return message;
         }
@@ -693,7 +693,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{tableHelper.Typeahead.LastFailedSearch}'");
+                tableHelper.Typeahead.SpeakNoMatches();
             }
         }
 

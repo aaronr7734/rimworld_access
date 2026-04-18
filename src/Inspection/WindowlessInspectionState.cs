@@ -609,8 +609,7 @@ namespace RimWorldAccess
                 stateIndicator = item.IsExpanded ? ". expanded" : ". collapsed";
             }
 
-            string announcement = $"{label}{stateIndicator}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
-            return announcement;
+            return typeahead.BuildItemAnnouncement($"{label}{stateIndicator}");
         }
 
         #endregion

@@ -472,7 +472,7 @@ namespace RimWorldAccess
             if (selectedActionIndex >= 0 && selectedActionIndex < actions.Length)
             {
                 string action = actions[selectedActionIndex];
-                TolkHelper.Speak($"{action}, {actionsTypeahead.CurrentMatchPosition} of {actionsTypeahead.MatchCount} matches for '{actionsTypeahead.SearchBuffer}'");
+                TolkHelper.Speak(actionsTypeahead.BuildItemAnnouncement(action));
             }
         }
 
@@ -495,7 +495,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{actionsTypeahead.LastFailedSearch}'");
+                actionsTypeahead.SpeakNoMatches();
                 return true;
             }
         }

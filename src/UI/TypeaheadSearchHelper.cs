@@ -165,6 +165,55 @@ namespace RimWorldAccess
             return true;
         }
 
+        // ===== Search Announcements =====
+
+        /// <summary>
+        /// Announces the canonical "No matches for '{last failed search}'" message
+        /// after an input has auto-cleared the search because nothing matched.
+        /// Callers should check <see cref="HasNoMatches"/> or detect the failed
+        /// input themselves — this helper only formats the announcement.
+        /// </summary>
+        public void SpeakNoMatches(SpeechPriority priority = SpeechPriority.Normal)
+        {
+            TolkHelper.Speak($"No matches for '{lastFailedSearch}'", priority);
+        }
+
+        /// <summary>
+        /// Returns the canonical search-context suffix for the current match:
+        /// ", {pos} of {count} matches for '{buffer}'". Returns an empty string
+        /// when no search is active. The leading ", " makes the suffix safe to
+        /// append directly to a label.
+        /// </summary>
+        public string BuildSearchContextSuffix()
+        {
+            if (!HasActiveSearch || matchingIndices.Count == 0) return "";
+            return $", {CurrentMatchPosition} of {MatchCount} matches for '{searchBuffer}'";
+        }
+
+        /// <summary>
+        /// Builds "{itemLabel}{search suffix}" — a full item announcement with the
+        /// match-position context appended when a search is active, or just the
+        /// raw label when it isn't.
+        /// </summary>
+        public string BuildItemAnnouncement(string itemLabel)
+        {
+            return (itemLabel ?? "") + BuildSearchContextSuffix();
+        }
+
+        /// <summary>
+        /// Speaks the item announcement when matches exist, or falls back to the
+        /// canonical "No matches" announcement when the last input failed to match.
+        /// </summary>
+        public void SpeakItemAnnouncement(string itemLabel, SpeechPriority priority = SpeechPriority.Normal)
+        {
+            if (HasNoMatches || (HasActiveSearch && matchingIndices.Count == 0))
+            {
+                SpeakNoMatches(priority);
+                return;
+            }
+            TolkHelper.Speak(BuildItemAnnouncement(itemLabel), priority);
+        }
+
         /// <summary>
         /// Finds matching items with priority ordering:
         /// 1. First word prefix matches (e.g., 'w' matches "Wall" before "5 wood")

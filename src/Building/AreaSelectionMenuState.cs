@@ -166,7 +166,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{typeaheadHelper.LastFailedSearch}'");
+                typeaheadHelper.SpeakNoMatches();
             }
         }
 
@@ -188,12 +188,12 @@ namespace RimWorldAccess
         {
             if (selectedIndex == ManageAreasIndex && includeManageOption)
             {
-                TolkHelper.Speak($"Manage Areas, {typeaheadHelper.CurrentMatchPosition} of {typeaheadHelper.MatchCount} matches for '{typeaheadHelper.SearchBuffer}'");
+                TolkHelper.Speak(typeaheadHelper.BuildItemAnnouncement("Manage Areas"));
             }
             else if (selectedIndex >= 0 && selectedIndex < availableAreas.Count)
             {
                 Area area = availableAreas[selectedIndex];
-                TolkHelper.Speak($"{area.Label}, {typeaheadHelper.CurrentMatchPosition} of {typeaheadHelper.MatchCount} matches for '{typeaheadHelper.SearchBuffer}'");
+                TolkHelper.Speak(typeaheadHelper.BuildItemAnnouncement(area.Label));
             }
         }
 

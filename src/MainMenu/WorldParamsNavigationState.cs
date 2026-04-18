@@ -454,7 +454,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{fieldTypeahead.LastFailedSearch}'");
+                fieldTypeahead.SpeakNoMatches();
             }
             return true;
         }
@@ -570,7 +570,7 @@ namespace RimWorldAccess
 
             if (fieldTypeahead.HasActiveSearch)
             {
-                TolkHelper.Speak($"{fieldName}: {value}, {fieldTypeahead.CurrentMatchPosition} of {fieldTypeahead.MatchCount} matches for '{fieldTypeahead.SearchBuffer}'");
+                TolkHelper.Speak(fieldTypeahead.BuildItemAnnouncement($"{fieldName}: {value}"));
             }
             else
             {

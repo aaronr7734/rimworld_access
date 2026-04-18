@@ -399,7 +399,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{dropdownTypeahead.LastFailedSearch}'");
+                dropdownTypeahead.SpeakNoMatches();
             }
 
             return true;

@@ -861,8 +861,7 @@ namespace RimWorldAccess
 
             string stateIndicator = FormatExpansionSuffix(item);
 
-            string searchInfo = $", {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
-            return $"{label}{stateIndicator}{searchInfo}";
+            return typeahead.BuildItemAnnouncement($"{label}{stateIndicator}");
         }
 
         #endregion
@@ -969,7 +968,7 @@ namespace RimWorldAccess
             else
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'.");
+                typeahead.SpeakNoMatches();
                 // Snapshot remains so the next typed character reuses the expanded view.
             }
         }

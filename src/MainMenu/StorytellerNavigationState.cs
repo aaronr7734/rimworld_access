@@ -278,7 +278,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{storytellerTypeahead.LastFailedSearch}'");
+                storytellerTypeahead.SpeakNoMatches();
             }
             return true;
         }
@@ -348,7 +348,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{difficultyTypeahead.LastFailedSearch}'");
+                difficultyTypeahead.SpeakNoMatches();
             }
             return true;
         }
@@ -426,7 +426,7 @@ namespace RimWorldAccess
 
             if (storytellerTypeahead.HasActiveSearch)
             {
-                TolkHelper.Speak($"{storyteller.label}, {storytellerTypeahead.CurrentMatchPosition} of {storytellerTypeahead.MatchCount} matches for '{storytellerTypeahead.SearchBuffer}'");
+                TolkHelper.Speak(storytellerTypeahead.BuildItemAnnouncement(storyteller.label));
             }
             else
             {
@@ -468,7 +468,7 @@ namespace RimWorldAccess
 
             if (difficultyTypeahead.HasActiveSearch)
             {
-                TolkHelper.Speak($"{difficulty.LabelCap}, {difficultyTypeahead.CurrentMatchPosition} of {difficultyTypeahead.MatchCount} matches for '{difficultyTypeahead.SearchBuffer}'");
+                TolkHelper.Speak(difficultyTypeahead.BuildItemAnnouncement(difficulty.LabelCap));
             }
             else
             {

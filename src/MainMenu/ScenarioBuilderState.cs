@@ -3152,7 +3152,7 @@ namespace RimWorldAccess
         {
             if (typeahead.HasActiveSearch)
             {
-                return $"{item.Label}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
+                return typeahead.BuildItemAnnouncement(item.Label);
             }
             return FormatTreeItemAnnouncement(item);
         }
@@ -3471,7 +3471,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{partsTreeNav.Typeahead.LastFailedSearch}'");
+                partsTreeNav.Typeahead.SpeakNoMatches();
             }
 
             return true;
@@ -3555,7 +3555,7 @@ namespace RimWorldAccess
             {
                 var data = GetItemData(selected);
                 string label = (data != null && data.IsPart) ? data.AsPart.Label : selected.Label;
-                TolkHelper.Speak($"{label}, {partsTreeNav.Typeahead.CurrentMatchPosition} of {partsTreeNav.Typeahead.MatchCount} matches for '{partsTreeNav.Typeahead.SearchBuffer}'");
+                TolkHelper.Speak(partsTreeNav.Typeahead.BuildItemAnnouncement(label));
             }
             else
             {

@@ -735,7 +735,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{submenuTypeahead.LastFailedSearch}'");
+                submenuTypeahead.SpeakNoMatches();
             }
         }
 
@@ -772,7 +772,7 @@ namespace RimWorldAccess
             // Add search context if active
             if (submenuTypeahead.HasActiveSearch)
             {
-                announcement += $", match {submenuTypeahead.CurrentMatchPosition} of {submenuTypeahead.MatchCount} for '{submenuTypeahead.SearchBuffer}'";
+                announcement += submenuTypeahead.BuildSearchContextSuffix();
             }
 
             TolkHelper.Speak(announcement);
@@ -954,7 +954,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{tableHelper.Typeahead.LastFailedSearch}'");
+                tableHelper.Typeahead.SpeakNoMatches();
             }
         }
 

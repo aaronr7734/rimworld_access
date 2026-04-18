@@ -977,7 +977,7 @@ namespace RimWorldAccess
 
         private static string FormatSearchAnnouncement(InspectionTreeItem item, TypeaheadSearchHelper typeahead)
         {
-            return $"{item.Label}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
+            return typeahead.BuildItemAnnouncement(item.Label);
         }
 
         private static bool HasInfoCard(InspectionTreeItem item)

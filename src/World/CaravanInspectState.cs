@@ -1051,7 +1051,7 @@ namespace RimWorldAccess
             if (typeahead.HasActiveSearch)
             {
                 string stateIndicator = TreeNavigationHelper.FormatExpansionSpaceSuffix(item);
-                return $"{label}{stateIndicator}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
+                return typeahead.BuildItemAnnouncement($"{label}{stateIndicator}");
             }
 
             return FormatItemAnnouncement(item);

@@ -129,7 +129,7 @@ namespace RimWorldAccess
 
             if (typeaheadHelper.HasActiveSearch)
             {
-                TolkHelper.Speak($"{shapeName}, {typeaheadHelper.CurrentMatchPosition} of {typeaheadHelper.MatchCount} matches for '{typeaheadHelper.SearchBuffer}'");
+                TolkHelper.Speak(typeaheadHelper.BuildItemAnnouncement(shapeName));
             }
             else
             {
@@ -347,7 +347,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{typeaheadHelper.LastFailedSearch}'");
+                typeaheadHelper.SpeakNoMatches();
             }
         }
 

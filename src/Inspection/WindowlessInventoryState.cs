@@ -687,7 +687,7 @@ namespace RimWorldAccess
 
             if (typeahead.HasActiveSearch)
             {
-                announcement += $", {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
+                announcement += typeahead.BuildSearchContextSuffix();
             }
             else
             {

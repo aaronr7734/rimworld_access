@@ -902,7 +902,7 @@ namespace RimWorldAccess
 
             if (typeahead.HasActiveSearch)
             {
-                return $"{cleanLabel}{stateStr}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
+                return typeahead.BuildItemAnnouncement($"{cleanLabel}{stateStr}");
             }
             else
             {
@@ -970,7 +970,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{treeNav.Typeahead.LastFailedSearch}'");
+                treeNav.Typeahead.SpeakNoMatches();
             }
         }
 

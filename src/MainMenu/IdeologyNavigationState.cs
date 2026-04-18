@@ -68,8 +68,7 @@ namespace RimWorldAccess
         private static string FormatPresetsSearchAnnouncement(InspectionTreeItem item, TypeaheadSearchHelper typeahead)
         {
             string label = item.Label;
-            string searchInfo = $", {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
-            return $"{label}{searchInfo}";
+            return typeahead.BuildItemAnnouncement(label);
         }
 
         private static string FormatPresetsStateChangeAnnouncement(InspectionTreeItem item)
@@ -344,7 +343,7 @@ namespace RimWorldAccess
             else
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak($"No matches for '{optionsTypeahead.LastFailedSearch}'.");
+                optionsTypeahead.SpeakNoMatches();
                 return true;
             }
         }
@@ -396,8 +395,7 @@ namespace RimWorldAccess
                 return;
 
             string name = options[optionsIndex].Label;
-            string searchInfo = $", {optionsTypeahead.CurrentMatchPosition} of {optionsTypeahead.MatchCount} matches for '{optionsTypeahead.SearchBuffer}'";
-            TolkHelper.Speak($"{name}{searchInfo}");
+            TolkHelper.Speak(optionsTypeahead.BuildItemAnnouncement(name));
         }
 
         public static void AnnounceCurrentOption()

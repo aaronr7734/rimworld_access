@@ -341,7 +341,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{factionTypeahead.LastFailedSearch}'");
+                factionTypeahead.SpeakNoMatches();
             }
             return true;
         }
@@ -414,7 +414,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{addMenuTypeahead.LastFailedSearch}'");
+                addMenuTypeahead.SpeakNoMatches();
             }
             return true;
         }
@@ -633,7 +633,7 @@ namespace RimWorldAccess
 
             if (factionTypeahead.HasActiveSearch)
             {
-                TolkHelper.Speak($"{faction.LabelCap}, {factionTypeahead.CurrentMatchPosition} of {factionTypeahead.MatchCount} matches for '{factionTypeahead.SearchBuffer}'");
+                TolkHelper.Speak(factionTypeahead.BuildItemAnnouncement(faction.LabelCap));
             }
             else
             {
@@ -678,7 +678,7 @@ namespace RimWorldAccess
             if (addMenuTypeahead.HasActiveSearch)
             {
                 string status = option.IsDisabled ? " (disabled)" : "";
-                TolkHelper.Speak($"{option.Faction.LabelCap}{status}, {addMenuTypeahead.CurrentMatchPosition} of {addMenuTypeahead.MatchCount} matches for '{addMenuTypeahead.SearchBuffer}'");
+                TolkHelper.Speak(addMenuTypeahead.BuildItemAnnouncement($"{option.Faction.LabelCap}{status}"));
             }
             else
             {

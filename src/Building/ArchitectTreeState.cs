@@ -273,7 +273,7 @@ namespace RimWorldAccess
         {
             if (typeahead.HasActiveSearch)
             {
-                return $"{item.Label}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
+                return typeahead.BuildItemAnnouncement(item.Label);
             }
             return FormatAnnouncement(item);
         }

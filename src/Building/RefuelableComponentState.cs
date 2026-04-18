@@ -272,7 +272,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+                typeahead.SpeakNoMatches();
             }
             return true;
         }
@@ -316,7 +316,7 @@ namespace RimWorldAccess
             if (options.Count == 0 || selectedIndex < 0 || selectedIndex >= options.Count) return;
             string label = options[selectedIndex].Label;
             if (typeahead.HasActiveSearch)
-                TolkHelper.Speak($"{label}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'");
+                TolkHelper.Speak(typeahead.BuildItemAnnouncement(label));
             else
                 AnnounceCurrentOption();
         }
