@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using RimWorld;
 using Verse;
+using Verse.Sound;
 
 namespace RimWorldAccess
 {
@@ -103,6 +105,19 @@ namespace RimWorldAccess
                 default: phrase = "Already at edge"; break;
             }
             TolkHelper.Speak(phrase, priority);
+        }
+
+        // ===== PAINT REJECT =====
+
+        /// <summary>
+        /// Announces that the current column cannot be painted and plays the
+        /// canonical reject sound. Used by tabular menus (Animals, Wildlife,
+        /// Mechs, Assign) when a user tries to paint a non-paintable column.
+        /// </summary>
+        public static void SpeakCannotPaintColumn(SpeechPriority priority = SpeechPriority.Normal)
+        {
+            SoundDefOf.ClickReject.PlayOneShotOnCamera();
+            TolkHelper.Speak("Cannot paint this column", priority);
         }
 
         // ===== NAVIGATION =====

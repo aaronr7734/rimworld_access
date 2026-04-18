@@ -738,8 +738,7 @@ namespace RimWorldAccess
             int col = tableHelper.CurrentColumnIndex;
             if (!MechsMenuHelper.CanPaintColumn(col))
             {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("Cannot paint this column");
+                MenuHelper.SpeakCannotPaintColumn();
                 return;
             }
 
@@ -874,8 +873,7 @@ namespace RimWorldAccess
             int col = tableHelper.CurrentColumnIndex;
             if (!MechsMenuHelper.CanPaintColumn(col))
             {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("Cannot paint this column");
+                MenuHelper.SpeakCannotPaintColumn();
                 return;
             }
 
