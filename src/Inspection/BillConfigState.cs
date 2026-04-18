@@ -873,7 +873,7 @@ namespace RimWorldAccess
             }
             if (bill.repeatCount == 1 && direction < 0)
             {
-                TolkHelper.Speak("1, minimum");
+                NumericStepperHelper.SpeakValueAtMinimum("1");
             }
             else
             {
@@ -912,7 +912,7 @@ namespace RimWorldAccess
             }
             if (bill.targetCount == 1 && direction < 0)
             {
-                TolkHelper.Speak("1, minimum");
+                NumericStepperHelper.SpeakValueAtMinimum("1");
             }
             else
             {
@@ -937,11 +937,11 @@ namespace RimWorldAccess
             }
             if (bill.unpauseWhenYouHave == 0 && direction < 0)
             {
-                TolkHelper.Speak("0, minimum");
+                NumericStepperHelper.SpeakValueAtMinimum("0");
             }
             else if (bill.unpauseWhenYouHave == maxValue && direction > 0)
             {
-                TolkHelper.Speak($"{bill.unpauseWhenYouHave}, maximum");
+                NumericStepperHelper.SpeakValueAtMaximum(bill.unpauseWhenYouHave.ToString());
             }
             else
             {
@@ -998,7 +998,7 @@ namespace RimWorldAccess
                         return;
                     }
                     bill.repeatCount = 1;
-                    TolkHelper.Speak("1, minimum");
+                    NumericStepperHelper.SpeakValueAtMinimum("1");
                     break;
 
                 case MenuItemType.TargetCount:
@@ -1012,7 +1012,7 @@ namespace RimWorldAccess
                     {
                         bill.unpauseWhenYouHave = 0;
                     }
-                    TolkHelper.Speak("1, minimum");
+                    NumericStepperHelper.SpeakValueAtMinimum("1");
                     break;
 
                 case MenuItemType.UnpauseAt:
@@ -1022,7 +1022,7 @@ namespace RimWorldAccess
                         return;
                     }
                     bill.unpauseWhenYouHave = 0;
-                    TolkHelper.Speak("0, minimum");
+                    NumericStepperHelper.SpeakValueAtMinimum("0");
                     break;
 
                 case MenuItemType.IngredientSearchRadius:
@@ -1032,7 +1032,7 @@ namespace RimWorldAccess
                         return;
                     }
                     bill.ingredientSearchRadius = 3f;
-                    TolkHelper.Speak("3, minimum");
+                    NumericStepperHelper.SpeakValueAtMinimum("3");
                     break;
 
                 case MenuItemType.SkillRangeMin:
@@ -1042,7 +1042,7 @@ namespace RimWorldAccess
                         return;
                     }
                     bill.allowedSkillRange = new IntRange(0, bill.allowedSkillRange.max);
-                    TolkHelper.Speak("0, minimum");
+                    NumericStepperHelper.SpeakValueAtMinimum("0");
                     break;
 
                 case MenuItemType.SkillRangeMax:
@@ -1052,7 +1052,7 @@ namespace RimWorldAccess
                         return;
                     }
                     bill.allowedSkillRange = new IntRange(bill.allowedSkillRange.min, bill.allowedSkillRange.min);
-                    TolkHelper.Speak($"{bill.allowedSkillRange.min}, minimum");
+                    NumericStepperHelper.SpeakValueAtMinimum(bill.allowedSkillRange.min.ToString());
                     break;
 
                 default:
@@ -1086,7 +1086,7 @@ namespace RimWorldAccess
                         return;
                     }
                     bill.targetCount = 999999;
-                    TolkHelper.Speak($"{"Infinite".Translate()}, maximum");
+                    NumericStepperHelper.SpeakValueAtMaximum("Infinite".Translate());
                     break;
 
                 case MenuItemType.UnpauseAt:
@@ -1097,7 +1097,7 @@ namespace RimWorldAccess
                         return;
                     }
                     bill.unpauseWhenYouHave = maxValue;
-                    TolkHelper.Speak($"{maxValue}, maximum");
+                    NumericStepperHelper.SpeakValueAtMaximum(maxValue.ToString());
                     break;
 
                 case MenuItemType.IngredientSearchRadius:
@@ -1107,7 +1107,7 @@ namespace RimWorldAccess
                         return;
                     }
                     bill.ingredientSearchRadius = 999f;
-                    TolkHelper.Speak("Unlimited, maximum");
+                    NumericStepperHelper.SpeakValueAtMaximum("Unlimited");
                     break;
 
                 case MenuItemType.SkillRangeMin:
@@ -1117,7 +1117,7 @@ namespace RimWorldAccess
                         return;
                     }
                     bill.allowedSkillRange = new IntRange(bill.allowedSkillRange.max, bill.allowedSkillRange.max);
-                    TolkHelper.Speak($"{bill.allowedSkillRange.max}, maximum");
+                    NumericStepperHelper.SpeakValueAtMaximum(bill.allowedSkillRange.max.ToString());
                     break;
 
                 case MenuItemType.SkillRangeMax:
@@ -1127,7 +1127,7 @@ namespace RimWorldAccess
                         return;
                     }
                     bill.allowedSkillRange = new IntRange(bill.allowedSkillRange.min, 20);
-                    TolkHelper.Speak("20, maximum");
+                    NumericStepperHelper.SpeakValueAtMaximum("20");
                     break;
 
                 default:
@@ -1400,7 +1400,7 @@ namespace RimWorldAccess
                     if (bill.ingredientSearchRadius >= 100f)
                     {
                         bill.ingredientSearchRadius = 999f;
-                        TolkHelper.Speak("Unlimited, maximum");
+                        NumericStepperHelper.SpeakValueAtMaximum("Unlimited");
                     }
                     else
                     {
@@ -1412,7 +1412,7 @@ namespace RimWorldAccess
                 {
                     // Shift+Ctrl+Down = jump to 3
                     bill.ingredientSearchRadius = 3f;
-                    TolkHelper.Speak("3, minimum");
+                    NumericStepperHelper.SpeakValueAtMinimum("3");
                 }
                 menuItems[selectedIndex].label = GetIngredientRadiusLabel();
                 return;
@@ -1434,7 +1434,7 @@ namespace RimWorldAccess
             if (bill.ingredientSearchRadius >= 100f && direction > 0 && oldValue >= 100f)
             {
                 bill.ingredientSearchRadius = 999f;
-                TolkHelper.Speak("Unlimited, maximum");
+                NumericStepperHelper.SpeakValueAtMaximum("Unlimited");
                 menuItems[selectedIndex].label = GetIngredientRadiusLabel();
                 return;
             }
@@ -1449,7 +1449,7 @@ namespace RimWorldAccess
             // Announce the new value
             if (bill.ingredientSearchRadius == 3f && direction < 0)
             {
-                TolkHelper.Speak("3, minimum");
+                NumericStepperHelper.SpeakValueAtMinimum("3");
             }
             else if (bill.ingredientSearchRadius >= 100f)
             {

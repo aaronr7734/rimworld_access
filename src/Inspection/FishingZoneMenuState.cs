@@ -709,7 +709,7 @@ namespace RimWorldAccess
 
             if (newValue == 1 && direction < 0)
             {
-                TolkHelper.Speak("1, minimum");
+                NumericStepperHelper.SpeakValueAtMinimum("1");
             }
             else
             {
@@ -752,7 +752,7 @@ namespace RimWorldAccess
 
             if (newValue == 1 && direction < 0)
             {
-                TolkHelper.Speak("1, minimum");
+                NumericStepperHelper.SpeakValueAtMinimum("1");
             }
             else
             {
@@ -783,11 +783,11 @@ namespace RimWorldAccess
 
             if (newValue == 0 && direction < 0)
             {
-                TolkHelper.Speak("0, minimum");
+                NumericStepperHelper.SpeakValueAtMinimum("0");
             }
             else if (newValue == maxValue && direction > 0)
             {
-                TolkHelper.Speak($"{newValue}, maximum");
+                NumericStepperHelper.SpeakValueAtMaximum(newValue.ToString());
             }
             else
             {
@@ -832,11 +832,11 @@ namespace RimWorldAccess
 
             if (Mathf.Approximately(newValue, minPct) && direction < 0)
             {
-                TolkHelper.Speak($"{pctInt}% ({fishAtThreshold} fish), minimum");
+                NumericStepperHelper.SpeakValueAtMinimum($"{pctInt}% ({fishAtThreshold} fish)");
             }
             else if (Mathf.Approximately(newValue, 1.0f) && direction > 0)
             {
-                TolkHelper.Speak($"{pctInt}% ({fishAtThreshold} fish), maximum");
+                NumericStepperHelper.SpeakValueAtMaximum($"{pctInt}% ({fishAtThreshold} fish)");
             }
             else
             {
@@ -869,7 +869,7 @@ namespace RimWorldAccess
                             return;
                         }
                         repeatCountField.SetValue(fishingZone, 1);
-                        TolkHelper.Speak("1, minimum");
+                        NumericStepperHelper.SpeakValueAtMinimum("1");
                         menuItems[selectedIndex].label = GetRepeatCountLabel();
                     }
                     break;
@@ -892,7 +892,7 @@ namespace RimWorldAccess
                                 unpauseAtCountField.SetValue(fishingZone, 0);
                             }
                         }
-                        TolkHelper.Speak("1, minimum");
+                        NumericStepperHelper.SpeakValueAtMinimum("1");
                         menuItems[selectedIndex].label = GetTargetCountLabel();
                     }
                     break;
@@ -907,7 +907,7 @@ namespace RimWorldAccess
                             return;
                         }
                         unpauseAtCountField.SetValue(fishingZone, 0);
-                        TolkHelper.Speak("0, minimum");
+                        NumericStepperHelper.SpeakValueAtMinimum("0");
                         menuItems[selectedIndex].label = GetUnpauseAtLabel();
                     }
                     break;
@@ -929,7 +929,7 @@ namespace RimWorldAccess
                         targetPopulationPctField.SetValue(fishingZone, minPct);
                         int pctInt = Mathf.RoundToInt(minPct * 100f);
                         int fishAtThreshold = Mathf.RoundToInt(minPct * maxPop);
-                        TolkHelper.Speak($"{pctInt}% ({fishAtThreshold} fish), minimum");
+                        NumericStepperHelper.SpeakValueAtMinimum($"{pctInt}% ({fishAtThreshold} fish)");
                         menuItems[selectedIndex].label = GetMinPopulationLabel();
                     }
                     break;
@@ -966,7 +966,7 @@ namespace RimWorldAccess
                             return;
                         }
                         unpauseAtCountField.SetValue(fishingZone, maxValue);
-                        TolkHelper.Speak($"{maxValue}, maximum");
+                        NumericStepperHelper.SpeakValueAtMaximum(maxValue.ToString());
                         menuItems[selectedIndex].label = GetUnpauseAtLabel();
                     }
                     break;
@@ -983,7 +983,7 @@ namespace RimWorldAccess
                         targetPopulationPctField.SetValue(fishingZone, 1.0f);
                         var waterBody = GetWaterBody();
                         int maxPop = waterBody != null ? Mathf.RoundToInt(waterBody.MaxPopulation) : 100;
-                        TolkHelper.Speak($"100% ({maxPop} fish), maximum");
+                        NumericStepperHelper.SpeakValueAtMaximum($"100% ({maxPop} fish)");
                         menuItems[selectedIndex].label = GetMinPopulationLabel();
                     }
                     break;
