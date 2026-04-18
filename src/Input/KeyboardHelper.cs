@@ -25,10 +25,42 @@ namespace RimWorldAccess
         /// True if a Ctrl-equivalent key is physically held down.
         /// On macOS, includes Cmd (Command) keys since Cmd is the primary modifier.
         /// Use instead of Input.GetKey(KeyCode.LeftControl) for cross-platform compatibility.
+        ///
+        /// Tab special case (cross-platform abstraction): on macOS, neither Cmd+Tab
+        /// (OS app switcher) nor physical Ctrl+Tab reaches Unity OnGUI — only
+        /// Alt+Tab (Option+Tab) is deliverable. So when the current event's key is
+        /// Tab and we're on macOS, this property treats Alt as the Ctrl substitute.
+        /// Net effect: code can write `if (key == KeyCode.Tab &amp;&amp; IsCtrlHeld)` and the
+        /// shortcut fires on Windows/Linux Ctrl+Tab and on macOS Option+Tab without
+        /// per-platform branching.
         /// </summary>
-        public static bool IsCtrlHeld =>
-            Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl) ||
-            (NativeLibraryLoader.IsMacOS && (Input.GetKey(KeyCode.LeftCommand) || Input.GetKey(KeyCode.RightCommand)));
+        public static bool IsCtrlHeld
+        {
+            get
+            {
+                if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
+                    return true;
+                if (!NativeLibraryLoader.IsMacOS)
+                    return false;
+                // Mac Tab substitution: Option (Alt) stands in for Ctrl when the
+                // current event's key is Tab, since Ctrl+Tab is undeliverable on Mac.
+                if (Event.current != null && Event.current.keyCode == KeyCode.Tab)
+                    return Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
+                // Outside the Tab special case, Cmd substitutes for Ctrl as usual.
+                return Input.GetKey(KeyCode.LeftCommand) || Input.GetKey(KeyCode.RightCommand);
+            }
+        }
+
+        /// <summary>
+        /// User-facing label for the Ctrl modifier on the current platform.
+        /// Use in tooltips/overlays so help text matches the keyboard the user has.
+        /// On macOS the displayed name is "Option" because the cross-platform Ctrl+Tab
+        /// shortcut maps to Option+Tab on Mac (see IsCtrlHeld); for non-Tab shortcuts,
+        /// you may want to use a literal label that matches your shortcut (e.g., Cmd
+        /// for Mac users who naturally substitute Cmd for Ctrl).
+        /// </summary>
+        public static string CtrlLabel =>
+            NativeLibraryLoader.IsMacOS ? "Option" : "Ctrl";
 
         // Tracks the frame when a real KeyCode.RightBracket was seen, so we don't
         // also remap the follow-up character event that Unity sends for the same keypress.
@@ -132,6 +164,8 @@ namespace RimWorldAccess
             // macOS: Remap Cmd → Ctrl so all Windows-style Ctrl shortcuts work with Cmd.
             // This runs before any other keyboard processing, so all downstream code
             // that checks Event.current.control will see Cmd presses as Ctrl.
+            // Note: Tab is a non-issue here — Cmd+Tab and Ctrl+Tab both never reach
+            // Unity on macOS, so all Tab-based shortcuts use Alt (Option) instead.
             if (NativeLibraryLoader.IsMacOS && (Event.current.modifiers & EventModifiers.Command) != 0)
             {
                 Event.current.modifiers |= EventModifiers.Control;

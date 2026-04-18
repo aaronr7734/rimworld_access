@@ -5060,6 +5060,7 @@ namespace RimWorldAccess
             {
                 // Don't intercept if any menu is active (keys 1-5 are used for tile info)
                 bool anyMenuActive = WorkMenuState.IsActive ||
+                                    WorkTableState.IsActive ||
                                     ShapeSelectionMenuState.IsActive ||
                                     ViewingModeState.IsActive ||
                                     ShapePlacementState.IsActive ||
@@ -5886,33 +5887,29 @@ namespace RimWorldAccess
                 // 1. We're in gameplay (not at main menu)
                 // 2. No windows are preventing camera motion (means a dialog is open)
                 // 3. Not in zone creation mode
-                // 4. Work menu is not already active
+                // 4. Neither work view is already active
                 // 5. No accessibility menu is active (they handle their own input)
                 if (Current.ProgramState == ProgramState.Playing &&
                     Find.CurrentMap != null &&
                     (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
                     !ZoneCreationState.IsInCreationMode &&
                     !WorkMenuState.IsActive &&
+                    !WorkTableState.IsActive &&
                     !KeyboardHelper.IsAnyAccessibilityMenuActive())
                 {
-                    // Prevent the default F1 key behavior
                     Event.current.Use();
 
-                    // If on the world map, switch to colony map first and restore cursor
                     if (WorldNavigationState.IsActive)
                     {
                         CameraJumper.TryHideWorld();
                         MapNavigationState.RestoreCursorForCurrentMap();
                     }
 
-                    // Get the selected pawn, or use first colonist if none selected
                     Pawn targetPawn = null;
                     if (Find.Selector != null && Find.Selector.NumSelected > 0)
                     {
                         targetPawn = Find.Selector.FirstSelectedObject as Pawn;
                     }
-
-                    // If no pawn selected, use first colonist
                     if (targetPawn == null && Find.CurrentMap.mapPawns.FreeColonists.Any())
                     {
                         targetPawn = Find.CurrentMap.mapPawns.FreeColonists.First();
@@ -5920,8 +5917,7 @@ namespace RimWorldAccess
 
                     if (targetPawn != null)
                     {
-                        // Open the work menu
-                        WorkMenuState.Open(targetPawn);
+                        WorkMenuOpener.OpenDefaultView(targetPawn);
                     }
                     else
                     {

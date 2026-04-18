@@ -56,6 +56,7 @@ namespace RimWorldAccess
                 MechControlGroupState.IsActive ||
                 RangeEditMenuState.IsActive ||
                 WorkMenuState.IsActive ||
+                WorkTableState.IsActive ||
                 AssignMenuState.IsActive ||
                 PolicyEditorState.IsActive ||
                 WindowlessAreaState.IsActive ||
