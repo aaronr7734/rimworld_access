@@ -4836,26 +4836,9 @@ namespace RimWorldAccess
                 }
             }
 
-            // ===== PRIORITY 4.8: Handle inspection menu if active =====
-            if (WindowlessInspectionState.IsActive)
-            {
-                if (WindowlessInspectionState.HandleInput(Event.current))
-                {
-                    return;
-                }
-            }
-
-            // ===== PRIORITY 4.805: Handle inventory menu if active =====
-            // Skip if float menu is open (e.g., right bracket context menu on inventory items)
-            if (WindowlessInventoryState.IsActive && !WindowlessFloatMenuState.IsActive)
-            {
-                if (WindowlessInventoryState.HandleInput(Event.current))
-                {
-                    return;
-                }
-            }
-
-            // ===== PRIORITY 4.85: Handle prisoner tab if active =====
+            // ===== PRIORITY 4.795: Handle prisoner tab if active =====
+            // Must be checked before inspection (4.8) because the prisoner tab opens
+            // as an overlay while the inspection tree stays active in the background.
             if (PrisonerTabState.IsActive)
             {
                 bool handled = false;
@@ -4900,6 +4883,25 @@ namespace RimWorldAccess
                 if (handled)
                 {
                     Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 4.8: Handle inspection menu if active =====
+            if (WindowlessInspectionState.IsActive)
+            {
+                if (WindowlessInspectionState.HandleInput(Event.current))
+                {
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 4.805: Handle inventory menu if active =====
+            // Skip if float menu is open (e.g., right bracket context menu on inventory items)
+            if (WindowlessInventoryState.IsActive && !WindowlessFloatMenuState.IsActive)
+            {
+                if (WindowlessInventoryState.HandleInput(Event.current))
+                {
                     return;
                 }
             }

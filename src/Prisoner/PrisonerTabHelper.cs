@@ -14,6 +14,7 @@ namespace RimWorldAccess
     {
         /// <summary>
         /// Gets comprehensive prisoner information including stats, resistance, and potential outcomes.
+        /// Uses vanilla translation keys so screen reader output follows the user's language.
         /// </summary>
         public static string GetPrisonerInfo(Pawn pawn)
         {
@@ -31,110 +32,119 @@ namespace RimWorldAccess
 
             bool wildMan = pawn.IsWildMan();
 
-            // Prison Break MTB
-            StringBuilder prisonBreakExplanation = new StringBuilder();
-            int prisonBreakMtb = (int)PrisonBreakUtility.InitiatePrisonBreakMtbDays(pawn, prisonBreakExplanation, ignoreAsleep: true);
-
+            // Prison Break MTB (vanilla uses "PrisonBreakMTBDays" key)
+            string prisonBreakLabel = "PrisonBreakMTBDays".Translate();
             if (PrisonBreakUtility.IsPrisonBreaking(pawn))
             {
-                sb.AppendLine($"\nPrison Break: Currently Prison Breaking!");
-            }
-            else if (prisonBreakMtb < 0)
-            {
-                sb.AppendLine($"\nPrison Break MTB: Never");
-                if (PrisonBreakUtility.GenePreventsPrisonBreaking(pawn, out var gene))
-                {
-                    sb.AppendLine($"  (Prevented by gene: {gene.def.LabelCap})");
-                }
+                sb.AppendLine($". {prisonBreakLabel}: {"CurrentlyPrisonBreaking".Translate()}");
             }
             else
             {
-                sb.AppendLine($"\nPrison Break MTB: {prisonBreakMtb} days");
-            }
-
-            if (!wildMan)
-            {
-                // Recruitment Resistance
-                if (pawn.guest.Recruitable)
+                int prisonBreakMtb = (int)PrisonBreakUtility.InitiatePrisonBreakMtbDays(pawn, null, ignoreAsleep: true);
+                if (prisonBreakMtb < 0)
                 {
-                    float resistance = (pawn.guest.resistance > 0f) ? System.Math.Max(0.1f, pawn.guest.resistance) : 0f;
-                    sb.AppendLine($"Recruitment Resistance: {resistance:F1}");
-
-                    // Add resistance range info
-                    var resistanceRange = pawn.kindDef.initialResistanceRange;
-                    if (resistanceRange != null)
+                    sb.AppendLine($". {prisonBreakLabel}: {"Never".Translate()}");
+                    if (PrisonBreakUtility.GenePreventsPrisonBreaking(pawn, out var gene))
                     {
-                        sb.AppendLine($"  (Initial range: {resistanceRange.Value.min}~{resistanceRange.Value.max})");
+                        sb.AppendLine($"  ({"PrisonBreakingDisabledDueToGene".Translate(gene.def.Named("GENE")).ToString().StripTags()})");
                     }
                 }
                 else
                 {
-                    sb.AppendLine($"Recruitment: Non-Recruitable");
+                    sb.AppendLine($". {prisonBreakLabel}: {"PeriodDays".Translate(prisonBreakMtb)}");
+                }
+            }
+
+            if (!wildMan)
+            {
+                string resistanceLabel = "RecruitmentResistance".Translate();
+                if (pawn.guest.Recruitable)
+                {
+                    float resistance = (pawn.guest.resistance > 0f) ? System.Math.Max(0.1f, pawn.guest.resistance) : 0f;
+                    sb.AppendLine($"{resistanceLabel}: {resistance:F1}");
+
+                    var resistanceRange = pawn.kindDef.initialResistanceRange;
+                    if (resistanceRange != null)
+                    {
+                        sb.AppendLine($"  ({"RecruitmentResistanceFromPawnKind".Translate(pawn.kindDef.LabelCap)}: {resistanceRange.Value.min}~{resistanceRange.Value.max})");
+                    }
+
+                    // Royalty title recruitment offset (vanilla ITab_Pawn_Visitor line 227-234)
+                    if (pawn.royalty != null)
+                    {
+                        RoyalTitle mostSeniorTitle = pawn.royalty.MostSeniorTitle;
+                        if (mostSeniorTitle != null && mostSeniorTitle.def.recruitmentResistanceOffset != 0f)
+                        {
+                            string sign = mostSeniorTitle.def.recruitmentResistanceOffset > 0f ? "+" : "";
+                            sb.AppendLine($"  ({"RecruitmentResistanceRoyalTitleOffset".Translate(mostSeniorTitle.Label.CapitalizeFirst())}: {sign}{mostSeniorTitle.def.recruitmentResistanceOffset})");
+                        }
+                    }
+                }
+                else
+                {
+                    sb.AppendLine($"{resistanceLabel}: {"NonRecruitable".Translate()}");
                 }
 
-                // Will Level (Ideology DLC)
                 if (ModsConfig.IdeologyActive)
                 {
-                    sb.AppendLine($"Will Level: {pawn.guest.will:F1}");
+                    sb.AppendLine($"{"WillLevel".Translate()}: {pawn.guest.will:F1}");
                     if (!pawn.guest.EverEnslaved)
                     {
                         var willRange = pawn.kindDef.initialWillRange;
                         if (willRange != null)
                         {
-                            sb.AppendLine($"  (Initial range: {willRange.Value.min}~{willRange.Value.max})");
+                            sb.AppendLine($"  ({"WillFromPawnKind".Translate(pawn.kindDef.LabelCap)}: {willRange.Value.min}~{willRange.Value.max})");
                         }
                     }
                 }
             }
 
-            // Slave Price
+            // Slave Price (vanilla DoSlavePriceListing)
             float marketValue = pawn.GetStatValue(StatDefOf.MarketValue);
-            sb.AppendLine($"Slave Price: {marketValue:F0} silver");
+            sb.AppendLine($"{"SlavePrice".Translate()}: {marketValue.ToStringMoney()}");
 
-            // Study Info (Anomaly DLC)
+            // Study info (Anomaly DLC) — vanilla calls ITab_Entity.DoStudyPeriodListing / DoKnowledgeGainListing
             if (IsStudiable(pawn))
             {
                 var compStudiable = pawn.TryGetComp<CompStudiable>();
                 if (compStudiable != null)
                 {
-                    sb.AppendLine($"Studiable: Yes");
+                    AppendStudyInfo(sb, compStudiable);
                 }
             }
 
-            // Release Potential Relations
-            string releaseRelations = GetReleaseRelationGainsText(pawn);
-            sb.AppendLine($"Release Relation Gains: {releaseRelations}");
+            // Release Potential Relations (vanilla "PrisonerReleasePotentialRelationGains")
+            sb.AppendLine($"{"PrisonerReleasePotentialRelationGains".Translate()}: {GetReleaseRelationGainsText(pawn)}");
 
-            // Guilty Status
+            // Guilty Status (vanilla "ConsideredGuilty" / "ConsideredGuiltyNoTimer")
             if (pawn.guilt.IsGuilty)
             {
                 if (!pawn.InAggroMentalState)
                 {
                     string timeUntilInnocent = pawn.guilt.TicksUntilInnocent.ToStringTicksToPeriod();
-                    sb.AppendLine($"Guilty: {timeUntilInnocent} until innocent");
+                    sb.AppendLine("ConsideredGuilty".Translate(timeUntilInnocent).ToString().StripTags());
                 }
                 else
                 {
-                    sb.AppendLine($"Guilty: No timer (in {pawn.MentalStateDef.label})");
+                    sb.AppendLine($"{"ConsideredGuiltyNoTimer".Translate()} ({pawn.MentalStateDef.label})");
                 }
             }
 
-            // Ideology Conversion Target
+            // Ideology Conversion Target (vanilla "IdeoConversionTarget")
             if (ModsConfig.IdeologyActive && pawn.guest.IsInteractionEnabled(PrisonerInteractionModeDefOf.Convert) && pawn.guest.ideoForConversion != null)
             {
-                sb.AppendLine($"Ideo Conversion Target: {pawn.guest.ideoForConversion.name}");
+                sb.AppendLine($"{"IdeoConversionTarget".Translate()}: {pawn.guest.ideoForConversion.name}");
             }
 
-            // Last Recruitment Stats
+            // Last Recruitment Stats (vanilla "LastRecruitment", "Mood", "RecruiterNegotiationAbility", "OpinionOfRecruiter")
             if (pawn.guest.finalResistanceInteractionData != null)
             {
                 var data = pawn.guest.finalResistanceInteractionData;
-                sb.AppendLine($"\nLast Recruitment:");
-                sb.AppendLine($"  Resistance Reduction: {data.resistanceReduction:F2}");
-                sb.AppendLine($"  Recruiter: {data.initiatorName}");
-                sb.AppendLine($"  Mood Factor: x{data.recruiteeMoodFactor:F2}");
-                sb.AppendLine($"  Negotiation Ability: x{data.initiatorNegotiationAbilityFactor:F2}");
-                sb.AppendLine($"  Opinion Factor: x{data.recruiterOpinionFactor:F2}");
+                sb.AppendLine($". {"LastRecruitment".Translate()}: {data.resistanceReduction.ToStringByStyle(ToStringStyle.FloatTwo)}");
+                sb.AppendLine($"  {data.initiatorName}");
+                sb.AppendLine($"  {"Mood".Translate()}: x{data.recruiteeMoodFactor.ToStringByStyle(ToStringStyle.FloatTwo)}");
+                sb.AppendLine($"  {"RecruiterNegotiationAbility".Translate()}: x{data.initiatorNegotiationAbilityFactor.ToStringByStyle(ToStringStyle.FloatTwo)}");
+                sb.AppendLine($"  {"OpinionOfRecruiter".Translate()}: x{data.recruiterOpinionFactor.ToStringByStyle(ToStringStyle.FloatTwo)}");
             }
 
             return sb.ToString().TrimEnd();
@@ -142,6 +152,7 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Gets comprehensive slave information including suppression, terror, and rebellion likelihood.
+        /// Uses vanilla translation keys so screen reader output follows the user's language.
         /// </summary>
         public static string GetSlaveInfo(Pawn pawn)
         {
@@ -157,44 +168,46 @@ namespace RimWorldAccess
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"{pawn.LabelShort} - Slave");
 
-            // Suppression
+            // Suppression (vanilla "Suppression")
             if (pawn.needs.TryGetNeed(out Need_Suppression suppressionNeed))
             {
-                float suppressionLevel = suppressionNeed.CurLevel;
-                sb.AppendLine($"\nSuppression: {suppressionLevel:P0}");
+                sb.AppendLine($". {"Suppression".Translate()}: {suppressionNeed.CurLevel.ToStringPercent()}");
             }
 
-            // Suppression Fall Rate
+            // Suppression Fall Rate (vanilla "SuppressionFallRate")
             float fallRate = pawn.GetStatValue(StatDefOf.SlaveSuppressionFallRate);
-            sb.AppendLine($"Suppression Fall Rate: {fallRate:P1} per day");
+            sb.AppendLine($"{"SuppressionFallRate".Translate()}: {StatDefOf.SlaveSuppressionFallRate.ValueToString(fallRate)}");
 
-            // Terror
+            // Terror (vanilla "Terror")
             float terror = pawn.GetStatValue(StatDefOf.Terror);
-            sb.AppendLine($"Terror: {terror:P0}");
+            sb.AppendLine($"{"Terror".Translate()}: {terror.ToStringPercent()}");
 
-            // Slave Rebellion MTB
-            float rebellionMtb = SlaveRebellionUtility.InitiateSlaveRebellionMtbDays(pawn);
+            // Slave Rebellion MTB (vanilla "SlaveRebellionMTBDays")
+            string rebellionLabel = "SlaveRebellionMTBDays".Translate();
             if (!pawn.Awake())
             {
-                sb.AppendLine($"Slave Rebellion MTB: Not while asleep");
-            }
-            else if (rebellionMtb < 0f)
-            {
-                sb.AppendLine($"Slave Rebellion MTB: Never");
+                sb.AppendLine($"{rebellionLabel}: {"NotWhileAsleep".Translate()}");
             }
             else
             {
-                string period = ((int)(rebellionMtb * 60000f)).ToStringTicksToPeriod();
-                sb.AppendLine($"Slave Rebellion MTB: {period}");
+                float rebellionMtb = SlaveRebellionUtility.InitiateSlaveRebellionMtbDays(pawn);
+                if (rebellionMtb < 0f)
+                {
+                    sb.AppendLine($"{rebellionLabel}: {"Never".Translate()}");
+                }
+                else
+                {
+                    string period = ((int)(rebellionMtb * 60000f)).ToStringTicksToPeriod();
+                    sb.AppendLine($"{rebellionLabel}: {period}");
+                }
             }
 
-            // Slave Price
+            // Slave Price (vanilla "SlavePrice")
             float marketValue = pawn.GetStatValue(StatDefOf.MarketValue);
-            sb.AppendLine($"Slave Price: {marketValue:F0} silver");
+            sb.AppendLine($"{"SlavePrice".Translate()}: {marketValue.ToStringMoney()}");
 
-            // Release Potential Relations
-            string releaseRelations = GetSlaveReleaseRelationGainsText(pawn);
-            sb.AppendLine($"Release Relation Gains: {releaseRelations}");
+            // Release Potential Relations (vanilla "SlaveReleasePotentialRelationGains")
+            sb.AppendLine($"{"SlaveReleasePotentialRelationGains".Translate()}: {GetSlaveReleaseRelationGainsText(pawn)}");
 
             return sb.ToString().TrimEnd();
         }
@@ -234,25 +247,12 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets the label for a medical care level.
+        /// Gets the label for a medical care level via the vanilla MedicalCareUtility accessor,
+        /// which uses per-level translation keys ("MedicalCareCategory_NoCare", etc.).
         /// </summary>
         public static string GetMedicalCareLabel(MedicalCareCategory category)
         {
-            switch (category)
-            {
-                case MedicalCareCategory.NoCare:
-                    return "No Care";
-                case MedicalCareCategory.NoMeds:
-                    return "No Meds";
-                case MedicalCareCategory.HerbalOrWorse:
-                    return "Herbal or Worse";
-                case MedicalCareCategory.NormalOrWorse:
-                    return "Normal or Worse";
-                case MedicalCareCategory.Best:
-                    return "Best";
-                default:
-                    return category.ToString();
-            }
+            return category.GetLabel();
         }
 
         /// <summary>
@@ -301,25 +301,25 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Gets a description of the interaction mode with warnings if needed.
+        /// Warnings reuse vanilla message keys so they localize correctly.
         /// </summary>
         public static string GetInteractionModeDescription(Pawn pawn, PrisonerInteractionModeDef mode)
         {
             string description = mode.description ?? mode.LabelCap;
 
-            // Add warnings
             if (mode == PrisonerInteractionModeDefOf.Enslave && pawn.MapHeld != null && !ColonyHasAnyWardenCapableOfEnslavement(pawn.MapHeld))
             {
-                description += "\n[WARNING: No warden capable of enslavement]";
+                description += ". " + "MessageNoWardenCapableOfEnslavement".Translate();
             }
 
             if (mode == PrisonerInteractionModeDefOf.Execution && pawn.MapHeld != null && !ColonyHasAnyWardenCapableOfViolence(pawn.MapHeld))
             {
-                description += "\n[WARNING: No warden capable of violence]";
+                description += ". " + "MessageCantDoExecutionBecauseNoWardenCapableOfViolence".Translate();
             }
 
             if (mode == PrisonerInteractionModeDefOf.Convert && pawn.guest.ideoForConversion != null && pawn.MapHeld != null && !ColonyHasAnyWardenOfIdeo(pawn.guest.ideoForConversion, pawn.MapHeld))
             {
-                description += $"\n[WARNING: No warden of {pawn.guest.ideoForConversion.name}]";
+                description += ". " + "NoWardenOfIdeo".Translate(pawn.guest.ideoForConversion.memberName.Named("MEMBERNAME"));
             }
 
             return description;
@@ -327,25 +327,25 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Gets a description of the slave interaction mode.
+        /// Emancipate tooltips reuse vanilla's EmancipateXxxTooltip keys.
         /// </summary>
         public static string GetSlaveInteractionModeDescription(Pawn pawn, SlaveInteractionModeDef mode)
         {
             string description = mode.description ?? mode.LabelCap;
 
-            // Add specific emancipation info
             if (mode == SlaveInteractionModeDefOf.Emancipate)
             {
                 if (pawn.SlaveFaction == Faction.OfPlayer)
                 {
-                    description += " (Will become colonist)";
+                    description += " " + "EmancipateCololonistTooltip".Translate();
                 }
                 else if (pawn.SlaveFaction == null)
                 {
-                    description += " (Will become free, no faction)";
+                    description += " " + "EmancipateNonCololonistWithoutFactionTooltip".Translate();
                 }
                 else
                 {
-                    description += $" (Will return to {pawn.SlaveFaction.Name})";
+                    description += " " + "EmancipateNonCololonistWithFactionTooltip".Translate(pawn.SlaveFaction.Name);
                 }
             }
 
@@ -364,6 +364,42 @@ namespace RimWorldAccess
         }
 
         #region Private Helper Methods
+
+        /// <summary>
+        /// Appends Anomaly DLC study period and knowledge gain info using the same translation
+        /// keys vanilla ITab_Entity.DoStudyPeriodListing / DoKnowledgeGainListing use.
+        /// </summary>
+        private static void AppendStudyInfo(StringBuilder sb, CompStudiable studiable)
+        {
+            // Study interval (vanilla "StudyInterval")
+            if (studiable.Props.frequencyTicks > 0)
+            {
+                sb.AppendLine($"{"StudyInterval".Translate()}: {studiable.Props.frequencyTicks.ToStringTicksToPeriod()}");
+            }
+
+            // Knowledge gain per study (vanilla "StudyKnowledgeGain" with category label)
+            float knowledgePerStudy = studiable.AdjustedAnomalyKnowledgePerStudy * 5f;
+            string knowledgeCategoryLabel = studiable.KnowledgeCategory?.label ?? "";
+            sb.AppendLine($"{"StudyKnowledgeGain".Translate()}: {knowledgePerStudy.ToStringDecimalIfSmall()} ({knowledgeCategoryLabel})");
+
+            // Multiplier breakdown (containment, electroharvester, activity)
+            var compHoldingPlatformTarget = studiable.Pawn.TryGetComp<CompHoldingPlatformTarget>();
+            if (compHoldingPlatformTarget != null && compHoldingPlatformTarget.CurrentlyHeldOnPlatform)
+            {
+                var holderComp = compHoldingPlatformTarget.HeldPlatform.GetComp<CompEntityHolder>();
+                float containmentMultiplier = ContainmentUtility.GetStudyKnowledgeAmountMultiplier(studiable.Pawn, holderComp);
+                sb.AppendLine($"  {"FactorContainmentStrength".Translate()}: x{containmentMultiplier:F1}");
+
+                if (compHoldingPlatformTarget.HeldPlatform.HasAttachedElectroharvester)
+                {
+                    sb.AppendLine($"  {"FactorElectroharvester".Translate()}: x0.5");
+                }
+            }
+            if (studiable.Pawn.TryGetComp<CompActivity>(out var compActivity))
+            {
+                sb.AppendLine($"  {"FactorActivity".Translate()}: x{compActivity.ActivityResearchFactor:F1}");
+            }
+        }
 
         private static bool CanUsePrisonerInteractionMode(Pawn pawn, PrisonerInteractionModeDef mode, bool wildMan)
         {
@@ -420,38 +456,25 @@ namespace RimWorldAccess
 
         private static string GetReleaseRelationGainsText(Pawn pawn)
         {
-            if (pawn.Faction == null || pawn.Faction.IsPlayer || !pawn.Faction.CanChangeGoodwillFor(Faction.OfPlayer, 1))
-            {
-                return "None";
-            }
-
-            bool isHealthy;
-            bool isInMentalState;
-            int goodwillChange = pawn.Faction.CalculateAdjustedGoodwillChange(
-                Faction.OfPlayer,
-                pawn.Faction.GetGoodwillGainForExit(pawn, freed: true, out isHealthy, out isInMentalState));
-
-            if (isHealthy && !isInMentalState)
-            {
-                return $"{pawn.Faction.Name} {goodwillChange:+0;-0}";
-            }
-            else if (!isHealthy)
-            {
-                return "None (Untended Injury)";
-            }
-            else
-            {
-                return $"None ({pawn.MentalState.InspectLine})";
-            }
+            return FormatReleaseRelationGains(pawn, pawn.Faction);
         }
 
         private static string GetSlaveReleaseRelationGainsText(Pawn pawn)
         {
-            Faction faction = pawn.SlaveFaction ?? pawn.Faction;
+            return FormatReleaseRelationGains(pawn, pawn.SlaveFaction ?? pawn.Faction);
+        }
+
+        /// <summary>
+        /// Formats release relation gain text using vanilla "None" and "UntendedInjury" keys,
+        /// matching the logic in ITab_Pawn_Visitor.DoPrisonerTab / DoSlaveTab.
+        /// </summary>
+        private static string FormatReleaseRelationGains(Pawn pawn, Faction faction)
+        {
+            string none = "None".Translate();
 
             if (faction == null || faction.IsPlayer || !faction.CanChangeGoodwillFor(Faction.OfPlayer, 1))
             {
-                return "None";
+                return none;
             }
 
             bool isHealthy;
@@ -462,16 +485,13 @@ namespace RimWorldAccess
 
             if (isHealthy && !isInMentalState)
             {
-                return $"{faction.Name} {goodwillChange:+0;-0}";
+                return $"{faction.Name} {goodwillChange.ToStringWithSign()}";
             }
-            else if (!isHealthy)
+            if (!isHealthy)
             {
-                return "None (Untended Injury)";
+                return $"{none} ({"UntendedInjury".Translate()})";
             }
-            else
-            {
-                return $"None ({pawn.MentalState.InspectLine})";
-            }
+            return $"{none} ({pawn.MentalState.InspectLine})";
         }
 
         private static bool ColonyHasAnyBloodfeeder(Map map)
