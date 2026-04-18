@@ -1124,7 +1124,7 @@ namespace RimWorldAccess
                 // Ensure label ends with punctuation for a pause before state indicator
                 if (!label.EndsWith(".") && !label.EndsWith("!") && !label.EndsWith("?"))
                     label += ".";
-                stateIndicator = item.IsExpanded ? " expanded" : " collapsed";
+                stateIndicator = TreeNavigationHelper.FormatExpansionSpaceSuffix(item);
             }
 
             var treeNav = GetTreeNavForItem(item);
@@ -1145,7 +1145,7 @@ namespace RimWorldAccess
         private static string FormatTreeSearchAnnouncement(InspectionTreeItem item, TypeaheadSearchHelper typeahead)
         {
             string label = item.Label.StripTags();
-            string stateIndicator = item.IsExpandable ? (item.IsExpanded ? " expanded" : " collapsed") : "";
+            string stateIndicator = TreeNavigationHelper.FormatExpansionSpaceSuffix(item);
 
             return $"{label}{stateIndicator}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
         }

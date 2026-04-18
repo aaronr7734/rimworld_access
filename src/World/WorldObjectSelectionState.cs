@@ -432,11 +432,7 @@ namespace RimWorldAccess
             string label = item.Label.StripTags();
 
             // State indicator for expandable items
-            string stateIndicator = "";
-            if (item.IsExpandable)
-            {
-                stateIndicator = item.IsExpanded ? " expanded" : " collapsed";
-            }
+            string stateIndicator = TreeNavigationHelper.FormatExpansionSpaceSuffix(item);
 
             // Position among siblings
             var (position, total) = treeNav.GetSiblingPosition(item);

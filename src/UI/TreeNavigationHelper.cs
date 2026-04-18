@@ -797,18 +797,7 @@ namespace RimWorldAccess
             // so the user doesn't hear the full summary on every expand/collapse
             if (!string.IsNullOrEmpty(item.ExpandedLabel))
             {
-                string shortLabel = item.ExpandedLabel;
-                string state = item.IsExpanded ? "expanded" : "collapsed";
-                if (AnnounceChildCounts)
-                {
-                    int childCount = item.Children.Count;
-                    string childWord = childCount == 1 ? "item" : "items";
-                    TolkHelper.Speak($"{shortLabel}, {state}, {childCount} {childWord}");
-                }
-                else
-                {
-                    TolkHelper.Speak($"{shortLabel}, {state}");
-                }
+                TolkHelper.Speak(item.ExpandedLabel + FormatExpansionSuffix(item, AnnounceChildCounts));
                 return;
             }
 
@@ -846,21 +835,7 @@ namespace RimWorldAccess
             else
                 label = item.Label.TrimEnd('.', '!', '?');
 
-            string stateIndicator = "";
-            if (item.IsExpandable)
-            {
-                string state = item.IsExpanded ? "expanded" : "collapsed";
-                if (AnnounceChildCounts)
-                {
-                    int childCount = item.Children.Count;
-                    string childWord = childCount == 1 ? "item" : "items";
-                    stateIndicator = $", {state}, {childCount} {childWord}";
-                }
-                else
-                {
-                    stateIndicator = $", {state}";
-                }
-            }
+            string stateIndicator = FormatExpansionSuffix(item, AnnounceChildCounts);
 
             var (position, total) = GetSiblingPosition(item);
             string positionPart = MenuHelper.FormatPosition(position - 1, total);
@@ -884,12 +859,54 @@ namespace RimWorldAccess
             else
                 label = item.Label.TrimEnd('.', '!', '?');
 
-            string stateIndicator = "";
-            if (item.IsExpandable)
-                stateIndicator = item.IsExpanded ? ", expanded" : ", collapsed";
+            string stateIndicator = FormatExpansionSuffix(item);
 
             string searchInfo = $", {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
             return $"{label}{stateIndicator}{searchInfo}";
+        }
+
+        #endregion
+
+        #region Expansion State Formatting
+
+        /// <summary>
+        /// Returns the bare expansion state word ("expanded" or "collapsed") for an
+        /// expandable item, or an empty string if not expandable. Keeps the localizable
+        /// vocabulary in one place so callers don't hand-roll the ternary.
+        /// </summary>
+        public static string GetExpansionStateWord(InspectionTreeItem item)
+        {
+            if (item == null || !item.IsExpandable) return "";
+            return item.IsExpanded ? "expanded" : "collapsed";
+        }
+
+        /// <summary>
+        /// Returns a formatted expansion-state suffix suitable for appending to an
+        /// announcement. Returns an empty string if the item is not expandable.
+        /// With default args the result is ", expanded" or ", collapsed". When
+        /// <paramref name="includeChildCount"/> is true, the child count is appended
+        /// on both expanded and collapsed nodes (", expanded, 3 items" / ", collapsed, 3 items").
+        /// </summary>
+        public static string FormatExpansionSuffix(InspectionTreeItem item, bool includeChildCount = false)
+        {
+            string state = GetExpansionStateWord(item);
+            if (string.IsNullOrEmpty(state)) return "";
+            if (includeChildCount)
+            {
+                int n = item.Children.Count;
+                return $", {state}, {n} {(n == 1 ? "item" : "items")}";
+            }
+            return $", {state}";
+        }
+
+        /// <summary>
+        /// Returns a space-prefixed expansion-state suffix: " expanded" or " collapsed",
+        /// or an empty string if the item is not expandable.
+        /// </summary>
+        public static string FormatExpansionSpaceSuffix(InspectionTreeItem item)
+        {
+            string state = GetExpansionStateWord(item);
+            return string.IsNullOrEmpty(state) ? "" : " " + state;
         }
 
         #endregion

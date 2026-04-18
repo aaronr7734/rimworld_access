@@ -53,12 +53,7 @@ namespace RimWorldAccess
             var sb = new StringBuilder();
             sb.Append(item.Label);
 
-            if (item.IsExpandable)
-            {
-                string state = item.IsExpanded ? "expanded" : "collapsed";
-                int childCount = item.Children.Count;
-                sb.Append($". {state}, {childCount} items");
-            }
+            sb.Append(TreeNavigationHelper.FormatExpansionSuffix(item, includeChildCount: true));
 
             var (pos, total) = presetsTreeNav.GetSiblingPosition(item);
             sb.Append($". {pos} of {total}");

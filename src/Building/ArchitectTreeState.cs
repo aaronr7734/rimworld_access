@@ -239,9 +239,9 @@ namespace RimWorldAccess
             if (item.Type == InspectionTreeItem.ItemType.Category)
             {
                 // Categories: "Label, expanded/collapsed. position."
-                string expandState = item.IsExpanded ? "expanded" : "collapsed";
+                string stateSuffix = TreeNavigationHelper.FormatExpansionSuffix(item);
                 string positionSection = string.IsNullOrEmpty(positionPart) ? "." : $". {positionPart}.";
-                announcement = $"{item.Label}, {expandState}{positionSection}";
+                announcement = $"{item.Label}{stateSuffix}{positionSection}";
             }
             else
             {

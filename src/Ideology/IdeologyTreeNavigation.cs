@@ -76,14 +76,7 @@ namespace RimWorldAccess
                 label = item.Label.TrimEnd('.', '!', '?');
             }
 
-            string stateIndicator = "";
-            if (item.IsExpandable)
-            {
-                string state = item.IsExpanded ? "expanded" : "collapsed";
-                int childCount = item.Children.Count;
-                string childWord = childCount == 1 ? "item" : "items";
-                stateIndicator = $", {state}, {childCount} {childWord}";
-            }
+            string stateIndicator = TreeNavigationHelper.FormatExpansionSuffix(item, includeChildCount: true);
 
             var (position, total) = treeNav.GetSiblingPosition(item);
             string positionPart = MenuHelper.FormatPosition(position - 1, total);
@@ -104,11 +97,7 @@ namespace RimWorldAccess
             int sepIdx = item.Label.IndexOf(". ");
             string shortLabel = sepIdx > 0 ? item.Label.Substring(0, sepIdx) : item.Label.TrimEnd('.', '!', '?');
 
-            string state = item.IsExpanded ? "expanded" : "collapsed";
-            int childCount = item.Children.Count;
-            string childWord = childCount == 1 ? "item" : "items";
-
-            return $"{shortLabel}, {state}, {childCount} {childWord}";
+            return $"{shortLabel}{TreeNavigationHelper.FormatExpansionSuffix(item, includeChildCount: true)}";
         }
 
         private string FormatSearchAnnouncement(InspectionTreeItem item, TypeaheadSearchHelper typeahead)
@@ -130,12 +119,7 @@ namespace RimWorldAccess
             {
                 var firstItem = treeNav.VisibleItems[0];
 
-                string stateIndicator = "";
-                if (firstItem.IsExpandable)
-                {
-                    string state = firstItem.IsExpanded ? "expanded" : "collapsed";
-                    stateIndicator = $", {state}, {firstItem.Children.Count} {(firstItem.Children.Count == 1 ? "item" : "items")}";
-                }
+                string stateIndicator = TreeNavigationHelper.FormatExpansionSuffix(firstItem, includeChildCount: true);
 
                 var (pos, total) = treeNav.GetSiblingPosition(firstItem);
                 string position = MenuHelper.FormatPosition(pos - 1, total);

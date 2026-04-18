@@ -732,9 +732,9 @@ namespace RimWorldAccess
             sb.Append(item.Label.TrimEnd('.', '!', '?'));
 
             // Add expand/collapse state for expandable categories
-            if (nodeType == DetailNodeType.Category && item.IsExpandable)
+            if (nodeType == DetailNodeType.Category)
             {
-                sb.Append(item.IsExpanded ? " expanded" : " collapsed");
+                sb.Append(TreeNavigationHelper.FormatExpansionSpaceSuffix(item));
             }
 
             // Add position

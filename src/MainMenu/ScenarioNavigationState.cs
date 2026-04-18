@@ -917,12 +917,10 @@ namespace RimWorldAccess
             if (item.IsExpandable)
             {
                 // Expandable items: "Label, collapsed/expanded, N items. position."
-                string expandState = item.IsExpanded ? "expanded" : "collapsed";
-                int childCount = item.Children.Count;
-                string itemCountStr = childCount == 1 ? "1 item" : $"{childCount} items";
+                string stateSuffix = TreeNavigationHelper.FormatExpansionSuffix(item, includeChildCount: true);
                 string positionSection = string.IsNullOrEmpty(positionPart) ? "" : $" ({positionPart})";
 
-                announcement = $"{item.Label}, {expandState}, {itemCountStr}.{positionSection}";
+                announcement = $"{item.Label}{stateSuffix}.{positionSection}";
             }
             else
             {

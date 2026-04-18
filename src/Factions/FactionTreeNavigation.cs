@@ -63,11 +63,7 @@ namespace RimWorldAccess
                 var firstItem = treeNav.VisibleItems[0];
                 FactionHelper.AppendSentence(sb, firstItem.Label);
 
-                if (firstItem.IsExpandable)
-                {
-                    string state = firstItem.IsExpanded ? "expanded" : "collapsed";
-                    sb.Append($", {state}, {firstItem.Children.Count} {(firstItem.Children.Count == 1 ? "item" : "items")}");
-                }
+                sb.Append(TreeNavigationHelper.FormatExpansionSuffix(firstItem, includeChildCount: true));
 
                 var (pos, total) = treeNav.GetSiblingPosition(firstItem);
                 string position = MenuHelper.FormatPosition(pos - 1, total);

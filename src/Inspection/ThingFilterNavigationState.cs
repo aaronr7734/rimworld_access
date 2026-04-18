@@ -850,7 +850,7 @@ namespace RimWorldAccess
                             catNode.catDef, currentFilter, td => ThingFilterHelper.IsVisible(td, parentFilter));
                         categorySummary = ThingFilterHelper.FormatCategorySummary(summary);
                     }
-                    string categoryExpanded = item.IsExpanded ? "expanded" : "collapsed";
+                    string categoryExpanded = TreeNavigationHelper.GetExpansionStateWord(item);
                     string categoryDesc = string.IsNullOrEmpty(item.Description) ? "" : $" {item.Description}";
                     return $"{cleanLabel}. {categorySummary}, {categoryExpanded}.{categoryDesc} {posStr}{suffix}";
 
@@ -892,7 +892,7 @@ namespace RimWorldAccess
                             searchCatNode.catDef, currentFilter, td => ThingFilterHelper.IsVisible(td, parentFilter));
                         searchCatState = ThingFilterHelper.FormatCategorySummary(searchSummary);
                     }
-                    string searchCatExpand = item.IsExpanded ? "expanded" : "collapsed";
+                    string searchCatExpand = TreeNavigationHelper.GetExpansionStateWord(item);
                     stateStr = $" {searchCatState}, {searchCatExpand}";
                     break;
                 case NodeType.Slider:

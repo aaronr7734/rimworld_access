@@ -504,9 +504,9 @@ namespace RimWorldAccess
             string announcement = item.Label;
 
             // Add state for expandable nodes (categories)
-            if (item.Type == InspectionTreeItem.ItemType.Category && item.IsExpandable)
+            if (item.Type == InspectionTreeItem.ItemType.Category)
             {
-                announcement += item.IsExpanded ? " expanded" : " collapsed";
+                announcement += TreeNavigationHelper.FormatExpansionSpaceSuffix(item);
             }
 
             // Add sibling position (X of Y among siblings at same level)

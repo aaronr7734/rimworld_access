@@ -366,7 +366,7 @@ namespace RimWorldAccess
             {
                 var firstItem = treeNav.VisibleItems[0];
                 string firstLabel = firstItem.Label.StripTags();
-                string state = firstItem.IsExpandable ? (firstItem.IsExpanded ? "expanded" : "collapsed") : "";
+                string state = TreeNavigationHelper.GetExpansionStateWord(firstItem);
                 sb.Append($"First gene: {firstLabel}");
                 if (!string.IsNullOrEmpty(state))
                     sb.Append($" {state}");
@@ -393,11 +393,7 @@ namespace RimWorldAccess
                 string label = item.Label.StripTags().TrimEnd('.', '!', '?');
 
                 // Build state indicator (only for expandable items)
-                string stateIndicator = "";
-                if (item.IsExpandable)
-                {
-                    stateIndicator = item.IsExpanded ? " expanded" : " collapsed";
-                }
+                string stateIndicator = TreeNavigationHelper.FormatExpansionSpaceSuffix(item);
 
                 // Get sibling position
                 var (position, total) = treeNav.GetSiblingPosition(item);
@@ -428,11 +424,7 @@ namespace RimWorldAccess
         {
             string label = item.Label.StripTags();
 
-            string stateIndicator = "";
-            if (item.IsExpandable)
-            {
-                stateIndicator = item.IsExpanded ? " expanded" : " collapsed";
-            }
+            string stateIndicator = TreeNavigationHelper.FormatExpansionSpaceSuffix(item);
 
             string announcement = $"{label}{stateIndicator}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
             return announcement;

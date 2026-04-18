@@ -3044,7 +3044,7 @@ namespace RimWorldAccess
                 string itemLabel = StripTrailingPunctuation(item.Label);
                 if (item.IsExpandable)
                 {
-                    string state = item.IsExpanded ? "expanded" : "collapsed";
+                    string state = TreeNavigationHelper.GetExpansionStateWord(item);
                     int fieldCount = data.ListItemData?.Fields.Count ?? 0;
                     string fieldCountStr = fieldCount == 1 ? "1 field" : $"{fieldCount} fields";
                     announcement = $"{itemLabel}, {state}, {fieldCountStr}. Press Delete to remove.";
@@ -3087,7 +3087,7 @@ namespace RimWorldAccess
 
                 if (item.IsExpandable)
                 {
-                    string state = item.IsExpanded ? "expanded" : "collapsed";
+                    string state = TreeNavigationHelper.GetExpansionStateWord(item);
 
                     int childCount;
                     if (part.IsListPart)

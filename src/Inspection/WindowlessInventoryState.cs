@@ -649,11 +649,7 @@ namespace RimWorldAccess
         private static string FormatItemAnnouncement(InspectionTreeItem item)
         {
             // Get state info (only for expandable nodes)
-            string stateInfo = "";
-            if (item.IsExpandable)
-            {
-                stateInfo = item.IsExpanded ? " expanded" : " collapsed";
-            }
+            string stateInfo = TreeNavigationHelper.FormatExpansionSpaceSuffix(item);
 
             // Get sibling position
             var (position, total) = treeNav.GetSiblingPosition(item);
@@ -672,11 +668,7 @@ namespace RimWorldAccess
         private static string FormatSearchAnnouncement(InspectionTreeItem item, TypeaheadSearchHelper typeahead)
         {
             // Get state info (only for expandable nodes)
-            string stateInfo = "";
-            if (item.IsExpandable)
-            {
-                stateInfo = item.IsExpanded ? " expanded" : " collapsed";
-            }
+            string stateInfo = TreeNavigationHelper.FormatExpansionSpaceSuffix(item);
 
             // Get sibling position
             var (position, total) = treeNav.GetSiblingPosition(item);

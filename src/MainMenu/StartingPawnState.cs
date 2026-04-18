@@ -892,7 +892,7 @@ namespace RimWorldAccess
             switch (ptd.NodeType)
             {
                 case PawnNodeType.Pawn:
-                    string pawnState = item.IsExpanded ? "expanded" : "collapsed";
+                    string pawnState = TreeNavigationHelper.GetExpansionStateWord(item);
                     announcement = $"{item.Label}, {pawnState}";
                     if (!string.IsNullOrEmpty(positionPart))
                         announcement += $" ({positionPart})";
@@ -908,7 +908,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        string catState = item.IsExpanded ? "expanded" : "collapsed";
+                        string catState = TreeNavigationHelper.GetExpansionStateWord(item);
                         if (!item.IsExpanded)
                         {
                             string summary = StartingPawnHelper.GetCategorySummary(item);

@@ -985,9 +985,7 @@ namespace RimWorldAccess
         {
             string label = item.Label.StripTags().TrimEnd('.', '!', '?');
 
-            string stateIndicator = "";
-            if (item.IsExpandable)
-                stateIndicator = item.IsExpanded ? " expanded" : " collapsed";
+            string stateIndicator = TreeNavigationHelper.FormatExpansionSpaceSuffix(item);
 
             var treeNav = GetTreeNavForItem(item);
             var (position, total) = treeNav.GetSiblingPosition(item);
@@ -1007,7 +1005,7 @@ namespace RimWorldAccess
         private static string FormatTreeSearchAnnouncement(InspectionTreeItem item, TypeaheadSearchHelper typeahead)
         {
             string label = item.Label.StripTags();
-            string stateIndicator = item.IsExpandable ? (item.IsExpanded ? " expanded" : " collapsed") : "";
+            string stateIndicator = TreeNavigationHelper.FormatExpansionSpaceSuffix(item);
 
             return $"{label}{stateIndicator}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
         }
