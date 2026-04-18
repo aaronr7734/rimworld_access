@@ -37,7 +37,11 @@ namespace RimWorldAccess
             public string Label;
             public string Description;
             public int EnumValue; // 0=Classic, 1=CustomFluid, 2=CustomFixed, 3=Load
+            public bool Disabled;
+            public string DisabledReason;
         }
+
+        private const string AccessibilityComingSoon = "Accessibility coming soon";
 
         private static void EnsurePresetsTreeNavConfigured()
         {
@@ -102,19 +106,25 @@ namespace RimWorldAccess
             {
                 Label = "CreateCustomFluid".Translate().ToString().Replace("\n", " "),
                 Description = IdeoPresetCategoryDefOf.Fluid.description,
-                EnumValue = 1
+                EnumValue = 1,
+                Disabled = true,
+                DisabledReason = AccessibilityComingSoon
             });
             options.Add(new OptionEntry
             {
                 Label = "CreateCustomFixed".Translate().ToString().Replace("\n", " "),
                 Description = IdeoPresetCategoryDefOf.Custom.description,
-                EnumValue = 2
+                EnumValue = 2,
+                Disabled = true,
+                DisabledReason = AccessibilityComingSoon
             });
             options.Add(new OptionEntry
             {
                 Label = "LoadSaved".Translate().ToString(),
                 Description = "",
-                EnumValue = 3
+                EnumValue = 3,
+                Disabled = true,
+                DisabledReason = AccessibilityComingSoon
             });
 
             // Build preset tree
@@ -385,6 +395,8 @@ namespace RimWorldAccess
 
             var opt = options[optionsIndex];
             var sb = new StringBuilder(opt.Label);
+            if (opt.Disabled && !string.IsNullOrEmpty(opt.DisabledReason))
+                sb.Append(". ").Append(opt.DisabledReason);
             if (!string.IsNullOrEmpty(opt.Description))
                 sb.Append(". ").Append(opt.Description);
 
@@ -393,6 +405,26 @@ namespace RimWorldAccess
                 sb.Append(". ").Append(position);
 
             return sb.ToString();
+        }
+
+        public static bool IsCurrentOptionDisabled
+        {
+            get
+            {
+                if (options.Count == 0 || optionsIndex < 0 || optionsIndex >= options.Count)
+                    return false;
+                return options[optionsIndex].Disabled;
+            }
+        }
+
+        public static string CurrentOptionDisabledReason
+        {
+            get
+            {
+                if (options.Count == 0 || optionsIndex < 0 || optionsIndex >= options.Count)
+                    return "";
+                return options[optionsIndex].DisabledReason ?? "";
+            }
         }
 
         private static void AnnounceOptionWithSearch()
