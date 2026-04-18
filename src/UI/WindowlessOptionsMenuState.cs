@@ -647,6 +647,10 @@ namespace RimWorldAccess
                 () => RimWorldAccessMod_Settings.Settings?.SubmenuTreeNavigation ?? false,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.SubmenuTreeNavigation = v; },
                 "Changes how treeviews work. When you expand a category, it disappears and you navigate only its items. Press Left Arrow to go back. Your position is remembered when you return."));
+            accessSettings.Settings.Add(new EnumSetting<WorkMenuView>("Default Work Menu View (F1)",
+                () => RimWorldAccessMod_Settings.Settings?.DefaultWorkMenuView ?? WorkMenuView.Focused,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.DefaultWorkMenuView = v; },
+                $"Focused: priority-grouped per-pawn view (less verbose). Table: pawn rows by work-type columns (mirrors vanilla, supports sorting and painting). {KeyboardHelper.CtrlLabel}+Tab swaps views from inside either menu and updates this setting."));
             categories.Add(accessSettings);
 
             // Mod Settings Category - list all mods that have settings

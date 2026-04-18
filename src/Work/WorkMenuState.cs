@@ -331,6 +331,19 @@ namespace RimWorldAccess
             searchJumpPending = false;
         }
 
+        /// <summary>
+        /// Closes without announcing (used when swapping to the table view).
+        /// Changes are applied in real-time so they persist; only the menu UI closes.
+        /// </summary>
+        public static void CloseForSwap()
+        {
+            if (!isActive) return;
+            if (currentPawn?.workSettings != null)
+                currentPawn.workSettings.Notify_UseWorkPrioritiesChanged();
+            RefreshAllPawnsWorkGivers();
+            CleanupState();
+        }
+
         private static void RefreshAllPawnsWorkGivers()
         {
             if (Find.CurrentMap != null)
@@ -920,6 +933,138 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Cycles the current entry's priority one step, matching vanilla
+        /// HeaderClicked semantics. decrease=true = number goes down (more
+        /// important); decrease=false = number goes up (less important).
+        /// In basic mode, decrease enables (3), increase disables (0).
+        /// </summary>
+        public static void CyclePriorityForCurrentEntry(bool decrease)
+        {
+            WorkTypeEntry entry = GetCurrentEntry();
+            if (entry == null) return;
+            if (entry.IsPermanentlyDisabled)
+            {
+                AnnounceCannotEnable(entry);
+                return;
+            }
+            if (!TryComputeCyclePriority(entry.CurrentPriority, decrease, out int next))
+            {
+                AnnounceCurrentPosition(false);
+                return;
+            }
+            SetPriority(next);
+        }
+
+        /// <summary>
+        /// Applies the same priority cycle to every eligible colonist for
+        /// the current entry's work type (vanilla shift-click-header behavior).
+        /// </summary>
+        public static void CycleAllPawnsPriorityForCurrent(bool decrease)
+        {
+            WorkTypeEntry entry = GetCurrentEntry();
+            if (entry == null)
+            {
+                TolkHelper.Speak("No work type selected");
+                return;
+            }
+
+            WorkTypeDef workType = entry.WorkType;
+            var changedNames = new List<string>();
+            bool anyLowSkillActivated = false;
+            bool anyIdeoOpposedActivated = false;
+            var ideoOpposedPawns = new List<Pawn>();
+
+            foreach (Pawn pawn in allPawns)
+            {
+                if (pawn.workSettings == null || !pawn.workSettings.EverWork) continue;
+                if (pawn.WorkTypeIsDisabled(workType)) continue;
+
+                int current = pawn.workSettings.GetPriority(workType);
+                if (!TryComputeCyclePriority(current, decrease, out int next)) continue;
+                if (next == current) continue;
+
+                bool wasActive = pawn.workSettings.WorkIsActive(workType);
+                pawn.workSettings.SetPriority(workType, next);
+                changedNames.Add(pawn.LabelShort);
+
+                if (!wasActive && pawn.workSettings.WorkIsActive(workType))
+                {
+                    if (workType.relevantSkills.Any() &&
+                        pawn.skills.AverageOfRelevantSkillsFor(workType) <= 2f)
+                        anyLowSkillActivated = true;
+                    if (pawn.Ideo != null && pawn.Ideo.IsWorkTypeConsideredDangerous(workType))
+                    {
+                        anyIdeoOpposedActivated = true;
+                        ideoOpposedPawns.Add(pawn);
+                    }
+                }
+            }
+
+            if (changedNames.Count == 0)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak($"No change for {workType.labelShort}");
+                return;
+            }
+
+            SoundDefOf.DragSlider.PlayOneShotOnCamera();
+            if (anyLowSkillActivated) SoundDefOf.Crunch.PlayOneShotOnCamera();
+            if (anyIdeoOpposedActivated)
+            {
+                SoundDefOf.DislikedWorkTypeActivated.PlayOneShotOnCamera();
+                foreach (var p in ideoOpposedPawns)
+                    Messages.Message(
+                        "MessageIdeoOpposedWorkTypeSelected".Translate(p, workType.gerundLabel),
+                        p, MessageTypeDefOf.CautionInput, historical: false);
+            }
+
+            string verb = decrease ? "raised" : "lowered";
+            TolkHelper.Speak(
+                $"{workType.labelShort} {verb} for {FormatNameList(changedNames)}");
+
+            // Keep current pawn's column structure in sync if it changed.
+            bool currentPawnChanged = changedNames.Contains(currentPawn.LabelShort);
+            if (currentPawnChanged)
+                LoadWorkTypesForCurrentPawn();
+        }
+
+        /// <summary>
+        /// Vanilla HeaderClicked cycle: left-click skips 1, else num-1 with 0 wrapping
+        /// to 4. Right-click skips 0, else num+1 with 4 wrapping to 0. Basic mode:
+        /// decrease = enable (3); increase = disable (0).
+        /// </summary>
+        private static bool TryComputeCyclePriority(int current, bool decrease, out int next)
+        {
+            if (!Find.PlaySettings.useWorkPriorities)
+            {
+                if (decrease)
+                {
+                    if (current == 0) { next = 3; return true; }
+                    next = current; return false;
+                }
+                if (current > 0) { next = 0; return true; }
+                next = current; return false;
+            }
+
+            if (decrease)
+            {
+                if (current == 1) { next = 1; return false; }
+                int n = current - 1;
+                if (n < 0) n = 4;
+                next = n;
+                return true;
+            }
+            else
+            {
+                if (current == 0) { next = 0; return false; }
+                int n = current + 1;
+                if (n > 4) n = 0;
+                next = n;
+                return true;
+            }
+        }
+
+        /// <summary>
         /// Toggles current task between enabled (priority 3) and disabled (priority 0).
         /// </summary>
         public static void ToggleSelected()
@@ -1368,6 +1513,16 @@ namespace RimWorldAccess
                 default:
                     sb.Append(".");
                     break;
+            }
+
+            // Specific work givers (mirrors vanilla column-header tooltip).
+            // Commas instead of newlines so screen readers parse it cleanly.
+            string workList = WorkTableHelper.BuildSpecificWorkList(workType);
+            if (!string.IsNullOrEmpty(workList))
+            {
+                sb.Append(" Includes: ");
+                sb.Append(workList);
+                sb.Append(".");
             }
 
             return sb.ToString();
