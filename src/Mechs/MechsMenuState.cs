@@ -115,7 +115,7 @@ namespace RimWorldAccess
             if (mechsList.Count == 0) return;
             tableHelper.SelectNextRow(mechsList.Count);
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeMechName: true);
+            AnnounceCurrentCell(includeMechName: true, includeColumnName: false);
         }
 
         public static void SelectPreviousMech()
@@ -123,7 +123,7 @@ namespace RimWorldAccess
             if (mechsList.Count == 0) return;
             tableHelper.SelectPreviousRow(mechsList.Count);
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeMechName: true);
+            AnnounceCurrentCell(includeMechName: true, includeColumnName: false);
         }
 
         public static void SelectNextColumn()
@@ -140,12 +140,12 @@ namespace RimWorldAccess
             AnnounceCurrentCell(includeMechName: false);
         }
 
-        private static void AnnounceCurrentCell(bool includeMechName = true)
+        private static void AnnounceCurrentCell(bool includeMechName = true, bool includeColumnName = true)
         {
             if (mechsList.Count == 0) return;
 
             Pawn currentMech = mechsList[tableHelper.CurrentRowIndex];
-            string announcement = tableHelper.BuildCellAnnouncement(currentMech, mechsList.Count, includeMechName);
+            string announcement = tableHelper.BuildCellAnnouncement(currentMech, mechsList.Count, includeMechName, includeColumnName);
             TolkHelper.Speak(announcement);
         }
 
@@ -707,7 +707,7 @@ namespace RimWorldAccess
 
             tableHelper.JumpToFirst(mechsList.Count);
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeMechName: true);
+            AnnounceCurrentCell(includeMechName: true, includeColumnName: false);
         }
 
         public static void JumpToLast()
@@ -716,7 +716,7 @@ namespace RimWorldAccess
 
             tableHelper.JumpToLast(mechsList.Count);
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeMechName: true);
+            AnnounceCurrentCell(includeMechName: true, includeColumnName: false);
         }
 
         #endregion

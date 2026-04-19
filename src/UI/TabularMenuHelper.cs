@@ -376,39 +376,49 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Builds announcement text for current cell.
+        /// Callers opt out of naming the unchanged axis so screen reader users
+        /// only hear what changed:
+        ///   - Row nav (same column): pass includeColumnName=false.
+        ///   - Column nav (same row): pass includeItemName=false.
+        ///   - Initial entry / after sort / re-orientation: pass both true.
+        /// The column tooltip is only appended on pure column change
+        /// (includeColumnName=true && includeItemName=false), matching the
+        /// "only announce changed context" rule.
         /// </summary>
-        /// <param name="item">Current item</param>
-        /// <param name="itemCount">Total number of items</param>
-        /// <param name="includeItemName">Whether to include item name in announcement</param>
-        /// <returns>Formatted announcement string</returns>
-        public string BuildCellAnnouncement(TItem item, int itemCount, bool includeItemName)
+        public string BuildCellAnnouncement(TItem item, int itemCount, bool includeItemName, bool includeColumnName = true)
         {
-            string columnName = getColumnName(currentColumnIndex);
             string columnValue = getColumnValue(item, currentColumnIndex);
             string position = MenuHelper.FormatPosition(currentRowIndex, itemCount);
+            string separator = columnValue.EndsWith(".") ? " " : ". ";
 
+            // Dedup: on the Name column the cell value IS the item label, so
+            // prefixing it with the item label would repeat ("Rosario: Rosario").
             if (includeItemName)
             {
                 string itemLabel = getItemLabel(item);
-                // Avoid duplication if column value equals or starts with item label (e.g., Name column)
                 if (itemLabel == columnValue || columnValue.StartsWith(itemLabel))
                 {
-                    // Just announce the column value (which may include activity)
-                    string sep = columnValue.EndsWith(".") ? " " : ". ";
-                    return $"{columnValue}{sep}{position}";
+                    return $"{columnValue}{separator}{position}";
                 }
-                // Don't add period if value already ends with one
-                string separator = columnValue.EndsWith(".") ? " " : ". ";
-                return $"{itemLabel} - {columnName}: {columnValue}{separator}{position}";
+
+                string columnName = includeColumnName ? getColumnName(currentColumnIndex) : null;
+                return includeColumnName
+                    ? $"{itemLabel} - {columnName}: {columnValue}{separator}{position}"
+                    : $"{itemLabel}: {columnValue}{separator}{position}";
             }
-            else
+
+            if (includeColumnName)
             {
+                string columnName = getColumnName(currentColumnIndex);
                 string result = $"{columnName}: {columnValue}";
                 string tooltip = getColumnTooltip?.Invoke(item, currentColumnIndex);
                 if (!string.IsNullOrEmpty(tooltip))
                     result += ". " + tooltip;
                 return result;
             }
+
+            // Neither axis — bare value + position (rare fallback).
+            return $"{columnValue}{separator}{position}";
         }
 
         /// <summary>

@@ -88,7 +88,7 @@ namespace RimWorldAccess
             if (wildlifeList.Count == 0) return;
             tableHelper.SelectNextRow(wildlifeList.Count);
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeAnimalName: true);
+            AnnounceCurrentCell(includeAnimalName: true, includeColumnName: false);
         }
 
         public static void SelectPreviousAnimal()
@@ -96,7 +96,7 @@ namespace RimWorldAccess
             if (wildlifeList.Count == 0) return;
             tableHelper.SelectPreviousRow(wildlifeList.Count);
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeAnimalName: true);
+            AnnounceCurrentCell(includeAnimalName: true, includeColumnName: false);
         }
 
         public static void SelectNextColumn()
@@ -113,12 +113,12 @@ namespace RimWorldAccess
             AnnounceCurrentCell(includeAnimalName: false);
         }
 
-        private static void AnnounceCurrentCell(bool includeAnimalName = true)
+        private static void AnnounceCurrentCell(bool includeAnimalName = true, bool includeColumnName = true)
         {
             if (wildlifeList.Count == 0) return;
 
             Pawn currentAnimal = wildlifeList[tableHelper.CurrentRowIndex];
-            string announcement = tableHelper.BuildCellAnnouncement(currentAnimal, wildlifeList.Count, includeAnimalName);
+            string announcement = tableHelper.BuildCellAnnouncement(currentAnimal, wildlifeList.Count, includeAnimalName, includeColumnName);
             TolkHelper.Speak(announcement);
         }
 
@@ -356,7 +356,7 @@ namespace RimWorldAccess
 
             tableHelper.JumpToFirst(wildlifeList.Count);
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeAnimalName: true);
+            AnnounceCurrentCell(includeAnimalName: true, includeColumnName: false);
         }
 
         /// <summary>
@@ -369,7 +369,7 @@ namespace RimWorldAccess
 
             tableHelper.JumpToLast(wildlifeList.Count);
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeAnimalName: true);
+            AnnounceCurrentCell(includeAnimalName: true, includeColumnName: false);
         }
 
         #endregion

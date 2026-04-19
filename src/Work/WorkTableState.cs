@@ -149,14 +149,14 @@ namespace RimWorldAccess
         {
             if (pawns.Count == 0) return;
             tableHelper.SelectNextRow(pawns.Count);
-            AnnounceCurrentCell(includePawnName: true);
+            AnnounceCurrentCell(includePawnName: true, includeColumnName: false);
         }
 
         public static void SelectPreviousPawn()
         {
             if (pawns.Count == 0) return;
             tableHelper.SelectPreviousRow(pawns.Count);
-            AnnounceCurrentCell(includePawnName: true);
+            AnnounceCurrentCell(includePawnName: true, includeColumnName: false);
         }
 
         public static void SelectNextColumn()
@@ -177,14 +177,14 @@ namespace RimWorldAccess
         {
             if (pawns.Count == 0) return;
             tableHelper.JumpToFirst(pawns.Count);
-            AnnounceCurrentCell(includePawnName: true);
+            AnnounceCurrentCell(includePawnName: true, includeColumnName: false);
         }
 
         public static void JumpToLast()
         {
             if (pawns.Count == 0) return;
             tableHelper.JumpToLast(pawns.Count);
-            AnnounceCurrentCell(includePawnName: true);
+            AnnounceCurrentCell(includePawnName: true, includeColumnName: false);
         }
 
         #endregion
@@ -766,12 +766,12 @@ namespace RimWorldAccess
 
         #region Announcements
 
-        public static void AnnounceCurrentCell(bool includePawnName)
+        public static void AnnounceCurrentCell(bool includePawnName, bool includeColumnName = true)
         {
             if (pawns.Count == 0) return;
             Pawn pawn = CurrentPawn;
             if (pawn == null) return;
-            string announcement = tableHelper.BuildCellAnnouncement(pawn, pawns.Count, includePawnName);
+            string announcement = tableHelper.BuildCellAnnouncement(pawn, pawns.Count, includePawnName, includeColumnName);
             TolkHelper.Speak(announcement);
         }
 
