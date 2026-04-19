@@ -40,9 +40,9 @@ namespace RimWorldAccess
                         continue;
 
                     if (faction.ideos.IsPrimary(ideo))
-                        factionParts.Add(faction.Name + " (primary)");
+                        factionParts.Add("RimWorldAccess.Ideology.List.FactionPrimarySuffix".Translate(faction.Name));
                     else if (faction.ideos.IsMinor(ideo))
-                        factionParts.Add(faction.Name + " (minor)");
+                        factionParts.Add("RimWorldAccess.Ideology.List.FactionMinorSuffix".Translate(faction.Name));
                 }
             }
 
@@ -234,7 +234,7 @@ namespace RimWorldAccess
                 foreach (string childText in childTexts)
                     AddChildNode(sectionNode, childText);
                 if (hasSound)
-                    AddChildNode(sectionNode, "RitualAmbienceSound".Translate().Resolve() + ", Enter to preview", ideo.SoundOngoingRitual);
+                    AddChildNode(sectionNode, "RitualAmbienceSound".Translate().Resolve() + "RimWorldAccess.Ideology.Styles.EnterToPreview".Translate(), ideo.SoundOngoingRitual);
 
                 root.Children.Add(sectionNode);
                 return;
@@ -274,7 +274,7 @@ namespace RimWorldAccess
                     AddChildNode(catNode, childText);
                 if (hasSound)
                 {
-                    AddChildNode(catNode, "RitualAmbienceSound".Translate().Resolve() + ", Enter to preview", ideo.SoundOngoingRitual);
+                    AddChildNode(catNode, "RitualAmbienceSound".Translate().Resolve() + "RimWorldAccess.Ideology.Styles.EnterToPreview".Translate(), ideo.SoundOngoingRitual);
                     ritualSoundStyleNames.Add(name);
                 }
 
@@ -291,8 +291,8 @@ namespace RimWorldAccess
                 string names = string.Join(", ", ritualSoundStyleNames);
                 int count = ritualSoundStyleNames.Count;
                 string hint = count == 1
-                    ? $"1 style has a ritual sound preview ({names}), expand to play"
-                    : $"{count} styles have ritual sound previews ({names}), expand to play";
+                    ? "RimWorldAccess.Ideology.Styles.RitualSoundHintOne".Translate(names).ToString()
+                    : "RimWorldAccess.Ideology.Styles.RitualSoundHintMany".Translate(names, count).ToString();
                 AppendSentence(sb, hint);
             }
 
@@ -312,9 +312,9 @@ namespace RimWorldAccess
                     continue;
 
                 if (faction.ideos.IsPrimary(ideo))
-                    factionEntries.Add(faction.Name + ", primary");
+                    factionEntries.Add("RimWorldAccess.Ideology.FactionsSection.PrimaryEntry".Translate(faction.Name));
                 else if (faction.ideos.IsMinor(ideo))
-                    factionEntries.Add(faction.Name + ", minor");
+                    factionEntries.Add("RimWorldAccess.Ideology.FactionsSection.MinorEntry".Translate(faction.Name));
             }
 
             if (factionEntries.Count == 0)

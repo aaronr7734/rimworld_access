@@ -84,7 +84,7 @@ namespace RimWorldAccess
                 ? "" : $". {positionPart}";
 
             string levelSuffix = MenuHelper.GetLevelSuffix("IdeologyTree", item.IndentLevel);
-            string inspectable = GetInspectableDefs().Count > 0 ? " Inspectable." : "";
+            string inspectable = GetInspectableDefs().Count > 0 ? "RimWorldAccess.Ideology.Tree.InspectableSuffix".Translate().ToString() : "";
 
             return $"{label}{stateIndicator}{positionSection}{levelSuffix}{inspectable}";
         }
@@ -123,12 +123,12 @@ namespace RimWorldAccess
                 var (pos, total) = treeNav.GetSiblingPosition(firstItem);
                 string position = MenuHelper.FormatPosition(pos - 1, total);
 
-                string inspectable = GetInspectableDefs().Count > 0 ? " Inspectable." : "";
+                string inspectable = GetInspectableDefs().Count > 0 ? "RimWorldAccess.Ideology.Tree.InspectableSuffix".Translate().ToString() : "";
                 TolkHelper.Speak($"{firstItem.Label}{stateIndicator}. {position}{inspectable}");
             }
             else
             {
-                TolkHelper.Speak(ideo.name + ". " + "NoneLower".Translate());
+                TolkHelper.Speak("RimWorldAccess.Ideology.Tree.Empty".Translate(ideo.name, "NoneLower".Translate()));
             }
         }
 
@@ -174,7 +174,7 @@ namespace RimWorldAccess
                 string label = def.label?.CapitalizeFirst() ?? def.defName;
                 options.Add(new FloatMenuOption(label, () => InfoCardState.OpenInfoCardForDef(captured)));
             }
-            TolkHelper.Speak("Choose item to inspect");
+            TolkHelper.Speak("RimWorldAccess.Ideology.Tree.ChooseItemToInspect".Translate());
             WindowlessFloatMenuState.Open(options, false);
             return true;
         }
@@ -208,7 +208,7 @@ namespace RimWorldAccess
             {
                 ritualSoundPreview.End();
                 ritualSoundPreview = null;
-                TolkHelper.Speak("RitualAmbienceSound".Translate().Resolve() + ", stopped.");
+                TolkHelper.Speak("RimWorldAccess.Ideology.RitualSound.Stopped".Translate("RitualAmbienceSound".Translate().Resolve()));
             }
             else
             {
@@ -216,7 +216,7 @@ namespace RimWorldAccess
                 info.forcedPlayOnCamera = true;
                 info.testPlay = true;
                 ritualSoundPreview = soundDef.TrySpawnSustainer(info);
-                TolkHelper.Speak("RitualAmbienceSound".Translate().Resolve() + ", playing.");
+                TolkHelper.Speak("RimWorldAccess.Ideology.RitualSound.Playing".Translate("RitualAmbienceSound".Translate().Resolve()));
             }
         }
 

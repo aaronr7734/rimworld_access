@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Ideology module strings (src/Ideology/). Four files contribute:
+      - IdeologyHelper.cs       (list/tree construction and announcements)
+      - IdeologyTabPatch.cs     (Harmony interception — no user strings)
+      - IdeologyTabState.cs     (two-panel navigation: list + details)
+      - IdeologyTreeNavigation.cs (details panel tree nav, ritual sound preview)
+
+    Most ideology content already flows through vanilla keys
+    ("IdeoligionOf", "StructureMeme", "FluidIdeoTip", etc.) — those are left
+    alone. The keys below cover the connective English phrases we add on top
+    of the vanilla strings: faction-status parentheticals, ritual-sound preview
+    hints, tab-closed announcements, and the inspectable / info-card prompts.
+
+    Note: "Inspectable" suffix and "Choose item to inspect" also appear in
+    other modules (Inspection/, Quests/). They are scoped here for the
+    Ideology PR and may be promoted to Common.xml during those modules' Phase
+    D migrations.
+  -->
+
+  <!-- Faction usage suffixes for the list-panel and factions section.
+       Appended parenthetically to a faction name to indicate whether the
+       faction holds this ideology as primary or minor. -->
+  <RimWorldAccess.Ideology.List.FactionPrimarySuffix>{0} (primary)</RimWorldAccess.Ideology.List.FactionPrimarySuffix>
+  <RimWorldAccess.Ideology.List.FactionMinorSuffix>{0} (minor)</RimWorldAccess.Ideology.List.FactionMinorSuffix>
+  <RimWorldAccess.Ideology.FactionsSection.PrimaryEntry>{0}, primary</RimWorldAccess.Ideology.FactionsSection.PrimaryEntry>
+  <RimWorldAccess.Ideology.FactionsSection.MinorEntry>{0}, minor</RimWorldAccess.Ideology.FactionsSection.MinorEntry>
+
+  <!-- Style-category ritual-sound preview hints. Shown in a tree node label
+       so keyboard users know to expand the node and press Enter to preview
+       the ritual ambience sound.
+         {0} = comma-separated style names that have a sound preview
+         {1} = count (Many only)
+       Separate One/Many keys because English needs subject-verb agreement
+       ("1 style has" vs "N styles have") and noun-plural agreement
+       ("preview" vs "previews"). -->
+  <RimWorldAccess.Ideology.Styles.RitualSoundHintOne>1 style has a ritual sound preview ({0}), expand to play</RimWorldAccess.Ideology.Styles.RitualSoundHintOne>
+  <RimWorldAccess.Ideology.Styles.RitualSoundHintMany>{1} styles have ritual sound previews ({0}), expand to play</RimWorldAccess.Ideology.Styles.RitualSoundHintMany>
+
+  <!-- "Enter to preview" hint appended to a RitualAmbienceSound node label so
+       the user knows the Enter key will start/stop sound playback. -->
+  <RimWorldAccess.Ideology.Styles.EnterToPreview>, Enter to preview</RimWorldAccess.Ideology.Styles.EnterToPreview>
+
+  <!-- Ritual sound toggle announcements. {0} = vanilla "RitualAmbienceSound"
+       label, resolved at call time. -->
+  <RimWorldAccess.Ideology.RitualSound.Playing>{0}, playing.</RimWorldAccess.Ideology.RitualSound.Playing>
+  <RimWorldAccess.Ideology.RitualSound.Stopped>{0}, stopped.</RimWorldAccess.Ideology.RitualSound.Stopped>
+
+  <!-- Tab open/close composition.
+         TabClosed: spoken when Escape closes the tab. {0} = tab label.
+         TabEmpty: spoken when the tab opens with no visible ideologies.
+                   {0} = tab label, {1} = vanilla "NoneLower" translation.
+         TabItemCount: spoken after the tab label to give an overall count.
+                       {0} = count, {1} = tab label (already translated). -->
+  <RimWorldAccess.Ideology.Tab.Closed>{0} closed.</RimWorldAccess.Ideology.Tab.Closed>
+  <RimWorldAccess.Ideology.Tab.Empty>{0}. {1}.</RimWorldAccess.Ideology.Tab.Empty>
+  <RimWorldAccess.Ideology.Tab.ItemCount>{0} {1}</RimWorldAccess.Ideology.Tab.ItemCount>
+
+  <!-- Details-tree inspectable hint. Appended to a tree item's announcement
+       when pressing Alt+I would open an info card for an associated Def. -->
+  <RimWorldAccess.Ideology.Tree.InspectableSuffix> Inspectable.</RimWorldAccess.Ideology.Tree.InspectableSuffix>
+
+  <!-- Prompt before a float menu listing multiple inspectable defs. Lets the
+       user pick which item to open an info card for. -->
+  <RimWorldAccess.Ideology.Tree.ChooseItemToInspect>Choose item to inspect</RimWorldAccess.Ideology.Tree.ChooseItemToInspect>
+
+  <!-- Fallback announcement when a selected ideology has no tree content
+       (e.g. a minimal/custom ideology with no visible sections).
+         {0} = ideology name, {1} = vanilla "NoneLower" translation. -->
+  <RimWorldAccess.Ideology.Tree.Empty>{0}. {1}</RimWorldAccess.Ideology.Tree.Empty>
+</LanguageData>

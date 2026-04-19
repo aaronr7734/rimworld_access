@@ -66,7 +66,7 @@ namespace RimWorldAccess
             selectedIdeoIndex = 0;
             navigation.Reset();
             listTypeahead.ClearSearch();
-            TolkHelper.Speak(MainButtonDefOf.Ideos.LabelCap + " closed.");
+            TolkHelper.Speak("RimWorldAccess.Ideology.Tab.Closed".Translate(MainButtonDefOf.Ideos.LabelCap));
         }
 
         /// <summary>
@@ -330,12 +330,12 @@ namespace RimWorldAccess
 
             if (ideologies.Count == 0)
             {
-                TolkHelper.Speak(tabLabel + ". " + "NoneLower".Translate() + ".");
+                TolkHelper.Speak("RimWorldAccess.Ideology.Tab.Empty".Translate(tabLabel, "NoneLower".Translate()));
                 return;
             }
 
             var sb = new StringBuilder(tabLabel);
-            IdeologyHelper.AppendSentence(sb, ideologies.Count.ToString() + " " + tabLabel.ToString().ToLower());
+            IdeologyHelper.AppendSentence(sb, "RimWorldAccess.Ideology.Tab.ItemCount".Translate(ideologies.Count, tabLabel.ToString().ToLower()));
 
             string announcement = IdeologyHelper.BuildIdeoListAnnouncement(ideologies[selectedIdeoIndex]);
             IdeologyHelper.AppendSentence(sb, announcement);
