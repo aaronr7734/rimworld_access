@@ -1005,7 +1005,7 @@ namespace RimWorldAccess
             // Time info
             if (quest.State == QuestState.NotYetAccepted && quest.TicksUntilExpiry > 0)
             {
-                lines.Add(new DetailLine($"Expires in: {quest.TicksUntilExpiry.ToStringTicksToPeriod()}"));
+                lines.Add(new DetailLine("QuestExpiresIn".Translate(quest.TicksUntilExpiry.ToStringTicksToPeriod()).ToString()));
             }
             else if (quest.EverAccepted && !quest.Historical)
             {
@@ -1017,6 +1017,21 @@ namespace RimWorldAccess
                                  quest.State == QuestState.EndedFailed ? "Failed" : "Expired";
                 lines.Add(new DetailLine($"Status: {outcome}"));
                 lines.Add(new DetailLine($"Finished: {quest.TicksSinceCleanup.ToStringTicksToPeriod()} ago"));
+            }
+
+            // Active-quest deadlines from QuestPartActivable parts (matches vanilla MainTabWindow_Quests.DoRightAlignedInfo).
+            // Each part's ExpiryInfoPart is already localized and formatted (e.g. "Ends in 3 days").
+            if (quest.State == QuestState.Ongoing)
+            {
+                foreach (QuestPart part in quest.PartsListForReading)
+                {
+                    if (part is QuestPartActivable activable &&
+                        activable.State == QuestPartState.Enabled &&
+                        !activable.ExpiryInfoPart.NullOrEmpty())
+                    {
+                        lines.Add(new DetailLine(activable.ExpiryInfoPart));
+                    }
+                }
             }
 
             // Description (split into individual lines)
@@ -1352,7 +1367,8 @@ namespace RimWorldAccess
         {
             if (quest.State == QuestState.NotYetAccepted && quest.TicksUntilExpiry >= 0)
             {
-                return $"Expires in {quest.TicksUntilExpiry.ToStringTicksToPeriod(allowSeconds: true, shortForm: true)}";
+                return "QuestExpiresIn".Translate(
+                    quest.TicksUntilExpiry.ToStringTicksToPeriod(allowSeconds: true, shortForm: true)).ToString();
             }
             else if (quest.Historical)
             {
@@ -1360,6 +1376,19 @@ namespace RimWorldAccess
             }
             else if (quest.EverAccepted)
             {
+                // Active quest with a bad-outcome deadline takes priority over "accepted ago"
+                // (matches vanilla MainTabWindow_Quests.GetShortTimeInfo).
+                foreach (QuestPart part in quest.PartsListForReading)
+                {
+                    if (part is QuestPart_Delay delayPart &&
+                        delayPart.State == QuestPartState.Enabled &&
+                        delayPart.isBad &&
+                        !delayPart.expiryInfoPart.NullOrEmpty())
+                    {
+                        return "QuestExpiresIn".Translate(
+                            delayPart.TicksLeft.ToStringTicksToPeriod(allowSeconds: false, shortForm: true, canUseDecimals: false)).ToString();
+                    }
+                }
                 return $"Accepted {quest.TicksSinceAccepted.ToStringTicksToPeriod(allowSeconds: false, shortForm: true)} ago";
             }
 
