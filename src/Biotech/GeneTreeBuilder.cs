@@ -71,18 +71,29 @@ namespace RimWorldAccess
         private static string BuildRootLabel(GeneSet geneSet, string motherName, string fatherName)
         {
             var sb = new StringBuilder();
-            sb.Append("Baby Genes");
 
             string xenotype = geneSet.Label;
-            if (!string.IsNullOrEmpty(xenotype) && xenotype != "ERR")
-            {
-                sb.Append($": {xenotype}");
-            }
+            bool hasXenotype = !string.IsNullOrEmpty(xenotype) && xenotype != "ERR";
+            if (hasXenotype)
+                sb.Append("RimWorldAccess.Biotech.Gene.RootBabyGenesWithXenotype".Translate(xenotype));
+            else
+                sb.Append("RimWorldAccess.Biotech.Gene.RootBabyGenes".Translate());
 
             int geneCount = geneSet.GenesListForReading?.Count ?? 0;
-            sb.Append($" ({geneCount} {(geneCount == 1 ? "gene" : "genes")})");
+            sb.Append(" ");
+            sb.Append(GeneCountSuffix(geneCount));
 
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Returns the localized parenthetical gene count suffix, e.g. "(1 gene)" or "(5 genes)".
+        /// </summary>
+        public static string GeneCountSuffix(int count)
+        {
+            if (count == 1)
+                return "RimWorldAccess.Biotech.Gene.CountSuffixOne".Translate();
+            return "RimWorldAccess.Biotech.Gene.CountSuffixMany".Translate(count);
         }
 
         /// <summary>
@@ -217,13 +228,13 @@ namespace RimWorldAccess
         private static string DescribeSkinShade(UnityEngine.Color color)
         {
             float luminance = 0.299f * color.r + 0.587f * color.g + 0.114f * color.b;
-            if (luminance > 0.85f) return "very light";
-            if (luminance > 0.7f) return "light";
-            if (luminance > 0.55f) return "fair";
-            if (luminance > 0.45f) return "medium";
-            if (luminance > 0.35f) return "tan";
-            if (luminance > 0.2f) return "brown";
-            return "dark brown";
+            if (luminance > 0.85f) return "RimWorldAccess.Biotech.Color.SkinVeryLight".Translate();
+            if (luminance > 0.7f) return "RimWorldAccess.Biotech.Color.SkinLight".Translate();
+            if (luminance > 0.55f) return "RimWorldAccess.Biotech.Color.SkinFair".Translate();
+            if (luminance > 0.45f) return "RimWorldAccess.Biotech.Color.SkinMedium".Translate();
+            if (luminance > 0.35f) return "RimWorldAccess.Biotech.Color.SkinTan".Translate();
+            if (luminance > 0.2f) return "RimWorldAccess.Biotech.Color.SkinBrown".Translate();
+            return "RimWorldAccess.Biotech.Color.SkinDarkBrown".Translate();
         }
 
         /// <summary>
@@ -243,32 +254,32 @@ namespace RimWorldAccess
 
             if (saturation < 0.15f)
             {
-                if (brightness < 0.2f) return "very dark";
-                if (brightness < 0.35f) return "dark";
-                if (brightness < 0.5f) return "medium-dark";
-                if (brightness < 0.65f) return "medium";
-                if (brightness < 0.8f) return "light";
-                return "very light";
+                if (brightness < 0.2f) return "RimWorldAccess.Biotech.Color.VeryDark".Translate();
+                if (brightness < 0.35f) return "RimWorldAccess.Biotech.Color.Dark".Translate();
+                if (brightness < 0.5f) return "RimWorldAccess.Biotech.Color.MediumDark".Translate();
+                if (brightness < 0.65f) return "RimWorldAccess.Biotech.Color.Medium".Translate();
+                if (brightness < 0.8f) return "RimWorldAccess.Biotech.Color.Light".Translate();
+                return "RimWorldAccess.Biotech.Color.VeryLight".Translate();
             }
 
             // Colored - find dominant hue
             if (r > g && r > b)
             {
-                if (g > b) return brightness > 0.5f ? "orange" : "brown";
-                return brightness > 0.5f ? "pink" : "red";
+                if (g > b) return (brightness > 0.5f ? "RimWorldAccess.Biotech.Color.Orange" : "RimWorldAccess.Biotech.Color.Brown").Translate();
+                return (brightness > 0.5f ? "RimWorldAccess.Biotech.Color.Pink" : "RimWorldAccess.Biotech.Color.Red").Translate();
             }
             if (g > r && g > b)
             {
-                return brightness > 0.5f ? "light green" : "green";
+                return (brightness > 0.5f ? "RimWorldAccess.Biotech.Color.LightGreen" : "RimWorldAccess.Biotech.Color.Green").Translate();
             }
             if (b > r && b > g)
             {
-                return brightness > 0.5f ? "light blue" : "blue";
+                return (brightness > 0.5f ? "RimWorldAccess.Biotech.Color.LightBlue" : "RimWorldAccess.Biotech.Color.Blue").Translate();
             }
 
             // Mixed colors
-            if (r > 0.4f && g > 0.4f && b < 0.3f) return "blonde";
-            if (r > 0.3f && g > 0.3f && b > 0.3f) return "gray";
+            if (r > 0.4f && g > 0.4f && b < 0.3f) return "RimWorldAccess.Biotech.Color.Blonde".Translate();
+            if (r > 0.3f && g > 0.3f && b > 0.3f) return "RimWorldAccess.Biotech.Color.Gray".Translate();
 
             return null;
         }
@@ -375,11 +386,11 @@ namespace RimWorldAccess
                 // For cosmetic genes, note that they have no gameplay effects
                 if (IsCosmeticGene(gene))
                 {
-                    AddChild(geneNode, CreateInfoItem("Cosmetic gene with no gameplay effects", childIndent));
+                    AddChild(geneNode, CreateInfoItem("RimWorldAccess.Biotech.Gene.CosmeticNoEffects".Translate(), childIndent));
                 }
                 else
                 {
-                    AddChild(geneNode, CreateInfoItem("No additional details available", childIndent));
+                    AddChild(geneNode, CreateInfoItem("RimWorldAccess.Biotech.Gene.NoDetails".Translate(), childIndent));
                 }
             }
         }
@@ -511,14 +522,14 @@ namespace RimWorldAccess
 
             // Build inline summary
             var parts = new List<string>();
-            parts.Add($"Complexity {complexity}");
-            parts.Add($"Metabolism {metabolism.ToStringWithSign()}");
+            parts.Add("RimWorldAccess.Biotech.Gene.BiostatComplexityValue".Translate(complexity).ToString());
+            parts.Add("RimWorldAccess.Biotech.Gene.BiostatMetabolismValue".Translate(metabolism.ToStringWithSign()).ToString());
             if (archites > 0)
             {
-                parts.Add($"Archites {archites}");
+                parts.Add("RimWorldAccess.Biotech.Gene.BiostatArchitesValue".Translate(archites).ToString());
             }
 
-            string summaryLabel = $"Total Biostats: {string.Join(", ", parts)}";
+            string summaryLabel = "RimWorldAccess.Biotech.Gene.TotalBiostats".Translate(string.Join(", ", parts)).ToString();
 
             var summaryNode = new InspectionTreeItem
             {
@@ -536,17 +547,23 @@ namespace RimWorldAccess
 
                 // Complexity with explanation inline
                 string complexityDesc = ((string)"ComplexityDesc".Translate()).StripTags();
-                AddChild(summaryNode, CreateInfoItem($"Complexity: {complexity}. {complexityDesc}", summaryNode.IndentLevel + 1));
+                AddChild(summaryNode, CreateInfoItem(
+                    "RimWorldAccess.Biotech.Gene.BiostatComplexityWithDesc".Translate(complexity, complexityDesc),
+                    summaryNode.IndentLevel + 1));
 
                 // Metabolism with explanation inline
                 string metabolismDesc = ((string)"MetabolismDesc".Translate()).StripTags();
-                AddChild(summaryNode, CreateInfoItem($"Metabolism: {metabolism.ToStringWithSign()}. {metabolismDesc}", summaryNode.IndentLevel + 1));
+                AddChild(summaryNode, CreateInfoItem(
+                    "RimWorldAccess.Biotech.Gene.BiostatMetabolismWithDesc".Translate(metabolism.ToStringWithSign(), metabolismDesc),
+                    summaryNode.IndentLevel + 1));
 
                 // Archites if present
                 if (archites > 0)
                 {
                     string architesDesc = ((string)"ArchitesRequiredDesc".Translate()).StripTags();
-                    AddChild(summaryNode, CreateInfoItem($"Archites Required: {archites}. {architesDesc}", summaryNode.IndentLevel + 1));
+                    AddChild(summaryNode, CreateInfoItem(
+                        "RimWorldAccess.Biotech.Gene.BiostatArchitesWithDesc".Translate(archites, architesDesc),
+                        summaryNode.IndentLevel + 1));
                 }
             };
 
@@ -578,7 +595,8 @@ namespace RimWorldAccess
 
             // Build root label with xenotype
             string xenotypeLabel = geneTracker.XenotypeLabelCap;
-            string rootLabel = $"Genes: {xenotypeLabel} ({totalCount} {(totalCount == 1 ? "gene" : "genes")})";
+            string countSuffix = GeneCountSuffix(totalCount);
+            string rootLabel = "RimWorldAccess.Biotech.Gene.RootAdultGenes".Translate(xenotypeLabel, countSuffix);
 
             var root = new InspectionTreeItem
             {
@@ -683,11 +701,11 @@ namespace RimWorldAccess
             // Active/overridden status
             if (gene.Overridden)
             {
-                parts.Add("[overridden]");
+                parts.Add("RimWorldAccess.Biotech.Gene.StatusOverridden".Translate().ToString());
             }
             else if (!gene.Active)
             {
-                parts.Add("[inactive]");
+                parts.Add("RimWorldAccess.Biotech.Gene.StatusInactive".Translate().ToString());
             }
 
             var geneNode = new InspectionTreeItem
@@ -725,14 +743,14 @@ namespace RimWorldAccess
             }
 
             var summaryParts = new List<string>();
-            summaryParts.Add($"Complexity {complexity}");
-            summaryParts.Add($"Metabolism {metabolism.ToStringWithSign()}");
+            summaryParts.Add("RimWorldAccess.Biotech.Gene.BiostatComplexityValue".Translate(complexity).ToString());
+            summaryParts.Add("RimWorldAccess.Biotech.Gene.BiostatMetabolismValue".Translate(metabolism.ToStringWithSign()).ToString());
             if (archites > 0)
             {
-                summaryParts.Add($"Archites {archites}");
+                summaryParts.Add("RimWorldAccess.Biotech.Gene.BiostatArchitesValue".Translate(archites).ToString());
             }
 
-            string summaryLabel = $"Total Biostats: {string.Join(", ", summaryParts)}";
+            string summaryLabel = "RimWorldAccess.Biotech.Gene.TotalBiostats".Translate(string.Join(", ", summaryParts)).ToString();
 
             var summaryNode = new InspectionTreeItem
             {
@@ -748,15 +766,21 @@ namespace RimWorldAccess
                 if (summaryNode.Children.Count > 0) return;
 
                 string complexityDesc = ((string)"ComplexityDesc".Translate()).StripTags();
-                AddChild(summaryNode, CreateInfoItem($"Complexity: {complexity}. {complexityDesc}", summaryNode.IndentLevel + 1));
+                AddChild(summaryNode, CreateInfoItem(
+                    "RimWorldAccess.Biotech.Gene.BiostatComplexityWithDesc".Translate(complexity, complexityDesc),
+                    summaryNode.IndentLevel + 1));
 
                 string metabolismDesc = ((string)"MetabolismDesc".Translate()).StripTags();
-                AddChild(summaryNode, CreateInfoItem($"Metabolism: {metabolism.ToStringWithSign()}. {metabolismDesc}", summaryNode.IndentLevel + 1));
+                AddChild(summaryNode, CreateInfoItem(
+                    "RimWorldAccess.Biotech.Gene.BiostatMetabolismWithDesc".Translate(metabolism.ToStringWithSign(), metabolismDesc),
+                    summaryNode.IndentLevel + 1));
 
                 if (archites > 0)
                 {
                     string architesDesc = ((string)"ArchitesRequiredDesc".Translate()).StripTags();
-                    AddChild(summaryNode, CreateInfoItem($"Archites Required: {archites}. {architesDesc}", summaryNode.IndentLevel + 1));
+                    AddChild(summaryNode, CreateInfoItem(
+                        "RimWorldAccess.Biotech.Gene.BiostatArchitesWithDesc".Translate(archites, architesDesc),
+                        summaryNode.IndentLevel + 1));
                 }
             };
 
@@ -771,7 +795,7 @@ namespace RimWorldAccess
             var root = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.Object,
-                Label = "Baby Genes: None",
+                Label = "RimWorldAccess.Biotech.Gene.RootBabyGenesNone".Translate(),
                 IsExpandable = false,
                 IsExpanded = false,
                 IndentLevel = -1

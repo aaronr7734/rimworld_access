@@ -103,7 +103,7 @@ namespace RimWorldAccess
             BuildMembersList();
 
             string groupLabel = "ControlGroup".Translate() + " " + controlGroup.Index;
-            TolkHelper.Speak($"{groupLabel} settings");
+            TolkHelper.Speak("RimWorldAccess.Biotech.Mech.GroupSettingsHeader".Translate(groupLabel));
             AnnounceCurrentItem();
         }
 
@@ -185,7 +185,7 @@ namespace RimWorldAccess
                     return true;
                 }
                 Close();
-                TolkHelper.Speak("Control group closed");
+                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.GroupClosed".Translate());
                 Event.current.Use();
                 return true;
             }
@@ -290,15 +290,15 @@ namespace RimWorldAccess
                 BuildMembersList();
                 if (memberMechs.Count == 0)
                 {
-                    TolkHelper.Speak("Members. " + "NoMechs".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Biotech.Mech.Members".Translate() + ". " + "NoMechs".Translate());
                     return;
                 }
-                TolkHelper.Speak("Members");
+                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.Members".Translate());
             }
             else
             {
                 BuildSettingsItems();
-                TolkHelper.Speak("Settings");
+                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.Settings".Translate());
             }
 
             AnnounceCurrentItem();
@@ -430,7 +430,7 @@ namespace RimWorldAccess
             var options = MechanitorControlGroupGizmo.GetWorkModeOptions(controlGroup).ToList();
             if (options.Count == 0)
             {
-                TolkHelper.Speak("No work modes available");
+                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.NoWorkModes".Translate());
                 return;
             }
 
@@ -447,7 +447,7 @@ namespace RimWorldAccess
                     if (isActive)
                     {
                         BuildSettingsItems();
-                        TolkHelper.Speak($"Work mode set to {controlGroup.WorkMode.LabelCap}");
+                        TolkHelper.Speak("RimWorldAccess.Biotech.Mech.WorkModeSet".Translate(controlGroup.WorkMode.LabelCap));
                     }
                 }, opt.iconThing, opt.iconColor)
                 {
@@ -476,11 +476,12 @@ namespace RimWorldAccess
             {
                 controlGroup.mechRechargeThresholds = editingRange;
                 BuildSettingsItems();
-                TolkHelper.Speak($"Recharge range saved: {FormatPercent(editingRange.min)} to {FormatPercent(editingRange.max)}");
+                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.RangeSaved".Translate(
+                    FormatPercent(editingRange.min), FormatPercent(editingRange.max)));
             }
             else
             {
-                TolkHelper.Speak("Recharge range edit cancelled");
+                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.RangeCancelled".Translate());
             }
 
             isEditingRange = false;
@@ -556,9 +557,12 @@ namespace RimWorldAccess
 
         private static void AnnounceRangeSelection()
         {
-            string optionName = rangeSelectedOption == 0 ? "Minimum" : "Maximum";
+            string optionName = rangeSelectedOption == 0
+                ? "RimWorldAccess.Biotech.Mech.RangeMinimum".Translate().ToString()
+                : "RimWorldAccess.Biotech.Mech.RangeMaximum".Translate().ToString();
             float value = rangeSelectedOption == 0 ? editingRange.min : editingRange.max;
-            TolkHelper.Speak($"{optionName}: {FormatPercent(value)}. Range: {FormatPercent(editingRange.min)} to {FormatPercent(editingRange.max)}");
+            TolkHelper.Speak("RimWorldAccess.Biotech.Mech.RangeSelection".Translate(
+                optionName, FormatPercent(value), FormatPercent(editingRange.min), FormatPercent(editingRange.max)));
         }
 
         // ========== Select All Mechs ==========
@@ -568,7 +572,7 @@ namespace RimWorldAccess
             var mechs = controlGroup.MechsForReading;
             if (mechs.Count == 0)
             {
-                TolkHelper.Speak("No mechs in this group");
+                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.NoMechsInGroup".Translate());
                 return;
             }
 
@@ -587,7 +591,9 @@ namespace RimWorldAccess
                 Find.Selector.Select(mech, playSound: false, forceDesignatorDeselect: false);
             }
 
-            TolkHelper.Speak($"Selected {mechs.Count} {(mechs.Count == 1 ? "mech" : "mechs")}");
+            TolkHelper.Speak(mechs.Count == 1
+                ? "RimWorldAccess.Biotech.Mech.SelectedMechOne".Translate(mechs.Count)
+                : "RimWorldAccess.Biotech.Mech.SelectedMechMany".Translate(mechs.Count));
         }
 
         // ========== Reassignment ==========
@@ -603,7 +609,7 @@ namespace RimWorldAccess
 
             if (allGroups.Count <= 1)
             {
-                TolkHelper.Speak("No other control groups available");
+                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.NoOtherGroups".Translate());
                 return;
             }
 
@@ -629,7 +635,8 @@ namespace RimWorldAccess
                         if (membersSelectedIndex >= memberMechs.Count)
                             membersSelectedIndex = Mathf.Max(0, memberMechs.Count - 1);
 
-                        string announcement = $"{selectedMech.LabelCap} assigned to {"ControlGroup".Translate()} {groupIndex}";
+                        string announcement = "RimWorldAccess.Biotech.Mech.AssignedToGroup".Translate(
+                            selectedMech.LabelCap, "ControlGroup".Translate(), groupIndex);
                         if (memberMechs.Count == 0)
                         {
                             announcement += ". " + "NoMechs".Translate();
@@ -776,7 +783,7 @@ namespace RimWorldAccess
             if (controlGroup != null
                 && !controlGroup.Tracker.ControlledPawns.Contains(mech))
             {
-                label += ", uncontrolled";
+                label += ", " + "RimWorldAccess.Biotech.Mech.Uncontrolled".Translate();
             }
 
             return label;
@@ -791,7 +798,7 @@ namespace RimWorldAccess
         {
             var group = GetControlGroupFromGizmo(gizmo);
             if (group == null)
-                return "Mechanitor Control Groups";
+                return "RimWorldAccess.Biotech.Mech.GizmoLabelFallback".Translate();
 
             var mergedGroups = GetMergedGroupsFromGizmo(gizmo);
             int mechCount = group.MechsForReading.Count;
@@ -811,7 +818,9 @@ namespace RimWorldAccess
                 if (mechCount == 0)
                     label += ", " + "NoMechs".Translate();
                 else
-                    label += ", " + mechCount + " " + (mechCount == 1 ? "mech" : "mechs");
+                    label += ", " + (mechCount == 1
+                        ? "RimWorldAccess.Biotech.Mech.MechCountOne".Translate(mechCount)
+                        : "RimWorldAccess.Biotech.Mech.MechCountMany".Translate(mechCount));
                 return label;
             }
             else
@@ -823,7 +832,9 @@ namespace RimWorldAccess
                 if (mechCount == 0)
                     label += ", " + "NoMechs".Translate();
                 else
-                    label += ", " + mechCount + " " + (mechCount == 1 ? "mech" : "mechs");
+                    label += ", " + (mechCount == 1
+                        ? "RimWorldAccess.Biotech.Mech.MechCountOne".Translate(mechCount)
+                        : "RimWorldAccess.Biotech.Mech.MechCountMany".Translate(mechCount));
 
                 return label;
             }
@@ -874,7 +885,8 @@ namespace RimWorldAccess
                 if (energyCount > 0)
                 {
                     float avgEnergy = totalEnergy / energyCount;
-                    entry += ". Average " + "EnergyLower".Translate() + ": " + FormatPercent(avgEnergy);
+                    entry += ". " + "RimWorldAccess.Biotech.Mech.AverageEnergy".Translate(
+                        "EnergyLower".Translate(), FormatPercent(avgEnergy));
                 }
                 entries.Add(entry);
             }

@@ -388,7 +388,7 @@ namespace RimWorldAccess
         private static void OnRenameCancel()
         {
             SoundDefOf.Click.PlayOneShotOnCamera();
-            TolkHelper.Speak("Rename cancelled.");
+            TolkHelper.Speak("RimWorldAccess.Biotech.Xenogerm.RenameCancelled".Translate());
         }
 
         private static void OnRenameConfirm(string newName)
@@ -400,7 +400,7 @@ namespace RimWorldAccess
             BuildControlItems();
 
             SoundDefOf.Tick_High.PlayOneShotOnCamera();
-            TolkHelper.Speak($"Renamed to {newName}. Name locked.");
+            TolkHelper.Speak("RimWorldAccess.Biotech.Xenogerm.Renamed".Translate(newName));
         }
 
         // ===== Lazy Loading =====
@@ -543,9 +543,10 @@ namespace RimWorldAccess
 
             // Announce feedback
             string packLabel = genepack.LabelNoCount;
-            string action = adding ? "added" : "removed";
             string biostats = FormatCurrentBiostats();
-            TolkHelper.Speak($"{packLabel} {action}. {biostats}");
+            TolkHelper.Speak(adding
+                ? "RimWorldAccess.Biotech.Xenogerm.PackAdded".Translate(packLabel, biostats)
+                : "RimWorldAccess.Biotech.Xenogerm.PackRemoved".Translate(packLabel, biostats));
         }
 
         private static void RestoreCursor(Genepack cursorPack)
@@ -658,7 +659,7 @@ namespace RimWorldAccess
             if (templates == null || templates.Count == 0)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No saved templates.");
+                TolkHelper.Speak("RimWorldAccess.Biotech.Xenogerm.NoSavedTemplates".Translate());
                 return;
             }
 
@@ -685,7 +686,8 @@ namespace RimWorldAccess
             }
 
             if (geneNames.Count > 0)
-                return $"{template.name}: {string.Join(", ", geneNames)}";
+                return "RimWorldAccess.Biotech.Xenogerm.TemplateLabel".Translate(
+                    template.name, string.Join(", ", geneNames));
             return template.name;
         }
 
@@ -724,10 +726,10 @@ namespace RimWorldAccess
 
             // Announce result
             var sb = new System.Text.StringBuilder();
-            sb.Append($"Loaded {template.name}. {matched.Count} genepacks matched.");
+            sb.Append("RimWorldAccess.Biotech.Xenogerm.TemplateLoaded".Translate(template.name, matched.Count));
             if (missingGenes.Count > 0)
             {
-                sb.Append($" Missing genes: {string.Join(", ", missingGenes)}.");
+                sb.Append("RimWorldAccess.Biotech.Xenogerm.TemplateMissingGenes".Translate(string.Join(", ", missingGenes)));
             }
             sb.Append($" {FormatCurrentBiostats()}");
 
@@ -947,13 +949,8 @@ namespace RimWorldAccess
             string header = ((string)"AssembleGenes".Translate()).StripTags();
             string complexity = ((string)"Complexity".Translate()).CapitalizeFirst();
 
-            var sb = new System.Text.StringBuilder();
-            sb.Append($"{header}. {complexity} limit {maxGCX}. ");
-
-            // Announce current tab (includes item count)
-            sb.Append(GetTabAnnouncement());
-
-            TolkHelper.Speak(sb.ToString());
+            TolkHelper.Speak("RimWorldAccess.Biotech.Xenogerm.OpeningSummary".Translate(
+                header, complexity, maxGCX, GetTabAnnouncement()));
         }
 
         private static void AnnounceTabSwitch()
@@ -967,12 +964,16 @@ namespace RimWorldAccess
             {
                 case Tab.Selected:
                     string selLabel = ((string)"SelectedGenepacks".Translate()).StripTags();
-                    return $"{selLabel}, {selectedTreeNav.Count} {(selectedTreeNav.Count == 1 ? "item" : "items")}.";
+                    return selectedTreeNav.Count == 1
+                        ? "RimWorldAccess.Biotech.Xenogerm.TabSummaryOne".Translate(selLabel)
+                        : "RimWorldAccess.Biotech.Xenogerm.TabSummaryMany".Translate(selLabel, selectedTreeNav.Count);
                 case Tab.Library:
                     string libLabel = ((string)"GenepackLibrary".Translate()).StripTags();
-                    return $"{libLabel}, {libraryTreeNav.Count} {(libraryTreeNav.Count == 1 ? "item" : "items")}.";
+                    return libraryTreeNav.Count == 1
+                        ? "RimWorldAccess.Biotech.Xenogerm.TabSummaryOne".Translate(libLabel)
+                        : "RimWorldAccess.Biotech.Xenogerm.TabSummaryMany".Translate(libLabel, libraryTreeNav.Count);
                 case Tab.Controls:
-                    return "Controls.";
+                    return "RimWorldAccess.Biotech.Xenogerm.Controls".Translate();
             }
             return "";
         }
@@ -1060,7 +1061,8 @@ namespace RimWorldAccess
 
             if (isUnpowered)
             {
-                sb.Append(", unpowered");
+                sb.Append(", ");
+                sb.Append("RimWorldAccess.Biotech.Xenogerm.PackUnpowered".Translate());
             }
 
             return sb.ToString();
@@ -1079,9 +1081,10 @@ namespace RimWorldAccess
             string metabolismLabel = ((string)"Metabolism".Translate()).CapitalizeFirst();
 
             var sb = new System.Text.StringBuilder();
-            sb.Append($"{complexityLabel} {gcx}");
             if (maxGCX >= 0)
-                sb.Append($" of {maxGCX} max");
+                sb.Append("RimWorldAccess.Biotech.Xenogerm.BiostatsOfMax".Translate(complexityLabel, gcx, maxGCX));
+            else
+                sb.Append("RimWorldAccess.Biotech.Xenogerm.BiostatsNoMax".Translate(complexityLabel, gcx));
             sb.Append($", {metabolismLabel} {met.ToStringWithSign()}");
 
             if (arc > 0)
@@ -1099,8 +1102,9 @@ namespace RimWorldAccess
             string name = (string)fi_xenotypeName.GetValue(dialog);
             string label = ((string)"XenotypeName".Translate()).CapitalizeFirst();
             if (string.IsNullOrEmpty(name))
-                return $"{label}: ({((string)"NoneLower".Translate()).StripTags()})";
-            return $"{label}: {name}";
+                return "RimWorldAccess.Biotech.Xenogerm.NameNone".Translate(
+                    label, ((string)"NoneLower".Translate()).StripTags());
+            return "RimWorldAccess.Biotech.Xenogerm.NameWithValue".Translate(label, name);
         }
 
         private static string FormatNameLock()

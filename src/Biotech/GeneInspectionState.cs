@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using UnityEngine;
@@ -54,7 +53,7 @@ namespace RimWorldAccess
 
                 if (pregnancy == null || pregnancy.geneSet == null)
                 {
-                    TolkHelper.Speak("No pregnancy found.", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Biotech.GeneInspection.NoPregnancy".Translate(), SpeechPriority.High);
                     return;
                 }
 
@@ -114,18 +113,24 @@ namespace RimWorldAccess
 
                 // Override root label based on item type
                 int geneCount = holder.GeneSet.GenesListForReading?.Count ?? 0;
-                string countStr = $"({geneCount} {(geneCount == 1 ? "gene" : "genes")})";
+                string countStr = GeneTreeBuilder.GeneCountSuffix(geneCount);
                 string xenotype = holder.GeneSet.Label;
                 bool hasXenotype = !string.IsNullOrEmpty(xenotype) && xenotype != "ERR";
 
                 if (holder is HumanEmbryo)
-                    rootItem.Label = hasXenotype ? $"Embryo Genes: {xenotype} {countStr}" : $"Embryo Genes {countStr}";
+                    rootItem.Label = hasXenotype
+                        ? "RimWorldAccess.Biotech.Gene.RootEmbryoGenesWithXenotype".Translate(xenotype, countStr).ToString()
+                        : "RimWorldAccess.Biotech.Gene.RootEmbryoGenes".Translate(countStr).ToString();
                 else if (holder is Xenogerm xg && !string.IsNullOrEmpty(xg.xenotypeName))
-                    rootItem.Label = $"Xenogerm Genes: {xg.xenotypeName} {countStr}";
+                    rootItem.Label = "RimWorldAccess.Biotech.Gene.RootXenogermGenes".Translate(xg.xenotypeName, countStr).ToString();
                 else if (holder is Genepack)
-                    rootItem.Label = hasXenotype ? $"Genepack: {xenotype} {countStr}" : $"Genepack Genes {countStr}";
+                    rootItem.Label = hasXenotype
+                        ? "RimWorldAccess.Biotech.Gene.RootGenepackWithXenotype".Translate(xenotype, countStr).ToString()
+                        : "RimWorldAccess.Biotech.Gene.RootGenepackGenes".Translate(countStr).ToString();
                 else
-                    rootItem.Label = hasXenotype ? $"Genes: {xenotype} {countStr}" : $"Genes {countStr}";
+                    rootItem.Label = hasXenotype
+                        ? "RimWorldAccess.Biotech.Gene.RootGenesWithXenotype".Translate(xenotype, countStr).ToString()
+                        : "RimWorldAccess.Biotech.Gene.RootGenes".Translate(countStr).ToString();
 
                 treeNav.Initialize(rootItem);
 
@@ -271,7 +276,7 @@ namespace RimWorldAccess
 
             Close();
             SoundDefOf.Click.PlayOneShotOnCamera();
-            TolkHelper.Speak("Gene inspection closed.");
+            TolkHelper.Speak("RimWorldAccess.Biotech.GeneInspection.Closed".Translate());
         }
 
         /// <summary>
@@ -367,13 +372,13 @@ namespace RimWorldAccess
                 var firstItem = treeNav.VisibleItems[0];
                 string firstLabel = firstItem.Label.StripTags();
                 string state = TreeNavigationHelper.GetExpansionStateWord(firstItem);
-                sb.Append($"First gene: {firstLabel}");
+                sb.Append("RimWorldAccess.Biotech.GeneInspection.FirstGene".Translate(firstLabel));
                 if (!string.IsNullOrEmpty(state))
                     sb.Append($" {state}");
                 sb.Append(". ");
             }
 
-            sb.Append("Use Up and Down to navigate, Right to expand, Left to collapse. Page Up and Page Down jump between genes.");
+            sb.Append("RimWorldAccess.Biotech.GeneInspection.NavHint".Translate());
             TolkHelper.Speak(sb.ToString());
         }
 
@@ -446,7 +451,7 @@ namespace RimWorldAccess
                 if (item.IsExpanded)
                 {
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak("Already expanded.");
+                    TolkHelper.Speak("RimWorldAccess.Biotech.GeneInspection.AlreadyExpanded".Translate());
                     return true;
                 }
                 // Collapsed: let treeNav expand it via ExpandOrDrillDown
@@ -464,7 +469,7 @@ namespace RimWorldAccess
 
             // Otherwise, nothing to do
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            TolkHelper.Speak("No action available for this item.");
+            TolkHelper.Speak("RimWorldAccess.Biotech.GeneInspection.NoAction".Translate());
             return true;
         }
 
