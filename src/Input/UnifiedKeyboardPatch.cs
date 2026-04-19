@@ -5820,6 +5820,8 @@ namespace RimWorldAccess
 
             // ===== PRIORITY 6.54: Reform caravan with C (temporary maps only) =====
             // Bare C only — Shift+C is reserved for gizmo hotkey activation (see priority 7.04).
+            // On the world map, C forms a new caravan at the selected settlement — that's
+            // handled by WorldNavigationPatch, so we fall through without consuming.
             if (key == KeyCode.C && !Event.current.shift && !Event.current.control && !KeyboardHelper.IsAltHeld)
             {
                 // Only reform caravan if:
@@ -5838,13 +5840,6 @@ namespace RimWorldAccess
                     CaravanFormationState.TriggerReformation();
 
                     // Prevent the default C key behavior
-                    Event.current.Use();
-                    return;
-                }
-                // Give feedback if on world map
-                else if (Current.ProgramState == ProgramState.Playing && WorldNavigationState.IsActive)
-                {
-                    TolkHelper.Speak("Reform caravan only works on temporary maps, not the world map. Use C to form a new caravan from a settlement.");
                     Event.current.Use();
                     return;
                 }
