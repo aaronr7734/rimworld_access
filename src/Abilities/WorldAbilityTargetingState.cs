@@ -42,7 +42,8 @@ namespace RimWorldAccess
 
             // Announce targeting start, including affected pawns for AOE abilities
             // (the AOE is centered on the caster and can't be changed during world targeting)
-            string announcement = $"{ability.def.LabelCap} world targeting.";
+            var sb = new System.Text.StringBuilder();
+            sb.Append("RimWorldAccess.Abilities.World.TargetingStart".Translate(ability.def.LabelCap));
 
             if (ability.def.HasAreaOfEffect && ability.pawn?.Map != null)
             {
@@ -51,12 +52,15 @@ namespace RimWorldAccess
                 if (affected.Count > 0)
                 {
                     var names = affected.Select(p => p.LabelShort).ToCommaList(useAnd: true);
-                    announcement += $" Bringing {affected.Count}: {names}.";
+                    string bringingKey = affected.Count == 1
+                        ? "RimWorldAccess.Abilities.World.BringingOne"
+                        : "RimWorldAccess.Abilities.World.BringingMany";
+                    sb.Append(bringingKey.Translate(affected.Count, names));
                 }
             }
 
-            announcement += " Select destination tile.";
-            TolkHelper.Speak(announcement, SpeechPriority.Normal);
+            sb.Append("RimWorldAccess.Abilities.World.SelectDestination".Translate());
+            TolkHelper.Speak(sb.ToString(), SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -116,20 +120,20 @@ namespace RimWorldAccess
         {
             if (!WorldNavigationState.IsActive)
             {
-                TolkHelper.Speak("World navigation not active", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Guard.WorldNavigationNotActive".Translate(), SpeechPriority.High);
                 return;
             }
 
             PlanetTile selectedTile = WorldNavigationState.CurrentSelectedTile;
             if (!selectedTile.Valid)
             {
-                TolkHelper.Speak("No valid tile selected", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Guard.NoValidTileSelected".Translate(), SpeechPriority.High);
                 return;
             }
 
             if (Find.WorldTargeter == null || !Find.WorldTargeter.IsTargeting)
             {
-                TolkHelper.Speak("World targeter not active", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Abilities.World.NotActive".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -139,14 +143,14 @@ namespace RimWorldAccess
                 var actionField = typeof(WorldTargeter).GetField("action", BindingFlags.NonPublic | BindingFlags.Instance);
                 if (actionField == null)
                 {
-                    TolkHelper.Speak("Cannot access world targeter action", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Abilities.World.CannotAccessAction".Translate(), SpeechPriority.High);
                     return;
                 }
 
                 var action = actionField.GetValue(Find.WorldTargeter) as Func<GlobalTargetInfo, bool>;
                 if (action == null)
                 {
-                    TolkHelper.Speak("No targeting action available", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Abilities.World.NoActionAvailable".Translate(), SpeechPriority.High);
                     return;
                 }
 
@@ -171,14 +175,14 @@ namespace RimWorldAccess
                 {
                     // Target was accepted
                     Find.WorldTargeter.StopTargeting();
-                    TolkHelper.Speak("Target selected", SpeechPriority.Normal);
+                    TolkHelper.Speak("RimWorldAccess.Abilities.World.TargetSelected".Translate(), SpeechPriority.Normal);
                 }
                 // If not completed, target was rejected or a float menu was created
             }
             catch (Exception ex)
             {
                 Log.Warning($"RimWorld Access: Error confirming world ability destination: {ex}");
-                TolkHelper.Speak("Error selecting destination", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Abilities.World.ErrorSelecting".Translate(), SpeechPriority.High);
             }
         }
 
@@ -199,7 +203,7 @@ namespace RimWorldAccess
 
             // Close our state
             Close();
-            TolkHelper.Speak("Ability targeting cancelled", SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.Abilities.World.Cancelled".Translate(), SpeechPriority.Normal);
 
             // Return to map view
             if (returnMap != null && caster != null)
@@ -238,7 +242,7 @@ namespace RimWorldAccess
             // Check if the ability can target this tile
             if (!currentAbility.ValidateGlobalTarget(targetInfo))
             {
-                return "Invalid target";
+                return "RimWorldAccess.Abilities.World.InvalidTarget".Translate();
             }
 
             return null;

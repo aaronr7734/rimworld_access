@@ -33,15 +33,16 @@ namespace RimWorldAccess
             }
 
             isActive = true;
-            itemLabel = source.Caster?.LabelCap ?? "item";
+            itemLabel = source.Caster?.LabelCap ?? "RimWorldAccess.Abilities.Label.Item".Translate().ToString();
 
             // Use the game's targeting instruction — the same text shown as a mouse-attached
             // label for sighted users. This ensures each item type gets correct messaging
             // without us having to infer "animal"/"pawn"/etc. from TargetingParameters.
             string mouseLabel = GetMouseLabel(source);
 
-            string announcement = $"{itemLabel}: {mouseLabel}. Navigate with arrow keys, Enter to confirm.";
-            TolkHelper.Speak(announcement, SpeechPriority.Normal);
+            TolkHelper.Speak(
+                "RimWorldAccess.Abilities.Item.StartWithInstruction".Translate(itemLabel, mouseLabel),
+                SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -55,8 +56,9 @@ namespace RimWorldAccess
             isActive = true;
             itemLabel = !string.IsNullOrEmpty(label) ? label : InferLabelFromParameters(parameters);
 
-            string announcement = $"{itemLabel}. Navigate with arrow keys, Enter to confirm, Escape to cancel.";
-            TolkHelper.Speak(announcement, SpeechPriority.Normal);
+            TolkHelper.Speak(
+                "RimWorldAccess.Abilities.Item.StartCallback".Translate(itemLabel),
+                SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -74,10 +76,12 @@ namespace RimWorldAccess
         /// </summary>
         public static string BuildSuccessAnnouncement(LocalTargetInfo target)
         {
-            string targetLabel = target.HasThing ? target.Thing.LabelShort : "target";
+            string targetLabel = target.HasThing
+                ? target.Thing.LabelShort
+                : "RimWorldAccess.Abilities.Label.Target".Translate().ToString();
             if (itemLabel != null)
-                return $"Using {itemLabel} on {targetLabel}";
-            return $"Target selected: {targetLabel}";
+                return "RimWorldAccess.Abilities.Item.SuccessUsing".Translate(itemLabel, targetLabel);
+            return "RimWorldAccess.Abilities.Item.SuccessSelected".Translate(targetLabel);
         }
 
         /// <summary>
@@ -85,7 +89,7 @@ namespace RimWorldAccess
         /// </summary>
         public static string GetNoTargetErrorMessage()
         {
-            return "No valid target at cursor";
+            return "RimWorldAccess.Abilities.Item.NoTargetAtCursor".Translate();
         }
 
         /// <summary>
@@ -107,7 +111,7 @@ namespace RimWorldAccess
             if (source is CompUsable)
                 return "UseGizmoMouse".Translate();
 
-            return "Select a target";
+            return "RimWorldAccess.Abilities.Item.DefaultInstruction".Translate();
         }
 
         /// <summary>
@@ -118,19 +122,19 @@ namespace RimWorldAccess
         private static string InferLabelFromParameters(TargetingParameters parameters)
         {
             if (parameters == null)
-                return "Select a target";
+                return "RimWorldAccess.Abilities.Item.DefaultInstruction".Translate();
 
             if (parameters.canTargetPawns || parameters.canTargetHumans
                 || parameters.canTargetAnimals || parameters.canTargetMechs)
-                return "Select pawn to target";
+                return "RimWorldAccess.Abilities.Item.InferPawn".Translate();
             if (parameters.canTargetBuildings)
-                return "Select building to target";
+                return "RimWorldAccess.Abilities.Item.InferBuilding".Translate();
             if (parameters.canTargetItems)
-                return "Select item to target";
+                return "RimWorldAccess.Abilities.Item.InferItem".Translate();
             if (parameters.canTargetLocations)
-                return "Select location";
+                return "RimWorldAccess.Abilities.Item.InferLocation".Translate();
 
-            return "Select a target";
+            return "RimWorldAccess.Abilities.Item.DefaultInstruction".Translate();
         }
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using RimWorld;
 using Verse;
@@ -89,14 +88,14 @@ namespace RimWorldAccess
         {
             if (!isActive || currentAbility == null)
             {
-                TolkHelper.Speak("No ability targeting active", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Abilities.State.NoAbilityTargeting".Translate(), SpeechPriority.Normal);
                 return;
             }
 
             IntVec3 cursorPos = MapNavigationState.CurrentCursorPosition;
             if (!cursorPos.IsValid)
             {
-                TolkHelper.Speak("Invalid cursor position", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Guard.InvalidCursorPosition".Translate(), SpeechPriority.Normal);
                 return;
             }
 
@@ -105,11 +104,13 @@ namespace RimWorldAccess
             {
                 // During destination phase, use destination-specific range from the selected target
                 float distance = AbilityTargetingHelper.CalculateDistance(casterPosition, cursorPos);
-                announcement = $"Distance: {distance:F0} tiles";
+                var sb = new System.Text.StringBuilder();
+                sb.Append("RimWorldAccess.Abilities.Range.Distance".Translate(distance.ToString("F0")));
                 if (distance <= destinationRange)
-                    announcement += ", IN RANGE";
+                    sb.Append("RimWorldAccess.Abilities.Range.InRange".Translate());
                 else
-                    announcement += $", OUT OF RANGE (max {destinationRange:F0})";
+                    sb.Append("RimWorldAccess.Abilities.Range.OutOfRange".Translate(destinationRange.ToString("F0")));
+                announcement = sb.ToString();
             }
             else
             {
@@ -127,14 +128,14 @@ namespace RimWorldAccess
         {
             if (!isActive || currentAbility == null)
             {
-                TolkHelper.Speak("No ability targeting active", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Abilities.State.NoAbilityTargeting".Translate(), SpeechPriority.Normal);
                 return;
             }
 
             IntVec3 cursorPos = MapNavigationState.CurrentCursorPosition;
             if (!cursorPos.IsValid || casterMap == null)
             {
-                TolkHelper.Speak("Invalid cursor position", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Guard.InvalidCursorPosition".Translate(), SpeechPriority.Normal);
                 return;
             }
 
@@ -199,7 +200,8 @@ namespace RimWorldAccess
             float distance = AbilityTargetingHelper.CalculateDistance(casterPosition, targetPos);
             if (distance > range)
             {
-                return $"Out of range. Distance: {distance:F0}, max range: {range:F0}";
+                return "RimWorldAccess.Combat.Target.OutOfRange"
+                    .Translate(distance.ToString("F0"), range.ToString("F0"));
             }
 
             return null;
@@ -218,7 +220,7 @@ namespace RimWorldAccess
             {
                 if (!AbilityTargetingHelper.HasLineOfSight(currentAbility.pawn, targetPos))
                 {
-                    return "No line of sight to target";
+                    return "RimWorldAccess.Abilities.Validate.LineOfSight".Translate();
                 }
             }
 
@@ -259,13 +261,13 @@ namespace RimWorldAccess
                 if (nearby.Count > 0)
                 {
                     string names = string.Join(", ", nearby.Select(p => p.LabelShort));
-                    return $"No pawn at cursor. Nearby targets: {names}. Move cursor directly onto a pawn to target them";
+                    return "RimWorldAccess.Abilities.Validate.NoPawnAoeNearby".Translate(names);
                 }
-                return $"No pawn at cursor. This AOE ability requires targeting a pawn directly, then affects others within {radius:F0} tiles";
+                return "RimWorldAccess.Abilities.Validate.NoPawnAoeRadius".Translate(radius.ToString("F0"));
             }
 
             string requirement = AbilityTargetingHelper.GetTargetRequirementDescription(currentAbility);
-            return $"No {requirement} at cursor. Move cursor onto a valid target";
+            return "RimWorldAccess.Abilities.Validate.NoValidAtCursor".Translate(requirement);
         }
 
         /// <summary>
@@ -275,8 +277,10 @@ namespace RimWorldAccess
         {
             if (!isActive || currentAbility == null || casterMap == null)
             {
-                string label = target.HasThing ? target.Thing.LabelShort : "location";
-                return $"Targeting: {label}";
+                string label = target.HasThing
+                    ? target.Thing.LabelShort
+                    : "RimWorldAccess.Abilities.Label.Location".Translate().ToString();
+                return "RimWorldAccess.Abilities.Success.TargetingLocation".Translate(label);
             }
 
             // For AOE abilities, list all affected pawns
@@ -291,35 +295,37 @@ namespace RimWorldAccess
                     if (AbilityTargetingHelper.CanTargetLocations(currentAbility))
                     {
                         var terrain = casterMap.terrainGrid.TerrainAt(cursorPos);
-                        string terrainName = terrain?.label ?? "ground";
-                        return $"Targeting: {terrainName}";
+                        string terrainName = terrain?.label
+                            ?? "RimWorldAccess.Abilities.Label.Ground".Translate().ToString();
+                        return "RimWorldAccess.Abilities.Success.TargetingLocation".Translate(terrainName);
                     }
-                    return "Targeting location. No pawns in radius";
+                    return "RimWorldAccess.Abilities.Success.TargetingLocationNoPawns".Translate();
                 }
                 else if (affected.Count == 1)
                 {
-                    return $"Targeting: {affected[0].LabelShort}";
+                    return "RimWorldAccess.Abilities.Success.TargetingOne".Translate(affected[0].LabelShort);
                 }
                 else
                 {
                     // Use RimWorld's ToCommaList with useAnd for proper grammar (A, B, and C)
                     var names = affected.Select(p => p.LabelShort).ToCommaList(useAnd: true);
-                    return $"Targeting {affected.Count} pawns: {names}";
+                    return "RimWorldAccess.Abilities.Success.TargetingMany".Translate(affected.Count, names);
                 }
             }
 
             // For non-AOE abilities
             if (target.HasThing)
             {
-                return $"Targeting: {target.Thing.LabelShort}";
+                return "RimWorldAccess.Abilities.Success.TargetingOne".Translate(target.Thing.LabelShort);
             }
             else
             {
                 // Cell-only target (like Wallraise, Smokepop)
                 // Try to describe what's at the cell
                 var terrain = casterMap.terrainGrid.TerrainAt(cursorPos);
-                string terrainName = terrain?.label ?? "ground";
-                return $"Targeting: {terrainName}";
+                string terrainName = terrain?.label
+                    ?? "RimWorldAccess.Abilities.Label.Ground".Translate().ToString();
+                return "RimWorldAccess.Abilities.Success.TargetingLocation".Translate(terrainName);
             }
         }
     }

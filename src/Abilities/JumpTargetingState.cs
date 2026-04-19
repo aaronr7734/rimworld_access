@@ -86,40 +86,40 @@ namespace RimWorldAccess
         {
             if (!isActive || casterPawn == null || casterMap == null)
             {
-                TolkHelper.Speak("No jump targeting active", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Abilities.State.NoJumpTargeting".Translate(), SpeechPriority.Normal);
                 return;
             }
 
             IntVec3 cursorPos = MapNavigationState.CurrentCursorPosition;
             if (!cursorPos.IsValid)
             {
-                TolkHelper.Speak("Invalid cursor position", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Guard.InvalidCursorPosition".Translate(), SpeechPriority.Normal);
                 return;
             }
 
             var sb = new StringBuilder();
             float distance = (cursorPos - casterPosition).LengthHorizontal;
-            sb.Append($"Distance: {distance:F0} tiles");
+            sb.Append("RimWorldAccess.Abilities.Range.Distance".Translate(distance.ToString("F0")));
 
             if (distance <= jumpRange)
-                sb.Append(", IN RANGE");
+                sb.Append("RimWorldAccess.Abilities.Range.InRange".Translate());
             else
-                sb.Append($", OUT OF RANGE (max {jumpRange:F0})");
+                sb.Append("RimWorldAccess.Abilities.Range.OutOfRange".Translate(jumpRange.ToString("F0")));
 
             if (!GenSight.LineOfSight(casterPosition, cursorPos, casterMap))
-                sb.Append(", NO LINE OF SIGHT");
+                sb.Append("RimWorldAccess.Abilities.Range.NoLineOfSight".Translate());
 
             if (cursorPos.InBounds(casterMap) && !JumpUtility.ValidJumpTarget(casterPawn, casterMap, cursorPos))
             {
                 string reason = GetInvalidReason(cursorPos);
                 if (reason != null)
-                    sb.Append($", {reason}");
+                    sb.Append("RimWorldAccess.Abilities.Jump.InvalidReasonSuffix".Translate(reason));
                 else
-                    sb.Append(", invalid jump target");
+                    sb.Append("RimWorldAccess.Abilities.Jump.InvalidTargetFallback".Translate());
             }
             else if (distance <= jumpRange && GenSight.LineOfSight(casterPosition, cursorPos, casterMap))
             {
-                sb.Append(", valid jump target");
+                sb.Append("RimWorldAccess.Abilities.Jump.ValidSuffix".Translate());
             }
 
             TolkHelper.Speak(sb.ToString(), SpeechPriority.Normal);
@@ -135,29 +135,29 @@ namespace RimWorldAccess
                 return "";
 
             if (!position.IsValid || !position.InBounds(casterMap))
-                return "Invalid, ";
+                return "RimWorldAccess.Abilities.Jump.PrefixInvalid".Translate();
 
             float distance = (position - casterPosition).LengthHorizontal;
             if (distance > jumpRange)
-                return "Out of range, ";
+                return "RimWorldAccess.Abilities.Jump.PrefixOutOfRange".Translate();
 
             if (!GenSight.LineOfSight(casterPosition, position, casterMap))
-                return "No line of sight, ";
+                return "RimWorldAccess.Abilities.Jump.PrefixNoLineOfSight".Translate();
 
             if (position.Impassable(casterMap))
-                return "Impassable, ";
+                return "RimWorldAccess.Abilities.Jump.PrefixImpassable".Translate();
 
             if (position.Fogged(casterMap))
-                return "Fogged, ";
+                return "RimWorldAccess.Abilities.Jump.PrefixFogged".Translate();
 
             Building edifice = position.GetEdifice(casterMap);
             if (edifice is Building_Door door && !door.Open)
-                return "Closed door, ";
+                return "RimWorldAccess.Abilities.Jump.PrefixClosedDoor".Translate();
 
             if (!position.WalkableBy(casterMap, casterPawn))
-                return "Not walkable, ";
+                return "RimWorldAccess.Abilities.Jump.PrefixNotWalkable".Translate();
 
-            return "Can jump, ";
+            return "RimWorldAccess.Abilities.Jump.PrefixCanJump".Translate();
         }
 
         /// <summary>
@@ -170,37 +170,38 @@ namespace RimWorldAccess
                 return null;
 
             if (!targetPos.IsValid || !targetPos.InBounds(casterMap))
-                return "Invalid target position";
+                return "RimWorldAccess.Abilities.Jump.ErrorInvalidPosition".Translate();
 
             float distance = (targetPos - casterPosition).LengthHorizontal;
             if (distance > jumpRange)
-                return $"Out of range. Distance: {distance:F0} tiles, max range: {jumpRange:F0}";
+                return "RimWorldAccess.Abilities.Jump.ErrorOutOfRange"
+                    .Translate(distance.ToString("F0"), jumpRange.ToString("F0"));
 
             if (!GenSight.LineOfSight(casterPosition, targetPos, casterMap))
-                return "No line of sight to target";
+                return "RimWorldAccess.Abilities.Jump.ErrorLineOfSight".Translate();
 
             if (targetPos.Impassable(casterMap))
-                return "Cannot jump here: impassable terrain";
+                return "RimWorldAccess.Abilities.Jump.ErrorImpassable".Translate();
 
             if (targetPos.Fogged(casterMap))
-                return "Cannot jump here: fogged area";
+                return "RimWorldAccess.Abilities.Jump.ErrorFogged".Translate();
 
             Building edifice = targetPos.GetEdifice(casterMap);
             if (edifice is Building_Door door && !door.Open)
-                return "Cannot jump here: closed door";
+                return "RimWorldAccess.Abilities.Jump.ErrorClosedDoor".Translate();
 
             if (!targetPos.WalkableBy(casterMap, casterPawn))
-                return "Cannot jump here: not walkable";
+                return "RimWorldAccess.Abilities.Jump.ErrorNotWalkable".Translate();
 
             // Check ammo/charges
             var reloadable = currentVerb.ReloadableCompSource;
             if (reloadable != null && !reloadable.CanBeUsed(out var reason))
-                return reason ?? "No charges remaining";
+                return reason ?? "RimWorldAccess.Abilities.Jump.ErrorNoCharges".Translate().ToString();
 
             // Check if jump is already queued
             if (currentVerb.EquipmentSource != null &&
                 !ReloadableUtility.CanUseConsideringQueuedJobs(casterPawn, currentVerb.EquipmentSource))
-                return "Jump already queued";
+                return "RimWorldAccess.Abilities.Jump.ErrorAlreadyQueued".Translate();
 
             return null;
         }
@@ -213,11 +214,12 @@ namespace RimWorldAccess
             if (casterMap != null && targetPos.IsValid && targetPos.InBounds(casterMap))
             {
                 var terrain = casterMap.terrainGrid.TerrainAt(targetPos);
-                string terrainName = terrain?.label ?? "location";
-                return $"Jumping to {terrainName}";
+                string terrainName = terrain?.label
+                    ?? "RimWorldAccess.Abilities.Label.Location".Translate().ToString();
+                return "RimWorldAccess.Abilities.Jump.SuccessTo".Translate(terrainName);
             }
 
-            return "Jumping";
+            return "RimWorldAccess.Abilities.Jump.SuccessBare".Translate();
         }
 
         /// <summary>
@@ -228,17 +230,19 @@ namespace RimWorldAccess
             var sb = new StringBuilder();
 
             // Get the equipment label for the announcement
-            string label = currentVerb.EquipmentSource?.LabelCap ?? "Jump";
-            sb.Append($"{label} targeting. Range: {jumpRange:F0} tiles");
+            string label = currentVerb.EquipmentSource?.LabelCap
+                ?? "RimWorldAccess.Abilities.Label.Jump".Translate().ToString();
+            sb.Append("RimWorldAccess.Abilities.Jump.Start".Translate(label, jumpRange.ToString("F0")));
 
             // Add charge info if available
             var reloadable = currentVerb.ReloadableCompSource;
             if (reloadable != null)
             {
-                sb.Append($". {reloadable.RemainingCharges}/{reloadable.MaxCharges} charges");
+                sb.Append("RimWorldAccess.Abilities.Jump.Charges"
+                    .Translate(reloadable.RemainingCharges, reloadable.MaxCharges));
             }
 
-            sb.Append(". Press R to check distance and line of sight.");
+            sb.Append("RimWorldAccess.Abilities.Jump.HintR".Translate());
 
             return sb.ToString();
         }
@@ -250,17 +254,17 @@ namespace RimWorldAccess
         private static string GetInvalidReason(IntVec3 position)
         {
             if (position.Impassable(casterMap))
-                return "impassable terrain";
+                return "RimWorldAccess.Abilities.Jump.ReasonImpassable".Translate();
 
             if (position.Fogged(casterMap))
-                return "fogged area";
+                return "RimWorldAccess.Abilities.Jump.ReasonFogged".Translate();
 
             Building edifice = position.GetEdifice(casterMap);
             if (edifice is Building_Door door && !door.Open)
-                return "closed door";
+                return "RimWorldAccess.Abilities.Jump.ReasonClosedDoor".Translate();
 
             if (!position.WalkableBy(casterMap, casterPawn))
-                return "not walkable";
+                return "RimWorldAccess.Abilities.Jump.ReasonNotWalkable".Translate();
 
             return null;
         }

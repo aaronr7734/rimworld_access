@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -96,24 +95,24 @@ namespace RimWorldAccess
         {
             var targetParams = ability?.verb?.targetParams;
             if (targetParams == null)
-                return "unknown";
+                return "RimWorldAccess.Abilities.TargetKind.Unknown".Translate();
 
             if (targetParams.canTargetLocations)
-                return "location or pawn";
+                return "RimWorldAccess.Abilities.TargetKind.LocationOrPawn".Translate();
 
             if (targetParams.canTargetPawns && targetParams.canTargetAnimals && targetParams.canTargetHumans)
-                return "pawn";
+                return "RimWorldAccess.Abilities.TargetKind.Pawn".Translate();
 
             if (targetParams.canTargetPawns && targetParams.canTargetHumans && !targetParams.canTargetAnimals)
-                return "humanlike pawn";
+                return "RimWorldAccess.Abilities.TargetKind.HumanlikePawn".Translate();
 
             if (targetParams.canTargetPawns && targetParams.canTargetAnimals && !targetParams.canTargetHumans)
-                return "animal";
+                return "RimWorldAccess.Abilities.TargetKind.Animal".Translate();
 
             if (targetParams.canTargetBuildings)
-                return "building or structure";
+                return "RimWorldAccess.Abilities.TargetKind.BuildingOrStructure".Translate();
 
-            return "valid target";
+            return "RimWorldAccess.Abilities.TargetKind.ValidTarget".Translate();
         }
 
         /// <summary>
@@ -212,11 +211,12 @@ namespace RimWorldAccess
         public static string GetTargetLabel(LocalTargetInfo target)
         {
             if (!target.IsValid)
-                return "invalid";
+                return "RimWorldAccess.Abilities.Label.Invalid".Translate();
 
             if (target.HasThing)
             {
-                return target.Thing.LabelShort ?? target.Thing.Label ?? "unknown";
+                return target.Thing.LabelShort ?? target.Thing.Label
+                    ?? "RimWorldAccess.Abilities.Label.Unknown".Translate().ToString();
             }
 
             return target.Cell.ToString();
@@ -273,23 +273,22 @@ namespace RimWorldAccess
         public static string BuildTargetingStartAnnouncement(Ability ability)
         {
             if (ability?.def == null)
-                return "Ability targeting";
+                return "RimWorldAccess.Abilities.Start.Fallback".Translate();
 
             var sb = new StringBuilder();
-            sb.Append(ability.def.LabelCap);
-            sb.Append(" targeting");
+            sb.Append("RimWorldAccess.Abilities.Start.Header".Translate(ability.def.LabelCap));
 
             // Range info
             if (IsTouchRange(ability))
             {
-                sb.Append(". Touch range");
+                sb.Append("RimWorldAccess.Abilities.Start.TouchRange".Translate());
             }
             else
             {
                 float range = GetRange(ability);
                 if (range > 0)
                 {
-                    sb.Append($". Range: {range:F0} tiles");
+                    sb.Append("RimWorldAccess.Abilities.Start.Range".Translate(range.ToString("F0")));
                 }
             }
 
@@ -297,31 +296,31 @@ namespace RimWorldAccess
             if (HasAOE(ability))
             {
                 float aoeRadius = GetAOERadius(ability);
-                sb.Append($", AOE radius: {aoeRadius:F0} tiles");
+                sb.Append("RimWorldAccess.Abilities.Start.AOE".Translate(aoeRadius.ToString("F0")));
             }
 
             // Psyfocus cost
             string psyfocus = GetPsyfocusCostString(ability);
             if (psyfocus != null)
             {
-                sb.Append($". Psyfocus: {psyfocus}");
+                sb.Append("RimWorldAccess.Abilities.Start.Psyfocus".Translate(psyfocus));
             }
 
             // Neural heat gain
             string entropy = GetEntropyGainString(ability);
             if (entropy != null)
             {
-                sb.Append($", Neural heat: {entropy}");
+                sb.Append("RimWorldAccess.Abilities.Start.NeuralHeat".Translate(entropy));
             }
 
             // Add keyboard hints as a separate sentence
             if (HasAOE(ability))
             {
-                sb.Append(". Press R to check distance and line of sight, T to see affected targets.");
+                sb.Append("RimWorldAccess.Abilities.Start.HintAoe".Translate());
             }
             else
             {
-                sb.Append(". Press R to check distance and line of sight.");
+                sb.Append("RimWorldAccess.Abilities.Start.HintSingle".Translate());
             }
 
             return sb.ToString();
@@ -334,19 +333,21 @@ namespace RimWorldAccess
         public static string BuildRangeInfoAnnouncement(Ability ability, IntVec3 casterPos, IntVec3 cursorPos, Map map)
         {
             if (ability?.def == null)
-                return "No ability active";
+                return "RimWorldAccess.Abilities.Range.NoAbilityActive".Translate();
 
             var sb = new StringBuilder();
 
             float distance = CalculateDistance(casterPos, cursorPos);
-            sb.Append($"Distance: {distance:F0} tiles");
+            sb.Append("RimWorldAccess.Abilities.Range.Distance".Translate(distance.ToString("F0")));
 
             // Check if in range
             if (IsTouchRange(ability))
             {
                 // Touch range - game uses reachability, we just report distance
                 bool adjacent = casterPos.AdjacentTo8WayOrInside(cursorPos);
-                sb.Append(adjacent ? ", IN RANGE (touch)" : ", must be adjacent (touch range)");
+                sb.Append(adjacent
+                    ? "RimWorldAccess.Abilities.Range.InRangeTouch".Translate()
+                    : "RimWorldAccess.Abilities.Range.MustBeAdjacent".Translate());
             }
             else
             {
@@ -355,11 +356,11 @@ namespace RimWorldAccess
                 {
                     if (distance <= range)
                     {
-                        sb.Append(", IN RANGE");
+                        sb.Append("RimWorldAccess.Abilities.Range.InRange".Translate());
                     }
                     else
                     {
-                        sb.Append($", OUT OF RANGE (max {range:F0})");
+                        sb.Append("RimWorldAccess.Abilities.Range.OutOfRange".Translate(range.ToString("F0")));
                     }
                 }
             }
@@ -370,7 +371,7 @@ namespace RimWorldAccess
                 bool hasLOS = HasLineOfSight(ability.pawn, cursorPos);
                 if (!hasLOS)
                 {
-                    sb.Append(", NO LINE OF SIGHT");
+                    sb.Append("RimWorldAccess.Abilities.Range.NoLineOfSight".Translate());
                 }
             }
 
@@ -381,7 +382,7 @@ namespace RimWorldAccess
                 if (pawn == null)
                 {
                     string requirement = GetTargetRequirementDescription(ability);
-                    sb.Append($". No {requirement} at cursor");
+                    sb.Append("RimWorldAccess.Abilities.Range.NoTargetAtCursor".Translate(requirement));
                 }
             }
 
@@ -395,7 +396,7 @@ namespace RimWorldAccess
         public static string BuildAffectedTargetsAnnouncement(Ability ability, IntVec3 cursorPos, Map map)
         {
             if (ability?.def == null || map == null)
-                return "No ability active";
+                return "RimWorldAccess.Abilities.Range.NoAbilityActive".Translate();
 
             var affected = GetAffectedPawns(ability, cursorPos, map);
 
@@ -407,32 +408,32 @@ namespace RimWorldAccess
                     string requirement = GetTargetRequirementDescription(ability);
                     if (ability.def.HasAreaOfEffect)
                     {
-                        return $"No valid targets. This ability requires targeting a {requirement}, then affects others within {ability.def.EffectRadius:F0} tile radius";
+                        return "RimWorldAccess.Abilities.Affected.NoValidTargetsAoe"
+                            .Translate(requirement, ability.def.EffectRadius.ToString("F0"));
                     }
-                    return $"No valid target at cursor. This ability requires a {requirement}";
+                    return "RimWorldAccess.Abilities.Affected.NoValidTargetSingle".Translate(requirement);
                 }
-                return "No pawns within AOE radius";
+                return "RimWorldAccess.Abilities.Affected.NoPawnsInRadius".Translate();
             }
 
             if (!ability.def.HasAreaOfEffect)
             {
                 // Single target
-                return $"Target: {affected[0].LabelShort}";
+                return "RimWorldAccess.Abilities.Affected.TargetOne".Translate(affected[0].LabelShort);
             }
 
             // AOE - list affected
-            var sb = new StringBuilder();
-            sb.Append($"Affected: {affected.Count}");
-
             // List first few names
             int maxNames = 5;
             var names = affected.Take(maxNames).Select(p => p.LabelShort);
-            sb.Append(" - ");
-            sb.Append(string.Join(", ", names));
+            string nameList = string.Join(", ", names);
+
+            var sb = new StringBuilder();
+            sb.Append("RimWorldAccess.Abilities.Affected.CountPrefix".Translate(affected.Count, nameList));
 
             if (affected.Count > maxNames)
             {
-                sb.Append($", and {affected.Count - maxNames} more");
+                sb.Append("RimWorldAccess.Abilities.Affected.AndMore".Translate(affected.Count - maxNames));
             }
 
             return sb.ToString();
@@ -451,7 +452,7 @@ namespace RimWorldAccess
             {
                 if (!psycast.CanApplyPsycastTo(target))
                 {
-                    return $"{pawn.LabelShort} is immune to psychic effects";
+                    return "RimWorldAccess.Abilities.Immunity.Psychic".Translate(pawn.LabelShort);
                 }
             }
 

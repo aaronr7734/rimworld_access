@@ -1,8 +1,6 @@
 using System;
 using HarmonyLib;
 using RimWorld;
-using RimWorld.Planet;
-using UnityEngine;
 using Verse;
 
 namespace RimWorldAccess
@@ -74,9 +72,10 @@ namespace RimWorldAccess
                     // Permit targeting - announce but don't open ItemTargetingState.
                     // Permits target map cells (for drops, laborers, strikes) and the standard
                     // ValidateTarget/OrderForceTarget flow in TargetingPatch handles them correctly.
-                    string permitLabel = permitWorker.def?.LabelCap ?? "permit";
+                    string permitLabel = permitWorker.def?.LabelCap
+                        ?? "RimWorldAccess.Abilities.Label.Permit".Translate().ToString();
                     TolkHelper.Speak(
-                        $"Select a target for {permitLabel}. Navigate with arrow keys, Enter to confirm.",
+                        "RimWorldAccess.Abilities.Permit.Start".Translate(permitLabel),
                         SpeechPriority.Normal);
                 }
                 else
