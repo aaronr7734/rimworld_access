@@ -815,8 +815,10 @@ namespace RimWorldAccess
                 sb.AppendLine();
             }
 
-            // Health
-            if (building.HitPoints < building.MaxHitPoints)
+            // Health — skipped for indestructible buildings (geysers etc.) which
+            // report HitPoints of -1. Vanilla gates on def.useHitPoints.
+            if (building.def != null && building.def.useHitPoints &&
+                building.HitPoints < building.MaxHitPoints)
             {
                 float healthPercent = (float)building.HitPoints / building.MaxHitPoints;
                 sb.AppendLine($"Health: {healthPercent:P0} ({building.HitPoints} / {building.MaxHitPoints})");
