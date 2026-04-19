@@ -208,7 +208,7 @@ namespace RimWorldAccess
             if (isJump && MapNavigationState.CurrentJumpMode == JumpMode.AdjacentToWall)
                 return;
 
-            TolkHelper.Speak("Map boundary");
+            TolkHelper.Speak("RimWorldAccess.Input.Map.Boundary".Translate());
         }
 
         /// <summary>
@@ -227,7 +227,7 @@ namespace RimWorldAccess
                 ZoneCreationState.SelectionMode == ZoneSelectionMode.SingleTile &&
                 ZoneCreationState.IsCellSelected(position))
             {
-                return "Selected, " + tileInfo;
+                return "RimWorldAccess.Input.Map.PrefixSelected".Translate(tileInfo);
             }
 
             // Area painting mode - preview or staged cells
@@ -235,11 +235,11 @@ namespace RimWorldAccess
             {
                 if (AreaPaintingState.IsInPreviewMode && AreaPaintingState.PreviewCells.Contains(position))
                 {
-                    return "Preview, " + tileInfo;
+                    return "RimWorldAccess.Input.Map.PrefixPreview".Translate(tileInfo);
                 }
                 else if (AreaPaintingState.StagedCells.Contains(position))
                 {
-                    return "Selected, " + tileInfo;
+                    return "RimWorldAccess.Input.Map.PrefixSelected".Translate(tileInfo);
                 }
             }
 
@@ -263,25 +263,25 @@ namespace RimWorldAccess
                     // not while still being selected (SettingSecondCorner phase)
                     if (ShapePlacementState.FirstPoint.HasValue && position == ShapePlacementState.FirstPoint.Value)
                     {
-                        return "First point, " + tileInfo;
+                        return "RimWorldAccess.Input.Map.PrefixFirstPoint".Translate(tileInfo);
                     }
                     else if (ShapePlacementState.CurrentPhase == PlacementPhase.Previewing &&
                              ShapePlacementState.SecondPoint.HasValue && position == ShapePlacementState.SecondPoint.Value)
                     {
-                        return "Second point, " + tileInfo;
+                        return "RimWorldAccess.Input.Map.PrefixSecondPoint".Translate(tileInfo);
                     }
                     // No prefix for intermediate tiles in preview
                 }
                 else if (ArchitectState.SelectedCells.Contains(position))
                 {
-                    return "Selected, " + tileInfo;
+                    return "RimWorldAccess.Input.Map.PrefixSelected".Translate(tileInfo);
                 }
             }
 
             // Shelf linking mode - selected storage
             if (ShelfLinkingState.IsActive && ShelfLinkingState.IsStorageSelectedAt(position))
             {
-                return "Selected, " + tileInfo;
+                return "RimWorldAccess.Input.Map.PrefixSelected".Translate(tileInfo);
             }
 
             // Area designator - show area membership when navigating
@@ -308,7 +308,7 @@ namespace RimWorldAccess
                     if (targetArea != null && targetArea.Map != null &&
                         position.InBounds(targetArea.Map) && targetArea[position])
                     {
-                        return "In area, " + tileInfo;
+                        return "RimWorldAccess.Input.Map.PrefixInArea".Translate(tileInfo);
                     }
                 }
             }
@@ -318,7 +318,7 @@ namespace RimWorldAccess
                 if (targetArea != null && targetArea.Map != null &&
                     position.InBounds(targetArea.Map) && targetArea[position])
                 {
-                    return "In area, " + tileInfo;
+                    return "RimWorldAccess.Input.Map.PrefixInArea".Translate(tileInfo);
                 }
             }
 
@@ -328,7 +328,7 @@ namespace RimWorldAccess
             {
                 if (SubstructureOverlayState.IsDisconnectedAt(position, Find.CurrentMap))
                 {
-                    tileInfo = "Disconnected, " + tileInfo;
+                    tileInfo = "RimWorldAccess.Input.Map.PrefixDisconnected".Translate(tileInfo).ToString();
                 }
             }
 
