@@ -52,6 +52,26 @@ previewHelper.SetSecondCorner(cell, "[Context]");
 var cells = previewHelper.PreviewCells;
 ```
 
+### Select-All Shortcut
+`Ctrl+A` in shape placement fills both corners automatically:
+- Inside a finished enclosed room → room bounds via `Room.ExtentsClose`.
+- Inside an area ringed by wall BLUEPRINTS/frames (no finished room yet) →
+  `EnclosureDetector.TryFloodFillFromCell(cursor, map)` picks it up and the
+  bounding box of its interior cells is used.
+- Otherwise (outdoors / open map) → entire map bounds.
+- Line and AngledLine shapes refuse — only rect/oval variants apply.
+- Uses `ShapePlacementState.SetBothPoints` which jumps straight to `Previewing`.
+
+## Large-Shape Placement Performance
+
+Selecting many cells at once (e.g. whole-map rectangle) must avoid O(n²) patterns:
+- `ViewingModeState` keeps `obstacleCells` as a `List<IntVec3>` but pairs it with a
+  `HashSet<IntVec3> obstacleCellsSet` so dedup is O(1) — a prior List.Contains loop
+  froze the game for multiple seconds on full-map chop-wood selections.
+- When adding new obstacle/protected cells, do `if (obstacleCellsSet.Add(cell)) obstacleCells.Add(cell)`.
+- Always clear both containers together (Enter-fresh and Reset paths).
+- Removals go through the HashSet first: `if (obstacleCellsSet.Remove(cell)) obstacleCells.Remove(cell);`.
+
 ## Zone Undo Pattern
 
 ```csharp

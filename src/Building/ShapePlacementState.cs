@@ -379,6 +379,19 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Sets both corners at once, transitioning directly to the Previewing phase.
+        /// Skips the per-corner announcements so the caller can speak a single summary.
+        /// Used by Ctrl+A to select a whole room or map.
+        /// </summary>
+        public static void SetBothPoints(IntVec3 first, IntVec3 second)
+        {
+            previewHelper.Reset();
+            previewHelper.SetFirstCorner(first, "[ShapePlacementState]", silent: true);
+            previewHelper.SetSecondCorner(second, "[ShapePlacementState]", silent: true);
+            currentPhase = PlacementPhase.Previewing;
+        }
+
+        /// <summary>
         /// Updates the shape preview as the cursor moves during SettingSecondCorner phase.
         /// Plays sound feedback when the cell count changes.
         /// </summary>

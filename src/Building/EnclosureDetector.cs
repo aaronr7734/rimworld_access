@@ -187,6 +187,24 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Flood-fills from <paramref name="startCell"/> treating existing walls, impassable
+        /// terrain, wall blueprints, and wall frames as boundaries. Used by Ctrl+A in shape
+        /// placement to pick up rooms that are enclosed by blueprint walls (which RimWorld's
+        /// Room system doesn't recognize until the walls are built).
+        /// </summary>
+        /// <returns>
+        /// isEnclosed = true if the fill stayed bounded (did not reach the map edge and did not
+        /// exceed the internal size cap). interiorCells contains the cells that were reached.
+        /// </returns>
+        public static (bool isEnclosed, List<IntVec3> interiorCells) TryFloodFillFromCell(IntVec3 startCell, Map map)
+        {
+            if (map == null)
+                return (false, new List<IntVec3>());
+
+            return TryFloodFill(startCell, new HashSet<IntVec3>(), map);
+        }
+
+        /// <summary>
         /// Attempts to flood fill from a start cell to determine if it's enclosed.
         /// Returns whether the area is enclosed and the list of interior cells.
         /// </summary>
@@ -212,17 +230,21 @@ namespace RimWorldAccess
                 if (c.Impassable(map))
                     return false;
 
-                // Check for existing wall buildings or wall blueprints at the cell
+                // Check for existing wall/door buildings or their blueprints/frames at the cell.
+                // Doors are wall segments for room-detection purposes even though pawns pass through them,
+                // so we treat them (and their blueprints/frames) as enclosure boundaries.
                 foreach (Thing thing in c.GetThingList(map))
                 {
-                    // Existing completed wall
+                    // Existing completed wall or door
                     if (thing is Building && thing.def.building?.isWall == true)
                         return false;
+                    if (thing.def.IsDoor)
+                        return false;
 
-                    // Wall blueprint/frame we might have missed
+                    // Wall/door blueprint or frame we might have missed
                     if ((thing.def.IsBlueprint || thing.def.IsFrame) &&
                         thing.def.entityDefToBuild is ThingDef td &&
-                        (td.building?.isWall == true || td.passability == Traversability.Impassable))
+                        (td.building?.isWall == true || td.IsDoor || td.passability == Traversability.Impassable))
                         return false;
                 }
 
