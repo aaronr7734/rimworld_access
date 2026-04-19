@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
@@ -38,7 +37,7 @@ namespace RimWorldAccess
             isActive = true;
             var root = BuildCategoryTree();
             treeNav.Initialize(root);
-            TolkHelper.Speak("Research menu");
+            TolkHelper.Speak("RimWorldAccess.Research.Menu.Title".Translate());
             treeNav.ReannounceCurrentItem();
         }
 
@@ -49,7 +48,7 @@ namespace RimWorldAccess
         {
             isActive = false;
             treeNav.Reset();
-            TolkHelper.Speak("Research menu closed");
+            TolkHelper.Speak("RimWorldAccess.Research.Menu.Closed".Translate());
         }
 
         /// <summary>
@@ -60,7 +59,7 @@ namespace RimWorldAccess
         {
             if (project == null)
             {
-                TolkHelper.Speak("Research project not available");
+                TolkHelper.Speak("RimWorldAccess.Research.Menu.ProjectNotAvailable".Translate());
                 return;
             }
 
@@ -86,12 +85,12 @@ namespace RimWorldAccess
             if (foundIndex >= 0)
             {
                 treeNav.SetSelectedIndex(foundIndex);
-                TolkHelper.Speak("Research menu");
+                TolkHelper.Speak("RimWorldAccess.Research.Menu.Title".Translate());
                 treeNav.ReannounceCurrentItem();
             }
             else
             {
-                TolkHelper.Speak($"Research project {project.LabelCap} not found in menu");
+                TolkHelper.Speak("RimWorldAccess.Research.Menu.ProjectNotFound".Translate(project.LabelCap));
             }
         }
 
@@ -319,7 +318,7 @@ namespace RimWorldAccess
         {
             var root = new InspectionTreeItem
             {
-                Label = "Research",
+                Label = "RimWorldAccess.Research.Tree.RootLabel".Translate(),
                 IndentLevel = -1,
                 IsExpanded = true,
                 IsExpandable = false
@@ -347,13 +346,13 @@ namespace RimWorldAccess
                 if (singleTab)
                 {
                     if (inProgress.Count > 0)
-                        root.Children.Add(CreateStatusGroupNode("In Progress", inProgress, 0, root));
+                        root.Children.Add(CreateStatusGroupNode(StatusLabel.InProgress, inProgress, 0, root));
                     if (available.Count > 0)
-                        root.Children.Add(CreateStatusGroupNode("Available", available, 0, root));
+                        root.Children.Add(CreateStatusGroupNode(StatusLabel.Available, available, 0, root));
                     if (completed.Count > 0)
-                        root.Children.Add(CreateStatusGroupNode("Completed", completed, 0, root));
+                        root.Children.Add(CreateStatusGroupNode(StatusLabel.Completed, completed, 0, root));
                     if (locked.Count > 0)
-                        root.Children.Add(CreateStatusGroupNode("Locked", locked, 0, root));
+                        root.Children.Add(CreateStatusGroupNode(StatusLabel.Locked, locked, 0, root));
                 }
                 else
                 {
@@ -370,13 +369,13 @@ namespace RimWorldAccess
 
                     // Add status group nodes (only if they have projects)
                     if (inProgress.Count > 0)
-                        tabNode.Children.Add(CreateStatusGroupNode("In Progress", inProgress, 1, tabNode));
+                        tabNode.Children.Add(CreateStatusGroupNode(StatusLabel.InProgress, inProgress, 1, tabNode));
                     if (available.Count > 0)
-                        tabNode.Children.Add(CreateStatusGroupNode("Available", available, 1, tabNode));
+                        tabNode.Children.Add(CreateStatusGroupNode(StatusLabel.Available, available, 1, tabNode));
                     if (completed.Count > 0)
-                        tabNode.Children.Add(CreateStatusGroupNode("Completed", completed, 1, tabNode));
+                        tabNode.Children.Add(CreateStatusGroupNode(StatusLabel.Completed, completed, 1, tabNode));
                     if (locked.Count > 0)
-                        tabNode.Children.Add(CreateStatusGroupNode("Locked", locked, 1, tabNode));
+                        tabNode.Children.Add(CreateStatusGroupNode(StatusLabel.Locked, locked, 1, tabNode));
 
                     root.Children.Add(tabNode);
                 }
@@ -418,14 +417,32 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Identifies which status group label to use when composing the
+        /// "InProgress (N)"-style localized category header.
+        /// </summary>
+        private enum StatusLabel { InProgress, Available, Completed, Locked }
+
+        private static string FormatStatusGroupLabel(StatusLabel status, int count)
+        {
+            switch (status)
+            {
+                case StatusLabel.InProgress: return "RimWorldAccess.Research.Status.InProgress".Translate(count);
+                case StatusLabel.Available:  return "RimWorldAccess.Research.Status.Available".Translate(count);
+                case StatusLabel.Completed:  return "RimWorldAccess.Research.Status.Completed".Translate(count);
+                case StatusLabel.Locked:     return "RimWorldAccess.Research.Status.Locked".Translate(count);
+                default: return count.ToString();
+            }
+        }
+
+        /// <summary>
         /// Creates a status group node (Completed, Available, Locked, In Progress).
         /// </summary>
-        private static InspectionTreeItem CreateStatusGroupNode(string label, List<ResearchProjectDef> projects, int level, InspectionTreeItem parent)
+        private static InspectionTreeItem CreateStatusGroupNode(StatusLabel status, List<ResearchProjectDef> projects, int level, InspectionTreeItem parent)
         {
             var statusNode = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.Category,
-                Label = $"{label} ({projects.Count})",
+                Label = FormatStatusGroupLabel(status, projects.Count),
                 IndentLevel = level,
                 IsExpandable = true,
                 IsExpanded = false,
@@ -463,33 +480,35 @@ namespace RimWorldAccess
             float cost = project.CostApparent;
             if (cost > 0)
             {
-                label += $" - cost: {cost:F0}";
+                label += "RimWorldAccess.Research.Label.CostSuffix".Translate(cost.ToString("F0"));
             }
             else if (project.knowledgeCost > 0)
             {
-                label += $" - knowledge: {project.knowledgeCost:F0}";
+                label += "RimWorldAccess.Research.Label.KnowledgeSuffix".Translate(project.knowledgeCost.ToString("F0"));
             }
 
             // Add progress if in progress
             if (Find.ResearchManager.IsCurrentProject(project))
             {
                 float progress = project.ProgressPercent * 100f;
-                label += $" - {progress:F0}% complete";
+                label += "RimWorldAccess.Research.Label.ProgressSuffix".Translate(progress.ToString("F0"));
             }
 
             // Add status indicator
+            string statusWord;
             if (project.IsFinished)
             {
-                label += " - Completed";
+                statusWord = "RimWorldAccess.Research.Status.CompletedWord".Translate();
             }
             else if (project.CanStartNow)
             {
-                label += " - Available";
+                statusWord = "RimWorldAccess.Research.Status.AvailableWord".Translate();
             }
             else
             {
-                label += " - Locked";
+                statusWord = "RimWorldAccess.Research.Status.LockedWord".Translate();
             }
+            label += "RimWorldAccess.Research.Label.StatusSuffix".Translate(statusWord);
 
             return label;
         }

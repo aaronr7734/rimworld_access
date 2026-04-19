@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -68,7 +67,7 @@ namespace RimWorldAccess
             {
                 var previousProject = navigationStack.Pop();
                 Open(previousProject);
-                TolkHelper.Speak($"Back to {previousProject.LabelCap}");
+                TolkHelper.Speak("RimWorldAccess.Research.Detail.BackTo".Translate(previousProject.LabelCap));
             }
             else
             {
@@ -76,7 +75,7 @@ namespace RimWorldAccess
                 currentProject = null;
                 treeNav.Reset();
                 navigationStack.Clear();
-                TolkHelper.Speak("Returned to research menu");
+                TolkHelper.Speak("RimWorldAccess.Research.Detail.ReturnedToMenu".Translate());
             }
         }
 
@@ -309,7 +308,7 @@ namespace RimWorldAccess
             var descNode = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.DetailText,
-                Label = "Description",
+                Label = "RimWorldAccess.Research.Detail.DescriptionLabel".Translate(),
                 Description = descContent,
                 Data = DetailNodeType.Info,
                 IndentLevel = 0,
@@ -334,13 +333,16 @@ namespace RimWorldAccess
                 root.Children.Add(dependentsNode);
 
             // Node 5: Start/Stop Research (Action)
+            bool isCurrent = Find.ResearchManager.IsCurrentProject(project);
             var actionNode = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.Action,
-                Label = Find.ResearchManager.IsCurrentProject(project) ? "Stop Research" : "Start Research",
-                Description = Find.ResearchManager.IsCurrentProject(project)
-                    ? "Press Enter to stop this research"
-                    : "Press Enter to start this research",
+                Label = isCurrent
+                    ? "RimWorldAccess.Research.Detail.StopResearch".Translate().ToString()
+                    : "RimWorldAccess.Research.Detail.StartResearch".Translate().ToString(),
+                Description = isCurrent
+                    ? "RimWorldAccess.Research.Detail.StopResearchHint".Translate().ToString()
+                    : "RimWorldAccess.Research.Detail.StartResearchHint".Translate().ToString(),
                 Data = DetailNodeType.Action,
                 IndentLevel = 0,
                 IsExpandable = false,
@@ -363,11 +365,14 @@ namespace RimWorldAccess
             {
                 foreach (var prereq in project.prerequisites.OrderBy(p => p.LabelCap.ToString()))
                 {
-                    string status = prereq.IsFinished ? "Completed" : "Locked";
+                    string status = prereq.IsFinished
+                        ? "RimWorldAccess.Research.Status.CompletedWord".Translate().ToString()
+                        : "RimWorldAccess.Research.Status.LockedWord".Translate().ToString();
                     children.Add(new InspectionTreeItem
                     {
                         Type = InspectionTreeItem.ItemType.Item,
-                        Label = $"{prereq.LabelCap} - cost: {prereq.CostApparent:F0} {status}",
+                        Label = "RimWorldAccess.Research.Detail.ResearchRow".Translate(
+                            prereq.LabelCap, prereq.CostApparent.ToString("F0"), status),
                         Data = DetailNodeType.ResearchItem,
                         LinkedDef = prereq,
                         IndentLevel = 1,
@@ -382,10 +387,12 @@ namespace RimWorldAccess
                 int missingHiddenCount = project.hiddenPrerequisites.Count(p => !p.IsFinished);
                 int totalHiddenCount = project.hiddenPrerequisites.Count;
 
-                string hiddenStatus = missingHiddenCount == 0 ? "All completed" : $"{missingHiddenCount} incomplete";
+                string hiddenStatus = missingHiddenCount == 0
+                    ? "RimWorldAccess.Research.Detail.HiddenAllCompleted".Translate().ToString()
+                    : "RimWorldAccess.Research.Detail.HiddenIncompleteCount".Translate(missingHiddenCount).ToString();
                 string hiddenLabel = totalHiddenCount == 1
-                    ? $"1 hidden prerequisite - {hiddenStatus}"
-                    : $"{totalHiddenCount} hidden prerequisites - {hiddenStatus}";
+                    ? "RimWorldAccess.Research.Detail.HiddenOne".Translate(hiddenStatus).ToString()
+                    : "RimWorldAccess.Research.Detail.HiddenMany".Translate(totalHiddenCount, hiddenStatus).ToString();
 
                 children.Add(new InspectionTreeItem
                 {
@@ -401,11 +408,14 @@ namespace RimWorldAccess
             if (project.requiredResearchBuilding != null)
             {
                 bool hasBench = project.PlayerHasAnyAppropriateResearchBench;
-                string benchStatus = hasBench ? "Available" : "Not available";
+                string benchStatus = hasBench
+                    ? "RimWorldAccess.Research.Detail.BenchAvailable".Translate().ToString()
+                    : "RimWorldAccess.Research.Detail.BenchNotAvailable".Translate().ToString();
                 children.Add(new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = $"Requires bench: {project.requiredResearchBuilding.LabelCap} - {benchStatus}",
+                    Label = "RimWorldAccess.Research.Detail.RequiresBench".Translate(
+                        project.requiredResearchBuilding.LabelCap, benchStatus),
                     Data = DetailNodeType.Info,
                     IndentLevel = 1,
                     IsExpandable = false
@@ -420,7 +430,7 @@ namespace RimWorldAccess
                     children.Add(new InspectionTreeItem
                     {
                         Type = InspectionTreeItem.ItemType.DetailText,
-                        Label = $"Requires facility: {facility.LabelCap}",
+                        Label = "RimWorldAccess.Research.Detail.RequiresFacility".Translate(facility.LabelCap),
                         Data = DetailNodeType.Info,
                         IndentLevel = 1,
                         IsExpandable = false
@@ -433,11 +443,13 @@ namespace RimWorldAccess
             {
                 int applied = project.TechprintsApplied;
                 int required = project.TechprintCount;
-                string techprintStatus = applied >= required ? "Complete" : $"{applied}/{required}";
+                string techprintStatus = applied >= required
+                    ? "RimWorldAccess.Research.Detail.TechprintsComplete".Translate().ToString()
+                    : "RimWorldAccess.Research.Detail.TechprintsProgress".Translate(applied, required).ToString();
                 children.Add(new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = $"Requires techprints: {techprintStatus}",
+                    Label = "RimWorldAccess.Research.Detail.RequiresTechprints".Translate(techprintStatus),
                     Data = DetailNodeType.Info,
                     IndentLevel = 1,
                     IsExpandable = false
@@ -447,11 +459,13 @@ namespace RimWorldAccess
             // Mechanitor requirement (Biotech DLC)
             if (project.requiresMechanitor)
             {
-                string mechStatus = project.PlayerMechanitorRequirementMet ? "Met" : "Not met";
+                string mechStatus = project.PlayerMechanitorRequirementMet
+                    ? "RimWorldAccess.Research.Detail.MechanitorMet".Translate().ToString()
+                    : "RimWorldAccess.Research.Detail.MechanitorNotMet".Translate().ToString();
                 children.Add(new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = $"Requires mechanitor - {mechStatus}",
+                    Label = "RimWorldAccess.Research.Detail.RequiresMechanitor".Translate(mechStatus),
                     Data = DetailNodeType.Info,
                     IndentLevel = 1,
                     IsExpandable = false
@@ -463,12 +477,14 @@ namespace RimWorldAccess
             {
                 int completed = project.AnalyzedThingsCompleted;
                 int required = project.RequiredAnalyzedThingCount;
-                string analyzeStatus = completed >= required ? "Complete" : $"{completed}/{required}";
+                string analyzeStatus = completed >= required
+                    ? "RimWorldAccess.Research.Detail.AnalyzeComplete".Translate().ToString()
+                    : "RimWorldAccess.Research.Detail.AnalyzeProgress".Translate(completed, required).ToString();
                 string thingNames = string.Join(", ", project.requiredAnalyzed.Select(t => t.LabelCap.ToString()));
                 children.Add(new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = $"Requires analyzing: {thingNames} - {analyzeStatus}",
+                    Label = "RimWorldAccess.Research.Detail.RequiresAnalyzing".Translate(thingNames, analyzeStatus),
                     Data = DetailNodeType.Info,
                     IndentLevel = 1,
                     IsExpandable = false
@@ -478,11 +494,13 @@ namespace RimWorldAccess
             // Grav engine inspection (Odyssey DLC)
             if (project.requireGravEngineInspected)
             {
-                string inspectStatus = project.InspectionRequirementsMet ? "Inspected" : "Not inspected";
+                string inspectStatus = project.InspectionRequirementsMet
+                    ? "RimWorldAccess.Research.Detail.GravEngineInspected".Translate().ToString()
+                    : "RimWorldAccess.Research.Detail.GravEngineNotInspected".Translate().ToString();
                 children.Add(new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = $"Requires grav engine inspection - {inspectStatus}",
+                    Label = "RimWorldAccess.Research.Detail.RequiresGravEngine".Translate(inspectStatus),
                     Data = DetailNodeType.Info,
                     IndentLevel = 1,
                     IsExpandable = false
@@ -494,8 +512,8 @@ namespace RimWorldAccess
             {
                 Type = InspectionTreeItem.ItemType.Category,
                 Label = children.Count > 0
-                    ? $"Prerequisites ({children.Count} items)"
-                    : "Prerequisites (none)",
+                    ? "RimWorldAccess.Research.Detail.PrerequisitesWithCount".Translate(children.Count).ToString()
+                    : "RimWorldAccess.Research.Detail.PrerequisitesNone".Translate().ToString(),
                 Data = DetailNodeType.Category,
                 IndentLevel = 0,
                 IsExpandable = children.Count > 0,
@@ -524,8 +542,11 @@ namespace RimWorldAccess
             {
                 if (def.researchPrerequisites != null && def.researchPrerequisites.Contains(project))
                 {
-                    string category = def.building != null ? "Building" :
-                                     def.plant != null ? "Plant" : "Item";
+                    string category = def.building != null
+                        ? "RimWorldAccess.Research.Detail.UnlockCategoryBuilding".Translate().ToString()
+                        : def.plant != null
+                            ? "RimWorldAccess.Research.Detail.UnlockCategoryPlant".Translate().ToString()
+                            : "RimWorldAccess.Research.Detail.UnlockCategoryItem".Translate().ToString();
                     var itemNode = CreateUnlockedItemNode(def.LabelCap, category, def.description, def);
                     children.Add(itemNode);
                 }
@@ -543,7 +564,7 @@ namespace RimWorldAccess
                     {
                         description = def.ProducedThingDef.description;
                     }
-                    var itemNode = CreateUnlockedItemNode(def.LabelCap, "Recipe", description, def);
+                    var itemNode = CreateUnlockedItemNode(def.LabelCap, "RimWorldAccess.Research.Detail.UnlockCategoryRecipe".Translate().ToString(), description, def);
                     children.Add(itemNode);
                 }
             }
@@ -555,8 +576,8 @@ namespace RimWorldAccess
             {
                 Type = InspectionTreeItem.ItemType.Category,
                 Label = children.Count > 0
-                    ? $"Unlocks ({children.Count} items)"
-                    : "Unlocks (none)",
+                    ? "RimWorldAccess.Research.Detail.UnlocksWithCount".Translate(children.Count).ToString()
+                    : "RimWorldAccess.Research.Detail.UnlocksNone".Translate().ToString(),
                 Data = DetailNodeType.Category,
                 IndentLevel = 0,
                 IsExpandable = children.Count > 0,
@@ -623,12 +644,16 @@ namespace RimWorldAccess
 
             foreach (var dep in dependents)
             {
-                string status = dep.IsFinished ? "Completed" :
-                               dep.CanStartNow ? "Available" : "Locked";
+                string status = dep.IsFinished
+                    ? "RimWorldAccess.Research.Status.CompletedWord".Translate().ToString()
+                    : dep.CanStartNow
+                        ? "RimWorldAccess.Research.Status.AvailableWord".Translate().ToString()
+                        : "RimWorldAccess.Research.Status.LockedWord".Translate().ToString();
                 children.Add(new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
-                    Label = $"{dep.LabelCap} - cost: {dep.CostApparent:F0} {status}",
+                    Label = "RimWorldAccess.Research.Detail.ResearchRow".Translate(
+                        dep.LabelCap, dep.CostApparent.ToString("F0"), status),
                     Data = DetailNodeType.ResearchItem,
                     LinkedDef = dep,
                     IndentLevel = 1,
@@ -640,8 +665,8 @@ namespace RimWorldAccess
             {
                 Type = InspectionTreeItem.ItemType.Category,
                 Label = children.Count > 0
-                    ? $"Dependents ({children.Count} items)"
-                    : "Dependents (none)",
+                    ? "RimWorldAccess.Research.Detail.DependentsWithCount".Translate(children.Count).ToString()
+                    : "RimWorldAccess.Research.Detail.DependentsNone".Translate().ToString(),
                 Data = DetailNodeType.Category,
                 IndentLevel = 0,
                 IsExpandable = children.Count > 0,
@@ -665,7 +690,7 @@ namespace RimWorldAccess
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine($"Project: {project.LabelCap}");
+            sb.AppendLine("RimWorldAccess.Research.Desc.ProjectLine".Translate(project.LabelCap).ToString());
             sb.AppendLine();
 
             if (!string.IsNullOrEmpty(project.description))
@@ -676,44 +701,44 @@ namespace RimWorldAccess
 
             if (project.CostApparent > 0)
             {
-                sb.AppendLine($"Research Cost: {project.CostApparent:F0}");
+                sb.AppendLine("RimWorldAccess.Research.Desc.ResearchCost".Translate(project.CostApparent.ToString("F0")).ToString());
             }
             else if (project.knowledgeCost > 0)
             {
-                sb.AppendLine($"Knowledge Cost: {project.knowledgeCost:F0}");
+                sb.AppendLine("RimWorldAccess.Research.Desc.KnowledgeCost".Translate(project.knowledgeCost.ToString("F0")).ToString());
                 if (project.knowledgeCategory != null)
                 {
-                    sb.AppendLine($"Knowledge Category: {project.knowledgeCategory.LabelCap}");
+                    sb.AppendLine("RimWorldAccess.Research.Desc.KnowledgeCategory".Translate(project.knowledgeCategory.LabelCap).ToString());
                 }
             }
 
             if (Find.ResearchManager.IsCurrentProject(project))
             {
                 float progress = project.ProgressPercent * 100f;
-                sb.AppendLine($"Progress: {progress:F1}%");
+                sb.AppendLine("RimWorldAccess.Research.Desc.Progress".Translate(progress.ToString("F1")).ToString());
             }
             else if (project.IsFinished)
             {
-                sb.AppendLine("Status: Completed");
+                sb.AppendLine("RimWorldAccess.Research.Desc.StatusCompleted".Translate().ToString());
             }
             else if (project.CanStartNow)
             {
-                sb.AppendLine("Status: Available to research");
+                sb.AppendLine("RimWorldAccess.Research.Desc.StatusAvailable".Translate().ToString());
             }
             else
             {
-                sb.AppendLine("Status: Locked");
+                sb.AppendLine("RimWorldAccess.Research.Desc.StatusLocked".Translate().ToString());
             }
 
             if (project.requiredResearchBuilding != null)
             {
-                sb.AppendLine($"Required Bench: {project.requiredResearchBuilding.LabelCap}");
+                sb.AppendLine("RimWorldAccess.Research.Desc.RequiredBench".Translate(project.requiredResearchBuilding.LabelCap).ToString());
             }
 
             if (project.requiredResearchFacilities != null && project.requiredResearchFacilities.Count > 0)
             {
-                sb.Append("Required Facilities: ");
-                sb.AppendLine(string.Join(", ", project.requiredResearchFacilities.Select(f => f.LabelCap)));
+                sb.Append("RimWorldAccess.Research.Desc.RequiredFacilitiesPrefix".Translate().ToString());
+                sb.AppendLine(string.Join(", ", project.requiredResearchFacilities.Select(f => f.LabelCap.ToString())));
             }
 
             return sb.ToString().TrimEnd();
@@ -838,7 +863,7 @@ namespace RimWorldAccess
 
                 case DetailNodeType.Category:
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak("No info card for this section");
+                    TolkHelper.Speak("RimWorldAccess.Research.Detail.NoInfoCardForSection".Translate());
                     return true;
             }
 
@@ -860,7 +885,7 @@ namespace RimWorldAccess
             if (Find.ResearchManager.IsCurrentProject(currentProject))
             {
                 Find.ResearchManager.StopProject(currentProject);
-                TolkHelper.Speak($"Stopped research on {currentProject.LabelCap}");
+                TolkHelper.Speak("RimWorldAccess.Research.Action.Stopped".Translate(currentProject.LabelCap));
                 RefreshTree();
                 return;
             }
@@ -868,7 +893,7 @@ namespace RimWorldAccess
             // Check if already completed
             if (currentProject.IsFinished)
             {
-                TolkHelper.Speak($"{currentProject.LabelCap} is already completed");
+                TolkHelper.Speak("RimWorldAccess.Research.Action.AlreadyCompleted".Translate(currentProject.LabelCap));
                 return;
             }
 
@@ -876,7 +901,7 @@ namespace RimWorldAccess
             if (!currentProject.PrerequisitesCompleted)
             {
                 var missingPrereqs = GetMissingPrerequisites();
-                TolkHelper.Speak($"Cannot start research: Missing prerequisites - {missingPrereqs}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Research.Action.MissingPrereqs".Translate(missingPrereqs), SpeechPriority.High);
                 return;
             }
 
@@ -884,7 +909,7 @@ namespace RimWorldAccess
             if (currentProject.TechprintCount > 0 && !currentProject.TechprintRequirementMet)
             {
                 int applied = Find.ResearchManager.GetTechprints(currentProject);
-                TolkHelper.Speak($"Cannot start research: Need {currentProject.TechprintCount} techprints, only {applied} applied", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Research.Action.NeedTechprints".Translate(currentProject.TechprintCount, applied), SpeechPriority.High);
                 return;
             }
 
@@ -893,7 +918,7 @@ namespace RimWorldAccess
             {
                 if (!currentProject.AnalyzedThingsRequirementsMet)
                 {
-                    TolkHelper.Speak($"Cannot start research: Must study required items first", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Research.Action.StudyFirst".Translate(), SpeechPriority.High);
                     return;
                 }
             }
@@ -908,11 +933,12 @@ namespace RimWorldAccess
             if (previousProject != null && previousProject != currentProject)
             {
                 float previousProgress = previousProject.ProgressPercent * 100f;
-                TolkHelper.Speak($"Started research on {currentProject.LabelCap}. Stopped {previousProject.LabelCap} at {previousProgress:F0}% progress.");
+                TolkHelper.Speak("RimWorldAccess.Research.Action.StartedReplacing".Translate(
+                    currentProject.LabelCap, previousProject.LabelCap, previousProgress.ToString("F0")));
             }
             else
             {
-                TolkHelper.Speak($"Started research on {currentProject.LabelCap}");
+                TolkHelper.Speak("RimWorldAccess.Research.Action.Started".Translate(currentProject.LabelCap));
             }
             RefreshTree();
         }
@@ -934,7 +960,7 @@ namespace RimWorldAccess
         private static string GetMissingPrerequisites()
         {
             if (currentProject == null)
-                return "Unknown";
+                return "RimWorldAccess.Research.MissingPrereqs.Unknown".Translate();
 
             var parts = new List<string>();
 
@@ -954,13 +980,13 @@ namespace RimWorldAccess
                 if (missingHiddenCount > 0)
                 {
                     string hiddenText = missingHiddenCount == 1
-                        ? "1 hidden prerequisite"
-                        : $"{missingHiddenCount} hidden prerequisites";
+                        ? "RimWorldAccess.Research.MissingPrereqs.HiddenOne".Translate().ToString()
+                        : "RimWorldAccess.Research.MissingPrereqs.HiddenMany".Translate(missingHiddenCount).ToString();
                     parts.Add(hiddenText);
                 }
             }
 
-            return parts.Count > 0 ? string.Join(", ", parts) : "Unknown";
+            return parts.Count > 0 ? string.Join(", ", parts) : "RimWorldAccess.Research.MissingPrereqs.Unknown".Translate().ToString();
         }
 
         #endregion
