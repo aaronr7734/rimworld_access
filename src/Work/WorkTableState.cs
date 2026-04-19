@@ -50,10 +50,7 @@ namespace RimWorldAccess
 
             WorkTableHelper.RefreshWorkTypes();
 
-            pawns = PlayerPawnsDisplayOrderUtility.InOrder(
-                    Find.CurrentMap.mapPawns.FreeColonists
-                        .Where(p => !p.DevelopmentalStage.Baby() && p.workSettings != null))
-                .ToList();
+            pawns = BuildEligibleColonists();
 
             if (pawns.Count == 0)
             {
@@ -147,6 +144,7 @@ namespace RimWorldAccess
 
         public static void SelectNextPawn()
         {
+            RefreshPawnList();
             if (pawns.Count == 0) return;
             tableHelper.SelectNextRow(pawns.Count);
             AnnounceCurrentCell(includePawnName: true, includeColumnName: false);
@@ -154,6 +152,7 @@ namespace RimWorldAccess
 
         public static void SelectPreviousPawn()
         {
+            RefreshPawnList();
             if (pawns.Count == 0) return;
             tableHelper.SelectPreviousRow(pawns.Count);
             AnnounceCurrentCell(includePawnName: true, includeColumnName: false);
@@ -175,6 +174,7 @@ namespace RimWorldAccess
 
         public static void JumpToFirst()
         {
+            RefreshPawnList();
             if (pawns.Count == 0) return;
             tableHelper.JumpToFirst(pawns.Count);
             AnnounceCurrentCell(includePawnName: true, includeColumnName: false);
@@ -182,9 +182,66 @@ namespace RimWorldAccess
 
         public static void JumpToLast()
         {
+            RefreshPawnList();
             if (pawns.Count == 0) return;
             tableHelper.JumpToLast(pawns.Count);
             AnnounceCurrentCell(includePawnName: true, includeColumnName: false);
+        }
+
+        /// <summary>
+        /// Returns the live list of eligible colonists (free colonists with work
+        /// settings, excluding babies) in display order.
+        /// </summary>
+        private static List<Pawn> BuildEligibleColonists()
+        {
+            if (Find.CurrentMap == null) return new List<Pawn>();
+            return PlayerPawnsDisplayOrderUtility.InOrder(
+                    Find.CurrentMap.mapPawns.FreeColonists
+                        .Where(p => !p.DevelopmentalStage.Baby() && p.workSettings != null))
+                .ToList();
+        }
+
+        /// <summary>
+        /// Rebuilds the pawn list from live FreeColonists so pawns who lost
+        /// colony control (captured, died, left) while the menu was open drop out
+        /// of the table. Preserves the cursor on the same pawn when possible,
+        /// clamps otherwise. Re-applies the active sort if one is in effect.
+        /// </summary>
+        private static void RefreshPawnList()
+        {
+            if (tableHelper == null) return;
+
+            Pawn preservedPawn = CurrentPawn;
+            List<Pawn> fresh = BuildEligibleColonists();
+
+            if (tableHelper.HasActiveSort)
+            {
+                var resorted = tableHelper.ResortAfterEdit(fresh);
+                if (resorted != null)
+                    fresh = resorted.ToList();
+            }
+
+            pawns = fresh;
+
+            if (preservedPawn != null)
+            {
+                int idx = pawns.IndexOf(preservedPawn);
+                if (idx >= 0)
+                {
+                    tableHelper.CurrentRowIndex = idx;
+                    return;
+                }
+            }
+
+            if (pawns.Count == 0)
+            {
+                tableHelper.CurrentRowIndex = 0;
+                return;
+            }
+            if (tableHelper.CurrentRowIndex >= pawns.Count)
+                tableHelper.CurrentRowIndex = pawns.Count - 1;
+            if (tableHelper.CurrentRowIndex < 0)
+                tableHelper.CurrentRowIndex = 0;
         }
 
         #endregion
@@ -727,6 +784,7 @@ namespace RimWorldAccess
 
         public static bool HandleTypeahead(char c)
         {
+            RefreshPawnList();
             if (pawns.Count == 0) return false;
             if (tableHelper.HandleTypeahead(c, pawns, out _))
             {
@@ -739,6 +797,7 @@ namespace RimWorldAccess
 
         public static bool HandleBackspace()
         {
+            RefreshPawnList();
             if (pawns.Count == 0) return false;
             if (tableHelper.HandleBackspace(pawns, out _))
             {

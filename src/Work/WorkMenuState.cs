@@ -76,16 +76,10 @@ namespace RimWorldAccess
 
             // Build list of all colonists
             allPawns.Clear();
-            if (Find.CurrentMap != null)
-            {
-                allPawns = PlayerPawnsDisplayOrderUtility.InOrder(
-                        Find.CurrentMap.mapPawns.FreeColonists
-                            .Where(p => !p.DevelopmentalStage.Baby()))
-                    .ToList();
-                currentPawnIndex = allPawns.IndexOf(pawn);
-                if (currentPawnIndex < 0)
-                    currentPawnIndex = 0;
-            }
+            allPawns = BuildEligibleColonists() ?? new List<Pawn>();
+            currentPawnIndex = allPawns.IndexOf(pawn);
+            if (currentPawnIndex < 0)
+                currentPawnIndex = 0;
 
             LoadWorkTypesForCurrentPawn();
 
@@ -542,7 +536,18 @@ namespace RimWorldAccess
         /// </summary>
         public static void SwitchToNextPawn()
         {
+            Pawn beforeRefresh = currentPawn;
+            RefreshPawnList();
             if (allPawns.Count == 0) return;
+
+            // If the current pawn is no longer a free colonist (captured, left,
+            // died), the refresh has moved currentPawnIndex onto a different
+            // pawn. Land on that pawn rather than advancing past them.
+            if (beforeRefresh != null && !allPawns.Contains(beforeRefresh))
+            {
+                SaveAndSwitchPawn(currentPawnIndex);
+                return;
+            }
 
             int newIndex = MenuHelper.SelectNext(currentPawnIndex, allPawns.Count);
             if (newIndex != currentPawnIndex)
@@ -554,11 +559,67 @@ namespace RimWorldAccess
         /// </summary>
         public static void SwitchToPreviousPawn()
         {
+            Pawn beforeRefresh = currentPawn;
+            RefreshPawnList();
             if (allPawns.Count == 0) return;
+
+            if (beforeRefresh != null && !allPawns.Contains(beforeRefresh))
+            {
+                SaveAndSwitchPawn(currentPawnIndex);
+                return;
+            }
 
             int newIndex = MenuHelper.SelectPrevious(currentPawnIndex, allPawns.Count);
             if (newIndex != currentPawnIndex)
                 SaveAndSwitchPawn(newIndex);
+        }
+
+        /// <summary>
+        /// Returns the live list of eligible colonists (free colonists, excluding
+        /// babies) in display order, or null if there is no current map.
+        /// </summary>
+        private static List<Pawn> BuildEligibleColonists()
+        {
+            if (Find.CurrentMap == null) return null;
+            return PlayerPawnsDisplayOrderUtility.InOrder(
+                    Find.CurrentMap.mapPawns.FreeColonists
+                        .Where(p => !p.DevelopmentalStage.Baby()))
+                .ToList();
+        }
+
+        /// <summary>
+        /// Rebuilds allPawns from the live FreeColonists so pawns who lost colony
+        /// control (captured, died, left) while the menu was open no longer appear
+        /// as navigable slots. Preserves the cursor on the same pawn if still
+        /// present; otherwise clamps currentPawnIndex so the next switch lands on
+        /// a valid pawn.
+        /// </summary>
+        private static void RefreshPawnList()
+        {
+            List<Pawn> fresh = BuildEligibleColonists();
+            if (fresh == null) return;
+
+            allPawns = fresh;
+
+            if (currentPawn != null)
+            {
+                int idx = allPawns.IndexOf(currentPawn);
+                if (idx >= 0)
+                {
+                    currentPawnIndex = idx;
+                    return;
+                }
+            }
+
+            if (allPawns.Count == 0)
+            {
+                currentPawnIndex = 0;
+                return;
+            }
+            if (currentPawnIndex >= allPawns.Count)
+                currentPawnIndex = allPawns.Count - 1;
+            if (currentPawnIndex < 0)
+                currentPawnIndex = 0;
         }
 
         #endregion
