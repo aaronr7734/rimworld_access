@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Core module strings (src/Core/). Five files contribute, but most produce
+    no player-facing output:
+
+      - rimworld_access.cs          (entry point — Log.* only, intentionally English)
+      - GameStartPatch.cs           (no user-facing strings)
+      - ModLogger.cs                (logging helper — intentionally English)
+      - ReloadHelper.cs             (#if DEBUG hot-reload — dev-only TolkHelper
+                                     lines are intentionally English)
+      - RimWorldAccessSettings.cs   (the Mod Settings panel — THIS file's scope)
+
+    Intentionally left in English per docs/decisions.md Decision 5:
+      * Every Log.Message / Log.Warning / Log.Error in rimworld_access.cs
+        ("Initializing accessibility features...", "Applying Harmony patches...",
+        "Total patches applied: {count}", "Main menu keyboard navigation
+        enabled!", "Use Arrow keys to navigate, Enter to select.",
+        "Tearing down for reload...", "Shutting down...", etc.) — these go to
+        RimWorld's debug console for bug triage, not to players.
+      * ModLogger prefix "[RimWorld Access] " — log decoration.
+      * ReloadHelper.cs TolkHelper.Speak announcements ("Reloading RimWorld
+        Access", "RimWorld Access reloaded", "Reload failed: ...") — the
+        entire file is wrapped in #if DEBUG and only fires in the developer
+        hot-reload path, never in a shipped player build.
+      * "[RimWorld Access] Settings loaded." Log.Message in the Mod ctor.
+
+    The keys below cover the only truly player-facing surface in this
+    module: the Options > Mod Settings panel for RimWorld Access.
+  -->
+
+  <!-- Settings panel category name (RimWorldAccessMod_Settings.SettingsCategory).
+       Shown as the row label in Options > Mod Settings. Translators may keep
+       "RimWorld Access" verbatim (brand name) or transliterate/adjust
+       capitalization for their locale. -->
+  <RimWorldAccess.Core.Settings.Category>RimWorld Access</RimWorldAccess.Core.Settings.Category>
+
+  <!-- Checkbox labels in DoSettingsWindowContents, top-to-bottom order.
+       Each one toggles a single RimWorldAccessSettings bool. The parenthetical
+       examples are part of the label — translators should adapt the example
+       text (e.g. "3 of 7", "level 2") so it matches how the corresponding
+       announcement is phrased in their language. -->
+  <RimWorldAccess.Core.Settings.WrapNavigation.Label>Wrap navigation (loop from end to beginning)</RimWorldAccess.Core.Settings.WrapNavigation.Label>
+  <RimWorldAccess.Core.Settings.AnnouncePosition.Label>Announce position (e.g., '3 of 7')</RimWorldAccess.Core.Settings.AnnouncePosition.Label>
+  <RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label>Show pawn activity on map cursor movement</RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label>
+  <RimWorldAccess.Core.Settings.ShowCoverInfo.Label>Show cover info for drafted and hostile pawns</RimWorldAccess.Core.Settings.ShowCoverInfo.Label>
+  <RimWorldAccess.Core.Settings.AnnounceTerrain.Label>Announce terrain on cursor movement</RimWorldAccess.Core.Settings.AnnounceTerrain.Label>
+  <RimWorldAccess.Core.Settings.AnnounceLevels.Label>Announce depth levels in treeviews (e.g., 'level 2')</RimWorldAccess.Core.Settings.AnnounceLevels.Label>
+
+  <!-- SubmenuTreeNavigation is the only checkbox with a tooltip. The label is
+       deliberately whimsical ("Rashad Hates Treeviews") — translators can
+       preserve the joke or replace it with something equivalent in their
+       culture as long as it still telegraphs what the setting does. The
+       tooltip is the canonical explanation. -->
+  <RimWorldAccess.Core.Settings.SubmenuTreeNavigation.Label>Rashad Hates Treeviews (submenu-style navigation)</RimWorldAccess.Core.Settings.SubmenuTreeNavigation.Label>
+  <RimWorldAccess.Core.Settings.SubmenuTreeNavigation.Tooltip>Changes how treeviews work. When you expand a category, it disappears and you navigate only its items. Press Left Arrow to go back. Your position is remembered when you return.</RimWorldAccess.Core.Settings.SubmenuTreeNavigation.Tooltip>
+</LanguageData>

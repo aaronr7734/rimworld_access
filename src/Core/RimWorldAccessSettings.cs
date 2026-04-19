@@ -83,7 +83,7 @@ namespace RimWorldAccess
 
         public override string SettingsCategory()
         {
-            return "RimWorld Access";
+            return "RimWorldAccess.Core.Settings.Category".Translate();
         }
 
         public override void DoSettingsWindowContents(Rect inRect)
@@ -91,14 +91,14 @@ namespace RimWorldAccess
             Listing_Standard listing = new Listing_Standard();
             listing.Begin(inRect);
 
-            listing.CheckboxLabeled("Wrap navigation (loop from end to beginning)", ref Settings.WrapNavigation);
-            listing.CheckboxLabeled("Announce position (e.g., '3 of 7')", ref Settings.AnnouncePosition);
-            listing.CheckboxLabeled("Show pawn activity on map cursor movement", ref Settings.ShowPawnActivityOnMap);
-            listing.CheckboxLabeled("Show cover info for drafted and hostile pawns", ref Settings.ShowCoverInfo);
-            listing.CheckboxLabeled("Announce terrain on cursor movement", ref Settings.AnnounceTerrain);
-            listing.CheckboxLabeled("Announce depth levels in treeviews (e.g., 'level 2')", ref Settings.AnnounceLevels);
-            listing.CheckboxLabeled("Rashad Hates Treeviews (submenu-style navigation)", ref Settings.SubmenuTreeNavigation,
-                "Changes how treeviews work. When you expand a category, it disappears and you navigate only its items. Press Left Arrow to go back. Your position is remembered when you return.");
+            listing.CheckboxLabeled("RimWorldAccess.Core.Settings.WrapNavigation.Label".Translate(), ref Settings.WrapNavigation);
+            listing.CheckboxLabeled("RimWorldAccess.Core.Settings.AnnouncePosition.Label".Translate(), ref Settings.AnnouncePosition);
+            listing.CheckboxLabeled("RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label".Translate(), ref Settings.ShowPawnActivityOnMap);
+            listing.CheckboxLabeled("RimWorldAccess.Core.Settings.ShowCoverInfo.Label".Translate(), ref Settings.ShowCoverInfo);
+            listing.CheckboxLabeled("RimWorldAccess.Core.Settings.AnnounceTerrain.Label".Translate(), ref Settings.AnnounceTerrain);
+            listing.CheckboxLabeled("RimWorldAccess.Core.Settings.AnnounceLevels.Label".Translate(), ref Settings.AnnounceLevels);
+            listing.CheckboxLabeled("RimWorldAccess.Core.Settings.SubmenuTreeNavigation.Label".Translate(), ref Settings.SubmenuTreeNavigation,
+                "RimWorldAccess.Core.Settings.SubmenuTreeNavigation.Tooltip".Translate());
 
             listing.End();
         }
