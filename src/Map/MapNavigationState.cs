@@ -931,8 +931,8 @@ namespace RimWorldAccess
         public static void SpeakJumpedTo(string targetLabel, SpeechPriority priority = SpeechPriority.Normal)
         {
             string phrase = string.IsNullOrEmpty(targetLabel)
-                ? "Jumped to target"
-                : $"Jumped to {targetLabel}";
+                ? "RimWorldAccess.Map.JumpedToTarget".Translate().ToString()
+                : "RimWorldAccess.Map.JumpedTo".Translate(targetLabel).ToString();
             TolkHelper.Speak(phrase, priority);
         }
 
@@ -944,7 +944,7 @@ namespace RimWorldAccess
         /// </summary>
         public static string FormatSelectedCell(IntVec3 cell)
         {
-            return $"Selected, {cell.x}, {cell.z}";
+            return "RimWorldAccess.Map.SelectedCell".Translate(cell.x, cell.z).ToString();
         }
     }
 }

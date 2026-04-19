@@ -1,3 +1,5 @@
+using Verse;
+
 namespace RimWorldAccess
 {
     /// <summary>
@@ -22,7 +24,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void SpeakAtMinimumBoundary(SpeechPriority priority = SpeechPriority.Normal)
         {
-            TolkHelper.Speak("Minimum", priority);
+            TolkHelper.Speak("RimWorldAccess.Stepper.Minimum".Translate(), priority);
         }
 
         /// <summary>
@@ -31,7 +33,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void SpeakAtMaximumBoundary(SpeechPriority priority = SpeechPriority.Normal)
         {
-            TolkHelper.Speak("Maximum", priority);
+            TolkHelper.Speak("RimWorldAccess.Stepper.Maximum".Translate(), priority);
         }
 
         /// <summary>
@@ -44,7 +46,10 @@ namespace RimWorldAccess
         /// </summary>
         public static void SpeakBoundary(int direction, SpeechPriority priority = SpeechPriority.Normal)
         {
-            TolkHelper.Speak(direction > 0 ? "Maximum" : "Minimum", priority);
+            string key = direction > 0
+                ? "RimWorldAccess.Stepper.Maximum"
+                : "RimWorldAccess.Stepper.Minimum";
+            TolkHelper.Speak(key.Translate(), priority);
         }
 
         /// <summary>
@@ -55,7 +60,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void SpeakValueAtMinimum(string valueLabel, SpeechPriority priority = SpeechPriority.Normal)
         {
-            TolkHelper.Speak($"{valueLabel}, minimum", priority);
+            TolkHelper.Speak("RimWorldAccess.Stepper.ValueAtMinimum".Translate(valueLabel), priority);
         }
 
         /// <summary>
@@ -64,7 +69,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void SpeakValueAtMaximum(string valueLabel, SpeechPriority priority = SpeechPriority.Normal)
         {
-            TolkHelper.Speak($"{valueLabel}, maximum", priority);
+            TolkHelper.Speak("RimWorldAccess.Stepper.ValueAtMaximum".Translate(valueLabel), priority);
         }
     }
 }

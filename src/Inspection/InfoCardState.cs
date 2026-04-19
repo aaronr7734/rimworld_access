@@ -434,7 +434,9 @@ namespace RimWorldAccess
         /// <param name="fallbackAnnouncement">Optional override. Defaults to "No info card available".</param>
         public static void SpeakNoInfoCardAvailable(string fallbackAnnouncement = null)
         {
-            TolkHelper.Speak(fallbackAnnouncement ?? "No info card available");
+            string announcement = fallbackAnnouncement
+                ?? "RimWorldAccess.InfoCard.Unavailable".Translate().ToString();
+            TolkHelper.Speak(announcement);
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
         }
 

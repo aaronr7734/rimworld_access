@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Shared vocabulary used by RimWorld Access helper classes. Every phrase in
+    this file is emitted by a helper in src/UI, src/Map, or src/Inspection and
+    represents the canonical English wording that Phase A consolidated. Each
+    key is spoken many times across the mod - localizing here localizes the
+    corresponding announcement everywhere it appears.
+
+    Placeholders follow string.Format ({0}, {1}, ...). When a key has One/Many
+    variants, the caller picks the form based on a count value; languages with
+    additional plural classes can either keep both keys identical or split
+    further using RimWorld's LanguageWorker.
+  -->
+
+  <!-- Guard preconditions (src/UI/GuardHelper.cs).
+       Spoken when a state class cannot proceed because of missing game state. -->
+  <RimWorldAccess.Guard.NotInGame>Not in game</RimWorldAccess.Guard.NotInGame>
+  <RimWorldAccess.Guard.NoMapLoaded>No map loaded</RimWorldAccess.Guard.NoMapLoaded>
+  <RimWorldAccess.Guard.NoPawnSelected>No pawn selected</RimWorldAccess.Guard.NoPawnSelected>
+  <RimWorldAccess.Guard.NoItemSelected>No item selected</RimWorldAccess.Guard.NoItemSelected>
+  <RimWorldAccess.Guard.NoBuildingToConfigure>No building to configure</RimWorldAccess.Guard.NoBuildingToConfigure>
+  <RimWorldAccess.Guard.WorldNavigationNotActive>World navigation not active</RimWorldAccess.Guard.WorldNavigationNotActive>
+  <RimWorldAccess.Guard.NoValidTileSelected>No valid tile selected</RimWorldAccess.Guard.NoValidTileSelected>
+  <RimWorldAccess.Guard.InvalidCursorPosition>Invalid cursor position</RimWorldAccess.Guard.InvalidCursorPosition>
+
+  <!-- Typeahead search (src/UI/TypeaheadSearchHelper.cs).
+       Used across every menu that has type-to-find search.
+       {0} = the user's search text (NoMatches).
+       {0} = current 1-based match position, {1} = total matches,
+       {2} = search buffer (ContextSuffix). -->
+  <RimWorldAccess.Search.Cleared>Search cleared</RimWorldAccess.Search.Cleared>
+  <RimWorldAccess.Search.NoMatches>No matches for '{0}'</RimWorldAccess.Search.NoMatches>
+  <RimWorldAccess.Search.ContextSuffix>, {0} of {1} matches for '{2}'</RimWorldAccess.Search.ContextSuffix>
+
+  <!-- Info card (src/Inspection/InfoCardState.cs).
+       Spoken when an 'i'-style info-card action has no eligible target. -->
+  <RimWorldAccess.InfoCard.Unavailable>No info card available</RimWorldAccess.InfoCard.Unavailable>
+
+  <!-- Tree expansion state (src/UI/TreeNavigationHelper.cs).
+       StateExpanded/StateCollapsed are the bare words, composed into the
+       suffix keys. SuffixWithCountOne/Many are used when a child count is
+       included; {0} = state word, {1} = child count.
+       ExpandedCountOne/Many are spoken after ExpandAllSiblings collapses or
+       expands several siblings in one action. -->
+  <RimWorldAccess.Tree.StateExpanded>expanded</RimWorldAccess.Tree.StateExpanded>
+  <RimWorldAccess.Tree.StateCollapsed>collapsed</RimWorldAccess.Tree.StateCollapsed>
+  <RimWorldAccess.Tree.ExpansionSuffix>, {0}</RimWorldAccess.Tree.ExpansionSuffix>
+  <RimWorldAccess.Tree.ExpansionSuffixWithCountOne>, {0}, {1} item</RimWorldAccess.Tree.ExpansionSuffixWithCountOne>
+  <RimWorldAccess.Tree.ExpansionSuffixWithCountMany>, {0}, {1} items</RimWorldAccess.Tree.ExpansionSuffixWithCountMany>
+  <RimWorldAccess.Tree.ExpansionSpaceSuffix> {0}</RimWorldAccess.Tree.ExpansionSpaceSuffix>
+  <RimWorldAccess.Tree.ExpandedCountOne>Expanded {0} item</RimWorldAccess.Tree.ExpandedCountOne>
+  <RimWorldAccess.Tree.ExpandedCountMany>Expanded {0} items</RimWorldAccess.Tree.ExpandedCountMany>
+
+  <!-- Two-level menu (src/UI/TwoLevelMenuHelper.cs).
+       Used by quest, history, notification, and mod-list menus.
+       ButtonAnnouncement/Disabled: {0} = button label, {1} = position suffix.
+       ButtonDisabled/Reason: {0} = button label, {1} = reason. -->
+  <RimWorldAccess.TwoLevel.BackToList>Back to list</RimWorldAccess.TwoLevel.BackToList>
+  <RimWorldAccess.TwoLevel.BackToListWithSuffix>Back to list. {0}</RimWorldAccess.TwoLevel.BackToListWithSuffix>
+  <RimWorldAccess.TwoLevel.ButtonAnnouncement>{0}. Button. {1}</RimWorldAccess.TwoLevel.ButtonAnnouncement>
+  <RimWorldAccess.TwoLevel.ButtonAnnouncementDisabled>{0} (disabled). Button. {1}</RimWorldAccess.TwoLevel.ButtonAnnouncementDisabled>
+  <RimWorldAccess.TwoLevel.ButtonDisabled>{0} is disabled</RimWorldAccess.TwoLevel.ButtonDisabled>
+  <RimWorldAccess.TwoLevel.ButtonDisabledReason>{0} is disabled: {1}</RimWorldAccess.TwoLevel.ButtonDisabledReason>
+
+  <!-- Menu formatting (src/UI/MenuHelper.cs).
+       Position: {0} = 1-based index, {1} = total.
+       LevelSuffix: {0} = indent level (1-based), appended to item announcements.
+       CannotPaintColumn: tabular menus when a column cannot be paint-copied. -->
+  <RimWorldAccess.Menu.Position>{0} of {1}</RimWorldAccess.Menu.Position>
+  <RimWorldAccess.Menu.LevelSuffix> level {0}</RimWorldAccess.Menu.LevelSuffix>
+  <RimWorldAccess.Menu.CannotPaintColumn>Cannot paint this column</RimWorldAccess.Menu.CannotPaintColumn>
+
+  <!-- Edge announcements (src/UI/MenuHelper.cs, MenuHelper.EdgeDirection).
+       Spoken when navigation has reached a boundary and cannot continue. -->
+  <RimWorldAccess.Edge.Top>Already at top</RimWorldAccess.Edge.Top>
+  <RimWorldAccess.Edge.Bottom>Already at bottom</RimWorldAccess.Edge.Bottom>
+  <RimWorldAccess.Edge.First>Already at first position</RimWorldAccess.Edge.First>
+  <RimWorldAccess.Edge.Last>Already at last position</RimWorldAccess.Edge.Last>
+  <RimWorldAccess.Edge.Minimum>Already at minimum</RimWorldAccess.Edge.Minimum>
+  <RimWorldAccess.Edge.Maximum>Already at maximum</RimWorldAccess.Edge.Maximum>
+  <RimWorldAccess.Edge.TopLevel>Already at top level</RimWorldAccess.Edge.TopLevel>
+  <RimWorldAccess.Edge.Zero>Already at zero</RimWorldAccess.Edge.Zero>
+  <RimWorldAccess.Edge.Generic>Already at edge</RimWorldAccess.Edge.Generic>
+
+  <!-- Map navigation (src/Map/MapNavigationState.cs).
+       JumpedTo: {0} = the target label (scanner item, menu row, etc.).
+       JumpedToTarget: fallback when no label is available.
+       SelectedCell: {0} = cell x, {1} = cell z. -->
+  <RimWorldAccess.Map.JumpedTo>Jumped to {0}</RimWorldAccess.Map.JumpedTo>
+  <RimWorldAccess.Map.JumpedToTarget>Jumped to target</RimWorldAccess.Map.JumpedToTarget>
+  <RimWorldAccess.Map.SelectedCell>Selected, {0}, {1}</RimWorldAccess.Map.SelectedCell>
+
+  <!-- Numeric stepper (src/UI/NumericStepperHelper.cs).
+       Minimum/Maximum are boundary hits (value did not change).
+       ValueAtMinimum/Maximum are transitions INTO the boundary; {0} = the
+       formatted value label. -->
+  <RimWorldAccess.Stepper.Minimum>Minimum</RimWorldAccess.Stepper.Minimum>
+  <RimWorldAccess.Stepper.Maximum>Maximum</RimWorldAccess.Stepper.Maximum>
+  <RimWorldAccess.Stepper.ValueAtMinimum>{0}, minimum</RimWorldAccess.Stepper.ValueAtMinimum>
+  <RimWorldAccess.Stepper.ValueAtMaximum>{0}, maximum</RimWorldAccess.Stepper.ValueAtMaximum>
+</LanguageData>

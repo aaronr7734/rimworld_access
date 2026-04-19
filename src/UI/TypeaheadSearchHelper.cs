@@ -161,7 +161,7 @@ namespace RimWorldAccess
                 return false;
 
             ClearSearch();
-            TolkHelper.Speak("Search cleared");
+            TolkHelper.Speak("RimWorldAccess.Search.Cleared".Translate());
             return true;
         }
 
@@ -175,7 +175,7 @@ namespace RimWorldAccess
         /// </summary>
         public void SpeakNoMatches(SpeechPriority priority = SpeechPriority.Normal)
         {
-            TolkHelper.Speak($"No matches for '{lastFailedSearch}'", priority);
+            TolkHelper.Speak("RimWorldAccess.Search.NoMatches".Translate(lastFailedSearch), priority);
         }
 
         /// <summary>
@@ -187,7 +187,7 @@ namespace RimWorldAccess
         public string BuildSearchContextSuffix()
         {
             if (!HasActiveSearch || matchingIndices.Count == 0) return "";
-            return $", {CurrentMatchPosition} of {MatchCount} matches for '{searchBuffer}'";
+            return "RimWorldAccess.Search.ContextSuffix".Translate(CurrentMatchPosition, MatchCount, searchBuffer).ToString();
         }
 
         /// <summary>

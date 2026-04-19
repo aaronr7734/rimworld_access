@@ -661,7 +661,10 @@ namespace RimWorldAccess
                     }
 
                     EmbeddedAudioHelper.PlaySoundDefWithReverb(SoundDefOf.FloatMenu_Open);
-                    TolkHelper.Speak($"Expanded {expandedCount} {(expandedCount == 1 ? "item" : "items")}");
+                    TolkHelper.Speak(
+                        (expandedCount == 1
+                            ? "RimWorldAccess.Tree.ExpandedCountOne"
+                            : "RimWorldAccess.Tree.ExpandedCountMany").Translate(expandedCount));
                     AnnounceCurrentItem();
                 }
                 else
@@ -670,7 +673,10 @@ namespace RimWorldAccess
                     typeahead.ClearSearch();
                     preSearchExpansion = null;
                     EmbeddedAudioHelper.PlaySoundDefWithReverb(SoundDefOf.FloatMenu_Open);
-                    TolkHelper.Speak($"Expanded {expandedCount} {(expandedCount == 1 ? "item" : "items")}");
+                    TolkHelper.Speak(
+                        (expandedCount == 1
+                            ? "RimWorldAccess.Tree.ExpandedCountOne"
+                            : "RimWorldAccess.Tree.ExpandedCountMany").Translate(expandedCount));
                 }
             }
         }
@@ -876,7 +882,9 @@ namespace RimWorldAccess
         public static string GetExpansionStateWord(InspectionTreeItem item)
         {
             if (item == null || !item.IsExpandable) return "";
-            return item.IsExpanded ? "expanded" : "collapsed";
+            return (item.IsExpanded
+                ? "RimWorldAccess.Tree.StateExpanded"
+                : "RimWorldAccess.Tree.StateCollapsed").Translate().ToString();
         }
 
         /// <summary>
@@ -893,9 +901,11 @@ namespace RimWorldAccess
             if (includeChildCount)
             {
                 int n = item.Children.Count;
-                return $", {state}, {n} {(n == 1 ? "item" : "items")}";
+                return (n == 1
+                    ? "RimWorldAccess.Tree.ExpansionSuffixWithCountOne"
+                    : "RimWorldAccess.Tree.ExpansionSuffixWithCountMany").Translate(state, n).ToString();
             }
-            return $", {state}";
+            return "RimWorldAccess.Tree.ExpansionSuffix".Translate(state).ToString();
         }
 
         /// <summary>
@@ -905,7 +915,8 @@ namespace RimWorldAccess
         public static string FormatExpansionSpaceSuffix(InspectionTreeItem item)
         {
             string state = GetExpansionStateWord(item);
-            return string.IsNullOrEmpty(state) ? "" : " " + state;
+            if (string.IsNullOrEmpty(state)) return "";
+            return "RimWorldAccess.Tree.ExpansionSpaceSuffix".Translate(state).ToString();
         }
 
         #endregion

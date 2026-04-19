@@ -26,7 +26,7 @@ namespace RimWorldAccess
         {
             if (Current.ProgramState != ProgramState.Playing)
             {
-                TolkHelper.Speak("Not in game", priority);
+                TolkHelper.Speak("RimWorldAccess.Guard.NotInGame".Translate(), priority);
                 return false;
             }
             return true;
@@ -42,7 +42,7 @@ namespace RimWorldAccess
             map = Find.CurrentMap;
             if (map == null)
             {
-                TolkHelper.Speak("No map loaded", priority);
+                TolkHelper.Speak("RimWorldAccess.Guard.NoMapLoaded".Translate(), priority);
                 return false;
             }
             return true;
@@ -65,7 +65,7 @@ namespace RimWorldAccess
         {
             if (pawn == null)
             {
-                TolkHelper.Speak("No pawn selected", priority);
+                TolkHelper.Speak("RimWorldAccess.Guard.NoPawnSelected".Translate(), priority);
                 return false;
             }
             return true;
@@ -79,7 +79,7 @@ namespace RimWorldAccess
         {
             if (item == null)
             {
-                TolkHelper.Speak("No item selected", priority);
+                TolkHelper.Speak("RimWorldAccess.Guard.NoItemSelected".Translate(), priority);
                 return false;
             }
             return true;
@@ -93,7 +93,7 @@ namespace RimWorldAccess
         {
             if (building == null)
             {
-                TolkHelper.Speak("No building to configure", priority);
+                TolkHelper.Speak("RimWorldAccess.Guard.NoBuildingToConfigure".Translate(), priority);
                 return false;
             }
             return true;
@@ -108,7 +108,7 @@ namespace RimWorldAccess
         {
             if (!WorldNavigationState.IsActive)
             {
-                TolkHelper.Speak("World navigation not active", priority);
+                TolkHelper.Speak("RimWorldAccess.Guard.WorldNavigationNotActive".Translate(), priority);
                 return false;
             }
             return true;
@@ -122,7 +122,7 @@ namespace RimWorldAccess
         {
             if (!tile.Valid)
             {
-                TolkHelper.Speak("No valid tile selected", priority);
+                TolkHelper.Speak("RimWorldAccess.Guard.NoValidTileSelected".Translate(), priority);
                 return false;
             }
             return true;
@@ -138,7 +138,7 @@ namespace RimWorldAccess
         {
             if (!pos.IsValid)
             {
-                TolkHelper.Speak("Invalid cursor position", priority);
+                TolkHelper.Speak("RimWorldAccess.Guard.InvalidCursorPosition".Translate(), priority);
                 return false;
             }
             return true;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Verse;
 
 namespace RimWorldAccess
 {
@@ -303,8 +304,8 @@ namespace RimWorldAccess
             if (button.IsDisabled)
             {
                 string disabledMsg = string.IsNullOrEmpty(button.DisabledReason)
-                    ? $"{button.Label} is disabled"
-                    : $"{button.Label} is disabled: {button.DisabledReason}";
+                    ? "RimWorldAccess.TwoLevel.ButtonDisabled".Translate(button.Label).ToString()
+                    : "RimWorldAccess.TwoLevel.ButtonDisabledReason".Translate(button.Label, button.DisabledReason).ToString();
                 TolkHelper.Speak(disabledMsg);
                 return false;
             }
@@ -377,7 +378,9 @@ namespace RimWorldAccess
         /// </summary>
         public static void SpeakReturnToList(string suffix = null)
         {
-            string phrase = string.IsNullOrEmpty(suffix) ? "Back to list" : "Back to list. " + suffix;
+            string phrase = string.IsNullOrEmpty(suffix)
+                ? "RimWorldAccess.TwoLevel.BackToList".Translate().ToString()
+                : "RimWorldAccess.TwoLevel.BackToListWithSuffix".Translate(suffix).ToString();
             TolkHelper.Speak(phrase);
         }
 
@@ -500,9 +503,10 @@ namespace RimWorldAccess
                 return;
 
             ButtonInfo button = currentButtons[currentButtonIndex];
-            string announcement = button.IsDisabled
-                ? $"{button.Label} (disabled). Button. {MenuHelper.FormatPosition(currentButtonIndex, currentButtons.Count)}"
-                : $"{button.Label}. Button. {MenuHelper.FormatPosition(currentButtonIndex, currentButtons.Count)}";
+            string position = MenuHelper.FormatPosition(currentButtonIndex, currentButtons.Count);
+            string announcement = (button.IsDisabled
+                ? "RimWorldAccess.TwoLevel.ButtonAnnouncementDisabled"
+                : "RimWorldAccess.TwoLevel.ButtonAnnouncement").Translate(button.Label, position).ToString();
 
             TolkHelper.Speak(announcement);
         }

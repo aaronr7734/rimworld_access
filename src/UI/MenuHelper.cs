@@ -24,7 +24,7 @@ namespace RimWorldAccess
         {
             if (RimWorldAccessMod_Settings.Settings?.AnnouncePosition == false)
                 return "";
-            return $"{index + 1} of {total}";
+            return "RimWorldAccess.Menu.Position".Translate(index + 1, total).ToString();
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace RimWorldAccess
             if (skipLevelOne && displayLevel == 1 && lastLevel == -1)
                 return "";
 
-            return $" level {displayLevel}";
+            return "RimWorldAccess.Menu.LevelSuffix".Translate(displayLevel).ToString();
         }
 
         /// <summary>
@@ -91,20 +91,20 @@ namespace RimWorldAccess
         /// </summary>
         public static void SpeakAlreadyAtEdge(EdgeDirection direction, SpeechPriority priority = SpeechPriority.Normal)
         {
-            string phrase;
+            string key;
             switch (direction)
             {
-                case EdgeDirection.Top: phrase = "Already at top"; break;
-                case EdgeDirection.Bottom: phrase = "Already at bottom"; break;
-                case EdgeDirection.First: phrase = "Already at first position"; break;
-                case EdgeDirection.Last: phrase = "Already at last position"; break;
-                case EdgeDirection.Minimum: phrase = "Already at minimum"; break;
-                case EdgeDirection.Maximum: phrase = "Already at maximum"; break;
-                case EdgeDirection.TopLevel: phrase = "Already at top level"; break;
-                case EdgeDirection.Zero: phrase = "Already at zero"; break;
-                default: phrase = "Already at edge"; break;
+                case EdgeDirection.Top: key = "RimWorldAccess.Edge.Top"; break;
+                case EdgeDirection.Bottom: key = "RimWorldAccess.Edge.Bottom"; break;
+                case EdgeDirection.First: key = "RimWorldAccess.Edge.First"; break;
+                case EdgeDirection.Last: key = "RimWorldAccess.Edge.Last"; break;
+                case EdgeDirection.Minimum: key = "RimWorldAccess.Edge.Minimum"; break;
+                case EdgeDirection.Maximum: key = "RimWorldAccess.Edge.Maximum"; break;
+                case EdgeDirection.TopLevel: key = "RimWorldAccess.Edge.TopLevel"; break;
+                case EdgeDirection.Zero: key = "RimWorldAccess.Edge.Zero"; break;
+                default: key = "RimWorldAccess.Edge.Generic"; break;
             }
-            TolkHelper.Speak(phrase, priority);
+            TolkHelper.Speak(key.Translate(), priority);
         }
 
         // ===== PAINT REJECT =====
@@ -117,7 +117,7 @@ namespace RimWorldAccess
         public static void SpeakCannotPaintColumn(SpeechPriority priority = SpeechPriority.Normal)
         {
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            TolkHelper.Speak("Cannot paint this column", priority);
+            TolkHelper.Speak("RimWorldAccess.Menu.CannotPaintColumn".Translate(), priority);
         }
 
         // ===== NAVIGATION =====
