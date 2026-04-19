@@ -58,7 +58,7 @@ namespace RimWorldAccess
                     if (RitualState.IsActive)
                     {
                         RitualState.Close();
-                        TolkHelper.Speak("Ritual dialog closed.");
+                        TolkHelper.Speak("RimWorldAccess.Rituals.Dialog.Closed".Translate());
                     }
                 }
                 catch (Exception ex)
@@ -222,7 +222,7 @@ namespace RimWorldAccess
 
                 Text.Font = GameFont.Tiny;
                 Text.Anchor = TextAnchor.MiddleCenter;
-                Widgets.Label(indicatorRect, "Keyboard Mode Active");
+                Widgets.Label(indicatorRect, "RimWorldAccess.Rituals.Dialog.KeyboardModeIndicator".Translate());
                 Text.Anchor = TextAnchor.UpperLeft;
                 Text.Font = GameFont.Small;
             }

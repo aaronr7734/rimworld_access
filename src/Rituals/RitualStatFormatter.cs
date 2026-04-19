@@ -23,23 +23,23 @@ namespace RimWorldAccess
 
             if (item.MaxCount > 0)
             {
-                sb.Append($"{item.AssignedCount} assigned of {item.MaxCount} max");
+                sb.Append("RimWorldAccess.Rituals.Role.AssignedOfMax".Translate(item.AssignedCount, item.MaxCount));
                 if (item.IsRequired)
-                    sb.Append(", required");
+                    sb.Append("RimWorldAccess.Rituals.Role.Required".Translate());
             }
             else if (item.MaxCount == 0)
             {
-                sb.Append($"{item.AssignedCount} assigned, optional");
+                sb.Append("RimWorldAccess.Rituals.Role.AssignedOptional".Translate(item.AssignedCount));
             }
             else
             {
                 // Unlimited (-1)
-                sb.Append($"{item.AssignedCount} assigned");
+                sb.Append("RimWorldAccess.Rituals.Role.AssignedUnlimited".Translate(item.AssignedCount));
             }
 
             if (item.IsLocked)
             {
-                sb.Append(", locked");
+                sb.Append("RimWorldAccess.Rituals.Role.Locked".Translate());
             }
 
             sb.Append(".");
@@ -68,7 +68,9 @@ namespace RimWorldAccess
             var sb = new StringBuilder();
             sb.Append(item.Label);
             sb.Append(": ");
-            sb.Append(item.CheckboxValue ? "checked" : "unchecked");
+            sb.Append(item.CheckboxValue
+                ? "RimWorldAccess.Rituals.Checkbox.Checked".Translate().ToString()
+                : "RimWorldAccess.Rituals.Checkbox.Unchecked".Translate().ToString());
             sb.Append(".");
 
             if (includeTooltip && !string.IsNullOrEmpty(item.TooltipKey))
@@ -103,16 +105,16 @@ namespace RimWorldAccess
             // Status - only announce if selected or forced, nothing if unselected
             if (item.IsForced)
             {
-                parts.Add("forced, cannot change");
+                parts.Add("RimWorldAccess.Rituals.Pawn.ForcedCannotChange".Translate().ToString());
             }
             else if (item.IsAssigned)
             {
-                parts.Add("Selected");
+                parts.Add("RimWorldAccess.Rituals.Pawn.Selected".Translate().ToString());
             }
 
             if (item.DisabledReason != null)
             {
-                parts.Add($"cannot assign: {item.DisabledReason}");
+                parts.Add("RimWorldAccess.Rituals.Pawn.CannotAssignReason".Translate(item.DisabledReason).ToString());
             }
 
             return string.Join(". ", parts) + ".";
@@ -140,7 +142,8 @@ namespace RimWorldAccess
 
                 if (item.IsUncertain)
                 {
-                    sb.Append(" Uncertain outcome.");
+                    sb.Append(" ");
+                    sb.Append("RimWorldAccess.Rituals.Quality.UncertainOutcome".Translate());
                 }
                 else if (!changeHasContext)
                 {
@@ -148,17 +151,24 @@ namespace RimWorldAccess
                     if (item.IsPresent)
                     {
                         // Binary factors that are met (loved one present, indoors, etc.)
-                        sb.Append(item.IsPositive ? " Bonus." : " Penalty.");
+                        sb.Append(" ");
+                        sb.Append(item.IsPositive
+                            ? "RimWorldAccess.Rituals.Quality.Bonus".Translate().ToString()
+                            : "RimWorldAccess.Rituals.Quality.Penalty".Translate().ToString());
                     }
                     else if (item.Quality != 0)
                     {
                         // Scalar factors (age, skill) - they contribute but don't use "present"
-                        sb.Append(item.Quality > 0 ? " Bonus." : " Penalty.");
+                        sb.Append(" ");
+                        sb.Append(item.Quality > 0
+                            ? "RimWorldAccess.Rituals.Quality.Bonus".Translate().ToString()
+                            : "RimWorldAccess.Rituals.Quality.Penalty".Translate().ToString());
                     }
                     else
                     {
                         // Truly not contributing (e.g., no loved one present, not indoors)
-                        sb.Append(" Not met.");
+                        sb.Append(" ");
+                        sb.Append("RimWorldAccess.Rituals.Quality.NotMet".Translate());
                     }
                 }
             }
@@ -181,9 +191,9 @@ namespace RimWorldAccess
         {
             if (System.Math.Abs(minQuality - maxQuality) < 0.01f)
             {
-                return $"Expected Quality: {minQuality.ToStringPercent("F0")}.";
+                return "RimWorldAccess.Rituals.Quality.ExpectedQualitySingle".Translate(minQuality.ToStringPercent("F0")).ToString();
             }
-            return $"Expected Quality: {minQuality.ToStringPercent("F0")} to {maxQuality.ToStringPercent("F0")}.";
+            return "RimWorldAccess.Rituals.Quality.ExpectedQualityRange".Translate(minQuality.ToStringPercent("F0"), maxQuality.ToStringPercent("F0")).ToString();
         }
 
         /// <summary>
@@ -208,7 +218,7 @@ namespace RimWorldAccess
 
                         if (colonistRole.usedStat.Worker.IsDisabledFor(pawn))
                         {
-                            stats.Add($"{colonistRole.usedStat.LabelCap}: Disabled");
+                            stats.Add($"{colonistRole.usedStat.LabelCap}: {"RimWorldAccess.Rituals.Pawn.StatDisabled".Translate()}");
                         }
                         else
                         {
@@ -226,7 +236,7 @@ namespace RimWorldAccess
                         {
                             if (skill.TotallyDisabled)
                             {
-                                stats.Add($"{colonistRole.usedSkill.LabelCap}: Disabled");
+                                stats.Add($"{colonistRole.usedSkill.LabelCap}: {"RimWorldAccess.Rituals.Pawn.StatDisabled".Translate()}");
                             }
                             else
                             {

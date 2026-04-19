@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using HarmonyLib;
 using RimWorld;
 using Verse;
@@ -81,7 +80,7 @@ namespace RimWorldAccess
                 string spectatorLabel = ritual?.behavior?.def?.spectatorsLabel;
                 if (string.IsNullOrEmpty(spectatorLabel))
                 {
-                    spectatorLabel = "Spectators";
+                    spectatorLabel = "RimWorldAccess.Rituals.Fallback.Spectators".Translate().ToString();
                 }
 
                 items.Add(new RitualRoleListItem
@@ -299,7 +298,7 @@ namespace RimWorldAccess
                 if (factor == null) continue;
 
                 // Build label with count info if available (e.g., "Medical: 15")
-                string label = factor.label ?? "Unknown";
+                string label = factor.label ?? "RimWorldAccess.Rituals.Quality.UnknownFactor".Translate().ToString();
                 if (!string.IsNullOrEmpty(factor.count))
                 {
                     label += $" ({factor.count})";
@@ -321,10 +320,10 @@ namespace RimWorldAccess
             // Add summary item
             items.Add(new RitualQualityStatItem
             {
-                Label = "Expected Quality",
+                Label = "RimWorldAccess.Rituals.Quality.ExpectedQualityLabel".Translate(),
                 Change = FormatQualityRange(minQuality, maxQuality),
                 IsInformational = true, // No bonus/penalty indicator
-                Tooltip = "The overall expected quality of this ritual based on all factors.",
+                Tooltip = "RimWorldAccess.Rituals.Quality.ExpectedQualityTooltip".Translate(),
                 Explanation = null
             });
         }
@@ -362,7 +361,7 @@ namespace RimWorldAccess
         /// </summary>
         public static string GetRitualLabel(Precept_Ritual ritual)
         {
-            if (ritual == null) return "Ritual";
+            if (ritual == null) return "RimWorldAccess.Rituals.Fallback.Ritual".Translate();
 
             // Try to get the behavior label first (more descriptive)
             if (ritual.behavior?.def?.label != null)
@@ -371,7 +370,7 @@ namespace RimWorldAccess
             }
 
             // Fall back to ritual label
-            return ritual.Label?.CapitalizeFirst() ?? "Ritual";
+            return ritual.Label?.CapitalizeFirst() ?? "RimWorldAccess.Rituals.Fallback.Ritual".Translate().ToString();
         }
     }
 }
