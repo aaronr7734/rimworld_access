@@ -54,7 +54,7 @@ namespace RimWorldAccess
         {
             if (!TutorSystem.AdaptiveTrainingEnabled || TutorSystem.TutorialMode)
             {
-                TolkHelper.Speak("LearningHelper".Translate() + " " + "disabled");
+                TolkHelper.Speak("LearningHelper".Translate() + " " + "RimWorldAccess.Learning.DisabledSuffix".Translate());
                 return;
             }
 
@@ -70,8 +70,7 @@ namespace RimWorldAccess
 
             if (concepts.Count == 0)
             {
-                TolkHelper.Speak("LearningHelper".Translate() + ". " +
-                    "No active lessons. Press Tab to browse all lessons.");
+                TolkHelper.Speak("RimWorldAccess.Learning.OpeningNoActive".Translate("LearningHelper".Translate()));
             }
             else
             {
@@ -103,7 +102,7 @@ namespace RimWorldAccess
         public static void CloseMenu()
         {
             Close();
-            TolkHelper.Speak("LearningHelper".Translate() + " closed");
+            TolkHelper.Speak("RimWorldAccess.Learning.Closed".Translate("LearningHelper".Translate()));
         }
 
         /// <summary>
@@ -126,14 +125,14 @@ namespace RimWorldAccess
                 concepts = CollectAllConcepts();
                 currentIndex = 0;
                 InitializeDetailHelper();
-                TolkHelper.Speak($"{"LearningHelper".Translate()}. All lessons, {concepts.Count} total");
+                TolkHelper.Speak("RimWorldAccess.Learning.AllLessonsCount".Translate("LearningHelper".Translate(), concepts.Count));
             }
             else
             {
                 concepts = CollectActiveConcepts();
                 currentIndex = 0;
                 InitializeDetailHelper();
-                TolkHelper.Speak($"{"LearningHelper".Translate()}. Active lessons");
+                TolkHelper.Speak("RimWorldAccess.Learning.ActiveLessons".Translate("LearningHelper".Translate()));
             }
 
             if (concepts.Count > 0)
@@ -142,11 +141,11 @@ namespace RimWorldAccess
             }
             else if (showAllMode)
             {
-                TolkHelper.Speak("No lessons available");
+                TolkHelper.Speak("RimWorldAccess.Learning.NoLessonsAvailable".Translate());
             }
             else
             {
-                TolkHelper.Speak("No active lessons. Press Tab to browse all lessons.");
+                TolkHelper.Speak("RimWorldAccess.Learning.NoActive".Translate());
             }
         }
 
@@ -252,12 +251,12 @@ namespace RimWorldAccess
 
                 // Refresh button to show "Already Learned"
                 detailHelper.RefreshButtons();
-                TolkHelper.Speak("MarkLearned".Translate() + ". 100%");
+                TolkHelper.Speak("RimWorldAccess.Learning.MarkLearnedConfirmation".Translate("MarkLearned".Translate()));
             }
             catch (Exception ex)
             {
                 Log.Warning($"[RimWorld Access] Failed to activate learning helper button: {ex.Message}");
-                TolkHelper.Speak("Failed to activate button");
+                TolkHelper.Speak("RimWorldAccess.Learning.ButtonActivationFailed".Translate());
             }
         }
 
@@ -282,11 +281,11 @@ namespace RimWorldAccess
                 {
                     if (showAllMode)
                     {
-                        TwoLevelMenuHelper.SpeakReturnToList("No lessons available");
+                        TwoLevelMenuHelper.SpeakReturnToList("RimWorldAccess.Learning.NoLessonsAvailable".Translate());
                     }
                     else
                     {
-                        TwoLevelMenuHelper.SpeakReturnToList("No active lessons remaining. Press Tab to browse all lessons.");
+                        TwoLevelMenuHelper.SpeakReturnToList("RimWorldAccess.Learning.NoActiveRemaining".Translate());
                     }
                     return;
                 }
@@ -429,7 +428,7 @@ namespace RimWorldAccess
             string label = conc.LabelCap;
             string knowledge = GetKnowledgeText(conc);
             string position = MenuHelper.FormatPosition(currentIndex, concepts.Count);
-            string searchInfo = typeahead.HasActiveSearch ? $" Search: '{typeahead.SearchBuffer}'" : "";
+            string searchInfo = typeahead.HasActiveSearch ? "RimWorldAccess.Learning.SearchSuffix".Translate(typeahead.SearchBuffer).ToString() : "";
 
             TolkHelper.Speak($"{label}, {knowledge}. {position}{searchInfo}");
         }
@@ -543,9 +542,9 @@ namespace RimWorldAccess
                     string[] lines = SplitHelpText(concepts[currentIndex]);
                     return idx >= 0 && idx < lines.Length ? lines[idx] : "";
                 },
-                endOfItemMessage: "End of lesson",
-                startOfItemMessage: "Start of lesson",
-                openFirstMessage: "Press Enter to open lesson first"
+                endOfItemMessage: "RimWorldAccess.Learning.EndOfLesson".Translate(),
+                startOfItemMessage: "RimWorldAccess.Learning.StartOfLesson".Translate(),
+                openFirstMessage: "RimWorldAccess.Learning.OpenLessonFirst".Translate()
             );
             detailHelper.RefreshButtons();
         }
@@ -609,7 +608,7 @@ namespace RimWorldAccess
         {
             string text = conc.HelpTextAdjusted;
             if (string.IsNullOrEmpty(text))
-                return new string[] { "No help text available" };
+                return new string[] { "RimWorldAccess.Learning.NoHelpText".Translate().ToString() };
 
             // Split by newlines, filter empty lines
             string[] lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
