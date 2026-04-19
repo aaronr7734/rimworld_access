@@ -23,7 +23,6 @@ namespace RimWorldAccess
                 return;
 
             IntVec3 pos = __instance.Position;
-            string location = $"{pos.x}, {pos.z}";
 
             // Check what's at the impact site
             string target = "";
@@ -43,26 +42,21 @@ namespace RimWorldAccess
             }
 
             // Determine source
-            string source = "Shell";
+            string sourceKey = "RimWorldAccess.Combat.Shell.SourceDefault";
             if (__instance.Launcher?.Faction == Faction.OfPlayer)
             {
-                source = "Our shell";
+                sourceKey = "RimWorldAccess.Combat.Shell.SourceOurs";
             }
             else if (__instance.Launcher?.Faction != null && __instance.Launcher.Faction.HostileTo(Faction.OfPlayer))
             {
-                source = "Enemy shell";
+                sourceKey = "RimWorldAccess.Combat.Shell.SourceEnemy";
             }
+            string source = sourceKey.Translate();
 
             // Build announcement
-            string announcement;
-            if (!string.IsNullOrEmpty(target))
-            {
-                announcement = $"{source} hit {target} at {location}";
-            }
-            else
-            {
-                announcement = $"{source} landed at {location}";
-            }
+            string announcement = string.IsNullOrEmpty(target)
+                ? "RimWorldAccess.Combat.Shell.Landed".Translate(source, pos.x, pos.z).ToString()
+                : "RimWorldAccess.Combat.Shell.Hit".Translate(source, target, pos.x, pos.z).ToString();
 
             TolkHelper.Speak(announcement, SpeechPriority.High);
         }

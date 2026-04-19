@@ -42,7 +42,7 @@ namespace RimWorldAccess
             // Check if battle log exists
             if (Find.BattleLog == null)
             {
-                TolkHelper.Speak("No battle log available");
+                TolkHelper.Speak("RimWorldAccess.Combat.Log.NoBattleLog".Translate());
                 return;
             }
 
@@ -74,11 +74,11 @@ namespace RimWorldAccess
             }
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"{pawn.LabelShort}'s Combat Log.");
+            sb.AppendLine("RimWorldAccess.Combat.Log.Header".Translate(pawn.LabelShort) + ".");
 
             if (allEntries.Count == 0)
             {
-                sb.AppendLine("No combat entries found.");
+                sb.AppendLine("RimWorldAccess.Combat.Log.NoEntries".Translate());
             }
             else
             {
@@ -109,11 +109,11 @@ namespace RimWorldAccess
                 sb.AppendLine();
                 if (allEntries.Count > 10)
                 {
-                    sb.AppendLine($"Showing last 10 of {allEntries.Count} entries.");
+                    sb.AppendLine("RimWorldAccess.Combat.Log.ShowingLastN".Translate(allEntries.Count));
                 }
                 else
                 {
-                    sb.AppendLine($"Total: {allEntries.Count} entries.");
+                    sb.AppendLine("RimWorldAccess.Combat.Log.Total".Translate(allEntries.Count));
                 }
             }
 

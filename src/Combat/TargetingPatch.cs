@@ -57,7 +57,7 @@ namespace RimWorldAccess
         {
             if (!hasTargetingContext || !contextCasterPos.IsValid)
             {
-                TolkHelper.Speak("No range information available", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Combat.Target.NoRangeInfo".Translate(), SpeechPriority.Normal);
                 return;
             }
 
@@ -65,16 +65,11 @@ namespace RimWorldAccess
             if (!GuardHelper.RequireValidCursor(cursorPos)) return;
 
             float distance = (cursorPos - contextCasterPos).LengthHorizontal;
-            string announcement = $"Distance: {distance:F0} tiles";
+            string distanceStr = distance.ToString("F0");
 
-            if (distance <= contextRange)
-            {
-                announcement += ", IN RANGE";
-            }
-            else
-            {
-                announcement += $", OUT OF RANGE (max {contextRange:F0})";
-            }
+            string announcement = distance <= contextRange
+                ? "RimWorldAccess.Combat.Target.DistanceInRange".Translate(distanceStr).ToString()
+                : "RimWorldAccess.Combat.Target.DistanceOutOfRange".Translate(distanceStr, contextRange.ToString("F0")).ToString();
 
             TolkHelper.Speak(announcement, SpeechPriority.Normal);
         }
@@ -109,7 +104,7 @@ namespace RimWorldAccess
                 // Validate cursor position
                 if (!cursorPosition.IsValid || !cursorPosition.InBounds(Find.CurrentMap))
                 {
-                    TolkHelper.Speak("Invalid target position");
+                    TolkHelper.Speak("RimWorldAccess.Combat.Target.InvalidPosition".Translate());
                     Event.current.Use();
                     return false;
                 }
@@ -217,7 +212,7 @@ namespace RimWorldAccess
                             if (distance > rangeClamped)
                             {
                                 TolkHelper.Speak(
-                                    $"Out of range. Distance: {distance:F0}, max range: {rangeClamped:F0}",
+                                    "RimWorldAccess.Combat.Target.OutOfRange".Translate(distance.ToString("F0"), rangeClamped.ToString("F0")),
                                     SpeechPriority.High);
                                 Event.current.Use();
                                 return false;
@@ -234,8 +229,12 @@ namespace RimWorldAccess
                         // knows the target was rejected rather than hearing nothing.
                         if (ItemTargetingState.IsActive)
                         {
-                            string targetLabel = target.HasThing ? target.Thing.LabelShort : "target";
-                            TolkHelper.Speak($"{targetLabel} is not a valid target", SpeechPriority.High);
+                            string targetLabel = target.HasThing
+                                ? target.Thing.LabelShort
+                                : "RimWorldAccess.Combat.Target.GenericTargetLabel".Translate().ToString();
+                            TolkHelper.Speak(
+                                "RimWorldAccess.Combat.Target.NotValidTarget".Translate(targetLabel),
+                                SpeechPriority.High);
                         }
                         // User must press Escape to exit targeting
                         Event.current.Use();
@@ -278,7 +277,9 @@ namespace RimWorldAccess
                     catch (System.Exception ex)
                     {
                         ModLogger.Error($"Exception in OrderForceTarget: {ex.Message}");
-                        TolkHelper.Speak($"Error using on target: {ex.Message}", SpeechPriority.High);
+                        TolkHelper.Speak(
+                            "RimWorldAccess.Combat.Target.ErrorUsing".Translate(ex.Message),
+                            SpeechPriority.High);
                         Event.current.Use();
                         return false;
                     }
@@ -319,12 +320,12 @@ namespace RimWorldAccess
                         // Non-ability targeting (weapons, turrets)
                         if (target.HasThing)
                         {
-                            successMessage = $"Targeting: {target.Thing.LabelShort}";
+                            successMessage = "RimWorldAccess.Combat.Target.Targeting".Translate(target.Thing.LabelShort);
                         }
                         else
                         {
                             // Cell-only target (like mortar bombardment)
-                            successMessage = "Targeting location";
+                            successMessage = "RimWorldAccess.Combat.Target.TargetingLocation".Translate();
                         }
                     }
 
@@ -343,13 +344,13 @@ namespace RimWorldAccess
                         __instance.BeginTargeting(targetingSource.DestinationSelector, targetingSource);
 
                         // Announce with destination range if available
-                        string destInfo = "Now select destination";
+                        string destInfo = "RimWorldAccess.Combat.Target.SelectDestination".Translate();
                         if (targetingSource.DestinationSelector is CompAbilityEffect_WithDest destComp)
                         {
                             var props = destComp.Props;
                             if (props.range > 0)
                             {
-                                destInfo = $"Now select destination within {props.range:F0} tiles";
+                                destInfo = "RimWorldAccess.Combat.Target.SelectDestinationInRange".Translate(props.range.ToString("F0"));
                             }
                         }
                         TolkHelper.Speak($"{successMessage}. {destInfo}");
@@ -377,7 +378,7 @@ namespace RimWorldAccess
 
                     if (action == null)
                     {
-                        TolkHelper.Speak("No targeting action available");
+                        TolkHelper.Speak("RimWorldAccess.Combat.Target.NoActionAvailable".Translate());
                         Event.current.Use();
                         return false;
                     }
@@ -403,7 +404,7 @@ namespace RimWorldAccess
 
                     if (validator != null && !validator(target))
                     {
-                        TolkHelper.Speak("Invalid target");
+                        TolkHelper.Speak("RimWorldAccess.Combat.Target.InvalidTarget".Translate());
                         Event.current.Use();
                         return false;
                     }
@@ -417,7 +418,7 @@ namespace RimWorldAccess
                         if (distance > contextRange)
                         {
                             TolkHelper.Speak(
-                                $"Out of range. Distance: {distance:F0}, max range: {contextRange:F0}",
+                                "RimWorldAccess.Combat.Target.OutOfRange".Translate(distance.ToString("F0"), contextRange.ToString("F0")),
                                 SpeechPriority.High);
                             Event.current.Use();
                             return false; // Stay in targeting mode for retry
@@ -448,7 +449,9 @@ namespace RimWorldAccess
                     __instance.StopTargeting();
 
                     // Announce with multi-select feedback
-                    string targetLabel = target.HasThing ? target.Thing.LabelShort : "location";
+                    string targetLabel = target.HasThing
+                        ? target.Thing.LabelShort
+                        : "RimWorldAccess.Combat.Target.GenericLocationLabel".Translate().ToString();
                     if (isMultiSelect && multiPawns != null && multiPawns.Count > 1)
                     {
                         string everyone = ((string)"ConfirmAbandonHomeNegativeThoughts_Everyone".Translate()).TrimEnd(':', ' ');
@@ -459,25 +462,31 @@ namespace RimWorldAccess
                             p.jobs?.curJob == jobsBeforeTarget[p] &&
                             (p.jobs?.jobQueue?.Count ?? 0) <= queueBeforeTarget[p]).ToList();
 
-                        string actionLabel = $"Attack {targetLabel}";
                         if (unchanged.Count == 0)
-                            TolkHelper.Speak($"{everyone} {actionLabel}");
+                        {
+                            TolkHelper.Speak("RimWorldAccess.Combat.MultiSelect.EveryoneAttacks".Translate(everyone, targetLabel));
+                        }
                         else if (succeeded.Count == 0)
-                            TolkHelper.Speak($"No one could {actionLabel}");
+                        {
+                            TolkHelper.Speak("RimWorldAccess.Combat.MultiSelect.NoOneCouldAttack".Translate(targetLabel));
+                        }
                         else if (unchanged.Count <= succeeded.Count)
                         {
                             string names = MenuHelper.FormatNameList(unchanged.Select(p => p.LabelShort).ToList());
-                            TolkHelper.Speak($"{everyone} except {names} {actionLabel}");
+                            TolkHelper.Speak("RimWorldAccess.Combat.MultiSelect.EveryoneExceptAttacks".Translate(everyone, names, targetLabel));
                         }
                         else
                         {
                             string names = MenuHelper.FormatNameList(succeeded.Select(p => p.LabelShort).ToList());
-                            TolkHelper.Speak($"Only {names} {actionLabel}");
+                            string onlyKey = succeeded.Count == 1
+                                ? "RimWorldAccess.Combat.MultiSelect.OnlyOneAttacks"
+                                : "RimWorldAccess.Combat.MultiSelect.OnlyManyAttack";
+                            TolkHelper.Speak(onlyKey.Translate(names, targetLabel));
                         }
                     }
                     else
                     {
-                        TolkHelper.Speak($"Target selected: {targetLabel}");
+                        TolkHelper.Speak("RimWorldAccess.Combat.Target.Selected".Translate(targetLabel));
                     }
 
                     // Consume the event
