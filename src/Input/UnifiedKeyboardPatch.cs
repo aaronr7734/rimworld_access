@@ -823,11 +823,7 @@ namespace RimWorldAccess
             // ===== PRIORITY 0.34: Handle dryad caste dialog if active =====
             if (DryadCasteState.IsActive && !WindowlessDialogState.IsActive)
             {
-                bool shift = Event.current.shift;
-                bool ctrl = Event.current.control;
-                bool alt = KeyboardHelper.IsAltHeld;
-
-                if (DryadCasteState.HandleInput(key, shift, ctrl, alt))
+                if (DryadCasteState.HandleInput(Event.current))
                 {
                     Event.current.Use();
                     return;
