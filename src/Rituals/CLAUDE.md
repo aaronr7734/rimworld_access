@@ -1,12 +1,12 @@
 # Rituals Module
 
 ## Purpose
-Keyboard accessibility for RimWorld's ritual system. Handles all ritual types generically (weddings, funerals, childbirth, conversions, speeches, etc.) with one state file and one patch file.
+Keyboard accessibility for RimWorld's ritual system and dryad caste selection dialogs. Handles all ritual types generically (weddings, funerals, childbirth, conversions, speeches, etc.) and provides flat menu keyboard navigation for Gauranlen tree dryad caste selection.
 
 ## Files
 
-**States:** RitualState.cs
-**Patches:** RitualPatch.cs
+**States:** RitualState.cs, DryadCasteState.cs
+**Patches:** RitualPatch.cs, DryadCastePatch.cs
 **Helpers:** RitualTreeBuilder.cs, RitualStatFormatter.cs
 
 ## Key Shortcuts (Ritual Dialog)
@@ -81,15 +81,17 @@ User confirms (Enter)
     -> Return to RoleList mode
 ```
 
-### Key Classes (from RimWorld)
+### Dryad Caste Menu (Flat Navigation)
 
-| Class | Purpose |
-|-------|---------|
-| `Dialog_BeginRitual` | Main dialog for all rituals |
-| `RitualRoleAssignments` | Manages role-to-pawn assignments |
-| `RitualRole` | Abstract base for ritual roles |
-| `RitualRoleColonist` | Has `usedStat`/`usedSkill` for suitability |
-| `QualityFactor` | Quality breakdown data |
+Dryad castes are displayed as a flat list in the game's UI, with visual dependency lines connecting related castes. The accessibility implementation provides simple menu navigation:
+
+- Navigate through all available castes with Up/Down arrows
+- Each caste shows status: current mode, available, or locked (with reason)
+- Enter attempts to apply the selected caste (opens confirmation)
+- Escape closes the dialog
+- Home/End jump to first/last caste
+
+The dependency information (which castes require other castes) is announced in the status alongside caste information but doesn't affect the flat menu structure.
 
 ### Accessing Data
 
@@ -124,7 +126,7 @@ if (role is RitualRoleColonist colonistRole && colonistRole.usedStat != null)
 
 ## Priority in UnifiedKeyboardPatch
 
-RitualState is handled at Priority 0.33, after caravan formation (0.3) and before split caravan (0.35).
+RitualState is handled at Priority 0.33, DryadCasteState at 0.34, and split caravan at 0.35.
 
 ## State Lifecycle
 
@@ -175,3 +177,13 @@ RitualState is handled at Priority 0.33, after caravan formation (0.3) and befor
 - [ ] No ritual-specific code needed
 - [ ] Typeahead search works in all list modes
 - [ ] Menu wrapping respects mod setting
+
+### Dryad Caste Dialog
+- [ ] Opening dialog announces connected pawn and current mode
+- [ ] Menu navigation: Up/Down navigate through castes, Home/End jump to first/last
+- [ ] Each caste announces with name and status (current, available, locked with reason)
+- [ ] Position announcements: "X of Y" for navigation context
+- [ ] Enter on caste selects it and attempts to apply (opens confirmation if available)
+- [ ] Locked castes announce specific reason (missing memes, requires prior caste, etc.)
+- [ ] Escape closes the dialog cleanly
+- [ ] State closes automatically if dialog closes by any path

@@ -820,6 +820,16 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 0.34: Handle dryad caste dialog if active =====
+            if (DryadCasteState.IsActive && !WindowlessDialogState.IsActive)
+            {
+                if (DryadCasteState.HandleInput(Event.current))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 0.35: Handle split caravan dialog if active =====
             if (SplitCaravanState.IsActive && !WindowlessDialogState.IsActive && !WindowlessInspectionState.IsActive && !QuantityMenuState.IsActive)
             {
