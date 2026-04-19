@@ -79,7 +79,7 @@ namespace RimWorldAccess
 
             if (string.IsNullOrEmpty(passion))
                 return $"{level}, {descriptor}";
-            return $"{passion}, {level}, {descriptor}";
+            return $"{level}, {descriptor}, {passion}";
         }
 
         /// <summary>
