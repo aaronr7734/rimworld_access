@@ -285,26 +285,30 @@ namespace RimWorldAccess
             Text.Font = GameFont.Small;
             Text.Anchor = TextAnchor.MiddleCenter;
 
-            string pawnName = WorkMenuState.CurrentPawn != null ? WorkMenuState.CurrentPawn.LabelShort : "Unknown";
+            string pawnName = WorkMenuState.CurrentPawn != null
+                ? WorkMenuState.CurrentPawn.LabelShort
+                : "RimWorldAccess.Work.UnknownPawn".Translate().ToString();
             int pawnIndex = WorkMenuState.CurrentPawnIndex + 1;
             int totalPawns = WorkMenuState.TotalPawns;
-            string mode = WorkMenuState.IsManualMode ? "Manual Priority Mode" : "Basic Mode";
+            string mode = WorkMenuState.IsManualMode
+                ? "RimWorldAccess.Work.Mode.ManualOverlay".Translate().ToString()
+                : "RimWorldAccess.Work.Mode.BasicOverlay".Translate().ToString();
 
-            string title = $"Work Menu - {pawnName} ({pawnIndex}/{totalPawns}) - {mode}";
+            string title = "RimWorldAccess.Work.Overlay.Title".Translate(pawnName, pawnIndex, totalPawns, mode);
 
             string instructions1, instructions2, instructions3;
 
             if (WorkMenuState.IsManualMode)
             {
-                instructions1 = "Up/Down: Switch priorities | Left/Right: Navigate tasks";
-                instructions2 = "0-4: Set priority | Shift+0-4: Set for all | Tab/Shift+Tab: Switch pawn";
-                instructions3 = "Enter/Escape: Save & close | Alt+M: Switch to basic mode";
+                instructions1 = "RimWorldAccess.Work.Overlay.ManualInstructions1".Translate();
+                instructions2 = "RimWorldAccess.Work.Overlay.ManualInstructions2".Translate();
+                instructions3 = "RimWorldAccess.Work.Overlay.ManualInstructions3".Translate();
             }
             else
             {
-                instructions1 = "Left/Right: Navigate tasks | Space: Toggle";
-                instructions2 = "Tab/Shift+Tab: Switch pawn";
-                instructions3 = "Enter/Escape: Save & close | Alt+M: Switch to manual mode";
+                instructions1 = "RimWorldAccess.Work.Overlay.BasicInstructions1".Translate();
+                instructions2 = "RimWorldAccess.Work.Overlay.BasicInstructions2".Translate();
+                instructions3 = "RimWorldAccess.Work.Overlay.BasicInstructions3".Translate();
             }
 
             // Show current position info
@@ -319,21 +323,23 @@ namespace RimWorldAccess
                     string colName;
                     switch (colIndex)
                     {
-                        case 0: colName = "Priority 1"; break;
-                        case 1: colName = "Priority 2"; break;
-                        case 2: colName = "Priority 3"; break;
-                        case 3: colName = "Priority 4"; break;
-                        case 4: colName = "Disabled"; break;
-                        default: colName = "Unknown"; break;
+                        case 0: colName = "RimWorldAccess.Work.Column.Priority1".Translate(); break;
+                        case 1: colName = "RimWorldAccess.Work.Column.Priority2".Translate(); break;
+                        case 2: colName = "RimWorldAccess.Work.Column.Priority3".Translate(); break;
+                        case 3: colName = "RimWorldAccess.Work.Column.Priority4".Translate(); break;
+                        case 4: colName = "RimWorldAccess.Work.Column.Disabled".Translate(); break;
+                        default: colName = "RimWorldAccess.Work.Column.Unknown".Translate(); break;
                     }
                     int colCount = columns[colIndex].Count;
-                    positionInfo = $"[{colName}: {WorkMenuState.CurrentRow + 1}/{colCount}] {entry.WorkType.labelShort}";
+                    positionInfo = "RimWorldAccess.Work.Overlay.PositionInfoManual".Translate(colName, WorkMenuState.CurrentRow + 1, colCount, entry.WorkType.labelShort);
                 }
                 else
                 {
                     int totalEntries = WorkMenuState.GetAllEntries().Count;
-                    string status = entry.CurrentPriority > 0 ? "Enabled" : "Disabled";
-                    positionInfo = $"[{status}] {entry.WorkType.labelShort}";
+                    string status = entry.CurrentPriority > 0
+                        ? "RimWorldAccess.Work.Overlay.StatusEnabled".Translate().ToString()
+                        : "RimWorldAccess.Work.Overlay.StatusDisabled".Translate().ToString();
+                    positionInfo = "RimWorldAccess.Work.Overlay.PositionInfoBasic".Translate(status, entry.WorkType.labelShort);
                 }
             }
 
@@ -341,7 +347,7 @@ namespace RimWorldAccess
             var typeahead = WorkMenuState.Typeahead;
             if (typeahead.HasActiveSearch)
             {
-                positionInfo = $"Search: '{typeahead.SearchBuffer}' - {typeahead.CurrentMatchPosition}/{typeahead.MatchCount} matches";
+                positionInfo = "RimWorldAccess.Work.Overlay.SearchInfo".Translate(typeahead.SearchBuffer, typeahead.CurrentMatchPosition, typeahead.MatchCount);
             }
 
             Rect titleRect = new Rect(overlayX, overlayY + 10f, overlayWidth, 25f);
