@@ -58,17 +58,13 @@ namespace RimWorldAccess
 
             if (launching)
             {
-                TolkHelper.Speak(
-                    $"Gravship destination targeting. {cachedTotalFuel:F0} chemfuel available, " +
-                    $"max range {cachedMaxRange} tiles. " +
-                    "Use scanner to browse destinations, Enter to confirm, Escape to cancel.");
+                TolkHelper.Speak("RimWorldAccess.Gravships.Destination.OpenLaunching".Translate(
+                    cachedTotalFuel.ToString("F0"), cachedMaxRange));
             }
             else
             {
-                TolkHelper.Speak(
-                    $"Viewing gravship range. {cachedTotalFuel:F0} chemfuel available, " +
-                    $"max range {cachedMaxRange} tiles. " +
-                    "Use scanner to browse destinations, Escape to close.");
+                TolkHelper.Speak("RimWorldAccess.Gravships.Destination.OpenViewRange".Translate(
+                    cachedTotalFuel.ToString("F0"), cachedMaxRange));
             }
         }
 
@@ -191,7 +187,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak("No valid tile selected", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Guard.NoValidTileSelected".Translate(), SpeechPriority.High);
                     return;
                 }
             }
@@ -209,7 +205,7 @@ namespace RimWorldAccess
 
                 if (validator == null || tileChosen == null)
                 {
-                    TolkHelper.Speak("Cannot access tile picker callbacks", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Gravships.Destination.CannotAccessCallbacks".Translate(), SpeechPriority.High);
                     return;
                 }
 
@@ -230,7 +226,7 @@ namespace RimWorldAccess
             catch (Exception ex)
             {
                 Log.Warning($"[GravshipDestinationState] Error confirming destination: {ex}");
-                TolkHelper.Speak("Error selecting destination", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Gravships.Destination.ErrorSelecting".Translate(), SpeechPriority.High);
             }
         }
 
@@ -245,7 +241,7 @@ namespace RimWorldAccess
             }
 
             Close();
-            TolkHelper.Speak("Gravship targeting cancelled", SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.Gravships.Destination.Cancelled".Translate(), SpeechPriority.Normal);
 
             // Return to map view
             if (returnTarget != null)
@@ -262,9 +258,11 @@ namespace RimWorldAccess
             cachedTotalFuel = currentEngine.TotalFuel;
 
             TolkHelper.Speak(
-                $"Fuel: {cachedTotalFuel:F0} of {currentEngine.MaxFuel:F0} chemfuel. " +
-                $"Max range: {cachedMaxRange} tiles. " +
-                $"Fuel per tile: {cachedFuelPerTile:F1}.",
+                "RimWorldAccess.Gravships.Destination.FuelStatus".Translate(
+                    cachedTotalFuel.ToString("F0"),
+                    currentEngine.MaxFuel.ToString("F0"),
+                    cachedMaxRange,
+                    cachedFuelPerTile.ToString("F1")),
                 SpeechPriority.Normal);
         }
 
@@ -293,13 +291,13 @@ namespace RimWorldAccess
             {
                 if (cost > cachedTotalFuel)
                 {
-                    return $"{cost:F0} chemfuel, NOT ENOUGH FUEL";
+                    return "RimWorldAccess.Gravships.Destination.CostNotEnough".Translate(cost.ToString("F0"));
                 }
                 if (distance > cachedMaxRange)
                 {
                     return "TransportPodDestinationBeyondMaximumRange".Translate();
                 }
-                return $"{cost:F0} chemfuel";
+                return "RimWorldAccess.Gravships.Destination.CostOnly".Translate(cost.ToString("F0"));
             }
             else
             {

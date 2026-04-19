@@ -193,7 +193,7 @@ namespace RimWorldAccess
                 LongEventHandler.ExecuteWhenFinished(delegate
                 {
                     TolkHelper.Speak(
-                        "Gravship landing zone placed at a valid default location. Navigate to the landing marker and press G to confirm landing, or use the Move gizmo to reposition first.",
+                        "RimWorldAccess.Gravships.Landing.MarkerPlacedGuidance".Translate(),
                         SpeechPriority.High);
                 });
             }

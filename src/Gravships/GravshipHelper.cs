@@ -1,6 +1,5 @@
 using System.Text;
 using RimWorld;
-using RimWorld.Planet;
 using Verse;
 
 namespace RimWorldAccess
@@ -21,7 +20,7 @@ namespace RimWorldAccess
 
             if (engine.FuelSavingsPercent > 0f)
             {
-                sb.Append($". Fuel savings: {engine.FuelSavingsPercent:P0}");
+                sb.Append($". {"RimWorldAccess.Gravships.Engine.FuelSavings".Translate(engine.FuelSavingsPercent.ToString("P0"))}");
             }
 
             return sb.ToString();
@@ -36,7 +35,10 @@ namespace RimWorldAccess
 
             var sb = new StringBuilder();
             int componentCount = engine.GravshipComponents.Count;
-            sb.Append($"{componentCount} components connected");
+            string connectedKey = componentCount == 1
+                ? "RimWorldAccess.Gravships.Engine.ComponentsConnectedOne"
+                : "RimWorldAccess.Gravships.Engine.ComponentsConnectedMany";
+            sb.Append(connectedKey.Translate(componentCount));
 
             var missing = engine.MissingComponents;
             if (missing.Count > 0)
@@ -65,7 +67,7 @@ namespace RimWorldAccess
             var missing = engine.MissingComponents;
             if (missing.Count > 0)
             {
-                sb.Append(". Not ready: missing ");
+                sb.Append($". {"RimWorldAccess.Gravships.Engine.NotReadyMissing".Translate()} ");
                 for (int i = 0; i < missing.Count; i++)
                 {
                     if (i > 0) sb.Append(", ");
@@ -74,7 +76,7 @@ namespace RimWorldAccess
             }
             else
             {
-                sb.Append(". All components connected");
+                sb.Append($". {"RimWorldAccess.Gravships.Engine.AllConnected".Translate()}");
             }
 
             if (GenTicks.TicksGame < engine.cooldownCompleteTick)

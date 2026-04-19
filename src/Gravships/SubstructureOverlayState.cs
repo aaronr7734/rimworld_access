@@ -68,8 +68,8 @@ namespace RimWorldAccess
             {
                 var cursorPos = MapNavigationState.CurrentCursorPosition;
                 var regions = ScannerHelper.GroupTerrainByAdjacency(disconnectedCells, cursorPos);
-                var item = new ScannerItem(regions, "Disconnected substructure", cursorPos);
-                ScannerState.CreateTemporaryCategory("Disconnected Substructure", new List<ScannerItem> { item });
+                var item = new ScannerItem(regions, "RimWorldAccess.Gravships.Substructure.ItemLabel".Translate(), cursorPos);
+                ScannerState.CreateTemporaryCategory("RimWorldAccess.Gravships.Substructure.CategoryLabel".Translate(), new List<ScannerItem> { item });
                 hasTempCategory = true;
             }
         }
