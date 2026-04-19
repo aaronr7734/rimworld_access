@@ -5717,6 +5717,21 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 6.5277: Open pawn skills table with Alt+P =====
+            if (key == KeyCode.P && KeyboardHelper.IsAltHeld)
+            {
+                if (Current.ProgramState == ProgramState.Playing &&
+                    Find.CurrentMap != null &&
+                    (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
+                    !ZoneCreationState.IsInCreationMode &&
+                    !KeyboardHelper.IsAnyAccessibilityMenuActive())
+                {
+                    PawnSkillsTableState.Open();
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 6.528: Rename pawn with Alt+R =====
             if (key == KeyCode.R && KeyboardHelper.IsAltHeld)
             {

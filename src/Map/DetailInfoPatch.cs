@@ -121,7 +121,8 @@ namespace RimWorldAccess
                    ModListState.IsActive ||
                    HealthTabState.IsActive ||
                    AnimalsMenuState.IsActive ||
-                   WildlifeMenuState.IsActive;
+                   WildlifeMenuState.IsActive ||
+                   PawnSkillsTableState.IsActive;
         }
 
         /// <summary>
