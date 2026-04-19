@@ -80,6 +80,7 @@ namespace RimWorldAccess
                 ForbidControlState.IsActive ||
                 AnimalsMenuState.IsActive ||
                 WildlifeMenuState.IsActive ||
+                PawnSkillsTableState.IsActive ||
                 TransportPodLoadingState.IsActive ||
                 // History tab states
                 HistoryState.IsActive ||
