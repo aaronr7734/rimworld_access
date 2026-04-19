@@ -59,7 +59,8 @@ namespace RimWorldAccess
         {
             if (factionCount > 0 && treeNav.Count > 0)
             {
-                var sb = new StringBuilder($"Faction relations, {factionCount} factions");
+                var sb = new StringBuilder(
+                    "RimWorldAccess.Factions.Tab.OpeningWithCount".Translate(factionCount).ToString());
                 var firstItem = treeNav.VisibleItems[0];
                 FactionHelper.AppendSentence(sb, firstItem.Label);
 
@@ -74,7 +75,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("Faction relations. No factions.");
+                TolkHelper.Speak("RimWorldAccess.Factions.Tab.OpeningNoFactions".Translate());
             }
         }
 
@@ -88,7 +89,7 @@ namespace RimWorldAccess
             if (faction == null)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No faction selected.");
+                TolkHelper.Speak("RimWorldAccess.Factions.Tab.NoFactionSelected".Translate());
                 return true;
             }
             Find.WindowStack.Add(new Dialog_InfoCard(faction));

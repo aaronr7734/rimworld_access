@@ -45,7 +45,10 @@ namespace RimWorldAccess
 
             // Defeated status
             if (faction.defeated)
-                sb.Append(", defeated");
+            {
+                sb.Append(", ");
+                sb.Append("RimWorldAccess.Factions.Status.Defeated".Translate());
+            }
 
             // Faction type
             AppendSentence(sb, faction.def.LabelCap.Resolve());
@@ -55,14 +58,17 @@ namespace RimWorldAccess
             {
                 string leaderTitle = faction.LeaderTitle.CapitalizeFirst();
                 string leaderName = faction.leader.Name.ToStringFull;
-                AppendSentence(sb, $"{leaderTitle}: {leaderName}");
+                AppendSentence(sb, "RimWorldAccess.Factions.Leader".Translate(leaderTitle, leaderName));
             }
 
             // Relation and goodwill
             string relation = faction.PlayerRelationKind.GetLabelCap();
             if (faction.HasGoodwill && !faction.def.permanentEnemy)
             {
-                AppendSentence(sb, $"{relation}, goodwill {faction.PlayerGoodwill.ToStringWithSign()}, natural goodwill {faction.NaturalGoodwill.ToStringWithSign()}");
+                AppendSentence(sb, "RimWorldAccess.Factions.Goodwill".Translate(
+                    relation,
+                    faction.PlayerGoodwill.ToStringWithSign(),
+                    faction.NaturalGoodwill.ToStringWithSign()));
 
                 // Ongoing goodwill events (situations limiting max goodwill)
                 string ongoing = BuildOngoingEvents(faction);
@@ -76,7 +82,7 @@ namespace RimWorldAccess
             }
             else if (faction.def.permanentEnemy)
             {
-                AppendSentence(sb, $"{relation}, permanent enemy");
+                AppendSentence(sb, "RimWorldAccess.Factions.RelationPermanentEnemy".Translate(relation));
             }
             else
             {
@@ -88,14 +94,14 @@ namespace RimWorldAccess
             {
                 if (faction.ideos.PrimaryIdeo != null)
                 {
-                    AppendSentence(sb, $"Ideology: {faction.ideos.PrimaryIdeo.name}");
+                    AppendSentence(sb, "RimWorldAccess.Factions.Ideology.Primary".Translate(faction.ideos.PrimaryIdeo.name));
                 }
 
                 var minor = faction.ideos.IdeosMinorListForReading;
                 if (minor != null && minor.Count > 0)
                 {
                     var minorNames = minor.Select(i => i.name);
-                    AppendSentence(sb, $"Minor ideologies: {string.Join(", ", minorNames)}");
+                    AppendSentence(sb, "RimWorldAccess.Factions.Ideology.Minor".Translate(string.Join(", ", minorNames)));
                 }
             }
 
@@ -107,7 +113,7 @@ namespace RimWorldAccess
             if (enemies.Length > 0)
             {
                 var enemyNames = enemies.Select(f => f.Name).ToArray();
-                AppendSentence(sb, $"Enemy of: {string.Join(", ", enemyNames)}");
+                AppendSentence(sb, "RimWorldAccess.Factions.EnemyOf".Translate(string.Join(", ", enemyNames)));
             }
 
             // Faction description (shown as tooltip on hover in vanilla)
@@ -153,14 +159,16 @@ namespace RimWorldAccess
                 if (situations[i].maxGoodwill < 100)
                 {
                     string label = situations[i].def.Worker.GetPostProcessedLabelCap(faction);
-                    parts.Add($"{label} {situations[i].maxGoodwill.ToStringWithSign()} max");
+                    parts.Add("RimWorldAccess.Factions.Ongoing.EntryMaxSuffix".Translate(
+                        label,
+                        situations[i].maxGoodwill.ToStringWithSign()).ToString());
                 }
             }
 
             if (parts.Count == 0)
                 return null;
 
-            return $"Ongoing: {string.Join(", ", parts)}";
+            return "RimWorldAccess.Factions.Ongoing.Summary".Translate(string.Join(", ", parts)).ToString();
         }
 
         /// <summary>
@@ -198,8 +206,8 @@ namespace RimWorldAccess
                 {
                     string entry = allEventDefs[i].LabelCap.ToString();
                     if (recentCount != 1)
-                        entry += $" x{recentCount}";
-                    entry += $" {totalGoodwill.ToStringWithSign()}";
+                        entry = "RimWorldAccess.Factions.Recent.EntryCountSuffix".Translate(entry, recentCount).ToString();
+                    entry = "RimWorldAccess.Factions.Recent.EntrySignedSuffix".Translate(entry, totalGoodwill.ToStringWithSign()).ToString();
                     parts.Add(entry);
                 }
             }
@@ -207,7 +215,7 @@ namespace RimWorldAccess
             if (parts.Count == 0)
                 return null;
 
-            return $"Recent: {string.Join(", ", parts)}";
+            return "RimWorldAccess.Factions.Recent.Summary".Translate(string.Join(", ", parts)).ToString();
         }
 
         /// <summary>
@@ -220,7 +228,7 @@ namespace RimWorldAccess
         {
             var root = new InspectionTreeItem
             {
-                Label = "Factions",
+                Label = "RimWorldAccess.Factions.Tree.Root".Translate(),
                 IndentLevel = -1,
                 IsExpandable = true,
                 IsExpanded = true
@@ -254,21 +262,24 @@ namespace RimWorldAccess
 
             // Defeated status
             if (faction.defeated)
-                AddChildNode(node, "Defeated");
+                AddChildNode(node, "RimWorldAccess.Factions.Status.DefeatedCap".Translate());
 
             // Leader info
             if (faction.leader != null)
             {
                 string leaderTitle = faction.LeaderTitle.CapitalizeFirst();
                 string leaderName = faction.leader.Name.ToStringFull;
-                AddChildNode(node, $"{leaderTitle}: {leaderName}");
+                AddChildNode(node, "RimWorldAccess.Factions.Leader".Translate(leaderTitle, leaderName));
             }
 
             // Relation and goodwill
             string relation = faction.PlayerRelationKind.GetLabelCap();
             if (faction.HasGoodwill && !faction.def.permanentEnemy)
             {
-                AddChildNode(node, $"{relation}, goodwill {faction.PlayerGoodwill.ToStringWithSign()}, natural goodwill {faction.NaturalGoodwill.ToStringWithSign()}");
+                AddChildNode(node, "RimWorldAccess.Factions.Goodwill".Translate(
+                    relation,
+                    faction.PlayerGoodwill.ToStringWithSign(),
+                    faction.NaturalGoodwill.ToStringWithSign()));
 
                 string ongoing = BuildOngoingEvents(faction);
                 if (!string.IsNullOrEmpty(ongoing))
@@ -280,7 +291,7 @@ namespace RimWorldAccess
             }
             else if (faction.def.permanentEnemy)
             {
-                AddChildNode(node, $"{relation}, permanent enemy");
+                AddChildNode(node, "RimWorldAccess.Factions.RelationPermanentEnemy".Translate(relation));
             }
             else
             {
@@ -291,13 +302,13 @@ namespace RimWorldAccess
             if (ModsConfig.IdeologyActive && !Find.IdeoManager.classicMode && faction.ideos != null)
             {
                 if (faction.ideos.PrimaryIdeo != null)
-                    AddChildNode(node, $"Ideology: {faction.ideos.PrimaryIdeo.name}");
+                    AddChildNode(node, "RimWorldAccess.Factions.Ideology.Primary".Translate(faction.ideos.PrimaryIdeo.name));
 
                 var minor = faction.ideos.IdeosMinorListForReading;
                 if (minor != null && minor.Count > 0)
                 {
                     var minorNames = minor.Select(i => i.name);
-                    AddChildNode(node, $"Minor ideologies: {string.Join(", ", minorNames)}");
+                    AddChildNode(node, "RimWorldAccess.Factions.Ideology.Minor".Translate(string.Join(", ", minorNames)));
                 }
             }
 
@@ -308,7 +319,7 @@ namespace RimWorldAccess
             if (enemies.Length > 0)
             {
                 var enemyNames = enemies.Select(f => f.Name).ToArray();
-                AddChildNode(node, $"Enemy of: {string.Join(", ", enemyNames)}");
+                AddChildNode(node, "RimWorldAccess.Factions.EnemyOf".Translate(string.Join(", ", enemyNames)));
             }
 
             // Description (expandable with lines as grandchildren)
