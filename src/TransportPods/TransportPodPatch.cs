@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
@@ -53,8 +51,8 @@ namespace RimWorldAccess
                 // Add "Group all available pods" gizmo - selects all and opens loading dialog
                 var groupAllGizmo = new Command_Action
                 {
-                    defaultLabel = $"Group all available pods ({totalPods})",
-                    defaultDesc = $"Select all {totalPods} available transport pods and open the loading dialog.",
+                    defaultLabel = (string)"RimWorldAccess.TransportPods.Gizmo.GroupAllLabel".Translate(totalPods),
+                    defaultDesc = (string)"RimWorldAccess.TransportPods.Gizmo.GroupAllDesc".Translate(totalPods),
                     icon = ContentFinder<Texture2D>.Get("UI/Commands/SelectAllTransporters", true),
                     action = delegate
                     {
@@ -64,7 +62,7 @@ namespace RimWorldAccess
 
                 if (!hasGroupablePods)
                 {
-                    groupAllGizmo.Disable("No other transport pods with connected launchers to group with.");
+                    groupAllGizmo.Disable((string)"RimWorldAccess.TransportPods.Gizmo.NoGroupable".Translate());
                 }
 
                 yield return groupAllGizmo;
@@ -72,8 +70,8 @@ namespace RimWorldAccess
                 // Add "Select pods to group" gizmo for manual selection (disabled if no pods to group with)
                 var selectPodsGizmo = new Command_Action
                 {
-                    defaultLabel = "Select pods to group",
-                    defaultDesc = "Enter pod selection mode to choose which transport pods to group together for loading.",
+                    defaultLabel = (string)"RimWorldAccess.TransportPods.Gizmo.SelectPodsLabel".Translate(),
+                    defaultDesc = (string)"RimWorldAccess.TransportPods.Gizmo.SelectPodsDesc".Translate(),
                     icon = ContentFinder<Texture2D>.Get("UI/Commands/LoadTransporter", true),
                     action = delegate
                     {
@@ -83,7 +81,7 @@ namespace RimWorldAccess
 
                 if (!hasGroupablePods)
                 {
-                    selectPodsGizmo.Disable("No other transport pods with connected launchers to group with.");
+                    selectPodsGizmo.Disable((string)"RimWorldAccess.TransportPods.Gizmo.NoGroupable".Translate());
                 }
 
                 yield return selectPodsGizmo;
@@ -125,7 +123,7 @@ namespace RimWorldAccess
 
             if (loadCommand == null)
             {
-                TolkHelper.Speak("Could not find load command", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Gizmo.LoadCommandMissing".Translate(), SpeechPriority.High);
                 Find.Selector.ClearSelection();
                 return;
             }
@@ -146,7 +144,7 @@ namespace RimWorldAccess
                 }
             }
 
-            TolkHelper.Speak($"Grouping {totalSelected} pods for loading");
+            TolkHelper.Speak("RimWorldAccess.TransportPods.Gizmo.GroupingForLoading".Translate(totalSelected));
 
             // Open the loading dialog
             loadCommand.ProcessInput(null);
@@ -191,7 +189,7 @@ namespace RimWorldAccess
                 // (game announces successful loading initiation)
                 if (!wasAccepted)
                 {
-                    TolkHelper.Speak("Transport pod loading cancelled", SpeechPriority.Normal);
+                    TolkHelper.Speak("RimWorldAccess.TransportPods.Loading.Cancelled".Translate(), SpeechPriority.Normal);
                 }
             }
         }
@@ -290,7 +288,7 @@ namespace RimWorldAccess
                 // Draw text
                 Text.Font = GameFont.Tiny;
                 Text.Anchor = TextAnchor.MiddleCenter;
-                Widgets.Label(indicatorRect, "Keyboard Mode Active");
+                Widgets.Label(indicatorRect, (string)"RimWorldAccess.TransportPods.Overlay.KeyboardModeActive".Translate());
 
                 // Reset text settings
                 Text.Anchor = TextAnchor.UpperLeft;
@@ -305,8 +303,8 @@ namespace RimWorldAccess
                 Text.Font = GameFont.Tiny;
                 Text.Anchor = TextAnchor.UpperLeft;
 
-                string instructions = "Left/Right: Tabs | Up/Down: Items | Enter/Space: Quantity\n" +
-                                    "Tab: Mass Summary | Alt+I: Inspect | Alt+A: Accept | Esc: Cancel";
+                string instructions = (string)"RimWorldAccess.TransportPods.Overlay.InstructionsLine1".Translate() + "\n" +
+                                    (string)"RimWorldAccess.TransportPods.Overlay.InstructionsLine2".Translate();
 
                 Widgets.Label(instructionsRect, instructions);
 
@@ -383,7 +381,7 @@ namespace RimWorldAccess
                 // Only announce for drop pod landing targeting
                 if (mouseAttachment == CompLaunchable.TargeterMouseAttachment)
                 {
-                    TolkHelper.Speak("Select landing spot. Use arrow keys to navigate, Space to confirm.", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.TransportPods.Landing.SelectLandingSpot".Translate(), SpeechPriority.High);
                 }
             }
         }

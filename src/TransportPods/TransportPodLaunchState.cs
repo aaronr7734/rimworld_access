@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
@@ -82,7 +81,7 @@ namespace RimWorldAccess
 
             BuildReachableTileCache();
 
-            TolkHelper.Speak($"Launch targeting. {cachedFuelLevel:F0} chemfuel available, max range {cachedMaxRange:F0} tiles. Use scanner to browse destinations.");
+            TolkHelper.Speak("RimWorldAccess.TransportPods.Launch.OpenWithFuel".Translate(cachedFuelLevel.ToString("F0"), cachedMaxRange.ToString("F0")));
         }
 
         /// <summary>
@@ -100,9 +99,9 @@ namespace RimWorldAccess
             BuildReachableTileCache();
 
             if (maxLaunchDistance > 0)
-                TolkHelper.Speak($"Launch targeting. Max range {maxLaunchDistance} tiles. Use scanner to browse destinations.");
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Launch.OpenWithRange".Translate(maxLaunchDistance));
             else
-                TolkHelper.Speak("Launch targeting. Unlimited range. Use scanner to browse destinations.");
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Launch.OpenUnlimited".Translate());
         }
 
         /// <summary>
@@ -247,7 +246,7 @@ namespace RimWorldAccess
             // For shuttles (no CompLaunchable), use approximate distance for quick check
             // Note: accurate range checking uses CanReachTile with traversal distance
             if (cachedMaxRange > 0 && distanceInTiles > cachedMaxRange)
-                return "OUT OF RANGE";
+                return (string)"RimWorldAccess.TransportPods.Fuel.OutOfRange".Translate();
 
             return "";
         }
@@ -270,13 +269,13 @@ namespace RimWorldAccess
             {
                 float fuelNeeded = currentLaunchable.FuelNeededToLaunchAtDist(traversalDist, destination.Layer);
                 if (fuelNeeded > cachedFuelLevel)
-                    return $"NOT ENOUGH FUEL, need {fuelNeeded:F0}, have {cachedFuelLevel:F0}";
-                return $"{fuelNeeded:F0} chemfuel";
+                    return (string)"RimWorldAccess.TransportPods.Fuel.NotEnough".Translate(fuelNeeded.ToString("F0"), cachedFuelLevel.ToString("F0"));
+                return (string)"RimWorldAccess.TransportPods.Fuel.CostChemfuel".Translate(fuelNeeded.ToString("F0"));
             }
 
             // For shuttles (no CompLaunchable), check traversal distance vs max range
             if (cachedMaxRange > 0 && traversalDist > (int)cachedMaxRange)
-                return "OUT OF RANGE";
+                return (string)"RimWorldAccess.TransportPods.Fuel.OutOfRange".Translate();
 
             return "";
         }
@@ -363,7 +362,7 @@ namespace RimWorldAccess
 
             if (Find.WorldTargeter == null || !Find.WorldTargeter.IsTargeting)
             {
-                TolkHelper.Speak("World targeter not active", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Launch.WorldTargeterNotActive".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -376,7 +375,7 @@ namespace RimWorldAccess
                 var actionField = typeof(WorldTargeter).GetField("action", BindingFlags.NonPublic | BindingFlags.Instance);
                 if (actionField == null)
                 {
-                    TolkHelper.Speak("Cannot access world targeter action", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.TransportPods.Launch.CannotAccessAction".Translate(), SpeechPriority.High);
                     isConfirmingDestination = false;
                     return;
                 }
@@ -384,7 +383,7 @@ namespace RimWorldAccess
                 var action = actionField.GetValue(Find.WorldTargeter) as Func<GlobalTargetInfo, bool>;
                 if (action == null)
                 {
-                    TolkHelper.Speak("No targeting action available", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.TransportPods.Launch.NoActionAvailable".Translate(), SpeechPriority.High);
                     isConfirmingDestination = false;
                     return;
                 }
@@ -427,7 +426,7 @@ namespace RimWorldAccess
                         // No dialog — action completed immediately (e.g., form caravan on empty tile)
                         Find.WorldTargeter.StopTargeting();
                         isConfirmingDestination = false;
-                        TolkHelper.Speak("Target selected", SpeechPriority.Normal);
+                        TolkHelper.Speak("RimWorldAccess.TransportPods.Launch.TargetSelected".Translate(), SpeechPriority.Normal);
                     }
                 }
                 else
@@ -437,15 +436,15 @@ namespace RimWorldAccess
                     int traversalDist = GetTraversalDistance(selectedTile);
                     string fuelInfo = GetFuelCostAnnouncementForTile(selectedTile);
                     if (!string.IsNullOrEmpty(fuelInfo))
-                        TolkHelper.Speak($"Destination: {traversalDist} tiles, {fuelInfo}");
+                        TolkHelper.Speak("RimWorldAccess.TransportPods.Launch.DestinationWithFuel".Translate(traversalDist, fuelInfo));
                     else
-                        TolkHelper.Speak($"Destination: {traversalDist} tiles");
+                        TolkHelper.Speak("RimWorldAccess.TransportPods.Launch.DestinationBare".Translate(traversalDist));
                 }
             }
             catch (Exception ex)
             {
                 Log.Warning($"RimWorld Access: Error confirming destination: {ex}");
-                TolkHelper.Speak("Error selecting destination", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Launch.ErrorSelecting".Translate(), SpeechPriority.High);
                 isConfirmingDestination = false;
             }
         }
@@ -471,7 +470,7 @@ namespace RimWorldAccess
 
             // Close our state
             Close();
-            TolkHelper.Speak("Launch targeting cancelled", SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.TransportPods.Launch.Cancelled".Translate(), SpeechPriority.Normal);
 
             // Return to map view
             if (returnTarget != null)
@@ -490,11 +489,11 @@ namespace RimWorldAccess
         private static void AnnounceFuelStatus()
         {
             if (currentLaunchable != null)
-                TolkHelper.Speak($"Fuel: {cachedFuelLevel:F0} chemfuel. Max range: {cachedMaxRange:F0} tiles.", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Launch.FuelStatusPod".Translate(cachedFuelLevel.ToString("F0"), cachedMaxRange.ToString("F0")), SpeechPriority.Normal);
             else if (cachedMaxRange > 0)
-                TolkHelper.Speak($"Max range: {cachedMaxRange:F0} tiles.", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Launch.FuelStatusRange".Translate(cachedMaxRange.ToString("F0")), SpeechPriority.Normal);
             else
-                TolkHelper.Speak("Unlimited range.", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Launch.FuelStatusUnlimited".Translate(), SpeechPriority.Normal);
         }
 
         /// <summary>

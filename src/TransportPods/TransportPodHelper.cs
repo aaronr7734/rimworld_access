@@ -252,13 +252,13 @@ namespace RimWorldAccess
             var parts = new List<string>();
 
             // Pod identification
-            string podName = transporter.parent.LabelShort ?? "Transport pod";
+            string podName = transporter.parent.LabelShort ?? ((string)"RimWorldAccess.TransportPods.Pod.TypeTransportPod".Translate());
             parts.Add(podName);
 
             // Selection status
             if (isSelected)
             {
-                parts.Add("SELECTED");
+                parts.Add((string)"RimWorldAccess.TransportPods.Pod.Selected".Translate());
             }
 
             // Fuel connection status
@@ -266,20 +266,20 @@ namespace RimWorldAccess
             {
                 var launchable = GetLaunchable(transporter);
                 float fuel = GetFuelLevel(launchable);
-                parts.Add($"fuel {fuel:F0}");
+                parts.Add((string)"RimWorldAccess.TransportPods.Pod.FuelLevel".Translate(fuel.ToString("F0")));
             }
             else
             {
-                parts.Add("not connected to fuel");
+                parts.Add((string)"RimWorldAccess.TransportPods.Pod.NotConnectedToFuel".Translate());
             }
 
             // Mass capacity
-            parts.Add($"capacity {transporter.Props.massCapacity:F0} kg");
+            parts.Add((string)"RimWorldAccess.TransportPods.Pod.Capacity".Translate(transporter.Props.massCapacity.ToString("F0")));
 
             // Position in list
             if (total > 1)
             {
-                parts.Add($"{index + 1} of {total}");
+                parts.Add((string)"RimWorldAccess.TransportPods.Pod.PositionInList".Translate(index + 1, total));
             }
 
             return string.Join(", ", parts);
@@ -291,24 +291,24 @@ namespace RimWorldAccess
         public static string BuildFuelCostAnnouncement(CompLaunchable launchable, float distanceInTiles)
         {
             if (launchable == null)
-                return "no launcher";
+                return (string)"RimWorldAccess.TransportPods.Fuel.NoLauncher".Translate();
 
             float fuelCost = CalculateFuelCost(launchable, distanceInTiles);
 
             // Check for invalid fuel cost (happens if Props is null or calculation fails)
             if (fuelCost >= float.MaxValue || fuelCost < 0)
             {
-                return "fuel cost unavailable";
+                return (string)"RimWorldAccess.TransportPods.Fuel.CostUnavailable".Translate();
             }
 
             float availableFuel = GetFuelLevel(launchable);
 
             if (fuelCost > availableFuel)
             {
-                return $"NOT ENOUGH FUEL, need {fuelCost:F0}, have {availableFuel:F0}";
+                return (string)"RimWorldAccess.TransportPods.Fuel.NotEnough".Translate(fuelCost.ToString("F0"), availableFuel.ToString("F0"));
             }
 
-            return $"{fuelCost:F0} chemfuel";
+            return (string)"RimWorldAccess.TransportPods.Fuel.CostChemfuel".Translate(fuelCost.ToString("F0"));
         }
 
         /// <summary>
@@ -327,7 +327,10 @@ namespace RimWorldAccess
         /// </summary>
         public static string GetPodTypeLabel(CompTransporter transporter)
         {
-            return IsShuttle(transporter) ? "Shuttle" : "Transport pod";
+            string key = IsShuttle(transporter)
+                ? "RimWorldAccess.TransportPods.Pod.TypeShuttle"
+                : "RimWorldAccess.TransportPods.Pod.TypeTransportPod";
+            return (string)key.Translate();
         }
     }
 }

@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-using System.Linq;
 using RimWorld;
-using RimWorld.Planet;
 using UnityEngine;
 using Verse;
 
@@ -45,7 +43,7 @@ namespace RimWorldAccess
 
             if (sourceTransporter == null)
             {
-                TolkHelper.Speak("No pod selected", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.NoPodSelected".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -75,7 +73,7 @@ namespace RimWorldAccess
             IsActive = true;
 
             int totalGroupable = groupablePods.Count;
-            TolkHelper.Speak($"Pod selection mode. {totalGroupable} pods can be grouped. Arrow to pods, Space to select, Enter to load.", SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.EnterMode".Translate(totalGroupable), SpeechPriority.High);
         }
 
         /// <summary>
@@ -100,7 +98,7 @@ namespace RimWorldAccess
                 }
             }
 
-            TolkHelper.Speak("Could not find load command", SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.TransportPods.Gizmo.LoadCommandMissing".Translate(), SpeechPriority.High);
             Find.Selector.ClearSelection();
         }
 
@@ -117,7 +115,7 @@ namespace RimWorldAccess
             // Clear the game's selection
             Find.Selector.ClearSelection();
 
-            TolkHelper.Speak("Pod selection cancelled", SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.Cancelled".Translate(), SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -172,7 +170,7 @@ namespace RimWorldAccess
 
             if (!cursorPos.InBounds(currentMap))
             {
-                TolkHelper.Speak("Invalid position", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Input.Cursor.InvalidPosition".Translate(), SpeechPriority.Normal);
                 return;
             }
 
@@ -181,7 +179,7 @@ namespace RimWorldAccess
 
             if (pods.Count == 0)
             {
-                TolkHelper.Speak("No transport pod here", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.NoPodHere".Translate(), SpeechPriority.Normal);
                 return;
             }
 
@@ -196,27 +194,27 @@ namespace RimWorldAccess
             {
                 Find.Selector.Deselect(podThing);
                 int selectedCount = GetSelectedPodCount();
-                TolkHelper.Speak($"Pod deselected. {selectedCount} selected", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.PodDeselected".Translate(selectedCount), SpeechPriority.Normal);
             }
             else
             {
                 // Check if pod is in the groupable set (connected via adjacent launchers)
                 if (groupablePods == null || !groupablePods.Contains(pod))
                 {
-                    TolkHelper.Speak("This pod's launcher is not adjacent to the group.", SpeechPriority.Normal);
+                    TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.NotAdjacent".Translate(), SpeechPriority.Normal);
                     return;
                 }
 
                 // Check if pod is available (not already loading)
                 if (pod.LoadingInProgressOrReadyToLaunch)
                 {
-                    TolkHelper.Speak("Pod is already loading or ready to launch", SpeechPriority.Normal);
+                    TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.AlreadyLoading".Translate(), SpeechPriority.Normal);
                     return;
                 }
 
                 Find.Selector.Select(podThing);
                 int selectedCount = GetSelectedPodCount();
-                TolkHelper.Speak($"Pod selected. {selectedCount} selected", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.PodSelected".Translate(selectedCount), SpeechPriority.Normal);
             }
         }
 
@@ -243,7 +241,7 @@ namespace RimWorldAccess
 
             if (selectedCount == 0)
             {
-                TolkHelper.Speak("No pods selected. Arrow to pods and press Space to select.", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.NoPodsSelected".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -264,7 +262,7 @@ namespace RimWorldAccess
 
             if (firstTransporter == null)
             {
-                TolkHelper.Speak("Selected pods are no longer available", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.PodsUnavailable".Translate(), SpeechPriority.High);
                 Close();
                 return;
             }
@@ -285,7 +283,7 @@ namespace RimWorldAccess
 
             if (loadCommand == null)
             {
-                TolkHelper.Speak("Could not find load command. Pod may already be loading.", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.LoadCommandMissingMayBeLoading".Translate(), SpeechPriority.High);
                 Find.Selector.ClearSelection();
                 return;
             }
