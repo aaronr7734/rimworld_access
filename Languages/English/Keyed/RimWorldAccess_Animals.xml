@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Animals module strings (src/Animals/). Five state/helper files contribute:
+      - AnimalsMenuState.cs / AnimalsMenuHelper.cs  (colony animals tab)
+      - WildlifeMenuState.cs / WildlifeMenuHelper.cs  (wild animals tab)
+      - AutoSlaughterState.cs  (Dialog_AutoSlaughter overlay)
+
+    Both menus use TabularMenuHelper<Pawn>, so many of their phrasings
+    (cell announcements, sort feedback, paint feedback) are parallel and
+    share placeholder patterns. Each state class keeps its own lifecycle
+    announcements (OpeningTitle / MenuClosed) so translators can vary
+    word order between the colony and wildlife variants.
+
+    Placeholders follow string.Format ({0}, {1}, ...). Data such as animal
+    names, area labels, colonist names, trainable LabelCaps, and column
+    header text comes from the game and is NOT translated in this file.
+
+    Shared phrases delegated to RimWorldAccess_Common.xml:
+      - Already-at-edge / position / cannot-paint keys
+      - Info card unavailable
+      - Typeahead search scaffolding
+    This file only contains phrases that are unique to the animals and
+    wildlife tabs and to the auto-slaughter dialog.
+  -->
+
+  <!-- Shared fallback values used by both AnimalsMenuHelper and
+       WildlifeMenuHelper for cells that cannot be resolved (e.g. a pawn
+       with no map, a missing LifeStage). "Normal" is used for the
+       MentalState column when the pawn is not in a mental state (vanilla
+       shows an empty cell; we speak "Normal" for clarity). -->
+  <RimWorldAccess.Animals.Value.Unknown>Unknown</RimWorldAccess.Animals.Value.Unknown>
+  <RimWorldAccess.Animals.Value.NotApplicable>N/A</RimWorldAccess.Animals.Value.NotApplicable>
+  <RimWorldAccess.Animals.Value.Normal>Normal</RimWorldAccess.Animals.Value.Normal>
+
+  <!-- Paint value labels. AnimalsMenuHelper.GetPaintValueLabel and
+       WildlifeMenuHelper.GetPaintValueLabel return these for checkbox
+       column paint announcements. -->
+  <RimWorldAccess.Animals.Paint.Checked>checked</RimWorldAccess.Animals.Paint.Checked>
+  <RimWorldAccess.Animals.Paint.Unchecked>unchecked</RimWorldAccess.Animals.Paint.Unchecked>
+
+  <!-- =================================================================
+       AnimalsMenuHelper column headers (colony animals tab).
+       "Name" and "Age" are hard-coded English labels that don't have
+       matching vanilla translation keys; Gender/LifeStage/Pregnant etc.
+       DO have vanilla keys and are resolved via .Translate() in C#.
+       ================================================================= -->
+  <RimWorldAccess.Animals.Column.Name>Name</RimWorldAccess.Animals.Column.Name>
+  <RimWorldAccess.Animals.Column.Age>Age</RimWorldAccess.Animals.Column.Age>
+
+  <!-- =================================================================
+       Training status (AnimalsMenuHelper.GetTrainingStatus and
+       GetSpecialTrainableStatus). Both methods share this vocabulary.
+       {0} = current steps, {1} = total steps for the trainable.
+       ================================================================= -->
+  <RimWorldAccess.Animals.Training.CannotTrain>Cannot train</RimWorldAccess.Animals.Training.CannotTrain>
+  <RimWorldAccess.Animals.Training.Maintaining>Maintaining ({0}/{1})</RimWorldAccess.Animals.Training.Maintaining>
+  <RimWorldAccess.Animals.Training.NotMaintaining>Not maintaining ({0}/{1})</RimWorldAccess.Animals.Training.NotMaintaining>
+  <RimWorldAccess.Animals.Training.InProgress>Training ({0}/{1})</RimWorldAccess.Animals.Training.InProgress>
+  <RimWorldAccess.Animals.Training.WaitingToTrain>Waiting to train</RimWorldAccess.Animals.Training.WaitingToTrain>
+  <RimWorldAccess.Animals.Training.WillNotTrain>Will not train</RimWorldAccess.Animals.Training.WillNotTrain>
+  <RimWorldAccess.Animals.Training.NoSpecialAbility>None available</RimWorldAccess.Animals.Training.NoSpecialAbility>
+
+  <!-- =================================================================
+       AnimalsMenuState lifecycle and navigation announcements.
+       ================================================================= -->
+  <RimWorldAccess.Animals.Menu.NoColonyAnimals>No colony animals found</RimWorldAccess.Animals.Menu.NoColonyAnimals>
+  <RimWorldAccess.Animals.Menu.OpeningTitle>Animals menu, {0} animals</RimWorldAccess.Animals.Menu.OpeningTitle>
+  <RimWorldAccess.Animals.Menu.Closed>Animals menu closed</RimWorldAccess.Animals.Menu.Closed>
+  <RimWorldAccess.Animals.Menu.ClosedWithSummary>Animals menu closed. {0}</RimWorldAccess.Animals.Menu.ClosedWithSummary>
+  <RimWorldAccess.Animals.Menu.ReturnTitle>Animals menu</RimWorldAccess.Animals.Menu.ReturnTitle>
+  <RimWorldAccess.Animals.Menu.NoAnimals>No animals</RimWorldAccess.Animals.Menu.NoAnimals>
+  <RimWorldAccess.Animals.Menu.NotOnMap>Animal not on map</RimWorldAccess.Animals.Menu.NotOnMap>
+
+  <!-- Cell-interaction feedback for training, follow, dig/forage, etc.
+       {0} = animal name (pawn.LabelShort), {1} = trainable LabelCap
+       (MissingTraining uses "Dig" or "Forage" by def). -->
+  <RimWorldAccess.Animals.Cell.CannotTrainInSkill>{0} cannot be trained in {1}</RimWorldAccess.Animals.Cell.CannotTrainInSkill>
+  <RimWorldAccess.Animals.Cell.RequiresTraining>{0} requires {1} training</RimWorldAccess.Animals.Cell.RequiresTraining>
+  <RimWorldAccess.Animals.Cell.HasNotLearned>{0} has not learned {1}</RimWorldAccess.Animals.Cell.HasNotLearned>
+  <RimWorldAccess.Animals.Cell.NoSpecialAbilities>{0} has no special abilities</RimWorldAccess.Animals.Cell.NoSpecialAbilities>
+  <RimWorldAccess.Animals.Cell.AlreadySterilized>{0} is already sterilized</RimWorldAccess.Animals.Cell.AlreadySterilized>
+  <RimWorldAccess.Animals.Cell.BondedSlaughterWarning>{0} is bonded. Marking for slaughter anyway.</RimWorldAccess.Animals.Cell.BondedSlaughterWarning>
+  <RimWorldAccess.Animals.Cell.FactionSterilizeWarning>Warning: {0} belongs to {1}. Scheduling sterilization anyway.</RimWorldAccess.Animals.Cell.FactionSterilizeWarning>
+  <RimWorldAccess.Animals.Cell.RequiresTrainingForMaster>{0} requires {1} training to have a master</RimWorldAccess.Animals.Cell.RequiresTrainingForMaster>
+
+  <!-- =================================================================
+       Submenu (Master / AllowedArea / MedicalCare).
+       "Manage Areas" is the sentinel row inserted at the top of the
+       AllowedArea submenu. {0} = option label, {1} = position suffix. -->
+  <RimWorldAccess.Animals.Submenu.ManageAreas>Manage Areas</RimWorldAccess.Animals.Submenu.ManageAreas>
+  <RimWorldAccess.Animals.Submenu.Option>{0}. {1}</RimWorldAccess.Animals.Submenu.Option>
+  <RimWorldAccess.Animals.Submenu.OptionAnnounce>{0} ({1})</RimWorldAccess.Animals.Submenu.OptionAnnounce>
+
+  <!-- =================================================================
+       Sort feedback (shared vocabulary used by Animals and Wildlife).
+       {0} = column name, {1} = "ascending"/"descending" from the
+       TabularMenuHelper result. -->
+  <RimWorldAccess.Animals.Sort.CannotSort>{0} cannot be sorted</RimWorldAccess.Animals.Sort.CannotSort>
+  <RimWorldAccess.Animals.Sort.Cleared>Sort cleared, default order</RimWorldAccess.Animals.Sort.Cleared>
+  <RimWorldAccess.Animals.Sort.SortedBy>Sorted by {0} ({1})</RimWorldAccess.Animals.Sort.SortedBy>
+  <RimWorldAccess.Animals.Sort.NowAt>Now at {0}</RimWorldAccess.Animals.Sort.NowAt>
+
+  <!-- =================================================================
+       Single-step paint announcements (Shift+Down / Shift+Up).
+       {0} = target animal name, {1} = column-specific value (area,
+       master, care, or checked/unchecked), {2} = position suffix.
+       AllowedArea, Master, and MedicalCare get their own phrase sets so
+       word order can vary; other checkbox/training columns share the
+       generic "{col} {value}" phrasing. -->
+  <RimWorldAccess.Animals.Paint.Single.AreaAlreadySet>{0}: already set to {1}. {2}</RimWorldAccess.Animals.Paint.Single.AreaAlreadySet>
+  <RimWorldAccess.Animals.Paint.Single.AreaApplied>{0}: {1} applied. {2}</RimWorldAccess.Animals.Paint.Single.AreaApplied>
+  <RimWorldAccess.Animals.Paint.Single.RequiresObedience>{0}: requires {1}. {2}</RimWorldAccess.Animals.Paint.Single.RequiresObedience>
+  <RimWorldAccess.Animals.Paint.Single.MasterAlready>{0}: Master already {1}. {2}</RimWorldAccess.Animals.Paint.Single.MasterAlready>
+  <RimWorldAccess.Animals.Paint.Single.MasterApplied>{0}: Master {1} applied. {2}</RimWorldAccess.Animals.Paint.Single.MasterApplied>
+  <RimWorldAccess.Animals.Paint.Single.CannotSetMedicalCare>{0}: cannot set medical care. {1}</RimWorldAccess.Animals.Paint.Single.CannotSetMedicalCare>
+  <RimWorldAccess.Animals.Paint.Single.MedicalCareAlready>{0}: Medical care already {1}. {2}</RimWorldAccess.Animals.Paint.Single.MedicalCareAlready>
+  <RimWorldAccess.Animals.Paint.Single.MedicalCareApplied>{0}: Medical care {1} applied. {2}</RimWorldAccess.Animals.Paint.Single.MedicalCareApplied>
+  <!-- Generic checkbox / training paint: {0} = name, {1} = column name,
+       {2} = value label (checked/unchecked), {3} = position. -->
+  <RimWorldAccess.Animals.Paint.Single.CellAlready>{0}: {1} already {2}. {3}</RimWorldAccess.Animals.Paint.Single.CellAlready>
+  <RimWorldAccess.Animals.Paint.Single.CellApplied>{0}: {1} {2}. {3}</RimWorldAccess.Animals.Paint.Single.CellApplied>
+
+  <!-- Bulk paint summaries (Shift+Home / Shift+End / Ctrl+Shift+...).
+       {0} = value/label, {1} = FormatNameList of changed animals.
+       *AlreadyAll keys are spoken when no animal needed updating. -->
+  <RimWorldAccess.Animals.Paint.Bulk.AreaApplied>Painted allowed area to {0} for {1}</RimWorldAccess.Animals.Paint.Bulk.AreaApplied>
+  <RimWorldAccess.Animals.Paint.Bulk.AreaAlreadyAll>Allowed area already {0} for all animals</RimWorldAccess.Animals.Paint.Bulk.AreaAlreadyAll>
+  <RimWorldAccess.Animals.Paint.Bulk.MasterApplied>Painted Master to {0} for {1}</RimWorldAccess.Animals.Paint.Bulk.MasterApplied>
+  <RimWorldAccess.Animals.Paint.Bulk.MasterAlreadyAll>Master already {0} for all animals</RimWorldAccess.Animals.Paint.Bulk.MasterAlreadyAll>
+  <RimWorldAccess.Animals.Paint.Bulk.MedicalCareApplied>Painted Medical care to {0} for {1}</RimWorldAccess.Animals.Paint.Bulk.MedicalCareApplied>
+  <RimWorldAccess.Animals.Paint.Bulk.MedicalCareAlreadyAll>Medical care already {0} for all animals</RimWorldAccess.Animals.Paint.Bulk.MedicalCareAlreadyAll>
+  <!-- Generic checkbox/training bulk: {0} = column name, {1} = value,
+       {2} = name list. AlreadyAll: {0} = column name, {1} = value. -->
+  <RimWorldAccess.Animals.Paint.Bulk.CellApplied>Painted {0} {1} for {2}</RimWorldAccess.Animals.Paint.Bulk.CellApplied>
+  <RimWorldAccess.Animals.Paint.Bulk.CellAlreadyAll>{0} already {1} for all animals</RimWorldAccess.Animals.Paint.Bulk.CellAlreadyAll>
+
+  <!-- =================================================================
+       WildlifeMenuHelper column headers. Only "Name" and "Predator"
+       are hard-coded here; the rest come from vanilla translation keys
+       resolved in C# (DesignatorHunt, IsPredator, etc.). -->
+  <RimWorldAccess.Animals.Wildlife.Column.Name>Name</RimWorldAccess.Animals.Wildlife.Column.Name>
+  <RimWorldAccess.Animals.Wildlife.Column.Predator>Predator</RimWorldAccess.Animals.Wildlife.Column.Predator>
+
+  <!-- =================================================================
+       WildlifeMenuState lifecycle and cell-interaction announcements. -->
+  <RimWorldAccess.Animals.Wildlife.Menu.NoWildlife>No wildlife found on map</RimWorldAccess.Animals.Wildlife.Menu.NoWildlife>
+  <RimWorldAccess.Animals.Wildlife.Menu.OpeningTitle>Wildlife menu, {0} animals</RimWorldAccess.Animals.Wildlife.Menu.OpeningTitle>
+  <RimWorldAccess.Animals.Wildlife.Menu.Closed>Wildlife menu closed</RimWorldAccess.Animals.Wildlife.Menu.Closed>
+  <RimWorldAccess.Animals.Wildlife.Menu.None>No wildlife</RimWorldAccess.Animals.Wildlife.Menu.None>
+  <RimWorldAccess.Animals.Wildlife.Menu.NotOnMap>Animal not on map</RimWorldAccess.Animals.Wildlife.Menu.NotOnMap>
+  <RimWorldAccess.Animals.Wildlife.Menu.CannotTame>Cannot tame this animal</RimWorldAccess.Animals.Wildlife.Menu.CannotTame>
+
+  <!-- Bulk paint phrasing for wildlife (only Hunt/Tame are paintable).
+       The "for all wildlife" variant mirrors the animals' "for all
+       animals" phrasing so translators can keep them in sync. -->
+  <RimWorldAccess.Animals.Wildlife.Paint.Bulk.CellAlreadyAll>{0} already {1} for all wildlife</RimWorldAccess.Animals.Wildlife.Paint.Bulk.CellAlreadyAll>
+
+  <!-- =================================================================
+       AutoSlaughterState (Dialog_AutoSlaughter overlay).
+       Column names here are the plain English labels we speak for the
+       seven columns of the limit grid; translators can reword each
+       independently since they compose into the cell announcement. -->
+  <RimWorldAccess.Animals.AutoSlaughter.Column.MaxTotal>Maximum allowed population</RimWorldAccess.Animals.AutoSlaughter.Column.MaxTotal>
+  <RimWorldAccess.Animals.AutoSlaughter.Column.MaxMales>Maximum allowed males</RimWorldAccess.Animals.AutoSlaughter.Column.MaxMales>
+  <RimWorldAccess.Animals.AutoSlaughter.Column.MaxMalesYoung>Maximum allowed young males</RimWorldAccess.Animals.AutoSlaughter.Column.MaxMalesYoung>
+  <RimWorldAccess.Animals.AutoSlaughter.Column.MaxFemales>Maximum allowed females</RimWorldAccess.Animals.AutoSlaughter.Column.MaxFemales>
+  <RimWorldAccess.Animals.AutoSlaughter.Column.MaxFemalesYoung>Maximum allowed young females</RimWorldAccess.Animals.AutoSlaughter.Column.MaxFemalesYoung>
+  <RimWorldAccess.Animals.AutoSlaughter.Column.AllowPregnant>Allow pregnant slaughter</RimWorldAccess.Animals.AutoSlaughter.Column.AllowPregnant>
+  <RimWorldAccess.Animals.AutoSlaughter.Column.AllowBonded>Allow bonded slaughter</RimWorldAccess.Animals.AutoSlaughter.Column.AllowBonded>
+
+  <!-- Lifecycle. -->
+  <RimWorldAccess.Animals.AutoSlaughter.Menu.NoAnimals>No animals available for auto-slaughter settings</RimWorldAccess.Animals.AutoSlaughter.Menu.NoAnimals>
+  <RimWorldAccess.Animals.AutoSlaughter.Menu.OpeningTitle>Auto-slaughter settings, {0} animal types</RimWorldAccess.Animals.AutoSlaughter.Menu.OpeningTitle>
+  <RimWorldAccess.Animals.AutoSlaughter.Menu.Closed>Auto-slaughter closed</RimWorldAccess.Animals.AutoSlaughter.Menu.Closed>
+  <RimWorldAccess.Animals.AutoSlaughter.Menu.ClosedWithSummary>Auto-slaughter closed. {0}</RimWorldAccess.Animals.AutoSlaughter.Menu.ClosedWithSummary>
+  <RimWorldAccess.Animals.AutoSlaughter.Menu.NoAnimalsShort>No animals</RimWorldAccess.Animals.AutoSlaughter.Menu.NoAnimalsShort>
+
+  <!-- Slaughter summary: {0} = comma-joined "{count} {species}" entries.
+       The entry format itself is a key so non-English languages can
+       choose a different count/noun order. -->
+  <RimWorldAccess.Animals.AutoSlaughter.Summary.MarkedForSlaughter>Marked for slaughter: {0}</RimWorldAccess.Animals.AutoSlaughter.Summary.MarkedForSlaughter>
+  <RimWorldAccess.Animals.AutoSlaughter.Summary.Entry>{0} {1}</RimWorldAccess.Animals.AutoSlaughter.Summary.Entry>
+
+  <!-- Column-value cell strings.
+       {0} = current count (for Unlimited / WithinLimit / OverLimit).
+       Unlimited/WithinLimit: {0} = count, for Unlimited the max is
+         implicit; WithinLimit: {0} = max, {1} = current.
+       OverLimit: {0} = max, {1} = current, {2} = to-slaughter count.
+       Boolean columns phrase the allowed/not-allowed state as a whole
+       sentence so languages can vary phrasing freely. -->
+  <RimWorldAccess.Animals.AutoSlaughter.Value.Unlimited>unlimited. Current population: {0}</RimWorldAccess.Animals.AutoSlaughter.Value.Unlimited>
+  <RimWorldAccess.Animals.AutoSlaughter.Value.WithinLimit>{0}. Current population: {1}</RimWorldAccess.Animals.AutoSlaughter.Value.WithinLimit>
+  <RimWorldAccess.Animals.AutoSlaughter.Value.OverLimit>{0}. Current population: {1}. {2} will be slaughtered</RimWorldAccess.Animals.AutoSlaughter.Value.OverLimit>
+  <RimWorldAccess.Animals.AutoSlaughter.Value.PregnantAllowed>{0} pregnant, slaughter allowed</RimWorldAccess.Animals.AutoSlaughter.Value.PregnantAllowed>
+  <RimWorldAccess.Animals.AutoSlaughter.Value.PregnantNotAllowed>{0} pregnant, slaughter not allowed</RimWorldAccess.Animals.AutoSlaughter.Value.PregnantNotAllowed>
+  <RimWorldAccess.Animals.AutoSlaughter.Value.BondedAllowed>{0} bonded, slaughter allowed</RimWorldAccess.Animals.AutoSlaughter.Value.BondedAllowed>
+  <RimWorldAccess.Animals.AutoSlaughter.Value.BondedNotAllowed>{0} bonded, slaughter not allowed</RimWorldAccess.Animals.AutoSlaughter.Value.BondedNotAllowed>
+
+  <!-- Cell announcement composition.
+       WithName: {0} = animal LabelCap, {1} = column name, {2} = value,
+         {3} = position suffix.
+       WithoutName: {0} = column name, {1} = value. -->
+  <RimWorldAccess.Animals.AutoSlaughter.Cell.WithName>{0}, {1}: {2}. {3}</RimWorldAccess.Animals.AutoSlaughter.Cell.WithName>
+  <RimWorldAccess.Animals.AutoSlaughter.Cell.WithoutName>{0}: {1}</RimWorldAccess.Animals.AutoSlaughter.Cell.WithoutName>
+
+  <!-- Numeric input mode. "minus" is spoken after the user presses the
+       minus key so they hear confirmation of what's in the buffer;
+       "Empty" is spoken after backspacing the last character. -->
+  <RimWorldAccess.Animals.AutoSlaughter.Numeric.Prompt>Type a number, then press Enter to confirm or Escape to cancel</RimWorldAccess.Animals.AutoSlaughter.Numeric.Prompt>
+  <RimWorldAccess.Animals.AutoSlaughter.Numeric.Minus>minus</RimWorldAccess.Animals.AutoSlaughter.Numeric.Minus>
+  <RimWorldAccess.Animals.AutoSlaughter.Numeric.Empty>Empty</RimWorldAccess.Animals.AutoSlaughter.Numeric.Empty>
+  <RimWorldAccess.Animals.AutoSlaughter.Numeric.Invalid>Invalid number. Use minus 1 for unlimited</RimWorldAccess.Animals.AutoSlaughter.Numeric.Invalid>
+  <RimWorldAccess.Animals.AutoSlaughter.Numeric.Cancelled>Cancelled</RimWorldAccess.Animals.AutoSlaughter.Numeric.Cancelled>
+</LanguageData>

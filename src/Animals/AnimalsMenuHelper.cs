@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using Verse;
-using Verse.Sound;
 
 namespace RimWorldAccess
 {
@@ -182,9 +181,9 @@ namespace RimWorldAccess
                 ColumnType type = (ColumnType)columnIndex;
                 switch (type)
                 {
-                    case ColumnType.Name: return "Name";
+                    case ColumnType.Name: return "RimWorldAccess.Animals.Column.Name".Translate().ToString();
                     case ColumnType.Gender: return "Sex".Translate().Resolve();
-                    case ColumnType.Age: return "Age";
+                    case ColumnType.Age: return "RimWorldAccess.Animals.Column.Age".Translate().ToString();
                     case ColumnType.LifeStage: return "LifeStage".Translate().Resolve();
                     case ColumnType.Pregnant: return HediffDefOf.Pregnant.LabelCap.Resolve();
                     default: return type.ToString();
@@ -202,7 +201,7 @@ namespace RimWorldAccess
                 var columnsAfterTraining = GetColumnsAfterTraining();
                 int fixedIndex = columnIndex - fixedColumnsBeforeTraining - GetAllTrainables().Count;
                 if (fixedIndex < 0 || fixedIndex >= columnsAfterTraining.Count)
-                    return "Unknown";
+                    return "RimWorldAccess.Animals.Value.Unknown".Translate().ToString();
 
                 ColumnType type = columnsAfterTraining[fixedIndex];
                 return GetColumnNameForType(type);
@@ -297,12 +296,12 @@ namespace RimWorldAccess
                 var columnsAfterTraining = GetColumnsAfterTraining();
                 int fixedIndex = columnIndex - fixedColumnsBeforeTraining - GetAllTrainables().Count;
                 if (fixedIndex < 0 || fixedIndex >= columnsAfterTraining.Count)
-                    return "Unknown";
+                    return "RimWorldAccess.Animals.Value.Unknown".Translate().ToString();
 
                 ColumnType type = columnsAfterTraining[fixedIndex];
                 return GetColumnValueForType(pawn, type);
             }
-            return "Unknown";
+            return "RimWorldAccess.Animals.Value.Unknown".Translate().ToString();
         }
 
         // Helper to get column value for a ColumnType
@@ -337,7 +336,7 @@ namespace RimWorldAccess
                 case ColumnType.AllowedArea:
                     return GetAllowedArea(pawn);
                 default:
-                    return "Unknown";
+                    return "RimWorldAccess.Animals.Value.Unknown".Translate().ToString();
             }
         }
 
@@ -421,20 +420,20 @@ namespace RimWorldAccess
 
         public static string GetAge(Pawn pawn)
         {
-            if (pawn.ageTracker == null) return "Unknown";
+            if (pawn.ageTracker == null) return "RimWorldAccess.Animals.Value.Unknown".Translate().ToString();
             // Use RimWorld's localized age string
             return pawn.ageTracker.AgeNumberString;
         }
 
         public static string GetLifeStage(Pawn pawn)
         {
-            if (pawn.ageTracker == null) return "Unknown";
+            if (pawn.ageTracker == null) return "RimWorldAccess.Animals.Value.Unknown".Translate().ToString();
             return pawn.ageTracker.CurLifeStage.label.CapitalizeFirst();
         }
 
         public static string GetPregnancyStatus(Pawn pawn)
         {
-            if (pawn.gender != Gender.Female) return "N/A";
+            if (pawn.gender != Gender.Female) return "RimWorldAccess.Animals.Value.NotApplicable".Translate().ToString();
             if (pawn.health?.hediffSet == null) return "None".Translate().Resolve();
 
             Hediff_Pregnant pregnancy = (Hediff_Pregnant)pawn.health.hediffSet.GetFirstHediffOfDef(HediffDefOf.Pregnant);
@@ -450,7 +449,7 @@ namespace RimWorldAccess
 
         public static string GetTrainingStatus(Pawn pawn, TrainableDef trainable)
         {
-            if (pawn.training == null) return "N/A";
+            if (pawn.training == null) return "RimWorldAccess.Animals.Value.NotApplicable".Translate().ToString();
 
             AcceptanceReport canTrain = pawn.training.CanAssignToTrain(trainable);
 
@@ -458,7 +457,7 @@ namespace RimWorldAccess
 
             if (!canTrain.Accepted)
             {
-                statusText = "Cannot train";
+                statusText = "RimWorldAccess.Animals.Training.CannotTrain".Translate().ToString();
                 // Add the reason why they can't train (already localized by RimWorld)
                 if (!string.IsNullOrEmpty(canTrain.Reason))
                 {
@@ -484,11 +483,11 @@ namespace RimWorldAccess
                     // Animal has completed training at some point
                     if (wanted)
                     {
-                        statusText = $"Maintaining ({steps}/{trainable.steps})";
+                        statusText = "RimWorldAccess.Animals.Training.Maintaining".Translate(steps, trainable.steps).ToString();
                     }
                     else
                     {
-                        statusText = $"Not maintaining ({steps}/{trainable.steps})";
+                        statusText = "RimWorldAccess.Animals.Training.NotMaintaining".Translate(steps, trainable.steps).ToString();
                     }
                 }
                 else
@@ -498,16 +497,16 @@ namespace RimWorldAccess
                     {
                         if (steps > 0)
                         {
-                            statusText = $"Training ({steps}/{trainable.steps})";
+                            statusText = "RimWorldAccess.Animals.Training.InProgress".Translate(steps, trainable.steps).ToString();
                         }
                         else
                         {
-                            statusText = "Waiting to train";
+                            statusText = "RimWorldAccess.Animals.Training.WaitingToTrain".Translate().ToString();
                         }
                     }
                     else
                     {
-                        statusText = "Will not train";
+                        statusText = "RimWorldAccess.Animals.Training.WillNotTrain".Translate().ToString();
                     }
 
                     // Add prerequisite information if not learned and has prerequisites
@@ -550,7 +549,7 @@ namespace RimWorldAccess
 
         public static string GetFollowDrafted(Pawn pawn)
         {
-            if (pawn.playerSettings == null) return "N/A";
+            if (pawn.playerSettings == null) return "RimWorldAccess.Animals.Value.NotApplicable".Translate().ToString();
 
             // Check if animal has learned Obedience (Guard)
             if (pawn.training?.HasLearned(TrainableDefOf.Obedience) != true)
@@ -563,7 +562,7 @@ namespace RimWorldAccess
 
         public static string GetFollowFieldwork(Pawn pawn)
         {
-            if (pawn.playerSettings == null) return "N/A";
+            if (pawn.playerSettings == null) return "RimWorldAccess.Animals.Value.NotApplicable".Translate().ToString();
 
             // Check if animal has learned Obedience (Guard)
             if (pawn.training?.HasLearned(TrainableDefOf.Obedience) != true)
@@ -592,11 +591,11 @@ namespace RimWorldAccess
         /// </summary>
         public static string GetSpecialTrainableStatus(Pawn pawn)
         {
-            if (!IsOdysseyActive) return "None available";
+            if (!IsOdysseyActive) return "RimWorldAccess.Animals.Training.NoSpecialAbility".Translate().ToString();
 
             var specialTrainables = GetSpecialTrainables(pawn);
-            if (specialTrainables.Count == 0) return "None available";
-            if (pawn.training == null) return "None available";
+            if (specialTrainables.Count == 0) return "RimWorldAccess.Animals.Training.NoSpecialAbility".Translate().ToString();
+            if (pawn.training == null) return "RimWorldAccess.Animals.Training.NoSpecialAbility".Translate().ToString();
 
             // Animals have exactly one special trainable
             var trainable = specialTrainables[0];
@@ -620,11 +619,11 @@ namespace RimWorldAccess
                 // Animal has completed training at some point
                 if (wanted)
                 {
-                    status = $"Maintaining ({steps}/{trainable.steps})";
+                    status = "RimWorldAccess.Animals.Training.Maintaining".Translate(steps, trainable.steps).ToString();
                 }
                 else
                 {
-                    status = $"Not maintaining ({steps}/{trainable.steps})";
+                    status = "RimWorldAccess.Animals.Training.NotMaintaining".Translate(steps, trainable.steps).ToString();
                 }
             }
             else
@@ -634,16 +633,16 @@ namespace RimWorldAccess
                 {
                     if (steps > 0)
                     {
-                        status = $"Training ({steps}/{trainable.steps})";
+                        status = "RimWorldAccess.Animals.Training.InProgress".Translate(steps, trainable.steps).ToString();
                     }
                     else
                     {
-                        status = "Waiting to train";
+                        status = "RimWorldAccess.Animals.Training.WaitingToTrain".Translate().ToString();
                     }
                 }
                 else
                 {
-                    status = "Will not train";
+                    status = "RimWorldAccess.Animals.Training.WillNotTrain".Translate().ToString();
                 }
             }
 
@@ -663,8 +662,8 @@ namespace RimWorldAccess
 
         public static string GetAnimalDigStatus(Pawn pawn)
         {
-            if (!IsOdysseyActive) return "N/A";
-            if (pawn.training?.HasLearned(TrainableDefOf.Dig) != true) return "N/A";
+            if (!IsOdysseyActive) return "RimWorldAccess.Animals.Value.NotApplicable".Translate().ToString();
+            if (pawn.training?.HasLearned(TrainableDefOf.Dig) != true) return "RimWorldAccess.Animals.Value.NotApplicable".Translate().ToString();
 
             return pawn.playerSettings.animalDig
                 ? "Enabled".Translate().Resolve()
@@ -673,8 +672,8 @@ namespace RimWorldAccess
 
         public static string GetAnimalForageStatus(Pawn pawn)
         {
-            if (!IsOdysseyActive) return "N/A";
-            if (pawn.training?.HasLearned(TrainableDefOf.Forage) != true) return "N/A";
+            if (!IsOdysseyActive) return "RimWorldAccess.Animals.Value.NotApplicable".Translate().ToString();
+            if (pawn.training?.HasLearned(TrainableDefOf.Forage) != true) return "RimWorldAccess.Animals.Value.NotApplicable".Translate().ToString();
 
             return pawn.playerSettings.animalForage
                 ? "Enabled".Translate().Resolve()
@@ -685,7 +684,7 @@ namespace RimWorldAccess
 
         public static string GetMasterName(Pawn pawn)
         {
-            if (pawn.playerSettings == null) return "N/A";
+            if (pawn.playerSettings == null) return "RimWorldAccess.Animals.Value.NotApplicable".Translate().ToString();
 
             // Check if animal has learned Obedience (Guard)
             if (pawn.training?.HasLearned(TrainableDefOf.Obedience) != true)
@@ -707,7 +706,7 @@ namespace RimWorldAccess
             // Vanilla shows nothing (empty cell) when not in mental state,
             // but for screen readers we say "Normal" for clarity
             if (pawn.MentalState == null)
-                return "Normal";
+                return "RimWorldAccess.Animals.Value.Normal".Translate().ToString();
             return pawn.MentalState.def.LabelCap;
         }
 
@@ -784,7 +783,7 @@ namespace RimWorldAccess
 
         public static string GetSlaughterStatus(Pawn pawn)
         {
-            if (pawn.Map == null) return "N/A";
+            if (pawn.Map == null) return "RimWorldAccess.Animals.Value.NotApplicable".Translate().ToString();
 
             Designation designation = pawn.Map.designationManager.DesignationOn(pawn, DesignationDefOf.Slaughter);
             return designation != null ? "Yes".Translate().Resolve() : "No".Translate().Resolve();
@@ -794,7 +793,7 @@ namespace RimWorldAccess
 
         public static string GetMedicalCare(Pawn pawn)
         {
-            if (pawn.playerSettings == null) return "N/A";
+            if (pawn.playerSettings == null) return "RimWorldAccess.Animals.Value.NotApplicable".Translate().ToString();
 
             MedicalCareCategory category = pawn.playerSettings.medCare;
             return category.GetLabel();
@@ -811,7 +810,7 @@ namespace RimWorldAccess
 
         public static string GetReleaseToWildStatus(Pawn pawn)
         {
-            if (pawn.Map == null) return "N/A";
+            if (pawn.Map == null) return "RimWorldAccess.Animals.Value.NotApplicable".Translate().ToString();
 
             Designation designation = pawn.Map.designationManager.DesignationOn(pawn, DesignationDefOf.ReleaseAnimalToWild);
             return designation != null ? "Yes".Translate().Resolve() : "No".Translate().Resolve();
@@ -821,7 +820,7 @@ namespace RimWorldAccess
 
         public static string GetAllowedArea(Pawn pawn)
         {
-            if (pawn.playerSettings == null) return "N/A";
+            if (pawn.playerSettings == null) return "RimWorldAccess.Animals.Value.NotApplicable".Translate().ToString();
 
             Area area = pawn.playerSettings.AreaRestrictionInPawnCurrentMap;
             if (area == null)
@@ -1069,7 +1068,9 @@ namespace RimWorldAccess
         /// </summary>
         public static string GetPaintValueLabel(int columnIndex, bool value)
         {
-            return value ? "checked" : "unchecked";
+            return value
+                ? "RimWorldAccess.Animals.Paint.Checked".Translate().ToString()
+                : "RimWorldAccess.Animals.Paint.Unchecked".Translate().ToString();
         }
 
         // === Sorting ===

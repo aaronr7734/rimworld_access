@@ -38,16 +38,20 @@ namespace RimWorldAccess
             AllowBonded = 6
         }
 
-        private static readonly string[] ColumnNames = new[]
+        // Column-name keys; resolved via Translate() at call sites so the user
+        // hears the localized header for the current language.
+        private static readonly string[] ColumnNameKeys = new[]
         {
-            "Maximum allowed population",
-            "Maximum allowed males",
-            "Maximum allowed young males",
-            "Maximum allowed females",
-            "Maximum allowed young females",
-            "Allow pregnant slaughter",
-            "Allow bonded slaughter"
+            "RimWorldAccess.Animals.AutoSlaughter.Column.MaxTotal",
+            "RimWorldAccess.Animals.AutoSlaughter.Column.MaxMales",
+            "RimWorldAccess.Animals.AutoSlaughter.Column.MaxMalesYoung",
+            "RimWorldAccess.Animals.AutoSlaughter.Column.MaxFemales",
+            "RimWorldAccess.Animals.AutoSlaughter.Column.MaxFemalesYoung",
+            "RimWorldAccess.Animals.AutoSlaughter.Column.AllowPregnant",
+            "RimWorldAccess.Animals.AutoSlaughter.Column.AllowBonded"
         };
+
+        private static string ColumnName(int index) => ColumnNameKeys[index].Translate().ToString();
 
         #endregion
 
@@ -82,7 +86,7 @@ namespace RimWorldAccess
 
             if (configs.Count == 0)
             {
-                TolkHelper.Speak("No animals available for auto-slaughter settings");
+                TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Menu.NoAnimals".Translate());
                 return;
             }
 
@@ -94,7 +98,7 @@ namespace RimWorldAccess
             IsActive = true;
 
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
-            TolkHelper.Speak($"Auto-slaughter settings, {configs.Count} animal types");
+            TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Menu.OpeningTitle".Translate(configs.Count));
             AnnounceCurrentCell(includeAnimalName: true);
         }
 
@@ -112,9 +116,9 @@ namespace RimWorldAccess
             numericBuffer = "";
 
             if (!string.IsNullOrEmpty(slaughterSummary))
-                TolkHelper.Speak($"Auto-slaughter closed. {slaughterSummary}");
+                TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Menu.ClosedWithSummary".Translate(slaughterSummary));
             else
-                TolkHelper.Speak("Auto-slaughter closed");
+                TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Menu.Closed".Translate());
         }
 
         /// <summary>
@@ -133,10 +137,10 @@ namespace RimWorldAccess
             var groups = slaughterList
                 .GroupBy(p => p.def)
                 .OrderByDescending(g => g.Count())
-                .Select(g => $"{g.Count()} {g.Key.label}")
+                .Select(g => "RimWorldAccess.Animals.AutoSlaughter.Summary.Entry".Translate(g.Count(), g.Key.label).ToString())
                 .ToList();
 
-            return $"Marked for slaughter: {string.Join(", ", groups)}";
+            return "RimWorldAccess.Animals.AutoSlaughter.Summary.MarkedForSlaughter".Translate(string.Join(", ", groups)).ToString();
         }
 
         #endregion
@@ -323,14 +327,14 @@ namespace RimWorldAccess
 
         public static void SelectNextColumn()
         {
-            currentColumnIndex = (currentColumnIndex + 1) % ColumnNames.Length;
+            currentColumnIndex = (currentColumnIndex + 1) % ColumnNameKeys.Length;
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
             AnnounceCurrentCell(includeAnimalName: false);
         }
 
         public static void SelectPreviousColumn()
         {
-            currentColumnIndex = (currentColumnIndex - 1 + ColumnNames.Length) % ColumnNames.Length;
+            currentColumnIndex = (currentColumnIndex - 1 + ColumnNameKeys.Length) % ColumnNameKeys.Length;
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
             AnnounceCurrentCell(includeAnimalName: false);
         }
@@ -503,7 +507,7 @@ namespace RimWorldAccess
 
             var config = configs[currentRowIndex];
             var column = (Column)currentColumnIndex;
-            string columnName = ColumnNames[currentColumnIndex];
+            string columnName = ColumnName(currentColumnIndex);
 
             string value = GetColumnValueString(config, column);
             string position = MenuHelper.FormatPosition(currentRowIndex, configs.Count);
@@ -511,11 +515,11 @@ namespace RimWorldAccess
             string announcement;
             if (includeAnimalName)
             {
-                announcement = $"{config.animal.LabelCap}, {columnName}: {value}. {position}";
+                announcement = "RimWorldAccess.Animals.AutoSlaughter.Cell.WithName".Translate(config.animal.LabelCap, columnName, value, position).ToString();
             }
             else
             {
-                announcement = $"{columnName}: {value}";
+                announcement = "RimWorldAccess.Animals.AutoSlaughter.Cell.WithoutName".Translate(columnName, value).ToString();
             }
 
             TolkHelper.Speak(announcement);
@@ -538,11 +542,15 @@ namespace RimWorldAccess
                 case Column.MaxFemalesYoung:
                     return FormatCurrentOfMax(counts.femalesYoung, config.maxFemalesYoung);
                 case Column.AllowPregnant:
-                    return $"{counts.pregnant} pregnant, slaughter {(config.allowSlaughterPregnant ? "allowed" : "not allowed")}";
+                    return (config.allowSlaughterPregnant
+                        ? "RimWorldAccess.Animals.AutoSlaughter.Value.PregnantAllowed".Translate(counts.pregnant)
+                        : "RimWorldAccess.Animals.AutoSlaughter.Value.PregnantNotAllowed".Translate(counts.pregnant)).ToString();
                 case Column.AllowBonded:
-                    return $"{counts.bonded} bonded, slaughter {(config.allowSlaughterBonded ? "allowed" : "not allowed")}";
+                    return (config.allowSlaughterBonded
+                        ? "RimWorldAccess.Animals.AutoSlaughter.Value.BondedAllowed".Translate(counts.bonded)
+                        : "RimWorldAccess.Animals.AutoSlaughter.Value.BondedNotAllowed".Translate(counts.bonded)).ToString();
                 default:
-                    return "Unknown";
+                    return "RimWorldAccess.Animals.Value.Unknown".Translate().ToString();
             }
         }
 
@@ -550,16 +558,16 @@ namespace RimWorldAccess
         {
             if (max == -1)
             {
-                return $"unlimited. Current population: {current}";
+                return "RimWorldAccess.Animals.AutoSlaughter.Value.Unlimited".Translate(current).ToString();
             }
             else if (current > max)
             {
                 int toSlaughter = current - max;
-                return $"{max}. Current population: {current}. {toSlaughter} will be slaughtered";
+                return "RimWorldAccess.Animals.AutoSlaughter.Value.OverLimit".Translate(max, current, toSlaughter).ToString();
             }
             else
             {
-                return $"{max}. Current population: {current}";
+                return "RimWorldAccess.Animals.AutoSlaughter.Value.WithinLimit".Translate(max, current).ToString();
             }
         }
 
@@ -581,7 +589,7 @@ namespace RimWorldAccess
 
             numericBuffer = "";
             isNumericInputMode = true;
-            TolkHelper.Speak("Type a number, then press Enter to confirm or Escape to cancel");
+            TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Numeric.Prompt".Translate());
         }
 
         private static void HandleNumericDigit(char digit)
@@ -600,7 +608,7 @@ namespace RimWorldAccess
             if (numericBuffer.Length > 0)
                 TolkHelper.Speak(numericBuffer, SpeechPriority.Low);
             else
-                TolkHelper.Speak("Empty", SpeechPriority.Low);
+                TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Numeric.Empty".Translate(), SpeechPriority.Low);
         }
 
         private static void ConfirmNumericInput()
@@ -617,7 +625,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("Invalid number. Use minus 1 for unlimited");
+                TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Numeric.Invalid".Translate());
             }
 
             isNumericInputMode = false;
@@ -629,7 +637,7 @@ namespace RimWorldAccess
         {
             isNumericInputMode = false;
             numericBuffer = "";
-            TolkHelper.Speak("Cancelled");
+            TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Numeric.Cancelled".Translate());
         }
 
         #endregion
@@ -683,17 +691,17 @@ namespace RimWorldAccess
         {
             if (configs.Count == 0)
             {
-                TolkHelper.Speak("No animals");
+                TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Menu.NoAnimalsShort".Translate());
                 return;
             }
 
             var config = configs[currentRowIndex];
             var column = (Column)currentColumnIndex;
-            string columnName = ColumnNames[currentColumnIndex];
+            string columnName = ColumnName(currentColumnIndex);
             string value = GetColumnValueString(config, column);
             string position = MenuHelper.FormatPosition(currentRowIndex, configs.Count);
 
-            string announcement = $"{config.animal.LabelCap}, {columnName}: {value}. {position}";
+            string announcement = "RimWorldAccess.Animals.AutoSlaughter.Cell.WithName".Translate(config.animal.LabelCap, columnName, value, position).ToString();
 
             if (typeahead.HasActiveSearch)
             {
@@ -741,7 +749,7 @@ namespace RimWorldAccess
                 if ((key == KeyCode.Minus || key == KeyCode.KeypadMinus) && numericBuffer.Length == 0)
                 {
                     numericBuffer = "-";
-                    TolkHelper.Speak("minus", SpeechPriority.Low);
+                    TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Numeric.Minus".Translate(), SpeechPriority.Low);
                     return true;
                 }
                 if (key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9)
@@ -788,7 +796,7 @@ namespace RimWorldAccess
 
                     // If slaughtering, announce with summary
                     if (hasSlaughter)
-                        TolkHelper.Speak($"Animals menu closed. {slaughterSummary}");
+                        TolkHelper.Speak("RimWorldAccess.Animals.Menu.ClosedWithSummary".Translate(slaughterSummary));
                 }
                 return true;
             }
@@ -938,7 +946,7 @@ namespace RimWorldAccess
                 if (!string.IsNullOrEmpty(slaughterSummary))
                     TolkHelper.Speak(slaughterSummary);
                 else
-                    TolkHelper.Speak("Animals menu");
+                    TolkHelper.Speak("RimWorldAccess.Animals.Menu.ReturnTitle".Translate());
 
                 return true;
             }

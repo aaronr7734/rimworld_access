@@ -1,9 +1,6 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using RimWorld;
 using Verse;
-using Verse.Sound;
 
 namespace RimWorldAccess
 {
@@ -34,20 +31,20 @@ namespace RimWorldAccess
         public static string GetColumnName(int columnIndex)
         {
             if (columnIndex < 0 || columnIndex >= totalColumns)
-                return "Unknown";
+                return "RimWorldAccess.Animals.Value.Unknown".Translate().ToString();
 
             ColumnType type = (ColumnType)columnIndex;
             switch (type)
             {
-                case ColumnType.Name: return "Name";
-                case ColumnType.Predator: return "Predator";
+                case ColumnType.Name: return "RimWorldAccess.Animals.Wildlife.Column.Name".Translate().ToString();
+                case ColumnType.Predator: return "RimWorldAccess.Animals.Wildlife.Column.Predator".Translate().ToString();
                 case ColumnType.Gender: return "Sex".Translate().Resolve();
                 case ColumnType.LifeStage: return "LifeStage".Translate().Resolve();
                 case ColumnType.Hunt: return "DesignatorHunt".Translate().Resolve();
                 case ColumnType.ManhunterOnDamage: return "HarmedRevengeChance".Translate().Resolve();
                 case ColumnType.Tame: return "DesignatorTame".Translate().Resolve();
                 case ColumnType.ManhunterOnTameFail: return "TameFailedRevengeChance".Translate().Resolve();
-                default: return "Unknown";
+                default: return "RimWorldAccess.Animals.Value.Unknown".Translate().ToString();
             }
         }
 
@@ -55,7 +52,7 @@ namespace RimWorldAccess
         public static string GetColumnValue(Pawn pawn, int columnIndex)
         {
             if (columnIndex < 0 || columnIndex >= totalColumns)
-                return "Unknown";
+                return "RimWorldAccess.Animals.Value.Unknown".Translate().ToString();
 
             ColumnType type = (ColumnType)columnIndex;
             switch (type)
@@ -68,7 +65,7 @@ namespace RimWorldAccess
                 case ColumnType.ManhunterOnDamage: return GetManhunterOnDamageChance(pawn);
                 case ColumnType.Tame: return GetTameStatus(pawn);
                 case ColumnType.ManhunterOnTameFail: return GetManhunterOnTameFailChance(pawn);
-                default: return "Unknown";
+                default: return "RimWorldAccess.Animals.Value.Unknown".Translate().ToString();
             }
         }
 
@@ -129,7 +126,7 @@ namespace RimWorldAccess
 
         public static string GetPredatorStatus(Pawn pawn)
         {
-            if (pawn.RaceProps == null) return "Unknown";
+            if (pawn.RaceProps == null) return "RimWorldAccess.Animals.Value.Unknown".Translate().ToString();
             return pawn.RaceProps.predator ? "Yes".Translate().Resolve() : "No".Translate().Resolve();
         }
 
@@ -141,13 +138,13 @@ namespace RimWorldAccess
 
         public static string GetLifeStage(Pawn pawn)
         {
-            if (pawn.ageTracker == null) return "Unknown";
+            if (pawn.ageTracker == null) return "RimWorldAccess.Animals.Value.Unknown".Translate().ToString();
             return pawn.ageTracker.CurLifeStage.label.CapitalizeFirst();
         }
 
         public static string GetHuntStatus(Pawn pawn)
         {
-            if (pawn.Map == null) return "N/A";
+            if (pawn.Map == null) return "RimWorldAccess.Animals.Value.NotApplicable".Translate().ToString();
 
             Designation designation = pawn.Map.designationManager.DesignationOn(pawn, DesignationDefOf.Hunt);
             return designation != null ? "Yes".Translate().Resolve() : "No".Translate().Resolve();
@@ -160,8 +157,8 @@ namespace RimWorldAccess
 
         public static string GetTameStatus(Pawn pawn)
         {
-            if (pawn.Map == null) return "N/A";
-            if (!pawn.RaceProps.Animal) return "N/A";
+            if (pawn.Map == null) return "RimWorldAccess.Animals.Value.NotApplicable".Translate().ToString();
+            if (!pawn.RaceProps.Animal) return "RimWorldAccess.Animals.Value.NotApplicable".Translate().ToString();
 
             // Check if the animal is tameable (wildness stat >= 1 means untameable)
             float wildness = pawn.GetStatValue(StatDefOf.Wildness);
@@ -331,7 +328,9 @@ namespace RimWorldAccess
         /// </summary>
         public static string GetPaintValueLabel(int columnIndex, bool value)
         {
-            return value ? "checked" : "unchecked";
+            return value
+                ? "RimWorldAccess.Animals.Paint.Checked".Translate().ToString()
+                : "RimWorldAccess.Animals.Paint.Unchecked".Translate().ToString();
         }
 
         // === Column Defs (for sorting via game logic) ===

@@ -34,7 +34,7 @@ namespace RimWorldAccess
 
             if (wildlifeList.Count == 0)
             {
-                TolkHelper.Speak("No wildlife found on map");
+                TolkHelper.Speak("RimWorldAccess.Animals.Wildlife.Menu.NoWildlife".Translate());
                 return;
             }
 
@@ -65,7 +65,7 @@ namespace RimWorldAccess
 
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
 
-            string announcement = $"Wildlife menu, {wildlifeList.Count} animals";
+            string announcement = "RimWorldAccess.Animals.Wildlife.Menu.OpeningTitle".Translate(wildlifeList.Count).ToString();
             TolkHelper.Speak(announcement);
             AnnounceCurrentCell(includeAnimalName: true);
         }
@@ -76,7 +76,7 @@ namespace RimWorldAccess
             wildlifeList.Clear();
             tableHelper?.ClearSearch();
             SoundDefOf.TabClose.PlayOneShotOnCamera();
-            TolkHelper.Speak("Wildlife menu closed");
+            TolkHelper.Speak("RimWorldAccess.Animals.Wildlife.Menu.Closed".Translate());
         }
 
         public static void SelectNextAnimal()
@@ -194,7 +194,7 @@ namespace RimWorldAccess
             {
                 // Cannot tame this animal
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("Cannot tame this animal", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Animals.Wildlife.Menu.CannotTame".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -221,8 +221,9 @@ namespace RimWorldAccess
             if (resorted != null)
             {
                 wildlifeList = resorted.ToList();
-                string announcement = "Now at " + tableHelper.BuildCellAnnouncement(
+                string cellText = tableHelper.BuildCellAnnouncement(
                     wildlifeList[tableHelper.CurrentRowIndex], wildlifeList.Count, includeItemName: true);
+                string announcement = "RimWorldAccess.Animals.Sort.NowAt".Translate(cellText).ToString();
                 TolkHelper.Speak(announcement);
             }
         }
@@ -231,7 +232,7 @@ namespace RimWorldAccess
         {
             if (pawn == null || pawn.Map == null)
             {
-                TolkHelper.Speak("Animal not on map", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Animals.Wildlife.Menu.NotOnMap".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -254,7 +255,7 @@ namespace RimWorldAccess
             {
                 // Column not sortable
                 string colName = tableHelper.GetCurrentColumnName();
-                TolkHelper.Speak($"{colName} cannot be sorted");
+                TolkHelper.Speak("RimWorldAccess.Animals.Sort.CannotSort".Translate(colName));
                 return;
             }
 
@@ -263,13 +264,13 @@ namespace RimWorldAccess
             if (sortCleared)
             {
                 SoundDefOf.Tick_Low.PlayOneShotOnCamera();
-                TolkHelper.Speak("Sort cleared, default order");
+                TolkHelper.Speak("RimWorldAccess.Animals.Sort.Cleared".Translate());
             }
             else
             {
                 string columnName = tableHelper.GetCurrentColumnName();
                 SoundDefOf.Tick_High.PlayOneShotOnCamera();
-                TolkHelper.Speak($"Sorted by {columnName} ({direction})");
+                TolkHelper.Speak("RimWorldAccess.Animals.Sort.SortedBy".Translate(columnName, direction));
             }
 
             AnnounceCurrentCell(includeAnimalName: true);
@@ -330,7 +331,7 @@ namespace RimWorldAccess
         {
             if (wildlifeList.Count == 0)
             {
-                TolkHelper.Speak("No wildlife");
+                TolkHelper.Speak("RimWorldAccess.Animals.Wildlife.Menu.None".Translate());
                 return;
             }
 
@@ -396,7 +397,7 @@ namespace RimWorldAccess
             bool targetValue = WildlifeMenuHelper.GetPaintableValue(targetPawn, col);
             if (targetValue == brushValue)
             {
-                TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} already {valueLabel}. {pos}");
+                TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CellAlready".Translate(targetPawn.LabelShort, colName, valueLabel, pos));
                 return;
             }
 
@@ -406,7 +407,7 @@ namespace RimWorldAccess
                 : SoundDefOf.ClickReject;
             sound.PlayOneShotOnCamera();
 
-            TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} {valueLabel}. {pos}");
+            TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CellApplied".Translate(targetPawn.LabelShort, colName, valueLabel, pos));
         }
 
         /// <summary>
@@ -436,7 +437,7 @@ namespace RimWorldAccess
             bool targetValue = WildlifeMenuHelper.GetPaintableValue(targetPawn, col);
             if (targetValue == brushValue)
             {
-                TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} already {valueLabel}. {pos}");
+                TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CellAlready".Translate(targetPawn.LabelShort, colName, valueLabel, pos));
                 return;
             }
 
@@ -446,7 +447,7 @@ namespace RimWorldAccess
                 : SoundDefOf.ClickReject;
             sound.PlayOneShotOnCamera();
 
-            TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} {valueLabel}. {pos}");
+            TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CellApplied".Translate(targetPawn.LabelShort, colName, valueLabel, pos));
         }
 
         /// <summary>
@@ -526,11 +527,11 @@ namespace RimWorldAccess
             if (changed.Count > 0)
             {
                 BulkSoundQueue.Queue(changed.Count, paintSound);
-                TolkHelper.Speak($"Painted {colName} {valueLabel} for {MenuHelper.FormatNameList(changed)}");
+                TolkHelper.Speak("RimWorldAccess.Animals.Paint.Bulk.CellApplied".Translate(colName, valueLabel, MenuHelper.FormatNameList(changed)));
             }
             else
             {
-                TolkHelper.Speak($"{colName} already {valueLabel} for all wildlife");
+                TolkHelper.Speak("RimWorldAccess.Animals.Wildlife.Paint.Bulk.CellAlreadyAll".Translate(colName, valueLabel));
             }
         }
 
