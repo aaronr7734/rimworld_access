@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using HarmonyLib;
 using UnityEngine;
 using Verse;
@@ -47,7 +49,7 @@ namespace RimWorldAccess
                 handled = true;
             }
             // Handle Alt+C: Jump to selected pawn
-            else if (key == KeyCode.C && Event.current.alt)
+            else if (key == KeyCode.C && KeyboardHelper.IsAltHeld)
             {
                 HandleJumpToSelectedPawn();
                 handled = true;
@@ -64,31 +66,53 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Handles Alt+C: Jump camera to the currently selected pawn.
+        /// In multi-select mode, opens a pawn picker menu to choose which pawn to jump to.
         /// </summary>
         private static void HandleJumpToSelectedPawn()
         {
+            // Multi-select: open pawn picker menu
+            if (MultiSelectState.IsMultiSelectActive)
+            {
+                MultiSelectState.ValidateAndCleanupSelection();
+                var options = new List<FloatMenuOption>();
+                foreach (var pawn in MultiSelectState.SelectedPawns)
+                {
+                    string task = pawn.GetJobReport();
+                    if (string.IsNullOrEmpty(task)) task = "Idle";
+                    string label = $"{pawn.LabelShort}: {task}";
+                    var p = pawn;
+                    options.Add(new FloatMenuOption(label, () =>
+                    {
+                        JumpToPawn(p);
+                    }));
+                }
+                WindowlessFloatMenuState.Open(options, false);
+                return;
+            }
+
             Pawn selectedPawn = GetSelectedPawn();
             if (selectedPawn == null)
                 return;
 
-            // Get the camera driver
+            JumpToPawn(selectedPawn);
+        }
+
+        /// <summary>
+        /// Jumps the camera and cursor to a specific pawn.
+        /// </summary>
+        private static void JumpToPawn(Pawn pawn)
+        {
             CameraDriver cameraDriver = Find.CameraDriver;
             if (cameraDriver == null)
                 return;
 
-            // Move camera to center on the pawn
-            IntVec3 pawnPosition = selectedPawn.Position;
+            IntVec3 pawnPosition = pawn.Position;
             cameraDriver.JumpToCurrentMapLoc(pawnPosition);
 
-            // Update map navigation cursor to match
             MapNavigationState.CurrentCursorPosition = pawnPosition;
-
-            // Switch to Cursor mode since user explicitly moved the cursor
             MapNavigationState.CurrentCameraMode = CameraFollowMode.Cursor;
 
-            // Announce
-            string announcement = $"Jumped to {selectedPawn.LabelShort}";
-            TolkHelper.Speak(announcement);
+            TolkHelper.Speak($"Jumped to {pawn.LabelShort}");
         }
 
         /// <summary>

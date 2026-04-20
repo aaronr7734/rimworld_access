@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Verse;
+using Verse.Sound;
 using RimWorld;
 using RimWorld.Planet;
 
@@ -27,13 +28,24 @@ namespace RimWorldAccess
         public static void Prefix()
         {
             // Handle architect tree menu keyboard input first
-            if (ArchitectTreeState.IsActive)
+            if (ArchitectTreeState.IsActive && !InfoCardState.IsActive)
             {
-                if (Event.current.type == EventType.KeyDown)
+                // Clean up stale architect state when on the world map
+                // (user may have opened architect then switched to world view without closing it)
+                if (WorldNavigationState.IsActive)
                 {
-                    HandleArchitectTreeInput();
+                    ArchitectTreeState.Close();
+                    ArchitectState.Reset();
+                    // Fall through to normal handling
                 }
-                return;
+                else
+                {
+                    if (Event.current.type == EventType.KeyDown)
+                    {
+                        HandleArchitectTreeInput();
+                    }
+                    return;
+                }
             }
 
             // If any accessibility menu is active, don't intercept - let UnifiedKeyboardPatch handle it
@@ -60,22 +72,9 @@ namespace RimWorldAccess
             if (Find.CurrentMap == null || !MapNavigationState.IsInitialized)
                 return;
 
-            // If on the world map, switch to colony map first (mimics game's default Tab behavior)
-            if (Find.World?.renderer?.wantedMode == WorldRenderMode.Planet)
-            {
-                // Switch from world view to colony map
-                CameraJumper.TryHideWorld();
-
-                // Restore cursor to last known position for this map (or 0,0 if unknown)
-                MapNavigationState.RestoreCursorForCurrentMap();
-
-                // Open our architect menu
-                OpenArchitectTreeMenu();
-
-                // Consume the event so game doesn't open its inaccessible architect menu
-                Event.current.Use();
+            // Never open architect menu while on the world map
+            if (WorldNavigationState.IsActive)
                 return;
-            }
 
             // Don't process if any dialog or window that prevents camera motion is open
             if (Find.WindowStack != null && Find.WindowStack.WindowsPreventCameraMotion)
@@ -119,125 +118,28 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Handles keyboard input when the architect tree menu is active.
+        /// Delegates standard tree navigation to TreeNavigationHelper via ArchitectTreeState.HandleInput,
+        /// and handles architect-specific keys (Right Bracket, Escape close) here.
         /// </summary>
         private static void HandleArchitectTreeInput()
         {
+            // Forward character events to TypeaheadCharacterBuffer (this patch runs before
+            // UnifiedKeyboardPatch, so character events must be dispatched here)
+            if (TypeaheadCharacterBuffer.TryForwardCharacterEvent())
+            {
+                Event.current.Use();
+                return;
+            }
+
             // Don't handle input if a float menu (like right-click options) is open
             if (WindowlessFloatMenuState.IsActive)
                 return;
 
             KeyCode key = Event.current.keyCode;
-
-            // Handle Escape - clear search first, then close
-            if (key == KeyCode.Escape)
-            {
-                if (ArchitectTreeState.HasActiveSearch)
-                {
-                    ArchitectTreeState.ClearTypeaheadSearch();
-                }
-                else
-                {
-                    ArchitectTreeState.Close();
-                    ArchitectState.Reset(); // Also reset ArchitectState so Tab works again
-                    TolkHelper.Speak("Architect menu closed");
-                }
-                Event.current.Use();
-                return;
-            }
-
-            // Handle Home - jump to first (Ctrl = absolute, otherwise = within node)
-            if (key == KeyCode.Home)
-            {
-                if (Event.current.control)
-                    ArchitectTreeState.JumpToAbsoluteFirst();
-                else
-                    ArchitectTreeState.JumpToFirst();
-                Event.current.Use();
-                return;
-            }
-
-            // Handle End - jump to last (Ctrl = absolute, otherwise = within node)
-            if (key == KeyCode.End)
-            {
-                if (Event.current.control)
-                    ArchitectTreeState.JumpToAbsoluteLast();
-                else
-                    ArchitectTreeState.JumpToLast();
-                Event.current.Use();
-                return;
-            }
-
-            // Handle Backspace for search
-            if (key == KeyCode.Backspace && ArchitectTreeState.HasActiveSearch)
-            {
-                ArchitectTreeState.ProcessBackspace();
-                Event.current.Use();
-                return;
-            }
-
-            // Handle * key - expand all sibling categories
-            bool isStar = key == KeyCode.KeypadMultiply || (Event.current.shift && key == KeyCode.Alpha8);
-            if (isStar)
-            {
-                ArchitectTreeState.ExpandAllSiblings();
-                Event.current.Use();
-                return;
-            }
-
-            // Handle Up/Down with typeahead filtering
-            if (key == KeyCode.UpArrow)
-            {
-                if (ArchitectTreeState.HasActiveSearch && !ArchitectTreeState.HasNoMatches)
-                {
-                    ArchitectTreeState.SelectPreviousMatch();
-                }
-                else
-                {
-                    ArchitectTreeState.SelectPrevious();
-                }
-                Event.current.Use();
-                return;
-            }
-
-            if (key == KeyCode.DownArrow)
-            {
-                if (ArchitectTreeState.HasActiveSearch && !ArchitectTreeState.HasNoMatches)
-                {
-                    ArchitectTreeState.SelectNextMatch();
-                }
-                else
-                {
-                    ArchitectTreeState.SelectNext();
-                }
-                Event.current.Use();
-                return;
-            }
-
-            // Handle Right arrow - expand or move to first child
-            if (key == KeyCode.RightArrow)
-            {
-                ArchitectTreeState.ExpandCurrent();
-                Event.current.Use();
-                return;
-            }
-
-            // Handle Left arrow - collapse or move to parent
-            if (key == KeyCode.LeftArrow)
-            {
-                ArchitectTreeState.CollapseCurrent();
-                Event.current.Use();
-                return;
-            }
-
-            // Handle Enter - activate current item
-            if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
-            {
-                ArchitectTreeState.ActivateCurrent();
-                Event.current.Use();
-                return;
-            }
+            key = KeyboardHelper.RemapCharacterToKeyCode(key);
 
             // Handle Right Bracket - open right-click options for selected designator
+            // (architect-specific, not part of standard tree navigation)
             if (key == KeyCode.RightBracket)
             {
                 OpenDesignatorRightClickOptions();
@@ -245,12 +147,28 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Handle typeahead search characters (letters only)
-            bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
-            if (isLetter && !Event.current.alt && !Event.current.shift)
+            // Handle Alt+I - open info card for selected designator's PlacingDef
+            // (architect-specific: needs Designator_Build awareness, not generic tree LinkedDef)
+            if (key == KeyCode.I && KeyboardHelper.IsAltHeld)
             {
-                char c = (char)('a' + (key - KeyCode.A));
-                ArchitectTreeState.ProcessTypeaheadCharacter(c);
+                OpenDesignatorInfoCard();
+                Event.current.Use();
+                return;
+            }
+
+            // Delegate standard tree navigation to TreeNavigationHelper
+            if (ArchitectTreeState.HandleInput(Event.current))
+            {
+                Event.current.Use();
+                return;
+            }
+
+            // HandleInput returned false = Escape with no active search
+            if (key == KeyCode.Escape)
+            {
+                ArchitectTreeState.Close();
+                ArchitectState.Reset(); // Also reset ArchitectState so Tab works again
+                TolkHelper.Speak("Architect menu closed");
                 Event.current.Use();
                 return;
             }
@@ -299,6 +217,34 @@ namespace RimWorldAccess
             WindowlessFloatMenuState.Open(options, false);
 
             Log.Message($"Opened right-click options for designator: {designator.LabelCap}");
+        }
+
+        /// <summary>
+        /// Opens the info card for the currently selected designator's building/terrain def.
+        /// Only available for Designator_Build items; non-build designators show a message.
+        /// </summary>
+        private static void OpenDesignatorInfoCard()
+        {
+            Designator designator = ArchitectTreeState.GetSelectedDesignator();
+            if (designator == null)
+            {
+                TolkHelper.Speak("Select a building to view its info card");
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                return;
+            }
+
+            if (designator is Designator_Build buildDesignator)
+            {
+                BuildableDef placingDef = buildDesignator.PlacingDef;
+                if (placingDef != null)
+                {
+                    InfoCardState.OpenInfoCardForDef(placingDef);
+                    return;
+                }
+            }
+
+            TolkHelper.Speak("No info card available for this tool");
+            SoundDefOf.ClickReject.PlayOneShotOnCamera();
         }
 
         /// <summary>

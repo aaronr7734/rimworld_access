@@ -216,22 +216,22 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Increases the preset jump distance by 1 and announces the new value.
+        /// Increases the preset jump distance and announces the new value.
         /// </summary>
-        public static void IncreasePresetDistance()
+        public static void IncreasePresetDistance(int amount = 1)
         {
-            presetJumpDistance++;
+            presetJumpDistance += amount;
             TolkHelper.Speak($"Jump distance: {presetJumpDistance}");
         }
 
         /// <summary>
-        /// Decreases the preset jump distance by 1 (minimum 1) and announces the new value.
+        /// Decreases the preset jump distance (minimum 1) and announces the new value.
         /// </summary>
-        public static void DecreasePresetDistance()
+        public static void DecreasePresetDistance(int amount = 1)
         {
             if (presetJumpDistance > 1)
             {
-                presetJumpDistance--;
+                presetJumpDistance = System.Math.Max(1, presetJumpDistance - amount);
                 TolkHelper.Speak($"Jump distance: {presetJumpDistance}");
             }
             else

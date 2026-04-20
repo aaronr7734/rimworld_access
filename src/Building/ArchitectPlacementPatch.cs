@@ -76,6 +76,13 @@ namespace RimWorldAccess
             if (AreaSelectionMenuState.IsActive)
                 return;
 
+            // Don't let placement mode steal keys from overlay screens
+            if (WindowlessInventoryState.IsActive
+                || GizmoNavigationState.IsActive
+                || WindowlessInspectionState.IsActive
+                || WindowlessFloatMenuState.IsActive)
+                return;
+
             if (ViewingModeState.IsActive && !ShapePlacementState.IsActive)
                 return;
 
@@ -135,6 +142,7 @@ namespace RimWorldAccess
             KeyCode key = Event.current.keyCode;
             bool handled = false;
             bool shiftHeld = Event.current.shift;
+            bool ctrlHeld = KeyboardHelper.IsCtrlHeld;
 
             // Handle local map targeting mode (transport pod landing) first
             if (inTransportPodTargeting)
@@ -172,15 +180,25 @@ namespace RimWorldAccess
             {
                 handled = HandleTabKey(activeDesignator, shiftHeld, supportsShapes, inArchitectMode, availableShapes);
             }
+            // Ctrl+A - select entire enclosed room, or the entire map when outdoors
+            else if (ctrlHeld && !shiftHeld && key == KeyCode.A)
+            {
+                handled = HandleCtrlAKey();
+            }
             // Shift+Space - Remove shape points OR cancel blueprint at cursor position
             else if (shiftHeld && key == KeyCode.Space)
             {
                 handled = HandleShiftSpaceKey();
             }
-            // R key - rotate building
+            // Shift+R - rotate building counter-clockwise
+            else if (shiftHeld && key == KeyCode.R)
+            {
+                handled = HandleRotateKey(activeDesignator, inArchitectMode, RotationDirection.Counterclockwise);
+            }
+            // R key - rotate building clockwise
             else if (key == KeyCode.R)
             {
-                handled = HandleRotateKey(activeDesignator, inArchitectMode);
+                handled = HandleRotateKey(activeDesignator, inArchitectMode, RotationDirection.Clockwise);
             }
             // Space key - unified handling for all designator types
             else if (key == KeyCode.Space)
@@ -299,7 +317,7 @@ namespace RimWorldAccess
         /// If the building is not rotatable, announces that it can't be rotated.
         /// </summary>
         /// <returns>True if the key was handled, false otherwise.</returns>
-        private static bool HandleRotateKey(Designator activeDesignator, bool inArchitectMode)
+        private static bool HandleRotateKey(Designator activeDesignator, bool inArchitectMode, RotationDirection direction)
         {
             // Check if the building can be rotated before attempting rotation
             // Some buildings like doors auto-detect their orientation and cannot be manually rotated
@@ -339,7 +357,31 @@ namespace RimWorldAccess
             // Building is rotatable - proceed with rotation
             if (inArchitectMode)
             {
-                ArchitectState.RotateBuilding();
+                ArchitectState.RotateBuilding(direction);
+            }
+            else if (activeDesignator.GetType().Name == "Designator_MoveGravship")
+            {
+                // Gravship landing designator — rotate via marker.GravshipRotation
+                var markerField = AccessTools.Field(activeDesignator.GetType(), "marker");
+                if (markerField != null)
+                {
+                    var marker = markerField.GetValue(activeDesignator);
+                    if (marker != null)
+                    {
+                        var rotProp = AccessTools.Property(marker.GetType(), "GravshipRotation");
+                        if (rotProp != null)
+                        {
+                            Rot4 currentRot = (Rot4)rotProp.GetValue(marker);
+                            currentRot.Rotate(direction);
+                            rotProp.SetValue(marker, currentRot);
+
+                            string dirName = currentRot == Rot4.North ? "North" :
+                                             currentRot == Rot4.East ? "East" :
+                                             currentRot == Rot4.South ? "South" : "West";
+                            TolkHelper.Speak($"Gravship facing {dirName}.");
+                        }
+                    }
+                }
             }
             else if (activeDesignator is Designator_Place designatorPlace)
             {
@@ -348,7 +390,7 @@ namespace RimWorldAccess
                 if (rotField != null)
                 {
                     Rot4 currentRot = (Rot4)rotField.GetValue(designatorPlace);
-                    currentRot.Rotate(RotationDirection.Clockwise);
+                    currentRot.Rotate(direction);
                     rotField.SetValue(designatorPlace, currentRot);
 
                     // Build a proper announcement with direction and special info
@@ -356,6 +398,107 @@ namespace RimWorldAccess
                     TolkHelper.Speak(announcement);
                 }
             }
+            return true;
+        }
+
+        /// <summary>
+        /// Handles Ctrl+A input for selecting the current room (when enclosed) or the
+        /// entire map (when outdoors). Only works for rectangle/oval shapes since lines
+        /// cannot meaningfully fill a room.
+        /// </summary>
+        /// <returns>True if the key was handled, false otherwise.</returns>
+        private static bool HandleCtrlAKey()
+        {
+            if (!ShapePlacementState.IsActive)
+                return false;
+
+            ShapeType shape = ShapePlacementState.CurrentShape;
+            if (shape == ShapeType.Manual)
+            {
+                TolkHelper.Speak("Select all requires a shape. Press Tab to choose one.");
+                return true;
+            }
+            if (shape == ShapeType.Line || shape == ShapeType.AngledLine)
+            {
+                TolkHelper.Speak("Select all is not available for line shapes.");
+                return true;
+            }
+
+            Map map = Find.CurrentMap;
+            if (map == null)
+                return false;
+
+            IntVec3 cursor = MapNavigationState.CurrentCursorPosition;
+            bool cursorValid = cursor.IsValid && cursor.InBounds(map);
+
+            IntVec3 cornerA;
+            IntVec3 cornerB;
+            string scopeLabel;
+
+            // Fast path: RimWorld's Room system already identifies finished enclosures.
+            Room room = cursorValid ? cursor.GetRoom(map) : null;
+            bool useRoom = room != null
+                && !room.PsychologicallyOutdoors
+                && !room.TouchesMapEdge
+                && room.CellCount > 0;
+
+            if (useRoom)
+            {
+                CellRect rect = room.ExtentsClose;
+                cornerA = new IntVec3(rect.minX, 0, rect.minZ);
+                cornerB = new IntVec3(rect.maxX, 0, rect.maxZ);
+                scopeLabel = $"room, {rect.Width} by {rect.Height}";
+            }
+            else if (cursorValid && TryBlueprintEnclosureBounds(cursor, map, out cornerA, out cornerB, out scopeLabel))
+            {
+                // Blueprint-walled enclosure detected via flood fill — corners already set above.
+            }
+            else
+            {
+                cornerA = new IntVec3(0, 0, 0);
+                cornerB = new IntVec3(map.Size.x - 1, 0, map.Size.z - 1);
+                scopeLabel = $"entire map, {map.Size.x} by {map.Size.z}";
+            }
+
+            ShapePlacementState.SetBothPoints(cornerA, cornerB);
+
+            int cellCount = ShapePlacementState.PreviewCells?.Count ?? 0;
+            string shapeName = ShapeHelper.GetShapeName(shape);
+            TolkHelper.Speak($"Selected {scopeLabel}. {shapeName}, {cellCount} cells. Enter to confirm.");
+            return true;
+        }
+
+        /// <summary>
+        /// Tries to detect a blueprint-walled enclosure surrounding <paramref name="cursor"/>.
+        /// RimWorld's Room system only recognises enclosures formed by finished walls, so this
+        /// flood-fills from the cursor treating wall blueprints and frames as boundaries. When
+        /// the fill stays bounded (does not escape to the map edge), the bounding box of the
+        /// interior cells is returned as shape corners.
+        /// </summary>
+        private static bool TryBlueprintEnclosureBounds(IntVec3 cursor, Map map,
+            out IntVec3 cornerA, out IntVec3 cornerB, out string scopeLabel)
+        {
+            cornerA = default;
+            cornerB = default;
+            scopeLabel = null;
+
+            var (isEnclosed, interior) = EnclosureDetector.TryFloodFillFromCell(cursor, map);
+            if (!isEnclosed || interior == null || interior.Count == 0)
+                return false;
+
+            int minX = int.MaxValue, minZ = int.MaxValue;
+            int maxX = int.MinValue, maxZ = int.MinValue;
+            foreach (IntVec3 c in interior)
+            {
+                if (c.x < minX) minX = c.x;
+                if (c.x > maxX) maxX = c.x;
+                if (c.z < minZ) minZ = c.z;
+                if (c.z > maxZ) maxZ = c.z;
+            }
+
+            cornerA = new IntVec3(minX, 0, minZ);
+            cornerB = new IntVec3(maxX, 0, maxZ);
+            scopeLabel = $"blueprint enclosure, {maxX - minX + 1} by {maxZ - minZ + 1}";
             return true;
         }
 
@@ -420,6 +563,27 @@ namespace RimWorldAccess
 
                     if (report.Accepted)
                     {
+                        // Check meditation focus / tree protection before placing
+                        var (placingDef, placingRot) =
+                            MeditationProtectionHelper.GetPlacementInfo(activeDesignator);
+
+                        if (placingDef != null &&
+                            MeditationProtectionHelper.IsArtificialBuilding(
+                                placingDef, Faction.OfPlayer))
+                        {
+                            var protection = MeditationProtectionHelper.CheckProtection(
+                                Find.CurrentMap, placingDef, Faction.OfPlayer,
+                                currentPosition, placingRot);
+
+                            if (protection.IsProtected)
+                            {
+                                string message =
+                                    MeditationProtectionHelper.FormatManualBlockMessage(protection);
+                                TolkHelper.Speak(message);
+                                return true;
+                            }
+                        }
+
                         try
                         {
                             activeDesignator.DesignateSingleCell(currentPosition);
@@ -472,6 +636,51 @@ namespace RimWorldAccess
                 {
                     // Toggle cell in the selection list
                     ArchitectState.ToggleCell(currentPosition);
+                }
+                // For gravship landing placement designator
+                else if (activeDesignator.GetType().Name == "Designator_MoveGravship")
+                {
+                    // Compensate for vanilla rounding bug in even-sized gravships.
+                    // GetSizeRotAdjustedCell uses size/2 but PrefabUtility.GetRoot uses (size-1)/2,
+                    // causing a +1 offset per axis when that dimension is even.
+                    IntVec3 placementPos = currentPosition;
+                    var markerField = AccessTools.Field(activeDesignator.GetType(), "marker");
+                    var marker = markerField?.GetValue(activeDesignator) as GravshipLandingMarker;
+                    if (marker != null)
+                    {
+                        IntVec2 size = marker.gravship.Bounds.Size;
+                        Rot4 rot = marker.GravshipRotation;
+
+                        // Replicate GetSizeRotAdjustedCell math
+                        IntVec3 halfX = new IntVec3(size.x / 2, 0, 0);
+                        IntVec3 halfZ = new IntVec3(0, 0, size.z / 2);
+                        IntVec3 adjusted = currentPosition;
+                        if (rot == Rot4.North) adjusted += halfX + halfZ;
+                        else if (rot == Rot4.East) adjusted += halfX - halfZ;
+                        else if (rot == Rot4.South) adjusted -= halfX + halfZ;
+                        else if (rot == Rot4.West) adjusted += -halfX + halfZ;
+
+                        // See where the marker would actually end up
+                        IntVec3 wouldPlace = PrefabUtility.GetRoot(adjusted, size, rot);
+                        IntVec3 offset = wouldPlace - currentPosition;
+                        if (offset != IntVec3.Zero)
+                        {
+                            placementPos = currentPosition - offset;
+                        }
+                    }
+
+                    AcceptanceReport report = activeDesignator.CanDesignateCell(placementPos);
+                    if (report.Accepted)
+                    {
+                        activeDesignator.DesignateSingleCell(placementPos);
+                        TolkHelper.Speak($"Gravship positioned at {currentPosition.x}, {currentPosition.z}. Select landing marker and use gizmos to confirm landing.");
+                        // DesignateSingleCell auto-deselects the designator
+                    }
+                    else
+                    {
+                        string reason = report.Reason ?? "Cannot place here";
+                        TolkHelper.Speak($"Invalid: {reason}");
+                    }
                 }
             }
 

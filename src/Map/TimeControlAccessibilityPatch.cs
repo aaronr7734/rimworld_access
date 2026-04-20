@@ -1,4 +1,5 @@
 using HarmonyLib;
+using RimWorld;
 using Verse;
 using System.Reflection;
 
@@ -68,21 +69,72 @@ namespace RimWorldAccess
 
         private static string GetTimeSpeedAnnouncement(TimeSpeed speed)
         {
+            if (speed == TimeSpeed.Paused)
+                return "Game paused";
+            return $"Time speed: {LocalizedSpeedName(speed)}";
+        }
+
+        internal static string LocalizedSpeedName(TimeSpeed speed)
+        {
             switch (speed)
             {
-                case TimeSpeed.Paused:
-                    return "Game paused";
-                case TimeSpeed.Normal:
-                    return "Time speed: Normal";
-                case TimeSpeed.Fast:
-                    return "Time speed: Fast";
-                case TimeSpeed.Superfast:
-                    return "Time speed: Superfast";
-                case TimeSpeed.Ultrafast:
-                    return "Time speed: Ultrafast";
-                default:
-                    return $"Time speed: {speed}";
+                case TimeSpeed.Paused:    return "Paused";
+                case TimeSpeed.Normal:    return "Normal";
+                case TimeSpeed.Fast:      return "Fast";
+                case TimeSpeed.Superfast: return "Superfast";
+                case TimeSpeed.Ultrafast: return "Ultrafast";
+                default: return speed.ToString();
             }
+        }
+
+        // Tracks the last observed ForcedNormalSpeed state so we can detect
+        // transitions in either direction and announce them via Messages.Message.
+        // The existing NotificationAccessibilityPatch automatically speaks any
+        // Messages.Message() call, so emitting a message is enough.
+        private static bool wasForcedNormalSpeed = false;
+
+        [HarmonyPatch(nameof(TickManager.TickManagerUpdate))]
+        [HarmonyPostfix]
+        public static void TickManagerUpdate_ThreatSlowdown_Postfix(TickManager __instance)
+        {
+            if (__instance?.slower == null) return;
+            if (Current.ProgramState != ProgramState.Playing) return;
+
+            bool isForced = __instance.slower.ForcedNormalSpeed;
+
+            // Gate announcements behind the user setting (off by default).
+            // Still track the forced-state transitions so toggling the
+            // setting on mid-threat doesn't cause a spurious announcement.
+            if (!(RimWorldAccessMod_Settings.Settings?.AnnounceForcedSlowdowns ?? false))
+            {
+                wasForcedNormalSpeed = isForced;
+                return;
+            }
+
+            // Only announce when the user's set speed is faster than Normal.
+            // If they're on Paused or Normal, the forced slowdown has no
+            // observable effect, so announcing would just be noise.
+            bool userSpeedFasterThanNormal = __instance.CurTimeSpeed > TimeSpeed.Normal;
+
+            if (isForced && !wasForcedNormalSpeed && userSpeedFasterThanNormal)
+            {
+                // OFF -> ON: a threat just triggered the combat slowdown.
+                Messages.Message(
+                    "Game slowed down by presence of threat.",
+                    MessageTypeDefOf.NeutralEvent,
+                    historical: false);
+            }
+            else if (!isForced && wasForcedNormalSpeed && userSpeedFasterThanNormal)
+            {
+                // ON -> OFF: the threat slowdown has expired and the game
+                // is about to resume the user's faster set speed.
+                Messages.Message(
+                    "Threat passed. Game speed resumed.",
+                    MessageTypeDefOf.NeutralEvent,
+                    historical: false);
+            }
+
+            wasForcedNormalSpeed = isForced;
         }
     }
 }

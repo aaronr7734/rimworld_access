@@ -429,27 +429,36 @@ namespace RimWorldAccess
             Find.WindowStack.Add(new Dialog_MessageBox("ResetAndRestart".Translate(), null, GenCommandLine.Restart));
         }
 
+        /// <summary>
+        /// Formats a day count using the game's translation keys for day/days.
+        /// </summary>
+        private static string FormatDays(float days)
+        {
+            if (days == 1f)
+                return $"1 {"day".Translate()}";
+            return $"{days} {"Days".Translate()}";
+        }
+
         private static void BuildCategories()
         {
             categories.Clear();
 
             // General Category
-            var general = new OptionCategory("General");
+            var general = new OptionCategory(OptionCategoryDefOf.General.LabelCap.ToString());
 
             // Language selection (only on main menu)
             if (Current.ProgramState == ProgramState.Entry)
             {
-                general.Settings.Add(new ButtonSetting("Language",
-                    () => LanguageDatabase.activeLanguage.DisplayName + " (Press Enter to change)",
+                general.Settings.Add(new ButtonSetting("ChooseLanguage".Translate().ToString(),
+                    () => LanguageDatabase.activeLanguage.FriendlyNameNative + " (Press Enter to change)",
                     () => {
                         List<FloatMenuOption> options = new List<FloatMenuOption>();
                         foreach (LoadedLanguage lang in LanguageDatabase.AllLoadedLanguages)
                         {
                             LoadedLanguage localLang = lang;
-                            options.Add(new FloatMenuOption(localLang.DisplayName, () => LanguageDatabase.SelectLanguage(localLang)));
+                            options.Add(new FloatMenuOption(localLang.FriendlyNameNative, () => LanguageDatabase.SelectLanguage(localLang)));
                         }
-                        Find.WindowStack.Add(new FloatMenu(options));
-                        TolkHelper.Speak("Opening language selection menu");
+                        WindowlessFloatMenuState.Open(options, false);
                     }));
             }
 
@@ -459,17 +468,17 @@ namespace RimWorldAccess
 
             if (Prefs.DevMode)
             {
-                autosaveValues.Add(0.05f); autosaveLabels.Add("0.05 days (debug)");
-                autosaveValues.Add(0.1f); autosaveLabels.Add("0.1 days (debug)");
-                autosaveValues.Add(0.25f); autosaveLabels.Add("0.25 days (debug)");
+                autosaveValues.Add(0.05f); autosaveLabels.Add(FormatDays(0.05f) + " (debug)");
+                autosaveValues.Add(0.1f); autosaveLabels.Add(FormatDays(0.1f) + " (debug)");
+                autosaveValues.Add(0.25f); autosaveLabels.Add(FormatDays(0.25f) + " (debug)");
             }
-            autosaveValues.Add(0.5f); autosaveLabels.Add("0.5 days");
-            autosaveValues.Add(1f); autosaveLabels.Add("1 day");
-            autosaveValues.Add(3f); autosaveLabels.Add("3 days");
-            autosaveValues.Add(7f); autosaveLabels.Add("7 days");
-            autosaveValues.Add(14f); autosaveLabels.Add("14 days");
+            autosaveValues.Add(0.5f); autosaveLabels.Add(FormatDays(0.5f));
+            autosaveValues.Add(1f); autosaveLabels.Add(FormatDays(1f));
+            autosaveValues.Add(3f); autosaveLabels.Add(FormatDays(3f));
+            autosaveValues.Add(7f); autosaveLabels.Add(FormatDays(7f));
+            autosaveValues.Add(14f); autosaveLabels.Add(FormatDays(14f));
 
-            general.Settings.Add(new ChoiceSetting("Autosave Interval",
+            general.Settings.Add(new ChoiceSetting("AutosaveInterval".Translate().ToString(),
                 () => {
                     // Find current index based on Prefs.AutosaveIntervalDays
                     float current = Prefs.AutosaveIntervalDays;
@@ -484,18 +493,19 @@ namespace RimWorldAccess
                     if (index >= 0 && index < autosaveValues.Count)
                         Prefs.AutosaveIntervalDays = autosaveValues[index];
                 },
-                autosaveLabels));
+                autosaveLabels,
+                "AutosaveIntervalTooltip".Translate().ToString()));
 
-            general.Settings.Add(new SliderSetting("Autosaves Count", () => Prefs.AutosavesCount, v => Prefs.AutosavesCount = Mathf.RoundToInt(v), 1f, 25f, 1f, false));
-            general.Settings.Add(new CheckboxSetting("Run In Background", () => Prefs.RunInBackground, v => Prefs.RunInBackground = v));
+            general.Settings.Add(new SliderSetting("AutosavesCount".Translate("").ToString().TrimEnd(' ', ':'), () => Prefs.AutosavesCount, v => Prefs.AutosavesCount = Mathf.RoundToInt(v), 1f, 25f, 1f, false));
+            general.Settings.Add(new CheckboxSetting("RunInBackground".Translate().ToString(), () => Prefs.RunInBackground, v => Prefs.RunInBackground = v));
 
             if (!DevModePermanentlyDisabledUtility.Disabled || Prefs.DevMode)
             {
-                general.Settings.Add(new CheckboxSetting("Development Mode", () => Prefs.DevMode, v => Prefs.DevMode = v));
+                general.Settings.Add(new CheckboxSetting("DevelopmentMode".Translate().ToString(), () => Prefs.DevMode, v => Prefs.DevMode = v));
             }
 
             // Reset to defaults button
-            general.Settings.Add(new ButtonSetting("Reset to Defaults",
+            general.Settings.Add(new ButtonSetting("RestoreToDefaultSettingsLabel".Translate().ToString(),
                 () => "Press Enter to Reset All Settings",
                 () => {
                     // Show confirmation dialog
@@ -509,30 +519,30 @@ namespace RimWorldAccess
             categories.Add(general);
 
             // Graphics Category
-            var graphics = new OptionCategory("Graphics");
-            graphics.Settings.Add(new CheckboxSetting("Texture Compression", () => Prefs.TextureCompression, v => Prefs.TextureCompression = v));
-            graphics.Settings.Add(new CheckboxSetting("Plant Wind Sway", () => Prefs.PlantWindSway, v => Prefs.PlantWindSway = v));
-            graphics.Settings.Add(new SliderSetting("Screen Shake Intensity", () => Prefs.ScreenShakeIntensity, v => Prefs.ScreenShakeIntensity = v, 0f, 2f, 0.1f, true));
-            graphics.Settings.Add(new CheckboxSetting("Smooth Camera Jumps", () => Prefs.SmoothCameraJumps, v => Prefs.SmoothCameraJumps = v));
-            graphics.Settings.Add(new CheckboxSetting("Gravship Cutscenes", () => Prefs.GravshipCutscenes, v => Prefs.GravshipCutscenes = v));
+            var graphics = new OptionCategory(OptionCategoryDefOf.Graphics.LabelCap.ToString());
+            graphics.Settings.Add(new CheckboxSetting("TextureCompression".Translate().ToString(), () => Prefs.TextureCompression, v => Prefs.TextureCompression = v, "TextureCompression_Tooltip".Translate().ToString()));
+            graphics.Settings.Add(new CheckboxSetting("PlantWindSway".Translate().ToString(), () => Prefs.PlantWindSway, v => Prefs.PlantWindSway = v));
+            graphics.Settings.Add(new SliderSetting("ScreenShakeIntensity".Translate().ToString(), () => Prefs.ScreenShakeIntensity, v => Prefs.ScreenShakeIntensity = v, 0f, 2f, 0.1f, true));
+            graphics.Settings.Add(new CheckboxSetting("SmoothCameraJumps".Translate().ToString(), () => Prefs.SmoothCameraJumps, v => Prefs.SmoothCameraJumps = v, "SmoothCameraJumpsDesc".Translate().ToString()));
+            graphics.Settings.Add(new CheckboxSetting("GravshipCutscenes".Translate().ToString(), () => Prefs.GravshipCutscenes, v => Prefs.GravshipCutscenes = v, "GravshipCutscenesDesc".Translate().ToString()));
             categories.Add(graphics);
 
             // Audio Category
-            var audio = new OptionCategory("Audio");
-            audio.Settings.Add(new SliderSetting("Master Volume", () => Prefs.VolumeMaster, v => Prefs.VolumeMaster = v, 0f, 1f, 0.05f, true));
-            audio.Settings.Add(new SliderSetting("Game Volume", () => Prefs.VolumeGame, v => Prefs.VolumeGame = v, 0f, 1f, 0.05f, true));
-            audio.Settings.Add(new SliderSetting("Music Volume", () => Prefs.VolumeMusic, v => Prefs.VolumeMusic = v, 0f, 1f, 0.05f, true));
-            audio.Settings.Add(new SliderSetting("Ambient Volume", () => Prefs.VolumeAmbient, v => Prefs.VolumeAmbient = v, 0f, 1f, 0.05f, true));
-            audio.Settings.Add(new SliderSetting("UI Volume", () => Prefs.VolumeUI, v => Prefs.VolumeUI = v, 0f, 1f, 0.05f, true));
+            var audio = new OptionCategory(OptionCategoryDefOf.Audio.LabelCap.ToString());
+            audio.Settings.Add(new SliderSetting("MasterVolume".Translate().ToString(), () => Prefs.VolumeMaster, v => Prefs.VolumeMaster = v, 0f, 1f, 0.05f, true, "MasterVolumeTooltip".Translate().ToString()));
+            audio.Settings.Add(new SliderSetting("GameVolume".Translate().ToString(), () => Prefs.VolumeGame, v => Prefs.VolumeGame = v, 0f, 1f, 0.05f, true, "GameVolumeTooltip".Translate().ToString()));
+            audio.Settings.Add(new SliderSetting("MusicVolume".Translate().ToString(), () => Prefs.VolumeMusic, v => Prefs.VolumeMusic = v, 0f, 1f, 0.05f, true, "MusicVolumeTooltip".Translate().ToString()));
+            audio.Settings.Add(new SliderSetting("AmbientVolume".Translate().ToString(), () => Prefs.VolumeAmbient, v => Prefs.VolumeAmbient = v, 0f, 1f, 0.05f, true, "AmbientVolumeTooltip".Translate().ToString()));
+            audio.Settings.Add(new SliderSetting("UIVolume".Translate().ToString(), () => Prefs.VolumeUI, v => Prefs.VolumeUI = v, 0f, 1f, 0.05f, true, "UIVolumeTooltip".Translate().ToString()));
             categories.Add(audio);
 
             // Gameplay Category
-            var gameplay = new OptionCategory("Gameplay");
+            var gameplay = new OptionCategory(OptionCategoryDefOf.Gameplay.LabelCap.ToString());
 
             // Change storyteller (only in-game)
             if (Current.ProgramState == ProgramState.Playing)
             {
-                gameplay.Settings.Add(new ButtonSetting("Change Storyteller",
+                gameplay.Settings.Add(new ButtonSetting("ChangeStoryteller".Translate().ToString(),
                     () => "Press Enter to Modify",
                     () => {
                         if (TutorSystem.AllowAction("ChooseStoryteller"))
@@ -540,7 +550,6 @@ namespace RimWorldAccess
                             // Close options menu before opening storyteller page
                             Close();
                             Find.WindowStack.Add(new Page_SelectStorytellerInGame());
-                            TolkHelper.Speak("Opening Storyteller Selection");
                         }
                         else
                         {
@@ -549,34 +558,34 @@ namespace RimWorldAccess
                     }));
             }
 
-            gameplay.Settings.Add(new SliderSetting("Max Player Settlements", () => Prefs.MaxNumberOfPlayerSettlements, v => Prefs.MaxNumberOfPlayerSettlements = Mathf.RoundToInt(v), 1f, 5f, 1f, false));
-            gameplay.Settings.Add(new CheckboxSetting("Pause On Load", () => Prefs.PauseOnLoad, v => Prefs.PauseOnLoad = v));
+            gameplay.Settings.Add(new SliderSetting("MaxNumberOfPlayerSettlements".Translate("").ToString().TrimEnd(' ', ':'), () => Prefs.MaxNumberOfPlayerSettlements, v => Prefs.MaxNumberOfPlayerSettlements = Mathf.RoundToInt(v), 1f, 5f, 1f, false));
+            gameplay.Settings.Add(new CheckboxSetting("PauseOnLoad".Translate().ToString(), () => Prefs.PauseOnLoad, v => Prefs.PauseOnLoad = v));
 
-            gameplay.Settings.Add(new EnumSetting<AutomaticPauseMode>("Automatic Pause Mode", () => Prefs.AutomaticPauseMode, v => Prefs.AutomaticPauseMode = v));
-            gameplay.Settings.Add(new CheckboxSetting("Adaptive Training", () => Prefs.AdaptiveTrainingEnabled, v => Prefs.AdaptiveTrainingEnabled = v));
+            gameplay.Settings.Add(new EnumSetting<AutomaticPauseMode>("AutomaticPauseModeSetting".Translate().ToString(), () => Prefs.AutomaticPauseMode, v => Prefs.AutomaticPauseMode = v));
+            gameplay.Settings.Add(new CheckboxSetting("LearningHelper".Translate().ToString(), () => Prefs.AdaptiveTrainingEnabled, v => Prefs.AdaptiveTrainingEnabled = v, "LearningHelperTooltip".Translate().ToString()));
 
             categories.Add(gameplay);
 
             // Interface Category
-            var ui = new OptionCategory("Interface");
-            ui.Settings.Add(new EnumSetting<TemperatureDisplayMode>("Temperature Mode", () => Prefs.TemperatureMode, v => Prefs.TemperatureMode = v));
-            ui.Settings.Add(new EnumSetting<ShowWeaponsUnderPortraitMode>("Show Weapons Under Portrait", () => Prefs.ShowWeaponsUnderPortraitMode, v => Prefs.ShowWeaponsUnderPortraitMode = v));
-            ui.Settings.Add(new EnumSetting<AnimalNameDisplayMode>("Animal Name Display", () => Prefs.AnimalNameMode, v => Prefs.AnimalNameMode = v));
+            var ui = new OptionCategory(OptionCategoryDefOf.Interface.LabelCap.ToString());
+            ui.Settings.Add(new EnumSetting<TemperatureDisplayMode>("TemperatureMode".Translate().ToString(), () => Prefs.TemperatureMode, v => Prefs.TemperatureMode = v));
+            ui.Settings.Add(new EnumSetting<ShowWeaponsUnderPortraitMode>("ShowWeaponsUnderPortrait".Translate().ToString(), () => Prefs.ShowWeaponsUnderPortraitMode, v => Prefs.ShowWeaponsUnderPortraitMode = v, "ShowWeaponsUnderPortraitTooltip".Translate().ToString()));
+            ui.Settings.Add(new EnumSetting<AnimalNameDisplayMode>("ShowAnimalNames".Translate().ToString(), () => Prefs.AnimalNameMode, v => Prefs.AnimalNameMode = v));
 
             if (ModsConfig.BiotechActive)
             {
-                ui.Settings.Add(new EnumSetting<MechNameDisplayMode>("Mech Name Display", () => Prefs.MechNameMode, v => Prefs.MechNameMode = v));
+                ui.Settings.Add(new EnumSetting<MechNameDisplayMode>("ShowMechNames".Translate().ToString(), () => Prefs.MechNameMode, v => Prefs.MechNameMode = v));
             }
 
-            ui.Settings.Add(new EnumSetting<DotHighlightDisplayMode>("Dot Highlight Display", () => Prefs.DotHighlightDisplayMode, v => Prefs.DotHighlightDisplayMode = v));
-            ui.Settings.Add(new EnumSetting<HighlightStyleMode>("Highlight Style", () => Prefs.HighlightStyleMode, v => Prefs.HighlightStyleMode = v));
-            ui.Settings.Add(new CheckboxSetting("Show Realtime Clock", () => Prefs.ShowRealtimeClock, v => Prefs.ShowRealtimeClock = v));
-            ui.Settings.Add(new CheckboxSetting("12 Hour Clock", () => Prefs.TwelveHourClockMode, v => Prefs.TwelveHourClockMode = v));
-            ui.Settings.Add(new CheckboxSetting("Hats Only On Map", () => Prefs.HatsOnlyOnMap, v => Prefs.HatsOnlyOnMap = v));
+            ui.Settings.Add(new EnumSetting<DotHighlightDisplayMode>("DotHighlightDisplayMode".Translate().ToString(), () => Prefs.DotHighlightDisplayMode, v => Prefs.DotHighlightDisplayMode = v));
+            ui.Settings.Add(new EnumSetting<HighlightStyleMode>("HighlightStyleMode".Translate().ToString(), () => Prefs.HighlightStyleMode, v => Prefs.HighlightStyleMode = v));
+            ui.Settings.Add(new CheckboxSetting("ShowRealtimeClock".Translate().ToString(), () => Prefs.ShowRealtimeClock, v => Prefs.ShowRealtimeClock = v));
+            ui.Settings.Add(new CheckboxSetting("TwelveHourClockMode".Translate().ToString(), () => Prefs.TwelveHourClockMode, v => Prefs.TwelveHourClockMode = v));
+            ui.Settings.Add(new CheckboxSetting("HatsShownOnlyOnMap".Translate().ToString(), () => Prefs.HatsOnlyOnMap, v => Prefs.HatsOnlyOnMap = v));
 
             if (!SteamDeck.IsSteamDeck)
             {
-                ui.Settings.Add(new CheckboxSetting("Disable Tiny Text", () => Prefs.DisableTinyText, v => {
+                ui.Settings.Add(new CheckboxSetting("DisableTinyText".Translate().ToString(), () => Prefs.DisableTinyText, v => {
                     Prefs.DisableTinyText = v;
                     Widgets.ClearLabelCache();
                     GenUI.ClearLabelWidthCache();
@@ -587,30 +596,30 @@ namespace RimWorldAccess
                 }));
             }
 
-            ui.Settings.Add(new CheckboxSetting("Custom Cursor", () => !Prefs.CustomCursorEnabled, v => Prefs.CustomCursorEnabled = !v));
-            ui.Settings.Add(new CheckboxSetting("Visible Mood", () => Prefs.VisibleMood, v => Prefs.VisibleMood = v));
+            ui.Settings.Add(new CheckboxSetting("CustomCursor".Translate().ToString(), () => !Prefs.CustomCursorEnabled, v => Prefs.CustomCursorEnabled = !v));
+            ui.Settings.Add(new CheckboxSetting("VisibleMood".Translate().ToString(), () => Prefs.VisibleMood, v => Prefs.VisibleMood = v, "VisibleMoodDesc".Translate().ToString()));
             categories.Add(ui);
 
             // Controls Category
-            var controls = new OptionCategory("Controls");
-            controls.Settings.Add(new SliderSetting("Map Drag Sensitivity", () => Prefs.MapDragSensitivity, v => Prefs.MapDragSensitivity = v, 0.8f, 2.5f, 0.05f, true));
-            controls.Settings.Add(new CheckboxSetting("Edge Screen Scroll", () => Prefs.EdgeScreenScroll, v => Prefs.EdgeScreenScroll = v));
-            controls.Settings.Add(new CheckboxSetting("Zoom To Mouse", () => Prefs.ZoomToMouse, v => Prefs.ZoomToMouse = v));
-            controls.Settings.Add(new CheckboxSetting("Zoom Switch World Layer", () => Prefs.ZoomSwitchWorldLayer, v => Prefs.ZoomSwitchWorldLayer = v));
-            controls.Settings.Add(new CheckboxSetting("Remember Draw Styles", () => Prefs.RememberDrawStlyes, v => Prefs.RememberDrawStlyes = v));
+            var controls = new OptionCategory(OptionCategoryDefOf.Controls.LabelCap.ToString());
+            controls.Settings.Add(new SliderSetting("MapDragSensitivity".Translate().ToString(), () => Prefs.MapDragSensitivity, v => Prefs.MapDragSensitivity = v, 0.8f, 2.5f, 0.05f, true));
+            controls.Settings.Add(new CheckboxSetting("EdgeScreenScroll".Translate().ToString(), () => Prefs.EdgeScreenScroll, v => Prefs.EdgeScreenScroll = v));
+            controls.Settings.Add(new CheckboxSetting("ZoomToMouse".Translate().ToString(), () => Prefs.ZoomToMouse, v => Prefs.ZoomToMouse = v));
+            controls.Settings.Add(new CheckboxSetting("ZoomSwitchLayer".Translate().ToString(), () => Prefs.ZoomSwitchWorldLayer, v => Prefs.ZoomSwitchWorldLayer = v, "ZoomSwitchLayer_Tooltip".Translate().ToString()));
+            controls.Settings.Add(new CheckboxSetting("RememberDrawStyle".Translate().ToString(), () => Prefs.RememberDrawStlyes, v => Prefs.RememberDrawStlyes = v, "RememberDrawStyle_Tooltip".Translate().ToString()));
             categories.Add(controls);
 
             // Dev Category (only if dev mode enabled)
             if (Prefs.DevMode)
             {
-                var dev = new OptionCategory("Dev");
-                dev.Settings.Add(new CheckboxSetting("Test Map Sizes", () => Prefs.TestMapSizes, v => Prefs.TestMapSizes = v));
-                dev.Settings.Add(new CheckboxSetting("Log Verbose", () => Prefs.LogVerbose, v => Prefs.LogVerbose = v));
-                dev.Settings.Add(new CheckboxSetting("Reset Mods Config On Crash", () => Prefs.ResetModsConfigOnCrash, v => Prefs.ResetModsConfigOnCrash = v));
-                dev.Settings.Add(new CheckboxSetting("Disable QuickStart Crypto Sickness", () => Prefs.DisableQuickStartCryptoSickness, v => Prefs.DisableQuickStartCryptoSickness = v));
-                dev.Settings.Add(new CheckboxSetting("Start Dev Palette On", () => Prefs.StartDevPaletteOn, v => Prefs.StartDevPaletteOn = v));
-                dev.Settings.Add(new CheckboxSetting("Open Log On Warnings", () => Prefs.OpenLogOnWarnings, v => Prefs.OpenLogOnWarnings = v));
-                dev.Settings.Add(new CheckboxSetting("Close Log Window On Escape", () => Prefs.CloseLogWindowOnEscape, v => Prefs.CloseLogWindowOnEscape = v));
+                var dev = new OptionCategory(OptionCategoryDefOf.Dev.LabelCap.ToString());
+                dev.Settings.Add(new CheckboxSetting("EnableTestMapSizes".Translate().ToString(), () => Prefs.TestMapSizes, v => Prefs.TestMapSizes = v));
+                dev.Settings.Add(new CheckboxSetting("LogVerbose".Translate().ToString(), () => Prefs.LogVerbose, v => Prefs.LogVerbose = v));
+                dev.Settings.Add(new CheckboxSetting("ResetModsConfigOnCrash".Translate().ToString(), () => Prefs.ResetModsConfigOnCrash, v => Prefs.ResetModsConfigOnCrash = v));
+                dev.Settings.Add(new CheckboxSetting("DisableQuickStartCryptoSickness".Translate().ToString(), () => Prefs.DisableQuickStartCryptoSickness, v => Prefs.DisableQuickStartCryptoSickness = v));
+                dev.Settings.Add(new CheckboxSetting("StartDevPaletteOn".Translate().ToString(), () => Prefs.StartDevPaletteOn, v => Prefs.StartDevPaletteOn = v));
+                dev.Settings.Add(new CheckboxSetting("OpenLogOnWarnings".Translate().ToString(), () => Prefs.OpenLogOnWarnings, v => Prefs.OpenLogOnWarnings = v));
+                dev.Settings.Add(new CheckboxSetting("CloseLogWindowOnEscape".Translate().ToString(), () => Prefs.CloseLogWindowOnEscape, v => Prefs.CloseLogWindowOnEscape = v));
                 categories.Add(dev);
             }
 
@@ -625,10 +634,33 @@ namespace RimWorldAccess
             accessSettings.Settings.Add(new CheckboxSetting("Show Pawn Activity on Map",
                 () => RimWorldAccessMod_Settings.Settings?.ShowPawnActivityOnMap ?? true,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.ShowPawnActivityOnMap = v; }));
+            accessSettings.Settings.Add(new CheckboxSetting("Show Cover Info for Drafted and Hostile Pawns",
+                () => RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.ShowCoverInfo = v; }));
+            accessSettings.Settings.Add(new CheckboxSetting("Announce Terrain on Cursor Movement",
+                () => RimWorldAccessMod_Settings.Settings?.AnnounceTerrain ?? true,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.AnnounceTerrain = v; }));
+            accessSettings.Settings.Add(new CheckboxSetting("Announce Depth Levels in Treeviews",
+                () => RimWorldAccessMod_Settings.Settings?.AnnounceLevels ?? true,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.AnnounceLevels = v; }));
+            accessSettings.Settings.Add(new CheckboxSetting("Rashad Hates Treeviews (Submenu-Style Navigation)",
+                () => RimWorldAccessMod_Settings.Settings?.SubmenuTreeNavigation ?? false,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.SubmenuTreeNavigation = v; },
+                "Changes how treeviews work. When you expand a category, it disappears and you navigate only its items. Press Left Arrow to go back. Your position is remembered when you return."));
+            accessSettings.Settings.Add(new EnumSetting<WorkMenuView>("Default Work Menu View (F1)",
+                () => RimWorldAccessMod_Settings.Settings?.DefaultWorkMenuView ?? WorkMenuView.Focused,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.DefaultWorkMenuView = v; },
+                v => v == WorkMenuView.Focused
+                    ? "Priority-grouped per-pawn view."
+                    : "Pawn rows by work-type columns; mirrors vanilla and supports sorting and painting."));
+            accessSettings.Settings.Add(new CheckboxSetting("Announce Forced Slowdowns From Threats",
+                () => RimWorldAccessMod_Settings.Settings?.AnnounceForcedSlowdowns ?? false,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.AnnounceForcedSlowdowns = v; },
+                "When on, announces when the game forces Normal speed because of a nearby threat, and when the slowdown lifts. Only fires if your chosen speed is faster than Normal."));
             categories.Add(accessSettings);
 
             // Mod Settings Category - list all mods that have settings
-            var modSettings = new OptionCategory("Mod Settings");
+            var modSettings = new OptionCategory("ModSettings".Translate().ToString());
             foreach (Mod mod in LoadedModManager.ModHandles)
             {
                 if (!mod.SettingsCategory().NullOrEmpty())
@@ -670,15 +702,24 @@ namespace RimWorldAccess
         private abstract class OptionSetting
         {
             public string Name { get; }
+            public string Tooltip { get; }
 
-            protected OptionSetting(string name)
+            protected OptionSetting(string name, string tooltip = null)
             {
                 Name = name;
+                Tooltip = tooltip;
             }
 
             public abstract string GetAnnouncement();
             public abstract void Toggle();
             public abstract void Adjust(int direction);
+
+            protected string AppendTooltip(string announcement)
+            {
+                if (!string.IsNullOrEmpty(Tooltip))
+                    return $"{announcement}. {Tooltip}";
+                return announcement;
+            }
         }
 
         /// <summary>
@@ -689,8 +730,8 @@ namespace RimWorldAccess
             private readonly Func<bool> getter;
             private readonly Action<bool> setter;
 
-            public CheckboxSetting(string name, Func<bool> getter, Action<bool> setter)
-                : base(name)
+            public CheckboxSetting(string name, Func<bool> getter, Action<bool> setter, string tooltip = null)
+                : base(name, tooltip)
             {
                 this.getter = getter;
                 this.setter = setter;
@@ -699,7 +740,8 @@ namespace RimWorldAccess
             public override string GetAnnouncement()
             {
                 bool value = getter();
-                return $"{Name}: {(value ? "On" : "Off")}";
+                string onOff = value ? "On".Translate().ToString() : "Off".Translate().ToString();
+                return AppendTooltip($"{Name}: {onOff}");
             }
 
             public override void Toggle()
@@ -727,8 +769,8 @@ namespace RimWorldAccess
             private readonly float step;
             private readonly bool showAsPercentage;
 
-            public SliderSetting(string name, Func<float> getter, Action<float> setter, float min, float max, float step, bool showAsPercentage)
-                : base(name)
+            public SliderSetting(string name, Func<float> getter, Action<float> setter, float min, float max, float step, bool showAsPercentage, string tooltip = null)
+                : base(name, tooltip)
             {
                 this.getter = getter;
                 this.setter = setter;
@@ -743,11 +785,11 @@ namespace RimWorldAccess
                 float value = getter();
                 if (showAsPercentage)
                 {
-                    return $"{Name}: {Mathf.RoundToInt(value * 100)}%";
+                    return AppendTooltip($"{Name}: {Mathf.RoundToInt(value * 100)}%");
                 }
                 else
                 {
-                    return $"{Name}: {value:F1}";
+                    return AppendTooltip($"{Name}: {value:F1}");
                 }
             }
 
@@ -772,20 +814,36 @@ namespace RimWorldAccess
         {
             private readonly Func<T> getter;
             private readonly Action<T> setter;
+            private readonly Func<T, string> valueTooltip;
             private readonly T[] values;
 
-            public EnumSetting(string name, Func<T> getter, Action<T> setter)
-                : base(name)
+            public EnumSetting(string name, Func<T> getter, Action<T> setter, string tooltip = null)
+                : base(name, tooltip)
             {
                 this.getter = getter;
                 this.setter = setter;
                 this.values = (T[])Enum.GetValues(typeof(T));
             }
 
+            public EnumSetting(string name, Func<T> getter, Action<T> setter, Func<T, string> valueTooltip)
+                : base(name, null)
+            {
+                this.getter = getter;
+                this.setter = setter;
+                this.valueTooltip = valueTooltip;
+                this.values = (T[])Enum.GetValues(typeof(T));
+            }
+
             public override string GetAnnouncement()
             {
                 T current = getter();
-                return $"{Name}: {current}";
+                string announcement = $"{Name}: {current}";
+                if (valueTooltip != null)
+                {
+                    string vt = valueTooltip(current);
+                    return string.IsNullOrEmpty(vt) ? announcement : $"{announcement}. {vt}";
+                }
+                return AppendTooltip(announcement);
             }
 
             public override void Toggle()
@@ -810,8 +868,8 @@ namespace RimWorldAccess
             private readonly Func<string> valueGetter;
             private readonly Action onActivate;
 
-            public ButtonSetting(string name, Func<string> valueGetter, Action onActivate)
-                : base(name)
+            public ButtonSetting(string name, Func<string> valueGetter, Action onActivate, string tooltip = null)
+                : base(name, tooltip)
             {
                 this.valueGetter = valueGetter;
                 this.onActivate = onActivate;
@@ -819,7 +877,7 @@ namespace RimWorldAccess
 
             public override string GetAnnouncement()
             {
-                return $"{Name}: {valueGetter()}";
+                return AppendTooltip($"{Name}: {valueGetter()}");
             }
 
             public override void Toggle()
@@ -844,8 +902,8 @@ namespace RimWorldAccess
             private readonly Action<int> indexSetter;
             private readonly List<string> choiceLabels;
 
-            public ChoiceSetting(string name, Func<int> currentIndexGetter, Action<int> indexSetter, List<string> choiceLabels)
-                : base(name)
+            public ChoiceSetting(string name, Func<int> currentIndexGetter, Action<int> indexSetter, List<string> choiceLabels, string tooltip = null)
+                : base(name, tooltip)
             {
                 this.currentIndexGetter = currentIndexGetter;
                 this.indexSetter = indexSetter;
@@ -857,9 +915,9 @@ namespace RimWorldAccess
                 int index = currentIndexGetter();
                 if (index >= 0 && index < choiceLabels.Count)
                 {
-                    return $"{Name}: {choiceLabels[index]}";
+                    return AppendTooltip($"{Name}: {choiceLabels[index]}");
                 }
-                return $"{Name}: Unknown";
+                return AppendTooltip($"{Name}: Unknown");
             }
 
             public override void Toggle()

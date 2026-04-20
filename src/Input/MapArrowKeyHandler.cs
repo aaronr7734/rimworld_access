@@ -22,9 +22,10 @@ namespace RimWorldAccess
         /// <returns>True if the key was handled, false otherwise</returns>
         public static bool HandleArrowKey(KeyCode key, bool ctrlHeld, bool shiftHeld)
         {
-            // Handle Shift+Up/Down for jump mode cycling
-            // NOTE: Jump mode cycling now works EVERYWHERE including zone creation mode
-            // (previously blocked by incorrect blockJumpModeCycling check)
+            // Handle Shift+arrow for jump mode adjustments.
+            // Shift+Up/Down cycles jump modes; Shift+Left/Right adjusts preset distance.
+            // These adjustments must NEVER move the cursor or camera — the user is only
+            // configuring the jump, not performing it.
             if (shiftHeld)
             {
                 if (key == KeyCode.UpArrow)
@@ -37,19 +38,19 @@ namespace RimWorldAccess
                     MapNavigationState.CycleJumpModeBackward();
                     return true;
                 }
-                // Shift+Left/Right adjusts preset distance (only in PresetDistance mode)
-                else if (MapNavigationState.CurrentJumpMode == JumpMode.PresetDistance)
+                else if (key == KeyCode.LeftArrow || key == KeyCode.RightArrow)
                 {
-                    if (key == KeyCode.LeftArrow)
+                    // Preset distance adjustment applies only in PresetDistance mode;
+                    // in other modes we still consume the key so the cursor stays put.
+                    if (MapNavigationState.CurrentJumpMode == JumpMode.PresetDistance)
                     {
-                        MapNavigationState.DecreasePresetDistance();
-                        return true;
+                        int step = ctrlHeld ? 10 : 1;
+                        if (key == KeyCode.LeftArrow)
+                            MapNavigationState.DecreasePresetDistance(step);
+                        else
+                            MapNavigationState.IncreasePresetDistance(step);
                     }
-                    else if (key == KeyCode.RightArrow)
-                    {
-                        MapNavigationState.IncreasePresetDistance();
-                        return true;
-                    }
+                    return true;
                 }
             }
 
@@ -214,6 +215,12 @@ namespace RimWorldAccess
         /// </summary>
         private static string AddContextPrefix(string tileInfo, IntVec3 position)
         {
+            // Jump targeting mode - announce per-tile jump validity
+            if (JumpTargetingState.IsActive)
+            {
+                return JumpTargetingState.GetJumpValidityPrefix(position) + tileInfo;
+            }
+
             // Zone creation mode - single tile selection
             if (ZoneCreationState.IsInCreationMode &&
                 ZoneCreationState.SelectionMode == ZoneSelectionMode.SingleTile &&
@@ -311,6 +318,16 @@ namespace RimWorldAccess
                     position.InBounds(targetArea.Map) && targetArea[position])
                 {
                     return "In area, " + tileInfo;
+                }
+            }
+
+            // Substructure overlay - check engine's overlay toggle and announce disconnected tiles
+            SubstructureOverlayState.CheckOverlayState();
+            if (SubstructureOverlayState.IsOverlayActive(Find.CurrentMap))
+            {
+                if (SubstructureOverlayState.IsDisconnectedAt(position, Find.CurrentMap))
+                {
+                    tileInfo = "Disconnected, " + tileInfo;
                 }
             }
 

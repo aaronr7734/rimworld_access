@@ -60,7 +60,7 @@ Mods\
 
 ### Step 3: Enable the Mods
 
-Since RimWorld's mod menu is not accessible until the mod is installed, you must manually edit the mods configuration file.
+Since RimWorld's mod menu is not accessible with a screen reader, you must manually edit the mods configuration file.
 
 1. Close RimWorld if it is running
 2. Open the ModsConfig.xml file in a text editor. The file is located at:
@@ -96,8 +96,10 @@ Launch RimWorld. The mod will automatically initialize and you should hear your 
 | Key | Action |
 |-----|--------|
 | Arrow Keys | Navigate menu options |
+| Tab | Switch between main options and ideology presets (Ideology DLC) |
 | Enter | Select menu item |
 
+**Ideology Selection (Ideology DLC):** Full keyboard navigation with Tab to toggle between main options and preset browsing, Up/Down to navigate options.
 
 ## Map Navigation
 
@@ -108,7 +110,6 @@ Launch RimWorld. The mod will automatically initialize and you should hear your 
 | I | Open colony inventory |
 | Enter | Open inspect panel |
 | Escape | Open pause menu |
-| Control + g | Go to coordinates. 
 
 Tiles announce: pawns, buildings, orders (blueprints, jobs), items, plants, terrain, zone, roof status, and coordinates.
 
@@ -138,12 +139,13 @@ Tiles announce: pawns, buildings, orders (blueprints, jobs), items, plants, terr
 
 | Key | Action |
 |-----|--------|
-| Tab | Open architect menu (select category → tool → material → place with Space) |
+| A | Open architect menu (select category → tool → material → place with Space) |
 | Type letters | Typeahead search in architect menu (prioritizes name matches) |
-| Tab | Toggle shape mode for zones/orders |
-| Space | Place building or set corners shape mode / toggle tile (single mode) |
+| Tab | Toggle selection mode (box-selection ↔ single tile) for zones/orders |
+| Space | Place building or set corners (box mode) / toggle tile (single mode) |
 | Shift+Space | Cancel blueprint at cursor position |
 | R | Rotate building |
+| Left | Collapse to parent category (tree menus) |
 
 ### Building Placement Information
 
@@ -153,12 +155,26 @@ When placing buildings, helpful spatial information is announced:
 - **Coolers** announce hot side and cold side orientation
 - **Wind turbines** announce the clear area requirements
 - **Transport pod launchers** announce fuel port location relative to the cursor
-- **Enclosures** Announce what is contained within the enclosure, I.E stumps, trees, etc, and alert you if gaps are present. 
+
 After placing a blueprint, navigating over it announces information as if the building were complete. This allows verification of orientation before construction begins. Use **Shift+Space** to remove and reposition a blueprint if needed.
 
-### Shape support for architect tab
-Tab will open a list of pre-defined shapes that you can use to place blueprints, orders or create zones.  Space sets the corners, and enter confirms once they have been selected.  From their, viewing mode is available, so you can preview the placed shape, and edit it in manual mode.  
-Manual mode is still an option in the shapes menu, allowing you to place items manually if you wish.  
+### Selection Modes for Zones and Orders
+
+When creating zones (stockpiles, growing zones, home areas) or placing multi-cell orders (mining, cutting, etc.), you can switch between two selection modes:
+
+**Box-Selection Mode (Default):**
+- Press Space to set the first corner
+- Navigate with arrow keys to the opposite corner (preview updates automatically)
+- Press Space again to confirm the rectangle
+- Can place multiple rectangles before confirming with Enter
+
+**Single Tile Mode:**
+- Press Tab to switch to this mode
+- Press Space to toggle individual tiles on/off at the cursor position
+- Each toggle announces "Selected" or "Deselected" with coordinates and total count
+- Press Enter when done to create the zone/order
+
+Press Tab at any time to switch between modes.
 
 ## Colonist Actions
 
@@ -174,7 +190,6 @@ Manual mode is still an option in the shapes menu, allowing you to place items m
 | Alt+N | Display needs |
 | Alt+H | Display health (detailed condition info) |
 | Alt+B | Quick combat log dump |
-| alt + g | Read equipped gear and apparel. 
 | Alt+F | Unforbid all items on map |
 | F1 | Work menu |
 | F2 | Schedule menu |
@@ -182,6 +197,7 @@ Manual mode is still an option in the shapes menu, allowing you to place items m
 
 
 **Inspection Menu (Enter):** Access pawn details including:
+- **Job Queue** category: View and cancel queued jobs (Delete key)
 - **Log** category: Combat log and social log with timestamps and jump-to-target
 - Health, equipment, records, and more
 
@@ -272,7 +288,8 @@ Press **F8** to toggle between the colony map and world map views.
 |-----|--------|
 | Arrow Keys | Navigate tiles (Up=North, Down=South, Left=West, Right=East) |
 | 1-5 | Detailed tile information |
-| Enter | Inspect tile or caravan |
+| I | Inspect tile or caravan |
+| S | Settlement browser |
 | R | Open route planner |
 | C | Form caravan (at colony) |
 | G | Open gizmos (when caravan is stopped) |
@@ -477,7 +494,7 @@ The gizmo menu is for what the caravan does where it currently is, while the ord
 
 When ready to leave a temporary camp or quest location:
 
-1. Press **Shift+C** to reform the caravan
+1. Press **C** to reform the caravan
 2. Use the formation screen to select pawns and items
 3. Press **Alt+S** to finalize
 
@@ -731,10 +748,10 @@ Quantities can be adjusted directly in this tab using the same controls.
 
 | Key | Action |
 |-----|--------|
-| L | View alerts and letters ] key to delete letters) |
+| L | View alerts and letters (Delete key to delete letters) |
 | F6 | Research menu (with tree navigation and typeahead) |
 | F7 | Quest menu |
-| Delete | Delete save file (in save/load menu)  |
+| Delete | Delete save file (in save/load menu) or letter (in alerts menu) |
 
 
 ## Mod Manager

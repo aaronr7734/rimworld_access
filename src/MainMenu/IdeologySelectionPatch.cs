@@ -1,211 +1,289 @@
+using System;
+using System.Reflection;
 using HarmonyLib;
 using RimWorld;
-using System.Reflection;
 using UnityEngine;
 using Verse;
+using Verse.Sound;
 
 namespace RimWorldAccess
 {
-    /// <summary>
-    /// Harmony patches for Page_ChooseIdeoPreset to add keyboard accessibility.
-    /// Only applies when Ideology DLC is active.
-    /// </summary>
-    [HarmonyPatch]
+    [HarmonyPatch(typeof(Page_ChooseIdeoPreset), "DoWindowContents")]
     public static class IdeologySelectionPatch
     {
-        private static bool patchActive = false;
         private static bool hasAnnouncedTitle = false;
 
-        /// <summary>
-        /// Only patch if Ideology DLC is active and the class exists.
-        /// </summary>
-        static bool Prepare()
+        // Cached reflection fields (initialized once)
+        private static Type presetSelectionEnumType;
+        private static FieldInfo presetSelectionField;
+        private static FieldInfo selectedIdeoField;
+        private static FieldInfo selectedStructureField;
+
+        private static void EnsureReflectionCached()
         {
-            return ModsConfig.IdeologyActive;
+            if (presetSelectionEnumType != null)
+                return;
+
+            presetSelectionEnumType = AccessTools.Inner(typeof(Page_ChooseIdeoPreset), "PresetSelection");
+            presetSelectionField = AccessTools.Field(typeof(Page_ChooseIdeoPreset), "presetSelection");
+            selectedIdeoField = AccessTools.Field(typeof(Page_ChooseIdeoPreset), "selectedIdeo");
+            selectedStructureField = AccessTools.Field(typeof(Page_ChooseIdeoPreset), "selectedStructure");
         }
 
-        /// <summary>
-        /// Target the DoWindowContents method.
-        /// </summary>
-        static MethodBase TargetMethod()
-        {
-            var type = AccessTools.TypeByName("RimWorld.Page_ChooseIdeoPreset");
-            if (type == null)
-            {
-                Log.Warning("[RimWorld Access] Page_ChooseIdeoPreset not found - Ideology DLC may not be installed");
-                return null;
-            }
-            return AccessTools.Method(type, "DoWindowContents");
-        }
-
-        /// <summary>
-        /// Prefix: Initialize state and handle keyboard input.
-        /// IMPORTANT: Parameter must be named "inRect" to match the original method signature.
-        /// </summary>
-        static void Prefix(object __instance, Rect inRect)
+        static bool Prefix(Page_ChooseIdeoPreset __instance, Rect inRect)
         {
             try
             {
-                // Initialize navigation state
+                // Skip entire DoWindowContents while float menu is open.
+                // This prevents DoBottomButtons from processing Enter/Escape
+                // in the Page's IMGUI context (separate from UnifiedKeyboardPatch's context).
+                if (WindowlessFloatMenuState.IsActive)
+                    return false;
+
+                EnsureReflectionCached();
+
                 IdeologyNavigationState.Initialize();
 
-                // Announce window title and initial selection once
+                // First-time announcement
                 if (!hasAnnouncedTitle)
                 {
-                    string pageTitle = "Choose Your Ideoligion";
-                    string instructions = "Use Up/Down arrows to navigate, Tab to browse presets, Enter to confirm";
-                    TolkHelper.Speak($"{pageTitle}. {instructions}");
-
-                    // Announce the first option after a brief delay
                     hasAnnouncedTitle = true;
-
-                    // Announce initial selection after a brief delay
-                    LongEventHandler.ExecuteWhenFinished(() =>
-                    {
-                        string description = IdeoPresetCategoryDefOf.Classic.description;
-                        TolkHelper.Speak($"Play Classic - {description}");
-                    });
+                    TolkHelper.Speak(IdeologyNavigationState.BuildOpeningAnnouncement());
                 }
 
                 // Handle keyboard input
                 if (Event.current.type == EventType.KeyDown)
                 {
-                    KeyCode keyCode = Event.current.keyCode;
+                    KeyCode key = Event.current.keyCode;
+                    bool shift = Event.current.shift;
+                    bool ctrl = Event.current.control;
+                    bool alt = KeyboardHelper.IsAltHeld;
 
-                    if (keyCode == KeyCode.Tab)
+                    bool handled = false;
+
+                    // === Shared keys (both tabs) ===
+
+                    // Tab / Shift+Tab — switch tabs
+                    if (key == KeyCode.Tab)
                     {
-                        // Toggle between main options and preset browsing
-                        IdeologyNavigationState.TogglePresetBrowsing();
-                        UpdatePageSelection(__instance);
-                        Event.current.Use();
-                        patchActive = true;
+                        IdeologyNavigationState.SwitchTab();
+                        handled = true;
                     }
-                    else if (keyCode == KeyCode.UpArrow)
+                    // Space — re-announce
+                    else if (key == KeyCode.Space && !alt && !ctrl)
                     {
-                        IdeologyNavigationState.NavigateUp();
-                        UpdatePageSelection(__instance);
-                        Event.current.Use();
-                        patchActive = true;
+                        if (IdeologyNavigationState.CurrentTab == 0)
+                            IdeologyNavigationState.AnnounceCurrentOption();
+                        else
+                            IdeologyNavigationState.AnnounceCurrentTreeItem();
+                        handled = true;
                     }
-                    else if (keyCode == KeyCode.DownArrow)
+                    // Alt+S — structure menu
+                    else if (key == KeyCode.S && alt && !ctrl)
                     {
-                        IdeologyNavigationState.NavigateDown();
-                        UpdatePageSelection(__instance);
+                        IdeologyNavigationState.OpenStructureMenu(__instance);
+                        handled = true;
+                    }
+                    // Alt+Y — style menu
+                    else if (key == KeyCode.Y && alt && !ctrl)
+                    {
+                        IdeologyNavigationState.OpenStyleMenu(__instance);
+                        handled = true;
+                    }
+                    // Delegate to current tab
+                    else if (IdeologyNavigationState.CurrentTab == 0)
+                    {
+                        handled = HandleOptionsInput(key, shift, ctrl, alt);
+                    }
+                    else
+                    {
+                        handled = HandlePresetsInput(key, shift, ctrl, alt);
+                    }
+
+                    // Always sync selection state so the page reflects our navigation,
+                    // especially before Enter passes through to trigger DoNext
+                    SyncPageSelection(__instance);
+
+                    if (handled)
+                    {
                         Event.current.Use();
-                        patchActive = true;
                     }
                 }
+
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Log.Error($"[RimWorld Access] Error in IdeologySelectionPatch Prefix: {ex}");
             }
+            return true; // Run original DoWindowContents
         }
 
-        /// <summary>
-        /// Postfix: Draw visual indicator of keyboard mode.
-        /// </summary>
-        static void Postfix(object __instance, Rect inRect)
+        private static bool HandleOptionsInput(KeyCode key, bool shift, bool ctrl, bool alt)
         {
-            try
+            if (key == KeyCode.UpArrow)
             {
-                if (!patchActive) return;
-
-                // Draw a simple indicator at the top
-                Rect indicatorRect = new Rect(inRect.x + 10f, inRect.y + 10f, 300f, 30f);
-                string modeText = "[Keyboard Navigation Active]";
-
-                // Draw semi-transparent background
-                Widgets.DrawBoxSolid(indicatorRect, new Color(0.2f, 0.2f, 0.2f, 0.8f));
-
-                // Draw text
-                Text.Font = GameFont.Small;
-                Text.Anchor = TextAnchor.MiddleCenter;
-                Widgets.Label(indicatorRect, modeText);
-                Text.Anchor = TextAnchor.UpperLeft;
+                IdeologyNavigationState.NavigateOptionUp();
+                return true;
             }
-            catch (System.Exception ex)
+            if (key == KeyCode.DownArrow)
             {
-                Log.Error($"[RimWorld Access] Error in IdeologySelectionPatch Postfix: {ex}");
+                IdeologyNavigationState.NavigateOptionDown();
+                return true;
             }
+            if (key == KeyCode.Home)
+            {
+                IdeologyNavigationState.NavigateOptionHome();
+                return true;
+            }
+            if (key == KeyCode.End)
+            {
+                IdeologyNavigationState.NavigateOptionEnd();
+                return true;
+            }
+            if (key == KeyCode.Escape)
+            {
+                if (IdeologyNavigationState.HasOptionsSearch)
+                {
+                    IdeologyNavigationState.ClearOptionsSearch();
+                    return true;
+                }
+                // Let game handle Escape (go back)
+                return false;
+            }
+            if (key == KeyCode.Backspace)
+            {
+                return IdeologyNavigationState.HandleOptionBackspace();
+            }
+
+            // Enter — do NOT consume, let game's Accept keybinding handle DoNext.
+            // Exception: if the current option is disabled (e.g. CustomFluid/CustomFixed
+            // which lack accessibility support), consume Enter and announce the reason
+            // so the user isn't dropped into an inaccessible page.
+            if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+            {
+                if (IdeologyNavigationState.IsCurrentOptionDisabled)
+                {
+                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                    string reason = IdeologyNavigationState.CurrentOptionDisabledReason;
+                    TolkHelper.Speak(string.IsNullOrEmpty(reason) ? "Unavailable" : reason);
+                    return true;
+                }
+                return false;
+            }
+
+            // Typeahead
+            if (!alt && !ctrl)
+            {
+                char c = Event.current.character;
+                if (c != '\0' && char.IsLetterOrDigit(c))
+                {
+                    return IdeologyNavigationState.HandleOptionTypeahead(c);
+                }
+            }
+
+            return false;
         }
 
-        /// <summary>
-        /// Updates the page's internal selection state using reflection.
-        /// </summary>
-        private static void UpdatePageSelection(object instance)
+        private static bool HandlePresetsInput(KeyCode key, bool shift, bool ctrl, bool alt)
         {
+            // Escape — clear search or let game handle
+            if (key == KeyCode.Escape)
+            {
+                if (IdeologyNavigationState.HasPresetsSearch)
+                {
+                    IdeologyNavigationState.ClearPresetsSearch();
+                    return true;
+                }
+                return false;
+            }
+
+            // Delegate all other input to TreeNavigationHelper via state
+            return IdeologyNavigationState.HandlePresetsInput(Event.current);
+        }
+
+        private static void SyncPageSelection(Page_ChooseIdeoPreset instance)
+        {
+            if (presetSelectionEnumType == null || presetSelectionField == null || selectedIdeoField == null)
+                return;
+
             try
             {
-                var instanceType = instance.GetType();
-
-                // Get the private fields
-                FieldInfo presetSelectionField = AccessTools.Field(instanceType, "presetSelection");
-                FieldInfo selectedIdeoField = AccessTools.Field(instanceType, "selectedIdeo");
-
-                if (presetSelectionField == null || selectedIdeoField == null)
+                if (IdeologyNavigationState.CurrentTab == 0) // Options tab
                 {
-                    Log.Warning("[RimWorld Access] Could not find required fields in Page_ChooseIdeoPreset");
-                    return;
-                }
-
-                // Get the selection type
-                string selectionType = IdeologyNavigationState.GetCurrentSelectionTypeString();
-
-                // Get the enum type and parse the value
-                System.Type presetSelectionEnumType = presetSelectionField.FieldType;
-                object presetSelectionValue = System.Enum.Parse(presetSelectionEnumType, selectionType);
-
-                // Update the page's presetSelection field
-                presetSelectionField.SetValue(instance, presetSelectionValue);
-
-                // Update the selectedIdeo field
-                if (selectionType == "Preset")
-                {
-                    IdeoPresetDef selectedPreset = IdeologyNavigationState.GetSelectedPreset();
-                    selectedIdeoField.SetValue(instance, selectedPreset);
-                }
-                else
-                {
+                    int enumValue = IdeologyNavigationState.CurrentOptionEnumValue;
+                    presetSelectionField.SetValue(instance, Enum.ToObject(presetSelectionEnumType, enumValue));
                     selectedIdeoField.SetValue(instance, null);
                 }
+                else // Presets tab
+                {
+                    IdeoPresetDef preset = IdeologyNavigationState.GetSelectedPresetDef();
+                    if (preset != null)
+                    {
+                        // Preset (enum value 4)
+                        presetSelectionField.SetValue(instance, Enum.ToObject(presetSelectionEnumType, 4));
+                        selectedIdeoField.SetValue(instance, preset);
+                    }
+                    else
+                    {
+                        // On a category node — safe default to Classic
+                        presetSelectionField.SetValue(instance, Enum.ToObject(presetSelectionEnumType, 0));
+                        selectedIdeoField.SetValue(instance, null);
+                    }
+                }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                Log.Error($"[RimWorld Access] Error updating page selection: {ex}");
+                Log.Error($"[RimWorld Access] Error syncing page selection: {ex}");
             }
         }
 
         public static void ResetAnnouncement()
         {
             hasAnnouncedTitle = false;
-            patchActive = false;
         }
     }
 
-    /// <summary>
-    /// Patch to reset state when the ideology selection page opens.
-    /// </summary>
-    [HarmonyPatch]
+    [HarmonyPatch(typeof(Page_ChooseIdeoPreset), "PostOpen")]
     public static class IdeologySelectionPatch_PostOpen
     {
-        static bool Prepare()
-        {
-            return ModsConfig.IdeologyActive;
-        }
-
-        static MethodBase TargetMethod()
-        {
-            var type = AccessTools.TypeByName("RimWorld.Page_ChooseIdeoPreset");
-            if (type == null) return null;
-            return AccessTools.Method(type, "PostOpen");
-        }
-
         [HarmonyPostfix]
-        static void Postfix()
+        static void Postfix(Page_ChooseIdeoPreset __instance)
         {
             IdeologySelectionPatch.ResetAnnouncement();
             IdeologyNavigationState.Reset();
+
+            // Restore IMGUI focus to this page. After closing certain dialogs,
+            // IMGUI focus may be lost, preventing DoWindowContents from receiving KeyDown events.
+            Find.WindowStack.Notify_ManuallySetFocus(__instance);
+        }
+    }
+
+    // Safety net: block DoNext for CustomFluid (1), CustomFixed (2), and Load (3)
+    // since the pages/dialogs they lead to don't yet have accessibility support.
+    // This catches mouse clicks and any Enter paths that bypass UnifiedKeyboardPatch.
+    [HarmonyPatch(typeof(Page_ChooseIdeoPreset), "DoNext")]
+    public static class IdeologySelectionPatch_DoNextBlock
+    {
+        [HarmonyPrefix]
+        public static bool Prefix(Page_ChooseIdeoPreset __instance)
+        {
+            try
+            {
+                var presetSelectionField = AccessTools.Field(typeof(Page_ChooseIdeoPreset), "presetSelection");
+                int value = Convert.ToInt32(presetSelectionField.GetValue(__instance));
+                // 1 = CustomFluid, 2 = CustomFixed, 3 = Load
+                if (value == 1 || value == 2 || value == 3)
+                {
+                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                    TolkHelper.Speak("Accessibility coming soon");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[RimWorld Access] Error in IdeologySelectionPatch_DoNextBlock: {ex}");
+            }
+            return true;
         }
     }
 }

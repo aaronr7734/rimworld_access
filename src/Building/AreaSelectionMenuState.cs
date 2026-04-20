@@ -84,14 +84,14 @@ namespace RimWorldAccess
         public static void SelectNext()
         {
             if (TotalOptions == 0) return;
-            selectedIndex = (selectedIndex + 1) % TotalOptions;
+            selectedIndex = MenuHelper.SelectNext(selectedIndex, TotalOptions);
             AnnounceCurrentSelection();
         }
 
         public static void SelectPrevious()
         {
             if (TotalOptions == 0) return;
-            selectedIndex = (selectedIndex - 1 + TotalOptions) % TotalOptions;
+            selectedIndex = MenuHelper.SelectPrevious(selectedIndex, TotalOptions);
             AnnounceCurrentSelection();
         }
 
@@ -305,20 +305,22 @@ namespace RimWorldAccess
 
             if (isLetter || isNumber)
             {
-                char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                var labels = GetAreaLabels();
-                if (typeaheadHelper.ProcessCharacterInput(c, labels, out int newIndex))
+                TypeaheadCharacterBuffer.RequestCharacter(c =>
                 {
-                    if (newIndex >= 0)
+                    var labels = GetAreaLabels();
+                    if (typeaheadHelper.ProcessCharacterInput(c, labels, out int newIndex))
                     {
-                        selectedIndex = newIndex;
-                        AnnounceWithSearch();
+                        if (newIndex >= 0)
+                        {
+                            selectedIndex = newIndex;
+                            AnnounceWithSearch();
+                        }
                     }
-                }
-                else
-                {
-                    TolkHelper.Speak($"No matches for '{typeaheadHelper.LastFailedSearch}'");
-                }
+                    else
+                    {
+                        TolkHelper.Speak($"No matches for '{typeaheadHelper.LastFailedSearch}'");
+                    }
+                });
                 return true;
             }
 

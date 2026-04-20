@@ -5,12 +5,16 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <!-- RimWorld install path - only used for deployment (override in GamePaths.props for custom locations) -->
+    <!-- RimWorld install path - auto-detected per platform (override in GamePaths.props for custom locations) -->
+    <RimWorldDir Condition="'$(RimWorldDir)'=='' And $([MSBuild]::IsOSPlatform('OSX'))">$(HOME)/Library/Application Support/Steam/steamapps/common/RimWorld/RimWorldMac.app</RimWorldDir>
+    <RimWorldDir Condition="'$(RimWorldDir)'=='' And $([MSBuild]::IsOSPlatform('Linux'))">$(HOME)/.steam/steam/steamapps/common/RimWorld</RimWorldDir>
     <RimWorldDir Condition="'$(RimWorldDir)'==''">C:\Program Files (x86)\Steam\steamapps\common\RimWorld</RimWorldDir>
     <!-- Mod output folder -->
-    <ModOutputDir>$(RimWorldDir)\Mods\RimWorldAccess</ModOutputDir>
+    <ModOutputDir>$([System.IO.Path]::Combine('$(RimWorldDir)', 'Mods', 'RimWorldAccess'))</ModOutputDir>
     <!-- Disable default compile includes to avoid picking up decompiled game source -->
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <!-- Native Prism library directory (shared across worktrees) -->
+    <NativeDir>$(ProjectDir)..\shared\native</NativeDir>
   </PropertyGroup>
 
   <!-- Explicitly include only our source files -->
@@ -25,12 +29,15 @@
     <EmbeddedResource Include="Sounds\**\*.mp3" />
   </ItemGroup>
 
-  <!-- Include native DLLs for deployment (NOT as references) -->
-  <ItemGroup>
-    <None Include="Tolk.dll">
+  <!-- Include native Prism libraries for deployment (NOT as references) -->
+  <ItemGroup Condition="'$(NativeDir)'!=''">
+    <None Include="$(NativeDir)\prism.dll" Condition="Exists('$(NativeDir)\prism.dll')">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
-    <None Include="nvdaControllerClient64.dll">
+    <None Include="$(NativeDir)\libprism.dylib" Condition="Exists('$(NativeDir)\libprism.dylib')">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Include="$(NativeDir)\libprism.so" Condition="Exists('$(NativeDir)\libprism.so')">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -72,23 +79,24 @@
       DestinationFolder="$(ModOutputDir)\Assemblies\"
     />
 
-    <!-- Copy native DLLs to mod root (for P/Invoke) -->
+    <!-- Copy native Prism libraries to mod root (for runtime loading) -->
     <Copy
-      SourceFiles="$(ProjectDir)Tolk.dll"
+      SourceFiles="$(NativeDir)\prism.dll"
       DestinationFolder="$(ModOutputDir)\"
+      Condition="'$(NativeDir)'!='' And Exists('$(NativeDir)\prism.dll')"
     />
     <Copy
-      SourceFiles="$(ProjectDir)nvdaControllerClient64.dll"
+      SourceFiles="$(NativeDir)\libprism.dylib"
       DestinationFolder="$(ModOutputDir)\"
+      Condition="'$(NativeDir)'!='' And Exists('$(NativeDir)\libprism.dylib')"
+    />
+    <Copy
+      SourceFiles="$(NativeDir)\libprism.so"
+      DestinationFolder="$(ModOutputDir)\"
+      Condition="'$(NativeDir)'!='' And Exists('$(NativeDir)\libprism.so')"
     />
 
     <Message Text="--- Mod deployed successfully ---" Importance="high" />
-  </Target>
-
-  <!-- Build the MarkdownConverter tool before creating release package -->
-  <Target Name="BuildMarkdownConverter" BeforeTargets="Release" Condition="'$(Configuration)' == 'Release'">
-    <Message Text="--- Building MarkdownConverter tool ---" Importance="high" />
-    <Exec Command="dotnet build &quot;$(ProjectDir)tools\MarkdownConverter\MarkdownConverter.csproj&quot; -c Release" />
   </Target>
 
   <!-- Release target -->
@@ -115,20 +123,27 @@
       DestinationFolder="$(ReleaseFolderPath)Assemblies\"
     />
 
-    <!-- Copy native DLLs to mod root -->
+    <!-- Copy native Prism libraries to mod root -->
     <Copy
-      SourceFiles="$(ProjectDir)Tolk.dll"
+      SourceFiles="$(NativeDir)\prism.dll"
       DestinationFolder="$(ReleaseFolderPath)"
+      Condition="'$(NativeDir)'!='' And Exists('$(NativeDir)\prism.dll')"
     />
     <Copy
-      SourceFiles="$(ProjectDir)nvdaControllerClient64.dll"
+      SourceFiles="$(NativeDir)\libprism.dylib"
       DestinationFolder="$(ReleaseFolderPath)"
+      Condition="'$(NativeDir)'!='' And Exists('$(NativeDir)\libprism.dylib')"
+    />
+    <Copy
+      SourceFiles="$(NativeDir)\libprism.so"
+      DestinationFolder="$(ReleaseFolderPath)"
+      Condition="'$(NativeDir)'!='' And Exists('$(NativeDir)\libprism.so')"
     />
 
-    <!-- Convert README.md to HTML using MarkdownConverter tool -->
-    <Message Text="Converting README.md to HTML..." Importance="high" Condition="Exists('$(ProjectDir)README.md')" />
-    <Exec
-      Command="&quot;$(ProjectDir)tools\MarkdownConverter\bin\Release\net472\MarkdownConverter.exe&quot; &quot;$(ProjectDir)README.md&quot; &quot;$(ReleaseFolderPath)README.html&quot;"
+    <!-- Copy README.md to release folder -->
+    <Copy
+      SourceFiles="$(ProjectDir)README.md"
+      DestinationFolder="$(ReleaseFolderPath)"
       Condition="Exists('$(ProjectDir)README.md')"
     />
 
@@ -140,6 +155,45 @@
     />
 
     <Message Text="--- Release package created at $(ReleaseFolderPath) ---" Importance="high" />
+  </Target>
+
+  <!-- Download latest Prism native libraries from GitHub into shared location -->
+  <Target Name="UpdatePrism">
+    <PropertyGroup>
+      <PrismDownloadDir>$(ProjectDir)..\shared\native</PrismDownloadDir>
+    </PropertyGroup>
+    <Message Text="Downloading latest Prism native libraries to $(PrismDownloadDir)..." Importance="high" />
+    <MakeDir Directories="$(PrismDownloadDir)" />
+
+    <!-- Windows x64 -->
+    <Exec Command="curl -sL &quot;https://github.com/ethindp/prism/releases/latest/download/prism-windows-x64.zip&quot; -o &quot;$(PrismDownloadDir)/prism-win.zip&quot;" />
+    <Exec Command="unzip -o &quot;$(PrismDownloadDir)/prism-win.zip&quot; -d &quot;$(PrismDownloadDir)/prism-win-tmp&quot;" />
+    <Copy SourceFiles="$(PrismDownloadDir)/prism-win-tmp/dynamic/release/bin/prism.dll" DestinationFiles="$(PrismDownloadDir)/prism.dll" />
+    <RemoveDir Directories="$(PrismDownloadDir)/prism-win-tmp" />
+    <Delete Files="$(PrismDownloadDir)/prism-win.zip" />
+
+    <!-- macOS universal -->
+    <Exec Command="curl -sL &quot;https://github.com/ethindp/prism/releases/latest/download/prism-macos-universal.zip&quot; -o &quot;$(PrismDownloadDir)/prism-mac.zip&quot;" />
+    <Exec Command="unzip -o &quot;$(PrismDownloadDir)/prism-mac.zip&quot; -d &quot;$(PrismDownloadDir)/prism-mac-tmp&quot;" />
+    <Copy SourceFiles="$(PrismDownloadDir)/prism-mac-tmp/dynamic/release/lib/libprism.dylib" DestinationFiles="$(PrismDownloadDir)/libprism.dylib" />
+    <RemoveDir Directories="$(PrismDownloadDir)/prism-mac-tmp" />
+    <Delete Files="$(PrismDownloadDir)/prism-mac.zip" />
+
+    <!-- Linux x64 -->
+    <Exec Command="curl -sL &quot;https://github.com/ethindp/prism/releases/latest/download/prism-linux-x64.zip&quot; -o &quot;$(PrismDownloadDir)/prism-linux.zip&quot;" />
+    <Exec Command="unzip -o &quot;$(PrismDownloadDir)/prism-linux.zip&quot; -d &quot;$(PrismDownloadDir)/prism-linux-tmp&quot;" />
+    <Copy SourceFiles="$(PrismDownloadDir)/prism-linux-tmp/dynamic/release/lib/libprism.so" DestinationFiles="$(PrismDownloadDir)/libprism.so" />
+    <RemoveDir Directories="$(PrismDownloadDir)/prism-linux-tmp" />
+    <Delete Files="$(PrismDownloadDir)/prism-linux.zip" />
+
+    <Message Text="Prism native libraries updated successfully." Importance="high" />
+  </Target>
+
+  <!-- Auto-download Prism on first build when native libraries are missing (skipped in CI) -->
+  <Target Name="BootstrapPrism" BeforeTargets="Build"
+          Condition="'$(CI)' != 'true' And !Exists('$(ProjectDir)..\shared\native\prism.dll')">
+    <Message Text="Native Prism libraries not found. Running first-time download..." Importance="high" />
+    <CallTarget Targets="UpdatePrism" />
   </Target>
 
 </Project>

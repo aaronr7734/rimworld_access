@@ -171,7 +171,7 @@ namespace RimWorldAccess
                     new FloatMenuOption("BuySoundtrack_Anomaly".Translate(), delegate { Application.OpenURL("https://store.steampowered.com/app/2914900/RimWorld__Anomaly_Soundtrack/"); }),
                     new FloatMenuOption("BuySoundtrack_Odyssey".Translate(), delegate { Application.OpenURL("https://store.steampowered.com/app/3689230/RimWorld__Odyssey_Soundtrack/"); })
                 };
-                Find.WindowStack.Add(new FloatMenu(options));
+                WindowlessFloatMenuState.Open(options, false);
             }));
         }
 
@@ -197,7 +197,7 @@ namespace RimWorldAccess
                 {
                     announcedMainMenu = true;
                     lastAnnouncedState = ProgramState.Entry;
-                    TolkHelper.Speak("Main menu", SpeechPriority.Normal);
+                    TolkHelper.Speak("GameOverMainMenu".Translate(), SpeechPriority.Normal);
                 }
                 else if (Current.ProgramState == ProgramState.Playing)
                 {
@@ -274,26 +274,27 @@ namespace RimWorldAccess
             }
 
             // Handle typeahead characters
-            // Use KeyCode instead of Event.current.character (which is empty in Unity IMGUI)
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
             if (isLetter || isNumber)
             {
-                char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                var labels = MenuNavigationState.GetCurrentColumnLabels();
-                if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
+                TypeaheadCharacterBuffer.RequestCharacter(c =>
                 {
-                    if (newIndex >= 0)
+                    var labels = MenuNavigationState.GetCurrentColumnLabels();
+                    if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
                     {
-                        MenuNavigationState.SetSelectedIndex(newIndex);
-                        MenuNavigationState.AnnounceWithSearch();
+                        if (newIndex >= 0)
+                        {
+                            MenuNavigationState.SetSelectedIndex(newIndex);
+                            MenuNavigationState.AnnounceWithSearch();
+                        }
                     }
-                }
-                else
-                {
-                    TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
-                }
+                    else
+                    {
+                        TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+                    }
+                });
                 Event.current.Use();
                 return;
             }

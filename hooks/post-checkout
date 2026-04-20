@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Auto-symlink .claude/ from the parent directory when creating a new worktree.
+# Git runs post-checkout after `git worktree add`.
+
+repo_root="$(git rev-parse --show-toplevel)"
+claude_dir="$repo_root/.claude"
+parent_claude="$(dirname "$repo_root")/.claude"
+
+# Only create symlink if:
+# 1. Parent has a .claude/ directory
+# 2. This worktree doesn't already have one (or has a broken symlink)
+if [ -d "$parent_claude" ] && [ ! -e "$claude_dir" ]; then
+    ln -s ../.claude "$claude_dir"
+fi

@@ -55,20 +55,30 @@ namespace RimWorldAccess
                 summary.Append(tile.PrimaryBiome.LabelCap);
             }
 
+            // Add landmark name (Odyssey DLC) - sighted players see this in inspect pane header
+            if (ModsConfig.OdysseyActive && tile.Landmark != null)
+            {
+                summary.Append($", {tile.Landmark.name}");
+            }
+
             // Add fuel cost right after biome (for transport pod targeting)
             if (!string.IsNullOrEmpty(fuelCostInfo))
             {
                 summary.Append($", {fuelCostInfo}");
             }
 
-            // Add hilliness
-            if (tile.hilliness != Hilliness.Impassable && tile.hilliness != Hilliness.Undefined)
+            // Add hilliness and temperature (surface layers only - orbit tiles have default/meaningless values)
+            bool isSpaceLayer = planetTile.LayerDef?.isSpace == true;
+            if (!isSpaceLayer)
             {
-                summary.Append($", {tile.hilliness.GetLabelCap()}");
-            }
+                if (tile.hilliness != Hilliness.Impassable && tile.hilliness != Hilliness.Undefined)
+                {
+                    summary.Append($", {tile.hilliness.GetLabelCap()}");
+                }
 
-            // Add temperature (average, respects user's temperature mode preference)
-            summary.Append($", {MenuHelper.FormatTemperature(tile.temperature, "F0")}");
+                // Add temperature (average, respects user's temperature mode preference)
+                summary.Append($", {MenuHelper.FormatTemperature(tile.temperature, "F0")}");
+            }
 
             // Check for world objects at this tile (excluding route planner waypoints - we handle those separately above)
             if (Find.WorldObjects != null)
@@ -90,7 +100,7 @@ namespace RimWorldAccess
                         {
                             if (settlement.Faction == Faction.OfPlayer)
                             {
-                                summary.Append(" (Player colony)");
+                                summary.Append($" ({Faction.OfPlayer.Name})");
                             }
                             else
                             {
@@ -98,8 +108,7 @@ namespace RimWorldAccess
                                 summary.Append($" ({settlement.Faction.Name}");
 
                                 // Relationship with goodwill (visible on inspect pane)
-                                string relationship = settlement.Faction.HostileTo(Faction.OfPlayer) ? "Hostile" :
-                                                     settlement.Faction.PlayerRelationKind.GetLabelCap();
+                                string relationship = settlement.Faction.PlayerRelationKind.GetLabelCap();
                                 int goodwill = settlement.Faction.PlayerGoodwill;
                                 string goodwillStr = goodwill >= 0 ? $"+{goodwill}" : goodwill.ToString();
                                 summary.Append($", {relationship} {goodwillStr}");
@@ -275,22 +284,27 @@ namespace RimWorldAccess
                 info.AppendLine($"Biome: {tile.PrimaryBiome.LabelCap}");
             }
 
-            // Hilliness
-            if (tile.hilliness != Hilliness.Undefined)
+            // Surface-only data (orbit tiles have default/meaningless values for these)
+            bool isSpaceLayer = planetTile.LayerDef?.isSpace == true;
+            if (!isSpaceLayer)
             {
-                info.AppendLine($"Hilliness: {tile.hilliness.GetLabelCap()}");
-            }
+                // Hilliness
+                if (tile.hilliness != Hilliness.Undefined)
+                {
+                    info.AppendLine($"Hilliness: {tile.hilliness.GetLabelCap()}");
+                }
 
-            // Elevation
-            info.AppendLine($"Elevation: {tile.elevation:F0}m");
+                // Elevation
+                info.AppendLine($"Elevation: {tile.elevation:F0}m");
 
-            // Temperature (respects user's temperature mode preference)
-            info.AppendLine($"Temperature: Average {MenuHelper.FormatTemperature(tile.temperature, "F0")}");
+                // Temperature (respects user's temperature mode preference)
+                info.AppendLine($"Temperature: Average {MenuHelper.FormatTemperature(tile.temperature, "F0")}");
 
-            // Pollution (if Biotech active)
-            if (ModsConfig.BiotechActive && tile.pollution > 0)
-            {
-                info.AppendLine($"Pollution: {tile.pollution:F0}%");
+                // Pollution (if Biotech active)
+                if (ModsConfig.BiotechActive && tile.pollution > 0)
+                {
+                    info.AppendLine($"Pollution: {tile.pollution:F0}%");
+                }
             }
 
             // World objects at this tile
@@ -313,13 +327,12 @@ namespace RimWorldAccess
                             {
                                 if (settlement.Faction == Faction.OfPlayer)
                                 {
-                                    info.Append(" (Player colony)");
+                                    info.Append($" ({Faction.OfPlayer.Name})");
                                 }
                                 else
                                 {
                                     // Only show what's visible on the world map inspect pane
-                                    string relationship = settlement.Faction.HostileTo(Faction.OfPlayer) ? "Hostile" :
-                                                         settlement.Faction.PlayerRelationKind.GetLabelCap();
+                                    string relationship = settlement.Faction.PlayerRelationKind.GetLabelCap();
                                     int goodwill = settlement.Faction.PlayerGoodwill;
                                     string goodwillStr = goodwill >= 0 ? $"+{goodwill}" : goodwill.ToString();
                                     info.AppendLine();
@@ -800,6 +813,9 @@ namespace RimWorldAccess
             if (!planetTile.Valid || Find.WorldGrid == null)
                 return "Invalid tile";
 
+            if (planetTile.LayerDef?.isSpace == true)
+                return "No growing information for space tiles.";
+
             Tile tile = planetTile.Tile;
             if (tile == null)
                 return "Unknown tile";
@@ -851,6 +867,9 @@ namespace RimWorldAccess
         {
             if (!planetTile.Valid || Find.WorldGrid == null)
                 return "Invalid tile";
+
+            if (planetTile.LayerDef?.isSpace == true)
+                return "No movement information for space tiles.";
 
             Tile tile = planetTile.Tile;
             if (tile == null)
@@ -976,6 +995,9 @@ namespace RimWorldAccess
             if (!planetTile.Valid || Find.WorldGrid == null)
                 return "Invalid tile";
 
+            if (planetTile.LayerDef?.isSpace == true)
+                return "No health information for space tiles.";
+
             Tile tile = planetTile.Tile;
             if (tile == null)
                 return "Unknown tile";
@@ -1061,14 +1083,24 @@ namespace RimWorldAccess
             StringBuilder info = new StringBuilder();
             bool hasContent = false;
 
-            // Mutators (Odyssey DLC)
+            // Mutators (Odyssey DLC) - show labels and descriptions
             if (tile.Mutators.Any())
             {
-                var mutatorLabels = tile.Mutators
+                var mutators = tile.Mutators
                     .OrderByDescending(m => m.displayPriority)
-                    .Select(m => m.Label(planetTile))
                     .ToList();
-                info.Append($"Tile features: {mutatorLabels.ToCommaList().CapitalizeFirst()}.");
+
+                var mutatorParts = new List<string>();
+                foreach (var m in mutators)
+                {
+                    string label = m.Label(planetTile);
+                    string desc = m.Description(planetTile);
+                    if (!string.IsNullOrEmpty(desc) && desc != label)
+                        mutatorParts.Add($"{label}: {desc}");
+                    else
+                        mutatorParts.Add(label);
+                }
+                info.Append($"Tile features: {string.Join(". ", mutatorParts)}.");
                 hasContent = true;
             }
 
@@ -1076,7 +1108,7 @@ namespace RimWorldAccess
             if (ModsConfig.OdysseyActive && tile.Landmark != null)
             {
                 if (hasContent) info.Append(" ");
-                info.Append($"Landmark: {tile.Landmark.name}.");
+                info.Append($"Landmark: {tile.Landmark.name}, {tile.Landmark.def.LabelCap}.");
                 hasContent = true;
             }
 

@@ -6,7 +6,7 @@ Generic dialog navigation and windowless menu systems used across all modules.
 ## Files
 **Patches:** DialogInterceptionPatch.cs, MessageBoxAccessibilityPatch.cs
 **States:** WindowlessDialogState.cs, WindowlessFloatMenuState.cs, WindowlessPauseMenuState.cs, WindowlessSaveMenuState.cs, WindowlessOptionsMenuState.cs, WindowlessConfirmationState.cs, GiveNameDialogState.cs
-**Utilities:** Dialog_NameAllowedArea.cs, DialogElementExtractor.cs, StatsHelper.cs, MenuHelper.cs, TypeaheadSearchHelper.cs, TabularMenuHelper.cs, TwoLevelMenuHelper.cs
+**Utilities:** Dialog_NameAllowedArea.cs, DialogElementExtractor.cs, StatsHelper.cs, MenuHelper.cs, TypeaheadSearchHelper.cs, TabularMenuHelper.cs, TwoLevelMenuHelper.cs, BulkSoundQueue.cs
 
 ## Key Shortcuts
 - **Escape** - Pause menu
@@ -36,7 +36,11 @@ Generic helper for tabular menus (rows x columns) with:
 - Row/column navigation with wrap-around
 - Sorting with item preservation
 - Typeahead search integration
-- Cell announcement building
+- Cell announcement building with per-axis context control
+  (drop the unchanged axis on row/column navigation so screen reader users
+  only hear what moved — `includeItemName: true, includeColumnName: false`
+  for row nav; `includeItemName: false, includeColumnName: true` for column
+  nav; both true for initial entry / after sort / re-orientation)
 
 ```csharp
 // Create helper with data access delegates
@@ -53,7 +57,7 @@ tableHelper.SelectNextRow(itemCount);
 tableHelper.SelectNextColumn();
 tableHelper.ToggleSortByCurrentColumn(items, out direction);
 tableHelper.HandleTypeahead(c, items, out newIndex);
-tableHelper.BuildCellAnnouncement(item, count, includeLabel);
+tableHelper.BuildCellAnnouncement(item, count, includeItemName, includeColumnName);
 ```
 
 **Used by:** Animals/AnimalsMenuState, Animals/WildlifeMenuState

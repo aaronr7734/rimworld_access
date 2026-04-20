@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
+using Verse.Sound;
 using RimWorld;
 using UnityEngine;
 
@@ -24,20 +25,34 @@ namespace RimWorldAccess
         private static string numericBuffer = "";
         private static bool isNumericInputMode = false;
 
+        // Text input mode fields (for bill rename)
+        private static bool isTextInputMode = false;
+
         private enum MenuItemType
         {
             RecipeInfo,
             RepeatMode,
             RepeatCount,
             TargetCount,
+            CurrentlyHave,
+            IncludeEquipped,
+            IncludeTainted,
+            IncludeSource,
+            HpRange,
+            QualityRange,
+            LimitToAllowedStuff,
             PauseWhenSatisfied,
             UnpauseAt,
             StoreMode,
-            AllowedSkillRange,
+            SkillRangeMin,
+            SkillRangeMax,
             PawnRestriction,
             IngredientSearchRadius,
             IngredientFilter,
+            RenameBill,
+            StyleSelection,
             SuspendToggle,
+            UnpauseBill,
             DeleteBill
         }
 
@@ -66,6 +81,7 @@ namespace RimWorldAccess
         public static bool HasNoMatches => typeahead.HasNoMatches;
         public static bool IsEditing => isEditing;
         public static bool IsNumericInputMode => isNumericInputMode;
+        public static bool IsTextInputMode => isTextInputMode;
 
         /// <summary>
         /// Opens the bill configuration menu.
@@ -84,6 +100,7 @@ namespace RimWorldAccess
             selectedIndex = 0;
             isActive = true;
             isEditing = false;
+            isTextInputMode = false;
             typeahead.ClearSearch();
 
             BuildMenuItems();
@@ -103,7 +120,9 @@ namespace RimWorldAccess
             isActive = false;
             isEditing = false;
             isNumericInputMode = false;
+            isTextInputMode = false;
             numericBuffer = "";
+            TextInputHelper.Clear();
             typeahead.ClearSearch();
         }
 
@@ -111,54 +130,128 @@ namespace RimWorldAccess
         {
             menuItems.Clear();
 
-            // Recipe info (read-only) - searchLabel: "Recipe"
+            // 1. Recipe info (read-only)
             menuItems.Add(new MenuItem(MenuItemType.RecipeInfo, GetRecipeInfoLabel(), "Recipe", null, false));
 
-            // Suspend/Resume toggle - searchLabel matches the action
-            string suspendLabel = bill.suspended ? "Resume bill" : "Pause bill";
+            // 2. Suspend/Resume toggle
+            string suspendLabel = bill.suspended ? "Suspended".Translate().ToString() : "NotSuspended".Translate().ToString();
             menuItems.Add(new MenuItem(MenuItemType.SuspendToggle, suspendLabel, suspendLabel, null, true));
 
-            // Repeat mode - searchLabel: "Repeat mode" (not the value)
+            // 2b. Unpause button (only when auto-paused, matching vanilla's Unpause button)
+            if (bill.paused)
+            {
+                menuItems.Add(new MenuItem(MenuItemType.UnpauseBill, "Unpause".Translate().ToString(),
+                    "Unpause".Translate().ToString(), null, true));
+            }
+
+            // 3. Repeat mode
             menuItems.Add(new MenuItem(MenuItemType.RepeatMode, GetRepeatModeLabel(), "Repeat mode", null, true));
 
-            // Repeat count (only if mode is RepeatCount) - searchLabel: "Repeat count"
+            // 4. Repeat count (only if mode is RepeatCount)
             if (bill.repeatMode == BillRepeatModeDefOf.RepeatCount)
             {
                 menuItems.Add(new MenuItem(MenuItemType.RepeatCount, GetRepeatCountLabel(), "Repeat count", null, true));
             }
 
-            // Target count and unpause threshold (only if mode is TargetCount)
+            // 5-14. Target count block (only if mode is TargetCount)
             if (bill.repeatMode == BillRepeatModeDefOf.TargetCount)
             {
                 menuItems.Add(new MenuItem(MenuItemType.TargetCount, GetTargetCountLabel(), "Target count", null, true));
 
+                // Currently have (read-only live count)
+                menuItems.Add(new MenuItem(MenuItemType.CurrentlyHave, GetCurrentlyHaveLabel(), "Currently have", null, false));
+
+                ThingDef producedThingDef = bill.recipe.ProducedThingDef;
+                if (producedThingDef != null)
+                {
+                    // Include equipped (weapons/apparel only)
+                    if (producedThingDef.IsWeapon || producedThingDef.IsApparel)
+                    {
+                        menuItems.Add(new MenuItem(MenuItemType.IncludeEquipped, GetIncludeEquippedLabel(),
+                            "IncludeEquipped".Translate().ToString(), null, true));
+                    }
+
+                    // Include tainted (apparel with corpse-care only)
+                    if (producedThingDef.IsApparel && producedThingDef.apparel.careIfWornByCorpse)
+                    {
+                        menuItems.Add(new MenuItem(MenuItemType.IncludeTainted, GetIncludeTaintedLabel(),
+                            "IncludeTainted".Translate().ToString(), null, true));
+                    }
+
+                    // Include source (count from which stockpile)
+                    menuItems.Add(new MenuItem(MenuItemType.IncludeSource, GetIncludeSourceLabel(),
+                        "IncludeFromAll".Translate().ToString(), null, true));
+
+                    // HP range (products with hit points only)
+                    if (bill.recipe.products.Any(p => p.thingDef.useHitPoints))
+                    {
+                        menuItems.Add(new MenuItem(MenuItemType.HpRange, GetHpRangeLabel(),
+                            "HitPointsBasic".Translate().CapitalizeFirst().ToString(), null, true));
+                    }
+
+                    // Quality range (products with CompQuality only)
+                    if (producedThingDef.HasComp(typeof(CompQuality)))
+                    {
+                        menuItems.Add(new MenuItem(MenuItemType.QualityRange, GetQualityRangeLabel(),
+                            "Quality".Translate().ToString(), null, true));
+                    }
+
+                    // Limit to allowed stuff (products made from stuff only)
+                    if (producedThingDef.MadeFromStuff)
+                    {
+                        menuItems.Add(new MenuItem(MenuItemType.LimitToAllowedStuff, GetLimitToAllowedStuffLabel(),
+                            "LimitToAllowedStuff".Translate().ToString(), null, true));
+                    }
+                }
+
                 // Pause when satisfied checkbox
-                menuItems.Add(new MenuItem(MenuItemType.PauseWhenSatisfied, GetPauseWhenSatisfiedLabel(), null, true));
+                menuItems.Add(new MenuItem(MenuItemType.PauseWhenSatisfied, GetPauseWhenSatisfiedLabel(),
+                    "PauseWhenSatisfied".Translate().ToString(), null, true));
 
                 // Only show unpause threshold if pauseWhenSatisfied is enabled
                 if (bill.pauseWhenSatisfied)
                 {
-                    menuItems.Add(new MenuItem(MenuItemType.UnpauseAt, GetUnpauseAtLabel(), "Unpause at", null, true));
+                    menuItems.Add(new MenuItem(MenuItemType.UnpauseAt, GetUnpauseAtLabel(), "UnpauseWhenYouHave".Translate().ToString(), null, true));
                 }
             }
 
-            // Store mode - searchLabel: "Store in"
-            menuItems.Add(new MenuItem(MenuItemType.StoreMode, GetStoreModeLabel(), "Store in", null, true));
+            // 15. Store mode
+            menuItems.Add(new MenuItem(MenuItemType.StoreMode, GetStoreModeLabel(), bill.GetStoreMode().LabelCap.ToString(), null, true));
 
-            // Pawn restriction - searchLabel: "Worker"
-            menuItems.Add(new MenuItem(MenuItemType.PawnRestriction, GetPawnRestrictionLabel(), "Worker", null, true));
+            // 16. Pawn restriction
+            menuItems.Add(new MenuItem(MenuItemType.PawnRestriction, GetPawnRestrictionLabel(), "AnyWorker".Translate().ToString(), null, true));
 
-            // Allowed skill range - searchLabel: "Allowed skill range"
-            menuItems.Add(new MenuItem(MenuItemType.AllowedSkillRange, GetSkillRangeLabel(), "Allowed skill range", null, true));
+            // 17-18. Skill range (two items: min and max, conditional)
+            if (bill.PawnRestriction == null && bill.recipe.workSkill != null && !bill.MechsOnly)
+            {
+                string skillSearchLabel = "AllowedSkillRange".Translate(bill.recipe.workSkill.label).ToString();
+                menuItems.Add(new MenuItem(MenuItemType.SkillRangeMin, GetSkillRangeMinLabel(), skillSearchLabel, null, true));
+                menuItems.Add(new MenuItem(MenuItemType.SkillRangeMax, GetSkillRangeMaxLabel(), skillSearchLabel, null, true));
+            }
 
-            // Ingredient search radius - searchLabel: "Ingredient radius"
-            menuItems.Add(new MenuItem(MenuItemType.IngredientSearchRadius, GetIngredientRadiusLabel(), "Ingredient radius", null, true));
+            // 19. Ingredient search radius
+            menuItems.Add(new MenuItem(MenuItemType.IngredientSearchRadius, GetIngredientRadiusLabel(), "IngredientSearchRadius".Translate().ToString(), null, true));
 
-            // Ingredient filter - searchLabel matches full label
-            menuItems.Add(new MenuItem(MenuItemType.IngredientFilter, "Configure ingredient filter...", "Ingredient filter", null, true));
+            // 20. Ingredient filter
+            menuItems.Add(new MenuItem(MenuItemType.IngredientFilter,
+                "Filter".Translate() + " " + "Ingredients".Translate().ToLower() + "...",
+                "Ingredients".Translate().ToString(), null, true));
 
-            // Delete bill - searchLabel matches full label
-            menuItems.Add(new MenuItem(MenuItemType.DeleteBill, "Delete this bill", "Delete bill", null, true));
+            // 21. Rename bill
+            menuItems.Add(new MenuItem(MenuItemType.RenameBill, GetRenameBillLabel(), "Rename".Translate().ToString(), null, true));
+
+            // 22. Ideology styling (conditional)
+            if (ModsConfig.IdeologyActive && !Find.IdeoManager.classicMode && bill.recipe.ProducedThingDef != null)
+            {
+                ThingDef producedDef = bill.recipe.ProducedThingDef;
+                if (producedDef.RelevantStyleCategories != null && producedDef.RelevantStyleCategories.Any())
+                {
+                    menuItems.Add(new MenuItem(MenuItemType.StyleSelection, GetStyleLabel(), "Stat_Thing_StyleLabel".Translate().ToString(), null, true));
+                }
+            }
+
+            // 23. Delete bill
+            menuItems.Add(new MenuItem(MenuItemType.DeleteBill, "DeleteBillTip".Translate().ToString(), "DeleteBillTip".Translate().ToString(), null, true));
         }
 
         #region Label Generators
@@ -167,14 +260,56 @@ namespace RimWorldAccess
         {
             string label = $"Recipe: {bill.recipe.LabelCap}";
 
-            if (bill.recipe.workSkill != null)
+            // Recipe description
+            if (!bill.recipe.description.NullOrEmpty())
             {
-                label += $" (Skill: {bill.recipe.workSkill.LabelCap}";
-                if (bill.recipe.workSkillLearnFactor > 0f)
+                label += $". {bill.recipe.description}";
+            }
+
+            // Work amount (formatted as hours)
+            float workAmount = bill.recipe.WorkAmountTotal(null);
+            if (workAmount > 0f)
+            {
+                label += $". {"WorkAmount".Translate()}: {workAmount.ToStringWorkAmount()}";
+            }
+
+            // Minimum skill requirements (or just skill name if no requirements)
+            if (!bill.recipe.skillRequirements.NullOrEmpty())
+            {
+                var reqs = bill.recipe.skillRequirements
+                    .Select(r => $"{r.skill.LabelCap} {r.minLevel}");
+                label += $". {"MinimumSkills".Translate()}: {string.Join(", ", reqs)}";
+            }
+            else if (bill.recipe.workSkill != null)
+            {
+                label += $". {bill.recipe.workSkill.LabelCap}";
+            }
+
+            // Biotech: wearable by developmental stages
+            if (ModsConfig.BiotechActive && bill.recipe.products != null && bill.recipe.products.Count == 1)
+            {
+                ThingDef thingDef = bill.recipe.products[0].thingDef;
+                if (thingDef.IsApparel)
                 {
-                    label += $", Learn: {bill.recipe.workSkillLearnFactor:F1}";
+                    label += $". {"WearableBy".Translate()}: {thingDef.apparel.developmentalStageFilter.ToCommaList().CapitalizeFirst()}";
                 }
-                label += ")";
+            }
+
+            // Mech bill info
+            if (bill is Bill_Mech)
+            {
+                label += $". {"GestationCycles".Translate()}: {bill.recipe.gestationCycles}";
+                ThingDef mechDef = bill.recipe.ProducedThingDef;
+                if (mechDef != null)
+                {
+                    label += $", {"Bandwidth".Translate()}: {mechDef.GetStatValueAbstract(StatDefOf.BandwidthCost)}";
+                    if (!bill.recipe.mechResurrection)
+                    {
+                        float wastepacks = (float)(int)mechDef.GetStatValueAbstract(StatDefOf.WastepacksPerRecharge)
+                            * mechDef.GetStatValueAbstract(StatDefOf.BandwidthCost);
+                        label += $", {Find.ActiveLanguageWorker.Pluralize(ThingDefOf.Wastepack.LabelCap)} {"ThingsProduced".Translate()}: {wastepacks}";
+                    }
+                }
             }
 
             return label;
@@ -187,51 +322,89 @@ namespace RimWorldAccess
 
         private static string GetRepeatCountLabel()
         {
-            return $"Repeat count: {bill.repeatCount}";
+            return "RepeatCount".Translate() + " " + bill.repeatCount;
         }
 
         private static string GetTargetCountLabel()
         {
             if (bill.targetCount >= 999999)
             {
-                return "Target count: Infinite";
+                return $"Target count: {"Infinite".Translate()}";
             }
             return $"Target count: {bill.targetCount}";
         }
 
+        private static string GetCurrentlyHaveLabel()
+        {
+            string label = "CurrentlyHave".Translate() + ": "
+                + bill.recipe.WorkerCounter.CountProducts(bill) + " / "
+                + ((bill.targetCount < 999999)
+                    ? bill.targetCount.ToString()
+                    : "Infinite".Translate().ToLower().ToString());
+
+            string productsDesc = bill.recipe.WorkerCounter.ProductsDescription(bill);
+            if (!productsDesc.NullOrEmpty())
+            {
+                label += $", {"CountingProducts".Translate()}: {productsDesc.CapitalizeFirst()}";
+            }
+            return label;
+        }
+
+        private static string GetIncludeEquippedLabel()
+        {
+            return $"{"IncludeEquipped".Translate()}: {(bill.includeEquipped ? "On".Translate() : "Off".Translate())}";
+        }
+
+        private static string GetIncludeTaintedLabel()
+        {
+            return $"{"IncludeTainted".Translate()}: {(bill.includeTainted ? "On".Translate() : "Off".Translate())}";
+        }
+
+        private static string GetIncludeSourceLabel()
+        {
+            ISlotGroup group = bill.GetIncludeSlotGroup();
+            if (group == null)
+                return "IncludeFromAll".Translate().ToString();
+            return "IncludeSpecific".Translate(SlotGroup.GetGroupLabel(group)).ToString();
+        }
+
+        private static string GetHpRangeLabel()
+        {
+            return $"{"HitPointsBasic".Translate().CapitalizeFirst()}: {bill.hpRange.min:P0} - {bill.hpRange.max:P0}";
+        }
+
+        private static string GetQualityRangeLabel()
+        {
+            return $"{"Quality".Translate()}: {bill.qualityRange.min} - {bill.qualityRange.max}";
+        }
+
+        private static string GetLimitToAllowedStuffLabel()
+        {
+            return $"{"LimitToAllowedStuff".Translate()}: {(bill.limitToAllowedStuff ? "On".Translate() : "Off".Translate())}";
+        }
+
         private static string GetPauseWhenSatisfiedLabel()
         {
-            return $"Pause when satisfied: {(bill.pauseWhenSatisfied ? "Yes" : "No")}";
+            return $"{"PauseWhenSatisfied".Translate()}: {(bill.pauseWhenSatisfied ? "On".Translate() : "Off".Translate())}";
         }
 
         private static string GetUnpauseAtLabel()
         {
-            return $"Unpause at: {bill.unpauseWhenYouHave}";
+            return $"{"UnpauseWhenYouHave".Translate()}: {bill.unpauseWhenYouHave}";
         }
 
         private static string GetStoreModeLabel()
         {
-            string label = "Store in: ";
+            string label = string.Format(
+                bill.GetStoreMode().LabelCap.ToString(),
+                (bill.GetSlotGroup() != null)
+                    ? SlotGroup.GetGroupLabel(bill.GetSlotGroup())
+                    : "");
 
-            if (bill.GetStoreMode() == BillStoreModeDefOf.BestStockpile)
+            if (bill.GetSlotGroup() != null
+                && !bill.recipe.WorkerCounter.CanPossiblyStore(bill, bill.GetSlotGroup()))
             {
-                label += "Best stockpile";
-            }
-            else if (bill.GetStoreMode() == BillStoreModeDefOf.DropOnFloor)
-            {
-                label += "Drop on floor";
-            }
-            else if (bill.GetStoreMode() == BillStoreModeDefOf.SpecificStockpile)
-            {
-                ISlotGroup slotGroup = bill.GetSlotGroup();
-                if (slotGroup is Zone_Stockpile stockpile)
-                {
-                    label += stockpile.label;
-                }
-                else
-                {
-                    label += "(No stockpile)";
-                }
+                label += string.Format(" ({0})", "IncompatibleLower".Translate());
             }
 
             return label;
@@ -239,32 +412,62 @@ namespace RimWorldAccess
 
         private static string GetPawnRestrictionLabel()
         {
-            if (bill.PawnRestriction == null)
-            {
-                return "Worker: Anyone";
-            }
-            else
-            {
+            if (bill.PawnRestriction != null)
                 return $"Worker: {bill.PawnRestriction.LabelShortCap}";
-            }
+            if (ModsConfig.IdeologyActive && bill.SlavesOnly)
+                return $"Worker: {"AnySlave".Translate()}";
+            if (ModsConfig.BiotechActive && bill.recipe.mechanitorOnlyRecipe)
+                return $"Worker: {"AnyMechanitor".Translate()}";
+            if (ModsConfig.BiotechActive && bill.MechsOnly)
+                return $"Worker: {"AnyMech".Translate()}";
+            if (ModsConfig.BiotechActive && bill.NonMechsOnly)
+                return $"Worker: {"AnyNonMech".Translate()}";
+            return $"Worker: {"AnyWorker".Translate()}";
         }
 
-        private static string GetSkillRangeLabel()
+        private static string GetSkillRangeMinLabel()
         {
-            IntRange range = bill.allowedSkillRange;
-            return $"Allowed skill range: {range.min} - {range.max}";
+            return $"{"AllowedSkillRange".Translate(bill.recipe.workSkill.label)}: Minimum {bill.allowedSkillRange.min}";
+        }
+
+        private static string GetSkillRangeMaxLabel()
+        {
+            return $"{"AllowedSkillRange".Translate(bill.recipe.workSkill.label)}: Maximum {bill.allowedSkillRange.max}";
         }
 
         private static string GetIngredientRadiusLabel()
         {
             if (bill.ingredientSearchRadius >= 999f)
             {
-                return "Ingredient radius: Unlimited";
+                return $"{"IngredientSearchRadius".Translate()}: {"Unlimited".Translate()}";
             }
             else
             {
-                return $"Ingredient radius: {bill.ingredientSearchRadius:F0} tiles";
+                return $"{"IngredientSearchRadius".Translate()}: {bill.ingredientSearchRadius:F0}";
             }
+        }
+
+        private static string GetRenameBillLabel()
+        {
+            string custom = bill.RenamableLabel;
+            string baseName = bill.BaseLabel;
+            if (custom != baseName)
+                return $"{"Rename".Translate()}: {custom} (original: {baseName})";
+            return "Rename".Translate().ToString();
+        }
+
+        private static string GetStyleLabel()
+        {
+            string stylePrefix = "Stat_Thing_StyleLabel".Translate().ToString();
+            if (bill.globalStyle)
+            {
+                return $"{stylePrefix}: {"UseGlobalStyle".Translate()}";
+            }
+            if (bill.style != null)
+            {
+                return $"{stylePrefix}: {bill.style.Category.LabelCap}";
+            }
+            return stylePrefix;
         }
 
         /// <summary>
@@ -283,6 +486,10 @@ namespace RimWorldAccess
                     return GetUnpauseAtLabel();
                 case MenuItemType.IngredientSearchRadius:
                     return GetIngredientRadiusLabel();
+                case MenuItemType.SkillRangeMin:
+                    return GetSkillRangeMinLabel();
+                case MenuItemType.SkillRangeMax:
+                    return GetSkillRangeMaxLabel();
                 default:
                     return "";
             }
@@ -317,6 +524,32 @@ namespace RimWorldAccess
             }
 
             selectedIndex = MenuHelper.SelectPrevious(selectedIndex, menuItems.Count);
+            AnnounceCurrentSelection();
+        }
+
+        /// <summary>
+        /// Jumps to the first item in the list.
+        /// </summary>
+        public static void JumpToFirst()
+        {
+            if (menuItems == null || menuItems.Count == 0)
+                return;
+
+            selectedIndex = MenuHelper.JumpToFirst();
+            typeahead.ClearSearch();
+            AnnounceCurrentSelection();
+        }
+
+        /// <summary>
+        /// Jumps to the last item in the list.
+        /// </summary>
+        public static void JumpToLast()
+        {
+            if (menuItems == null || menuItems.Count == 0)
+                return;
+
+            selectedIndex = MenuHelper.JumpToLast(menuItems.Count);
+            typeahead.ClearSearch();
             AnnounceCurrentSelection();
         }
 
@@ -485,8 +718,12 @@ namespace RimWorldAccess
                     AdjustUnpauseAt(direction, multiplier);
                     break;
 
-                case MenuItemType.AllowedSkillRange:
-                    AdjustSkillRange(direction);
+                case MenuItemType.SkillRangeMin:
+                    AdjustSkillRangeMin(direction);
+                    break;
+
+                case MenuItemType.SkillRangeMax:
+                    AdjustSkillRangeMax(direction);
                     break;
 
                 case MenuItemType.IngredientSearchRadius:
@@ -511,20 +748,53 @@ namespace RimWorldAccess
                 case MenuItemType.SuspendToggle:
                     bill.suspended = !bill.suspended;
                     BuildMenuItems();
-                    TolkHelper.Speak(bill.suspended ? "Bill paused" : "Bill resumed");
+                    AnnounceCurrentSelection();
+                    break;
+
+                case MenuItemType.UnpauseBill:
+                    bill.paused = false;
+                    BuildMenuItems();
                     AnnounceCurrentSelection();
                     break;
 
                 case MenuItemType.PauseWhenSatisfied:
                     bill.pauseWhenSatisfied = !bill.pauseWhenSatisfied;
-                    // Ensure unpause threshold is valid
                     if (bill.pauseWhenSatisfied && bill.unpauseWhenYouHave >= bill.targetCount)
                     {
                         bill.unpauseWhenYouHave = bill.targetCount - 1;
                     }
                     BuildMenuItems();
-                    TolkHelper.Speak(bill.pauseWhenSatisfied ? "Pause when satisfied enabled" : "Pause when satisfied disabled");
                     AnnounceCurrentSelection();
+                    break;
+
+                case MenuItemType.IncludeEquipped:
+                    bill.includeEquipped = !bill.includeEquipped;
+                    BuildMenuItems();
+                    AnnounceCurrentSelection();
+                    break;
+
+                case MenuItemType.IncludeTainted:
+                    bill.includeTainted = !bill.includeTainted;
+                    BuildMenuItems();
+                    AnnounceCurrentSelection();
+                    break;
+
+                case MenuItemType.LimitToAllowedStuff:
+                    bill.limitToAllowedStuff = !bill.limitToAllowedStuff;
+                    BuildMenuItems();
+                    AnnounceCurrentSelection();
+                    break;
+
+                case MenuItemType.IncludeSource:
+                    OpenIncludeSourceMenu();
+                    break;
+
+                case MenuItemType.HpRange:
+                    RangeEditMenuState.OpenHitPointsRange(bill.hpRange);
+                    break;
+
+                case MenuItemType.QualityRange:
+                    RangeEditMenuState.OpenQualityRange(bill.qualityRange);
                     break;
 
                 case MenuItemType.StoreMode:
@@ -537,6 +807,14 @@ namespace RimWorldAccess
 
                 case MenuItemType.IngredientFilter:
                     OpenIngredientFilterMenu();
+                    break;
+
+                case MenuItemType.RenameBill:
+                    StartTextInput();
+                    break;
+
+                case MenuItemType.StyleSelection:
+                    OpenStyleMenu();
                     break;
 
                 case MenuItemType.DeleteBill:
@@ -610,7 +888,7 @@ namespace RimWorldAccess
             if (bill.targetCount >= 999999)
             {
                 bill.targetCount = 999999;  // Normalize to exactly 999999
-                TolkHelper.Speak("Infinite");
+                TolkHelper.Speak("Infinite".Translate().ToString());
                 menuItems[selectedIndex].label = GetTargetCountLabel();
                 return;
             }
@@ -660,6 +938,34 @@ namespace RimWorldAccess
             }
 
             menuItems[selectedIndex].label = GetUnpauseAtLabel();
+        }
+
+        private static void AdjustSkillRangeMin(int direction)
+        {
+            int oldMin = bill.allowedSkillRange.min;
+            int newMin = Mathf.Clamp(oldMin + direction, 0, bill.allowedSkillRange.max);
+            if (newMin == oldMin)
+            {
+                TolkHelper.Speak(direction > 0 ? "Maximum" : "Minimum");
+                return;
+            }
+            bill.allowedSkillRange = new IntRange(newMin, bill.allowedSkillRange.max);
+            menuItems[selectedIndex].label = GetSkillRangeMinLabel();
+            TolkHelper.Speak(newMin.ToString());
+        }
+
+        private static void AdjustSkillRangeMax(int direction)
+        {
+            int oldMax = bill.allowedSkillRange.max;
+            int newMax = Mathf.Clamp(oldMax + direction, bill.allowedSkillRange.min, 20);
+            if (newMax == oldMax)
+            {
+                TolkHelper.Speak(direction > 0 ? "Maximum" : "Minimum");
+                return;
+            }
+            bill.allowedSkillRange = new IntRange(bill.allowedSkillRange.min, newMax);
+            menuItems[selectedIndex].label = GetSkillRangeMaxLabel();
+            TolkHelper.Speak(newMax.ToString());
         }
 
         /// <summary>
@@ -718,6 +1024,26 @@ namespace RimWorldAccess
                     TolkHelper.Speak("3, minimum");
                     break;
 
+                case MenuItemType.SkillRangeMin:
+                    if (bill.allowedSkillRange.min == 0)
+                    {
+                        TolkHelper.Speak("Already at minimum");
+                        return;
+                    }
+                    bill.allowedSkillRange = new IntRange(0, bill.allowedSkillRange.max);
+                    TolkHelper.Speak("0, minimum");
+                    break;
+
+                case MenuItemType.SkillRangeMax:
+                    if (bill.allowedSkillRange.max == bill.allowedSkillRange.min)
+                    {
+                        TolkHelper.Speak("Already at minimum");
+                        return;
+                    }
+                    bill.allowedSkillRange = new IntRange(bill.allowedSkillRange.min, bill.allowedSkillRange.min);
+                    TolkHelper.Speak($"{bill.allowedSkillRange.min}, minimum");
+                    break;
+
                 default:
                     TolkHelper.Speak("This field cannot be adjusted");
                     return;
@@ -749,7 +1075,7 @@ namespace RimWorldAccess
                         return;
                     }
                     bill.targetCount = 999999;
-                    TolkHelper.Speak("Infinite, maximum");
+                    TolkHelper.Speak($"{"Infinite".Translate()}, maximum");
                     break;
 
                 case MenuItemType.UnpauseAt:
@@ -771,6 +1097,26 @@ namespace RimWorldAccess
                     }
                     bill.ingredientSearchRadius = 999f;
                     TolkHelper.Speak("Unlimited, maximum");
+                    break;
+
+                case MenuItemType.SkillRangeMin:
+                    if (bill.allowedSkillRange.min == bill.allowedSkillRange.max)
+                    {
+                        TolkHelper.Speak("Already at maximum");
+                        return;
+                    }
+                    bill.allowedSkillRange = new IntRange(bill.allowedSkillRange.max, bill.allowedSkillRange.max);
+                    TolkHelper.Speak($"{bill.allowedSkillRange.max}, maximum");
+                    break;
+
+                case MenuItemType.SkillRangeMax:
+                    if (bill.allowedSkillRange.max == 20)
+                    {
+                        TolkHelper.Speak("Already at maximum");
+                        return;
+                    }
+                    bill.allowedSkillRange = new IntRange(bill.allowedSkillRange.min, 20);
+                    TolkHelper.Speak("20, maximum");
                     break;
 
                 default:
@@ -799,7 +1145,9 @@ namespace RimWorldAccess
             if (item.type != MenuItemType.RepeatCount &&
                 item.type != MenuItemType.TargetCount &&
                 item.type != MenuItemType.UnpauseAt &&
-                item.type != MenuItemType.IngredientSearchRadius)
+                item.type != MenuItemType.IngredientSearchRadius &&
+                item.type != MenuItemType.SkillRangeMin &&
+                item.type != MenuItemType.SkillRangeMax)
             {
                 // Not a numeric field - execute the action instead
                 ExecuteSelected();
@@ -847,7 +1195,7 @@ namespace RimWorldAccess
         {
             if (!isNumericInputMode) return;
 
-            if (int.TryParse(numericBuffer, out int value) && value > 0)
+            if (int.TryParse(numericBuffer, out int value) && value >= 0)
             {
                 ApplyNumericValue(value);
             }
@@ -896,7 +1244,7 @@ namespace RimWorldAccess
                     if (bill.targetCount >= 999999)
                     {
                         bill.targetCount = 999999;
-                        TolkHelper.Speak("Infinite");
+                        TolkHelper.Speak("Infinite".Translate().ToString());
                     }
                     else
                     {
@@ -926,6 +1274,20 @@ namespace RimWorldAccess
                     menuItems[selectedIndex].label = GetIngredientRadiusLabel();
                     break;
 
+                case MenuItemType.SkillRangeMin:
+                    int newMin = Mathf.Clamp(value, 0, bill.allowedSkillRange.max);
+                    bill.allowedSkillRange = new IntRange(newMin, bill.allowedSkillRange.max);
+                    menuItems[selectedIndex].label = GetSkillRangeMinLabel();
+                    TolkHelper.Speak(menuItems[selectedIndex].label);
+                    break;
+
+                case MenuItemType.SkillRangeMax:
+                    int newMax = Mathf.Clamp(value, bill.allowedSkillRange.min, 20);
+                    bill.allowedSkillRange = new IntRange(bill.allowedSkillRange.min, newMax);
+                    menuItems[selectedIndex].label = GetSkillRangeMaxLabel();
+                    TolkHelper.Speak(menuItems[selectedIndex].label);
+                    break;
+
                 default:
                     TolkHelper.Speak("Cannot apply numeric value to this field");
                     break;
@@ -934,53 +1296,89 @@ namespace RimWorldAccess
 
         #endregion
 
-        private static void AdjustSkillRange(int direction)
+        #region Text Input Methods (Bill Rename)
+
+        /// <summary>
+        /// Starts text input mode for renaming the bill.
+        /// </summary>
+        private static void StartTextInput()
         {
-            // Cycle through presets: 0-3, 0-20, 6-20, 10-20
-            IntRange current = bill.allowedSkillRange;
-
-            if (direction > 0)
-            {
-                if (current.min == 0 && current.max == 3)
-                {
-                    bill.allowedSkillRange = new IntRange(0, 20);
-                }
-                else if (current.min == 0 && current.max == 20)
-                {
-                    bill.allowedSkillRange = new IntRange(6, 20);
-                }
-                else if (current.min == 6 && current.max == 20)
-                {
-                    bill.allowedSkillRange = new IntRange(10, 20);
-                }
-                else
-                {
-                    bill.allowedSkillRange = new IntRange(0, 3);
-                }
-            }
-            else
-            {
-                if (current.min == 0 && current.max == 3)
-                {
-                    bill.allowedSkillRange = new IntRange(10, 20);
-                }
-                else if (current.min == 10 && current.max == 20)
-                {
-                    bill.allowedSkillRange = new IntRange(6, 20);
-                }
-                else if (current.min == 6 && current.max == 20)
-                {
-                    bill.allowedSkillRange = new IntRange(0, 20);
-                }
-                else
-                {
-                    bill.allowedSkillRange = new IntRange(0, 3);
-                }
-            }
-
-            menuItems[selectedIndex].label = GetSkillRangeLabel();
-            TolkHelper.Speak(menuItems[selectedIndex].label);
+            isTextInputMode = true;
+            TextInputHelper.SetText(bill.RenamableLabel, replaceOnType: true);
+            TolkHelper.Speak($"Type new name. Current: {bill.RenamableLabel}. Enter to confirm, Escape to cancel.");
         }
+
+        /// <summary>
+        /// Confirms the text input and applies the new bill name.
+        /// </summary>
+        public static void ConfirmTextInput()
+        {
+            if (!isTextInputMode) return;
+
+            string newName = TextInputHelper.CurrentText;
+            if (string.IsNullOrWhiteSpace(newName))
+            {
+                TolkHelper.Speak("Cannot set empty name");
+                return;
+            }
+
+            // Max 28 characters (from Dialog_Rename)
+            if (newName.Length > 28)
+                newName = newName.Substring(0, 28);
+
+            bill.RenamableLabel = newName;
+            isTextInputMode = false;
+            TextInputHelper.Clear();
+            BuildMenuItems();
+            BillsMenuState.RefreshMenuItems();
+            TolkHelper.Speak($"Bill renamed to {newName}");
+            AnnounceCurrentSelection();
+        }
+
+        /// <summary>
+        /// Cancels text input mode without applying changes.
+        /// </summary>
+        public static void CancelTextInput()
+        {
+            isTextInputMode = false;
+            TextInputHelper.Clear();
+            TolkHelper.Speak("Rename cancelled");
+        }
+
+        #endregion
+
+        #region Range Edit Integration
+
+        /// <summary>
+        /// Applies range changes from RangeEditMenuState back to the bill.
+        /// Called from BuildingInspectPatch when range editing completes.
+        /// </summary>
+        public static void ApplyRangeChanges(FloatRange hitPoints, QualityRange quality)
+        {
+            if (menuItems == null || selectedIndex >= menuItems.Count || bill == null)
+                return;
+
+            var item = menuItems[selectedIndex];
+            if (item.type == MenuItemType.HpRange)
+            {
+                bill.hpRange = hitPoints;
+                // Match vanilla rounding
+                bill.hpRange = new FloatRange(
+                    Mathf.Round(bill.hpRange.min * 100f) / 100f,
+                    Mathf.Round(bill.hpRange.max * 100f) / 100f);
+                TolkHelper.Speak($"Hit points: {bill.hpRange.min:P0} to {bill.hpRange.max:P0}");
+            }
+            else if (item.type == MenuItemType.QualityRange)
+            {
+                bill.qualityRange = quality;
+                TolkHelper.Speak($"Quality: {bill.qualityRange.min} to {bill.qualityRange.max}");
+            }
+
+            BuildMenuItems();
+            AnnounceCurrentSelection();
+        }
+
+        #endregion
 
         private static void AdjustIngredientRadius(int direction, int multiplier = 1)
         {
@@ -1081,93 +1479,284 @@ namespace RimWorldAccess
         {
             List<FloatMenuOption> options = new List<FloatMenuOption>();
 
-            // Drop on floor
-            options.Add(new FloatMenuOption("Drop on floor", delegate
+            foreach (BillStoreModeDef storeDef in DefDatabase<BillStoreModeDef>.AllDefs
+                .OrderBy(bsm => bsm.listOrder))
             {
-                bill.SetStoreMode(BillStoreModeDefOf.DropOnFloor);
-                BuildMenuItems();
-                TolkHelper.Speak("Store mode: Drop on floor");
-                AnnounceCurrentSelection();
-            }));
-
-            // Best stockpile
-            options.Add(new FloatMenuOption("Best stockpile", delegate
-            {
-                bill.SetStoreMode(BillStoreModeDefOf.BestStockpile);
-                BuildMenuItems();
-                TolkHelper.Speak("Store mode: Best stockpile");
-                AnnounceCurrentSelection();
-            }));
-
-            // Specific stockpiles
-            List<SlotGroup> allGroupsListForReading = bill.billStack.billGiver.Map.haulDestinationManager.AllGroupsListForReading;
-            for (int i = 0; i < allGroupsListForReading.Count; i++)
-            {
-                SlotGroup group = allGroupsListForReading[i];
-                Zone_Stockpile stockpile = group.parent as Zone_Stockpile;
-
-                if (stockpile != null)
+                if (storeDef == BillStoreModeDefOf.SpecificStockpile)
                 {
-                    ISlotGroup localGroup = group; // Capture for lambda
-                    options.Add(new FloatMenuOption($"Stockpile: {stockpile.label}", delegate
+                    FillOutputDropdownOptions(options,
+                        BillStoreModeDefOf.SpecificStockpile.LabelCap,
+                        delegate(ISlotGroup slot)
+                        {
+                            bill.SetStoreMode(BillStoreModeDefOf.SpecificStockpile, slot);
+                            BuildMenuItems();
+                            AnnounceCurrentSelection();
+                        });
+                }
+                else
+                {
+                    BillStoreModeDef smLocal = storeDef;
+                    options.Add(new FloatMenuOption(smLocal.LabelCap, delegate
                     {
-                        bill.SetStoreMode(BillStoreModeDefOf.SpecificStockpile, localGroup);
+                        bill.SetStoreMode(smLocal);
                         BuildMenuItems();
-                        TolkHelper.Speak($"Store mode: {stockpile.label}");
                         AnnounceCurrentSelection();
                     }));
                 }
             }
 
-            WindowlessFloatMenuState.Open(options, false);
+            WindowlessFloatMenuState.Open(options, false, announceSelection: false);
         }
 
         private static void OpenPawnRestrictionMenu()
         {
             List<FloatMenuOption> options = new List<FloatMenuOption>();
-
-            // Anyone
-            options.Add(new FloatMenuOption("Anyone", delegate
-            {
-                bill.SetPawnRestriction(null);
-                menuItems[selectedIndex].label = GetPawnRestrictionLabel();
-                TolkHelper.Speak("Worker: Anyone");
-            }));
-
-            // Get all colonists and sort by skill
             Map map = bill.billStack.billGiver.Map;
-            List<Pawn> colonists = map.mapPawns.FreeColonists.ToList();
 
-            if (bill.recipe.workSkill != null)
+            if (ModsConfig.BiotechActive && bill.recipe.mechanitorOnlyRecipe)
             {
-                colonists = colonists.OrderByDescending(p => p.skills.GetSkill(bill.recipe.workSkill).Level).ToList();
-            }
-
-            foreach (Pawn pawn in colonists)
-            {
-                string label = pawn.LabelShortCap;
-
-                if (bill.recipe.workSkill != null)
+                // Mechanitor-only recipe: show AnyMechanitor + only mechanitor pawns
+                options.Add(new FloatMenuOption("AnyMechanitor".Translate().ToString(), delegate
                 {
-                    int skillLevel = pawn.skills.GetSkill(bill.recipe.workSkill).Level;
-                    label += $" (Skill: {skillLevel})";
+                    bill.SetAnyPawnRestriction();
+                    BuildMenuItems();
+                    AnnounceCurrentSelection();
+                }));
+
+                foreach (Pawn pawn in map.mapPawns.FreeColonists.Where(MechanitorUtility.IsMechanitor))
+                {
+                    Pawn localPawn = pawn;
+                    string label = pawn.LabelShortCap;
+                    options.Add(new FloatMenuOption(label, delegate
+                    {
+                        bill.SetPawnRestriction(localPawn);
+                        BuildMenuItems();
+                        AnnounceCurrentSelection();
+                    }));
+                }
+            }
+            else
+            {
+                // Standard: AnyWorker
+                options.Add(new FloatMenuOption("AnyWorker".Translate().ToString(), delegate
+                {
+                    bill.SetAnyPawnRestriction();
+                    BuildMenuItems();
+                    AnnounceCurrentSelection();
+                }));
+
+                // Ideology: AnySlave
+                if (ModsConfig.IdeologyActive)
+                {
+                    options.Add(new FloatMenuOption("AnySlave".Translate().ToString(), delegate
+                    {
+                        bill.SetAnySlaveRestriction();
+                        BuildMenuItems();
+                        AnnounceCurrentSelection();
+                    }));
                 }
 
-                Pawn localPawn = pawn; // Capture for lambda
+                // Biotech: AnyMech / AnyNonMech
+                if (ModsConfig.BiotechActive && MechWorkUtility.AnyWorkMechCouldDo(bill.recipe))
+                {
+                    options.Add(new FloatMenuOption("AnyMech".Translate().ToString(), delegate
+                    {
+                        bill.SetAnyMechRestriction();
+                        BuildMenuItems();
+                        AnnounceCurrentSelection();
+                    }));
+                    options.Add(new FloatMenuOption("AnyNonMech".Translate().ToString(), delegate
+                    {
+                        bill.SetAnyNonMechRestriction();
+                        BuildMenuItems();
+                        AnnounceCurrentSelection();
+                    }));
+                }
+
+                // Individual pawns
+                List<Pawn> colonists = map.mapPawns.FreeColonists.ToList();
+                if (bill.recipe.workSkill != null)
+                {
+                    colonists = colonists.OrderByDescending(p => p.skills.GetSkill(bill.recipe.workSkill).Level).ToList();
+                }
+
+                foreach (Pawn pawn in colonists)
+                {
+                    string label = pawn.LabelShortCap;
+
+                    if (bill.recipe.workSkill != null)
+                    {
+                        int skillLevel = pawn.skills.GetSkill(bill.recipe.workSkill).Level;
+                        label += $" (Skill: {skillLevel})";
+                    }
+
+                    Pawn localPawn = pawn;
+                    options.Add(new FloatMenuOption(label, delegate
+                    {
+                        bill.SetPawnRestriction(localPawn);
+                        BuildMenuItems();
+                        AnnounceCurrentSelection();
+                    }));
+                }
+            }
+
+            WindowlessFloatMenuState.Open(options, false, announceSelection: false);
+        }
+
+        private static void OpenIncludeSourceMenu()
+        {
+            List<FloatMenuOption> options = new List<FloatMenuOption>();
+
+            // Include from all
+            options.Add(new FloatMenuOption("IncludeFromAll".Translate().ToString(), delegate
+            {
+                bill.SetIncludeGroup(null);
+                BuildMenuItems();
+                AnnounceCurrentSelection();
+            }));
+
+            // Specific storage locations (grouped like vanilla)
+            FillOutputDropdownOptions(options,
+                "IncludeSpecific".Translate(),
+                delegate(ISlotGroup slot)
+                {
+                    bill.SetIncludeGroup(slot);
+                    BuildMenuItems();
+                    AnnounceCurrentSelection();
+                });
+
+            WindowlessFloatMenuState.Open(options, false, announceSelection: false);
+        }
+
+        private static void OpenStyleMenu()
+        {
+            if (bill.recipe.ProducedThingDef == null)
+                return;
+
+            ThingDef producedDef = bill.recipe.ProducedThingDef;
+            List<FloatMenuOption> options = new List<FloatMenuOption>();
+
+            // Use global style
+            options.Add(new FloatMenuOption("UseGlobalStyle".Translate().ToString(), delegate
+            {
+                bill.globalStyle = true;
+                bill.style = null;
+                bill.graphicIndexOverride = null;
+                BuildMenuItems();
+                AnnounceCurrentSelection();
+            }));
+
+            // Basic (no style)
+            options.Add(new FloatMenuOption("Basic", delegate
+            {
+                bill.globalStyle = false;
+                bill.style = null;
+                bill.graphicIndexOverride = null;
+                BuildMenuItems();
+                AnnounceCurrentSelection();
+            }));
+
+            // Per-style category options
+            if (producedDef.RelevantStyleCategories != null)
+            {
+                foreach (StyleCategoryDef styleCat in producedDef.RelevantStyleCategories)
+                {
+                    ThingStyleDef styleDef = styleCat.GetStyleForThingDef(producedDef);
+                    if (styleDef != null)
+                    {
+                        StyleCategoryDef localCat = styleCat;
+                        ThingStyleDef localStyle = styleDef;
+                        options.Add(new FloatMenuOption(localCat.LabelCap.ToString(), delegate
+                        {
+                            bill.globalStyle = false;
+                            bill.style = localStyle;
+                            bill.graphicIndexOverride = null;
+                            BuildMenuItems();
+                            AnnounceCurrentSelection();
+                        }));
+                    }
+                }
+            }
+
+            WindowlessFloatMenuState.Open(options, false, announceSelection: false);
+        }
+
+        /// <summary>
+        /// Fills dropdown options for storage locations, replicating vanilla's
+        /// FillOutputDropdownOptions logic with StorageGroup deduplication
+        /// and unnamed Building_Storage filtering.
+        /// </summary>
+        private static void FillOutputDropdownOptions(
+            List<FloatMenuOption> options,
+            string prefix,
+            Action<ISlotGroup> onSelected)
+        {
+            List<SlotGroup> allGroups = bill.billStack.billGiver.Map
+                .haulDestinationManager.AllGroupsListInPriorityOrder;
+
+            var groupsByLabel = new Dictionary<string, List<ISlotGroup>>();
+
+            for (int i = 0; i < allGroups.Count; i++)
+            {
+                SlotGroup slotGroup = allGroups[i];
+
+                if (slotGroup.StorageGroup != null)
+                {
+                    StorageGroup storageGroup = slotGroup.StorageGroup;
+                    if (!groupsByLabel.ContainsKey(storageGroup.GroupingLabel))
+                        groupsByLabel.Add(storageGroup.GroupingLabel, new List<ISlotGroup>());
+                    if (!groupsByLabel[storageGroup.GroupingLabel].Contains(storageGroup))
+                        groupsByLabel[storageGroup.GroupingLabel].Add(storageGroup);
+                }
+                else if (!(slotGroup.parent is Building_Storage) || slotGroup.parent is IRenameable)
+                {
+                    if (!groupsByLabel.ContainsKey(slotGroup.GroupingLabel))
+                        groupsByLabel.Add(slotGroup.GroupingLabel, new List<ISlotGroup>());
+                    groupsByLabel[slotGroup.GroupingLabel].Add(slotGroup);
+                }
+            }
+
+            // Flatten groups maintaining GroupingOrder, then separate compatible from incompatible
+            var orderedGroups = groupsByLabel
+                .OrderBy(kv => (kv.Value.Count > 0) ? kv.Value[0].GroupingOrder : 0)
+                .SelectMany(kv => kv.Value)
+                .ToList();
+
+            var compatible = new List<ISlotGroup>();
+            var incompatible = new List<ISlotGroup>();
+
+            foreach (var group in orderedGroups)
+            {
+                if (bill.recipe.WorkerCounter.CanPossiblyStore(bill, group))
+                    compatible.Add(group);
+                else
+                    incompatible.Add(group);
+            }
+
+            // Compatible locations first
+            foreach (var group in compatible)
+            {
+                string label = string.Format(prefix, SlotGroup.GetGroupLabel(group));
+                ISlotGroup localGroup = group;
                 options.Add(new FloatMenuOption(label, delegate
                 {
-                    bill.SetPawnRestriction(localPawn);
-                    menuItems[selectedIndex].label = GetPawnRestrictionLabel();
-                    TolkHelper.Speak($"Worker: {localPawn.LabelShortCap}");
+                    onSelected(localGroup);
                 }));
             }
 
-            WindowlessFloatMenuState.Open(options, false);
+            // Incompatible locations after
+            foreach (var group in incompatible)
+            {
+                string label = string.Format(prefix, SlotGroup.GetGroupLabel(group));
+                options.Add(new FloatMenuOption(
+                    string.Format("{0} ({1})", label, "IncompatibleLower".Translate()),
+                    null));
+            }
         }
 
         private static void OpenIngredientFilterMenu()
         {
-            ThingFilterMenuState.Open(bill.ingredientFilter, null, "Ingredient Filter");
+            ThingFilterMenuState.Open(bill.ingredientFilter, bill.recipe.fixedIngredientFilter, "Ingredient Filter");
         }
 
         private static void DeleteBill()
@@ -1185,6 +1774,32 @@ namespace RimWorldAccess
         }
 
         #endregion
+
+        /// <summary>
+        /// Opens the info card for the product of the current bill.
+        /// </summary>
+        public static void OpenInfoCard()
+        {
+            if (bill == null)
+            {
+                TolkHelper.Speak("No info card available");
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                return;
+            }
+
+            ThingDef productDef = bill.recipe?.ProducedThingDef;
+            if (productDef != null)
+            {
+                InfoCardState.OpenInfoCardForDef(productDef);
+            }
+            else
+            {
+                TolkHelper.Speak("No info card available for this bill");
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+            }
+        }
+
+        public static void Reannounce() => AnnounceCurrentSelection();
 
         private static void AnnounceCurrentSelection()
         {

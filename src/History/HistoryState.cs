@@ -81,8 +81,8 @@ namespace RimWorldAccess
             currentTab = (Tab)(((int)currentTab + 1) % 2);
 
             SyncVisualTab();
-            OpenCurrentTabState();
             AnnounceCurrentTab();
+            OpenCurrentTabState();
         }
 
         /// <summary>
@@ -95,8 +95,8 @@ namespace RimWorldAccess
             currentTab = (Tab)(((int)currentTab + 2 - 1) % 2);
 
             SyncVisualTab();
-            OpenCurrentTabState();
             AnnounceCurrentTab();
+            OpenCurrentTabState();
         }
 
         /// <summary>

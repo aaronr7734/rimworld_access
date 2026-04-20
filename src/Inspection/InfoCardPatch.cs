@@ -77,12 +77,57 @@ namespace RimWorldAccess
             {
                 if (__instance is Dialog_InfoCard)
                 {
-                    currentDialog = null;
-                    framesSinceOpen = 0;
-                    hasAnnounced = false;
-                    if (InfoCardState.IsActive)
+                    // When CloseInfoCard is handling the transition, it manages state itself
+                    if (InfoCardState.IsClosingFromAccessibility)
                     {
-                        InfoCardState.Close();
+                        // Just update our tracking for DoWindowContents
+                        currentDialog = null;
+                        framesSinceOpen = 0;
+                        hasAnnounced = false;
+                        return;
+                    }
+
+                    // External closure (game closed the dialog, e.g. pawn died)
+                    Dialog_InfoCard remainingCard = null;
+                    if (Find.WindowStack != null)
+                    {
+                        foreach (var window in Find.WindowStack.Windows)
+                        {
+                            if (window is Dialog_InfoCard card && card != __instance)
+                            {
+                                remainingCard = card;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (remainingCard != null)
+                    {
+                        // Restore outer card from saved state if available, otherwise re-init
+                        currentDialog = remainingCard;
+                        framesSinceOpen = 0;
+                        hasAnnounced = false;
+                        if (InfoCardState.HasSavedState)
+                        {
+                            InfoCardState.RestoreFromStack(remainingCard);
+                        }
+                        else
+                        {
+                            InfoCardState.Open(remainingCard, announceOpening: false);
+                        }
+                    }
+                    else
+                    {
+                        currentDialog = null;
+                        framesSinceOpen = 0;
+                        hasAnnounced = false;
+                        InfoCardState.ClearStack();
+                        if (InfoCardState.IsActive)
+                        {
+                            InfoCardState.Close();
+                        }
+                        // Return to whatever opened the info card (inspection tree row, etc.)
+                        InspectionReturnHelper.AnnounceParentOrFallback(null);
                     }
                 }
             }

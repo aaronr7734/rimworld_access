@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Verse;
 using RimWorld;
+using HarmonyLib;
 
 namespace RimWorldAccess
 {
@@ -62,6 +63,15 @@ namespace RimWorldAccess
         /// </summary>
         public List<IntVec3> PendingValidCells { get; set; }
 
+        /// <summary>Number of cells skipped due to meditation focus/tree protection</summary>
+        public int ProtectedCount { get; set; }
+
+        /// <summary>Cells skipped due to meditation focus/tree protection</summary>
+        public List<IntVec3> ProtectedCells { get; set; }
+
+        /// <summary>Labels of all trees/foci that caused protection blocks across all cells</summary>
+        public HashSet<string> ProtectedByLabels { get; set; }
+
         /// <summary>
         /// Creates a new empty PlacementResult.
         /// </summary>
@@ -71,6 +81,8 @@ namespace RimWorldAccess
             ObstacleCells = new List<IntVec3>();
             PlacedBlueprints = new List<Thing>();
             PendingValidCells = new List<IntVec3>();
+            ProtectedCells = new List<IntVec3>();
+            ProtectedByLabels = new HashSet<string>();
             ResourceName = string.Empty;
         }
     }
@@ -367,6 +379,19 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Sets both corners at once, transitioning directly to the Previewing phase.
+        /// Skips the per-corner announcements so the caller can speak a single summary.
+        /// Used by Ctrl+A to select a whole room or map.
+        /// </summary>
+        public static void SetBothPoints(IntVec3 first, IntVec3 second)
+        {
+            previewHelper.Reset();
+            previewHelper.SetFirstCorner(first, "[ShapePlacementState]", silent: true);
+            previewHelper.SetSecondCorner(second, "[ShapePlacementState]", silent: true);
+            currentPhase = PlacementPhase.Previewing;
+        }
+
+        /// <summary>
         /// Updates the shape preview as the cursor moves during SettingSecondCorner phase.
         /// Plays sound feedback when the cell count changes.
         /// </summary>
@@ -634,6 +659,23 @@ namespace RimWorldAccess
             int costPerCell = GetCostPerCell(buildableDef);
             string resourceName = GetResourceName(buildableDef);
 
+            // Meditation protection: check once if this building is artificial
+            bool checkMeditationProtection = false;
+            ThingDef placingThingDef = null;
+            Rot4 placingRotation = Rot4.North;
+
+            if (isBuildDesignator || ShapeHelper.IsPlaceDesignator(activeDesignator))
+            {
+                var (def, rot) = MeditationProtectionHelper.GetPlacementInfo(activeDesignator);
+                if (def != null)
+                {
+                    placingThingDef = def;
+                    placingRotation = rot;
+                    checkMeditationProtection =
+                        MeditationProtectionHelper.IsArtificialBuilding(def, Faction.OfPlayer);
+                }
+            }
+
             // Capture designation state before placement for order designators
             // This allows us to diff and find exactly which designations were created
             if (isOrderDesignator)
@@ -648,6 +690,24 @@ namespace RimWorldAccess
 
                 if (report.Accepted)
                 {
+                    // Check meditation focus / tree protection before placing
+                    if (checkMeditationProtection)
+                    {
+                        var protection = MeditationProtectionHelper.CheckProtection(
+                            map, placingThingDef, Faction.OfPlayer, cell, placingRotation);
+
+                        if (protection.IsProtected)
+                        {
+                            result.ProtectedCells.Add(cell);
+                            result.ProtectedCount++;
+                            foreach (string label in protection.AffectedThingLabels)
+                            {
+                                result.ProtectedByLabels.Add(label);
+                            }
+                            continue;
+                        }
+                    }
+
                     try
                     {
                         // For Build designators, track the blueprint for undo
@@ -1098,6 +1158,15 @@ namespace RimWorldAccess
             if (!isOrder && !isDelete && result.ObstacleCount > 0)
             {
                 parts.Add($"{result.ObstacleCount} obstacles found");
+            }
+
+            // Meditation protection info
+            if (result.ProtectedCount > 0)
+            {
+                string protectionSummary = MeditationProtectionHelper.FormatShapeSummary(
+                    result.ProtectedCount, result.ProtectedByLabels);
+                parts.Add(protectionSummary);
+                parts.Add("Disable warning toggle on the tree to build here");
             }
 
             return string.Join(". ", parts);

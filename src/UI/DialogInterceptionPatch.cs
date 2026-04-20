@@ -36,7 +36,7 @@ namespace RimWorldAccess
                         // Clear the confirming flag since we're handling it now
                         TransportPodLaunchState.ClearConfirmingFlag();
 
-                        WindowlessFloatMenuState.Open(options, floatMenu.givesColonistOrders);
+                        WindowlessFloatMenuState.Open(options, floatMenu.givesColonistOrders, playOpenSound: false);
                         return false; // Prevent FloatMenu from being added
                     }
                 }
@@ -62,8 +62,13 @@ namespace RimWorldAccess
                         BedAssignmentState.Open(bed);
                         return false; // Prevent dialog from being added
                     }
+                    else if (assignable?.parent is ThingWithComps building)
+                    {
+                        BuildingOwnerAssignmentState.Open(building, assignable);
+                        return false; // Prevent dialog from being added
+                    }
                 }
-                // Fallback: let it through if not a bed or couldn't extract
+                // Fallback: let it through if couldn't extract
                 return true;
             }
 
@@ -76,7 +81,12 @@ namespace RimWorldAccess
             // Open windowless version
             WindowlessDialogState.Open(window);
 
-            // Prevent the dialog from being added to the window stack
+            // The window is already in the stack (added by WindowStack.Add before PostOpen),
+            // but our system handles modality via SuppressMapNavigation and WindowsForcePausePatch.
+            // Clear preventCameraMotion so the window doesn't redundantly block arrow keys.
+            window.preventCameraMotion = false;
+
+            // Prevent the original PostOpen from running
             return false;
         }
 

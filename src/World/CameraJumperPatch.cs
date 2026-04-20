@@ -30,16 +30,16 @@ namespace RimWorldAccess
             // For world targets, set pending tile so WorldNavigationState.Open() uses it
             if (target.HasWorldObject)
             {
-                int tileId = target.WorldObject.Tile;
-                if (tileId >= 0)
+                PlanetTile tile = target.WorldObject.Tile;
+                if (tile.Valid)
                 {
-                    WorldNavigationState.PendingStartTile = new PlanetTile(tileId);
+                    WorldNavigationState.PendingStartTile = tile;
                 }
             }
-            else if (target.Tile >= 0 && !target.HasThing && !target.Cell.IsValid)
+            else if (target.Tile.Valid && !target.HasThing && !target.Cell.IsValid)
             {
                 // World tile target (not a thing or cell)
-                WorldNavigationState.PendingStartTile = new PlanetTile(target.Tile);
+                WorldNavigationState.PendingStartTile = target.Tile;
             }
         }
 
@@ -55,15 +55,15 @@ namespace RimWorldAccess
             // Also set current tile in case world view was already open (Open() won't be called)
             if (target.HasWorldObject)
             {
-                int tileId = target.WorldObject.Tile;
-                if (tileId >= 0)
+                PlanetTile tile = target.WorldObject.Tile;
+                if (tile.Valid)
                 {
-                    WorldNavigationState.CurrentSelectedTile = new PlanetTile(tileId);
+                    WorldNavigationState.CurrentSelectedTile = tile;
                 }
             }
-            else if (target.Tile >= 0 && !target.HasThing && !target.Cell.IsValid)
+            else if (target.Tile.Valid && !target.HasThing && !target.Cell.IsValid)
             {
-                WorldNavigationState.CurrentSelectedTile = new PlanetTile(target.Tile);
+                WorldNavigationState.CurrentSelectedTile = target.Tile;
             }
             else if (MapNavigationState.IsInitialized)
             {

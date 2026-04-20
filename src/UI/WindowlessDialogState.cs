@@ -34,6 +34,7 @@ namespace RimWorldAccess
 
         public static bool IsActive => currentDialog != null;
         public static bool IsEditingTextField => editingElement != null;
+        public static string CurrentDialogTypeName => currentDialog?.GetType().Name ?? "null";
 
         /// <summary>
         /// Returns true if the dialog was closed on the current frame.
@@ -135,11 +136,15 @@ namespace RimWorldAccess
         /// </summary>
         public static void Close()
         {
-            if (currentDialog != null)
+            // Null currentDialog first to ensure IsActive returns false immediately,
+            // preventing stale state from blocking arrow keys via SuppressMapNavigation
+            var dialogToClose = currentDialog;
+            currentDialog = null;
+
+            if (dialogToClose != null)
             {
                 // Remove from window stack if still present
-                Find.WindowStack.TryRemove(currentDialog, doCloseSound: false);
-                currentDialog = null;
+                Find.WindowStack.TryRemove(dialogToClose, doCloseSound: false);
             }
 
             elements.Clear();
@@ -204,6 +209,18 @@ namespace RimWorldAccess
                 return true;
             }
             else if (key == KeyCode.DownArrow)
+            {
+                SelectNext();
+                evt.Use();
+                return true;
+            }
+            else if (key == KeyCode.LeftArrow)
+            {
+                SelectPrevious();
+                evt.Use();
+                return true;
+            }
+            else if (key == KeyCode.RightArrow)
             {
                 SelectNext();
                 evt.Use();
@@ -338,12 +355,30 @@ namespace RimWorldAccess
             }
             else if (element is ButtonElement button)
             {
+                // Save reference to detect re-entrant dialog opening.
+                // A button's action may open a new dialog that gets intercepted by
+                // DialogInterceptionPatch, which calls WindowlessDialogState.Open()
+                // re-entrantly (e.g., "Name Baby" DiaOption opens Dialog_NamePawn).
+                // In that case, currentDialog changes during Execute() and we must
+                // NOT close the newly opened dialog.
+                Window dialogBeforeExecute = currentDialog;
+
                 button.Execute();
+
+                // If the button's action opened a new dialog re-entrantly,
+                // currentDialog will have changed. Don't close it.
+                if (currentDialog != dialogBeforeExecute)
+                    return;
 
                 // If it's a confirm or close button, close the dialog
                 if (button.IsConfirm || button.IsClose)
                 {
                     Close();
+                }
+                // If this button navigates to a sub-dialog, refresh to show new options
+                else if (button.NavigatesToSubDialog)
+                {
+                    RefreshDialogElements();
                 }
             }
             else if (element is TextFieldElement textField)
@@ -354,6 +389,44 @@ namespace RimWorldAccess
                 isFirstKeystrokeAfterEdit = !string.IsNullOrEmpty(textField.Value);
                 string replaceHint = replaceOnFirstKeystroke ? " Type to replace." : "";
                 TolkHelper.Speak($"Editing {textField.Label}. Current value: {textField.Value}.{replaceHint} Enter to confirm, Escape to cancel.");
+            }
+        }
+
+        /// <summary>
+        /// Refreshes the dialog elements after navigating to a sub-dialog.
+        /// Used when a DiaOption has a link to another DiaNode.
+        /// </summary>
+        private static void RefreshDialogElements()
+        {
+            if (currentDialog == null)
+                return;
+
+            // Re-extract elements from the dialog (now showing new DiaNode)
+            elements = DialogElementExtractor.ExtractElements(currentDialog);
+
+            // Get the new dialog text
+            string title = DialogElementExtractor.GetDialogTitle(currentDialog)?.StripTags() ?? "";
+            string message = DialogElementExtractor.GetDialogMessage(currentDialog)?.StripTags() ?? "";
+            string descriptionText = BuildDescriptionText(title, message);
+
+            // Insert description as first element
+            if (!string.IsNullOrEmpty(descriptionText))
+            {
+                elements.Insert(0, new DialogDescriptionElement { Title = title, Message = message });
+            }
+
+            // Reset to first action (skip description)
+            bool hasDescription = !string.IsNullOrEmpty(descriptionText);
+            selectedIndex = (hasDescription && elements.Count > 1) ? 1 : 0;
+
+            // Announce the new dialog state
+            string announcement = BuildDialogAnnouncement(title, message);
+            TolkHelper.Speak(announcement, SpeechPriority.High);
+
+            // Announce the focused element
+            if (elements.Count > 1)
+            {
+                AnnounceCurrentElement();
             }
         }
 
@@ -455,6 +528,11 @@ namespace RimWorldAccess
         public bool IsClose { get; set; }
         public bool Disabled { get; set; }
         public string DisabledReason { get; set; }
+        /// <summary>
+        /// True if this button navigates to a sub-dialog (has link or linkLateBind).
+        /// When activated, the dialog should refresh to show the new node instead of closing.
+        /// </summary>
+        public bool NavigatesToSubDialog { get; set; }
 
         public override string GetAnnouncement()
         {

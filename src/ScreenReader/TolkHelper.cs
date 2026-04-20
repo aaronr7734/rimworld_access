@@ -7,7 +7,7 @@ using Verse;
 namespace RimWorldAccess
 {
     /// <summary>
-    /// Speech priority levels for Tolk screen reader output.
+    /// Speech priority levels for screen reader output.
     /// </summary>
     public enum SpeechPriority
     {
@@ -17,24 +17,14 @@ namespace RimWorldAccess
     }
 
     /// <summary>
-    /// Wrapper for the Tolk screen reader library.
-    /// Provides direct screen reader integration via native API calls.
+    /// Screen reader integration via the Prism library, with optional Tolk fallback on Windows.
+    /// If a user-supplied Tolk.dll is found in the RimWorld save data folder, Tolk is used instead
+    /// of Prism. This supports Chinese players whose screen readers work with Tolk but not yet Prism.
     /// </summary>
     public static class TolkHelper
     {
-        #region P/Invoke Declarations
+        #region Tolk Delegates (Windows fallback)
 
-        // Windows kernel32 functions for explicit DLL loading
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern IntPtr LoadLibraryW(string lpLibFileName);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern bool FreeLibrary(IntPtr hLibModule);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
-        private static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
-
-        // Tolk function delegates for manual binding
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void Tolk_LoadDelegate();
 
@@ -59,7 +49,6 @@ namespace RimWorldAccess
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void Tolk_TrySAPIDelegate(bool trySAPI);
 
-        // NVDA Controller Client delegates
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int nvdaController_testIfRunningDelegate();
 
@@ -68,41 +57,36 @@ namespace RimWorldAccess
 
         #endregion
 
-        // Library handles
+        // Tolk fallback state (Windows only)
+        private static bool useTolk = false;
         private static IntPtr tolkHandle = IntPtr.Zero;
         private static IntPtr nvdaHandle = IntPtr.Zero;
-
-        // Function pointers
-        private static Tolk_LoadDelegate Tolk_Load;
-        private static Tolk_UnloadDelegate Tolk_Unload;
-        private static Tolk_IsLoadedDelegate Tolk_IsLoaded;
-        private static Tolk_OutputDelegate Tolk_Output;
-        private static Tolk_DetectScreenReaderDelegate Tolk_DetectScreenReader;
-        private static Tolk_HasSpeechDelegate Tolk_HasSpeech;
-        private static Tolk_HasBrailleDelegate Tolk_HasBraille;
-        private static Tolk_TrySAPIDelegate Tolk_TrySAPI;
-        private static nvdaController_testIfRunningDelegate nvdaController_testIfRunning;
-        private static nvdaController_speakTextDelegate nvdaController_speakText;
-
-        private static bool isInitialized = false;
         private static bool useDirectNVDA = false;
 
-        /// <summary>
-        /// Gets a delegate for a function from a loaded library.
-        /// </summary>
-        private static T GetFunction<T>(IntPtr library, string functionName) where T : Delegate
-        {
-            IntPtr procAddress = GetProcAddress(library, functionName);
-            if (procAddress == IntPtr.Zero)
-            {
-                throw new Exception($"Could not find function '{functionName}' in library");
-            }
-            return Marshal.GetDelegateForFunctionPointer<T>(procAddress);
-        }
+        // Tolk function pointers
+        private static Tolk_LoadDelegate tolkLoad;
+        private static Tolk_UnloadDelegate tolkUnload;
+        private static Tolk_IsLoadedDelegate tolkIsLoaded;
+        private static Tolk_OutputDelegate tolkOutput;
+        private static Tolk_DetectScreenReaderDelegate tolkDetectScreenReader;
+        private static Tolk_HasSpeechDelegate tolkHasSpeech;
+        private static Tolk_HasBrailleDelegate tolkHasBraille;
+        private static Tolk_TrySAPIDelegate tolkTrySAPI;
+        private static nvdaController_testIfRunningDelegate nvdaTestIfRunning;
+        private static nvdaController_speakTextDelegate nvdaSpeakText;
+
+        // Prism state
+        private static IntPtr prismLibraryHandle = IntPtr.Zero;
+        private static IntPtr prismContext = IntPtr.Zero;
+        private static IntPtr prismBackend = IntPtr.Zero;
+        private static string activeBackendName = null;
+
+        private static bool isInitialized = false;
 
         /// <summary>
-        /// Initializes the Tolk screen reader library.
-        /// Must be called before any other Tolk operations.
+        /// Initializes the screen reader library.
+        /// On Windows, checks for a user-supplied Tolk.dll first; falls back to Prism.
+        /// On macOS/Linux, uses Prism directly.
         /// </summary>
         public static void Initialize()
         {
@@ -113,147 +97,275 @@ namespace RimWorldAccess
 
             try
             {
-                // Get mod folder path
-                // The assembly is in: Mods/RimWorldAccess/Assemblies/rimworld_access.dll
-                // Native DLLs are in: Mods/RimWorldAccess/Tolk.dll
-                string modAssemblyPath = Assembly.GetExecutingAssembly().Location;
-                string assemblyFolder = Path.GetDirectoryName(modAssemblyPath);
-
-                // Go up from Assemblies to mod root (one level up)
-                string modRoot = Path.GetFullPath(Path.Combine(assemblyFolder, ".."));
-
-                string tolkPath = Path.Combine(modRoot, "Tolk.dll");
-                string nvdaPath = Path.Combine(modRoot, "nvdaControllerClient64.dll");
-
-                Log.Message($"[RimWorld Access] Loading native DLLs from: {modRoot}");
-
-                // Check if DLLs exist
-                if (!File.Exists(tolkPath))
+                // Tolk fallback (Windows only)
+                // Players can place Tolk.dll in the RimWorld save data folder to use Tolk
+                // instead of Prism. This supports screen readers that Prism doesn't yet handle.
+                if (NativeLibraryLoader.IsWindows)
                 {
-                    Log.Error($"[RimWorld Access] Tolk.dll not found at: {tolkPath}");
-                    throw new DllNotFoundException($"Tolk.dll not found at: {tolkPath}");
-                }
+                    string tolkFolder = Path.Combine(GenFilePaths.SaveDataFolderPath, "RimWorldAccess");
+                    string tolkPath = Path.Combine(tolkFolder, "Tolk.dll");
+                    Log.Message($"[RimWorld Access] Checking for Tolk.dll at: {tolkPath}");
 
-                if (!File.Exists(nvdaPath))
-                {
-                    Log.Warning($"[RimWorld Access] nvdaControllerClient64.dll not found at: {nvdaPath}");
-                    // Continue without NVDA direct support
-                }
-
-                // Load NVDA controller first (Tolk may depend on it being available)
-                if (File.Exists(nvdaPath))
-                {
-                    nvdaHandle = LoadLibraryW(nvdaPath);
-                    if (nvdaHandle == IntPtr.Zero)
+                    if (File.Exists(tolkPath))
                     {
-                        int error = Marshal.GetLastWin32Error();
-                        Log.Warning($"[RimWorld Access] Failed to load nvdaControllerClient64.dll (error {error})");
+                        if (TryInitializeTolk(tolkFolder, tolkPath))
+                        {
+                            isInitialized = true;
+                            return;
+                        }
+                        Log.Warning("[RimWorld Access] Tolk initialization failed, falling back to Prism");
                     }
                     else
                     {
-                        Log.Message("[RimWorld Access] Loaded nvdaControllerClient64.dll successfully");
-                        // Get NVDA function pointers
+                        Log.Message("[RimWorld Access] Tolk.dll not found, using Prism");
+                    }
+                }
+
+                // Prism initialization (default path)
+                InitializePrism();
+            }
+            catch (DllNotFoundException ex)
+            {
+                Log.Error($"[RimWorld Access] Failed to load native library: {ex.Message}");
+                string expectedName = NativeLibraryLoader.GetNativeLibraryName("prism");
+                Log.Error($"[RimWorld Access] Ensure {expectedName} is in the mod's root folder (Mods/RimWorldAccess/)");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[RimWorld Access] Failed to initialize screen reader: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Attempts to initialize Tolk from the given folder.
+        /// Returns true on success, false on any failure (caller falls back to Prism).
+        /// </summary>
+        private static bool TryInitializeTolk(string tolkFolder, string tolkPath)
+        {
+            try
+            {
+                Log.Message($"[RimWorld Access] Found Tolk.dll, loading Tolk backend");
+
+                // Optionally load NVDA controller client (non-fatal if missing)
+                string nvdaPath = Path.Combine(tolkFolder, "nvdaControllerClient64.dll");
+                if (File.Exists(nvdaPath))
+                {
+                    nvdaHandle = NativeLibraryLoader.LoadLibrary(nvdaPath);
+                    if (nvdaHandle != IntPtr.Zero)
+                    {
+                        Log.Message("[RimWorld Access] Loaded nvdaControllerClient64.dll");
                         try
                         {
-                            nvdaController_testIfRunning = GetFunction<nvdaController_testIfRunningDelegate>(nvdaHandle, "nvdaController_testIfRunning");
-                            nvdaController_speakText = GetFunction<nvdaController_speakTextDelegate>(nvdaHandle, "nvdaController_speakText");
+                            nvdaTestIfRunning = NativeLibraryLoader.GetFunction<nvdaController_testIfRunningDelegate>(nvdaHandle, "nvdaController_testIfRunning");
+                            nvdaSpeakText = NativeLibraryLoader.GetFunction<nvdaController_speakTextDelegate>(nvdaHandle, "nvdaController_speakText");
                         }
                         catch (Exception ex)
                         {
                             Log.Warning($"[RimWorld Access] Failed to get NVDA function pointers: {ex.Message}");
                         }
                     }
+                    else
+                    {
+                        Log.Warning($"[RimWorld Access] Failed to load nvdaControllerClient64.dll: {NativeLibraryLoader.GetLastError()}");
+                    }
                 }
 
-                // Load Tolk
-                tolkHandle = LoadLibraryW(tolkPath);
+                // Load Tolk.dll
+                tolkHandle = NativeLibraryLoader.LoadLibrary(tolkPath);
                 if (tolkHandle == IntPtr.Zero)
                 {
-                    int error = Marshal.GetLastWin32Error();
-                    throw new DllNotFoundException($"Failed to load Tolk.dll (error code: {error})");
+                    string error = NativeLibraryLoader.GetLastError();
+                    Log.Error($"[RimWorld Access] Failed to load Tolk.dll: {error}");
+                    CleanupTolk();
+                    return false;
                 }
 
-                Log.Message("[RimWorld Access] Loaded Tolk.dll successfully");
-
-                // Get Tolk function pointers
-                Tolk_Load = GetFunction<Tolk_LoadDelegate>(tolkHandle, "Tolk_Load");
-                Tolk_Unload = GetFunction<Tolk_UnloadDelegate>(tolkHandle, "Tolk_Unload");
-                Tolk_IsLoaded = GetFunction<Tolk_IsLoadedDelegate>(tolkHandle, "Tolk_IsLoaded");
-                Tolk_Output = GetFunction<Tolk_OutputDelegate>(tolkHandle, "Tolk_Output");
-                Tolk_DetectScreenReader = GetFunction<Tolk_DetectScreenReaderDelegate>(tolkHandle, "Tolk_DetectScreenReader");
-                Tolk_HasSpeech = GetFunction<Tolk_HasSpeechDelegate>(tolkHandle, "Tolk_HasSpeech");
-                Tolk_HasBraille = GetFunction<Tolk_HasBrailleDelegate>(tolkHandle, "Tolk_HasBraille");
-                Tolk_TrySAPI = GetFunction<Tolk_TrySAPIDelegate>(tolkHandle, "Tolk_TrySAPI");
+                // Resolve Tolk function pointers
+                tolkLoad = NativeLibraryLoader.GetFunction<Tolk_LoadDelegate>(tolkHandle, "Tolk_Load");
+                tolkUnload = NativeLibraryLoader.GetFunction<Tolk_UnloadDelegate>(tolkHandle, "Tolk_Unload");
+                tolkIsLoaded = NativeLibraryLoader.GetFunction<Tolk_IsLoadedDelegate>(tolkHandle, "Tolk_IsLoaded");
+                tolkOutput = NativeLibraryLoader.GetFunction<Tolk_OutputDelegate>(tolkHandle, "Tolk_Output");
+                tolkDetectScreenReader = NativeLibraryLoader.GetFunction<Tolk_DetectScreenReaderDelegate>(tolkHandle, "Tolk_DetectScreenReader");
+                tolkHasSpeech = NativeLibraryLoader.GetFunction<Tolk_HasSpeechDelegate>(tolkHandle, "Tolk_HasSpeech");
+                tolkHasBraille = NativeLibraryLoader.GetFunction<Tolk_HasBrailleDelegate>(tolkHandle, "Tolk_HasBraille");
+                tolkTrySAPI = NativeLibraryLoader.GetFunction<Tolk_TrySAPIDelegate>(tolkHandle, "Tolk_TrySAPI");
 
                 // Test NVDA directly first
                 bool nvdaRunning = false;
-                if (nvdaController_testIfRunning != null)
+                if (nvdaTestIfRunning != null)
                 {
                     try
                     {
-                        int nvdaResult = nvdaController_testIfRunning();
+                        int nvdaResult = nvdaTestIfRunning();
                         nvdaRunning = (nvdaResult == 0);
                         Log.Message($"[RimWorld Access] Direct NVDA test: {(nvdaRunning ? "NVDA is running" : $"NVDA not detected (code: {nvdaResult})")}");
                     }
-                    catch (Exception nvdaEx)
+                    catch (Exception ex)
                     {
-                        Log.Warning($"[RimWorld Access] Could not test NVDA directly: {nvdaEx.Message}");
+                        Log.Warning($"[RimWorld Access] Could not test NVDA directly: {ex.Message}");
                     }
                 }
 
-                // Load Tolk - it will try screen readers first
-                Tolk_Load();
+                // Initialize Tolk
+                tolkLoad();
+                tolkTrySAPI(true);
 
-                // Enable SAPI fallback AFTER loading (only if no screen reader found)
-                Tolk_TrySAPI(true);
-
-                isInitialized = true;
-
-                if (Tolk_IsLoaded())
+                if (!tolkIsLoaded())
                 {
-                    // Get screen reader name
-                    IntPtr namePtr = Tolk_DetectScreenReader();
-                    string screenReaderName = namePtr != IntPtr.Zero
-                        ? Marshal.PtrToStringUni(namePtr)
-                        : "Unknown";
-
-                    bool hasSpeech = Tolk_HasSpeech();
-                    bool hasBraille = Tolk_HasBraille();
-
-                    Log.Message("[RimWorld Access] Tolk screen reader integration initialized successfully.");
-                    Log.Message($"[RimWorld Access] Detected screen reader: {screenReaderName}");
-                    Log.Message($"[RimWorld Access] Speech support: {hasSpeech}");
-                    Log.Message($"[RimWorld Access] Braille support: {hasBraille}");
-
-                    // If Tolk detected SAPI but we know NVDA is running, use direct NVDA communication
-                    if (screenReaderName == "SAPI" && nvdaRunning)
-                    {
-                        Log.Warning("[RimWorld Access] Tolk fell back to SAPI even though NVDA is running.");
-                        Log.Message("[RimWorld Access] Switching to direct NVDA communication mode.");
-                        useDirectNVDA = true;
-                    }
+                    Log.Warning("[RimWorld Access] Tolk loaded but no screen reader detected");
+                    CleanupTolk();
+                    return false;
                 }
-                else
+
+                useTolk = true;
+
+                // Log backend info
+                IntPtr namePtr = tolkDetectScreenReader();
+                string screenReaderName = namePtr != IntPtr.Zero
+                    ? Marshal.PtrToStringUni(namePtr)
+                    : "Unknown";
+                bool hasSpeech = tolkHasSpeech();
+                bool hasBraille = tolkHasBraille();
+
+                Log.Message("[RimWorld Access] Tolk screen reader integration initialized successfully.");
+                Log.Message($"[RimWorld Access] Detected screen reader: {screenReaderName}");
+                Log.Message($"[RimWorld Access] Speech support: {hasSpeech}");
+                Log.Message($"[RimWorld Access] Braille support: {hasBraille}");
+
+                // If Tolk detected SAPI but NVDA is actually running, use direct NVDA communication
+                if (screenReaderName == "SAPI" && nvdaRunning)
                 {
-                    Log.Warning("[RimWorld Access] Tolk initialized but no screen reader detected.");
-                    Log.Warning("[RimWorld Access] Make sure a screen reader (NVDA, JAWS, etc.) is running before starting RimWorld.");
+                    Log.Warning("[RimWorld Access] Tolk fell back to SAPI even though NVDA is running.");
+                    Log.Message("[RimWorld Access] Switching to direct NVDA communication mode.");
+                    useDirectNVDA = true;
                 }
-            }
-            catch (DllNotFoundException ex)
-            {
-                Log.Error($"[RimWorld Access] Failed to load native DLL: {ex.Message}");
-                Log.Error("[RimWorld Access] Ensure Tolk.dll is in the mod's root folder (Mods/RimWorldAccess/)");
-                throw;
+
+                return true;
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimWorld Access] Failed to initialize Tolk: {ex.Message}");
-                throw;
+                Log.Error($"[RimWorld Access] Tolk initialization error: {ex.Message}");
+                CleanupTolk();
+                return false;
             }
         }
 
         /// <summary>
-        /// Shuts down the Tolk screen reader library.
+        /// Cleans up Tolk resources after a failed initialization attempt.
+        /// </summary>
+        private static void CleanupTolk()
+        {
+            useTolk = false;
+            useDirectNVDA = false;
+
+            if (tolkHandle != IntPtr.Zero)
+            {
+                NativeLibraryLoader.FreeLibrary(tolkHandle);
+                tolkHandle = IntPtr.Zero;
+            }
+
+            if (nvdaHandle != IntPtr.Zero)
+            {
+                NativeLibraryLoader.FreeLibrary(nvdaHandle);
+                nvdaHandle = IntPtr.Zero;
+            }
+
+            tolkLoad = null;
+            tolkUnload = null;
+            tolkIsLoaded = null;
+            tolkOutput = null;
+            tolkDetectScreenReader = null;
+            tolkHasSpeech = null;
+            tolkHasBraille = null;
+            tolkTrySAPI = null;
+            nvdaTestIfRunning = null;
+            nvdaSpeakText = null;
+        }
+
+        /// <summary>
+        /// Initializes the Prism screen reader library (default backend).
+        /// </summary>
+        private static void InitializePrism()
+        {
+            // Get mod folder path
+            // The assembly is in: Mods/RimWorldAccess/Assemblies/rimworld_access.dll
+            // Native libraries are in: Mods/RimWorldAccess/
+            string modAssemblyPath = Assembly.GetExecutingAssembly().Location;
+            string assemblyFolder = Path.GetDirectoryName(modAssemblyPath);
+
+            // Go up from Assemblies to mod root (one level up)
+            string modRoot = Path.GetFullPath(Path.Combine(assemblyFolder, ".."));
+
+            // Resolve platform-specific library name
+            string libraryName = NativeLibraryLoader.GetNativeLibraryName("prism");
+            string libraryPath = Path.Combine(modRoot, libraryName);
+
+            string platformName = NativeLibraryLoader.IsWindows ? "Windows" :
+                                  NativeLibraryLoader.IsMacOS ? "macOS" : "Linux";
+            Log.Message($"[RimWorld Access] Platform: {platformName}, loading {libraryName} from: {modRoot}");
+
+            // Check if library exists
+            if (!File.Exists(libraryPath))
+            {
+                Log.Error($"[RimWorld Access] {libraryName} not found at: {libraryPath}");
+                throw new DllNotFoundException($"{libraryName} not found at: {libraryPath}");
+            }
+
+            // Load the native library
+            prismLibraryHandle = NativeLibraryLoader.LoadLibrary(libraryPath);
+            if (prismLibraryHandle == IntPtr.Zero)
+            {
+                string error = NativeLibraryLoader.GetLastError();
+                throw new DllNotFoundException($"Failed to load {libraryName}: {error}");
+            }
+
+            Log.Message($"[RimWorld Access] Loaded {libraryName} successfully");
+
+            // Resolve all Prism function pointers
+            PrismNative.LoadFunctions(prismLibraryHandle);
+
+            // Initialize Prism context
+            PrismConfig config = PrismNative.prism_config_init();
+            Log.Message($"[RimWorld Access] Prism config version: {config.version}");
+            prismContext = PrismNative.prism_init(ref config);
+            if (prismContext == IntPtr.Zero)
+            {
+                throw new Exception("prism_init returned null context");
+            }
+
+            // Auto-select the best available backend (screen reader > TTS)
+            prismBackend = PrismNative.prism_registry_acquire_best(prismContext);
+            if (prismBackend == IntPtr.Zero)
+            {
+                throw new Exception("No screen reader or TTS backend available");
+            }
+
+            // Initialize the backend
+            PrismError initResult = PrismNative.prism_backend_initialize(prismBackend);
+            if (initResult != PrismError.Ok && initResult != PrismError.AlreadyInitialized)
+            {
+                string errorMsg = PrismNative.GetErrorString(initResult);
+                throw new Exception($"Backend initialization failed: {errorMsg}");
+            }
+
+            isInitialized = true;
+
+            // Log backend info
+            activeBackendName = PrismNative.ReadUtf8(PrismNative.prism_backend_name(prismBackend)) ?? "Unknown";
+            ulong features = PrismNative.prism_backend_get_features(prismBackend);
+            PrismBackendFeature featureFlags = (PrismBackendFeature)features;
+
+            Log.Message($"[RimWorld Access] Prism screen reader integration initialized successfully.");
+            Log.Message($"[RimWorld Access] Active backend: {activeBackendName}");
+            Log.Message($"[RimWorld Access] Speech support: {featureFlags.HasFlag(PrismBackendFeature.SupportsSpeak)}");
+            Log.Message($"[RimWorld Access] Braille support: {featureFlags.HasFlag(PrismBackendFeature.SupportsBraille)}");
+            Log.Message($"[RimWorld Access] Output (speech+braille) support: {featureFlags.HasFlag(PrismBackendFeature.SupportsOutput)}");
+        }
+
+        /// <summary>
+        /// Shuts down the screen reader library.
         /// Should be called during mod cleanup.
         /// </summary>
         public static void Shutdown()
@@ -265,60 +377,96 @@ namespace RimWorldAccess
 
             try
             {
-                Tolk_Unload?.Invoke();
                 isInitialized = false;
 
-                // Free libraries
-                if (tolkHandle != IntPtr.Zero)
+                if (useTolk)
                 {
-                    FreeLibrary(tolkHandle);
-                    tolkHandle = IntPtr.Zero;
+                    tolkUnload?.Invoke();
+                    CleanupTolk();
+                    Log.Message("[RimWorld Access] Tolk screen reader integration shut down.");
+                    return;
                 }
 
-                if (nvdaHandle != IntPtr.Zero)
+                // Prism shutdown
+                if (prismBackend != IntPtr.Zero)
                 {
-                    FreeLibrary(nvdaHandle);
-                    nvdaHandle = IntPtr.Zero;
+                    PrismNative.prism_backend_free?.Invoke(prismBackend);
+                    prismBackend = IntPtr.Zero;
                 }
 
-                // Clear function pointers
-                Tolk_Load = null;
-                Tolk_Unload = null;
-                Tolk_IsLoaded = null;
-                Tolk_Output = null;
-                Tolk_DetectScreenReader = null;
-                Tolk_HasSpeech = null;
-                Tolk_HasBraille = null;
-                Tolk_TrySAPI = null;
-                nvdaController_testIfRunning = null;
-                nvdaController_speakText = null;
+                if (prismContext != IntPtr.Zero)
+                {
+                    PrismNative.prism_shutdown?.Invoke(prismContext);
+                    prismContext = IntPtr.Zero;
+                }
 
-                Log.Message("[RimWorld Access] Tolk screen reader integration shut down.");
+                PrismNative.ClearFunctions();
+
+                if (prismLibraryHandle != IntPtr.Zero)
+                {
+                    NativeLibraryLoader.FreeLibrary(prismLibraryHandle);
+                    prismLibraryHandle = IntPtr.Zero;
+                }
+
+                activeBackendName = null;
+
+                Log.Message("[RimWorld Access] Prism screen reader integration shut down.");
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimWorld Access] Error shutting down Tolk: {ex.Message}");
+                Log.Error($"[RimWorld Access] Error shutting down screen reader: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// Checks if Tolk is initialized and a screen reader is detected.
+        /// Checks if the screen reader backend is initialized and available.
         /// </summary>
         public static bool IsActive()
         {
-            if (!isInitialized || Tolk_IsLoaded == null)
+            if (!isInitialized)
             {
                 return false;
             }
 
+            if (useTolk)
+            {
+                try
+                {
+                    return tolkIsLoaded?.Invoke() ?? false;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            return prismBackend != IntPtr.Zero;
+        }
+
+        /// <summary>
+        /// True when the active backend doesn't handle speech interruption on key press.
+        /// macOS AVSpeechSynthesizer queues speech but never interrupts it;
+        /// VoiceOver and Windows screen readers handle interruption themselves.
+        /// </summary>
+        public static bool ShouldInterruptOnKeyPress =>
+            isInitialized && !useTolk && activeBackendName == "AVSpeech";
+
+        /// <summary>
+        /// Stops any currently playing speech. Used to manually interrupt backends
+        /// that don't interrupt on key press (e.g., AVSpeech on macOS).
+        /// </summary>
+        public static void StopSpeech()
+        {
+            if (!isInitialized || useTolk)
+                return;
+
             try
             {
-                return Tolk_IsLoaded();
+                PrismNative.prism_backend_stop?.Invoke(prismBackend);
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimWorld Access] Error checking Tolk status: {ex.Message}");
-                return false;
+                Log.Error($"[RimWorld Access] Error stopping speech: {ex.Message}");
             }
         }
 
@@ -334,38 +482,71 @@ namespace RimWorldAccess
                 return;
             }
 
-            if (!isInitialized || Tolk_Output == null)
+            if (!isInitialized)
             {
-                Log.Warning("[RimWorld Access] Tolk.Speak called but Tolk is not initialized");
+                Log.Warning("[RimWorld Access] Speak called but screen reader is not initialized");
+                return;
+            }
+
+            // Sanitize text: strip tags, fix punctuation, collapse whitespace
+            text = SpeechSanitizer.Sanitize(text);
+            if (string.IsNullOrEmpty(text))
+            {
                 return;
             }
 
             try
             {
-                // If we're in direct NVDA mode, bypass Tolk
-                if (useDirectNVDA && nvdaController_speakText != null)
-                {
-                    try
-                    {
-                        nvdaController_speakText(text);
-                        return;
-                    }
-                    catch (Exception nvdaEx)
-                    {
-                        Log.Warning($"[RimWorld Access] Direct NVDA communication failed: {nvdaEx.Message}, falling back to Tolk");
-                        useDirectNVDA = false; // Disable for future calls
-                    }
-                }
-
-                // Determine interrupt behavior based on priority
                 bool interrupt = priority == SpeechPriority.High;
 
-                // Use Tolk_Output which handles both speech and braille
-                Tolk_Output(text, interrupt);
+                // Tolk path (Windows fallback)
+                if (useTolk)
+                {
+                    if (useDirectNVDA && nvdaSpeakText != null)
+                    {
+                        try
+                        {
+                            nvdaSpeakText(text);
+                            return;
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Warning($"[RimWorld Access] Direct NVDA communication failed: {ex.Message}, falling back to Tolk");
+                            useDirectNVDA = false;
+                        }
+                    }
+
+                    tolkOutput(text, interrupt);
+                    return;
+                }
+
+                // Prism path (default)
+                if (PrismNative.prism_backend_output == null)
+                {
+                    Log.Warning("[RimWorld Access] Speak called but Prism is not initialized");
+                    return;
+                }
+
+                var (handle, pointer) = PrismNative.MarshalUtf8(text);
+                try
+                {
+                    PrismError result = PrismNative.prism_backend_output(prismBackend, pointer, interrupt);
+                    if (result != PrismError.Ok)
+                    {
+                        if (result == PrismError.NotImplemented && PrismNative.prism_backend_speak != null)
+                        {
+                            PrismNative.prism_backend_speak(prismBackend, pointer, interrupt);
+                        }
+                    }
+                }
+                finally
+                {
+                    PrismNative.FreeUtf8(handle);
+                }
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimWorld Access] Error speaking text via Tolk: {ex.Message}");
+                Log.Error($"[RimWorld Access] Error speaking text: {ex.Message}");
             }
         }
     }

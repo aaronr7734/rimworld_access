@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using Verse;
@@ -13,6 +14,7 @@ namespace RimWorldAccess
         /// <summary>
         /// Displays gear information for the pawn at the current cursor position.
         /// Shows weapon being wielded and apparel being worn, with quality.
+        /// In multi-select mode, opens a pawn picker menu with gear info for each pawn.
         /// </summary>
         public static void DisplayGearInfo()
         {
@@ -30,7 +32,7 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Try pawn at cursor first
+            // Try pawn at cursor first (takes priority over multi-select)
             Pawn pawnAtCursor = null;
             if (MapNavigationState.IsInitialized)
             {
@@ -42,21 +44,39 @@ namespace RimWorldAccess
                 }
             }
 
-            // Fall back to selected pawn
-            if (pawnAtCursor == null)
-                pawnAtCursor = Find.Selector?.FirstSelectedObject as Pawn;
+            if (pawnAtCursor != null)
+            {
+                TolkHelper.Speak(PawnInfoHelper.GetGearInfo(pawnAtCursor));
+                return;
+            }
 
-            if (pawnAtCursor == null)
+            // Multi-select with no cursor pawn: open pawn picker menu
+            if (MultiSelectState.IsMultiSelectActive)
+            {
+                MultiSelectState.ValidateAndCleanupSelection();
+                var options = new List<FloatMenuOption>();
+                foreach (var pawn in MultiSelectState.SelectedPawns)
+                {
+                    string info = PawnInfoHelper.GetGearInfo(pawn);
+                    string label = $"{pawn.LabelShort}: {info}";
+                    var p = pawn;
+                    options.Add(new FloatMenuOption(label, () =>
+                    {
+                        TolkHelper.Speak(PawnInfoHelper.GetGearInfo(p));
+                    }));
+                }
+                WindowlessFloatMenuState.Open(options, false);
+                return;
+            }
+
+            Pawn selectedPawn = Find.Selector?.FirstSelectedObject as Pawn;
+            if (selectedPawn == null)
             {
                 TolkHelper.Speak("No pawn selected");
                 return;
             }
 
-            // Get gear information using PawnInfoHelper
-            string gearInfo = PawnInfoHelper.GetGearInfo(pawnAtCursor);
-
-            // Speak to screen reader
-            TolkHelper.Speak(gearInfo);
+            TolkHelper.Speak(PawnInfoHelper.GetGearInfo(selectedPawn));
         }
     }
 }

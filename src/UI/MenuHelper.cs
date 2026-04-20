@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Verse;
 
 namespace RimWorldAccess
@@ -33,6 +34,9 @@ namespace RimWorldAccess
         /// <param name="skipLevelOne">If true, don't announce level 1 (for menus always starting at level 1)</param>
         public static string GetLevelSuffix(string menuKey, int currentLevel, bool skipLevelOne = true)
         {
+            if (RimWorldAccessMod_Settings.Settings?.AnnounceLevels == false)
+                return "";
+
             int displayLevel = currentLevel + 1; // 1-indexed for users
 
             if (!lastAnnouncedLevels.TryGetValue(menuKey, out int lastLevel))
@@ -328,6 +332,19 @@ namespace RimWorldAccess
         /// <param name="celsiusTemp">Temperature in Celsius</param>
         /// <param name="format">Format string (e.g., "F0" for no decimals, "F1" for one decimal)</param>
         /// <returns>Formatted temperature like "21.5°C", "70.2°F", or "294.6°K"</returns>
+        /// <summary>
+        /// Formats a list of strings with natural English joining.
+        /// Examples: "A", "A and B", "A, B, and C".
+        /// Used by bulk painting announcements across all tabular menus.
+        /// </summary>
+        public static string FormatNameList(List<string> items)
+        {
+            if (items.Count == 0) return "";
+            if (items.Count == 1) return items[0];
+            if (items.Count == 2) return $"{items[0]} and {items[1]}";
+            return string.Join(", ", items.Take(items.Count - 1)) + ", and " + items.Last();
+        }
+
         public static string FormatTemperature(float celsiusTemp, string format = "F1")
         {
             string temp = celsiusTemp.ToStringTemperature(format);

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
+using RimWorld.Planet;
 using Verse;
 using Verse.Sound;
 
@@ -9,7 +10,7 @@ namespace RimWorldAccess
 {
     /// <summary>
     /// Manages the windowless quest menu state for keyboard navigation.
-    /// Organizes quests by tab (Available/Active/Historical) and provides navigation.
+    /// Supports three modes: QuestList, QuestDetail, and RewardPreferences.
     /// </summary>
     public static class QuestMenuState
     {
@@ -19,7 +20,26 @@ namespace RimWorldAccess
         private static QuestsTab currentTab = QuestsTab.Available;
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
 
-        // Mirror RimWorld's quest tab enum
+        // Mode tracking
+        private static QuestMenuMode currentMode = QuestMenuMode.QuestList;
+
+        // Detail view
+        private static TwoLevelMenuHelper detailHelper = null;
+        private static List<DetailLine> cachedDetailLines = new List<DetailLine>();
+
+        // Reward preferences
+        private static List<RewardPrefItem> rewardPrefItems = new List<RewardPrefItem>();
+        private static int rewardPrefIndex = 0;
+
+        // Reward choice float menu
+        private static bool hasActiveRewardMenu = false;
+        private static bool isInItemInspectionMenu = false;
+        private static Quest rewardMenuQuest = null;
+        private static List<QuestPart_Choice.Choice> rewardChoices = null;
+        private static List<List<(Thing thing, Faction faction)>> choiceInspectables = null;
+        private static List<(Thing thing, Faction faction)> currentInspectionItems = null;
+        private static int savedChoiceIndex = -1;
+
         private enum QuestsTab
         {
             Available,
@@ -27,9 +47,27 @@ namespace RimWorldAccess
             Historical
         }
 
+        private enum QuestMenuMode
+        {
+            QuestList,
+            QuestDetail,
+            RewardPreferences
+        }
+
+        // === Public Properties ===
+
         public static bool IsActive => isActive;
         public static TypeaheadSearchHelper Typeahead => typeahead;
         public static int CurrentIndex => currentIndex;
+        public static bool IsInDetailView => detailHelper != null && detailHelper.IsInDetailView;
+        public static bool IsInButtonsSection => detailHelper != null && detailHelper.IsInButtonsSection;
+        public static bool IsInRewardPrefsMode => currentMode == QuestMenuMode.RewardPreferences;
+        public static bool HasActiveRewardMenu => hasActiveRewardMenu;
+        public static bool IsInItemInspectionMenu => isInItemInspectionMenu;
+
+        // =====================================================================
+        // Open / Close
+        // =====================================================================
 
         /// <summary>
         /// Opens the quest menu and initializes with the available quests tab.
@@ -39,10 +77,24 @@ namespace RimWorldAccess
             isActive = true;
             currentTab = QuestsTab.Available;
             currentIndex = 0;
+            currentMode = QuestMenuMode.QuestList;
             typeahead.ClearSearch();
+            cachedDetailLines.Clear();
+            rewardPrefItems.Clear();
             RefreshQuestList();
-            TolkHelper.Speak("Quest menu");
-            AnnounceCurrentSelection();
+
+            InitializeDetailHelper();
+
+            string openMessage = "Quest menu. Alt+A to accept, Alt+D to dismiss. Enter to arrow through quest details.";
+            if (currentQuests.Count > 0)
+            {
+                openMessage += " " + BuildQuestAnnouncement(currentQuests[0]);
+            }
+            else
+            {
+                openMessage += " " + GetTabName() + " tab - No quests";
+            }
+            TolkHelper.Speak(openMessage);
         }
 
         /// <summary>
@@ -57,17 +109,19 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Determine which tab the quest belongs to
             QuestsTab targetTab = GetTabForQuest(quest);
 
-            // Open menu on that tab
             isActive = true;
             currentTab = targetTab;
             currentIndex = 0;
+            currentMode = QuestMenuMode.QuestList;
             typeahead.ClearSearch();
+            cachedDetailLines.Clear();
+            rewardPrefItems.Clear();
             RefreshQuestList();
 
-            // Find and select the quest
+            InitializeDetailHelper();
+
             int index = currentQuests.FindIndex(q => q == quest);
             if (index >= 0)
             {
@@ -77,7 +131,6 @@ namespace RimWorldAccess
             }
             else
             {
-                // Quest not found in expected tab - search all tabs
                 foreach (QuestsTab tab in Enum.GetValues(typeof(QuestsTab)))
                 {
                     currentTab = tab;
@@ -92,27 +145,9 @@ namespace RimWorldAccess
                     }
                 }
 
-                // Quest not found anywhere
                 TolkHelper.Speak("Quest no longer available");
                 Close();
             }
-        }
-
-        /// <summary>
-        /// Determines which tab a quest belongs to.
-        /// </summary>
-        private static QuestsTab GetTabForQuest(Quest quest)
-        {
-            if (quest.Historical || quest.dismissed)
-                return QuestsTab.Historical;
-
-            if (quest.State == QuestState.NotYetAccepted)
-                return QuestsTab.Available;
-
-            if (quest.State == QuestState.Ongoing)
-                return QuestsTab.Active;
-
-            return QuestsTab.Historical;
         }
 
         /// <summary>
@@ -123,12 +158,18 @@ namespace RimWorldAccess
             isActive = false;
             currentQuests.Clear();
             typeahead.ClearSearch();
+            currentMode = QuestMenuMode.QuestList;
+            detailHelper?.Reset();
+            cachedDetailLines.Clear();
+            rewardPrefItems.Clear();
+            CleanupRewardMenu();
             TolkHelper.Speak("Quest menu closed");
         }
 
-        /// <summary>
-        /// Navigates to the next quest in the current tab.
-        /// </summary>
+        // =====================================================================
+        // Quest List Navigation
+        // =====================================================================
+
         public static void SelectNext()
         {
             if (currentQuests.Count == 0)
@@ -141,9 +182,6 @@ namespace RimWorldAccess
             AnnounceCurrentSelection();
         }
 
-        /// <summary>
-        /// Navigates to the previous quest in the current tab.
-        /// </summary>
         public static void SelectPrevious()
         {
             if (currentQuests.Count == 0)
@@ -153,13 +191,9 @@ namespace RimWorldAccess
             }
 
             currentIndex = MenuHelper.SelectPrevious(currentIndex, currentQuests.Count);
-
             AnnounceCurrentSelection();
         }
 
-        /// <summary>
-        /// Switches to the next tab (Available → Active → Historical → Available).
-        /// </summary>
         public static void NextTab()
         {
             currentTab = (QuestsTab)(((int)currentTab + 1) % 3);
@@ -169,9 +203,6 @@ namespace RimWorldAccess
             AnnounceTabSwitch();
         }
 
-        /// <summary>
-        /// Switches to the previous tab (Historical → Active → Available → Historical).
-        /// </summary>
         public static void PreviousTab()
         {
             currentTab = (QuestsTab)(((int)currentTab + 2) % 3);
@@ -181,10 +212,43 @@ namespace RimWorldAccess
             AnnounceTabSwitch();
         }
 
+        public static void JumpToFirst()
+        {
+            if (currentQuests.Count == 0)
+                return;
+
+            currentIndex = MenuHelper.JumpToFirst();
+            typeahead.ClearSearch();
+            AnnounceCurrentSelection();
+        }
+
+        public static void JumpToLast()
+        {
+            if (currentQuests.Count == 0)
+                return;
+
+            currentIndex = MenuHelper.JumpToLast(currentQuests.Count);
+            typeahead.ClearSearch();
+            AnnounceCurrentSelection();
+        }
+
+        public static void SetCurrentIndex(int index)
+        {
+            if (index >= 0 && index < currentQuests.Count)
+            {
+                currentIndex = index;
+            }
+        }
+
+        // =====================================================================
+        // Detail View
+        // =====================================================================
+
         /// <summary>
-        /// Opens the detail view for the currently selected quest.
+        /// Enters the detail view for the currently selected quest.
+        /// Replaces the old ViewSelectedQuest() text dump.
         /// </summary>
-        public static void ViewSelectedQuest()
+        public static void EnterDetailView()
         {
             if (currentQuests.Count == 0)
             {
@@ -192,15 +256,137 @@ namespace RimWorldAccess
                 return;
             }
 
-            Quest selectedQuest = currentQuests[currentIndex];
+            Quest quest = currentQuests[currentIndex];
+            currentMode = QuestMenuMode.QuestDetail;
 
-            // Build detailed information about the quest
-            string details = BuildQuestDetails(selectedQuest);
-            TolkHelper.Speak(details);
+            cachedDetailLines = BuildDetailContentLines(quest);
+
+            typeahead.ClearSearch();
+            detailHelper.RefreshButtons();
+            detailHelper.EnterDetailView();
+            detailHelper.AnnounceDetailPosition();
+        }
+
+        public static void SelectNextDetail()
+        {
+            if (detailHelper == null || !detailHelper.IsInDetailView) return;
+            detailHelper.SelectNextDetailPosition();
+        }
+
+        public static void SelectPreviousDetail()
+        {
+            if (detailHelper == null || !detailHelper.IsInDetailView) return;
+            detailHelper.SelectPreviousDetailPosition();
+        }
+
+        public static void SelectNextButton()
+        {
+            detailHelper?.SelectNextButton();
+        }
+
+        public static void SelectPreviousButton()
+        {
+            detailHelper?.SelectPreviousButton();
+        }
+
+        public static void ActivateCurrentButton()
+        {
+            if (detailHelper == null) return;
+            if (detailHelper.ActivateCurrentButton())
+            {
+                var button = detailHelper.GetCurrentButton();
+                if (button != null)
+                {
+                    try
+                    {
+                        button.Action?.Invoke();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning($"[RimWorld Access] Failed to activate quest button: {ex.Message}");
+                        TolkHelper.Speak("Failed to activate button");
+                    }
+                }
+            }
         }
 
         /// <summary>
+        /// Goes back to list view from detail view, or closes the menu if in list view.
+        /// </summary>
+        public static void GoBackToList()
+        {
+            if (detailHelper != null && detailHelper.IsInDetailView)
+            {
+                detailHelper.GoBackToList();
+                currentMode = QuestMenuMode.QuestList;
+                typeahead.ClearSearch();
+                TolkHelper.Speak("Back to list");
+                AnnounceCurrentSelection();
+            }
+            else
+            {
+                Close();
+            }
+        }
+
+        public static void JumpToDetailStart()
+        {
+            detailHelper?.JumpToDetailStart();
+        }
+
+        public static void JumpToDetailEnd()
+        {
+            detailHelper?.JumpToDetailEnd();
+        }
+
+        /// <summary>
+        /// Opens an info card for the item/faction on the current detail line.
+        /// </summary>
+        public static void OpenInfoCard()
+        {
+            if (detailHelper == null || !detailHelper.IsInDetailView)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No info card available");
+                return;
+            }
+
+            int position = detailHelper.DetailPosition;
+            // Position 0 is header, 1-N are content lines
+            int lineIndex = position - 1;
+
+            if (lineIndex < 0 || lineIndex >= cachedDetailLines.Count)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No info card available");
+                return;
+            }
+
+            DetailLine line = cachedDetailLines[lineIndex];
+
+            if (line.InfoCardThing != null)
+            {
+                Find.WindowStack.Add(new Dialog_InfoCard(line.InfoCardThing));
+                return;
+            }
+
+            if (line.InfoCardFaction != null)
+            {
+                Find.WindowStack.Add(new Dialog_InfoCard(line.InfoCardFaction));
+                return;
+            }
+
+            SoundDefOf.ClickReject.PlayOneShotOnCamera();
+            TolkHelper.Speak("No info card available");
+        }
+
+        // =====================================================================
+        // Quest Actions (Accept / Dismiss)
+        // =====================================================================
+
+        /// <summary>
         /// Accepts the currently selected quest if it's available.
+        /// Handles multi-choice and RequiresAccepter scenarios.
         /// </summary>
         public static void AcceptQuest()
         {
@@ -225,12 +411,30 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Accept the quest
+            // Multi-choice quests open a reward choice float menu
+            if (QuestRewardHelper.HasMultipleChoices(selectedQuest))
+            {
+                OpenRewardChoiceMenu(selectedQuest);
+                return;
+            }
+
+            // RequiresAccepter needs pawn selection
+            if (selectedQuest.RequiresAccepter)
+            {
+                AcceptQuestWithPawnSelection(selectedQuest, null);
+                return;
+            }
+
+            // Simple accept
             SoundDefOf.Quest_Accepted.PlayOneShotOnCamera();
             selectedQuest.Accept(null);
             TolkHelper.Speak($"Accepted quest: {selectedQuest.name.StripTags()}");
 
-            // Refresh the list
+            if (IsInDetailView)
+            {
+                detailHelper.GoBackToList();
+                currentMode = QuestMenuMode.QuestList;
+            }
             RefreshQuestList();
             AnnounceCurrentSelection();
         }
@@ -262,269 +466,432 @@ namespace RimWorldAccess
                 SoundDefOf.Click.PlayOneShotOnCamera();
             }
 
+            if (IsInDetailView)
+            {
+                detailHelper.GoBackToList();
+                currentMode = QuestMenuMode.QuestList;
+            }
             RefreshQuestList();
             AnnounceCurrentSelection();
         }
 
         /// <summary>
-        /// Refreshes the quest list based on the current tab.
+        /// Accepts a quest with a specific reward choice selected.
         /// </summary>
-        private static void RefreshQuestList()
+        private static void AcceptQuestWithChoice(Quest quest, QuestPart_Choice choicePart,
+            QuestPart_Choice.Choice choice)
         {
-            currentQuests.Clear();
+            choicePart.Choose(choice);
 
-            List<Quest> allQuests = Find.QuestManager.questsInDisplayOrder;
-
-            foreach (Quest quest in allQuests)
+            if (quest.RequiresAccepter)
             {
-                if (ShouldShowQuest(quest))
+                AcceptQuestWithPawnSelection(quest, choice);
+                return;
+            }
+
+            SoundDefOf.Quest_Accepted.PlayOneShotOnCamera();
+            quest.Accept(null);
+            string rewardDesc = QuestRewardHelper.BuildRewardDescription(choice.rewards);
+            TolkHelper.Speak($"Accepted quest with: {rewardDesc}");
+
+            detailHelper?.GoBackToList();
+            currentMode = QuestMenuMode.QuestList;
+            RefreshQuestList();
+            AnnounceCurrentSelection();
+        }
+
+        /// <summary>
+        /// Opens a pawn selection float menu for RequiresAccepter quests.
+        /// CLOSES QuestMenuState first to prevent priority routing conflicts.
+        /// </summary>
+        private static void AcceptQuestWithPawnSelection(Quest quest, QuestPart_Choice.Choice chosenReward)
+        {
+            var eligiblePawns = PawnsFinder.AllMapsCaravansAndTravellingTransporters_Alive_FreeColonists_NoSuspended
+                .Where(p => QuestUtility.CanPawnAcceptQuest(p, quest))
+                .ToList();
+
+            if (eligiblePawns.Count == 0)
+            {
+                TolkHelper.Speak("No eligible colonists to accept this quest", SpeechPriority.High);
+                return;
+            }
+
+            var options = new List<FloatMenuOption>();
+            foreach (Pawn pawn in eligiblePawns)
+            {
+                Pawn localPawn = pawn;
+                string label = localPawn.LabelShort;
+                if (localPawn.royalty != null && localPawn.royalty.AllTitlesInEffectForReading.Any())
                 {
-                    currentQuests.Add(quest);
+                    label += $" ({localPawn.royalty.MostSeniorTitle.def.GetLabelFor(localPawn)})";
                 }
+
+                options.Add(new FloatMenuOption(label, () =>
+                {
+                    SoundDefOf.Quest_Accepted.PlayOneShotOnCamera();
+                    quest.Accept(localPawn);
+                    TolkHelper.Speak($"Accepted quest with {localPawn.LabelShort}");
+                }));
             }
 
-            // Sort based on tab
-            switch (currentTab)
-            {
-                case QuestsTab.Available:
-                    currentQuests = currentQuests.OrderBy(q => q.TicksUntilExpiry).ToList();
-                    break;
-                case QuestsTab.Active:
-                    currentQuests = currentQuests.OrderBy(q => q.TicksSinceAccepted).ToList();
-                    break;
-                case QuestsTab.Historical:
-                    currentQuests = currentQuests.OrderBy(q => q.TicksSinceCleanup).ToList();
-                    break;
-            }
-
-            // Clamp index to valid range
-            if (currentIndex >= currentQuests.Count)
-                currentIndex = Math.Max(0, currentQuests.Count - 1);
+            // Close quest menu BEFORE opening float menu to prevent priority routing conflict
+            Close();
+            TolkHelper.Speak("Select a colonist to accept this quest");
+            WindowlessFloatMenuState.Open(options, false);
         }
 
-        /// <summary>
-        /// Determines if a quest should be shown in the current tab.
-        /// </summary>
-        private static bool ShouldShowQuest(Quest quest)
-        {
-            if (quest.hidden || quest.hiddenInUI)
-                return false;
-
-            switch (currentTab)
-            {
-                case QuestsTab.Available:
-                    return quest.State == QuestState.NotYetAccepted && !quest.dismissed;
-
-                case QuestsTab.Active:
-                    return quest.State == QuestState.Ongoing && !quest.dismissed;
-
-                case QuestsTab.Historical:
-                    return quest.Historical || quest.dismissed;
-
-                default:
-                    return false;
-            }
-        }
+        // =====================================================================
+        // Reward Preferences
+        // =====================================================================
 
         /// <summary>
-        /// Announces the current tab switch.
+        /// Toggles between QuestList and RewardPreferences mode.
         /// </summary>
-        private static void AnnounceTabSwitch()
+        public static void ToggleRewardPreferencesMode()
         {
-            string tabName = GetTabName();
-            string countInfo = currentQuests.Count == 1 ? "1 quest" : $"{currentQuests.Count} quests";
-            TolkHelper.Speak($"{tabName} tab - {countInfo}");
-
-            if (currentQuests.Count > 0)
+            if (currentMode == QuestMenuMode.RewardPreferences)
             {
+                currentMode = QuestMenuMode.QuestList;
+                TolkHelper.Speak("Quest list");
                 AnnounceCurrentSelection();
             }
+            else
+            {
+                currentMode = QuestMenuMode.RewardPreferences;
+                rewardPrefItems = QuestRewardHelper.GetRewardPreferenceItems();
+                rewardPrefIndex = 0;
+
+                if (rewardPrefItems.Count == 0)
+                {
+                    TolkHelper.Speak("No reward preferences available");
+                    currentMode = QuestMenuMode.QuestList;
+                    return;
+                }
+
+                TolkHelper.Speak("Reward preferences");
+                AnnounceRewardPref();
+            }
+        }
+
+        public static void RewardPrefsNext()
+        {
+            if (rewardPrefItems.Count == 0) return;
+            rewardPrefIndex = MenuHelper.SelectNext(rewardPrefIndex, rewardPrefItems.Count);
+            AnnounceRewardPref();
+        }
+
+        public static void RewardPrefsPrevious()
+        {
+            if (rewardPrefItems.Count == 0) return;
+            rewardPrefIndex = MenuHelper.SelectPrevious(rewardPrefIndex, rewardPrefItems.Count);
+            AnnounceRewardPref();
+        }
+
+        public static void RewardPrefsToggle()
+        {
+            if (rewardPrefItems.Count == 0) return;
+            var item = rewardPrefItems[rewardPrefIndex];
+            QuestRewardHelper.ToggleRewardPreference(item);
+
+            // Refresh to get updated labels
+            rewardPrefItems = QuestRewardHelper.GetRewardPreferenceItems();
+            if (rewardPrefIndex >= rewardPrefItems.Count)
+                rewardPrefIndex = Math.Max(0, rewardPrefItems.Count - 1);
+            AnnounceRewardPref();
+        }
+
+        public static void RewardPrefsJumpToFirst()
+        {
+            if (rewardPrefItems.Count == 0) return;
+            rewardPrefIndex = 0;
+            AnnounceRewardPref();
+        }
+
+        public static void RewardPrefsJumpToLast()
+        {
+            if (rewardPrefItems.Count == 0) return;
+            rewardPrefIndex = rewardPrefItems.Count - 1;
+            AnnounceRewardPref();
+        }
+
+        private static void AnnounceRewardPref()
+        {
+            if (rewardPrefItems.Count == 0) return;
+            var item = rewardPrefItems[rewardPrefIndex];
+            string position = MenuHelper.FormatPosition(rewardPrefIndex, rewardPrefItems.Count);
+            TolkHelper.Speak($"{item.Label}. {position}");
+        }
+
+        // =====================================================================
+        // Reward Choice Float Menu
+        // =====================================================================
+
+        /// <summary>
+        /// Opens a float menu listing reward choices for a multi-choice quest.
+        /// QuestMenuState stays active while the float menu is open.
+        /// </summary>
+        private static void OpenRewardChoiceMenu(Quest quest)
+        {
+            QuestPart_Choice choicePart = QuestRewardHelper.GetChoicePart(quest);
+            if (choicePart == null || choicePart.choices.Count < 2)
+                return;
+
+            rewardMenuQuest = quest;
+            rewardChoices = choicePart.choices;
+            hasActiveRewardMenu = true;
+            isInItemInspectionMenu = false;
+
+            // Build inspectable items for each choice
+            choiceInspectables = new List<List<(Thing thing, Faction faction)>>();
+            var options = new List<FloatMenuOption>();
+
+            for (int i = 0; i < rewardChoices.Count; i++)
+            {
+                int choiceIdx = i;
+                var choice = rewardChoices[choiceIdx];
+                string rewardDesc = QuestRewardHelper.BuildRewardDescription(choice.rewards);
+                string label = rewardDesc;
+
+                // Build inspectable items for this choice
+                var inspectables = new List<(Thing thing, Faction faction)>();
+                foreach (Reward reward in choice.rewards)
+                {
+                    if (reward is Reward_Items rewardItems && rewardItems.ItemsListForReading != null)
+                    {
+                        foreach (Thing item in rewardItems.ItemsListForReading)
+                        {
+                            if (item != null)
+                                inspectables.Add((item, null));
+                        }
+                    }
+                    else if (reward is Reward_Goodwill rg && rg.faction != null)
+                    {
+                        inspectables.Add((null, rg.faction));
+                    }
+                    else if (reward is Reward_RoyalFavor rf && rf.faction != null)
+                    {
+                        inspectables.Add((null, rf.faction));
+                    }
+                    else if (reward is Reward_Pawn rp && rp.pawn != null && !rp.detailsHidden)
+                    {
+                        inspectables.Add((rp.pawn, null));
+                    }
+                }
+                choiceInspectables.Add(inspectables);
+
+                options.Add(new FloatMenuOption(label, () =>
+                {
+                    // Accept with this choice
+                    AcceptQuestWithChoice(rewardMenuQuest, choicePart, choice);
+                    CleanupRewardMenu();
+                }));
+            }
+
+            TolkHelper.Speak("Choose a reward");
+            WindowlessFloatMenuState.Open(options, false);
         }
 
         /// <summary>
-        /// Announces the currently selected quest.
+        /// Cleans up reward choice float menu state.
+        /// Called when the float menu closes by any means.
         /// </summary>
-        private static void AnnounceCurrentSelection()
+        public static void CleanupRewardMenu()
         {
-            if (currentQuests.Count == 0)
+            hasActiveRewardMenu = false;
+            isInItemInspectionMenu = false;
+            rewardMenuQuest = null;
+            rewardChoices = null;
+            choiceInspectables = null;
+            currentInspectionItems = null;
+            savedChoiceIndex = -1;
+        }
+
+        /// <summary>
+        /// Opens an item inspection sub-menu for the currently selected reward choice.
+        /// Called when Alt+I is pressed in the reward choice float menu.
+        /// </summary>
+        public static void OpenItemInspectionForCurrentChoice()
+        {
+            if (choiceInspectables == null) return;
+
+            int choiceIdx = WindowlessFloatMenuState.SelectedIndex;
+            if (choiceIdx < 0 || choiceIdx >= choiceInspectables.Count)
             {
-                TolkHelper.Speak($"{GetTabName()} tab - No quests");
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No items to inspect");
                 return;
             }
 
-            Quest quest = currentQuests[currentIndex];
-            string announcement = BuildQuestAnnouncement(quest);
-            TolkHelper.Speak(announcement);
-        }
-
-        /// <summary>
-        /// Builds a short announcement for a quest.
-        /// </summary>
-        private static string BuildQuestAnnouncement(Quest quest)
-        {
-            string status = "";
-
-            // Add position info
-            string position = MenuHelper.FormatPosition(currentIndex, currentQuests.Count);
-
-            // Add quest name (strip XML tags)
-            string name = quest.name.StripTags();
-
-            // Add state info
-            if (quest.dismissed && !quest.Historical)
-                status = " [Dismissed]";
-            else if (quest.Historical)
+            var inspectables = choiceInspectables[choiceIdx];
+            if (inspectables.Count == 0)
             {
-                switch (quest.State)
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No items to inspect");
+                return;
+            }
+
+            // Consolidate items by label (e.g., 5 stacks of plasteel → one "375x Plasteel" entry)
+            var consolidated = new List<(string label, Thing thing, Faction faction)>();
+            var grouped = new Dictionary<string, (int totalCount, Thing representative)>();
+            var factionEntries = new List<(string label, Faction faction)>();
+
+            foreach (var inspectable in inspectables)
+            {
+                if (inspectable.thing != null)
                 {
-                    case QuestState.EndedSuccess:
-                        status = " [Completed]";
-                        break;
-                    case QuestState.EndedFailed:
-                        status = " [Failed]";
-                        break;
-                    default:
-                        status = " [Expired]";
-                        break;
+                    string key = inspectable.thing.LabelNoCount;
+                    if (grouped.ContainsKey(key))
+                    {
+                        var existing = grouped[key];
+                        grouped[key] = (existing.totalCount + inspectable.thing.stackCount, existing.representative);
+                    }
+                    else
+                    {
+                        grouped[key] = (inspectable.thing.stackCount, inspectable.thing);
+                    }
+                }
+                else if (inspectable.faction != null)
+                {
+                    factionEntries.Add((inspectable.faction.Name, inspectable.faction));
                 }
             }
 
-            // Add time info
-            string timeInfo = GetShortTimeInfo(quest);
-            if (!string.IsNullOrEmpty(timeInfo))
-                timeInfo = $" - {timeInfo}";
-
-            // Add challenge rating
-            int rating = Math.Max(quest.challengeRating, 1);
-            string ratingInfo = rating == 1 ? " (1 star)" : $" ({rating} stars)";
-
-            return $"{name}{status}{timeInfo}{ratingInfo}. {position}";
-        }
-
-        /// <summary>
-        /// Builds detailed information about a quest.
-        /// </summary>
-        private static string BuildQuestDetails(Quest quest)
-        {
-            List<string> details = new List<string>();
-
-            details.Add($"Quest: {quest.name.StripTags()}");
-            details.Add("");
-
-            // Description
-            if (!quest.description.RawText.NullOrEmpty())
+            foreach (var kvp in grouped)
             {
-                details.Add(quest.description.Resolve().StripTags());
-                details.Add("");
+                int count = kvp.Value.totalCount;
+                Thing rep = kvp.Value.representative;
+                string itemName = rep.LabelNoCount.CapitalizeFirst();
+                string itemLabel = count > 1 ? $"{count}x {itemName}" : itemName;
+                consolidated.Add((itemLabel, rep, null));
+            }
+            foreach (var entry in factionEntries)
+            {
+                consolidated.Add((entry.label, null, entry.faction));
             }
 
-            // State info
-            if (quest.State == QuestState.NotYetAccepted && quest.TicksUntilExpiry > 0)
+            // Re-check after consolidation: single item opens info card directly
+            if (consolidated.Count == 1)
             {
-                details.Add($"Expires in: {quest.TicksUntilExpiry.ToStringTicksToPeriod()}");
-            }
-            else if (quest.EverAccepted && !quest.Historical)
-            {
-                details.Add($"Accepted: {quest.TicksSinceAccepted.ToStringTicksToPeriod()} ago");
-            }
-            else if (quest.Historical)
-            {
-                string outcome = quest.State == QuestState.EndedSuccess ? "Completed" :
-                                quest.State == QuestState.EndedFailed ? "Failed" : "Expired";
-                details.Add($"Status: {outcome}");
-                details.Add($"Finished: {quest.TicksSinceCleanup.ToStringTicksToPeriod()} ago");
-            }
-
-            // Challenge rating
-            int rating = Math.Max(quest.challengeRating, 1);
-            details.Add($"Challenge: {rating} star{(rating == 1 ? "" : "s")}");
-
-            // Charity quest
-            if (quest.charity)
-            {
-                details.Add("This is a charity quest");
-            }
-
-            // Controls
-            details.Add("");
-            details.Add("Controls:");
-            details.Add("Enter: View details");
-            details.Add("Alt+A: Accept quest (Available tab only)");
-            details.Add("Alt+D: Dismiss/Resume/Delete quest");
-            details.Add("Left/Right: Switch tabs");
-            details.Add("Type to search, Escape: Close menu");
-
-            return string.Join("\n", details);
-        }
-
-        /// <summary>
-        /// Gets short time information for a quest.
-        /// </summary>
-        private static string GetShortTimeInfo(Quest quest)
-        {
-            if (quest.State == QuestState.NotYetAccepted && quest.TicksUntilExpiry >= 0)
-            {
-                return $"Expires in {quest.TicksUntilExpiry.ToStringTicksToPeriod(allowSeconds: true, shortForm: true)}";
-            }
-            else if (quest.Historical)
-            {
-                return $"{quest.TicksSinceCleanup.ToStringTicksToPeriod(allowSeconds: false, shortForm: true)} ago";
-            }
-            else if (quest.EverAccepted)
-            {
-                return $"Accepted {quest.TicksSinceAccepted.ToStringTicksToPeriod(allowSeconds: false, shortForm: true)} ago";
-            }
-
-            return "";
-        }
-
-        /// <summary>
-        /// Gets the name of the current tab.
-        /// </summary>
-        private static string GetTabName()
-        {
-            switch (currentTab)
-            {
-                case QuestsTab.Available:
-                    return "Available Quests";
-                case QuestsTab.Active:
-                    return "Active Quests";
-                case QuestsTab.Historical:
-                    return "Historical Quests";
-                default:
-                    return "Quests";
-            }
-        }
-
-        /// <summary>
-        /// Jumps to the first item in the list.
-        /// </summary>
-        public static void JumpToFirst()
-        {
-            if (currentQuests.Count == 0)
+                var item = consolidated[0];
+                if (item.thing != null)
+                    Find.WindowStack.Add(new Dialog_InfoCard(item.thing));
+                else if (item.faction != null)
+                    Find.WindowStack.Add(new Dialog_InfoCard(item.faction));
                 return;
+            }
 
-            currentIndex = MenuHelper.JumpToFirst();
-            typeahead.ClearSearch();
-            AnnounceCurrentSelection();
-        }
-
-        /// <summary>
-        /// Jumps to the last item in the list.
-        /// </summary>
-        public static void JumpToLast()
-        {
-            if (currentQuests.Count == 0)
+            if (consolidated.Count == 0)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No items to inspect");
                 return;
+            }
 
-            currentIndex = MenuHelper.JumpToLast(currentQuests.Count);
-            typeahead.ClearSearch();
-            AnnounceCurrentSelection();
+            // Set up item inspection state
+            savedChoiceIndex = choiceIdx;
+            isInItemInspectionMenu = true;
+
+            // Build consolidated inspection items list for InspectCurrentItem
+            currentInspectionItems = new List<(Thing thing, Faction faction)>();
+            var options = new List<FloatMenuOption>();
+            foreach (var entry in consolidated)
+            {
+                currentInspectionItems.Add((entry.thing, entry.faction));
+                options.Add(new FloatMenuOption(entry.label, () => { }));
+            }
+
+            // Close current float menu and open item inspection menu
+            WindowlessFloatMenuState.Close();
+            TolkHelper.Speak("Choose item to inspect");
+            WindowlessFloatMenuState.Open(options, false);
         }
 
         /// <summary>
-        /// Gets a list of labels for all quests for typeahead search.
+        /// Opens an info card for the currently selected item in the inspection sub-menu.
+        /// Called when Enter is pressed in item inspection mode (intercepted before float menu handler).
         /// </summary>
+        public static void InspectCurrentItem()
+        {
+            if (currentInspectionItems == null) return;
+
+            int idx = WindowlessFloatMenuState.SelectedIndex;
+            if (idx < 0 || idx >= currentInspectionItems.Count)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No info card available");
+                return;
+            }
+
+            var item = currentInspectionItems[idx];
+            if (item.thing != null)
+            {
+                Find.WindowStack.Add(new Dialog_InfoCard(item.thing));
+            }
+            else if (item.faction != null)
+            {
+                Find.WindowStack.Add(new Dialog_InfoCard(item.faction));
+            }
+            else
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No info card available");
+            }
+        }
+
+        /// <summary>
+        /// Returns from item inspection sub-menu to the reward choice float menu.
+        /// Called when Escape is pressed in item inspection mode.
+        /// </summary>
+        public static void ReturnToRewardChoiceMenu()
+        {
+            isInItemInspectionMenu = false;
+            currentInspectionItems = null;
+
+            // Close item inspection float menu
+            WindowlessFloatMenuState.Close();
+
+            // Rebuild and re-open choice menu at saved position
+            if (rewardMenuQuest == null || rewardChoices == null)
+            {
+                CleanupRewardMenu();
+                TolkHelper.Speak("Back to quest list");
+                AnnounceCurrentSelection();
+                return;
+            }
+
+            QuestPart_Choice choicePart = QuestRewardHelper.GetChoicePart(rewardMenuQuest);
+            if (choicePart == null)
+            {
+                CleanupRewardMenu();
+                TolkHelper.Speak("Back to quest list");
+                AnnounceCurrentSelection();
+                return;
+            }
+
+            var options = new List<FloatMenuOption>();
+            for (int i = 0; i < rewardChoices.Count; i++)
+            {
+                int choiceIdx = i;
+                var choice = rewardChoices[choiceIdx];
+                string rewardDesc = QuestRewardHelper.BuildRewardDescription(choice.rewards);
+                string label = rewardDesc;
+
+                options.Add(new FloatMenuOption(label, () =>
+                {
+                    AcceptQuestWithChoice(rewardMenuQuest, choicePart, choice);
+                    CleanupRewardMenu();
+                }));
+            }
+
+            int restoreIndex = savedChoiceIndex >= 0 && savedChoiceIndex < options.Count
+                ? savedChoiceIndex : 0;
+            WindowlessFloatMenuState.Open(options, false, restoreIndex);
+        }
+
+        // =====================================================================
+        // Typeahead Search
+        // =====================================================================
+
         public static List<string> GetItemLabels()
         {
             List<string> labels = new List<string>();
@@ -535,20 +902,6 @@ namespace RimWorldAccess
             return labels;
         }
 
-        /// <summary>
-        /// Sets the current index directly.
-        /// </summary>
-        public static void SetCurrentIndex(int index)
-        {
-            if (index >= 0 && index < currentQuests.Count)
-            {
-                currentIndex = index;
-            }
-        }
-
-        /// <summary>
-        /// Announces the current selection with search context if active.
-        /// </summary>
         public static void AnnounceWithSearch()
         {
             if (currentQuests.Count == 0)
@@ -560,7 +913,6 @@ namespace RimWorldAccess
             Quest quest = currentQuests[currentIndex];
             string announcement = BuildQuestAnnouncement(quest);
 
-            // Add search context if active
             if (typeahead.HasActiveSearch)
             {
                 announcement += $", match {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} for '{typeahead.SearchBuffer}'";
@@ -569,9 +921,6 @@ namespace RimWorldAccess
             TolkHelper.Speak(announcement);
         }
 
-        /// <summary>
-        /// Handles backspace for typeahead search.
-        /// </summary>
         public static void HandleBackspace()
         {
             if (!typeahead.HasActiveSearch)
@@ -586,9 +935,6 @@ namespace RimWorldAccess
             }
         }
 
-        /// <summary>
-        /// Handles character input for typeahead search.
-        /// </summary>
         public static void HandleTypeahead(char c)
         {
             var labels = GetItemLabels();
@@ -603,6 +949,464 @@ namespace RimWorldAccess
             else
             {
                 TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+            }
+        }
+
+        // =====================================================================
+        // Private Helpers
+        // =====================================================================
+
+        private static void InitializeDetailHelper()
+        {
+            detailHelper = new TwoLevelMenuHelper(
+                getContentLineCount: () => cachedDetailLines.Count,
+                populateButtons: PopulateQuestButtons,
+                getHeaderAnnouncement: GetDetailHeaderAnnouncement,
+                getContentLineAnnouncement: (idx) =>
+                    idx >= 0 && idx < cachedDetailLines.Count ? cachedDetailLines[idx].Text : "",
+                endOfItemMessage: "End of quest details",
+                startOfItemMessage: "Start of quest details"
+            );
+        }
+
+        private static string GetDetailHeaderAnnouncement()
+        {
+            if (currentQuests.Count == 0 || currentIndex < 0 || currentIndex >= currentQuests.Count)
+                return "";
+
+            Quest quest = currentQuests[currentIndex];
+            string name = quest.name.StripTags();
+            string status;
+
+            if (quest.State == QuestState.NotYetAccepted) status = "Available";
+            else if (quest.State == QuestState.Ongoing && !quest.dismissed) status = "Active";
+            else if (quest.State == QuestState.Ongoing && quest.dismissed) status = "Dismissed";
+            else if (quest.State == QuestState.EndedSuccess) status = "Completed";
+            else if (quest.State == QuestState.EndedFailed) status = "Failed";
+            else status = "Expired";
+
+            return $"Quest: {name} ({status})";
+        }
+
+        /// <summary>
+        /// Builds the navigable content lines for the detail view.
+        /// </summary>
+        private static List<DetailLine> BuildDetailContentLines(Quest quest)
+        {
+            var lines = new List<DetailLine>();
+
+            // Difficulty
+            int rating = Math.Max(quest.challengeRating, 1);
+            string ratingLine = $"Difficulty: {rating} star{(rating == 1 ? "" : "s")}";
+            if (quest.charity)
+                ratingLine += " (Charity quest)";
+            lines.Add(new DetailLine(ratingLine));
+
+            // Time info
+            if (quest.State == QuestState.NotYetAccepted && quest.TicksUntilExpiry > 0)
+            {
+                lines.Add(new DetailLine("QuestExpiresIn".Translate(quest.TicksUntilExpiry.ToStringTicksToPeriod()).ToString()));
+            }
+            else if (quest.EverAccepted && !quest.Historical)
+            {
+                lines.Add(new DetailLine($"Accepted: {quest.TicksSinceAccepted.ToStringTicksToPeriod()} ago"));
+            }
+            else if (quest.Historical)
+            {
+                string outcome = quest.State == QuestState.EndedSuccess ? "Completed" :
+                                 quest.State == QuestState.EndedFailed ? "Failed" : "Expired";
+                lines.Add(new DetailLine($"Status: {outcome}"));
+                lines.Add(new DetailLine($"Finished: {quest.TicksSinceCleanup.ToStringTicksToPeriod()} ago"));
+            }
+
+            // Active-quest deadlines from QuestPartActivable parts (matches vanilla MainTabWindow_Quests.DoRightAlignedInfo).
+            // Each part's ExpiryInfoPart is already localized and formatted (e.g. "Ends in 3 days").
+            if (quest.State == QuestState.Ongoing)
+            {
+                foreach (QuestPart part in quest.PartsListForReading)
+                {
+                    if (part is QuestPartActivable activable &&
+                        activable.State == QuestPartState.Enabled &&
+                        !activable.ExpiryInfoPart.NullOrEmpty())
+                    {
+                        lines.Add(new DetailLine(activable.ExpiryInfoPart));
+                    }
+                }
+            }
+
+            // Description (split into individual lines)
+            if (!quest.description.RawText.NullOrEmpty())
+            {
+                string desc = quest.description.Resolve().StripTags();
+                string[] descLines = desc.Split('\n');
+                foreach (string line in descLines)
+                {
+                    string trimmed = line.Trim();
+                    if (!string.IsNullOrEmpty(trimmed))
+                        lines.Add(new DetailLine(trimmed));
+                }
+            }
+
+            // Rewards (with info card targets)
+            var rewardLines = QuestRewardHelper.BuildRewardDetailLines(quest);
+            lines.AddRange(rewardLines);
+
+            return lines;
+        }
+
+        /// <summary>
+        /// Populates the action buttons for the detail view based on quest state.
+        /// </summary>
+        private static void PopulateQuestButtons(List<ButtonInfo> buttons)
+        {
+            if (currentQuests.Count == 0 || currentIndex < 0 || currentIndex >= currentQuests.Count)
+                return;
+
+            Quest quest = currentQuests[currentIndex];
+
+            if (quest.State == QuestState.NotYetAccepted)
+            {
+                AcceptanceReport canAccept = QuestUtility.CanAcceptQuest(quest);
+                QuestPart_Choice choicePart = QuestRewardHelper.GetChoicePart(quest);
+                bool hasMultiChoice = choicePart != null && choicePart.choices.Count >= 2;
+
+                if (hasMultiChoice)
+                {
+                    // One accept button per reward choice
+                    for (int i = 0; i < choicePart.choices.Count; i++)
+                    {
+                        int choiceIdx = i;
+                        string rewardDesc = QuestRewardHelper.BuildRewardDescription(
+                            choicePart.choices[choiceIdx].rewards);
+                        buttons.Add(new ButtonInfo
+                        {
+                            Label = $"Accept Choice {choiceIdx + 1}: {rewardDesc}",
+                            Action = () => AcceptQuestWithChoice(quest, choicePart,
+                                choicePart.choices[choiceIdx]),
+                            IsDisabled = !canAccept.Accepted,
+                            DisabledReason = canAccept.Accepted ? null : canAccept.Reason
+                        });
+                    }
+                }
+                else
+                {
+                    // Single accept button with reward description
+                    string acceptLabel = "Accept";
+                    if (choicePart != null && choicePart.choices.Count == 1)
+                    {
+                        string rewardDesc = QuestRewardHelper.BuildRewardDescription(choicePart.choices[0].rewards);
+                        if (!string.IsNullOrEmpty(rewardDesc))
+                            acceptLabel = $"Accept: {rewardDesc}";
+                    }
+                    buttons.Add(new ButtonInfo
+                    {
+                        Label = acceptLabel,
+                        Action = () =>
+                        {
+                            AcceptanceReport report = QuestUtility.CanAcceptQuest(quest);
+                            if (!report.Accepted)
+                            {
+                                TolkHelper.Speak($"Cannot accept: {report.Reason}", SpeechPriority.High);
+                                return;
+                            }
+
+                            if (quest.RequiresAccepter)
+                            {
+                                AcceptQuestWithPawnSelection(quest, null);
+                                return;
+                            }
+
+                            SoundDefOf.Quest_Accepted.PlayOneShotOnCamera();
+                            quest.Accept(null);
+                            TolkHelper.Speak($"Accepted quest: {quest.name.StripTags()}");
+                            detailHelper?.GoBackToList();
+                            currentMode = QuestMenuMode.QuestList;
+                            RefreshQuestList();
+                            AnnounceCurrentSelection();
+                        },
+                        IsDisabled = !canAccept.Accepted,
+                        DisabledReason = canAccept.Accepted ? null : canAccept.Reason
+                    });
+                }
+
+                // Dismiss button for available quests
+                buttons.Add(new ButtonInfo
+                {
+                    Label = "Dismiss",
+                    Action = () =>
+                    {
+                        quest.dismissed = true;
+                        SoundDefOf.Click.PlayOneShotOnCamera();
+                        TolkHelper.Speak($"Dismissed quest: {quest.name.StripTags()}");
+                        detailHelper?.GoBackToList();
+                        currentMode = QuestMenuMode.QuestList;
+                        RefreshQuestList();
+                        AnnounceCurrentSelection();
+                    }
+                });
+            }
+            else if (quest.State == QuestState.Ongoing)
+            {
+                buttons.Add(new ButtonInfo
+                {
+                    Label = quest.dismissed ? "Resume" : "Dismiss",
+                    Action = () =>
+                    {
+                        quest.dismissed = !quest.dismissed;
+                        string action = quest.dismissed ? "Dismissed" : "Resumed";
+                        SoundDefOf.Click.PlayOneShotOnCamera();
+                        TolkHelper.Speak($"{action} quest: {quest.name.StripTags()}");
+                        detailHelper?.GoBackToList();
+                        currentMode = QuestMenuMode.QuestList;
+                        RefreshQuestList();
+                        AnnounceCurrentSelection();
+                    }
+                });
+            }
+            else if (quest.Historical)
+            {
+                buttons.Add(new ButtonInfo
+                {
+                    Label = "Delete",
+                    Action = () =>
+                    {
+                        quest.hiddenInUI = true;
+                        SoundDefOf.Tick_High.PlayOneShotOnCamera();
+                        TolkHelper.Speak($"Deleted quest: {quest.name.StripTags()}");
+                        detailHelper?.GoBackToList();
+                        currentMode = QuestMenuMode.QuestList;
+                        RefreshQuestList();
+                        AnnounceCurrentSelection();
+                    }
+                });
+            }
+
+            // Jump to location buttons
+            var lookTargets = quest.QuestLookTargets.Where(t => CameraJumper.CanJump(t)).ToList();
+            foreach (var target in lookTargets)
+            {
+                GlobalTargetInfo localTarget = target;
+                string targetLabel = localTarget.Label;
+                string buttonLabel = string.IsNullOrEmpty(targetLabel)
+                    ? "Jump to location"
+                    : $"Jump to {targetLabel}";
+
+                buttons.Add(new ButtonInfo
+                {
+                    Label = buttonLabel,
+                    Action = () =>
+                    {
+                        CameraJumper.TryJumpAndSelect(localTarget);
+                        Close();
+                    }
+                });
+            }
+        }
+
+        private static QuestsTab GetTabForQuest(Quest quest)
+        {
+            if (quest.Historical || quest.dismissed)
+                return QuestsTab.Historical;
+
+            if (quest.State == QuestState.NotYetAccepted)
+                return QuestsTab.Available;
+
+            if (quest.State == QuestState.Ongoing)
+                return QuestsTab.Active;
+
+            return QuestsTab.Historical;
+        }
+
+        private static void RefreshQuestList()
+        {
+            currentQuests.Clear();
+
+            List<Quest> allQuests = Find.QuestManager.questsInDisplayOrder;
+
+            foreach (Quest quest in allQuests)
+            {
+                if (ShouldShowQuest(quest))
+                {
+                    currentQuests.Add(quest);
+                }
+            }
+
+            switch (currentTab)
+            {
+                case QuestsTab.Available:
+                    currentQuests = currentQuests.OrderBy(q => q.TicksUntilExpiry).ToList();
+                    break;
+                case QuestsTab.Active:
+                    currentQuests = currentQuests.OrderBy(q => q.TicksSinceAccepted).ToList();
+                    break;
+                case QuestsTab.Historical:
+                    currentQuests = currentQuests.OrderBy(q => q.TicksSinceCleanup).ToList();
+                    break;
+            }
+
+            if (currentIndex >= currentQuests.Count)
+                currentIndex = Math.Max(0, currentQuests.Count - 1);
+        }
+
+        private static bool ShouldShowQuest(Quest quest)
+        {
+            if (quest.hidden || quest.hiddenInUI)
+                return false;
+
+            switch (currentTab)
+            {
+                case QuestsTab.Available:
+                    return quest.State == QuestState.NotYetAccepted && !quest.dismissed;
+                case QuestsTab.Active:
+                    return quest.State == QuestState.Ongoing && !quest.dismissed;
+                case QuestsTab.Historical:
+                    return quest.Historical || quest.dismissed;
+                default:
+                    return false;
+            }
+        }
+
+        private static void AnnounceTabSwitch()
+        {
+            string tabName = GetTabName();
+            string countInfo = currentQuests.Count == 1 ? "1 quest" : $"{currentQuests.Count} quests";
+            TolkHelper.Speak($"{tabName} tab - {countInfo}");
+
+            if (currentQuests.Count > 0)
+            {
+                AnnounceCurrentSelection();
+            }
+        }
+
+        private static void AnnounceCurrentSelection()
+        {
+            if (currentQuests.Count == 0)
+            {
+                TolkHelper.Speak($"{GetTabName()} tab - No quests");
+                return;
+            }
+
+            Quest quest = currentQuests[currentIndex];
+            string announcement = BuildQuestAnnouncement(quest);
+            TolkHelper.Speak(announcement);
+        }
+
+        private static string BuildQuestAnnouncement(Quest quest)
+        {
+            var parts = new List<string>();
+            string name = quest.name.StripTags();
+
+            // Name with status
+            if (quest.dismissed && !quest.Historical)
+                parts.Add($"{name}, Dismissed");
+            else if (quest.Historical)
+            {
+                switch (quest.State)
+                {
+                    case QuestState.EndedSuccess:
+                        parts.Add($"{name}, Completed");
+                        break;
+                    case QuestState.EndedFailed:
+                        parts.Add($"{name}, Failed");
+                        break;
+                    default:
+                        parts.Add($"{name}, Expired");
+                        break;
+                }
+            }
+            else
+            {
+                parts.Add(name);
+            }
+
+            // Difficulty
+            int rating = Math.Max(quest.challengeRating, 1);
+            string ratingText = rating == 1 ? "1 star" : $"{rating} stars";
+            if (quest.charity)
+                ratingText += ", charity quest";
+            parts.Add(ratingText);
+
+            // Time info
+            string timeInfo = GetShortTimeInfo(quest);
+            if (!string.IsNullOrEmpty(timeInfo))
+                parts.Add(timeInfo);
+
+            // Description
+            if (!quest.description.RawText.NullOrEmpty())
+            {
+                string desc = quest.description.Resolve().StripTags();
+                // Split on newlines, trim, filter empties, strip trailing periods to avoid ".." when joining
+                var descLines = desc.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                var cleanLines = new List<string>();
+                foreach (string line in descLines)
+                {
+                    string trimmed = line.Trim();
+                    if (!string.IsNullOrEmpty(trimmed))
+                    {
+                        if (trimmed.EndsWith("."))
+                            trimmed = trimmed.Substring(0, trimmed.Length - 1).TrimEnd();
+                        if (!string.IsNullOrEmpty(trimmed))
+                            cleanLines.Add(trimmed);
+                    }
+                }
+                if (cleanLines.Count > 0)
+                    parts.Add(string.Join(". ", cleanLines));
+            }
+
+            // Rewards
+            string rewardSummary = QuestRewardHelper.BuildCompactRewardSummary(quest);
+            parts.Add($"Rewards: {rewardSummary}");
+
+            // Position
+            string position = MenuHelper.FormatPosition(currentIndex, currentQuests.Count);
+
+            return string.Join(". ", parts) + ". " + position;
+        }
+
+        private static string GetShortTimeInfo(Quest quest)
+        {
+            if (quest.State == QuestState.NotYetAccepted && quest.TicksUntilExpiry >= 0)
+            {
+                return "QuestExpiresIn".Translate(
+                    quest.TicksUntilExpiry.ToStringTicksToPeriod(allowSeconds: true, shortForm: true)).ToString();
+            }
+            else if (quest.Historical)
+            {
+                return $"{quest.TicksSinceCleanup.ToStringTicksToPeriod(allowSeconds: false, shortForm: true)} ago";
+            }
+            else if (quest.EverAccepted)
+            {
+                // Active quest with a bad-outcome deadline takes priority over "accepted ago"
+                // (matches vanilla MainTabWindow_Quests.GetShortTimeInfo).
+                foreach (QuestPart part in quest.PartsListForReading)
+                {
+                    if (part is QuestPart_Delay delayPart &&
+                        delayPart.State == QuestPartState.Enabled &&
+                        delayPart.isBad &&
+                        !delayPart.expiryInfoPart.NullOrEmpty())
+                    {
+                        return "QuestExpiresIn".Translate(
+                            delayPart.TicksLeft.ToStringTicksToPeriod(allowSeconds: false, shortForm: true, canUseDecimals: false)).ToString();
+                    }
+                }
+                return $"Accepted {quest.TicksSinceAccepted.ToStringTicksToPeriod(allowSeconds: false, shortForm: true)} ago";
+            }
+
+            return "";
+        }
+
+        private static string GetTabName()
+        {
+            switch (currentTab)
+            {
+                case QuestsTab.Available:
+                    return "Available Quests";
+                case QuestsTab.Active:
+                    return "Active Quests";
+                case QuestsTab.Historical:
+                    return "Historical Quests";
+                default:
+                    return "Quests";
             }
         }
     }

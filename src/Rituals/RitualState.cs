@@ -120,11 +120,11 @@ namespace RimWorldAccess
                 typeahead.ClearSearch();
 
                 // Build role list
-                RitualTreeBuilder.BuildRoleList(currentAssignments, currentTarget, currentRitual, roleItems);
+                RitualTreeBuilder.BuildRoleList(currentAssignments, currentTarget, currentRitual, roleItems, currentDialog);
 
                 // Announce opening with description and expected quality
                 string ritualName = RitualTreeBuilder.GetRitualLabel(currentRitual);
-                int roleCount = roleItems.Count;
+                int roleCount = roleItems.Count(item => item.Type != RitualRoleListItem.ItemType.GravshipCheckbox);
 
                 // Get description if available
                 string description = GetRitualDescription(dialog);
@@ -302,6 +302,19 @@ namespace RimWorldAccess
                     }
                     break;
 
+                case KeyCode.Space:
+                    if (!shift && !ctrl && !alt)
+                    {
+                        // Space toggles gravship checkboxes in the role list
+                        if (roleIndex >= 0 && roleIndex < roleItems.Count &&
+                            roleItems[roleIndex].Type == RitualRoleListItem.ItemType.GravshipCheckbox)
+                        {
+                            ToggleGravshipCheckbox();
+                            return true;
+                        }
+                    }
+                    break;
+
                 case KeyCode.S:
                     if (alt && !shift && !ctrl)
                     {
@@ -338,7 +351,7 @@ namespace RimWorldAccess
             }
 
             // Typeahead search
-            if (HandleTypeahead(key, shift, ctrl, alt, roleItems.Select(r => r.Label).ToList(), ref roleIndex, AnnounceCurrentRole))
+            if (HandleTypeahead(key, shift, ctrl, alt, roleItems.Select(r => r.Label).ToList(), roleIndex, i => roleIndex = i, AnnounceCurrentRole))
             {
                 return true;
             }
@@ -456,7 +469,7 @@ namespace RimWorldAccess
             }
 
             // Typeahead search for pawn names
-            if (HandleTypeahead(key, shift, ctrl, alt, pawnItems.Select(p => p.Pawn.LabelShort).ToList(), ref pawnIndex, AnnounceCurrentPawn))
+            if (HandleTypeahead(key, shift, ctrl, alt, pawnItems.Select(p => p.Pawn.LabelShort).ToList(), pawnIndex, i => pawnIndex = i, AnnounceCurrentPawn))
             {
                 return true;
             }
@@ -524,7 +537,7 @@ namespace RimWorldAccess
             return true;
         }
 
-        private static bool HandleTypeahead(KeyCode key, bool shift, bool ctrl, bool alt, List<string> labels, ref int currentIndex, Action announceAction)
+        private static bool HandleTypeahead(KeyCode key, bool shift, bool ctrl, bool alt, List<string> labels, int currentIndex, Action<int> setIndex, Action announceAction)
         {
             if (ctrl || alt) return false;
 
@@ -538,7 +551,7 @@ namespace RimWorldAccess
                     {
                         if (newIndex >= 0 && newIndex != currentIndex)
                         {
-                            currentIndex = newIndex;
+                            setIndex(newIndex);
                             announceAction?.Invoke();
                         }
                         else if (newIndex < 0 && !typeahead.HasActiveSearch)
@@ -552,60 +565,60 @@ namespace RimWorldAccess
             }
 
             // Letter/number keys for search
-            char? c = KeyCodeToChar(key, shift);
-            if (c.HasValue)
+            bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
+            bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
+            bool isKeypad = key >= KeyCode.Keypad0 && key <= KeyCode.Keypad9;
+
+            if (isLetter || isNumber || isKeypad)
             {
-                int newIndex;
-                if (typeahead.ProcessCharacterInput(c.Value, labels, out newIndex))
+                TypeaheadCharacterBuffer.RequestCharacter(c =>
                 {
-                    if (newIndex >= 0 && newIndex != currentIndex)
+                    int newIndex;
+                    if (typeahead.ProcessCharacterInput(c, labels, out newIndex))
                     {
-                        currentIndex = newIndex;
-                        announceAction?.Invoke();
+                        if (newIndex >= 0 && newIndex != currentIndex)
+                        {
+                            setIndex(newIndex);
+                            announceAction?.Invoke();
+                        }
                     }
-                }
-                else
-                {
-                    // No matches found
-                    TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
-                }
+                    else
+                    {
+                        TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+                    }
+                });
                 return true;
             }
 
             return false;
         }
 
-        private static char? KeyCodeToChar(KeyCode key, bool shift)
-        {
-            // Letters
-            if (key >= KeyCode.A && key <= KeyCode.Z)
-            {
-                char c = (char)('a' + (key - KeyCode.A));
-                return shift ? char.ToUpper(c) : c;
-            }
-
-            // Numbers
-            if (key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9)
-            {
-                return (char)('0' + (key - KeyCode.Alpha0));
-            }
-            if (key >= KeyCode.Keypad0 && key <= KeyCode.Keypad9)
-            {
-                return (char)('0' + (key - KeyCode.Keypad0));
-            }
-
-            // Space
-            if (key == KeyCode.Space)
-            {
-                return ' ';
-            }
-
-            return null;
-        }
-
         #endregion
 
         #region Mode Transitions
+
+        private static void ToggleGravshipCheckbox()
+        {
+            if (roleItems.Count == 0 || roleIndex < 0 || roleIndex >= roleItems.Count)
+                return;
+
+            var item = roleItems[roleIndex];
+            if (item.Type != RitualRoleListItem.ItemType.GravshipCheckbox)
+                return;
+
+            if (currentDialog == null || string.IsNullOrEmpty(item.FieldName))
+                return;
+
+            // Toggle the field on the dialog via reflection
+            var field = AccessTools.Field(currentDialog.GetType(), item.FieldName);
+            if (field == null) return;
+
+            bool newValue = !item.CheckboxValue;
+            field.SetValue(currentDialog, newValue);
+            item.CheckboxValue = newValue;
+
+            TolkHelper.Speak($"{item.Label}: {(newValue ? "checked" : "unchecked")}.");
+        }
 
         private static void EnterPawnSelection()
         {
@@ -616,6 +629,13 @@ namespace RimWorldAccess
             }
 
             var role = roleItems[roleIndex];
+
+            // Handle gravship checkbox toggle instead of pawn selection
+            if (role.Type == RitualRoleListItem.ItemType.GravshipCheckbox)
+            {
+                ToggleGravshipCheckbox();
+                return;
+            }
 
             if (role.IsLocked)
             {
@@ -654,7 +674,7 @@ namespace RimWorldAccess
             typeahead.ClearSearch();
 
             // Refresh role list to show updated counts
-            RitualTreeBuilder.BuildRoleList(currentAssignments, currentTarget, currentRitual, roleItems);
+            RitualTreeBuilder.BuildRoleList(currentAssignments, currentTarget, currentRitual, roleItems, currentDialog);
 
             if (cancelled)
             {
@@ -990,7 +1010,17 @@ namespace RimWorldAccess
             }
 
             var item = roleItems[roleIndex];
-            string announcement = RitualStatFormatter.FormatRoleAnnouncement(item, currentAssignments);
+
+            string announcement;
+            if (item.Type == RitualRoleListItem.ItemType.GravshipCheckbox)
+            {
+                announcement = RitualStatFormatter.FormatCheckboxAnnouncement(item);
+            }
+            else
+            {
+                announcement = RitualStatFormatter.FormatRoleAnnouncement(item, currentAssignments);
+            }
+
             string position = MenuHelper.FormatPosition(roleIndex, roleItems.Count);
 
             if (!string.IsNullOrEmpty(position))

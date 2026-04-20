@@ -24,7 +24,7 @@ namespace RimWorldAccess
         {
             // Block OpenMapSearch when in playing state on map or world
             if (__instance == KeyBindingDefOf.OpenMapSearch &&
-                Current.ProgramState == ProgramState.Playing &&
+                (Current.ProgramState == ProgramState.Playing || WorldNavigationState.Context == WorldNavContext.WorldGen) &&
                 (MapNavigationState.IsInitialized || WorldNavigationState.IsActive))
             {
                 __result = false;

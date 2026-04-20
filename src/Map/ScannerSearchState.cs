@@ -25,8 +25,6 @@ namespace RimWorldAccess
         private static string savedFilterQuery = "";
         private static bool savedFilterIsWorldMap = false;
 
-        // Word separators for match type detection
-        private static readonly char[] WordSeparators = { ' ', '-', '_', '(', ')', '[', ']', '/', '\\', '.', ',' };
 
         /// <summary>
         /// Returns true if search input mode is active (user is typing).
@@ -228,6 +226,40 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Clears the active search filter and removes the search temporary category.
+        /// Called by Ctrl+Z when not actively searching.
+        /// If the user is currently in the search category, restores focus to pre-search position.
+        /// Does nothing if there is no active filter.
+        /// </summary>
+        public static void ClearActiveFilter()
+        {
+            if (!HasActiveFilter || IsActive)
+                return;
+
+            if (activeFilterIsWorldMap)
+            {
+                bool wasInFilter = WorldScannerState.IsInTemporaryCategory();
+                WorldScannerState.RemoveTemporaryCategory();
+                if (wasInFilter)
+                    WorldScannerState.RestoreFocus();
+            }
+            else
+            {
+                bool wasInFilter = ScannerState.IsInTemporaryCategory();
+                ScannerState.RemoveTemporaryCategory();
+                if (wasInFilter)
+                    ScannerState.RestoreFocus();
+            }
+
+            activeFilterQuery = "";
+            activeFilterIsWorldMap = false;
+            savedFilterQuery = "";
+            savedFilterIsWorldMap = false;
+
+            TolkHelper.Speak("Search filter cleared", SpeechPriority.Normal);
+        }
+
+        /// <summary>
         /// Clears the search without announcement.
         /// Used when map is invalidated or switched.
         /// Also clears any active filter.
@@ -242,7 +274,7 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Refreshes the active filter with fresh items from the map.
-        /// Called by ScannerState.RefreshItems() when there's an active filter.
+        /// Called by CancelSearch when restoring a previous filter.
         /// Returns the updated list of matching items, or null if no active filter.
         /// </summary>
         public static List<ScannerItem> RefreshMapFilter(Map map, IntVec3 cursorPosition)
@@ -250,38 +282,45 @@ namespace RimWorldAccess
             if (string.IsNullOrEmpty(activeFilterQuery) || activeFilterIsWorldMap)
                 return null;
 
-            // Collect all items from all categories
-            var allItems = CollectAllMapItemsFlat(map, cursorPosition);
+            var categories = ScannerHelper.CollectMapItems(map, cursorPosition);
+            return RefreshMapFilter(categories);
+        }
 
-            // Filter and prioritize by match type
-            var firstWordMatches = new List<ScannerItem>();
-            var otherWordMatches = new List<ScannerItem>();
-            var containsMatches = new List<ScannerItem>();
+        /// <summary>
+        /// Refreshes the active filter from pre-collected categories.
+        /// Called by ScannerState.RefreshItems() to avoid double-collecting.
+        /// Returns the updated list of matching items, or null if no active filter.
+        /// </summary>
+        public static List<ScannerItem> RefreshMapFilter(List<ScannerCategory> preCollectedCategories)
+        {
+            if (string.IsNullOrEmpty(activeFilterQuery) || activeFilterIsWorldMap)
+                return null;
 
-            foreach (var item in allItems)
+            var allItems = FlattenFromAllCategory(preCollectedCategories);
+
+            return ScannerSearchEngine.FilterAndRank(
+                allItems, activeFilterQuery, item => item.Label, item => item.Distance);
+        }
+
+        /// <summary>
+        /// Returns the items from the top-level "All" category's "All-All" subcategory.
+        /// That subcategory is the authoritative, reference-deduped, grouped-once view of
+        /// every item on the map. Falls back to an empty list if the "All" category wasn't
+        /// produced (e.g., an empty map). See CollectAllMapItemsFlat for why we don't
+        /// iterate every subcategory ourselves.
+        /// </summary>
+        private static List<ScannerItem> FlattenFromAllCategory(List<ScannerCategory> categories)
+        {
+            if (categories == null)
+                return new List<ScannerItem>();
+
+            foreach (var category in categories)
             {
-                var matchType = GetMatchType(activeFilterQuery, item.Label);
-                switch (matchType)
-                {
-                    case MatchType.FirstWord:
-                        firstWordMatches.Add(item);
-                        break;
-                    case MatchType.OtherWord:
-                        otherWordMatches.Add(item);
-                        break;
-                    case MatchType.Contains:
-                        containsMatches.Add(item);
-                        break;
-                }
+                if (category.Name == "All")
+                    return category.AllSubcategory?.Items.ToList() ?? new List<ScannerItem>();
             }
 
-            // Sort by relevance first, then distance within each tier
-            var matching = firstWordMatches.OrderBy(i => i.Distance)
-                .Concat(otherWordMatches.OrderBy(i => i.Distance))
-                .Concat(containsMatches.OrderBy(i => i.Distance))
-                .ToList();
-
-            return matching;
+            return new List<ScannerItem>();
         }
 
         /// <summary>
@@ -295,39 +334,12 @@ namespace RimWorldAccess
                 return null;
 
             var originTile = WorldNavigationState.CurrentSelectedTile;
-
-            // Collect all items from world
             var allItems = CollectAllWorldItemsFlat();
 
-            // Filter and prioritize by match type
-            var firstWordMatches = new List<WorldScannerItem>();
-            var otherWordMatches = new List<WorldScannerItem>();
-            var containsMatches = new List<WorldScannerItem>();
-
-            foreach (var item in allItems)
-            {
-                var matchType = GetMatchType(activeFilterQuery, item.Label);
-                switch (matchType)
-                {
-                    case MatchType.FirstWord:
-                        firstWordMatches.Add(item);
-                        break;
-                    case MatchType.OtherWord:
-                        otherWordMatches.Add(item);
-                        break;
-                    case MatchType.Contains:
-                        containsMatches.Add(item);
-                        break;
-                }
-            }
-
-            // Sort by relevance first, then distance within each tier
-            var matching = firstWordMatches.OrderBy(i => i.GetDistance(originTile, 0))
-                .Concat(otherWordMatches.OrderBy(i => i.GetDistance(originTile, 0)))
-                .Concat(containsMatches.OrderBy(i => i.GetDistance(originTile, 0)))
-                .ToList();
-
-            return matching;
+            return ScannerSearchEngine.FilterAndRank(
+                allItems, activeFilterQuery,
+                item => item.Label,
+                item => item.GetDistance(originTile, 0));
         }
 
         /// <summary>
@@ -373,33 +385,8 @@ namespace RimWorldAccess
             // Collect all items from all categories
             var allItems = CollectAllMapItemsFlat(map, cursor);
 
-            // Filter and prioritize by match type
-            var firstWordMatches = new List<ScannerItem>();
-            var otherWordMatches = new List<ScannerItem>();
-            var containsMatches = new List<ScannerItem>();
-
-            foreach (var item in allItems)
-            {
-                var matchType = GetMatchType(searchBuffer, item.Label);
-                switch (matchType)
-                {
-                    case MatchType.FirstWord:
-                        firstWordMatches.Add(item);
-                        break;
-                    case MatchType.OtherWord:
-                        otherWordMatches.Add(item);
-                        break;
-                    case MatchType.Contains:
-                        containsMatches.Add(item);
-                        break;
-                }
-            }
-
-            // Sort by relevance first, then distance within each tier
-            var matching = firstWordMatches.OrderBy(i => i.Distance)
-                .Concat(otherWordMatches.OrderBy(i => i.Distance))
-                .Concat(containsMatches.OrderBy(i => i.Distance))
-                .ToList();
+            var matching = ScannerSearchEngine.FilterAndRank(
+                allItems, searchBuffer, item => item.Label, item => item.Distance);
 
             // Group identical items
             matching = GroupIdenticalItems(matching, cursor);
@@ -436,33 +423,10 @@ namespace RimWorldAccess
             // Collect all items from all categories (world scanner collects on refresh)
             var allItems = CollectAllWorldItemsFlat();
 
-            // Filter and prioritize by match type
-            var firstWordMatches = new List<WorldScannerItem>();
-            var otherWordMatches = new List<WorldScannerItem>();
-            var containsMatches = new List<WorldScannerItem>();
-
-            foreach (var item in allItems)
-            {
-                var matchType = GetMatchType(searchBuffer, item.Label);
-                switch (matchType)
-                {
-                    case MatchType.FirstWord:
-                        firstWordMatches.Add(item);
-                        break;
-                    case MatchType.OtherWord:
-                        otherWordMatches.Add(item);
-                        break;
-                    case MatchType.Contains:
-                        containsMatches.Add(item);
-                        break;
-                }
-            }
-
-            // Sort by relevance first, then distance within each tier
-            var matching = firstWordMatches.OrderBy(i => i.GetDistance(originTile, 0))
-                .Concat(otherWordMatches.OrderBy(i => i.GetDistance(originTile, 0)))
-                .Concat(containsMatches.OrderBy(i => i.GetDistance(originTile, 0)))
-                .ToList();
+            var matching = ScannerSearchEngine.FilterAndRank(
+                allItems, searchBuffer,
+                item => item.Label,
+                item => item.GetDistance(originTile, 0));
 
             if (matching.Count == 0)
             {
@@ -481,76 +445,27 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Collects all scanner items from all categories flattened into a single list.
+        /// Collects all scanner items into a single flat list by reading from the top-level
+        /// "All" category's "All-All" subcategory. That subcategory is built with reference
+        /// dedup and then grouped exactly once, so every unique item/bulk appears here once.
+        /// A naive flatten of every subcategory would over-count: the per-subcategory
+        /// GroupIdenticalItems pass creates a distinct bulk ScannerItem per subcategory even
+        /// when they all wrap the same underlying Things, which reference-dedup cannot catch.
         /// </summary>
         private static List<ScannerItem> CollectAllMapItemsFlat(Map map, IntVec3 cursorPosition)
         {
             var categories = ScannerHelper.CollectMapItems(map, cursorPosition);
-            var allItems = new List<ScannerItem>();
-
-            foreach (var category in categories)
-            {
-                foreach (var subcat in category.Subcategories)
-                {
-                    allItems.AddRange(subcat.Items);
-                }
-            }
-
-            return allItems;
+            return FlattenFromAllCategory(categories);
         }
 
         /// <summary>
         /// Collects all world scanner items flattened into a single list.
-        /// This triggers a fresh collection from world objects.
+        /// Delegates to WorldScannerState which builds all categories (settlements, biomes, roads, etc.)
+        /// and returns them flattened, mirroring how CollectAllMapItemsFlat uses ScannerHelper.
         /// </summary>
         private static List<WorldScannerItem> CollectAllWorldItemsFlat()
         {
-            var allItems = new List<WorldScannerItem>();
-            var originTile = WorldNavigationState.CurrentSelectedTile;
-
-            // Collect settlements
-            var settlements = Find.WorldObjects?.Settlements;
-            if (settlements != null)
-            {
-                foreach (var settlement in settlements)
-                {
-                    if (settlement.Faction == null || !settlement.Tile.Valid)
-                        continue;
-
-                    allItems.Add(new WorldScannerItem(settlement));
-                }
-            }
-
-            // Collect caravans
-            var caravans = Find.WorldObjects?.Caravans?
-                .Where(c => c.Faction == RimWorld.Faction.OfPlayer)
-                .ToList();
-
-            if (caravans != null)
-            {
-                foreach (var caravan in caravans)
-                {
-                    allItems.Add(new WorldScannerItem(caravan));
-                }
-            }
-
-            // Collect other world objects (sites, etc.)
-            var allObjects = Find.WorldObjects?.AllWorldObjects;
-            if (allObjects != null)
-            {
-                foreach (var worldObj in allObjects)
-                {
-                    // Skip settlements and caravans (already added)
-                    if (worldObj is RimWorld.Planet.Settlement || worldObj is RimWorld.Planet.Caravan)
-                        continue;
-                    if (!worldObj.Tile.Valid)
-                        continue;
-
-                    allItems.Add(new WorldScannerItem(worldObj));
-                }
-            }
-
-            return allItems;
+            return WorldScannerState.CollectAllItemsFlat();
         }
 
         /// <summary>
@@ -622,92 +537,5 @@ namespace RimWorldAccess
             }
         }
 
-        #region Match Type Detection
-
-        private enum MatchType
-        {
-            None,
-            FirstWord,      // Match at start of label/first word
-            OtherWord,      // Match on other words in name
-            Contains        // Match anywhere in label
-        }
-
-        /// <summary>
-        /// Determines what type of match (if any) exists between search and label.
-        /// Uses same prioritization as TypeaheadSearchHelper.
-        /// </summary>
-        private static MatchType GetMatchType(string search, string label)
-        {
-            if (string.IsNullOrEmpty(search) || string.IsNullOrEmpty(label))
-                return MatchType.None;
-
-            string searchLower = search.ToLowerInvariant();
-            string labelLower = label.ToLowerInvariant().Trim();
-
-            // Strip parenthetical content for name-based matching
-            string nameOnly = StripParentheticalContent(labelLower);
-
-            // Check if label/first word starts with search
-            if (nameOnly.StartsWith(searchLower))
-            {
-                return MatchType.FirstWord;
-            }
-
-            // Check first word specifically (before any separator)
-            string[] nameWords = nameOnly.Split(WordSeparators, StringSplitOptions.RemoveEmptyEntries);
-            if (nameWords.Length > 0 && nameWords[0].StartsWith(searchLower))
-            {
-                return MatchType.FirstWord;
-            }
-
-            // Check other words in the name
-            for (int i = 1; i < nameWords.Length; i++)
-            {
-                if (nameWords[i].StartsWith(searchLower))
-                {
-                    return MatchType.OtherWord;
-                }
-            }
-
-            // Check if search appears anywhere in label (contains match)
-            if (labelLower.Contains(searchLower))
-            {
-                return MatchType.Contains;
-            }
-
-            return MatchType.None;
-        }
-
-        /// <summary>
-        /// Strips content inside parentheses from a string.
-        /// </summary>
-        private static string StripParentheticalContent(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-                return text;
-
-            var result = new System.Text.StringBuilder();
-            int depth = 0;
-
-            foreach (char c in text)
-            {
-                if (c == '(')
-                {
-                    depth++;
-                }
-                else if (c == ')')
-                {
-                    if (depth > 0) depth--;
-                }
-                else if (depth == 0)
-                {
-                    result.Append(c);
-                }
-            }
-
-            return result.ToString().Trim();
-        }
-
-        #endregion
     }
 }

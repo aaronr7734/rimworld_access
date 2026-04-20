@@ -18,7 +18,7 @@ namespace RimWorldAccess
         public int TileCount { get; set; }
         public string SizeDescription { get; set; } // e.g., "approximately 75 tiles, 8 across"
         public float Distance { get; set; } // Distance from cursor to center
-        public float Span { get; set; } // Maximum distance across the region
+        internal int[] TileIds { get; set; } // All tile IDs in this region, for launch reachability checks
 
         public BiomeRegion(PlanetTile centerTile, int tileCount)
         {
@@ -27,67 +27,12 @@ namespace RimWorldAccess
             SizeDescription = $"approximately {tileCount} tiles";
         }
 
-        /// <summary>
-        /// Constructor that calculates span from all region tiles.
-        /// </summary>
         public BiomeRegion(PlanetTile centerTile, HashSet<int> regionTiles)
         {
             CenterTile = centerTile;
             TileCount = regionTiles.Count;
-
-            // Calculate span (maximum distance between any two tiles)
-            Span = CalculateSpan(regionTiles);
-
-            // Build size description with span if meaningful
-            if (Span >= 3)
-            {
-                SizeDescription = $"approximately {TileCount} tiles, {Span:F0} across";
-            }
-            else
-            {
-                SizeDescription = $"approximately {TileCount} tiles";
-            }
-        }
-
-        /// <summary>
-        /// Calculates the maximum distance across the region (span).
-        /// Uses a sample of tiles for performance with large regions.
-        /// </summary>
-        private static float CalculateSpan(HashSet<int> regionTiles)
-        {
-            if (regionTiles.Count <= 1 || Find.WorldGrid == null)
-                return 0f;
-
-            // For small regions, check all pairs
-            // For large regions, sample boundary tiles
-            var tilesToCheck = regionTiles.ToList();
-            if (tilesToCheck.Count > 50)
-            {
-                // Sample: take first, last, and some distributed tiles
-                var sampled = new List<int>();
-                sampled.Add(tilesToCheck[0]);
-                sampled.Add(tilesToCheck[tilesToCheck.Count - 1]);
-                for (int i = 0; i < tilesToCheck.Count; i += tilesToCheck.Count / 10)
-                {
-                    sampled.Add(tilesToCheck[i]);
-                }
-                tilesToCheck = sampled.Distinct().ToList();
-            }
-
-            float maxDist = 0f;
-            for (int i = 0; i < tilesToCheck.Count; i++)
-            {
-                for (int j = i + 1; j < tilesToCheck.Count; j++)
-                {
-                    var tileA = new PlanetTile(tilesToCheck[i]);
-                    var tileB = new PlanetTile(tilesToCheck[j]);
-                    float dist = Find.WorldGrid.ApproxDistanceInTiles(tileA, tileB);
-                    if (dist > maxDist)
-                        maxDist = dist;
-                }
-            }
-
-            return maxDist;
+            TileIds = regionTiles.ToArray();
+            SizeDescription = $"approximately {TileCount} tiles";
         }
     }
 
@@ -101,6 +46,7 @@ namespace RimWorldAccess
         public float Distance { get; set; }
         public float Length { get; set; } // Maximum extent of the road segment
         public string SizeDescription { get; set; }
+        internal int[] TileIds { get; set; } // All tile IDs in this segment, for launch reachability checks
 
         public RoadSegment(PlanetTile centerTile, int tileCount)
         {
@@ -116,6 +62,7 @@ namespace RimWorldAccess
         {
             CenterTile = centerTile;
             TileCount = segmentTiles.Count;
+            TileIds = segmentTiles.ToArray();
             Length = CalculateLength(segmentTiles);
 
             // For roads, show length if meaningful
@@ -160,8 +107,8 @@ namespace RimWorldAccess
             {
                 for (int j = i + 1; j < tilesToCheck.Count; j++)
                 {
-                    var tileA = new PlanetTile(tilesToCheck[i]);
-                    var tileB = new PlanetTile(tilesToCheck[j]);
+                    var tileA = new PlanetTile(tilesToCheck[i], -1);
+                    var tileB = new PlanetTile(tilesToCheck[j], -1);
                     float dist = Find.WorldGrid.ApproxDistanceInTiles(tileA, tileB);
                     if (dist > maxDist)
                         maxDist = dist;
@@ -230,7 +177,17 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Constructor for landmark tiles (not WorldObjects).
+        /// </summary>
+        public WorldScannerItem(string label, PlanetTile tile)
+        {
+            Label = label;
+            Tile = tile;
+        }
+
+        /// <summary>
         /// Gets the tile for a specific instance index.
+        /// Used for navigation (jumping to the region center).
         /// </summary>
         public PlanetTile GetTileAtInstance(int instanceIndex)
         {
@@ -354,7 +311,10 @@ namespace RimWorldAccess
         }
 
         public bool IsEmpty => Subcategories == null || Subcategories.All(sc => sc.IsEmpty);
-        public int TotalItemCount => Subcategories?.Sum(sc => sc.Items?.Count ?? 0) ?? 0;
+        public int TotalItemCount =>
+            (Subcategories != null && Subcategories.Count > 0)
+                ? (Subcategories[0].Items?.Count ?? 0)
+                : 0;
     }
 
     /// <summary>
@@ -377,6 +337,14 @@ namespace RimWorldAccess
         private static Dictionary<string, List<BiomeRegion>> cachedBiomeRegions = null;
         private static Dictionary<string, List<RoadSegment>> cachedRoadSegments = null;
         private static PlanetTile lastCacheOrigin = PlanetTile.Invalid;
+
+        // Cache for full category list (count-based invalidation)
+        private static List<WorldScannerCategory> cachedCategories = null;
+        private static int lastSettlementCount = 0;
+        private static int lastCaravanCount = 0;
+        private static int lastWorldObjectCount = 0;
+        private static int lastQuestCount = 0;
+        private static int lastWaypointCount = 0;
 
         // Saved focus state for temporary category operations
         private static int savedCategoryIndex = -1;
@@ -494,6 +462,34 @@ namespace RimWorldAccess
             }
 
             PlanetTile originTile = WorldNavigationState.CurrentSelectedTile;
+
+            // Check if we can reuse cached categories
+            int currentSettlements = Find.WorldObjects?.Settlements?.Count ?? 0;
+            int currentCaravans = Find.WorldObjects?.Caravans?.Count ?? 0;
+            int currentWorldObjects = Find.WorldObjects?.AllWorldObjects?.Count ?? 0;
+            int currentQuests = Find.QuestManager?.questsInDisplayOrder?.Count ?? 0;
+            int currentWaypoints = (Find.WorldRoutePlanner?.Active == true)
+                ? (Find.WorldRoutePlanner.waypoints?.Count ?? 0) : 0;
+
+            bool cacheValid = cachedCategories != null
+                && cachedCategories.Count > 0
+                && currentSettlements == lastSettlementCount
+                && currentCaravans == lastCaravanCount
+                && currentWorldObjects == lastWorldObjectCount
+                && currentQuests == lastQuestCount
+                && currentWaypoints == lastWaypointCount;
+
+            if (cacheValid)
+            {
+                bool inLaunchMode = TransportPodLaunchState.IsActive || GravshipDestinationState.IsActive;
+                categories = inLaunchMode
+                    ? DeepCopyCategories(cachedCategories)
+                    : new List<WorldScannerCategory>(cachedCategories);
+                FilterToReachableItems(originTile);
+                ValidateIndices();
+                return;
+            }
+
             categories.Clear();
 
             // Category 0: Route Waypoints (only when route planner is active)
@@ -519,7 +515,11 @@ namespace RimWorldAccess
             var otherSitesCategory = CreateOtherSitesCategory(originTile);
             if (!otherSitesCategory.IsEmpty) categories.Add(otherSitesCategory);
 
-            // Category 5: Biomes (lazy-loaded when accessed)
+            // Category 5: Landmarks (Odyssey DLC)
+            var landmarksCategory = CreateLandmarksCategory(originTile);
+            if (!landmarksCategory.IsEmpty) categories.Add(landmarksCategory);
+
+            // Category 6: Biomes (lazy-loaded when accessed)
             var biomesCategory = CreateBiomesCategory(originTile);
             if (!biomesCategory.IsEmpty) categories.Add(biomesCategory);
 
@@ -527,9 +527,7 @@ namespace RimWorldAccess
             var roadsCategory = CreateRoadsCategory(originTile);
             if (!roadsCategory.IsEmpty) categories.Add(roadsCategory);
 
-            // Category 7: Space objects (not accessible yet)
-            var spaceCategory = CreateSpaceObjectsCategory();
-            if (!spaceCategory.IsEmpty) categories.Add(spaceCategory);
+            // Note: Space/orbital objects are now included in their proper categories above
 
             if (categories.Count == 0)
             {
@@ -537,7 +535,269 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Save cache (but not if a temporary search category is present)
+            if (temporaryCategory == null)
+            {
+                cachedCategories = new List<WorldScannerCategory>(categories);
+                lastSettlementCount = currentSettlements;
+                lastCaravanCount = currentCaravans;
+                lastWorldObjectCount = currentWorldObjects;
+                lastQuestCount = currentQuests;
+                lastWaypointCount = currentWaypoints;
+            }
+
+            // Apply range filter for launch mode (after caching full data)
+            // Deep-copy first so filtering doesn't corrupt the cache
+            if (TransportPodLaunchState.IsActive || GravshipDestinationState.IsActive)
+                categories = DeepCopyCategories(categories);
+            FilterToReachableItems(originTile);
+
             ValidateIndices();
+        }
+
+        /// <summary>
+        /// Filters scanner items to only show reachable destinations during launch targeting.
+        /// Uses the same fuel calculations that power the fuel cost announcements.
+        /// Called after building/loading categories — does not affect the cache.
+        /// </summary>
+        private static void FilterToReachableItems(PlanetTile originTile)
+        {
+            bool podLaunch = TransportPodLaunchState.IsActive;
+            bool gravLaunch = GravshipDestinationState.IsActive;
+            if (!podLaunch && !gravLaunch)
+                return;
+
+            for (int c = categories.Count - 1; c >= 0; c--)
+            {
+                var category = categories[c];
+                for (int s = category.Subcategories.Count - 1; s >= 0; s--)
+                {
+                    var subcat = category.Subcategories[s];
+                    subcat.Items.RemoveAll(item => !IsItemReachable(item, originTile, podLaunch));
+
+                    // Trim out-of-range regions and update destination tiles to be reachable
+                    foreach (var item in subcat.Items)
+                    {
+                        TrimOutOfRangeInstances(item, podLaunch);
+                    }
+
+                    if (subcat.IsEmpty)
+                        category.Subcategories.RemoveAt(s);
+                }
+
+                if (category.IsEmpty)
+                    categories.RemoveAt(c);
+            }
+        }
+
+        /// <summary>
+        /// Removes out-of-range instances (biome regions, road segments) from a multi-instance item.
+        /// For regions where the center tile is out of range, finds a reachable tile from the
+        /// region's actual tile set and replaces the center tile with it.
+        /// </summary>
+        private static void TrimOutOfRangeInstances(WorldScannerItem item, bool isPodLaunch)
+        {
+            if (item.BiomeRegions != null)
+            {
+                item.BiomeRegions.RemoveAll(r => !FindReachableTile(r.TileIds, isPodLaunch).Valid);
+                foreach (var r in item.BiomeRegions)
+                {
+                    if (!IsTileReachable(r.CenterTile, isPodLaunch))
+                        r.CenterTile = FindReachableTile(r.TileIds, isPodLaunch);
+                }
+                if (item.BiomeRegions.Count > 0)
+                    item.Tile = item.BiomeRegions[0].CenterTile;
+            }
+            else if (item.RoadSegments != null)
+            {
+                item.RoadSegments.RemoveAll(r => !FindReachableTile(r.TileIds, isPodLaunch).Valid);
+                foreach (var r in item.RoadSegments)
+                {
+                    if (!IsTileReachable(r.CenterTile, isPodLaunch))
+                        r.CenterTile = FindReachableTile(r.TileIds, isPodLaunch);
+                }
+                if (item.RoadSegments.Count > 0)
+                    item.Tile = item.RoadSegments[0].CenterTile;
+            }
+        }
+
+        /// <summary>
+        /// Finds the reachable tile in a region's tile set with the lowest traversal distance
+        /// (i.e., cheapest fuel cost). Returns PlanetTile.Invalid if no tile is reachable.
+        /// </summary>
+        private static PlanetTile FindReachableTile(int[] tileIds, bool isPodLaunch)
+        {
+            if (tileIds == null) return PlanetTile.Invalid;
+
+            PlanetTile bestTile = PlanetTile.Invalid;
+            int bestDist = int.MaxValue;
+
+            foreach (int tileId in tileIds)
+            {
+                int dist = isPodLaunch
+                    ? TransportPodLaunchState.GetCachedDistance(new PlanetTile(tileId, -1))
+                    : GravshipDestinationState.GetCachedDistance(new PlanetTile(tileId, -1));
+                if (dist >= 0 && dist < bestDist)
+                {
+                    bestDist = dist;
+                    bestTile = new PlanetTile(tileId, -1);
+                }
+            }
+            return bestTile;
+        }
+
+        /// <summary>
+        /// Checks if a specific tile is reachable during launch mode.
+        /// </summary>
+        private static bool IsTileReachable(PlanetTile tile, bool isPodLaunch)
+        {
+            if (!tile.Valid) return false;
+            return isPodLaunch
+                ? TransportPodLaunchState.CanReachTile(tile)
+                : GravshipDestinationState.CanReachDestination(tile);
+        }
+
+        /// <summary>
+        /// Creates a deep copy of categories so filtering doesn't corrupt the cache.
+        /// Copies category, subcategory, and item list structures (items themselves are shared).
+        /// </summary>
+        private static List<WorldScannerCategory> DeepCopyCategories(List<WorldScannerCategory> source)
+        {
+            return source.Select(c =>
+            {
+                var copy = new WorldScannerCategory(c.Name);
+                copy.Subcategories = c.Subcategories.Select(s =>
+                {
+                    var sCopy = new WorldScannerSubcategory(s.Name);
+                    sCopy.Items = s.Items.Select(item =>
+                    {
+                        // Deep-copy biome/road items since filtering mutates CenterTile
+                        if (item.BiomeRegions != null || item.RoadSegments != null)
+                        {
+                            var itemCopy = new WorldScannerItem(item.Label, item.Tile);
+                            itemCopy.WorldObject = item.WorldObject;
+                            itemCopy.Faction = item.Faction;
+                            itemCopy.QuestName = item.QuestName;
+                            if (item.BiomeRegions != null)
+                                itemCopy.BiomeRegions = item.BiomeRegions.Select(r =>
+                                    new BiomeRegion(r.CenterTile, r.TileCount)
+                                    { TileIds = r.TileIds, Distance = r.Distance, SizeDescription = r.SizeDescription }
+                                ).ToList();
+                            if (item.RoadSegments != null)
+                                itemCopy.RoadSegments = item.RoadSegments.Select(r =>
+                                    new RoadSegment(r.CenterTile, r.TileCount)
+                                    { TileIds = r.TileIds, Distance = r.Distance, Length = r.Length, SizeDescription = r.SizeDescription }
+                                ).ToList();
+                            return itemCopy;
+                        }
+                        return item; // Non-region items can be shared safely
+                    }).ToList();
+                    return sCopy;
+                }).ToList();
+                return copy;
+            }).ToList();
+        }
+
+        /// <summary>
+        /// Checks if a scanner item is reachable from the launch origin.
+        /// For biome/road items, checks if ANY tile in ANY region is in the BFS reachable cache.
+        /// For single-tile items (settlements, etc.), checks if that tile is reachable.
+        /// </summary>
+        private static bool IsItemReachable(WorldScannerItem item, PlanetTile originTile, bool isPodLaunch)
+        {
+            // Biome regions: check actual tile sets against BFS cache
+            if (item.BiomeRegions != null)
+            {
+                foreach (var r in item.BiomeRegions)
+                {
+                    if (FindReachableTile(r.TileIds, isPodLaunch).Valid)
+                        return true;
+                }
+                return false;
+            }
+
+            // Road segments: same pattern
+            if (item.RoadSegments != null)
+            {
+                foreach (var r in item.RoadSegments)
+                {
+                    if (FindReachableTile(r.TileIds, isPodLaunch).Valid)
+                        return true;
+                }
+                return false;
+            }
+
+            // Single-tile items (settlements, landmarks, quest sites, etc.)
+            PlanetTile itemTile = item.GetTileAtInstance(0);
+            return itemTile.Valid && IsTileReachable(itemTile, isPodLaunch);
+        }
+
+        /// <summary>
+        /// Collects all world scanner items from all categories into a flat list.
+        /// Used by ScannerSearchState for Z search to match against biomes, roads, settlements, etc.
+        /// Deduplicates by underlying identity rather than item reference. Some categories share
+        /// references between "All" and specialized subcategories (Settlements), which ref-dedup
+        /// could handle — but Landmarks create distinct WorldScannerItem instances with different
+        /// labels ("name, type" in All vs. just "name" in the type subcategory), so a ref-based
+        /// dedup would miss those and every landmark would appear twice in search.
+        /// </summary>
+        public static List<WorldScannerItem> CollectAllItemsFlat()
+        {
+            // Use cached categories if available to avoid full rebuild per keystroke
+            if (cachedCategories == null || cachedCategories.Count == 0)
+                RefreshItems();
+
+            var source = cachedCategories ?? categories;
+            var allItems = new List<WorldScannerItem>();
+
+            var seenWorldObjects = new HashSet<WorldObject>();
+            var seenTiles = new HashSet<PlanetTile>();
+            var seenBiomes = new HashSet<string>();
+            var seenRoads = new HashSet<string>();
+            var seenRefs = new HashSet<WorldScannerItem>();
+
+            foreach (var category in source)
+            {
+                // Skip temporary search category to avoid including old search results
+                if (category == temporaryCategory)
+                    continue;
+
+                foreach (var subcat in category.Subcategories)
+                {
+                    foreach (var item in subcat.Items)
+                    {
+                        if (IsDuplicateWorldItem(item, seenWorldObjects, seenTiles, seenBiomes, seenRoads, seenRefs))
+                            continue;
+                        allItems.Add(item);
+                    }
+                }
+            }
+            return allItems;
+        }
+
+        /// <summary>
+        /// Returns true when this item's underlying identity has already been seen.
+        /// Identity precedence: WorldObject &gt; biome label &gt; road label &gt; tile &gt; item ref.
+        /// Landmark items have no WorldObject and are keyed by Tile, which correctly matches
+        /// a landmark's "name, type" All-subcategory copy against its "name"-only type-subcategory copy.
+        /// </summary>
+        private static bool IsDuplicateWorldItem(
+            WorldScannerItem item,
+            HashSet<WorldObject> seenWorldObjects,
+            HashSet<PlanetTile> seenTiles,
+            HashSet<string> seenBiomes,
+            HashSet<string> seenRoads,
+            HashSet<WorldScannerItem> seenRefs)
+        {
+            if (item.WorldObject != null)
+                return !seenWorldObjects.Add(item.WorldObject);
+            if (item.BiomeRegions != null)
+                return !seenBiomes.Add(item.Label ?? "");
+            if (item.RoadSegments != null)
+                return !seenRoads.Add(item.Label ?? "");
+            if (item.Tile.Valid)
+                return !seenTiles.Add(item.Tile);
+            return !seenRefs.Add(item);
         }
 
         #region Category Creators
@@ -608,45 +868,39 @@ namespace RimWorldAccess
                     if (settlement.Faction == null || !settlement.Tile.Valid)
                         continue;
 
-                    // Skip non-surface objects (space stations, etc.)
-                    if (!IsOnSurfaceLayer(settlement))
-                        continue;
-
-                    var item = new WorldScannerItem(settlement);
-
-                    // Add to All subcategory
-                    allSubcat.Items.Add(item);
-
-                    if (settlement.Faction == Faction.OfPlayer)
-                    {
-                        playerSubcat.Items.Add(item);
-                    }
-                    else
-                    {
-                        var relation = settlement.Faction.RelationKindWith(Faction.OfPlayer);
-                        switch (relation)
-                        {
-                            case FactionRelationKind.Ally:
-                                alliedSubcat.Items.Add(item);
-                                break;
-                            case FactionRelationKind.Neutral:
-                                neutralSubcat.Items.Add(item);
-                                break;
-                            case FactionRelationKind.Hostile:
-                                hostileSubcat.Items.Add(item);
-                                break;
-                        }
-
-                    }
+                    allSubcat.Items.Add(new WorldScannerItem(settlement));
                 }
             }
 
-            // Sort each subcategory by distance
+            // Sort once, then split into faction subcategories preserving sort order
             SortItemsByDistance(allSubcat.Items, originTile);
-            SortItemsByDistance(playerSubcat.Items, originTile);
-            SortItemsByDistance(alliedSubcat.Items, originTile);
-            SortItemsByDistance(neutralSubcat.Items, originTile);
-            SortItemsByDistance(hostileSubcat.Items, originTile);
+
+            foreach (var item in allSubcat.Items)
+            {
+                var settlement = item.WorldObject as Settlement;
+                if (settlement == null) continue;
+
+                if (settlement.Faction == Faction.OfPlayer)
+                {
+                    playerSubcat.Items.Add(item);
+                }
+                else
+                {
+                    var relation = settlement.Faction.RelationKindWith(Faction.OfPlayer);
+                    switch (relation)
+                    {
+                        case FactionRelationKind.Ally:
+                            alliedSubcat.Items.Add(item);
+                            break;
+                        case FactionRelationKind.Neutral:
+                            neutralSubcat.Items.Add(item);
+                            break;
+                        case FactionRelationKind.Hostile:
+                            hostileSubcat.Items.Add(item);
+                            break;
+                    }
+                }
+            }
 
             category.Subcategories.Add(allSubcat);
             category.Subcategories.Add(playerSubcat);
@@ -664,12 +918,9 @@ namespace RimWorldAccess
 
             if (Find.QuestManager != null)
             {
-                var activeQuests = Find.QuestManager.questsInDisplayOrder
-                    .Where(q => q.State == QuestState.Ongoing && !q.hidden && !q.hiddenInUI)
-                    .ToList();
-
-                foreach (Quest quest in activeQuests)
+                foreach (Quest quest in Find.QuestManager.questsInDisplayOrder)
                 {
+                    if (quest.State != QuestState.Ongoing || quest.hidden || quest.hiddenInUI) continue;
                     foreach (GlobalTargetInfo target in quest.QuestLookTargets)
                     {
                         if (!target.IsValid || !target.IsWorldTarget)
@@ -690,10 +941,6 @@ namespace RimWorldAccess
                         }
 
                         if (!tile.Valid || worldObj == null) continue;
-
-                        // Skip non-surface objects (space quests)
-                        if (!IsOnSurfaceLayer(worldObj))
-                            continue;
 
                         // Skip player settlements
                         if (worldObj is Settlement settlement && settlement.Faction == Faction.OfPlayer)
@@ -717,7 +964,7 @@ namespace RimWorldAccess
             var subcat = new WorldScannerSubcategory("Player Caravans");
 
             var caravans = Find.WorldObjects?.Caravans?
-                .Where(c => c.Faction == Faction.OfPlayer && IsOnSurfaceLayer(c))
+                .Where(c => c.Faction == Faction.OfPlayer)
                 .ToList();
 
             if (caravans != null)
@@ -745,8 +992,9 @@ namespace RimWorldAccess
                 var questTiles = new HashSet<int>();
                 if (Find.QuestManager != null)
                 {
-                    foreach (var quest in Find.QuestManager.questsInDisplayOrder.Where(q => q.State == QuestState.Ongoing))
+                    foreach (var quest in Find.QuestManager.questsInDisplayOrder)
                     {
+                        if (quest.State != QuestState.Ongoing) continue;
                         foreach (var target in quest.QuestLookTargets)
                         {
                             if (target.IsValid && target.IsWorldTarget)
@@ -767,9 +1015,6 @@ namespace RimWorldAccess
                     if (questTiles.Contains(worldObj.Tile))
                         continue;
                     if (!worldObj.Tile.Valid)
-                        continue;
-                    // Skip non-surface objects (space objects)
-                    if (!IsOnSurfaceLayer(worldObj))
                         continue;
 
                     var item = new WorldScannerItem(worldObj);
@@ -811,16 +1056,14 @@ namespace RimWorldAccess
                 }
 
                 // Sort regions by distance
-                regions = regions.OrderBy(r => r.Distance).ToList();
+                regions.Sort((a, b) => a.Distance.CompareTo(b.Distance));
 
                 var item = new WorldScannerItem(biomeName, regions);
                 biomeItems.Add(item);
             }
 
             // Sort biome types by their closest region
-            biomeItems = biomeItems
-                .OrderBy(i => i.GetDistance(originTile, 0))
-                .ToList();
+            SortItemsByDistance(biomeItems, originTile);
 
             subcat.Items.AddRange(biomeItems);
             category.Subcategories.Add(subcat);
@@ -854,18 +1097,71 @@ namespace RimWorldAccess
                     segment.Distance = Find.WorldGrid.ApproxDistanceInTiles(originTile, segment.CenterTile);
                 }
 
-                segments = segments.OrderBy(s => s.Distance).ToList();
+                segments.Sort((a, b) => a.Distance.CompareTo(b.Distance));
 
                 var item = new WorldScannerItem(roadName, segments);
                 roadItems.Add(item);
             }
 
-            roadItems = roadItems
-                .OrderBy(i => i.GetDistance(originTile, 0))
-                .ToList();
+            SortItemsByDistance(roadItems, originTile);
 
             subcat.Items.AddRange(roadItems);
             category.Subcategories.Add(subcat);
+            return category;
+        }
+
+        private static WorldScannerCategory CreateLandmarksCategory(PlanetTile originTile)
+        {
+            var category = new WorldScannerCategory("Landmarks");
+
+            if (!ModsConfig.OdysseyActive || Find.World?.landmarks == null)
+                return category;
+
+            var landmarks = Find.World.landmarks.landmarks;
+            if (landmarks == null || landmarks.Count == 0)
+                return category;
+
+            var allSubcat = new WorldScannerSubcategory("All");
+
+            // Group landmarks by their def label for type subcategories
+            var typeGroups = new Dictionary<string, WorldScannerSubcategory>();
+
+            foreach (var kvp in landmarks)
+            {
+                PlanetTile tile = kvp.Key;
+                Landmark landmark = kvp.Value;
+                if (landmark?.def == null || !tile.Valid)
+                    continue;
+
+                string name = landmark.name ?? landmark.def.LabelCap;
+                string defLabel = landmark.def.LabelCap;
+
+                // Label includes both name and type for announcements
+                string label = $"{name}, {defLabel}";
+
+                var item = new WorldScannerItem(label, tile);
+                allSubcat.Items.Add(item);
+
+                // Add to type-specific subcategory (label is just the name since type is in the subcategory name)
+                if (!typeGroups.TryGetValue(defLabel, out var typeSubcat))
+                {
+                    typeSubcat = new WorldScannerSubcategory(defLabel);
+                    typeGroups[defLabel] = typeSubcat;
+                }
+                // Use name-only label for type-specific subcategories to avoid redundancy
+                typeSubcat.Items.Add(new WorldScannerItem(name, tile));
+            }
+
+            SortItemsByDistance(allSubcat.Items, originTile);
+            category.Subcategories.Add(allSubcat);
+
+            // Add type subcategories sorted alphabetically
+            foreach (var typeSubcat in typeGroups.Values.OrderBy(s => s.Name))
+            {
+                SortItemsByDistance(typeSubcat.Items, originTile);
+                category.Subcategories.Add(typeSubcat);
+            }
+
             return category;
         }
 
@@ -882,35 +1178,14 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Creates a category for space objects that aren't accessible yet.
-        /// Only shown when space objects exist (Odyssey DLC).
+        /// Checks if an item's tile is on a different planet layer than the currently selected one.
+        /// Used for cross-layer distance calculation and layer annotations.
         /// </summary>
-        private static WorldScannerCategory CreateSpaceObjectsCategory()
+        private static bool IsOnDifferentLayer(WorldScannerItem item)
         {
-            var category = new WorldScannerCategory("Not Accessible Yet");
-            var subcat = new WorldScannerSubcategory("Space Objects");
-
-            var allObjects = Find.WorldObjects?.AllWorldObjects;
-            if (allObjects != null)
-            {
-                foreach (var worldObj in allObjects)
-                {
-                    if (!worldObj.Tile.Valid)
-                        continue;
-
-                    // Only include objects NOT on the surface layer
-                    if (IsOnSurfaceLayer(worldObj))
-                        continue;
-
-                    // Create item with just the label - no distance/direction
-                    // since those calculations would fail for space objects
-                    var item = new WorldScannerItem(worldObj);
-                    subcat.Items.Add(item);
-                }
-            }
-
-            category.Subcategories.Add(subcat);
-            return category;
+            if (item.WorldObject == null || !item.WorldObject.Tile.Valid)
+                return false;
+            return item.WorldObject.Tile.Layer != PlanetLayer.Selected;
         }
 
         #endregion
@@ -925,7 +1200,7 @@ namespace RimWorldAccess
                 return result;
 
             // Get tiles within a reasonable range (performance optimization)
-            int maxRange = 100; // tiles
+            int maxRange = 200; // tiles
             var visited = new HashSet<int>();
             var tilesByBiome = new Dictionary<string, HashSet<int>>();
 
@@ -934,10 +1209,10 @@ namespace RimWorldAccess
             queue.Enqueue(originTile);
             visited.Add(originTile);
 
-            while (queue.Count > 0 && visited.Count < 5000) // Limit total tiles
+            while (queue.Count > 0 && visited.Count < 125000) // Limit total tiles
             {
                 int currentTileId = queue.Dequeue();
-                PlanetTile currentTile = new PlanetTile(currentTileId);
+                PlanetTile currentTile = new PlanetTile(currentTileId, -1);
 
                 if (!currentTile.Valid) continue;
 
@@ -975,7 +1250,8 @@ namespace RimWorldAccess
 
                 while (biomeTiles.Count > 0)
                 {
-                    int startTile = biomeTiles.First();
+                    int startTile = 0;
+                    foreach (int t in biomeTiles) { startTile = t; break; }
                     var regionTiles = FloodFillRegion(startTile, biomeTiles);
 
                     if (regionTiles.Count > 0)
@@ -1014,7 +1290,7 @@ namespace RimWorldAccess
                 region.Add(current);
 
                 var neighbors = new List<PlanetTile>();
-                Find.WorldGrid.GetTileNeighbors(new PlanetTile(current), neighbors);
+                Find.WorldGrid.GetTileNeighbors(new PlanetTile(current, -1), neighbors);
                 foreach (var neighbor in neighbors)
                 {
                     if (validTiles.Contains(neighbor) && !region.Contains(neighbor))
@@ -1034,17 +1310,18 @@ namespace RimWorldAccess
             Vector3 centroid = Vector3.zero;
             foreach (int tileId in regionTiles)
             {
-                centroid += Find.WorldGrid.GetTileCenter(new PlanetTile(tileId));
+                centroid += Find.WorldGrid.GetTileCenter(new PlanetTile(tileId, -1));
             }
             centroid /= regionTiles.Count;
 
             // Find tile closest to centroid
-            int closestTile = regionTiles.First();
+            int closestTile = 0;
+            foreach (int t in regionTiles) { closestTile = t; break; }
             float closestDist = float.MaxValue;
 
             foreach (int tileId in regionTiles)
             {
-                Vector3 tilePos = Find.WorldGrid.GetTileCenter(new PlanetTile(tileId));
+                Vector3 tilePos = Find.WorldGrid.GetTileCenter(new PlanetTile(tileId, -1));
                 float dist = Vector3.Distance(tilePos, centroid);
                 if (dist < closestDist)
                 {
@@ -1053,7 +1330,7 @@ namespace RimWorldAccess
                 }
             }
 
-            return new PlanetTile(closestTile);
+            return new PlanetTile(closestTile, -1);
         }
 
         private static Dictionary<string, List<RoadSegment>> CollectRoadSegments(PlanetTile originTile)
@@ -1063,7 +1340,7 @@ namespace RimWorldAccess
             if (Find.WorldGrid == null)
                 return result;
 
-            int maxRange = 100;
+            int maxRange = 200;
             var visited = new HashSet<int>();
             var roadTilesByType = new Dictionary<string, HashSet<int>>();
 
@@ -1071,10 +1348,10 @@ namespace RimWorldAccess
             queue.Enqueue(originTile);
             visited.Add(originTile);
 
-            while (queue.Count > 0 && visited.Count < 5000)
+            while (queue.Count > 0 && visited.Count < 125000)
             {
                 int currentTileId = queue.Dequeue();
-                PlanetTile currentTile = new PlanetTile(currentTileId);
+                PlanetTile currentTile = new PlanetTile(currentTileId, -1);
 
                 if (!currentTile.Valid) continue;
 
@@ -1114,7 +1391,8 @@ namespace RimWorldAccess
 
                 while (roadTiles.Count > 0)
                 {
-                    int startTile = roadTiles.First();
+                    int startTile = 0;
+                    foreach (int t in roadTiles) { startTile = t; break; }
                     var segmentTiles = FloodFillRoadSegment(startTile, roadTiles, roadName);
 
                     if (segmentTiles.Count > 0)
@@ -1151,7 +1429,7 @@ namespace RimWorldAccess
                 segment.Add(current);
 
                 var neighbors = new List<PlanetTile>();
-                Find.WorldGrid.GetTileNeighbors(new PlanetTile(current), neighbors);
+                Find.WorldGrid.GetTileNeighbors(new PlanetTile(current, -1), neighbors);
                 foreach (var neighbor in neighbors)
                 {
                     if (validTiles.Contains(neighbor) && !segment.Contains(neighbor))
@@ -1160,7 +1438,15 @@ namespace RimWorldAccess
                         Tile neighborData = neighbor.Tile;
                         if (neighborData is SurfaceTile surfaceTile && surfaceTile.Roads != null)
                         {
-                            bool hasRoadType = surfaceTile.Roads.Any(r => r.road.LabelCap == roadType);
+                            bool hasRoadType = false;
+                            foreach (var road in surfaceTile.Roads)
+                            {
+                                if (road.road.LabelCap == roadType)
+                                {
+                                    hasRoadType = true;
+                                    break;
+                                }
+                            }
                             if (hasRoadType)
                                 queue.Enqueue(neighbor);
                         }
@@ -1178,6 +1464,36 @@ namespace RimWorldAccess
         private static void SortItemsByDistance(List<WorldScannerItem> items, PlanetTile originTile)
         {
             items.Sort((a, b) => a.GetDistance(originTile, 0).CompareTo(b.GetDistance(originTile, 0)));
+        }
+
+        /// <summary>
+        /// Recalculates distances and re-sorts only the current subcategory's items.
+        /// Call after changing indices to ensure the viewed subcategory is sorted
+        /// by distance from the user's current position.
+        /// </summary>
+        private static void RecalculateCurrentDistances()
+        {
+            var subcat = GetCurrentSubcategory();
+            if (subcat == null) return;
+            PlanetTile originTile = WorldNavigationState.CurrentSelectedTile;
+            SortItemsByDistance(subcat.Items, originTile);
+        }
+
+        /// <summary>
+        /// Invalidates all scanner caches. Call when world state changes externally
+        /// or when the scanner is closed/reset.
+        /// </summary>
+        public static void InvalidateCache()
+        {
+            cachedCategories = null;
+            lastSettlementCount = 0;
+            lastCaravanCount = 0;
+            lastWorldObjectCount = 0;
+            lastQuestCount = 0;
+            lastWaypointCount = 0;
+            cachedBiomeRegions = null;
+            cachedRoadSegments = null;
+            lastCacheOrigin = PlanetTile.Invalid;
         }
 
         private static void ValidateIndices()
@@ -1277,6 +1593,7 @@ namespace RimWorldAccess
             currentItemIndex = 0;
             currentInstanceIndex = 0;
             SkipEmptySubcategories(forward: true);
+            RecalculateCurrentDistances();
 
             AnnounceCurrentCategory();
             AnnounceCurrentItem();
@@ -1300,6 +1617,7 @@ namespace RimWorldAccess
             currentItemIndex = 0;
             currentInstanceIndex = 0;
             SkipEmptySubcategories(forward: true);
+            RecalculateCurrentDistances();
 
             AnnounceCurrentCategory();
             AnnounceCurrentItem();
@@ -1336,6 +1654,7 @@ namespace RimWorldAccess
 
             currentItemIndex = 0;
             currentInstanceIndex = 0;
+            RecalculateCurrentDistances();
 
             AnnounceCurrentSubcategory();
             AnnounceCurrentItem();
@@ -1372,6 +1691,7 @@ namespace RimWorldAccess
 
             currentItemIndex = 0;
             currentInstanceIndex = 0;
+            RecalculateCurrentDistances();
 
             AnnounceCurrentSubcategory();
             AnnounceCurrentItem();
@@ -1525,15 +1845,20 @@ namespace RimWorldAccess
 
             PlanetTile targetTile = item.GetTileAtInstance(currentInstanceIndex);
 
+            // Auto-switch layer if jumping to an item on a different layer
+            if (targetTile.Valid && targetTile.Layer != PlanetLayer.Selected)
+            {
+                PlanetLayer.Selected = targetTile.Layer;
+                TolkHelper.Speak($"Switched to {targetTile.LayerDef.LabelCap} layer.");
+            }
+
             WorldNavigationState.CurrentSelectedTile = targetTile;
 
-            if (Find.WorldSelector != null)
-            {
-                Find.WorldSelector.ClearSelection();
-                if (item.WorldObject != null)
-                    Find.WorldSelector.Select(item.WorldObject);
-                Find.WorldSelector.SelectedTile = targetTile;
-            }
+            // Sync with game selection (WorldSelector + WorldInterface/GameInitData for world gen)
+            WorldNavigationState.SyncSelectionWithGame();
+            // Also select the world object if applicable
+            if (item.WorldObject != null && Find.WorldSelector != null)
+                Find.WorldSelector.Select(item.WorldObject);
 
             if (Find.WorldCameraDriver != null)
             {
@@ -1541,10 +1866,9 @@ namespace RimWorldAccess
                 Find.WorldCameraDriver.RotateSoNorthIsUp();
             }
 
-            if (item.HasInstances)
-                AnnounceCurrentInstance();
-            else
-                AnnounceCurrentItem();
+            // Announce full tile info as if the user arrowed to this tile,
+            // which also updates BiomeDescriptionTracker for the new location
+            WorldNavigationState.AnnounceTile();
         }
 
         /// <summary>
@@ -1613,27 +1937,44 @@ namespace RimWorldAccess
             var subcat = GetCurrentSubcategory();
             var category = GetCurrentCategory();
 
-            // Check if this is a space object (not on surface layer)
-            bool isSpaceObject = item.WorldObject != null && !IsOnSurfaceLayer(item.WorldObject);
+            // Check if item is on a different planet layer (e.g., orbital object while on surface)
+            bool onDifferentLayer = IsOnDifferentLayer(item);
 
             var parts = new List<string>();
 
-            // Skip distance/direction calculations for space objects
             PlanetTile originTile = WorldNavigationState.CurrentSelectedTile;
             float distance = 0f;
             string direction = "";
 
-            if (!isSpaceObject)
+            if (onDifferentLayer)
             {
-                distance = item.GetDistance(originTile, 0);
+                // Cross-layer: project origin to target layer for comparable distance
+                PlanetTile itemTile = item.GetTileAtInstance(0);
+                if (itemTile.Valid && originTile.Valid)
+                {
+                    PlanetTile projected = itemTile.Layer.GetClosestTile_NewTemp(originTile);
+                    if (projected.Valid)
+                    {
+                        distance = Find.WorldGrid.ApproxDistanceInTiles(projected, itemTile);
+                        direction = item.GetDirectionFrom(projected, 0);
+                    }
+                }
+            }
+            else
+            {
                 direction = item.GetDirectionFrom(originTile, 0);
 
-                // Check reachability from last waypoint if route planner has waypoints
+                // Use TraversalDistanceBetween for displayed distance — this is what the game
+                // uses for range validation and fuel cost (CompLaunchable.cs:473, :591)
                 PlanetTile targetTile = item.GetTileAtInstance(0);
+                if (originTile.Valid && targetTile.Valid)
+                    distance = Find.WorldGrid.TraversalDistanceBetween(originTile, targetTile,
+                        passImpassable: true, int.MaxValue, canTraverseLayers: true);
+
+                // Check reachability from last waypoint if route planner has waypoints
                 if (targetTile.Valid && Find.WorldRoutePlanner != null && Find.WorldRoutePlanner.Active &&
                     Find.WorldRoutePlanner.waypoints.Count > 0 && Find.WorldReachability != null)
                 {
-                    // Get the last waypoint's tile as the origin for reachability check
                     var lastWaypoint = Find.WorldRoutePlanner.waypoints[Find.WorldRoutePlanner.waypoints.Count - 1];
                     if (lastWaypoint != null && lastWaypoint.Tile.Valid)
                     {
@@ -1677,28 +2018,49 @@ namespace RimWorldAccess
                 else if (item.RoadSegments != null)
                     parts.Add($"{item.RoadSegments[0].SizeDescription}");
 
-                parts.Add($"{item.InstanceCount} regions");
+                parts.Add($"Region 1 of {item.InstanceCount}");
             }
 
-            if (isSpaceObject)
-            {
-                parts.Add("In space");
-            }
-            else if (!string.IsNullOrEmpty(direction) && distance > 0.1f)
+            if (!string.IsNullOrEmpty(direction) && distance > 0.1f)
             {
                 parts.Add($"{direction}, {distance:F0} tiles");
             }
-            else if (distance <= 0.1f)
+            else if (distance <= 0.1f && !onDifferentLayer)
             {
                 parts.Add("Current location");
             }
 
-            // Add fuel cost if transport pod launch targeting is active
-            if (!isSpaceObject && TransportPodLaunchState.ShouldAnnounceFuelCosts() && distance > 0.1f)
+            // Append layer name for cross-layer items
+            if (onDifferentLayer)
             {
-                string fuelInfo = TransportPodLaunchState.GetFuelCostAnnouncement(distance);
+                var itemTile = item.GetTileAtInstance(0);
+                if (itemTile.Valid)
+                {
+                    string layerName = itemTile.LayerDef.LabelCap;
+                    parts.Add($"on {layerName} layer");
+                }
+            }
+
+            // Add fuel cost if transport pod or gravship launch targeting is active
+            if (TransportPodLaunchState.ShouldAnnounceFuelCosts() && distance > 0.1f)
+            {
+                // Use tile-based method for accurate traversal distance (matches game's range check)
+                PlanetTile itemTile = item.GetTileAtInstance(0);
+                string fuelInfo = itemTile.Valid
+                    ? TransportPodLaunchState.GetFuelCostAnnouncementForTile(itemTile)
+                    : TransportPodLaunchState.GetFuelCostAnnouncement(distance);
                 if (!string.IsNullOrEmpty(fuelInfo))
                     parts.Add(fuelInfo);
+            }
+            else if (GravshipDestinationState.ShouldAnnounceFuelCosts())
+            {
+                PlanetTile itemTile = item.GetTileAtInstance(0);
+                if (itemTile.Valid)
+                {
+                    string fuelInfo = GravshipDestinationState.GetFuelCostAnnouncement(itemTile);
+                    if (!string.IsNullOrEmpty(fuelInfo))
+                        parts.Add(fuelInfo);
+                }
             }
 
             int pos = currentItemIndex + 1;
@@ -1714,13 +2076,18 @@ namespace RimWorldAccess
             if (item == null || !item.HasInstances) return;
 
             PlanetTile originTile = WorldNavigationState.CurrentSelectedTile;
-            float distance = item.GetDistance(originTile, currentInstanceIndex);
             string direction = item.GetDirectionFrom(originTile, currentInstanceIndex);
+
+            // Use TraversalDistanceBetween for displayed distance (matches game's distance)
+            PlanetTile targetTile = item.GetTileAtInstance(currentInstanceIndex);
+            float distance = (originTile.Valid && targetTile.Valid)
+                ? Find.WorldGrid.TraversalDistanceBetween(originTile, targetTile,
+                    passImpassable: true, int.MaxValue, canTraverseLayers: true)
+                : 0f;
 
             var parts = new List<string>();
 
             // Check reachability from last waypoint if route planner has waypoints
-            PlanetTile targetTile = item.GetTileAtInstance(currentInstanceIndex);
             if (targetTile.Valid && Find.WorldRoutePlanner != null && Find.WorldRoutePlanner.Active &&
                 Find.WorldRoutePlanner.waypoints.Count > 0 && Find.WorldReachability != null)
             {
@@ -1752,10 +2119,16 @@ namespace RimWorldAccess
             else if (distance <= 0.1f)
                 parts.Add("Current location");
 
-            // Add fuel cost if transport pod launch targeting is active
+            // Add fuel cost if transport pod or gravship launch targeting is active
             if (TransportPodLaunchState.ShouldAnnounceFuelCosts() && distance > 0.1f)
             {
                 string fuelInfo = TransportPodLaunchState.GetFuelCostAnnouncement(distance);
+                if (!string.IsNullOrEmpty(fuelInfo))
+                    parts.Add(fuelInfo);
+            }
+            else if (GravshipDestinationState.ShouldAnnounceFuelCosts() && targetTile.Valid)
+            {
+                string fuelInfo = GravshipDestinationState.GetFuelCostAnnouncement(targetTile);
                 if (!string.IsNullOrEmpty(fuelInfo))
                     parts.Add(fuelInfo);
             }
@@ -1779,9 +2152,7 @@ namespace RimWorldAccess
             currentSubcategoryIndex = 0;
             currentItemIndex = 0;
             currentInstanceIndex = 0;
-            cachedBiomeRegions = null;
-            cachedRoadSegments = null;
-            lastCacheOrigin = PlanetTile.Invalid;
+            InvalidateCache();
             temporaryCategory = null;
             savedCategoryIndex = -1;
             savedSubcategoryIndex = -1;

@@ -84,7 +84,7 @@ namespace RimWorldAccess
             // Check for modifiers
             bool shift = Event.current.shift;
             bool ctrl = Event.current.control;
-            bool alt = Event.current.alt;
+            bool alt = KeyboardHelper.IsAltHeld;
 
             // Handle Enter key - execute button A (Confirm)
             if ((key == KeyCode.Return || key == KeyCode.KeypadEnter) && !shift && !ctrl && !alt)

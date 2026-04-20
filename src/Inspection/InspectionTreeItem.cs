@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Verse;
 
 namespace RimWorldAccess
 {
@@ -20,15 +21,26 @@ namespace RimWorldAccess
 
         public ItemType Type { get; set; }
         public string Label { get; set; }
+        /// <summary>
+        /// Short label shown when node is expanded (e.g., just the title).
+        /// When set, Label contains the full summary (shown when collapsed)
+        /// and ExpandedLabel contains the short form (shown when expanded).
+        /// State change announcements (expand/collapse) always use this short form.
+        /// If null, Label is used in all contexts (standard behavior).
+        /// </summary>
+        public string ExpandedLabel { get; set; }
         public string Description { get; set; }
+        public string Tooltip { get; set; }
         public int IndentLevel { get; set; }
         public bool IsExpandable { get; set; }
         public bool IsExpanded { get; set; }
         public List<InspectionTreeItem> Children { get; set; }
         public InspectionTreeItem Parent { get; set; }  // Reference to parent item for upward navigation
         public object Data { get; set; }  // Associated data (Pawn, Building, SkillRecord, etc.)
+        public Def LinkedDef { get; set; }  // Associated Def for Alt+I info card navigation
         public Action OnActivate { get; set; }  // Action to execute when Enter is pressed
         public Action OnDelete { get; set; }  // Action to execute when Delete is pressed (for canceling jobs, etc.)
+        public Action OnInfo { get; set; }  // Action for Alt+I (custom info display, e.g. stat breakdown)
 
         public InspectionTreeItem()
         {

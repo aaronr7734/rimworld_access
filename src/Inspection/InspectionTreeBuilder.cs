@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using RimWorld;
+using RimWorld.Planet;
 using Verse;
 using Verse.AI;
+using Verse.Sound;
 
 namespace RimWorldAccess
 {
@@ -38,23 +40,6 @@ namespace RimWorldAccess
         {
             child.Parent = parent;
             parent.Children.Add(child);
-        }
-
-        /// <summary>
-        /// Checks if a hediff is a missing part caused by surgical addition (bionic).
-        /// These clutter the display since they're just side effects of having bionics.
-        /// </summary>
-        private static bool IsSurgicallyRemovedPart(Hediff hediff, Pawn pawn)
-        {
-            // Only filter Hediff_MissingPart
-            if (!(hediff is Hediff_MissingPart missingPart))
-                return false;
-
-            // Filter if the parent part has a bionic/added part
-            if (hediff.Part != null && pawn.health.hediffSet.PartOrAnyAncestorHasDirectlyAddedParts(hediff.Part))
-                return true;
-
-            return false;
         }
 
         /// <summary>
@@ -168,10 +153,9 @@ namespace RimWorldAccess
                 };
                 infoCardItem.OnActivate = () =>
                 {
-                    // Close inspection menu before opening Info Card
-                    WindowlessInspectionState.Close();
-
-                    // Open the visual Dialog_InfoCard (InfoCardPatch will activate InfoCardState)
+                    // Leave inspection active underneath; BuildingInspectPatch returns early
+                    // when InfoCardState.IsActive, and Window_PostClose_Patch re-announces
+                    // the inspection row on close.
                     var dialog = new Dialog_InfoCard(thing);
                     Find.WindowStack.Add(dialog);
                 };
@@ -193,6 +177,7 @@ namespace RimWorldAccess
             {
                 Type = InspectionTreeItem.ItemType.Category,
                 Label = GetCategoryLabel(obj, categoryKey, displayName),
+                ExpandedLabel = displayName, // Short form for submenu mode section announcements
                 Data = obj,
                 IndentLevel = indent
             };
@@ -232,10 +217,19 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        // Fallback to detailed info display
-                        item.IsExpandable = true;
-                        item.IsExpanded = false;
-                        item.OnActivate = () => BuildDetailedInfoChildren(item, obj, categoryKey);
+                        if (categoryKey == "Meditation Focus")
+                        {
+                            // No focus objects nearby - show non-expandable warning
+                            item.Label = "Meditation Focus - No focus objects within range";
+                            item.IsExpandable = false;
+                        }
+                        else
+                        {
+                            // Fallback to detailed info display
+                            item.IsExpandable = true;
+                            item.IsExpanded = false;
+                            item.OnActivate = () => BuildDetailedInfoChildren(item, obj, categoryKey);
+                        }
                     }
                     break;
 
@@ -369,6 +363,7 @@ namespace RimWorldAccess
             {
                 Type = InspectionTreeItem.ItemType.Category,
                 Label = GetCategoryLabel(obj, category),
+                ExpandedLabel = category, // Short form for submenu mode section announcements
                 Data = obj,
                 IndentLevel = indent
             };
@@ -483,21 +478,22 @@ namespace RimWorldAccess
             {
                 return (category == "Bills" && building is IBillGiver) ||
                        (category == "Bed Assignment" && building is Building_Bed) ||
+                       (category == "Owner Assignment" && !(building is Building_Bed) && building.TryGetComp<CompAssignableToPawn>() != null) ||
                        (category == "Temperature" && building.TryGetComp<CompTempControl>() != null) ||
                        (category == "Storage" && building is IStoreSettingsParent) ||
                        (category == "Shells" && building is Building_TurretGun) ||
                        (category == "Plant Selection" && building is IPlantToGrowSettable) ||
                        (category == "Pen Animals" && building.TryGetComp<CompAnimalPenMarker>() != null) ||
-                       (category == "Pen Auto-Cut" && building.TryGetComp<CompAnimalPenMarker>() != null) ||
+                       (category == "Rename" && building.TryGetComp<CompAnimalPenMarker>() != null) ||
                        BuildingComponentsHelper.GetDiscoverableComponents(building).Any(c => c.CategoryName == category && !c.IsReadOnly);
             }
 
             // Check for zone-specific actionable categories
             if (obj is Zone zone)
             {
-                string renameLabel = "Rename".Translate().ToString();
                 return (category == "Storage" && zone is IStoreSettingsParent)
-                    || category == renameLabel;
+                    || category == "Rename"
+                    || (category == "Fishing" && zone.GetType().Name == "Zone_Fishing");
             }
 
             return false;
@@ -517,12 +513,40 @@ namespace RimWorldAccess
                 category == "Training" ||
                 category == "Character" ||
                 category == "Log" ||
-                category == "Job Queue")
+                category == "Job Queue" ||
+                category == "Feeding" ||
+                category == "Guest" ||
+                category == "Art" ||
+                category == "Book" ||
+                category == "Books" ||
+                category == "Auto-Cut Plants")
                 return true;
 
-            // Pen Food is expandable if building has pen marker
-            if (category == "Pen Food" && obj is Building building)
+            // Genes tab is expandable for pawns with gene data or GeneSetHolderBase items (Biotech DLC)
+            if (category == "Genes")
+            {
+                Pawn genePawn = GetPawnFromThing(obj);
+                if (genePawn?.genes != null && ModsConfig.BiotechActive)
+                    return true;
+
+                // Also expandable for GeneSetHolderBase items (embryos, genepacks, xenogerms)
+                if (obj is GeneSetHolderBase holder && holder.GeneSet != null && ModsConfig.BiotechActive)
+                    return true;
+
+                return false;
+            }
+
+            // Pen Food and Pen Auto-Cut are expandable if building has pen marker
+            if ((category == "Pen Food" || category == "Pen Auto-Cut") && obj is Building building)
                 return building.TryGetComp<CompAnimalPenMarker>() != null;
+
+            // Contents is expandable for transporters
+            if (category == "Contents" && obj is Thing contentsThing)
+                return contentsThing.TryGetComp<CompTransporter>() != null;
+
+            // Meditation Focus is expandable only if there are nearby focus objects
+            if (category == "Meditation Focus" && obj is Building meditationBuilding && meditationBuilding.Spawned)
+                return HasNearbyMeditationFocusObjects(meditationBuilding);
 
             return false;
         }
@@ -537,7 +561,6 @@ namespace RimWorldAccess
             {
                 if (category == "Prisoner" && (pawn.IsPrisonerOfColony || pawn.IsSlaveOfColony))
                 {
-                    WindowlessInspectionState.Close();
                     PrisonerTabState.Open(pawn);
                     return;
                 }
@@ -546,10 +569,8 @@ namespace RimWorldAccess
             // Handle zone-specific actions
             if (obj is Zone zone)
             {
-                string renameLabel = "Rename".Translate().ToString();
-                if (category == renameLabel)
+                if (category == "Rename")
                 {
-                    WindowlessInspectionState.Close();
                     ZoneRenameState.Open(zone);
                     return;
                 }
@@ -559,9 +580,14 @@ namespace RimWorldAccess
                     var settings = zoneStorageParent.GetStoreSettings();
                     if (settings != null)
                     {
-                        WindowlessInspectionState.Close();
                         StorageSettingsMenuState.Open(settings);
                     }
+                    return;
+                }
+
+                if (category == "Fishing" && zone.GetType().Name == "Zone_Fishing")
+                {
+                    FishingZoneMenuState.Open(zone);
                     return;
                 }
             }
@@ -572,7 +598,6 @@ namespace RimWorldAccess
                 var settings = storeParent.GetStoreSettings();
                 if (settings != null)
                 {
-                    WindowlessInspectionState.Close();
                     StorageSettingsMenuState.Open(settings);
                 }
                 return;
@@ -582,8 +607,6 @@ namespace RimWorldAccess
             if (!(obj is Building building))
                 return;
 
-            WindowlessInspectionState.Close();
-
             if (category == "Bills" && building is IBillGiver billGiver)
             {
                 BillsMenuState.Open(billGiver, building.Position);
@@ -591,6 +614,14 @@ namespace RimWorldAccess
             else if (category == "Bed Assignment" && building is Building_Bed bed)
             {
                 BedAssignmentState.Open(bed);
+            }
+            else if (category == "Owner Assignment")
+            {
+                var comp = (building as ThingWithComps)?.TryGetComp<CompAssignableToPawn>();
+                if (comp != null)
+                {
+                    BuildingOwnerAssignmentState.Open(building as ThingWithComps, comp);
+                }
             }
             else if (category == "Temperature")
             {
@@ -617,7 +648,8 @@ namespace RimWorldAccess
                     var parentSettings = shellComp.GetParentStoreSettings();
                     if (settings != null)
                     {
-                        ThingFilterMenuState.Open(settings.filter, parentSettings?.filter, "Ammunition");
+                        ThingFilterMenuState.Open(settings.filter, parentSettings?.filter, "TabShells".Translate(),
+                            forceHideHitPointsConfig: true, forceHideQualityConfig: true);
                     }
                 }
             }
@@ -633,13 +665,12 @@ namespace RimWorldAccess
                     ThingFilterMenuState.Open(penMarker.AnimalFilter, AnimalPenUtility.GetFixedAnimalFilter(), "Pen Animals");
                 }
             }
-            else if (category == "Pen Auto-Cut")
+            else if (category == "Rename")
             {
                 var penMarker = building.TryGetComp<CompAnimalPenMarker>();
                 if (penMarker != null)
                 {
-                    var fixedFilter = penMarker.parent.Map?.animalPenManager?.GetFixedAutoCutFilter();
-                    ThingFilterMenuState.Open(penMarker.AutoCutFilter, fixedFilter, "Pen Auto-Cut");
+                    PenRenameState.Open(penMarker);
                 }
             }
             else
@@ -697,6 +728,57 @@ namespace RimWorldAccess
                     BuildPenFoodChildren(categoryItem, building);
                     return;
                 }
+                if (category == "Pen Auto-Cut")
+                {
+                    BuildPenAutoCutChildren(categoryItem, building);
+                    return;
+                }
+                if (category == "Linked Facilities")
+                {
+                    BuildFacilityChildren(categoryItem, building);
+                    return;
+                }
+                if (category == "Meditation Focus")
+                {
+                    BuildMeditationFocusChildren(categoryItem, building);
+                    return;
+                }
+                if (category == "Auto-Cut Plants")
+                {
+                    BuildWindTurbineAutoCutChildren(categoryItem, building, mode);
+                    return;
+                }
+                if (category == "Books" && building is Building_Bookcase bookcase)
+                {
+                    BuildContentsBooksChildren(categoryItem, bookcase, mode);
+                    return;
+                }
+                if (category == "Contents" && building.TryGetComp<CompTransporter>() != null)
+                {
+                    BuildContentsTransporterChildren(categoryItem, building, mode);
+                    return;
+                }
+            }
+
+            // Art — works on any Thing with CompArt
+            if (category == "Art" && obj is Thing artThing)
+            {
+                BuildArtChildren(categoryItem, artThing);
+                return;
+            }
+
+            // Book — works on Book things
+            if (category == "Book" && obj is Book book)
+            {
+                BuildBookChildren(categoryItem, book);
+                return;
+            }
+
+            // Handle GeneSetHolderBase (embryos, genepacks, xenogerms) gene category
+            if (category == "Genes" && obj is GeneSetHolderBase geneHolder)
+            {
+                BuildGeneSetHolderGenesChildren(categoryItem, geneHolder);
+                return;
             }
 
             // Handle Pawn-specific categories (supports both live pawns and corpses)
@@ -718,7 +800,7 @@ namespace RimWorldAccess
             }
             else if (category == "Needs")
             {
-                BuildDetailedInfoChildren(categoryItem, obj, category);
+                BuildNeedsChildren(categoryItem, pawn);
             }
             else if (category == "Mood")
             {
@@ -726,15 +808,40 @@ namespace RimWorldAccess
             }
             else if (category == "Social")
             {
-                BuildSocialChildren(categoryItem, pawn);
+                BuildSocialChildren(categoryItem, pawn, mode);
             }
             else if (category == "Training")
             {
-                BuildDetailedInfoChildren(categoryItem, obj, category);
+                BuildTrainingChildren(categoryItem, pawn, mode);
             }
             else if (category == "Character")
             {
                 BuildDetailedInfoChildren(categoryItem, obj, category);
+
+                // Favorite color — visual-only in vanilla, add as text for accessibility
+                if (pawn != null && ModsConfig.IdeologyActive
+                    && !pawn.DevelopmentalStage.Baby()
+                    && pawn.story?.favoriteColor != null)
+                {
+                    string orIdeoColor = string.Empty;
+                    if (pawn.Ideo != null && !pawn.Ideo.classicMode)
+                    {
+                        orIdeoColor = "OrIdeoColor".Translate(pawn.Named("PAWN"));
+                    }
+                    string colorLabel = "FavoriteColorTooltip".Translate(
+                        pawn.Named("PAWN"),
+                        pawn.story.favoriteColor.label.Named("COLOR"),
+                        0.6f.ToStringPercent().Named("PERCENTAGE"),
+                        orIdeoColor.Named("ORIDEO")
+                    ).Resolve();
+                    AddChild(categoryItem, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = colorLabel,
+                        IndentLevel = categoryItem.IndentLevel + 1,
+                        IsExpandable = false
+                    });
+                }
             }
             else if (category == "Log")
             {
@@ -743,6 +850,18 @@ namespace RimWorldAccess
             else if (category == "Job Queue")
             {
                 BuildJobQueueChildren(categoryItem, pawn, mode);
+            }
+            else if (category == "Genes")
+            {
+                BuildGenesChildren(categoryItem, pawn);
+            }
+            else if (category == "Feeding")
+            {
+                BuildFeedingChildren(categoryItem, pawn, mode);
+            }
+            else if (category == "Guest")
+            {
+                BuildGuestChildren(categoryItem, pawn, mode);
             }
         }
 
@@ -856,17 +975,18 @@ namespace RimWorldAccess
 
             foreach (var gearCat in gearCategories)
             {
+                string localCat = gearCat;
                 var gearItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.SubCategory,
-                    Label = gearCat,
+                    Label = gearCat.Translate().ToString(),
                     Data = pawn,
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = true,
                     IsExpanded = false
                 };
 
-                gearItem.OnActivate = () => BuildGearItemsChildren(gearItem, pawn, gearCat, mode);
+                gearItem.OnActivate = () => BuildGearItemsChildren(gearItem, pawn, localCat, mode);
                 AddChild(parentItem, gearItem);
             }
         }
@@ -983,6 +1103,457 @@ namespace RimWorldAccess
         /// <summary>
         /// Builds children for Skills category.
         /// </summary>
+        /// <summary>
+        /// Builds children for the Needs category.
+        /// Each need is an expandable item with description, origin, and need-specific
+        /// sub-nodes (Joy tolerances, mood break thresholds, learning desires) mirroring
+        /// what vanilla exposes via Need.GetTipString.
+        /// </summary>
+        private static void BuildNeedsChildren(InspectionTreeItem parentItem, Pawn pawn)
+        {
+            if (parentItem.Children.Count > 0)
+                return; // Already built
+
+            if (pawn.needs == null)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+
+            var needs = pawn.needs.AllNeeds;
+            if (needs == null || needs.Count == 0)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "No needs to display.",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            // Filter to visible needs and sort by percentage (lowest first = most urgent)
+            var sortedNeeds = needs
+                .Where(n => n.def.showOnNeedList)
+                .OrderBy(n => n.CurLevelPercentage)
+                .ToList();
+
+            foreach (var need in sortedNeeds)
+            {
+                float percentage = need.CurLevelPercentage * 100f;
+                string needName = need.LabelCap;
+
+                var needItem = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = $"{needName}: {percentage:F0}%",
+                    ExpandedLabel = needName,
+                    Data = need,
+                    IndentLevel = indent,
+                    IsExpandable = true,
+                    IsExpanded = false
+                };
+
+                BuildNeedDetailChildren(needItem, pawn, need);
+
+                // Aggregate child labels into the collapsed summary (comma/period separated
+                // so the screen reader pauses naturally). Newlines only exist in expanded
+                // navigation where each line is its own child the user arrows through.
+                var summaryParts = needItem.Children
+                    .Select(c => c.Label)
+                    .Where(l => !string.IsNullOrWhiteSpace(l))
+                    .ToList();
+                if (summaryParts.Count > 0)
+                {
+                    needItem.Label += $". {string.Join(". ", summaryParts)}";
+                }
+                else
+                {
+                    needItem.IsExpandable = false;
+                }
+
+                AddChild(parentItem, needItem);
+            }
+        }
+
+        /// <summary>
+        /// Builds detail children for a need: raw values, mood state, description,
+        /// origin (trait/gene/ideo/hediff), and need-type-specific sub-nodes.
+        /// Mirrors Need.GetTipString / Need_Joy.GetTipString / Need_Mood.GetTipString.
+        /// </summary>
+        private static void BuildNeedDetailChildren(InspectionTreeItem needItem, Pawn pawn, Need need)
+        {
+            if (needItem.Children.Count > 0)
+                return;
+
+            int childIndent = needItem.IndentLevel + 1;
+
+            // Food: show raw nutrition values only when they add info beyond the
+            // percentage (MaxLevel > 1 for large races like Thrumbos; for humans
+            // MaxLevel == 1 so the raw numbers would just duplicate the percentage).
+            if (need is Need_Food food && food.MaxLevel > 1.01f)
+            {
+                AddChild(needItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = $"{food.CurLevel.ToString("0.##")} / {food.MaxLevel.ToString("0.##")}",
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                });
+            }
+
+            // Mood: qualitative state string (Stressed / Content / About to break / ...)
+            if (need is Need_Mood mood)
+            {
+                string moodState = mood.MoodString;
+                if (!string.IsNullOrEmpty(moodState))
+                {
+                    AddChild(needItem, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = moodState,
+                        IndentLevel = childIndent,
+                        IsExpandable = false
+                    });
+                }
+            }
+
+            // Description (formatted for Learning to inject activity list, then flattened)
+            string description = need.def.description;
+            if (!string.IsNullOrEmpty(description))
+            {
+                if (need is Need_Learning)
+                {
+                    string activitiesLineList = DefDatabase<LearningDesireDef>.AllDefsListForReading
+                        .Select(d => d.label)
+                        .ToList()
+                        .ToLineList("  - ", capitalizeItems: true);
+                    description = description
+                        .Formatted(activitiesLineList.Named("ACTIVITIES"), pawn.Named("PAWN"))
+                        .Resolve();
+                }
+
+                string cleanDesc = description.StripTags().Trim();
+                cleanDesc = System.Text.RegularExpressions.Regex.Replace(cleanDesc, @"\s+", " ");
+                AddChild(needItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = cleanDesc,
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                });
+            }
+
+            // Origin line (Comes from Trait/Gene/Ideo/Hediff) mirrors Need.GetTipString
+            string originLine = GetNeedOriginLine(pawn, need);
+            if (!string.IsNullOrEmpty(originLine))
+            {
+                AddChild(needItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = originLine,
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                });
+            }
+
+            // Need-type-specific sub-nodes
+            if (need is Need_Joy joy)
+            {
+                BuildJoyTolerancesSubNode(needItem, joy);
+                BuildJoyExpectationChildren(needItem, pawn);
+            }
+            else if (need is Need_Mood && pawn.mindState?.mentalBreaker != null
+                     && pawn.mindState.mentalBreaker.CanDoRandomMentalBreaks)
+            {
+                BuildMoodBreakThresholdsSubNode(needItem, pawn);
+            }
+            else if (need is Need_Learning
+                     && pawn.learning?.ActiveLearningDesires != null
+                     && pawn.learning.ActiveLearningDesires.Count > 0)
+            {
+                BuildActiveLearningDesiresSubNode(needItem, pawn);
+            }
+        }
+
+        /// <summary>
+        /// Returns a "Comes from Trait/Gene/Ideo/Hediff: X" line if the need is enabled
+        /// by one of those sources, else null. Mirrors Need.GetTipString (Need.cs:137).
+        /// </summary>
+        private static string GetNeedOriginLine(Pawn pawn, Need need)
+        {
+            if (pawn.story?.traits != null
+                && pawn.story.traits.TryGetNeedEnablingTrait(need.def, out var trait))
+            {
+                return $"{"ComesFromTrait".Translate()}: {trait.LabelCap}";
+            }
+            if (pawn.genes != null
+                && pawn.genes.TryGetNeedEnablingGene(need.def, out var gene))
+            {
+                return $"{"ComesFromGene".Translate()}: {gene.LabelCap}";
+            }
+            if (pawn.Ideo != null && pawn.Ideo.EnablesNeed(need.def))
+            {
+                return $"{"ComesFromIdeo".Translate()}: {pawn.Ideo.name.CapitalizeFirst()}";
+            }
+            if (pawn.health != null
+                && pawn.health.hediffSet.TryGetNeedEnablingHediff(need.def, out var hediff))
+            {
+                return $"{"ComesFromHediff".Translate()}: {hediff.LabelCap}";
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Builds a Joy Tolerances sub-node listing each JoyKindDef with its current
+        /// tolerance percentage, tagged "(bored)" when the pawn is bored of that kind.
+        /// Mirrors JoyToleranceSet.TolerancesString (JoyToleranceSet.cs:65).
+        /// </summary>
+        private static void BuildJoyTolerancesSubNode(InspectionTreeItem needItem, Need_Joy joy)
+        {
+            var entries = new List<(string label, float pct, bool bored)>();
+            foreach (var kind in DefDatabase<JoyKindDef>.AllDefsListForReading)
+            {
+                float tol = joy.tolerances[kind];
+                if (tol > 0.01f)
+                {
+                    entries.Add((kind.LabelCap, tol, joy.tolerances.BoredOf(kind)));
+                }
+            }
+
+            if (entries.Count == 0)
+                return;
+
+            int childIndent = needItem.IndentLevel + 1;
+            string header = "JoyTolerances".Translate();
+            var tolerancesItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = header,
+                ExpandedLabel = header,
+                IndentLevel = childIndent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+
+            int grandChildIndent = tolerancesItem.IndentLevel + 1;
+            var entryLabels = new List<string>();
+            foreach (var (label, pct, bored) in entries)
+            {
+                string line = $"{label}: {pct.ToStringPercent()}";
+                if (bored)
+                {
+                    line += $" ({"bored".Translate()})";
+                }
+                entryLabels.Add(line);
+                AddChild(tolerancesItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = line,
+                    IndentLevel = grandChildIndent,
+                    IsExpandable = false
+                });
+            }
+
+            tolerancesItem.Label += $": {string.Join(". ", entryLabels)}";
+            AddChild(needItem, tolerancesItem);
+        }
+
+        /// <summary>
+        /// Adds the current expectation line and (if on a map) the list of joy kinds
+        /// available. Mirrors Need_Joy.GetTipString caravan/map branches.
+        /// </summary>
+        private static void BuildJoyExpectationChildren(InspectionTreeItem needItem, Pawn pawn)
+        {
+            int childIndent = needItem.IndentLevel + 1;
+
+            if (pawn.MapHeld != null)
+            {
+                ExpectationDef expectation = ExpectationsUtility.CurrentExpectationFor(pawn);
+                if (expectation != null)
+                {
+                    string expLine = "CurrentExpectationsAndRecreation".Translate(
+                        expectation.label,
+                        expectation.joyToleranceDropPerDay.ToStringPercent(),
+                        expectation.joyKindsNeeded);
+                    AppendFlattenedLines(needItem, expLine, childIndent);
+                }
+
+                BuildJoyKindsOnMapSubNode(needItem, pawn.MapHeld);
+                return;
+            }
+
+            Caravan caravan = pawn.GetCaravan();
+            if (caravan != null)
+            {
+                float perHour = caravan.needs.GetCurrentJoyGainPerTick(pawn) * 2500f;
+                if (perHour > 0f)
+                {
+                    string line = "GainingJoyBecauseCaravanNotMoving".Translate()
+                        + ": +" + perHour.ToStringPercent()
+                        + "/" + "LetterHour".Translate();
+                    AddChild(needItem, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = line,
+                        IndentLevel = childIndent,
+                        IsExpandable = false
+                    });
+                }
+            }
+        }
+
+        /// <summary>
+        /// Adds a sub-node listing recreation kinds that are available on the pawn's
+        /// map. Entries without parentheses are joy kinds that need no object
+        /// (social, solitary relaxation, meditation). Entries with parentheses name
+        /// the specific thing on the map that enables that kind (e.g. "Dexterity
+        /// play (hoopstone ring)"). Joy kinds with no source available on the map
+        /// are omitted entirely. Mirrors JoyUtility.JoyKindsOnMapString.
+        /// </summary>
+        private static void BuildJoyKindsOnMapSubNode(InspectionTreeItem needItem, Verse.Map map)
+        {
+            string raw = JoyUtility.JoyKindsOnMapString(map);
+            if (string.IsNullOrWhiteSpace(raw))
+                return;
+
+            var lines = raw.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            var cleaned = new List<string>();
+            foreach (var line in lines)
+            {
+                string trimmed = line.StripTags().Trim();
+                // Vanilla prefixes each line with "  - "; strip so the bullet doesn't
+                // get read aloud by the screen reader.
+                if (trimmed.StartsWith("- "))
+                    trimmed = trimmed.Substring(2).Trim();
+                if (!string.IsNullOrEmpty(trimmed))
+                    cleaned.Add(trimmed);
+            }
+            if (cleaned.Count == 0)
+                return;
+
+            int childIndent = needItem.IndentLevel + 1;
+            const string header = "Recreation sources on map";
+            var kindsItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = header,
+                ExpandedLabel = header,
+                IndentLevel = childIndent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+
+            int grandChildIndent = kindsItem.IndentLevel + 1;
+            foreach (var line in cleaned)
+            {
+                AddChild(kindsItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = line,
+                    IndentLevel = grandChildIndent,
+                    IsExpandable = false
+                });
+            }
+
+            kindsItem.Label += $": {string.Join(". ", cleaned)}";
+            AddChild(needItem, kindsItem);
+        }
+
+        /// <summary>
+        /// Adds a "Break Thresholds" sub-node to the mood need mirroring the existing
+        /// Mood category's break-threshold structure (Minor / Major / Extreme).
+        /// </summary>
+        private static void BuildMoodBreakThresholdsSubNode(InspectionTreeItem needItem, Pawn pawn)
+        {
+            int childIndent = needItem.IndentLevel + 1;
+            const string header = "Break Thresholds";
+            var thresholdsItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = header,
+                ExpandedLabel = header,
+                Data = pawn,
+                IndentLevel = childIndent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+
+            BuildBreakThresholdsChildren(thresholdsItem, pawn);
+
+            var childLabels = thresholdsItem.Children.Select(c => c.Label).ToList();
+            if (childLabels.Count > 0)
+            {
+                thresholdsItem.Label += $": {string.Join(". ", childLabels)}";
+            }
+
+            AddChild(needItem, thresholdsItem);
+        }
+
+        /// <summary>
+        /// Adds an "Active Learning Desires" sub-node listing each desire with its
+        /// description (Biotech children).
+        /// </summary>
+        private static void BuildActiveLearningDesiresSubNode(InspectionTreeItem needItem, Pawn pawn)
+        {
+            int childIndent = needItem.IndentLevel + 1;
+            const string header = "Active Learning Desires";
+            var desiresItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = header,
+                ExpandedLabel = header,
+                IndentLevel = childIndent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+
+            int grandChildIndent = desiresItem.IndentLevel + 1;
+            var desireLabels = new List<string>();
+            foreach (var desire in pawn.learning.ActiveLearningDesires)
+            {
+                string desireDesc = desire.description ?? "";
+                string line = $"{desire.LabelCap}. {desireDesc}".TrimEnd();
+                desireLabels.Add(line);
+                AddChild(desiresItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = line,
+                    IndentLevel = grandChildIndent,
+                    IsExpandable = false
+                });
+            }
+
+            desiresItem.Label += $": {string.Join(". ", desireLabels)}";
+            AddChild(needItem, desiresItem);
+        }
+
+        /// <summary>
+        /// Splits a multi-line string on \n / \r, adds each non-empty line as a
+        /// DetailText child. Keeps expanded-view navigation per-line while
+        /// letting the parent's summary aggregator flatten them with ". ".
+        /// </summary>
+        private static void AppendFlattenedLines(InspectionTreeItem parent, string text, int indent)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return;
+
+            var lines = text.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var raw in lines)
+            {
+                string line = raw.StripTags().Trim();
+                if (string.IsNullOrEmpty(line))
+                    continue;
+                AddChild(parent, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = line,
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+            }
+        }
+
         private static void BuildSkillsChildren(InspectionTreeItem parentItem, Pawn pawn)
         {
             if (pawn.skills?.skills == null)
@@ -992,20 +1563,25 @@ namespace RimWorldAccess
 
             foreach (var skill in skills)
             {
-                string passionText = skill.passion == Passion.None ? "" : $" ({skill.passion})";
-                string disabledText = skill.TotallyDisabled ? " [DISABLED]" : "";
+                string skillName = skill.def.skillLabel.CapitalizeFirst();
 
                 var skillItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
-                    Label = $"{skill.def.skillLabel}: Level {skill.Level}{passionText}{disabledText}",
+                    Label = skillName,
+                    ExpandedLabel = skillName,
                     Data = skill,
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = true,
                     IsExpanded = false
                 };
 
-                skillItem.OnActivate = () => BuildSkillDetailChildren(skillItem, skill);
+                // Build children eagerly for collapsed summary
+                BuildSkillDetailChildren(skillItem, skill);
+                var skillChildLabels = skillItem.Children.Select(c => c.Label).ToList();
+                if (skillChildLabels.Count > 0)
+                    skillItem.Label += $": {string.Join(". ", skillChildLabels)}";
+
                 AddChild(parentItem, skillItem);
             }
         }
@@ -1018,39 +1594,68 @@ namespace RimWorldAccess
             if (skillItem.Children.Count > 0)
                 return; // Already built
 
-            var sb = new StringBuilder();
-            sb.Append($"XP: {skill.xpSinceLastLevel:F0} / {skill.XpRequiredForLevelUp:F0}");
+            int childIndent = skillItem.IndentLevel + 1;
 
-            if (skill.passion != Passion.None)
-            {
-                sb.Append($", Passion: {skill.passion}");
-            }
-
-            if (skill.TotallyDisabled)
-            {
-                sb.Append(", Status: DISABLED");
-            }
-
-            if (!string.IsNullOrEmpty(skill.def.description))
-            {
-                sb.Append($". {skill.def.description}");
-            }
-
-            var detailItem = new InspectionTreeItem
+            // Level
+            AddChild(skillItem, new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.DetailText,
-                Label = sb.ToString(),
-                IndentLevel = skillItem.IndentLevel + 1,
+                Label = $"{"Level".Translate()} {skill.Level}",
+                IndentLevel = childIndent,
                 IsExpandable = false
-            };
+            });
 
-            AddChild(skillItem, detailItem);
+            // Passion
+            if (skill.passion != Passion.None)
+            {
+                string passionKey = skill.passion == Passion.Major ? "PassionMajor" : "PassionMinor";
+                AddChild(skillItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = passionKey.Translate().ToString(),
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                });
+            }
+
+            // Disabled
+            if (skill.TotallyDisabled)
+            {
+                AddChild(skillItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "DisabledLower".Translate().ToString().ToUpper(),
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                });
+            }
+
+            // XP progress
+            AddChild(skillItem, new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.DetailText,
+                Label = $"XP: {skill.xpSinceLastLevel:F0} / {skill.XpRequiredForLevelUp:F0}",
+                IndentLevel = childIndent,
+                IsExpandable = false
+            });
+
+            // Description
+            if (!string.IsNullOrEmpty(skill.def.description))
+            {
+                AddChild(skillItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = skill.def.description,
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                });
+            }
         }
 
         /// <summary>
         /// Builds children for Social category.
         /// </summary>
-        private static void BuildSocialChildren(InspectionTreeItem parentItem, Pawn pawn)
+        private static void BuildSocialChildren(InspectionTreeItem parentItem, Pawn pawn, InspectionMode mode)
         {
             if (parentItem.Children.Count > 0)
                 return; // Already built
@@ -1059,7 +1664,7 @@ namespace RimWorldAccess
             var relationsItem = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.SubCategory,
-                Label = "Relations",
+                Label = "Relations".Translate().ToString(),
                 Data = pawn,
                 IndentLevel = parentItem.IndentLevel + 1,
                 IsExpandable = true,
@@ -1074,7 +1679,7 @@ namespace RimWorldAccess
                 var ideologyItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.SubCategory,
-                    Label = "Ideology & Role",
+                    Label = "StatsReport_Ideoligion".Translate().ToString(),
                     Data = pawn,
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = true,
@@ -1082,6 +1687,12 @@ namespace RimWorldAccess
                 };
                 ideologyItem.OnActivate = () => BuildIdeologyChildren(ideologyItem, pawn);
                 AddChild(parentItem, ideologyItem);
+            }
+
+            // Add Try Romance if applicable (Biotech DLC, eligible pawn, full inspection mode)
+            if (mode != InspectionMode.ReadOnly && SocialTabHelper.CanTryRomance(pawn))
+            {
+                BuildRomanceMenu(parentItem, pawn);
             }
         }
 
@@ -1120,7 +1731,7 @@ namespace RimWorldAccess
                     IsExpandable = true,
                     IsExpanded = false
                 };
-                relationItem.OnActivate = () => BuildRelationDetailChildren(relationItem, relation);
+                relationItem.OnActivate = () => BuildRelationDetailChildren(relationItem, pawn, relation);
                 AddChild(parentItem, relationItem);
             }
         }
@@ -1128,13 +1739,14 @@ namespace RimWorldAccess
         /// <summary>
         /// Builds detail children for a specific relation.
         /// </summary>
-        private static void BuildRelationDetailChildren(InspectionTreeItem relationItem, SocialTabHelper.RelationInfo relation)
+        private static void BuildRelationDetailChildren(InspectionTreeItem relationItem, Pawn inspectedPawn, SocialTabHelper.RelationInfo relation)
         {
             if (relationItem.Children.Count > 0)
                 return; // Already built
 
             string detailedInfo = relation.DetailedInfo.StripTags();
             var lines = detailedInfo.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            bool pregnancyApproachInserted = false;
 
             foreach (var line in lines.Where(l => !string.IsNullOrWhiteSpace(l)))
             {
@@ -1146,7 +1758,224 @@ namespace RimWorldAccess
                     IsExpandable = false
                 };
                 AddChild(relationItem, detailItem);
+
+                // Insert pregnancy approach right after the Relationship line
+                if (!pregnancyApproachInserted && line.TrimStart().StartsWith("Relationship:")
+                    && relation.CanChangePregnancyApproach && ModsConfig.BiotechActive)
+                {
+                    BuildPregnancyApproachMenu(relationItem, inspectedPawn, relation);
+                    pregnancyApproachInserted = true;
+                }
             }
+
+            // Fallback: if no Relationship line was found, still add pregnancy approach at end
+            if (!pregnancyApproachInserted && relation.CanChangePregnancyApproach && ModsConfig.BiotechActive)
+            {
+                BuildPregnancyApproachMenu(relationItem, inspectedPawn, relation);
+            }
+        }
+
+        /// <summary>
+        /// Builds a pregnancy approach sub-menu within a relation's detail children.
+        /// </summary>
+        private static void BuildPregnancyApproachMenu(InspectionTreeItem parentItem, Pawn pawn, SocialTabHelper.RelationInfo relation)
+        {
+            var currentApproach = relation.CurrentPregnancyApproach;
+
+            var approachItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = $"{"PregnancyApproach".Translate()}: {currentApproach.GetLabel().CapitalizeFirst()}",
+                Data = relation,
+                IndentLevel = parentItem.IndentLevel + 1,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+
+            approachItem.OnActivate = () =>
+            {
+                if (approachItem.Children.Count > 0)
+                    return; // Already built
+
+                int childIndent = approachItem.IndentLevel + 1;
+
+                // Check if pregnancy is possible between these two pawns
+                AcceptanceReport canProduce = PregnancyUtility.CanEverProduceChild(pawn, relation.OtherPawn);
+                if (!canProduce.Accepted)
+                {
+                    AddChild(approachItem, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = $"{"PregnancyNotPossible".Translate()}: {canProduce.Reason.CapitalizeFirst()}",
+                        IndentLevel = childIndent,
+                        IsExpandable = false
+                    });
+                    return;
+                }
+
+                foreach (PregnancyApproach approach in Enum.GetValues(typeof(PregnancyApproach)))
+                {
+                    bool isCurrent = approach == relation.CurrentPregnancyApproach;
+                    string optionLabel = isCurrent
+                        ? $"{"Current".Translate()}: {approach.GetDescription()}"
+                        : approach.GetDescription();
+
+                    var optionItem = new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.Action,
+                        Label = optionLabel,
+                        IndentLevel = childIndent,
+                        IsExpandable = false
+                    };
+
+                    if (!isCurrent)
+                    {
+                        var capturedApproach = approach;
+                        optionItem.OnActivate = () =>
+                        {
+                            SocialTabHelper.SetPregnancyApproach(pawn, relation.OtherPawn, capturedApproach);
+                            relation.CurrentPregnancyApproach = capturedApproach;
+                            approachItem.Children.Clear();
+                            approachItem.IsExpanded = false;
+                            approachItem.Label = $"{"PregnancyApproach".Translate()}: {capturedApproach.GetLabel().CapitalizeFirst()}";
+                        };
+                    }
+
+                    AddChild(approachItem, optionItem);
+                }
+            };
+
+            AddChild(parentItem, approachItem);
+        }
+
+        /// <summary>
+        /// Builds the Try Romance sub-menu within the Social category.
+        /// Shows romance targets with success chance, gated behind Biotech DLC and pawn eligibility.
+        /// Follows the same lazy-loading pattern as BuildPregnancyApproachMenu.
+        /// </summary>
+        private static void BuildRomanceMenu(InspectionTreeItem parentItem, Pawn pawn)
+        {
+            string romanceLabel = "TryRomanceButtonLabel".Translate();
+            int childIndent = parentItem.IndentLevel + 1;
+
+            // Check cooldown first
+            if (SocialTabHelper.IsRomanceOnCooldown(pawn, out string cooldownText))
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = $"{romanceLabel}: {cooldownText}",
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            // Check initiator eligibility
+            var eligibility = SocialTabHelper.GetRomanceInitiatorEligibility(pawn);
+            if (!eligibility.Accepted)
+            {
+                if (!eligibility.Reason.NullOrEmpty())
+                {
+                    AddChild(parentItem, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = $"{romanceLabel}: {eligibility.Reason}",
+                        IndentLevel = childIndent,
+                        IsExpandable = false
+                    });
+                }
+                return;
+            }
+
+            // Eligible: create expandable SubCategory with lazy-loaded targets
+            var romanceItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = romanceLabel,
+                Data = pawn,
+                IndentLevel = childIndent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+
+            romanceItem.OnActivate = () =>
+            {
+                if (romanceItem.Children.Count > 0)
+                    return; // Already built
+
+                var targets = SocialTabHelper.GetRomanceTargets(pawn);
+
+                if (targets.Count == 0)
+                {
+                    AddChild(romanceItem, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = "TryRomanceNoOptsMessage".Translate(pawn),
+                        IndentLevel = romanceItem.IndentLevel + 1,
+                        IsExpandable = false
+                    });
+                    return;
+                }
+
+                int targetIndent = romanceItem.IndentLevel + 1;
+
+                foreach (var target in targets)
+                {
+                    if (target.IsViable)
+                    {
+                        string targetLabel = string.Format("{0} ({1} {2})",
+                            target.TargetName,
+                            target.Chance.ToStringPercent(),
+                            "chance".Translate());
+
+                        var capturedTarget = target;
+                        var targetItem = new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.Action,
+                            Label = targetLabel,
+                            Data = target.Target,
+                            IndentLevel = targetIndent,
+                            IsExpandable = false
+                        };
+
+                        targetItem.OnActivate = () =>
+                        {
+                            if (SocialTabHelper.InitiateRomance(pawn, capturedTarget.Target))
+                            {
+                                TolkHelper.Speak($"{pawn.LabelShort} will try to romance {capturedTarget.TargetName}");
+                            }
+                            else
+                            {
+                                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                            }
+                        };
+
+                        targetItem.OnInfo = () =>
+                        {
+                            string breakdown = SocialTabHelper.BuildRomanceBreakdown(
+                                pawn, capturedTarget.Target);
+                            StatBreakdownState.Open(
+                                $"{capturedTarget.TargetName} - {"RomanceChance".Translate()}: {capturedTarget.Chance.ToStringPercent()}",
+                                breakdown);
+                        };
+
+                        AddChild(romanceItem, targetItem);
+                    }
+                    else
+                    {
+                        AddChild(romanceItem, new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.DetailText,
+                            Label = $"{target.TargetName} ({target.Reason})",
+                            IndentLevel = targetIndent,
+                            IsExpandable = false
+                        });
+                    }
+                }
+            };
+
+            AddChild(parentItem, romanceItem);
         }
 
         /// <summary>
@@ -1171,73 +2000,766 @@ namespace RimWorldAccess
                 return;
             }
 
+            int childIndent = parentItem.IndentLevel + 1;
+
             // Add ideology name
-            var ideoNameItem = new InspectionTreeItem
+            AddChild(parentItem, new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.DetailText,
                 Label = $"Ideology: {ideologyInfo.IdeoName}",
-                IndentLevel = parentItem.IndentLevel + 1,
+                IndentLevel = childIndent,
                 IsExpandable = false
-            };
-            AddChild(parentItem, ideoNameItem);
+            });
 
-            // Add certainty
-            var certaintyItem = new InspectionTreeItem
+            // Add combined certainty with change rate (matches game tooltip format)
+            string certaintyText = "Certainty".Translate().CapitalizeFirst();
+            string certaintyLabel = $"{certaintyText}: {ideologyInfo.Certainty:P0}";
+            float changePerDay = pawn.ideo.CertaintyChangePerDay;
+            if (Math.Abs(changePerDay) > 0.001f)
+            {
+                string rateText = changePerDay.ToStringPercent();
+                if (changePerDay > 0) rateText = "+" + rateText;
+                certaintyLabel += $" ({"CertaintyChangePerDay".Translate()}: {rateText})";
+            }
+            AddChild(parentItem, new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.DetailText,
-                Label = $"Certainty: {ideologyInfo.Certainty:P0}",
-                IndentLevel = parentItem.IndentLevel + 1,
+                Label = certaintyLabel,
+                IndentLevel = childIndent,
                 IsExpandable = false
-            };
-            AddChild(parentItem, certaintyItem);
+            });
 
-            // Add role if available
-            if (!string.IsNullOrEmpty(ideologyInfo.RoleName))
+            // Add Roles expandable section with assign/unassign actions
+            var availableRoles = SocialTabHelper.GetAvailableRoles(pawn);
+            if (availableRoles.Count > 0)
             {
+                var rolesItem = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.SubCategory,
+                    Label = "IdeoRoles".Translate().CapitalizeFirst(),
+                    Data = pawn,
+                    IndentLevel = childIndent,
+                    IsExpandable = true,
+                    IsExpanded = false
+                };
+                rolesItem.OnActivate = () => BuildRolesChildren(rolesItem, pawn, availableRoles);
+                AddChild(parentItem, rolesItem);
+            }
+        }
+
+        /// <summary>
+        /// Builds children for the Roles section under Ideology.
+        /// Lists each active role with its current holder and assign/unassign actions.
+        /// </summary>
+        private static void BuildRolesChildren(InspectionTreeItem parentItem, Pawn pawn, List<Precept_Role> roles)
+        {
+            if (parentItem.Children.Count > 0)
+                return; // Already built
+
+            int childIndent = parentItem.IndentLevel + 1;
+
+            foreach (var role in roles)
+            {
+                Pawn currentHolder = role.ChosenPawnSingle();
+                string holderName = currentHolder != null ? currentHolder.LabelShort.StripTags() : (string)"NoRoleAssigned".Translate();
+                string roleLabel = $"{role.LabelCap}: {holderName}";
+
                 var roleItem = new InspectionTreeItem
                 {
-                    Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = $"Role: {ideologyInfo.RoleName}",
-                    IndentLevel = parentItem.IndentLevel + 1,
-                    IsExpandable = false
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = roleLabel,
+                    Data = role,
+                    IndentLevel = childIndent,
+                    IsExpandable = true,
+                    IsExpanded = false
                 };
+
+                var capturedRole = role;
+                roleItem.OnActivate = () => BuildRoleDetailChildren(roleItem, pawn, capturedRole);
                 AddChild(parentItem, roleItem);
             }
+        }
 
-            // Add detailed certainty info
-            if (!string.IsNullOrEmpty(ideologyInfo.CertaintyDetails))
+        /// <summary>
+        /// Builds detail children for a specific role, including assign/unassign actions.
+        /// </summary>
+        private static void BuildRoleDetailChildren(InspectionTreeItem roleItem, Pawn pawn, Precept_Role role)
+        {
+            if (roleItem.Children.Count > 0)
+                return; // Already built
+
+            int childIndent = roleItem.IndentLevel + 1;
+            bool pawnHoldsRole = role.IsAssigned(pawn);
+            bool pawnIsEligible = SocialTabHelper.IsEligibleForRole(role, pawn);
+
+            // Add Assign action if pawn is eligible and not already assigned
+            if (!pawnHoldsRole && pawnIsEligible)
             {
-                var certaintyDetails = ideologyInfo.CertaintyDetails.StripTags();
-                var lines = certaintyDetails.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var line in lines.Where(l => !string.IsNullOrWhiteSpace(l)))
+                var assignItem = new InspectionTreeItem
                 {
-                    var detailItem = new InspectionTreeItem
-                    {
-                        Type = InspectionTreeItem.ItemType.DetailText,
-                        Label = line.Trim(),
-                        IndentLevel = parentItem.IndentLevel + 1,
-                        IsExpandable = false
-                    };
-                    AddChild(parentItem, detailItem);
-                }
+                    Type = InspectionTreeItem.ItemType.Action,
+                    Label = $"Assign {pawn.LabelShort.StripTags()}",
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                };
+                assignItem.OnActivate = () =>
+                {
+                    SocialTabHelper.AssignRole(role, pawn);
+                    // Rebuild: clear children so they refresh with updated holder
+                    roleItem.Children.Clear();
+                    roleItem.IsExpanded = false;
+                    // Update the role label
+                    roleItem.Label = $"{role.LabelCap}: {pawn.LabelShort.StripTags()}";
+                };
+                AddChild(roleItem, assignItem);
             }
 
-            // Add role details if available
-            if (!string.IsNullOrEmpty(ideologyInfo.RoleDetails))
+            // Add Unassign action if pawn holds this role
+            if (pawnHoldsRole)
             {
-                var roleDetails = ideologyInfo.RoleDetails.StripTags();
-                var lines = roleDetails.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var line in lines.Where(l => !string.IsNullOrWhiteSpace(l)))
+                var unassignItem = new InspectionTreeItem
                 {
-                    var detailItem = new InspectionTreeItem
+                    Type = InspectionTreeItem.ItemType.Action,
+                    Label = $"Unassign {pawn.LabelShort.StripTags()}",
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                };
+                unassignItem.OnActivate = () =>
+                {
+                    SocialTabHelper.UnassignRole(role, pawn);
+                    // Rebuild: clear children so they refresh with updated holder
+                    roleItem.Children.Clear();
+                    roleItem.IsExpanded = false;
+                    // Update the role label
+                    roleItem.Label = $"{role.LabelCap}: {"NoRoleAssigned".Translate()}";
+                };
+                AddChild(roleItem, unassignItem);
+            }
+
+            // Show why pawn can't be assigned if not eligible
+            if (!pawnHoldsRole && !pawnIsEligible)
+            {
+                var unmetReq = role.GetFirstUnmetRequirement(pawn);
+                string reason = unmetReq != null
+                    ? $"Cannot assign: {unmetReq.GetLabelCap(role).StripTags()}"
+                    : "Cannot assign: requirements not met";
+                AddChild(roleItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = reason,
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                });
+            }
+
+            // Add role description
+            if (!string.IsNullOrEmpty(role.def.description))
+            {
+                AddChild(roleItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = role.def.description.StripTags(),
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                });
+            }
+
+            // Add role requirements
+            if (role.def.roleRequirements != null && role.def.roleRequirements.Count > 0)
+            {
+                var reqsItem = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.SubCategory,
+                    Label = "Requirements",
+                    IndentLevel = childIndent,
+                    IsExpandable = true,
+                    IsExpanded = false
+                };
+                reqsItem.OnActivate = () =>
+                {
+                    if (reqsItem.Children.Count > 0) return;
+                    foreach (var req in role.def.roleRequirements)
+                    {
+                        string reqLabel = req.GetLabelCap(role).StripTags();
+                        if (!string.IsNullOrEmpty(reqLabel))
+                        {
+                            AddChild(reqsItem, new InspectionTreeItem
+                            {
+                                Type = InspectionTreeItem.ItemType.DetailText,
+                                Label = reqLabel,
+                                IndentLevel = reqsItem.IndentLevel + 1,
+                                IsExpandable = false
+                            });
+                        }
+                    }
+                };
+                AddChild(roleItem, reqsItem);
+            }
+
+            // Add role effects
+            if (role.def.roleEffects != null && role.def.roleEffects.Count > 0)
+            {
+                var effectsItem = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.SubCategory,
+                    Label = "Effects".Translate().CapitalizeFirst(),
+                    IndentLevel = childIndent,
+                    IsExpandable = true,
+                    IsExpanded = false
+                };
+                effectsItem.OnActivate = () =>
+                {
+                    if (effectsItem.Children.Count > 0) return;
+                    foreach (var effect in role.def.roleEffects)
+                    {
+                        string effectLabel = effect.Label(pawn, role).StripTags();
+                        if (!string.IsNullOrEmpty(effectLabel))
+                        {
+                            AddChild(effectsItem, new InspectionTreeItem
+                            {
+                                Type = InspectionTreeItem.ItemType.DetailText,
+                                Label = effectLabel,
+                                IndentLevel = effectsItem.IndentLevel + 1,
+                                IsExpandable = false
+                            });
+                        }
+                    }
+                };
+                AddChild(roleItem, effectsItem);
+            }
+        }
+
+        /// <summary>
+        /// Builds children for Training category with interactive controls.
+        /// Shows trainability, wildness, master assignment, follow toggles, and trainable skills.
+        /// </summary>
+        private static void BuildTrainingChildren(InspectionTreeItem parentItem, Pawn pawn, InspectionMode mode)
+        {
+            if (parentItem.Children.Count > 0)
+                return; // Already built
+
+            if (pawn?.training == null)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+            bool isReadOnly = (mode == InspectionMode.ReadOnly);
+
+            // Trainability header
+            TrainabilityDef trainability = TrainableUtility.GetTrainability(pawn);
+            if (trainability != null)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "CreatureTrainability".Translate(pawn.def.label).CapitalizeFirst()
+                            + ": " + trainability.LabelCap,
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+            }
+
+            // Wildness with stat explanation inline via ExpandedLabel
+            float wildness = pawn.GetStatValue(StatDefOf.Wildness);
+            string wildnessShort = ("CreatureWildness".Translate(pawn.def.label).CapitalizeFirst()
+                        + ": " + wildness.ToStringPercent()).Resolve();
+            string wildnessExplanation = StatDefOf.Wildness.Worker.GetExplanationFull(
+                StatRequest.For(pawn), StatDefOf.Wildness.toStringNumberSense, wildness);
+            // Flatten multiline explanation into sentence form
+            string flatExplanation = string.Join(". ",
+                wildnessExplanation.StripTags()
+                    .Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(l => l.Trim())
+                    .Where(l => !string.IsNullOrEmpty(l)));
+            AddChild(parentItem, new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.DetailText,
+                Label = wildnessShort + ". " + flatExplanation,
+                ExpandedLabel = wildnessShort,
+                IndentLevel = indent,
+                IsExpandable = false
+            });
+
+            // Master section and follow toggles (only if Obedience learned)
+            if (pawn.training.HasLearned(TrainableDefOf.Obedience))
+            {
+                BuildTrainingMasterSection(parentItem, pawn, indent, isReadOnly);
+                BuildTrainingFollowToggles(parentItem, pawn, indent, isReadOnly);
+            }
+
+            // Odyssey DLC behavior toggles
+            if (ModsConfig.OdysseyActive)
+            {
+                BuildTrainingOdysseyToggles(parentItem, pawn, indent, isReadOnly);
+            }
+
+            // Trainable skills list
+            if (pawn.RaceProps.showTrainables)
+            {
+                BuildTrainingSkillsList(parentItem, pawn, indent, isReadOnly);
+            }
+        }
+
+        /// <summary>
+        /// Builds the master assignment section for the training tab.
+        /// </summary>
+        private static void BuildTrainingMasterSection(
+            InspectionTreeItem parentItem, Pawn pawn, int indent, bool isReadOnly)
+        {
+            bool canChangeMaster = pawn.RaceProps.playerCanChangeMaster || !ModsConfig.IdeologyActive;
+            string masterLabel = TrainableUtility.MasterString(pawn);
+
+            if (!canChangeMaster || isReadOnly)
+            {
+                string label = "Master".Translate() + ": " + masterLabel;
+                string tooltip = null;
+                if (!canChangeMaster && pawn.playerSettings?.Master != null)
+                {
+                    tooltip = "DryadCannotChangeMaster".Translate(
+                        pawn.Named("ANIMAL"),
+                        pawn.playerSettings.Master.Named("MASTER")).CapitalizeFirst();
+                }
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = label,
+                    Tooltip = tooltip,
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            // Interactive: expandable master selector
+            var masterItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = "Master".Translate() + ": " + masterLabel,
+                Data = pawn,
+                IndentLevel = indent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+
+            masterItem.OnActivate = () =>
+            {
+                if (masterItem.Children.Count > 0)
+                    return;
+
+                int childIndent = masterItem.IndentLevel + 1;
+                var candidates = TrainingTabHelper.GetMasterCandidates(pawn);
+
+                foreach (var candidate in candidates)
+                {
+                    if (candidate.CanBeMaster)
+                    {
+                        if (candidate.IsCurrent)
+                        {
+                            // Current master shown as non-actionable
+                            AddChild(masterItem, new InspectionTreeItem
+                            {
+                                Type = InspectionTreeItem.ItemType.DetailText,
+                                Label = candidate.Label,
+                                IndentLevel = childIndent,
+                                IsExpandable = false
+                            });
+                        }
+                        else
+                        {
+                            var capturedColonist = candidate.Colonist;
+                            var optionItem = new InspectionTreeItem
+                            {
+                                Type = InspectionTreeItem.ItemType.Action,
+                                Label = candidate.Label,
+                                IndentLevel = childIndent,
+                                IsExpandable = false
+                            };
+                            optionItem.OnActivate = () =>
+                            {
+                                TrainingTabHelper.SetMaster(pawn, capturedColonist);
+                                masterItem.Children.Clear();
+                                masterItem.IsExpanded = false;
+                                masterItem.Label = "Master".Translate() + ": "
+                                                   + TrainableUtility.MasterString(pawn);
+                            };
+                            AddChild(masterItem, optionItem);
+                        }
+                    }
+                    else
+                    {
+                        string reasonSuffix = !string.IsNullOrEmpty(candidate.DisabledReason)
+                            ? " (" + candidate.DisabledReason + ")"
+                            : "";
+                        AddChild(masterItem, new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.DetailText,
+                            Label = candidate.Label + reasonSuffix,
+                            IndentLevel = childIndent,
+                            IsExpandable = false
+                        });
+                    }
+                }
+            };
+
+            AddChild(parentItem, masterItem);
+        }
+
+        /// <summary>
+        /// Builds follow drafted/fieldwork toggle items.
+        /// </summary>
+        private static void BuildTrainingFollowToggles(
+            InspectionTreeItem parentItem, Pawn pawn, int indent, bool isReadOnly)
+        {
+            // Follow Drafted
+            string draftedState = pawn.playerSettings.followDrafted
+                ? "Yes".Translate().Resolve() : "No".Translate().Resolve();
+            var draftedItem = new InspectionTreeItem
+            {
+                Type = isReadOnly ? InspectionTreeItem.ItemType.DetailText
+                                  : InspectionTreeItem.ItemType.Action,
+                Label = "CreatureFollowDrafted".Translate() + ": " + draftedState,
+                IndentLevel = indent,
+                IsExpandable = false
+            };
+            if (!isReadOnly)
+            {
+                draftedItem.OnActivate = () =>
+                {
+                    TrainingTabHelper.ToggleFollowDrafted(pawn);
+                    string newState = pawn.playerSettings.followDrafted
+                        ? "Yes".Translate().Resolve() : "No".Translate().Resolve();
+                    draftedItem.Label = "CreatureFollowDrafted".Translate() + ": " + newState;
+                };
+            }
+            AddChild(parentItem, draftedItem);
+
+            // Follow Fieldwork
+            string fieldworkState = pawn.playerSettings.followFieldwork
+                ? "Yes".Translate().Resolve() : "No".Translate().Resolve();
+            var fieldworkItem = new InspectionTreeItem
+            {
+                Type = isReadOnly ? InspectionTreeItem.ItemType.DetailText
+                                  : InspectionTreeItem.ItemType.Action,
+                Label = "CreatureFollowFieldwork".Translate() + ": " + fieldworkState,
+                IndentLevel = indent,
+                IsExpandable = false
+            };
+            if (!isReadOnly)
+            {
+                fieldworkItem.OnActivate = () =>
+                {
+                    TrainingTabHelper.ToggleFollowFieldwork(pawn);
+                    string newState = pawn.playerSettings.followFieldwork
+                        ? "Yes".Translate().Resolve() : "No".Translate().Resolve();
+                    fieldworkItem.Label = "CreatureFollowFieldwork".Translate() + ": " + newState;
+                };
+            }
+            AddChild(parentItem, fieldworkItem);
+        }
+
+        /// <summary>
+        /// Builds Odyssey DLC behavior toggles (forage, dig) if the skills are learned.
+        /// </summary>
+        private static void BuildTrainingOdysseyToggles(
+            InspectionTreeItem parentItem, Pawn pawn, int indent, bool isReadOnly)
+        {
+            if (pawn.training.HasLearned(TrainableDefOf.Forage))
+            {
+                string forageState = pawn.playerSettings.animalForage
+                    ? "Yes".Translate().Resolve() : "No".Translate().Resolve();
+                var forageItem = new InspectionTreeItem
+                {
+                    Type = isReadOnly ? InspectionTreeItem.ItemType.DetailText
+                                      : InspectionTreeItem.ItemType.Action,
+                    Label = "ForageEnabled".Translate() + ": " + forageState,
+                    IndentLevel = indent,
+                    IsExpandable = false
+                };
+                if (!isReadOnly)
+                {
+                    forageItem.OnActivate = () =>
+                    {
+                        TrainingTabHelper.ToggleForaging(pawn);
+                        string newState = pawn.playerSettings.animalForage
+                            ? "Yes".Translate().Resolve() : "No".Translate().Resolve();
+                        forageItem.Label = "ForageEnabled".Translate() + ": " + newState;
+                    };
+                }
+                AddChild(parentItem, forageItem);
+            }
+
+            if (pawn.training.HasLearned(TrainableDefOf.Dig))
+            {
+                string digState = pawn.playerSettings.animalDig
+                    ? "Yes".Translate().Resolve() : "No".Translate().Resolve();
+                var digItem = new InspectionTreeItem
+                {
+                    Type = isReadOnly ? InspectionTreeItem.ItemType.DetailText
+                                      : InspectionTreeItem.ItemType.Action,
+                    Label = "DigEnabled".Translate() + ": " + digState,
+                    IndentLevel = indent,
+                    IsExpandable = false
+                };
+                if (!isReadOnly)
+                {
+                    digItem.OnActivate = () =>
+                    {
+                        TrainingTabHelper.ToggleDigging(pawn);
+                        string newState = pawn.playerSettings.animalDig
+                            ? "Yes".Translate().Resolve() : "No".Translate().Resolve();
+                        digItem.Label = "DigEnabled".Translate() + ": " + newState;
+                    };
+                }
+                AddChild(parentItem, digItem);
+            }
+        }
+
+        /// <summary>
+        /// Builds the expandable trainable skills list with toggle capability.
+        /// </summary>
+        private static void BuildTrainingSkillsList(
+            InspectionTreeItem parentItem, Pawn pawn, int indent, bool isReadOnly)
+        {
+            var skillsItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = "Skills",
+                Data = pawn,
+                IndentLevel = indent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+
+            skillsItem.OnActivate = () =>
+            {
+                if (skillsItem.Children.Count > 0)
+                    return;
+
+                int childIndent = skillsItem.IndentLevel + 1;
+                var trainables = TrainingTabHelper.GetTrainableInfos(pawn);
+
+                if (trainables.Count == 0)
+                {
+                    AddChild(skillsItem, new InspectionTreeItem
                     {
                         Type = InspectionTreeItem.ItemType.DetailText,
-                        Label = line.Trim(),
-                        IndentLevel = parentItem.IndentLevel + 1,
+                        Label = "No trainable skills",
+                        IndentLevel = childIndent,
                         IsExpandable = false
-                    };
-                    AddChild(parentItem, detailItem);
+                    });
+                    return;
                 }
+
+                foreach (var info in trainables)
+                {
+                    string progress = info.CurrentSteps + " / " + info.TotalSteps;
+                    string description = TrainingTabHelper.GetTrainableDescription(pawn, info);
+
+                    if (!info.CanTrain)
+                    {
+                        // Cannot train — show reason with description inline
+                        string shortLabel = info.Def.LabelCap + ": " +
+                            (!string.IsNullOrEmpty(info.DisabledReason) ? info.DisabledReason : "Cannot train");
+                        AddChild(skillsItem, new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.DetailText,
+                            Label = shortLabel + ". " + description,
+                            ExpandedLabel = shortLabel,
+                            Data = info.Def,
+                            IndentLevel = childIndent,
+                            IsExpandable = false
+                        });
+                    }
+                    else if (isReadOnly)
+                    {
+                        string status = info.IsLearned ? "Learned"
+                                       : info.IsWanted ? "Wanted" : "Not wanted";
+                        string shortLabel = info.Def.LabelCap + ": " + status + ", " + progress;
+                        AddChild(skillsItem, new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.DetailText,
+                            Label = shortLabel + ". " + description,
+                            ExpandedLabel = shortLabel,
+                            Data = info.Def,
+                            IndentLevel = childIndent,
+                            IsExpandable = false
+                        });
+                    }
+                    else
+                    {
+                        // Interactive toggle with description inline
+                        var capturedDef = info.Def;
+                        string status = info.IsLearned ? "Learned"
+                                       : info.IsWanted ? "Wanted" : "Not wanted";
+                        string shortLabel = info.Def.LabelCap + ": " + status + ", " + progress;
+                        var skillItem = new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.Action,
+                            Label = shortLabel + ". " + description,
+                            ExpandedLabel = shortLabel,
+                            Data = info.Def,
+                            IndentLevel = childIndent,
+                            IsExpandable = false
+                        };
+
+                        skillItem.OnActivate = () =>
+                        {
+                            TrainingTabHelper.ToggleTrainable(pawn, capturedDef);
+                            // Refresh all sibling labels since SetWantedRecursive cascades
+                            RefreshTrainingSkillLabels(skillsItem, pawn);
+                        };
+
+                        AddChild(skillsItem, skillItem);
+                    }
+                }
+            };
+
+            AddChild(parentItem, skillsItem);
+        }
+
+        /// <summary>
+        /// Refreshes all training skill labels after a toggle, since SetWantedRecursive
+        /// cascades to prerequisites and dependents.
+        /// </summary>
+        private static void RefreshTrainingSkillLabels(InspectionTreeItem skillsItem, Pawn pawn)
+        {
+            foreach (var child in skillsItem.Children)
+            {
+                if (child.Data is TrainableDef td && child.Type == InspectionTreeItem.ItemType.Action)
+                {
+                    bool wanted = pawn.training.GetWanted(td);
+                    bool learned = pawn.training.HasLearned(td);
+                    string status = learned ? "Learned"
+                                   : wanted ? "Wanted" : "Not wanted";
+                    int steps = TrainingTabHelper.GetSteps(pawn, td);
+                    string shortLabel = td.LabelCap + ": " + status + ", " + steps + " / " + td.steps;
+                    // Rebuild full label with description
+                    var info = new TrainingTabHelper.TrainableInfo
+                    {
+                        Def = td,
+                        CanTrain = true,
+                        DisabledReason = null
+                    };
+                    string description = TrainingTabHelper.GetTrainableDescription(pawn, info);
+                    child.ExpandedLabel = shortLabel;
+                    child.Label = shortLabel + ". " + description;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Builds children for Genes category using GeneTreeBuilder.
+        /// </summary>
+        private static void BuildGenesChildren(InspectionTreeItem categoryItem, Pawn pawn)
+        {
+            if (categoryItem.Children.Count > 0)
+                return; // Already built
+
+            if (pawn?.genes == null || !ModsConfig.BiotechActive)
+            {
+                AddChild(categoryItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "No gene information available",
+                    IndentLevel = categoryItem.IndentLevel + 1,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            var geneTree = GeneTreeBuilder.BuildAdultGeneTree(pawn);
+
+            // Copy children from the gene tree root into our category item
+            foreach (var child in geneTree.Children)
+            {
+                child.Parent = categoryItem;
+                child.IndentLevel = categoryItem.IndentLevel + 1;
+                AdjustChildIndents(child, categoryItem.IndentLevel + 1);
+                categoryItem.Children.Add(child);
+            }
+
+            // Build collapsed summary from xenotype info and children
+            string genesLabel = "TabGenes".Translate().ToString();
+            categoryItem.ExpandedLabel = genesLabel;
+            string xenotypeLabel = pawn.genes.XenotypeLabelCap;
+            var geneChildLabels = categoryItem.Children.Select(c => c.Label).ToList();
+            if (geneChildLabels.Count > 0)
+                categoryItem.Label = $"{genesLabel}, {xenotypeLabel}: {string.Join(". ", geneChildLabels)}";
+            else
+                categoryItem.Label = $"{genesLabel}: {xenotypeLabel}";
+        }
+
+        /// <summary>
+        /// Builds children for Genes category for GeneSetHolderBase items (embryos, genepacks, xenogerms).
+        /// Uses GeneTreeBuilder.BuildTree() to create the gene tree from the item's GeneSet.
+        /// </summary>
+        private static void BuildGeneSetHolderGenesChildren(InspectionTreeItem categoryItem, GeneSetHolderBase holder)
+        {
+            if (categoryItem.Children.Count > 0)
+                return; // Already built
+
+            if (holder.GeneSet == null || !ModsConfig.BiotechActive)
+            {
+                AddChild(categoryItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "No gene information available",
+                    IndentLevel = categoryItem.IndentLevel + 1,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            // Get parent names for embryos (HumanEmbryo has Mother/Father via CompHasPawnSources)
+            string motherName = null;
+            string fatherName = null;
+            if (holder is HumanEmbryo embryo)
+            {
+                try
+                {
+                    motherName = embryo.Mother?.LabelShort;
+                    fatherName = embryo.Father?.LabelShort;
+                }
+                catch { /* CompHasPawnSources may not be available */ }
+            }
+
+            var geneTree = GeneTreeBuilder.BuildTree(holder.GeneSet, motherName, fatherName);
+
+            // Copy children from the gene tree root into our category item
+            foreach (var child in geneTree.Children)
+            {
+                child.Parent = categoryItem;
+                child.IndentLevel = categoryItem.IndentLevel + 1;
+                AdjustChildIndents(child, categoryItem.IndentLevel + 1);
+                categoryItem.Children.Add(child);
+            }
+
+            // Build collapsed summary from children
+            string holderGenesLabel = "TabGenes".Translate().ToString();
+            categoryItem.ExpandedLabel = holderGenesLabel;
+            string xenotype = holder.GeneSet.Label;
+            var holderGeneChildLabels = categoryItem.Children.Select(c => c.Label).ToList();
+            if (holderGeneChildLabels.Count > 0)
+            {
+                string prefix = !string.IsNullOrEmpty(xenotype) && xenotype != "ERR"
+                    ? $"{holderGenesLabel}, {xenotype}"
+                    : holderGenesLabel;
+                categoryItem.Label = $"{prefix}: {string.Join(". ", holderGeneChildLabels)}";
+            }
+            else if (!string.IsNullOrEmpty(xenotype) && xenotype != "ERR")
+            {
+                categoryItem.Label = $"{holderGenesLabel}: {xenotype}";
+            }
+        }
+
+        /// <summary>
+        /// Recursively adjusts indent levels of children relative to a new base indent.
+        /// </summary>
+        private static void AdjustChildIndents(InspectionTreeItem item, int baseIndent)
+        {
+            item.IndentLevel = baseIndent;
+            foreach (var child in item.Children)
+            {
+                AdjustChildIndents(child, baseIndent + 1);
             }
         }
 
@@ -1249,25 +2771,29 @@ namespace RimWorldAccess
             if (parentItem.Children.Count > 0)
                 return; // Already built
 
-            // Add Operations option (Full mode only)
+            // Operations action (Full mode only)
             if (mode == InspectionMode.Full)
             {
+                // Use mech-specific label for mechanoids
+                string operationsLabel = (pawn.RaceProps.IsMechanoid
+                    ? "MedicalOperationsMechanoidsShort"
+                    : "MedicalOperationsShort").Translate();
+
                 var operationsItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Action,
-                    Label = "Operations",
+                    Label = operationsLabel,
                     Data = pawn,
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = false
                 };
                 operationsItem.OnActivate = () =>
                 {
-                    WindowlessInspectionState.Close();
                     HealthTabState.OpenOperations(pawn);
                 };
                 AddChild(parentItem, operationsItem);
 
-                // Add Health Settings option
+                // Medical care settings action (opens the Overview tab)
                 var healthSettingsItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Action,
@@ -1278,479 +2804,339 @@ namespace RimWorldAccess
                 };
                 healthSettingsItem.OnActivate = () =>
                 {
-                    WindowlessInspectionState.Close();
                     HealthTabState.OpenMedicalSettings(pawn);
                 };
                 AddChild(parentItem, healthSettingsItem);
             }
 
-            // Add overall health state
-            var stateItem = new InspectionTreeItem
+            // Pain level (flesh pawns only, skip if no pain)
+            string painLabel = HealthTabHelper.GetPainLabel(pawn);
+            if (painLabel != null)
             {
-                Type = InspectionTreeItem.ItemType.DetailText,
-                Label = $"State: {pawn.health.State}",
-                IndentLevel = parentItem.IndentLevel + 1,
-                IsExpandable = false
-            };
-            AddChild(parentItem, stateItem);
-
-            // Add bleeding info if applicable
-            if (pawn.health.hediffSet.BleedRateTotal > 0.01f)
-            {
-                var bleedingItem = new InspectionTreeItem
+                AddChild(parentItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = $"BLEEDING: {pawn.health.hediffSet.BleedRateTotal:F2} per day",
+                    Label = painLabel,
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = false
-                };
-                AddChild(parentItem, bleedingItem);
+                });
             }
 
-            // Add blood loss level if applicable
-            var bloodLoss = pawn.health.hediffSet.GetFirstHediffOfDef(HediffDefOf.BloodLoss);
-            if (bloodLoss != null)
+            // Bleeding rate with time-to-death
+            string bleedingLabel = HealthTabHelper.GetBleedingLabel(pawn);
+            if (bleedingLabel != null)
             {
-                var bloodLossItem = new InspectionTreeItem
+                AddChild(parentItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = $"Blood Loss: {bloodLoss.Severity:P0}",
+                    Label = bleedingLabel,
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = false
-                };
-                AddChild(parentItem, bloodLossItem);
+                });
             }
 
-            // Add pain level if applicable
-            float painTotal = pawn.health.hediffSet.PainTotal;
-            if (painTotal > 0.01f)
-            {
-                var painItem = new InspectionTreeItem
-                {
-                    Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = $"Pain: {painTotal:P0}",
-                    IndentLevel = parentItem.IndentLevel + 1,
-                    IsExpandable = false
-                };
-                AddChild(parentItem, painItem);
-            }
+            // Body part nodes — flat list using vanilla's hediff filtering and sort order
+            var visibleHediffs = HealthTabHelper.GetVisibleHediffs(pawn).ToList();
 
-            // Add Conditions as expandable subcategory
-            var hediffs = pawn.health.hediffSet.hediffs;
-            if (hediffs != null && hediffs.Count > 0)
+            if (visibleHediffs.Count > 0)
             {
-                int totalVisible = hediffs.Count(h => h.Visible);
-                int afterFiltering = hediffs.Count(h => h.Visible && !IsSurgicallyRemovedPart(h, pawn));
-                int filteredCount = totalVisible - afterFiltering;
+                // Group by body part, sorted by vanilla's height/coverage priority
+                var hediffsByPart = visibleHediffs
+                    .GroupBy(h => h.Part)
+                    .OrderByDescending(g => HealthTabHelper.GetHediffListPriority(g.Key));
 
-                string conditionsLabel = $"Conditions ({afterFiltering})";
-                if (filteredCount > 0)
+                foreach (var group in hediffsByPart)
                 {
-                    conditionsLabel += $" ({filteredCount} filtered)";
+                    var part = group.Key;
+                    var partHediffs = group.ToList();
+                    string partLabel = part != null ? part.LabelCap.ToString() : "WholeBody".Translate().ToString();
+
+                    var bodyPartItem = new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.Item,
+                        Label = partLabel,
+                        ExpandedLabel = partLabel,
+                        IndentLevel = parentItem.IndentLevel + 1,
+                        IsExpandable = true,
+                        IsExpanded = false
+                    };
+                    // Build children eagerly so collapsed labels include full content immediately
+                    BuildBodyPartHediffChildren(bodyPartItem, pawn, part, partHediffs);
+                    AddChild(parentItem, bodyPartItem);
                 }
-
-                var conditionsItem = new InspectionTreeItem
-                {
-                    Type = InspectionTreeItem.ItemType.SubCategory,
-                    Label = conditionsLabel,
-                    Data = pawn,
-                    IndentLevel = parentItem.IndentLevel + 1,
-                    IsExpandable = true,
-                    IsExpanded = false
-                };
-                conditionsItem.OnActivate = () => BuildConditionsChildren(conditionsItem, pawn);
-                AddChild(parentItem, conditionsItem);
             }
             else
             {
-                var noConditionsItem = new InspectionTreeItem
+                AddChild(parentItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = "No injuries or conditions",
+                    Label = $"({"NoHealthConditions".Translate()})",
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = false
-                };
-                AddChild(parentItem, noConditionsItem);
+                });
             }
 
-            // Add key capacities
-            if (pawn.health.capacities != null)
+            // Capacities subcategory — build children eagerly for collapsed summary
+            if (pawn.health.capacities != null && !pawn.Dead)
             {
-                var capacitiesItem = new InspectionTreeItem
+                var capacities = HealthTabHelper.GetCapacities(pawn);
+                if (capacities.Count > 0)
                 {
-                    Type = InspectionTreeItem.ItemType.SubCategory,
-                    Label = "Capacities",
-                    Data = pawn,
-                    IndentLevel = parentItem.IndentLevel + 1,
-                    IsExpandable = true,
-                    IsExpanded = false
-                };
-                capacitiesItem.OnActivate = () => BuildCapacitiesChildren(capacitiesItem, pawn);
-                AddChild(parentItem, capacitiesItem);
+                    string capacitiesLabel = "Capacities";
+                    var capacitiesItem = new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.SubCategory,
+                        Label = capacitiesLabel,
+                        ExpandedLabel = capacitiesLabel,
+                        Data = pawn,
+                        IndentLevel = parentItem.IndentLevel + 1,
+                        IsExpandable = true,
+                        IsExpanded = false
+                    };
+                    BuildCapacitiesChildren(capacitiesItem, pawn);
+                    // Build collapsed summary from children
+                    var capChildLabels = capacitiesItem.Children.Select(c => c.Label).ToList();
+                    if (capChildLabels.Count > 0)
+                        capacitiesItem.Label += $": {string.Join(". ", capChildLabels)}";
+                    AddChild(parentItem, capacitiesItem);
+                }
             }
         }
 
         /// <summary>
-        /// Builds children for Conditions subcategory, grouping hediffs by body part.
+        /// Builds children for a body part node — groups hediffs by UIGroupKey (like vanilla)
+        /// so identical conditions show as "Gunshot wound x3" instead of 3 separate items.
         /// </summary>
-        private static void BuildConditionsChildren(InspectionTreeItem parentItem, Pawn pawn)
+        private static void BuildBodyPartHediffChildren(InspectionTreeItem parentItem, Pawn pawn, BodyPartRecord part, List<Hediff> hediffs)
         {
             if (parentItem.Children.Count > 0)
-                return; // Already built
+                return;
 
-            var hediffs = pawn.health.hediffSet.hediffs
-                .Where(h => h.Visible)
-                .Where(h => !IsSurgicallyRemovedPart(h, pawn))
-                .ToList();
-
-            // Group hediffs by body part (null for whole-body conditions)
-            // Sort by: whole-body first, then by part health percentage (most damaged first)
-            var hediffsByPart = hediffs
-                .GroupBy(h => h.Part)
-                .OrderBy(g => g.Key == null ? 0 : 1)
-                .ThenBy(g => g.Key != null
-                    ? pawn.health.hediffSet.GetPartHealth(g.Key) / g.Key.def.GetMaxHealth(pawn)
-                    : 0f);
-
-            foreach (var group in hediffsByPart)
+            // Add body part condition/HP child if damaged
+            if (part != null)
             {
-                var part = group.Key;
-                var partHediffs = group.ToList();
-
-                // Build label for this body part with health info and condition count
-                string label;
-                if (part == null)
+                float partHealth = pawn.health.hediffSet.GetPartHealth(part);
+                float maxHealth = part.def.GetMaxHealth(pawn);
+                if (partHealth < maxHealth * 0.999f)
                 {
-                    // Whole-body conditions (no specific body part)
-                    // Get summary of effects for whole body
-                    var effectTypes = new List<string>();
-                    bool hasBleeding = false;
-                    bool hasCapacityImpact = false;
-                    bool hasPain = false;
-                    bool hasLifeThreat = false;
+                    var conditionLabel = HealthUtility.GetPartConditionLabel(pawn, part);
+                    string conditionText = $"{conditionLabel.First}, {partHealth} / {maxHealth}";
+                    float efficiency = PawnCapacityUtility.CalculatePartEfficiency(pawn.health.hediffSet, part);
+                    if (efficiency != 1f)
+                        conditionText += $", {"Efficiency".Translate()}: {efficiency.ToStringPercent()}";
 
-                    foreach (var hediff in partHediffs)
+                    AddChild(parentItem, new InspectionTreeItem
                     {
-                        if (hediff.Bleeding)
-                            hasBleeding = true;
-                        if (hediff.PainOffset > 0.01f)
-                            hasPain = true;
-                        if (hediff.IsCurrentlyLifeThreatening)
-                            hasLifeThreat = true;
-                        if (hediff.CapMods != null && hediff.CapMods.Count > 0)
-                            hasCapacityImpact = true;
-                    }
-
-                    if (hasLifeThreat)
-                        effectTypes.Add("Life Threatening");
-                    if (hasBleeding)
-                        effectTypes.Add("Bleeding");
-                    if (hasCapacityImpact)
-                        effectTypes.Add("Reduced Capacity");
-                    if (hasPain)
-                        effectTypes.Add("Painful");
-
-                    string effectSummary = effectTypes.Count > 0 ? " : " + string.Join(", ", effectTypes) : "";
-                    label = $"Whole body : Conditions: {partHediffs.Count}{effectSummary}";
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = conditionText,
+                        IndentLevel = parentItem.IndentLevel + 1,
+                        IsExpandable = false
+                    });
                 }
-                else
-                {
-                    // Get part health
-                    float partHealth = pawn.health.hediffSet.GetPartHealth(part);
-                    float maxHealth = part.def.GetMaxHealth(pawn);
-
-                    // Get summary of effects for this body part
-                    var effectTypes = new List<string>();
-                    bool hasBleeding = false;
-                    bool hasCapacityImpact = false;
-                    bool hasPain = false;
-                    bool hasLifeThreat = false;
-
-                    foreach (var hediff in partHediffs)
-                    {
-                        if (hediff.Bleeding)
-                            hasBleeding = true;
-                        if (hediff.PainOffset > 0.01f)
-                            hasPain = true;
-                        if (hediff.IsCurrentlyLifeThreatening)
-                            hasLifeThreat = true;
-                        if (hediff.CapMods != null && hediff.CapMods.Count > 0)
-                            hasCapacityImpact = true;
-                    }
-
-                    if (hasLifeThreat)
-                        effectTypes.Add("Life Threatening");
-                    if (hasBleeding)
-                        effectTypes.Add("Bleeding");
-                    if (hasCapacityImpact)
-                        effectTypes.Add("Reduced Capacity");
-                    if (hasPain)
-                        effectTypes.Add("Painful");
-
-                    string effectSummary = effectTypes.Count > 0 ? " : " + string.Join(", ", effectTypes) : "";
-                    label = $"{part.LabelCap} : Health: {partHealth:F0} / {maxHealth:F0} : Conditions: {partHediffs.Count}{effectSummary}";
-                }
-
-                var bodyPartItem = new InspectionTreeItem
-                {
-                    Type = InspectionTreeItem.ItemType.Item,
-                    Label = label,
-                    Data = new { Pawn = pawn, BodyPart = part, Hediffs = partHediffs },
-                    IndentLevel = parentItem.IndentLevel + 1,
-                    IsExpandable = true,
-                    IsExpanded = false
-                };
-
-                bodyPartItem.OnActivate = () => BuildBodyPartConditionsChildren(bodyPartItem, pawn, part, partHediffs);
-                AddChild(parentItem, bodyPartItem);
             }
-        }
 
-        /// <summary>
-        /// Builds children showing individual conditions for a specific body part.
-        /// </summary>
-        private static void BuildBodyPartConditionsChildren(InspectionTreeItem bodyPartItem, Pawn pawn, BodyPartRecord part, List<Hediff> hediffs)
-        {
-            if (bodyPartItem.Children.Count > 0)
-                return; // Already built
+            var groups = hediffs.GroupBy(h => h.UIGroupKey).ToList();
 
-            // Sort hediffs by severity (most severe first)
-            var sortedHediffs = hediffs.OrderByDescending(h => h.Severity).ToList();
-
-            foreach (var hediff in sortedHediffs)
+            // Single hediff group: skip intermediate node, attach details directly to body part
+            if (groups.Count == 1)
             {
-                // Get hediff label with inline impacts
-                string hediffLabel = hediff.LabelCap.StripTags();
-                string impacts = GetHediffImpactsSummary(hediff);
-                if (!string.IsNullOrEmpty(impacts))
+                var representative = groups[0].First();
+                int count = groups[0].Count();
+
+                // Build hediff name as first child so it leads the collapsed summary
+                string hediffName = representative.LabelCap.StripTags();
+                if (count > 1)
+                    hediffName += $" x{count}";
+
+                AddChild(parentItem, new InspectionTreeItem
                 {
-                    hediffLabel += $". {impacts}";
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = hediffName,
+                    IndentLevel = parentItem.IndentLevel + 1,
+                    IsExpandable = false
+                });
+
+                // Build detail children (TipStringExtra lines + description)
+                int childrenBefore = parentItem.Children.Count;
+                BuildHediffDetailChildren(parentItem, representative, pawn);
+                bool hasDetailChildren = parentItem.Children.Count > childrenBefore;
+
+                if (!hasDetailChildren)
+                {
+                    // No detail content beyond hediff name — not expandable
+                    parentItem.IsExpandable = false;
                 }
 
-                // Expandable if TipStringExtra has effects OR Description exists
-                bool hasExpandableContent = !string.IsNullOrWhiteSpace(hediff.TipStringExtra)
-                                         || !string.IsNullOrWhiteSpace(hediff.Description);
+                // Build collapsed summary from all children
+                var childLabels = parentItem.Children.Select(c => c.Label).ToList();
+                if (childLabels.Count > 0)
+                {
+                    parentItem.Label += $": {string.Join(". ", childLabels)}";
+                }
+                return;
+            }
+
+            // Multiple hediff groups: create a child node for each
+            foreach (var hediffGroup in groups)
+            {
+                var representative = hediffGroup.First();
+                int count = hediffGroup.Count();
+
+                string hediffName = representative.LabelCap.StripTags();
+                if (count > 1)
+                    hediffName += $" x{count}";
+
+                bool hasExpandableContent = !string.IsNullOrWhiteSpace(representative.TipStringExtra)
+                                         || !string.IsNullOrWhiteSpace(representative.Description);
 
                 var hediffItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
-                    Label = hediffLabel,
-                    Data = hediff,
-                    IndentLevel = bodyPartItem.IndentLevel + 1,
+                    Label = hediffName,
+                    ExpandedLabel = hediffName,
+                    Data = representative,
+                    IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = hasExpandableContent,
                     IsExpanded = false
                 };
 
                 if (hasExpandableContent)
                 {
-                    hediffItem.OnActivate = () => BuildHediffDetailChildren(hediffItem, hediff, pawn);
+                    // Build children eagerly for collapsed summary
+                    BuildHediffDetailChildren(hediffItem, representative, pawn);
+                    var hediffChildLabels = hediffItem.Children.Select(c => c.Label).ToList();
+                    if (hediffChildLabels.Count > 0)
+                        hediffItem.Label += $": {string.Join(". ", hediffChildLabels)}";
                 }
-                AddChild(bodyPartItem, hediffItem);
+                AddChild(parentItem, hediffItem);
+            }
+
+            // Build collapsed summary from all children
+            var multiChildLabels = parentItem.Children.Select(c => c.Label).ToList();
+            if (multiChildLabels.Count > 0)
+            {
+                parentItem.Label += $": {string.Join(". ", multiChildLabels)}";
             }
         }
 
         /// <summary>
-        /// Gets a compact summary of hediff impacts for inline display.
-        /// </summary>
-        private static string GetHediffImpactsSummary(Hediff hediff)
-        {
-            var impacts = new List<string>();
-
-            // Bleeding
-            if (hediff.Bleeding)
-            {
-                impacts.Add($"Bleeding {hediff.BleedRate:F1}/day");
-            }
-
-            // Pain
-            float pain = hediff.PainOffset;
-            if (pain > 0.01f)
-            {
-                impacts.Add($"Pain +{pain:P0}");
-            }
-
-            // Capacity impacts
-            if (hediff.CapMods != null)
-            {
-                foreach (var capMod in hediff.CapMods)
-                {
-                    if (capMod.capacity == null)
-                        continue;
-
-                    string capName = capMod.capacity.LabelCap.ToString().StripTags();
-
-                    if (capMod.offset != 0f)
-                    {
-                        string sign = capMod.offset > 0 ? "+" : "";
-                        impacts.Add($"{capName} {sign}{capMod.offset:P0}");
-                    }
-                    else if (capMod.postFactor != 1f)
-                    {
-                        float percentChange = (capMod.postFactor - 1f) * 100f;
-                        string sign = percentChange > 0 ? "+" : "";
-                        impacts.Add($"{capName} {sign}{percentChange:F0}%");
-                    }
-                }
-            }
-
-            // Tend status
-            var tendComp = hediff.TryGetComp<HediffComp_TendDuration>();
-            if (tendComp != null)
-            {
-                if (tendComp.IsTended)
-                {
-                    impacts.Add($"Tended {tendComp.tendQuality:P0}");
-                }
-                else if (hediff.TendableNow())
-                {
-                    impacts.Add("Needs tending");
-                }
-            }
-
-            if (impacts.Count == 0)
-                return string.Empty;
-
-            return string.Join(", ", impacts);
-        }
-
-        /// <summary>
-        /// Builds detail children for a specific hediff (condition/wound).
-        /// Shows comprehensive effects rather than raw health numbers.
+        /// Builds detail children for a specific hediff showing vanilla tooltip content and description.
         /// </summary>
         private static void BuildHediffDetailChildren(InspectionTreeItem hediffItem, Hediff hediff, Pawn pawn)
         {
-            if (hediffItem.Children.Count > 0)
-                return; // Already built
-
-            // Get comprehensive effect information from helper
+            // Show comprehensive effects (vanilla's TipStringExtra content)
             string effectsText = HealthTabHelper.GetComprehensiveHediffEffects(hediff, pawn);
 
             if (!string.IsNullOrEmpty(effectsText))
             {
-                // Split effects into individual lines for better navigation
                 string[] effectLines = effectsText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
                 foreach (string line in effectLines)
                 {
                     string trimmedLine = line.Trim();
                     if (!string.IsNullOrEmpty(trimmedLine))
                     {
-                        var effectItem = new InspectionTreeItem
+                        AddChild(hediffItem, new InspectionTreeItem
                         {
                             Type = InspectionTreeItem.ItemType.DetailText,
                             Label = trimmedLine,
                             IndentLevel = hediffItem.IndentLevel + 1,
                             IsExpandable = false
-                        };
-                        AddChild(hediffItem, effectItem);
+                        });
                     }
                 }
             }
 
-            // Add description at the end for context
+            // Description at the end
             string description = hediff.Description;
             if (!string.IsNullOrEmpty(description))
             {
-                // Strip tags, replace newlines with spaces, and collapse multiple spaces
                 description = description.StripTags().Trim();
                 description = System.Text.RegularExpressions.Regex.Replace(description, @"\s+", " ");
 
-                // Add a separator before description
-                var separatorItem = new InspectionTreeItem
-                {
-                    Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = "---",
-                    IndentLevel = hediffItem.IndentLevel + 1,
-                    IsExpandable = false
-                };
-                AddChild(hediffItem, separatorItem);
-
-                var descItem = new InspectionTreeItem
+                AddChild(hediffItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
                     Label = description,
                     IndentLevel = hediffItem.IndentLevel + 1,
                     IsExpandable = false
-                };
-                AddChild(hediffItem, descItem);
+                });
             }
         }
 
         /// <summary>
         /// Builds children for Capacities subcategory.
-        /// Uses HealthTabHelper for consistent capacity data with descriptions.
+        /// Uses vanilla's filtering, sorting, and pawn-type-specific labels.
         /// </summary>
         private static void BuildCapacitiesChildren(InspectionTreeItem parentItem, Pawn pawn)
         {
             if (parentItem.Children.Count > 0)
-                return; // Already built
+                return;
 
-            // Use HealthTabHelper for consistent capacity data (already sorted by level)
             var capacities = HealthTabHelper.GetCapacities(pawn);
 
             foreach (var capacity in capacities)
             {
+                string capName = capacity.Label;
+                bool hasBreakdown = !string.IsNullOrEmpty(capacity.DetailedBreakdown);
+
                 var capacityItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
-                    Label = $"{capacity.Label}: {capacity.LevelLabel}",
+                    Label = capName,
+                    ExpandedLabel = capName,
                     Data = capacity,
                     IndentLevel = parentItem.IndentLevel + 1,
-                    IsExpandable = true,
+                    IsExpandable = hasBreakdown,
                     IsExpanded = false
                 };
 
-                capacityItem.OnActivate = () => BuildCapacityDetailChildren(capacityItem, capacity);
+                if (hasBreakdown)
+                {
+                    // Add level as first child
+                    AddChild(capacityItem, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = capacity.LevelLabel,
+                        IndentLevel = capacityItem.IndentLevel + 1,
+                        IsExpandable = false
+                    });
+                    // Build breakdown children eagerly
+                    BuildCapacityDetailChildren(capacityItem, capacity);
+                    // Build collapsed summary from children
+                    var capDetailLabels = capacityItem.Children.Select(c => c.Label).ToList();
+                    if (capDetailLabels.Count > 0)
+                        capacityItem.Label += $": {string.Join(". ", capDetailLabels)}";
+                }
+                else
+                {
+                    // No breakdown — show level inline (non-expandable)
+                    capacityItem.Label = $"{capName}: {capacity.LevelLabel}";
+                }
                 AddChild(parentItem, capacityItem);
             }
         }
 
         /// <summary>
-        /// Builds detail children for a capacity showing description and factors.
+        /// Builds detail children for a capacity showing impactors.
         /// </summary>
         private static void BuildCapacityDetailChildren(InspectionTreeItem capacityItem, HealthTabHelper.CapacityInfo capacity)
         {
-            if (capacityItem.Children.Count > 0)
-                return; // Already built
-
-            // Add description if available
-            if (!string.IsNullOrEmpty(capacity.Description))
-            {
-                var descItem = new InspectionTreeItem
-                {
-                    Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = capacity.Description,
-                    IndentLevel = capacityItem.IndentLevel + 1,
-                    IsExpandable = false
-                };
-                AddChild(capacityItem, descItem);
-            }
-
-            // Add breakdown factors
             if (!string.IsNullOrEmpty(capacity.DetailedBreakdown))
             {
                 var lines = capacity.DetailedBreakdown.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-
                 foreach (var line in lines)
                 {
                     string trimmedLine = line.Trim();
-                    if (string.IsNullOrEmpty(trimmedLine))
-                        continue;
-
-                    // Skip header and current level (already in parent label)
-                    if (trimmedLine.EndsWith(":") && trimmedLine == $"{capacity.Label}:")
-                        continue;
-                    if (trimmedLine.StartsWith("Current level:"))
-                        continue;
-
-                    var detailItem = new InspectionTreeItem
+                    if (!string.IsNullOrEmpty(trimmedLine))
                     {
-                        Type = InspectionTreeItem.ItemType.DetailText,
-                        Label = trimmedLine,
-                        IndentLevel = capacityItem.IndentLevel + 1,
-                        IsExpandable = false
-                    };
-                    AddChild(capacityItem, detailItem);
+                        AddChild(capacityItem, new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.DetailText,
+                            Label = trimmedLine,
+                            IndentLevel = capacityItem.IndentLevel + 1,
+                            IsExpandable = false
+                        });
+                    }
                 }
             }
         }
@@ -2156,36 +3542,73 @@ namespace RimWorldAccess
             int indent = parentItem.IndentLevel + 1;
             var calculator = penMarker.PenFoodCalculator;
 
-            // Summary item
+            // Unenclosed check - game shows only this message when pen is not enclosed
+            if (calculator.Unenclosed)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = "Not Enclosed - pen must be fully enclosed to function",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            // Pen size description
+            string penSize = calculator.PenSizeDescription();
+            if (!string.IsNullOrEmpty(penSize))
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = $"Pen Size: {penSize}",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+            }
+
+            // Nutrition balance summary
             float growth = calculator.NutritionPerDayToday;
             float consumption = calculator.SumNutritionConsumptionPerDay;
             float balance = growth - consumption;
             string balanceStr = balance >= 0 ? $"+{balance:F1}" : $"{balance:F1}";
             string summaryText = $"Balance: {balanceStr} nutrition/day (growth: {growth:F1}, consumption: {consumption:F1})";
 
-            var summaryItem = new InspectionTreeItem
+            AddChild(parentItem, new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.Item,
                 Label = summaryText,
                 IndentLevel = indent,
                 IsExpandable = false
-            };
-            AddChild(parentItem, summaryItem);
+            });
 
             // Stockpiled food
             if (calculator.sumStockpiledNutritionAvailableNow > 0)
             {
-                var stockpileItem = new InspectionTreeItem
+                AddChild(parentItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
                     Label = $"Stockpiled: {calculator.sumStockpiledNutritionAvailableNow:F1} nutrition",
                     IndentLevel = indent,
                     IsExpandable = false
-                };
-                AddChild(parentItem, stockpileItem);
+                });
+
+                // Days until stockpile is empty (only when in deficit)
+                if (balance < 0)
+                {
+                    float daysUntilEmpty = calculator.sumStockpiledNutritionAvailableNow / (-balance);
+                    AddChild(parentItem, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.Item,
+                        Label = $"Stockpile lasts: {daysUntilEmpty:F1} days",
+                        IndentLevel = indent,
+                        IsExpandable = false
+                    });
+                }
             }
 
-            // Animals category
+            // Animals in pen
             var animalInfos = calculator.ActualAnimalInfos;
             if (animalInfos != null && animalInfos.Count > 0)
             {
@@ -2208,19 +3631,156 @@ namespace RimWorldAccess
                             int count = info.count;
                             string animalText = $"{animalLabel} ({count}): -{animalConsumption:F2}/day";
 
-                            var animalItem = new InspectionTreeItem
+                            AddChild(animalsCategory, new InspectionTreeItem
                             {
                                 Type = InspectionTreeItem.ItemType.Item,
                                 Label = animalText,
                                 IndentLevel = indent + 1,
                                 IsExpandable = false
-                            };
-                            AddChild(animalsCategory, animalItem);
+                            });
                         }
                     }
                 };
                 AddChild(parentItem, animalsCategory);
             }
+
+            // Example Animals and Add Example Animal — these cross-reference each other
+            // so changes in one rebuild both sections and refresh the visible list.
+            var examplesCategory = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = "Example Animals",
+                IndentLevel = indent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+
+            var addExampleCategory = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = "Add Example Animal",
+                IndentLevel = indent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+
+            // Shared helper to rebuild both sections' children from current data
+            System.Action rebuildExampleSections = null;
+            rebuildExampleSections = () =>
+            {
+                // Rebuild "Example Animals" children
+                examplesCategory.Children.Clear();
+                var currentDefs = penMarker.ForceDisplayedAnimalDefs;
+                if (currentDefs != null && currentDefs.Count > 0)
+                {
+                    var infos = calculator.ComputeExampleAnimals(currentDefs);
+                    Quadrum bestQuadrum = calculator.GetSummerOrBestQuadrum();
+                    examplesCategory.Label = $"Example Animals ({(infos?.Count ?? 0)} types)";
+                    if (infos != null)
+                    {
+                        foreach (var info in infos)
+                        {
+                            if (info.animalDef == null) continue;
+                            string label = info.animalDef.label?.CapitalizeFirst() ?? "Unknown";
+                            float capacity = calculator.CapacityOf(bestQuadrum, info.animalDef);
+                            float perAnimal = info.nutritionConsumptionPerDay;
+                            string text = $"{label}: max {capacity:F0}, consumes {perAnimal:F2}/day (Enter to remove)";
+
+                            var exampleItem = new InspectionTreeItem
+                            {
+                                Type = InspectionTreeItem.ItemType.Action,
+                                Label = text,
+                                IndentLevel = indent + 1,
+                                IsExpandable = false
+                            };
+                            ThingDef capturedDef = info.animalDef;
+                            exampleItem.OnActivate = () =>
+                            {
+                                penMarker.RemoveForceDisplayedAnimal(capturedDef);
+                                string removedName = capturedDef.label?.CapitalizeFirst() ?? "Unknown";
+                                TolkHelper.Speak($"Removed example: {removedName}");
+                                rebuildExampleSections();
+                            };
+                            AddChild(examplesCategory, exampleItem);
+                        }
+                    }
+                }
+                else
+                {
+                    examplesCategory.Label = "Example Animals (0 types)";
+                }
+
+                // Rebuild "Add Example Animal" children
+                addExampleCategory.Children.Clear();
+                var map = building.Map;
+                if (map != null)
+                {
+                    var grazingAnimals = map.plantGrowthRateCalculator.GrazingAnimals;
+                    var currentExamples = penMarker.ForceDisplayedAnimalDefs ?? new List<ThingDef>();
+                    var available = new List<ThingDef>();
+                    foreach (var animal in grazingAnimals)
+                    {
+                        if (!currentExamples.Contains(animal))
+                            available.Add(animal);
+                    }
+
+                    if (available.Count == 0)
+                    {
+                        AddChild(addExampleCategory, new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.Item,
+                            Label = "No more animals available",
+                            IndentLevel = indent + 1,
+                            IsExpandable = false
+                        });
+                    }
+                    else
+                    {
+                        foreach (var animal in available)
+                        {
+                            string animalName = animal.label?.CapitalizeFirst() ?? "Unknown";
+                            ThingDef capturedAnimal = animal;
+                            var animalChoice = new InspectionTreeItem
+                            {
+                                Type = InspectionTreeItem.ItemType.Action,
+                                Label = animalName,
+                                IndentLevel = indent + 1,
+                                IsExpandable = false
+                            };
+                            animalChoice.OnActivate = () =>
+                            {
+                                penMarker.AddForceDisplayedAnimal(capturedAnimal);
+                                TolkHelper.Speak($"Added example: {animalName}");
+                                rebuildExampleSections();
+                            };
+                            AddChild(addExampleCategory, animalChoice);
+                        }
+                    }
+                }
+
+                // Re-flatten the visible items list so the UI reflects changes
+                WindowlessInspectionState.RefreshVisibleList();
+            };
+
+            // Wire up OnActivate to lazy-load via the shared rebuild
+            examplesCategory.OnActivate = () =>
+            {
+                if (examplesCategory.Children.Count == 0)
+                    rebuildExampleSections();
+            };
+            addExampleCategory.OnActivate = () =>
+            {
+                if (addExampleCategory.Children.Count == 0)
+                    rebuildExampleSections();
+            };
+
+            // Update the example animals label with current count
+            var initialDefs = penMarker.ForceDisplayedAnimalDefs;
+            int initialCount = (initialDefs != null) ? initialDefs.Count : 0;
+            examplesCategory.Label = $"Example Animals ({initialCount} types)";
+
+            AddChild(parentItem, examplesCategory);
+            AddChild(parentItem, addExampleCategory);
 
             // Stockpiled items breakdown
             var stockpileInfos = calculator.AllStockpiledInfos;
@@ -2244,19 +3804,874 @@ namespace RimWorldAccess
                             float nutrition = info.totalNutritionAvailable;
                             string foodText = $"{foodLabel}: {nutrition:F1} nutrition";
 
-                            var foodItem = new InspectionTreeItem
+                            AddChild(foodCategory, new InspectionTreeItem
                             {
                                 Type = InspectionTreeItem.ItemType.Item,
                                 Label = foodText,
                                 IndentLevel = indent + 1,
                                 IsExpandable = false
-                            };
-                            AddChild(foodCategory, foodItem);
+                            });
                         }
                     }
                 };
                 AddChild(parentItem, foodCategory);
             }
+        }
+
+        /// <summary>
+        /// Builds children for the Pen Auto-Cut category.
+        /// Shows auto-cut toggle, Cut Now button, and plant filter access.
+        /// </summary>
+        private static void BuildPenAutoCutChildren(InspectionTreeItem parentItem, Building building)
+        {
+            var penMarker = building.TryGetComp<CompAnimalPenMarker>();
+            if (penMarker == null)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+            bool penEnclosed = penMarker.PenState.Enclosed;
+
+            // Auto-cut toggle
+            string toggleLabel = penMarker.autoCut
+                ? "Auto-Cut Plants: Enabled"
+                : "Auto-Cut Plants: Disabled";
+            if (!penEnclosed)
+                toggleLabel += " (pen not enclosed)";
+
+            var toggleItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.Action,
+                Label = toggleLabel,
+                IndentLevel = indent,
+                IsExpandable = false
+            };
+            toggleItem.OnActivate = () =>
+            {
+                penMarker.autoCut = !penMarker.autoCut;
+                string state = penMarker.autoCut ? "Enabled" : "Disabled";
+                toggleItem.Label = penMarker.autoCut
+                    ? "Auto-Cut Plants: Enabled"
+                    : "Auto-Cut Plants: Disabled";
+                if (!penMarker.PenState.Enclosed)
+                    toggleItem.Label += " (pen not enclosed)";
+                TolkHelper.Speak($"Auto-cut {state}");
+            };
+            AddChild(parentItem, toggleItem);
+
+            // Cut Now button
+            var cutNowItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.Action,
+                Label = penEnclosed ? "Cut Now" : "Cut Now (pen not enclosed)",
+                IndentLevel = indent,
+                IsExpandable = false
+            };
+            cutNowItem.OnActivate = () =>
+            {
+                if (penMarker.PenState.Enclosed)
+                {
+                    penMarker.DesignatePlantsToCut();
+                    TolkHelper.Speak("Designated plants for cutting");
+                }
+                else
+                {
+                    TolkHelper.Speak("AutocutUnenclosedPen".Translate());
+                }
+            };
+            AddChild(parentItem, cutNowItem);
+
+            // Plant filter action
+            var filterItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.Action,
+                Label = "Plant Filter",
+                IndentLevel = indent,
+                IsExpandable = false
+            };
+            filterItem.OnActivate = () =>
+            {
+                var fixedFilter = penMarker.parent.Map?.animalPenManager?.GetFixedAutoCutFilter();
+                ThingFilterMenuState.Open(penMarker.AutoCutFilter, fixedFilter, "Pen Auto-Cut Plants");
+            };
+            AddChild(parentItem, filterItem);
+        }
+
+        /// <summary>
+        /// Builds children for the Linked Facilities category.
+        /// Shows facility provider info, consumer info, linked buildings, and compatible facilities.
+        /// </summary>
+        private static void BuildFacilityChildren(InspectionTreeItem parentItem, Building building)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+            var entries = FacilityLinkHelper.GetFacilityEntries(building);
+
+            if (entries.Count == 0)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "No facility linking information.",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            foreach (var entry in entries)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = entry.Label,
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+            }
+        }
+
+        /// <summary>
+        /// Builds children for the Meditation Focus category, listing nearby focus objects.
+        /// </summary>
+        private static void BuildMeditationFocusChildren(InspectionTreeItem parentItem, Building building)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+
+            if (!building.Spawned)
+                return;
+
+            var map = building.Map;
+            var center = building.Position;
+            float searchRadius = MeditationUtility.FocusObjectSearchRadius;
+
+            foreach (Thing thing in GenRadial.RadialDistinctThingsAround(center, map, searchRadius, useCenter: false))
+            {
+                CompMeditationFocus focusComp = thing.TryGetComp<CompMeditationFocus>();
+                if (focusComp == null)
+                    continue;
+
+                if (thing is Building_Throne)
+                    continue;
+
+                var sb = new System.Text.StringBuilder();
+                sb.Append(thing.LabelCap.ToString().StripTags());
+
+                // Focus types
+                if (focusComp.Props.focusTypes != null && focusComp.Props.focusTypes.Count > 0)
+                {
+                    string types = string.Join(", ",
+                        focusComp.Props.focusTypes.Select(f => f.label.CapitalizeFirst()));
+                    sb.Append($" - {types}");
+                }
+
+                // Focus strength
+                float strength = thing.GetStatValue(StatDefOf.MeditationFocusStrength);
+                sb.Append($" - Strength: {strength.ToStringPercent()}");
+
+                // Distance
+                float distance = center.DistanceTo(thing.Position);
+                sb.Append($" - {distance:F1} cells");
+
+                // Line of sight
+                if (!GenSight.LineOfSightToThing(center, thing, map))
+                {
+                    sb.Append(" - No line of sight");
+                }
+
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = sb.ToString(),
+                    IndentLevel = indent,
+                    IsExpandable = false,
+                    LinkedDef = thing.def,
+                    Data = thing
+                });
+            }
+
+            if (parentItem.Children.Count == 0)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = $"No meditation focus objects within {searchRadius:F0} cells.",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+            }
+        }
+
+        /// <summary>
+        /// Checks if there are any meditation focus objects near a building.
+        /// </summary>
+        private static bool HasNearbyMeditationFocusObjects(Building building)
+        {
+            if (!building.Spawned)
+                return false;
+
+            foreach (Thing thing in GenRadial.RadialDistinctThingsAround(
+                building.Position, building.Map, MeditationUtility.FocusObjectSearchRadius, useCenter: false))
+            {
+                if (thing is Building_Throne)
+                    continue;
+
+                if (thing.TryGetComp<CompMeditationFocus>() != null)
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Builds children for the Feeding tab (Biotech babies).
+        /// Two sections: auto-breastfeed feeder list and baby food consumables.
+        /// Matches vanilla ITab_Pawn_Feeding exactly.
+        /// </summary>
+        private static void BuildFeedingChildren(InspectionTreeItem parentItem, Pawn baby, InspectionMode mode)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            if (!ModsConfig.BiotechActive)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+            bool isReadOnly = (mode == InspectionMode.ReadOnly);
+
+            // === Auto-breastfeed section ===
+            string autoHeader = "AutofeedSectionHeader".Translate().CapitalizeFirst();
+            var autoSection = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = autoHeader,
+                ExpandedLabel = autoHeader,
+                IndentLevel = indent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+            autoSection.OnActivate = () => BuildAutobreastfeedChildren(autoSection, baby, isReadOnly);
+            AddChild(parentItem, autoSection);
+
+            // === Baby Food Consumables section ===
+            string foodHeader = "BabyFoodConsumables".Translate().CapitalizeFirst();
+            var foodSection = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = foodHeader,
+                ExpandedLabel = foodHeader,
+                IndentLevel = indent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+            foodSection.OnActivate = () => BuildBabyFoodChildren(foodSection, baby, isReadOnly);
+            AddChild(parentItem, foodSection);
+        }
+
+        /// <summary>
+        /// Builds the auto-breastfeed feeder list, matching vanilla's filtering and sorting.
+        /// </summary>
+        private static void BuildAutobreastfeedChildren(InspectionTreeItem parentItem, Pawn baby, bool isReadOnly)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+
+            // Gather feeders using vanilla's exact filtering logic
+            var feeders = PawnsFinder.AllMapsCaravansAndTravellingTransporters_Alive_OfPlayerFaction
+                .Where(f => f != baby
+                    && f.RaceProps.Humanlike
+                    && !ChildcareUtility.CanSuckle(f, out _)
+                    && !f.IsWorkTypeDisabledByAge(WorkTypeDefOf.Childcare, out _))
+                .ToList();
+
+            if (feeders.Count == 0)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "AutofeedNone".Translate(),
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            // Sort using vanilla's exact order: lactating first, then mother, father, surrogate
+            Pawn mother = baby.GetMother();
+            Pawn father = baby.GetFather();
+            Pawn surrogate = baby.GetBirthParent();
+
+            feeders.Sort((lhs, rhs) =>
+            {
+                int cmp = rhs.health.hediffSet.HasHediff(HediffDefOf.Lactating)
+                    .CompareTo(lhs.health.hediffSet.HasHediff(HediffDefOf.Lactating));
+                if (cmp != 0) return cmp;
+                if (lhs == mother) return -1;
+                if (rhs == mother) return 1;
+                if (lhs == father) return -1;
+                if (rhs == father) return 1;
+                if (lhs == surrogate) return -1;
+                if (rhs == surrogate) return 1;
+                return 0;
+            });
+
+            foreach (var feeder in feeders)
+            {
+                var localFeeder = feeder;
+                AutofeedMode currentMode = baby.mindState.AutofeedSetting(localFeeder);
+
+                // Build feeder name with lactation status
+                string feederName = localFeeder.LabelShortCap;
+                var lactatingHediff = localFeeder.health.hediffSet.GetFirstHediffOfDef(HediffDefOf.Lactating);
+                if (lactatingHediff != null)
+                    feederName += $" ({lactatingHediff.LabelBaseCap})";
+
+                // Build relation label
+                string relation = "";
+                if (localFeeder == mother)
+                    relation = $", {PawnRelationDefOf.Parent.labelFemale.CapitalizeFirst()}";
+                else if (localFeeder == father)
+                    relation = $", {PawnRelationDefOf.Parent.label.CapitalizeFirst()}";
+                else if (localFeeder == surrogate)
+                    relation = $", {PawnRelationDefOf.ParentBirth.GetGenderSpecificLabelCap(localFeeder)}";
+
+                string modeLabel = currentMode.Translate().CapitalizeFirst();
+                string fullLabel = $"{feederName}: {modeLabel}{relation}";
+
+                var feederItem = new InspectionTreeItem
+                {
+                    Type = isReadOnly ? InspectionTreeItem.ItemType.DetailText : InspectionTreeItem.ItemType.Action,
+                    Label = fullLabel,
+                    Data = localFeeder,
+                    IndentLevel = indent,
+                    IsExpandable = false
+                };
+
+                if (!isReadOnly)
+                {
+                    feederItem.OnActivate = () =>
+                    {
+                        // Open float menu with all three mode options
+                        var options = new List<FloatMenuOption>();
+                        foreach (AutofeedMode modeOption in System.Enum.GetValues(typeof(AutofeedMode)))
+                        {
+                            var localMode = modeOption;
+                            string optLabel = localMode.Translate().CapitalizeFirst();
+                            string tooltip = localMode.GetTooltip(baby, localFeeder);
+                            options.Add(new FloatMenuOption(
+                                $"{optLabel}. {tooltip}",
+                                () =>
+                                {
+                                    baby.mindState.SetAutofeeder(localFeeder, localMode);
+                                    string newModeLabel = localMode.Translate().CapitalizeFirst();
+                                    feederItem.Label = $"{feederName}: {newModeLabel}{relation}";
+                                }));
+                        }
+                        WindowlessFloatMenuState.Open(options, false);
+                    };
+                }
+
+                AddChild(parentItem, feederItem);
+            }
+        }
+
+        /// <summary>
+        /// Builds the baby food consumables list with toggleable food allowances.
+        /// </summary>
+        private static void BuildBabyFoodChildren(InspectionTreeItem parentItem, Pawn baby, bool isReadOnly)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+
+            var foods = ITab_Pawn_Feeding.BabyConsumableFoods;
+            if (foods == null || foods.Count == 0)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "NoneLower".Translate(),
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            string allowedStr = "On".Translate().ToString();
+            string notAllowedStr = "Off".Translate().ToString();
+
+            foreach (var food in foods)
+            {
+                var localFood = food;
+                bool allowed = baby.foodRestriction?.BabyFoodAllowed(localFood) ?? true;
+                string stateStr = allowed ? allowedStr : notAllowedStr;
+
+                var foodItem = new InspectionTreeItem
+                {
+                    Type = isReadOnly ? InspectionTreeItem.ItemType.DetailText : InspectionTreeItem.ItemType.Action,
+                    Label = $"{localFood.LabelCap}: {stateStr}",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                };
+
+                if (!isReadOnly)
+                {
+                    foodItem.OnActivate = () =>
+                    {
+                        if (baby.foodRestriction == null) return;
+                        bool current = baby.foodRestriction.BabyFoodAllowed(localFood);
+                        baby.foodRestriction.SetBabyFoodAllowed(localFood, !current);
+                        string newState = !current ? allowedStr : notAllowedStr;
+                        foodItem.Label = $"{localFood.LabelCap}: {newState}";
+                        TolkHelper.Speak(newState);
+                        SoundDefOf.Click.PlayOneShotOnCamera();
+                    };
+                }
+
+                AddChild(parentItem, foodItem);
+            }
+        }
+
+        /// <summary>
+        /// Builds children for the Art tab. Read-only: title and description.
+        /// </summary>
+        private static void BuildArtChildren(InspectionTreeItem parentItem, Thing thing)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+
+            // Handle minified (uninstalled) things
+            Thing inner = thing is MinifiedThing mini ? mini.InnerThing : thing;
+            var artComp = inner?.TryGetComp<CompArt>();
+
+            if (artComp == null || !artComp.Active)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "(" + "NoneLower".Translate() + ")",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            // Title
+            string title = artComp.Title;
+            if (!title.NullOrEmpty())
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = title,
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+            }
+
+            // Description
+            string desc = artComp.GenerateImageDescription();
+            if (!desc.NullOrEmpty())
+            {
+                desc = desc.StripTags().Trim();
+                desc = System.Text.RegularExpressions.Regex.Replace(desc, @"\s+", " ");
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = desc,
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+            }
+        }
+
+        /// <summary>
+        /// Builds children for the Book tab. Read-only: title, benefits, dangers, description.
+        /// </summary>
+        private static void BuildBookChildren(InspectionTreeItem parentItem, Book book)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+
+            // Benefits
+            if (book.BookComp?.Doers != null)
+            {
+                foreach (var doer in book.BookComp.Doers)
+                {
+                    string benefits = doer.GetBenefitsString();
+                    if (!benefits.NullOrEmpty())
+                    {
+                        string cleaned = benefits.StripTags().Trim();
+                        cleaned = System.Text.RegularExpressions.Regex.Replace(cleaned, @"\s+", " ");
+                        if (!cleaned.NullOrEmpty())
+                        {
+                            AddChild(parentItem, new InspectionTreeItem
+                            {
+                                Type = InspectionTreeItem.ItemType.DetailText,
+                                Label = cleaned,
+                                IndentLevel = indent,
+                                IsExpandable = false
+                            });
+                        }
+                    }
+                }
+            }
+
+            // Dangers
+            if (book.MentalBreakChancePerHour > 0f)
+            {
+                string dangerLabel = $"{"Dangers".Translate()}: {"BookMentalBreak".Translate()}, {book.MentalBreakChancePerHour.ToStringPercent("0.0")} {"PerHour".Translate()}";
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = dangerLabel,
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+            }
+
+            // Description / flavor text
+            string flavor = book.FlavorUI;
+            if (!flavor.NullOrEmpty())
+            {
+                flavor = flavor.StripTags().Trim();
+                flavor = System.Text.RegularExpressions.Regex.Replace(flavor, @"\s+", " ");
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = flavor,
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+            }
+        }
+
+        /// <summary>
+        /// Builds children for the Contents (Books) tab on bookcases.
+        /// Lists books with eject action.
+        /// </summary>
+        private static void BuildContentsBooksChildren(InspectionTreeItem parentItem, Building_Bookcase bookcase, InspectionMode mode)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+            bool isReadOnly = (mode == InspectionMode.ReadOnly);
+
+            var books = bookcase.GetDirectlyHeldThings()?.OfType<Book>().ToList();
+            if (books == null || books.Count == 0)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = "(" + "NoneLower".Translate() + ")",
+                    IndentLevel = indent,
+                    IsExpandable = false
+                });
+                return;
+            }
+
+            foreach (var book in books)
+            {
+                var localBook = book;
+                // DescriptionDetailed already starts with the title + quality, so use it as the full label
+                string label = localBook.DescriptionDetailed ?? localBook.LabelCap;
+                label = label.StripTags().Trim();
+                label = System.Text.RegularExpressions.Regex.Replace(label, @"\s+", " ");
+
+                var bookItem = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = label,
+                    Data = localBook,
+                    IndentLevel = indent,
+                    IsExpandable = false
+                };
+
+                if (!isReadOnly)
+                {
+                    bookItem.OnDelete = () =>
+                    {
+                        // Eject book to adjacent walkable cell
+                        IntVec3 dropCell = bookcase.Position;
+                        if (bookcase.Spawned)
+                        {
+                            foreach (var cell in bookcase.OccupiedRect().AdjacentCells)
+                            {
+                                if (cell.Walkable(bookcase.Map))
+                                {
+                                    dropCell = cell;
+                                    break;
+                                }
+                            }
+                        }
+
+                        bookcase.GetDirectlyHeldThings().TryDrop(localBook, dropCell, bookcase.Map, ThingPlaceMode.Near, 1, out var dropped);
+                        if (dropped?.TryGetComp<CompForbiddable>() is CompForbiddable forbiddable)
+                            forbiddable.Forbidden = true;
+
+                        TolkHelper.Speak($"{"EjectBookTooltip".Translate()}. {localBook.LabelCap}");
+                        SoundDefOf.Click.PlayOneShotOnCamera();
+
+                        // Rebuild children
+                        parentItem.Children.Clear();
+                        BuildContentsBooksChildren(parentItem, bookcase, mode);
+                    };
+                }
+
+                AddChild(parentItem, bookItem);
+            }
+        }
+
+        /// <summary>
+        /// Builds children for the Wind Turbine Auto-Cut tab.
+        /// Toggle for auto-cut, Cut Now action, and plant filter.
+        /// </summary>
+        private static void BuildWindTurbineAutoCutChildren(InspectionTreeItem parentItem, Building building, InspectionMode mode)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            var autoCut = building.TryGetComp<CompAutoCut>();
+            if (autoCut == null)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+            bool isReadOnly = (mode == InspectionMode.ReadOnly);
+
+            // Auto-cut toggle
+            string toggleLabel = "WindTurbineAutoCut_EnabledCheckbox".Translate();
+            string stateStr = autoCut.autoCut ? "On".Translate().ToString() : "Off".Translate().ToString();
+
+            var toggleItem = new InspectionTreeItem
+            {
+                Type = isReadOnly ? InspectionTreeItem.ItemType.DetailText : InspectionTreeItem.ItemType.Action,
+                Label = $"{toggleLabel}: {stateStr}",
+                IndentLevel = indent,
+                IsExpandable = false
+            };
+
+            if (!isReadOnly)
+            {
+                toggleItem.OnActivate = () =>
+                {
+                    autoCut.autoCut = !autoCut.autoCut;
+                    string newState = autoCut.autoCut ? "On".Translate().ToString() : "Off".Translate().ToString();
+                    toggleItem.Label = $"{toggleLabel}: {newState}";
+                    TolkHelper.Speak(newState);
+                    SoundDefOf.Click.PlayOneShotOnCamera();
+                };
+            }
+            AddChild(parentItem, toggleItem);
+
+            // Cut Now action
+            if (!isReadOnly)
+            {
+                var cutNowItem = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Action,
+                    Label = "AutoCutNow".Translate(),
+                    IndentLevel = indent,
+                    IsExpandable = false
+                };
+                cutNowItem.OnActivate = () =>
+                {
+                    autoCut.DesignatePlantsToCut();
+                    TolkHelper.Speak("AutoCutNow".Translate());
+                    SoundDefOf.Designate_PlanAdd.PlayOneShotOnCamera();
+                };
+                AddChild(parentItem, cutNowItem);
+            }
+        }
+
+        /// <summary>
+        /// Builds children for the Guest tab (non-prisoner, non-slave guests).
+        /// Shows medical care selector.
+        /// </summary>
+        private static void BuildGuestChildren(InspectionTreeItem parentItem, Pawn pawn, InspectionMode mode)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+            bool isReadOnly = (mode == InspectionMode.ReadOnly);
+
+            if (pawn.playerSettings == null)
+                return;
+
+            // Medical care selector
+            string careLabel = "AllowMedicine".Translate();
+            string currentCare = pawn.playerSettings.medCare.GetLabel();
+
+            var careItem = new InspectionTreeItem
+            {
+                Type = isReadOnly ? InspectionTreeItem.ItemType.DetailText : InspectionTreeItem.ItemType.Action,
+                Label = $"{careLabel}: {currentCare}",
+                IndentLevel = indent,
+                IsExpandable = false
+            };
+
+            if (!isReadOnly)
+            {
+                careItem.OnActivate = () =>
+                {
+                    // Open float menu with all medical care options
+                    var options = new List<FloatMenuOption>();
+                    foreach (MedicalCareCategory care in System.Enum.GetValues(typeof(MedicalCareCategory)))
+                    {
+                        var localCare = care;
+                        options.Add(new FloatMenuOption(localCare.GetLabel(), () =>
+                        {
+                            pawn.playerSettings.medCare = localCare;
+                            careItem.Label = $"{careLabel}: {localCare.GetLabel()}";
+                        }));
+                    }
+                    WindowlessFloatMenuState.Open(options, false);
+                };
+            }
+            AddChild(parentItem, careItem);
+        }
+
+        /// <summary>
+        /// Builds children for the Contents (Transporter) tab.
+        /// Two sections: items to load and contained items.
+        /// </summary>
+        private static void BuildContentsTransporterChildren(InspectionTreeItem parentItem, Building building, InspectionMode mode)
+        {
+            if (parentItem.Children.Count > 0)
+                return;
+
+            var transporter = building.TryGetComp<CompTransporter>();
+            if (transporter == null)
+                return;
+
+            int indent = parentItem.IndentLevel + 1;
+            bool isReadOnly = (mode == InspectionMode.ReadOnly);
+
+            // Items to Load section
+            string toLoadHeader = "ItemsToLoad".Translate();
+            var toLoadSection = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = toLoadHeader,
+                ExpandedLabel = toLoadHeader,
+                IndentLevel = indent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+            toLoadSection.OnActivate = () =>
+            {
+                if (toLoadSection.Children.Count > 0) return;
+                int childIndent = toLoadSection.IndentLevel + 1;
+
+                if (transporter.leftToLoad != null)
+                {
+                    foreach (var transferable in transporter.leftToLoad)
+                    {
+                        if (transferable.CountToTransfer <= 0 || !transferable.HasAnyThing)
+                            continue;
+
+                        string itemLabel = $"{transferable.ThingDef.LabelCap} x{transferable.CountToTransfer}";
+                        AddChild(toLoadSection, new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.DetailText,
+                            Label = itemLabel,
+                            IndentLevel = childIndent,
+                            IsExpandable = false
+                        });
+                    }
+                }
+
+                if (toLoadSection.Children.Count == 0)
+                {
+                    AddChild(toLoadSection, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = "(" + "NoneLower".Translate() + ")",
+                        IndentLevel = childIndent,
+                        IsExpandable = false
+                    });
+                }
+            };
+            AddChild(parentItem, toLoadSection);
+
+            // Contained Items section
+            string containedHeader = "ContainedItems".Translate();
+            var containedSection = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = containedHeader,
+                ExpandedLabel = containedHeader,
+                IndentLevel = indent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+            containedSection.OnActivate = () =>
+            {
+                if (containedSection.Children.Count > 0) return;
+                int childIndent = containedSection.IndentLevel + 1;
+
+                if (transporter.innerContainer != null && transporter.innerContainer.Count > 0)
+                {
+                    foreach (var thing in transporter.innerContainer.ToList())
+                    {
+                        var localThing = thing;
+                        string itemLabel = localThing is Pawn p ? p.LabelShortCap : localThing.LabelCap;
+                        if (localThing.stackCount > 1)
+                            itemLabel += $" x{localThing.stackCount}";
+
+                        var containedItem = new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.Item,
+                            Label = itemLabel,
+                            Data = localThing,
+                            IndentLevel = childIndent,
+                            IsExpandable = false
+                        };
+
+                        if (!isReadOnly)
+                        {
+                            containedItem.OnDelete = () =>
+                            {
+                                GenDrop.TryDropSpawn(localThing.SplitOff(localThing.stackCount),
+                                    building.Position, building.Map, ThingPlaceMode.Near, out _);
+                                transporter.Notify_ThingRemoved(localThing);
+                                TolkHelper.Speak($"{itemLabel}");
+                                SoundDefOf.Click.PlayOneShotOnCamera();
+
+                                // Rebuild
+                                containedSection.Children.Clear();
+                                containedSection.OnActivate();
+                            };
+                        }
+
+                        AddChild(containedSection, containedItem);
+                    }
+                }
+
+                if (containedSection.Children.Count == 0)
+                {
+                    AddChild(containedSection, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = "(" + "NoneLower".Translate() + ")",
+                        IndentLevel = childIndent,
+                        IsExpandable = false
+                    });
+                }
+            };
+            AddChild(parentItem, containedSection);
         }
     }
 }

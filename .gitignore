@@ -1,7 +1,14 @@
 bin/
 obj/
-.claude/
+.claude
 release/
 GamePaths.props
 /decompiled/
 how-it-works.md
+
+# Old Tolk DLLs (replaced by Prism in native/)
+Tolk.dll
+nvdaControllerClient64.dll
+
+# Native Prism libraries (downloaded from Prism releases)
+native/

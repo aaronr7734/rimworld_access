@@ -10,39 +10,37 @@ namespace RimWorldAccess
     /// <summary>
     /// Manages keyboard navigation for ThingFilter tree structures.
     /// Handles hierarchical category trees with checkboxes, expand/collapse, and sliders.
+    /// Uses TreeNavigationHelper for all standard treeview keyboard handling.
     /// </summary>
     public static class ThingFilterNavigationState
     {
-        // Navigation node types
+        // Navigation node types stored in InspectionTreeItem.Data
         public enum NodeType
         {
             Slider,           // Quality or hit points slider (press Enter to edit)
             SpecialFilter,    // Special filter checkbox (marked with *)
             Category,         // Category with children (can expand/collapse)
-            ThingDef,         // Individual thing/item checkbox
-            SaveAndReturn     // Special action to save and return to assign menu
+            ThingDef          // Individual thing/item checkbox
         }
 
-        public class NavigationNode
+        /// <summary>
+        /// Data stored in InspectionTreeItem.Data for filter nodes.
+        /// </summary>
+        public class FilterNodeData
         {
             public NodeType Type;
-            public int IndentLevel;
-            public string Label;
-            public string Description;
-            public bool IsExpanded;      // For categories
             public bool IsChecked;       // For checkboxes
-            public object Data;          // ThingCategoryDef, ThingDef, SpecialThingFilterDef, or null for sliders
+            public object Reference;     // ThingCategoryDef, ThingDef, SpecialThingFilterDef, or string for sliders
         }
 
         private static bool isActive = false;
         private static ThingFilter currentFilter = null;
+        private static ThingFilter parentFilter = null;
         private static TreeNode_ThingCategory rootNode = null;
-        private static List<NavigationNode> flattenedNodes = new List<NavigationNode>();
-        private static int selectedIndex = 0;
-        private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
+        private static TreeNavigationHelper treeNav = new TreeNavigationHelper("ThingFilter");
 
-        // Track collapsed categories by defName (default is expanded)
-        private static HashSet<string> collapsedCategories = new HashSet<string>();
+        // Track expanded categories by defName (default is collapsed, matching vanilla)
+        private static HashSet<string> expandedCategories = new HashSet<string>();
 
         // Slider states
         private enum SliderMode { None, Quality, HitPoints }
@@ -55,25 +53,54 @@ namespace RimWorldAccess
 
         public static bool IsActive => isActive;
         public static bool IsEditingSlider => isEditingSlider;
-        public static bool HasActiveSearch => typeahead.HasActiveSearch;
-        public static bool HasNoMatches => typeahead.HasNoMatches;
+        public static bool HasActiveSearch => treeNav.HasActiveSearch;
+        public static bool HasNoMatches => treeNav.HasNoMatches;
+
+        static ThingFilterNavigationState()
+        {
+            treeNav.FormatItemAnnouncement = FormatItemAnnouncement;
+            treeNav.FormatSearchAnnouncement = FormatSearchAnnouncement;
+            treeNav.OnActivate = HandleActivate;
+            treeNav.AnnounceChildCounts = false;
+        }
+
+        /// <summary>
+        /// Gets the current selected index in the flattened navigation list.
+        /// Used by ReadingPolicyEditorState to save position when switching panels.
+        /// </summary>
+        public static int GetCurrentIndex() => treeNav.SelectedIndex;
+
+        /// <summary>
+        /// Sets the current selected index with bounds checking.
+        /// Used by ReadingPolicyEditorState to restore position when switching panels.
+        /// </summary>
+        public static void SetCurrentIndex(int index)
+        {
+            if (treeNav.Count > 0 && index >= 0 && index < treeNav.Count)
+            {
+                treeNav.SetSelectedIndex(index);
+            }
+        }
 
         /// <summary>
         /// Activates filter navigation for a given ThingFilter.
         /// </summary>
-        public static void Activate(ThingFilter filter, TreeNode_ThingCategory root, bool showQuality, bool showHitPoints)
+        /// <param name="initialIndex">Optional starting index (used by ReadingPolicyEditorState to restore position when switching panels).</param>
+        public static void Activate(ThingFilter filter, ThingFilter parentFilter, TreeNode_ThingCategory root, bool showQuality, bool showHitPoints, int initialIndex = 0)
         {
             isActive = true;
             currentFilter = filter;
+            ThingFilterNavigationState.parentFilter = parentFilter;
             rootNode = root;
             hasQualitySlider = showQuality;
             hasHitPointsSlider = showHitPoints;
-            selectedIndex = 0;
             currentSliderMode = SliderMode.None;
-            typeahead.ClearSearch();
-            MenuHelper.ResetLevel("ThingFilter");
+            currentSliderPart = SliderPart.Min;
+            isEditingSlider = false;
+            expandedCategories.Clear();
 
-            RebuildNavigationList();
+            var treeRoot = BuildTree();
+            treeNav.Initialize(treeRoot, initialIndex);
             AnnounceCurrentNode();
         }
 
@@ -84,127 +111,221 @@ namespace RimWorldAccess
         {
             isActive = false;
             currentFilter = null;
+            parentFilter = null;
             rootNode = null;
-            flattenedNodes.Clear();
-            selectedIndex = 0;
-            typeahead.ClearSearch();
-            collapsedCategories.Clear();
-            MenuHelper.ResetLevel("ThingFilter");
+            expandedCategories.Clear();
+            treeNav.Reset();
         }
 
         /// <summary>
-        /// Rebuilds the flattened navigation list from the tree structure.
+        /// Builds the tree structure from the ThingFilter data.
         /// </summary>
-        private static void RebuildNavigationList()
+        private static InspectionTreeItem BuildTree()
         {
-            flattenedNodes.Clear();
+            var root = new InspectionTreeItem
+            {
+                Label = "Root",
+                IndentLevel = -1,
+                IsExpanded = true,
+                IsExpandable = false
+            };
 
             // Add sliders at top
             if (hasHitPointsSlider)
             {
-                flattenedNodes.Add(new NavigationNode
+                var sliderNode = new InspectionTreeItem
                 {
-                    Type = NodeType.Slider,
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = "HitPointsBasic".Translate().CapitalizeFirst(),
                     IndentLevel = 0,
-                    Label = "Hit Points Range",
-                    Description = "Allowed hit points percentage range",
-                    Data = "HitPoints"
-                });
+                    IsExpandable = false,
+                    Parent = root,
+                    Data = new FilterNodeData
+                    {
+                        Type = NodeType.Slider,
+                        Reference = "HitPoints"
+                    }
+                };
+                root.Children.Add(sliderNode);
             }
 
             if (hasQualitySlider)
             {
-                flattenedNodes.Add(new NavigationNode
+                var sliderNode = new InspectionTreeItem
                 {
-                    Type = NodeType.Slider,
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = "Quality".Translate(),
                     IndentLevel = 0,
-                    Label = "Quality Range",
-                    Description = "Allowed quality levels",
-                    Data = "Quality"
-                });
+                    IsExpandable = false,
+                    Parent = root,
+                    Data = new FilterNodeData
+                    {
+                        Type = NodeType.Slider,
+                        Reference = "Quality"
+                    }
+                };
+                root.Children.Add(sliderNode);
             }
 
-            // Build tree
+            // Build tree from categories
             if (rootNode != null)
             {
-                AddCategoryChildren(rootNode, 0);
+                AddCategoryChildren(rootNode, root, 0, isRoot: true);
             }
 
-            // Add "Save and Return" action at the bottom
-            flattenedNodes.Add(new NavigationNode
-            {
-                Type = NodeType.SaveAndReturn,
-                IndentLevel = 0,
-                Label = "Save and Return to Assign Menu",
-                Description = "Save filter changes and return to the assign menu"
-            });
+            return root;
         }
 
         /// <summary>
-        /// Recursively adds category children to the flattened list.
+        /// Recursively adds category children to the tree.
         /// </summary>
-        private static void AddCategoryChildren(TreeNode_ThingCategory node, int indentLevel)
+        private static void AddCategoryChildren(TreeNode_ThingCategory node, InspectionTreeItem parent, int indentLevel, bool isRoot = false)
         {
+            // Add parent special filters at root level (e.g., AllowRotten, AllowFresh from Root category)
+            if (isRoot)
+            {
+                foreach (var specialFilter in node.catDef.ParentsSpecialThingFilterDefs)
+                {
+                    if (specialFilter.configurable && ThingFilterHelper.IsVisibleSpecialFilter(specialFilter, parentFilter))
+                    {
+                        var sfNode = new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.Item,
+                            Label = specialFilter.LabelCap,
+                            Description = specialFilter.description,
+                            IndentLevel = indentLevel,
+                            IsExpandable = false,
+                            Parent = parent,
+                            Data = new FilterNodeData
+                            {
+                                Type = NodeType.SpecialFilter,
+                                IsChecked = currentFilter.Allows(specialFilter),
+                                Reference = specialFilter
+                            }
+                        };
+                        parent.Children.Add(sfNode);
+                    }
+                }
+            }
+
             // Add special filters
             foreach (var specialFilter in node.catDef.childSpecialFilters)
             {
-                if (specialFilter.configurable)
+                if (specialFilter.configurable && ThingFilterHelper.IsVisibleSpecialFilter(specialFilter, parentFilter))
                 {
-                    flattenedNodes.Add(new NavigationNode
+                    var sfNode = new InspectionTreeItem
                     {
-                        Type = NodeType.SpecialFilter,
-                        IndentLevel = indentLevel,
-                        Label = "*" + specialFilter.LabelCap,
+                        Type = InspectionTreeItem.ItemType.Item,
+                        Label = specialFilter.LabelCap,
                         Description = specialFilter.description,
-                        IsChecked = currentFilter.Allows(specialFilter),
-                        Data = specialFilter
-                    });
+                        IndentLevel = indentLevel,
+                        IsExpandable = false,
+                        Parent = parent,
+                        Data = new FilterNodeData
+                        {
+                            Type = NodeType.SpecialFilter,
+                            IsChecked = currentFilter.Allows(specialFilter),
+                            Reference = specialFilter
+                        }
+                    };
+                    parent.Children.Add(sfNode);
                 }
             }
 
             // Add child categories
             foreach (var childCategory in node.ChildCategoryNodes)
             {
-                // Check if category has any allowed items to determine if it's "allowed"
-                bool hasAllowedChildren = childCategory.catDef.DescendantThingDefs.Any(t => currentFilter.Allows(t));
-                // Check if this category was explicitly collapsed (default is expanded)
-                string categoryKey = childCategory.catDef.defName;
-                bool isExpanded = !collapsedCategories.Contains(categoryKey);
+                if (!ThingFilterHelper.IsVisibleCategory(childCategory, parentFilter))
+                    continue;
 
-                flattenedNodes.Add(new NavigationNode
+                // Tri-state: check if any visible descendants are allowed
+                var allowanceState = ThingFilterHelper.GetAllowanceState(
+                    childCategory.catDef, currentFilter, td => ThingFilterHelper.IsVisible(td, parentFilter));
+                bool isChecked = (allowanceState != ThingFilterHelper.CategoryAllowanceState.NoneAllowed);
+
+                string categoryKey = childCategory.catDef.defName;
+                bool isExpanded = expandedCategories.Contains(categoryKey);
+
+                var catNode = new InspectionTreeItem
                 {
-                    Type = NodeType.Category,
-                    IndentLevel = indentLevel,
+                    Type = InspectionTreeItem.ItemType.Category,
                     Label = childCategory.LabelCap,
-                    Description = $"Category: {childCategory.LabelCap}",
+                    Description = childCategory.catDef.description,
+                    IndentLevel = indentLevel,
+                    IsExpandable = true,
                     IsExpanded = isExpanded,
-                    IsChecked = hasAllowedChildren,
-                    Data = childCategory
-                });
+                    Parent = parent,
+                    Data = new FilterNodeData
+                    {
+                        Type = NodeType.Category,
+                        IsChecked = isChecked,
+                        Reference = childCategory
+                    }
+                };
+                parent.Children.Add(catNode);
 
                 // Recursively add children if expanded
                 if (isExpanded)
                 {
-                    AddCategoryChildren(childCategory, indentLevel + 1);
+                    AddCategoryChildren(childCategory, catNode, indentLevel + 1);
                 }
             }
 
-            // Add thing defs
+            // Add thing defs (with full vanilla visibility check)
             foreach (var thingDef in node.catDef.childThingDefs.OrderBy(t => t.label))
             {
-                if (!Find.HiddenItemsManager.Hidden(thingDef))
+                if (ThingFilterHelper.IsVisible(thingDef, parentFilter))
                 {
-                    flattenedNodes.Add(new NavigationNode
+                    var tdNode = new InspectionTreeItem
                     {
-                        Type = NodeType.ThingDef,
-                        IndentLevel = indentLevel,
+                        Type = InspectionTreeItem.ItemType.Item,
                         Label = thingDef.LabelCap,
-                        Description = thingDef.description ?? thingDef.LabelCap,
-                        IsChecked = currentFilter.Allows(thingDef),
-                        Data = thingDef
-                    });
+                        Description = thingDef.DescriptionDetailed,
+                        IndentLevel = indentLevel,
+                        IsExpandable = false,
+                        Parent = parent,
+                        LinkedDef = thingDef,
+                        Data = new FilterNodeData
+                        {
+                            Type = NodeType.ThingDef,
+                            IsChecked = currentFilter.Allows(thingDef),
+                            Reference = thingDef
+                        }
+                    };
+                    parent.Children.Add(tdNode);
                 }
             }
+        }
+
+        /// <summary>
+        /// Rebuilds the tree, preserving selection by data reference.
+        /// </summary>
+        private static void RebuildTree()
+        {
+            var oldItem = treeNav.SelectedItem;
+            FilterNodeData oldData = oldItem?.Data as FilterNodeData;
+            int oldIndex = treeNav.SelectedIndex;
+
+            var treeRoot = BuildTree();
+            treeNav.Initialize(treeRoot);
+
+            // Try to restore selection by data reference
+            if (oldData != null)
+            {
+                for (int i = 0; i < treeNav.Count; i++)
+                {
+                    var itemData = treeNav.VisibleItems[i].Data as FilterNodeData;
+                    if (itemData != null && itemData.Type == oldData.Type && Equals(itemData.Reference, oldData.Reference))
+                    {
+                        treeNav.SetSelectedIndex(i);
+                        return;
+                    }
+                }
+            }
+
+            // Fall back to old index
+            if (oldIndex >= 0 && oldIndex < treeNav.Count)
+                treeNav.SetSelectedIndex(oldIndex);
         }
 
         /// <summary>
@@ -212,11 +333,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void SelectNext()
         {
-            if (flattenedNodes.Count == 0)
-                return;
-
-            selectedIndex = MenuHelper.SelectNext(selectedIndex, flattenedNodes.Count);
-            AnnounceCurrentNode();
+            treeNav.SelectNext();
         }
 
         /// <summary>
@@ -224,32 +341,29 @@ namespace RimWorldAccess
         /// </summary>
         public static void SelectPrevious()
         {
-            if (flattenedNodes.Count == 0)
-                return;
-
-            selectedIndex = MenuHelper.SelectPrevious(selectedIndex, flattenedNodes.Count);
-            AnnounceCurrentNode();
+            treeNav.SelectPrevious();
         }
 
         /// <summary>
         /// Activates the current selection:
         /// - Sliders: Enter editing mode
         /// - Checkboxes (SpecialFilter, Category, ThingDef): Toggle checked state
-        /// - SaveAndReturn: Execute action
         /// </summary>
         public static void ActivateSelected()
         {
-            if (flattenedNodes.Count == 0 || selectedIndex < 0 || selectedIndex >= flattenedNodes.Count)
+            if (treeNav.SelectedItem == null)
                 return;
 
-            var node = flattenedNodes[selectedIndex];
+            var item = treeNav.SelectedItem;
+            var data = item.Data as FilterNodeData;
+            if (data == null) return;
 
-            if (node.Type == NodeType.Slider)
+            if (data.Type == NodeType.Slider)
             {
                 // Enter slider editing mode
                 isEditingSlider = true;
                 currentSliderPart = SliderPart.Min;
-                string sliderType = node.Data as string;
+                string sliderType = data.Reference as string;
                 if (sliderType == "Quality")
                     currentSliderMode = SliderMode.Quality;
                 else if (sliderType == "HitPoints")
@@ -257,12 +371,7 @@ namespace RimWorldAccess
 
                 AnnounceSliderEditMode();
             }
-            else if (node.Type == NodeType.SaveAndReturn)
-            {
-                // Save and return to assign menu
-                SaveAndReturnToAssign();
-            }
-            else if (node.Type == NodeType.SpecialFilter || node.Type == NodeType.Category || node.Type == NodeType.ThingDef)
+            else if (data.Type == NodeType.SpecialFilter || data.Type == NodeType.Category || data.Type == NodeType.ThingDef)
             {
                 // Toggle checkbox (Enter key works same as Space for checkboxes)
                 ToggleSelected();
@@ -278,6 +387,7 @@ namespace RimWorldAccess
             {
                 isEditingSlider = false;
                 currentSliderMode = SliderMode.None;
+                currentSliderPart = SliderPart.Min;
                 AnnounceCurrentNode();
             }
         }
@@ -290,7 +400,7 @@ namespace RimWorldAccess
             if (isEditingSlider)
             {
                 currentSliderPart = (currentSliderPart == SliderPart.Min) ? SliderPart.Max : SliderPart.Min;
-                AnnounceSliderEditMode();
+                AnnounceSliderPartValue(includePartName: true);
             }
         }
 
@@ -299,13 +409,15 @@ namespace RimWorldAccess
         /// </summary>
         private static void AnnounceSliderEditMode()
         {
-            string sliderName = currentSliderMode == SliderMode.Quality ? "Quality" : "Hit Points";
+            string sliderName = currentSliderMode == SliderMode.Quality
+                ? "Quality".Translate()
+                : "HitPointsBasic".Translate().CapitalizeFirst();
             string partName = currentSliderPart == SliderPart.Min ? "Minimum" : "Maximum";
 
             if (currentSliderMode == SliderMode.Quality)
             {
                 var range = currentFilter.AllowedQualityLevels;
-                string value = currentSliderPart == SliderPart.Min ? range.min.ToString() : range.max.ToString();
+                string value = currentSliderPart == SliderPart.Min ? range.min.GetLabel() : range.max.GetLabel();
                 TolkHelper.Speak($"{sliderName} - {partName}: {value}. Use Left/Right to adjust, Up/Down to switch Min/Max, Enter to confirm.");
             }
             else if (currentSliderMode == SliderMode.HitPoints)
@@ -317,28 +429,24 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Saves changes and returns to the assign menu.
+        /// Announces just the current slider value, without help text instructions.
+        /// Used during value adjustment (Left/Right) and part switching (Up/Down).
         /// </summary>
-        private static void SaveAndReturnToAssign()
+        private static void AnnounceSliderPartValue(bool includePartName)
         {
-            // Deactivate filter navigation
-            Deactivate();
+            string partName = currentSliderPart == SliderPart.Min ? "Minimum" : "Maximum";
 
-            // Close whichever policy manager is active
-            if (WindowlessOutfitPolicyState.IsActive)
+            if (currentSliderMode == SliderMode.Quality)
             {
-                WindowlessOutfitPolicyState.Close();
+                var range = currentFilter.AllowedQualityLevels;
+                string value = currentSliderPart == SliderPart.Min ? range.min.GetLabel() : range.max.GetLabel();
+                TolkHelper.Speak(includePartName ? $"{partName}: {value}" : value);
             }
-            if (WindowlessFoodPolicyState.IsActive)
+            else if (currentSliderMode == SliderMode.HitPoints)
             {
-                WindowlessFoodPolicyState.Close();
-            }
-
-            // Reopen assign menu
-            if (Find.CurrentMap != null && Find.CurrentMap.mapPawns.FreeColonists.Any())
-            {
-                Pawn firstPawn = Find.CurrentMap.mapPawns.FreeColonists.First();
-                AssignMenuState.Open(firstPawn);
+                var range = currentFilter.AllowedHitPointsPercents;
+                string value = currentSliderPart == SliderPart.Min ? $"{range.min:P0}" : $"{range.max:P0}";
+                TolkHelper.Speak(includePartName ? $"{partName}: {value}" : value);
             }
         }
 
@@ -347,205 +455,145 @@ namespace RimWorldAccess
         /// </summary>
         public static void ToggleSelected()
         {
-            if (flattenedNodes.Count == 0 || selectedIndex < 0 || selectedIndex >= flattenedNodes.Count)
+            if (treeNav.SelectedItem == null)
                 return;
 
-            var node = flattenedNodes[selectedIndex];
+            var item = treeNav.SelectedItem;
+            var data = item.Data as FilterNodeData;
+            if (data == null) return;
 
-            // Strip asterisks from labels for announcements
-            string cleanLabel = StripAsterisks(node.Label);
+            string cleanLabel = item.Label;
 
-            switch (node.Type)
+            switch (data.Type)
             {
                 case NodeType.SpecialFilter:
-                    var specialFilter = node.Data as SpecialThingFilterDef;
+                    var specialFilter = data.Reference as SpecialThingFilterDef;
                     if (specialFilter != null)
                     {
-                        bool newValue = !currentFilter.Allows(specialFilter);
-                        currentFilter.SetAllow(specialFilter, newValue);
-                        node.IsChecked = newValue;
-                        TolkHelper.Speak($"{cleanLabel}: {(newValue ? "Allowed" : "Disallowed")}");
+                        bool desired = !currentFilter.Allows(specialFilter);
+                        currentFilter.SetAllow(specialFilter, desired);
+                        // Re-read from game to verify actual state
+                        data.IsChecked = currentFilter.Allows(specialFilter);
+                        TolkHelper.Speak($"{cleanLabel}: {(data.IsChecked ? "Allowed" : "Disallowed")}");
                     }
                     break;
 
                 case NodeType.Category:
-                    var category = node.Data as TreeNode_ThingCategory;
+                    var category = data.Reference as TreeNode_ThingCategory;
                     if (category != null)
                     {
-                        // Toggle all items in this category
-                        bool hasAnyAllowed = category.catDef.DescendantThingDefs.Any(t => currentFilter.Allows(t));
-                        bool newValue = !hasAnyAllowed;
-                        currentFilter.SetAllow(category.catDef, newValue);
-                        node.IsChecked = newValue;
-                        RebuildNavigationList(); // Rebuild because children may change
-                        TolkHelper.Speak($"{cleanLabel}: {(newValue ? "Allowed" : "Disallowed")}");
+                        // Tri-state toggle matching vanilla: Off→On, Partial→On, On→Off
+                        var state = ThingFilterHelper.GetAllowanceState(
+                            category.catDef, currentFilter, td => ThingFilterHelper.IsVisible(td, parentFilter));
+                        bool desiredCat = (state != ThingFilterHelper.CategoryAllowanceState.AllAllowed);
+                        currentFilter.SetAllow(category.catDef, desiredCat);
+                        // Rebuild re-reads all states from the game
+                        RebuildTree();
+                        // Re-read actual state for announcement
+                        var actualState = ThingFilterHelper.GetAllowanceState(
+                            category.catDef, currentFilter, td => ThingFilterHelper.IsVisible(td, parentFilter));
+                        string catResult = actualState == ThingFilterHelper.CategoryAllowanceState.NoneAllowed ? "Disallowed" : "Allowed";
+                        TolkHelper.Speak($"{cleanLabel}: {catResult}");
                     }
                     break;
 
                 case NodeType.ThingDef:
-                    var thingDef = node.Data as ThingDef;
+                    var thingDef = data.Reference as ThingDef;
                     if (thingDef != null)
                     {
-                        bool newValue = !currentFilter.Allows(thingDef);
-                        currentFilter.SetAllow(thingDef, newValue);
-                        node.IsChecked = newValue;
-                        TolkHelper.Speak($"{cleanLabel}: {(newValue ? "Allowed" : "Disallowed")}");
+                        bool desiredThing = !currentFilter.Allows(thingDef);
+                        currentFilter.SetAllow(thingDef, desiredThing);
+                        // Re-read from game to verify actual state
+                        data.IsChecked = currentFilter.Allows(thingDef);
+                        TolkHelper.Speak($"{cleanLabel}: {(data.IsChecked ? "Allowed" : "Disallowed")}");
                     }
                     break;
 
                 case NodeType.Slider:
                     // For sliders, toggle just announces current value
-                    AnnounceSliderValue(node);
+                    AnnounceSliderValue(item);
                     break;
             }
         }
 
         /// <summary>
         /// Expands the current category node (Right arrow - WCAG tree navigation).
-        /// If collapsed: expand and stay on current node.
-        /// If already expanded: move to first child.
-        /// If end node: reject with feedback.
+        /// Delegates to TreeNavigationHelper with custom expand callback to sync expandedCategories.
         /// </summary>
         public static void Expand()
         {
-            if (flattenedNodes.Count == 0 || selectedIndex < 0 || selectedIndex >= flattenedNodes.Count)
+            if (treeNav.SelectedItem == null)
                 return;
 
-            // Clear search when expanding to avoid stale search state
-            typeahead.ClearSearch();
+            var item = treeNav.SelectedItem;
+            var data = item.Data as FilterNodeData;
 
-            var node = flattenedNodes[selectedIndex];
-
-            // Case 1: Collapsed category - expand it, focus stays
-            if (node.Type == NodeType.Category && !node.IsExpanded)
+            // Non-expandable items - reject
+            if (data == null || data.Type != NodeType.Category)
             {
-                // Remove from collapsed set
-                if (node.Data is TreeNode_ThingCategory catNode)
-                {
-                    collapsedCategories.Remove(catNode.catDef.defName);
-                }
-                node.IsExpanded = true;
-                int oldIndex = selectedIndex;
-                RebuildNavigationList();
-                // Find the same node after rebuild (it should be at or near the same position)
-                selectedIndex = FindNodeIndex(node);
-                if (selectedIndex < 0) selectedIndex = oldIndex;
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                AnnounceCurrentNode();
-                return;
-            }
-
-            // Case 2: Expanded category - move to first child
-            if (node.Type == NodeType.Category && node.IsExpanded)
-            {
-                // First child is the next item with higher indent level
-                if (selectedIndex + 1 < flattenedNodes.Count)
-                {
-                    var nextNode = flattenedNodes[selectedIndex + 1];
-                    if (nextNode.IndentLevel > node.IndentLevel)
-                    {
-                        selectedIndex++;
-                        SoundDefOf.Click.PlayOneShotOnCamera();
-                        AnnounceCurrentNode();
-                        return;
-                    }
-                }
-                // No children found (empty category)
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 TolkHelper.Speak("Cannot expand this item.");
                 return;
             }
 
-            // Case 3: End node (ThingDef, Slider, SpecialFilter, SaveAndReturn) - reject
-            SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            TolkHelper.Speak("Cannot expand this item.");
+            if (!item.IsExpanded)
+            {
+                // Need to rebuild tree since children are lazy-loaded based on expandedCategories
+                if (data.Reference is TreeNode_ThingCategory catNode)
+                {
+                    expandedCategories.Add(catNode.catDef.defName);
+                }
+                RebuildTree();
+                SoundDefOf.Click.PlayOneShotOnCamera();
+                AnnounceCurrentNode();
+            }
+            else if (item.Children.Count > 0)
+            {
+                // Already expanded - drill down to first child
+                treeNav.ExpandOrDrillDown();
+            }
+            else
+            {
+                // Expanded but empty
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("Cannot expand this item.");
+            }
         }
 
         /// <summary>
         /// Collapses the current category node or moves to parent (Left arrow - WCAG tree navigation).
-        /// If expanded category: collapse and stay on current node.
-        /// If collapsed/end node: move to parent.
-        /// If at root level with no parent: reject with feedback.
         /// </summary>
         public static void Collapse()
         {
-            if (flattenedNodes.Count == 0 || selectedIndex < 0 || selectedIndex >= flattenedNodes.Count)
+            if (treeNav.SelectedItem == null)
                 return;
 
-            // Clear search when collapsing to avoid stale search state
-            typeahead.ClearSearch();
+            var item = treeNav.SelectedItem;
+            var data = item.Data as FilterNodeData;
 
-            var node = flattenedNodes[selectedIndex];
-
-            // Case 1: Expanded category - collapse it, focus stays
-            if (node.Type == NodeType.Category && node.IsExpanded)
+            // Case 1: Expanded category - collapse it
+            if (data != null && data.Type == NodeType.Category && item.IsExpanded)
             {
-                // Add to collapsed set so it stays collapsed after rebuild
-                if (node.Data is TreeNode_ThingCategory catNode)
+                if (data.Reference is TreeNode_ThingCategory catNode)
                 {
-                    collapsedCategories.Add(catNode.catDef.defName);
+                    expandedCategories.Remove(catNode.catDef.defName);
                 }
-                node.IsExpanded = false;
-                int oldIndex = selectedIndex;
-                RebuildNavigationList();
-                // Find the same node after rebuild
-                selectedIndex = FindNodeIndex(node);
-                if (selectedIndex < 0) selectedIndex = oldIndex;
+                RebuildTree();
                 SoundDefOf.Click.PlayOneShotOnCamera();
                 AnnounceCurrentNode();
                 return;
             }
 
-            // Case 2: Move to parent (don't collapse parent)
-            int parentIndex = FindParentIndex(node);
-            if (parentIndex >= 0)
+            // Case 2: Collapsed/end node - drill up to parent
+            if (item.Parent != null && item.Parent != treeNav.RootItem)
             {
-                selectedIndex = parentIndex;
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                AnnounceCurrentNode();
+                treeNav.CollapseOrDrillUp();
                 return;
             }
 
-            // Case 3: At root level with no parent - reject
+            // Case 3: At root level - reject
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
             TolkHelper.Speak("Already at top level");
-        }
-
-        /// <summary>
-        /// Finds the index of a node in the flattened list by reference.
-        /// </summary>
-        private static int FindNodeIndex(NavigationNode node)
-        {
-            for (int i = 0; i < flattenedNodes.Count; i++)
-            {
-                if (flattenedNodes[i] == node)
-                    return i;
-            }
-            return -1;
-        }
-
-        /// <summary>
-        /// Finds the parent index for a given node.
-        /// Parent is the nearest preceding node with a lower indent level.
-        /// </summary>
-        private static int FindParentIndex(NavigationNode node)
-        {
-            if (node.IndentLevel <= 0)
-                return -1;
-
-            int targetIndent = node.IndentLevel - 1;
-            int currentIdx = FindNodeIndex(node);
-
-            // Search backwards for a node with lower indent level
-            for (int i = currentIdx - 1; i >= 0; i--)
-            {
-                if (flattenedNodes[i].IndentLevel == targetIndent)
-                    return i;
-                // If we hit something with even lower indent, we've gone too far
-                if (flattenedNodes[i].IndentLevel < targetIndent)
-                    break;
-            }
-            return -1;
         }
 
         /// <summary>
@@ -554,56 +602,32 @@ namespace RimWorldAccess
         /// </summary>
         public static void ExpandAllSiblings()
         {
-            if (flattenedNodes == null || selectedIndex < 0 || selectedIndex >= flattenedNodes.Count)
+            if (treeNav.SelectedItem == null)
                 return;
 
-            NavigationNode currentNode = flattenedNodes[selectedIndex];
-            int currentIndent = currentNode.IndentLevel;
-            int parentIndex = FindParentIndex(currentNode);
+            var currentItem = treeNav.SelectedItem;
+            var siblings = (currentItem.Parent == null || currentItem.Parent == treeNav.RootItem)
+                ? treeNav.RootItem.Children
+                : currentItem.Parent.Children;
 
-            // Find the range of siblings (nodes at same indent level under same parent)
-            int startIndex = 0;
-            int endIndex = flattenedNodes.Count - 1;
-
-            // If we have a parent, siblings are bounded by parent's scope
-            if (parentIndex >= 0)
-            {
-                startIndex = parentIndex + 1;
-                // Find end: scan forwards from parent until we hit a node at parent's level or lower
-                for (int i = parentIndex + 1; i < flattenedNodes.Count; i++)
-                {
-                    if (flattenedNodes[i].IndentLevel <= flattenedNodes[parentIndex].IndentLevel)
-                    {
-                        endIndex = i - 1;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                // At root level, siblings extend until we hit a different root-level parent section
-                // For root level, we consider all root-level items as siblings
-                startIndex = 0;
-                endIndex = flattenedNodes.Count - 1;
-            }
-
-            // Find all collapsed sibling categories at the current indent level
             int expandedCount = 0;
-            for (int i = startIndex; i <= endIndex; i++)
+            foreach (var sibling in siblings)
             {
-                var node = flattenedNodes[i];
-                // Must be at same indent level (sibling) and be a collapsed category
-                if (node.IndentLevel == currentIndent && node.Type == NodeType.Category && !node.IsExpanded)
+                var sibData = sibling.Data as FilterNodeData;
+                if (sibData != null && sibData.Type == NodeType.Category && !sibling.IsExpanded)
                 {
-                    node.IsExpanded = true;
-                    expandedCount++;
+                    if (sibData.Reference is TreeNode_ThingCategory catNode)
+                    {
+                        expandedCategories.Add(catNode.catDef.defName);
+                        expandedCount++;
+                    }
                 }
             }
 
             if (expandedCount > 0)
             {
-                RebuildNavigationList();
-                typeahead.ClearSearch(); // Clear search since visible items changed
+                RebuildTree();
+                EmbeddedAudioHelper.PlaySoundDefWithReverb(SoundDefOf.FloatMenu_Open);
                 if (expandedCount == 1)
                     TolkHelper.Speak("Expanded 1 category");
                 else
@@ -612,15 +636,11 @@ namespace RimWorldAccess
             else
             {
                 // Check if there are any sibling categories at all
-                bool hasAnySiblingCategories = false;
-                for (int i = startIndex; i <= endIndex; i++)
+                bool hasAnySiblingCategories = siblings.Any(s =>
                 {
-                    if (flattenedNodes[i].IndentLevel == currentIndent && flattenedNodes[i].Type == NodeType.Category)
-                    {
-                        hasAnySiblingCategories = true;
-                        break;
-                    }
-                }
+                    var sd = s.Data as FilterNodeData;
+                    return sd != null && sd.Type == NodeType.Category;
+                });
 
                 if (hasAnySiblingCategories)
                     TolkHelper.Speak("All categories already expanded at this level");
@@ -634,10 +654,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void JumpToFirst(bool ctrlPressed = false)
         {
-            if (flattenedNodes == null || flattenedNodes.Count == 0)
-                return;
-
-            MenuHelper.HandleTreeHomeKey(flattenedNodes, ref selectedIndex, node => node.IndentLevel, ctrlPressed, ClearAndAnnounce);
+            treeNav.JumpToFirst(ctrlPressed);
         }
 
         /// <summary>
@@ -647,93 +664,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void JumpToLast(bool ctrlPressed = false)
         {
-            if (flattenedNodes == null || flattenedNodes.Count == 0)
-                return;
-
-            MenuHelper.HandleTreeEndKey(
-                flattenedNodes,
-                ref selectedIndex,
-                node => node.IndentLevel,
-                node => node.Type == NodeType.Category && node.IsExpanded,
-                node => HasVisibleChildren(node),
-                ctrlPressed,
-                ClearAndAnnounce);
-        }
-
-        /// <summary>
-        /// Checks if a node has visible children (next item has higher indent level).
-        /// </summary>
-        private static bool HasVisibleChildren(NavigationNode node)
-        {
-            if (node.Type != NodeType.Category || !node.IsExpanded)
-                return false;
-
-            int nodeIndex = flattenedNodes.IndexOf(node);
-            if (nodeIndex < 0 || nodeIndex >= flattenedNodes.Count - 1)
-                return false;
-
-            return flattenedNodes[nodeIndex + 1].IndentLevel > node.IndentLevel;
-        }
-
-        /// <summary>
-        /// Clears typeahead search and announces current node.
-        /// </summary>
-        private static void ClearAndAnnounce()
-        {
-            typeahead.ClearSearch();
-            AnnounceCurrentNode();
-        }
-
-        /// <summary>
-        /// Gets the position of the current node among its siblings (same indent level, same parent).
-        /// Returns (position, total) where position is 1-based.
-        /// </summary>
-        private static (int position, int total) GetSiblingPosition(NavigationNode node)
-        {
-            int nodeIndex = FindNodeIndex(node);
-            if (nodeIndex < 0)
-                return (1, 1);
-
-            int indentLevel = node.IndentLevel;
-
-            // Find the range of siblings by looking for the parent boundary
-            int startIndex = 0;
-            int endIndex = flattenedNodes.Count - 1;
-
-            // Find start: scan backwards until we hit a lower indent level or start
-            for (int i = nodeIndex - 1; i >= 0; i--)
-            {
-                if (flattenedNodes[i].IndentLevel < indentLevel)
-                {
-                    startIndex = i + 1;
-                    break;
-                }
-            }
-
-            // Find end: scan forwards until we hit a lower indent level or end
-            for (int i = nodeIndex + 1; i < flattenedNodes.Count; i++)
-            {
-                if (flattenedNodes[i].IndentLevel < indentLevel)
-                {
-                    endIndex = i - 1;
-                    break;
-                }
-            }
-
-            // Count siblings at the same indent level within this range
-            int position = 0;
-            int total = 0;
-            for (int i = startIndex; i <= endIndex; i++)
-            {
-                if (flattenedNodes[i].IndentLevel == indentLevel)
-                {
-                    total++;
-                    if (i <= nodeIndex)
-                        position = total;
-                }
-            }
-
-            return (position, total);
+            treeNav.JumpToLast(ctrlPressed);
         }
 
         /// <summary>
@@ -746,13 +677,13 @@ namespace RimWorldAccess
             if (!isEditingSlider)
             {
                 // Not in editing mode, just announce value
-                if (flattenedNodes.Count == 0 || selectedIndex < 0 || selectedIndex >= flattenedNodes.Count)
+                if (treeNav.SelectedItem == null)
                     return;
 
-                var node = flattenedNodes[selectedIndex];
-                if (node.Type == NodeType.Slider)
+                var data = treeNav.SelectedItem.Data as FilterNodeData;
+                if (data != null && data.Type == NodeType.Slider)
                 {
-                    AnnounceSliderValue(node);
+                    AnnounceSliderValue(treeNav.SelectedItem);
                 }
                 return;
             }
@@ -776,7 +707,7 @@ namespace RimWorldAccess
                 }
 
                 currentFilter.AllowedQualityLevels = range;
-                AnnounceSliderEditMode();
+                AnnounceSliderPartValue(includePartName: false);
             }
             else if (currentSliderMode == SliderMode.HitPoints)
             {
@@ -797,26 +728,29 @@ namespace RimWorldAccess
                 }
 
                 currentFilter.AllowedHitPointsPercents = range;
-                AnnounceSliderEditMode();
+                AnnounceSliderPartValue(includePartName: false);
             }
         }
 
         /// <summary>
         /// Announces the current value of a slider.
         /// </summary>
-        private static void AnnounceSliderValue(NavigationNode node)
+        private static void AnnounceSliderValue(InspectionTreeItem item)
         {
-            string sliderType = node.Data as string;
+            var data = item.Data as FilterNodeData;
+            if (data == null) return;
+
+            string sliderType = data.Reference as string;
 
             if (sliderType == "Quality")
             {
                 var range = currentFilter.AllowedQualityLevels;
-                TolkHelper.Speak($"Quality: {range.min} to {range.max}");
+                TolkHelper.Speak($"{"Quality".Translate()}: {range.min.GetLabel()} - {range.max.GetLabel()}");
             }
             else if (sliderType == "HitPoints")
             {
                 var range = currentFilter.AllowedHitPointsPercents;
-                TolkHelper.Speak($"Hit Points: {range.min:P0} to {range.max:P0}");
+                TolkHelper.Speak($"{"HitPointsBasic".Translate().CapitalizeFirst()}: {range.min:P0} - {range.max:P0}");
             }
         }
 
@@ -827,9 +761,9 @@ namespace RimWorldAccess
         {
             if (currentFilter != null)
             {
-                currentFilter.SetAllowAll(null);
-                RebuildNavigationList();
-                TolkHelper.Speak("Allowed all items");
+                currentFilter.SetAllowAll(parentFilter);
+                RebuildTree();
+                TolkHelper.Speak("AllowAll".Translate());
             }
         }
 
@@ -841,127 +775,180 @@ namespace RimWorldAccess
             if (currentFilter != null)
             {
                 currentFilter.SetDisallowAll();
-                RebuildNavigationList();
-                TolkHelper.Speak("Disallowed all items");
+                RebuildTree();
+                TolkHelper.Speak("ClearAll".Translate());
             }
-        }
-
-        /// <summary>
-        /// Announces the current node using WCAG-compliant format.
-        /// Format: "[level N. ]{name} {state}. {X of Y}"
-        /// </summary>
-        private static void AnnounceCurrentNode()
-        {
-            if (flattenedNodes.Count == 0)
-            {
-                TolkHelper.Speak("No items in filter");
-                return;
-            }
-
-            if (selectedIndex < 0 || selectedIndex >= flattenedNodes.Count)
-                return;
-
-            var node = flattenedNodes[selectedIndex];
-            var (position, total) = GetSiblingPosition(node);
-            string suffix = MenuHelper.GetLevelSuffix("ThingFilter", node.IndentLevel);
-
-            string announcement;
-
-            // Strip asterisks from labels (they're visual indicators for special filters)
-            string cleanLabel = StripAsterisks(node.Label);
-
-            switch (node.Type)
-            {
-                case NodeType.Slider:
-                    // Sliders show their current value
-                    string sliderValue = GetSliderValueString(node);
-                    announcement = $"{cleanLabel} {sliderValue}. {MenuHelper.FormatPosition(position - 1, total)}{suffix}";
-                    break;
-
-                case NodeType.SpecialFilter:
-                    // Special filters show checked state
-                    string specialState = node.IsChecked ? "checked" : "not checked";
-                    announcement = $"{cleanLabel} {specialState}. {MenuHelper.FormatPosition(position - 1, total)}{suffix}";
-                    break;
-
-                case NodeType.Category:
-                    // Categories show expanded/collapsed state
-                    string categoryState = node.IsExpanded ? "expanded" : "collapsed";
-                    announcement = $"{cleanLabel} {categoryState}. {MenuHelper.FormatPosition(position - 1, total)}{suffix}";
-                    break;
-
-                case NodeType.ThingDef:
-                    // ThingDefs show checked state
-                    string thingState = node.IsChecked ? "checked" : "not checked";
-                    announcement = $"{cleanLabel} {thingState}. {MenuHelper.FormatPosition(position - 1, total)}{suffix}";
-                    break;
-
-                case NodeType.SaveAndReturn:
-                    announcement = $"{cleanLabel}. {MenuHelper.FormatPosition(position - 1, total)}{suffix}";
-                    break;
-
-                default:
-                    announcement = $"{cleanLabel}. {MenuHelper.FormatPosition(position - 1, total)}{suffix}";
-                    break;
-            }
-
-            TolkHelper.Speak(announcement);
         }
 
         /// <summary>
         /// Gets the current value string for a slider node.
         /// </summary>
-        private static string GetSliderValueString(NavigationNode node)
+        private static string GetSliderValueString(InspectionTreeItem item)
         {
-            string sliderType = node.Data as string;
+            var data = item.Data as FilterNodeData;
+            if (data == null) return "";
+
+            string sliderType = data.Reference as string;
 
             if (sliderType == "Quality")
             {
                 var range = currentFilter.AllowedQualityLevels;
-                return $"{range.min} to {range.max}";
+                return $"{range.min.GetLabel()} - {range.max.GetLabel()}";
             }
             else if (sliderType == "HitPoints")
             {
                 var range = currentFilter.AllowedHitPointsPercents;
-                return $"{range.min:P0} to {range.max:P0}";
+                return $"{range.min:P0} - {range.max:P0}";
             }
 
             return "";
         }
 
-        /// <summary>
-        /// Strips leading asterisks and whitespace from a label.
-        /// Asterisks are visual indicators for special filters that shouldn't be read aloud.
-        /// </summary>
-        private static string StripAsterisks(string label)
-        {
-            if (string.IsNullOrEmpty(label))
-                return label;
+        #region Announcement Formatters
 
-            return label.TrimStart('*', ' ');
+        /// <summary>
+        /// Announces the current node via TreeNavigationHelper.
+        /// </summary>
+        private static void AnnounceCurrentNode()
+        {
+            treeNav.ReannounceCurrentItem();
         }
+
+        /// <summary>
+        /// Custom item announcement formatter.
+        /// Format: "{name}. {state}. {X of Y}. level N"
+        /// </summary>
+        private static string FormatItemAnnouncement(InspectionTreeItem item)
+        {
+            var data = item.Data as FilterNodeData;
+            if (data == null)
+                return item.Label;
+
+            var (position, total) = treeNav.GetSiblingPosition(item);
+            string suffix = MenuHelper.GetLevelSuffix("ThingFilter", item.IndentLevel);
+            string posStr = MenuHelper.FormatPosition(position - 1, total);
+
+            string cleanLabel = item.Label;
+
+            switch (data.Type)
+            {
+                case NodeType.Slider:
+                    string sliderValue = GetSliderValueString(item);
+                    return $"{cleanLabel} {sliderValue}. {posStr}{suffix}";
+
+                case NodeType.SpecialFilter:
+                    string specialState = data.IsChecked ? "allowed" : "disallowed";
+                    string specialDesc = string.IsNullOrEmpty(item.Description) ? "" : $" {item.Description}";
+                    return $"{cleanLabel}. {specialState}.{specialDesc} {posStr}{suffix}";
+
+                case NodeType.Category:
+                    var catNode = data.Reference as TreeNode_ThingCategory;
+                    string categorySummary = "disallowed";
+                    if (catNode != null)
+                    {
+                        var summary = ThingFilterHelper.GetCategorySummary(
+                            catNode.catDef, currentFilter, td => ThingFilterHelper.IsVisible(td, parentFilter));
+                        categorySummary = ThingFilterHelper.FormatCategorySummary(summary);
+                    }
+                    string categoryExpanded = item.IsExpanded ? "expanded" : "collapsed";
+                    string categoryDesc = string.IsNullOrEmpty(item.Description) ? "" : $" {item.Description}";
+                    return $"{cleanLabel}. {categorySummary}, {categoryExpanded}.{categoryDesc} {posStr}{suffix}";
+
+                case NodeType.ThingDef:
+                    string thingState = data.IsChecked ? "allowed" : "disallowed";
+                    string thingDesc = string.IsNullOrEmpty(item.Description) ? "" : $" {item.Description}";
+                    return $"{cleanLabel}. {thingState}.{thingDesc} {posStr}{suffix}";
+
+                default:
+                    return $"{cleanLabel}. {posStr}{suffix}";
+            }
+        }
+
+        /// <summary>
+        /// Custom search announcement formatter.
+        /// </summary>
+        private static string FormatSearchAnnouncement(InspectionTreeItem item, TypeaheadSearchHelper typeahead)
+        {
+            var data = item.Data as FilterNodeData;
+            if (data == null)
+                return item.Label;
+
+            string cleanLabel = item.Label;
+
+            // Build state string based on node type
+            string stateStr = "";
+            switch (data.Type)
+            {
+                case NodeType.SpecialFilter:
+                case NodeType.ThingDef:
+                    stateStr = data.IsChecked ? " allowed" : " disallowed";
+                    break;
+                case NodeType.Category:
+                    var searchCatNode = data.Reference as TreeNode_ThingCategory;
+                    string searchCatState = "disallowed";
+                    if (searchCatNode != null)
+                    {
+                        var searchSummary = ThingFilterHelper.GetCategorySummary(
+                            searchCatNode.catDef, currentFilter, td => ThingFilterHelper.IsVisible(td, parentFilter));
+                        searchCatState = ThingFilterHelper.FormatCategorySummary(searchSummary);
+                    }
+                    string searchCatExpand = item.IsExpanded ? "expanded" : "collapsed";
+                    stateStr = $" {searchCatState}, {searchCatExpand}";
+                    break;
+                case NodeType.Slider:
+                    stateStr = " " + GetSliderValueString(item);
+                    break;
+            }
+
+            if (typeahead.HasActiveSearch)
+            {
+                return $"{cleanLabel}{stateStr}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
+            }
+            else
+            {
+                return FormatItemAnnouncement(item);
+            }
+        }
+
+        /// <summary>
+        /// Custom activate handler — returns true if handled (sliders, toggles).
+        /// </summary>
+        private static bool HandleActivate(InspectionTreeItem item)
+        {
+            var data = item.Data as FilterNodeData;
+            if (data == null) return false;
+
+            if (data.Type == NodeType.Slider)
+            {
+                ActivateSelected();
+                return true;
+            }
+
+            if (data.Type == NodeType.SpecialFilter || data.Type == NodeType.ThingDef)
+            {
+                ToggleSelected();
+                return true;
+            }
+
+            if (data.Type == NodeType.Category)
+            {
+                ToggleSelected();
+                return true;
+            }
+
+            return false;
+        }
+
+        #endregion
 
         #region Typeahead Support
-
-        /// <summary>
-        /// Gets the labels for typeahead searching.
-        /// </summary>
-        private static List<string> GetSearchLabels()
-        {
-            var labels = new List<string>();
-            foreach (var node in flattenedNodes)
-            {
-                labels.Add(StripAsterisks(node.Label));
-            }
-            return labels;
-        }
 
         /// <summary>
         /// Gets the last failed search string.
         /// </summary>
         public static string GetLastFailedSearch()
         {
-            return typeahead.LastFailedSearch;
+            return treeNav.Typeahead.LastFailedSearch;
         }
 
         /// <summary>
@@ -969,21 +956,21 @@ namespace RimWorldAccess
         /// </summary>
         public static void ProcessTypeaheadCharacter(char c)
         {
-            if (!isActive || flattenedNodes.Count == 0)
+            if (!isActive || treeNav.Count == 0)
                 return;
 
-            var labels = GetSearchLabels();
-            if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
+            var labels = treeNav.VisibleItems.Select(item => item.Label).ToList();
+            if (treeNav.Typeahead.ProcessCharacterInput(c, labels, out int newIndex))
             {
                 if (newIndex >= 0)
                 {
-                    selectedIndex = newIndex;
+                    treeNav.SetSelectedIndex(newIndex);
                     AnnounceWithSearch();
                 }
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+                TolkHelper.Speak($"No matches for '{treeNav.Typeahead.LastFailedSearch}'");
             }
         }
 
@@ -992,18 +979,18 @@ namespace RimWorldAccess
         /// </summary>
         public static void ProcessBackspace()
         {
-            if (!isActive || flattenedNodes.Count == 0)
+            if (!isActive || treeNav.Count == 0)
                 return;
 
-            if (!typeahead.HasActiveSearch)
+            if (!treeNav.HasActiveSearch)
                 return;
 
-            var labels = GetSearchLabels();
-            if (typeahead.ProcessBackspace(labels, out int newIndex))
+            var labels = treeNav.VisibleItems.Select(item => item.Label).ToList();
+            if (treeNav.Typeahead.ProcessBackspace(labels, out int newIndex))
             {
                 if (newIndex >= 0)
                 {
-                    selectedIndex = newIndex;
+                    treeNav.SetSelectedIndex(newIndex);
                 }
                 AnnounceWithSearch();
             }
@@ -1014,7 +1001,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void ClearTypeaheadSearch()
         {
-            typeahead.ClearSearchAndAnnounce();
+            treeNav.Typeahead.ClearSearchAndAnnounce();
             AnnounceCurrentNode();
         }
 
@@ -1023,9 +1010,9 @@ namespace RimWorldAccess
         /// </summary>
         public static void SetSelectedIndex(int index)
         {
-            if (index >= 0 && index < flattenedNodes.Count)
+            if (index >= 0 && index < treeNav.Count)
             {
-                selectedIndex = index;
+                treeNav.SetSelectedIndex(index);
             }
         }
 
@@ -1034,13 +1021,13 @@ namespace RimWorldAccess
         /// </summary>
         public static void SelectNextMatch()
         {
-            if (flattenedNodes.Count == 0)
+            if (treeNav.Count == 0)
                 return;
 
-            int nextIndex = typeahead.GetNextMatch(selectedIndex);
+            int nextIndex = treeNav.Typeahead.GetNextMatch(treeNav.SelectedIndex);
             if (nextIndex >= 0)
             {
-                selectedIndex = nextIndex;
+                treeNav.SetSelectedIndex(nextIndex);
                 AnnounceWithSearch();
             }
         }
@@ -1050,13 +1037,13 @@ namespace RimWorldAccess
         /// </summary>
         public static void SelectPreviousMatch()
         {
-            if (flattenedNodes.Count == 0)
+            if (treeNav.Count == 0)
                 return;
 
-            int prevIndex = typeahead.GetPreviousMatch(selectedIndex);
+            int prevIndex = treeNav.Typeahead.GetPreviousMatch(treeNav.SelectedIndex);
             if (prevIndex >= 0)
             {
-                selectedIndex = prevIndex;
+                treeNav.SetSelectedIndex(prevIndex);
                 AnnounceWithSearch();
             }
         }
@@ -1066,31 +1053,14 @@ namespace RimWorldAccess
         /// </summary>
         private static void AnnounceWithSearch()
         {
-            if (flattenedNodes.Count == 0 || selectedIndex < 0 || selectedIndex >= flattenedNodes.Count)
+            if (treeNav.SelectedItem == null)
                 return;
 
-            var node = flattenedNodes[selectedIndex];
-            string cleanLabel = StripAsterisks(node.Label);
+            var item = treeNav.SelectedItem;
 
-            // Build state string based on node type
-            string stateStr = "";
-            switch (node.Type)
+            if (treeNav.HasActiveSearch)
             {
-                case NodeType.SpecialFilter:
-                case NodeType.ThingDef:
-                    stateStr = node.IsChecked ? " checked" : " not checked";
-                    break;
-                case NodeType.Category:
-                    stateStr = node.IsExpanded ? " expanded" : " collapsed";
-                    break;
-                case NodeType.Slider:
-                    stateStr = " " + GetSliderValueString(node);
-                    break;
-            }
-
-            if (typeahead.HasActiveSearch)
-            {
-                TolkHelper.Speak($"{cleanLabel}{stateStr}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'");
+                TolkHelper.Speak(FormatSearchAnnouncement(item, treeNav.Typeahead));
             }
             else
             {

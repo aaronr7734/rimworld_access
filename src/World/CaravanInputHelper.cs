@@ -12,7 +12,7 @@ namespace RimWorldAccess
     public static class CaravanInputHelper
     {
         /// <summary>
-        /// Handles Alt+H (health), Alt+M (mood), Alt+N (needs) pawn info shortcuts.
+        /// Handles Alt+H (health), Alt+M (mood), Alt+N (needs), Alt+K (skills) pawn info shortcuts.
         /// </summary>
         /// <param name="key">The key pressed</param>
         /// <param name="selectedPawn">The currently selected pawn (can be null)</param>
@@ -64,6 +64,17 @@ namespace RimWorldAccess
                     if (selectedPawn != null)
                     {
                         TolkHelper.Speak(PawnInfoHelper.GetGearInfo(selectedPawn));
+                    }
+                    else
+                    {
+                        TolkHelper.Speak("No pawn selected. Navigate to Pawns tab first.");
+                    }
+                    return true;
+
+                case KeyCode.K:
+                    if (selectedPawn != null)
+                    {
+                        TolkHelper.Speak(PawnInfoHelper.GetTopSkillsInfo(selectedPawn));
                     }
                     else
                     {

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Verse;
+using Verse.Sound;
 using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
@@ -18,10 +19,19 @@ namespace RimWorldAccess
         private static int selectedGizmoIndex = 0;
         private static List<Gizmo> availableGizmos = new List<Gizmo>();
         private static Dictionary<Gizmo, ISelectable> gizmoOwners = new Dictionary<Gizmo, ISelectable>();
+        private static Dictionary<Gizmo, List<Gizmo>> gizmoGroups = new Dictionary<Gizmo, List<Gizmo>>();
         private static ISelectable lastAnnouncedOwner = null;
         private static bool pawnJustSelected = false;
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
         private static bool isExecutingGizmo = false;
+
+        // Slider adjustment mode state
+        private static bool isAdjustingSlider = false;
+        private static Gizmo sliderGizmo = null;
+        private static float sliderValue = 0f;
+        private static float sliderStep = 0.05f;
+        private static float sliderMin = 0f;
+        private static float sliderMax = 1f;
 
         /// <summary>
         /// Gets whether gizmo navigation is currently active.
@@ -63,8 +73,8 @@ namespace RimWorldAccess
                 return;
 
             // Collect gizmos from all selected objects
-            availableGizmos.Clear();
-            gizmoOwners.Clear();
+            var allGizmos = new List<Gizmo>();
+            var allOwners = new Dictionary<Gizmo, ISelectable>();
             lastAnnouncedOwner = null;
 
             foreach (object obj in Find.Selector.SelectedObjects)
@@ -74,9 +84,49 @@ namespace RimWorldAccess
                     var gizmos = selectable.GetGizmos().ToList();
                     foreach (var gizmo in gizmos.Where(g => g != null && g.Visible && !ShouldSkipGizmo(g)))
                     {
-                        availableGizmos.Add(gizmo);
-                        gizmoOwners[gizmo] = selectable;
+                        allGizmos.Add(gizmo);
+                        allOwners[gizmo] = selectable;
                     }
+                }
+            }
+
+            // Group gizmos using vanilla's GroupsWith/MergeWith logic
+            // (mirrors GizmoGridDrawer lines 148-169)
+            var groups = new List<List<Gizmo>>();
+            foreach (var gizmo in allGizmos)
+            {
+                bool grouped = false;
+                for (int i = 0; i < groups.Count; i++)
+                {
+                    if (groups[i][0].GroupsWith(gizmo))
+                    {
+                        groups[i].Add(gizmo);
+                        groups[i][0].MergeWith(gizmo);
+                        grouped = true;
+                        break;
+                    }
+                }
+                if (!grouped)
+                {
+                    groups.Add(new List<Gizmo> { gizmo });
+                }
+            }
+
+            // Store only the representative (first) gizmo of each group
+            availableGizmos.Clear();
+            gizmoOwners.Clear();
+            gizmoGroups.Clear();
+
+            foreach (var group in groups)
+            {
+                var representative = group[0];
+                availableGizmos.Add(representative);
+                gizmoGroups[representative] = group;
+
+                // Map the representative to the first gizmo's owner
+                if (allOwners.TryGetValue(representative, out var owner))
+                {
+                    gizmoOwners[representative] = owner;
                 }
             }
 
@@ -123,45 +173,65 @@ namespace RimWorldAccess
 
             try
             {
-                // Check for zone at cursor position and collect its gizmos
-                Zone zone = cursorPosition.GetZone(map);
-                if (zone != null)
-                {
-                    // Temporarily select the zone so its gizmos' Visible property works correctly
-                    Find.Selector.ClearSelection();
-                    Find.Selector.Select(zone, playSound: false, forceDesignatorDeselect: false);
+                // Get all things at cursor, sorted by AltitudeLayer descending
+                // (matches TileInfoHelper ordering - highest layer first)
+                var sortedThings = cursorPosition.GetThingList(map)
+                    .Where(t => !(t is Mote) && t.def.category != ThingCategory.Mote)
+                    .OrderByDescending(t => (int)t.def.altitudeLayer)
+                    .ToList();
 
-                    var zoneGizmos = zone.GetGizmos().ToList();
-                    foreach (Gizmo gizmo in zoneGizmos.Where(g => g != null && g.Visible && !ShouldSkipGizmo(g)))
-                    {
-                        availableGizmos.Add(gizmo);
-                        gizmoOwners[gizmo] = zone;
-                    }
-                }
-
-                // Get all things at the cursor position
-                List<Thing> thingsAtPosition = cursorPosition.GetThingList(map);
-
-                // Collect gizmos from all things at this position
+                // Collect gizmos from things in altitude order (highest layer first)
+                // Within each owner, gizmos are sorted by gizmo.Order
                 // Important: Temporarily select each thing before getting its gizmos,
                 // because some gizmos (like Designator_Install) check if the thing is selected
                 // to determine their Visible property
-                if (thingsAtPosition != null)
+                foreach (ISelectable selectable in sortedThings.OfType<ISelectable>())
                 {
-                    foreach (ISelectable selectable in thingsAtPosition.OfType<ISelectable>())
-                    {
-                        // Temporarily select this thing so its gizmos' Visible property works correctly
-                        Find.Selector.ClearSelection();
-                        Find.Selector.Select(selectable, playSound: false, forceDesignatorDeselect: false);
+                    Find.Selector.ClearSelection();
+                    Find.Selector.Select(selectable, playSound: false, forceDesignatorDeselect: false);
 
-                        var gizmos = selectable.GetGizmos().ToList();
-                        foreach (Gizmo gizmo in gizmos.Where(g => g != null && g.Visible && !ShouldSkipGizmo(g)))
+                    var gizmos = selectable.GetGizmos()
+                        .Where(g => g != null && g.Visible && !ShouldSkipGizmo(g))
+                        .OrderBy(g => g.Order)
+                        .ToList();
+                    foreach (Gizmo gizmo in gizmos)
+                    {
+                        availableGizmos.Add(gizmo);
+                        gizmoOwners[gizmo] = selectable;
+                    }
+
+                    // Collect reverse designator gizmos (Mine, Mine Vein, Strip, etc.)
+                    // Mirrors GizmoGridDrawer.DrawGizmoGridFor() behavior
+                    if (selectable is Thing thing)
+                    {
+                        List<Designator> reverseDesignators = Find.ReverseDesignatorDatabase.AllDesignators;
+                        for (int i = 0; i < reverseDesignators.Count; i++)
                         {
-                            // Check Visible NOW while thing is still selected
-                            // (some gizmos like Designator_Install check selection state)
-                            availableGizmos.Add(gizmo);
-                            gizmoOwners[gizmo] = selectable;
+                            Command_Action reverseGizmo = reverseDesignators[i].CreateReverseDesignationGizmo(thing);
+                            if (reverseGizmo != null && !ShouldSkipGizmo(reverseGizmo))
+                            {
+                                availableGizmos.Add(reverseGizmo);
+                                gizmoOwners[reverseGizmo] = selectable;
+                            }
                         }
+                    }
+                }
+
+                // Check for zone AFTER things (matches TileInfoHelper ordering)
+                Zone zone = cursorPosition.GetZone(map);
+                if (zone != null)
+                {
+                    Find.Selector.ClearSelection();
+                    Find.Selector.Select(zone, playSound: false, forceDesignatorDeselect: false);
+
+                    var zoneGizmos = zone.GetGizmos()
+                        .Where(g => g != null && g.Visible && !ShouldSkipGizmo(g))
+                        .OrderBy(g => g.Order)
+                        .ToList();
+                    foreach (Gizmo gizmo in zoneGizmos)
+                    {
+                        availableGizmos.Add(gizmo);
+                        gizmoOwners[gizmo] = zone;
                     }
                 }
             }
@@ -174,11 +244,6 @@ namespace RimWorldAccess
                     Find.Selector.Select(obj, playSound: false, forceDesignatorDeselect: false);
                 }
             }
-
-            // Sort by Order property (lower values appear first)
-            availableGizmos = availableGizmos
-                .OrderBy(g => g.Order)
-                .ToList();
 
             if (availableGizmos.Count == 0)
             {
@@ -345,8 +410,52 @@ namespace RimWorldAccess
             selectedGizmoIndex = 0;
             availableGizmos.Clear();
             gizmoOwners.Clear();
+            gizmoGroups.Clear();
             typeahead.ClearSearch();
             lastAnnouncedOwner = null;
+            isAdjustingSlider = false;
+            sliderGizmo = null;
+        }
+
+        /// <summary>
+        /// Propagates a gizmo execution to all other gizmos in its group,
+        /// matching vanilla GizmoGridDrawer behavior (lines 338-351).
+        /// Called BEFORE the selected gizmo's own ProcessInput.
+        /// </summary>
+        private static void PropagateToGroupedGizmos(Gizmo selectedGizmo, Event fakeEvent)
+        {
+            if (!gizmoGroups.TryGetValue(selectedGizmo, out var group) || group.Count <= 1)
+                return;
+
+            for (int i = 0; i < group.Count; i++)
+            {
+                Gizmo other = group[i];
+                if (other != selectedGizmo && !other.Disabled &&
+                    selectedGizmo.InheritInteractionsFrom(other))
+                {
+                    try
+                    {
+                        other.ProcessInput(fakeEvent);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        ModLogger.Error($"Exception propagating gizmo to grouped member: {ex.Message}");
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Calls ProcessGroupInput on the gizmo with its full group list,
+        /// matching vanilla GizmoGridDrawer behavior.
+        /// Called AFTER the selected gizmo's own ProcessInput.
+        /// </summary>
+        private static void ProcessGroupInput(Gizmo selectedGizmo, Event fakeEvent)
+        {
+            if (gizmoGroups.TryGetValue(selectedGizmo, out var group))
+            {
+                selectedGizmo.ProcessGroupInput(fakeEvent, group);
+            }
         }
 
         /// <summary>
@@ -519,7 +628,8 @@ namespace RimWorldAccess
 
                 // For non-Designator gizmos, also select the owner so FloatMenu actions work correctly
                 // (some actions check Find.Selector.SelectedObjects or Find.WorldSelector.SelectedObjects)
-                if (!PawnJustSelected && gizmoOwners.ContainsKey(selectedGizmo))
+                // Skip when multi-select is active — selection is already correct and must not be cleared
+                if (!PawnJustSelected && !MultiSelectState.IsMultiSelectActive && gizmoOwners.ContainsKey(selectedGizmo))
                 {
                     ISelectable owner = gizmoOwners[selectedGizmo];
                     // Use WorldSelector for WorldObjects, Selector for map Things
@@ -569,13 +679,38 @@ namespace RimWorldAccess
                     return;
                 }
 
-                // 3. Command_Toggle - toggle and announce state
+                // 2b. MechanitorControlGroupGizmo - open accessible control group menu
+                if (selectedGizmo.GetType().Name == "MechanitorControlGroupGizmo")
+                {
+                    var mcg = MechControlGroupState.GetControlGroupFromGizmo(selectedGizmo);
+                    if (mcg != null)
+                    {
+                        Close();
+                        MechControlGroupState.Open(mcg);
+                        return;
+                    }
+                }
+
+                // 3. PsychicEntropyGizmo - toggle neural heat limiter
+                if (selectedGizmo.GetType().Name == "PsychicEntropyGizmo")
+                {
+                    bool newState = ToggleNeuralHeatLimiter(selectedGizmo);
+                    string stateStr = newState ? "ON" : "OFF";
+                    TolkHelper.Speak($"Neural heat limiter: {stateStr}");
+                    return;
+                }
+
+                // 4. Command_Toggle - toggle and announce state
                 if (selectedGizmo is Command_Toggle toggle)
                 {
                     try
                     {
+                        // Propagate to grouped gizmos first (vanilla order)
+                        PropagateToGroupedGizmos(selectedGizmo, fakeEvent);
                         // Execute the toggle
                         selectedGizmo.ProcessInput(fakeEvent);
+                        // Process group input
+                        ProcessGroupInput(selectedGizmo, fakeEvent);
 
                         // Announce the new state
                         bool toggleActive = toggle.isActive?.Invoke() ?? false;
@@ -591,13 +726,17 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    // 3. Command_VerbTarget (weapon attacks) - announce targeting mode
+                    // 5. Command_VerbTarget (weapon attacks) - announce targeting mode
                     if (selectedGizmo is Command_VerbTarget verbTarget)
                     {
                         try
                         {
-                            // Execute the command
+                            // Propagate to grouped gizmos first — adds other pawns
+                            // to targetingSourceAdditionalPawns for group targeting
+                            PropagateToGroupedGizmos(selectedGizmo, fakeEvent);
+                            // Execute the command (starts targeting for this pawn)
                             selectedGizmo.ProcessInput(fakeEvent);
+                            ProcessGroupInput(selectedGizmo, fakeEvent);
 
                             string weaponName = verbTarget.ownerThing?.LabelCap ?? "weapon";
                             string verbLabel = verbTarget.verb?.ReportLabel ?? "attack";
@@ -609,15 +748,49 @@ namespace RimWorldAccess
                             TolkHelper.Speak($"Error executing {gizmoLabel}: {ex.Message}", SpeechPriority.High);
                         }
                     }
-                    // 4. Command_Target - announce targeting mode
-                    else if (selectedGizmo is Command_Target)
+                    // 6. Command_Target - announce targeting mode
+                    else if (selectedGizmo is Command_Target cmdTarget)
                     {
                         try
                         {
+                            // Propagate to grouped gizmos first (vanilla order)
+                            PropagateToGroupedGizmos(selectedGizmo, fakeEvent);
                             // Execute the command
                             selectedGizmo.ProcessInput(fakeEvent);
+                            ProcessGroupInput(selectedGizmo, fakeEvent);
 
-                            TolkHelper.Speak($"{gizmoLabel} - Use map navigation to select target, then press Enter");
+                            // Detect animal attack target commands (Odyssey DLC) by icon match.
+                            // Both group (from master's Pawn_PlayerSettings) and individual (from animal's
+                            // Pawn_TrainingTracker) use the same AttackTargetTexture icon.
+                            if (cmdTarget.icon == Pawn_TrainingTracker.AttackTargetTexture
+                                && gizmoOwners.TryGetValue(selectedGizmo, out ISelectable attackOwner)
+                                && attackOwner is Pawn ownerPawn)
+                            {
+                                // Determine the master pawn:
+                                // - Group command: owner IS the drafted master colonist
+                                // - Individual command: owner is the animal, master is its assigned master
+                                Pawn master = (ownerPawn.IsColonist && ownerPawn.Drafted)
+                                    ? ownerPawn
+                                    : ownerPawn.playerSettings?.Master;
+
+                                if (master?.Position.IsValid == true)
+                                {
+                                    float range = Pawn_TrainingTracker.AttackTargetRange;
+                                    TargetingPatch.SetTargetingContext(master.Position, range);
+                                    TolkHelper.Speak(
+                                        $"{gizmoLabel} targeting. Range: {range:F0} tiles from master. Press R to check distance.");
+                                }
+                                else
+                                {
+                                    TolkHelper.Speak(
+                                        $"{gizmoLabel} - Use map navigation to select target, then press Enter");
+                                }
+                            }
+                            else
+                            {
+                                TolkHelper.Speak(
+                                    $"{gizmoLabel} - Use map navigation to select target, then press Enter");
+                            }
                         }
                         catch (System.Exception ex)
                         {
@@ -625,13 +798,37 @@ namespace RimWorldAccess
                             TolkHelper.Speak($"Error executing {gizmoLabel}: {ex.Message}", SpeechPriority.High);
                         }
                     }
-                    // 5. Generic Command
+                    // 7. Command_Ability (psycasts, abilities) - announce casting or targeting
+                    else if (selectedGizmo is Command_Ability cmdAbility)
+                    {
+                        try
+                        {
+                            PropagateToGroupedGizmos(selectedGizmo, fakeEvent);
+                            selectedGizmo.ProcessInput(fakeEvent);
+                            ProcessGroupInput(selectedGizmo, fakeEvent);
+
+                            // Self-cast abilities (targetRequired == false) don't enter targeting mode,
+                            // so no AbilityTargetingPatch fires. Announce immediately.
+                            if (!cmdAbility.Ability.def.targetRequired)
+                            {
+                                TolkHelper.Speak($"Casting {cmdAbility.Ability.def.LabelCap}");
+                            }
+                            // Targeted abilities will be announced by AbilityTargetingPatch
+                        }
+                        catch (System.Exception ex)
+                        {
+                            ModLogger.Error($"Exception in Command_Ability execution: {ex.Message}");
+                            TolkHelper.Speak($"Error executing {gizmoLabel}: {ex.Message}", SpeechPriority.High);
+                        }
+                    }
+                    // 8. Generic Command
                     else
                     {
                         try
                         {
-                            // Execute the command
+                            PropagateToGroupedGizmos(selectedGizmo, fakeEvent);
                             selectedGizmo.ProcessInput(fakeEvent);
+                            ProcessGroupInput(selectedGizmo, fakeEvent);
                         }
                         catch (System.Exception ex)
                         {
@@ -747,6 +944,21 @@ namespace RimWorldAccess
 
             KeyCode key = Event.current.keyCode;
 
+            // Slider adjustment mode takes over all input
+            if (isAdjustingSlider)
+            {
+                bool shift = Event.current.shift;
+                int multiplier = shift ? 5 : 1;
+
+                if (key == KeyCode.LeftArrow) { AdjustSliderValue(-1, multiplier); Event.current.Use(); return true; }
+                if (key == KeyCode.RightArrow) { AdjustSliderValue(1, multiplier); Event.current.Use(); return true; }
+                if (key == KeyCode.Escape || key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                { ExitSliderAdjust(); Event.current.Use(); return true; }
+                // Consume all other keys while in slider mode
+                Event.current.Use();
+                return true;
+            }
+
             // Handle Home - jump to first
             if (key == KeyCode.Home)
             {
@@ -835,40 +1047,135 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Handle Enter - execute selected
-            if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+            // Handle Enter - execute selected (skip if Alt held, Alt+Enter opens pawn inspection)
+            if ((key == KeyCode.Return || key == KeyCode.KeypadEnter) && !KeyboardHelper.IsAltHeld)
             {
+                // Slider gizmos with no other Enter action enter adjustment mode directly.
+                // PsychicEntropyGizmo already has Enter = toggle neural heat limiter,
+                // so it keeps its existing behavior and uses right bracket for slider adjustment.
+                Gizmo enterGizmo = availableGizmos[selectedGizmoIndex];
+                if (IsAdjustableSlider(enterGizmo) && enterGizmo.GetType().Name != "PsychicEntropyGizmo")
+                {
+                    EnterSliderAdjustMode(enterGizmo);
+                    Event.current.Use();
+                    return true;
+                }
                 ExecuteSelected();
                 Event.current.Use();
                 return true;
             }
 
+            // Handle Alt+I - open info card for current gizmo
+            if (KeyboardHelper.IsAltHeld && key == KeyCode.I)
+            {
+                OpenInfoCardForCurrentGizmo();
+                Event.current.Use();
+                return true;
+            }
+
+            // Handle right bracket - right-click options or slider adjustment
+            if (key == KeyCode.RightBracket)
+            {
+                Gizmo rbGizmo = availableGizmos[selectedGizmoIndex];
+                if (HasRightClickOptions(rbGizmo))
+                    ExecuteRightClick();
+                else if (IsAdjustableSlider(rbGizmo))
+                    EnterSliderAdjustMode(rbGizmo);
+                else
+                    TolkHelper.Speak("No additional options");
+                Event.current.Use();
+                return true;
+            }
+
             // Handle typeahead characters
-            // Use KeyCode instead of Event.current.character (which is empty in Unity IMGUI)
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
 
             if (isLetter || isNumber)
             {
-                char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                var labels = GetGizmoLabels();
-                if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
+                TypeaheadCharacterBuffer.RequestCharacter(c =>
                 {
-                    if (newIndex >= 0)
+                    var labels = GetGizmoLabels();
+                    if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
                     {
-                        selectedGizmoIndex = newIndex;
-                        AnnounceWithSearch();
+                        if (newIndex >= 0)
+                        {
+                            selectedGizmoIndex = newIndex;
+                            AnnounceWithSearch();
+                        }
                     }
-                }
-                else
-                {
-                    TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
-                }
+                    else
+                    {
+                        TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+                    }
+                });
                 Event.current.Use();
                 return true;
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Opens an info card for the currently selected gizmo, if applicable.
+        /// Handles Command_Ability (ability def), Designator_Build (building def with optional stuff),
+        /// and falls back to the gizmo's owner (Thing or WorldObject).
+        /// </summary>
+        private static void OpenInfoCardForCurrentGizmo()
+        {
+            if (!isActive || availableGizmos.Count == 0)
+                return;
+
+            if (selectedGizmoIndex < 0 || selectedGizmoIndex >= availableGizmos.Count)
+                return;
+
+            Gizmo gizmo = availableGizmos[selectedGizmoIndex];
+
+            // Command_Ability -> open info card for the ability def
+            if (gizmo is Command_Ability cmdAbility && cmdAbility.Ability?.def != null)
+            {
+                Find.WindowStack.Add(new Dialog_InfoCard(cmdAbility.Ability.def));
+                return;
+            }
+
+            // Designator_Build -> open info card for the building def (with stuff if applicable)
+            if (gizmo is Designator_Build buildDesignator)
+            {
+                BuildableDef placingDef = buildDesignator.PlacingDef;
+                if (placingDef is ThingDef thingDef)
+                {
+                    ThingDef stuff = buildDesignator.StuffDef;
+                    if (stuff != null)
+                        Find.WindowStack.Add(new Dialog_InfoCard(thingDef, stuff));
+                    else
+                        InfoCardState.OpenInfoCardForDef(thingDef);
+                    return;
+                }
+                if (placingDef is TerrainDef terrainDef)
+                {
+                    Find.WindowStack.Add(new Dialog_InfoCard(terrainDef));
+                    return;
+                }
+            }
+
+            // Fallback: use gizmo owner (Thing or WorldObject)
+            if (gizmoOwners.TryGetValue(gizmo, out ISelectable owner))
+            {
+                if (owner is Thing thing)
+                {
+                    Find.WindowStack.Add(new Dialog_InfoCard(thing));
+                    return;
+                }
+                if (owner is WorldObject worldObj)
+                {
+                    Find.WindowStack.Add(new Dialog_InfoCard(worldObj));
+                    return;
+                }
+            }
+
+            // Nothing applicable
+            TolkHelper.Speak("No info card available for this command");
+            SoundDefOf.ClickReject.PlayOneShotOnCamera();
         }
 
         /// <summary>
@@ -962,6 +1269,10 @@ namespace RimWorldAccess
 
             string announcement = ownerPrefix + label;
 
+            // Hotkey immediately after the title, before any description / stats.
+            if (!string.IsNullOrEmpty(hotkey))
+                announcement += $" ({hotkey})";
+
             // For Command_Toggle, include current ON/OFF state (sighted players see a checkbox)
             if (gizmo is Command_Toggle toggle)
             {
@@ -971,13 +1282,47 @@ namespace RimWorldAccess
 
             // Add status value for non-Command gizmos (progress bars, etc.)
             if (!string.IsNullOrEmpty(statusValue))
-                announcement += $" - {statusValue}";
+                announcement += $": {statusValue}";
 
-            if (!string.IsNullOrEmpty(description) && !(gizmo is Command_Toggle))
-                announcement += $": {description}";
+            bool isAbility = gizmo is Command_Ability;
 
-            if (!string.IsNullOrEmpty(hotkey))
-                announcement += $" ({hotkey})";
+            // For non-ability gizmos, append description after the hotkey/state
+            if (!string.IsNullOrEmpty(description) && !isAbility)
+            {
+                string descSep = (gizmo is Command_Toggle || !string.IsNullOrEmpty(statusValue))
+                    ? (announcement.EndsWith(".") ? " " : ". ")
+                    : ": ";
+                announcement += descSep + description;
+            }
+
+            // For animal attack Command_Target, add range info
+            if (gizmo is Command_Target cmdTargetGizmo
+                && cmdTargetGizmo.icon == Pawn_TrainingTracker.AttackTargetTexture)
+            {
+                float attackRange = Pawn_TrainingTracker.AttackTargetRange;
+                string sep = announcement.EndsWith(".") ? " " : ". ";
+                announcement += $"{sep}Range: {attackRange:F0} tiles from master";
+            }
+
+            // For Command_Ability (psycasts, abilities), append cost, range, cooldown, then description.
+            // The hotkey was already spoken right after the title.
+            if (isAbility && gizmo is Command_Ability commandAbility && commandAbility.Ability != null)
+            {
+                string costInfo = GetAbilityCostInfo(commandAbility.Ability);
+                if (!string.IsNullOrEmpty(costInfo))
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + costInfo;
+
+                string rangeInfo = GetAbilityRangeInfo(commandAbility.Ability);
+                if (!string.IsNullOrEmpty(rangeInfo))
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + rangeInfo;
+
+                string cooldownInfo = GetAbilityCooldownInfo(commandAbility.Ability);
+                if (!string.IsNullOrEmpty(cooldownInfo))
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + cooldownInfo;
+
+                if (!string.IsNullOrEmpty(description))
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + description;
+            }
 
             // Add disabled status if applicable
             if (gizmo.Disabled)
@@ -994,6 +1339,21 @@ namespace RimWorldAccess
                 string context = GetDisabledGizmoContext(gizmo, gizmoOwner);
                 if (!string.IsNullOrEmpty(context))
                     announcement += $". {context}";
+            }
+
+            // Add interaction hints for right-click options and adjustable sliders
+            if (!gizmo.Disabled)
+            {
+                if (HasRightClickOptions(gizmo))
+                    announcement += ". Press right bracket for more options";
+                else if (IsAdjustableSlider(gizmo))
+                {
+                    // PsychicEntropyGizmo has two actions: Enter toggles limiter, right bracket adjusts psyfocus
+                    if (gizmo.GetType().Name == "PsychicEntropyGizmo")
+                        announcement += ". Press Enter to toggle limiter, right bracket to set psyfocus target";
+                    else
+                        announcement += ". Press Enter to adjust";
+                }
             }
 
             TolkHelper.Speak(announcement);
@@ -1062,7 +1422,7 @@ namespace RimWorldAccess
                     return GetEnergyShieldLabel(gizmo);
 
                 case "PsychicEntropyGizmo":
-                    return "Psychic Entropy and Psyfocus";
+                    return "Neural Heat and Psyfocus";
 
                 case "MechanitorBandwidthGizmo":
                     return "Mechanitor Bandwidth";
@@ -1080,7 +1440,7 @@ namespace RimWorldAccess
                     return "Mech Power Cell";
 
                 case "MechanitorControlGroupGizmo":
-                    return "Mechanitor Control Groups";
+                    return MechControlGroupState.GetGizmoLabel(gizmo);
 
                 case "Gizmo_MechResurrectionCharges":
                     return "Resurrector Charges";
@@ -1143,9 +1503,9 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets the label for a growth tier gizmo by accessing the child pawn.
+        /// Gets the child pawn from a Gizmo_GrowthTier via reflection.
         /// </summary>
-        private static string GetGrowthTierLabel(Gizmo gizmo)
+        private static Pawn GetGrowthTierChild(Gizmo gizmo)
         {
             try
             {
@@ -1153,17 +1513,23 @@ namespace RimWorldAccess
                     System.Reflection.BindingFlags.Instance |
                     System.Reflection.BindingFlags.NonPublic);
                 if (childField != null)
-                {
-                    var child = childField.GetValue(gizmo) as Pawn;
-                    if (child != null)
-                    {
-                        int tier = child.ageTracker?.GrowthTier ?? 0;
-                        return $"Growth Tier {tier}";
-                    }
-                }
+                    return childField.GetValue(gizmo) as Pawn;
             }
             catch { }
-            return "Growth Tier";
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the label for a growth tier gizmo by accessing the child pawn.
+        /// </summary>
+        private static string GetGrowthTierLabel(Gizmo gizmo)
+        {
+            var child = GetGrowthTierChild(gizmo);
+            if (child?.ageTracker == null)
+                return "Growth Tier";
+
+            int tier = child.ageTracker.GrowthTier;
+            return $"Growth Tier {tier}";
         }
 
         /// <summary>
@@ -1311,6 +1677,9 @@ namespace RimWorldAccess
                     case "Gizmo_ProjectileInterceptorHitPoints":
                         return GetProjectileInterceptorStatus(gizmo);
 
+                    case "MechanitorControlGroupGizmo":
+                        return MechControlGroupState.GetGizmoStatus(gizmo);
+
                     default:
                         // Try to get status from Gizmo_Slider subclasses
                         if (gizmo is Verse.Gizmo_Slider)
@@ -1383,21 +1752,19 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets the psychic entropy status (entropy and psyfocus values).
+        /// Gets the psychic entropy status (entropy, psyfocus, and limiter state).
         /// </summary>
         private static string GetPsychicEntropyStatus(Gizmo gizmo)
         {
-            var trackerField = gizmo.GetType().GetField("tracker",
-                System.Reflection.BindingFlags.Instance |
-                System.Reflection.BindingFlags.NonPublic);
-            if (trackerField == null) return "";
-
-            var tracker = trackerField.GetValue(gizmo);
+            var tracker = GetPsychicEntropyTracker(gizmo);
             if (tracker == null) return "";
 
             var entropyProp = tracker.GetType().GetProperty("EntropyValue");
             var maxEntropyProp = tracker.GetType().GetProperty("MaxEntropy");
             var psyfocusProp = tracker.GetType().GetProperty("CurrentPsyfocus");
+            var limitField = tracker.GetType().GetField("limitEntropyAmount",
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.Public);
 
             if (entropyProp != null && maxEntropyProp != null && psyfocusProp != null)
             {
@@ -1405,31 +1772,277 @@ namespace RimWorldAccess
                 float maxEntropy = (float)maxEntropyProp.GetValue(tracker);
                 float psyfocus = (float)psyfocusProp.GetValue(tracker);
 
-                return $"Entropy: {entropy:F0} / {maxEntropy:F0}, Psyfocus: {psyfocus * 100:F0}%";
+                string status = $"Neural heat: {entropy:F0} / {maxEntropy:F0}, Psyfocus: {psyfocus * 100:F0}%";
+
+                // Add psyfocus target (sighted players see a target indicator on the bar)
+                var targetPsyfocusProp = tracker.GetType().GetProperty("TargetPsyfocus");
+                if (targetPsyfocusProp != null)
+                {
+                    float target = (float)targetPsyfocusProp.GetValue(tracker);
+                    status += $", Target: {target * 100:F0}%";
+                }
+
+                // Add limiter state
+                if (limitField != null)
+                {
+                    bool isLimited = (bool)limitField.GetValue(tracker);
+                    status += $", Limiter: {(isLimited ? "ON" : "OFF")}";
+                }
+
+                return status;
             }
             return "";
         }
 
         /// <summary>
-        /// Gets the growth tier status (current tier and progress).
+        /// Gets the Pawn_PsychicEntropyTracker from a PsychicEntropyGizmo.
+        /// </summary>
+        private static object GetPsychicEntropyTracker(Gizmo gizmo)
+        {
+            var trackerField = gizmo.GetType().GetField("tracker",
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic);
+            if (trackerField == null) return null;
+
+            return trackerField.GetValue(gizmo);
+        }
+
+        /// <summary>
+        /// Toggles the neural heat limiter on a PsychicEntropyGizmo.
+        /// Returns the new state (true = limited, false = unlimited).
+        /// </summary>
+        private static bool ToggleNeuralHeatLimiter(Gizmo gizmo)
+        {
+            var tracker = GetPsychicEntropyTracker(gizmo);
+            if (tracker == null) return true;
+
+            var limitField = tracker.GetType().GetField("limitEntropyAmount",
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.Public);
+            if (limitField == null) return true;
+
+            bool currentValue = (bool)limitField.GetValue(tracker);
+            bool newValue = !currentValue;
+            limitField.SetValue(tracker, newValue);
+
+            // Play the appropriate sound (matching the game's behavior)
+            if (newValue)
+                SoundDefOf.Tick_Low.PlayOneShotOnCamera();
+            else
+                SoundDefOf.Tick_High.PlayOneShotOnCamera();
+
+            return newValue;
+        }
+
+        /// <summary>
+        /// Gets cost information for an ability (psyfocus cost, minimum required, neural heat gain).
+        /// Returns a string like "Costs 2% psyfocus, requires 50%, Neural heat: 25" or null if no costs.
+        /// </summary>
+        private static string GetAbilityCostInfo(Ability ability)
+        {
+            if (ability?.def == null)
+                return null;
+
+            var parts = new List<string>();
+
+            // Psyfocus cost (what gets consumed)
+            float psyfocusCost = ability.def.PsyfocusCost;
+
+            // Minimum psyfocus required (band threshold based on ability level)
+            // PsyfocusBandPercentages: 0%, 25%, 50% for bands 0, 1, 2
+            // RequiredPsyfocusBand is calculated from ability level
+            int requiredBand = ability.def.RequiredPsyfocusBand;
+            float minRequired = 0f;
+            if (requiredBand > 0 && requiredBand < Pawn_PsychicEntropyTracker.PsyfocusBandPercentages.Count)
+            {
+                minRequired = Pawn_PsychicEntropyTracker.PsyfocusBandPercentages[requiredBand];
+            }
+
+            // Build psyfocus string showing both cost and minimum if different
+            if (psyfocusCost > float.Epsilon || minRequired > float.Epsilon)
+            {
+                if (psyfocusCost > float.Epsilon && minRequired > float.Epsilon)
+                {
+                    // Both cost and minimum requirement
+                    parts.Add($"Costs {(psyfocusCost * 100f):F0}% psyfocus, requires {(minRequired * 100f):F0}%");
+                }
+                else if (psyfocusCost > float.Epsilon)
+                {
+                    // Just cost, no minimum band requirement
+                    parts.Add($"Costs {(psyfocusCost * 100f):F0}% psyfocus");
+                }
+                else if (minRequired > float.Epsilon)
+                {
+                    // Just minimum requirement (unusual but possible)
+                    parts.Add($"Requires {(minRequired * 100f):F0}% psyfocus");
+                }
+            }
+
+            // Neural heat (entropy) gain
+            float entropyGain = ability.def.EntropyGain;
+            if (entropyGain > float.Epsilon)
+            {
+                parts.Add($"Neural heat: {entropyGain:F0}");
+            }
+
+            if (parts.Count == 0)
+                return null;
+
+            return string.Join(". ", parts);
+        }
+
+        /// <summary>
+        /// Gets the range description for an ability gizmo.
+        /// Returns "Range: N tiles", "Range: touch", "Range: self", or null.
+        /// </summary>
+        private static string GetAbilityRangeInfo(Ability ability)
+        {
+            if (ability?.def == null)
+                return null;
+
+            // Determine base range text
+            string rangeText;
+            if (!ability.def.targetRequired)
+                rangeText = "Range: self";
+            else if (ability.def.targetWorldCell)
+                rangeText = "Range: world map";
+            else if (AbilityTargetingHelper.IsTouchRange(ability))
+                rangeText = "Range: touch";
+            else
+            {
+                float range = AbilityTargetingHelper.GetRange(ability);
+                if (range > 0f)
+                    rangeText = $"Range: {range:F0} tiles";
+                else
+                    return null;
+            }
+
+            // Append effect radius if this ability has one
+            float effectRadius = ability.def.EffectRadius;
+            if (effectRadius > 0f)
+                rangeText += $", {effectRadius:F0} tile radius";
+
+            return rangeText;
+        }
+
+        /// <summary>
+        /// Gets cooldown information for an ability.
+        /// When on cooldown, shows remaining time. Otherwise shows base cooldown duration.
+        /// The disabled section separately announces the full "on cooldown" game text.
+        /// </summary>
+        private static string GetAbilityCooldownInfo(Ability ability)
+        {
+            if (ability?.def == null)
+                return null;
+
+            string cooldownLabel = "StatsReport_Cooldown".Translate();
+
+            // When on cooldown, show remaining time (most actionable info).
+            // The disabled section already announces the full "AbilityOnCooldown" text.
+            if (ability.OnCooldown && ability.CooldownTicksRemaining > 0)
+            {
+                string remaining = ability.CooldownTicksRemaining.ToStringTicksToPeriod();
+                return cooldownLabel + ": " + remaining;
+            }
+
+            // When not on cooldown, show base cooldown duration (matches game's stats report).
+            // Group abilities use groupDef.cooldownTicks unless overrideGroupCooldown is set.
+            // Individual abilities use cooldownTicksRange when it's a fixed value (min == max).
+            int baseCooldownTicks = 0;
+            if (ability.def.groupDef != null && !ability.def.overrideGroupCooldown
+                && ability.def.groupDef.cooldownTicks > 0)
+            {
+                baseCooldownTicks = ability.def.groupDef.cooldownTicks;
+            }
+            else if (ability.def.cooldownTicksRange.min == ability.def.cooldownTicksRange.max
+                     && ability.def.cooldownTicksRange.min > 0)
+            {
+                baseCooldownTicks = ability.def.cooldownTicksRange.min;
+            }
+
+            if (baseCooldownTicks > 0)
+            {
+                string baseDuration = baseCooldownTicks.ToStringTicksToPeriod(
+                    allowSeconds: true, shortForm: false, canUseDecimals: true, allowYears: false);
+                return cooldownLabel + ": " + baseDuration;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the growth tier status including progress, learning, and tooltip details.
+        /// Mirrors the information sighted players see in the gizmo bar and hover tooltip.
         /// </summary>
         private static string GetGrowthTierStatus(Gizmo gizmo)
         {
-            var childField = gizmo.GetType().GetField("child",
-                System.Reflection.BindingFlags.Instance |
-                System.Reflection.BindingFlags.NonPublic);
-            if (childField == null) return "";
-
-            var child = childField.GetValue(gizmo) as Pawn;
+            var child = GetGrowthTierChild(gizmo);
             if (child?.ageTracker == null) return "";
 
             int tier = child.ageTracker.GrowthTier;
-            float percent = child.ageTracker.PercentToNextGrowthTier;
+            var parts = new List<string>();
 
+            // Growth points progress (at-a-glance bar text)
             if (child.ageTracker.AtMaxGrowthTier)
-                return $"Tier {tier} (Max)";
+            {
+                float maxPoints = GrowthUtility.GrowthTiers[GrowthUtility.GrowthTiers.Length - 1].pointsRequirement;
+                parts.Add($"{maxPoints} of {maxPoints} points, max tier");
+            }
             else
-                return $"Tier {tier}, {percent * 100:F0}% to next";
+            {
+                int currentPoints = Mathf.FloorToInt(child.ageTracker.growthPoints);
+                float nextTierPoints = GrowthUtility.GrowthTiers[tier + 1].pointsRequirement;
+                string pointsText = $"{currentPoints} of {nextTierPoints} points";
+                if (child.ageTracker.canGainGrowthPoints)
+                    pointsText += $" (+{"PerDay".Translate(child.ageTracker.GrowthPointsPerDay.ToStringByStyle(ToStringStyle.FloatMaxTwo))})";
+                parts.Add(pointsText);
+            }
+
+            // Learning need (at-a-glance bar)
+            if (child.needs?.learning != null)
+                parts.Add($"Learning {child.needs.learning.CurLevelPercentage.ToStringPercent()}");
+
+            // Next growth moment age (from tooltip)
+            if (child.ageTracker.AgeBiologicalYears < 13)
+            {
+                for (int i = child.ageTracker.AgeBiologicalYears + 1; i <= 13; i++)
+                {
+                    if (GrowthUtility.IsGrowthBirthday(i))
+                    {
+                        parts.Add($"{"NextGrowthMomentAt".Translate()}: {i}");
+                        break;
+                    }
+                }
+            }
+
+            // Current tier rewards (from tooltip)
+            var currentTier = GrowthUtility.GrowthTiers[tier];
+            parts.Add(FormatTierRewards("ThisGrowthTier".Translate(tier), currentTier));
+
+            // Next tier rewards (from tooltip)
+            if (!child.ageTracker.AtMaxGrowthTier)
+            {
+                var nextTier = GrowthUtility.GrowthTiers[tier + 1];
+                parts.Add(FormatTierRewards($"If growth tier {tier + 1} is reached", nextTier));
+            }
+
+            // Trim trailing periods from each part to avoid double periods in the joined result
+            for (int i = 0; i < parts.Count; i++)
+                parts[i] = parts[i].TrimEnd('.');
+            return string.Join(". ", parts);
+        }
+
+        /// <summary>
+        /// Formats tier reward text using the same translation keys as the game's tooltip.
+        /// Joins multiple rewards with "and" for natural speech flow.
+        /// </summary>
+        private static string FormatTierRewards(string header, GrowthUtility.GrowthTier tier)
+        {
+            var rewards = new List<string>();
+            if (tier.passionGainsRange.TrueMax > 0)
+                rewards.Add("NumPassionsFromOptions".Translate(tier.passionGainsRange.ToString(), tier.passionChoices).Resolve().StripTags().TrimEnd('.'));
+            rewards.Add("NumTraitsFromOptions".Translate(tier.traitGains, tier.traitChoices).Resolve().StripTags().TrimEnd('.'));
+            return $"{header.StripTags()}: {string.Join(" and ", rewards)}";
         }
 
         /// <summary>
@@ -1560,9 +2173,19 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Gets the description text for a gizmo.
+        /// For Command_Ability (psycasts), pulls from ability.def.description since
+        /// Command_Ability.Desc is only populated during mouse hover rendering.
         /// </summary>
         private static string GetGizmoDescription(Gizmo gizmo)
         {
+            // Command_Ability.defaultDesc is only set during GizmoOnGUIInt on mouse hover,
+            // so we pull directly from the ability definition instead
+            if (gizmo is Command_Ability commandAbility && commandAbility.Ability?.def != null)
+            {
+                string abilityDesc = commandAbility.Ability.def.description;
+                return (abilityDesc ?? "").StripTags();
+            }
+
             if (gizmo is Command cmd)
             {
                 string desc = cmd.Desc;
@@ -1584,7 +2207,10 @@ namespace RimWorldAccess
                 KeyCode key = cmd.hotKey.MainKey;
                 if (key != KeyCode.None)
                 {
-                    return key.ToStringReadable();
+                    string prefix = GizmoHotkeyShiftPatch.IsShiftExempt(cmd.hotKey)
+                        ? ""
+                        : GizmoHotkeyShiftPatch.ShiftPrefix;
+                    return prefix + key.ToStringReadable();
                 }
             }
             return "";
@@ -1618,7 +2244,7 @@ namespace RimWorldAccess
                 return null;
 
             // Get all transporters in the group
-            var transportersInGroup = transporter.TransportersInGroup(transporter.parent.Map);
+            var transportersInGroup = transporter.TransportersInGroup(transporter.parent.Map)?.ToList();
             if (transportersInGroup == null || transportersInGroup.Count <= 1)
                 return null;
 
@@ -1746,6 +2372,816 @@ namespace RimWorldAccess
                 ModLogger.Error($"Exception in gizmo material selection: {ex.Message}");
                 TolkHelper.Speak($"Error: {ex.Message}", SpeechPriority.High);
             }
+        }
+
+        // ===== Right-click float menu support =====
+
+        /// <summary>
+        /// Checks whether the given gizmo has any right-click float menu options.
+        /// </summary>
+        private static bool HasRightClickOptions(Gizmo gizmo)
+        {
+            try
+            {
+                return gizmo.RightClickFloatMenuOptions.Any();
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Checks whether the given gizmo is an adjustable slider.
+        /// </summary>
+        private static bool IsAdjustableSlider(Gizmo gizmo)
+        {
+            try
+            {
+                if (gizmo is Gizmo_Slider)
+                {
+                    var isDraggableProp = gizmo.GetType().GetProperty("IsDraggable",
+                        System.Reflection.BindingFlags.Instance |
+                        System.Reflection.BindingFlags.NonPublic |
+                        System.Reflection.BindingFlags.Public);
+                    if (isDraggableProp != null)
+                        return (bool)isDraggableProp.GetValue(gizmo);
+                    return false;
+                }
+
+                string typeName = gizmo.GetType().Name;
+                if (typeName == "PsychicEntropyGizmo")
+                {
+                    // Only adjustable for colonist-player-controlled pawns
+                    var tracker = GetPsychicEntropyTracker(gizmo);
+                    if (tracker == null) return false;
+                    var pawnProp = tracker.GetType().GetProperty("Pawn");
+                    if (pawnProp == null) return false;
+                    var pawn = pawnProp.GetValue(tracker) as Pawn;
+                    return pawn != null && pawn.IsColonistPlayerControlled;
+                }
+
+                if (typeName == "Gizmo_PruningConfig" || typeName == "MechCarrierGizmo")
+                    return true;
+
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Collects right-click float menu options from the gizmo and its grouped gizmos,
+        /// mirroring vanilla GizmoGridDrawer behavior.
+        /// </summary>
+        private static List<FloatMenuOption> CollectRightClickOptions(Gizmo gizmo)
+        {
+            var options = new List<FloatMenuOption>();
+
+            try
+            {
+                // Collect from the primary gizmo
+                foreach (var opt in gizmo.RightClickFloatMenuOptions)
+                    options.Add(opt);
+
+                // Merge from grouped gizmos (mirrors vanilla GizmoGridDrawer lines 368-405)
+                if (gizmoGroups.TryGetValue(gizmo, out var group))
+                {
+                    for (int i = 0; i < group.Count; i++)
+                    {
+                        Gizmo other = group[i];
+                        if (other == gizmo || other.Disabled || !gizmo.InheritFloatMenuInteractionsFrom(other))
+                            continue;
+
+                        foreach (var opt in other.RightClickFloatMenuOptions)
+                        {
+                            var existing = options.FirstOrDefault(o => o.Label == opt.Label);
+                            if (existing == null)
+                            {
+                                options.Add(opt);
+                            }
+                            else if (!opt.Disabled && existing.Disabled)
+                            {
+                                int idx = options.IndexOf(existing);
+                                options[idx] = opt;
+                            }
+                            else if (!opt.Disabled && !existing.Disabled)
+                            {
+                                System.Action prevAction = existing.action;
+                                System.Action localAction = opt.action;
+                                existing.action = delegate { prevAction(); localAction(); };
+                            }
+                        }
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                ModLogger.Error($"Exception collecting right-click options: {ex.Message}");
+            }
+
+            return options;
+        }
+
+        /// <summary>
+        /// Executes the right-click action for the currently selected gizmo,
+        /// opening its float menu options in the accessible WindowlessFloatMenuState.
+        /// </summary>
+        public static void ExecuteRightClick()
+        {
+            if (!isActive || availableGizmos.Count == 0)
+                return;
+
+            Gizmo gizmo = availableGizmos[selectedGizmoIndex];
+
+            if (gizmo.Disabled)
+            {
+                string reason = gizmo.disabledReason;
+                if (string.IsNullOrEmpty(reason))
+                    reason = "Command not available";
+                TolkHelper.Speak($"Disabled: {reason}");
+                return;
+            }
+
+            var options = CollectRightClickOptions(gizmo);
+            if (options.Count == 0)
+            {
+                TolkHelper.Speak("No additional options");
+                return;
+            }
+
+            WindowlessFloatMenuState.Open(options, colonistOrders: false);
+        }
+
+        // ===== Slider adjustment support =====
+
+        /// <summary>
+        /// Enters slider adjustment mode for the given gizmo.
+        /// Reads the current target value, step size, and range via reflection.
+        /// </summary>
+        private static void EnterSliderAdjustMode(Gizmo gizmo)
+        {
+            sliderGizmo = gizmo;
+            string title = "";
+
+            try
+            {
+                if (gizmo is Gizmo_Slider)
+                {
+                    var flags = System.Reflection.BindingFlags.Instance |
+                        System.Reflection.BindingFlags.NonPublic |
+                        System.Reflection.BindingFlags.Public;
+
+                    var targetProp = gizmo.GetType().GetProperty("Target", flags);
+                    var dragRangeProp = gizmo.GetType().GetProperty("DragRange", flags);
+                    var incrementsProp = gizmo.GetType().GetProperty("Increments", flags);
+                    var titleProp = gizmo.GetType().GetProperty("Title", flags);
+
+                    if (targetProp == null) { TolkHelper.Speak("Could not read slider value"); return; }
+
+                    sliderValue = (float)targetProp.GetValue(gizmo);
+
+                    if (dragRangeProp != null)
+                    {
+                        var range = (FloatRange)dragRangeProp.GetValue(gizmo);
+                        sliderMin = range.min;
+                        sliderMax = range.max;
+                    }
+                    else
+                    {
+                        sliderMin = 0f;
+                        sliderMax = 1f;
+                    }
+
+                    int increments = 20;
+                    if (incrementsProp != null)
+                        increments = (int)incrementsProp.GetValue(gizmo);
+
+                    sliderStep = (sliderMax - sliderMin) / increments;
+                    if (titleProp != null)
+                        title = (string)titleProp.GetValue(gizmo) ?? "";
+                }
+                else
+                {
+                    string typeName = gizmo.GetType().Name;
+                    var flags = System.Reflection.BindingFlags.Instance |
+                        System.Reflection.BindingFlags.NonPublic |
+                        System.Reflection.BindingFlags.Public;
+
+                    if (typeName == "PsychicEntropyGizmo")
+                    {
+                        var targetField = gizmo.GetType().GetField("targetValue", flags);
+                        if (targetField == null) { TolkHelper.Speak("Could not read psyfocus value"); return; }
+
+                        sliderValue = (float)targetField.GetValue(gizmo);
+                        sliderMin = 0f;
+                        sliderMax = 1f;
+                        sliderStep = 1f / 16f;
+                        title = "PsyfocusLabelGizmo".Translate();
+                    }
+                    else if (typeName == "Gizmo_PruningConfig")
+                    {
+                        var connectionField = gizmo.GetType().GetField("connection", flags);
+                        if (connectionField == null) { TolkHelper.Speak("Could not read pruning value"); return; }
+                        var connection = connectionField.GetValue(gizmo);
+                        if (connection == null) { TolkHelper.Speak("Could not read pruning value"); return; }
+
+                        var desiredProp = connection.GetType().GetProperty("DesiredConnectionStrength", flags);
+                        if (desiredProp == null) { TolkHelper.Speak("Could not read pruning value"); return; }
+
+                        sliderValue = (float)desiredProp.GetValue(connection);
+                        sliderMin = 0f;
+                        sliderMax = 1f;
+                        sliderStep = 1f / 20f;
+                        title = "ConnectionStrength".Translate();
+                    }
+                    else if (typeName == "MechCarrierGizmo")
+                    {
+                        var targetField = gizmo.GetType().GetField("targetValue", flags);
+                        if (targetField == null) { TolkHelper.Speak("Could not read carrier value"); return; }
+
+                        sliderValue = (float)targetField.GetValue(gizmo);
+                        sliderMin = 0f;
+                        sliderMax = 1f;
+                        sliderStep = 1f / 24f;
+                        title = GetMechCarrierTitle(gizmo);
+                    }
+                    else
+                    {
+                        TolkHelper.Speak("Could not adjust this control");
+                        return;
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                ModLogger.Error($"Exception entering slider mode: {ex.Message}");
+                TolkHelper.Speak("Could not adjust this control");
+                return;
+            }
+
+            isAdjustingSlider = true;
+            string valueStr = $"{sliderValue * 100:F0}%";
+            TolkHelper.Speak($"Adjusting {title}. Current target: {valueStr}. Left and Right to adjust, Shift for larger steps, Escape to finish.");
+        }
+
+        /// <summary>
+        /// Adjusts the slider value by step * multiplier in the given direction.
+        /// </summary>
+        private static void AdjustSliderValue(int direction, int multiplier = 1)
+        {
+            if (sliderGizmo == null) return;
+
+            float oldValue = sliderValue;
+            sliderValue += direction * sliderStep * multiplier;
+            sliderValue = Mathf.Clamp(sliderValue, sliderMin, sliderMax);
+
+            // Snap to nearest step to avoid floating point drift
+            float stepsFromMin = Mathf.Round((sliderValue - sliderMin) / sliderStep);
+            sliderValue = sliderMin + stepsFromMin * sliderStep;
+            sliderValue = Mathf.Clamp(sliderValue, sliderMin, sliderMax);
+
+            if (Mathf.Approximately(sliderValue, oldValue))
+            {
+                TolkHelper.Speak(direction > 0 ? "Maximum" : "Minimum");
+                return;
+            }
+
+            // Play the drag slider sound (matches vanilla behavior)
+            SoundDefOf.DragSlider.PlayOneShotOnCamera();
+
+            // Write value back to the gizmo
+            try
+            {
+                WriteSliderValue(sliderGizmo, sliderValue);
+            }
+            catch (System.Exception ex)
+            {
+                ModLogger.Error($"Exception writing slider value: {ex.Message}");
+            }
+
+            // Announce the new value
+            string announcement = GetSliderAnnouncement(sliderGizmo, sliderValue);
+            TolkHelper.Speak(announcement);
+        }
+
+        /// <summary>
+        /// Writes the adjusted slider value back to the gizmo via reflection.
+        /// </summary>
+        private static void WriteSliderValue(Gizmo gizmo, float value)
+        {
+            var flags = System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic |
+                System.Reflection.BindingFlags.Public;
+
+            if (gizmo is Gizmo_Slider)
+            {
+                var targetProp = gizmo.GetType().GetProperty("Target", flags);
+                targetProp?.SetValue(gizmo, value);
+            }
+            else
+            {
+                string typeName = gizmo.GetType().Name;
+
+                if (typeName == "PsychicEntropyGizmo")
+                {
+                    // Write to both the gizmo's targetValue and the tracker
+                    var targetField = gizmo.GetType().GetField("targetValue", flags);
+                    targetField?.SetValue(gizmo, value);
+
+                    var tracker = GetPsychicEntropyTracker(gizmo);
+                    if (tracker != null)
+                    {
+                        var setMethod = tracker.GetType().GetMethod("SetPsyfocusTarget", flags);
+                        setMethod?.Invoke(tracker, new object[] { value });
+                    }
+                }
+                else if (typeName == "Gizmo_PruningConfig")
+                {
+                    var connectionField = gizmo.GetType().GetField("connection", flags);
+                    var connection = connectionField?.GetValue(gizmo);
+                    if (connection != null)
+                    {
+                        var desiredProp = connection.GetType().GetProperty("DesiredConnectionStrength", flags);
+                        desiredProp?.SetValue(connection, value);
+                    }
+                }
+                else if (typeName == "MechCarrierGizmo")
+                {
+                    // Write targetValue on gizmo
+                    var targetField = gizmo.GetType().GetField("targetValue", flags);
+                    targetField?.SetValue(gizmo, value);
+
+                    // Also update carrier.maxToFill = Round(value * maxIngredientCount)
+                    var carrierField = gizmo.GetType().GetField("carrier", flags);
+                    var carrier = carrierField?.GetValue(gizmo);
+                    if (carrier != null)
+                    {
+                        var propsProp = carrier.GetType().GetProperty("Props");
+                        var props = propsProp?.GetValue(carrier);
+                        if (props != null)
+                        {
+                            var maxField = props.GetType().GetField("maxIngredientCount");
+                            if (maxField != null)
+                            {
+                                int maxCount = (int)maxField.GetValue(props);
+                                int newFill = Mathf.RoundToInt(value * maxCount);
+                                var maxToFillField = carrier.GetType().GetField("maxToFill",
+                                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public);
+                                maxToFillField?.SetValue(carrier, newFill);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the announcement text for the current slider value.
+        /// Uses BarLabel where available for richer info (e.g., "75 / 200 fuel").
+        /// </summary>
+        private static string GetSliderAnnouncement(Gizmo gizmo, float value)
+        {
+            var flags = System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic |
+                System.Reflection.BindingFlags.Public;
+
+            try
+            {
+                if (gizmo is Gizmo_Slider)
+                {
+                    // Try to get BarLabel for richer display
+                    var barLabelProp = gizmo.GetType().GetProperty("BarLabel", flags);
+                    if (barLabelProp != null)
+                    {
+                        string barLabel = (string)barLabelProp.GetValue(gizmo);
+                        if (!string.IsNullOrEmpty(barLabel))
+                            return $"Target: {value * 100:F0}%, {barLabel}";
+                    }
+                }
+                else if (gizmo.GetType().Name == "MechCarrierGizmo")
+                {
+                    // Show count / max for carrier
+                    var carrierField = gizmo.GetType().GetField("carrier", flags);
+                    var carrier = carrierField?.GetValue(gizmo);
+                    if (carrier != null)
+                    {
+                        var propsProp = carrier.GetType().GetProperty("Props");
+                        var props = propsProp?.GetValue(carrier);
+                        if (props != null)
+                        {
+                            var maxField = props.GetType().GetField("maxIngredientCount");
+                            if (maxField != null)
+                            {
+                                int maxCount = (int)maxField.GetValue(props);
+                                int targetCount = Mathf.RoundToInt(value * maxCount);
+                                return $"Target: {targetCount} / {maxCount}";
+                            }
+                        }
+                    }
+                }
+                else if (gizmo.GetType().Name == "Gizmo_PruningConfig")
+                {
+                    // Show percentage and pruning hours
+                    var connectionField = gizmo.GetType().GetField("connection", flags);
+                    var connection = connectionField?.GetValue(gizmo);
+                    if (connection != null)
+                    {
+                        var hoursMethod = connection.GetType().GetMethod("PruningHoursToMaintain", flags);
+                        if (hoursMethod != null)
+                        {
+                            float hours = (float)hoursMethod.Invoke(connection, new object[] { value });
+                            return $"Target: {value * 100:F0}%, {hours:F1} " + "PruningHoursToMaintain".Translate().ToString().Split(':')[0].Trim();
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Fall through to default
+            }
+
+            return $"{value * 100:F0}%";
+        }
+
+        /// <summary>
+        /// Gets the title/label for a MechCarrierGizmo (the ingredient name).
+        /// </summary>
+        private static string GetMechCarrierTitle(Gizmo gizmo)
+        {
+            try
+            {
+                var flags = System.Reflection.BindingFlags.Instance |
+                    System.Reflection.BindingFlags.NonPublic |
+                    System.Reflection.BindingFlags.Public;
+                var carrierField = gizmo.GetType().GetField("carrier", flags);
+                var carrier = carrierField?.GetValue(gizmo);
+                if (carrier != null)
+                {
+                    var propsProp = carrier.GetType().GetProperty("Props");
+                    var props = propsProp?.GetValue(carrier);
+                    if (props != null)
+                    {
+                        var ingredientField = props.GetType().GetField("fixedIngredient");
+                        if (ingredientField != null)
+                        {
+                            var ingredient = ingredientField.GetValue(props) as Def;
+                            if (ingredient != null)
+                                return ingredient.LabelCap;
+                        }
+                    }
+                }
+            }
+            catch { }
+            return "Carrier";
+        }
+
+        /// <summary>
+        /// Exits slider adjustment mode and re-announces the current gizmo.
+        /// </summary>
+        private static void ExitSliderAdjust()
+        {
+            isAdjustingSlider = false;
+            sliderGizmo = null;
+            AnnounceCurrentGizmo();
+        }
+
+        /// <summary>
+        /// Tries to activate a gizmo whose hotkey matches the given key by searching
+        /// both the current selection and the cursor-tile objects. Always returns true
+        /// (event consumed): single match activates directly, multiple matches open a
+        /// WindowlessFloatMenuState for disambiguation, zero matches plays a rejection
+        /// sound and announces "no command for Shift+X" so the user knows the keypress
+        /// was received.
+        ///
+        /// Collects cursor-tile gizmos using the same temp-select-then-restore pattern
+        /// as OpenAtCursor, because some gizmos (e.g. Designator_Install) only expose
+        /// themselves when their owning Thing is selected.
+        /// </summary>
+        public static bool TryHotkeyActivate(KeyCode key)
+        {
+            if (key == KeyCode.None)
+                return false;
+            if (Find.Selector == null || Find.CurrentMap == null)
+                return false;
+
+            var collected = CollectHotkeyCandidates(key);
+
+            // Group matching gizmos using vanilla's GroupsWith/MergeWith logic so that
+            // identical gizmos from multiple selected pawns collapse to a single entry.
+            var rawGizmos = collected.Select(c => c.gizmo).ToList();
+            var rawOwners = new Dictionary<Gizmo, ISelectable>();
+            foreach (var (gizmo, owner) in collected)
+            {
+                if (!rawOwners.ContainsKey(gizmo))
+                    rawOwners[gizmo] = owner;
+            }
+
+            var groups = new List<List<Gizmo>>();
+            foreach (var gizmo in rawGizmos)
+            {
+                bool grouped = false;
+                for (int i = 0; i < groups.Count; i++)
+                {
+                    if (groups[i][0].GroupsWith(gizmo))
+                    {
+                        groups[i].Add(gizmo);
+                        groups[i][0].MergeWith(gizmo);
+                        grouped = true;
+                        break;
+                    }
+                }
+                if (!grouped)
+                    groups.Add(new List<Gizmo> { gizmo });
+            }
+
+            var representatives = groups
+                .Select(g => g[0])
+                .OrderBy(g => g.Order)
+                .ToList();
+
+            if (representatives.Count == 0)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak($"No command for Shift plus {key.ToStringReadable()}");
+                return true;
+            }
+
+            if (representatives.Count == 1)
+            {
+                Gizmo only = representatives[0];
+                ISelectable owner = rawOwners.TryGetValue(only, out var o) ? o : null;
+                List<Gizmo> group = groups.First(g => g[0] == only);
+                ActivateSingleGizmo(only, owner, group);
+                return true;
+            }
+
+            // Multiple matches — open a WindowlessFloatMenuState so the user hears the
+            // familiar menu-open sound and can pick one. Each option's Label is the full
+            // rich gizmo announcement (owner, hotkey, description, stats, disabled reason)
+            // so the user hears the same info they would in the G menu.
+            var options = new List<FloatMenuOption>();
+            foreach (var rep in representatives)
+            {
+                ISelectable owner = rawOwners.TryGetValue(rep, out var o) ? o : null;
+                List<Gizmo> group = groups.First(g => g[0] == rep);
+                string label = BuildGizmoMenuLabel(rep, owner);
+
+                if (rep.Disabled)
+                {
+                    options.Add(new FloatMenuOption(label, null) { Disabled = true });
+                    continue;
+                }
+
+                Gizmo capturedGizmo = rep;
+                ISelectable capturedOwner = owner;
+                List<Gizmo> capturedGroup = group;
+                options.Add(new FloatMenuOption(label, () =>
+                {
+                    ActivateSingleGizmo(capturedGizmo, capturedOwner, capturedGroup);
+                }));
+            }
+
+            WindowlessFloatMenuState.Open(options, colonistOrders: false);
+            return true;
+        }
+
+        /// <summary>
+        /// Seeds GizmoNavigationState with a single gizmo and invokes ExecuteSelected so
+        /// the existing activation paths (designator, toggle, verb-target, ability, float-
+        /// menu, etc) all apply unchanged. Closes the state afterward so we don't leak a
+        /// phantom single-item G menu.
+        /// </summary>
+        private static void ActivateSingleGizmo(Gizmo gizmo, ISelectable owner, List<Gizmo> group)
+        {
+            availableGizmos.Clear();
+            gizmoOwners.Clear();
+            gizmoGroups.Clear();
+            availableGizmos.Add(gizmo);
+            if (owner != null)
+                gizmoOwners[gizmo] = owner;
+            gizmoGroups[gizmo] = group ?? new List<Gizmo> { gizmo };
+            selectedGizmoIndex = 0;
+            isActive = true;
+            typeahead.ClearSearch();
+            lastAnnouncedOwner = null;
+            pawnJustSelected = false;
+
+            ExecuteSelected();
+
+            // ExecuteSelected closes the state for designator/build paths but leaves it
+            // open for toggle/verb-target/target so the G menu can keep navigating. In
+            // hotkey context the user is done, so close here unconditionally.
+            if (isActive)
+                Close();
+        }
+
+        /// <summary>
+        /// Builds the rich announcement string for a gizmo, mirroring AnnounceCurrentGizmo
+        /// but as a pure function that always includes the owner prefix. Used for
+        /// FloatMenuOption labels when Shift+hotkey has multiple matches.
+        /// </summary>
+        private static string BuildGizmoMenuLabel(Gizmo gizmo, ISelectable owner)
+        {
+            string label = GetGizmoLabel(gizmo);
+            string description = GetGizmoDescription(gizmo);
+            string hotkey = GetGizmoHotkey(gizmo);
+            string statusValue = GetGizmoStatusValue(gizmo);
+
+            string ownerLabel = "";
+            if (owner is Thing thing)
+                ownerLabel = thing.LabelCap.StripTags();
+            else if (owner is WorldObject worldObj)
+                ownerLabel = worldObj.LabelCap.StripTags();
+
+            string announcement = label;
+
+            if (!string.IsNullOrEmpty(ownerLabel))
+                announcement += $" ({ownerLabel})";
+
+            if (!string.IsNullOrEmpty(hotkey))
+                announcement += $" ({hotkey})";
+
+            if (gizmo is Command_Toggle toggle)
+            {
+                bool isOn = toggle.isActive?.Invoke() ?? false;
+                announcement += isOn ? ": ON" : ": OFF";
+            }
+
+            if (!string.IsNullOrEmpty(statusValue))
+                announcement += $": {statusValue}";
+
+            bool isAbility = gizmo is Command_Ability;
+
+            if (!string.IsNullOrEmpty(description) && !isAbility)
+            {
+                string descSep = (gizmo is Command_Toggle || !string.IsNullOrEmpty(statusValue))
+                    ? (announcement.EndsWith(".") ? " " : ". ")
+                    : ": ";
+                announcement += descSep + description;
+            }
+
+            if (gizmo is Command_Target cmdTargetGizmo
+                && cmdTargetGizmo.icon == Pawn_TrainingTracker.AttackTargetTexture)
+            {
+                float attackRange = Pawn_TrainingTracker.AttackTargetRange;
+                string sep = announcement.EndsWith(".") ? " " : ". ";
+                announcement += $"{sep}Range: {attackRange:F0} tiles from master";
+            }
+
+            if (isAbility && gizmo is Command_Ability commandAbility && commandAbility.Ability != null)
+            {
+                string costInfo = GetAbilityCostInfo(commandAbility.Ability);
+                if (!string.IsNullOrEmpty(costInfo))
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + costInfo;
+
+                string rangeInfo = GetAbilityRangeInfo(commandAbility.Ability);
+                if (!string.IsNullOrEmpty(rangeInfo))
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + rangeInfo;
+
+                string cooldownInfo = GetAbilityCooldownInfo(commandAbility.Ability);
+                if (!string.IsNullOrEmpty(cooldownInfo))
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + cooldownInfo;
+
+                if (!string.IsNullOrEmpty(description))
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + description;
+            }
+
+            if (gizmo.Disabled)
+            {
+                string reason = gizmo.disabledReason;
+                if (string.IsNullOrEmpty(reason))
+                    reason = "Not available";
+                announcement += $" Disabled: {reason}";
+
+                string context = GetDisabledGizmoContext(gizmo, owner);
+                if (!string.IsNullOrEmpty(context))
+                    announcement += $". {context}";
+            }
+
+            return announcement;
+        }
+
+        /// <summary>
+        /// Collects all visible gizmos whose hotkey.MainKey matches the given key,
+        /// drawn from both the current selection and the objects at the cursor tile.
+        /// Uses the same temporary-selection pattern as OpenAtCursor for the cursor tile
+        /// so lazy gizmos (e.g. Designator_Install) become visible.
+        /// </summary>
+        private static List<(Gizmo gizmo, ISelectable owner)> CollectHotkeyCandidates(KeyCode key)
+        {
+            var results = new List<(Gizmo, ISelectable)>();
+            var seenGizmos = new HashSet<Gizmo>();
+            var ownersAlreadyProcessed = new HashSet<ISelectable>();
+
+            // 1. Current selection — no need to mutate; these objects' gizmos are live.
+            foreach (object obj in Find.Selector.SelectedObjects)
+            {
+                if (!(obj is ISelectable selectable))
+                    continue;
+                ownersAlreadyProcessed.Add(selectable);
+                foreach (var gizmo in selectable.GetGizmos())
+                {
+                    if (gizmo == null || !gizmo.Visible || ShouldSkipGizmo(gizmo))
+                        continue;
+                    if (!MatchesHotkey(gizmo, key))
+                        continue;
+                    if (seenGizmos.Add(gizmo))
+                        results.Add((gizmo, selectable));
+                }
+            }
+
+            // 2. Cursor tile — temp-select each thing so lazy gizmos appear, then restore.
+            if (!MapNavigationState.IsInitialized)
+                return results;
+
+            IntVec3 cursor = MapNavigationState.CurrentCursorPosition;
+            Map map = Find.CurrentMap;
+            if (!cursor.IsValid || !cursor.InBounds(map))
+                return results;
+
+            var previousSelection = Find.Selector.SelectedObjects.ToList();
+            try
+            {
+                var sortedThings = cursor.GetThingList(map)
+                    .Where(t => !(t is Mote) && t.def.category != ThingCategory.Mote)
+                    .OrderByDescending(t => (int)t.def.altitudeLayer)
+                    .ToList();
+
+                foreach (ISelectable selectable in sortedThings.OfType<ISelectable>())
+                {
+                    if (ownersAlreadyProcessed.Contains(selectable))
+                        continue;
+
+                    Find.Selector.ClearSelection();
+                    Find.Selector.Select(selectable, playSound: false, forceDesignatorDeselect: false);
+
+                    foreach (var gizmo in selectable.GetGizmos())
+                    {
+                        if (gizmo == null || !gizmo.Visible || ShouldSkipGizmo(gizmo))
+                            continue;
+                        if (!MatchesHotkey(gizmo, key))
+                            continue;
+                        if (seenGizmos.Add(gizmo))
+                            results.Add((gizmo, selectable));
+                    }
+
+                    if (selectable is Thing thing)
+                    {
+                        List<Designator> reverseDesignators = Find.ReverseDesignatorDatabase.AllDesignators;
+                        for (int i = 0; i < reverseDesignators.Count; i++)
+                        {
+                            Command_Action reverseGizmo = reverseDesignators[i].CreateReverseDesignationGizmo(thing);
+                            if (reverseGizmo == null || ShouldSkipGizmo(reverseGizmo))
+                                continue;
+                            if (!MatchesHotkey(reverseGizmo, key))
+                                continue;
+                            if (seenGizmos.Add(reverseGizmo))
+                                results.Add((reverseGizmo, selectable));
+                        }
+                    }
+                }
+
+                Zone zone = cursor.GetZone(map);
+                if (zone != null && !ownersAlreadyProcessed.Contains(zone))
+                {
+                    Find.Selector.ClearSelection();
+                    Find.Selector.Select(zone, playSound: false, forceDesignatorDeselect: false);
+
+                    foreach (var gizmo in zone.GetGizmos())
+                    {
+                        if (gizmo == null || !gizmo.Visible || ShouldSkipGizmo(gizmo))
+                            continue;
+                        if (!MatchesHotkey(gizmo, key))
+                            continue;
+                        if (seenGizmos.Add(gizmo))
+                            results.Add((gizmo, zone));
+                    }
+                }
+            }
+            finally
+            {
+                Find.Selector.ClearSelection();
+                foreach (var obj in previousSelection.OfType<ISelectable>())
+                {
+                    Find.Selector.Select(obj, playSound: false, forceDesignatorDeselect: false);
+                }
+            }
+
+            return results;
+        }
+
+        private static bool MatchesHotkey(Gizmo gizmo, KeyCode key)
+        {
+            if (!(gizmo is Command command))
+                return false;
+            if (command.hotKey == null)
+                return false;
+            if (GizmoHotkeyShiftPatch.IsShiftExempt(command.hotKey))
+                return false;
+            return command.hotKey.MainKey == key;
         }
     }
 }

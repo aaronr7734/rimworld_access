@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using RimWorld;
+using UnityEngine;
 using Verse;
-using Verse.Sound;
 
 namespace RimWorldAccess
 {
@@ -27,47 +27,6 @@ namespace RimWorldAccess
             public string DetailedBreakdown { get; set; }
         }
 
-        /// <summary>
-        /// Represents a body part with its hediffs.
-        /// </summary>
-        public class BodyPartInfo
-        {
-            public BodyPartRecord Part { get; set; }
-            public string Label { get; set; }
-            public float Health { get; set; }
-            public float MaxHealth { get; set; }
-            public float Efficiency { get; set; }
-            public List<HediffInfo> Hediffs { get; set; }
-
-            public BodyPartInfo()
-            {
-                Hediffs = new List<HediffInfo>();
-            }
-        }
-
-        /// <summary>
-        /// Represents a hediff (health condition).
-        /// </summary>
-        public class HediffInfo
-        {
-            public Hediff Hediff { get; set; }
-            public string Label { get; set; }
-            public string DetailedInfo { get; set; }
-        }
-
-        /// <summary>
-        /// Represents a medical operation.
-        /// </summary>
-        public class OperationInfo
-        {
-            public RecipeDef Recipe { get; set; }
-            public BodyPartRecord BodyPart { get; set; }
-            public string Label { get; set; }
-            public string Requirements { get; set; }
-            public bool IsAvailable { get; set; }
-            public string UnavailableReason { get; set; }
-        }
-
         #region Medical Settings
 
         /// <summary>
@@ -76,7 +35,7 @@ namespace RimWorldAccess
         public static string GetCurrentFoodRestriction(Pawn pawn)
         {
             if (pawn?.foodRestriction?.CurrentFoodPolicy == null)
-                return "None";
+                return "NoneLower".Translate();
 
             return pawn.foodRestriction.CurrentFoodPolicy.label;
         }
@@ -97,23 +56,11 @@ namespace RimWorldAccess
         /// </summary>
         public static bool SetFoodRestriction(Pawn pawn, FoodPolicy restriction)
         {
-            try
-            {
-                if (pawn?.foodRestriction == null)
-                    return false;
-
-                pawn.foodRestriction.CurrentFoodPolicy = restriction;
-                TolkHelper.Speak($"Food restriction set to: {restriction.label}");
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"[RimWorldAccess] Error setting food restriction: {ex}");
-                TolkHelper.Speak("Error setting food restriction", SpeechPriority.High);
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+            if (pawn?.foodRestriction == null)
                 return false;
-            }
+
+            pawn.foodRestriction.CurrentFoodPolicy = restriction;
+            return true;
         }
 
         /// <summary>
@@ -122,7 +69,7 @@ namespace RimWorldAccess
         public static string GetCurrentMedicalCare(Pawn pawn)
         {
             if (pawn?.playerSettings == null)
-                return "None";
+                return "NoneLower".Translate();
 
             return pawn.playerSettings.medCare.GetLabel();
         }
@@ -142,23 +89,11 @@ namespace RimWorldAccess
         /// </summary>
         public static bool SetMedicalCare(Pawn pawn, MedicalCareCategory care)
         {
-            try
-            {
-                if (pawn?.playerSettings == null)
-                    return false;
-
-                pawn.playerSettings.medCare = care;
-                TolkHelper.Speak($"Medical care set to: {care.GetLabel()}");
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"[RimWorldAccess] Error setting medical care: {ex}");
-                TolkHelper.Speak("Error setting medical care", SpeechPriority.High);
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+            if (pawn?.playerSettings == null)
                 return false;
-            }
+
+            pawn.playerSettings.medCare = care;
+            return true;
         }
 
         /// <summary>
@@ -177,24 +112,11 @@ namespace RimWorldAccess
         /// </summary>
         public static bool ToggleSelfTend(Pawn pawn)
         {
-            try
-            {
-                if (pawn?.playerSettings == null)
-                    return false;
-
-                pawn.playerSettings.selfTend = !pawn.playerSettings.selfTend;
-                string status = pawn.playerSettings.selfTend ? "enabled" : "disabled";
-                TolkHelper.Speak($"Self-tend {status}");
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"[RimWorldAccess] Error toggling self-tend: {ex}");
-                TolkHelper.Speak("Error toggling self-tend", SpeechPriority.High);
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+            if (pawn?.playerSettings == null)
                 return false;
-            }
+
+            pawn.playerSettings.selfTend = !pawn.playerSettings.selfTend;
+            return true;
         }
 
         #endregion
@@ -202,36 +124,28 @@ namespace RimWorldAccess
         #region Capacities
 
         /// <summary>
-        /// Gets all capacity information for a pawn, sorted by level (lowest/most impaired first).
+        /// Gets all capacity information for a pawn, using vanilla's filtering, sorting, and labels.
+        /// Filters by pawn type (humanlike/animal/mechanoid/etc.), sorts by vanilla's listOrder,
+        /// and uses pawn-type-specific labels (e.g. "Data processing" for mechs).
         /// </summary>
         public static List<CapacityInfo> GetCapacities(Pawn pawn)
         {
             var capacities = new List<CapacityInfo>();
 
-            if (pawn?.health?.capacities == null)
+            if (pawn?.health?.capacities == null || pawn.Dead)
                 return capacities;
 
-            // Get key capacities
-            var keyCapacities = new List<PawnCapacityDef>
-            {
-                PawnCapacityDefOf.Consciousness,
-                PawnCapacityDefOf.Sight,
-                PawnCapacityDefOf.Hearing,
-                PawnCapacityDefOf.Moving,
-                PawnCapacityDefOf.Manipulation,
-                PawnCapacityDefOf.Talking,
-                PawnCapacityDefOf.Breathing,
-                PawnCapacityDefOf.BloodFiltration,
-                PawnCapacityDefOf.BloodPumping
-            };
+            // Use vanilla's filtering: only show capacities appropriate for this pawn type
+            var visibleCapacities = DefDatabase<PawnCapacityDef>.AllDefs
+                .Where(cap => cap.CanShowOnPawn(pawn)
+                    && PawnCapacityUtility.BodyCanEverDoCapacity(pawn.RaceProps.body, cap))
+                .OrderBy(cap => cap.listOrder);
 
-            foreach (var capacityDef in keyCapacities)
+            foreach (var capacityDef in visibleCapacities)
             {
-                if (capacityDef == null || !pawn.health.capacities.CapableOf(capacityDef))
-                    continue;
-
                 float level = pawn.health.capacities.GetLevel(capacityDef);
-                string label = capacityDef.LabelCap.ToString().StripTags();
+                // Use pawn-type-specific label (e.g. "Data processing" for mechs)
+                string label = capacityDef.GetLabelFor(pawn).CapitalizeFirst();
                 string levelLabel = GetCapacityLevelLabel(level);
 
                 capacities.Add(new CapacityInfo
@@ -245,65 +159,85 @@ namespace RimWorldAccess
                 });
             }
 
-            // Sort by level (lowest first = most impaired/urgent)
-            capacities = capacities.OrderBy(c => c.Level).ToList();
-
             return capacities;
         }
 
         /// <summary>
-        /// Gets a human-readable label for a capacity level.
+        /// Gets a translatable label for a capacity level using vanilla's EfficiencyEstimate system.
         /// </summary>
         private static string GetCapacityLevelLabel(float level)
         {
-            if (level <= 0f)
-                return "None (0%)";
-            if (level < 0.4f)
-                return $"Very Poor ({level:P0})";
-            if (level < 0.7f)
-                return $"Poor ({level:P0})";
-            if (level < 1.0f)
-                return $"Weakened ({level:P0})";
-            if (level < 1.3f)
-                return $"Good ({level:P0})";
-            return $"Enhanced ({level:P0})";
+            var estimate = HealthCardUtility.EfficiencyValueToEstimate(level);
+            string translatedLabel = estimate.ToString().Translate();
+            return $"{translatedLabel}, {level:P0}";
         }
 
         /// <summary>
-        /// Gets a detailed breakdown of what affects a capacity.
+        /// Gets a detailed breakdown of what affects a capacity,
+        /// matching vanilla's GetPawnCapacityTip() format with impactors grouped by type.
         /// </summary>
         private static string GetCapacityBreakdown(Pawn pawn, PawnCapacityDef capacity)
         {
-            var sb = new StringBuilder();
-            sb.AppendLine($"{capacity.LabelCap.ToString().StripTags()}:");
-            sb.AppendLine();
-
-            // Get capacity breakdown using PawnCapacityUtility
             var impactors = new List<PawnCapacityUtility.CapacityImpactor>();
-            float level = PawnCapacityUtility.CalculateCapacityLevel(
+            PawnCapacityUtility.CalculateCapacityLevel(
                 pawn.health.hediffSet,
                 capacity,
                 impactors
             );
 
-            sb.AppendLine($"Current level: {level:P0}");
-            sb.AppendLine();
+            // Filter out capacities that can't show on this pawn (matches vanilla)
+            impactors.RemoveAll(x =>
+                x is PawnCapacityUtility.CapacityImpactorCapacity capImpactor
+                && !capImpactor.capacity.CanShowOnPawn(pawn));
 
-            if (impactors != null && impactors.Count > 0)
+            if (impactors.Count == 0)
+                return string.Empty;
+
+            var sb = new StringBuilder();
+            sb.AppendLine("AffectedBy".Translate().ToString());
+
+            // Group by type like vanilla does: hediffs first, then body parts, then genes, then capacities
+            var seenHediffs = new HashSet<Hediff>();
+            var seenBodyParts = new HashSet<BodyPartRecord>();
+            var seenGenes = new HashSet<object>();
+
+            foreach (var impactor in impactors)
             {
-                sb.AppendLine("Factors:");
-                foreach (var impactor in impactors)
+                if (impactor is PawnCapacityUtility.CapacityImpactorHediff hediffImpactor)
                 {
-                    string readable = impactor.Readable(pawn);
-                    if (!string.IsNullOrEmpty(readable))
-                    {
-                        sb.AppendLine($"  {readable}");
-                    }
+                    if (seenHediffs.Add(hediffImpactor.hediff))
+                        sb.AppendLine($"  {impactor.Readable(pawn)}");
                 }
             }
-            else
+            foreach (var impactor in impactors)
             {
-                sb.AppendLine("No factors affecting this capacity");
+                if (impactor is PawnCapacityUtility.CapacityImpactorBodyPartHealth bpImpactor)
+                {
+                    if (seenBodyParts.Add(bpImpactor.bodyPart))
+                        sb.AppendLine($"  {impactor.Readable(pawn)}");
+                }
+            }
+            foreach (var impactor in impactors)
+            {
+                if (impactor is PawnCapacityUtility.CapacityImpactorGene geneImpactor)
+                {
+                    if (seenGenes.Add(geneImpactor.gene))
+                        sb.AppendLine($"  {impactor.Readable(pawn)}");
+                }
+            }
+            foreach (var impactor in impactors)
+            {
+                if (impactor is PawnCapacityUtility.CapacityImpactorCapacity)
+                {
+                    sb.AppendLine($"  {impactor.Readable(pawn)}");
+                }
+            }
+            foreach (var impactor in impactors)
+            {
+                if (impactor is PawnCapacityUtility.CapacityImpactorPain)
+                {
+                    sb.AppendLine($"  {impactor.Readable(pawn)}");
+                }
             }
 
             return sb.ToString().TrimEnd();
@@ -325,19 +259,43 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets all available recipe types (operations) for a pawn, without body part specifics.
+        /// Gets available recipe types (operations) for a pawn, matching vanilla's
+        /// dynamic ingredient-aware filtering from HealthCardUtility.DrawMedOperationsTab.
         /// </summary>
         public static List<RecipeDef> GetAvailableRecipes(Pawn pawn)
         {
             if (pawn?.health == null)
                 return new List<RecipeDef>();
 
-            // Get all medical recipes that can be performed on this pawn
-            var recipes = DefDatabase<RecipeDef>.AllDefs
-                .Where(r => r.AllRecipeUsers != null &&
-                           r.AllRecipeUsers.Contains(pawn.def) &&
-                           r.AvailableNow)
-                .ToList();
+            var recipes = new List<RecipeDef>();
+
+            foreach (RecipeDef recipe in pawn.def.AllRecipes)
+            {
+                if (!recipe.AvailableNow)
+                    continue;
+
+                AcceptanceReport report = recipe.Worker.AvailableReport(pawn);
+                if (!report.Accepted && report.Reason.NullOrEmpty())
+                    continue;
+
+                // Match vanilla: hide recipes where required tech hediffs or drugs are missing
+                if (pawn.MapHeld != null)
+                {
+                    var missing = recipe.PotentiallyMissingIngredients(null, pawn.MapHeld);
+                    if (missing.Any(x => x.isTechHediff) || missing.Any(x => x.IsDrug))
+                        continue;
+                    if (missing.Any() && recipe.dontShowIfAnyIngredientMissing)
+                        continue;
+                }
+
+                // Match vanilla: for non-body-part recipes that add a hediff,
+                // hide if pawn already has that hediff
+                if (!recipe.targetsBodyPart && recipe.addsHediff != null
+                    && pawn.health.hediffSet.HasHediff(recipe.addsHediff))
+                    continue;
+
+                recipes.Add(recipe);
+            }
 
             return recipes;
         }
@@ -367,120 +325,17 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets all available operations for a pawn.
-        /// </summary>
-        public static List<OperationInfo> GetAvailableOperations(Pawn pawn)
-        {
-            var operations = new List<OperationInfo>();
-
-            if (pawn?.health == null)
-                return operations;
-
-            // Get all medical recipes
-            var recipes = DefDatabase<RecipeDef>.AllDefs
-                .Where(r => r.AllRecipeUsers != null &&
-                           r.AllRecipeUsers.Contains(pawn.def) &&
-                           r.AvailableNow)
-                .ToList();
-
-            foreach (var recipe in recipes)
-            {
-                // Check if recipe applies to whole body or specific parts
-                if (recipe.appliedOnFixedBodyParts != null && recipe.appliedOnFixedBodyParts.Count > 0)
-                {
-                    // Recipe applies to specific body parts
-                    foreach (var part in pawn.health.hediffSet.GetNotMissingParts())
-                    {
-                        if (recipe.appliedOnFixedBodyParts.Contains(part.def))
-                        {
-                            var opInfo = CreateOperationInfo(pawn, recipe, part);
-                            operations.Add(opInfo);
-                        }
-                    }
-                }
-                else
-                {
-                    // Recipe applies to whole body
-                    var opInfo = CreateOperationInfo(pawn, recipe, null);
-                    operations.Add(opInfo);
-                }
-            }
-
-            return operations;
-        }
-
-        private static OperationInfo CreateOperationInfo(Pawn pawn, RecipeDef recipe, BodyPartRecord part)
-        {
-            var opInfo = new OperationInfo
-            {
-                Recipe = recipe,
-                BodyPart = part,
-                Label = recipe.LabelCap.ToString().StripTags()
-            };
-
-            if (part != null)
-            {
-                opInfo.Label += $" ({part.Label})";
-            }
-
-            // Check availability
-            var violations = new List<string>();
-            if (!recipe.Worker.AvailableOnNow(pawn, part))
-            {
-                opInfo.IsAvailable = false;
-                opInfo.UnavailableReason = "Not available on this pawn";
-            }
-            else
-            {
-                opInfo.IsAvailable = true;
-            }
-
-            // Get requirements
-            var reqSb = new StringBuilder();
-            if (recipe.ingredients != null && recipe.ingredients.Count > 0)
-            {
-                reqSb.Append("Requires: ");
-                foreach (var ingredient in recipe.ingredients)
-                {
-                    reqSb.Append($"{ingredient.Summary}, ");
-                }
-                opInfo.Requirements = reqSb.ToString().TrimEnd(',', ' ');
-            }
-
-            return opInfo;
-        }
-
-        /// <summary>
         /// Adds an operation to a pawn's bill stack.
         /// </summary>
         public static bool AddOperation(Pawn pawn, RecipeDef recipe, BodyPartRecord part)
         {
-            try
-            {
-                if (pawn?.BillStack == null)
-                    return false;
-
-                // Create bill using proper constructor with recipe and uniqueIngredients
-                // Pass null for uniqueIngredients as we're not pre-selecting ingredients
-                Bill_Medical bill = new Bill_Medical(recipe, null);
-
-                // Add bill to stack FIRST
-                pawn.BillStack.AddBill(bill);
-
-                // THEN set the body part (must be done after adding to stack)
-                bill.Part = part;
-
-                TolkHelper.Speak($"Added operation: {recipe.LabelCap.ToString().StripTags()}");
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"[RimWorldAccess] Error adding operation: {ex}");
-                TolkHelper.Speak("Error adding operation", SpeechPriority.High);
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+            if (pawn?.BillStack == null)
                 return false;
-            }
+
+            Bill_Medical bill = new Bill_Medical(recipe, null);
+            pawn.BillStack.AddBill(bill);
+            bill.Part = part;
+            return true;
         }
 
         /// <summary>
@@ -488,197 +343,16 @@ namespace RimWorldAccess
         /// </summary>
         public static bool RemoveOperation(Pawn pawn, Bill bill)
         {
-            try
-            {
-                if (pawn?.BillStack == null || bill == null)
-                    return false;
-
-                pawn.BillStack.Delete(bill);
-                TolkHelper.Speak($"Removed operation: {bill.LabelCap.ToString().StripTags()}");
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"[RimWorldAccess] Error removing operation: {ex}");
-                TolkHelper.Speak("Error removing operation", SpeechPriority.High);
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+            if (pawn?.BillStack == null || bill == null)
                 return false;
-            }
+
+            pawn.BillStack.Delete(bill);
+            return true;
         }
 
         #endregion
 
-        #region Body Parts & Hediffs
-
-        /// <summary>
-        /// Gets all body parts with their hediffs organized, sorted by severity (most damaged first).
-        /// Uses health percentage (lower = more urgent) and prioritizes core/vital parts.
-        /// </summary>
-        public static List<BodyPartInfo> GetBodyPartsWithHediffs(Pawn pawn)
-        {
-            var parts = new List<BodyPartInfo>();
-
-            if (pawn?.health?.hediffSet == null)
-                return parts;
-
-            // First, get whole-body hediffs
-            var wholeBodyHediffs = pawn.health.hediffSet.hediffs
-                .Where(h => h.Part == null && h.Visible)
-                .OrderByDescending(h => h.Severity) // Most severe first
-                .ToList();
-
-            if (wholeBodyHediffs.Count > 0)
-            {
-                var wholeBodyPart = new BodyPartInfo
-                {
-                    Part = null,
-                    Label = "Whole Body",
-                    Health = 0,
-                    MaxHealth = 0,
-                    Efficiency = 1.0f
-                };
-
-                foreach (var hediff in wholeBodyHediffs)
-                {
-                    wholeBodyPart.Hediffs.Add(CreateHediffInfo(hediff));
-                }
-
-                parts.Add(wholeBodyPart);
-            }
-
-            // Then get hediffs for each body part
-            foreach (var part in pawn.health.hediffSet.GetNotMissingParts())
-            {
-                var hediffs = pawn.health.hediffSet.hediffs
-                    .Where(h => h.Part == part && h.Visible)
-                    .OrderByDescending(h => h.Severity) // Most severe first within each part
-                    .ToList();
-
-                if (hediffs.Count == 0)
-                    continue;
-
-                float partHealth = pawn.health.hediffSet.GetPartHealth(part);
-                float maxHealth = part.def.GetMaxHealth(pawn);
-                float efficiency = PawnCapacityUtility.CalculatePartEfficiency(pawn.health.hediffSet, part);
-
-                var partInfo = new BodyPartInfo
-                {
-                    Part = part,
-                    Label = part.Label,
-                    Health = partHealth,
-                    MaxHealth = maxHealth,
-                    Efficiency = efficiency
-                };
-
-                foreach (var hediff in hediffs)
-                {
-                    partInfo.Hediffs.Add(CreateHediffInfo(hediff));
-                }
-
-                parts.Add(partInfo);
-            }
-
-            // Sort parts: core/vital parts first, then by health percentage (lowest first = most damaged)
-            parts = parts
-                .OrderByDescending(p => p.Part?.IsCorePart ?? true) // Core parts first (whole body counts as core)
-                .ThenBy(p => p.MaxHealth > 0 ? p.Health / p.MaxHealth : 1f) // Lowest health % first
-                .ThenBy(p => p.Efficiency) // Lowest efficiency first
-                .ToList();
-
-            return parts;
-        }
-
-        private static HediffInfo CreateHediffInfo(Hediff hediff)
-        {
-            return new HediffInfo
-            {
-                Hediff = hediff,
-                Label = hediff.LabelCap.ToString().StripTags(),
-                DetailedInfo = GetHediffDetailedInfo(hediff)
-            };
-        }
-
-        private static string GetHediffDetailedInfo(Hediff hediff)
-        {
-            var sb = new StringBuilder();
-            sb.AppendLine($"{hediff.LabelCap.ToString().StripTags()}:");
-            sb.AppendLine();
-
-            // Part affected (show mechanical effects first)
-            if (hediff.Part != null)
-            {
-                // Show part efficiency if available
-                string partInfo = $"Affects: {hediff.Part.Label}";
-                if (hediff.pawn != null)
-                {
-                    float efficiency = PawnCapacityUtility.CalculatePartEfficiency(hediff.pawn.health.hediffSet, hediff.Part);
-                    if (efficiency < 0.999f) // Only show if less than 100%
-                    {
-                        partInfo += $" (part at {efficiency:P0})";
-                    }
-                }
-                sb.AppendLine(partInfo);
-                sb.AppendLine();
-            }
-
-            // Get all mechanical effects from RimWorld's TipStringExtra
-            string tipExtra = hediff.TipStringExtra;
-            if (!string.IsNullOrEmpty(tipExtra))
-            {
-                sb.AppendLine(tipExtra.Trim());
-                sb.AppendLine();
-            }
-
-            // Severity/Stage (if not already in TipStringExtra)
-            if (hediff.def.stages != null && hediff.def.stages.Count > 0)
-            {
-                sb.AppendLine($"Stage: {hediff.CurStageIndex + 1} of {hediff.def.stages.Count}");
-                sb.AppendLine($"Severity: {hediff.Severity:F2}");
-                sb.AppendLine();
-            }
-
-            // Immunity
-            if (hediff.TryGetComp<HediffComp_Immunizable>() is HediffComp_Immunizable immunizable)
-            {
-                if (hediff.pawn != null && hediff.pawn.health?.immunity != null)
-                {
-                    float immunity = hediff.pawn.health.immunity.GetImmunity(hediff.def);
-                    sb.AppendLine($"Immunity: {immunity:P0}");
-                    sb.AppendLine();
-                }
-            }
-
-            // Bleeding
-            if (hediff.Bleeding)
-            {
-                sb.AppendLine($"Bleeding: {hediff.BleedRate:F2} per day");
-                sb.AppendLine();
-            }
-
-            // Pain
-            float pain = hediff.PainOffset;
-            if (pain > 0.01f)
-            {
-                sb.AppendLine($"Pain: +{pain:P0}");
-                sb.AppendLine();
-            }
-
-            // Tendable
-            if (hediff.TendableNow())
-            {
-                sb.AppendLine("Can be tended");
-                sb.AppendLine();
-            }
-
-            // Description (show after mechanical effects)
-            if (!string.IsNullOrEmpty(hediff.def.description))
-            {
-                sb.AppendLine(hediff.def.description);
-            }
-
-            return sb.ToString().TrimEnd();
-        }
+        #region Hediff Information
 
         /// <summary>
         /// Gets comprehensive effect information for a hediff, focusing on functional impacts.
@@ -694,14 +368,13 @@ namespace RimWorldAccess
             // Life-threatening status (show first as most critical)
             if (hediff.IsCurrentlyLifeThreatening)
             {
-                sb.AppendLine("LIFE THREATENING");
+                sb.AppendLine("PawnsWithLifeThreateningDisease".Translate().ToString().ToUpper());
             }
 
             // Use vanilla's TipStringExtra - this is what sighted players see in tooltips
             string tipExtra = hediff.TipStringExtra;
             if (!string.IsNullOrEmpty(tipExtra))
             {
-                // Strip color tags and clean up
                 string cleaned = tipExtra.StripTags().Trim();
                 if (!string.IsNullOrEmpty(cleaned))
                 {
@@ -709,14 +382,109 @@ namespace RimWorldAccess
                 }
             }
 
-            string result = sb.ToString().Trim();
-            if (string.IsNullOrEmpty(result))
+            return sb.ToString().Trim();
+        }
+
+        /// <summary>
+        /// Gets the vanilla pain label (qualitative + percentage) using translation keys.
+        /// Returns null if no pain (for flesh pawns) or not applicable.
+        /// </summary>
+        public static string GetPainLabel(Pawn pawn)
+        {
+            if (pawn?.health?.hediffSet == null || !pawn.def.race.IsFlesh)
+                return null;
+
+            float painTotal = pawn.health.hediffSet.PainTotal;
+            if (Mathf.Approximately(painTotal, 0f))
+                return null;
+
+            string qualitative;
+            if (painTotal < 0.15f)
+                qualitative = "LittlePain".Translate();
+            else if (painTotal < 0.4f)
+                qualitative = "MediumPain".Translate();
+            else if (painTotal < 0.8f)
+                qualitative = "SeverePain".Translate();
+            else
+                qualitative = "ExtremePain".Translate();
+
+            return $"{"PainLevel".Translate()}: {qualitative} ({painTotal:P0})";
+        }
+
+        /// <summary>
+        /// Gets the bleeding rate label with time-to-death information, using vanilla translation keys.
+        /// Returns null if not bleeding.
+        /// </summary>
+        public static string GetBleedingLabel(Pawn pawn)
+        {
+            if (pawn?.health?.hediffSet == null)
+                return null;
+
+            float bleedRate = pawn.health.hediffSet.BleedRateTotal;
+            if (bleedRate <= 0.01f)
+                return null;
+
+            string label = $"{"BleedingRate".Translate()}: {bleedRate.ToStringPercent()}/{"LetterDay".Translate()}";
+
+            // Add time-to-death or safety status
+            if (ModsConfig.BiotechActive && pawn.genes != null
+                && pawn.genes.HasActiveGene(GeneDefOf.Deathless))
             {
-                // Fallback only if truly nothing to show
-                return "No effects";
+                label += $" ({"Deathless".Translate()})";
+            }
+            else
+            {
+                int ticksUntilDeath = HealthUtility.TicksUntilDeathDueToBloodLoss(pawn);
+                if (ticksUntilDeath >= 60000)
+                    label += $" ({"WontBleedOutSoon".Translate()})";
+                else
+                    label += $" ({"TimeToDeath".Translate(ticksUntilDeath.ToStringTicksToPeriod())})";
             }
 
-            return result;
+            return label;
+        }
+
+        /// <summary>
+        /// Gets visible hediffs using vanilla's own filtering logic.
+        /// Uses GetMissingPartsCommonAncestors() for missing parts (handles bionics correctly)
+        /// and all other visible non-MissingPart hediffs.
+        /// </summary>
+        public static IEnumerable<Hediff> GetVisibleHediffs(Pawn pawn, bool showBloodLoss = true)
+        {
+            if (pawn?.health?.hediffSet == null)
+                yield break;
+
+            // Missing parts via vanilla's smart common-ancestor logic
+            // (already filters out bionic-replaced parts)
+            var missingParts = pawn.health.hediffSet.GetMissingPartsCommonAncestors();
+            for (int i = 0; i < missingParts.Count; i++)
+            {
+                yield return missingParts[i];
+            }
+
+            // All other visible hediffs (excluding MissingPart to avoid doubles)
+            foreach (var hediff in pawn.health.hediffSet.hediffs)
+            {
+                if (hediff is Hediff_MissingPart)
+                    continue;
+                if (!hediff.Visible)
+                    continue;
+                if (!showBloodLoss && hediff.def == HediffDefOf.BloodLoss)
+                    continue;
+
+                yield return hediff;
+            }
+        }
+
+        /// <summary>
+        /// Gets the sort priority for a body part, matching vanilla's GetListPriority().
+        /// Higher priority = shown first. Whole body (null) has highest priority.
+        /// </summary>
+        public static float GetHediffListPriority(BodyPartRecord rec)
+        {
+            if (rec == null)
+                return 9999999f;
+            return (float)((int)rec.height * 10000) + rec.coverageAbsWithChildren;
         }
 
         #endregion

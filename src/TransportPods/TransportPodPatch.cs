@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
 using UnityEngine;
 using Verse;
 
@@ -383,6 +385,90 @@ namespace RimWorldAccess
                 {
                     TolkHelper.Speak("Select landing spot. Use arrow keys to navigate, Space to confirm.", SpeechPriority.High);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Patch for WorldTargeter.BeginTargeting to detect shuttle launches that bypass CompLaunchable.
+        /// Permit shuttles (ShipJob_Wait.LaunchAction) and caravan shuttles (CallShuttleToCaravan)
+        /// call WorldTargeter.BeginTargeting directly with CompLaunchable.TargeterMouseAttachment,
+        /// but never call CompLaunchable.StartChoosingDestination, so TransportPodLaunchState
+        /// never activates. This patch catches those cases.
+        /// </summary>
+        [HarmonyPatch(typeof(WorldTargeter))]
+        [HarmonyPatch("BeginTargeting")]
+        public static class WorldTargeter_BeginTargeting_ShuttleLaunch_Patch
+        {
+            [HarmonyPostfix]
+            public static void Postfix(Texture2D mouseAttachment)
+            {
+                // Only handle launch targeting (identified by the launch mouse attachment icon)
+                if (mouseAttachment != CompLaunchable.TargeterMouseAttachment)
+                    return;
+
+                // If TransportPodLaunchState is already active (from CompLaunchable.StartChoosingDestination),
+                // don't double-activate
+                if (TransportPodLaunchState.IsActive)
+                    return;
+
+                // Extract origin tile and max range from context
+                PlanetTile originTile = PlanetTile.Invalid;
+                int maxRange = 0;
+
+                // Try to find the shuttle on the current map to get its actual max launch distance
+                Map currentMap = Find.CurrentMap;
+                if (currentMap != null)
+                {
+                    originTile = currentMap.Tile;
+                    maxRange = GetShuttleMaxRangeFromMap(currentMap);
+                }
+                else
+                {
+                    // Caravan context: no current map, try to get origin from world selector
+                    var selectedObjects = Find.WorldSelector?.SelectedObjects;
+                    if (selectedObjects != null)
+                    {
+                        foreach (var obj in selectedObjects)
+                        {
+                            if (obj is Caravan caravan)
+                            {
+                                originTile = caravan.Tile;
+                                break;
+                            }
+                        }
+                    }
+                    // For caravan shuttles, use the shuttle ship def's max range
+                    if (TransportShipDefOf.Ship_Shuttle != null)
+                        maxRange = TransportShipDefOf.Ship_Shuttle.maxLaunchDistance;
+                }
+
+                TransportPodLaunchState.Open(originTile, maxRange);
+            }
+
+            /// <summary>
+            /// Finds a shuttle on the map and returns its TransportShipDef's maxLaunchDistance.
+            /// Looks for things with CompShuttle that have an active TransportShip parent.
+            /// </summary>
+            private static int GetShuttleMaxRangeFromMap(Map map)
+            {
+                // Look for the Shuttle ThingDef on the map
+                if (ThingDefOf.Shuttle != null)
+                {
+                    foreach (Thing thing in map.listerThings.ThingsOfDef(ThingDefOf.Shuttle))
+                    {
+                        CompShuttle shuttle = thing.TryGetComp<CompShuttle>();
+                        if (shuttle?.shipParent != null)
+                        {
+                            return shuttle.shipParent.def.maxLaunchDistance;
+                        }
+                    }
+                }
+
+                // Fallback: use the standard shuttle def
+                if (TransportShipDefOf.Ship_Shuttle != null)
+                    return TransportShipDefOf.Ship_Shuttle.maxLaunchDistance;
+
+                return 0;
             }
         }
     }

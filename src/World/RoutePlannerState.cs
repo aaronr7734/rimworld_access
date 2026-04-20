@@ -403,7 +403,7 @@ namespace RimWorldAccess
                 {
                     // SAFETY CHECK: Verify the dialog's map still exists before trying to reopen
                     // This prevents soft locks when:
-                    // 1. User reformed a caravan (Shift+C) - map was removed after TryReformCaravan
+                    // 1. User reformed a caravan (C) - map was removed after TryReformCaravan
                     // 2. Route planner wasn't properly stopped (game bug - PostOpen starts it for ALL dialogs)
                     // 3. User presses Enter on world map, we try to reopen a stale dialog
                     var mapField = HarmonyLib.AccessTools.Field(typeof(Dialog_FormCaravan), "map");

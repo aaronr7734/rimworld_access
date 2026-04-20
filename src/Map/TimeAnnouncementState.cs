@@ -78,23 +78,29 @@ namespace RimWorldAccess
             string timeString;
             if (Prefs.TwelveHourClockMode)
             {
-                // 12-hour format
+                string amPm;
+                int displayHour;
                 if (hour == 0)
                 {
-                    timeString = $"12:{minute:D2} AM";
+                    displayHour = 12;
+                    amPm = "AM".Translate();
                 }
                 else if (hour < 12)
                 {
-                    timeString = $"{hour}:{minute:D2} AM";
+                    displayHour = hour;
+                    amPm = "AM".Translate();
                 }
                 else if (hour == 12)
                 {
-                    timeString = $"12:{minute:D2} PM";
+                    displayHour = 12;
+                    amPm = "PM".Translate();
                 }
                 else
                 {
-                    timeString = $"{hour - 12}:{minute:D2} PM";
+                    displayHour = hour - 12;
+                    amPm = "PM".Translate();
                 }
+                timeString = $"{displayHour}:{minute:D2} {amPm}";
             }
             else
             {
@@ -102,18 +108,18 @@ namespace RimWorldAccess
                 timeString = $"{hour:D2}:{minute:D2}";
             }
 
-            sb.Append($"Time: {timeString}");
+            sb.Append($"{"ClockTime".Translate()}: {timeString}");
 
             // Weather (only if on a map)
             if (Find.CurrentMap?.weatherManager?.curWeather != null)
             {
                 WeatherDef weather = Find.CurrentMap.weatherManager.curWeather;
-                sb.Append($", Weather: {weather.LabelCap}");
+                sb.Append($", {"Weather".Translate()}: {weather.LabelCap}");
             }
 
             // Date
             string dateString = GenDate.DateReadoutStringAt(absTicks, longLat);
-            sb.Append($", Date: {dateString}");
+            sb.Append($", {"ClockDate".Translate()}: {dateString}");
 
             // Season (only if on a map, not on world view)
             if (Find.CurrentMap != null && season != Season.Undefined)
@@ -124,7 +130,10 @@ namespace RimWorldAccess
 
             // Days passed since game start (useful context)
             int daysPassed = GenDate.DaysPassed;
-            sb.Append($", Days passed: {daysPassed}");
+            string daysPhrase = daysPassed == 1
+                ? "Period1Day".Translate().ToString()
+                : "PeriodDays".Translate(daysPassed).ToString();
+            sb.Append($", Days passed: {daysPhrase}");
 
             // Copy to clipboard for screen reader
             TolkHelper.Speak(sb.ToString());

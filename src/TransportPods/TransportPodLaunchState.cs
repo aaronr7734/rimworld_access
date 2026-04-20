@@ -22,6 +22,18 @@ namespace RimWorldAccess
         private static float cachedFuelLevel = 0f;
         private static float cachedMaxRange = 0f;
         private static bool isConfirmingDestination = false;
+        private static PlanetTile cachedOriginTile = PlanetTile.Invalid;
+
+        // Single-BFS cache: all tiles reachable within maxRange, with their traversal distances.
+        // Built once on Open(), used for O(1) reachability checks and distance lookups.
+        // Keyed by tile ID (int) rather than PlanetTile to avoid layer mismatch issues
+        // (biome center tiles use layer -1, but BFS produces tiles on the actual layer).
+        private static Dictionary<int, int> reachableTileDistances = null;
+
+        /// <summary>
+        /// Gets the origin tile for this launch.
+        /// </summary>
+        public static PlanetTile OriginTile => cachedOriginTile;
 
         /// <summary>
         /// Gets whether launch targeting mode is currently active.
@@ -62,7 +74,75 @@ namespace RimWorldAccess
             cachedFuelLevel = TransportPodHelper.GetFuelLevel(launchable);
             cachedMaxRange = TransportPodHelper.GetMaxLaunchDistance(launchable);
 
+            // Cache origin tile from the launchable's map
+            if (launchable.parent?.Map != null)
+                cachedOriginTile = launchable.parent.Map.Tile;
+            else
+                cachedOriginTile = PlanetTile.Invalid;
+
+            BuildReachableTileCache();
+
             TolkHelper.Speak($"Launch targeting. {cachedFuelLevel:F0} chemfuel available, max range {cachedMaxRange:F0} tiles. Use scanner to browse destinations.");
+        }
+
+        /// <summary>
+        /// Opens launch targeting state for shuttles or other non-CompLaunchable launches.
+        /// Used when WorldTargeter.BeginTargeting is called directly (e.g., permit shuttles).
+        /// </summary>
+        public static void Open(PlanetTile originTile, int maxLaunchDistance)
+        {
+            currentLaunchable = null;
+            isActive = true;
+            cachedFuelLevel = -1f; // Sentinel: no per-tile fuel tracking
+            cachedMaxRange = maxLaunchDistance;
+            cachedOriginTile = originTile;
+
+            BuildReachableTileCache();
+
+            if (maxLaunchDistance > 0)
+                TolkHelper.Speak($"Launch targeting. Max range {maxLaunchDistance} tiles. Use scanner to browse destinations.");
+            else
+                TolkHelper.Speak("Launch targeting. Unlimited range. Use scanner to browse destinations.");
+        }
+
+        /// <summary>
+        /// Performs a single BFS FloodFill on the Surface layer, collecting all tiles
+        /// within maxRange along with their traversal distances.
+        /// Built on Surface because landing destinations are always surface tiles.
+        /// If the origin is on a different layer (e.g., orbit), converts to its
+        /// surface equivalent first, matching the game's cross-layer handling.
+        /// </summary>
+        private static void BuildReachableTileCache()
+        {
+            reachableTileDistances = new Dictionary<int, int>();
+
+            if (!cachedOriginTile.Valid || cachedMaxRange <= 0 || Find.WorldGrid == null)
+                return;
+
+            int maxRange = (int)cachedMaxRange;
+
+            // Build BFS on Surface layer — landing destinations are always on the surface.
+            PlanetLayer surface = Find.WorldGrid.Surface;
+            PlanetTile surfaceOrigin = (cachedOriginTile.Layer == surface)
+                ? cachedOriginTile
+                : surface.GetClosestTile_NewTemp(cachedOriginTile);
+
+            if (!surfaceOrigin.Valid)
+                return;
+
+            int maxTiles = Find.WorldGrid.TilesNumWithinTraversalDistance(maxRange + 1);
+
+            surface.Filler.FloodFill(
+                surfaceOrigin,
+                (PlanetTile tile) => true,
+                (PlanetTile tile, int dist) =>
+                {
+                    if (dist > maxRange)
+                        return true;
+                    reachableTileDistances[(int)tile] = dist;
+                    return false;
+                },
+                maxTiles);
         }
 
         /// <summary>
@@ -74,7 +154,9 @@ namespace RimWorldAccess
             currentLaunchable = null;
             cachedFuelLevel = 0f;
             cachedMaxRange = 0f;
+            cachedOriginTile = PlanetTile.Invalid;
             isConfirmingDestination = false;
+            reachableTileDistances = null;
         }
 
         /// <summary>
@@ -98,7 +180,10 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Checks if a destination at the given distance is reachable.
+        /// Checks if a destination at the given approximate distance is reachable.
+        /// Uses approximate distance for fast checks (scanner filtering).
+        /// Note: ApproxDistanceInTiles underestimates vs the game's TraversalDistanceBetween,
+        /// so this may include some tiles that are actually out of range.
         /// </summary>
         public static bool CanReachDistance(float distanceInTiles)
         {
@@ -106,21 +191,106 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Checks if a destination tile is reachable, using the pre-built BFS cache.
+        /// O(1) lookup — no pathfinding per call.
+        /// </summary>
+        public static bool CanReachTile(PlanetTile destination)
+        {
+            if (reachableTileDistances == null || cachedMaxRange <= 0)
+                return true; // No range limit or cache not built
+
+            return reachableTileDistances.ContainsKey((int)destination);
+        }
+
+        /// <summary>
+        /// Gets the BFS traversal distance for a tile from the cache.
+        /// Returns -1 if the tile is not in the reachable cache.
+        /// </summary>
+        public static int GetCachedDistance(PlanetTile tile)
+        {
+            if (reachableTileDistances != null && reachableTileDistances.TryGetValue((int)tile, out int dist))
+                return dist;
+            return -1;
+        }
+
+        /// <summary>
+        /// Gets the traversal distance (actual tile hops) to a destination from the BFS cache.
+        /// Falls back to TraversalDistanceBetween if the tile wasn't in the cache
+        /// (e.g., for tiles beyond max range that the user navigated to directly).
+        /// </summary>
+        public static int GetTraversalDistance(PlanetTile destination)
+        {
+            if (!cachedOriginTile.Valid || !destination.Valid)
+                return 0;
+
+            // Fast path: lookup from BFS cache
+            if (reachableTileDistances != null && reachableTileDistances.TryGetValue((int)destination, out int dist))
+                return dist;
+
+            // Slow path: tile not in cache (beyond range), compute individually
+            return Find.WorldGrid.TraversalDistanceBetween(
+                cachedOriginTile, destination, passImpassable: true, int.MaxValue, canTraverseLayers: true);
+        }
+
+        /// <summary>
         /// Builds a fuel cost announcement for a destination.
         /// </summary>
         public static string GetFuelCostAnnouncement(float distanceInTiles)
         {
-            if (!isActive || currentLaunchable == null)
+            if (!isActive)
                 return "";
 
-            return TransportPodHelper.BuildFuelCostAnnouncement(currentLaunchable, distanceInTiles);
+            // For transport pods with CompLaunchable, use detailed fuel cost calculation
+            if (currentLaunchable != null)
+                return TransportPodHelper.BuildFuelCostAnnouncement(currentLaunchable, distanceInTiles);
+
+            // For shuttles (no CompLaunchable), use approximate distance for quick check
+            // Note: accurate range checking uses CanReachTile with traversal distance
+            if (cachedMaxRange > 0 && distanceInTiles > cachedMaxRange)
+                return "OUT OF RANGE";
+
+            return "";
         }
 
         /// <summary>
-        /// Gets the origin tile for distance calculations.
+        /// Gets fuel cost announcement using traversal distance.
+        /// Uses the game's own FuelNeededToLaunchAtDist for transport pods,
+        /// and traversal distance vs max range for shuttles.
+        /// </summary>
+        public static string GetFuelCostAnnouncementForTile(PlanetTile destination)
+        {
+            if (!isActive || !cachedOriginTile.Valid || !destination.Valid)
+                return "";
+
+            // Use BFS cache for traversal distance (O(1) lookup)
+            int traversalDist = GetTraversalDistance(destination);
+
+            // For transport pods with CompLaunchable, use the game's own fuel cost method
+            if (currentLaunchable != null)
+            {
+                float fuelNeeded = currentLaunchable.FuelNeededToLaunchAtDist(traversalDist, destination.Layer);
+                if (fuelNeeded > cachedFuelLevel)
+                    return $"NOT ENOUGH FUEL, need {fuelNeeded:F0}, have {cachedFuelLevel:F0}";
+                return $"{fuelNeeded:F0} chemfuel";
+            }
+
+            // For shuttles (no CompLaunchable), check traversal distance vs max range
+            if (cachedMaxRange > 0 && traversalDist > (int)cachedMaxRange)
+                return "OUT OF RANGE";
+
+            return "";
+        }
+
+        /// <summary>
+        /// Gets the origin tile index for distance calculations.
         /// </summary>
         public static int GetOriginTile()
         {
+            // Use cached origin tile (works for both CompLaunchable and shuttle launches)
+            if (cachedOriginTile.Valid)
+                return cachedOriginTile;
+
+            // Fallback to CompLaunchable's map tile
             if (currentLaunchable?.parent?.Map == null)
                 return -1;
 
@@ -196,21 +366,8 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Check if destination is in range
-            int originTile = GetOriginTile();
-            if (originTile < 0)
-            {
-                TolkHelper.Speak("Cannot determine origin tile", SpeechPriority.High);
-                return;
-            }
-
-            float distance = Find.WorldGrid.ApproxDistanceInTiles(originTile, selectedTile);
-            if (!CanReachDistance(distance))
-            {
-                float fuelNeeded = CalculateFuelCost(distance);
-                TolkHelper.Speak($"Destination out of range. Need {fuelNeeded:F0} chemfuel, have {cachedFuelLevel:F0}.", SpeechPriority.High);
-                return;
-            }
+            // No pre-check for range — let the game's own ChoseWorldTarget handle validation.
+            // It uses TraversalDistanceBetween and shows proper messages like "Beyond maximum range".
 
             if (Find.WorldTargeter == null || !Find.WorldTargeter.IsTargeting)
             {
@@ -262,19 +419,35 @@ namespace RimWorldAccess
 
                 if (completed)
                 {
-                    // Single option was available and executed (e.g., form caravan on empty tile)
-                    Find.WorldTargeter.StopTargeting();
-                    isConfirmingDestination = false;
-
-                    // Announce that target was selected (no float menu appeared)
-                    TolkHelper.Speak("Target selected", SpeechPriority.Normal);
-                    // Don't close here - the action handles what comes next
+                    // The action was auto-executed (single option).
+                    // BUT: it may have opened a confirmation dialog (e.g., hostile settlement warning).
+                    // If a dialog was opened, don't stop targeting — the user might cancel the dialog
+                    // and want to pick a different destination.
+                    if (WindowlessDialogState.IsActive)
+                    {
+                        // A confirmation dialog was opened — let it handle the outcome.
+                        // If confirmed: the launch action runs and targeting ends naturally.
+                        // If cancelled: we stay in targeting mode.
+                        isConfirmingDestination = false;
+                    }
+                    else
+                    {
+                        // No dialog — action completed immediately (e.g., form caravan on empty tile)
+                        Find.WorldTargeter.StopTargeting();
+                        isConfirmingDestination = false;
+                        TolkHelper.Speak("Target selected", SpeechPriority.Normal);
+                    }
                 }
                 else
                 {
                     // Multiple options available - FloatMenu should have been intercepted
                     // The flag will be cleared when the menu is processed
-                    TolkHelper.Speak($"Destination: {distance:F0} tiles, {TransportPodHelper.BuildFuelCostAnnouncement(currentLaunchable, distance)}");
+                    int traversalDist = GetTraversalDistance(selectedTile);
+                    string fuelInfo = GetFuelCostAnnouncementForTile(selectedTile);
+                    if (!string.IsNullOrEmpty(fuelInfo))
+                        TolkHelper.Speak($"Destination: {traversalDist} tiles, {fuelInfo}");
+                    else
+                        TolkHelper.Speak($"Destination: {traversalDist} tiles");
                 }
             }
             catch (Exception ex)
@@ -294,6 +467,10 @@ namespace RimWorldAccess
             Thing returnTarget = currentLaunchable?.parent;
             Map returnMap = returnTarget?.Map;
 
+            // For shuttle launches without CompLaunchable, try to return to the current map
+            if (returnMap == null)
+                returnMap = Find.CurrentMap;
+
             // Stop world targeting
             if (Find.WorldTargeter != null && Find.WorldTargeter.IsTargeting)
             {
@@ -304,10 +481,14 @@ namespace RimWorldAccess
             Close();
             TolkHelper.Speak("Launch targeting cancelled", SpeechPriority.Normal);
 
-            // Return to map view using cached target
-            if (returnMap != null && returnTarget != null)
+            // Return to map view
+            if (returnTarget != null)
             {
                 CameraJumper.TryJump(returnTarget);
+            }
+            else if (returnMap != null)
+            {
+                CameraJumper.TryHideWorld();
             }
         }
 
@@ -316,7 +497,12 @@ namespace RimWorldAccess
         /// </summary>
         private static void AnnounceFuelStatus()
         {
-            TolkHelper.Speak($"Fuel: {cachedFuelLevel:F0} chemfuel. Max range: {cachedMaxRange:F0} tiles.", SpeechPriority.Normal);
+            if (currentLaunchable != null)
+                TolkHelper.Speak($"Fuel: {cachedFuelLevel:F0} chemfuel. Max range: {cachedMaxRange:F0} tiles.", SpeechPriority.Normal);
+            else if (cachedMaxRange > 0)
+                TolkHelper.Speak($"Max range: {cachedMaxRange:F0} tiles.", SpeechPriority.Normal);
+            else
+                TolkHelper.Speak("Unlimited range.", SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -324,7 +510,7 @@ namespace RimWorldAccess
         /// </summary>
         public static bool ShouldAnnounceFuelCosts()
         {
-            return isActive && currentLaunchable != null;
+            return isActive;
         }
 
         /// <summary>

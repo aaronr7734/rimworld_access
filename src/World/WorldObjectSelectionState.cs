@@ -9,25 +9,26 @@ using Verse.Sound;
 
 namespace RimWorldAccess
 {
-    // Type aliases for cleaner code - use CaravanInspectState's types for consistency
-    using TreeNode = CaravanInspectState.TreeNode;
-    using NodeType = CaravanInspectState.NodeType;
-
     /// <summary>
     /// Handles inspection when world objects are present at a tile.
     /// Uses tree view pattern consistent with WindowlessInspectionState on local maps.
     /// All objects at tile are shown as root nodes with their inspection details as children.
-    /// Uses CaravanInspectState.TreeNode for consistency with caravan inspection.
+    /// Uses TreeNavigationHelper for all standard navigation logic.
     /// </summary>
     public static class WorldObjectSelectionState
     {
         public static bool IsActive { get; private set; } = false;
 
-        private static TreeNode rootNode = null;
-        private static List<TreeNode> visibleNodes = new List<TreeNode>();
-        private static int selectedIndex = 0;
+        private static TreeNavigationHelper treeNav = new TreeNavigationHelper("WorldObjectInspect");
         private static PlanetTile currentTile;
-        private static Dictionary<TreeNode, TreeNode> lastChildPerParent = new Dictionary<TreeNode, TreeNode>();
+
+        static WorldObjectSelectionState()
+        {
+            treeNav.FormatItemAnnouncement = FormatItemAnnouncement;
+            treeNav.OnActivate = HandleActivate;
+            treeNav.OnBeforeExpand = HandleBeforeExpand;
+            treeNav.TrackLastChild = true;
+        }
 
         /// <summary>
         /// Opens the world object inspection for the given tile.
@@ -64,18 +65,16 @@ namespace RimWorldAccess
 
             // Multiple objects - open tree view
             IsActive = true;
-            selectedIndex = 0;
-            lastChildPerParent.Clear();
-            MenuHelper.ResetLevel("WorldObjectInspect");
 
-            BuildTree(worldObjects);
+            var root = BuildTree(worldObjects);
+            treeNav.Initialize(root);
 
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
 
             // Announce opening
             string announcement = $"{worldObjects.Count} objects at this tile";
             TolkHelper.Speak(announcement);
-            AnnounceCurrentSelection();
+            treeNav.ReannounceCurrentItem();
         }
 
         /// <summary>
@@ -87,62 +86,56 @@ namespace RimWorldAccess
                 return;
 
             IsActive = false;
-            rootNode = null;
-            visibleNodes.Clear();
-            selectedIndex = 0;
-            lastChildPerParent.Clear();
+            treeNav.Reset();
             SoundDefOf.TabClose.PlayOneShotOnCamera();
         }
 
         /// <summary>
         /// Builds the tree structure for world objects.
         /// </summary>
-        private static void BuildTree(List<WorldObject> worldObjects)
+        private static InspectionTreeItem BuildTree(List<WorldObject> worldObjects)
         {
-            rootNode = new TreeNode
+            var root = new InspectionTreeItem
             {
-                Type = NodeType.Root,
                 Label = "Root",
+                IndentLevel = -1,
                 IsExpanded = true,
-                CanExpand = true
+                IsExpandable = false
             };
 
             foreach (var obj in worldObjects)
             {
-                AddWorldObjectNode(rootNode, obj);
+                AddWorldObjectNode(root, obj);
             }
 
-            RebuildVisibleList();
+            return root;
         }
 
         /// <summary>
         /// Adds a world object node to the tree.
         /// </summary>
-        private static void AddWorldObjectNode(TreeNode parent, WorldObject obj)
+        private static void AddWorldObjectNode(InspectionTreeItem parent, WorldObject obj)
         {
             string label = GetObjectLabel(obj);
 
-            var node = new TreeNode
+            var node = new InspectionTreeItem
             {
-                Type = NodeType.WorldObject,
+                Type = InspectionTreeItem.ItemType.Object,
                 Label = label,
-                Depth = 0,
-                CanExpand = true,
+                IndentLevel = 0,
+                IsExpandable = true,
                 IsExpanded = false,
                 Parent = parent,
                 Data = obj
             };
 
-            // Set OnActivate after node is created so lambda can capture it
-            node.OnActivate = () => BuildWorldObjectChildren(node, obj);
-
             parent.Children.Add(node);
         }
 
         /// <summary>
-        /// Builds children for a world object when expanded.
+        /// Builds children for a world object when expanded (called via OnBeforeExpand).
         /// </summary>
-        private static void BuildWorldObjectChildren(TreeNode objectNode, WorldObject obj)
+        private static void BuildWorldObjectChildren(InspectionTreeItem objectNode, WorldObject obj)
         {
             if (objectNode.Children.Count > 0)
                 return; // Already built
@@ -174,18 +167,18 @@ namespace RimWorldAccess
         /// <summary>
         /// Builds children for a settlement.
         /// </summary>
-        private static void BuildSettlementChildren(TreeNode parent, Settlement settlement)
+        private static void BuildSettlementChildren(InspectionTreeItem parent, Settlement settlement)
         {
-            int depth = parent.Depth + 1;
+            int depth = parent.IndentLevel + 1;
 
             // Player settlement with map - can enter
             if (settlement.Faction == Faction.OfPlayer && settlement.HasMap)
             {
-                var enterNode = new TreeNode
+                var enterNode = new InspectionTreeItem
                 {
-                    Type = NodeType.Action,
+                    Type = InspectionTreeItem.ItemType.Action,
                     Label = "Enter Settlement",
-                    Depth = depth,
+                    IndentLevel = depth,
                     Parent = parent,
                     Data = settlement,
                     OnActivate = () =>
@@ -223,9 +216,9 @@ namespace RimWorldAccess
         /// <summary>
         /// Builds children for a site.
         /// </summary>
-        private static void BuildSiteChildren(TreeNode parent, Site site)
+        private static void BuildSiteChildren(InspectionTreeItem parent, Site site)
         {
-            int depth = parent.Depth + 1;
+            int depth = parent.IndentLevel + 1;
 
             // Site description
             string desc = site.GetDescription();
@@ -249,18 +242,18 @@ namespace RimWorldAccess
         /// <summary>
         /// Builds children for a generic map parent.
         /// </summary>
-        private static void BuildMapParentChildren(TreeNode parent, MapParent mapParent)
+        private static void BuildMapParentChildren(InspectionTreeItem parent, MapParent mapParent)
         {
-            int depth = parent.Depth + 1;
+            int depth = parent.IndentLevel + 1;
 
             // Can enter if has map
             if (mapParent.HasMap)
             {
-                var enterNode = new TreeNode
+                var enterNode = new InspectionTreeItem
                 {
-                    Type = NodeType.Action,
+                    Type = InspectionTreeItem.ItemType.Action,
                     Label = "Enter",
-                    Depth = depth,
+                    IndentLevel = depth,
                     Parent = parent,
                     Data = mapParent,
                     OnActivate = () =>
@@ -288,9 +281,9 @@ namespace RimWorldAccess
         /// <summary>
         /// Builds children for a generic world object.
         /// </summary>
-        private static void BuildGenericWorldObjectChildren(TreeNode parent, WorldObject obj)
+        private static void BuildGenericWorldObjectChildren(InspectionTreeItem parent, WorldObject obj)
         {
-            int depth = parent.Depth + 1;
+            int depth = parent.IndentLevel + 1;
 
             string desc = obj.GetDescription();
             if (!string.IsNullOrEmpty(desc))
@@ -307,45 +300,16 @@ namespace RimWorldAccess
         /// <summary>
         /// Helper to add a detail text node.
         /// </summary>
-        private static void AddDetailNode(TreeNode parent, int depth, string label)
+        private static void AddDetailNode(InspectionTreeItem parent, int depth, string label)
         {
-            var node = new TreeNode
+            var node = new InspectionTreeItem
             {
-                Type = NodeType.DetailText,
+                Type = InspectionTreeItem.ItemType.DetailText,
                 Label = label,
-                Depth = depth,
+                IndentLevel = depth,
                 Parent = parent
             };
             parent.Children.Add(node);
-        }
-
-        /// <summary>
-        /// Rebuilds the flattened visible nodes list.
-        /// </summary>
-        private static void RebuildVisibleList()
-        {
-            visibleNodes.Clear();
-
-            if (rootNode == null)
-                return;
-
-            foreach (var child in rootNode.Children)
-            {
-                AddVisibleNodes(child);
-            }
-        }
-
-        private static void AddVisibleNodes(TreeNode node)
-        {
-            visibleNodes.Add(node);
-
-            if (node.IsExpanded && node.Children.Count > 0)
-            {
-                foreach (var child in node.Children)
-                {
-                    AddVisibleNodes(child);
-                }
-            }
         }
 
         /// <summary>
@@ -461,251 +425,65 @@ namespace RimWorldAccess
             }
         }
 
-        #region Navigation
+        #region Announcement Formatters
 
-        /// <summary>
-        /// Selects the next item.
-        /// </summary>
-        public static void SelectNext()
+        private static string FormatItemAnnouncement(InspectionTreeItem item)
         {
-            if (visibleNodes.Count == 0)
-                return;
+            string label = item.Label.StripTags();
 
-            selectedIndex = MenuHelper.SelectNext(selectedIndex, visibleNodes.Count);
-            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentSelection();
-        }
-
-        /// <summary>
-        /// Selects the previous item.
-        /// </summary>
-        public static void SelectPrevious()
-        {
-            if (visibleNodes.Count == 0)
-                return;
-
-            selectedIndex = MenuHelper.SelectPrevious(selectedIndex, visibleNodes.Count);
-            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentSelection();
-        }
-
-        /// <summary>
-        /// Expands the selected node (Right arrow).
-        /// </summary>
-        public static void Expand()
-        {
-            if (visibleNodes.Count == 0 || selectedIndex >= visibleNodes.Count)
-                return;
-
-            var node = visibleNodes[selectedIndex];
-
-            if (!node.CanExpand)
+            // State indicator for expandable items
+            string stateIndicator = "";
+            if (item.IsExpandable)
             {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("Cannot expand");
-                return;
+                stateIndicator = item.IsExpanded ? " expanded" : " collapsed";
             }
 
-            if (node.IsExpanded)
-            {
-                // Already expanded - move to first child
-                if (node.Children.Count > 0)
-                {
-                    int childIndex = visibleNodes.IndexOf(node.Children[0]);
-                    if (childIndex >= 0)
-                    {
-                        selectedIndex = childIndex;
-                        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                        AnnounceCurrentSelection();
-                    }
-                }
-                return;
-            }
+            // Position among siblings
+            var (position, total) = treeNav.GetSiblingPosition(item);
+            string positionPart = MenuHelper.FormatPosition(position - 1, total);
 
-            // Build children lazily
-            if (node.OnActivate != null && node.Children.Count == 0)
-            {
-                node.OnActivate();
-            }
+            // Level suffix
+            string levelSuffix = MenuHelper.GetLevelSuffix("WorldObjectInspect", item.IndentLevel);
 
-            if (node.Children.Count == 0)
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No items to show");
-                return;
-            }
-
-            // Expand
-            node.IsExpanded = true;
-            RebuildVisibleList();
-            SoundDefOf.Click.PlayOneShotOnCamera();
-            AnnounceCurrentSelection();
-        }
-
-        /// <summary>
-        /// Collapses the selected node (Left arrow).
-        /// </summary>
-        public static void Collapse()
-        {
-            if (visibleNodes.Count == 0 || selectedIndex >= visibleNodes.Count)
-                return;
-
-            var node = visibleNodes[selectedIndex];
-
-            // If expanded, collapse
-            if (node.CanExpand && node.IsExpanded)
-            {
-                node.IsExpanded = false;
-                RebuildVisibleList();
-
-                if (selectedIndex >= visibleNodes.Count)
-                    selectedIndex = Math.Max(0, visibleNodes.Count - 1);
-
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                AnnounceCurrentSelection();
-                return;
-            }
-
-            // Move to parent
-            var parent = node.Parent;
-            while (parent != null && !parent.CanExpand)
-            {
-                parent = parent.Parent;
-            }
-
-            if (parent == null || parent == rootNode)
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("Already at top level");
-                return;
-            }
-
-            lastChildPerParent[parent] = node;
-
-            int parentIndex = visibleNodes.IndexOf(parent);
-            if (parentIndex >= 0)
-            {
-                selectedIndex = parentIndex;
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                AnnounceCurrentSelection();
-            }
-        }
-
-        /// <summary>
-        /// Activates the selected item (Enter key).
-        /// </summary>
-        public static void ActivateSelected()
-        {
-            if (visibleNodes.Count == 0 || selectedIndex >= visibleNodes.Count)
-                return;
-
-            var node = visibleNodes[selectedIndex];
-
-            // If expandable and collapsed, expand
-            if (node.CanExpand && !node.IsExpanded)
-            {
-                Expand();
-                return;
-            }
-
-            // If has action (and is an action type), execute it
-            if (node.OnActivate != null && node.Type == NodeType.Action)
-            {
-                node.OnActivate();
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                return;
-            }
-
-            // For detail text or stats, just read again
-            if (node.Type == NodeType.DetailText || node.Type == NodeType.Stat)
-            {
-                TolkHelper.Speak(node.GetDisplayLabel());
-                return;
-            }
-
-            SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            TolkHelper.Speak("No action available");
-        }
-
-        /// <summary>
-        /// Jumps to first item.
-        /// With Ctrl, jumps to absolute first. Otherwise jumps to first sibling at current level.
-        /// </summary>
-        private static void JumpToFirst(bool ctrlPressed = false)
-        {
-            if (visibleNodes == null || visibleNodes.Count == 0) return;
-            MenuHelper.HandleTreeHomeKey(visibleNodes, ref selectedIndex, node => node.Depth, ctrlPressed, ClearAndAnnounce);
-        }
-
-        /// <summary>
-        /// Jumps to last item.
-        /// With Ctrl, jumps to absolute last. Otherwise jumps to last sibling/descendant at current level.
-        /// </summary>
-        private static void JumpToLast(bool ctrlPressed = false)
-        {
-            if (visibleNodes == null || visibleNodes.Count == 0) return;
-            MenuHelper.HandleTreeEndKey(visibleNodes, ref selectedIndex, node => node.Depth,
-                node => node.IsExpanded, node => node.CanExpand && node.Children != null && node.Children.Count > 0,
-                ctrlPressed, ClearAndAnnounce);
-        }
-
-        /// <summary>
-        /// Helper for tree navigation callbacks - plays sound and announces selection.
-        /// </summary>
-        private static void ClearAndAnnounce()
-        {
-            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentSelection();
+            string announcement = $"{label}{stateIndicator}. {positionPart}{levelSuffix}";
+            return announcement;
         }
 
         #endregion
 
-        #region Announcements
+        #region Custom Action Handlers
 
-        /// <summary>
-        /// Gets sibling position for announcement.
-        /// </summary>
-        private static (int position, int total) GetSiblingPosition(TreeNode node)
+        private static bool HandleActivate(InspectionTreeItem item)
         {
-            if (node.Parent == null || node.Parent == rootNode)
+            // For detail text or stat items, just read again
+            if (item.Type == InspectionTreeItem.ItemType.DetailText)
             {
-                // Root level
-                int idx = rootNode.Children.IndexOf(node) + 1;
-                return (idx, rootNode.Children.Count);
+                TolkHelper.Speak(item.Label);
+                return true;
             }
 
-            var siblings = node.Parent.Children;
-            int position = siblings.IndexOf(node) + 1;
-            return (position, siblings.Count);
+            // Item's own OnActivate is handled by TreeNavigationHelper
+            // Categories toggle expand/collapse via default behavior
+            if (item.IsExpandable)
+                return false;
+
+            if (item.OnActivate == null)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No action available");
+                return true;
+            }
+
+            return false; // Let TreeNavigationHelper call item.OnActivate
         }
 
-        /// <summary>
-        /// Announces the current selection.
-        /// </summary>
-        private static void AnnounceCurrentSelection()
+        private static void HandleBeforeExpand(InspectionTreeItem item)
         {
-            if (visibleNodes.Count == 0 || selectedIndex >= visibleNodes.Count)
-                return;
-
-            var node = visibleNodes[selectedIndex];
-            string label = node.GetDisplayLabel().StripTags();
-
-            // State indicator for expandable items
-            string stateIndicator = "";
-            if (node.CanExpand)
+            // Lazily build children for world objects
+            if (item.Data is WorldObject obj && item.Children.Count == 0)
             {
-                stateIndicator = node.IsExpanded ? " expanded" : " collapsed";
+                BuildWorldObjectChildren(item, obj);
             }
-
-            // Position among siblings
-            var (position, total) = GetSiblingPosition(node);
-            string positionPart = MenuHelper.FormatPosition(position - 1, total);
-
-            // Level suffix
-            string levelSuffix = MenuHelper.GetLevelSuffix("WorldObjectInspect", node.Depth);
-
-            string announcement = $"{label}{stateIndicator}. {positionPart}{levelSuffix}";
-            TolkHelper.Speak(announcement);
         }
 
         #endregion
@@ -720,55 +498,24 @@ namespace RimWorldAccess
             if (!IsActive)
                 return false;
 
-            if (key == KeyCode.UpArrow && !shift && !ctrl && !alt)
+            Event ev = Event.current;
+            if (ev.type == EventType.KeyDown)
             {
-                SelectPrevious();
-                return true;
-            }
+                bool handled = treeNav.HandleInput(ev);
+                if (handled)
+                {
+                    ev.Use();
+                    return true;
+                }
 
-            if (key == KeyCode.DownArrow && !shift && !ctrl && !alt)
-            {
-                SelectNext();
-                return true;
-            }
-
-            if (key == KeyCode.RightArrow && !shift && !ctrl && !alt)
-            {
-                Expand();
-                return true;
-            }
-
-            if (key == KeyCode.LeftArrow && !shift && !ctrl && !alt)
-            {
-                Collapse();
-                return true;
-            }
-
-            if ((key == KeyCode.Return || key == KeyCode.KeypadEnter) && !shift && !ctrl && !alt)
-            {
-                ActivateSelected();
-                return true;
-            }
-
-            if (key == KeyCode.Escape && !shift && !ctrl && !alt)
-            {
-                Close();
-                TolkHelper.Speak("Selection closed");
-                return true;
-            }
-
-            if (key == KeyCode.Home && !shift && !alt)
-            {
-                JumpToFirst(Event.current.control);
-                Event.current.Use();
-                return true;
-            }
-
-            if (key == KeyCode.End && !shift && !alt)
-            {
-                JumpToLast(Event.current.control);
-                Event.current.Use();
-                return true;
+                // TreeNavigationHelper returns false for Escape with no active search
+                if (key == KeyCode.Escape)
+                {
+                    Close();
+                    TolkHelper.Speak("Selection closed");
+                    ev.Use();
+                    return true;
+                }
             }
 
             return false;

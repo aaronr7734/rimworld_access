@@ -42,6 +42,14 @@ namespace RimWorldAccess
             if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
                 return;
 
+            // Don't process if Alt is held (Alt+1-0 are for colonist bar navigation)
+            if (KeyboardHelper.IsAltHeld)
+                return;
+
+            // Don't process if Ctrl is held (Ctrl+1-0 are for map bookmarks)
+            if (KeyboardHelper.IsCtrlHeld)
+                return;
+
             // Check for tile info hotkeys (1-7 keys, both alpha and keypad)
             KeyCode? pressedKey = null;
             if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
@@ -89,13 +97,16 @@ namespace RimWorldAccess
             return ScannerSearchState.IsActive ||
                    GoToState.IsActive ||
                    WorkMenuState.IsActive ||
+                   WorkTableState.IsActive ||
                    BillConfigState.IsActive ||
                    BillsMenuState.IsActive ||
+                   FishingZoneMenuState.IsActive ||
                    WindowlessFloatMenuState.IsActive ||
                    WindowlessPauseMenuState.IsActive ||
                    WindowlessSaveMenuState.IsActive ||
                    WindowlessOptionsMenuState.IsActive ||
                    WindowlessConfirmationState.IsActive ||
+                   WindowlessScheduleState.IsActive ||
                    StorageSettingsMenuState.IsActive ||
                    PlantSelectionMenuState.IsActive ||
                    PrisonerTabState.IsActive ||
@@ -110,7 +121,8 @@ namespace RimWorldAccess
                    ModListState.IsActive ||
                    HealthTabState.IsActive ||
                    AnimalsMenuState.IsActive ||
-                   WildlifeMenuState.IsActive;
+                   WildlifeMenuState.IsActive ||
+                   PawnSkillsTableState.IsActive;
         }
 
         /// <summary>

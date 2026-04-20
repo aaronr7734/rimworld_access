@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using RimWorld;
 using Verse;
-using Verse.Sound;
 
 namespace RimWorldAccess
 {
@@ -205,6 +204,38 @@ namespace RimWorldAccess
                         });
                     }
 
+                    // Owner Assignment (non-bed buildings with CompAssignableToPawn)
+                    if (!(building is Building_Bed))
+                    {
+                        var assignComp = building.TryGetComp<CompAssignableToPawn>();
+                        if (assignComp != null && !categories.Any(c => c.Name == "Owner Assignment"))
+                        {
+                            categories.Add(new TabCategoryInfo
+                            {
+                                Name = "Owner Assignment",
+                                Tab = null,
+                                Handler = TabHandlerType.Action,
+                                IsKnown = true,
+                                OriginalCategoryName = "Owner Assignment"
+                            });
+                        }
+                    }
+
+                    // Meditation Focus (meditation spots with Royalty DLC)
+                    if (building.def == ThingDefOf.MeditationSpot
+                        && ModsConfig.RoyaltyActive
+                        && !categories.Any(c => c.Name == "Meditation Focus"))
+                    {
+                        categories.Add(new TabCategoryInfo
+                        {
+                            Name = "Meditation Focus",
+                            Tab = null,
+                            Handler = TabHandlerType.RichNavigation,
+                            IsKnown = true,
+                            OriginalCategoryName = "Meditation Focus"
+                        });
+                    }
+
                     // Plant Selection for plant growers
                     if (building is IPlantToGrowSettable && !categories.Any(c => c.Name == "Plant Selection"))
                     {
@@ -246,22 +277,32 @@ namespace RimWorldAccess
                         });
                     }
 
-                }
-
-                // Add growth info for plants
-                if (obj is Plant)
-                {
-                    if (!categories.Any(c => c.Name == "Growth Info"))
+                    // Facility linking (CompFacility / CompAffectedByFacilities)
+                    if (FacilityLinkHelper.HasFacilityComps(building) && !categories.Any(c => c.Name == "Linked Facilities"))
                     {
                         categories.Add(new TabCategoryInfo
                         {
-                            Name = "Growth Info",
+                            Name = "Linked Facilities",
                             Tab = null,
                             Handler = TabHandlerType.RichNavigation,
                             IsKnown = true,
-                            OriginalCategoryName = "Growth Info"
+                            OriginalCategoryName = "Linked Facilities"
                         });
                     }
+
+                    // Pen marker rename
+                    if (building.TryGetComp<CompAnimalPenMarker>() != null && !categories.Any(c => c.OriginalCategoryName == "Rename"))
+                    {
+                        categories.Add(new TabCategoryInfo
+                        {
+                            Name = "Rename".Translate().ToString(),
+                            Tab = null,
+                            Handler = TabHandlerType.Action,
+                            IsKnown = true,
+                            OriginalCategoryName = "Rename"
+                        });
+                    }
+
                 }
 
             }
@@ -360,6 +401,14 @@ namespace RimWorldAccess
                 if (building is Building_Bed)
                     categories.Add("Bed Assignment");
 
+                // Owner Assignment for non-bed CompAssignableToPawn buildings
+                if (!(building is Building_Bed) && building.TryGetComp<CompAssignableToPawn>() != null)
+                    categories.Add("Owner Assignment");
+
+                // Meditation Focus for meditation spots
+                if (building.def == ThingDefOf.MeditationSpot && ModsConfig.RoyaltyActive)
+                    categories.Add("Meditation Focus");
+
                 // Check for temperature control (coolers, heaters, vents)
                 var tempControl = building.TryGetComp<CompTempControl>();
                 if (tempControl != null)
@@ -393,7 +442,6 @@ namespace RimWorldAccess
             else if (obj is Plant plant)
             {
                 categories.Add("Overview");
-                categories.Add("Growth Info");
             }
             else if (obj is Zone zone)
             {
@@ -726,6 +774,12 @@ namespace RimWorldAccess
                 case "Bed Assignment":
                     return GetBuildingBedAssignmentInfo(building);
 
+                case "Owner Assignment":
+                    return GetBuildingOwnerAssignmentInfo(building);
+
+                case "Meditation Focus":
+                    return GetMeditationFocusInfo(building);
+
                 case "Temperature":
                     return GetBuildingTemperatureInfo(building);
 
@@ -734,6 +788,9 @@ namespace RimWorldAccess
 
                 case "Power":
                     return GetBuildingPowerInfo(building);
+
+                case "Linked Facilities":
+                    return FacilityLinkHelper.GetInspectionInfo(building) ?? "No facility linking information.";
 
                 default:
                     // Try to get info from dynamic tab using GetInspectString as fallback
@@ -758,8 +815,10 @@ namespace RimWorldAccess
                 sb.AppendLine();
             }
 
-            // Health
-            if (building.HitPoints < building.MaxHitPoints)
+            // Health — skipped for indestructible buildings (geysers etc.) which
+            // report HitPoints of -1. Vanilla gates on def.useHitPoints.
+            if (building.def != null && building.def.useHitPoints &&
+                building.HitPoints < building.MaxHitPoints)
             {
                 float healthPercent = (float)building.HitPoints / building.MaxHitPoints;
                 sb.AppendLine($"Health: {healthPercent:P0} ({building.HitPoints} / {building.MaxHitPoints})");
@@ -926,6 +985,47 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Gets generic owner assignment information for non-bed buildings.
+        /// </summary>
+        private static string GetBuildingOwnerAssignmentInfo(Building building)
+        {
+            var comp = (building as ThingWithComps)?.TryGetComp<CompAssignableToPawn>();
+            if (comp == null)
+                return "This building does not support owner assignment.";
+
+            var sb = new StringBuilder();
+
+            if (comp.AssignedPawnsForReading.Count > 0)
+            {
+                sb.AppendLine("Assigned to:");
+                foreach (var pawn in comp.AssignedPawnsForReading)
+                {
+                    sb.AppendLine($"  {pawn.LabelShort}");
+                }
+            }
+            else
+            {
+                sb.AppendLine("Not assigned to anyone");
+            }
+
+            sb.AppendLine();
+            sb.AppendLine("Press Enter to change assignments");
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Gets meditation focus information for a meditation spot (fallback text).
+        /// </summary>
+        private static string GetMeditationFocusInfo(Building building)
+        {
+            if (!ModsConfig.RoyaltyActive || !building.Spawned)
+                return "No meditation focus information available.";
+
+            return $"No meditation focus objects nearby. Place focus objects within {MeditationUtility.FocusObjectSearchRadius:F0} cells.";
+        }
+
+        /// <summary>
         /// Gets temperature control information for a cooler/heater.
         /// </summary>
         private static string GetBuildingTemperatureInfo(Building building)
@@ -963,9 +1063,6 @@ namespace RimWorldAccess
                 case "Overview":
                     return GetPlantOverview(plant);
 
-                case "Growth Info":
-                    return GetPlantGrowthInfo(plant);
-
                 default:
                     return "Category not found.";
             }
@@ -997,27 +1094,6 @@ namespace RimWorldAccess
                 description = System.Text.RegularExpressions.Regex.Replace(description, @"\s+", " ");
                 sb.AppendLine(description);
             }
-
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// Gets detailed growth information for a plant.
-        /// </summary>
-        private static string GetPlantGrowthInfo(Plant plant)
-        {
-            var sb = new StringBuilder();
-
-            sb.AppendLine($"Growth: {plant.Growth:P0}");
-            sb.AppendLine($"Lifespan: {plant.Age} / {plant.def.plant.LifespanTicks.TicksToDays():F1} days");
-
-            if (plant.Blighted)
-                sb.AppendLine("Status: Blighted");
-            else if (plant.Dying)
-                sb.AppendLine("Status: Dying");
-
-            if (plant.HarvestableNow)
-                sb.AppendLine("Ready to harvest!");
 
             return sb.ToString();
         }
@@ -1134,6 +1210,12 @@ namespace RimWorldAccess
         /// </summary>
         private static string GetThingOverview(Thing thing)
         {
+            // GeneSetHolderBase items need shade-aware gene labels in overview
+            if (thing is GeneSetHolderBase geneHolder && geneHolder.GeneSet != null && ModsConfig.BiotechActive)
+            {
+                return GetGeneSetHolderOverview(geneHolder);
+            }
+
             var sb = new StringBuilder();
             sb.AppendLine(thing.LabelCap.StripTags());
             sb.AppendLine();
@@ -1156,6 +1238,76 @@ namespace RimWorldAccess
                 sb.AppendLine("Description:");
                 string description = thing.def.description.StripTags().Trim();
                 // Clean up whitespace
+                description = System.Text.RegularExpressions.Regex.Replace(description, @"\s+", " ");
+                sb.AppendLine(description);
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Gets overview information for a GeneSetHolderBase item with shade-aware gene labels.
+        /// Replaces the raw gene labels from GetInspectString() with descriptive shade names
+        /// for skin color genes.
+        /// </summary>
+        private static string GetGeneSetHolderOverview(GeneSetHolderBase holder)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine(holder.LabelCap.StripTags());
+            sb.AppendLine();
+
+            // Get the full inspect string
+            string inspectString = holder.GetInspectString();
+
+            // Split at the "Genes:" header to separate non-gene info from gene list
+            string genesHeader = "Genes".Translate().CapitalizeFirst() + ":";
+            int headerIndex = inspectString?.IndexOf(genesHeader) ?? -1;
+
+            if (headerIndex >= 0)
+            {
+                // Format the non-gene portion (component info, etc.)
+                string preGenes = inspectString.Substring(0, headerIndex).Trim();
+                if (!string.IsNullOrEmpty(preGenes))
+                {
+                    sb.AppendLine(FormatInspectStringWithPunctuation(preGenes));
+                }
+
+                // Build our own gene section with shade-aware labels
+                var genes = holder.GeneSet.GenesListForReading;
+                if (genes != null && genes.Count > 0)
+                {
+                    sb.AppendLine(genesHeader);
+                    int cap = Math.Min(5, genes.Count);
+                    for (int i = 0; i < cap; i++)
+                    {
+                        string geneLabel = GeneTreeBuilder.GetGeneDisplayLabel(genes[i]);
+                        if (holder.GeneSet.IsOverridden(genes[i]))
+                        {
+                            geneLabel += $" ({"Overridden".Translate()})";
+                        }
+                        sb.AppendLine($"  - {geneLabel}.");
+                    }
+                    if (genes.Count > cap)
+                    {
+                        sb.AppendLine($"  - {"Etc".Translate()}...");
+                    }
+                }
+            }
+            else
+            {
+                // No gene section found - just format the whole string
+                if (!string.IsNullOrEmpty(inspectString))
+                {
+                    sb.AppendLine(FormatInspectStringWithPunctuation(inspectString));
+                }
+            }
+
+            // Add description
+            if (holder.def != null && !string.IsNullOrEmpty(holder.def.description))
+            {
+                sb.AppendLine();
+                sb.AppendLine("Description:");
+                string description = holder.def.description.StripTags().Trim();
                 description = System.Text.RegularExpressions.Regex.Replace(description, @"\s+", " ");
                 sb.AppendLine(description);
             }

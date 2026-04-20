@@ -9,19 +9,24 @@ namespace RimWorldAccess
 {
     /// <summary>
     /// State class for keyboard navigation of the Dialog_AutoSlaughter.
-    /// Provides row/column navigation with +/- adjustment for limit values.
+    /// Provides row/column navigation with value adjustment, numeric input,
+    /// and vanilla-matching animal counting logic.
     /// </summary>
     public static class AutoSlaughterState
     {
-        public static bool IsActive { get; private set; } = false;
+        #region Data Structures
 
-        private static Dialog_AutoSlaughter currentDialog;
-        private static List<AutoSlaughterConfig> configs = new List<AutoSlaughterConfig>();
-        private static int currentRowIndex = 0;
-        private static int currentColumnIndex = 0;
-        private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
+        private struct AnimalCounts
+        {
+            public int total;
+            public int males;
+            public int malesYoung;
+            public int females;
+            public int femalesYoung;
+            public int pregnant;
+            public int bonded;
+        }
 
-        // Column definitions: the 7 editable columns
         private enum Column
         {
             MaxTotal = 0,
@@ -35,17 +40,38 @@ namespace RimWorldAccess
 
         private static readonly string[] ColumnNames = new[]
         {
-            "Max Total",
-            "Max Males",
-            "Max Males Young",
-            "Max Females",
-            "Max Females Young",
-            "Allow Pregnant",
-            "Allow Bonded"
+            "Maximum allowed population",
+            "Maximum allowed males",
+            "Maximum allowed young males",
+            "Maximum allowed females",
+            "Maximum allowed young females",
+            "Allow pregnant slaughter",
+            "Allow bonded slaughter"
         };
+
+        #endregion
+
+        #region State Fields
+
+        public static bool IsActive { get; private set; } = false;
+
+        private static Dialog_AutoSlaughter currentDialog;
+        private static List<AutoSlaughterConfig> configs = new List<AutoSlaughterConfig>();
+        private static Dictionary<ThingDef, AnimalCounts> cachedCounts = new Dictionary<ThingDef, AnimalCounts>();
+        private static int currentRowIndex = 0;
+        private static int currentColumnIndex = 0;
+        private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
+
+        private static bool isNumericInputMode = false;
+        private static string numericBuffer = "";
 
         public static TypeaheadSearchHelper Typeahead => typeahead;
         public static int CurrentRowIndex => currentRowIndex;
+        public static bool IsNumericInputMode => isNumericInputMode;
+
+        #endregion
+
+        #region Lifecycle
 
         public static void Open(Dialog_AutoSlaughter dialog)
         {
@@ -63,6 +89,8 @@ namespace RimWorldAccess
             currentRowIndex = 0;
             currentColumnIndex = 0;
             typeahead.ClearSearch();
+            isNumericInputMode = false;
+            numericBuffer = "";
             IsActive = true;
 
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
@@ -72,34 +100,208 @@ namespace RimWorldAccess
 
         public static void Close()
         {
+            // Build slaughter summary before clearing state
+            string slaughterSummary = BuildSlaughterSummary();
+
             IsActive = false;
             currentDialog = null;
             configs.Clear();
+            cachedCounts.Clear();
             typeahead.ClearSearch();
-            TolkHelper.Speak("Auto-slaughter closed");
+            isNumericInputMode = false;
+            numericBuffer = "";
+
+            if (!string.IsNullOrEmpty(slaughterSummary))
+                TolkHelper.Speak($"Auto-slaughter closed. {slaughterSummary}");
+            else
+                TolkHelper.Speak("Auto-slaughter closed");
         }
+
+        /// <summary>
+        /// Builds a summary of all animals marked for slaughter across all species.
+        /// Called when closing the dialog to give the user a final overview.
+        /// </summary>
+        private static string BuildSlaughterSummary()
+        {
+            var manager = Find.CurrentMap?.autoSlaughterManager;
+            if (manager == null) return null;
+
+            var slaughterList = manager.AnimalsToSlaughter;
+            if (slaughterList == null || slaughterList.Count == 0) return null;
+
+            // Group by animal type
+            var groups = slaughterList
+                .GroupBy(p => p.def)
+                .OrderByDescending(g => g.Count())
+                .Select(g => $"{g.Count()} {g.Key.label}")
+                .ToList();
+
+            return $"Marked for slaughter: {string.Join(", ", groups)}";
+        }
+
+        #endregion
+
+        #region Config and Count Management
 
         private static void RefreshConfigs()
         {
             configs.Clear();
+            cachedCounts.Clear();
             if (Find.CurrentMap?.autoSlaughterManager?.configs == null) return;
 
-            // Get configs sorted by current count descending, then by label
             var manager = Find.CurrentMap.autoSlaughterManager;
-            var animalCounts = new Dictionary<ThingDef, int>();
 
+            // Compute counts for all configs
             foreach (var config in manager.configs)
             {
-                int count = Find.CurrentMap.mapPawns.SpawnedColonyAnimals
-                    .Count(p => p.def == config.animal);
-                animalCounts[config.animal] = count;
+                cachedCounts[config.animal] = ComputeCounts(config);
             }
 
+            // Sort by count descending, then by label (matching vanilla's sorting)
             configs = manager.configs
-                .OrderByDescending(c => animalCounts.GetValueOrDefault(c.animal, 0))
+                .OrderByDescending(c => cachedCounts.TryGetValue(c.animal, out var counts) ? counts.total : 0)
                 .ThenBy(c => c.animal.label)
                 .ToList();
         }
+
+        /// <summary>
+        /// Computes animal counts matching vanilla's Dialog_AutoSlaughter.CountPlayerAnimals logic exactly.
+        /// Bonded animals excluded from category counts when allowSlaughterBonded is false.
+        /// Pregnant females excluded from female count and total when allowSlaughterPregnant is false.
+        /// </summary>
+        private static AnimalCounts ComputeCounts(AutoSlaughterConfig config)
+        {
+            var counts = new AnimalCounts();
+            var map = Find.CurrentMap;
+            if (map?.mapPawns?.SpawnedColonyAnimals == null) return counts;
+
+            foreach (Pawn pawn in map.mapPawns.SpawnedColonyAnimals)
+            {
+                if (pawn.def != config.animal)
+                    continue;
+
+                if (!AutoSlaughterManager.CanEverAutoSlaughter(pawn))
+                    continue;
+
+                // Bonded animals are always counted in bonded tally,
+                // but skip all category counts when bonded slaughter is disabled
+                if (pawn.relations != null && pawn.relations.GetDirectRelationsCount(PawnRelationDefOf.Bond) > 0)
+                {
+                    counts.bonded++;
+                    if (!config.allowSlaughterBonded)
+                        continue;
+                }
+
+                // Gender and age categorization
+                if (pawn.gender == Gender.Male)
+                {
+                    if (pawn.ageTracker?.CurLifeStage?.reproductive == true)
+                        counts.males++;
+                    else
+                        counts.malesYoung++;
+                }
+                else if (pawn.gender == Gender.Female)
+                {
+                    if (pawn.ageTracker?.CurLifeStage?.reproductive == true)
+                    {
+                        // Pregnancy check uses Visible (not just HasHediff) to match vanilla
+                        Hediff pregnancyHediff = pawn.health?.hediffSet?.GetFirstHediffOfDef(HediffDefOf.Pregnant);
+                        if (pregnancyHediff != null && pregnancyHediff.Visible)
+                        {
+                            counts.pregnant++;
+                            if (!config.allowSlaughterPregnant)
+                                continue;
+                            counts.females++;
+                        }
+                        else
+                        {
+                            counts.females++;
+                        }
+                    }
+                    else
+                    {
+                        counts.femalesYoung++;
+                    }
+                }
+
+                counts.total++;
+            }
+
+            return counts;
+        }
+
+        /// <summary>
+        /// Refreshes cached counts for all configs without re-sorting.
+        /// Called after checkbox toggles since counts depend on allow flags.
+        /// </summary>
+        private static void RefreshAllCounts()
+        {
+            cachedCounts.Clear();
+            foreach (var config in configs)
+            {
+                cachedCounts[config.animal] = ComputeCounts(config);
+            }
+        }
+
+        private static AnimalCounts GetCounts(AutoSlaughterConfig config)
+        {
+            if (cachedCounts.TryGetValue(config.animal, out var counts))
+                return counts;
+            counts = ComputeCounts(config);
+            cachedCounts[config.animal] = counts;
+            return counts;
+        }
+
+        #endregion
+
+        #region Column Abstraction Helpers
+
+        private static int GetLimitForColumn(AutoSlaughterConfig config, Column column)
+        {
+            switch (column)
+            {
+                case Column.MaxTotal: return config.maxTotal;
+                case Column.MaxMales: return config.maxMales;
+                case Column.MaxMalesYoung: return config.maxMalesYoung;
+                case Column.MaxFemales: return config.maxFemales;
+                case Column.MaxFemalesYoung: return config.maxFemalesYoung;
+                default: return -1;
+            }
+        }
+
+        private static void SetLimitForColumn(AutoSlaughterConfig config, Column column, int value)
+        {
+            switch (column)
+            {
+                case Column.MaxTotal: config.maxTotal = value; break;
+                case Column.MaxMales: config.maxMales = value; break;
+                case Column.MaxMalesYoung: config.maxMalesYoung = value; break;
+                case Column.MaxFemales: config.maxFemales = value; break;
+                case Column.MaxFemalesYoung: config.maxFemalesYoung = value; break;
+            }
+        }
+
+        private static int GetCountForColumn(AnimalCounts counts, Column column)
+        {
+            switch (column)
+            {
+                case Column.MaxTotal: return counts.total;
+                case Column.MaxMales: return counts.males;
+                case Column.MaxMalesYoung: return counts.malesYoung;
+                case Column.MaxFemales: return counts.females;
+                case Column.MaxFemalesYoung: return counts.femalesYoung;
+                default: return 0;
+            }
+        }
+
+        private static bool IsNumericColumn(Column column)
+        {
+            return column != Column.AllowPregnant && column != Column.AllowBonded;
+        }
+
+        #endregion
+
+        #region Navigation
 
         public static void SelectNextRow()
         {
@@ -107,7 +309,7 @@ namespace RimWorldAccess
 
             currentRowIndex = (currentRowIndex + 1) % configs.Count;
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeAnimalName: true);
+            AnnounceCurrentCell(includeAnimalName: true, includeColumnName: false);
         }
 
         public static void SelectPreviousRow()
@@ -116,7 +318,7 @@ namespace RimWorldAccess
 
             currentRowIndex = (currentRowIndex - 1 + configs.Count) % configs.Count;
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeAnimalName: true);
+            AnnounceCurrentCell(includeAnimalName: true, includeColumnName: false);
         }
 
         public static void SelectNextColumn()
@@ -139,7 +341,7 @@ namespace RimWorldAccess
 
             currentRowIndex = 0;
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeAnimalName: true);
+            AnnounceCurrentCell(includeAnimalName: true, includeColumnName: false);
         }
 
         public static void JumpToLast()
@@ -148,38 +350,61 @@ namespace RimWorldAccess
 
             currentRowIndex = configs.Count - 1;
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeAnimalName: true);
+            AnnounceCurrentCell(includeAnimalName: true, includeColumnName: false);
         }
 
-        public static void IncrementValue()
+        #endregion
+
+        #region Value Adjustment
+
+        /// <summary>
+        /// Adjusts the current column's limit by the specified delta.
+        /// Unlimited-to-limit transition defaults to current count (matching vanilla).
+        /// Single decrement from 0 goes to unlimited; multi-step decrements clamp at 0.
+        /// </summary>
+        private static void AdjustValue(int delta)
         {
             if (configs.Count == 0) return;
 
             var config = configs[currentRowIndex];
             var column = (Column)currentColumnIndex;
 
-            // Increment: unlimited (-1) -> 0 -> 1 -> 2 -> ...
-            switch (column)
+            if (!IsNumericColumn(column))
             {
-                case Column.MaxTotal:
-                    config.maxTotal = config.maxTotal == -1 ? 0 : config.maxTotal + 1;
-                    break;
-                case Column.MaxMales:
-                    config.maxMales = config.maxMales == -1 ? 0 : config.maxMales + 1;
-                    break;
-                case Column.MaxMalesYoung:
-                    config.maxMalesYoung = config.maxMalesYoung == -1 ? 0 : config.maxMalesYoung + 1;
-                    break;
-                case Column.MaxFemales:
-                    config.maxFemales = config.maxFemales == -1 ? 0 : config.maxFemales + 1;
-                    break;
-                case Column.MaxFemalesYoung:
-                    config.maxFemalesYoung = config.maxFemalesYoung == -1 ? 0 : config.maxFemalesYoung + 1;
-                    break;
-                case Column.AllowPregnant:
-                case Column.AllowBonded:
-                    ToggleBoolean();
-                    return;
+                ToggleBoolean();
+                return;
+            }
+
+            int currentLimit = GetLimitForColumn(config, column);
+
+            if (currentLimit == -1)
+            {
+                // Unlimited: start from current count and apply delta
+                // + → current count + 1 (allow one more than you have)
+                // - → current count - 1 (slaughter one)
+                // Shift+Down → current count - 10, etc.
+                var counts = GetCounts(config);
+                int currentCount = GetCountForColumn(counts, column);
+                int newLimit = currentCount + delta;
+                if (newLimit < 0) newLimit = 0;
+                SetLimitForColumn(config, column, newLimit);
+            }
+            else
+            {
+                int newLimit = currentLimit + delta;
+
+                if (delta == -1 && currentLimit == 0)
+                {
+                    // Single decrement from 0 → unlimited
+                    newLimit = -1;
+                }
+                else if (newLimit < 0)
+                {
+                    // Multi-step decrement clamps at 0 (don't accidentally wrap to unlimited)
+                    newLimit = 0;
+                }
+
+                SetLimitForColumn(config, column, newLimit);
             }
 
             Find.CurrentMap?.autoSlaughterManager?.Notify_ConfigChanged();
@@ -187,78 +412,7 @@ namespace RimWorldAccess
             AnnounceCurrentCell(includeAnimalName: false);
         }
 
-        public static void DecrementValue()
-        {
-            if (configs.Count == 0) return;
-
-            var config = configs[currentRowIndex];
-            var column = (Column)currentColumnIndex;
-
-            // Decrement: ... -> 2 -> 1 -> 0 -> unlimited (-1). At unlimited, do nothing.
-            switch (column)
-            {
-                case Column.MaxTotal:
-                    if (config.maxTotal >= 0) config.maxTotal = config.maxTotal == 0 ? -1 : config.maxTotal - 1;
-                    break;
-                case Column.MaxMales:
-                    if (config.maxMales >= 0) config.maxMales = config.maxMales == 0 ? -1 : config.maxMales - 1;
-                    break;
-                case Column.MaxMalesYoung:
-                    if (config.maxMalesYoung >= 0) config.maxMalesYoung = config.maxMalesYoung == 0 ? -1 : config.maxMalesYoung - 1;
-                    break;
-                case Column.MaxFemales:
-                    if (config.maxFemales >= 0) config.maxFemales = config.maxFemales == 0 ? -1 : config.maxFemales - 1;
-                    break;
-                case Column.MaxFemalesYoung:
-                    if (config.maxFemalesYoung >= 0) config.maxFemalesYoung = config.maxFemalesYoung == 0 ? -1 : config.maxFemalesYoung - 1;
-                    break;
-                case Column.AllowPregnant:
-                case Column.AllowBonded:
-                    ToggleBoolean();
-                    return;
-            }
-
-            Find.CurrentMap?.autoSlaughterManager?.Notify_ConfigChanged();
-            SoundDefOf.DragSlider.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeAnimalName: false);
-        }
-
-        public static void ClearLimit()
-        {
-            if (configs.Count == 0) return;
-
-            var config = configs[currentRowIndex];
-            var column = (Column)currentColumnIndex;
-
-            switch (column)
-            {
-                case Column.MaxTotal:
-                    config.maxTotal = -1;
-                    break;
-                case Column.MaxMales:
-                    config.maxMales = -1;
-                    break;
-                case Column.MaxMalesYoung:
-                    config.maxMalesYoung = -1;
-                    break;
-                case Column.MaxFemales:
-                    config.maxFemales = -1;
-                    break;
-                case Column.MaxFemalesYoung:
-                    config.maxFemalesYoung = -1;
-                    break;
-                case Column.AllowPregnant:
-                case Column.AllowBonded:
-                    // Can't clear boolean, just toggle
-                    return;
-            }
-
-            Find.CurrentMap?.autoSlaughterManager?.Notify_ConfigChanged();
-            SoundDefOf.Checkbox_TurnedOff.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeAnimalName: false);
-        }
-
-        public static void ToggleBoolean()
+        private static void ToggleBoolean()
         {
             if (configs.Count == 0) return;
 
@@ -286,10 +440,64 @@ namespace RimWorldAccess
             }
 
             Find.CurrentMap?.autoSlaughterManager?.Notify_ConfigChanged();
+            RefreshAllCounts();
             AnnounceCurrentCell(includeAnimalName: false);
         }
 
-        private static void AnnounceCurrentCell(bool includeAnimalName)
+        private static void SetToUnlimited()
+        {
+            if (configs.Count == 0) return;
+
+            var config = configs[currentRowIndex];
+            var column = (Column)currentColumnIndex;
+
+            if (!IsNumericColumn(column))
+                return;
+
+            SetLimitForColumn(config, column, -1);
+
+            Find.CurrentMap?.autoSlaughterManager?.Notify_ConfigChanged();
+            SoundDefOf.Checkbox_TurnedOff.PlayOneShotOnCamera();
+            AnnounceCurrentCell(includeAnimalName: false);
+        }
+
+        private static void SetToZero()
+        {
+            if (configs.Count == 0) return;
+
+            var config = configs[currentRowIndex];
+            var column = (Column)currentColumnIndex;
+
+            if (!IsNumericColumn(column))
+                return;
+
+            SetLimitForColumn(config, column, 0);
+
+            Find.CurrentMap?.autoSlaughterManager?.Notify_ConfigChanged();
+            SoundDefOf.DragSlider.PlayOneShotOnCamera();
+            AnnounceCurrentCell(includeAnimalName: false);
+        }
+
+        #endregion
+
+        #region Slaughter Warning
+
+        /// <summary>
+        /// Queries the game's actual slaughter computation to get the total animals
+        /// of this type marked for slaughter across all limit interactions.
+        /// </summary>
+        private static int GetTotalMarkedForSlaughter(AutoSlaughterConfig config)
+        {
+            var manager = Find.CurrentMap?.autoSlaughterManager;
+            if (manager == null) return 0;
+            return manager.AnimalsToSlaughter.Count(p => p.def == config.animal);
+        }
+
+        #endregion
+
+        #region Announcements
+
+        private static void AnnounceCurrentCell(bool includeAnimalName, bool includeColumnName = true)
         {
             if (configs.Count == 0) return;
 
@@ -301,58 +509,38 @@ namespace RimWorldAccess
             string position = MenuHelper.FormatPosition(currentRowIndex, configs.Count);
 
             string announcement;
-            if (includeAnimalName)
-            {
+            if (includeAnimalName && includeColumnName)
                 announcement = $"{config.animal.LabelCap}, {columnName}: {value}. {position}";
-            }
-            else
-            {
+            else if (includeAnimalName)
+                announcement = $"{config.animal.LabelCap}: {value}. {position}";
+            else if (includeColumnName)
                 announcement = $"{columnName}: {value}";
-            }
+            else
+                announcement = $"{value}. {position}";
 
             TolkHelper.Speak(announcement);
         }
 
         private static string GetColumnValueString(AutoSlaughterConfig config, Column column)
         {
-            int current;
-            int max;
+            var counts = GetCounts(config);
 
             switch (column)
             {
                 case Column.MaxTotal:
-                    current = GetCurrentCount(config);
-                    max = config.maxTotal;
-                    return FormatCurrentOfMax(current, max);
-
+                    return FormatCurrentOfMax(counts.total, config.maxTotal);
                 case Column.MaxMales:
-                    current = GetCurrentMaleCount(config);
-                    max = config.maxMales;
-                    return FormatCurrentOfMax(current, max);
-
+                    return FormatCurrentOfMax(counts.males, config.maxMales);
                 case Column.MaxMalesYoung:
-                    current = GetCurrentMaleYoungCount(config);
-                    max = config.maxMalesYoung;
-                    return FormatCurrentOfMax(current, max);
-
+                    return FormatCurrentOfMax(counts.malesYoung, config.maxMalesYoung);
                 case Column.MaxFemales:
-                    current = GetCurrentFemaleCount(config);
-                    max = config.maxFemales;
-                    return FormatCurrentOfMax(current, max);
-
+                    return FormatCurrentOfMax(counts.females, config.maxFemales);
                 case Column.MaxFemalesYoung:
-                    current = GetCurrentFemaleYoungCount(config);
-                    max = config.maxFemalesYoung;
-                    return FormatCurrentOfMax(current, max);
-
+                    return FormatCurrentOfMax(counts.femalesYoung, config.maxFemalesYoung);
                 case Column.AllowPregnant:
-                    int pregnant = GetPregnantCount(config);
-                    return $"{pregnant} pregnant, slaughter {(config.allowSlaughterPregnant ? "allowed" : "not allowed")}";
-
+                    return $"{counts.pregnant} pregnant, slaughter {(config.allowSlaughterPregnant ? "allowed" : "not allowed")}";
                 case Column.AllowBonded:
-                    int bonded = GetBondedCount(config);
-                    return $"{bonded} bonded, slaughter {(config.allowSlaughterBonded ? "allowed" : "not allowed")}";
-
+                    return $"{counts.bonded} bonded, slaughter {(config.allowSlaughterBonded ? "allowed" : "not allowed")}";
                 default:
                     return "Unknown";
             }
@@ -362,71 +550,89 @@ namespace RimWorldAccess
         {
             if (max == -1)
             {
-                return $"{current} of unlimited";
+                return $"unlimited. Current population: {current}";
             }
             else if (current > max)
             {
                 int toSlaughter = current - max;
-                return $"{current} of {max}, {toSlaughter} to slaughter";
+                return $"{max}. Current population: {current}. {toSlaughter} will be slaughtered";
             }
             else
             {
-                return $"{current} of {max}";
+                return $"{max}. Current population: {current}";
             }
         }
 
-        // Helper methods to get counts
-        private static int GetCurrentCount(AutoSlaughterConfig config)
+        #endregion
+
+        #region Numeric Input Mode
+
+        private static void EnterNumericMode()
         {
-            return Find.CurrentMap?.mapPawns?.SpawnedColonyAnimals?
-                .Count(p => p.def == config.animal) ?? 0;
+            if (configs.Count == 0) return;
+            var column = (Column)currentColumnIndex;
+
+            if (!IsNumericColumn(column))
+            {
+                // Boolean column: toggle instead
+                ToggleBoolean();
+                return;
+            }
+
+            numericBuffer = "";
+            isNumericInputMode = true;
+            TolkHelper.Speak("Type a number, then press Enter to confirm or Escape to cancel");
         }
 
-        private static int GetCurrentMaleCount(AutoSlaughterConfig config)
+        private static void HandleNumericDigit(char digit)
         {
-            return Find.CurrentMap?.mapPawns?.SpawnedColonyAnimals?
-                .Count(p => p.def == config.animal &&
-                            p.gender == Gender.Male &&
-                            p.ageTracker?.CurLifeStage?.reproductive == true) ?? 0;
+            if (!isNumericInputMode) return;
+
+            numericBuffer += digit;
+            TolkHelper.Speak(numericBuffer, SpeechPriority.Low);
         }
 
-        private static int GetCurrentMaleYoungCount(AutoSlaughterConfig config)
+        private static void HandleNumericBackspace()
         {
-            return Find.CurrentMap?.mapPawns?.SpawnedColonyAnimals?
-                .Count(p => p.def == config.animal &&
-                            p.gender == Gender.Male &&
-                            p.ageTracker?.CurLifeStage?.reproductive != true) ?? 0;
+            if (!isNumericInputMode || numericBuffer.Length == 0) return;
+
+            numericBuffer = numericBuffer.Substring(0, numericBuffer.Length - 1);
+            if (numericBuffer.Length > 0)
+                TolkHelper.Speak(numericBuffer, SpeechPriority.Low);
+            else
+                TolkHelper.Speak("Empty", SpeechPriority.Low);
         }
 
-        private static int GetCurrentFemaleCount(AutoSlaughterConfig config)
+        private static void ConfirmNumericInput()
         {
-            return Find.CurrentMap?.mapPawns?.SpawnedColonyAnimals?
-                .Count(p => p.def == config.animal &&
-                            p.gender == Gender.Female &&
-                            p.ageTracker?.CurLifeStage?.reproductive == true) ?? 0;
+            if (!isNumericInputMode) return;
+
+            if (int.TryParse(numericBuffer, out int value) && (value >= 0 || value == -1))
+            {
+                var config = configs[currentRowIndex];
+                var column = (Column)currentColumnIndex;
+                SetLimitForColumn(config, column, value);
+                Find.CurrentMap?.autoSlaughterManager?.Notify_ConfigChanged();
+                SoundDefOf.DragSlider.PlayOneShotOnCamera();
+            }
+            else
+            {
+                TolkHelper.Speak("Invalid number. Use minus 1 for unlimited");
+            }
+
+            isNumericInputMode = false;
+            numericBuffer = "";
+            AnnounceCurrentCell(includeAnimalName: false);
         }
 
-        private static int GetCurrentFemaleYoungCount(AutoSlaughterConfig config)
+        private static void CancelNumericInput()
         {
-            return Find.CurrentMap?.mapPawns?.SpawnedColonyAnimals?
-                .Count(p => p.def == config.animal &&
-                            p.gender == Gender.Female &&
-                            p.ageTracker?.CurLifeStage?.reproductive != true) ?? 0;
+            isNumericInputMode = false;
+            numericBuffer = "";
+            TolkHelper.Speak("Cancelled");
         }
 
-        private static int GetPregnantCount(AutoSlaughterConfig config)
-        {
-            return Find.CurrentMap?.mapPawns?.SpawnedColonyAnimals?
-                .Count(p => p.def == config.animal &&
-                            p.health?.hediffSet?.HasHediff(HediffDefOf.Pregnant) == true) ?? 0;
-        }
-
-        private static int GetBondedCount(AutoSlaughterConfig config)
-        {
-            return Find.CurrentMap?.mapPawns?.SpawnedColonyAnimals?
-                .Count(p => p.def == config.animal &&
-                            p.relations?.GetDirectRelationsCount(PawnRelationDefOf.Bond) > 0) ?? 0;
-        }
+        #endregion
 
         #region Typeahead Search
 
@@ -510,8 +716,49 @@ namespace RimWorldAccess
             if (!IsActive || evt.type != EventType.KeyDown) return false;
 
             KeyCode key = evt.keyCode;
+            bool shift = evt.shift;
+            bool ctrl = evt.control;
 
-            // Escape - clear search first, then close
+            // Numeric input mode captures all relevant keys
+            if (isNumericInputMode)
+            {
+                if (key == KeyCode.Escape)
+                {
+                    CancelNumericInput();
+                    return true;
+                }
+                if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+                {
+                    ConfirmNumericInput();
+                    return true;
+                }
+                if (key == KeyCode.Backspace)
+                {
+                    HandleNumericBackspace();
+                    return true;
+                }
+                // Minus key: allow typing negative sign for -1 (unlimited)
+                if ((key == KeyCode.Minus || key == KeyCode.KeypadMinus) && numericBuffer.Length == 0)
+                {
+                    numericBuffer = "-";
+                    TolkHelper.Speak("minus", SpeechPriority.Low);
+                    return true;
+                }
+                if (key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9)
+                {
+                    HandleNumericDigit((char)('0' + (key - KeyCode.Alpha0)));
+                    return true;
+                }
+                if (key >= KeyCode.Keypad0 && key <= KeyCode.Keypad9)
+                {
+                    HandleNumericDigit((char)('0' + (key - KeyCode.Keypad0)));
+                    return true;
+                }
+                // Consume all other keys in numeric mode
+                return true;
+            }
+
+            // Escape: clear search first, then close everything (auto-slaughter + animals menu)
             if (key == KeyCode.Escape)
             {
                 if (typeahead.HasActiveSearch)
@@ -520,40 +767,82 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    // Close dialog
-                    if (currentDialog != null)
-                    {
-                        Find.WindowStack.TryRemove(currentDialog, doCloseSound: true);
-                    }
-                    Close();
+                    string slaughterSummary = BuildSlaughterSummary();
+                    var dialog = currentDialog;
+
+                    // Clear state BEFORE removing dialog to prevent PostClose from calling Close() again
+                    IsActive = false;
+                    currentDialog = null;
+                    configs.Clear();
+                    cachedCounts.Clear();
+                    typeahead.ClearSearch();
+                    isNumericInputMode = false;
+                    numericBuffer = "";
+
+                    if (dialog != null)
+                        Find.WindowStack.TryRemove(dialog, doCloseSound: false);
+
+                    // Close animals menu entirely
+                    bool hasSlaughter = !string.IsNullOrEmpty(slaughterSummary);
+                    AnimalsMenuState.Close(silent: hasSlaughter);
+
+                    // If slaughtering, announce with summary
+                    if (hasSlaughter)
+                        TolkHelper.Speak($"Animals menu closed. {slaughterSummary}");
                 }
                 return true;
             }
 
-            // Backspace - search backspace
+            // Enter: confirm typeahead search if active, otherwise numeric mode
+            if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+            {
+                if (typeahead.HasActiveSearch)
+                {
+                    typeahead.ClearSearch();
+                    AnnounceCurrentCell(includeAnimalName: true);
+                    return true;
+                }
+                EnterNumericMode();
+                return true;
+            }
+
+            // Backspace: search backspace
             if (key == KeyCode.Backspace)
             {
                 HandleBackspace();
                 return true;
             }
 
-            // Home/End for first/last
+            // Home/End with modifier variants
             if (key == KeyCode.Home)
             {
-                JumpToFirst();
+                if (shift && !ctrl)
+                    SetToZero();
+                else
+                    JumpToFirst();
                 return true;
             }
-
             if (key == KeyCode.End)
             {
-                JumpToLast();
+                if (shift && !ctrl)
+                    SetToUnlimited();
+                else
+                    JumpToLast();
                 return true;
             }
 
-            // Arrow keys for navigation
+            // Arrow keys: navigation and modifier-based quantity adjustment
             if (key == KeyCode.DownArrow)
             {
-                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                if (shift && !ctrl)
+                {
+                    AdjustValue(-10);
+                }
+                else if (ctrl && !shift)
+                {
+                    AdjustValue(-100);
+                }
+                else if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
                 {
                     int newIndex = typeahead.GetNextMatch(currentRowIndex);
                     if (newIndex >= 0)
@@ -568,10 +857,17 @@ namespace RimWorldAccess
                 }
                 return true;
             }
-
             if (key == KeyCode.UpArrow)
             {
-                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                if (shift && !ctrl)
+                {
+                    AdjustValue(10);
+                }
+                else if (ctrl && !shift)
+                {
+                    AdjustValue(100);
+                }
+                else if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
                 {
                     int newIndex = typeahead.GetPreviousMatch(currentRowIndex);
                     if (newIndex >= 0)
@@ -586,40 +882,30 @@ namespace RimWorldAccess
                 }
                 return true;
             }
-
             if (key == KeyCode.RightArrow)
             {
                 SelectNextColumn();
                 return true;
             }
-
             if (key == KeyCode.LeftArrow)
             {
                 SelectPreviousColumn();
                 return true;
             }
 
-            // +/- for value adjustment (also = and keypad)
+            // +/- for single-step value adjustment
             if (key == KeyCode.Plus || key == KeyCode.KeypadPlus || key == KeyCode.Equals)
             {
-                IncrementValue();
+                AdjustValue(1);
                 return true;
             }
-
             if (key == KeyCode.Minus || key == KeyCode.KeypadMinus)
             {
-                DecrementValue();
+                AdjustValue(-1);
                 return true;
             }
 
-            // Delete to clear limit
-            if (key == KeyCode.Delete)
-            {
-                ClearLimit();
-                return true;
-            }
-
-            // Space to toggle boolean columns
+            // Space: toggle boolean columns
             if (key == KeyCode.Space)
             {
                 var column = (Column)currentColumnIndex;
@@ -630,16 +916,38 @@ namespace RimWorldAccess
                 }
             }
 
-            // Tab - consume to prevent repeated announcements
+            // Tab/Shift+Tab: close auto-slaughter, return to animals menu
             if (key == KeyCode.Tab)
             {
+                string slaughterSummary = BuildSlaughterSummary();
+                var dialog = currentDialog;
+
+                // Clear state BEFORE removing dialog to prevent PostClose from calling Close() again
+                IsActive = false;
+                currentDialog = null;
+                configs.Clear();
+                cachedCounts.Clear();
+                typeahead.ClearSearch();
+                isNumericInputMode = false;
+                numericBuffer = "";
+
+                if (dialog != null)
+                    Find.WindowStack.TryRemove(dialog, doCloseSound: false);
+
+                // Announce slaughter summary if any, otherwise just the menu name
+                if (!string.IsNullOrEmpty(slaughterSummary))
+                    TolkHelper.Speak(slaughterSummary);
+                else
+                    TolkHelper.Speak("Animals menu");
+
                 return true;
             }
 
-            // Typeahead - letter keys
-            if (evt.character != '\0' && char.IsLetter(evt.character))
+            // Typeahead: letter keys only
+            bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
+            if (isLetter && !KeyboardHelper.IsAltHeld)
             {
-                HandleTypeahead(evt.character);
+                TypeaheadCharacterBuffer.RequestCharacter(c => HandleTypeahead(c));
                 return true;
             }
 

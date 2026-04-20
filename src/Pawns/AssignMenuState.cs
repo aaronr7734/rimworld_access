@@ -1,824 +1,903 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
-using Verse;
 using RimWorld;
+using Verse;
+using Verse.Sound;
 
 namespace RimWorldAccess
 {
-    /// <summary>
-    /// Column types for the assign menu.
-    /// Note: AllowedAreas has been moved to WindowlessScheduleState (F2 menu).
-    /// </summary>
-    public enum ColumnType
-    {
-        Outfit,
-        FoodRestrictions,
-        DrugPolicies,
-        ReadingPolicies,
-        MedicineCarry,
-        HostilityResponse
-    }
-
-    /// <summary>
-    /// Manages the state and navigation for the interactive assign menu.
-    /// Tracks pawns and their assignments across multiple columns.
-    /// </summary>
     public static class AssignMenuState
     {
-        private static bool isActive = false;
-        private static Pawn currentPawn = null;
-        private static int currentPawnIndex = 0;
-        private static List<Pawn> allPawns = new List<Pawn>();
+        public static bool IsActive { get; private set; } = false;
 
-        // Column navigation - uses dynamic column list based on available features
-        private static List<ColumnType> activeColumns = new List<ColumnType>();
-        private static int currentColumnIndex = 0;
-        private static int selectedOptionIndex = 0;
+        private static List<Pawn> pawnsList = new List<Pawn>();
+        private static TabularMenuHelper<Pawn> tableHelper;
 
-        // Typeahead search
-        private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
+        // Submenu state
+        private static bool isInSubmenu = false;
+        private static List<AssignMenuHelper.SubmenuOption> submenuOptions = new List<AssignMenuHelper.SubmenuOption>();
+        private static int submenuSelectedIndex = 0;
+        private static TypeaheadSearchHelper submenuTypeahead = new TypeaheadSearchHelper();
 
-        // Column option lists
-        private static List<ApparelPolicy> outfitPolicies = new List<ApparelPolicy>();
-        private static List<FoodPolicy> foodPolicies = new List<FoodPolicy>();
-        private static List<DrugPolicy> drugPolicies = new List<DrugPolicy>();
-        private static List<ReadingPolicy> readingPolicies = new List<ReadingPolicy>();
-        private static List<MedicineCarryOption> medicineCarryOptions = new List<MedicineCarryOption>();
-        private static List<HostilityResponseMode> hostilityOptions = new List<HostilityResponseMode>();
+        // Pending restore for returning from policy editors
+        private static int pendingRestorePawnIndex = -1;
+        private static int pendingRestoreColIndex = -1;
 
-        // Column names for announcements
-        private static readonly Dictionary<ColumnType, string> columnNames = new Dictionary<ColumnType, string>
+        // Public accessors for input routing
+        public static TypeaheadSearchHelper Typeahead => tableHelper?.Typeahead;
+        public static TypeaheadSearchHelper SubmenuTypeahead => submenuTypeahead;
+        public static int CurrentPawnIndex => tableHelper?.CurrentRowIndex ?? 0;
+        public static int SubmenuSelectedIndex => submenuSelectedIndex;
+        public static bool IsInSubmenu => isInSubmenu;
+        public static bool HasActiveSearch => tableHelper?.Typeahead?.HasActiveSearch ?? false;
+
+        // === Lifecycle ===
+
+        public static void Open()
         {
-            { ColumnType.Outfit, "Outfit" },
-            { ColumnType.FoodRestrictions, "Food Restrictions" },
-            { ColumnType.DrugPolicies, "Drug Policies" },
-            { ColumnType.ReadingPolicies, "Reading Policies" },
-            { ColumnType.MedicineCarry, "Medicine Carry" },
-            { ColumnType.HostilityResponse, "Hostility Response" }
-        };
+            // Handle return from policy editor while already active
+            if (IsActive && pendingRestorePawnIndex >= 0)
+            {
+                tableHelper.CurrentRowIndex = Math.Min(pendingRestorePawnIndex, pawnsList.Count - 1);
+                tableHelper.CurrentColumnIndex = Math.Min(pendingRestoreColIndex, AssignMenuHelper.GetColumnCount() - 1);
+                pendingRestorePawnIndex = -1;
+                pendingRestoreColIndex = -1;
 
-        public static bool IsActive => isActive;
-        public static Pawn CurrentPawn => currentPawn;
-        public static int CurrentPawnIndex => currentPawnIndex;
-        public static int TotalPawns => allPawns.Count;
-        public static int CurrentColumnIndex => currentColumnIndex;
-        public static bool HasActiveSearch => typeahead.HasActiveSearch;
-        public static bool HasNoMatches => typeahead.HasNoMatches;
-
-        /// <summary>
-        /// Opens the assign menu for the specified pawn.
-        /// </summary>
-        public static void Open(Pawn pawn)
-        {
-            if (pawn == null)
+                SoundDefOf.TabOpen.PlayOneShotOnCamera();
+                AnnounceCurrentCell(includeItemName: true);
                 return;
-
-            isActive = true;
-            currentPawn = pawn;
-            currentColumnIndex = 0;
-            selectedOptionIndex = 0;
-            typeahead.ClearSearch();
-
-            // Build list of all colonists
-            allPawns.Clear();
-            if (Find.CurrentMap != null)
-            {
-                allPawns = Find.CurrentMap.mapPawns.FreeColonists.ToList();
-                currentPawnIndex = allPawns.IndexOf(pawn);
-                if (currentPawnIndex < 0)
-                    currentPawnIndex = 0;
             }
 
-            RebuildActiveColumns();
-            LoadAllPolicies();
-            TolkHelper.Speak("Assign menu");
-            UpdateClipboard();
+            if (IsActive) return;
+
+            if (Find.CurrentMap == null)
+            {
+                TolkHelper.Speak("No map loaded");
+                return;
+            }
+
+            // Build active columns
+            AssignMenuHelper.BuildActiveColumns();
+
+            // Match vanilla MainTabWindow_Assign: all maps + caravans + travelling transporters,
+            // free colonists, no babies.
+            pawnsList = PawnsFinder.AllMapsCaravansAndTravellingTransporters_Alive_FreeColonists
+                .Where(p => !p.DevelopmentalStage.Baby())
+                .ToList();
+
+            if (pawnsList.Count == 0)
+            {
+                TolkHelper.Speak("No colonists found");
+                return;
+            }
+
+            // Initialize table helper
+            tableHelper = new TabularMenuHelper<Pawn>(
+                getColumnCount: AssignMenuHelper.GetColumnCount,
+                getItemLabel: AssignMenuHelper.GetPawnLabel,
+                getColumnName: AssignMenuHelper.GetColumnName,
+                getColumnValue: AssignMenuHelper.GetColumnValue,
+                sortByColumn: (items, col, desc) => AssignMenuHelper.SortByColumn(items.ToList(), col, desc),
+                getColumnTooltip: (pawn, col) => AssignMenuHelper.GetColumnTooltip(pawn, col),
+                isColumnSortable: AssignMenuHelper.IsColumnSortable
+            );
+
+            // Default order matches vanilla: colonist-bar order via playerSettings.displayOrder.
+            pawnsList = PlayerPawnsDisplayOrderUtility.InOrder(pawnsList).ToList();
+            tableHelper.Reset();
+            tableHelper.SetDefaultOrder(pawnsList);
+
+            isInSubmenu = false;
+            IsActive = true;
+
+            // Check for pending restore from policy editor return
+            if (pendingRestorePawnIndex >= 0)
+            {
+                tableHelper.CurrentRowIndex = Math.Min(pendingRestorePawnIndex, pawnsList.Count - 1);
+                tableHelper.CurrentColumnIndex = Math.Min(pendingRestoreColIndex, AssignMenuHelper.GetColumnCount() - 1);
+                pendingRestorePawnIndex = -1;
+                pendingRestoreColIndex = -1;
+
+                SoundDefOf.TabOpen.PlayOneShotOnCamera();
+                AnnounceCurrentCell(includeItemName: true);
+                return;
+            }
+
+            // Try to start on the currently selected pawn
+            Pawn selectedPawn = PawnSelectionState.LastSelectedPawn;
+            if (selectedPawn != null)
+            {
+                int idx = pawnsList.IndexOf(selectedPawn);
+                if (idx >= 0)
+                    tableHelper.CurrentRowIndex = idx;
+            }
+
+            SoundDefOf.TabOpen.PlayOneShotOnCamera();
+            string tabLabel = DefDatabase<MainButtonDef>.GetNamed("Assign").LabelCap;
+            TolkHelper.Speak($"{tabLabel}, {pawnsList.Count} colonists");
+            AnnounceCurrentCell(includeItemName: true);
         }
 
-        /// <summary>
-        /// Rebuilds the list of active columns based on available features for current pawn.
-        /// Note: AllowedAreas has been moved to WindowlessScheduleState (F2 menu).
-        /// </summary>
-        private static void RebuildActiveColumns()
-        {
-            activeColumns.Clear();
-
-            // Base columns always available
-            activeColumns.Add(ColumnType.Outfit);
-            activeColumns.Add(ColumnType.FoodRestrictions);
-            activeColumns.Add(ColumnType.DrugPolicies);
-
-            // Reading policies only with Ideology DLC
-            if (ModsConfig.IdeologyActive)
-            {
-                activeColumns.Add(ColumnType.ReadingPolicies);
-            }
-
-            // Medicine carry only if pawn has inventoryStock
-            if (currentPawn?.inventoryStock != null)
-            {
-                activeColumns.Add(ColumnType.MedicineCarry);
-            }
-
-            // Hostility response only for humanlike pawns
-            if (currentPawn?.playerSettings != null && currentPawn.RaceProps.Humanlike)
-            {
-                activeColumns.Add(ColumnType.HostilityResponse);
-            }
-        }
-
-        /// <summary>
-        /// Loads all policy databases.
-        /// Note: Area loading has been moved to WindowlessScheduleState (F2 menu).
-        /// </summary>
-        private static void LoadAllPolicies()
-        {
-            // Load outfits
-            outfitPolicies.Clear();
-            if (Current.Game?.outfitDatabase != null)
-            {
-                outfitPolicies = Current.Game.outfitDatabase.AllOutfits.ToList();
-            }
-
-            // Load food restrictions
-            foodPolicies.Clear();
-            if (Current.Game?.foodRestrictionDatabase != null)
-            {
-                foodPolicies = Current.Game.foodRestrictionDatabase.AllFoodRestrictions.ToList();
-            }
-
-            // Load drug policies
-            drugPolicies.Clear();
-            if (Current.Game?.drugPolicyDatabase != null)
-            {
-                drugPolicies = Current.Game.drugPolicyDatabase.AllPolicies.ToList();
-            }
-
-            // Load reading policies (if DLC is active)
-            readingPolicies.Clear();
-            if (ModsConfig.IdeologyActive && Current.Game?.readingPolicyDatabase != null)
-            {
-                readingPolicies = Current.Game.readingPolicyDatabase.AllReadingPolicies.ToList();
-            }
-
-            // Load medicine carry options (0 to max medicine count)
-            medicineCarryOptions.Clear();
-            if (currentPawn?.inventoryStock != null && InventoryStockGroupDefOf.Medicine != null)
-            {
-                var medicineGroup = InventoryStockGroupDefOf.Medicine;
-                // Group by medicine type first, then by count
-                foreach (var medicineDef in medicineGroup.thingDefs)
-                {
-                    for (int i = medicineGroup.min; i <= medicineGroup.max; i++)
-                    {
-                        medicineCarryOptions.Add(new MedicineCarryOption
-                        {
-                            Count = i,
-                            MedicineDef = medicineDef,
-                            Label = $"{medicineDef.label} x{i}"
-                        });
-                    }
-                }
-            }
-
-            // Load hostility response options
-            hostilityOptions.Clear();
-            if (currentPawn?.playerSettings != null && currentPawn.RaceProps.Humanlike)
-            {
-                hostilityOptions.Add(HostilityResponseMode.Ignore);
-                // Only add Attack if pawn doesn't have WorkTags.Violent disabled
-                if (!currentPawn.WorkTagIsDisabled(WorkTags.Violent))
-                {
-                    hostilityOptions.Add(HostilityResponseMode.Attack);
-                }
-                hostilityOptions.Add(HostilityResponseMode.Flee);
-            }
-        }
-
-        /// <summary>
-        /// Closes the menu.
-        /// </summary>
         public static void Close()
         {
-            isActive = false;
-            currentPawn = null;
-            currentPawnIndex = 0;
-            allPawns.Clear();
-            currentColumnIndex = 0;
-            selectedOptionIndex = 0;
-            typeahead.ClearSearch();
+            IsActive = false;
+            isInSubmenu = false;
+            pawnsList.Clear();
+            submenuOptions.Clear();
+            submenuSelectedIndex = 0;
+            submenuTypeahead.ClearSearch();
+            tableHelper?.ClearSearch();
 
-            activeColumns.Clear();
-            outfitPolicies.Clear();
-            foodPolicies.Clear();
-            drugPolicies.Clear();
-            readingPolicies.Clear();
-            medicineCarryOptions.Clear();
-            hostilityOptions.Clear();
-
-            TolkHelper.Speak("Assign menu closed");
+            SoundDefOf.TabClose.PlayOneShotOnCamera();
+            string tabLabel = DefDatabase<MainButtonDef>.GetNamed("Assign").LabelCap;
+            TolkHelper.Speak($"{tabLabel} closed");
         }
 
-        /// <summary>
-        /// Switches to the next column (does not wrap).
-        /// </summary>
+        public static void PrepareForPolicyEditorReturn()
+        {
+            pendingRestorePawnIndex = tableHelper?.CurrentRowIndex ?? 0;
+            pendingRestoreColIndex = tableHelper?.CurrentColumnIndex ?? 0;
+        }
+
+        // === Row Navigation ===
+
+        public static void SelectNextPawn()
+        {
+            if (pawnsList.Count == 0) return;
+            tableHelper.SelectNextRow(pawnsList.Count);
+            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            AnnounceCurrentCell(includeItemName: true, includeColumnName: false);
+        }
+
+        public static void SelectPreviousPawn()
+        {
+            if (pawnsList.Count == 0) return;
+            tableHelper.SelectPreviousRow(pawnsList.Count);
+            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            AnnounceCurrentCell(includeItemName: true, includeColumnName: false);
+        }
+
+        public static void JumpToFirst()
+        {
+            if (pawnsList.Count == 0) return;
+            tableHelper.JumpToFirst(pawnsList.Count);
+            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            AnnounceCurrentCell(includeItemName: true, includeColumnName: false);
+        }
+
+        public static void JumpToLast()
+        {
+            if (pawnsList.Count == 0) return;
+            tableHelper.JumpToLast(pawnsList.Count);
+            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            AnnounceCurrentCell(includeItemName: true, includeColumnName: false);
+        }
+
+        // === Column Navigation ===
+
         public static void SelectNextColumn()
         {
-            int totalColumns = GetTotalColumns();
-            if (totalColumns == 0)
-                return;
-
-            currentColumnIndex = MenuHelper.SelectNext(currentColumnIndex, totalColumns);
-            selectedOptionIndex = GetCurrentOptionIndex();
-            typeahead.ClearSearch();
-            UpdateClipboard();
+            tableHelper.SelectNextColumn();
+            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            AnnounceCurrentCell(includeItemName: false);
         }
 
-        /// <summary>
-        /// Switches to the previous column (does not wrap).
-        /// </summary>
         public static void SelectPreviousColumn()
         {
-            int totalColumns = GetTotalColumns();
-            if (totalColumns == 0)
-                return;
-
-            currentColumnIndex = MenuHelper.SelectPrevious(currentColumnIndex, totalColumns);
-
-            selectedOptionIndex = GetCurrentOptionIndex();
-            typeahead.ClearSearch();
-            UpdateClipboard();
+            tableHelper.SelectPreviousColumn();
+            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            AnnounceCurrentCell(includeItemName: false);
         }
 
-        /// <summary>
-        /// Moves selection to next option in current column (does not wrap).
-        /// </summary>
-        public static void SelectNextOption()
+        // === Sorting ===
+
+        public static void ToggleSortByCurrentColumn()
         {
-            int optionCount = GetCurrentColumnOptionCount();
-            if (optionCount == 0)
+            var result = tableHelper.ToggleSortByCurrentColumn(pawnsList, out string direction, out bool sortCleared);
+
+            if (result == null)
             {
-                TolkHelper.Speak("No options available");
+                string colName = tableHelper.GetCurrentColumnName();
+                TolkHelper.Speak($"{colName} cannot be sorted");
                 return;
             }
 
-            selectedOptionIndex = MenuHelper.SelectNext(selectedOptionIndex, optionCount);
-            UpdateClipboard();
-        }
+            pawnsList = result.ToList();
 
-        /// <summary>
-        /// Moves selection to previous option in current column (does not wrap).
-        /// </summary>
-        public static void SelectPreviousOption()
-        {
-            int optionCount = GetCurrentColumnOptionCount();
-            if (optionCount == 0)
+            if (sortCleared)
             {
-                TolkHelper.Speak("No options available");
-                return;
-            }
-
-            selectedOptionIndex = MenuHelper.SelectPrevious(selectedOptionIndex, optionCount);
-
-            UpdateClipboard();
-        }
-
-        /// <summary>
-        /// Applies the currently selected option to the current pawn.
-        /// </summary>
-        public static void ApplySelection()
-        {
-            if (currentPawn == null || currentColumnIndex < 0 || currentColumnIndex >= activeColumns.Count)
-                return;
-
-            string result = "";
-
-            switch (activeColumns[currentColumnIndex])
-            {
-                case ColumnType.Outfit:
-                    if (currentPawn.outfits != null && selectedOptionIndex >= 0 && selectedOptionIndex < outfitPolicies.Count)
-                    {
-                        var policy = outfitPolicies[selectedOptionIndex];
-                        currentPawn.outfits.CurrentApparelPolicy = policy;
-                        result = $"{currentPawn.LabelShort}: Outfit set to {policy.label}";
-                    }
-                    break;
-
-                case ColumnType.FoodRestrictions:
-                    if (currentPawn.foodRestriction != null && selectedOptionIndex >= 0 && selectedOptionIndex < foodPolicies.Count)
-                    {
-                        var policy = foodPolicies[selectedOptionIndex];
-                        currentPawn.foodRestriction.CurrentFoodPolicy = policy;
-                        result = $"{currentPawn.LabelShort}: Food restriction set to {policy.label}";
-                    }
-                    break;
-
-                case ColumnType.DrugPolicies:
-                    if (currentPawn.drugs != null && selectedOptionIndex >= 0 && selectedOptionIndex < drugPolicies.Count)
-                    {
-                        var policy = drugPolicies[selectedOptionIndex];
-                        currentPawn.drugs.CurrentPolicy = policy;
-                        result = $"{currentPawn.LabelShort}: Drug policy set to {policy.label}";
-                    }
-                    break;
-
-                case ColumnType.ReadingPolicies:
-                    if (ModsConfig.IdeologyActive && currentPawn.reading != null &&
-                        selectedOptionIndex >= 0 && selectedOptionIndex < readingPolicies.Count)
-                    {
-                        var policy = readingPolicies[selectedOptionIndex];
-                        currentPawn.reading.CurrentPolicy = policy;
-                        result = $"{currentPawn.LabelShort}: Reading policy set to {policy.label}";
-                    }
-                    break;
-
-                case ColumnType.MedicineCarry:
-                    if (currentPawn.inventoryStock != null && InventoryStockGroupDefOf.Medicine != null &&
-                        selectedOptionIndex >= 0 && selectedOptionIndex < medicineCarryOptions.Count)
-                    {
-                        var option = medicineCarryOptions[selectedOptionIndex];
-                        var medicineGroup = InventoryStockGroupDefOf.Medicine;
-                        currentPawn.inventoryStock.SetCountForGroup(medicineGroup, option.Count);
-                        currentPawn.inventoryStock.SetThingForGroup(medicineGroup, option.MedicineDef);
-                        result = $"{currentPawn.LabelShort}: Medicine carry set to {option.Label}";
-                    }
-                    break;
-
-                case ColumnType.HostilityResponse:
-                    if (currentPawn.playerSettings != null &&
-                        selectedOptionIndex >= 0 && selectedOptionIndex < hostilityOptions.Count)
-                    {
-                        var response = hostilityOptions[selectedOptionIndex];
-                        currentPawn.playerSettings.hostilityResponse = response;
-                        string modeName = HostilityResponseModeUtility.GetLabel(response);
-                        result = $"{currentPawn.LabelShort}: Hostility response set to {modeName}";
-                    }
-                    break;
-            }
-
-            if (!string.IsNullOrEmpty(result))
-            {
-                TolkHelper.Speak(result);
-            }
-        }
-
-        /// <summary>
-        /// Opens the management dialog for the current column type.
-        /// Allows creating and editing policies or areas.
-        /// </summary>
-        public static void OpenManagementDialog()
-        {
-            if (currentColumnIndex < 0 || currentColumnIndex >= activeColumns.Count)
-                return;
-
-            switch (activeColumns[currentColumnIndex])
-            {
-                case ColumnType.Outfit: // Outfit - Open windowless apparel policies manager
-                    if (Current.Game?.outfitDatabase != null)
-                    {
-                        // Pass the current pawn's outfit policy to open that policy for editing
-                        ApparelPolicy currentPolicy = currentPawn?.outfits?.CurrentApparelPolicy;
-
-                        // Close the assign menu before opening the policy editor
-                        Close();
-
-                        WindowlessOutfitPolicyState.Open(currentPolicy);
-                        TolkHelper.Speak("Opened apparel policies manager");
-                    }
-                    break;
-
-                case ColumnType.FoodRestrictions: // Food Restrictions - Open windowless food policies manager
-                    if (Current.Game?.foodRestrictionDatabase != null)
-                    {
-                        // Pass the current pawn's food policy to open that policy for editing
-                        FoodPolicy currentPolicy = currentPawn?.foodRestriction?.CurrentFoodPolicy;
-
-                        // Close the assign menu before opening the policy editor
-                        Close();
-
-                        WindowlessFoodPolicyState.Open(currentPolicy);
-                        TolkHelper.Speak("Opened food policies manager");
-                    }
-                    break;
-
-                case ColumnType.DrugPolicies: // Drug Policies - Open windowless drug policies manager
-                    if (Current.Game?.drugPolicyDatabase != null)
-                    {
-                        // Pass the current pawn's drug policy to open that policy for editing
-                        DrugPolicy currentPolicy = currentPawn?.drugs?.CurrentPolicy;
-
-                        // Close the assign menu before opening the policy editor
-                        Close();
-
-                        WindowlessDrugPolicyState.Open(currentPolicy);
-                        TolkHelper.Speak("Opened drug policies manager");
-                    }
-                    break;
-
-                case ColumnType.ReadingPolicies: // Reading Policies - Open reading policies dialog (Ideology DLC)
-                    if (ModsConfig.IdeologyActive && Current.Game?.readingPolicyDatabase != null)
-                    {
-                        // Pass the current pawn's reading policy to open that policy for editing
-                        ReadingPolicy currentPolicy = currentPawn?.reading?.CurrentPolicy;
-                        Find.WindowStack.Add(new Dialog_ManageReadingPolicies(currentPolicy));
-                        TolkHelper.Speak("Opened reading policies manager");
-                    }
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Switches to the next pawn in the list (does not wrap).
-        /// </summary>
-        public static void SwitchToNextPawn()
-        {
-            if (allPawns.Count == 0)
-                return;
-
-            currentPawnIndex = MenuHelper.SelectNext(currentPawnIndex, allPawns.Count);
-            currentPawn = allPawns[currentPawnIndex];
-            RebuildActiveColumns();
-            LoadAllPolicies();
-            selectedOptionIndex = GetCurrentOptionIndex();
-            typeahead.ClearSearch();
-
-            TolkHelper.Speak($"Now editing: {currentPawn.LabelShort}. {MenuHelper.FormatPosition(currentPawnIndex, allPawns.Count)}");
-        }
-
-        /// <summary>
-        /// Switches to the previous pawn in the list (does not wrap).
-        /// </summary>
-        public static void SwitchToPreviousPawn()
-        {
-            if (allPawns.Count == 0)
-                return;
-
-            currentPawnIndex = MenuHelper.SelectPrevious(currentPawnIndex, allPawns.Count);
-
-            currentPawn = allPawns[currentPawnIndex];
-            RebuildActiveColumns();
-            LoadAllPolicies();
-            selectedOptionIndex = GetCurrentOptionIndex();
-            typeahead.ClearSearch();
-
-            TolkHelper.Speak($"Now editing: {currentPawn.LabelShort}. {MenuHelper.FormatPosition(currentPawnIndex, allPawns.Count)}");
-        }
-
-        /// <summary>
-        /// Gets the number of columns available (may vary depending on DLC and pawn type).
-        /// </summary>
-        private static int GetTotalColumns()
-        {
-            return activeColumns.Count;
-        }
-
-        /// <summary>
-        /// Gets the number of options in the current column.
-        /// </summary>
-        private static int GetCurrentColumnOptionCount()
-        {
-            if (currentColumnIndex < 0 || currentColumnIndex >= activeColumns.Count)
-                return 0;
-
-            switch (activeColumns[currentColumnIndex])
-            {
-                case ColumnType.Outfit: return outfitPolicies.Count;
-                case ColumnType.FoodRestrictions: return foodPolicies.Count;
-                case ColumnType.DrugPolicies: return drugPolicies.Count;
-                case ColumnType.ReadingPolicies: return readingPolicies.Count;
-                case ColumnType.MedicineCarry: return medicineCarryOptions.Count;
-                case ColumnType.HostilityResponse: return hostilityOptions.Count;
-                default: return 0;
-            }
-        }
-
-        /// <summary>
-        /// Gets the current option index for the current pawn and column.
-        /// </summary>
-        private static int GetCurrentOptionIndex()
-        {
-            if (currentPawn == null || currentColumnIndex < 0 || currentColumnIndex >= activeColumns.Count)
-                return 0;
-
-            switch (activeColumns[currentColumnIndex])
-            {
-                case ColumnType.Outfit:
-                    if (currentPawn.outfits != null && currentPawn.outfits.CurrentApparelPolicy != null)
-                    {
-                        return outfitPolicies.IndexOf(currentPawn.outfits.CurrentApparelPolicy);
-                    }
-                    break;
-
-                case ColumnType.FoodRestrictions:
-                    if (currentPawn.foodRestriction != null && currentPawn.foodRestriction.CurrentFoodPolicy != null)
-                    {
-                        return foodPolicies.IndexOf(currentPawn.foodRestriction.CurrentFoodPolicy);
-                    }
-                    break;
-
-                case ColumnType.DrugPolicies:
-                    if (currentPawn.drugs != null && currentPawn.drugs.CurrentPolicy != null)
-                    {
-                        return drugPolicies.IndexOf(currentPawn.drugs.CurrentPolicy);
-                    }
-                    break;
-
-                case ColumnType.ReadingPolicies:
-                    if (ModsConfig.IdeologyActive && currentPawn.reading != null && currentPawn.reading.CurrentPolicy != null)
-                    {
-                        return readingPolicies.IndexOf(currentPawn.reading.CurrentPolicy);
-                    }
-                    break;
-
-                case ColumnType.MedicineCarry:
-                    if (currentPawn.inventoryStock != null && InventoryStockGroupDefOf.Medicine != null)
-                    {
-                        var medicineGroup = InventoryStockGroupDefOf.Medicine;
-                        int currentCount = currentPawn.inventoryStock.GetDesiredCountForGroup(medicineGroup);
-                        ThingDef currentMedicine = currentPawn.inventoryStock.GetDesiredThingForGroup(medicineGroup);
-
-                        // Find the option that matches current count and medicine type
-                        int index = medicineCarryOptions.FindIndex(o =>
-                            o.Count == currentCount && o.MedicineDef == currentMedicine);
-                        return index >= 0 ? index : 0;
-                    }
-                    break;
-
-                case ColumnType.HostilityResponse:
-                    if (currentPawn.playerSettings != null)
-                    {
-                        return hostilityOptions.IndexOf(currentPawn.playerSettings.hostilityResponse);
-                    }
-                    break;
-            }
-
-            return 0;
-        }
-
-        /// <summary>
-        /// Gets the current selection as a formatted string for screen reader.
-        /// </summary>
-        private static void UpdateClipboard()
-        {
-            if (currentPawn == null)
-            {
-                TolkHelper.Speak("No pawn selected");
-                return;
-            }
-
-            if (currentColumnIndex < 0 || currentColumnIndex >= activeColumns.Count)
-            {
-                TolkHelper.Speak("Invalid column");
-                return;
-            }
-
-            ColumnType currentColumn = activeColumns[currentColumnIndex];
-            string columnName = columnNames[currentColumn];
-            string optionName = GetCurrentOptionName();
-            int optionCount = GetCurrentColumnOptionCount();
-
-            string message = $"{currentPawn.LabelShort} - {columnName}: {optionName}. {MenuHelper.FormatPosition(selectedOptionIndex, optionCount)}";
-            TolkHelper.Speak(message);
-        }
-
-        /// <summary>
-        /// Gets the name of the currently selected option.
-        /// </summary>
-        private static string GetCurrentOptionName()
-        {
-            if (selectedOptionIndex < 0 || currentColumnIndex < 0 || currentColumnIndex >= activeColumns.Count)
-                return "None";
-
-            switch (activeColumns[currentColumnIndex])
-            {
-                case ColumnType.Outfit:
-                    if (selectedOptionIndex < outfitPolicies.Count)
-                        return outfitPolicies[selectedOptionIndex].label;
-                    break;
-
-                case ColumnType.FoodRestrictions:
-                    if (selectedOptionIndex < foodPolicies.Count)
-                        return foodPolicies[selectedOptionIndex].label;
-                    break;
-
-                case ColumnType.DrugPolicies:
-                    if (selectedOptionIndex < drugPolicies.Count)
-                        return drugPolicies[selectedOptionIndex].label;
-                    break;
-
-                case ColumnType.ReadingPolicies:
-                    if (selectedOptionIndex < readingPolicies.Count)
-                        return readingPolicies[selectedOptionIndex].label;
-                    break;
-
-                case ColumnType.MedicineCarry:
-                    if (selectedOptionIndex < medicineCarryOptions.Count)
-                        return medicineCarryOptions[selectedOptionIndex].Label;
-                    break;
-
-                case ColumnType.HostilityResponse:
-                    if (selectedOptionIndex < hostilityOptions.Count)
-                        return HostilityResponseModeUtility.GetLabel(hostilityOptions[selectedOptionIndex]);
-                    break;
-            }
-
-            return "Unknown";
-        }
-
-        /// <summary>
-        /// Processes a character for typeahead search in the current column.
-        /// </summary>
-        public static void ProcessTypeaheadCharacter(char c)
-        {
-            var labels = GetItemLabels();
-            if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
-            {
-                if (newIndex >= 0)
-                {
-                    selectedOptionIndex = newIndex;
-                    AnnounceWithSearch();
-                }
+                SoundDefOf.Tick_Low.PlayOneShotOnCamera();
+                TolkHelper.Speak("Sort cleared, default order");
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+                string columnName = tableHelper.GetCurrentColumnName();
+                SoundDefOf.Tick_High.PlayOneShotOnCamera();
+                TolkHelper.Speak($"Sorted by {columnName} ({direction})");
             }
+
+            AnnounceCurrentCell(includeItemName: true);
         }
 
-        /// <summary>
-        /// Handles backspace key for typeahead search.
-        /// </summary>
-        public static void ProcessBackspace()
-        {
-            if (!typeahead.HasActiveSearch)
-                return;
+        // === Cell Interaction ===
 
-            var labels = GetItemLabels();
-            if (typeahead.ProcessBackspace(labels, out int newIndex))
+        public static void InteractWithCurrentCell()
+        {
+            if (pawnsList.Count == 0) return;
+
+            Pawn currentPawn = pawnsList[tableHelper.CurrentRowIndex];
+            int colIndex = tableHelper.CurrentColumnIndex;
+            var colType = AssignMenuHelper.GetColumnType(colIndex);
+
+            switch (colType)
             {
-                if (newIndex >= 0)
-                {
-                    selectedOptionIndex = newIndex;
-                }
-                AnnounceWithSearch();
+                case AssignMenuHelper.AssignColumnType.Name:
+                    JumpToPawnOnMap(currentPawn);
+                    break;
+
+                case AssignMenuHelper.AssignColumnType.Ideo:
+                case AssignMenuHelper.AssignColumnType.Xenotype:
+                    // Display-only: re-announce
+                    SoundDefOf.Click.PlayOneShotOnCamera();
+                    AnnounceCurrentCell(includeItemName: false);
+                    break;
+
+                default:
+                    if (AssignMenuHelper.IsColumnInteractive(colIndex))
+                        OpenSubmenu(currentPawn, colIndex);
+                    else
+                    {
+                        SoundDefOf.Click.PlayOneShotOnCamera();
+                        AnnounceCurrentCell(includeItemName: false);
+                    }
+                    break;
             }
         }
 
-        /// <summary>
-        /// Clears the typeahead search and announces.
-        /// </summary>
-        public static void ClearTypeaheadSearch()
+        private static void JumpToPawnOnMap(Pawn pawn)
         {
-            typeahead.ClearSearchAndAnnounce();
-        }
-
-        /// <summary>
-        /// Jumps to the first option in the current column.
-        /// </summary>
-        public static void JumpToFirst()
-        {
-            int optionCount = GetCurrentColumnOptionCount();
-            if (optionCount == 0)
-                return;
-
-            selectedOptionIndex = MenuHelper.JumpToFirst();
-            typeahead.ClearSearch();
-            UpdateClipboard();
-        }
-
-        /// <summary>
-        /// Jumps to the last option in the current column.
-        /// </summary>
-        public static void JumpToLast()
-        {
-            int optionCount = GetCurrentColumnOptionCount();
-            if (optionCount == 0)
-                return;
-
-            selectedOptionIndex = MenuHelper.JumpToLast(optionCount);
-            typeahead.ClearSearch();
-            UpdateClipboard();
-        }
-
-        /// <summary>
-        /// Selects the next match in the typeahead search results.
-        /// </summary>
-        public static void SelectNextMatch()
-        {
-            if (!typeahead.HasActiveSearch || typeahead.HasNoMatches)
-                return;
-
-            int nextIndex = typeahead.GetNextMatch(selectedOptionIndex);
-            if (nextIndex >= 0)
+            if (pawn == null || pawn.Map == null)
             {
-                selectedOptionIndex = nextIndex;
-                AnnounceWithSearch();
-            }
-        }
-
-        /// <summary>
-        /// Selects the previous match in the typeahead search results.
-        /// </summary>
-        public static void SelectPreviousMatch()
-        {
-            if (!typeahead.HasActiveSearch || typeahead.HasNoMatches)
+                TolkHelper.Speak("Pawn not on map", SpeechPriority.High);
                 return;
+            }
 
-            int prevIndex = typeahead.GetPreviousMatch(selectedOptionIndex);
-            if (prevIndex >= 0)
+            IntVec3 position = pawn.Position;
+            Close();
+
+            MapNavigationState.CurrentCursorPosition = position;
+            Find.CameraDriver?.JumpToCurrentMapLoc(position);
+            TolkHelper.Speak($"Jumped to {pawn.LabelShort}");
+        }
+
+        public static void OpenInfoCard()
+        {
+            if (pawnsList == null || pawnsList.Count == 0)
             {
-                selectedOptionIndex = prevIndex;
-                AnnounceWithSearch();
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No info card available");
+                return;
+            }
+
+            Pawn pawn = pawnsList[tableHelper.CurrentRowIndex];
+            if (pawn != null)
+                Find.WindowStack.Add(new Dialog_InfoCard(pawn));
+            else
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No info card available");
             }
         }
 
+        // === Submenu System ===
+
+        private static void OpenSubmenu(Pawn pawn, int colIndex)
+        {
+            var colType = AssignMenuHelper.GetColumnType(colIndex);
+
+            // Check if column is usable for this specific pawn
+            if (colType == AssignMenuHelper.AssignColumnType.MedicineCarry && pawn.inventoryStock == null)
+            {
+                TolkHelper.Speak("N/A", SpeechPriority.High);
+                return;
+            }
+            if ((colType == AssignMenuHelper.AssignColumnType.HostilityResponse ||
+                 colType == AssignMenuHelper.AssignColumnType.MedicalCare) && pawn.playerSettings == null)
+            {
+                TolkHelper.Speak("N/A", SpeechPriority.High);
+                return;
+            }
+
+            submenuOptions = AssignMenuHelper.GetSubmenuOptions(colIndex, pawn);
+
+            if (submenuOptions.Count == 0)
+            {
+                TolkHelper.Speak("No options available");
+                return;
+            }
+
+            // Pre-select the current value
+            submenuSelectedIndex = AssignMenuHelper.GetCurrentSubmenuIndex(colIndex, pawn, submenuOptions);
+            submenuTypeahead.ClearSearch();
+            isInSubmenu = true;
+
+            SoundDefOf.Click.PlayOneShotOnCamera();
+            AnnounceSubmenuOption();
+        }
+
+        public static void SubmenuSelectNext()
+        {
+            if (submenuOptions.Count == 0) return;
+            submenuSelectedIndex = (submenuSelectedIndex + 1) % submenuOptions.Count;
+            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            AnnounceSubmenuOption();
+        }
+
+        public static void SubmenuSelectPrevious()
+        {
+            if (submenuOptions.Count == 0) return;
+            submenuSelectedIndex = (submenuSelectedIndex - 1 + submenuOptions.Count) % submenuOptions.Count;
+            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            AnnounceSubmenuOption();
+        }
+
+        public static void SubmenuApply()
+        {
+            if (pawnsList.Count == 0 || submenuOptions.Count == 0) return;
+
+            Pawn currentPawn = pawnsList[tableHelper.CurrentRowIndex];
+            var option = submenuOptions[submenuSelectedIndex];
+
+            option.Apply(currentPawn);
+
+            SoundDefOf.Click.PlayOneShotOnCamera();
+
+            string colName = AssignMenuHelper.GetColumnName(tableHelper.CurrentColumnIndex);
+            TolkHelper.Speak($"{currentPawn.LabelShort}: {colName} set to {option.Label}");
+
+            CloseSubmenu();
+            ResortAfterEdit();
+        }
+
         /// <summary>
-        /// Gets the labels for all options in the current column.
+        /// Re-sorts the list if currently sorted by the column that was just edited.
+        /// Keeps cursor at same index and announces the new item at that position.
         /// </summary>
-        private static List<string> GetItemLabels()
+        private static void ResortAfterEdit()
+        {
+            var resorted = tableHelper.ResortAfterEdit(pawnsList);
+            if (resorted != null)
+            {
+                pawnsList = resorted.ToList();
+                string announcement = "Now at " + tableHelper.BuildCellAnnouncement(
+                    pawnsList[tableHelper.CurrentRowIndex], pawnsList.Count, includeItemName: true);
+                TolkHelper.Speak(announcement);
+            }
+        }
+
+        public static void SubmenuCancel()
+        {
+            CloseSubmenu();
+        }
+
+        private static void CloseSubmenu()
+        {
+            isInSubmenu = false;
+            submenuOptions.Clear();
+            submenuSelectedIndex = 0;
+            submenuTypeahead.ClearSearch();
+        }
+
+        public static void AnnounceSubmenuOption()
+        {
+            if (submenuOptions.Count == 0) return;
+
+            var option = submenuOptions[submenuSelectedIndex];
+            string position = MenuHelper.FormatPosition(submenuSelectedIndex, submenuOptions.Count);
+            string announcement = $"{option.Label}. {position}";
+
+            if (submenuTypeahead.HasActiveSearch)
+            {
+                announcement += $", match {submenuTypeahead.CurrentMatchPosition} of {submenuTypeahead.MatchCount} for '{submenuTypeahead.SearchBuffer}'";
+            }
+
+            TolkHelper.Speak(announcement);
+        }
+
+        public static List<string> GetSubmenuOptionLabels()
         {
             var labels = new List<string>();
-
-            if (currentColumnIndex < 0 || currentColumnIndex >= activeColumns.Count)
-                return labels;
-
-            switch (activeColumns[currentColumnIndex])
-            {
-                case ColumnType.Outfit:
-                    foreach (var policy in outfitPolicies)
-                        labels.Add(policy.label ?? "");
-                    break;
-
-                case ColumnType.FoodRestrictions:
-                    foreach (var policy in foodPolicies)
-                        labels.Add(policy.label ?? "");
-                    break;
-
-                case ColumnType.DrugPolicies:
-                    foreach (var policy in drugPolicies)
-                        labels.Add(policy.label ?? "");
-                    break;
-
-                case ColumnType.ReadingPolicies:
-                    foreach (var policy in readingPolicies)
-                        labels.Add(policy.label ?? "");
-                    break;
-
-                case ColumnType.MedicineCarry:
-                    foreach (var option in medicineCarryOptions)
-                        labels.Add(option.Label ?? "");
-                    break;
-
-                case ColumnType.HostilityResponse:
-                    foreach (var response in hostilityOptions)
-                        labels.Add(HostilityResponseModeUtility.GetLabel(response) ?? "");
-                    break;
-            }
-
+            foreach (var option in submenuOptions)
+                labels.Add(option.Label);
             return labels;
         }
 
-        /// <summary>
-        /// Announces the current selection with search context if applicable.
-        /// </summary>
-        private static void AnnounceWithSearch()
+        public static void SetSubmenuSelectedIndex(int index)
         {
-            if (currentPawn == null)
+            if (index >= 0 && index < submenuOptions.Count)
+                submenuSelectedIndex = index;
+        }
+
+        // === Submenu Typeahead ===
+
+        public static void SubmenuHandleTypeahead(char c)
+        {
+            var labels = GetSubmenuOptionLabels();
+            if (submenuTypeahead.ProcessCharacterInput(c, labels, out int newIndex))
             {
-                TolkHelper.Speak("No pawn selected");
+                if (newIndex >= 0)
+                    submenuSelectedIndex = newIndex;
+                AnnounceSubmenuOption();
+            }
+            else
+            {
+                TolkHelper.Speak($"No matches for '{submenuTypeahead.LastFailedSearch}'");
+            }
+        }
+
+        public static void SubmenuHandleBackspace()
+        {
+            if (!submenuTypeahead.HasActiveSearch) return;
+
+            var labels = GetSubmenuOptionLabels();
+            if (submenuTypeahead.ProcessBackspace(labels, out int newIndex))
+            {
+                if (newIndex >= 0)
+                    submenuSelectedIndex = newIndex;
+                AnnounceSubmenuOption();
+            }
+        }
+
+        // === Policy Shortcuts ===
+
+        public static bool HandlePolicyShortcut(AssignMenuHelper.PolicyAction action)
+        {
+            if (pawnsList.Count == 0) return false;
+
+            int colIndex = tableHelper.CurrentColumnIndex;
+            if (!AssignMenuHelper.IsColumnPolicyType(colIndex))
+                return false;
+
+            Pawn currentPawn = pawnsList[tableHelper.CurrentRowIndex];
+            Policy policy = null;
+
+            if (isInSubmenu && submenuOptions != null &&
+                submenuSelectedIndex >= 0 && submenuSelectedIndex < submenuOptions.Count)
+            {
+                policy = submenuOptions[submenuSelectedIndex].PolicyObject;
+            }
+
+            Action editCallback = BuildEditCallback(colIndex, currentPawn, policy);
+            Action refreshCallback = () => AnnounceCurrentCell(includeItemName: false);
+
+            return AssignMenuHelper.ExecutePolicyAction(
+                action, colIndex, currentPawn, refreshCallback, editCallback, policy);
+        }
+
+        private static Action BuildEditCallback(int colIndex, Pawn pawn, Policy policy)
+        {
+            var colType = AssignMenuHelper.GetColumnType(colIndex);
+            PolicyEditorState.PolicyType? editorType = null;
+
+            switch (colType)
+            {
+                case AssignMenuHelper.AssignColumnType.Outfit:
+                    policy = policy ?? pawn.outfits?.CurrentApparelPolicy;
+                    editorType = PolicyEditorState.PolicyType.Apparel;
+                    break;
+                case AssignMenuHelper.AssignColumnType.FoodRestriction:
+                    policy = policy ?? pawn.foodRestriction?.CurrentFoodPolicy;
+                    editorType = PolicyEditorState.PolicyType.Food;
+                    break;
+                case AssignMenuHelper.AssignColumnType.DrugPolicy:
+                    policy = policy ?? pawn.drugs?.CurrentPolicy;
+                    editorType = PolicyEditorState.PolicyType.Drug;
+                    break;
+                case AssignMenuHelper.AssignColumnType.ReadingPolicy:
+                    policy = policy ?? pawn.reading?.CurrentPolicy;
+                    editorType = PolicyEditorState.PolicyType.Reading;
+                    break;
+            }
+
+            if (editorType == null || policy == null) return null;
+
+            var capturedPolicy = policy;
+            var capturedType = editorType.Value;
+            return () =>
+            {
+                PrepareForPolicyEditorReturn();
+                PolicyEditorState.Open(capturedType, capturedPolicy, () => AssignMenuState.Open());
+            };
+        }
+
+        // === Context Menu ===
+
+        public static void OpenContextMenu()
+        {
+            if (pawnsList.Count == 0) return;
+
+            int colIndex = tableHelper.CurrentColumnIndex;
+
+            if (!AssignMenuHelper.HasContextMenu(colIndex))
+            {
+                TolkHelper.Speak("No context menu for this column");
                 return;
             }
 
-            if (currentColumnIndex < 0 || currentColumnIndex >= activeColumns.Count)
+            Pawn currentPawn = pawnsList[tableHelper.CurrentRowIndex];
+
+            // Build edit callback for policy columns
+            Action editCallback = null;
+            var colType = AssignMenuHelper.GetColumnType(colIndex);
+
+            switch (colType)
             {
-                TolkHelper.Speak("Invalid column");
+                case AssignMenuHelper.AssignColumnType.Outfit:
+                    editCallback = () =>
+                    {
+                        var policy = currentPawn.outfits?.CurrentApparelPolicy;
+                        if (policy == null) return;
+                        PrepareForPolicyEditorReturn();
+                        PolicyEditorState.Open(PolicyEditorState.PolicyType.Apparel, policy, () =>
+                        {
+                            AssignMenuState.Open();
+                        });
+                    };
+                    break;
+
+                case AssignMenuHelper.AssignColumnType.FoodRestriction:
+                    editCallback = () =>
+                    {
+                        var policy = currentPawn.foodRestriction?.CurrentFoodPolicy;
+                        if (policy == null) return;
+                        PrepareForPolicyEditorReturn();
+                        PolicyEditorState.Open(PolicyEditorState.PolicyType.Food, policy, () =>
+                        {
+                            AssignMenuState.Open();
+                        });
+                    };
+                    break;
+
+                case AssignMenuHelper.AssignColumnType.DrugPolicy:
+                    editCallback = () =>
+                    {
+                        var policy = currentPawn.drugs?.CurrentPolicy;
+                        if (policy == null) return;
+                        PrepareForPolicyEditorReturn();
+                        PolicyEditorState.Open(PolicyEditorState.PolicyType.Drug, policy, () =>
+                        {
+                            AssignMenuState.Open();
+                        });
+                    };
+                    break;
+
+                case AssignMenuHelper.AssignColumnType.ReadingPolicy:
+                    editCallback = () =>
+                    {
+                        var policy = currentPawn.reading?.CurrentPolicy;
+                        if (policy == null) return;
+                        PrepareForPolicyEditorReturn();
+                        PolicyEditorState.Open(PolicyEditorState.PolicyType.Reading, policy, () =>
+                        {
+                            AssignMenuState.Open();
+                        });
+                    };
+                    break;
+            }
+
+            // Build refresh callback
+            Action refreshCallback = () =>
+            {
+                // Rebuild submenu options won't work since context menu closes submenu
+                // Just re-announce the cell with potentially updated value
+                AnnounceCurrentCell(includeItemName: false);
+            };
+
+            var options = AssignMenuHelper.GetContextMenuOptions(
+                colIndex, currentPawn, refreshCallback, editCallback);
+
+            if (options == null || options.Count == 0)
+            {
+                TolkHelper.Speak("No context menu for this column");
                 return;
             }
 
-            ColumnType currentColumn = activeColumns[currentColumnIndex];
-            string columnName = columnNames[currentColumn];
-            string optionName = GetCurrentOptionName();
-            int optionCount = GetCurrentColumnOptionCount();
+            WindowlessFloatMenuState.Open(options, colonistOrders: false);
+        }
 
-            string message = $"{currentPawn.LabelShort} - {columnName}: {optionName}. {MenuHelper.FormatPosition(selectedOptionIndex, optionCount)}";
+        public static void OpenSubmenuContextMenu()
+        {
+            if (!isInSubmenu || submenuOptions.Count == 0) return;
+            if (submenuSelectedIndex < 0 || submenuSelectedIndex >= submenuOptions.Count) return;
 
-            if (typeahead.HasActiveSearch)
+            var selectedOption = submenuOptions[submenuSelectedIndex];
+            var policy = selectedOption.PolicyObject;
+            if (policy == null)
             {
-                message += $", match {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} for '{typeahead.SearchBuffer}'";
+                TolkHelper.Speak("No context menu for this item");
+                return;
             }
 
-            TolkHelper.Speak(message);
+            int colIndex = tableHelper.CurrentColumnIndex;
+            Pawn currentPawn = pawnsList[tableHelper.CurrentRowIndex];
+
+            // Build edit callback targeting the highlighted policy
+            Action editCallback = null;
+            var colType = AssignMenuHelper.GetColumnType(colIndex);
+
+            switch (colType)
+            {
+                case AssignMenuHelper.AssignColumnType.Outfit:
+                    editCallback = () =>
+                    {
+                        PrepareForPolicyEditorReturn();
+                        PolicyEditorState.Open(PolicyEditorState.PolicyType.Apparel, policy, () =>
+                        {
+                            AssignMenuState.Open();
+                        });
+                    };
+                    break;
+
+                case AssignMenuHelper.AssignColumnType.FoodRestriction:
+                    editCallback = () =>
+                    {
+                        PrepareForPolicyEditorReturn();
+                        PolicyEditorState.Open(PolicyEditorState.PolicyType.Food, policy, () =>
+                        {
+                            AssignMenuState.Open();
+                        });
+                    };
+                    break;
+
+                case AssignMenuHelper.AssignColumnType.DrugPolicy:
+                    editCallback = () =>
+                    {
+                        PrepareForPolicyEditorReturn();
+                        PolicyEditorState.Open(PolicyEditorState.PolicyType.Drug, policy, () =>
+                        {
+                            AssignMenuState.Open();
+                        });
+                    };
+                    break;
+
+                case AssignMenuHelper.AssignColumnType.ReadingPolicy:
+                    editCallback = () =>
+                    {
+                        PrepareForPolicyEditorReturn();
+                        PolicyEditorState.Open(PolicyEditorState.PolicyType.Reading, policy, () =>
+                        {
+                            AssignMenuState.Open();
+                        });
+                    };
+                    break;
+            }
+
+            Action refreshCallback = () =>
+            {
+                AnnounceCurrentCell(includeItemName: false);
+            };
+
+            var options = AssignMenuHelper.GetContextMenuOptions(
+                colIndex, currentPawn, refreshCallback, editCallback, policy);
+
+            if (options == null || options.Count == 0)
+            {
+                TolkHelper.Speak("No context menu for this item");
+                return;
+            }
+
+            // Close submenu before opening context menu
+            isInSubmenu = false;
+            WindowlessFloatMenuState.Open(options, colonistOrders: false);
+        }
+
+        // === Paint (Shift+Up/Down) ===
+
+        public static void PaintDown()
+        {
+            if (pawnsList.Count <= 1) return;
+
+            int colIndex = tableHelper.CurrentColumnIndex;
+            if (!AssignMenuHelper.CanPaintColumn(colIndex))
+            {
+                TolkHelper.Speak("Cannot paint this column");
+                return;
+            }
+
+            Pawn sourcePawn = pawnsList[tableHelper.CurrentRowIndex];
+            string sourceValue = AssignMenuHelper.GetColumnValue(sourcePawn, colIndex);
+
+            tableHelper.SelectNextRow(pawnsList.Count);
+            Pawn targetPawn = pawnsList[tableHelper.CurrentRowIndex];
+
+            string targetValue = AssignMenuHelper.GetColumnValue(targetPawn, colIndex);
+            string position = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, pawnsList.Count);
+
+            if (sourceValue == targetValue)
+            {
+                string colName = AssignMenuHelper.GetColumnName(colIndex);
+                TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} already {targetValue}. {position}");
+                return;
+            }
+
+            AssignMenuHelper.ApplyValueToPawn(sourcePawn, targetPawn, colIndex);
+            SoundDefOf.Click.PlayOneShotOnCamera();
+            string value = AssignMenuHelper.GetColumnValue(targetPawn, colIndex);
+            TolkHelper.Speak($"{targetPawn.LabelShort}: {value} applied. {position}");
+        }
+
+        public static void PaintUp()
+        {
+            if (pawnsList.Count <= 1) return;
+
+            int colIndex = tableHelper.CurrentColumnIndex;
+            if (!AssignMenuHelper.CanPaintColumn(colIndex))
+            {
+                TolkHelper.Speak("Cannot paint this column");
+                return;
+            }
+
+            Pawn sourcePawn = pawnsList[tableHelper.CurrentRowIndex];
+            string sourceValue = AssignMenuHelper.GetColumnValue(sourcePawn, colIndex);
+
+            tableHelper.SelectPreviousRow(pawnsList.Count);
+            Pawn targetPawn = pawnsList[tableHelper.CurrentRowIndex];
+
+            string targetValue = AssignMenuHelper.GetColumnValue(targetPawn, colIndex);
+            string position = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, pawnsList.Count);
+
+            if (sourceValue == targetValue)
+            {
+                string colName = AssignMenuHelper.GetColumnName(colIndex);
+                TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} already {targetValue}. {position}");
+                return;
+            }
+
+            AssignMenuHelper.ApplyValueToPawn(sourcePawn, targetPawn, colIndex);
+            SoundDefOf.Click.PlayOneShotOnCamera();
+            string value = AssignMenuHelper.GetColumnValue(targetPawn, colIndex);
+            TolkHelper.Speak($"{targetPawn.LabelShort}: {value} applied. {position}");
         }
 
         /// <summary>
-        /// Represents a medicine carry option (medicine type and count).
+        /// Bulk paints the current value from the current row to the last row.
         /// </summary>
-        public class MedicineCarryOption
+        public static void PaintToLast()
         {
-            public int Count { get; set; }
-            public ThingDef MedicineDef { get; set; }
-            public string Label { get; set; }
+            PaintBulk(towardFirst: false, entireColumn: false);
+        }
+
+        /// <summary>
+        /// Bulk paints the current value from the current row to the first row.
+        /// </summary>
+        public static void PaintToFirst()
+        {
+            PaintBulk(towardFirst: true, entireColumn: false);
+        }
+
+        /// <summary>
+        /// Paints the current value to the entire column.
+        /// </summary>
+        public static void PaintEntireColumn(bool towardFirst)
+        {
+            PaintBulk(towardFirst, entireColumn: true);
+        }
+
+        private static void PaintBulk(bool towardFirst, bool entireColumn)
+        {
+            if (isInSubmenu) return;
+            if (pawnsList.Count == 0) return;
+
+            int col = tableHelper.CurrentColumnIndex;
+            if (!AssignMenuHelper.CanPaintColumn(col))
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("Cannot paint this column");
+                return;
+            }
+
+            int currentRow = tableHelper.CurrentRowIndex;
+            Pawn sourcePawn = pawnsList[currentRow];
+            string sourceValue = AssignMenuHelper.GetColumnValue(sourcePawn, col);
+            string colName = AssignMenuHelper.GetColumnName(col);
+
+            int startRow, endRow;
+            if (entireColumn)
+            {
+                startRow = 0;
+                endRow = pawnsList.Count - 1;
+            }
+            else if (towardFirst)
+            {
+                startRow = 0;
+                endRow = currentRow;
+            }
+            else
+            {
+                startRow = currentRow;
+                endRow = pawnsList.Count - 1;
+            }
+
+            var changed = new List<string>();
+            for (int i = startRow; i <= endRow; i++)
+            {
+                Pawn target = pawnsList[i];
+                string beforeValue = AssignMenuHelper.GetColumnValue(target, col);
+                if (beforeValue != sourceValue)
+                {
+                    AssignMenuHelper.ApplyValueToPawn(sourcePawn, target, col);
+                    changed.Add(target.LabelShort);
+                }
+            }
+
+            tableHelper.CurrentRowIndex = towardFirst ? startRow : endRow;
+
+            if (changed.Count > 0)
+            {
+                BulkSoundQueue.Queue(changed.Count, SoundDefOf.Click);
+                TolkHelper.Speak($"Painted {colName} to {sourceValue} for {MenuHelper.FormatNameList(changed)}");
+            }
+            else
+            {
+                TolkHelper.Speak($"{colName} already {sourceValue} for all colonists");
+            }
+        }
+
+        // === Main Table Typeahead ===
+
+        public static void HandleTypeahead(char c)
+        {
+            if (tableHelper.HandleTypeahead(c, pawnsList, out _))
+            {
+                AnnounceWithSearch();
+            }
+            else
+            {
+                TolkHelper.Speak($"No matches for '{tableHelper.Typeahead.LastFailedSearch}'");
+            }
+        }
+
+        public static void HandleBackspace()
+        {
+            if (!tableHelper.Typeahead.HasActiveSearch) return;
+            tableHelper.HandleBackspace(pawnsList, out _);
+            AnnounceWithSearch();
+        }
+
+        public static List<string> GetItemLabels()
+        {
+            return tableHelper.GetItemLabels(pawnsList);
+        }
+
+        public static void SetCurrentPawnIndex(int index)
+        {
+            if (index >= 0 && index < pawnsList.Count)
+                tableHelper.CurrentRowIndex = index;
+        }
+
+        // === Announcements ===
+
+        public static void AnnounceCurrentCell(bool includeItemName, bool includeColumnName = true)
+        {
+            if (pawnsList.Count == 0) return;
+
+            Pawn currentPawn = pawnsList[tableHelper.CurrentRowIndex];
+            string announcement = tableHelper.BuildCellAnnouncement(currentPawn, pawnsList.Count, includeItemName, includeColumnName);
+            TolkHelper.Speak(announcement);
+        }
+
+        public static void AnnounceWithSearch()
+        {
+            if (pawnsList.Count == 0)
+            {
+                TolkHelper.Speak("No colonists");
+                return;
+            }
+
+            Pawn currentPawn = pawnsList[tableHelper.CurrentRowIndex];
+            string announcement = tableHelper.BuildCellAnnouncementWithSearch(currentPawn, pawnsList.Count);
+            TolkHelper.Speak(announcement);
         }
     }
 }

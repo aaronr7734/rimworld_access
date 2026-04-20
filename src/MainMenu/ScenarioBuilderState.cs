@@ -32,21 +32,13 @@ namespace RimWorldAccess
 
         // Parts tree state - proper treeview pattern
         private static List<PartTreeItem> partsHierarchy = new List<PartTreeItem>(); // Root items (parts)
-        private static List<TreeViewItem> flattenedParts = new List<TreeViewItem>(); // Flattened visible items
-        private static int partsIndex = 0;
-
-        // Typeahead for parts
-        private static TypeaheadSearchHelper partsTypeaheadHelper = new TypeaheadSearchHelper();
+        private static TreeNavigationHelper partsTreeNav = new TreeNavigationHelper("ScenarioBuilderParts");
 
         /// <summary>
-        /// Represents an item in the flattened treeview (can be a part or a field).
+        /// Represents domain-specific data for a tree item (stored in InspectionTreeItem.Data).
         /// </summary>
-        public class TreeViewItem
+        public class PartTreeItemData
         {
-            public string Label { get; set; }
-            public int IndentLevel { get; set; }
-            public bool IsExpandable { get; set; }
-            public bool IsExpanded { get; set; }
             public PartTreeItem ParentPart { get; set; } // The part this item belongs to (null for parts)
             public PartField Field { get; set; } // The field (null for parts)
             public PartTreeItem AsPart { get; set; } // If this is a part, the PartTreeItem
@@ -60,6 +52,14 @@ namespace RimWorldAccess
 
             public bool IsPart => AsPart != null;
             public bool IsField => Field != null;
+        }
+
+        /// <summary>
+        /// Helper to extract PartTreeItemData from an InspectionTreeItem.
+        /// </summary>
+        private static PartTreeItemData GetItemData(InspectionTreeItem item)
+        {
+            return item?.Data as PartTreeItemData;
         }
 
         /// <summary>
@@ -81,8 +81,12 @@ namespace RimWorldAccess
         // For tracking changes
         private static bool isDirty;
 
-        // Level tracking for tree navigation
-        private const string LevelTrackingKey = "ScenarioBuilderParts";
+        static ScenarioBuilderState()
+        {
+            partsTreeNav.FormatItemAnnouncement = FormatTreeItemAnnouncement;
+            partsTreeNav.FormatSearchAnnouncement = FormatTreeSearchAnnouncement;
+            partsTreeNav.AnnounceChildCounts = true;
+        }
 
         /// <summary>
         /// Gets whether we're in text editing mode.
@@ -174,12 +178,9 @@ namespace RimWorldAccess
             currentSection = Section.Metadata;
             metadataIndex = 0;
             isEditingText = false;
-            partsIndex = 0;
-            partsTypeaheadHelper.ClearSearch();
-            MenuHelper.ResetLevel(LevelTrackingKey);
 
             BuildPartsTree();
-            FlattenPartsTree();
+            RebuildPartsInspectionTree();
 
             IsActive = true;
 
@@ -198,9 +199,7 @@ namespace RimWorldAccess
             currentScenario = null;
             currentPage = null;
             partsHierarchy.Clear();
-            flattenedParts.Clear();
-            partsTypeaheadHelper.ClearSearch();
-            MenuHelper.ResetLevel(LevelTrackingKey);
+            partsTreeNav.Reset();
 
             // Close any active child states to prevent broken state on re-entry
             if (ScenarioBuilderAddPartState.IsActive)
@@ -303,14 +302,22 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Flattens the parts tree for navigation.
-        /// Includes parts and their fields (when expanded).
+        /// Builds an InspectionTreeItem tree from partsHierarchy and initializes the TreeNavigationHelper.
+        /// Preserves selected index when rebuilding.
         /// Single-field parts are shown directly without needing to expand.
         /// List-based parts have 3 levels: Part -> List Items -> Item Fields
         /// </summary>
-        private static void FlattenPartsTree()
+        private static void RebuildPartsInspectionTree()
         {
-            flattenedParts.Clear();
+            int previousIndex = partsTreeNav.SelectedIndex;
+
+            var root = new InspectionTreeItem
+            {
+                Label = "Parts",
+                IndentLevel = -1,
+                IsExpanded = true,
+                IsExpandable = false
+            };
 
             foreach (var part in partsHierarchy)
             {
@@ -328,137 +335,133 @@ namespace RimWorldAccess
                     int childCount = part.ListItems.Count + part.Fields.Count + 1; // +1 for "Add New Item"
                     bool hasChildren = childCount > 0;
 
-                    flattenedParts.Add(new TreeViewItem
+                    var partNode = new InspectionTreeItem
                     {
                         Label = partLabel,
                         IndentLevel = 0,
                         IsExpandable = hasChildren,
                         IsExpanded = part.IsExpanded,
-                        ParentPart = null,
-                        Field = null,
-                        AsPart = part
-                    });
+                        Parent = root,
+                        Data = new PartTreeItemData { AsPart = part }
+                    };
 
-                    if (part.IsExpanded)
+                    // Add regular fields first (like pawnChoiceCount)
+                    foreach (var field in part.Fields)
                     {
-                        // Add regular fields first (like pawnChoiceCount)
-                        foreach (var field in part.Fields)
+                        partNode.Children.Add(new InspectionTreeItem
                         {
-                            flattenedParts.Add(new TreeViewItem
-                            {
-                                Label = $"{field.Name}: {field.CurrentValue}",
-                                IndentLevel = 1,
-                                IsExpandable = false,
-                                IsExpanded = false,
-                                ParentPart = part,
-                                Field = field,
-                                AsPart = null
-                            });
-                        }
+                            Label = $"{field.Name}: {field.CurrentValue}",
+                            IndentLevel = 1,
+                            IsExpandable = false,
+                            IsExpanded = false,
+                            Parent = partNode,
+                            Data = new PartTreeItemData { ParentPart = part, Field = field }
+                        });
+                    }
 
-                        // Add list items (level 1)
-                        foreach (var listItem in part.ListItems)
+                    // Add list items (level 1)
+                    foreach (var listItem in part.ListItems)
+                    {
+                        var listItemNode = new InspectionTreeItem
                         {
-                            flattenedParts.Add(new TreeViewItem
+                            Label = listItem.Label,
+                            IndentLevel = 1,
+                            IsExpandable = listItem.Fields.Count > 0,
+                            IsExpanded = listItem.IsExpanded,
+                            Parent = partNode,
+                            Data = new PartTreeItemData
                             {
-                                Label = listItem.Label,
-                                IndentLevel = 1,
-                                IsExpandable = listItem.Fields.Count > 0,
-                                IsExpanded = listItem.IsExpanded,
                                 ParentPart = part,
-                                Field = null,
-                                AsPart = null,
                                 IsListItem = true,
                                 ListItemIndex = listItem.Index,
                                 ListItemReference = listItem.ItemReference,
                                 ListItemData = listItem
-                            });
-
-                            // If list item is expanded, add its fields (level 2)
-                            if (listItem.IsExpanded)
-                            {
-                                foreach (var field in listItem.Fields)
-                                {
-                                    flattenedParts.Add(new TreeViewItem
-                                    {
-                                        Label = $"{field.Name}: {field.CurrentValue}",
-                                        IndentLevel = 2,
-                                        IsExpandable = false,
-                                        IsExpanded = false,
-                                        ParentPart = part,
-                                        Field = field,
-                                        AsPart = null,
-                                        IsListItem = false,
-                                        ListItemIndex = listItem.Index,
-                                        ListItemData = listItem
-                                    });
-                                }
                             }
+                        };
+
+                        // Add list item fields (level 2)
+                        foreach (var field in listItem.Fields)
+                        {
+                            listItemNode.Children.Add(new InspectionTreeItem
+                            {
+                                Label = $"{field.Name}: {field.CurrentValue}",
+                                IndentLevel = 2,
+                                IsExpandable = false,
+                                IsExpanded = false,
+                                Parent = listItemNode,
+                                Data = new PartTreeItemData
+                                {
+                                    ParentPart = part,
+                                    Field = field,
+                                    ListItemIndex = listItem.Index,
+                                    ListItemData = listItem
+                                }
+                            });
                         }
 
-                        // Add "Add New Item" action at the end
-                        flattenedParts.Add(new TreeViewItem
-                        {
-                            Label = "Add New Item",
-                            IndentLevel = 1,
-                            IsExpandable = false,
-                            IsExpanded = false,
-                            ParentPart = part,
-                            Field = null,
-                            AsPart = null,
-                            IsAddAction = true
-                        });
+                        partNode.Children.Add(listItemNode);
                     }
+
+                    // Add "Add New Item" action at the end
+                    partNode.Children.Add(new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.Action,
+                        Label = "Add New Item",
+                        IndentLevel = 1,
+                        IsExpandable = false,
+                        IsExpanded = false,
+                        Parent = partNode,
+                        Data = new PartTreeItemData { ParentPart = part, IsAddAction = true }
+                    });
+
+                    root.Children.Add(partNode);
                 }
                 // SPECIAL CASE: Parts with exactly 1 field are shown directly as that field
-                // This avoids requiring expand/collapse for simple items like "Player Faction"
                 else if (part.Fields.Count == 1 && !part.IsListPart)
                 {
                     var field = part.Fields[0];
-                    flattenedParts.Add(new TreeViewItem
+                    root.Children.Add(new InspectionTreeItem
                     {
                         Label = $"{partLabel}: {field.CurrentValue}",
                         IndentLevel = 0,
                         IsExpandable = false,
                         IsExpanded = false,
-                        ParentPart = part, // Keep reference for context
-                        Field = field,     // This IS the field - pressing Enter edits it
-                        AsPart = part      // Also keep part reference for delete operations
+                        Parent = root,
+                        Data = new PartTreeItemData { ParentPart = part, Field = field, AsPart = part }
                     });
                 }
                 // Parts with 0 fields (headers/non-editable) or 2+ fields (needs expand)
                 else
                 {
-                    flattenedParts.Add(new TreeViewItem
+                    var partNode = new InspectionTreeItem
                     {
                         Label = partLabel,
                         IndentLevel = 0,
                         IsExpandable = part.Fields.Count > 1, // Only expandable if 2+ fields
                         IsExpanded = part.IsExpanded,
-                        ParentPart = null,
-                        Field = null,
-                        AsPart = part
-                    });
+                        Parent = root,
+                        Data = new PartTreeItemData { AsPart = part }
+                    };
 
-                    // If expanded, add its fields as children
-                    if (part.IsExpanded && part.Fields.Count > 1)
+                    // Add fields as children
+                    foreach (var field in part.Fields)
                     {
-                        foreach (var field in part.Fields)
+                        partNode.Children.Add(new InspectionTreeItem
                         {
-                            flattenedParts.Add(new TreeViewItem
-                            {
-                                Label = $"{field.Name}: {field.CurrentValue}",
-                                IndentLevel = 1,
-                                IsExpandable = false,
-                                IsExpanded = false,
-                                ParentPart = part,
-                                Field = field,
-                                AsPart = null
-                            });
-                        }
+                            Label = $"{field.Name}: {field.CurrentValue}",
+                            IndentLevel = 1,
+                            IsExpandable = false,
+                            IsExpanded = false,
+                            Parent = partNode,
+                            Data = new PartTreeItemData { ParentPart = part, Field = field }
+                        });
                     }
+
+                    root.Children.Add(partNode);
                 }
             }
+
+            partsTreeNav.Initialize(root, previousIndex);
         }
 
         /// <summary>
@@ -2623,9 +2626,9 @@ namespace RimWorldAccess
             if (currentSection == Section.Metadata)
             {
                 currentSection = Section.Parts;
-                partsIndex = 0;
-                partsTypeaheadHelper.ClearSearch();
-                MenuHelper.ResetLevel(LevelTrackingKey);
+                partsTreeNav.SetSelectedIndex(0);
+                partsTreeNav.Typeahead.ClearSearch();
+                MenuHelper.ResetLevel("ScenarioBuilderParts");
                 TolkHelper.Speak("Parts section");
                 AnnounceCurrentTreeItem();
             }
@@ -2813,15 +2816,13 @@ namespace RimWorldAccess
         /// </summary>
         public static void PartsNavigateUp()
         {
-            if (flattenedParts.Count == 0)
+            if (partsTreeNav.Count == 0)
             {
                 TolkHelper.Speak("No scenario parts. Press Alt+A to add a part.");
                 return;
             }
 
-            partsTypeaheadHelper.ClearSearch();
-            partsIndex = MenuHelper.SelectPrevious(partsIndex, flattenedParts.Count);
-            AnnounceCurrentTreeItem();
+            partsTreeNav.SelectPrevious();
         }
 
         /// <summary>
@@ -2829,72 +2830,41 @@ namespace RimWorldAccess
         /// </summary>
         public static void PartsNavigateDown()
         {
-            if (flattenedParts.Count == 0)
+            if (partsTreeNav.Count == 0)
             {
                 TolkHelper.Speak("No scenario parts. Press Alt+A to add a part.");
                 return;
             }
 
-            partsTypeaheadHelper.ClearSearch();
-            partsIndex = MenuHelper.SelectNext(partsIndex, flattenedParts.Count);
-            AnnounceCurrentTreeItem();
+            partsTreeNav.SelectNext();
         }
 
         /// <summary>
         /// Expands the current item or drills down to first child.
+        /// Syncs expansion state to domain objects before delegating to TreeNavigationHelper.
         /// </summary>
         public static void ExpandOrDrillDown()
         {
-            if (flattenedParts.Count == 0 || partsIndex >= flattenedParts.Count)
-                return;
+            var selected = partsTreeNav.SelectedItem;
+            if (selected == null) return;
 
-            partsTypeaheadHelper.ClearSearch();
-            var item = flattenedParts[partsIndex];
+            var data = GetItemData(selected);
+            if (data == null) return;
 
-            // Handle list items (level 1)
-            if (item.IsListItem && item.IsExpandable)
+            // Sync expansion state to domain objects when expanding
+            partsTreeNav.OnBeforeExpand = (item) =>
             {
-                if (!item.IsExpanded)
+                var d = GetItemData(item);
+                if (d != null)
                 {
-                    // Expand the list item
-                    item.ListItemData.IsExpanded = true;
-                    FlattenPartsTree();
-                    AnnounceCurrentTreeItem();
+                    if (d.IsListItem && d.ListItemData != null)
+                        d.ListItemData.IsExpanded = true;
+                    else if (d.AsPart != null)
+                        d.AsPart.IsExpanded = true;
                 }
-                else if (item.ListItemData.Fields.Count > 0)
-                {
-                    // Already expanded - move to first field
-                    partsIndex++;
-                    AnnounceCurrentTreeItem();
-                }
-                return;
-            }
+            };
 
-            // Handle parts (level 0)
-            if (item.IsPart && item.IsExpandable)
-            {
-                if (!item.IsExpanded)
-                {
-                    // Expand the part
-                    item.AsPart.IsExpanded = true;
-                    FlattenPartsTree();
-                    AnnounceCurrentTreeItem();
-                }
-                else
-                {
-                    // Already expanded - move to first child (field or list item)
-                    bool hasChildren = item.AsPart.IsListPart
-                        ? (item.AsPart.Fields.Count > 0 || item.AsPart.ListItems.Count > 0)
-                        : item.AsPart.Fields.Count > 0;
-                    if (hasChildren)
-                    {
-                        partsIndex++;
-                        AnnounceCurrentTreeItem();
-                    }
-                }
-            }
-            // For fields and non-expandable parts, Right arrow does nothing
-            // (WCAG tree pattern: Right only expands/drills down, doesn't edit)
+            partsTreeNav.ExpandOrDrillDown();
         }
 
         /// <summary>
@@ -2903,19 +2873,20 @@ namespace RimWorldAccess
         /// </summary>
         public static void ActivateCurrentItem()
         {
-            if (flattenedParts.Count == 0 || partsIndex >= flattenedParts.Count)
-                return;
+            var selected = partsTreeNav.SelectedItem;
+            if (selected == null) return;
 
-            var item = flattenedParts[partsIndex];
+            var data = GetItemData(selected);
+            if (data == null) return;
 
             // Handle "Add New Item" action
-            if (item.IsAddAction)
+            if (data.IsAddAction)
             {
-                if (item.ParentPart != null)
+                if (data.ParentPart != null)
                 {
-                    AddListItem(item.ParentPart);
+                    AddListItem(data.ParentPart);
                     BuildPartsTree();
-                    FlattenPartsTree();
+                    RebuildPartsInspectionTree();
                     // Stay on the add action or move to new item
                     AnnounceCurrentTreeItem();
                 }
@@ -2923,23 +2894,23 @@ namespace RimWorldAccess
             }
 
             // Handle list items (expandable containers)
-            if (item.IsListItem && item.IsExpandable)
+            if (data.IsListItem && selected.IsExpandable)
             {
                 ExpandOrDrillDown();
                 return;
             }
 
-            if (item.IsField)
+            if (data.IsField)
             {
                 // On a field - edit it
                 EditCurrentField();
             }
-            else if (item.IsPart && item.IsExpandable)
+            else if (data.IsPart && selected.IsExpandable)
             {
                 // On expandable part - toggle expansion
                 ExpandOrDrillDown();
             }
-            else if (item.IsPart && !item.IsExpandable)
+            else if (data.IsPart && !selected.IsExpandable)
             {
                 // Part has no editable fields - provide feedback
                 TolkHelper.Speak("This part has no editable fields. Press Delete to remove it.");
@@ -2948,272 +2919,68 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Collapses the current item or drills up to parent.
+        /// Syncs collapse state to domain objects, then delegates to TreeNavigationHelper.
         /// </summary>
         public static void CollapseOrDrillUp()
         {
-            if (flattenedParts.Count == 0 || partsIndex >= flattenedParts.Count)
-                return;
+            var selected = partsTreeNav.SelectedItem;
+            if (selected == null) return;
 
-            partsTypeaheadHelper.ClearSearch();
-            var item = flattenedParts[partsIndex];
-
-            // Handle expanded list items
-            if (item.IsListItem && item.IsExpanded)
+            var data = GetItemData(selected);
+            if (data == null)
             {
-                // Collapse the list item
-                item.ListItemData.IsExpanded = false;
-                FlattenPartsTree();
-                AnnounceCurrentTreeItem();
+                partsTreeNav.CollapseOrDrillUp();
                 return;
             }
 
-            // Handle fields at level 2 (inside list items) - go to parent list item
-            if (item.IndentLevel == 2 && item.ListItemData != null)
+            // Sync collapse state to domain objects
+            if (selected.IsExpandable && selected.IsExpanded)
             {
-                for (int i = partsIndex - 1; i >= 0; i--)
-                {
-                    if (flattenedParts[i].IsListItem && flattenedParts[i].ListItemIndex == item.ListItemIndex)
-                    {
-                        partsIndex = i;
-                        AnnounceCurrentTreeItem();
-                        return;
-                    }
-                }
+                if (data.IsListItem && data.ListItemData != null)
+                    data.ListItemData.IsExpanded = false;
+                else if (data.AsPart != null)
+                    data.AsPart.IsExpanded = false;
             }
 
-            // Handle list items and "Add New Item" - go to parent part
-            if (item.IsListItem || item.IsAddAction)
-            {
-                for (int i = partsIndex - 1; i >= 0; i--)
-                {
-                    if (flattenedParts[i].IsPart && flattenedParts[i].AsPart == item.ParentPart)
-                    {
-                        partsIndex = i;
-                        AnnounceCurrentTreeItem();
-                        return;
-                    }
-                }
-            }
-
-            if (item.IsPart && item.IsExpanded)
-            {
-                // Collapse the part
-                item.AsPart.IsExpanded = false;
-                FlattenPartsTree();
-                AnnounceCurrentTreeItem();
-            }
-            else if (item.IsField)
-            {
-                // Move to parent part or list item
-                for (int i = partsIndex - 1; i >= 0; i--)
-                {
-                    var parentItem = flattenedParts[i];
-
-                    // If the field belongs to a list item, go to the list item first
-                    if (item.ListItemData != null && parentItem.IsListItem && parentItem.ListItemData == item.ListItemData)
-                    {
-                        partsIndex = i;
-                        AnnounceCurrentTreeItem();
-                        return;
-                    }
-
-                    // Otherwise, go to parent part
-                    if (parentItem.IsPart && parentItem.AsPart == item.ParentPart)
-                    {
-                        partsIndex = i;
-                        AnnounceCurrentTreeItem();
-                        return;
-                    }
-                }
-            }
+            partsTreeNav.CollapseOrDrillUp();
         }
 
         /// <summary>
-        /// Handles Home key navigation using MenuHelper.
+        /// Handles Home key navigation.
         /// </summary>
         public static void PartsHandleHomeKey(bool ctrlPressed)
         {
-            if (flattenedParts.Count == 0) return;
-
-            MenuHelper.HandleTreeHomeKey(
-                flattenedParts,
-                ref partsIndex,
-                item => item.IndentLevel,
-                ctrlPressed,
-                () => { partsTypeaheadHelper.ClearSearch(); AnnounceCurrentTreeItem(); });
+            partsTreeNav.JumpToFirst(ctrlPressed);
         }
 
         /// <summary>
-        /// Handles End key navigation using MenuHelper.
+        /// Handles End key navigation.
         /// </summary>
         public static void PartsHandleEndKey(bool ctrlPressed)
         {
-            if (flattenedParts.Count == 0) return;
-
-            MenuHelper.HandleTreeEndKey(
-                flattenedParts,
-                ref partsIndex,
-                item => item.IndentLevel,
-                item => item.IsExpanded,
-                item => item.IsExpandable && item.AsPart != null && item.AsPart.Fields.Count > 0,
-                ctrlPressed,
-                () => { partsTypeaheadHelper.ClearSearch(); AnnounceCurrentTreeItem(); });
+            partsTreeNav.JumpToLast(ctrlPressed);
         }
 
         /// <summary>
         /// WCAG tree view pattern: * key expands all siblings at the current level.
+        /// Syncs expansion state to domain objects, then delegates to TreeNavigationHelper.
         /// </summary>
         public static void ExpandAllSiblings()
         {
-            if (flattenedParts.Count == 0 || partsIndex >= flattenedParts.Count)
-                return;
-
-            partsTypeaheadHelper.ClearSearch();
-            var currentItem = flattenedParts[partsIndex];
-
-            // Get siblings at the same level
-            List<PartTreeItem> siblings;
-            if (currentItem.IsPart)
+            // Set up the before-expand callback to sync domain state
+            partsTreeNav.OnBeforeExpand = (item) =>
             {
-                // Root level - all parts are siblings
-                siblings = partsHierarchy;
-            }
-            else if (currentItem.IsField && currentItem.ParentPart != null)
-            {
-                // Fields don't expand, but we could expand all parent-level parts
-                // For simplicity, announce that fields can't be expanded
-                TolkHelper.Speak("Fields cannot be expanded.");
-                return;
-            }
-            else
-            {
-                return;
-            }
-
-            // Find all collapsed sibling parts that can be expanded
-            var collapsedSiblings = new List<PartTreeItem>();
-            foreach (var sibling in siblings)
-            {
-                if (sibling.Fields.Count > 0 && !sibling.IsExpanded)
+                var d = GetItemData(item);
+                if (d != null)
                 {
-                    collapsedSiblings.Add(sibling);
+                    if (d.IsListItem && d.ListItemData != null)
+                        d.ListItemData.IsExpanded = true;
+                    else if (d.AsPart != null)
+                        d.AsPart.IsExpanded = true;
                 }
-            }
+            };
 
-            // Check if there are any expandable items at this level
-            bool hasExpandableItems = false;
-            foreach (var sibling in siblings)
-            {
-                if (sibling.Fields.Count > 0)
-                {
-                    hasExpandableItems = true;
-                    break;
-                }
-            }
-
-            if (!hasExpandableItems)
-            {
-                TolkHelper.Speak("No parts with fields to expand at this level.");
-                return;
-            }
-
-            if (collapsedSiblings.Count == 0)
-            {
-                TolkHelper.Speak("All parts already expanded at this level.");
-                return;
-            }
-
-            // Expand all collapsed siblings
-            foreach (var sibling in collapsedSiblings)
-            {
-                sibling.IsExpanded = true;
-            }
-
-            // Rebuild flattened list
-            FlattenPartsTree();
-
-            // Find current item in new flattened list
-            for (int i = 0; i < flattenedParts.Count; i++)
-            {
-                if (flattenedParts[i].IsPart && flattenedParts[i].AsPart == currentItem.AsPart)
-                {
-                    partsIndex = i;
-                    break;
-                }
-            }
-
-            string expandedText = collapsedSiblings.Count == 1 ? "1 part expanded" : $"{collapsedSiblings.Count} parts expanded";
-            TolkHelper.Speak(expandedText);
-        }
-
-        /// <summary>
-        /// Gets the current tree item (or null if empty).
-        /// </summary>
-        private static TreeViewItem CurrentTreeItem =>
-            flattenedParts.Count > 0 && partsIndex < flattenedParts.Count ? flattenedParts[partsIndex] : null;
-
-        /// <summary>
-        /// Gets the sibling position of an item within its level.
-        /// </summary>
-        private static (int position, int total) GetSiblingPosition(TreeViewItem item)
-        {
-            // Handle fields inside list items (level 2)
-            if (item.IsField && item.ListItemData != null)
-            {
-                int position = 0;
-                int total = item.ListItemData.Fields.Count;
-                for (int i = 0; i < item.ListItemData.Fields.Count; i++)
-                {
-                    if (item.ListItemData.Fields[i] == item.Field)
-                    {
-                        position = i + 1;
-                        break;
-                    }
-                }
-                return (position, total);
-            }
-            // Handle list items (level 1) - count list items + add action
-            else if (item.IsListItem && item.ParentPart != null)
-            {
-                int position = item.ListItemIndex + 1;
-                // Total includes regular fields + list items + add action
-                int total = item.ParentPart.Fields.Count + item.ParentPart.ListItems.Count + 1;
-                // Position needs to account for regular fields
-                position += item.ParentPart.Fields.Count;
-                return (position, total);
-            }
-            // Handle "Add New Item" action
-            else if (item.IsAddAction && item.ParentPart != null)
-            {
-                int total = item.ParentPart.Fields.Count + item.ParentPart.ListItems.Count + 1;
-                return (total, total);
-            }
-            // Handle parts (including single-field parts shown at level 0)
-            // NOTE: Must check IsPart before IsField because single-field parts have both
-            else if (item.IsPart)
-            {
-                // Count root parts
-                int position = partsHierarchy.IndexOf(item.AsPart) + 1;
-                return (position, partsHierarchy.Count);
-            }
-            // Handle regular fields under expanded parts
-            else if (item.IsField && item.ParentPart != null)
-            {
-                // Count fields of the same parent
-                int position = 0;
-                int total = item.ParentPart.Fields.Count;
-                for (int i = 0; i < item.ParentPart.Fields.Count; i++)
-                {
-                    if (item.ParentPart.Fields[i] == item.Field)
-                    {
-                        position = i + 1;
-                        break;
-                    }
-                }
-                return (position, total);
-            }
-
-            return (1, 1);
+            partsTreeNav.ExpandAllSiblings();
         }
 
         /// <summary>
@@ -3242,34 +3009,44 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Announces the current tree item.
+        /// Announces the current tree item via the TreeNavigationHelper.
         /// </summary>
         private static void AnnounceCurrentTreeItem()
         {
-            if (flattenedParts.Count == 0)
+            if (partsTreeNav.Count == 0)
             {
                 TolkHelper.Speak("No scenario parts. Press Alt+A to add a part.");
                 return;
             }
 
-            var item = flattenedParts[partsIndex];
-            var (position, total) = GetSiblingPosition(item);
+            partsTreeNav.ReannounceCurrentItem();
+        }
+
+        /// <summary>
+        /// Custom announcement formatter for the parts tree items.
+        /// </summary>
+        private static string FormatTreeItemAnnouncement(InspectionTreeItem item)
+        {
+            var data = GetItemData(item);
+            if (data == null) return item.Label;
+
+            var (position, total) = partsTreeNav.GetSiblingPosition(item);
             string positionPart = MenuHelper.FormatPosition(position - 1, total);
             string announcement;
 
             // Handle "Add New Item" action
-            if (item.IsAddAction)
+            if (data.IsAddAction)
             {
                 announcement = "Add New Item. Press Enter to add.";
             }
             // Handle list items (level 1 in list-based parts)
-            else if (item.IsListItem)
+            else if (data.IsListItem)
             {
                 string itemLabel = StripTrailingPunctuation(item.Label);
                 if (item.IsExpandable)
                 {
                     string state = item.IsExpanded ? "expanded" : "collapsed";
-                    int fieldCount = item.ListItemData?.Fields.Count ?? 0;
+                    int fieldCount = data.ListItemData?.Fields.Count ?? 0;
                     string fieldCountStr = fieldCount == 1 ? "1 field" : $"{fieldCount} fields";
                     announcement = $"{itemLabel}, {state}, {fieldCountStr}. Press Delete to remove.";
                 }
@@ -3279,19 +3056,15 @@ namespace RimWorldAccess
                 }
             }
             // Single-field items have BOTH AsPart and Field set - treat them as editable fields
-            else if (item.IsPart && item.IsField)
+            else if (data.IsPart && data.IsField)
             {
-                // Single-field part: show part label + field value + "Press Enter to edit"
-                // Skip summary because it typically duplicates the field value
-                var part = item.AsPart;
-                var field = item.Field;
+                var part = data.AsPart;
+                var field = data.Field;
                 string typeHint = field.Type == FieldType.Dropdown ? "dropdown" :
                                   field.Type == FieldType.Quantity ? "quantity" :
                                   field.Type == FieldType.Checkbox ? "checkbox" : "text";
-                // Strip trailing punctuation to avoid ". :" patterns
                 string partLabel = StripTrailingPunctuation(part.Label);
                 string fieldValue = StripTrailingPunctuation(field.CurrentValue);
-                // For checkboxes, use "checkbox, checked/unchecked" format instead of "Yes/No, checkbox"
                 if (field.Type == FieldType.Checkbox)
                 {
                     string checkState = (fieldValue == "Yes" || fieldValue == "true" || fieldValue == "True") ? "checked" : "unchecked";
@@ -3301,15 +3074,14 @@ namespace RimWorldAccess
                 {
                     announcement = $"{partLabel}: {fieldValue}. {typeHint}. Press Enter to edit.";
                 }
-                // Add Insert key hint for truncated Text fields
                 if (field.Type == FieldType.Text && field.Data is string fullText && fullText.Length > 60)
                 {
                     announcement += " Press Insert to read full text.";
                 }
             }
-            else if (item.IsPart)
+            else if (data.IsPart)
             {
-                var part = item.AsPart;
+                var part = data.AsPart;
                 string partLabel = StripTrailingPunctuation(part.Label);
                 string summaryText = StripTrailingPunctuation(part.Summary);
                 string summary = string.IsNullOrEmpty(summaryText) ? "" : $" ({summaryText})";
@@ -3318,7 +3090,6 @@ namespace RimWorldAccess
                 {
                     string state = item.IsExpanded ? "expanded" : "collapsed";
 
-                    // For list-based parts, count list items + fields
                     int childCount;
                     if (part.IsListPart)
                     {
@@ -3335,20 +3106,17 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    // Non-editable part (0 fields) - indicate read-only
                     announcement = $"{partLabel}{summary}, read only";
                 }
             }
-            else if (item.IsField)
+            else if (data.IsField)
             {
-                // Regular field (child of expanded part or list item)
-                var field = item.Field;
+                var field = data.Field;
                 string typeHint = field.Type == FieldType.Dropdown ? "dropdown" :
                                   field.Type == FieldType.Quantity ? "quantity" :
                                   field.Type == FieldType.Checkbox ? "checkbox" : "text";
                 string fieldName = StripTrailingPunctuation(field.Name);
                 string fieldValue = StripTrailingPunctuation(field.CurrentValue);
-                // For checkboxes, use "checkbox, checked/unchecked" format instead of "Yes/No, checkbox"
                 if (field.Type == FieldType.Checkbox)
                 {
                     string checkState = (fieldValue == "Yes" || fieldValue == "true" || fieldValue == "True") ? "checked" : "unchecked";
@@ -3358,7 +3126,6 @@ namespace RimWorldAccess
                 {
                     announcement = $"{fieldName}: {fieldValue}. {typeHint}. Press Enter to edit.";
                 }
-                // Add Insert key hint for truncated Text fields
                 if (field.Type == FieldType.Text && field.Data is string fullText && fullText.Length > 60)
                 {
                     announcement += " Press Insert to read full text.";
@@ -3374,10 +3141,21 @@ namespace RimWorldAccess
                 announcement += $" ({positionPart})";
             }
 
-            // Add level suffix
-            announcement += MenuHelper.GetLevelSuffix(LevelTrackingKey, item.IndentLevel);
+            announcement += MenuHelper.GetLevelSuffix("ScenarioBuilderParts", item.IndentLevel);
 
-            TolkHelper.Speak(announcement);
+            return announcement;
+        }
+
+        /// <summary>
+        /// Custom search announcement formatter for the parts tree.
+        /// </summary>
+        private static string FormatTreeSearchAnnouncement(InspectionTreeItem item, TypeaheadSearchHelper typeahead)
+        {
+            if (typeahead.HasActiveSearch)
+            {
+                return $"{item.Label}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
+            }
+            return FormatTreeItemAnnouncement(item);
         }
 
         /// <summary>
@@ -3387,18 +3165,19 @@ namespace RimWorldAccess
         {
             if (currentSection != Section.Parts) return;
 
-            if (flattenedParts.Count == 0 || partsIndex >= flattenedParts.Count)
+            var selected = partsTreeNav.SelectedItem;
+            if (selected == null)
             {
                 TolkHelper.Speak("No item selected.");
                 return;
             }
 
-            var item = flattenedParts[partsIndex];
+            var data = GetItemData(selected);
 
             // Check if this is a field item
-            if (item.IsField && item.Field != null)
+            if (data != null && data.IsField && data.Field != null)
             {
-                var field = item.Field;
+                var field = data.Field;
                 if (field.Type == FieldType.Text && field.Data is string fullText)
                 {
                     if (string.IsNullOrEmpty(fullText))
@@ -3422,12 +3201,13 @@ namespace RimWorldAccess
         /// </summary>
         public static void EditCurrentField()
         {
-            if (flattenedParts.Count == 0 || partsIndex >= flattenedParts.Count) return;
+            var selected = partsTreeNav.SelectedItem;
+            if (selected == null) return;
 
-            var item = flattenedParts[partsIndex];
-            if (!item.IsField) return;
+            var data = GetItemData(selected);
+            if (data == null || !data.IsField) return;
 
-            var field = item.Field;
+            var field = data.Field;
 
             // Open the appropriate editor based on field type
             // For checkboxes, pass a simpler callback that doesn't re-announce
@@ -3438,7 +3218,7 @@ namespace RimWorldAccess
                 {
                     // Just refresh the tree without re-announcing
                     BuildPartsTree();
-                    FlattenPartsTree();
+                    RebuildPartsInspectionTree();
                 });
             }
             else
@@ -3447,7 +3227,7 @@ namespace RimWorldAccess
                 {
                     // Callback when edit is complete - refresh the tree and re-announce
                     BuildPartsTree();
-                    FlattenPartsTree();
+                    RebuildPartsInspectionTree();
                     AnnounceCurrentTreeItem();
                 });
             }
@@ -3458,40 +3238,37 @@ namespace RimWorldAccess
         /// </summary>
         public static void DeletePart()
         {
-            if (flattenedParts.Count == 0 || currentScenario == null) return;
+            if (partsTreeNav.Count == 0 || currentScenario == null) return;
 
-            var item = flattenedParts[partsIndex];
+            var selected = partsTreeNav.SelectedItem;
+            if (selected == null) return;
+
+            var data = GetItemData(selected);
+            if (data == null) return;
 
             // Handle list items (delete from list, not the whole part)
-            if (item.IsListItem)
+            if (data.IsListItem)
             {
-                PartTreeItem partItem = item.ParentPart;
+                PartTreeItem partItem = data.ParentPart;
                 if (partItem != null && partItem.IsListPart)
                 {
-                    DeleteListItem(partItem, item.ListItemIndex);
+                    DeleteListItem(partItem, data.ListItemIndex);
                     BuildPartsTree();
-                    FlattenPartsTree();
-
-                    // Adjust index if needed
-                    if (partsIndex >= flattenedParts.Count)
-                    {
-                        partsIndex = Math.Max(0, flattenedParts.Count - 1);
-                    }
-
+                    RebuildPartsInspectionTree();
                     AnnounceCurrentTreeItem();
                     return;
                 }
             }
 
             // Handle "Add New Item" action - can't delete this
-            if (item.IsAddAction)
+            if (data.IsAddAction)
             {
                 TolkHelper.Speak("Cannot delete the add action.");
                 return;
             }
 
             // Get the part (either the item itself or its parent)
-            PartTreeItem partToDelete = item.IsPart ? item.AsPart : item.ParentPart;
+            PartTreeItem partToDelete = data.IsPart ? data.AsPart : data.ParentPart;
             if (partToDelete == null) return;
 
             var part = partToDelete.Part;
@@ -3510,13 +3287,7 @@ namespace RimWorldAccess
             currentScenario.RemovePart(part);
             isDirty = true;
             BuildPartsTree();
-            FlattenPartsTree();
-
-            // Adjust index if needed
-            if (partsIndex >= flattenedParts.Count)
-            {
-                partsIndex = Math.Max(0, flattenedParts.Count - 1);
-            }
+            RebuildPartsInspectionTree();
 
             TolkHelper.Speak($"Removed {label}.");
             AnnounceCurrentTreeItem();
@@ -3527,10 +3298,15 @@ namespace RimWorldAccess
         /// </summary>
         public static void MovePartUp()
         {
-            if (flattenedParts.Count == 0 || currentScenario == null) return;
+            if (partsTreeNav.Count == 0 || currentScenario == null) return;
 
-            var item = flattenedParts[partsIndex];
-            PartTreeItem partItem = item.IsPart ? item.AsPart : item.ParentPart;
+            var selected = partsTreeNav.SelectedItem;
+            if (selected == null) return;
+
+            var data = GetItemData(selected);
+            if (data == null) return;
+
+            PartTreeItem partItem = data.IsPart ? data.AsPart : data.ParentPart;
             if (partItem == null) return;
 
             int partHierarchyIndex = partsHierarchy.IndexOf(partItem);
@@ -3547,16 +3323,15 @@ namespace RimWorldAccess
 
             currentScenario.Reorder(part, ReorderDirection.Up);
             BuildPartsTree();
-            FlattenPartsTree();
+            RebuildPartsInspectionTree();
 
-            // Find the new position of the part in the flattened list
-            int newIndex = -1;
-            for (int i = 0; i < flattenedParts.Count; i++)
+            // Find the new position of the part in the visible list
+            for (int i = 0; i < partsTreeNav.VisibleItems.Count; i++)
             {
-                if (flattenedParts[i].IsPart && flattenedParts[i].AsPart.Part == part)
+                var d = GetItemData(partsTreeNav.VisibleItems[i]);
+                if (d != null && d.IsPart && d.AsPart.Part == part)
                 {
-                    partsIndex = i;
-                    newIndex = i;
+                    partsTreeNav.SetSelectedIndex(i);
                     break;
                 }
             }
@@ -3568,7 +3343,6 @@ namespace RimWorldAccess
 
             if (atTop)
             {
-                // Moved to top of list
                 if (!atBottom && partsHierarchy.Count > 1)
                 {
                     string belowName = GetPartDisplayName(partsHierarchy[newHierarchyIndex + 1]);
@@ -3581,7 +3355,6 @@ namespace RimWorldAccess
             }
             else
             {
-                // Moved up but not to top - has item above
                 string aboveName = GetPartDisplayName(partsHierarchy[newHierarchyIndex - 1]);
                 if (!atBottom)
                 {
@@ -3600,10 +3373,15 @@ namespace RimWorldAccess
         /// </summary>
         public static void MovePartDown()
         {
-            if (flattenedParts.Count == 0 || currentScenario == null) return;
+            if (partsTreeNav.Count == 0 || currentScenario == null) return;
 
-            var item = flattenedParts[partsIndex];
-            PartTreeItem partItem = item.IsPart ? item.AsPart : item.ParentPart;
+            var selected = partsTreeNav.SelectedItem;
+            if (selected == null) return;
+
+            var data = GetItemData(selected);
+            if (data == null) return;
+
+            PartTreeItem partItem = data.IsPart ? data.AsPart : data.ParentPart;
             if (partItem == null) return;
 
             int partHierarchyIndex = partsHierarchy.IndexOf(partItem);
@@ -3620,14 +3398,15 @@ namespace RimWorldAccess
 
             currentScenario.Reorder(part, ReorderDirection.Down);
             BuildPartsTree();
-            FlattenPartsTree();
+            RebuildPartsInspectionTree();
 
-            // Find the new position of the part in the flattened list
-            for (int i = 0; i < flattenedParts.Count; i++)
+            // Find the new position of the part in the visible list
+            for (int i = 0; i < partsTreeNav.VisibleItems.Count; i++)
             {
-                if (flattenedParts[i].IsPart && flattenedParts[i].AsPart.Part == part)
+                var d = GetItemData(partsTreeNav.VisibleItems[i]);
+                if (d != null && d.IsPart && d.AsPart.Part == part)
                 {
-                    partsIndex = i;
+                    partsTreeNav.SetSelectedIndex(i);
                     break;
                 }
             }
@@ -3639,7 +3418,6 @@ namespace RimWorldAccess
 
             if (atBottom)
             {
-                // Moved to bottom of list
                 if (!atTop && partsHierarchy.Count > 1)
                 {
                     string aboveName = GetPartDisplayName(partsHierarchy[newHierarchyIndex - 1]);
@@ -3652,7 +3430,6 @@ namespace RimWorldAccess
             }
             else
             {
-                // Moved down but not to bottom - has item below
                 string belowName = GetPartDisplayName(partsHierarchy[newHierarchyIndex + 1]);
                 if (!atTop)
                 {
@@ -3673,29 +3450,29 @@ namespace RimWorldAccess
         /// <summary>
         /// Gets whether parts typeahead is active.
         /// </summary>
-        public static bool PartsHasActiveSearch => partsTypeaheadHelper.HasActiveSearch;
+        public static bool PartsHasActiveSearch => partsTreeNav.HasActiveSearch;
 
         /// <summary>
         /// Handles typeahead search in parts list.
         /// </summary>
         public static bool HandlePartsTypeahead(char character)
         {
-            if (flattenedParts.Count == 0)
+            if (partsTreeNav.Count == 0)
                 return false;
 
-            var labels = flattenedParts.Select(p => p.Label).ToList();
+            var labels = partsTreeNav.VisibleItems.Select(item => item.Label).ToList();
 
-            if (partsTypeaheadHelper.ProcessCharacterInput(character, labels, out int newIndex))
+            if (partsTreeNav.Typeahead.ProcessCharacterInput(character, labels, out int newIndex))
             {
                 if (newIndex >= 0)
                 {
-                    partsIndex = newIndex;
+                    partsTreeNav.SetSelectedIndex(newIndex);
                     AnnouncePartsWithSearch();
                 }
             }
             else
             {
-                TolkHelper.Speak($"No matches for '{partsTypeaheadHelper.LastFailedSearch}'");
+                TolkHelper.Speak($"No matches for '{partsTreeNav.Typeahead.LastFailedSearch}'");
             }
 
             return true;
@@ -3706,16 +3483,16 @@ namespace RimWorldAccess
         /// </summary>
         public static bool HandlePartsTypeaheadBackspace()
         {
-            if (!partsTypeaheadHelper.HasActiveSearch)
+            if (!partsTreeNav.HasActiveSearch)
                 return false;
 
-            var labels = flattenedParts.Select(p => p.Label).ToList();
+            var labels = partsTreeNav.VisibleItems.Select(item => item.Label).ToList();
 
-            if (partsTypeaheadHelper.ProcessBackspace(labels, out int newIndex))
+            if (partsTreeNav.Typeahead.ProcessBackspace(labels, out int newIndex))
             {
                 if (newIndex >= 0)
                 {
-                    partsIndex = newIndex;
+                    partsTreeNav.SetSelectedIndex(newIndex);
                     AnnouncePartsWithSearch();
                 }
             }
@@ -3728,7 +3505,7 @@ namespace RimWorldAccess
         /// </summary>
         public static bool ClearPartsTypeahead()
         {
-            if (partsTypeaheadHelper.ClearSearchAndAnnounce())
+            if (partsTreeNav.Typeahead.ClearSearchAndAnnounce())
             {
                 AnnounceCurrentTreeItem();
                 return true;
@@ -3741,13 +3518,13 @@ namespace RimWorldAccess
         /// </summary>
         public static bool SelectNextPartsMatch()
         {
-            if (!partsTypeaheadHelper.HasActiveSearch)
+            if (!partsTreeNav.HasActiveSearch)
                 return false;
 
-            int next = partsTypeaheadHelper.GetNextMatch(partsIndex);
+            int next = partsTreeNav.Typeahead.GetNextMatch(partsTreeNav.SelectedIndex);
             if (next >= 0)
             {
-                partsIndex = next;
+                partsTreeNav.SetSelectedIndex(next);
                 AnnouncePartsWithSearch();
             }
             return true;
@@ -3758,13 +3535,13 @@ namespace RimWorldAccess
         /// </summary>
         public static bool SelectPreviousPartsMatch()
         {
-            if (!partsTypeaheadHelper.HasActiveSearch)
+            if (!partsTreeNav.HasActiveSearch)
                 return false;
 
-            int prev = partsTypeaheadHelper.GetPreviousMatch(partsIndex);
+            int prev = partsTreeNav.Typeahead.GetPreviousMatch(partsTreeNav.SelectedIndex);
             if (prev >= 0)
             {
-                partsIndex = prev;
+                partsTreeNav.SetSelectedIndex(prev);
                 AnnouncePartsWithSearch();
             }
             return true;
@@ -3772,14 +3549,14 @@ namespace RimWorldAccess
 
         private static void AnnouncePartsWithSearch()
         {
-            if (flattenedParts.Count == 0) return;
+            var selected = partsTreeNav.SelectedItem;
+            if (selected == null) return;
 
-            var item = flattenedParts[partsIndex];
-            string label = item.IsPart ? item.AsPart.Label : item.Label;
-
-            if (partsTypeaheadHelper.HasActiveSearch)
+            if (partsTreeNav.HasActiveSearch)
             {
-                TolkHelper.Speak($"{label}, {partsTypeaheadHelper.CurrentMatchPosition} of {partsTypeaheadHelper.MatchCount} matches for '{partsTypeaheadHelper.SearchBuffer}'");
+                var data = GetItemData(selected);
+                string label = (data != null && data.IsPart) ? data.AsPart.Label : selected.Label;
+                TolkHelper.Speak($"{label}, {partsTreeNav.Typeahead.CurrentMatchPosition} of {partsTreeNav.Typeahead.MatchCount} matches for '{partsTreeNav.Typeahead.SearchBuffer}'");
             }
             else
             {
@@ -3814,14 +3591,15 @@ namespace RimWorldAccess
 
                     // Refresh and select the new part
                     BuildPartsTree();
-                    FlattenPartsTree();
+                    RebuildPartsInspectionTree();
 
-                    // Find the new part in the flattened list (it's the last part at level 0)
-                    for (int i = flattenedParts.Count - 1; i >= 0; i--)
+                    // Find the new part in the visible list (it's the last part at level 0)
+                    for (int i = partsTreeNav.VisibleItems.Count - 1; i >= 0; i--)
                     {
-                        if (flattenedParts[i].IsPart)
+                        var d = GetItemData(partsTreeNav.VisibleItems[i]);
+                        if (d != null && d.IsPart)
                         {
-                            partsIndex = i;
+                            partsTreeNav.SetSelectedIndex(i);
                             break;
                         }
                     }
@@ -3849,10 +3627,10 @@ namespace RimWorldAccess
                     currentScenario = loadedScenario;
                     isDirty = false;
                     BuildPartsTree();
-                    FlattenPartsTree();
+                    RebuildPartsInspectionTree();
                     currentSection = Section.Metadata;
                     metadataIndex = 0;
-                    partsIndex = 0;
+                    partsTreeNav.SetSelectedIndex(0);
 
                     TolkHelper.Speak($"Loaded scenario: {loadedScenario.name}");
                 }
@@ -3890,8 +3668,8 @@ namespace RimWorldAccess
                 currentScenario = (Scenario)AccessTools.Field(typeof(Page_ScenarioEditor), "curScen").GetValue(currentPage);
                 isDirty = true;
                 BuildPartsTree();
-                FlattenPartsTree();
-                partsIndex = 0;
+                RebuildPartsInspectionTree();
+                partsTreeNav.SetSelectedIndex(0);
 
                 TolkHelper.Speak($"Randomized. New scenario: {currentScenario?.name ?? "New Scenario"}");
             }
@@ -4010,7 +3788,7 @@ namespace RimWorldAccess
         private static bool HandlePartsInput(KeyCode key, bool shift, bool ctrl)
         {
             // Handle typeahead backspace
-            if (key == KeyCode.Backspace && partsTypeaheadHelper.HasActiveSearch)
+            if (key == KeyCode.Backspace && partsTreeNav.HasActiveSearch)
             {
                 HandlePartsTypeaheadBackspace();
                 return true;
@@ -4019,7 +3797,7 @@ namespace RimWorldAccess
             // Handle escape to clear search
             if (key == KeyCode.Escape)
             {
-                if (partsTypeaheadHelper.HasActiveSearch)
+                if (partsTreeNav.HasActiveSearch)
                 {
                     ClearPartsTypeahead();
                     return true;
@@ -4046,13 +3824,13 @@ namespace RimWorldAccess
             switch (key)
             {
                 case KeyCode.UpArrow:
-                    if (partsTypeaheadHelper.HasActiveSearch)
+                    if (partsTreeNav.HasActiveSearch)
                         SelectPreviousPartsMatch();
                     else
                         PartsNavigateUp();
                     return true;
                 case KeyCode.DownArrow:
-                    if (partsTypeaheadHelper.HasActiveSearch)
+                    if (partsTreeNav.HasActiveSearch)
                         SelectNextPartsMatch();
                     else
                         PartsNavigateDown();

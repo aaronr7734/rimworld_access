@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -30,41 +29,12 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Checks if a hediff is a missing part caused by surgical addition (bionic).
-        /// These clutter the display since they're just side effects of having bionics.
-        /// </summary>
-        private static bool IsSurgicallyRemovedPart(Hediff hediff, Pawn pawn)
-        {
-            // Only filter Hediff_MissingPart
-            if (!(hediff is Hediff_MissingPart))
-                return false;
-
-            // Filter if the parent part has a bionic/added part
-            if (hediff.Part != null && pawn.health.hediffSet.PartOrAnyAncestorHasDirectlyAddedParts(hediff.Part))
-                return true;
-
-            return false;
-        }
-
-        /// <summary>
-        /// Checks if a hediff is drug tolerance or dependency (not useful during combat).
-        /// </summary>
-        private static bool IsDrugToleranceOrDependency(Hediff hediff)
-        {
-            // Filter out addiction hediffs
-            if (hediff is Hediff_Addiction)
-                return true;
-
-            // Filter out tolerance hediffs (usually have "tolerance" in the def name)
-            if (hediff.def.defName.ToLower().Contains("tolerance"))
-                return true;
-
-            return false;
-        }
-
-        /// <summary>
-        /// Gets health summary for the pawn.
-        /// Shows critical info first (bleeding, blood loss, pain), then injured parts and capacities.
+        /// Gets a combat-focused health summary for the pawn.
+        /// Shows critical triage info: pain, bleeding/time-to-death, impaired
+        /// sight/manipulation/moving capacities, body parts with bad conditions,
+        /// and whole-body hediffs.
+        /// Skips bionics/implants unless the part is actually injured, and skips
+        /// chronic conditions that aren't combat-relevant.
         /// </summary>
         public static string GetHealthInfo(Pawn pawn)
         {
@@ -75,100 +45,82 @@ namespace RimWorldAccess
                 return $"{pawn.LabelShort}: No health tracker";
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"{pawn.LabelShort}'s Health.");
+            sb.Append($"{pawn.LabelShort}. ");
+            bool hasHealthDetails = false;
 
-            // Overall health state
-            sb.AppendLine($"State: {pawn.health.State}.");
-
-            // Critical info first - bleeding, blood loss, pain
-            if (pawn.health.hediffSet.BleedRateTotal > 0.01f)
+            // Pain (uses vanilla translation keys and qualitative labels)
+            string painLabel = HealthTabHelper.GetPainLabel(pawn);
+            if (painLabel != null)
             {
-                sb.AppendLine($"BLEEDING: {pawn.health.hediffSet.BleedRateTotal:F2} per day.");
+                sb.Append($"{painLabel}. ");
+                hasHealthDetails = true;
             }
 
-            var bloodLoss = pawn.health.hediffSet.GetFirstHediffOfDef(HediffDefOf.BloodLoss);
-            if (bloodLoss != null)
+            // Bleeding with time-to-death (uses vanilla translation keys)
+            string bleedingLabel = HealthTabHelper.GetBleedingLabel(pawn);
+            if (bleedingLabel != null)
             {
-                sb.AppendLine($"Blood Loss: {bloodLoss.Severity:P0}.");
+                sb.Append($"{bleedingLabel}. ");
+                hasHealthDetails = true;
             }
 
-            float painTotal = pawn.health.hediffSet.PainTotal;
-            if (painTotal > 0.01f)
+            // Capacities — only show sight, manipulation, and moving, and only when not at 100%
+            if (pawn.health.capacities != null && !pawn.Dead)
             {
-                sb.AppendLine($"Pain: {painTotal:P0}.");
-            }
-
-            // Key capacities first - consciousness, moving, manipulation (most important for combat)
-            if (pawn.health.capacities != null)
-            {
-                var keyCapacities = new[]
-                {
-                    PawnCapacityDefOf.Consciousness,
-                    PawnCapacityDefOf.Moving,
-                    PawnCapacityDefOf.Manipulation
-                };
-
-                foreach (var cap in keyCapacities)
-                {
-                    if (cap != null && pawn.health.capacities.CapableOf(cap))
-                    {
-                        float level = pawn.health.capacities.GetLevel(cap);
-                        string status = $"{level:P0}";
-                        sb.AppendLine($"{cap.LabelCap}: {status}.");
-                    }
-                }
-            }
-
-            // Injured body parts - filter out surgically removed parts (from bionics)
-            var hediffs = pawn.health.hediffSet.hediffs;
-            if (hediffs != null && hediffs.Count > 0)
-            {
-                var visibleHediffs = hediffs
-                    .Where(h => h.Visible)
-                    .Where(h => !IsSurgicallyRemovedPart(h, pawn))
-                    .Where(h => !IsDrugToleranceOrDependency(h))
+                var impaired = HealthTabHelper.GetCapacities(pawn)
+                    .Where(c => c.Def == PawnCapacityDefOf.Sight
+                             || c.Def == PawnCapacityDefOf.Manipulation
+                             || c.Def == PawnCapacityDefOf.Moving)
+                    .Where(c => c.Level < 0.999f || c.Level > 1.001f)
                     .ToList();
 
-                if (visibleHediffs.Count > 0)
+                foreach (var cap in impaired)
                 {
-                    // Get injured body parts with their health
-                    var injuredParts = visibleHediffs
-                        .Where(h => h.Part != null)
-                        .Select(h => h.Part)
-                        .Distinct()
-                        .Select(part => new {
-                            Part = part,
-                            Health = pawn.health.hediffSet.GetPartHealth(part),
-                            MaxHealth = part.def.GetMaxHealth(pawn)
-                        })
-                        .OrderBy(p => p.Health / p.MaxHealth) // Most damaged first
-                        .ToList();
-
-                    // Get whole-body conditions (excluding drug stuff)
-                    var wholeBodyConditions = visibleHediffs
-                        .Where(h => h.Part == null)
-                        .ToList();
-
-                    if (injuredParts.Count > 0)
-                    {
-                        sb.AppendLine($"\nInjured Parts.");
-
-                        foreach (var part in injuredParts)
-                        {
-                            sb.AppendLine($"  {part.Part.LabelCap}: {part.Health:F0} / {part.MaxHealth:F0} HP.");
-                        }
-                    }
-
-                    if (wholeBodyConditions.Count > 0)
-                    {
-                        sb.AppendLine("\nConditions.");
-
-                        foreach (var condition in wholeBodyConditions)
-                        {
-                            sb.AppendLine($"  {condition.LabelCap}.");
-                        }
-                    }
+                    sb.Append($"{cap.Label}: {cap.LevelLabel}. ");
+                    hasHealthDetails = true;
                 }
+            }
+
+            // Body parts — only show parts that have at least one bad hediff, with HP
+            var badPartHediffs = HealthTabHelper.GetVisibleHediffs(pawn)
+                .Where(h => h.Part != null && h.def.isBad)
+                .Select(h => h.Part)
+                .Distinct()
+                .ToList();
+
+            if (badPartHediffs.Count > 0)
+            {
+                var damagedParts = badPartHediffs
+                    .Select(part => new {
+                        Part = part,
+                        Health = pawn.health.hediffSet.GetPartHealth(part),
+                        MaxHealth = part.def.GetMaxHealth(pawn)
+                    })
+                    .Where(p => p.Health < p.MaxHealth * 0.999f)
+                    .OrderBy(p => p.Health / p.MaxHealth)
+                    .ToList();
+
+                foreach (var p in damagedParts)
+                {
+                    sb.Append($"{p.Part.LabelCap}: {p.Health:F0}/{p.MaxHealth:F0}. ");
+                    hasHealthDetails = true;
+                }
+            }
+
+            // Whole-body hediffs — show all visible ones
+            var wholeBodyHediffs = HealthTabHelper.GetVisibleHediffs(pawn)
+                .Where(h => h.Part == null)
+                .ToList();
+
+            foreach (var hediff in wholeBodyHediffs)
+            {
+                sb.Append($"{hediff.LabelCap}. ");
+                hasHealthDetails = true;
+            }
+
+            if (!hasHealthDetails)
+            {
+                sb.Append($"{ "Healthy".Translate()}.");
             }
 
             return sb.ToString().TrimEnd();
@@ -202,6 +154,16 @@ namespace RimWorldAccess
                 {
                     float percentage = need.CurLevelPercentage * 100f;
                     sb.AppendLine($"  {need.LabelCap}: {percentage:F0}%.");
+
+                    // After the Learning need, list active learning desires (Biotech children only)
+                    if (need.def == NeedDefOf.Learning && pawn.learning?.ActiveLearningDesires != null
+                        && pawn.learning.ActiveLearningDesires.Count > 0)
+                    {
+                        var desireLabels = pawn.learning.ActiveLearningDesires
+                            .Select(d => d.LabelCap.ToString())
+                            .ToArray();
+                        sb.AppendLine($"    Learning desires: {string.Join(", ", desireLabels)}.");
+                    }
                 }
             }
             else
@@ -529,6 +491,44 @@ namespace RimWorldAccess
                         sb.AppendLine($"  - {skill.def.LabelCap}: {skill.Level}{passion}");
                     }
                 }
+            }
+
+            return sb.ToString().TrimEnd();
+        }
+
+        /// <summary>
+        /// Gets a concise summary of the pawn's top 3 skills with passion levels.
+        /// </summary>
+        public static string GetTopSkillsInfo(Pawn pawn)
+        {
+            if (pawn == null)
+                return "No pawn selected";
+
+            if (pawn.skills == null || pawn.skills.skills == null)
+                return $"{pawn.LabelShort}: No skills";
+
+            var topSkills = pawn.skills.skills
+                .Where(s => !s.TotallyDisabled && s.Level > 0)
+                .OrderByDescending(s => s.Level)
+                .Take(3)
+                .ToList();
+
+            if (!topSkills.Any())
+                return $"{pawn.LabelShort}: No skills";
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append($"{pawn.LabelShort}'s Top Skills. ");
+
+            foreach (var skill in topSkills)
+            {
+                sb.Append($"{skill.def.LabelCap}: {skill.Level}.");
+
+                if (skill.passion == Passion.Minor)
+                    sb.Append(" (passion.)");
+                else if (skill.passion == Passion.Major)
+                    sb.Append(" (double passion.)");
+
+                sb.Append(" ");
             }
 
             return sb.ToString().TrimEnd();

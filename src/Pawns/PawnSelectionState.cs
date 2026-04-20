@@ -47,10 +47,10 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Gets a list of maps the player can navigate to.
-        /// Includes: player home maps (even if temporarily empty) and maps with spawned colonists.
+        /// Includes: player home maps, and maps with any player presence (colonists, mechs, or animals).
         /// Returns maps in a consistent order (by map ID).
         /// </summary>
-        private static List<Map> GetMapsWithPlayerPawns()
+        private static List<Map> GetMapsWithPlayerPresence()
         {
             if (Find.Maps == null)
                 return new List<Map>();
@@ -59,7 +59,10 @@ namespace RimWorldAccess
             // This fixes the delay when switching to a new map after transport pod landing
             return Find.Maps
                 .Where(m => m != null && m.mapPawns != null &&
-                            (m.IsPlayerHome || m.mapPawns.FreeColonists.Any()))
+                            (m.IsPlayerHome
+                             || m.mapPawns.FreeColonists.Any()
+                             || m.mapPawns.SpawnedColonyMechs.Any()
+                             || m.mapPawns.SpawnedColonyAnimals.Any()))
                 .OrderBy(m => m.uniqueID)
                 .ToList();
         }
@@ -185,47 +188,47 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Switches to the next map that has player pawns.
+        /// Switches to the next map that has player presence.
         /// Returns the pawn that was focused on that map (or the first available).
-        /// Returns null if there's only one map or no maps with pawns.
+        /// Returns null if there's only one map or no maps with player presence.
         /// </summary>
         /// <param name="mapName">Output: the name of the map we switched to</param>
-        /// <param name="pawnCount">Output: number of pawns on the new map</param>
-        public static Pawn SwitchToNextMap(out string mapName, out int pawnCount)
+        /// <param name="presenceInfo">Output: description of player presence on the new map (e.g. "3 colonists, 2 mechs")</param>
+        public static Pawn SwitchToNextMap(out string mapName, out string presenceInfo)
         {
-            return SwitchMap(forward: true, out mapName, out pawnCount);
+            return SwitchMap(forward: true, out mapName, out presenceInfo);
         }
 
         /// <summary>
-        /// Switches to the previous map that has player pawns.
+        /// Switches to the previous map that has player presence.
         /// Returns the pawn that was focused on that map (or the first available).
-        /// Returns null if there's only one map or no maps with pawns.
+        /// Returns null if there's only one map or no maps with player presence.
         /// </summary>
         /// <param name="mapName">Output: the name of the map we switched to</param>
-        /// <param name="pawnCount">Output: number of pawns on the new map</param>
-        public static Pawn SwitchToPreviousMap(out string mapName, out int pawnCount)
+        /// <param name="presenceInfo">Output: description of player presence on the new map (e.g. "3 colonists, 2 mechs")</param>
+        public static Pawn SwitchToPreviousMap(out string mapName, out string presenceInfo)
         {
-            return SwitchMap(forward: false, out mapName, out pawnCount);
+            return SwitchMap(forward: false, out mapName, out presenceInfo);
         }
 
         /// <summary>
         /// Internal method to switch maps.
         /// </summary>
-        private static Pawn SwitchMap(bool forward, out string mapName, out int pawnCount)
+        private static Pawn SwitchMap(bool forward, out string mapName, out string presenceInfo)
         {
             mapName = null;
-            pawnCount = 0;
+            presenceInfo = null;
 
-            var mapsWithPawns = GetMapsWithPlayerPawns();
+            var maps = GetMapsWithPlayerPresence();
 
-            if (mapsWithPawns.Count <= 1)
+            if (maps.Count <= 1)
             {
                 // Only one map (or no maps) - can't switch
                 return null;
             }
 
             // Find current map index
-            int currentIndex = mapsWithPawns.FindIndex(m => m == Find.CurrentMap);
+            int currentIndex = maps.FindIndex(m => m == Find.CurrentMap);
             if (currentIndex == -1)
             {
                 // Current map not in list (shouldn't happen), start at 0
@@ -236,16 +239,16 @@ namespace RimWorldAccess
             int newIndex;
             if (forward)
             {
-                newIndex = (currentIndex + 1) % mapsWithPawns.Count;
+                newIndex = (currentIndex + 1) % maps.Count;
             }
             else
             {
-                newIndex = (currentIndex - 1 + mapsWithPawns.Count) % mapsWithPawns.Count;
+                newIndex = (currentIndex - 1 + maps.Count) % maps.Count;
             }
 
-            Map targetMap = mapsWithPawns[newIndex];
+            Map targetMap = maps[newIndex];
             mapName = GetMapDisplayName(targetMap);
-            pawnCount = targetMap.mapPawns.FreeColonistsSpawned.Count();
+            presenceInfo = BuildPresenceDescription(targetMap);
 
             // Switch to the new map
             Current.Game.CurrentMap = targetMap;
@@ -263,10 +266,12 @@ namespace RimWorldAccess
                 }
             }
 
-            // If no remembered pawn, get the first colonist on this map
+            // If no remembered pawn, try colonists first, then mechs, then animals
             if (pawnToFocus == null)
             {
-                pawnToFocus = targetMap.mapPawns.FreeColonistsSpawned.FirstOrDefault();
+                pawnToFocus = targetMap.mapPawns.FreeColonistsSpawned.FirstOrDefault()
+                    ?? targetMap.mapPawns.SpawnedColonyMechs.FirstOrDefault()
+                    ?? targetMap.mapPawns.SpawnedColonyAnimals.FirstOrDefault();
             }
 
             // Update our tracking
@@ -280,12 +285,59 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets the number of maps with player pawns.
+        /// Builds a human-readable description of player presence on a map.
+        /// e.g. "3 colonists, 2 mechs", "1 mech, 4 animals", "No player pawns here"
+        /// </summary>
+        private static string BuildPresenceDescription(Map map)
+        {
+            int colonists = map.mapPawns.FreeColonistsSpawned.Count();
+            int mechs = map.mapPawns.SpawnedColonyMechs.Count();
+            int animals = map.mapPawns.SpawnedColonyAnimals.Count();
+
+            var parts = new List<string>();
+            if (colonists > 0)
+                parts.Add($"{colonists} {(colonists == 1 ? "colonist" : "colonists")}");
+            if (mechs > 0)
+                parts.Add($"{mechs} {(mechs == 1 ? "mech" : "mechs")}");
+            if (animals > 0)
+                parts.Add($"{animals} {(animals == 1 ? "animal" : "animals")}");
+
+            if (parts.Count == 0)
+                return null;
+
+            return string.Join(", ", parts);
+        }
+
+        /// <summary>
+        /// Gets the number of maps with player presence.
         /// Useful for checking if map switching is available.
         /// </summary>
         public static int GetMapCount()
         {
-            return GetMapsWithPlayerPawns().Count;
+            return GetMapsWithPlayerPresence().Count;
+        }
+
+        /// <summary>
+        /// Called by ColonistBarState to keep PawnSelectionState in sync
+        /// when the user navigates with Alt+Arrow or Alt+number keys.
+        /// </summary>
+        public static void SyncFromBarNavigation(Pawn pawn)
+        {
+            if (pawn == null)
+                return;
+
+            lastSelectedPawn = pawn;
+
+            if (Find.CurrentMap != null)
+            {
+                lastSelectedPawnPerMap[Find.CurrentMap.uniqueID] = pawn;
+            }
+
+            // Update index to match
+            var colonistList = GetSelectableColonists();
+            int idx = colonistList.IndexOf(pawn);
+            if (idx >= 0)
+                currentSelectedIndex = idx;
         }
 
         /// <summary>

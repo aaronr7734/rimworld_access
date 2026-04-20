@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Verse;
 
 namespace RimWorldAccess
 {
@@ -170,50 +169,109 @@ namespace RimWorldAccess
         /// 1. First word prefix matches (e.g., 'w' matches "Wall" before "5 wood")
         /// 2. Other word prefix matches in the name (before parenthetical content)
         /// 3. Matches in parenthetical content (descriptions) as fallback
+        ///
+        /// Within each tier, matches are sorted by name length ascending so closer
+        /// matches win (e.g., "Wall" ranks above "Wall lamp" when searching "wall").
         /// </summary>
         private void FindMatches(List<string> labels)
         {
             matchingIndices.Clear();
 
-            List<int> firstWordMatches = new List<int>();
-            List<int> otherWordMatches = new List<int>();
-            List<int> descriptionMatches = new List<int>();
+            // Each entry: (originalIndex, nameLength) — we sort by nameLength ascending,
+            // then by originalIndex as a stable tiebreak.
+            var firstWordMatches = new List<(int idx, int nameLen)>();
+            var otherWordMatches = new List<(int idx, int nameLen)>();
+            var descriptionMatches = new List<(int idx, int nameLen)>();
 
             for (int i = 0; i < labels.Count; i++)
             {
                 string label = labels[i];
                 MatchType matchType = GetMatchType(searchBuffer, label);
 
+                if (matchType == MatchType.None)
+                    continue;
+
+                int nameLen = GetNameLength(label);
+
                 switch (matchType)
                 {
                     case MatchType.FirstWord:
-                        firstWordMatches.Add(i);
+                        firstWordMatches.Add((i, nameLen));
                         break;
                     case MatchType.OtherWord:
-                        otherWordMatches.Add(i);
+                        otherWordMatches.Add((i, nameLen));
                         break;
                     case MatchType.Description:
-                        descriptionMatches.Add(i);
+                        descriptionMatches.Add((i, nameLen));
                         break;
                 }
             }
 
-            // Add matches in priority order
-            matchingIndices.AddRange(firstWordMatches);
-            matchingIndices.AddRange(otherWordMatches);
-            matchingIndices.AddRange(descriptionMatches);
+            SortByNameLength(firstWordMatches);
+            SortByNameLength(otherWordMatches);
+            SortByNameLength(descriptionMatches);
+
+            foreach (var m in firstWordMatches) matchingIndices.Add(m.idx);
+            foreach (var m in otherWordMatches) matchingIndices.Add(m.idx);
+            foreach (var m in descriptionMatches) matchingIndices.Add(m.idx);
+        }
+
+        /// <summary>
+        /// Returns the length of the displayed "name" portion of a label — the part
+        /// before the first ": " or ". " boundary, with parenthetical hints stripped.
+        /// Used to rank closer matches first within a tier.
+        /// </summary>
+        private static int GetNameLength(string label)
+        {
+            if (string.IsNullOrEmpty(label)) return 0;
+            string lower = label.ToLowerInvariant().Trim();
+            int boundary = FindNameBoundary(lower);
+            string namePortion = boundary >= 0 ? lower.Substring(0, boundary) : lower;
+            return StripParentheticalContent(namePortion).TrimEnd().Length;
+        }
+
+        /// <summary>
+        /// Finds the boundary between the "name" portion of a label and its
+        /// annotation/content portion. The first occurrence of ": " or ". " wins
+        /// (matches architect format: "Name: cost. description" or "Name. description").
+        /// Returns -1 if no boundary is found (the whole label is name).
+        /// </summary>
+        private static int FindNameBoundary(string lowerText)
+        {
+            int colon = lowerText.IndexOf(": ");
+            int period = lowerText.IndexOf(". ");
+            if (colon < 0) return period;
+            if (period < 0) return colon;
+            return Math.Min(colon, period);
+        }
+
+        private static void SortByNameLength(List<(int idx, int nameLen)> list)
+        {
+            list.Sort((a, b) =>
+            {
+                int cmp = a.nameLen.CompareTo(b.nameLen);
+                if (cmp != 0) return cmp;
+                return a.idx.CompareTo(b.idx);
+            });
         }
 
         private enum MatchType
         {
             None,
-            FirstWord,      // Match at start of label/first word
-            OtherWord,      // Match on other words in name (before parenthetical)
-            Description     // Match in parenthetical content
+            FirstWord,      // Match at start of name, or first word of name
+            OtherWord,      // Match on a later word within the name
+            Description     // Match only in content/annotation portion (cost, description, hints)
         }
 
         /// <summary>
         /// Determines what type of match (if any) exists between search and label.
+        ///
+        /// The label is split at the first ": " or ". " boundary into a name portion
+        /// and a content portion. Name tiers (FirstWord/OtherWord) only consider the
+        /// name portion with any parenthetical hints stripped, so descriptions that
+        /// happen to contain the search term don't pollute the name tiers.
+        /// Description tier is the fallback for anything that matches somewhere in
+        /// the full label but not in the name portion.
         /// </summary>
         private MatchType GetMatchType(string search, string label)
         {
@@ -223,36 +281,30 @@ namespace RimWorldAccess
             string searchLower = search.ToLowerInvariant();
             string labelLower = label.ToLowerInvariant().Trim();
 
-            // Strip parenthetical content for name-based matching
-            string nameOnly = StripParentheticalContent(labelLower);
+            int boundary = FindNameBoundary(labelLower);
+            string namePortion = boundary >= 0 ? labelLower.Substring(0, boundary) : labelLower;
+            string nameText = StripParentheticalContent(namePortion);
 
-            // Check if label/first word starts with search
-            if (nameOnly.StartsWith(searchLower))
-            {
+            if (nameText.StartsWith(searchLower))
                 return MatchType.FirstWord;
-            }
 
-            // Check first word specifically (before any separator)
-            string[] nameWords = nameOnly.Split(WordSeparators, StringSplitOptions.RemoveEmptyEntries);
+            string[] nameWords = nameText.Split(WordSeparators, StringSplitOptions.RemoveEmptyEntries);
             if (nameWords.Length > 0 && nameWords[0].StartsWith(searchLower))
-            {
                 return MatchType.FirstWord;
-            }
 
-            // Check other words in the name
             for (int i = 1; i < nameWords.Length; i++)
             {
                 if (nameWords[i].StartsWith(searchLower))
-                {
                     return MatchType.OtherWord;
-                }
             }
 
-            // Check parenthetical content (description)
-            if (MatchesWordPrefix(search, label, ignoreParenthetical: false) &&
-                !MatchesWordPrefix(search, label, ignoreParenthetical: true))
+            // Anything left (cost, description, parenthetical hints) falls to the
+            // Description tier if any word in the full label starts with the search.
+            string[] allWords = labelLower.Split(WordSeparators, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string w in allWords)
             {
-                return MatchType.Description;
+                if (w.StartsWith(searchLower))
+                    return MatchType.Description;
             }
 
             return MatchType.None;
@@ -330,49 +382,6 @@ namespace RimWorldAccess
             }
 
             return matchingIndices[currentMatchIndex];
-        }
-
-        /// <summary>
-        /// Checks if a search string matches any word prefix in a label.
-        /// Case-insensitive matching.
-        /// </summary>
-        /// <param name="search">The search string</param>
-        /// <param name="label">The label to match against</param>
-        /// <param name="ignoreParenthetical">If true, strips content in parentheses before matching</param>
-        /// <returns>True if the search matches a word prefix or the label start</returns>
-        public static bool MatchesWordPrefix(string search, string label, bool ignoreParenthetical = false)
-        {
-            if (string.IsNullOrEmpty(search) || string.IsNullOrEmpty(label))
-            {
-                return false;
-            }
-
-            string searchLower = search.ToLowerInvariant();
-            string labelLower = label.ToLowerInvariant().Trim();
-
-            // Strip parenthetical content if requested
-            if (ignoreParenthetical)
-            {
-                labelLower = StripParentheticalContent(labelLower);
-            }
-
-            // Check if entire label starts with search
-            if (labelLower.StartsWith(searchLower))
-            {
-                return true;
-            }
-
-            // Split by word separators and check each word
-            string[] words = labelLower.Split(WordSeparators, StringSplitOptions.RemoveEmptyEntries);
-            foreach (string word in words)
-            {
-                if (word.StartsWith(searchLower))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         /// <summary>

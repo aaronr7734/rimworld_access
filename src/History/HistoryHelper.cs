@@ -293,15 +293,15 @@ namespace RimWorldAccess
                     // default to the colony tile. PendingStartTile is checked first in Open().
                     if (PrimaryTarget.HasWorldObject)
                     {
-                        int tileId = PrimaryTarget.WorldObject.Tile;
-                        if (tileId >= 0)
+                        PlanetTile tile = PrimaryTarget.WorldObject.Tile;
+                        if (tile.Valid)
                         {
-                            WorldNavigationState.PendingStartTile = new PlanetTile(tileId);
+                            WorldNavigationState.PendingStartTile = tile;
                         }
                     }
-                    else if (PrimaryTarget.Tile >= 0 && !PrimaryTarget.HasThing && !PrimaryTarget.Cell.IsValid)
+                    else if (PrimaryTarget.Tile.Valid && !PrimaryTarget.HasThing && !PrimaryTarget.Cell.IsValid)
                     {
-                        WorldNavigationState.PendingStartTile = new PlanetTile(PrimaryTarget.Tile);
+                        WorldNavigationState.PendingStartTile = PrimaryTarget.Tile;
                     }
 
                     CameraJumper.TryJumpAndSelect(PrimaryTarget);
@@ -309,15 +309,15 @@ namespace RimWorldAccess
                     // Also set current tile in case world view was already open (Open() won't be called)
                     if (PrimaryTarget.HasWorldObject)
                     {
-                        int tileId = PrimaryTarget.WorldObject.Tile;
-                        if (tileId >= 0)
+                        PlanetTile tile = PrimaryTarget.WorldObject.Tile;
+                        if (tile.Valid)
                         {
-                            WorldNavigationState.CurrentSelectedTile = new PlanetTile(tileId);
+                            WorldNavigationState.CurrentSelectedTile = tile;
                         }
                     }
-                    else if (PrimaryTarget.Tile >= 0 && !PrimaryTarget.HasThing && !PrimaryTarget.Cell.IsValid)
+                    else if (PrimaryTarget.Tile.Valid && !PrimaryTarget.HasThing && !PrimaryTarget.Cell.IsValid)
                     {
-                        WorldNavigationState.CurrentSelectedTile = new PlanetTile(PrimaryTarget.Tile);
+                        WorldNavigationState.CurrentSelectedTile = PrimaryTarget.Tile;
                     }
                     else if (MapNavigationState.IsInitialized && PrimaryTarget.HasThing)
                     {
@@ -372,7 +372,8 @@ namespace RimWorldAccess
 
             /// <summary>
             /// Builds the announcement for list view.
-            /// Format: "Pinned, Letter, Date, Label. X of Y"
+            /// Format: "Pinned, Label, Letter, Date. X of Y"
+            /// Content first so users can stop listening once they've heard what they need.
             /// </summary>
             public string BuildListAnnouncement(int index, int total)
             {
@@ -381,9 +382,9 @@ namespace RimWorldAccess
                 if (IsPinned)
                     parts.Add("Pinned");
 
+                parts.Add(Label);
                 parts.Add(TypeLabel);
                 parts.Add(DateLabel);
-                parts.Add(Label);
 
                 string announcement = string.Join(", ", parts);
                 string position = MenuHelper.FormatPosition(index, total);

@@ -13,73 +13,13 @@ namespace RimWorldAccess
     /// <summary>
     /// State management for caravan inspection screen (I key or Enter on world map).
     /// Provides tree view interface for caravan information.
+    /// Uses TreeNavigationHelper for all standard navigation logic.
     /// </summary>
     public static class CaravanInspectState
     {
-        /// <summary>
-        /// Types of nodes in the caravan tree.
-        /// </summary>
-        public enum NodeType
-        {
-            Root,           // Invisible root
-            Category,       // Main category (Caravan Status, Pawns, Gear, Items)
-            SubCategory,    // Sub-category (Colonists, Animals, category names)
-            Stat,           // A stat item (Mass: 150 kg)
-            Pawn,           // A pawn
-            GearItem,       // An equipped gear item
-            InventoryItem,  // An inventory item
-            WorldObject,    // A world object (caravan, settlement, site) - used by WorldObjectSelectionState
-            Action,         // An actionable item - used by WorldObjectSelectionState
-            DetailText      // Non-actionable detail text - used by WorldObjectSelectionState
-        }
-
-        /// <summary>
-        /// Represents a node in the caravan tree.
-        /// </summary>
-        public class TreeNode
-        {
-            public NodeType Type { get; set; }
-            public string Label { get; set; }
-            public string Value { get; set; }           // For stats
-            public string Tooltip { get; set; }         // For stat breakdowns (Alt+I opens StatBreakdownState)
-            public int Depth { get; set; }
-            public bool IsExpanded { get; set; }
-            public bool CanExpand { get; set; }
-            public object Data { get; set; }            // Pawn, Thing, etc.
-            public Pawn OwnerPawn { get; set; }         // For gear items
-            public TreeNode Parent { get; set; }
-            public List<TreeNode> Children { get; set; }
-            public Action OnActivate { get; set; }      // Action when Enter is pressed
-            public bool CanAbandon { get; set; }
-
-            public TreeNode()
-            {
-                Children = new List<TreeNode>();
-                IsExpanded = false;
-                CanExpand = false;
-            }
-
-            public string GetDisplayLabel()
-            {
-                if (Type == NodeType.Stat && !string.IsNullOrEmpty(Value))
-                {
-                    return $"{Label}: {Value}";
-                }
-                if (Type == NodeType.GearItem && OwnerPawn != null)
-                {
-                    return $"{OwnerPawn.LabelShortCap}'s {Label}";
-                }
-                return Label;
-            }
-        }
-
+        private static TreeNavigationHelper treeNav = new TreeNavigationHelper("CaravanInspect");
         private static bool isActive = false;
         private static Caravan currentCaravan = null;
-        private static TreeNode rootNode = null;
-        private static List<TreeNode> visibleNodes = new List<TreeNode>();
-        private static int selectedIndex = 0;
-        private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
-        private static Dictionary<TreeNode, TreeNode> lastChildPerParent = new Dictionary<TreeNode, TreeNode>();
 
         // Track caravan contents to detect changes (for auto-refresh after abandon)
         private static int lastKnownPawnCount = 0;
@@ -98,7 +38,17 @@ namespace RimWorldAccess
         /// <summary>
         /// Gets whether typeahead search is currently active.
         /// </summary>
-        public static bool HasActiveTypeahead => typeahead.HasActiveSearch;
+        public static bool HasActiveTypeahead => treeNav.HasActiveSearch;
+
+        static CaravanInspectState()
+        {
+            treeNav.FormatItemAnnouncement = FormatItemAnnouncement;
+            treeNav.FormatSearchAnnouncement = FormatSearchAnnouncement;
+            treeNav.OnActivate = HandleActivate;
+            treeNav.OnDelete = HandleDelete;
+            treeNav.OnInfo = HandleInfo;
+            treeNav.TrackLastChild = true;
+        }
 
         /// <summary>
         /// Builds caravan category nodes (Caravan Status, Pawns, Gear, Items) for a given parent.
@@ -106,7 +56,7 @@ namespace RimWorldAccess
         /// </summary>
         /// <param name="parent">The parent node to attach categories to</param>
         /// <param name="caravan">The caravan to build categories for</param>
-        public static void BuildCaravanCategoriesFor(TreeNode parent, Caravan caravan)
+        public static void BuildCaravanCategoriesFor(InspectionTreeItem parent, Caravan caravan)
         {
             if (parent == null || caravan == null)
                 return;
@@ -142,21 +92,18 @@ namespace RimWorldAccess
 
             isActive = true;
             currentCaravan = caravan;
-            selectedIndex = 0;
-            typeahead.ClearSearch();
-            lastChildPerParent.Clear();
-            MenuHelper.ResetLevel("CaravanInspect");
 
             // Build the tree and record counts for change detection
-            BuildTree();
+            var root = BuildTree();
+            treeNav.Initialize(root);
             UpdateTrackedCounts();
 
             // Simple announcement - just the caravan name
             TolkHelper.Speak(caravan.Name);
 
-            if (visibleNodes.Count > 0)
+            if (treeNav.Count > 0)
             {
-                AnnounceCurrentSelection();
+                treeNav.ReannounceCurrentItem();
             }
         }
 
@@ -204,11 +151,7 @@ namespace RimWorldAccess
         {
             isActive = false;
             currentCaravan = null;
-            rootNode = null;
-            visibleNodes.Clear();
-            selectedIndex = 0;
-            typeahead.ClearSearch();
-            lastChildPerParent.Clear();
+            treeNav.Reset();
             TolkHelper.Speak("Caravan inspect closed");
         }
 
@@ -222,53 +165,59 @@ namespace RimWorldAccess
                 return;
 
             // Remember current selection details for restoration
-            TreeNode oldNode = selectedIndex >= 0 && selectedIndex < visibleNodes.Count
-                ? visibleNodes[selectedIndex]
-                : null;
-
-            object oldData = oldNode?.Data;
-            string oldLabel = oldNode?.Label;
-            int oldIndex = selectedIndex;
-            TreeNode oldParent = oldNode?.Parent;
+            var oldItem = treeNav.SelectedItem;
+            object oldData = oldItem?.Data;
+            string oldLabel = oldItem?.Label;
+            int oldIndex = treeNav.SelectedIndex;
+            var oldParent = oldItem?.Parent;
             string oldParentLabel = oldParent?.Label;
 
             // Remember expansion states for all nodes by their labels (to restore after rebuild)
             var expansionStates = new Dictionary<string, bool>();
-            foreach (var node in visibleNodes)
+            foreach (var item in treeNav.VisibleItems)
             {
-                if (node.CanExpand)
+                if (item.IsExpandable)
                 {
-                    string key = GetNodePath(node);
-                    expansionStates[key] = node.IsExpanded;
+                    string key = GetNodePath(item);
+                    expansionStates[key] = item.IsExpanded;
                 }
             }
 
             // Rebuild tree
-            BuildTree();
+            var root = BuildTree();
+            treeNav.Initialize(root);
 
             // Restore expansion states
-            foreach (var node in GetAllNodes(rootNode))
+            foreach (var item in GetAllNodes(treeNav.RootItem))
             {
-                if (node.CanExpand)
+                if (item.IsExpandable)
                 {
-                    string key = GetNodePath(node);
+                    string key = GetNodePath(item);
                     if (expansionStates.TryGetValue(key, out bool wasExpanded))
                     {
-                        node.IsExpanded = wasExpanded;
+                        item.IsExpanded = wasExpanded;
                     }
                 }
             }
 
             // Rebuild visible list with restored expansion
-            RebuildVisibleList();
+            treeNav.RebuildVisibleList();
 
             // Try to find the same item by Data reference first
             if (oldData != null)
             {
-                int foundIndex = visibleNodes.FindIndex(n => n.Data == oldData);
+                int foundIndex = -1;
+                for (int i = 0; i < treeNav.VisibleItems.Count; i++)
+                {
+                    if (treeNav.VisibleItems[i].Data == oldData)
+                    {
+                        foundIndex = i;
+                        break;
+                    }
+                }
                 if (foundIndex >= 0)
                 {
-                    selectedIndex = foundIndex;
+                    treeNav.SetSelectedIndex(foundIndex);
                     return;
                 }
             }
@@ -276,25 +225,27 @@ namespace RimWorldAccess
             // Try to find by label within the same parent
             if (!string.IsNullOrEmpty(oldLabel) && !string.IsNullOrEmpty(oldParentLabel))
             {
-                int foundIndex = visibleNodes.FindIndex(n =>
-                    n.Label == oldLabel &&
-                    n.Parent?.Label == oldParentLabel);
-                if (foundIndex >= 0)
+                for (int i = 0; i < treeNav.VisibleItems.Count; i++)
                 {
-                    selectedIndex = foundIndex;
-                    return;
+                    var item = treeNav.VisibleItems[i];
+                    if (item.Label == oldLabel && item.Parent?.Label == oldParentLabel)
+                    {
+                        treeNav.SetSelectedIndex(i);
+                        return;
+                    }
                 }
             }
 
             // If item was deleted, stay at the same index position (or move up if at end)
-            selectedIndex = Math.Min(oldIndex, visibleNodes.Count - 1);
-            if (selectedIndex < 0) selectedIndex = 0;
+            int newIndex = Math.Min(oldIndex, treeNav.Count - 1);
+            if (newIndex < 0) newIndex = 0;
+            treeNav.SetSelectedIndex(newIndex);
         }
 
         /// <summary>
         /// Gets all nodes in the tree (for iteration).
         /// </summary>
-        private static IEnumerable<TreeNode> GetAllNodes(TreeNode node)
+        private static IEnumerable<InspectionTreeItem> GetAllNodes(InspectionTreeItem node)
         {
             if (node == null) yield break;
 
@@ -312,11 +263,11 @@ namespace RimWorldAccess
         /// <summary>
         /// Gets a unique path string for a node (for restoration after rebuild).
         /// </summary>
-        private static string GetNodePath(TreeNode node)
+        private static string GetNodePath(InspectionTreeItem node)
         {
             var parts = new List<string>();
             var current = node;
-            while (current != null && current.Type != NodeType.Root)
+            while (current != null && current.IndentLevel >= 0)
             {
                 parts.Insert(0, current.Label ?? "?");
                 current = current.Parent;
@@ -327,38 +278,36 @@ namespace RimWorldAccess
         /// <summary>
         /// Builds the tree structure for the caravan.
         /// </summary>
-        private static void BuildTree()
+        private static InspectionTreeItem BuildTree()
         {
-            rootNode = new TreeNode
+            var root = new InspectionTreeItem
             {
-                Type = NodeType.Root,
                 Label = "Root",
-                Depth = -1,
+                IndentLevel = -1,
                 IsExpanded = true,
-                CanExpand = true
+                IsExpandable = false
             };
 
             // Add main categories
-            AddCaravanStatusNode(rootNode);
-            AddPawnsNode(rootNode);
-            AddGearNode(rootNode);
-            AddItemsNode(rootNode);
+            AddCaravanStatusNode(root);
+            AddPawnsNode(root);
+            AddGearNode(root);
+            AddItemsNode(root);
 
-            // Rebuild visible list
-            RebuildVisibleList();
+            return root;
         }
 
         /// <summary>
         /// Adds the Caravan Status node with stats.
         /// </summary>
-        private static void AddCaravanStatusNode(TreeNode parent)
+        private static void AddCaravanStatusNode(InspectionTreeItem parent)
         {
-            var statusNode = new TreeNode
+            var statusNode = new InspectionTreeItem
             {
-                Type = NodeType.Category,
+                Type = InspectionTreeItem.ItemType.Category,
                 Label = "Caravan Status",
-                Depth = parent.Depth + 1,
-                CanExpand = true,
+                IndentLevel = parent.IndentLevel + 1,
+                IsExpandable = true,
                 IsExpanded = false,
                 Parent = parent
             };
@@ -549,20 +498,30 @@ namespace RimWorldAccess
             return sb.ToString();
         }
 
-        private static void AddStatNode(TreeNode parent, string label, string value, string tooltip = null)
+        private static void AddStatNode(InspectionTreeItem parent, string label, string value, string tooltip = null)
         {
-            var node = new TreeNode
+            var node = new InspectionTreeItem
             {
-                Type = NodeType.Stat,
-                Label = label,
-                Value = value,
+                Type = InspectionTreeItem.ItemType.Item,
+                Label = $"{label}: {value}",
                 Tooltip = tooltip,  // Store tooltip for StatBreakdownState (Alt+I)
-                Depth = parent.Depth + 1,
+                IndentLevel = parent.IndentLevel + 1,
                 Parent = parent,
-                CanExpand = false
+                IsExpandable = false,
+                // Store label separately in Data for stat breakdown identification
+                Data = new StatNodeData { StatLabel = label, StatTooltip = tooltip }
             };
 
             parent.Children.Add(node);
+        }
+
+        /// <summary>
+        /// Data class to store stat-specific info for Alt+I inspection.
+        /// </summary>
+        internal class StatNodeData
+        {
+            public string StatLabel { get; set; }
+            public string StatTooltip { get; set; }
         }
 
         private static string GetLocationString()
@@ -626,7 +585,7 @@ namespace RimWorldAccess
         /// <summary>
         /// Adds the Pawns node with Colonists and Animals sub-categories.
         /// </summary>
-        private static void AddPawnsNode(TreeNode parent)
+        private static void AddPawnsNode(InspectionTreeItem parent)
         {
             var pawns = currentCaravan.PawnsListForReading;
             var colonists = pawns.Where(p => p.IsColonist && !p.IsPrisoner).OrderBy(p => p.LabelShortCap).ToList();
@@ -635,12 +594,12 @@ namespace RimWorldAccess
 
             int totalPawns = colonists.Count + prisoners.Count + animals.Count;
 
-            var pawnsNode = new TreeNode
+            var pawnsNode = new InspectionTreeItem
             {
-                Type = NodeType.Category,
+                Type = InspectionTreeItem.ItemType.Category,
                 Label = $"Pawns ({totalPawns})",
-                Depth = parent.Depth + 1,
-                CanExpand = true,
+                IndentLevel = parent.IndentLevel + 1,
+                IsExpandable = true,
                 IsExpanded = false,
                 Parent = parent
             };
@@ -651,12 +610,12 @@ namespace RimWorldAccess
             // Add Colonists sub-category
             if (colonists.Count > 0)
             {
-                var colonistsNode = new TreeNode
+                var colonistsNode = new InspectionTreeItem
                 {
-                    Type = NodeType.SubCategory,
+                    Type = InspectionTreeItem.ItemType.SubCategory,
                     Label = $"Colonists ({colonists.Count})",
-                    Depth = pawnsNode.Depth + 1,
-                    CanExpand = true,
+                    IndentLevel = pawnsNode.IndentLevel + 1,
+                    IsExpandable = true,
                     IsExpanded = false,
                     Parent = pawnsNode
                 };
@@ -669,14 +628,14 @@ namespace RimWorldAccess
                     if (pawn == negotiator)
                         label += ", negotiator";
 
-                    var pawnNode = new TreeNode
+                    var pawnNode = new InspectionTreeItem
                     {
-                        Type = NodeType.Pawn,
+                        Type = InspectionTreeItem.ItemType.Item,
                         Label = label,
-                        Depth = colonistsNode.Depth + 1,
+                        IndentLevel = colonistsNode.IndentLevel + 1,
                         Parent = colonistsNode,
                         Data = pawn,
-                        CanAbandon = true,
+                        OnDelete = () => AbandonItem(pawn),
                         OnActivate = () => InspectPawn(pawn)
                     };
                     colonistsNode.Children.Add(pawnNode);
@@ -688,26 +647,26 @@ namespace RimWorldAccess
             // Add Prisoners sub-category
             if (prisoners.Count > 0)
             {
-                var prisonersNode = new TreeNode
+                var prisonersNode = new InspectionTreeItem
                 {
-                    Type = NodeType.SubCategory,
+                    Type = InspectionTreeItem.ItemType.SubCategory,
                     Label = $"Prisoners ({prisoners.Count})",
-                    Depth = pawnsNode.Depth + 1,
-                    CanExpand = true,
+                    IndentLevel = pawnsNode.IndentLevel + 1,
+                    IsExpandable = true,
                     IsExpanded = false,
                     Parent = pawnsNode
                 };
 
                 foreach (var pawn in prisoners)
                 {
-                    var pawnNode = new TreeNode
+                    var pawnNode = new InspectionTreeItem
                     {
-                        Type = NodeType.Pawn,
+                        Type = InspectionTreeItem.ItemType.Item,
                         Label = pawn.LabelShortCap,
-                        Depth = prisonersNode.Depth + 1,
+                        IndentLevel = prisonersNode.IndentLevel + 1,
                         Parent = prisonersNode,
                         Data = pawn,
-                        CanAbandon = true,
+                        OnDelete = () => AbandonItem(pawn),
                         OnActivate = () => InspectPawn(pawn)
                     };
                     prisonersNode.Children.Add(pawnNode);
@@ -719,26 +678,26 @@ namespace RimWorldAccess
             // Add Animals sub-category
             if (animals.Count > 0)
             {
-                var animalsNode = new TreeNode
+                var animalsNode = new InspectionTreeItem
                 {
-                    Type = NodeType.SubCategory,
+                    Type = InspectionTreeItem.ItemType.SubCategory,
                     Label = $"Animals ({animals.Count})",
-                    Depth = pawnsNode.Depth + 1,
-                    CanExpand = true,
+                    IndentLevel = pawnsNode.IndentLevel + 1,
+                    IsExpandable = true,
                     IsExpanded = false,
                     Parent = pawnsNode
                 };
 
                 foreach (var animal in animals)
                 {
-                    var animalNode = new TreeNode
+                    var animalNode = new InspectionTreeItem
                     {
-                        Type = NodeType.Pawn,
+                        Type = InspectionTreeItem.ItemType.Item,
                         Label = animal.LabelShortCap,
-                        Depth = animalsNode.Depth + 1,
+                        IndentLevel = animalsNode.IndentLevel + 1,
                         Parent = animalsNode,
                         Data = animal,
-                        CanAbandon = true,
+                        OnDelete = () => AbandonItem(animal),
                         OnActivate = () => InspectPawn(animal)
                     };
                     animalsNode.Children.Add(animalNode);
@@ -753,7 +712,7 @@ namespace RimWorldAccess
         /// <summary>
         /// Adds the Gear node with per-pawn gear.
         /// </summary>
-        private static void AddGearNode(TreeNode parent)
+        private static void AddGearNode(InspectionTreeItem parent)
         {
             var humanlikePawns = currentCaravan.PawnsListForReading
                 .Where(p => p.RaceProps.Humanlike && !p.Dead)
@@ -764,12 +723,12 @@ namespace RimWorldAccess
                 (p.equipment?.Primary != null ? 1 : 0) +
                 (p.apparel?.WornApparel?.Count ?? 0));
 
-            var gearNode = new TreeNode
+            var gearNode = new InspectionTreeItem
             {
-                Type = NodeType.Category,
+                Type = InspectionTreeItem.ItemType.Category,
                 Label = $"Gear ({totalGear} items)",
-                Depth = parent.Depth + 1,
-                CanExpand = true,
+                IndentLevel = parent.IndentLevel + 1,
+                IsExpandable = true,
                 IsExpanded = false,
                 Parent = parent
             };
@@ -782,12 +741,12 @@ namespace RimWorldAccess
                 if (pawnGearCount == 0)
                     continue;
 
-                var pawnGearNode = new TreeNode
+                var pawnGearNode = new InspectionTreeItem
                 {
-                    Type = NodeType.SubCategory,
+                    Type = InspectionTreeItem.ItemType.SubCategory,
                     Label = $"{pawn.LabelShortCap} ({pawnGearCount})",
-                    Depth = gearNode.Depth + 1,
-                    CanExpand = true,
+                    IndentLevel = gearNode.IndentLevel + 1,
+                    IsExpandable = true,
                     IsExpanded = false,
                     Parent = gearNode,
                     Data = pawn
@@ -797,15 +756,14 @@ namespace RimWorldAccess
                 if (pawn.equipment?.Primary != null)
                 {
                     var weapon = pawn.equipment.Primary;
-                    pawnGearNode.Children.Add(new TreeNode
+                    pawnGearNode.Children.Add(new InspectionTreeItem
                     {
-                        Type = NodeType.GearItem,
-                        Label = weapon.LabelCap,
-                        Depth = pawnGearNode.Depth + 1,
+                        Type = InspectionTreeItem.ItemType.Item,
+                        Label = $"{pawn.LabelShortCap}'s {weapon.LabelCap}",
+                        IndentLevel = pawnGearNode.IndentLevel + 1,
                         Parent = pawnGearNode,
                         Data = weapon,
-                        OwnerPawn = pawn,
-                        CanAbandon = true,
+                        OnDelete = () => AbandonItem(weapon),
                         OnActivate = () => OpenGearMenu(weapon, pawn)
                     });
                 }
@@ -815,15 +773,14 @@ namespace RimWorldAccess
                 {
                     foreach (var apparel in pawn.apparel.WornApparel.OrderByDescending(a => a.def.apparel.bodyPartGroups.Count))
                     {
-                        pawnGearNode.Children.Add(new TreeNode
+                        pawnGearNode.Children.Add(new InspectionTreeItem
                         {
-                            Type = NodeType.GearItem,
-                            Label = apparel.LabelCap,
-                            Depth = pawnGearNode.Depth + 1,
+                            Type = InspectionTreeItem.ItemType.Item,
+                            Label = $"{pawn.LabelShortCap}'s {apparel.LabelCap}",
+                            IndentLevel = pawnGearNode.IndentLevel + 1,
                             Parent = pawnGearNode,
                             Data = apparel,
-                            OwnerPawn = pawn,
-                            CanAbandon = true,
+                            OnDelete = () => AbandonItem(apparel),
                             OnActivate = () => OpenGearMenu(apparel, pawn)
                         });
                     }
@@ -838,18 +795,18 @@ namespace RimWorldAccess
         /// <summary>
         /// Adds the Items node using InventoryHelper for consistent category tree (same as colony inventory).
         /// </summary>
-        private static void AddItemsNode(TreeNode parent)
+        private static void AddItemsNode(InspectionTreeItem parent)
         {
             var inventoryItems = CaravanInventoryUtility.AllInventoryItems(currentCaravan)?.ToList();
 
             if (inventoryItems == null || inventoryItems.Count == 0)
             {
-                var emptyNode = new TreeNode
+                var emptyNode = new InspectionTreeItem
                 {
-                    Type = NodeType.Category,
+                    Type = InspectionTreeItem.ItemType.Category,
                     Label = "Items (empty)",
-                    Depth = parent.Depth + 1,
-                    CanExpand = false,
+                    IndentLevel = parent.IndentLevel + 1,
+                    IsExpandable = false,
                     Parent = parent
                 };
                 parent.Children.Add(emptyNode);
@@ -862,17 +819,17 @@ namespace RimWorldAccess
             var aggregatedItems = InventoryHelper.AggregateStacks(inventoryItems);
             var categoryTree = InventoryHelper.BuildCategoryTree(aggregatedItems);
 
-            var itemsNode = new TreeNode
+            var itemsNode = new InspectionTreeItem
             {
-                Type = NodeType.Category,
+                Type = InspectionTreeItem.ItemType.Category,
                 Label = $"Items ({totalCount})",
-                Depth = parent.Depth + 1,
-                CanExpand = true,
+                IndentLevel = parent.IndentLevel + 1,
+                IsExpandable = true,
                 IsExpanded = false,
                 Parent = parent
             };
 
-            // Convert InventoryHelper.CategoryNode tree to our TreeNode tree (read-only, no actions)
+            // Convert InventoryHelper.CategoryNode tree to InspectionTreeItem tree
             AddInventoryCategoryNodes(itemsNode, categoryTree, inventoryItems);
 
             parent.Children.Add(itemsNode);
@@ -881,16 +838,16 @@ namespace RimWorldAccess
         /// <summary>
         /// Recursively adds inventory category nodes from InventoryHelper tree.
         /// </summary>
-        private static void AddInventoryCategoryNodes(TreeNode parent, List<InventoryHelper.CategoryNode> categoryNodes, List<Thing> allItems)
+        private static void AddInventoryCategoryNodes(InspectionTreeItem parent, List<InventoryHelper.CategoryNode> categoryNodes, List<Thing> allItems)
         {
             foreach (var categoryNode in categoryNodes)
             {
-                var catNode = new TreeNode
+                var catNode = new InspectionTreeItem
                 {
-                    Type = NodeType.SubCategory,
+                    Type = InspectionTreeItem.ItemType.SubCategory,
                     Label = categoryNode.GetDisplayLabel(),
-                    Depth = parent.Depth + 1,
-                    CanExpand = categoryNode.SubCategories.Count > 0 || categoryNode.Items.Count > 0,
+                    IndentLevel = parent.IndentLevel + 1,
+                    IsExpandable = categoryNode.SubCategories.Count > 0 || categoryNode.Items.Count > 0,
                     IsExpanded = false,
                     Parent = parent
                 };
@@ -910,14 +867,14 @@ namespace RimWorldAccess
 
                     bool canEquip = invItem.Def.IsWeapon || invItem.Def.IsApparel;
 
-                    var itemNode = new TreeNode
+                    var itemNode = new InspectionTreeItem
                     {
-                        Type = NodeType.InventoryItem,
+                        Type = InspectionTreeItem.ItemType.Item,
                         Label = invItem.GetDisplayLabel(),
-                        Depth = catNode.Depth + 1,
+                        IndentLevel = catNode.IndentLevel + 1,
                         Parent = catNode,
                         Data = representativeThing,  // Store actual Thing for abandon/inspect
-                        CanAbandon = representativeThing != null,
+                        OnDelete = representativeThing != null ? (Action)(() => AbandonItem(representativeThing)) : null,
                         // Read-only: Enter inspects item (or opens equip menu for gear)
                         OnActivate = representativeThing != null
                             ? (canEquip
@@ -930,36 +887,6 @@ namespace RimWorldAccess
                 }
 
                 parent.Children.Add(catNode);
-            }
-        }
-
-        /// <summary>
-        /// Rebuilds the flattened visible nodes list.
-        /// </summary>
-        private static void RebuildVisibleList()
-        {
-            visibleNodes.Clear();
-
-            if (rootNode == null)
-                return;
-
-            // Add all visible children of root
-            foreach (var child in rootNode.Children)
-            {
-                AddVisibleNodes(child);
-            }
-        }
-
-        private static void AddVisibleNodes(TreeNode node)
-        {
-            visibleNodes.Add(node);
-
-            if (node.IsExpanded && node.Children.Count > 0)
-            {
-                foreach (var child in node.Children)
-                {
-                    AddVisibleNodes(child);
-                }
             }
         }
 
@@ -989,27 +916,15 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Abandons the selected item (Delete key).
+        /// Abandons an item (pawn or thing) from the caravan.
         /// </summary>
-        private static void AbandonSelected()
+        private static void AbandonItem(object itemData)
         {
-            if (visibleNodes.Count == 0 || selectedIndex < 0 || selectedIndex >= visibleNodes.Count)
-                return;
-
-            var node = visibleNodes[selectedIndex];
-
-            if (!node.CanAbandon)
-            {
-                TolkHelper.Speak("Cannot abandon this item");
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                return;
-            }
-
-            if (node.Data is Pawn pawn)
+            if (itemData is Pawn pawn)
             {
                 CaravanAbandonOrBanishUtility.TryAbandonOrBanishViaInterface(pawn, currentCaravan);
             }
-            else if (node.Data is Thing thing)
+            else if (itemData is Thing thing)
             {
                 CaravanAbandonOrBanishUtility.TryAbandonOrBanishViaInterface(thing, currentCaravan);
             }
@@ -1025,12 +940,8 @@ namespace RimWorldAccess
         /// </summary>
         private static void ShowPawnMood()
         {
-            if (visibleNodes.Count == 0 || selectedIndex < 0 || selectedIndex >= visibleNodes.Count)
-                return;
-
-            var node = visibleNodes[selectedIndex];
-
-            if (node.Data is Pawn pawn && pawn.needs?.mood != null)
+            var item = treeNav.SelectedItem;
+            if (item?.Data is Pawn pawn && pawn.needs?.mood != null)
             {
                 string moodInfo = PawnInfoHelper.GetMoodInfo(pawn);
                 TolkHelper.Speak(moodInfo);
@@ -1046,12 +957,8 @@ namespace RimWorldAccess
         /// </summary>
         private static void ShowPawnNeeds()
         {
-            if (visibleNodes.Count == 0 || selectedIndex < 0 || selectedIndex >= visibleNodes.Count)
-                return;
-
-            var node = visibleNodes[selectedIndex];
-
-            if (node.Data is Pawn pawn && pawn.needs != null)
+            var item = treeNav.SelectedItem;
+            if (item?.Data is Pawn pawn && pawn.needs != null)
             {
                 string needsInfo = PawnInfoHelper.GetNeedsInfo(pawn);
                 TolkHelper.Speak(needsInfo);
@@ -1067,12 +974,8 @@ namespace RimWorldAccess
         /// </summary>
         private static void ShowPawnHealth()
         {
-            if (visibleNodes.Count == 0 || selectedIndex < 0 || selectedIndex >= visibleNodes.Count)
-                return;
-
-            var node = visibleNodes[selectedIndex];
-
-            if (node.Data is Pawn pawn && pawn.health != null)
+            var item = treeNav.SelectedItem;
+            if (item?.Data is Pawn pawn && pawn.health != null)
             {
                 string healthInfo = PawnInfoHelper.GetHealthInfo(pawn);
                 TolkHelper.Speak(healthInfo);
@@ -1088,12 +991,8 @@ namespace RimWorldAccess
         /// </summary>
         private static void ShowPawnGear()
         {
-            if (visibleNodes.Count == 0 || selectedIndex < 0 || selectedIndex >= visibleNodes.Count)
-                return;
-
-            var node = visibleNodes[selectedIndex];
-
-            if (node.Data is Pawn pawn)
+            var item = treeNav.SelectedItem;
+            if (item?.Data is Pawn pawn)
             {
                 string gearInfo = PawnInfoHelper.GetGearInfo(pawn);
                 TolkHelper.Speak(gearInfo);
@@ -1104,362 +1003,142 @@ namespace RimWorldAccess
             }
         }
 
-        #endregion
-
-        #region Navigation
-
         /// <summary>
-        /// Selects the next item.
+        /// Shows top skills for the selected pawn (Alt+K).
         /// </summary>
-        public static void SelectNext()
+        private static void ShowPawnSkills()
         {
-            if (visibleNodes.Count == 0)
+            var item = treeNav.SelectedItem;
+            if (item?.Data is Pawn pawn)
             {
-                TolkHelper.Speak("No items");
-                return;
-            }
-
-            selectedIndex = MenuHelper.SelectNext(selectedIndex, visibleNodes.Count);
-            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentSelection();
-        }
-
-        /// <summary>
-        /// Selects the previous item.
-        /// </summary>
-        public static void SelectPrevious()
-        {
-            if (visibleNodes.Count == 0)
-            {
-                TolkHelper.Speak("No items");
-                return;
-            }
-
-            selectedIndex = MenuHelper.SelectPrevious(selectedIndex, visibleNodes.Count);
-            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentSelection();
-        }
-
-        /// <summary>
-        /// Expands the selected node (Right arrow).
-        /// </summary>
-        public static void Expand()
-        {
-            if (visibleNodes.Count == 0 || selectedIndex >= visibleNodes.Count)
-                return;
-
-            typeahead.ClearSearch();
-            var node = visibleNodes[selectedIndex];
-
-            if (!node.CanExpand)
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("Cannot expand");
-                return;
-            }
-
-            if (node.IsExpanded)
-            {
-                // Already expanded - move to first child
-                if (node.Children.Count > 0)
-                {
-                    int childIndex = visibleNodes.IndexOf(node.Children[0]);
-                    if (childIndex >= 0)
-                    {
-                        selectedIndex = childIndex;
-                        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                        AnnounceCurrentSelection();
-                    }
-                }
-                return;
-            }
-
-            // Expand
-            node.IsExpanded = true;
-            RebuildVisibleList();
-            SoundDefOf.Click.PlayOneShotOnCamera();
-            AnnounceCurrentSelection();
-        }
-
-        /// <summary>
-        /// Collapses the selected node (Left arrow).
-        /// </summary>
-        public static void Collapse()
-        {
-            if (visibleNodes.Count == 0 || selectedIndex >= visibleNodes.Count)
-                return;
-
-            typeahead.ClearSearch();
-            var node = visibleNodes[selectedIndex];
-
-            // If expanded, collapse
-            if (node.CanExpand && node.IsExpanded)
-            {
-                node.IsExpanded = false;
-                RebuildVisibleList();
-
-                if (selectedIndex >= visibleNodes.Count)
-                    selectedIndex = Math.Max(0, visibleNodes.Count - 1);
-
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                AnnounceCurrentSelection();
-                return;
-            }
-
-            // Move to parent
-            var parent = node.Parent;
-            while (parent != null && !parent.CanExpand)
-            {
-                parent = parent.Parent;
-            }
-
-            if (parent == null || parent == rootNode)
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("Already at top level");
-                return;
-            }
-
-            lastChildPerParent[parent] = node;
-
-            int parentIndex = visibleNodes.IndexOf(parent);
-            if (parentIndex >= 0)
-            {
-                selectedIndex = parentIndex;
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                AnnounceCurrentSelection();
-            }
-        }
-
-        /// <summary>
-        /// Expands all sibling nodes at the same level as the current item.
-        /// WCAG tree view pattern: * key expands all siblings.
-        /// </summary>
-        public static void ExpandAllSiblings()
-        {
-            if (visibleNodes.Count == 0 || selectedIndex >= visibleNodes.Count)
-                return;
-
-            TreeNode currentItem = visibleNodes[selectedIndex];
-            TreeNode parent = currentItem.Parent; // null or root means top level
-
-            // Get siblings list (either from parent's children or root's children)
-            List<TreeNode> siblings;
-            if (parent == null || parent.Type == NodeType.Root)
-            {
-                siblings = rootNode?.Children ?? new List<TreeNode>();
+                string skillsInfo = PawnInfoHelper.GetTopSkillsInfo(pawn);
+                TolkHelper.Speak(skillsInfo);
             }
             else
             {
-                siblings = parent.Children;
+                TolkHelper.Speak("No skills info available for this item");
             }
-
-            // Find all collapsed sibling nodes that can be expanded
-            int expandedCount = 0;
-            foreach (TreeNode sibling in siblings)
-            {
-                // Must be expandable and currently collapsed
-                if (sibling.CanExpand && !sibling.IsExpanded)
-                {
-                    sibling.IsExpanded = true;
-                    expandedCount++;
-                }
-            }
-
-            if (expandedCount > 0)
-            {
-                RebuildVisibleList();
-                typeahead.ClearSearch(); // Clear search since visible items changed
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                if (expandedCount == 1)
-                    TolkHelper.Speak("Expanded 1 node");
-                else
-                    TolkHelper.Speak($"Expanded {expandedCount} nodes");
-            }
-            else
-            {
-                // Check if there are any expandable sibling nodes at all
-                bool hasAnyExpandableSiblings = false;
-                foreach (TreeNode sibling in siblings)
-                {
-                    if (sibling.CanExpand)
-                    {
-                        hasAnyExpandableSiblings = true;
-                        break;
-                    }
-                }
-
-                if (hasAnyExpandableSiblings)
-                    TolkHelper.Speak("All nodes already expanded at this level");
-                else
-                    TolkHelper.Speak("No expandable nodes at this level");
-            }
-        }
-
-        /// <summary>
-        /// Activates the selected item (Enter key).
-        /// </summary>
-        public static void ActivateSelected()
-        {
-            if (visibleNodes.Count == 0 || selectedIndex >= visibleNodes.Count)
-                return;
-
-            var node = visibleNodes[selectedIndex];
-
-            // If expandable and collapsed, expand
-            if (node.CanExpand && !node.IsExpanded)
-            {
-                Expand();
-                return;
-            }
-
-            // If has action, execute it
-            if (node.OnActivate != null)
-            {
-                node.OnActivate();
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                return;
-            }
-
-            // For stats, just read them again
-            if (node.Type == NodeType.Stat)
-            {
-                TolkHelper.Speak(node.GetDisplayLabel());
-                return;
-            }
-
-            SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            TolkHelper.Speak("No action available");
-        }
-
-        /// <summary>
-        /// Helper method to clear typeahead and announce current selection.
-        /// Used as callback for MenuHelper tree navigation methods.
-        /// </summary>
-        private static void ClearAndAnnounce()
-        {
-            typeahead.ClearSearch();
-            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentSelection();
-        }
-
-        /// <summary>
-        /// Jumps to the first item, or first sibling at current level.
-        /// Ctrl+Home jumps to absolute first.
-        /// </summary>
-        private static void JumpToFirst(bool ctrlPressed = false)
-        {
-            if (visibleNodes == null || visibleNodes.Count == 0)
-            {
-                TolkHelper.Speak("No items");
-                return;
-            }
-
-            MenuHelper.HandleTreeHomeKey(visibleNodes, ref selectedIndex, node => node.Depth, ctrlPressed, ClearAndAnnounce);
-        }
-
-        /// <summary>
-        /// Jumps to the last item, last sibling, or last visible descendant.
-        /// Ctrl+End jumps to absolute last.
-        /// </summary>
-        private static void JumpToLast(bool ctrlPressed = false)
-        {
-            if (visibleNodes == null || visibleNodes.Count == 0)
-            {
-                TolkHelper.Speak("No items");
-                return;
-            }
-
-            MenuHelper.HandleTreeEndKey(
-                visibleNodes,
-                ref selectedIndex,
-                node => node.Depth,
-                node => node.IsExpanded,
-                node => node.CanExpand && node.Children != null && node.Children.Count > 0,
-                ctrlPressed,
-                ClearAndAnnounce);
         }
 
         #endregion
 
-        #region Announcements
+        #region Announcement Formatters
 
-        /// <summary>
-        /// Gets sibling position for announcement.
-        /// </summary>
-        private static (int position, int total) GetSiblingPosition(TreeNode node)
+        private static string FormatItemAnnouncement(InspectionTreeItem item)
         {
-            if (node.Parent == null)
-                return (1, 1);
-
-            var siblings = node.Parent.Children;
-            int position = siblings.IndexOf(node) + 1;
-            return (position, siblings.Count);
-        }
-
-        /// <summary>
-        /// Announces the current selection.
-        /// </summary>
-        private static void AnnounceCurrentSelection()
-        {
-            if (visibleNodes.Count == 0 || selectedIndex >= visibleNodes.Count)
-                return;
-
-            var node = visibleNodes[selectedIndex];
-            string label = node.GetDisplayLabel().StripTags();
+            string label = item.Label.StripTags();
 
             // State indicator for expandable items
             string stateIndicator = "";
-            if (node.CanExpand)
+            if (item.IsExpandable)
             {
-                stateIndicator = node.IsExpanded ? " expanded" : " collapsed";
+                stateIndicator = item.IsExpanded ? " expanded" : " collapsed";
             }
 
             // Position among siblings
-            var (position, total) = GetSiblingPosition(node);
+            var (position, total) = treeNav.GetSiblingPosition(item);
             string positionPart = MenuHelper.FormatPosition(position - 1, total);
 
             // Level suffix
-            string levelSuffix = MenuHelper.GetLevelSuffix("CaravanInspect", node.Depth);
+            string levelSuffix = MenuHelper.GetLevelSuffix("CaravanInspect", item.IndentLevel);
 
             // Only add period separator if label doesn't already end with punctuation
             string separator = label.EndsWith(".") || label.EndsWith("!") || label.EndsWith("?") ? " " : ". ";
             string announcement = $"{label}{stateIndicator}{separator}{positionPart}{levelSuffix}";
-            TolkHelper.Speak(announcement, SpeechPriority.Low);
+            return announcement;
         }
 
-        /// <summary>
-        /// Announces with typeahead search context.
-        /// </summary>
-        private static void AnnounceWithSearch()
+        private static string FormatSearchAnnouncement(InspectionTreeItem item, TypeaheadSearchHelper typeahead)
         {
-            if (visibleNodes.Count == 0 || selectedIndex >= visibleNodes.Count)
-                return;
-
-            var node = visibleNodes[selectedIndex];
-            string label = node.GetDisplayLabel().StripTags();
+            string label = item.Label.StripTags();
 
             if (typeahead.HasActiveSearch)
             {
                 string stateIndicator = "";
-                if (node.CanExpand)
+                if (item.IsExpandable)
                 {
-                    stateIndicator = node.IsExpanded ? " expanded" : " collapsed";
+                    stateIndicator = item.IsExpanded ? " expanded" : " collapsed";
                 }
-                TolkHelper.Speak($"{label}{stateIndicator}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'");
+                return $"{label}{stateIndicator}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
             }
-            else
-            {
-                AnnounceCurrentSelection();
-            }
+
+            return FormatItemAnnouncement(item);
         }
 
-        /// <summary>
-        /// Gets labels for typeahead search.
-        /// </summary>
-        private static List<string> GetNodeLabels()
+        #endregion
+
+        #region Custom Action Handlers
+
+        private static bool HandleActivate(InspectionTreeItem item)
         {
-            return visibleNodes.Select(n => n.GetDisplayLabel()).ToList();
+            // Categories toggle expand/collapse via default behavior
+            if (item.IsExpandable && !item.IsExpanded)
+                return false;
+
+            // Item's own OnActivate is handled by TreeNavigationHelper
+            // For stat items with no OnActivate, just re-read the label
+            if (item.Data is StatNodeData)
+            {
+                TolkHelper.Speak(item.Label);
+                return true;
+            }
+
+            // If expandable and expanded, let default behavior handle (drill down)
+            if (item.IsExpandable)
+                return false;
+
+            // For items without OnActivate
+            if (item.OnActivate == null)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("No action available");
+                return true;
+            }
+
+            return false; // Let TreeNavigationHelper call item.OnActivate
+        }
+
+        private static bool HandleDelete(InspectionTreeItem item)
+        {
+            // Item's own OnDelete is handled by TreeNavigationHelper
+            if (item.OnDelete != null)
+                return false; // Let TreeNavigationHelper call it
+
+            TolkHelper.Speak("Cannot abandon this item");
+            SoundDefOf.ClickReject.PlayOneShotOnCamera();
+            return true;
+        }
+
+        private static bool HandleInfo(InspectionTreeItem item)
+        {
+            // Stat with tooltip - open StatBreakdownState for navigable breakdown
+            if (item.Data is StatNodeData statData && !string.IsNullOrEmpty(statData.StatTooltip))
+            {
+                StatBreakdownState.Open(statData.StatLabel, statData.StatTooltip);
+                return true;
+            }
+
+            if (item.Data is Pawn pawn)
+            {
+                InspectPawn(pawn);
+                return true;
+            }
+
+            if (item.Data is Thing thing)
+            {
+                InspectThing(thing);
+                return true;
+            }
+
+            if (item.OnActivate != null)
+            {
+                // Has some action - execute it
+                item.OnActivate();
+                return true;
+            }
+
+            TolkHelper.Speak("No breakdown available");
+            return true;
         }
 
         #endregion
@@ -1481,158 +1160,14 @@ namespace RimWorldAccess
             // Check for changes (e.g., after abandon dialog closed) and refresh if needed
             CheckForChangesAndRefresh();
 
-            // Handle Escape
-            if (key == KeyCode.Escape)
-            {
-                if (typeahead.HasActiveSearch)
-                {
-                    typeahead.ClearSearchAndAnnounce();
-                    AnnounceCurrentSelection();
-                    return true;
-                }
-                Close();
-                return true;
-            }
-
-            // Handle Backspace for typeahead
-            if (key == KeyCode.Backspace && typeahead.HasActiveSearch)
-            {
-                var labels = GetNodeLabels();
-                if (typeahead.ProcessBackspace(labels, out int newIndex))
-                {
-                    if (newIndex >= 0) selectedIndex = newIndex;
-                    AnnounceWithSearch();
-                }
-                return true;
-            }
-
-            // Navigation
-            if (key == KeyCode.UpArrow && !shift && !ctrl && !alt)
-            {
-                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
-                {
-                    int prevIndex = typeahead.GetPreviousMatch(selectedIndex);
-                    if (prevIndex >= 0)
-                    {
-                        selectedIndex = prevIndex;
-                        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                        AnnounceWithSearch();
-                    }
-                }
-                else
-                {
-                    SelectPrevious();
-                }
-                return true;
-            }
-
-            if (key == KeyCode.DownArrow && !shift && !ctrl && !alt)
-            {
-                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
-                {
-                    int nextIndex = typeahead.GetNextMatch(selectedIndex);
-                    if (nextIndex >= 0)
-                    {
-                        selectedIndex = nextIndex;
-                        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                        AnnounceWithSearch();
-                    }
-                }
-                else
-                {
-                    SelectNext();
-                }
-                return true;
-            }
-
-            if (key == KeyCode.LeftArrow && !shift && !ctrl && !alt)
-            {
-                Collapse();
-                return true;
-            }
-
-            if (key == KeyCode.RightArrow && !shift && !ctrl && !alt)
-            {
-                Expand();
-                return true;
-            }
-
-            if (key == KeyCode.Home && !shift && !alt)
-            {
-                JumpToFirst(Event.current.control);
-                Event.current.Use();
-                return true;
-            }
-
-            if (key == KeyCode.End && !shift && !alt)
-            {
-                JumpToLast(Event.current.control);
-                Event.current.Use();
-                return true;
-            }
-
-            // Handle * key - expand all sibling nodes (WCAG tree view pattern)
-            bool isStar = key == KeyCode.KeypadMultiply || (shift && key == KeyCode.Alpha8);
-            if (isStar && !ctrl && !alt)
-            {
-                ExpandAllSiblings();
-                return true;
-            }
-
-            // Actions
-            if ((key == KeyCode.Return || key == KeyCode.KeypadEnter) && !shift && !ctrl && !alt)
-            {
-                typeahead.ClearSearch();
-                ActivateSelected();
-                return true;
-            }
-
-            if (key == KeyCode.Delete && !shift && !ctrl && !alt)
-            {
-                AbandonSelected();
-                return true;
-            }
-
-            // Alt+I: Inspect - for stats opens breakdown menu, for pawns/things opens inspection
-            if (key == KeyCode.I && alt && !shift && !ctrl)
-            {
-                typeahead.ClearSearch();
-                var node = visibleNodes.Count > 0 && selectedIndex < visibleNodes.Count
-                    ? visibleNodes[selectedIndex] : null;
-
-                if (node == null)
-                {
-                    TolkHelper.Speak("Nothing to inspect");
-                }
-                else if (node.Type == NodeType.Stat && !string.IsNullOrEmpty(node.Tooltip))
-                {
-                    // Stat with tooltip - open StatBreakdownState for navigable breakdown
-                    StatBreakdownState.Open(node.Label, node.Tooltip);
-                }
-                else if (node.Data is Pawn pawn)
-                {
-                    InspectPawn(pawn);
-                }
-                else if (node.Data is Thing thing)
-                {
-                    InspectThing(thing);
-                }
-                else if (node.OnActivate != null)
-                {
-                    // Has some action - execute it
-                    node.OnActivate();
-                }
-                else
-                {
-                    TolkHelper.Speak("No breakdown available");
-                }
-                return true;
-            }
+            // Handle Alt shortcuts before delegating to TreeNavigationHelper
+            // These are caravan-specific and not part of standard tree navigation
 
             // Alt+M: Mood
             if (key == KeyCode.M && alt && !shift && !ctrl)
             {
                 ShowPawnMood();
+                Event.current.Use();
                 return true;
             }
 
@@ -1640,6 +1175,7 @@ namespace RimWorldAccess
             if (key == KeyCode.N && alt && !shift && !ctrl)
             {
                 ShowPawnNeeds();
+                Event.current.Use();
                 return true;
             }
 
@@ -1647,6 +1183,7 @@ namespace RimWorldAccess
             if (key == KeyCode.H && alt && !shift && !ctrl)
             {
                 ShowPawnHealth();
+                Event.current.Use();
                 return true;
             }
 
@@ -1654,31 +1191,36 @@ namespace RimWorldAccess
             if (key == KeyCode.G && alt && !shift && !ctrl)
             {
                 ShowPawnGear();
+                Event.current.Use();
                 return true;
             }
 
-            // Typeahead search (A-Z, 0-9)
-            bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
-            bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
-
-            if ((isLetter || isNumber) && !ctrl && !alt)
+            // Alt+K: Skills
+            if (key == KeyCode.K && alt && !shift && !ctrl)
             {
-                char c = isLetter ? (char)('a' + (key - KeyCode.A)) : (char)('0' + (key - KeyCode.Alpha0));
-                var labels = GetNodeLabels();
-                if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
-                {
-                    if (newIndex >= 0)
-                    {
-                        selectedIndex = newIndex;
-                        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                        AnnounceWithSearch();
-                    }
-                }
-                else
-                {
-                    TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
-                }
+                ShowPawnSkills();
+                Event.current.Use();
                 return true;
+            }
+
+            // Delegate to TreeNavigationHelper for standard tree navigation
+            Event ev = Event.current;
+            if (ev.type == EventType.KeyDown)
+            {
+                bool handled = treeNav.HandleInput(ev);
+                if (handled)
+                {
+                    ev.Use();
+                    return true;
+                }
+
+                // TreeNavigationHelper returns false for Escape with no active search
+                if (key == KeyCode.Escape)
+                {
+                    Close();
+                    ev.Use();
+                    return true;
+                }
             }
 
             // Block ALL unhandled keys to prevent game's native handlers from processing them

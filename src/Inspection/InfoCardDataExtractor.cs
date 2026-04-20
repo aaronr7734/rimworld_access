@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using RimWorld;
+using RimWorld.Planet;
+using UnityEngine;
 using Verse;
 
 namespace RimWorldAccess
@@ -18,6 +20,12 @@ namespace RimWorldAccess
         private static FieldInfo dialogThingField;
         private static FieldInfo dialogTabField;
         private static FieldInfo dialogDefField;
+        private static FieldInfo dialogWorldObjectField;
+        private static FieldInfo dialogHediffField;
+        private static FieldInfo dialogTitleDefField;
+        private static FieldInfo dialogFactionField;
+        private static FieldInfo dialogStuffField;
+        private static MethodInfo getWorkTypeDisableCausesMethod;
 
         static InfoCardDataExtractor()
         {
@@ -40,6 +48,36 @@ namespace RimWorldAccess
             dialogDefField = typeof(Dialog_InfoCard).GetField(
                 "def",
                 BindingFlags.NonPublic | BindingFlags.Instance
+            );
+
+            dialogWorldObjectField = typeof(Dialog_InfoCard).GetField(
+                "worldObject",
+                BindingFlags.NonPublic | BindingFlags.Instance
+            );
+
+            dialogHediffField = typeof(Dialog_InfoCard).GetField(
+                "hediff",
+                BindingFlags.NonPublic | BindingFlags.Instance
+            );
+
+            dialogTitleDefField = typeof(Dialog_InfoCard).GetField(
+                "titleDef",
+                BindingFlags.NonPublic | BindingFlags.Instance
+            );
+
+            dialogFactionField = typeof(Dialog_InfoCard).GetField(
+                "faction",
+                BindingFlags.NonPublic | BindingFlags.Instance
+            );
+
+            dialogStuffField = typeof(Dialog_InfoCard).GetField(
+                "stuff",
+                BindingFlags.NonPublic | BindingFlags.Instance
+            );
+
+            getWorkTypeDisableCausesMethod = typeof(CharacterCardUtility).GetMethod(
+                "GetWorkTypeDisableCauses",
+                BindingFlags.NonPublic | BindingFlags.Static
             );
         }
 
@@ -108,6 +146,101 @@ namespace RimWorldAccess
             catch (Exception ex)
             {
                 Log.Error($"[InfoCardDataExtractor] Error getting def: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets the WorldObject being displayed in the dialog.
+        /// </summary>
+        public static WorldObject GetWorldObject(Dialog_InfoCard dialog)
+        {
+            try
+            {
+                if (dialog == null || dialogWorldObjectField == null)
+                    return null;
+
+                return dialogWorldObjectField.GetValue(dialog) as WorldObject;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[InfoCardDataExtractor] Error getting worldObject: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets the Hediff being displayed in the dialog.
+        /// </summary>
+        public static Hediff GetHediff(Dialog_InfoCard dialog)
+        {
+            try
+            {
+                if (dialog == null || dialogHediffField == null)
+                    return null;
+
+                return dialogHediffField.GetValue(dialog) as Hediff;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[InfoCardDataExtractor] Error getting hediff: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets the RoyalTitleDef being displayed in the dialog.
+        /// </summary>
+        public static RoyalTitleDef GetTitleDef(Dialog_InfoCard dialog)
+        {
+            try
+            {
+                if (dialog == null || dialogTitleDefField == null)
+                    return null;
+
+                return dialogTitleDefField.GetValue(dialog) as RoyalTitleDef;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[InfoCardDataExtractor] Error getting titleDef: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets the Faction being displayed in the dialog.
+        /// </summary>
+        public static Faction GetFaction(Dialog_InfoCard dialog)
+        {
+            try
+            {
+                if (dialog == null || dialogFactionField == null)
+                    return null;
+
+                return dialogFactionField.GetValue(dialog) as Faction;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[InfoCardDataExtractor] Error getting faction: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets the stuff (material) ThingDef being displayed in the dialog.
+        /// </summary>
+        public static ThingDef GetStuff(Dialog_InfoCard dialog)
+        {
+            try
+            {
+                if (dialog == null || dialogStuffField == null)
+                    return null;
+
+                return dialogStuffField.GetValue(dialog) as ThingDef;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[InfoCardDataExtractor] Error getting stuff: {ex.Message}");
                 return null;
             }
         }
@@ -271,33 +404,102 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets incapable work types for a pawn.
+        /// Gets incapable work tag info for a pawn, organized by WorkTag.
+        /// Each entry includes the tag label (with inline causes), and affected work type defs.
+        /// Mirrors the vanilla CharacterCardUtility tooltip structure.
         /// </summary>
-        public static List<string> GetIncapableWorkTypes(Pawn pawn)
+        public static List<(string tagLabel, List<WorkTypeDef> affectedWorkTypes)> GetIncapableWorkTagsInfo(Pawn pawn)
         {
-            var incapable = new List<string>();
+            var result = new List<(string, List<WorkTypeDef>)>();
 
             if (pawn?.story == null)
-                return incapable;
+                return result;
 
             try
             {
                 WorkTags disabled = pawn.CombinedDisabledWorkTags;
+                if (disabled == WorkTags.None)
+                    return result;
 
-                foreach (WorkTypeDef workType in DefDatabase<WorkTypeDef>.AllDefsListForReading)
+                foreach (WorkTags tag in disabled.GetAllSelectedItems<WorkTags>())
                 {
-                    if ((workType.workTags & disabled) != 0)
+                    if (tag == WorkTags.None)
+                        continue;
+
+                    string tagLabel = tag.LabelTranslated().CapitalizeFirst();
+
+                    // Build inline cause string
+                    string causeStr = GetCauseString(pawn, tag);
+                    if (!string.IsNullOrEmpty(causeStr))
+                        tagLabel += " (" + causeStr + ")";
+
+                    var affectedWorkTypes = new List<WorkTypeDef>();
+                    foreach (WorkTypeDef workTypeDef in DefDatabase<WorkTypeDef>.AllDefs)
                     {
-                        incapable.Add(workType.labelShort.CapitalizeFirst());
+                        if ((workTypeDef.workTags & tag) > WorkTags.None)
+                        {
+                            affectedWorkTypes.Add(workTypeDef);
+                        }
                     }
+
+                    result.Add((tagLabel, affectedWorkTypes));
                 }
             }
             catch (Exception ex)
             {
-                Log.Error($"[InfoCardDataExtractor] Error getting incapable work: {ex.Message}");
+                Log.Error($"[InfoCardDataExtractor] Error getting incapable work tags: {ex.Message}");
             }
 
-            return incapable.Distinct().ToList();
+            return result;
+        }
+
+        private static string GetCauseString(Pawn pawn, WorkTags tag)
+        {
+            if (getWorkTypeDisableCausesMethod == null)
+                return null;
+
+            try
+            {
+                var causeObjects = getWorkTypeDisableCausesMethod.Invoke(
+                    null, new object[] { pawn, tag }) as List<object>;
+                if (causeObjects == null || causeObjects.Count == 0)
+                    return null;
+
+                var parts = new List<string>();
+                foreach (var cause in causeObjects)
+                {
+                    string formatted = FormatWorkTagDisableCause(pawn, cause);
+                    if (!string.IsNullOrEmpty(formatted))
+                        parts.Add(formatted);
+                }
+                return parts.Count > 0 ? string.Join(", ", parts) : null;
+            }
+            catch (Exception ex)
+            {
+                Log.Warning($"[InfoCardDataExtractor] Error getting disable causes for {tag}: {ex.Message}");
+                return null;
+            }
+        }
+
+        private static string FormatWorkTagDisableCause(Pawn pawn, object cause)
+        {
+            if (cause is BackstoryDef backstory)
+                return "IncapableOfTooltipBackstory".Translate() + ": " + backstory.TitleFor(pawn.gender).CapitalizeFirst();
+            if (cause is Trait trait)
+                return "IncapableOfTooltipTrait".Translate() + ": " + trait.LabelCap;
+            if (cause is Hediff hediff)
+                return "IncapableOfTooltipHediff".Translate() + ": " + hediff.LabelCap;
+            if (cause is RoyalTitle royalTitle)
+                return "IncapableOfTooltipTitle".Translate() + ": " + royalTitle.def.GetLabelFor(pawn);
+            if (cause is Quest quest)
+                return "IncapableOfTooltipQuest".Translate() + ": " + quest.name;
+            if (cause is Precept_Role role)
+                return "IncapableOfTooltipRole".Translate() + ": " + role.LabelForPawn(pawn);
+            if (cause is Gene gene)
+                return "IncapableOfTooltipGene".Translate() + ": " + gene.LabelCap;
+            if (cause is MutantDef mutantDef)
+                return "IncapableOfTooltipMutant".Translate() + ": " + mutantDef.LabelCap;
+            return cause?.ToString() ?? "";
         }
 
         /// <summary>
@@ -388,7 +590,7 @@ namespace RimWorldAccess
         /// <summary>
         /// Gets xenotype information for a pawn.
         /// </summary>
-        public static (string xenotypeName, string description, List<string> genes)? GetXenotypeInfo(Pawn pawn)
+        public static (string xenotypeName, string description, List<(string name, GeneDef def)> genes)? GetXenotypeInfo(Pawn pawn)
         {
             if (!ModsConfig.BiotechActive || pawn?.genes == null)
                 return null;
@@ -398,13 +600,31 @@ namespace RimWorldAccess
                 string xenotypeName = pawn.genes.XenotypeLabelCap;
                 string desc = pawn.genes.XenotypeDescShort ?? "";
 
-                var geneNames = new List<string>();
+                var genes = new List<(string, GeneDef)>();
                 foreach (var gene in pawn.genes.GenesListForReading)
                 {
-                    geneNames.Add(gene.LabelCap);
+                    string geneName = gene.LabelCap;
+
+                    // Melanin skin color genes all share generic "skin color" label.
+                    // Synthesize a shade description from the color's luminance.
+                    if (gene.def.skinColorBase.HasValue && gene.def.label == "skin color")
+                    {
+                        Color color = gene.def.skinColorBase.Value;
+                        float luminance = 0.299f * color.r + 0.587f * color.g + 0.114f * color.b;
+                        string shade = luminance > 0.85f ? "very light"
+                                     : luminance > 0.7f  ? "light"
+                                     : luminance > 0.55f ? "fair"
+                                     : luminance > 0.45f ? "medium"
+                                     : luminance > 0.35f ? "tan"
+                                     : luminance > 0.2f  ? "brown"
+                                     : "dark brown";
+                        geneName = $"Skin color ({shade})";
+                    }
+
+                    genes.Add((geneName, gene.def));
                 }
 
-                return (xenotypeName, desc, geneNames);
+                return (xenotypeName, desc, genes);
             }
             catch (Exception ex)
             {
@@ -435,7 +655,20 @@ namespace RimWorldAccess
 
                     float efficiency = pawn.health.capacities.GetLevel(capacityDef);
                     string label = capacityDef.LabelCap;
-                    string tip = capacityDef.description ?? "";
+
+                    // Use the game's actual tooltip (shows impactors: hediffs, body parts, genes, etc.)
+                    // instead of capacityDef.description which is always empty in vanilla
+                    string tip = "";
+                    try
+                    {
+                        string fullTip = HealthCardUtility.GetPawnCapacityTip(pawn, capacityDef);
+                        // Strip the first line (capacity name + qualitative assessment - already in our label)
+                        int firstNewline = fullTip.IndexOf('\n');
+                        if (firstNewline >= 0)
+                            tip = fullTip.Substring(firstNewline + 1).TrimStart('\r', '\n');
+                    }
+                    catch { }
+
                     capacities.Add((label, efficiency, tip));
                 }
             }
@@ -545,22 +778,66 @@ namespace RimWorldAccess
         /// <summary>
         /// Gets permit information for a pawn (Royalty DLC).
         /// </summary>
-        public static List<(string permitName, string factionName, bool available, string description)> GetPermitsInfo(Pawn pawn)
+        public static List<(string permitName, Faction faction, string status, string description, string requiredTitle, RoyalTitlePermitDef def)> GetPermitsInfo(Pawn pawn)
         {
-            var permits = new List<(string, string, bool, string)>();
+            var permits = new List<(string, Faction, string, string, string, RoyalTitlePermitDef)>();
 
             if (!ModsConfig.RoyaltyActive || pawn?.royalty == null)
                 return permits;
 
             try
             {
-                foreach (var permitRecord in pawn.royalty.AllFactionPermits)
+                // Show ALL permits per faction (matching vanilla's PermitsCardUtility)
+                foreach (var faction in Find.FactionManager.AllFactionsVisible)
                 {
-                    string permitName = permitRecord.Permit.LabelCap;
-                    string factionName = permitRecord.Faction?.Name ?? "Unknown";
-                    bool available = pawn.royalty.GetPermit(permitRecord.Permit, permitRecord.Faction) != null;
-                    string desc = permitRecord.Permit.description ?? "";
-                    permits.Add((permitName, factionName, available, desc));
+                    if (faction.IsPlayer || faction.def.permanentEnemy || faction.temporary)
+                        continue;
+
+                    var factionPermits = DefDatabase<RoyalTitlePermitDef>.AllDefs
+                        .Where(d => d.faction == faction.def)
+                        .OrderBy(d => d.uiPosition.y).ThenBy(d => d.uiPosition.x);
+
+                    if (!factionPermits.Any())
+                        continue;
+
+                    foreach (var permitDef in factionPermits)
+                    {
+                        string status;
+                        bool isUnlocked = IsPermitUnlocked(permitDef, pawn, faction);
+
+                        if (isUnlocked)
+                        {
+                            if (pawn.royalty.HasPermit(permitDef, faction))
+                            {
+                                var factionPermit = pawn.royalty.AllFactionPermits
+                                    .FirstOrDefault(fp => fp.Permit == permitDef && fp.Faction == faction);
+                                status = (factionPermit != null && factionPermit.OnCooldown)
+                                    ? "Granted (on cooldown)" : "Granted";
+                            }
+                            else
+                            {
+                                // Unlocked via upgrade chain (prerequisite of a held permit)
+                                status = "Granted";
+                            }
+                        }
+                        else if (permitDef.AvailableForPawn(pawn, faction))
+                        {
+                            status = $"Available ({permitDef.permitPointCost} points)";
+                        }
+                        else
+                        {
+                            if (permitDef.prerequisite != null && !IsPermitUnlocked(permitDef.prerequisite, pawn, faction))
+                                status = "Locked (" + "UpgradeFrom".Translate(permitDef.prerequisite.LabelCap).Resolve() + ")";
+                            else if (permitDef.minTitle != null)
+                                status = "Locked (" + "RequiresTitle".Translate(permitDef.minTitle.GetLabelForBothGenders()).Resolve() + ")";
+                            else
+                                status = "Locked";
+                        }
+
+                        string requiredTitle = permitDef.minTitle?.GetLabelFor(pawn).CapitalizeFirst() ?? "None";
+                        permits.Add((permitDef.LabelCap, faction, status,
+                            permitDef.description ?? "", requiredTitle, permitDef));
+                    }
                 }
             }
             catch (Exception ex)
@@ -569,6 +846,45 @@ namespace RimWorldAccess
             }
 
             return permits;
+        }
+
+        /// <summary>
+        /// Checks if a permit is "unlocked" for display purposes.
+        /// Matches vanilla PermitsCardUtility.PermitUnlocked logic.
+        /// A permit is unlocked if directly held OR if another held permit has it as a prerequisite
+        /// (meaning the pawn upgraded past it).
+        /// </summary>
+        public static bool IsPermitUnlocked(RoyalTitlePermitDef permit, Pawn pawn, Faction faction)
+        {
+            if (pawn.royalty.HasPermit(permit, faction))
+                return true;
+
+            var allFactionPermits = pawn.royalty.AllFactionPermits;
+            for (int i = 0; i < allFactionPermits.Count; i++)
+            {
+                if (allFactionPermits[i].Permit.prerequisite == permit && allFactionPermits[i].Faction == faction)
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Calculates total favor cost to return all permits.
+        /// Matches vanilla PermitsCardUtility.TotalReturnPermitsCost: base cost of 8
+        /// plus favor cost of any on-cooldown permits that have royalAid.
+        /// </summary>
+        public static int TotalReturnPermitsCost(Pawn pawn)
+        {
+            int cost = 8;
+            var allFactionPermits = pawn.royalty.AllFactionPermits;
+            for (int i = 0; i < allFactionPermits.Count; i++)
+            {
+                if (allFactionPermits[i].OnCooldown && allFactionPermits[i].Permit.royalAid != null)
+                {
+                    cost += allFactionPermits[i].Permit.royalAid.favorCost;
+                }
+            }
+            return cost;
         }
     }
 }

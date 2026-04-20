@@ -1,206 +1,747 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using RimWorld;
+using UnityEngine;
 using Verse;
+using Verse.Sound;
 
 namespace RimWorldAccess
 {
-    /// <summary>
-    /// Manages keyboard navigation state for the ideology selection page (Page_ChooseIdeoPreset).
-    /// Similar to ScenarioNavigationState but handles the more complex ideology preset system.
-    /// </summary>
     public static class IdeologyNavigationState
     {
-        private static bool initialized = false;
+        private const int TabOptions = 0;
+        private const int TabPresets = 1;
+        // TreeLevelKey "IdeoPresets" is now managed internally by presetsTreeNav
 
-        // Main selection type
-        private enum SelectionType
+        private static bool initialized;
+        private static int currentTab;
+        private static bool hasShownPresetsHint;
+
+        public static bool IsActive { get; private set; }
+
+        // Options tab
+        private static List<OptionEntry> options = new List<OptionEntry>();
+        private static int optionsIndex;
+        private static TypeaheadSearchHelper optionsTypeahead = new TypeaheadSearchHelper();
+
+        // Presets tab (tree) — uses TreeNavigationHelper for navigation
+        private static TreeNavigationHelper presetsTreeNav = new TreeNavigationHelper("IdeoPresets");
+        private static bool presetsTreeNavConfigured = false;
+
+        public static int CurrentTab => currentTab;
+
+        private class OptionEntry
         {
-            Classic,
-            CustomFluid,
-            CustomFixed,
-            Load,
-            Preset
+            public string Label;
+            public string Description;
+            public int EnumValue; // 0=Classic, 1=CustomFluid, 2=CustomFixed, 3=Load
+            public bool Disabled;
+            public string DisabledReason;
         }
 
-        private static SelectionType currentSelectionType = SelectionType.Classic;
+        private const string AccessibilityComingSoon = "Accessibility coming soon";
 
-        // For preset browsing
-        private static List<IdeoPresetDef> flatPresetList = new List<IdeoPresetDef>();
-        private static int selectedPresetIndex = 0;
+        private static void EnsurePresetsTreeNavConfigured()
+        {
+            if (presetsTreeNavConfigured) return;
+            presetsTreeNavConfigured = true;
+
+            presetsTreeNav.FormatItemAnnouncement = FormatPresetsItemAnnouncement;
+            presetsTreeNav.FormatSearchAnnouncement = FormatPresetsSearchAnnouncement;
+        }
+
+        private static string FormatPresetsItemAnnouncement(InspectionTreeItem item)
+        {
+            var sb = new StringBuilder();
+            sb.Append(item.Label);
+
+            if (item.IsExpandable)
+            {
+                string state = item.IsExpanded ? "expanded" : "collapsed";
+                int childCount = item.Children.Count;
+                sb.Append($". {state}, {childCount} items");
+            }
+
+            var (pos, total) = presetsTreeNav.GetSiblingPosition(item);
+            sb.Append($". {pos} of {total}");
+
+            string levelSuffix = MenuHelper.GetLevelSuffix("IdeoPresets", item.IndentLevel, skipLevelOne: false);
+            if (!string.IsNullOrEmpty(levelSuffix))
+                sb.Append(levelSuffix);
+
+            return sb.ToString();
+        }
+
+        private static string FormatPresetsSearchAnnouncement(InspectionTreeItem item, TypeaheadSearchHelper typeahead)
+        {
+            string label = item.Label;
+            string searchInfo = $", {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
+            return $"{label}{searchInfo}";
+        }
+
+        private static string FormatPresetsStateChangeAnnouncement(InspectionTreeItem item)
+        {
+            string state = item.IsExpanded ? "Expanded" : "Collapsed";
+            return state + ". " + FormatPresetsItemAnnouncement(item);
+        }
+
+        #region Initialize / Reset
 
         public static void Initialize()
         {
-            if (!initialized || flatPresetList.Count == 0)
+            if (initialized)
+                return;
+
+            // Build options
+            options.Clear();
+            options.Add(new OptionEntry
             {
-                // Build flat list of all ideology presets (excluding special categories)
-                flatPresetList.Clear();
+                Label = "PlayClassic".Translate().ToString(),
+                Description = IdeoPresetCategoryDefOf.Classic.description,
+                EnumValue = 0
+            });
+            options.Add(new OptionEntry
+            {
+                Label = "CreateCustomFluid".Translate().ToString().Replace("\n", " "),
+                Description = IdeoPresetCategoryDefOf.Fluid.description,
+                EnumValue = 1,
+                Disabled = true,
+                DisabledReason = AccessibilityComingSoon
+            });
+            options.Add(new OptionEntry
+            {
+                Label = "CreateCustomFixed".Translate().ToString().Replace("\n", " "),
+                Description = IdeoPresetCategoryDefOf.Custom.description,
+                EnumValue = 2,
+                Disabled = true,
+                DisabledReason = AccessibilityComingSoon
+            });
+            options.Add(new OptionEntry
+            {
+                Label = "LoadSaved".Translate().ToString(),
+                Description = "",
+                EnumValue = 3,
+                Disabled = true,
+                DisabledReason = AccessibilityComingSoon
+            });
 
-                var categories = DefDatabase<IdeoPresetCategoryDef>.AllDefsListForReading
-                    .Where(c => c != IdeoPresetCategoryDefOf.Classic &&
-                                c != IdeoPresetCategoryDefOf.Custom &&
-                                c != IdeoPresetCategoryDefOf.Fluid);
+            // Build preset tree
+            BuildPresetTree();
 
-                foreach (var category in categories)
-                {
-                    var presetsInCategory = DefDatabase<IdeoPresetDef>.AllDefs
-                        .Where(i => i.categoryDef == category)
-                        .ToList();
-
-                    flatPresetList.AddRange(presetsInCategory);
-                }
-
-                currentSelectionType = SelectionType.Classic;
-                selectedPresetIndex = 0;
-                initialized = true;
-            }
+            EnsurePresetsTreeNavConfigured();
+            currentTab = TabOptions;
+            optionsIndex = 0;
+            optionsTypeahead.ClearSearch();
+            IsActive = true;
+            hasShownPresetsHint = false;
+            initialized = true;
         }
 
         public static void Reset()
         {
             initialized = false;
-            currentSelectionType = SelectionType.Classic;
-            selectedPresetIndex = 0;
-            flatPresetList.Clear();
+            IsActive = false;
+            currentTab = TabOptions;
+            optionsIndex = 0;
+            options.Clear();
+            presetsTreeNav.Reset();
+            optionsTypeahead.ClearSearch();
         }
 
-        public static void NavigateUp()
+        private static void BuildPresetTree()
         {
-            if (currentSelectionType == SelectionType.Preset)
+            var rootItem = new InspectionTreeItem
             {
-                // Navigate through presets
-                if (flatPresetList.Count == 0) return;
+                Label = "Root",
+                IndentLevel = -1,
+                IsExpandable = true,
+                IsExpanded = true,
+                Type = InspectionTreeItem.ItemType.Category
+            };
 
-                selectedPresetIndex--;
-                if (selectedPresetIndex < 0)
-                    selectedPresetIndex = flatPresetList.Count - 1;
+            // Get preset categories (excluding Classic, Custom, Fluid — those are on the options tab)
+            var categories = DefDatabase<IdeoPresetCategoryDef>.AllDefsListForReading
+                .Where(c => c != IdeoPresetCategoryDefOf.Classic
+                         && c != IdeoPresetCategoryDefOf.Custom
+                         && c != IdeoPresetCategoryDefOf.Fluid)
+                .ToList();
 
-                AnnounceCurrentPreset();
-            }
-            else
+            foreach (var category in categories)
             {
-                // Navigate through main options
-                int currentIndex = (int)currentSelectionType;
-                currentIndex--;
-                if (currentIndex < 0)
-                    currentIndex = 4; // Preset is last
-                currentSelectionType = (SelectionType)currentIndex;
+                var presets = DefDatabase<IdeoPresetDef>.AllDefs
+                    .Where(p => p.categoryDef == category)
+                    .ToList();
 
-                AnnounceCurrentSelection();
-            }
-        }
+                if (presets.Count == 0)
+                    continue;
 
-        public static void NavigateDown()
-        {
-            if (currentSelectionType == SelectionType.Preset)
-            {
-                // Navigate through presets
-                if (flatPresetList.Count == 0) return;
-
-                selectedPresetIndex++;
-                if (selectedPresetIndex >= flatPresetList.Count)
-                    selectedPresetIndex = 0;
-
-                AnnounceCurrentPreset();
-            }
-            else
-            {
-                // Navigate through main options
-                int currentIndex = (int)currentSelectionType;
-                currentIndex++;
-                if (currentIndex > 4) // Preset is 4
-                    currentIndex = 0;
-                currentSelectionType = (SelectionType)currentIndex;
-
-                AnnounceCurrentSelection();
-            }
-        }
-
-        public static void TogglePresetBrowsing()
-        {
-            if (currentSelectionType == SelectionType.Preset)
-            {
-                // Exit preset browsing - go back to Classic
-                currentSelectionType = SelectionType.Classic;
-                AnnounceCurrentSelection();
-            }
-            else
-            {
-                // Enter preset browsing
-                if (flatPresetList.Count > 0)
+                // Category node (level 0)
+                var categoryNode = new InspectionTreeItem
                 {
-                    currentSelectionType = SelectionType.Preset;
-                    selectedPresetIndex = 0;
-                    TolkHelper.Speak($"Browsing ideology presets. {flatPresetList.Count} available. Press Tab to return to main options.");
-                    AnnounceCurrentPreset();
+                    Label = category.LabelCap + ": " + category.description,
+                    IndentLevel = 0,
+                    IsExpandable = true,
+                    IsExpanded = false,
+                    Type = InspectionTreeItem.ItemType.Category,
+                    Data = category,
+                    Parent = rootItem
+                };
+
+                foreach (var preset in presets)
+                {
+                    // Preset node (level 1)
+                    var presetNode = new InspectionTreeItem
+                    {
+                        Label = preset.LabelCap + ": " + preset.description,
+                        IndentLevel = 1,
+                        IsExpandable = preset.memes != null && preset.memes.Count > 0,
+                        IsExpanded = false,
+                        Type = InspectionTreeItem.ItemType.Item,
+                        Data = preset,
+                        Parent = categoryNode
+                    };
+
+                    if (preset.memes != null)
+                    {
+                        foreach (var meme in preset.memes)
+                        {
+                            var memeNode = new InspectionTreeItem
+                            {
+                                Label = meme.LabelCap + ": " + meme.description,
+                                IndentLevel = 2,
+                                IsExpandable = false,
+                                IsExpanded = false,
+                                Type = InspectionTreeItem.ItemType.DetailText,
+                                Data = meme,
+                                LinkedDef = meme,
+                                Parent = presetNode
+                            };
+                            presetNode.Children.Add(memeNode);
+                        }
+                    }
+
+                    categoryNode.Children.Add(presetNode);
+                }
+
+                rootItem.Children.Add(categoryNode);
+            }
+
+            presetsTreeNav.Initialize(rootItem);
+        }
+
+        #endregion
+
+        #region Tab Switching
+
+        public static void SwitchTab()
+        {
+            optionsTypeahead.ClearSearch();
+
+            if (currentTab == TabOptions)
+            {
+                currentTab = TabPresets;
+                AnnounceTabSwitch();
+            }
+            else
+            {
+                currentTab = TabOptions;
+                AnnounceTabSwitch();
+            }
+        }
+
+        private static void AnnounceTabSwitch()
+        {
+            if (currentTab == TabOptions)
+            {
+                string tabName = "Options";
+                TolkHelper.Speak(tabName + ". " + BuildOptionAnnouncement());
+            }
+            else
+            {
+                string tabName = "Presets";
+                if (presetsTreeNav.Count > 0)
+                {
+                    string hint = "";
+                    if (!hasShownPresetsHint)
+                    {
+                        hasShownPresetsHint = true;
+                        hint = ". Alt+S to set structure, Alt+Y to set style for your chosen preset";
+                    }
+                    TolkHelper.Speak(tabName + ". " + BuildTreeItemAnnouncement() + hint);
+                }
+                else
+                    TolkHelper.Speak(tabName + ". " + "NoneLower".Translate() + ".");
+            }
+        }
+
+        #endregion
+
+        #region Options Tab Navigation
+
+        public static void NavigateOptionUp()
+        {
+            if (options.Count == 0) return;
+
+            if (optionsTypeahead.HasActiveSearch && !optionsTypeahead.HasNoMatches)
+            {
+                int prev = optionsTypeahead.GetPreviousMatch(optionsIndex);
+                if (prev >= 0)
+                {
+                    optionsIndex = prev;
+                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                    AnnounceOptionWithSearch();
+                }
+                return;
+            }
+
+            int newIndex = MenuHelper.SelectPrevious(optionsIndex, options.Count);
+            if (newIndex != optionsIndex)
+            {
+                optionsIndex = newIndex;
+                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            }
+            TolkHelper.Speak(BuildOptionAnnouncement());
+        }
+
+        public static void NavigateOptionDown()
+        {
+            if (options.Count == 0) return;
+
+            if (optionsTypeahead.HasActiveSearch && !optionsTypeahead.HasNoMatches)
+            {
+                int next = optionsTypeahead.GetNextMatch(optionsIndex);
+                if (next >= 0)
+                {
+                    optionsIndex = next;
+                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                    AnnounceOptionWithSearch();
+                }
+                return;
+            }
+
+            int newIndex = MenuHelper.SelectNext(optionsIndex, options.Count);
+            if (newIndex != optionsIndex)
+            {
+                optionsIndex = newIndex;
+                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            }
+            TolkHelper.Speak(BuildOptionAnnouncement());
+        }
+
+        public static void NavigateOptionHome()
+        {
+            if (options.Count == 0) return;
+            optionsTypeahead.ClearSearch();
+            optionsIndex = 0;
+            TolkHelper.Speak(BuildOptionAnnouncement());
+        }
+
+        public static void NavigateOptionEnd()
+        {
+            if (options.Count == 0) return;
+            optionsTypeahead.ClearSearch();
+            optionsIndex = options.Count - 1;
+            TolkHelper.Speak(BuildOptionAnnouncement());
+        }
+
+        public static bool HandleOptionTypeahead(char c)
+        {
+            var labels = options.Select(o => o.Label).ToList();
+            if (optionsTypeahead.ProcessCharacterInput(c, labels, out int newIndex))
+            {
+                optionsIndex = newIndex;
+                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                AnnounceOptionWithSearch();
+                return true;
+            }
+            else
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak($"No matches for '{optionsTypeahead.LastFailedSearch}'.");
+                return true;
+            }
+        }
+
+        public static bool HandleOptionBackspace()
+        {
+            if (!optionsTypeahead.HasActiveSearch)
+                return false;
+
+            var labels = options.Select(o => o.Label).ToList();
+            if (optionsTypeahead.ProcessBackspace(labels, out int newIndex))
+            {
+                if (newIndex >= 0)
+                    optionsIndex = newIndex;
+                SoundDefOf.Click.PlayOneShotOnCamera();
+                AnnounceOptionWithSearch();
+            }
+            return true;
+        }
+
+        public static bool HasOptionsSearch => optionsTypeahead.HasActiveSearch;
+
+        public static void ClearOptionsSearch()
+        {
+            optionsTypeahead.ClearSearchAndAnnounce();
+            TolkHelper.Speak(BuildOptionAnnouncement());
+        }
+
+        private static string BuildOptionAnnouncement()
+        {
+            if (options.Count == 0 || optionsIndex < 0 || optionsIndex >= options.Count)
+                return "";
+
+            var opt = options[optionsIndex];
+            var sb = new StringBuilder(opt.Label);
+            if (opt.Disabled && !string.IsNullOrEmpty(opt.DisabledReason))
+                sb.Append(". ").Append(opt.DisabledReason);
+            if (!string.IsNullOrEmpty(opt.Description))
+                sb.Append(". ").Append(opt.Description);
+
+            string position = MenuHelper.FormatPosition(optionsIndex, options.Count);
+            if (!string.IsNullOrEmpty(position))
+                sb.Append(". ").Append(position);
+
+            return sb.ToString();
+        }
+
+        public static bool IsCurrentOptionDisabled
+        {
+            get
+            {
+                if (options.Count == 0 || optionsIndex < 0 || optionsIndex >= options.Count)
+                    return false;
+                return options[optionsIndex].Disabled;
+            }
+        }
+
+        public static string CurrentOptionDisabledReason
+        {
+            get
+            {
+                if (options.Count == 0 || optionsIndex < 0 || optionsIndex >= options.Count)
+                    return "";
+                return options[optionsIndex].DisabledReason ?? "";
+            }
+        }
+
+        private static void AnnounceOptionWithSearch()
+        {
+            if (options.Count == 0 || optionsIndex < 0 || optionsIndex >= options.Count)
+                return;
+
+            string name = options[optionsIndex].Label;
+            string searchInfo = $", {optionsTypeahead.CurrentMatchPosition} of {optionsTypeahead.MatchCount} matches for '{optionsTypeahead.SearchBuffer}'";
+            TolkHelper.Speak($"{name}{searchInfo}");
+        }
+
+        public static void AnnounceCurrentOption()
+        {
+            TolkHelper.Speak(BuildOptionAnnouncement());
+        }
+
+        #endregion
+
+        #region Presets Tab Tree Navigation
+
+        /// <summary>
+        /// Handles keyboard input for the presets tree tab.
+        /// Returns true if input was consumed; false if caller should handle (e.g., Escape, Enter pass-through).
+        /// </summary>
+        public static bool HandlePresetsInput(Event ev)
+        {
+            if (ev.type != EventType.KeyDown)
+                return false;
+
+            KeyCode key = ev.keyCode;
+
+            // Enter — behavior depends on node type (handled before treeNav)
+            if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+            {
+                int level = CurrentTreeNodeLevel;
+                if (level == 0)
+                {
+                    // Category node — toggle expand/collapse
+                    var item = presetsTreeNav.SelectedItem;
+                    if (item != null && item.IsExpandable)
+                    {
+                        item.IsExpanded = !item.IsExpanded;
+                        presetsTreeNav.RebuildVisibleList();
+                        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                        TolkHelper.Speak(FormatPresetsStateChangeAnnouncement(item));
+                    }
+                    return true;
+                }
+                else if (level == 1)
+                {
+                    // Preset node — let Enter pass through to game DoNext
+                    return false;
                 }
                 else
                 {
-                    TolkHelper.Speak("No ideology presets available");
+                    // Meme node — re-announce
+                    presetsTreeNav.ReannounceCurrentItem();
+                    return true;
                 }
             }
+
+            // Delegate standard tree navigation to TreeNavigationHelper
+            if (presetsTreeNav.HandleInput(ev))
+                return true;
+
+            // HandleInput returned false = Escape with no active search
+            // Let caller handle (go back to options tab or close)
+            return false;
         }
 
-        private static void AnnounceCurrentSelection()
-        {
-            string announcement = "";
+        public static bool HasPresetsSearch => presetsTreeNav.HasActiveSearch;
 
-            switch (currentSelectionType)
+        public static void ClearPresetsSearch()
+        {
+            presetsTreeNav.Typeahead.ClearSearchAndAnnounce();
+            presetsTreeNav.ReannounceCurrentItem();
+        }
+
+        /// <summary>
+        /// Returns the indent level of the currently focused tree item.
+        /// 0 = category, 1 = preset, 2 = meme.
+        /// </summary>
+        public static int CurrentTreeNodeLevel
+        {
+            get
             {
-                case SelectionType.Classic:
-                    announcement = $"Play Classic - {IdeoPresetCategoryDefOf.Classic.description}";
-                    break;
-                case SelectionType.CustomFluid:
-                    announcement = $"Create Custom Fluid Ideology - {IdeoPresetCategoryDefOf.Fluid.description}";
-                    break;
-                case SelectionType.CustomFixed:
-                    announcement = $"Create Custom Fixed Ideology - {IdeoPresetCategoryDefOf.Custom.description}";
-                    break;
-                case SelectionType.Load:
-                    announcement = "Load Saved Ideology - Load a previously saved ideology from disk";
-                    break;
-                case SelectionType.Preset:
-                    announcement = "Browse Ideology Presets";
-                    break;
+                var item = presetsTreeNav.SelectedItem;
+                return item?.IndentLevel ?? -1;
+            }
+        }
+
+        public static void AnnounceCurrentTreeItem()
+        {
+            presetsTreeNav.ReannounceCurrentItem();
+        }
+
+        private static string BuildTreeItemAnnouncement()
+        {
+            var item = presetsTreeNav.SelectedItem;
+            if (item == null) return "";
+            return FormatPresetsItemAnnouncement(item);
+        }
+
+        #endregion
+
+        #region Selection Sync
+
+        /// <summary>
+        /// Gets the enum value for the currently selected option (Options tab).
+        /// 0=Classic, 1=CustomFluid, 2=CustomFixed, 3=Load.
+        /// </summary>
+        public static int CurrentOptionEnumValue
+        {
+            get
+            {
+                if (options.Count == 0 || optionsIndex < 0 || optionsIndex >= options.Count)
+                    return 0;
+                return options[optionsIndex].EnumValue;
+            }
+        }
+
+        /// <summary>
+        /// Gets the IdeoPresetDef for the currently focused tree node.
+        /// Returns the preset if on a preset node (level 1),
+        /// the parent preset if on a meme node (level 2),
+        /// or null if on a category node (level 0).
+        /// </summary>
+        public static IdeoPresetDef GetSelectedPresetDef()
+        {
+            var item = presetsTreeNav.SelectedItem;
+            if (item == null)
+                return null;
+
+            // Level 1: preset node
+            if (item.IndentLevel == 1 && item.Data is IdeoPresetDef preset)
+                return preset;
+
+            // Level 2: meme node — return parent preset
+            if (item.IndentLevel == 2 && item.Parent != null && item.Parent.Data is IdeoPresetDef parentPreset)
+                return parentPreset;
+
+            // Level 0: category node — no preset selected
+            return null;
+        }
+
+        #endregion
+
+        #region Structure Menu
+
+        public static void OpenStructureMenu(Page_ChooseIdeoPreset page)
+        {
+            // Read current structure via reflection
+            var selectedStructure = (MemeDef)HarmonyLib.AccessTools
+                .Field(typeof(Page_ChooseIdeoPreset), "selectedStructure")
+                .GetValue(page);
+
+            // Build menu options
+            var menuOptions = new List<FloatMenuOption>();
+
+            // Random option (only if current is not already random)
+            if (selectedStructure != null)
+            {
+                menuOptions.Add(new FloatMenuOption("Random".Translate().ToString(), () =>
+                {
+                    HarmonyLib.AccessTools.Field(typeof(Page_ChooseIdeoPreset), "selectedStructure")
+                        .SetValue(page, null);
+                    TolkHelper.Speak("Structure".Translate() + ": " + "Random".Translate() + ". " + "RandomStructureTip".Translate());
+                }));
             }
 
-            TolkHelper.Speak(announcement);
+            // All allowed structure memes
+            foreach (var meme in DefDatabase<MemeDef>.AllDefsListForReading)
+            {
+                if (meme == selectedStructure)
+                    continue;
+                if (meme.category != MemeCategory.Structure)
+                    continue;
+                if (!IdeoUtility.IsMemeAllowedFor(meme, Find.FactionManager.OfPlayer.def))
+                    continue;
+
+                var captured = meme;
+                menuOptions.Add(new FloatMenuOption(captured.LabelCap + ". " + captured.description, () =>
+                {
+                    HarmonyLib.AccessTools.Field(typeof(Page_ChooseIdeoPreset), "selectedStructure")
+                        .SetValue(page, captured);
+                    TolkHelper.Speak("Structure".Translate() + ": " + captured.LabelCap);
+                }));
+            }
+
+            WindowlessFloatMenuState.Open(menuOptions, colonistOrders: false);
         }
 
-        private static void AnnounceCurrentPreset()
+        #endregion
+
+        #region Style Menu
+
+        public static void OpenStyleMenu(Page_ChooseIdeoPreset page)
         {
-            if (flatPresetList.Count == 0 || selectedPresetIndex < 0 || selectedPresetIndex >= flatPresetList.Count)
-                return;
+            var stylesField = HarmonyLib.AccessTools.Field(typeof(Page_ChooseIdeoPreset), "selectedStyles");
+            var styles = (List<StyleCategoryDef>)stylesField.GetValue(page);
 
-            var preset = flatPresetList[selectedPresetIndex];
-            string categoryName = preset.categoryDef?.LabelCap ?? "Unknown";
-            string announcement = $"{preset.LabelCap} - {categoryName} - {preset.description} ({selectedPresetIndex + 1} of {flatPresetList.Count})";
+            // Build slot menu
+            var menuOptions = new List<FloatMenuOption>();
 
-            TolkHelper.Speak(announcement);
+            for (int i = 0; i < styles.Count; i++)
+            {
+                int slotIndex = i;
+                string slotName = styles[i] != null
+                    ? styles[i].LabelCap.ToString()
+                    : "Random".Translate().ToString();
+                string label = "Styles".Translate() + " " + (i + 1) + ": " + slotName;
+
+                menuOptions.Add(new FloatMenuOption(label, () =>
+                {
+                    OpenStyleSlotMenu(page, slotIndex);
+                }));
+            }
+
+            // Add slot option if < 3
+            if (styles.Count < 3)
+            {
+                menuOptions.Add(new FloatMenuOption("AddStyleCategory".Translate().ToString(), () =>
+                {
+                    OpenStyleSlotMenu(page, -1); // -1 = add new
+                }));
+            }
+
+            WindowlessFloatMenuState.Open(menuOptions, colonistOrders: false);
         }
 
-        /// <summary>
-        /// Gets the current selection type string for updating the page.
-        /// </summary>
-        public static string GetCurrentSelectionTypeString()
+        private static void OpenStyleSlotMenu(Page_ChooseIdeoPreset page, int slotIndex)
         {
-            return currentSelectionType.ToString();
+            var stylesField = HarmonyLib.AccessTools.Field(typeof(Page_ChooseIdeoPreset), "selectedStyles");
+            var styles = (List<StyleCategoryDef>)stylesField.GetValue(page);
+
+            var menuOptions = new List<FloatMenuOption>();
+
+            // Random option
+            if (slotIndex == -1 || styles[slotIndex] != null)
+            {
+                menuOptions.Add(new FloatMenuOption("Random".Translate().ToString(), () =>
+                {
+                    if (slotIndex == -1)
+                        styles.Add(null);
+                    else
+                        styles[slotIndex] = null;
+                    RecacheStyles(page);
+                    TolkHelper.Speak(AnnounceStyleChange(page));
+                }));
+            }
+
+            // Available style categories
+            foreach (var style in DefDatabase<StyleCategoryDef>.AllDefs
+                .Where(s => !s.fixedIdeoOnly && !styles.Contains(s)))
+            {
+                var captured = style;
+                menuOptions.Add(new FloatMenuOption(style.LabelCap.ToString(), () =>
+                {
+                    if (slotIndex == -1)
+                        styles.Add(captured);
+                    else
+                        styles[slotIndex] = captured;
+                    RecacheStyles(page);
+                    TolkHelper.Speak(AnnounceStyleChange(page));
+                }));
+            }
+
+            // Remove option (only for existing slots, and only if more than 1 slot)
+            if (slotIndex >= 0 && styles.Count > 1)
+            {
+                menuOptions.Add(new FloatMenuOption("Remove".Translate().ToString(), () =>
+                {
+                    styles.RemoveAt(slotIndex);
+                    RecacheStyles(page);
+                    TolkHelper.Speak(AnnounceStyleChange(page));
+                }));
+            }
+
+            WindowlessFloatMenuState.Open(menuOptions, colonistOrders: false);
         }
 
-        /// <summary>
-        /// Gets the currently selected ideology preset (or null if not browsing presets).
-        /// </summary>
-        public static IdeoPresetDef GetSelectedPreset()
+        private static void RecacheStyles(Page_ChooseIdeoPreset page)
         {
-            if (currentSelectionType != SelectionType.Preset)
-                return null;
-
-            if (selectedPresetIndex < 0 || selectedPresetIndex >= flatPresetList.Count)
-                return null;
-
-            return flatPresetList[selectedPresetIndex];
+            HarmonyLib.AccessTools.Method(typeof(Page_ChooseIdeoPreset), "RecacheStyleCategoriesWithPriority")
+                .Invoke(page, null);
         }
 
-        public static int PresetCount => flatPresetList.Count;
+        private static string AnnounceStyleChange(Page_ChooseIdeoPreset page)
+        {
+            var styles = (List<StyleCategoryDef>)HarmonyLib.AccessTools
+                .Field(typeof(Page_ChooseIdeoPreset), "selectedStyles")
+                .GetValue(page);
+
+            var styleNames = new List<string>();
+            for (int i = 0; i < styles.Count; i++)
+            {
+                styleNames.Add(styles[i] != null ? styles[i].LabelCap.ToString() : "Random".Translate().ToString());
+            }
+            return "Styles".Translate() + ": " + string.Join(", ", styleNames);
+        }
+
+        #endregion
+
+        #region Opening Announcement
+
+        public static string BuildOpeningAnnouncement()
+        {
+            var sb = new StringBuilder();
+            sb.Append("ChooseYourIdeoligion".Translate());
+            sb.Append(". ");
+            sb.Append("ChooseYourIdeoligionDesc".Translate());
+            sb.Append(". ");
+            sb.Append(BuildOptionAnnouncement());
+            return sb.ToString();
+        }
+
+        #endregion
     }
 }

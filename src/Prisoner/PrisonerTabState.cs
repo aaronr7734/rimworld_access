@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Verse;
 using RimWorld;
 
@@ -49,12 +48,6 @@ namespace RimWorldAccess
             {
                 TolkHelper.Speak($"{pawn.LabelShort} is not a prisoner or slave");
                 return;
-            }
-
-            // Close the inspection menu if it's active
-            if (WindowlessInspectionState.IsActive)
-            {
-                WindowlessInspectionState.Close();
             }
 
             isActive = true;
@@ -267,7 +260,7 @@ namespace RimWorldAccess
             currentPawn.playerSettings.medCare = newCare;
 
             string label = PrisonerTabHelper.GetMedicalCareLabel(newCare);
-            TolkHelper.Speak($"Medical Care: {label}");
+            TolkHelper.Speak($"{"AllowMedicine".Translate()}: {label}");
         }
 
         private static void SelectExclusiveMode()
@@ -307,15 +300,34 @@ namespace RimWorldAccess
                 {
                     SlaveInteractionModeDef mode = slaveModes[selectedIndex];
 
-                    // Check for execution confirmation
+                    // Mirror vanilla's behavior: apply the mode immediately, then prompt for
+                    // confirmation on execute-vs-neutral-faction. On cancel, revert to the
+                    // previous mode (ITab_Pawn_Visitor.DoSlaveTab line 159-168).
+                    SlaveInteractionModeDef previousMode = currentPawn.guest.slaveInteractionMode;
+                    currentPawn.guest.slaveInteractionMode = mode;
+
                     if (mode == SlaveInteractionModeDefOf.Execute && currentPawn.SlaveFaction != null && !currentPawn.SlaveFaction.HostileTo(Faction.OfPlayer))
                     {
-                        // Warn about neutral faction
-                        TolkHelper.Speak($"Warning: Executing slave from neutral faction {currentPawn.SlaveFaction.Name}. Select again to confirm.");
-                        // For now, just set it - confirmation dialogs would require more complex handling
-                    }
+                        Pawn pawnForClosure = currentPawn;
+                        SlaveInteractionModeDef revertTo = previousMode;
+                        string confirmationMessage = "ExectueNeutralFactionSlave".Translate(
+                            pawnForClosure.Named("PAWN"),
+                            pawnForClosure.SlaveFaction.Named("FACTION"));
 
-                    currentPawn.guest.slaveInteractionMode = mode;
+                        WindowlessConfirmationState.Open(
+                            confirmationMessage,
+                            confirmAction: () =>
+                            {
+                                string desc = PrisonerTabHelper.GetSlaveInteractionModeDescription(pawnForClosure, mode);
+                                TolkHelper.Speak($"Selected: {mode.LabelCap}. {desc}");
+                            },
+                            cancelAction: () =>
+                            {
+                                pawnForClosure.guest.slaveInteractionMode = revertTo;
+                                TolkHelper.Speak($"Cancelled. {revertTo.LabelCap}");
+                            });
+                        return;
+                    }
 
                     string description = PrisonerTabHelper.GetSlaveInteractionModeDescription(currentPawn, mode);
                     TolkHelper.Speak($"Selected: {mode.LabelCap}. {description}");
@@ -363,7 +375,7 @@ namespace RimWorldAccess
                 Ideo selected = ideologies[selectedIndex];
                 currentPawn.guest.ideoForConversion = selected;
 
-                // Check for warden warning
+                // Check for warden warning (matches vanilla ITab_Pawn_Visitor line 326-330)
                 string warning = "";
                 if (currentPawn.MapHeld != null)
                 {
@@ -378,11 +390,11 @@ namespace RimWorldAccess
                     }
                     if (!hasWarden)
                     {
-                        warning = " [WARNING: No warden of this ideology]";
+                        warning = ". " + "NoWardenOfIdeo".Translate(selected.memberName.Named("MEMBERNAME"));
                     }
                 }
 
-                TolkHelper.Speak($"Conversion target: {selected.name}{warning}");
+                TolkHelper.Speak($"{"IdeoConversionTarget".Translate()}: {selected.name}{warning}");
 
                 // Return to exclusive modes section
                 currentSection = TabSection.ExclusiveModes;
@@ -397,29 +409,24 @@ namespace RimWorldAccess
 
         private static void AnnouncePrisonerOpened()
         {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"Prisoner Tab: {currentPawn.LabelShort}");
-            sb.AppendLine($"Current Mode: {currentPawn.guest.ExclusiveInteractionMode.LabelCap}");
-            sb.AppendLine($"Medical Care: {PrisonerTabHelper.GetMedicalCareLabel(currentPawn.playerSettings.medCare)}");
-            sb.AppendLine("\nPress Left/Right to navigate sections, Up/Down within sections, Enter to select");
-
-            TolkHelper.Speak(sb.ToString().TrimEnd());
+            string mode = currentPawn.guest.ExclusiveInteractionMode.LabelCap;
+            string care = PrisonerTabHelper.GetMedicalCareLabel(currentPawn.playerSettings.medCare);
+            string allowMedicine = "AllowMedicine".Translate();
+            TolkHelper.Speak($"Prisoner Tab: {currentPawn.LabelShort}. Current Mode: {mode}. {allowMedicine}: {care}. Press Left/Right to navigate sections, Up/Down within sections, Enter to select");
         }
 
         private static void AnnounceSlaveOpened()
         {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"Slave Tab: {currentPawn.LabelShort}");
-            sb.AppendLine($"Current Mode: {currentPawn.guest.slaveInteractionMode.LabelCap}");
+            string mode = currentPawn.guest.slaveInteractionMode.LabelCap;
+            string announcement = $"Slave Tab: {currentPawn.LabelShort}. Current Mode: {mode}";
 
             if (currentPawn.needs.TryGetNeed(out Need_Suppression suppressionNeed))
             {
-                sb.AppendLine($"Suppression: {suppressionNeed.CurLevel:P0}");
+                announcement += $". {"Suppression".Translate()}: {suppressionNeed.CurLevel.ToStringPercent()}";
             }
 
-            sb.AppendLine("\nPress Left/Right to navigate sections, Up/Down within sections, Enter to select");
-
-            TolkHelper.Speak(sb.ToString().TrimEnd());
+            announcement += ". Press Left/Right to navigate sections, Up/Down within sections, Enter to select";
+            TolkHelper.Speak(announcement);
         }
 
         private static void AnnounceCurrentSection()
@@ -435,7 +442,7 @@ namespace RimWorldAccess
 
                 case TabSection.MedicalCare:
                     string careLevel = PrisonerTabHelper.GetMedicalCareLabel(currentPawn.playerSettings.medCare);
-                    TolkHelper.Speak($"Medical Care: {careLevel}. Use Up/Down arrows to adjust");
+                    TolkHelper.Speak($"{"AllowMedicine".Translate()}: {careLevel}. Use Up/Down arrows to adjust");
                     break;
 
                 case TabSection.ExclusiveModes:
@@ -454,7 +461,7 @@ namespace RimWorldAccess
                     break;
 
                 case TabSection.IdeologySelection:
-                    TolkHelper.Speak("Ideology Selection - Choose conversion target");
+                    TolkHelper.Speak("IdeoConversionTarget".Translate());
                     break;
             }
 
@@ -481,7 +488,7 @@ namespace RimWorldAccess
 
                 case TabSection.MedicalCare:
                     string careLevel = PrisonerTabHelper.GetMedicalCareLabel(currentPawn.playerSettings.medCare);
-                    TolkHelper.Speak($"Medical Care: {careLevel}");
+                    TolkHelper.Speak($"{"AllowMedicine".Translate()}: {careLevel}");
                     break;
 
                 case TabSection.ExclusiveModes:
@@ -546,7 +553,10 @@ namespace RimWorldAccess
                     return true; // Always available
 
                 case TabSection.MedicalCare:
-                    return true; // Always available
+                    // Vanilla ITab_Pawn_Visitor only renders the medical care selector
+                    // inside DoPrisonerTab (line 353-366), not DoSlaveTab — slave medical
+                    // care is set from the Health tab instead.
+                    return currentPawn.IsPrisonerOfColony;
 
                 case TabSection.ExclusiveModes:
                     if (currentPawn.IsPrisonerOfColony)
