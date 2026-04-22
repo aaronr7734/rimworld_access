@@ -16,6 +16,8 @@ namespace RimWorldAccess
         private static int selectedIndex;
         private static TypeaheadSearchHelper typeaheadHelper = new TypeaheadSearchHelper();
 
+        private static System.Reflection.FieldInfo selectedEntryField;
+
         public static bool IsActive => isActive;
         public static bool HasActiveSearch => typeaheadHelper.HasActiveSearch;
 
@@ -26,24 +28,40 @@ namespace RimWorldAccess
 
             try
             {
+                if (selectedEntryField == null)
+                    selectedEntryField = HarmonyLib.AccessTools.Field(typeof(Dialog_EntityCodex), "selectedEntry");
+
                 currentDialog = dialog;
                 typeaheadHelper.ClearSearch();
                 selectedIndex = 0;
 
-                // Build flat entry list ordered by category listOrder, then orderInCategory, then label.
+                // Match vanilla sort: (orderInCategory, label). Dialog_EntityCodex uses .label, not .LabelCap.
                 allEntries = DefDatabase<EntityCategoryDef>.AllDefsListForReading
                     .Where(HasVisibleEntries)
                     .OrderBy(c => c.listOrder)
                     .SelectMany(c => DefDatabase<EntityCodexEntryDef>.AllDefsListForReading
                         .Where(e => e.Visible && e.category == c)
                         .OrderBy(e => e.orderInCategory)
-                        .ThenBy(e => e.LabelCap.ToString()))
+                        .ThenBy(e => e.label))
                     .ToList();
+
+                // Seed selected index from the dialog's selectedEntry so "View entity codex" letter
+                // actions and other pre-selected opens land on the correct entry.
+                var dialogSelected = selectedEntryField?.GetValue(dialog) as EntityCodexEntryDef;
+                if (dialogSelected != null)
+                {
+                    int idx = allEntries.IndexOf(dialogSelected);
+                    if (idx >= 0) selectedIndex = idx;
+                }
 
                 isActive = true;
 
                 string title = "EntityCodex".Translate().Resolve();
                 TolkHelper.Speak($"{title}. {allEntries.Count} entries.", SpeechPriority.Normal);
+
+                string desc = "EntityCodexDesc".Translate().Resolve();
+                if (!string.IsNullOrEmpty(desc))
+                    TolkHelper.Speak(SanitizeText(desc), SpeechPriority.Normal);
 
                 if (allEntries.Count > 0)
                     AnnounceCurrentSelection();
@@ -97,8 +115,9 @@ namespace RimWorldAccess
                         AnnounceCurrentSelection();
                         return true;
                     }
+                    // PostClose patch speaks the close announcement so X-button and Close-button
+                    // paths also announce.
                     currentDialog.Close(doCloseSound: false);
-                    TolkHelper.Speak("Entity Codex closed.");
                     return true;
 
                 case KeyCode.Backspace:
@@ -227,8 +246,23 @@ namespace RimWorldAccess
 
                 if (entry.linkedThings?.Count > 0)
                 {
+                    string undiscoveredItem = "Undiscovered".Translate().Resolve();
+                    var codex = Find.EntityCodex;
+                    var linkedLabels = entry.linkedThings.Select(t =>
+                        (codex != null && codex.Discovered(t))
+                            ? t.LabelCap.ToString()
+                            : undiscoveredItem);
                     sb.Append(". ");
-                    sb.Append(string.Join(", ", entry.linkedThings.Select(t => t.LabelCap.ToString())));
+                    sb.Append(string.Join(", ", linkedLabels));
+                    sb.Append(".");
+                }
+
+                if (entry.discoveredResearchProjects?.Count > 0)
+                {
+                    sb.Append(" ");
+                    sb.Append("ResearchUnlocks".Translate().Resolve());
+                    sb.Append(": ");
+                    sb.Append(string.Join(", ", entry.discoveredResearchProjects.Select(r => r.LabelCap.ToString())));
                     sb.Append(".");
                 }
             }

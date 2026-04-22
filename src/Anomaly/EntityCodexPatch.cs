@@ -37,7 +37,10 @@ namespace RimWorldAccess
                 try
                 {
                     if (EntityCodexState.IsActive)
+                    {
                         EntityCodexState.Close();
+                        TolkHelper.Speak($"{"EntityCodex".Translate()} closed.");
+                    }
                 }
                 catch (Exception ex)
                 {
