@@ -84,6 +84,7 @@ namespace RimWorldAccess
         {
             return ScannerSearchState.IsActive ||
                    GoToState.IsActive ||
+                   WindowlessDialogState.IsActive ||
                    WorkMenuState.IsActive ||
                    WorkTableState.IsActive ||
                    BillConfigState.IsActive ||
