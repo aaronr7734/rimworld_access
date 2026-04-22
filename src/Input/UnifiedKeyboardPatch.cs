@@ -2827,6 +2827,16 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 4.64: Handle entity codex dialog if active =====
+            if (EntityCodexState.IsActive)
+            {
+                if (EntityCodexState.HandleInput(Event.current))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 4.7: Handle research menu if active =====
             if (WindowlessResearchMenuState.IsActive)
             {
