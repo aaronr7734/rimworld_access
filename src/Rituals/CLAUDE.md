@@ -1,32 +1,99 @@
 # Rituals Module
 
 ## Purpose
-Keyboard accessibility for RimWorld's ritual system and dryad caste selection dialogs. Handles all ritual types generically (weddings, funerals, childbirth, conversions, speeches, etc.) and provides flat menu keyboard navigation for Gauranlen tree dryad caste selection.
+Keyboard accessibility for any RimWorld dialog that derives from `Dialog_BeginLordJob`.
+A single `LordJobDialogState` drives all three known subclasses through a uniform
+`ILordJobDialogAdapter` abstraction:
+
+| Dialog | DLC | Adapter |
+|--------|-----|---------|
+| `Dialog_BeginRitual` | Ideology | `IdeologyRitualAdapter` |
+| `Dialog_BeginPsychicRitual` | Anomaly | `PsychicRitualAdapter` |
+| `Dialog_BeginGravshipLaunch` | Odyssey | `GravshipLaunchAdapter` (extends `IdeologyRitualAdapter`) |
+
+The DryadCaste dialog (Ideology Gauranlen tree caste selection) is a separate flat-menu
+flow handled by `DryadCasteState` and is unrelated to the Lord-job dialog system.
 
 ## Files
 
-**States:** RitualState.cs, DryadCasteState.cs
-**Patches:** RitualPatch.cs, DryadCastePatch.cs
-**Helpers:** RitualTreeBuilder.cs, RitualStatFormatter.cs
+**Core abstraction:** `LordJobDialogAdapter.cs` (interface, view types, factory, base class)
+**Adapters:** `IdeologyRitualAdapter.cs`, `PsychicRitualAdapter.cs`, `GravshipLaunchAdapter.cs`
+**State:** `LordJobDialogState.cs`
+**Patches:** `RitualPatch.cs` (Lord-job dialogs), `DryadCastePatch.cs` (caste dialog)
+**Helpers:** `RitualStatFormatter.cs` (announcement formatting over view types)
+**Other state:** `DryadCasteState.cs`
 
-## Key Shortcuts (Ritual Dialog)
+## Architecture
+
+### Adapter pattern
+
+`LordJobDialogState` is dialog-agnostic — it holds an `ILordJobDialogAdapter` and never
+references `Dialog_BeginRitual`, `RitualRole`, `PsychicRitualRoleDef`, or any other
+dialog-specific type. The adapter encapsulates all reflection and per-dialog semantics.
+
+View projections (`LordJobRoleView`, `LordJobPawnView`, `LordJobExtraToggle`,
+`LordJobQualityRow`, `LordJobOutcomeRow`) flow from the adapter to the state. Each view
+caches the adapter's native objects in an opaque `AdapterTag` field so the adapter can
+round-trip them in `BuildPawnList(role)` / `ToggleAssignment(role, pawn)` calls.
+
+```
+Dialog opens
+  -> RitualPatch postfix calls LordJobDialogState.Open(dialog)
+       -> LordJobAdapterFactory.TryCreate(dialog, out adapter)
+            -> IdeologyRitualAdapter | PsychicRitualAdapter | GravshipLaunchAdapter
+       -> adapter.BuildRoleList() / BuildExtraToggles()
+       -> Announce name + description + extra explanation + expected quality + warnings
+
+User navigates / acts
+  -> LordJobDialogState routes input to current mode
+  -> mutations go through adapter (ToggleAssignment, ApplyExtraToggle, TryStart)
+  -> adapter.Notify_AssignmentsChanged() recomputes quality
+
+Dialog closes
+  -> Window.PostClose patch announces adapter.ClosingAnnouncement and resets state
+```
+
+### Adding a new Lord-job dialog
+1. Subclass `LordJobDialogAdapterBase` (or extend an existing adapter if you share UI semantics).
+2. Implement `BuildRoleList`, `BuildPawnList`, `ToggleAssignment`, `LocalizedDialogName`, `ClosingAnnouncement`.
+3. Override `AppendDialogSpecificWarnings` if your dialog has runtime warnings beyond `BlockingIssues`.
+4. Override `BuildExtraToggles` / `ApplyExtraToggle` if your dialog has secondary controls.
+5. Register the adapter in `LordJobAdapterFactory.TryCreate` (more-specific subclass first).
+6. If your dialog overrides `Start()`, add it to `additionalDialogTypes` in `Core/rimworld_access.cs::ApplyLordJobStartPatches`.
+7. If your dialog has its own `PostOpen` override, add a declarative `[HarmonyPatch]` on it; otherwise the existing `Window.PostOpen` filtered patches will handle it (add a new filter if needed).
+
+### Three navigation modes
+
+```csharp
+enum NavigationMode { RoleList, PawnSelection, QualityStats }
+```
+
+Mode transitions:
+- Tab toggles between RoleList/PawnSelection (whichever you came from) and QualityStats
+- Enter on a role → PawnSelection mode
+- Enter / Esc in PawnSelection → back to RoleList
+- Esc in QualityStats → back to saved mode
+- Esc in RoleList → game closes the dialog
+
+## Key Shortcuts
 
 ### Role List Mode (Main View)
 | Key | Action |
 |-----|--------|
-| Up/Down | Navigate roles |
-| Enter | Enter pawn selection for role |
-| Tab | Toggle quality stats view |
-| Alt+S | Start ritual |
-| Home/End | Jump to first/last role |
-| Typeahead | Jump to role starting with typed letters |
-| Escape | Cancel dialog (let game handle) |
+| Up/Down | Navigate roles and extra toggles |
+| Enter | Open pawn selection (or toggle if on an extra toggle row) |
+| Space | Toggle extra toggle (gravship checkboxes) |
+| Tab | Toggle Quality Stats view |
+| Alt+S | Start the Lord job |
+| Home/End | Jump to first/last item |
+| Typeahead | Jump to role/toggle starting with typed letters |
+| Escape | Cancel dialog (game default) |
 
 ### Pawn Selection Mode
 | Key | Action |
 |-----|--------|
 | Up/Down | Navigate pawns |
-| Space | Toggle pawn selection (select/deselect) |
+| Space | Toggle pawn selection |
 | Enter | Confirm selection and return to role list |
 | Escape | Cancel and return to role list |
 | Alt+I | Open pawn info card |
@@ -40,150 +107,87 @@ Keyboard accessibility for RimWorld's ritual system and dryad caste selection di
 ### Quality Stats Mode
 | Key | Action |
 |-----|--------|
-| Up/Down | Navigate quality factors |
-| Alt+I | Open stat breakdown (StatBreakdownState) |
+| Up/Down | Navigate quality factors / outcome chances |
+| Alt+I | Open StatBreakdown for the selected factor |
 | Tab/Escape | Return to previous mode |
 
-## Architecture
+## Per-adapter notes
 
-### Generic Design
-All rituals use `Dialog_BeginRitual` which uses `RitualRoleAssignments` for role management. The code is 100% generic with no ritual-specific branching.
+### IdeologyRitualAdapter
+- Mirrors vanilla's grouping and counts via `RitualRoleAssignments.RoleGroups()`
+- Surfaces the spectators row when `assignments.SpectatorsAllowed`
+- Per-pawn suitability uses `RitualRoleColonist.usedStat` and `usedSkill` for stats like Medical or Tend Quality
+- Extra quality rows expose Ideology development points for Fluid ideologies (`IdeoDevelopmentUtility.GetDevelopmentPointsOverOutcomeIndexCurveForRitual`)
+- `Notify_AssignmentsChanged` calls both `RitualRoleAssignments.Notify_AssignmentsChanged` and the per-comp loop from `Dialog_BeginRitual.PostOpen` so quality factors reflect comp-derived state
 
-### Three Navigation Modes
-```csharp
-enum NavigationMode { RoleList, PawnSelection, QualityStats }
-```
+### PsychicRitualAdapter
+- Roles built from `PsychicRitualRoleAssignments.RoleGroups()` (psychic groups by `role.Label`, not by mergeId)
+- Suitability line is `"Psychic sensitivity: {pawn.GetStatValue(StatDefOf.PsychicSensitivity).ToStringPercent()}"` plus any `psychicRitualDef.GetPawnTooltipExtras(pawn)`
+- Role announcement includes a "Disallows: Sleeping, Drafted, …" line so blind users hear the assignability rules sighted users see only via tooltips
+- Sleeping/drafted/outcome warnings use the Anomaly translation keys (`PsychicRitualWakingPawnsWarning`, `PsychicRitualUndraftPawnsWarning`, `psychicRitualDef.OutcomeWarnings`)
+- Spectators are not supported (`PsychicRitualRoleAssignments.SpectatorsAllowed => false`); the adapter never produces a spectators row
+- Cooldown registration happens inside `Dialog_BeginPsychicRitual.Start()` (via `PsychicRitualManager.RegisterCooldown`) — we don't reimplement it; we just call `OnAcceptKeyPressed`
 
-### Data Flow
-```
-Dialog_BeginRitual.PostOpen
-    -> RitualState.Open(dialog)
-        -> Extract RitualRoleAssignments via reflection
-        -> RitualTreeBuilder.BuildRoleList()
-        -> Announce opening
-
-User navigates roles (Up/Down)
-    -> RitualState.SelectNextRole/SelectPreviousRole
-    -> RitualStatFormatter.FormatRoleAnnouncement()
-    -> TolkHelper.Speak()
-
-User presses Enter on role
-    -> RitualState.EnterPawnSelection()
-        -> RitualTreeBuilder.BuildPawnList()
-        -> Switch to PawnSelection mode
-
-User selects pawn (Space)
-    -> RitualRoleAssignments.TryAssign()
-    -> Announce assignment change
-
-User confirms (Enter)
-    -> RitualState.ConfirmPawnSelection()
-    -> Return to RoleList mode
-```
-
-### Dryad Caste Menu (Flat Navigation)
-
-Dryad castes are displayed as a flat list in the game's UI, with visual dependency lines connecting related castes. The accessibility implementation provides simple menu navigation:
-
-- Navigate through all available castes with Up/Down arrows
-- Each caste shows status: current mode, available, or locked (with reason)
-- Enter attempts to apply the selected caste (opens confirmation)
-- Escape closes the dialog
-- Home/End jump to first/last caste
-
-The dependency information (which castes require other castes) is announced in the status alongside caste information but doesn't affect the flat menu structure.
-
-### Accessing Data
-
-```csharp
-// Get assignments (protected field)
-var assignmentsField = AccessTools.Field(typeof(Dialog_BeginRitual), "assignments");
-var assignments = assignmentsField.GetValue(dialog) as RitualRoleAssignments;
-
-// Get roles
-List<RitualRole> roles = assignments.AllRolesForReading;
-
-// Get assigned pawns for a role
-List<Pawn> pawns = assignments.AssignedPawns(role).ToList();
-
-// Get pawn suitability (from RitualRoleColonist)
-if (role is RitualRoleColonist colonistRole && colonistRole.usedStat != null)
-{
-    string value = colonistRole.usedStat.Worker.ValueToStringFor(pawn);
-}
-```
+### GravshipLaunchAdapter
+- Extends `IdeologyRitualAdapter` because `Dialog_BeginGravshipLaunch` subclasses `Dialog_BeginRitual`
+- Adds three `LordJobExtraToggle` rows: `forceVisitorsToLeave`, `boardColonyAnimals`, plus `boardColonyMechs` if Biotech is active
+- `ApplyExtraToggle` writes the new value back to the dialog field via cached `FieldInfo`
+- The dialog's `Start()` writes the checkbox values into `RitualBehaviorWorker_GravshipLaunch` before invoking the action callback — we don't replicate that, we just let the dialog do it via `OnAcceptKeyPressed → Start`
 
 ## Dependencies
 
 **Requires:**
-- ScreenReader/ (TolkHelper for announcements)
-- Input/ (UnifiedKeyboardPatch for keyboard routing)
+- ScreenReader/ (TolkHelper)
+- Input/ (UnifiedKeyboardPatch)
 - UI/ (TypeaheadSearchHelper, MenuHelper)
 - World/ (StatBreakdownState for quality breakdown)
 - Pawns/ (PawnInfoHelper for Alt+H/M/N/G)
 
-**DLC Required:** Ideology (for most rituals), Anomaly (for some rituals)
+**DLC:** Each adapter handles its own DLC presence via reflection. The mod loads cleanly without Anomaly or Odyssey; the corresponding adapter just never gets constructed.
 
 ## Priority in UnifiedKeyboardPatch
-
-RitualState is handled at Priority 0.33, DryadCasteState at 0.34, and split caravan at 0.35.
+- 0.33: LordJobDialogState (covers all three Lord-job dialog types)
+- 0.34: DryadCasteState
+- 0.35: SplitCaravanState
 
 ## State Lifecycle
 
-1. User clicks ritual gizmo or button
-2. `Dialog_BeginRitual` opens
-3. `RitualPatch.PostOpen_Postfix` triggers `RitualState.Open(dialog)`
-4. State extracts role assignments, builds role list
-5. User navigates with keyboard, `HandleInput()` processes keys
-6. User starts ritual (Alt+S) or cancels (Escape)
-7. `RitualPatch.PostClose_Postfix` triggers `RitualState.Close()`
+1. Subclass of `Dialog_BeginLordJob` opens
+2. PostOpen patch (declarative for `Dialog_BeginRitual`, type-filtered Window.PostOpen for `Dialog_BeginPsychicRitual`) calls `LordJobDialogState.Open(dialog)`
+3. Factory builds the appropriate adapter and seeds the state
+4. User navigates/mutates via keyboard; mutations route through `adapter`
+5. User starts (Alt+S) or cancels (Esc); state cleans up via `Window.PostClose` postfix and announces the adapter's closing line
 
 ## Testing Checklist
 
-### Opening
-- [ ] Dialog opens and announces ritual name + role count
-- [ ] First role is announced automatically
+### Ideology rituals (regression)
+- [ ] Wedding: open, navigate roles, assign/unassign, Tab to quality, Alt+S
+- [ ] Funeral: forced/locked role behavior unchanged
+- [ ] Conversion: spectator role enumeration works
+- [ ] Childbirth: love-partner spectator suggestion still surfaces
+- [ ] Toggling pawn correctly updates per-comp quality factors (Notify_AssignmentsChanged fix)
+- [ ] Quality stats: Location row at top, Expected Quality row, dev points block for fluid ideologies, outcome chances appended at bottom
 
-### Role Navigation
-- [ ] Up/Down navigates roles
-- [ ] Announces: role name, assigned count, max, required/locked status
-- [ ] Home/End jump to first/last role
-- [ ] Typeahead finds roles by name
+### Psychic rituals (new)
+- [ ] Dialog opens with name, description, expected quality, role count
+- [ ] Each role announces with Disallows line for non-default conditions
+- [ ] Pawn list shows colonists with PsychicSensitivity
+- [ ] Sleeping pawn assignment triggers `PsychicRitualWakingPawnWarning` after toggle
+- [ ] Drafted pawn assignment triggers `PsychicRitualUndraftPawnWarning` after toggle
+- [ ] Outcome warnings from `psychicRitualDef.OutcomeWarnings` appear in opening warnings and after toggles
+- [ ] Alt+S starts the ritual; cooldown registers (verify gizmo)
+- [ ] Escape cancels cleanly
 
-### Pawn Selection
-- [ ] Enter opens pawn selection for non-locked roles
-- [ ] Locked roles announce "Role is locked" and don't open
-- [ ] Pawns show suitability stats (Medical, Tend Quality, etc.)
-- [ ] Assigned pawns marked, forced pawns show "cannot change"
-- [ ] Space toggles selection
-- [ ] Enter confirms selection
-- [ ] Alt+H/M/N/G show pawn health/mood/needs/gear
-- [ ] Alt+I opens pawn info card
-- [ ] Escape returns to role list
-
-### Quality Stats
-- [ ] Tab toggles quality stats view
-- [ ] Shows all quality factors with change values
-- [ ] Alt+I opens StatBreakdownState for selected factor
-- [ ] Tab/Escape returns to previous mode
-
-### Starting Ritual
-- [ ] Alt+S starts the ritual
-- [ ] Validation errors announced (missing required roles, etc.)
-- [ ] Successful start closes dialog
+### Gravship launch
+- [ ] Three checkboxes appear at the bottom of the role list (or two if Biotech disabled)
+- [ ] Up/Down navigates onto the checkboxes; Enter/Space toggles
+- [ ] Toggle announcement: "{label}: {checked|unchecked}. {tooltip}"
+- [ ] Alt+S launches with the new checkbox state respected (confirm animals/mechs/visitors behavior)
 
 ### Universal
-- [ ] Works for wedding, funeral, conversion, childbirth, etc.
-- [ ] No ritual-specific code needed
-- [ ] Typeahead search works in all list modes
-- [ ] Menu wrapping respects mod setting
-
-### Dryad Caste Dialog
-- [ ] Opening dialog announces connected pawn and current mode
-- [ ] Menu navigation: Up/Down navigate through castes, Home/End jump to first/last
-- [ ] Each caste announces with name and status (current, available, locked with reason)
-- [ ] Position announcements: "X of Y" for navigation context
-- [ ] Enter on caste selects it and attempts to apply (opens confirmation if available)
-- [ ] Locked castes announce specific reason (missing memes, requires prior caste, etc.)
-- [ ] Escape closes the dialog cleanly
-- [ ] State closes automatically if dialog closes by any path
+- [ ] No Harmony warnings on mod load
+- [ ] Typeahead works in role list AND pawn list
+- [ ] Quality Stats mode shows outcome chances after factors
+- [ ] Closing the dialog (Esc, X, Cancel button) all announce via the adapter's closing line
+EOF
+)

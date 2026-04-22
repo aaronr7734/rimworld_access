@@ -46,14 +46,14 @@ Handled by Building module's ShapePlacementState with Manual shape:
 - Standard `CanDesignateCell()`/`DesignateSingleCell()` API
 
 ### Launch Ritual Checkboxes
-Integrated directly into Rituals module:
-- `RitualTreeBuilder.BuildRoleList()` appends `GravshipCheckbox` items for `Dialog_BeginGravshipLaunch`
-- `RitualState` handles Enter/Space toggle on checkbox items
-- No separate state needed
+Handled by the Rituals module via `GravshipLaunchAdapter`. The adapter exposes the
+three checkboxes (`forceVisitorsToLeave`, `boardColonyAnimals`, `boardColonyMechs`)
+as `LordJobExtraToggle` items appended to the role list. Enter/Space toggles them.
+See `src/Rituals/CLAUDE.md` for the full Lord-job dialog architecture.
 
 ## Dependencies
 **Requires:** ScreenReader/, Input/, World/ (navigation, scanner), Building/ (placement)
-**Used by:** Rituals/ (checkbox integration)
+**Used by:** Rituals/ (gravship adapter)
 
 ## Priority in UnifiedKeyboardPatch
 - 0.365: GravshipDestinationState (after TransportPodLaunchState at 0.36)
