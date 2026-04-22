@@ -546,6 +546,7 @@ namespace RimWorldAccess
             var zonesOtherSubcat = buckets.Sub("Zones-Other");
 
             var roomsCategory = buckets.Cat("Rooms");
+            var unexploredCategory = buckets.Cat("Unexplored");
 
             // Uncategorized category — dict of per-def subcategories. The "All" subcategory
             // at index 0 was inserted by BuildFromSchema.
@@ -780,7 +781,7 @@ namespace RimWorldAccess
             // Collect mineable tiles, terrain, and deep ore in a single pass over all cells
             int currentCellHash = map.listerThings.StateHashOfGroup(ThingRequestGroup.BuildingArtificial);
 
-            if (cachedTerrainNatural != null && currentCellHash == lastCellHash)
+            if (cachedTerrainNatural != null && currentCellHash == lastCellHash && !FogDirty)
             {
                 // Reuse cached cell data — skip 60K+ cell iteration entirely.
                 // Also mirror every cached item into the category's "All" subcategory.
@@ -795,6 +796,8 @@ namespace RimWorldAccess
                 mineableCategory.Subcategories[0].Items.AddRange(cachedMineableRare);
                 mineableCategory.Subcategories[0].Items.AddRange(cachedMineableStone);
                 mineableCategory.Subcategories[0].Items.AddRange(cachedMineableScanned);
+                if (cachedFogItems != null)
+                    unexploredCategory.Subcategories[0].Items.AddRange(cachedFogItems);
             }
             else
             {
@@ -805,6 +808,7 @@ namespace RimWorldAccess
                 // Collect mineables by def type for later adjacency grouping
                 var mineableRareByDef = new Dictionary<string, List<(IntVec3 position, Thing thing)>>();
                 var mineableStoneByDef = new Dictionary<string, List<(IntVec3 position, Thing thing)>>();
+                var fogCellItems = new List<ScannerItem>();
 
                 foreach (var cell in allCells)
                 {
@@ -870,6 +874,10 @@ namespace RimWorldAccess
                                 }
                             }
                         }
+                    }
+                    else
+                    {
+                        fogCellItems.Add(new ScannerItem(cell, "unexplored area", cursorPosition));
                     }
 
                     // Collect deep ore in same pass (only if active scanner exists)
@@ -940,6 +948,12 @@ namespace RimWorldAccess
                 cachedMineableRare = new List<ScannerItem>(mineableRareSubcat.Items);
                 cachedMineableStone = new List<ScannerItem>(mineableStoneSubcat.Items);
                 cachedMineableScanned = new List<ScannerItem>(mineableScannedSubcat.Items);
+
+                // Add fog cells to unexplored category and cache them
+                unexploredCategory.Subcategories[0].Items.AddRange(fogCellItems);
+                cachedFogItems = fogCellItems;
+                FogDirty = false;
+
                 lastCellHash = currentCellHash;
             }
 
@@ -1466,6 +1480,8 @@ namespace RimWorldAccess
         private static List<ScannerItem> cachedMineableRare = null;
         private static List<ScannerItem> cachedMineableStone = null;
         private static List<ScannerItem> cachedMineableScanned = null;
+        private static List<ScannerItem> cachedFogItems = null;
+        public static bool FogDirty = true;
         private static int lastCellHash = 0;
 
         /// <summary>
@@ -1479,6 +1495,8 @@ namespace RimWorldAccess
             cachedMineableRare = null;
             cachedMineableStone = null;
             cachedMineableScanned = null;
+            cachedFogItems = null;
+            FogDirty = true;
             lastCellHash = 0;
             designatorLabelCache = null;
         }
