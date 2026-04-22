@@ -509,16 +509,21 @@ namespace RimWorldAccess
             int metabolism = geneSet.MetabolismTotal;
             int archites = geneSet.ArchitesTotal;
 
-            // Build inline summary
+            // Use the game's own "total" keys so the summary is fully localized with no
+            // mod-authored English glue. ComplexityTotal -> "Total complexity",
+            // MetabolismTotal -> "Metabolic efficiency".
+            string cpxLabel = ((string)"ComplexityTotal".Translate()).CapitalizeFirst();
+            string metLabel = ((string)"MetabolismTotal".Translate()).CapitalizeFirst();
             var parts = new List<string>();
-            parts.Add($"Complexity {complexity}");
-            parts.Add($"Metabolism {metabolism.ToStringWithSign()}");
+            parts.Add($"{cpxLabel}: {complexity}");
+            parts.Add($"{metLabel}: {metabolism.ToStringWithSign()}");
             if (archites > 0)
             {
-                parts.Add($"Archites {archites}");
+                string arcLabel = ((string)"ArchitesRequired".Translate()).CapitalizeFirst();
+                parts.Add($"{arcLabel}: {archites}");
             }
 
-            string summaryLabel = $"Total Biostats: {string.Join(", ", parts)}";
+            string summaryLabel = string.Join(", ", parts);
 
             var summaryNode = new InspectionTreeItem
             {
