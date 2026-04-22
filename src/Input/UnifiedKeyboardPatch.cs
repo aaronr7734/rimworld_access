@@ -807,13 +807,13 @@ namespace RimWorldAccess
             // ===== PRIORITY 0.33: Handle ritual dialog if active =====
             // Handles all ritual types (weddings, funerals, childbirth, conversions, etc.)
             // Skip if overlay states are active - they take priority
-            if (RitualState.IsActive && !WindowlessDialogState.IsActive && !StatBreakdownState.IsActive && !WindowlessInspectionState.IsActive)
+            if (LordJobDialogState.IsActive && !WindowlessDialogState.IsActive && !StatBreakdownState.IsActive && !WindowlessInspectionState.IsActive)
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
                 bool alt = KeyboardHelper.IsAltHeld;
 
-                if (RitualState.HandleInput(key, shift, ctrl, alt))
+                if (LordJobDialogState.HandleInput(key, shift, ctrl, alt))
                 {
                     Event.current.Use();
                     return;

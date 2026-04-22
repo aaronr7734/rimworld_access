@@ -1332,7 +1332,7 @@ namespace RimWorldAccess
             if (SplitCaravanState.IsActive) return true;
             if (TradeNavigationState.IsActive) return true;
             if (TransportPodLoadingState.IsActive) return true;
-            if (RitualState.IsActive) return true;
+            if (LordJobDialogState.IsActive) return true;
 
             return false;
         }

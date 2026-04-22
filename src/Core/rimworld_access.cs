@@ -31,8 +31,10 @@ namespace RimWorldAccess
             Log.Message("[RimWorld Access] Applying Harmony patches...");
             harmony.PatchAll();
 
-            // DLC-safe: patch Dialog_BeginGravshipLaunch.Start if the type exists (Odyssey DLC)
-            ApplyGravshipStartPatch(harmony);
+            // DLC-safe: patch Start() on each Dialog_BeginLordJob subclass we don't already
+            // patch declaratively. The shared prefix returns false while LordJobDialogState is
+            // active, blocking accidental Start invocations behind the user's back.
+            ApplyLordJobStartPatches(harmony);
 
             // Log which patches were applied
             var patchedMethods = harmony.GetPatchedMethods();
@@ -51,17 +53,28 @@ namespace RimWorldAccess
             Application.quitting += OnApplicationQuit;
         }
 
-        private static void ApplyGravshipStartPatch(Harmony harmony)
+        private static void ApplyLordJobStartPatches(Harmony harmony)
         {
-            var gravshipDialogType = AccessTools.TypeByName("RimWorld.Dialog_BeginGravshipLaunch");
-            if (gravshipDialogType == null) return;
+            var prefix = AccessTools.Method(typeof(RitualPatch), nameof(RitualPatch.LordJobStartPrefix));
+            if (prefix == null) return;
 
-            var startMethod = AccessTools.Method(gravshipDialogType, "Start");
-            if (startMethod == null) return;
+            // Dialog_BeginRitual.Start is patched declaratively in RitualPatch.
+            // Patch the other two subclasses here so virtual dispatch hits each override.
+            string[] additionalDialogTypes =
+            {
+                "RimWorld.Dialog_BeginPsychicRitual",
+                "RimWorld.Dialog_BeginGravshipLaunch",
+            };
 
-            var prefixMethod = AccessTools.Method(typeof(RitualPatch), nameof(RitualPatch.GravshipStartPrefix));
-            harmony.Patch(startMethod, prefix: new HarmonyMethod(prefixMethod));
-            Log.Message("[RimWorld Access] Applied gravship launch Start() patch");
+            foreach (var typeName in additionalDialogTypes)
+            {
+                var t = AccessTools.TypeByName(typeName);
+                if (t == null) continue;
+                var startMethod = AccessTools.Method(t, "Start");
+                if (startMethod == null) continue;
+                harmony.Patch(startMethod, prefix: new HarmonyMethod(prefix));
+                Log.Message($"[RimWorld Access] Applied {typeName}.Start() prefix");
+            }
         }
 
         private static void OnApplicationQuit()
