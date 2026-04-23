@@ -57,6 +57,16 @@ namespace RimWorldAccess
                         return;
                     }
 
+                    // Suppress legacy direct-dispatch text/typeahead handlers when a modifier is held.
+                    // Unity IMGUI fires a follow-up keyCode=None character event for every keypress —
+                    // if an Alt/Ctrl shortcut just opened a new state with HandleCharacterInput, the
+                    // bare character would otherwise leak into that state's typeahead/text input.
+                    // (TypeaheadCharacterBuffer above is exempt — those callbacks opted in explicitly.)
+                    if (KeyboardHelper.IsAltHeld || KeyboardHelper.IsCtrlHeld)
+                    {
+                        return;
+                    }
+
                     // ScenarioBuilderState text editing (title, summary, description)
                     if (ScenarioBuilderState.IsActive && ScenarioBuilderState.IsEditingText)
                     {

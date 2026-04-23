@@ -48,6 +48,29 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Translates a RimWorld keyed string for display. Falls back to an English default
+        /// when no translation is registered so the label never reads as a raw key.
+        /// </summary>
+        private static string TranslateSyntheticName(string translationKey, string englishFallback)
+        {
+            if (string.IsNullOrEmpty(translationKey))
+                return englishFallback;
+
+            try
+            {
+                string translated = translationKey.Translate().ToString();
+                if (!string.IsNullOrEmpty(translated) && translated != translationKey)
+                    return translated;
+            }
+            catch
+            {
+                // Ignore and fall through
+            }
+
+            return englishFallback;
+        }
+
+        /// <summary>
         /// Gets a one-line summary description of an object.
         /// </summary>
         public static string GetObjectSummary(object obj)
@@ -56,7 +79,6 @@ namespace RimWorldAccess
 
             if (obj is Pawn pawn)
             {
-                string pawnType = pawn.RaceProps.Humanlike ? "Pawn" : "Animal";
                 string status = "";
 
                 if (pawn.Dead)
@@ -66,22 +88,34 @@ namespace RimWorldAccess
                 else if (pawn.Drafted)
                     status = " (Drafted)";
 
-                return $"{pawnType}: {pawn.LabelCap.StripTags()}{status}";
+                string displayName = pawn.LabelCap.StripTags();
+
+                // Prefix humanlikes with their translated kind (Colonist / Prisoner / Raider /
+                // Pirate / etc.) so the user knows the role at a glance. Animals' LabelCap
+                // already encodes the kind, so prefixing would read as "Muffalo: Muffalo".
+                if (pawn.RaceProps.Humanlike)
+                {
+                    string kindLabel = pawn.KindLabel.CapitalizeFirst();
+                    if (!string.IsNullOrEmpty(kindLabel) && !displayName.Equals(kindLabel, StringComparison.OrdinalIgnoreCase))
+                        return $"{kindLabel}: {displayName}{status}";
+                }
+
+                return $"{displayName}{status}";
             }
 
             if (obj is Building building)
             {
-                return $"Building: {building.LabelCap.StripTags()}";
+                return building.LabelCap.StripTags();
             }
 
             if (obj is Plant plant)
             {
-                return $"Plant: {plant.LabelCap.StripTags()}";
+                return plant.LabelCap.StripTags();
             }
 
             if (obj is Thing thing)
             {
-                return $"Item: {thing.LabelCap.StripTags()}";
+                return thing.LabelCap.StripTags();
             }
 
             if (obj is Zone zone)
@@ -105,7 +139,7 @@ namespace RimWorldAccess
             // Always add Overview first (synthetic category, not a real tab)
             categories.Add(new TabCategoryInfo
             {
-                Name = "Overview",
+                Name = TranslateSyntheticName("HealthOverview", "Overview"),
                 Tab = null,
                 Handler = TabHandlerType.RichNavigation,
                 IsKnown = true,
@@ -122,11 +156,11 @@ namespace RimWorldAccess
                 if (obj is Pawn pawn)
                 {
                     // Add Mood category (not a separate tab in RimWorld, but we show it)
-                    if (pawn.needs?.mood != null && !categories.Any(c => c.Name == "Mood"))
+                    if (pawn.needs?.mood != null && !categories.Any(c => c.OriginalCategoryName == "Mood"))
                     {
                         categories.Add(new TabCategoryInfo
                         {
-                            Name = "Mood",
+                            Name = TranslateSyntheticName("Mood", "Mood"),
                             Tab = null,
                             Handler = TabHandlerType.RichNavigation,
                             IsKnown = true,
@@ -135,11 +169,11 @@ namespace RimWorldAccess
                     }
 
                     // Add Skills category for humanlike pawns (part of Character tab in game)
-                    if (pawn.RaceProps.Humanlike && pawn.skills?.skills != null && !categories.Any(c => c.Name == "Skills"))
+                    if (pawn.RaceProps.Humanlike && pawn.skills?.skills != null && !categories.Any(c => c.OriginalCategoryName == "Skills"))
                     {
                         categories.Add(new TabCategoryInfo
                         {
-                            Name = "Skills",
+                            Name = TranslateSyntheticName("Skills", "Skills"),
                             Tab = null,
                             Handler = TabHandlerType.RichNavigation,
                             IsKnown = true,
@@ -148,7 +182,7 @@ namespace RimWorldAccess
                     }
 
                     // Add Work Priorities for humanlike pawns
-                    if (pawn.RaceProps.Humanlike && !categories.Any(c => c.Name == "Work Priorities"))
+                    if (pawn.RaceProps.Humanlike && !categories.Any(c => c.OriginalCategoryName == "Work Priorities"))
                     {
                         categories.Add(new TabCategoryInfo
                         {
@@ -161,7 +195,7 @@ namespace RimWorldAccess
                     }
 
                     // Add Job Queue if there are queued jobs
-                    if (pawn.jobs?.jobQueue?.Count > 0 && !categories.Any(c => c.Name == "Job Queue"))
+                    if (pawn.jobs?.jobQueue?.Count > 0 && !categories.Any(c => c.OriginalCategoryName == "Job Queue"))
                     {
                         categories.Add(new TabCategoryInfo
                         {
@@ -179,11 +213,11 @@ namespace RimWorldAccess
                 {
                     // Temperature control (not a tab, but a component)
                     var tempControl = building.TryGetComp<CompTempControl>();
-                    if (tempControl != null && !categories.Any(c => c.Name == "Temperature"))
+                    if (tempControl != null && !categories.Any(c => c.OriginalCategoryName == "Temperature"))
                     {
                         categories.Add(new TabCategoryInfo
                         {
-                            Name = "Temperature",
+                            Name = TranslateSyntheticName("Temperature", "Temperature"),
                             Tab = null,
                             Handler = TabHandlerType.Action,
                             IsKnown = true,
@@ -192,7 +226,7 @@ namespace RimWorldAccess
                     }
 
                     // Bed Assignment (not a tab)
-                    if (building is Building_Bed && !categories.Any(c => c.Name == "Bed Assignment"))
+                    if (building is Building_Bed && !categories.Any(c => c.OriginalCategoryName == "Bed Assignment"))
                     {
                         categories.Add(new TabCategoryInfo
                         {
@@ -208,7 +242,7 @@ namespace RimWorldAccess
                     if (!(building is Building_Bed))
                     {
                         var assignComp = building.TryGetComp<CompAssignableToPawn>();
-                        if (assignComp != null && !categories.Any(c => c.Name == "Owner Assignment"))
+                        if (assignComp != null && !categories.Any(c => c.OriginalCategoryName == "Owner Assignment"))
                         {
                             categories.Add(new TabCategoryInfo
                             {
@@ -224,7 +258,7 @@ namespace RimWorldAccess
                     // Meditation Focus (meditation spots with Royalty DLC)
                     if (building.def == ThingDefOf.MeditationSpot
                         && ModsConfig.RoyaltyActive
-                        && !categories.Any(c => c.Name == "Meditation Focus"))
+                        && !categories.Any(c => c.OriginalCategoryName == "Meditation Focus"))
                     {
                         categories.Add(new TabCategoryInfo
                         {
@@ -237,7 +271,7 @@ namespace RimWorldAccess
                     }
 
                     // Plant Selection for plant growers
-                    if (building is IPlantToGrowSettable && !categories.Any(c => c.Name == "Plant Selection"))
+                    if (building is IPlantToGrowSettable && !categories.Any(c => c.OriginalCategoryName == "Plant Selection"))
                     {
                         categories.Add(new TabCategoryInfo
                         {
@@ -251,7 +285,7 @@ namespace RimWorldAccess
 
                     // Power info
                     var powerComp = building.TryGetComp<CompPowerTrader>();
-                    if (powerComp != null && !categories.Any(c => c.Name == "Power"))
+                    if (powerComp != null && !categories.Any(c => c.OriginalCategoryName == "Power"))
                     {
                         categories.Add(new TabCategoryInfo
                         {
@@ -265,7 +299,7 @@ namespace RimWorldAccess
 
                     // Dynamically discovered components
                     var discoveredComponents = BuildingComponentsHelper.GetDiscoverableComponents(building);
-                    foreach (var component in discoveredComponents.Where(cmp => !categories.Any(c => c.Name == cmp.CategoryName)))
+                    foreach (var component in discoveredComponents.Where(cmp => !categories.Any(c => c.OriginalCategoryName == cmp.CategoryName)))
                     {
                         categories.Add(new TabCategoryInfo
                         {
@@ -278,7 +312,7 @@ namespace RimWorldAccess
                     }
 
                     // Facility linking (CompFacility / CompAffectedByFacilities)
-                    if (FacilityLinkHelper.HasFacilityComps(building) && !categories.Any(c => c.Name == "Linked Facilities"))
+                    if (FacilityLinkHelper.HasFacilityComps(building) && !categories.Any(c => c.OriginalCategoryName == "Linked Facilities"))
                     {
                         categories.Add(new TabCategoryInfo
                         {

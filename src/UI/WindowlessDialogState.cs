@@ -252,7 +252,12 @@ namespace RimWorldAccess
                 return true;
             }
 
-            return false;
+            // Consume any remaining KeyDown events so global shortcuts (T for time,
+            // 1-7 for tile info, A for architect, etc.) can't fire while a windowless
+            // dialog is modal. Polling patches like DetailInfoPatch guard themselves
+            // via WindowlessDialogState.IsActive; this handles the IMGUI side.
+            evt.Use();
+            return true;
         }
 
         private static bool HandleTextFieldInput(TextFieldElement textField, Event evt)

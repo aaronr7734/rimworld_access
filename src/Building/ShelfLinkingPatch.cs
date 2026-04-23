@@ -250,6 +250,24 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Patch to add custom storage linking gizmos to Building_OutfitStand.
+        /// Outfit stands implement IStorageGroupMember and share the same vanilla
+        /// "select 2 or more" multi-select requirement shelves do, so the accessible
+        /// alternatives apply identically. Also covers Building_KidOutfitStand, which
+        /// extends Building_OutfitStand without overriding GetGizmos.
+        /// </summary>
+        [HarmonyPatch(typeof(Building_OutfitStand))]
+        [HarmonyPatch("GetGizmos")]
+        public static class Building_OutfitStand_GetGizmos_Patch
+        {
+            [HarmonyPostfix]
+            public static IEnumerable<Gizmo> Postfix(IEnumerable<Gizmo> __result, Building_OutfitStand __instance)
+            {
+                return ProcessStorageGizmos(__result, __instance as IStorageGroupMember, __instance);
+            }
+        }
+
+        /// <summary>
         /// Links storage items, showing confirmation if any are in different groups.
         /// </summary>
         /// <param name="source">The source storage member</param>

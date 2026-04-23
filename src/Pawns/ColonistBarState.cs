@@ -84,8 +84,15 @@ namespace RimWorldAccess
             if (!ModsConfig.BiotechActive || Find.CurrentMap == null)
                 return new List<Pawn>();
 
+            // Mirrors vanilla PawnTable_Mechs.LabelSortFunction (overseer → control
+            // group → kind → label) so the bar and the Mechs menu agree. The final
+            // tiebreaker uses NaturalStringComparer so "Lifter 10" sorts after
+            // "Lifter 2" instead of between "Lifter 1" and "Lifter 2".
             return Find.CurrentMap.mapPawns.SpawnedColonyMechs
-                .OrderBy(p => p.LabelShort)
+                .OrderBy(p => p.GetOverseer()?.thingIDNumber ?? int.MaxValue)
+                .ThenBy(p => p.GetMechControlGroup()?.Index ?? int.MaxValue)
+                .ThenBy(p => p.KindLabel)
+                .ThenBy(p => p.Label, NaturalStringComparer.Instance)
                 .ToList();
         }
 

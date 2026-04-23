@@ -223,6 +223,7 @@ namespace RimWorldAccess
                 || NotificationMenuState.IsActive
                 || AssignMenuState.IsActive
                 || WorkMenuState.IsActive
+                || WorkTableState.IsActive
                 || StorageSettingsMenuState.IsActive
                 || ZoneRenameState.IsActive
                 || StorageRenameState.IsActive

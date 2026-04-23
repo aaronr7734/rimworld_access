@@ -12,9 +12,6 @@ namespace RimWorldAccess
     [HarmonyPatch("Update")]
     public static class DetailInfoPatch
     {
-        private static float lastDetailRequestTime = 0f;
-        private const float DetailRequestCooldown = 0.3f; // Prevent spam
-
         /// <summary>
         /// Postfix patch to check for tile info hotkeys after normal camera updates.
         /// </summary>
@@ -69,20 +66,11 @@ namespace RimWorldAccess
 
             if (pressedKey.HasValue)
             {
-                // Cooldown to prevent accidental double-presses from causing spam
-                if (Time.time - lastDetailRequestTime < DetailRequestCooldown)
-                    return;
-
-                lastDetailRequestTime = Time.time;
-
-                // Get appropriate information based on key pressed
                 IntVec3 currentPosition = MapNavigationState.CurrentCursorPosition;
                 string info = GetInfoForKey(pressedKey.Value, currentPosition, Find.CurrentMap);
 
-                // Copy to clipboard for screen reader
                 TolkHelper.Speak(info);
 
-                // Log to console for debugging
                 Log.Message($"Tile info ({pressedKey.Value}) requested for {currentPosition}");
             }
         }
@@ -96,6 +84,7 @@ namespace RimWorldAccess
         {
             return ScannerSearchState.IsActive ||
                    GoToState.IsActive ||
+                   WindowlessDialogState.IsActive ||
                    WorkMenuState.IsActive ||
                    WorkTableState.IsActive ||
                    BillConfigState.IsActive ||
