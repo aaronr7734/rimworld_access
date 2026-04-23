@@ -35,6 +35,15 @@ namespace RimWorldAccess
         private static int lastThingStateHash = 0;
         private static int lastDesignationCount = 0;
         private static int lastZoneCount = 0;
+        private static int lastZoneCellHash = 0;
+
+        // Navigation session: within a sequence of Page Up/Down presses the sort order is
+        // frozen so sequential navigation is stable and fast (no per-press re-sort). A session
+        // ends when the cursor moves externally, the subcategory changes, the map state
+        // changes (pawn dies, designation added, zone edited), or search state changes.
+        private static bool navSessionActive = false;
+        private static IntVec3 lastScannerCursor = IntVec3.Invalid;
+        private static bool scannerDrivenJumpInProgress = false;
 
         /// <summary>
         /// Toggles auto-jump mode on/off (Alt+Home).
@@ -45,6 +54,39 @@ namespace RimWorldAccess
             autoJumpMode = !autoJumpMode;
             string status = autoJumpMode ? "enabled" : "disabled";
             TolkHelper.Speak($"Auto-jump mode {status}", SpeechPriority.High);
+        }
+
+        /// <summary>
+        /// Invalidates the current navigation session. Next Page Up/Down will re-sort from
+        /// the current cursor position and start a fresh session.
+        /// </summary>
+        public static void InvalidateNavigationSession()
+        {
+            navSessionActive = false;
+            lastScannerCursor = IntVec3.Invalid;
+        }
+
+        /// <summary>
+        /// Called by MapNavigationState.CurrentCursorPosition setter whenever the cursor is
+        /// written. Invalidates the nav session unless the write is coming from our own
+        /// JumpToCurrent (which sets scannerDrivenJumpInProgress for the duration of the write).
+        /// </summary>
+        public static void NotifyCursorWritten()
+        {
+            if (!scannerDrivenJumpInProgress)
+                InvalidateNavigationSession();
+        }
+
+        /// <summary>
+        /// Starts a fresh navigation session: sorts the current subcategory from the current
+        /// cursor, marks the session active, and records the cursor as the anchor. Called on
+        /// the first Page Up/Down in a session and on Home/End.
+        /// </summary>
+        private static void BeginNavigationSession()
+        {
+            EnsureSortedForCurrentCursor();
+            navSessionActive = true;
+            lastScannerCursor = MapNavigationState.CurrentCursorPosition;
         }
 
         /// <summary>
@@ -93,6 +135,8 @@ namespace RimWorldAccess
         /// </summary>
         /// <param name="name">The name for the temporary category</param>
         /// <param name="items">The items to include in the category</param>
+        // Any temporary-category change (search activate, search clear) ends the session so
+        // the next Page Down re-sorts in the new category context.
         public static void CreateTemporaryCategory(string name, List<ScannerItem> items)
         {
             // Remove any existing temporary category first
@@ -112,6 +156,9 @@ namespace RimWorldAccess
             currentSubcategoryIndex = 0;
             currentItemIndex = 0;
             currentBulkIndex = 0;
+
+            // Search results are a different subcategory context — end any in-progress session.
+            InvalidateNavigationSession();
         }
 
         /// <summary>
@@ -124,6 +171,7 @@ namespace RimWorldAccess
             {
                 categories.Remove(temporaryCategory);
                 temporaryCategory = null;
+                InvalidateNavigationSession();
             }
         }
 
@@ -372,10 +420,13 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Re-sorts the current subcategory by live distance from the cursor IF the cursor has
-        /// moved since the last sort. Does NOT modify currentItemIndex — callers that need to
-        /// preserve their position across the re-sort should use EnsureSortedPreservingCurrent
-        /// instead. This method is used by category/subcategory switches that explicitly reset
-        /// the index to 0 or Count-1 before calling.
+        /// moved since the last sort. Does NOT modify currentItemIndex.
+        ///
+        /// Called by BeginNavigationSession at the start of a fresh Page Up/Down sequence and
+        /// by category/subcategory switches that explicitly reset the index to 0 or Count-1.
+        /// Within an active navigation session, no re-sort happens on each press — the frozen
+        /// order is what makes sequential navigation stable and eliminates the ping-pong that
+        /// occurred when distance was recomputed after every scanner-driven cursor jump.
         /// </summary>
         private static bool EnsureSortedForCurrentCursor()
         {
@@ -396,66 +447,10 @@ namespace RimWorldAccess
             foreach (var item in subcat.Items)
                 item.Distance = ComputeLiveDistance(item, cursor);
 
-            // Stable sort (OrderBy) — so tied distances preserve input order across re-sorts.
-            // Using in-place List.Sort here would be unstable and cause bouncing between
-            // tied items on successive navigation presses.
+            // Stable sort (OrderBy) — so tied distances preserve input order.
             subcat.Items = subcat.Items.OrderBy(i => i.Distance).ToList();
             lastSortedCursorPosition = cursor;
             return true;
-        }
-
-        /// <summary>
-        /// Re-sorts the current subcategory by live distance from the cursor UNCONDITIONALLY
-        /// (even if the cursor hasn't moved — to catch moving Things like pawns), while
-        /// preserving the user's scanner position by reference. The user's current ScannerItem
-        /// is captured, the list is re-sorted, and currentItemIndex is restored to wherever
-        /// that item ends up in the new order.
-        ///
-        /// This is the "navigation" entry point used by NextItem/PreviousItem/Home/End so
-        /// browsing does not get disorienting reshuffles that lose the user's place.
-        ///
-        /// NOTE (experimental): Fix 2 — always re-sorts, not just on cursor change. This ensures
-        /// fresh sort order when Things move around a stationary cursor. May be reverted if it
-        /// causes a worse experience (e.g., noisy order on fast-moving pawns).
-        /// </summary>
-        private static void EnsureSortedPreservingCurrent()
-        {
-            if (!MapNavigationState.IsInitialized) return;
-
-            var subcat = GetCurrentSubcategory();
-            if (subcat == null || subcat.Items.Count == 0) return;
-
-            // Capture the currently selected item by reference.
-            ScannerItem currentRef = null;
-            if (currentItemIndex >= 0 && currentItemIndex < subcat.Items.Count)
-                currentRef = subcat.Items[currentItemIndex];
-
-            // Re-sort unconditionally with live distances (Fix 2).
-            // Stable sort (OrderBy) — critical for avoiding bouncing between items at
-            // equal distances. In-place List.Sort is unstable and causes user-visible
-            // "trapped" navigation when two items share the same distance (e.g., rich
-            // soil at 11.0 South and dandelions at 11.0 South tied).
-            var cursor = MapNavigationState.CurrentCursorPosition;
-            foreach (var item in subcat.Items)
-                item.Distance = ComputeLiveDistance(item, cursor);
-            subcat.Items = subcat.Items.OrderBy(i => i.Distance).ToList();
-            lastSortedCursorPosition = cursor;
-
-            // Restore position by reference — find where the old current item ended up (Fix 1).
-            if (currentRef != null)
-            {
-                int newIdx = subcat.Items.IndexOf(currentRef);
-                if (newIdx >= 0)
-                {
-                    currentItemIndex = newIdx;
-                    return;
-                }
-            }
-
-            // Fallback: the item is gone (rare — usually only on the very first call before
-            // anything was selected). Land on the closest item.
-            currentItemIndex = 0;
-            currentBulkIndex = 0;
         }
 
         /// <summary>
@@ -491,7 +486,11 @@ namespace RimWorldAccess
             lastThingStateHash = 0;
             lastDesignationCount = 0;
             lastZoneCount = 0;
+            lastZoneCellHash = 0;
             ScannerHelper.InvalidateCache();
+
+            // End any in-progress navigation session.
+            InvalidateNavigationSession();
 
             // Also clear saved focus since it's no longer valid
             savedCategoryIndex = -1;
@@ -529,12 +528,21 @@ namespace RimWorldAccess
             int currentThingHash = map.listerThings.StateHashOfGroup(ThingRequestGroup.Everything);
             int currentDesignationCount = map.designationManager.AllDesignations.Count;
             int currentZoneCount = map.zoneManager.AllZones.Count;
+            // Zone-count alone misses cell-level edits (dragging a stockpile to grow/shrink).
+            // Mix a sum of per-zone cell counts into the hash so those edits invalidate the cache.
+            int currentZoneCellHash = 0;
+            foreach (var zone in map.zoneManager.AllZones)
+            {
+                int cellCount = zone?.cells?.Count ?? 0;
+                currentZoneCellHash = unchecked(currentZoneCellHash * 31 + cellCount);
+            }
 
             bool cacheValid = cachedCategories != null
                 && cachedCategories.Count > 0
                 && currentThingHash == lastThingStateHash
                 && currentDesignationCount == lastDesignationCount
-                && currentZoneCount == lastZoneCount;
+                && currentZoneCount == lastZoneCount
+                && currentZoneCellHash == lastZoneCellHash;
 
             if (cacheValid)
             {
@@ -568,7 +576,11 @@ namespace RimWorldAccess
                 lastThingStateHash = currentThingHash;
                 lastDesignationCount = currentDesignationCount;
                 lastZoneCount = currentZoneCount;
+                lastZoneCellHash = currentZoneCellHash;
                 lastSortedCursorPosition = cursorPos;
+                // Map state changed (cache miss) — the previous navigation snapshot is no
+                // longer valid. Pawn death / designation / zone edit all land here.
+                InvalidateNavigationSession();
 
                 // Get filtered items from already-collected categories
                 var filteredItems = ScannerSearchState.RefreshMapFilter(categories);
@@ -626,9 +638,12 @@ namespace RimWorldAccess
             lastThingStateHash = currentThingHash;
             lastDesignationCount = currentDesignationCount;
             lastZoneCount = currentZoneCount;
+            lastZoneCellHash = currentZoneCellHash;
             // CollectMapItems sorted items by distance from cursorPos, so the current cursor
             // matches the sort order. Skip the next EnsureSortedForCurrentCursor re-sort.
             lastSortedCursorPosition = cursorPos;
+            // Map state changed (cache miss) — old navigation snapshot is invalid.
+            InvalidateNavigationSession();
 
             // Re-add temporary category if it existed
             if (savedTemporaryCategory != null)
@@ -651,66 +666,70 @@ namespace RimWorldAccess
         {
             if (WorldNavigationState.IsActive) return;
 
-            // Initialize scanner if not already done
-            if (categories.Count == 0)
-            {
-                RefreshItems();
-                if (categories.Count == 0) return;
-                AnnounceCurrentCategory();
-            }
+            // Always refresh: catches pawn death, designations added, zone edits, etc.
+            // RefreshItems is cheap on a cache hit and invalidates the nav session on a miss.
+            bool wasEmpty = categories.Count == 0;
+            RefreshItems();
+            if (categories.Count == 0) return;
+            if (wasEmpty) AnnounceCurrentCategory();
 
             var currentSubcat = GetCurrentSubcategory();
             if (currentSubcat == null || currentSubcat.Items.Count == 0) return;
 
-            // Re-sort unconditionally, preserving the user's position by reference.
-            // Then advance normally to the next item after their current position in the
-            // fresh sort order.
-            EnsureSortedPreservingCurrent();
-
-            currentItemIndex++;
-            if (currentItemIndex >= currentSubcat.Items.Count)
-            {
-                currentItemIndex = 0; // Wrap to first item
-            }
-            currentBulkIndex = 0; // Reset bulk index when changing items
-
-            // Auto-jump if enabled
-            if (autoJumpMode)
-            {
-                JumpToCurrent();
-            }
-            else
-            {
-                AnnounceCurrentItem();
-            }
+            AdvanceInSession(forward: true, currentSubcat);
         }
 
         public static void PreviousItem()
         {
             if (WorldNavigationState.IsActive) return;
 
-            // Initialize scanner if not already done
-            if (categories.Count == 0)
-            {
-                RefreshItems();
-                if (categories.Count == 0) return;
-                AnnounceCurrentCategory();
-            }
+            bool wasEmpty = categories.Count == 0;
+            RefreshItems();
+            if (categories.Count == 0) return;
+            if (wasEmpty) AnnounceCurrentCategory();
 
             var currentSubcat = GetCurrentSubcategory();
             if (currentSubcat == null || currentSubcat.Items.Count == 0) return;
 
-            // Re-sort unconditionally, preserving the user's position by reference.
-            EnsureSortedPreservingCurrent();
+            AdvanceInSession(forward: false, currentSubcat);
+        }
 
-            currentItemIndex--;
-            if (currentItemIndex < 0)
+        /// <summary>
+        /// Shared navigation step for NextItem / PreviousItem. If no session is active,
+        /// starts a fresh one (sorting by distance from the current cursor). If the cursor
+        /// has drifted from the last scanner-driven position (e.g., some code path bypassed
+        /// the property-setter hook), invalidates the session first as a safety net.
+        /// Within an active session, advances the index through the frozen sort order.
+        /// </summary>
+        private static void AdvanceInSession(bool forward, ScannerSubcategory currentSubcat)
+        {
+            // Drift safety net: if the cursor is not where we last left it, invalidate.
+            if (navSessionActive
+                && lastScannerCursor.IsValid
+                && MapNavigationState.CurrentCursorPosition != lastScannerCursor)
             {
-                currentItemIndex = currentSubcat.Items.Count - 1; // Wrap to last item
+                InvalidateNavigationSession();
+            }
+
+            if (!navSessionActive)
+            {
+                BeginNavigationSession();
+            }
+
+            if (forward)
+            {
+                currentItemIndex++;
+                if (currentItemIndex >= currentSubcat.Items.Count)
+                    currentItemIndex = 0; // Wrap to first item
+            }
+            else
+            {
+                currentItemIndex--;
+                if (currentItemIndex < 0)
+                    currentItemIndex = currentSubcat.Items.Count - 1; // Wrap to last item
             }
             currentBulkIndex = 0; // Reset bulk index when changing items
 
-            // Auto-jump if enabled
             if (autoJumpMode)
             {
                 JumpToCurrent();
@@ -719,6 +738,9 @@ namespace RimWorldAccess
             {
                 AnnounceCurrentItem();
             }
+
+            // Record where the cursor ended up so the next press can detect drift.
+            lastScannerCursor = MapNavigationState.CurrentCursorPosition;
         }
 
         public static void NextBulkItem()
@@ -798,6 +820,9 @@ namespace RimWorldAccess
             RefreshItems();
             if (categories.Count == 0) return;
 
+            // Changing category ends the current navigation session.
+            InvalidateNavigationSession();
+
             currentCategoryIndex++;
             if (currentCategoryIndex >= categories.Count)
             {
@@ -825,6 +850,9 @@ namespace RimWorldAccess
 
             RefreshItems();
             if (categories.Count == 0) return;
+
+            // Changing category ends the current navigation session.
+            InvalidateNavigationSession();
 
             currentCategoryIndex--;
             if (currentCategoryIndex < 0)
@@ -856,6 +884,9 @@ namespace RimWorldAccess
 
             var currentCategory = GetCurrentCategory();
             if (currentCategory == null) return;
+
+            // Changing subcategory ends the current navigation session.
+            InvalidateNavigationSession();
 
             int startIndex = currentSubcategoryIndex;
             do
@@ -892,6 +923,9 @@ namespace RimWorldAccess
 
             var currentCategory = GetCurrentCategory();
             if (currentCategory == null) return;
+
+            // Changing subcategory ends the current navigation session.
+            InvalidateNavigationSession();
 
             int startIndex = currentSubcategoryIndex;
             do
@@ -1011,8 +1045,17 @@ namespace RimWorldAccess
                 targetPosition = targetThing.Position;
             }
 
-            // Update map cursor position
-            MapNavigationState.CurrentCursorPosition = targetPosition;
+            // Update map cursor position. Guard the write so NotifyCursorWritten does not
+            // invalidate the in-progress navigation session — this is a scanner-driven move.
+            scannerDrivenJumpInProgress = true;
+            try
+            {
+                MapNavigationState.CurrentCursorPosition = targetPosition;
+            }
+            finally
+            {
+                scannerDrivenJumpInProgress = false;
+            }
 
             // Jump camera to position
             Find.CameraDriver.JumpToCurrentMapLoc(targetPosition);
@@ -1094,11 +1137,8 @@ namespace RimWorldAccess
                 TolkHelper.Speak("Item no longer exists", SpeechPriority.High);
             }
 
-            // Re-sort unconditionally, preserving position by reference. currentItem stays
-            // pointing at the same ScannerItem; its index in the list may change but
-            // currentItem is still valid.
-            EnsureSortedPreservingCurrent();
-
+            // No re-sort here: ReadDistanceAndDirection only announces the current item's
+            // live distance and direction. Sort order is maintained by the navigation session.
             var cursorPos = MapNavigationState.CurrentCursorPosition;
             IntVec3 targetPos;
 
@@ -1527,8 +1567,10 @@ namespace RimWorldAccess
             var currentSubcat = GetCurrentSubcategory();
             if (currentSubcat == null || currentSubcat.Items.Count == 0) return;
 
-            // Ensure freshly sorted for current cursor, then jump to the closest (index 0).
-            EnsureSortedForCurrentCursor();
+            // Home: start a fresh session re-anchored to the current cursor, then land on the
+            // closest item. Subsequent Page Down walks forward from there in a stable order.
+            InvalidateNavigationSession();
+            BeginNavigationSession();
             currentItemIndex = 0;
             currentBulkIndex = 0;
 
@@ -1540,6 +1582,7 @@ namespace RimWorldAccess
             {
                 AnnounceCurrentItem();
             }
+            lastScannerCursor = MapNavigationState.CurrentCursorPosition;
         }
 
         /// <summary>
@@ -1560,8 +1603,10 @@ namespace RimWorldAccess
             var currentSubcat = GetCurrentSubcategory();
             if (currentSubcat == null || currentSubcat.Items.Count == 0) return;
 
-            // Ensure freshly sorted for current cursor, then jump to the farthest (last index).
-            EnsureSortedForCurrentCursor();
+            // End: start a fresh session re-anchored to the current cursor, then land on the
+            // farthest item. Subsequent Page Up walks backward from there in a stable order.
+            InvalidateNavigationSession();
+            BeginNavigationSession();
             currentItemIndex = currentSubcat.Items.Count - 1;
             currentBulkIndex = 0;
 
@@ -1573,6 +1618,7 @@ namespace RimWorldAccess
             {
                 AnnounceCurrentItem();
             }
+            lastScannerCursor = MapNavigationState.CurrentCursorPosition;
         }
     }
 }

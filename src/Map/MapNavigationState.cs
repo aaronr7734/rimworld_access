@@ -75,7 +75,13 @@ namespace RimWorldAccess
             set
             {
                 if (Find.CurrentMap != null)
+                {
                     cursorPositionsByMap[Find.CurrentMap.uniqueID] = value;
+                    // Any external cursor write invalidates the scanner navigation session so
+                    // the next Page Up/Down re-sorts from the new cursor. Scanner-driven jumps
+                    // (JumpToCurrent) guard with a flag so they do not self-invalidate.
+                    ScannerState.NotifyCursorWritten();
+                }
             }
         }
 
