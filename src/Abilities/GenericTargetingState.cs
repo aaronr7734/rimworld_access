@@ -31,11 +31,15 @@ namespace RimWorldAccess
         private static IntVec3 casterPosition = IntVec3.Invalid;
         private static Map casterMap;
         private static float effectiveRange;
+        private static float minRange;
+        private static float aoeRadius;
         private static string sourceLabel;
 
         public static bool IsActive => isActive;
         public static ITargetingSource CurrentSource => currentSource;
         public static float EffectiveRange => effectiveRange;
+        public static float MinRange => minRange;
+        public static float AoeRadius => aoeRadius;
         public static IntVec3 CasterPosition => casterPosition;
 
         public static void Open(ITargetingSource source)
@@ -45,6 +49,8 @@ namespace RimWorldAccess
             casterPosition = source.Caster?.Position ?? IntVec3.Invalid;
             casterMap = source.Caster?.Map;
             effectiveRange = ExtractRange(source);
+            minRange = ExtractMinRange(source);
+            aoeRadius = ExtractAoeRadius(source);
             sourceLabel = ExtractLabel(source);
             isActive = true;
 
@@ -58,6 +64,8 @@ namespace RimWorldAccess
             casterPosition = IntVec3.Invalid;
             casterMap = null;
             effectiveRange = 0f;
+            minRange = 0f;
+            aoeRadius = 0f;
             sourceLabel = null;
         }
 
@@ -90,24 +98,69 @@ namespace RimWorldAccess
             {
                 float distance = (cursor - casterPosition).LengthHorizontal;
                 sb.Append($"Distance: {distance:F0} tiles");
-                if (effectiveRange > 0f)
+                if (distance > effectiveRange && effectiveRange > 0f)
                 {
-                    sb.Append(distance <= effectiveRange ? ", IN RANGE" : $", OUT OF RANGE (max {effectiveRange:F0})");
+                    sb.Append($", OUT OF RANGE (max {effectiveRange:F0})");
+                }
+                else if (distance < minRange && minRange > 0f)
+                {
+                    sb.Append($", TOO CLOSE (min {minRange:F0})");
+                }
+                else if (effectiveRange > 0f)
+                {
+                    sb.Append(", IN RANGE");
                 }
                 if (casterMap != null && !GenSight.LineOfSight(casterPosition, cursor, casterMap))
                 {
                     sb.Append(", NO LINE OF SIGHT");
                 }
+                if (aoeRadius > 0f)
+                {
+                    sb.Append($", Explosion radius: {aoeRadius:F0}");
+                }
             }
             else if (effectiveRange > 0f)
             {
                 sb.Append($"Range: {effectiveRange:F0} tiles");
+                if (aoeRadius > 0f)
+                    sb.Append($", Explosion radius: {aoeRadius:F0}");
             }
             else
             {
                 sb.Append("No range information");
             }
             TolkHelper.Speak(sb.ToString());
+        }
+
+        /// <summary>
+        /// Returns null if the cursor is within the verb's min/max range, or a localized error
+        /// message if below min or beyond max. Mirrors the actual hit-check vanilla uses in
+        /// <c>Verb.OutOfRange</c>, but reports it to the user before committing the order so we
+        /// can stay in targeting mode instead of accepting a job the verb will silently refuse.
+        /// </summary>
+        public static string ValidateRangeError(IntVec3 cursor)
+        {
+            if (!isActive || !casterPosition.IsValid || !cursor.IsValid)
+                return null;
+
+            float distance = (cursor - casterPosition).LengthHorizontal;
+
+            if (effectiveRange > 0f && distance > effectiveRange)
+                return $"Out of range. Distance: {distance:F0}, max range: {effectiveRange:F0}";
+
+            // Use the target-aware min range (matches Verb.OutOfRange). For non-adjacent targets
+            // of projectile weapons this snaps to 1.421 even when minRange is 0, so gate on the
+            // declared minRange being > 0 to avoid announcing a "too close" error for weapons
+            // that have no declared minimum.
+            var verb = currentSource?.GetVerb;
+            if (verb?.verbProps != null && verb.verbProps.minRange > 0f)
+            {
+                float effMin = verb.verbProps.EffectiveMinRange(new LocalTargetInfo(cursor), verb.caster);
+                if (distance < effMin)
+                    return $"Too close. Distance: {distance:F0}, min range: {effMin:F0}";
+            }
+
+            return null;
         }
 
         public static string BuildSuccessAnnouncement(LocalTargetInfo target)
@@ -126,7 +179,14 @@ namespace RimWorldAccess
             if (!string.IsNullOrEmpty(typeDesc))
                 sb.Append($". {typeDesc}");
             if (effectiveRange > 0f)
-                sb.Append($". Range: {effectiveRange:F0} tiles");
+            {
+                if (minRange > 0f)
+                    sb.Append($". Range: {minRange:F0} to {effectiveRange:F0} tiles");
+                else
+                    sb.Append($". Range: {effectiveRange:F0} tiles");
+            }
+            if (aoeRadius > 0f)
+                sb.Append($". Explosion radius: {aoeRadius:F0} tiles");
             sb.Append(". Press Enter at cursor to confirm. R for distance and line of sight. Escape to cancel.");
             return sb.ToString();
         }
@@ -148,6 +208,42 @@ namespace RimWorldAccess
         private static float ExtractRange(ITargetingSource source)
         {
             try { return source.GetVerb?.EffectiveRange ?? 0f; }
+            catch { return 0f; }
+        }
+
+        /// <summary>
+        /// Returns the minimum-range value sighted players see drawn as a ring around the caster
+        /// during targeting. Matches the call in <c>VerbProperties.DrawRadiusRing</c>, which uses
+        /// <c>allowAdjacentShot: true</c> — the smaller-of-the-two effective min, i.e. the ring
+        /// actually rendered on screen.
+        /// </summary>
+        private static float ExtractMinRange(ITargetingSource source)
+        {
+            try
+            {
+                var props = source.GetVerb?.verbProps;
+                if (props == null) return 0f;
+                // Gate on declared minRange so projectile weapons without a min don't announce
+                // the 1.421-adjacency floor that DrawRadiusRing skips.
+                if (props.minRange <= 0f) return 0f;
+                return props.EffectiveMinRange(allowAdjacentShot: true);
+            }
+            catch { return 0f; }
+        }
+
+        /// <summary>
+        /// Returns the AOE ring radius sighted players see drawn around the cursor during
+        /// targeting. Matches <c>Verb.DrawHighlightFieldRadiusAroundTarget</c>, which calls the
+        /// same <c>HighlightFieldRadiusAroundTarget</c> method overridden by
+        /// <c>Verb_LaunchProjectile</c> (projectile explosionRadius + display padding,
+        /// plus forcedMissRadius for burst shots), <c>Verb_MechCluster</c>, etc.
+        /// </summary>
+        private static float ExtractAoeRadius(ITargetingSource source)
+        {
+            try
+            {
+                return source.GetVerb?.HighlightFieldRadiusAroundTarget(out _) ?? 0f;
+            }
             catch { return 0f; }
         }
     }

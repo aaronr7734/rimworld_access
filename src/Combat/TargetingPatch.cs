@@ -193,6 +193,24 @@ namespace RimWorldAccess
                         }
                     }
 
+                    // Generic verb-range pre-check (mech weapons, turret-pack apparel, modded
+                    // sources routed through GenericTargetingState). Vanilla's Verb.OrderForceTarget
+                    // only rejects below-min-range when the target is adjacent, so non-adjacent
+                    // below-min targets are accepted and then silently stall at the aim stance
+                    // (e.g. Diabolus Hellsphere cannon with minRange 5.9 targeting a 3-tile cell).
+                    // Sighted players see the ring and avoid it — announce it to screen readers
+                    // and keep targeting open so the user can adjust and retry.
+                    if (GenericTargetingState.IsActive)
+                    {
+                        string genericRangeError = GenericTargetingState.ValidateRangeError(cursorPosition);
+                        if (genericRangeError != null)
+                        {
+                            TolkHelper.Speak(genericRangeError, SpeechPriority.High);
+                            Event.current.Use();
+                            return false;
+                        }
+                    }
+
                     // Cell-fallback rejection: only block "no thing at cursor" when the params
                     // legitimately don't accept locations. Verbs that DO accept cells (turret
                     // packs, mortars, ranged mech abilities) MUST be allowed to fire on empty
