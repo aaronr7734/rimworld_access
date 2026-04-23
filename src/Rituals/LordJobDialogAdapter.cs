@@ -16,6 +16,8 @@ namespace RimWorldAccess
         string DescriptionText { get; }
         string ExtraExplanationText { get; }
         string ExpectedQualitySentence { get; }
+        string ExpectedDurationText { get; }
+        string OutcomeDescriptionText { get; }
 
         IReadOnlyList<string> ComputeWarnings();
 
@@ -115,6 +117,8 @@ namespace RimWorldAccess
             AccessTools.Method(typeof(Dialog_BeginLordJob), "PopulateQualityFactors");
         protected static readonly MethodInfo PopulateOutcomePossibilitiesMethod =
             AccessTools.Method(typeof(Dialog_BeginLordJob), "PopulateOutcomePossibilities");
+        protected static readonly MethodInfo ExpectedDurationLabelMethod =
+            AccessTools.Method(typeof(Dialog_BeginLordJob), "ExpectedDurationLabel");
 
         protected readonly Dialog_BeginLordJob dialog;
 
@@ -168,6 +172,23 @@ namespace RimWorldAccess
                 catch { return null; }
             }
         }
+
+        public virtual string ExpectedDurationText
+        {
+            get
+            {
+                try
+                {
+                    if (ExpectedDurationLabelMethod == null) return null;
+                    GetQualityFactors(out var range);
+                    string raw = ResolveTaggedString(ExpectedDurationLabelMethod.Invoke(dialog, new object[] { range }));
+                    return string.IsNullOrEmpty(raw) ? null : SanitizeText(raw);
+                }
+                catch { return null; }
+            }
+        }
+
+        public virtual string OutcomeDescriptionText => null;
 
         public virtual IReadOnlyList<string> ComputeWarnings()
         {

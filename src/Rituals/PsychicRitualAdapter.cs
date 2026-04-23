@@ -38,6 +38,24 @@ namespace RimWorldAccess
 
         public override string ClosingAnnouncement => "Psychic ritual dialog closed.";
 
+        public override string OutcomeDescriptionText
+        {
+            get
+            {
+                if (psychicRitualDef == null || assignments == null) return null;
+                try
+                {
+                    GetQualityFactors(out var range);
+                    string qualityNumber = System.Math.Abs(range.min - range.max) < 0.01f
+                        ? range.min.ToStringPercent("F0")
+                        : $"{range.min.ToStringPercent("F0")}-{range.max.ToStringPercent("F0")}";
+                    string raw = psychicRitualDef.OutcomeDescription(range, qualityNumber, assignments).Resolve();
+                    return string.IsNullOrEmpty(raw) ? null : raw.Replace("\n\n", " ").Replace("\n", " ");
+                }
+                catch { return null; }
+            }
+        }
+
         protected override void AppendDialogSpecificWarnings(List<string> warnings)
         {
             if (assignments == null || psychicRitualDef == null) return;

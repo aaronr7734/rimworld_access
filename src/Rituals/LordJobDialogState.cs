@@ -95,6 +95,14 @@ namespace RimWorldAccess
                 if (!string.IsNullOrEmpty(qualitySentence))
                     sb.Append($" {qualitySentence}");
 
+                string duration = adapter.ExpectedDurationText;
+                if (!string.IsNullOrEmpty(duration))
+                    sb.Append($" {duration}");
+
+                string outcomeDesc = adapter.OutcomeDescriptionText;
+                if (!string.IsNullOrEmpty(outcomeDesc))
+                    sb.Append($" {outcomeDesc}");
+
                 if (lastWarnings.Count > 0)
                     sb.Append($" Warning: {string.Join(" ", lastWarnings)}");
 
