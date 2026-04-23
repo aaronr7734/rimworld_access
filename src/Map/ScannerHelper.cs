@@ -139,6 +139,12 @@ namespace RimWorldAccess
         public bool IsZone => Zone != null; // True if this represents a zone
         public Room Room { get; set; } // For room items
         public bool IsRoom => Room != null; // True if this represents a room
+
+        // Holding platform reference for captured Anomaly entities. When set, Thing is the
+        // held pawn (not spawned on the map) and Position is the platform's position so
+        // navigation/jump behavior works.
+        public Building_HoldingPlatform HoldingPlatform { get; set; }
+        public bool IsCapturedEntity => HoldingPlatform != null;
         public bool HasTerrainRegions => TerrainRegions != null && TerrainRegions.Count > 0;
         public int RegionCount => TerrainRegions?.Count ?? 0;
         public int TotalTileCount => TerrainRegions?.Sum(r => r.TileCount) ?? BulkTerrainPositions?.Count ?? 1;
@@ -254,6 +260,19 @@ namespace RimWorldAccess
             Distance = regions[0].Distance;
             Label = $"{oreDef.label} deposit";
             IsTerrain = true; // Treat as terrain-like for navigation
+        }
+
+        // Constructor for captured Anomaly entities held on a holding platform. The held pawn
+        // is not spawned on the map, so we take the platform's position for navigation while
+        // keeping the pawn as Thing for label/announcement purposes.
+        public ScannerItem(Pawn heldPawn, Building_HoldingPlatform platform, IntVec3 cursorPosition)
+        {
+            Thing = heldPawn;
+            HoldingPlatform = platform;
+            Position = platform.Position;
+            Distance = (Position - cursorPosition).LengthHorizontal;
+            IsTerrain = false;
+            Label = ScannerLabelBuilder.BuildThingLabel(heldPawn);
         }
 
         // Constructor for designation items
@@ -372,7 +391,20 @@ namespace RimWorldAccess
         {
             IsStale = false;
 
-            if (Thing != null)
+            if (IsCapturedEntity)
+            {
+                // Captured entity is not Spawned itself — its liveness is tied to the platform
+                // still existing on the map and still holding this same pawn.
+                if (HoldingPlatform == null || HoldingPlatform.Destroyed || !HoldingPlatform.Spawned
+                    || HoldingPlatform.HeldPawn != Thing)
+                {
+                    IsStale = true;
+                    return;
+                }
+
+                Label = ScannerLabelBuilder.BuildThingLabel(Thing);
+            }
+            else if (Thing != null)
             {
                 if (Thing.Destroyed || !Thing.Spawned)
                 {
@@ -477,6 +509,10 @@ namespace RimWorldAccess
             var pawnsPlayerMechSubcat = buckets.Sub("Pawns-Player Mechs");
             var pawnsHostileMechSubcat = buckets.Sub("Pawns-Hostile Mechs");
 
+            var entitiesCategory = buckets.Cat("Entities");
+            var entitiesHostileSubcat = buckets.Sub("Entities-Hostile");
+            var entitiesCapturedSubcat = buckets.Sub("Entities-Captured");
+
             var tameAnimalsCategory = buckets.Cat("Tame");
             var tamePenSubcat = buckets.Sub("Tame-Pen");
             var tameNonPenSubcat = buckets.Sub("Tame-NonPen");
@@ -570,8 +606,20 @@ namespace RimWorldAccess
 
                 if (thing is Pawn pawn)
                 {
+                    // IsHiddenFromPlayer exempts player-faction pawns, so invisibility psycasts
+                    // on colonists still surface in the scanner; only hostile stealth is filtered.
+                    if (pawn.IsHiddenFromPlayer())
+                        continue;
+
+                    // Anomaly entities are permanent enemies of all non-Insect factions, so any
+                    // loose entity on the map is hostile by definition.
+                    if (pawn.RaceProps.IsAnomalyEntity)
+                    {
+                        AddTo(entitiesCategory, entitiesHostileSubcat, item);
+                        categorizedThings.Add(thing);
+                    }
                     // Categorize pawns by faction relationship (7-bucket scheme).
-                    if (pawn.RaceProps.IsMechanoid)
+                    else if (pawn.RaceProps.IsMechanoid)
                     {
                         if (pawn.Faction == playerFaction)
                         {
@@ -775,6 +823,23 @@ namespace RimWorldAccess
                     uncategorizedByDef[subcatName].Items.Add(item);
                     uncategorizedCategory.Subcategories[0].Items.Add(item); // "All"
                 }
+            }
+
+            // Collect captured Anomaly entities from holding platforms. Held pawns live inside
+            // the platform's innerContainer and are not in map.listerThings.AllThings, so we walk
+            // platforms explicitly. AllBuildingsColonistOfClass catches both HoldingPlatform and
+            // HoldingSpot variants (both derive from Building_HoldingPlatform).
+            foreach (var holdingPlatform in map.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>())
+            {
+                if (!holdingPlatform.Spawned || fogGrid.IsFogged(holdingPlatform.Position))
+                    continue;
+
+                var heldPawn = holdingPlatform.HeldPawn;
+                if (heldPawn == null || !heldPawn.RaceProps.IsAnomalyEntity)
+                    continue;
+
+                var capturedItem = new ScannerItem(heldPawn, holdingPlatform, cursorPosition);
+                AddTo(entitiesCategory, entitiesCapturedSubcat, capturedItem);
             }
 
             // Collect mineable tiles, terrain, and deep ore in a single pass over all cells
