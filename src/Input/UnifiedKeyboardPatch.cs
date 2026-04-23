@@ -4883,6 +4883,16 @@ namespace RimWorldAccess
                     PrisonerTabState.NavigateUp();
                     handled = true;
                 }
+                else if (key == KeyCode.Home)
+                {
+                    PrisonerTabState.NavigateToStart();
+                    handled = true;
+                }
+                else if (key == KeyCode.End)
+                {
+                    PrisonerTabState.NavigateToEnd();
+                    handled = true;
+                }
                 else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
                 {
                     PrisonerTabState.ExecuteAction();
@@ -4895,8 +4905,11 @@ namespace RimWorldAccess
                 }
                 else if (key == KeyCode.Escape)
                 {
-                    PrisonerTabState.Close();
-                    InspectionReturnHelper.AnnounceParentOrFallback(null);
+                    if (!PrisonerTabState.HandleEscape())
+                    {
+                        PrisonerTabState.Close();
+                        InspectionReturnHelper.AnnounceParentOrFallback(null);
+                    }
                     handled = true;
                 }
 
