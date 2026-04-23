@@ -948,6 +948,32 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Returns a monotonic bar index for a pawn that is comparable across
+        /// the colonist and mech sections (colonists come first, then mechs).
+        /// Returns -1 if the pawn is not on the current map's bar.
+        /// </summary>
+        public static int GetGlobalBarIndex(Pawn pawn)
+        {
+            if (pawn == null)
+                return -1;
+
+            var colonists = GetColonists();
+            int colIdx = colonists.IndexOf(pawn);
+            if (colIdx >= 0)
+                return colIdx;
+
+            if (pawn.IsColonyMech)
+            {
+                var mechs = GetMechs();
+                int mechIdx = mechs.IndexOf(pawn);
+                if (mechIdx >= 0)
+                    return colonists.Count + mechIdx;
+            }
+
+            return -1;
+        }
+
+        /// <summary>
         /// Focuses the colonist/mech bar on whatever pawn is standing under the map cursor.
         /// Announces "Not on colonist bar" if the cursor is not over a bar-eligible pawn.
         /// </summary>

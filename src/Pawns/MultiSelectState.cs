@@ -7,50 +7,100 @@ namespace RimWorldAccess
 {
     /// <summary>
     /// Manages multi-selection of map pawns for accessibility.
-    /// Tracks which pawns are selected, syncs with Find.Selector, and provides
-    /// focus-only navigation when multi-select is active.
     ///
-    /// Follows the same pattern as WorldNavigationState's caravan multi-select
-    /// (HashSet tracking, toggle, sync with game selector, validate/cleanup).
+    /// Find.Selector is the source of truth for the selected pawn set.
+    /// This class only owns:
+    ///   - focusedPawn: our navigation cursor, which in multi-select mode can
+    ///     move independently of the selection.
+    ///   - The mode semantics around toggling, group recall, contiguous selection,
+    ///     and announcements.
+    ///
+    /// Because the selection is read live from Find.Selector, stale state cannot
+    /// survive a save/load: a freshly loaded game starts with an empty Selector.
+    /// focusedPawn is still static, so it is validated on access and cleared on
+    /// <see cref="Reset"/> (called from GameStartPatch on FinalizeInit).
     /// </summary>
     public static class MultiSelectState
     {
-        private static HashSet<Pawn> selectedPawns = new HashSet<Pawn>();
         private static Pawn focusedPawn = null;
 
         /// <summary>
-        /// Whether multi-select mode is active (more than one pawn selected,
-        /// or at least one pawn toggled via Alt+Space).
+        /// The anchor pawn for contiguous (Shift+Alt+Arrow) range selection.
+        /// The selected range is conceptually [min(anchor, focus), max(anchor, focus)].
+        /// Moving focus AWAY from the anchor extends the range; moving TOWARD
+        /// the anchor shrinks it (deselects the pawn being left behind).
+        /// Cleared whenever the selection context changes (single-select,
+        /// clear-multi, group recall, select-all, load).
         /// </summary>
-        public static bool IsMultiSelectActive { get; private set; }
+        private static Pawn rangeAnchorPawn = null;
+
+        /// <summary>
+        /// Whether multi-select mode is active (more than one pawn selected in
+        /// Find.Selector). Derived from the game's own selection state.
+        /// </summary>
+        public static bool IsMultiSelectActive
+            => (Find.Selector?.SelectedPawns?.Count ?? 0) > 1;
 
         /// <summary>
         /// The currently focused pawn (bar cursor position).
         /// In multi-select mode, focus can move without changing the selection set.
+        /// Returns null if the stored focus is no longer valid (destroyed, dead,
+        /// despawned, or on a different map).
         /// </summary>
-        public static Pawn FocusedPawn => focusedPawn;
+        public static Pawn FocusedPawn
+        {
+            get
+            {
+                if (focusedPawn == null)
+                    return null;
+                if (!IsPawnValid(focusedPawn))
+                {
+                    focusedPawn = null;
+                    return null;
+                }
+                return focusedPawn;
+            }
+        }
 
         /// <summary>
         /// Number of currently selected pawns.
         /// </summary>
-        public static int SelectedCount => selectedPawns.Count;
+        public static int SelectedCount
+            => Find.Selector?.SelectedPawns?.Count ?? 0;
 
         /// <summary>
-        /// Gets a read-only view of the selected pawns.
+        /// Gets a snapshot of the selected pawns. Returns a fresh list because
+        /// Find.Selector.SelectedPawns reuses a shared static buffer.
         /// </summary>
-        public static IReadOnlyCollection<Pawn> SelectedPawns => selectedPawns;
+        public static IReadOnlyCollection<Pawn> SelectedPawns
+        {
+            get
+            {
+                var sel = Find.Selector?.SelectedPawns;
+                return sel == null
+                    ? (IReadOnlyCollection<Pawn>)System.Array.Empty<Pawn>()
+                    : sel.ToList();
+            }
+        }
 
         /// <summary>
-        /// Checks whether a specific pawn is in the multi-selection.
+        /// Checks whether a specific pawn is in the game's current selection.
         /// </summary>
         public static bool IsPawnSelected(Pawn pawn)
         {
-            return pawn != null && selectedPawns.Contains(pawn);
+            return pawn != null && Find.Selector != null && Find.Selector.IsSelected(pawn);
+        }
+
+        private static bool IsPawnValid(Pawn pawn)
+        {
+            if (pawn == null || pawn.Destroyed || pawn.Dead || !pawn.Spawned)
+                return false;
+            Map currentMap = Find.CurrentMap;
+            return currentMap == null || pawn.Map == currentMap;
         }
 
         /// <summary>
         /// Toggles a pawn in/out of the multi-selection (Alt+Space).
-        /// If this is the first toggle on a single-selected pawn, enters multi-select mode.
         /// </summary>
         public static void TogglePawn(Pawn pawn)
         {
@@ -62,47 +112,39 @@ namespace RimWorldAccess
 
             ValidateAndCleanupSelection();
 
-            if (selectedPawns.Contains(pawn))
+            var selector = Find.Selector;
+            if (selector == null)
+                return;
+
+            if (selector.IsSelected(pawn))
             {
-                selectedPawns.Remove(pawn);
-                if (selectedPawns.Count == 0)
+                selector.Deselect(pawn);
+                int remaining = selector.SelectedPawns.Count;
+
+                if (remaining == 0)
                 {
-                    // Removed the last pawn — exit multi-select, single-select this pawn
-                    IsMultiSelectActive = false;
                     focusedPawn = pawn;
                     SingleSelectFocusedPawn();
                     TolkHelper.Speak($"{pawn.LabelShort} deselected. Selection cleared.");
                 }
-                else if (selectedPawns.Count == 1)
+                else if (remaining == 1)
                 {
-                    // Down to 1 pawn — exit multi-select, single-select the remaining pawn
-                    IsMultiSelectActive = false;
-                    focusedPawn = selectedPawns.First();
+                    focusedPawn = selector.SelectedPawns.First();
                     SingleSelectFocusedPawn();
                     TolkHelper.Speak($"{pawn.LabelShort} removed. {focusedPawn.LabelShort} selected.");
                 }
                 else
                 {
-                    SyncSelectionWithGame();
-                    TolkHelper.Speak($"{pawn.LabelShort} removed. {selectedPawns.Count} selected.");
+                    GizmoNavigationState.PawnJustSelected = true;
+                    TolkHelper.Speak($"{pawn.LabelShort} removed. {remaining} selected.");
                 }
             }
             else
             {
-                // If not in multi-select mode yet, add the currently selected pawn first
-                if (!IsMultiSelectActive)
-                {
-                    var currentlySelected = Find.Selector?.SingleSelectedThing as Pawn;
-                    if (currentlySelected != null && currentlySelected != pawn)
-                    {
-                        selectedPawns.Add(currentlySelected);
-                    }
-                }
-
-                selectedPawns.Add(pawn);
-                IsMultiSelectActive = selectedPawns.Count > 1;
-                SyncSelectionWithGame();
-                TolkHelper.Speak($"{pawn.LabelShort} added. {selectedPawns.Count} selected.");
+                selector.Select(pawn, playSound: false, forceDesignatorDeselect: false);
+                GizmoNavigationState.PawnJustSelected = true;
+                int count = selector.SelectedPawns.Count;
+                TolkHelper.Speak($"{pawn.LabelShort} added. {count} selected.");
             }
         }
 
@@ -111,17 +153,21 @@ namespace RimWorldAccess
         /// </summary>
         public static void AddPawn(Pawn pawn)
         {
-            if (pawn == null || selectedPawns.Contains(pawn))
+            if (pawn == null)
+                return;
+            var selector = Find.Selector;
+            if (selector == null || selector.IsSelected(pawn))
                 return;
 
-            selectedPawns.Add(pawn);
-            IsMultiSelectActive = true;
-            SyncSelectionWithGame();
+            selector.Select(pawn, playSound: false, forceDesignatorDeselect: false);
+            GizmoNavigationState.PawnJustSelected = true;
         }
 
         /// <summary>
-        /// Extends the selection contiguously to the next pawn on the colonist bar (Alt+Shift+Right).
-        /// If starting from single-select, adds the current pawn first.
+        /// Extends or shrinks the contiguous range rightward (Alt+Shift+Right).
+        /// Explorer/Finder semantics: the range is anchored at the pawn where
+        /// the Shift selection began; moving right extends when on the right
+        /// side of the anchor and shrinks when on the left side.
         /// </summary>
         public static void SelectContiguousNext()
         {
@@ -130,43 +176,19 @@ namespace RimWorldAccess
 
             ValidateAndCleanupSelection();
 
-            // If not in multi-select, add the currently selected pawn
-            if (!IsMultiSelectActive)
-            {
-                var currentPawn = Find.Selector?.SingleSelectedThing as Pawn;
-                if (currentPawn == null)
-                {
-                    TolkHelper.Speak("No pawn selected");
-                    return;
-                }
-                selectedPawns.Add(currentPawn);
-                focusedPawn = currentPawn;
-                ColonistBarState.SyncBarPosition(currentPawn);
-            }
-
-            // Navigate focus to next pawn
-            Pawn nextPawn = ColonistBarState.NavigateFocusRight();
-            if (nextPawn == null)
+            var selector = Find.Selector;
+            if (selector == null)
                 return;
 
-            focusedPawn = nextPawn;
-            bool alreadySelected = selectedPawns.Contains(nextPawn);
-            AddPawn(nextPawn);
-            IsMultiSelectActive = true;
+            if (!EnsureRangeAnchor(selector))
+                return;
 
-            if (!alreadySelected)
-            {
-                TolkHelper.Speak($"{nextPawn.LabelShort} added. {selectedPawns.Count} selected.");
-            }
-            else
-            {
-                TolkHelper.Speak($"{nextPawn.LabelShort}, already selected. {selectedPawns.Count} selected.");
-            }
+            ExtendRange(selector, moveRight: true);
         }
 
         /// <summary>
-        /// Extends the selection contiguously to the previous pawn on the colonist bar (Alt+Shift+Left).
-        /// If starting from single-select, adds the current pawn first.
+        /// Extends or shrinks the contiguous range leftward (Alt+Shift+Left).
+        /// See <see cref="SelectContiguousNext"/> for the anchor semantics.
         /// </summary>
         public static void SelectContiguousPrevious()
         {
@@ -175,43 +197,99 @@ namespace RimWorldAccess
 
             ValidateAndCleanupSelection();
 
-            // If not in multi-select, add the currently selected pawn
-            if (!IsMultiSelectActive)
-            {
-                var currentPawn = Find.Selector?.SingleSelectedThing as Pawn;
-                if (currentPawn == null)
-                {
-                    TolkHelper.Speak("No pawn selected");
-                    return;
-                }
-                selectedPawns.Add(currentPawn);
-                focusedPawn = currentPawn;
-                ColonistBarState.SyncBarPosition(currentPawn);
-            }
-
-            // Navigate focus to previous pawn
-            Pawn prevPawn = ColonistBarState.NavigateFocusLeft();
-            if (prevPawn == null)
+            var selector = Find.Selector;
+            if (selector == null)
                 return;
 
-            focusedPawn = prevPawn;
-            bool alreadySelected = selectedPawns.Contains(prevPawn);
-            AddPawn(prevPawn);
-            IsMultiSelectActive = true;
+            if (!EnsureRangeAnchor(selector))
+                return;
 
-            if (!alreadySelected)
+            ExtendRange(selector, moveRight: false);
+        }
+
+        /// <summary>
+        /// Establishes or validates the range anchor for Shift+Alt+Arrow selection.
+        /// If the anchor is missing or no longer part of the selection (e.g. it
+        /// was removed by another action), re-anchors to the current single-
+        /// selected pawn or, failing that, the focused pawn.
+        /// </summary>
+        /// <returns>True if an anchor is now in place and the caller may proceed.</returns>
+        private static bool EnsureRangeAnchor(Selector selector)
+        {
+            if (rangeAnchorPawn != null &&
+                IsPawnValid(rangeAnchorPawn) &&
+                selector.IsSelected(rangeAnchorPawn))
             {
-                TolkHelper.Speak($"{prevPawn.LabelShort} added. {selectedPawns.Count} selected.");
+                return true;
+            }
+
+            Pawn anchor = selector.SingleSelectedThing as Pawn;
+            if (anchor == null || !IsPawnValid(anchor))
+                anchor = IsPawnValid(focusedPawn) ? focusedPawn : null;
+
+            if (anchor == null)
+            {
+                TolkHelper.Speak("No pawn selected");
+                rangeAnchorPawn = null;
+                return false;
+            }
+
+            if (!selector.IsSelected(anchor))
+                selector.Select(anchor, playSound: false, forceDesignatorDeselect: false);
+
+            focusedPawn = anchor;
+            rangeAnchorPawn = anchor;
+            ColonistBarState.SyncBarPosition(anchor);
+            return true;
+        }
+
+        /// <summary>
+        /// Moves focus one step in the requested direction and adjusts the
+        /// selection: extends if moving away from the anchor, shrinks (deselects
+        /// the pawn being left behind) if moving toward the anchor.
+        /// </summary>
+        private static void ExtendRange(Selector selector, bool moveRight)
+        {
+            Pawn oldFocus = focusedPawn;
+            int oldIdx = ColonistBarState.GetGlobalBarIndex(oldFocus);
+            int anchorIdx = ColonistBarState.GetGlobalBarIndex(rangeAnchorPawn);
+
+            Pawn newFocus = moveRight
+                ? ColonistBarState.NavigateFocusRight()
+                : ColonistBarState.NavigateFocusLeft();
+
+            if (newFocus == null || newFocus == oldFocus)
+                return;
+
+            focusedPawn = newFocus;
+
+            bool haveIndices = oldIdx >= 0 && anchorIdx >= 0;
+            bool shrinking = haveIndices && oldFocus != null &&
+                (moveRight ? oldIdx < anchorIdx : oldIdx > anchorIdx);
+
+            if (shrinking)
+            {
+                if (selector.IsSelected(oldFocus))
+                    selector.Deselect(oldFocus);
+                GizmoNavigationState.PawnJustSelected = true;
+                int count = selector.SelectedPawns.Count;
+                TolkHelper.Speak($"{oldFocus.LabelShort} removed. {newFocus.LabelShort}, {count} selected.");
             }
             else
             {
-                TolkHelper.Speak($"{prevPawn.LabelShort}, already selected. {selectedPawns.Count} selected.");
+                bool alreadySelected = selector.IsSelected(newFocus);
+                AddPawn(newFocus);
+                int count = selector.SelectedPawns.Count;
+
+                if (!alreadySelected)
+                    TolkHelper.Speak($"{newFocus.LabelShort} added. {count} selected.");
+                else
+                    TolkHelper.Speak($"{newFocus.LabelShort}, already selected. {count} selected.");
             }
         }
 
         /// <summary>
-        /// Navigates focus to the next pawn without changing the selection (comma/period or Alt+Right in multi-select mode).
-        /// Camera does NOT follow. Announces name, selected status, job, and position.
+        /// Navigates focus to the next pawn without changing the selection.
         /// </summary>
         public static void NavigateFocusNext()
         {
@@ -247,17 +325,19 @@ namespace RimWorldAccess
                 return;
             }
 
-            selectedPawns.Clear();
-            IsMultiSelectActive = false;
+            rangeAnchorPawn = null;
             SingleSelectFocusedPawn();
 
-            // Announce the focused pawn with full info, same as normal navigation
             if (focusedPawn != null)
             {
                 string task = focusedPawn.GetJobReport();
                 if (string.IsNullOrEmpty(task))
                     task = "Idle";
-                TolkHelper.Speak($"{focusedPawn.LabelShort} - {task}");
+                TolkHelper.Speak($"Selection cleared. {focusedPawn.LabelShort}, {task}");
+            }
+            else
+            {
+                TolkHelper.Speak("Selection cleared");
             }
         }
 
@@ -272,29 +352,37 @@ namespace RimWorldAccess
                 return;
             }
 
-            selectedPawns.Clear();
+            var selector = Find.Selector;
+            if (selector == null)
+                return;
+
+            rangeAnchorPawn = null;
+
+            selector.ClearSelection();
             foreach (var pawn in allColonists)
             {
-                selectedPawns.Add(pawn);
+                if (IsPawnValid(pawn))
+                    selector.Select(pawn, playSound: false, forceDesignatorDeselect: false);
             }
 
-            IsMultiSelectActive = selectedPawns.Count > 1;
-            if (selectedPawns.Count > 0)
+            var selected = selector.SelectedPawns.ToList();
+            if (selected.Count > 0)
             {
-                focusedPawn = selectedPawns.First();
+                focusedPawn = selected.First();
                 ColonistBarState.SyncBarPosition(focusedPawn);
             }
-            SyncSelectionWithGame();
 
-            if (selectedPawns.Count <= 5)
+            GizmoNavigationState.PawnJustSelected = true;
+
+            if (selected.Count <= 5)
             {
                 string names = MenuHelper.FormatNameList(
-                    selectedPawns.Select(p => p.LabelShort).ToList());
-                TolkHelper.Speak($"All selected: {names}. {selectedPawns.Count} colonists.");
+                    selected.Select(p => p.LabelShort).ToList());
+                TolkHelper.Speak($"All selected: {names}. {selected.Count} colonists.");
             }
             else
             {
-                TolkHelper.Speak($"All {selectedPawns.Count} colonists selected");
+                TolkHelper.Speak($"All {selected.Count} colonists selected");
             }
         }
 
@@ -304,106 +392,86 @@ namespace RimWorldAccess
         /// </summary>
         public static void SetSelection(IEnumerable<Pawn> pawns)
         {
-            selectedPawns.Clear();
-            foreach (var pawn in pawns)
-            {
-                if (pawn != null && !pawn.Destroyed && pawn.Spawned && pawn.Map == Find.CurrentMap)
-                {
-                    selectedPawns.Add(pawn);
-                }
-            }
-
-            if (selectedPawns.Count > 0)
-            {
-                IsMultiSelectActive = selectedPawns.Count > 1;
-                focusedPawn = selectedPawns.First();
-                ColonistBarState.SyncBarPosition(focusedPawn);
-                SyncSelectionWithGame();
-            }
-            else
-            {
-                IsMultiSelectActive = false;
-            }
-        }
-
-        /// <summary>
-        /// Syncs our HashSet selection with RimWorld's Find.Selector.
-        /// Called after every selection change.
-        /// </summary>
-        private static void SyncSelectionWithGame()
-        {
-            if (Find.Selector == null)
+            var selector = Find.Selector;
+            if (selector == null)
                 return;
 
-            Find.Selector.ClearSelection();
-            foreach (var pawn in selectedPawns)
+            rangeAnchorPawn = null;
+
+            selector.ClearSelection();
+            foreach (var pawn in pawns)
             {
-                if (pawn != null && !pawn.Destroyed && pawn.Spawned)
-                {
-                    Find.Selector.Select(pawn, playSound: false, forceDesignatorDeselect: false);
-                }
+                if (IsPawnValid(pawn))
+                    selector.Select(pawn, playSound: false, forceDesignatorDeselect: false);
             }
 
-            // Set flag so G key shows gizmos for selected pawns (not cursor position)
-            GizmoNavigationState.PawnJustSelected = true;
+            var selected = selector.SelectedPawns.ToList();
+            if (selected.Count > 0)
+            {
+                focusedPawn = selected.First();
+                ColonistBarState.SyncBarPosition(focusedPawn);
+                GizmoNavigationState.PawnJustSelected = true;
+            }
         }
 
         /// <summary>
-        /// Validates the multi-selection and removes any dead, destroyed, despawned, or off-map pawns.
-        /// Follows WorldNavigationState.ValidateAndCleanupSelection() pattern.
+        /// Validates the current selection and deselects any dead, destroyed,
+        /// despawned, or off-map pawns from Find.Selector. Also invalidates
+        /// focusedPawn if it no longer refers to a valid pawn.
         /// </summary>
         public static void ValidateAndCleanupSelection()
         {
-            if (selectedPawns.Count == 0)
+            var selector = Find.Selector;
+            if (selector == null)
                 return;
 
-            Map currentMap = Find.CurrentMap;
-            selectedPawns.RemoveWhere(p =>
-                p == null || p.Destroyed || p.Dead || !p.Spawned ||
-                (currentMap != null && p.Map != currentMap));
-
-            if (selectedPawns.Count <= 1)
+            var snapshot = selector.SelectedPawns.ToList();
+            if (snapshot.Count == 0)
             {
-                IsMultiSelectActive = false;
-                if (selectedPawns.Count == 1)
-                {
-                    focusedPawn = selectedPawns.First();
-                    SingleSelectFocusedPawn();
-                }
-                else
-                {
-                    selectedPawns.Clear();
+                if (focusedPawn != null && !IsPawnValid(focusedPawn))
                     focusedPawn = null;
-                }
+                return;
             }
-            else
+
+            foreach (var pawn in snapshot)
             {
-                SyncSelectionWithGame();
+                if (!IsPawnValid(pawn))
+                    selector.Deselect(pawn);
             }
+
+            if (focusedPawn != null && !IsPawnValid(focusedPawn))
+                focusedPawn = null;
+
+            if (rangeAnchorPawn != null &&
+                (!IsPawnValid(rangeAnchorPawn) || !selector.IsSelected(rangeAnchorPawn)))
+            {
+                rangeAnchorPawn = null;
+            }
+
+            if (focusedPawn == null && selector.SelectedPawns.Count == 1)
+                focusedPawn = selector.SelectedPawns.First();
         }
 
         /// <summary>
-        /// Called when a pawn is selected via normal single-select (comma/period without multi-select).
-        /// Exits multi-select mode if active.
+        /// Called when a pawn is selected via normal single-select (comma/period).
+        /// Updates the focus cursor to track the newly selected pawn.
         /// </summary>
         public static void NotifySingleSelect(Pawn pawn)
         {
-            if (IsMultiSelectActive)
-            {
-                selectedPawns.Clear();
-                IsMultiSelectActive = false;
-            }
             focusedPawn = pawn;
+            rangeAnchorPawn = null;
         }
 
         /// <summary>
-        /// Resets all multi-select state (e.g., on map change or game load).
+        /// Resets transient state (the focus cursor). Called on game load from
+        /// GameStartPatch so a stale Pawn reference from a previous session
+        /// cannot leak into the new game. Find.Selector is already fresh on load,
+        /// so no selection clearing is needed.
         /// </summary>
         public static void Reset()
         {
-            selectedPawns.Clear();
-            IsMultiSelectActive = false;
             focusedPawn = null;
+            rangeAnchorPawn = null;
         }
 
         /// <summary>
@@ -412,20 +480,18 @@ namespace RimWorldAccess
         /// </summary>
         private static void SingleSelectFocusedPawn()
         {
-            if (focusedPawn == null || Find.Selector == null)
+            var selector = Find.Selector;
+            if (focusedPawn == null || selector == null)
                 return;
 
             if (!focusedPawn.Destroyed && focusedPawn.Spawned)
             {
-                Find.Selector.ClearSelection();
-                Find.Selector.Select(focusedPawn, playSound: false, forceDesignatorDeselect: false);
+                selector.ClearSelection();
+                selector.Select(focusedPawn, playSound: false, forceDesignatorDeselect: false);
+                GizmoNavigationState.PawnJustSelected = true;
             }
         }
 
-        /// <summary>
-        /// Announces the focused pawn with selected status, job, and position.
-        /// Format: "{name}, selected/not selected, {job}, X of Y"
-        /// </summary>
         /// <summary>
         /// Sets the focused pawn without changing selection.
         /// Used by navigation methods that need to update focus externally.
@@ -435,9 +501,13 @@ namespace RimWorldAccess
             focusedPawn = pawn;
         }
 
+        /// <summary>
+        /// Announces the focused pawn with selected status, job, and position.
+        /// Format: "{name}, selected/not selected, {job}, X of Y"
+        /// </summary>
         public static void AnnounceFocusedPawn(Pawn pawn)
         {
-            string selectedStatus = selectedPawns.Contains(pawn) ? "selected" : "not selected";
+            string selectedStatus = IsPawnSelected(pawn) ? "selected" : "not selected";
 
             string task = pawn.GetJobReport();
             if (string.IsNullOrEmpty(task))
