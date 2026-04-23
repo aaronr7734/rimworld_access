@@ -198,6 +198,46 @@ namespace RimWorldAccess
 
 
         /// <summary>
+        /// Jumps to the first item in the current section (Home key).
+        /// No-op for MedicalCare (single adjustable value).
+        /// </summary>
+        public static void NavigateToStart()
+        {
+            if (!isActive || currentPawn == null)
+                return;
+
+            if (currentSection == TabSection.MedicalCare)
+                return;
+
+            int maxIndex = GetMaxIndexForCurrentSection();
+            if (maxIndex < 0)
+                return;
+
+            selectedIndex = 0;
+            AnnounceCurrentSelection();
+        }
+
+        /// <summary>
+        /// Jumps to the last item in the current section (End key).
+        /// No-op for MedicalCare (single adjustable value).
+        /// </summary>
+        public static void NavigateToEnd()
+        {
+            if (!isActive || currentPawn == null)
+                return;
+
+            if (currentSection == TabSection.MedicalCare)
+                return;
+
+            int maxIndex = GetMaxIndexForCurrentSection();
+            if (maxIndex < 0)
+                return;
+
+            selectedIndex = maxIndex;
+            AnnounceCurrentSelection();
+        }
+
+        /// <summary>
         /// Executes the selected action (Enter key).
         /// </summary>
         public static void ExecuteAction()
@@ -229,6 +269,27 @@ namespace RimWorldAccess
                     SelectIdeology();
                     break;
             }
+        }
+
+        /// <summary>
+        /// Handles Escape within the tab. Returns true if consumed internally
+        /// (e.g. backing out of the ideology picker), false if the caller should close the tab.
+        /// </summary>
+        public static bool HandleEscape()
+        {
+            if (!isActive || currentPawn == null)
+                return false;
+
+            if (currentSection == TabSection.IdeologySelection)
+            {
+                currentSection = TabSection.ExclusiveModes;
+                selectedIndex = exclusiveModes.IndexOf(PrisonerInteractionModeDefOf.Convert);
+                if (selectedIndex < 0) selectedIndex = 0;
+                AnnounceCurrentSection();
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -271,27 +332,42 @@ namespace RimWorldAccess
                 {
                     PrisonerInteractionModeDef mode = exclusiveModes[selectedIndex];
 
-                    // Check for special cases
-                    if (mode == PrisonerInteractionModeDefOf.Convert)
-                    {
-                        // Switch to ideology selection section
-                        currentSection = TabSection.IdeologySelection;
-                        selectedIndex = 0;
-                        AnnounceCurrentSection();
-                        return;
-                    }
-
-                    // Set the mode
+                    // Apply the mode first — mirrors vanilla ITab_Pawn_Visitor.DrawExclusiveInteractionRow
+                    // (line 469-473) which always calls SetExclusiveInteraction before any follow-up UX.
                     currentPawn.guest.SetExclusiveInteraction(mode);
 
-                    // Handle mode-specific logic
-                    if (mode == PrisonerInteractionModeDefOf.Convert && currentPawn.guest.ideoForConversion == null)
+                    // Mirror vanilla InteractionModeChanged (line 507-510): auto-assign primary ideo
+                    // when switching to Convert if none has been chosen yet.
+                    if (mode == PrisonerInteractionModeDefOf.Convert && currentPawn.guest.ideoForConversion == null
+                        && Faction.OfPlayer.ideos != null)
                     {
                         currentPawn.guest.ideoForConversion = Faction.OfPlayer.ideos.PrimaryIdeo;
                     }
 
+                    // For Convert with multiple player ideologies, jump into the picker so the
+                    // user can confirm or change the target (vanilla exposes this via the ideo icon).
+                    if (mode == PrisonerInteractionModeDefOf.Convert)
+                    {
+                        List<Ideo> ideologies = PrisonerTabHelper.GetPlayerIdeologies();
+                        if (ideologies.Count > 1)
+                        {
+                            currentSection = TabSection.IdeologySelection;
+                            int currentIdeoIndex = ideologies.IndexOf(currentPawn.guest.ideoForConversion);
+                            selectedIndex = currentIdeoIndex >= 0 ? currentIdeoIndex : 0;
+                            AnnounceCurrentSection();
+                            return;
+                        }
+                    }
+
                     string description = PrisonerTabHelper.GetInteractionModeDescription(currentPawn, mode);
-                    TolkHelper.Speak($"Selected: {mode.LabelCap}. {description}");
+                    if (mode == PrisonerInteractionModeDefOf.Convert && currentPawn.guest.ideoForConversion != null)
+                    {
+                        TolkHelper.Speak($"Selected: {mode.LabelCap}. {"IdeoConversionTarget".Translate()}: {currentPawn.guest.ideoForConversion.name}. {description}");
+                    }
+                    else
+                    {
+                        TolkHelper.Speak($"Selected: {mode.LabelCap}. {description}");
+                    }
                 }
             }
             else if (currentPawn.IsSlaveOfColony)
@@ -394,12 +470,14 @@ namespace RimWorldAccess
                     }
                 }
 
-                TolkHelper.Speak($"{"IdeoConversionTarget".Translate()}: {selected.name}{warning}");
-
-                // Return to exclusive modes section
+                // Return to exclusive modes section with Convert preselected
                 currentSection = TabSection.ExclusiveModes;
                 selectedIndex = exclusiveModes.IndexOf(PrisonerInteractionModeDefOf.Convert);
                 if (selectedIndex < 0) selectedIndex = 0;
+
+                // Confirm both the active mode and the chosen target in a single announcement.
+                string convertLabel = PrisonerInteractionModeDefOf.Convert.LabelCap;
+                TolkHelper.Speak($"Selected: {convertLabel}. {"IdeoConversionTarget".Translate()}: {selected.name}{warning}");
             }
         }
 
@@ -409,7 +487,12 @@ namespace RimWorldAccess
 
         private static void AnnouncePrisonerOpened()
         {
-            string mode = currentPawn.guest.ExclusiveInteractionMode.LabelCap;
+            PrisonerInteractionModeDef currentMode = currentPawn.guest.ExclusiveInteractionMode;
+            string mode = currentMode.LabelCap;
+            if (currentMode == PrisonerInteractionModeDefOf.Convert && currentPawn.guest.ideoForConversion != null)
+            {
+                mode = $"{mode} ({currentPawn.guest.ideoForConversion.name})";
+            }
             string care = PrisonerTabHelper.GetMedicalCareLabel(currentPawn.playerSettings.medCare);
             string allowMedicine = "AllowMedicine".Translate();
             TolkHelper.Speak($"Prisoner Tab: {currentPawn.LabelShort}. Current Mode: {mode}. {allowMedicine}: {care}. Press Left/Right to navigate sections, Up/Down within sections, Enter to select");
@@ -496,17 +579,22 @@ namespace RimWorldAccess
                     {
                         PrisonerInteractionModeDef mode = exclusiveModes[selectedIndex];
                         bool isSelected = currentPawn.guest.ExclusiveInteractionMode == mode;
-                        string marker = isSelected ? "[ACTIVE] " : "";
+                        string selectedSuffix = isSelected ? ", selected" : "";
                         string description = PrisonerTabHelper.GetInteractionModeDescription(currentPawn, mode);
-                        TolkHelper.Speak($"{marker}{mode.LabelCap}. {description}");
+                        string extra = "";
+                        if (mode == PrisonerInteractionModeDefOf.Convert && isSelected && currentPawn.guest.ideoForConversion != null)
+                        {
+                            extra = $". {"IdeoConversionTarget".Translate()}: {currentPawn.guest.ideoForConversion.name}";
+                        }
+                        TolkHelper.Speak($"{mode.LabelCap}{selectedSuffix}. {description}{extra}");
                     }
                     else if (currentPawn.IsSlaveOfColony && selectedIndex >= 0 && selectedIndex < slaveModes.Count)
                     {
                         SlaveInteractionModeDef mode = slaveModes[selectedIndex];
                         bool isSelected = currentPawn.guest.slaveInteractionMode == mode;
-                        string marker = isSelected ? "[ACTIVE] " : "";
+                        string selectedSuffix = isSelected ? ", selected" : "";
                         string description = PrisonerTabHelper.GetSlaveInteractionModeDescription(currentPawn, mode);
-                        TolkHelper.Speak($"{marker}{mode.LabelCap}. {description}");
+                        TolkHelper.Speak($"{mode.LabelCap}{selectedSuffix}. {description}");
                     }
                     break;
 
@@ -526,8 +614,8 @@ namespace RimWorldAccess
                     {
                         Ideo ideo = ideologies[selectedIndex];
                         bool isCurrent = currentPawn.guest.ideoForConversion == ideo;
-                        string marker = isCurrent ? "[CURRENT] " : "";
-                        TolkHelper.Speak($"{marker}{ideo.name}");
+                        string selectedSuffix = isCurrent ? ", selected" : "";
+                        TolkHelper.Speak($"{ideo.name}{selectedSuffix}");
                     }
                     break;
             }
