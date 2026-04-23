@@ -321,7 +321,25 @@ namespace RimWorldAccess
         protected static string SanitizeText(string text)
         {
             if (string.IsNullOrEmpty(text)) return text;
-            return text.Replace("\n\n", " ").Replace("\n", " ");
+            // Game text uses newlines as semantic separators (Duration / Cooldown / Required offering
+            // each on its own line). Replace each line break with ". " unless the previous character
+            // already terminates the clause, so screen readers get a real pause between items.
+            var sb = new System.Text.StringBuilder();
+            string normalized = text.Replace("\r\n", "\n");
+            foreach (var raw in normalized.Split('\n'))
+            {
+                string line = raw.Trim();
+                if (line.Length == 0) continue;
+                if (sb.Length > 0)
+                {
+                    char last = sb[sb.Length - 1];
+                    if (last != '.' && last != '!' && last != '?' && last != ':' && last != ';' && last != ',')
+                        sb.Append('.');
+                    sb.Append(' ');
+                }
+                sb.Append(line);
+            }
+            return sb.ToString();
         }
     }
 

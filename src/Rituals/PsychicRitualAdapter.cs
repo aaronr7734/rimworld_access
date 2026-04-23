@@ -50,7 +50,7 @@ namespace RimWorldAccess
                         ? range.min.ToStringPercent("F0")
                         : $"{range.min.ToStringPercent("F0")}-{range.max.ToStringPercent("F0")}";
                     string raw = psychicRitualDef.OutcomeDescription(range, qualityNumber, assignments).Resolve();
-                    return string.IsNullOrEmpty(raw) ? null : raw.Replace("\n\n", " ").Replace("\n", " ");
+                    return string.IsNullOrEmpty(raw) ? null : SanitizeText(raw);
                 }
                 catch { return null; }
             }

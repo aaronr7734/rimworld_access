@@ -68,11 +68,11 @@ namespace RimWorldAccess
 
         public static string FormatPawn(LordJobPawnView view)
         {
+            // Order: name → status → disabled reason → suitability → tooltip.
+            // Selection status comes second so screen-reader users hear whether the pawn is
+            // already chosen before sitting through stats and descriptions.
             var parts = new List<string>();
             parts.Add(view.Pawn.LabelShort);
-
-            if (!string.IsNullOrEmpty(view.SuitabilityLine))
-                parts.Add(view.SuitabilityLine);
 
             if (view.IsForced)
                 parts.Add("forced, cannot change");
@@ -81,6 +81,9 @@ namespace RimWorldAccess
 
             if (!string.IsNullOrEmpty(view.DisabledReason))
                 parts.Add($"cannot assign: {view.DisabledReason}");
+
+            if (!string.IsNullOrEmpty(view.SuitabilityLine))
+                parts.Add(view.SuitabilityLine);
 
             if (!string.IsNullOrEmpty(view.Tooltip))
                 parts.Add(view.Tooltip);

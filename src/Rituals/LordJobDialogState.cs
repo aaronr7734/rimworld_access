@@ -852,6 +852,21 @@ namespace RimWorldAccess
                         });
                     }
                 }
+
+                // Outcome description (e.g., "75% chance animals arrive as manhunters") changes
+                // with the current quality. Re-build on every Tab into Quality Stats so the row
+                // reflects current state.
+                string outcomeDesc = adapter.OutcomeDescriptionText;
+                if (!string.IsNullOrEmpty(outcomeDesc))
+                {
+                    qualityRows.Add(new LordJobQualityRow
+                    {
+                        Label = "Outcome description",
+                        Change = "",
+                        IsInformational = true,
+                        Tooltip = outcomeDesc,
+                    });
+                }
             }
             catch (Exception ex)
             {
