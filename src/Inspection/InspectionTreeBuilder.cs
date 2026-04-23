@@ -564,6 +564,18 @@ namespace RimWorldAccess
                     PrisonerTabState.Open(pawn);
                     return;
                 }
+                if (category == "Entity" && pawn.IsOnHoldingPlatform)
+                {
+                    EntityTabState.Open(pawn);
+                    return;
+                }
+            }
+
+            // Held-entity tab is also reachable when the inspected target is the holding platform itself.
+            if (category == "Entity" && obj is Thing entityHolder)
+            {
+                EntityTabState.Open(entityHolder);
+                return;
             }
 
             // Handle zone-specific actions

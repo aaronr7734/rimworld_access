@@ -14,6 +14,7 @@ namespace RimWorldAccess
         private static Dialog_EntityCodex currentDialog;
         private static List<EntityCodexEntryDef> allEntries = new List<EntityCodexEntryDef>();
         private static int selectedIndex;
+        private static EntityCategoryDef lastAnnouncedCategory;
         private static TypeaheadSearchHelper typeaheadHelper = new TypeaheadSearchHelper();
 
         private static System.Reflection.FieldInfo selectedEntryField;
@@ -34,6 +35,7 @@ namespace RimWorldAccess
                 currentDialog = dialog;
                 typeaheadHelper.ClearSearch();
                 selectedIndex = 0;
+                lastAnnouncedCategory = null;
 
                 // Match vanilla sort: (orderInCategory, label). Dialog_EntityCodex uses .label, not .LabelCap.
                 allEntries = DefDatabase<EntityCategoryDef>.AllDefsListForReading
@@ -79,19 +81,34 @@ namespace RimWorldAccess
             currentDialog = null;
             allEntries.Clear();
             selectedIndex = 0;
+            lastAnnouncedCategory = null;
             typeaheadHelper.ClearSearch();
         }
 
         public static bool HandleInput(Event evt)
         {
             if (!isActive || currentDialog == null) return false;
+
+            // Defer to the drill-in float menu when it's open. Without this, EntityCodex (priority
+            // 4.64) eats keys before they reach WindowlessFloatMenuState (priority 5), so the
+            // user can't navigate the picker we just opened. Same pattern as MechControlGroupState.
+            if (WindowlessFloatMenuState.IsActive) return false;
+
             if (evt.type != EventType.KeyDown) return false;
 
             var key = evt.keyCode;
             bool ctrl = evt.control;
             bool alt = KeyboardHelper.IsAltHeld;
 
-            // Modal dialog: consume all modifier-key combos.
+            // Alt+I drill-in picker — handled BEFORE the modifier swallow below so blind users
+            // get the same picker drill-in convention as the rest of the mod.
+            if (alt && key == KeyCode.I)
+            {
+                OpenDrillInPicker();
+                return true;
+            }
+
+            // Modal dialog: consume all other modifier-key combos so they don't reach the game.
             if (ctrl || alt) return true;
 
             switch (key)
@@ -201,12 +218,25 @@ namespace RimWorldAccess
             if (allEntries.Count == 0 || selectedIndex < 0 || selectedIndex >= allEntries.Count)
                 return;
 
+            // If category changed since last announcement, prepend the category name so users hear
+            // when they've moved into a new section (vanilla shows category headers visually).
+            // Category def labels are translated, so we don't add an English "Category:" prefix.
+            var currentCategory = allEntries[selectedIndex].category;
+            string categoryPrefix = "";
+            if (currentCategory != lastAnnouncedCategory)
+            {
+                string categoryLabel = currentCategory?.LabelCap.Resolve();
+                if (!string.IsNullOrEmpty(categoryLabel))
+                    categoryPrefix = $"{categoryLabel}. ";
+                lastAnnouncedCategory = currentCategory;
+            }
+
             string announcement = FormatEntryAnnouncement(selectedIndex);
             string position = MenuHelper.FormatPosition(selectedIndex, allEntries.Count);
 
             string fullText = string.IsNullOrEmpty(position)
-                ? announcement
-                : $"{announcement}, {position}";
+                ? $"{categoryPrefix}{announcement}"
+                : $"{categoryPrefix}{announcement}, {position}";
             TolkHelper.Speak(fullText, SpeechPriority.Normal);
         }
 
@@ -280,6 +310,56 @@ namespace RimWorldAccess
             }
 
             return sb.ToString();
+        }
+
+        private static void OpenDrillInPicker()
+        {
+            if (allEntries.Count == 0 || selectedIndex < 0 || selectedIndex >= allEntries.Count)
+                return;
+
+            var entry = allEntries[selectedIndex];
+            if (!entry.Discovered)
+            {
+                TolkHelper.Speak("UndiscoveredEntityDesc".Translate().Resolve());
+                return;
+            }
+
+            var options = new List<FloatMenuOption>();
+            var codex = Find.EntityCodex;
+
+            if (entry.linkedThings != null)
+            {
+                foreach (var linkedThing in entry.linkedThings)
+                {
+                    if (linkedThing == null) continue;
+                    if (codex == null || !codex.Discovered(linkedThing)) continue;
+                    var captured = linkedThing;
+                    options.Add(new FloatMenuOption(
+                        captured.LabelCap.ToString(),
+                        () => Find.WindowStack.Add(new Dialog_InfoCard(captured))));
+                }
+            }
+
+            if (entry.discoveredResearchProjects != null)
+            {
+                string researchPrefix = "ResearchUnlocks".Translate().Resolve();
+                foreach (var project in entry.discoveredResearchProjects)
+                {
+                    if (project == null) continue;
+                    var captured = project;
+                    options.Add(new FloatMenuOption(
+                        $"{researchPrefix}: {captured.LabelCap}",
+                        () => WindowlessResearchMenuState.OpenAndSelectProject(captured)));
+                }
+            }
+
+            if (options.Count == 0)
+            {
+                TolkHelper.Speak("None".Translate().Resolve());
+                return;
+            }
+
+            WindowlessFloatMenuState.Open(options, colonistOrders: false);
         }
 
         private static List<string> GetEntryLabels()

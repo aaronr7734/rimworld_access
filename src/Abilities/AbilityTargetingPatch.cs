@@ -64,31 +64,41 @@ namespace RimWorldAccess
             // TargetingPatch.Prefix, which calls AbilityTargetingState.EnterDestinationPhase()
             // with both the target position and destination range before BeginTargeting is called.
 
-            // Handle non-ability targeting sources. Only open ItemTargetingState for actual
-            // item-based sources (CompTargetable, CompUsable). Permit workers use cell targeting
-            // and must NOT go through ItemTargetingState (which blocks cell-only targets).
+            // Handle non-ability targeting sources. Three buckets:
+            //   - RoyalTitlePermitWorker_Targeted → permit-specific announcement, no state.
+            //   - CompTargetable / CompUsable → ItemTargetingState (Thing-only validation).
+            //   - Anything else (verbs like Verb_LaunchProjectile from turret packs and
+            //     mech ranged abilities, modded ITargetingSource) → GenericTargetingState.
+            //
+            // Previously every non-ability source fell into ItemTargetingState, which
+            // forced the cell-fallback rejection in TargetingPatch and broke any verb that
+            // legitimately targets a map cell (turret packs, Diabolus Hellsphere, mortars
+            // mounted as apparel, etc.).
             if (!AbilityTargetingState.IsActive)
             {
                 if (source is RoyalTitlePermitWorker_Targeted permitWorker)
                 {
-                    // Permit targeting - announce but don't open ItemTargetingState.
-                    // Permits target map cells (for drops, laborers, strikes) and the standard
-                    // ValidateTarget/OrderForceTarget flow in TargetingPatch handles them correctly.
                     string permitLabel = permitWorker.def?.LabelCap ?? "permit";
                     TolkHelper.Speak(
                         $"Select a target for {permitLabel}. Navigate with arrow keys, Enter to confirm.",
                         SpeechPriority.Normal);
                 }
-                else
+                else if (source is CompTargetable || source is CompUsable)
                 {
-                    // CompTargetable/CompUsable items (sentience catalyst, healer mech serum, etc.)
-                    // Close previous phase if active. Multi-phase items (e.g., sentience catalyst)
-                    // transition from CompUsable (Phase 1: select colonist) to CompTargetable
-                    // (Phase 2: select target animal) via OrderForceTarget → SelectedUseOption → BeginTargeting.
+                    // Multi-phase items (e.g., sentience catalyst) transition from CompUsable
+                    // (Phase 1: select colonist) to CompTargetable (Phase 2: select animal) via
+                    // OrderForceTarget → SelectedUseOption → BeginTargeting.
                     if (ItemTargetingState.IsActive)
                         ItemTargetingState.Close();
-
                     ItemTargetingState.Open(source);
+                }
+                else
+                {
+                    // Generic fallback. Catches verbs (turret packs, mech abilities), modded
+                    // sources, anything we don't have specialized handling for.
+                    if (GenericTargetingState.IsActive)
+                        GenericTargetingState.Close();
+                    GenericTargetingState.Open(source);
                 }
             }
         }
@@ -165,28 +175,49 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Patch Targeter.StopTargeting to close ability targeting state.
+        /// Patch the 5th BeginTargeting overload — used by ability-aware item callbacks
+        /// (TargetingParameters + ITargetingSource ability + action callback). Vanilla calls
+        /// this from a few less-common paths; without the patch, the targeting session opens
+        /// silently with no announcement.
+        /// </summary>
+        [HarmonyPatch(typeof(Targeter), "BeginTargeting", new Type[] {
+            typeof(TargetingParameters),
+            typeof(ITargetingSource),
+            typeof(Action<LocalTargetInfo>),
+            typeof(Action),
+            typeof(UnityEngine.Texture2D)
+        })]
+        [HarmonyPostfix]
+        public static void BeginTargeting_AbilityCallback_Postfix(
+            TargetingParameters targetParams, ITargetingSource ability)
+        {
+            // If the ability is an ITargetingSource we recognize, route through the standard
+            // detection path; otherwise treat as a labeled callback.
+            if (ability != null)
+            {
+                BeginTargeting_ITargetingSource_Postfix(ability);
+            }
+            else
+            {
+                OpenCallbackTargetingState(targetParams);
+            }
+        }
+
+        /// <summary>
+        /// Patch Targeter.StopTargeting to close all targeting states.
         /// </summary>
         [HarmonyPatch(typeof(Targeter), "StopTargeting")]
         [HarmonyPostfix]
         public static void StopTargeting_Postfix()
         {
             if (JumpTargetingState.IsActive)
-            {
                 JumpTargetingState.Close();
-            }
-
             if (AbilityTargetingState.IsActive)
-            {
                 AbilityTargetingState.Close();
-            }
-
             if (ItemTargetingState.IsActive)
-            {
                 ItemTargetingState.Close();
-            }
-
-            // Also clear Command_Target targeting context (e.g., animal attack range info)
+            if (GenericTargetingState.IsActive)
+                GenericTargetingState.Close();
             TargetingPatch.ClearTargetingContext();
         }
 
