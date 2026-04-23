@@ -193,12 +193,36 @@ namespace RimWorldAccess
                         }
                     }
 
-                    // For item targeting (CompTargetable), check if there's a valid thing at cursor.
-                    // CompTargetable.ValidateTarget returns false for non-Thing targets but
-                    // doesn't produce a message for the "nothing here" case. Provide explicit feedback.
-                    if (ItemTargetingState.IsActive && !target.HasThing)
+                    // Generic verb-range pre-check (mech weapons, turret-pack apparel, modded
+                    // sources routed through GenericTargetingState). Vanilla's Verb.OrderForceTarget
+                    // only rejects below-min-range when the target is adjacent, so non-adjacent
+                    // below-min targets are accepted and then silently stall at the aim stance
+                    // (e.g. Diabolus Hellsphere cannon with minRange 5.9 targeting a 3-tile cell).
+                    // Sighted players see the ring and avoid it — announce it to screen readers
+                    // and keep targeting open so the user can adjust and retry.
+                    if (GenericTargetingState.IsActive)
                     {
-                        TolkHelper.Speak(ItemTargetingState.GetNoTargetErrorMessage(), SpeechPriority.High);
+                        string genericRangeError = GenericTargetingState.ValidateRangeError(cursorPosition);
+                        if (genericRangeError != null)
+                        {
+                            TolkHelper.Speak(genericRangeError, SpeechPriority.High);
+                            Event.current.Use();
+                            return false;
+                        }
+                    }
+
+                    // Cell-fallback rejection: only block "no thing at cursor" when the params
+                    // legitimately don't accept locations. Verbs that DO accept cells (turret
+                    // packs, mortars, ranged mech abilities) MUST be allowed to fire on empty
+                    // tiles. Previously this branch keyed off ItemTargetingState.IsActive,
+                    // which fired for every non-ability source and broke cell-targeting verbs.
+                    if (!target.HasThing && !TargetingParametersDescriber.AcceptsLocations(targetingSource.targetParams))
+                    {
+                        string typeDesc = TargetingParametersDescriber.Describe(targetingSource.targetParams);
+                        string msg = string.IsNullOrEmpty(typeDesc)
+                            ? "No valid target at cursor"
+                            : $"No valid target at cursor. {typeDesc}";
+                        TolkHelper.Speak(msg, SpeechPriority.High);
                         Event.current.Use();
                         return false;
                     }
@@ -317,6 +341,10 @@ namespace RimWorldAccess
                     else if (ItemTargetingState.IsActive)
                     {
                         successMessage = ItemTargetingState.BuildSuccessAnnouncement(target);
+                    }
+                    else if (GenericTargetingState.IsActive)
+                    {
+                        successMessage = GenericTargetingState.BuildSuccessAnnouncement(target);
                     }
                     else
                     {

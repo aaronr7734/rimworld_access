@@ -500,6 +500,32 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY -0.211: Handle Dialog_Slider if active =====
+            // Vanilla integer-picker modal (Pick Up Some, drug schedules, etc.). Must be near
+            // the top because the dialog is modal and absorbs input from everything below.
+            if (SliderDialogState.IsActive)
+            {
+                if (SliderDialogState.HandleInput(Event.current))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY -0.21: Handle Anomaly Settings dialog if active =====
+            // Modal dialog opened from the storyteller selection page (Tab → Anomaly Settings → Enter).
+            // MUST be near the top of the routing chain because absorbInputAroundWindow modals
+            // need first crack at keys — otherwise some intermediate state handler returns early
+            // and our keys never reach AnomalySettingsDialogState.
+            if (AnomalySettingsDialogState.IsActive)
+            {
+                if (AnomalySettingsDialogState.HandleInput(Event.current))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 0: Handle world object selection if active =====
             if (WorldObjectSelectionState.IsActive && !WindowlessDialogState.IsActive)
             {
@@ -908,6 +934,21 @@ namespace RimWorldAccess
                 bool alt = KeyboardHelper.IsAltHeld;
 
                 if (AbilityTargetingState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 0.3735: Handle generic targeting fallback if active =====
+            // R key for distance/LOS during any otherwise-unhandled targeting session
+            // (turret packs, mech ranged abilities, modded ITargetingSource verbs).
+            if (GenericTargetingState.IsActive && !WindowlessDialogState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = KeyboardHelper.IsAltHeld;
+                if (GenericTargetingState.HandleInput(key, shift, ctrl, alt))
                 {
                     Event.current.Use();
                     return;

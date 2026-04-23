@@ -6,8 +6,33 @@ Building and object inspection UI, bills management, storage settings, gizmo nav
 ## Files
 
 **Patches:** BuildingInspectPatch.cs, StorageSettingsMenuPatch.cs, GizmoNavigationPatch.cs, InfoCardPatch.cs
-**States:** WindowlessInspectionState.cs, BillsMenuState.cs, BillConfigState.cs, StorageSettingsMenuState.cs, ThingFilterMenuState.cs, ThingFilterNavigationState.cs, RangeEditMenuState.cs, GizmoNavigationState.cs, WindowlessInventoryState.cs, InfoCardState.cs
+**States:** WindowlessInspectionState.cs, BillsMenuState.cs, BillConfigState.cs, StorageSettingsMenuState.cs, ThingFilterMenuState.cs, ThingFilterNavigationState.cs, RangeEditMenuState.cs, GizmoNavigationState.cs, WindowlessInventoryState.cs, InfoCardState.cs, EntityTabState.cs
 **Helpers:** InspectionInfoHelper.cs, InspectionTreeBuilder.cs, InspectionTreeItem.cs, InventoryHelper.cs, PowerInfoHelper.cs, TabRegistry.cs, InfoCardDataExtractor.cs, InfoCardTreeBuilder.cs
+
+### EntityTabState
+
+Replaces the old BasicInspectString fallback for `ITab_Entity` (Anomaly DLC). Previously, the
+"Entity" tab dumped only `GetInspectString()`, which omitted every interactive control. The state
+now surfaces a full menu:
+
+| Row | Type | Behavior |
+|-----|------|----------|
+| Containment Strength | read-only | `StatDefOf.ContainmentStrength` value |
+| Escape MTB Days | read-only | `ContainmentUtility.InitiateEscapeMtbDays` with reasons |
+| Study Interval | read-only | `CompStudiable.Props.frequencyTicks` (when > 0) |
+| Knowledge Gain | read-only | `CompStudiable.AdjustedAnomalyKnowledgePerStudy` |
+| Allow Medicine | interactive | Left/Right cycles `MedicalCareCategory` enum |
+| Containment Mode | interactive | Up/Down or Enter cycles MaintainOnly/Study/Release/Execute. Skips Execute when `!Props.canBeExecuted`. |
+| Extract Bioferrite | interactive | Enter/Space toggles. Disabled if `BioferriteExtraction` not researched, or if HoldingPlatform has attached bioferrite harvester. |
+
+`TabRegistry` registers `ITab_Entity` as `Action`. Dispatch in `InspectionTreeBuilder.ExecuteCategoryAction`
+covers both held pawn (`pawn.IsOnHoldingPlatform`) and platform Thing targets — `EntityTabState.Open`
+resolves the held pawn either way.
+
+**Alt+I/H/M/N/G** open InfoCard / Health / Mood / Needs / Gear announcements for the held entity,
+matching the universal pawn-picker keyboard convention.
+
+Routed via `BuildingInspectPatch` (priority VeryHigh prefix) alongside BillsMenuState.
 
 ## Key Shortcuts
 - **Enter** - Open inspection at cursor

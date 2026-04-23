@@ -133,6 +133,7 @@ namespace RimWorldAccess
             new ScannerCategorySchema("All"),
             new ScannerCategorySchema("Pawns",
                 "Colonists", "Prisoners", "Slaves", "Guests", "Hostile", "Player Mechs", "Hostile Mechs"),
+            new ScannerCategorySchema("Entities", "Hostile", "Captured"),
             new ScannerCategorySchema("Tame", "Pen", "NonPen"),
             new ScannerCategorySchema("Wild", "Hostile", "Passive"),
             new ScannerCategorySchema("Hazards", "Fire", "Blight"),

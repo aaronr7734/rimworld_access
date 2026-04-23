@@ -60,5 +60,22 @@ namespace RimWorldAccess
                 return true;
             }
         }
+
+        // Vanilla Window.HandleEventsHighPriority fires OnAcceptKeyPressed on Enter
+        // independently of Event.current.Use(). Without this block, pressing Enter on
+        // the Alt+I drill-in float menu would close the codex (vanilla Accept = Close)
+        // even though our WindowlessFloatMenuState already invoked the option.
+        // Same defensive pattern as AnomalySettingsDialogPatch.
+        [HarmonyPatch(typeof(Window), "OnAcceptKeyPressed")]
+        public static class Window_OnAcceptKeyPressed_EntityCodex_Patch
+        {
+            [HarmonyPrefix]
+            public static bool Prefix(Window __instance)
+            {
+                if (__instance is Dialog_EntityCodex && EntityCodexState.IsActive)
+                    return false;
+                return true;
+            }
+        }
     }
 }

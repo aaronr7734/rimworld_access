@@ -136,7 +136,7 @@ namespace RimWorldAccess
             { "ITab_ContentsMapPortal", TabHandlerType.BasicInspectString },
             { "ITab_Genes", TabHandlerType.RichNavigation },
             { "ITab_GenesPregnancy", TabHandlerType.BasicInspectString },
-            { "ITab_Entity", TabHandlerType.BasicInspectString },
+            { "ITab_Entity", TabHandlerType.Action },
             { "ITab_StudyNotes", TabHandlerType.BasicInspectString },
             { "ITab_StudyNotesUnnaturalCorpse", TabHandlerType.BasicInspectString },
             { "ITab_StudyNotesVoidMonolith", TabHandlerType.BasicInspectString },
@@ -326,6 +326,7 @@ namespace RimWorldAccess
                 case "ITab_Pawn_Guest": return "Guest";
                 case "ITab_Pawn_Visitor": return "Guest";
                 case "ITab_ContentsTransporter": return "Contents";
+                case "ITab_Entity": return "Entity";
                 default: return GetCategoryNameForTab(tab);
             }
         }
