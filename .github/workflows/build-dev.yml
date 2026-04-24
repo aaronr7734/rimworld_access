@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   build:
-    if: github.repository == 'AccessMods/rimworld_access'
+    if: github.repository == 'aaronr7734/rimworld_access'
     runs-on: windows-2022
     permissions:
       contents: write
@@ -74,7 +74,8 @@ jobs:
             "release/RimWorldAccess/About/About.xml",
             "release/RimWorldAccess/prism.dll",
             "release/RimWorldAccess/libprism.dylib",
-            "release/RimWorldAccess/libprism.so"
+            "release/RimWorldAccess/libprism.so",
+            "release/changelog.txt"
           )
           foreach ($file in $expected) {
             if (-not (Test-Path $file)) {
@@ -85,7 +86,7 @@ jobs:
           Write-Host "All expected files present"
 
       - name: Create ZIP
-        run: Compress-Archive -Path release/RimWorldAccess/* -DestinationPath RimWorldAccess-dev.zip
+        run: Compress-Archive -Path release/changelog.txt, release/RimWorldAccess -DestinationPath RimWorldAccess-dev.zip
 
       - name: Update Dev Release
         uses: softprops/action-gh-release@v2

@@ -154,6 +154,13 @@
       Condition="Exists('$(ProjectDir)LICENSE')"
     />
 
+    <!-- Copy changelog.txt to release ROOT (sibling of RimWorldAccess folder) -->
+    <Copy
+      SourceFiles="$(ProjectDir)changelog.txt"
+      DestinationFolder="$(ProjectDir)release\"
+      Condition="Exists('$(ProjectDir)changelog.txt')"
+    />
+
     <Message Text="--- Release package created at $(ReleaseFolderPath) ---" Importance="high" />
   </Target>
 
