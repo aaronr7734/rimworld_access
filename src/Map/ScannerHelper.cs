@@ -446,6 +446,12 @@ namespace RimWorldAccess
 
     public static class ScannerHelper
     {
+        // Shared label for fog-of-war items in the Unexplored category. Search excludes items
+        // with this label since every fog region carries the same name and would dominate
+        // results. Used by both CollectMapItems (when emitting fog items) and the search
+        // filter so they stay in sync.
+        public const string UnexploredAreaLabel = "unexplored area";
+
         /// <summary>
         /// Adds a ScannerItem to both its specialized subcategory AND the category's "All"
         /// subcategory (convention: Subcategories[0]). This is the standard pattern used by
@@ -546,6 +552,7 @@ namespace RimWorldAccess
             var zonesOtherSubcat = buckets.Sub("Zones-Other");
 
             var roomsCategory = buckets.Cat("Rooms");
+            var unexploredCategory = buckets.Cat("Unexplored");
 
             // Uncategorized category — dict of per-def subcategories. The "All" subcategory
             // at index 0 was inserted by BuildFromSchema.
@@ -777,10 +784,13 @@ namespace RimWorldAccess
                 }
             }
 
-            // Collect mineable tiles, terrain, and deep ore in a single pass over all cells
+            // Collect mineable tiles, terrain, deep ore, and fog cells in a single pass
+            // over all cells. The cache is invalidated on building changes (cell hash) OR on
+            // any fog state change — fog collection shares this walk, so all four categories
+            // refresh together.
             int currentCellHash = map.listerThings.StateHashOfGroup(ThingRequestGroup.BuildingArtificial);
 
-            if (cachedTerrainNatural != null && currentCellHash == lastCellHash)
+            if (cachedTerrainNatural != null && currentCellHash == lastCellHash && !fogDirty)
             {
                 // Reuse cached cell data — skip 60K+ cell iteration entirely.
                 // Also mirror every cached item into the category's "All" subcategory.
@@ -789,6 +799,7 @@ namespace RimWorldAccess
                 mineableRareSubcat.Items.AddRange(cachedMineableRare);
                 mineableStoneSubcat.Items.AddRange(cachedMineableStone);
                 mineableScannedSubcat.Items.AddRange(cachedMineableScanned);
+                unexploredCategory.Subcategories[0].Items.AddRange(cachedFogItems);
 
                 terrainCategory.Subcategories[0].Items.AddRange(cachedTerrainNatural);
                 terrainCategory.Subcategories[0].Items.AddRange(cachedTerrainConstructed);
@@ -805,6 +816,7 @@ namespace RimWorldAccess
                 // Collect mineables by def type for later adjacency grouping
                 var mineableRareByDef = new Dictionary<string, List<(IntVec3 position, Thing thing)>>();
                 var mineableStoneByDef = new Dictionary<string, List<(IntVec3 position, Thing thing)>>();
+                var fogPositions = new List<IntVec3>();
 
                 foreach (var cell in allCells)
                 {
@@ -871,6 +883,10 @@ namespace RimWorldAccess
                             }
                         }
                     }
+                    else
+                    {
+                        fogPositions.Add(cell);
+                    }
 
                     // Collect deep ore in same pass (only if active scanner exists)
                     // Deep ore is underground - no fog check needed (matches RimWorld's behavior)
@@ -934,12 +950,29 @@ namespace RimWorldAccess
                     }
                 }
 
+                // Group unexplored fog cells by adjacency. Each contiguous fog region becomes
+                // its own scanner item so users can navigate region-by-region. This matches the
+                // game's data model: FogGrid is a sibling of TerrainGrid on Map, not a property
+                // of terrain, so each fog blob is treated as a first-class navigable item.
+                // Unexplored has only an "All" subcategory, so add directly (AddTo would
+                // double-add since specialized == Subcategories[0]).
+                var fogRegions = GroupTerrainByAdjacency(fogPositions, cursorPosition);
+                foreach (var region in fogRegions)
+                {
+                    var fogItem = new ScannerItem(
+                        new List<TerrainRegion> { region }, UnexploredAreaLabel, cursorPosition);
+                    unexploredCategory.Subcategories[0].Items.Add(fogItem);
+                }
+
                 // Save results to cell cache
                 cachedTerrainNatural = new List<ScannerItem>(terrainNaturalSubcat.Items);
                 cachedTerrainConstructed = new List<ScannerItem>(terrainConstructedSubcat.Items);
                 cachedMineableRare = new List<ScannerItem>(mineableRareSubcat.Items);
                 cachedMineableStone = new List<ScannerItem>(mineableStoneSubcat.Items);
                 cachedMineableScanned = new List<ScannerItem>(mineableScannedSubcat.Items);
+                cachedFogItems = new List<ScannerItem>(unexploredCategory.Subcategories[0].Items);
+                fogDirty = false;
+
                 lastCellHash = currentCellHash;
             }
 
@@ -1466,7 +1499,17 @@ namespace RimWorldAccess
         private static List<ScannerItem> cachedMineableRare = null;
         private static List<ScannerItem> cachedMineableStone = null;
         private static List<ScannerItem> cachedMineableScanned = null;
+        private static List<ScannerItem> cachedFogItems = null;
+        private static bool fogDirty = true;
         private static int lastCellHash = 0;
+
+        /// <summary>
+        /// Invalidates the fog portion of the cell-walk cache. Called by FogChangePatch
+        /// whenever a cell's fog state changes. The next CollectMapItems will rebuild the
+        /// Unexplored category — and, because fog collection shares the AllCells walk with
+        /// terrain/mineables/deep ore, those caches are rebuilt at the same time.
+        /// </summary>
+        public static void MarkFogDirty() => fogDirty = true;
 
         /// <summary>
         /// Invalidates all cell-based caches. Call when the map state changes
@@ -1479,6 +1522,8 @@ namespace RimWorldAccess
             cachedMineableRare = null;
             cachedMineableStone = null;
             cachedMineableScanned = null;
+            cachedFogItems = null;
+            fogDirty = true;
             lastCellHash = 0;
             designatorLabelCache = null;
         }
