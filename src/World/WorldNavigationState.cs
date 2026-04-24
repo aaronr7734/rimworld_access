@@ -67,7 +67,14 @@ namespace RimWorldAccess
         public static PlanetTile CurrentSelectedTile
         {
             get => currentSelectedTile;
-            set => currentSelectedTile = value;
+            set
+            {
+                currentSelectedTile = value;
+                // External origin writes end the world scanner's navigation session so the next
+                // Page Up/Down re-sorts from the new origin. Scanner-driven jumps (JumpToCurrent)
+                // guard with a flag so they do not self-invalidate.
+                WorldScannerState.NotifyOriginWritten();
+            }
         }
 
         /// <summary>
