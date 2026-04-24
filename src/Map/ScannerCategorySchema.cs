@@ -150,6 +150,7 @@ namespace RimWorldAccess
                 "Cut", "Harvest", "Smooth", "Tame", "Slaughter", "Other"),
             new ScannerCategorySchema("Zones", "Growing", "Stockpile", "Fishing", "Other"),
             new ScannerCategorySchema("Rooms"), // only gets "All"
+            new ScannerCategorySchema("Unexplored"),
             // Uncategorized is built separately — its subcategories are discovered at runtime.
         };
     }

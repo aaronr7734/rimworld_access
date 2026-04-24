@@ -296,7 +296,9 @@ namespace RimWorldAccess
             if (string.IsNullOrEmpty(activeFilterQuery) || activeFilterIsWorldMap)
                 return null;
 
-            var allItems = FlattenFromAllCategory(preCollectedCategories);
+            var allItems = FlattenFromAllCategory(preCollectedCategories)
+                .Where(item => item.Label != ScannerHelper.UnexploredAreaLabel)
+                .ToList();
 
             return ScannerSearchEngine.FilterAndRank(
                 allItems, activeFilterQuery, item => item.Label, item => item.Distance);
@@ -382,8 +384,11 @@ namespace RimWorldAccess
 
             var cursor = MapNavigationState.CurrentCursorPosition;
 
-            // Collect all items from all categories
-            var allItems = CollectAllMapItemsFlat(map, cursor);
+            // Collect all items from all categories. Fog-of-war regions all share the same
+            // "unexplored area" label, so exclude them from search to avoid noise.
+            var allItems = CollectAllMapItemsFlat(map, cursor)
+                .Where(item => item.Label != ScannerHelper.UnexploredAreaLabel)
+                .ToList();
 
             var matching = ScannerSearchEngine.FilterAndRank(
                 allItems, searchBuffer, item => item.Label, item => item.Distance);
