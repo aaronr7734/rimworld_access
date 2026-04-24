@@ -355,6 +355,19 @@ namespace RimWorldAccess
         // Temporary category tracking
         private static WorldScannerCategory temporaryCategory = null;
 
+        // Navigation session: within a Page Up/Down sequence the sort order and announce
+        // distance cache are frozen. A session ends when the origin tile is written by
+        // something other than our own auto-jump, when the category/subcategory changes,
+        // when map state changes (cache miss), or when the scanner closes.
+        private static bool navSessionActive = false;
+        private static PlanetTile lastScannerOriginTile = PlanetTile.Invalid;
+        private static bool scannerDrivenJumpInProgress = false;
+
+        // Traversal-distance memo keyed by (origin tile id, target tile id). Flushed whenever
+        // the navigation session is invalidated. Values are capped (see ANNOUNCE_TRAVERSAL_CAP).
+        private const int ANNOUNCE_TRAVERSAL_CAP = 100;
+        private static readonly Dictionary<long, float> traversalDistanceMemo = new Dictionary<long, float>();
+
         /// <summary>
         /// Toggles auto-jump mode on/off.
         /// </summary>
@@ -363,6 +376,84 @@ namespace RimWorldAccess
             autoJumpMode = !autoJumpMode;
             string status = autoJumpMode ? "enabled" : "disabled";
             TolkHelper.Speak($"Auto-jump mode {status}", SpeechPriority.High);
+        }
+
+        /// <summary>
+        /// Ends the current navigation session. The traversal-distance memo is flushed so
+        /// subsequent announcements recompute against the new origin.
+        /// </summary>
+        public static void InvalidateNavigationSession()
+        {
+            navSessionActive = false;
+            lastScannerOriginTile = PlanetTile.Invalid;
+            traversalDistanceMemo.Clear();
+        }
+
+        /// <summary>
+        /// Called by WorldNavigationState.CurrentSelectedTile setter on every origin write.
+        /// Scanner-driven writes (JumpToCurrent) set scannerDrivenJumpInProgress, so external
+        /// writes (arrow keys, bookmark jumps, settlement browser, quest notification, etc.)
+        /// are what actually invalidate the session.
+        /// </summary>
+        public static void NotifyOriginWritten()
+        {
+            if (!scannerDrivenJumpInProgress)
+                InvalidateNavigationSession();
+        }
+
+        /// <summary>
+        /// Starts a fresh navigation session anchored to the current origin tile. Called
+        /// implicitly on the first Page Up/Down of a sequence.
+        /// </summary>
+        private static void BeginNavigationSession()
+        {
+            navSessionActive = true;
+            lastScannerOriginTile = WorldNavigationState.CurrentSelectedTile;
+            traversalDistanceMemo.Clear();
+        }
+
+        /// <summary>
+        /// Returns the traversal distance used for the announced distance. Capped at
+        /// ANNOUNCE_TRAVERSAL_CAP (currently 100) so the pathfind terminates quickly even
+        /// for far targets; memoized per (origin, target) within a session so rapid Page
+        /// Up/Down over the same items does not repeatedly pathfind.
+        ///
+        /// `wasCapped` is true when the pathfind hit the cap, meaning the target is farther
+        /// than the cap in traversal terms. Callers announce "over N tiles" in that case.
+        /// Fuel and launch-range calculations are untouched by this cap — TransportPods and
+        /// gravships do their own unbounded traversal against the target tile directly.
+        /// </summary>
+        private static float GetAnnouncementTraversalDistance(PlanetTile origin, PlanetTile target, out bool wasCapped)
+        {
+            wasCapped = false;
+            if (!origin.Valid || !target.Valid)
+                return 0f;
+
+            long key = ((long)origin.tileId << 32) ^ (uint)target.tileId;
+            if (traversalDistanceMemo.TryGetValue(key, out float cached))
+            {
+                wasCapped = cached >= ANNOUNCE_TRAVERSAL_CAP;
+                return cached;
+            }
+
+            // maxDist is a float in RimWorld's API. Values >= ANNOUNCE_TRAVERSAL_CAP indicate
+            // the pathfind hit the cap, which we treat as "over cap".
+            float result = Find.WorldGrid.TraversalDistanceBetween(
+                origin, target,
+                passImpassable: true,
+                maxDist: ANNOUNCE_TRAVERSAL_CAP,
+                canTraverseLayers: true);
+
+            // Some RimWorld paths return float.MaxValue on "unreachable within cap" — normalize
+            // to the cap so the caller always gets a sane number to compare/announce.
+            if (result >= ANNOUNCE_TRAVERSAL_CAP || float.IsInfinity(result) || float.IsNaN(result))
+            {
+                result = ANNOUNCE_TRAVERSAL_CAP;
+                wasCapped = true;
+            }
+
+            traversalDistanceMemo[key] = result;
+            return result;
         }
 
         /// <summary>
@@ -426,6 +517,9 @@ namespace RimWorldAccess
             currentSubcategoryIndex = 0;
             currentItemIndex = 0;
             currentInstanceIndex = 0;
+
+            // Search results are a different subcategory context — end any in-progress session.
+            InvalidateNavigationSession();
         }
 
         /// <summary>
@@ -438,6 +532,7 @@ namespace RimWorldAccess
             {
                 categories.Remove(temporaryCategory);
                 temporaryCategory = null;
+                InvalidateNavigationSession();
             }
         }
 
@@ -485,6 +580,10 @@ namespace RimWorldAccess
                 categories = inLaunchMode
                     ? DeepCopyCategories(cachedCategories)
                     : new List<WorldScannerCategory>(cachedCategories);
+                // The cached list does not include the active search / temporary category —
+                // re-attach it so Page Up/Down still finds search results after a refresh.
+                if (temporaryCategory != null && !categories.Contains(temporaryCategory))
+                    categories.Add(temporaryCategory);
                 FilterToReachableItems(originTile);
                 ValidateIndices();
                 return;
@@ -545,6 +644,15 @@ namespace RimWorldAccess
                 lastQuestCount = currentQuests;
                 lastWaypointCount = currentWaypoints;
             }
+
+            // Re-attach the active search / temporary category after the rebuild. We cleared
+            // `categories` at the top of this path, so the temp would otherwise be lost.
+            if (temporaryCategory != null && !categories.Contains(temporaryCategory))
+                categories.Add(temporaryCategory);
+
+            // Map state changed (cache miss) — any in-progress navigation snapshot is stale.
+            // Caravan dissolved, quest expired, trader arrived, etc.
+            InvalidateNavigationSession();
 
             // Apply range filter for launch mode (after caching full data)
             // Deep-copy first so filtering doesn't corrupt the cache
@@ -1585,6 +1693,9 @@ namespace RimWorldAccess
             RefreshItems();
             if (categories.Count == 0) return;
 
+            // Changing category ends the current navigation session.
+            InvalidateNavigationSession();
+
             currentCategoryIndex++;
             if (currentCategoryIndex >= categories.Count)
                 currentCategoryIndex = 0;
@@ -1608,6 +1719,9 @@ namespace RimWorldAccess
 
             RefreshItems();
             if (categories.Count == 0) return;
+
+            // Changing category ends the current navigation session.
+            InvalidateNavigationSession();
 
             currentCategoryIndex--;
             if (currentCategoryIndex < 0)
@@ -1642,6 +1756,9 @@ namespace RimWorldAccess
                 TolkHelper.Speak("No subcategories", SpeechPriority.Normal);
                 return;
             }
+
+            // Changing subcategory ends the current navigation session.
+            InvalidateNavigationSession();
 
             int startIndex = currentSubcategoryIndex;
             do
@@ -1680,6 +1797,9 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Changing subcategory ends the current navigation session.
+            InvalidateNavigationSession();
+
             int startIndex = currentSubcategoryIndex;
             do
             {
@@ -1704,12 +1824,13 @@ namespace RimWorldAccess
         {
             if (!WorldNavigationState.IsActive) return;
 
-            if (categories.Count == 0)
-            {
-                RefreshItems();
-                if (categories.Count == 0) return;
-                AnnounceCurrentCategory();
-            }
+            // Always refresh: catches world object changes (caravan dissolves, quest expires,
+            // new trader arrives, etc.). RefreshItems is cheap on a cache hit and invalidates
+            // the nav session on a miss so the next press re-sorts against the fresh data.
+            bool wasEmpty = categories.Count == 0;
+            RefreshItems();
+            if (categories.Count == 0) return;
+            if (wasEmpty) AnnounceCurrentCategory();
 
             var subcat = GetCurrentSubcategory();
             if (subcat == null || subcat.Items.Count == 0)
@@ -1718,16 +1839,7 @@ namespace RimWorldAccess
                 return;
             }
 
-            currentItemIndex++;
-            if (currentItemIndex >= subcat.Items.Count)
-                currentItemIndex = 0;
-
-            currentInstanceIndex = 0;
-
-            if (autoJumpMode)
-                JumpToCurrent();
-            else
-                AnnounceCurrentItem();
+            AdvanceInSession(forward: true, subcat);
         }
 
         /// <summary>
@@ -1737,12 +1849,10 @@ namespace RimWorldAccess
         {
             if (!WorldNavigationState.IsActive) return;
 
-            if (categories.Count == 0)
-            {
-                RefreshItems();
-                if (categories.Count == 0) return;
-                AnnounceCurrentCategory();
-            }
+            bool wasEmpty = categories.Count == 0;
+            RefreshItems();
+            if (categories.Count == 0) return;
+            if (wasEmpty) AnnounceCurrentCategory();
 
             var subcat = GetCurrentSubcategory();
             if (subcat == null || subcat.Items.Count == 0)
@@ -1751,9 +1861,41 @@ namespace RimWorldAccess
                 return;
             }
 
-            currentItemIndex--;
-            if (currentItemIndex < 0)
-                currentItemIndex = subcat.Items.Count - 1;
+            AdvanceInSession(forward: false, subcat);
+        }
+
+        /// <summary>
+        /// Shared navigation step for NextItem / PreviousItem. Starts a session on the first
+        /// press and advances the index through the frozen sort order on subsequent presses.
+        /// Has a drift safety net: if the origin tile is not where the last scanner jump left
+        /// it, invalidates before proceeding so a fresh session begins.
+        /// </summary>
+        private static void AdvanceInSession(bool forward, WorldScannerSubcategory subcat)
+        {
+            if (navSessionActive
+                && lastScannerOriginTile.Valid
+                && WorldNavigationState.CurrentSelectedTile != lastScannerOriginTile)
+            {
+                InvalidateNavigationSession();
+            }
+
+            if (!navSessionActive)
+            {
+                BeginNavigationSession();
+            }
+
+            if (forward)
+            {
+                currentItemIndex++;
+                if (currentItemIndex >= subcat.Items.Count)
+                    currentItemIndex = 0;
+            }
+            else
+            {
+                currentItemIndex--;
+                if (currentItemIndex < 0)
+                    currentItemIndex = subcat.Items.Count - 1;
+            }
 
             currentInstanceIndex = 0;
 
@@ -1761,6 +1903,8 @@ namespace RimWorldAccess
                 JumpToCurrent();
             else
                 AnnounceCurrentItem();
+
+            lastScannerOriginTile = WorldNavigationState.CurrentSelectedTile;
         }
 
         /// <summary>
@@ -1852,7 +1996,17 @@ namespace RimWorldAccess
                 TolkHelper.Speak($"Switched to {targetTile.LayerDef.LabelCap} layer.");
             }
 
-            WorldNavigationState.CurrentSelectedTile = targetTile;
+            // Guard the origin write so NotifyOriginWritten does not invalidate the in-progress
+            // navigation session — this is a scanner-driven move, not an external cursor change.
+            scannerDrivenJumpInProgress = true;
+            try
+            {
+                WorldNavigationState.CurrentSelectedTile = targetTile;
+            }
+            finally
+            {
+                scannerDrivenJumpInProgress = false;
+            }
 
             // Sync with game selection (WorldSelector + WorldInterface/GameInitData for world gen)
             WorldNavigationState.SyncSelectionWithGame();
@@ -1945,6 +2099,7 @@ namespace RimWorldAccess
             PlanetTile originTile = WorldNavigationState.CurrentSelectedTile;
             float distance = 0f;
             string direction = "";
+            bool distanceCapped = false;
 
             if (onDifferentLayer)
             {
@@ -1964,12 +2119,13 @@ namespace RimWorldAccess
             {
                 direction = item.GetDirectionFrom(originTile, 0);
 
-                // Use TraversalDistanceBetween for displayed distance — this is what the game
-                // uses for range validation and fuel cost (CompLaunchable.cs:473, :591)
+                // Use a capped + memoized traversal distance for the announcement so rapid
+                // Page Up/Down stays responsive on big worlds. Fuel / launch range are
+                // validated separately below against the target tile directly, so the cap
+                // does not affect range or fuel correctness.
                 PlanetTile targetTile = item.GetTileAtInstance(0);
                 if (originTile.Valid && targetTile.Valid)
-                    distance = Find.WorldGrid.TraversalDistanceBetween(originTile, targetTile,
-                        passImpassable: true, int.MaxValue, canTraverseLayers: true);
+                    distance = GetAnnouncementTraversalDistance(originTile, targetTile, out distanceCapped);
 
                 // Check reachability from last waypoint if route planner has waypoints
                 if (targetTile.Valid && Find.WorldRoutePlanner != null && Find.WorldRoutePlanner.Active &&
@@ -2023,7 +2179,10 @@ namespace RimWorldAccess
 
             if (!string.IsNullOrEmpty(direction) && distance > 0.1f)
             {
-                parts.Add($"{direction}, {distance:F0} tiles");
+                if (distanceCapped)
+                    parts.Add($"{direction}, over {ANNOUNCE_TRAVERSAL_CAP:F0} tiles");
+                else
+                    parts.Add($"{direction}, {distance:F0} tiles");
             }
             else if (distance <= 0.1f && !onDifferentLayer)
             {
@@ -2078,11 +2237,11 @@ namespace RimWorldAccess
             PlanetTile originTile = WorldNavigationState.CurrentSelectedTile;
             string direction = item.GetDirectionFrom(originTile, currentInstanceIndex);
 
-            // Use TraversalDistanceBetween for displayed distance (matches game's distance)
+            // Capped + memoized traversal distance for responsive instance navigation.
             PlanetTile targetTile = item.GetTileAtInstance(currentInstanceIndex);
+            bool distanceCapped = false;
             float distance = (originTile.Valid && targetTile.Valid)
-                ? Find.WorldGrid.TraversalDistanceBetween(originTile, targetTile,
-                    passImpassable: true, int.MaxValue, canTraverseLayers: true)
+                ? GetAnnouncementTraversalDistance(originTile, targetTile, out distanceCapped)
                 : 0f;
 
             var parts = new List<string>();
@@ -2115,7 +2274,12 @@ namespace RimWorldAccess
             }
 
             if (!string.IsNullOrEmpty(direction) && distance > 0.1f)
-                parts.Add($"{direction}, {distance:F0} tiles");
+            {
+                if (distanceCapped)
+                    parts.Add($"{direction}, over {ANNOUNCE_TRAVERSAL_CAP:F0} tiles");
+                else
+                    parts.Add($"{direction}, {distance:F0} tiles");
+            }
             else if (distance <= 0.1f)
                 parts.Add("Current location");
 
@@ -2158,6 +2322,9 @@ namespace RimWorldAccess
             savedSubcategoryIndex = -1;
             savedItemIndex = -1;
             savedInstanceIndex = -1;
+
+            // End any in-progress navigation session.
+            InvalidateNavigationSession();
 
             // Clear any active search
             ScannerSearchState.ClearSearchSilent();
