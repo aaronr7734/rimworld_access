@@ -88,6 +88,12 @@ jobs:
       - name: Create ZIP
         run: Compress-Archive -Path release/changelog.txt, release/RimWorldAccess -DestinationPath RimWorldAccess-dev.zip
 
+      - name: Delete previous dev release
+        shell: bash
+        run: gh release delete dev --yes --cleanup-tag || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Update Dev Release
         uses: softprops/action-gh-release@v2
         with:
