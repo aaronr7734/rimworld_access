@@ -119,6 +119,12 @@ namespace RimWorldAccess
         /// </summary>
         private static string GetInfoForKey(KeyCode key, IntVec3 position, Map map)
         {
+            // Fogged tiles surface no information beyond "Undiscovered" — matches vanilla's
+            // MouseoverReadout, which short-circuits to "Undiscovered".Translate() and shows
+            // nothing else (no terrain, no things, no roof, no zone).
+            if (position.Fogged(map))
+                return "Undiscovered".Translate();
+
             switch (key)
             {
                 case KeyCode.Alpha1:

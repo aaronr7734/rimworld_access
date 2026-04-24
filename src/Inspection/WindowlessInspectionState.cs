@@ -43,6 +43,16 @@ namespace RimWorldAccess
             {
                 inspectionPosition = position;
 
+                // Fogged tiles surface no info beyond "Undiscovered" — matches vanilla's
+                // MouseoverReadout, which short-circuits without exposing terrain, things,
+                // or zones at unexplored cells.
+                if (Find.CurrentMap != null && position.Fogged(Find.CurrentMap))
+                {
+                    TolkHelper.Speak("Undiscovered".Translate());
+                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                    return;
+                }
+
                 // Build the object list
                 var objects = BuildObjectList();
 

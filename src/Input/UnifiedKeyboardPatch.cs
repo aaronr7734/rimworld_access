@@ -6925,6 +6925,15 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Fogged tiles surface no info beyond "Undiscovered" — matches vanilla's
+            // MouseoverReadout, which exits early without showing terrain or things.
+            if (pos.Fogged(map))
+            {
+                TolkHelper.Speak("Undiscovered".Translate());
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                return;
+            }
+
             // Gather all things at cursor position, sorted by AltitudeLayer descending
             // (matches TileInfoHelper ordering - highest layer first)
             var things = pos.GetThingList(map)
