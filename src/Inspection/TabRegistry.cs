@@ -136,7 +136,7 @@ namespace RimWorldAccess
             { "ITab_ContentsMapPortal", TabHandlerType.BasicInspectString },
             { "ITab_Genes", TabHandlerType.RichNavigation },
             { "ITab_GenesPregnancy", TabHandlerType.BasicInspectString },
-            { "ITab_Entity", TabHandlerType.BasicInspectString },
+            { "ITab_Entity", TabHandlerType.Action },
             { "ITab_StudyNotes", TabHandlerType.BasicInspectString },
             { "ITab_StudyNotesUnnaturalCorpse", TabHandlerType.BasicInspectString },
             { "ITab_StudyNotesVoidMonolith", TabHandlerType.BasicInspectString },
@@ -182,21 +182,16 @@ namespace RimWorldAccess
         };
 
         /// <summary>
-        /// Gets the user-friendly category name for a tab.
-        /// Uses the game's translated label for i18n support.
+        /// Gets the user-friendly (translated) display name for a tab.
+        /// Prefers the game's own labelKey so the user sees the label in their game language.
+        /// The stable English identifier used for dispatch lives in <see cref="GetOriginalCategoryName"/>.
         /// </summary>
         public static string GetCategoryNameForTab(InspectTabBase tab)
         {
             if (tab == null)
                 return "Unknown";
 
-            // First priority: use our explicit mapping for known tabs
-            // This ensures dispatch works correctly (e.g., ITab_ContentsBooks -> "Books")
-            string tabTypeName = tab.GetType().Name;
-            if (tabTypeToCategory.TryGetValue(tabTypeName, out string category))
-                return category;
-
-            // Second priority: use the game's translated label key (supports i18n)
+            // First priority: translate the tab's own labelKey (so Chinese users see Chinese, etc.)
             if (!string.IsNullOrEmpty(tab.labelKey))
             {
                 try
@@ -207,9 +202,14 @@ namespace RimWorldAccess
                 }
                 catch
                 {
-                    // Translation failed, continue to fallbacks
+                    // Translation failed, fall through to dictionary fallback
                 }
             }
+
+            // Fallback: explicit English mapping for tabs without a translatable labelKey
+            string tabTypeName = tab.GetType().Name;
+            if (tabTypeToCategory.TryGetValue(tabTypeName, out string category))
+                return category;
 
             // Try base type match (for subclasses), stopping at InspectTabBase
             Type baseType = tab.GetType().BaseType;
@@ -326,6 +326,7 @@ namespace RimWorldAccess
                 case "ITab_Pawn_Guest": return "Guest";
                 case "ITab_Pawn_Visitor": return "Guest";
                 case "ITab_ContentsTransporter": return "Contents";
+                case "ITab_Entity": return "Entity";
                 default: return GetCategoryNameForTab(tab);
             }
         }

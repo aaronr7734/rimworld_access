@@ -115,6 +115,14 @@ namespace RimWorldAccess
                 HandleBillsMenuInput();
                 return;
             }
+
+            // Handle EntityTabState (Anomaly DLC entity menu)
+            if (EntityTabState.IsActive)
+            {
+                if (EntityTabState.HandleInput(Event.current))
+                    Event.current.Use();
+                return;
+            }
         }
 
         private static void HandleTempControlInput()

@@ -61,12 +61,16 @@ namespace RimWorldAccess
             MechsMenuHelper.InitColumnDefs();
 
             // Apply default sort matching PawnTable_Mechs.LabelSortFunction:
-            // Overseer → ControlGroupIndex → KindLabel → Label
+            // Overseer → ControlGroupIndex → KindLabel → Label.
+            // Label tiebreaker uses NaturalStringComparer so "Lifter 2" comes
+            // before "Lifter 10" instead of lexicographically between 1 and 2.
+            // ColonistBarState.GetMechs() uses the same chain so the bar and
+            // menu agree on order.
             mechsList = mechsList
                 .OrderBy(p => p.GetOverseer()?.thingIDNumber ?? int.MaxValue)
                 .ThenBy(p => p.GetMechControlGroup()?.Index ?? int.MaxValue)
                 .ThenBy(p => p.KindLabel)
-                .ThenBy(p => p.Label)
+                .ThenBy(p => p.Label, NaturalStringComparer.Instance)
                 .ToList();
 
             // Initialize table helper

@@ -87,6 +87,23 @@ namespace RimWorldAccess
                         allGizmos.Add(gizmo);
                         allOwners[gizmo] = selectable;
                     }
+
+                    // Thing.GetGizmos() omits reverse designators (Cancel, Deconstruct,
+                    // Uninstall, etc.) — vanilla's InspectGizmoGrid combines them at
+                    // render time. Mirror that so the G menu shows Cancel on a selected
+                    // designated building, matching what a sighted player would see.
+                    if (selectable is Thing selectedThing)
+                    {
+                        List<Designator> reverseDesignators = Find.ReverseDesignatorDatabase.AllDesignators;
+                        for (int i = 0; i < reverseDesignators.Count; i++)
+                        {
+                            Command_Action reverseGizmo = reverseDesignators[i].CreateReverseDesignationGizmo(selectedThing);
+                            if (reverseGizmo == null || ShouldSkipGizmo(reverseGizmo))
+                                continue;
+                            allGizmos.Add(reverseGizmo);
+                            allOwners[reverseGizmo] = selectable;
+                        }
+                    }
                 }
             }
 
@@ -3090,6 +3107,26 @@ namespace RimWorldAccess
                         continue;
                     if (seenGizmos.Add(gizmo))
                         results.Add((gizmo, selectable));
+                }
+
+                // Thing.GetGizmos() does not include reverse designators (Cancel,
+                // Deconstruct, Uninstall, etc.) — vanilla's InspectGizmoGrid combines
+                // them at render time. Mirror that here so hotkeys keep working after
+                // a selection lands on the Thing (e.g. Shift+X → Deconstruct selects
+                // the torch, then Shift+C needs Cancel from the reverse database).
+                if (selectable is Thing selectedThing)
+                {
+                    List<Designator> selectedReverseDesignators = Find.ReverseDesignatorDatabase.AllDesignators;
+                    for (int i = 0; i < selectedReverseDesignators.Count; i++)
+                    {
+                        Command_Action reverseGizmo = selectedReverseDesignators[i].CreateReverseDesignationGizmo(selectedThing);
+                        if (reverseGizmo == null || ShouldSkipGizmo(reverseGizmo))
+                            continue;
+                        if (!MatchesHotkey(reverseGizmo, key))
+                            continue;
+                        if (seenGizmos.Add(reverseGizmo))
+                            results.Add((reverseGizmo, selectable));
+                    }
                 }
             }
 

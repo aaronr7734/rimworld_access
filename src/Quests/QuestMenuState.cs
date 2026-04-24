@@ -997,7 +997,7 @@ namespace RimWorldAccess
 
             // Difficulty
             int rating = Math.Max(quest.challengeRating, 1);
-            string ratingLine = $"Difficulty: {rating} star{(rating == 1 ? "" : "s")}";
+            string ratingLine = $"{"Difficulty".Translate()}: {rating} star{(rating == 1 ? "" : "s")}";
             if (quest.charity)
                 ratingLine += " (Charity quest)";
             lines.Add(new DetailLine(ratingLine));
@@ -1091,12 +1091,12 @@ namespace RimWorldAccess
                 else
                 {
                     // Single accept button with reward description
-                    string acceptLabel = "Accept";
+                    string acceptLabel = "AcceptButton".Translate();
                     if (choicePart != null && choicePart.choices.Count == 1)
                     {
                         string rewardDesc = QuestRewardHelper.BuildRewardDescription(choicePart.choices[0].rewards);
                         if (!string.IsNullOrEmpty(rewardDesc))
-                            acceptLabel = $"Accept: {rewardDesc}";
+                            acceptLabel = $"{acceptLabel}: {rewardDesc}";
                     }
                     buttons.Add(new ButtonInfo
                     {
@@ -1132,7 +1132,7 @@ namespace RimWorldAccess
                 // Dismiss button for available quests
                 buttons.Add(new ButtonInfo
                 {
-                    Label = "Dismiss",
+                    Label = "CommandShuttleDismiss".Translate(),
                     Action = () =>
                     {
                         quest.dismissed = true;
@@ -1149,7 +1149,7 @@ namespace RimWorldAccess
             {
                 buttons.Add(new ButtonInfo
                 {
-                    Label = quest.dismissed ? "Resume" : "Dismiss",
+                    Label = quest.dismissed ? "Resume" : ((string)"CommandShuttleDismiss".Translate()),
                     Action = () =>
                     {
                         quest.dismissed = !quest.dismissed;
@@ -1167,7 +1167,7 @@ namespace RimWorldAccess
             {
                 buttons.Add(new ButtonInfo
                 {
-                    Label = "Delete",
+                    Label = "Delete".Translate(),
                     Action = () =>
                     {
                         quest.hiddenInUI = true;
@@ -1189,7 +1189,7 @@ namespace RimWorldAccess
                 string targetLabel = localTarget.Label;
                 string buttonLabel = string.IsNullOrEmpty(targetLabel)
                     ? "Jump to location"
-                    : $"Jump to {targetLabel}";
+                    : (string)"JumpToTargetCustom".Translate(targetLabel);
 
                 buttons.Add(new ButtonInfo
                 {
@@ -1400,11 +1400,11 @@ namespace RimWorldAccess
             switch (currentTab)
             {
                 case QuestsTab.Available:
-                    return "Available Quests";
+                    return "AvailableQuests".Translate();
                 case QuestsTab.Active:
-                    return "Active Quests";
+                    return "ActiveQuests".Translate();
                 case QuestsTab.Historical:
-                    return "Historical Quests";
+                    return "HistoricalQuests".Translate();
                 default:
                     return "Quests";
             }
