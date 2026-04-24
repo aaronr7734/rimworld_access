@@ -904,8 +904,10 @@ namespace RimWorldAccess
                 }
             }
 
-            // Capture previous project before starting new one
-            var previousProject = Find.ResearchManager.GetProject();
+            // Capture previous project from the same track (regular research and each anomaly
+            // knowledge category occupy independent slots, so starting an anomaly project does
+            // not stop a regular one and vice versa).
+            var previousProject = Find.ResearchManager.GetProject(currentProject.knowledgeCategory);
 
             // Start research
             Find.ResearchManager.SetCurrentProject(currentProject);
