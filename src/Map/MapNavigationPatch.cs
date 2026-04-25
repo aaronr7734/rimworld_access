@@ -47,7 +47,6 @@ namespace RimWorldAccess
                 QuestMenuState.IsActive ||
                 WindowlessSaveMenuState.IsActive ||
                 WindowlessConfirmationState.IsActive ||
-                WindowlessDeleteConfirmationState.IsActive ||
                 WindowlessOptionsMenuState.IsActive ||
                 ZoneRenameState.IsActive ||
                 PlaySettingsMenuState.IsActive ||

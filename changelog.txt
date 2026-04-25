@@ -1,25 +1,59 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
 04/24/2026
 
-Small follow-up fixes around Anomaly research.
+The headline change: you can finally name your saves. The pause
+menu and the save/load screens also got a thorough polish pass.
 
 
 NEW FEATURES
 ------------
-- Anomaly research projects now announce their tier (basic or
-  advanced) while you browse the menu, so you know which kind of
-  entity you'll need to study to make progress on them.
+- You can now type a custom save name. The save menu drops you
+  in a text field pre-filled with your faction name -- type to
+  replace it, or press Down arrow to pick an existing save to
+  overwrite.
+
+- Save and load menus now announce each save's game version and
+  flag autosaves, matching what sighted players see. Loading a
+  save from a different version (or with a different mod list)
+  now goes through RimWorld's compatibility warning dialog, and
+  pressing Escape on that dialog returns you to the save list
+  instead of dropping you out to the main menu.
+
+- Anomaly research projects announce their tier (basic or
+  advanced) while you browse the research menu, so you know
+  which kind of entity you'll need to study to advance them.
 
 
-BUG FIXES
+PAUSE MENU POLISH
+-----------------
+- Cursor position is preserved when you Escape out of a sub-menu
+  (Save, Load, Options, Play Settings, Review Scenario), so you
+  land back on the item you just used. Closing the pause menu
+  with Escape resets the cursor for next time.
+
+- Quit to Main Menu and Quit to Desktop now use proper
+  confirmation dialogs (matching the rest of the mod), and
+  cancelling either one returns you to the pause menu where you
+  left off.
+
+- Play Settings now returns you to the pause menu on Escape
+  instead of kicking you out entirely.
+
+- Home and End jump to the first and last items in the pause
+  menu.
+
+
+More BUG FIXES
 ---------
-- Starting an Anomaly research project no longer claims your
-  regular research project was paused. Anomaly research and
-  regular research run on separate tracks, so picking up an
-  Anomaly project doesn't actually interrupt the regular one --
-  the mod was incorrectly announcing a pause that never
-  happened. It now only mentions a previous project when one
-  was genuinely replaced.
+- Starting an Anomaly research project no longer falsely claims
+  your regular research project was paused -- Anomaly and
+  regular research run on separate tracks, and the mod now only
+  mentions a previous project when one was genuinely replaced.
+
+- Several save/load labels that were hardcoded English
+  (Overwrite, Load, Save, "please enter a name", delete
+  confirmation) now use RimWorld's translation keys, so
+  non-English players hear them in their own language.
 
 
 ===========================================================================

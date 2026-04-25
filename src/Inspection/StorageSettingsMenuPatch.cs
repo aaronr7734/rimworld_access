@@ -313,7 +313,13 @@ namespace RimWorldAccess
 
                 case KeyCode.Escape:
                     PlaySettingsMenuState.Close();
-                    TolkHelper.Speak("Closed play settings menu");
+                    // Return to pause menu, matching how Save / Load / Options /
+                    // Review Scenario behave when escaped — instead of dropping the
+                    // user out of the pause menu entirely.
+                    if (Current.ProgramState == ProgramState.Playing)
+                    {
+                        WindowlessPauseMenuState.Open();
+                    }
                     Event.current.Use();
                     break;
             }

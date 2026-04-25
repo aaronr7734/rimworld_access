@@ -1324,23 +1324,6 @@ namespace RimWorldAccess
                 }
             }
 
-            // ===== PRIORITY 1: Handle delete confirmation if active =====
-            if (WindowlessDeleteConfirmationState.IsActive)
-            {
-                if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
-                {
-                    WindowlessDeleteConfirmationState.Confirm();
-                    Event.current.Use();
-                    return;
-                }
-                else if (key == KeyCode.Escape)
-                {
-                    WindowlessDeleteConfirmationState.Cancel();
-                    Event.current.Use();
-                    return;
-                }
-            }
-
             // ===== PRIORITY 2: Handle general confirmation if active =====
             if (WindowlessConfirmationState.IsActive)
             {
@@ -2044,20 +2027,18 @@ namespace RimWorldAccess
             if (WindowlessSaveMenuState.IsActive)
             {
                 bool handled = false;
+                bool inField = WindowlessSaveMenuState.IsInTextField;
 
-                // Handle Home - jump to first
                 if (key == KeyCode.Home)
                 {
                     WindowlessSaveMenuState.JumpToFirst();
                     handled = true;
                 }
-                // Handle End - jump to last
                 else if (key == KeyCode.End)
                 {
                     WindowlessSaveMenuState.JumpToLast();
                     handled = true;
                 }
-                // Handle Escape - clear search FIRST, then close
                 else if (key == KeyCode.Escape)
                 {
                     if (WindowlessSaveMenuState.HasActiveSearch)
@@ -2070,19 +2051,24 @@ namespace RimWorldAccess
                     }
                     handled = true;
                 }
-                // Handle Backspace for search
-                else if (key == KeyCode.Backspace && WindowlessSaveMenuState.HasActiveSearch)
+                else if (key == KeyCode.Backspace)
                 {
-                    WindowlessSaveMenuState.ProcessBackspace();
-                    handled = true;
+                    if (inField)
+                    {
+                        WindowlessSaveMenuState.BackspaceInField();
+                        handled = true;
+                    }
+                    else if (WindowlessSaveMenuState.HasActiveSearch)
+                    {
+                        WindowlessSaveMenuState.ProcessBackspace();
+                        handled = true;
+                    }
                 }
-                // Handle Down arrow - navigate with search awareness
                 else if (key == KeyCode.DownArrow)
                 {
                     WindowlessSaveMenuState.SelectNextMatch();
                     handled = true;
                 }
-                // Handle Up arrow - navigate with search awareness
                 else if (key == KeyCode.UpArrow)
                 {
                     WindowlessSaveMenuState.SelectPreviousMatch();
@@ -2098,13 +2084,23 @@ namespace RimWorldAccess
                     WindowlessSaveMenuState.DeleteSelected();
                     handled = true;
                 }
-                // Handle typeahead characters
                 else
                 {
                     bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
                     bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
+                    bool isTextFieldExtra = key == KeyCode.Space || key == KeyCode.Minus || key == KeyCode.Period;
 
-                    if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
+                    if (inField)
+                    {
+                        // In the save-name field: route any printable key via the character
+                        // buffer so IME-composed / layout-aware characters reach AppendChar.
+                        if ((isLetter || isNumber || isTextFieldExtra) && !KeyboardHelper.IsAltHeld && !KeyboardHelper.IsCtrlHeld)
+                        {
+                            TypeaheadCharacterBuffer.RequestCharacter(c => WindowlessSaveMenuState.AppendChar(c));
+                            handled = true;
+                        }
+                    }
+                    else if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
                     {
                         TypeaheadCharacterBuffer.RequestCharacter(c => WindowlessSaveMenuState.ProcessTypeaheadCharacter(c));
                         handled = true;
@@ -2130,7 +2126,8 @@ namespace RimWorldAccess
                 // HandleInput returns false for Escape without active search - handle closing here
                 if (key == KeyCode.Escape)
                 {
-                    WindowlessPauseMenuState.Close();
+                    // Forget the saved cursor: pausing again should start at the top.
+                    WindowlessPauseMenuState.CloseAndResetCursor();
                     TolkHelper.Speak("Menu closed");
                     Event.current.Use();
                     return;

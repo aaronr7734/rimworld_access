@@ -19,6 +19,18 @@ namespace RimWorldAccess
         private static bool isActive = false;
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
 
+        // Remembers the label of the last item the user activated, so reopening
+        // the pause menu lands on that item again (e.g. Esc out of Save returns
+        // the cursor to "Save", not to the top of the list). Cleared by
+        // CloseAndResetCursor when the user explicitly leaves the pause menu via
+        // Escape, so the next time they pause they start at the top.
+        private static string lastSelectedLabel = null;
+
+        // Set when a quit-confirmation dialog is queued. If the user cancels the
+        // dialog (game stays running), WindowlessDialogState.Close notifies us via
+        // OnWindowClosed and we reopen the pause menu with cursor restored.
+        private static System.WeakReference<Window> reopenPendingForDialog = null;
+
         public static bool IsActive => isActive;
         public static TypeaheadSearchHelper Typeahead => typeahead;
 
@@ -29,10 +41,14 @@ namespace RimWorldAccess
         {
             currentOptions = BuildMenuOptions();
             selectedIndex = 0;
+            if (!string.IsNullOrEmpty(lastSelectedLabel))
+            {
+                int idx = currentOptions.FindIndex(o => o.Label == lastSelectedLabel);
+                if (idx >= 0) selectedIndex = idx;
+            }
             isActive = true;
             typeahead.ClearSearch();
 
-            // Announce first option
             AnnounceCurrentOption();
         }
 
@@ -45,6 +61,43 @@ namespace RimWorldAccess
             selectedIndex = 0;
             isActive = false;
             typeahead.ClearSearch();
+        }
+
+        /// <summary>
+        /// Closes the pause menu AND forgets the saved cursor position. Called when
+        /// the user explicitly leaves the pause menu via Escape — we don't want a
+        /// later pause-menu open to land on the last activated item.
+        /// </summary>
+        public static void CloseAndResetCursor()
+        {
+            lastSelectedLabel = null;
+            reopenPendingForDialog = null;
+            Close();
+        }
+
+        /// <summary>
+        /// Notification from WindowlessDialogState.Close when any windowless dialog
+        /// closes. If we were waiting on a quit-confirmation that the user just
+        /// cancelled, reopen the pause menu so they can keep navigating.
+        /// </summary>
+        internal static void OnWindowClosed(Window closedWindow)
+        {
+            if (reopenPendingForDialog == null || closedWindow == null)
+                return;
+
+            if (!reopenPendingForDialog.TryGetTarget(out Window tracked) || tracked != closedWindow)
+                return;
+
+            reopenPendingForDialog = null;
+
+            // If the player confirmed the quit, the game is transitioning out — a
+            // long event is queued and we shouldn't reopen.
+            if (LongEventHandler.AnyEventNowOrWaiting)
+                return;
+            if (Current.ProgramState != ProgramState.Playing)
+                return;
+
+            Open();
         }
 
         /// <summary>
@@ -83,6 +136,7 @@ namespace RimWorldAccess
                 return;
 
             PauseMenuOption selected = currentOptions[selectedIndex];
+            lastSelectedLabel = selected.Label;
 
             // Close menu before executing (allows action to open new menu)
             Close();
@@ -129,6 +183,25 @@ namespace RimWorldAccess
                 }
                 // Let the caller handle normal escape (close menu)
                 return false;
+            }
+
+            // Home jumps to first option, End to last.
+            if (key == KeyCode.Home)
+            {
+                selectedIndex = MenuHelper.JumpToFirst();
+                typeahead.ClearSearch();
+                AnnounceCurrentOption();
+                Event.current.Use();
+                return true;
+            }
+
+            if (key == KeyCode.End)
+            {
+                selectedIndex = MenuHelper.JumpToLast(currentOptions.Count);
+                typeahead.ClearSearch();
+                AnnounceCurrentOption();
+                Event.current.Use();
+                return true;
             }
 
             // Handle Backspace for search
@@ -364,18 +437,16 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    // Regular quit options
+                    // Regular quit options. Confirmation goes through a vanilla
+                    // Dialog_MessageBox so it gets the same dialog-box UX as every
+                    // other confirmation in the mod (announces the warning, Enter to
+                    // confirm, Escape to go back). Text key matches MainMenuDrawer.
                     options.Add(new PauseMenuOption(
                         "QuitToMainMenu".Translate(),
                         () => {
                             if (GameDataSaveLoader.CurrentGameStateIsValuable)
                             {
-                                // Show confirmation
-                                TolkHelper.Speak("Confirm quit to main menu? Press Enter to confirm, Escape to cancel");
-                                WindowlessConfirmationState.Open(
-                                    "ConfirmQuit".Translate(),
-                                    GenScene.GoToMainMenu
-                                );
+                                ShowQuitConfirmation(GenScene.GoToMainMenu);
                             }
                             else
                             {
@@ -389,12 +460,7 @@ namespace RimWorldAccess
                         () => {
                             if (GameDataSaveLoader.CurrentGameStateIsValuable)
                             {
-                                // Show confirmation
-                                TolkHelper.Speak("Confirm quit to desktop? Press Enter to confirm, Escape to cancel");
-                                WindowlessConfirmationState.Open(
-                                    "ConfirmQuit".Translate(),
-                                    Root.Shutdown
-                                );
+                                ShowQuitConfirmation(Root.Shutdown);
                             }
                             else
                             {
@@ -415,6 +481,23 @@ namespace RimWorldAccess
             }
 
             return options;
+        }
+
+        /// <summary>
+        /// Shows the vanilla "ConfirmQuit" Dialog_MessageBox and registers it with our
+        /// pending-dialog tracker so the pause menu reopens (cursor preserved on the
+        /// "Quit to ..." item) if the user backs out of the dialog.
+        /// </summary>
+        private static void ShowQuitConfirmation(Action confirmed)
+        {
+            var dialog = Dialog_MessageBox.CreateConfirmation(
+                "ConfirmQuit".Translate(),
+                confirmed,
+                destructive: true,
+                null,
+                WindowLayer.Super);
+            reopenPendingForDialog = new System.WeakReference<Window>(dialog);
+            Find.WindowStack.Add(dialog);
         }
 
         /// <summary>

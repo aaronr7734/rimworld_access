@@ -154,6 +154,17 @@ namespace RimWorldAccess
             ShouldForcePause = false;
             openedOnFrame = -1;
             closedOnFrame = UnityEngine.Time.frameCount;
+
+            // Notify any state that was waiting for a specific dialog to close.
+            // DialogInterceptionPatch prevents Dialog_MessageBox from being added to
+            // the WindowStack, so LoadDialogWatcherPatch (which hooks Window.PostClose)
+            // never fires for those. Calling these here lets each state's pending
+            // weak-ref check fire on the dialog it was actually waiting for.
+            if (dialogToClose != null)
+            {
+                WindowlessSaveMenuState.OnWindowClosed(dialogToClose);
+                WindowlessPauseMenuState.OnWindowClosed(dialogToClose);
+            }
         }
 
         /// <summary>
