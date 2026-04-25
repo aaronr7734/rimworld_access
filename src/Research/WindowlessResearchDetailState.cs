@@ -681,10 +681,11 @@ namespace RimWorldAccess
             else if (project.knowledgeCost > 0)
             {
                 sb.AppendLine($"Knowledge Cost: {project.knowledgeCost:F0}");
-                if (project.knowledgeCategory != null)
-                {
-                    sb.AppendLine($"Knowledge Category: {project.knowledgeCategory.LabelCap}");
-                }
+            }
+
+            if (project.knowledgeCategory != null)
+            {
+                sb.AppendLine($"{"KnowledgeCategory".Translate()}: {project.knowledgeCategory.LabelCap}");
             }
 
             if (Find.ResearchManager.IsCurrentProject(project))

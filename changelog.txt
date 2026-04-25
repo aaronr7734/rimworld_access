@@ -1,4 +1,31 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
+04/24/2026
+
+Small follow-up fixes around Anomaly research.
+
+
+NEW FEATURES
+------------
+- Anomaly research projects now announce their tier (basic or
+  advanced) while you browse the menu, so you know which kind of
+  entity you'll need to study to make progress on them.
+
+
+BUG FIXES
+---------
+- Starting an Anomaly research project no longer claims your
+  regular research project was paused. Anomaly research and
+  regular research run on separate tracks, so picking up an
+  Anomaly project doesn't actually interrupt the regular one --
+  the mod was incorrectly announcing a pause that never
+  happened. It now only mentions a previous project when one
+  was genuinely replaced.
+
+
+===========================================================================
+
+
+RimWorld Access - Changelog for Aaron's Unofficial Patch
 04/23/2026
 
 The big one: broad Anomaly DLC support. Psychic rituals,

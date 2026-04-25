@@ -477,6 +477,14 @@ namespace RimWorldAccess
         {
             string label = project.LabelCap.ToString();
 
+            // Anomaly knowledge tier (basic / advanced) — the visual UI shows this as a colored
+            // category icon on every project tile. It's load-bearing for screen reader users
+            // because anomaly projects only progress when studying an entity of the matching tier.
+            if (project.knowledgeCategory != null)
+            {
+                label += $" - {project.knowledgeCategory.LabelCap}";
+            }
+
             // Add cost information
             float cost = project.CostApparent;
             if (cost > 0)
