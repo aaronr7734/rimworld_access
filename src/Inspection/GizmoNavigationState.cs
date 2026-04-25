@@ -1082,6 +1082,18 @@ namespace RimWorldAccess
                 return true;
             }
 
+            // Handle Space - secondary action (e.g. toggle checkboxes on sliders)
+            if (key == KeyCode.Space && !KeyboardHelper.IsAltHeld)
+            {
+                Gizmo spaceGizmo = availableGizmos[selectedGizmoIndex];
+                if (HasSecondaryAction(spaceGizmo))
+                {
+                    ExecuteSecondaryAction(spaceGizmo);
+                    Event.current.Use();
+                    return true;
+                }
+            }
+
             // Handle Alt+I - open info card for current gizmo
             if (KeyboardHelper.IsAltHeld && key == KeyCode.I)
             {
@@ -1371,9 +1383,90 @@ namespace RimWorldAccess
                     else
                         announcement += ". Press Enter to adjust";
                 }
+
+                if (HasSecondaryAction(gizmo))
+                {
+                    string actionName = GetSecondaryActionLabel(gizmo);
+                    announcement += $". Press Space to {actionName}";
+                }
             }
 
             TolkHelper.Speak(announcement);
+        }
+
+        private static string GetHemogenGizmoStatus(Gizmo gizmo)
+        {
+            var flags = System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic |
+                System.Reflection.BindingFlags.Public;
+            
+            var geneField = gizmo.GetType().GetField("gene", flags);
+            var gene = geneField?.GetValue(gizmo);
+            if (gene == null) return "";
+
+            var curProp = gene.GetType().GetProperty("ValueForDisplay");
+            var maxProp = gene.GetType().GetProperty("MaxForDisplay");
+            var targetField = gene.GetType().GetField("targetValue", flags);
+            var packsAllowedField = gene.GetType().GetField("hemogenPacksAllowed", flags);
+
+            if (curProp != null && maxProp != null && targetField != null)
+            {
+                int cur = (int)curProp.GetValue(gene);
+                int max = (int)maxProp.GetValue(gene);
+                float targetRaw = (float)targetField.GetValue(gene);
+                int target = Mathf.RoundToInt(targetRaw * 100f);
+
+                string status = $"{cur} / {max}, target {target}";
+                if (packsAllowedField != null)
+                {
+                    bool allowed = (bool)packsAllowedField.GetValue(gene);
+                    status += $", Packs: {(allowed ? "ON" : "OFF")}";
+                }
+                return status;
+            }
+            return "";
+        }
+
+        private static bool HasSecondaryAction(Gizmo gizmo)
+        {
+            return gizmo.GetType().Name == "GeneGizmo_ResourceHemogen";
+        }
+
+        private static string GetSecondaryActionLabel(Gizmo gizmo)
+        {
+            if (gizmo.GetType().Name == "GeneGizmo_ResourceHemogen")
+                return "toggle hemogen packs";
+            return "toggle";
+        }
+
+        private static void ExecuteSecondaryAction(Gizmo gizmo)
+        {
+            if (gizmo.GetType().Name == "GeneGizmo_ResourceHemogen")
+            {
+                var flags = System.Reflection.BindingFlags.Instance |
+                    System.Reflection.BindingFlags.NonPublic |
+                    System.Reflection.BindingFlags.Public;
+                
+                var geneField = gizmo.GetType().GetField("gene", flags);
+                var gene = geneField?.GetValue(gizmo);
+                if (gene != null)
+                {
+                    var packsAllowedField = gene.GetType().GetField("hemogenPacksAllowed", flags);
+                    if (packsAllowedField != null)
+                    {
+                        bool current = (bool)packsAllowedField.GetValue(gene);
+                        bool newValue = !current;
+                        packsAllowedField.SetValue(gene, newValue);
+
+                        if (newValue)
+                            SoundDefOf.Tick_High.PlayOneShotOnCamera();
+                        else
+                            SoundDefOf.Tick_Low.PlayOneShotOnCamera();
+
+                        TolkHelper.Speak($"Hemogen packs: {(newValue ? "ON" : "OFF")}");
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -1475,7 +1568,7 @@ namespace RimWorldAccess
                     return "Caravan Info";
 
                 case "GeneGizmo_DeathrestCapacity":
-                    return "Deathrest Capacity";
+                    return GetDeathrestCapacityStatus(gizmo);
 
                 case "ActivityGizmo":
                     return GetActivityGizmoLabel(gizmo);
@@ -1495,6 +1588,7 @@ namespace RimWorldAccess
             {
                 var shieldField = gizmo.GetType().GetField("shield",
                     System.Reflection.BindingFlags.Instance |
+                    System.Reflection.BindingFlags.NonPublic |
                     System.Reflection.BindingFlags.Public);
                 if (shieldField != null)
                 {
@@ -1505,8 +1599,11 @@ namespace RimWorldAccess
                         var isApparelProp = shield.GetType().GetProperty("IsApparel");
                         bool isApparel = isApparelProp != null && (bool)isApparelProp.GetValue(shield);
 
-                        var parentProp = shield.GetType().GetProperty("parent");
-                        var parent = parentProp?.GetValue(shield) as Thing;
+                        var parentField = shield.GetType().GetField("parent",
+                            System.Reflection.BindingFlags.Instance |
+                            System.Reflection.BindingFlags.NonPublic |
+                            System.Reflection.BindingFlags.Public);
+                        var parent = parentField?.GetValue(shield) as Thing;
 
                         if (isApparel && parent != null)
                             return $"Shield: {parent.LabelCap}";
@@ -1654,6 +1751,8 @@ namespace RimWorldAccess
             return string.IsNullOrEmpty(label) ? "Status Display" : label;
         }
 
+        private const System.Reflection.BindingFlags AnyBinding = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
+
         /// <summary>
         /// Gets the current status value for non-Command gizmos (progress bars, meters, etc.)
         /// Returns values like "5 / 12" for bandwidth or "75%" for shield energy.
@@ -1694,20 +1793,225 @@ namespace RimWorldAccess
                     case "Gizmo_ProjectileInterceptorHitPoints":
                         return GetProjectileInterceptorStatus(gizmo);
 
+                    case "GeneGizmo_ResourceHemogen":
+                        return GetHemogenGizmoStatus(gizmo);
+
                     case "MechanitorControlGroupGizmo":
                         return MechControlGroupState.GetGizmoStatus(gizmo);
 
                     default:
                         // Try to get status from Gizmo_Slider subclasses
                         if (gizmo is Verse.Gizmo_Slider)
-                            return GetSliderGizmoStatus(gizmo);
-                        return "";
+                        {
+                            string sliderStatus = GetSliderGizmoStatus(gizmo);
+                            if (!string.IsNullOrEmpty(sliderStatus)) return sliderStatus;
+                        }
+
+                        // Generic fallback for modded shields or other status gizmos
+                        return TryGetGenericShieldStatus(gizmo);
                 }
             }
             catch
             {
                 return "";
             }
+        }
+
+        /// <summary>
+        /// Attempts to find a shield-like component in a gizmo and extract its status.
+        /// This helps support modded shields that use custom gizmo classes.
+        /// </summary>
+        private static string TryGetGenericShieldStatus(Gizmo gizmo)
+        {
+            object shield = FindShieldComponent(gizmo);
+            if (shield != null)
+            {
+                return GetStatusFromShieldObject(shield);
+            }
+            return "";
+        }
+
+        /// <summary>
+        /// Searches all fields of a gizmo and its base classes to find an object that looks like a shield component.
+        /// </summary>
+        private static object FindShieldComponent(Gizmo gizmo)
+        {
+            // 1. If the gizmo itself has the data, use it
+            if (HasShieldData(gizmo)) return gizmo;
+
+            // 2. Search fields for an object that has data or a shield-like name
+            var type = gizmo.GetType();
+            while (type != null && type != typeof(object))
+            {
+                foreach (var field in type.GetFields(AnyBinding))
+                {
+                    try
+                    {
+                        var val = field.GetValue(gizmo);
+                        if (val != null)
+                        {
+                            // Prioritize objects that actually have data members
+                            if (HasShieldData(val)) return val;
+                            // Fallback to objects with shield-like names (e.g. CompShield)
+                            if (LooksLikeShieldByTypeName(val)) return val;
+                        }
+                    }
+                    catch { }
+                }
+                type = type.BaseType;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Checks if an object has properties or fields typical of a shield component.
+        /// </summary>
+        private static bool HasShieldData(object obj)
+        {
+            var type = obj.GetType();
+            return HasMember(type, "Energy", true) ||
+                   HasMember(type, "HitPointsMax", true) ||
+                   HasMember(type, "currentHitPoints", false) ||
+                   HasMember(type, "energy", false) ||
+                   HasMember(type, "ticksToReset", false) ||
+                   HasMember(type, "ChargingTicksLeft", true) ||
+                   HasMember(type, "curEnergy", false) ||
+                   HasMember(type, "shieldEnergy", false);
+        }
+
+        /// <summary>
+        /// Checks if an object's type name suggests it is a shield or interceptor.
+        /// </summary>
+        private static bool LooksLikeShieldByTypeName(object obj)
+        {
+            string name = obj.GetType().Name.ToLower();
+            return name.Contains("shield") || name.Contains("interceptor") || name.Contains("protection") || name.Contains("barrier");
+        }
+
+        /// <summary>
+        /// This is kept for backward compatibility in the detection loop but we use HasShieldData more aggressively now.
+        /// </summary>
+        private static bool LooksLikeShield(object obj)
+        {
+            return HasShieldData(obj) || LooksLikeShieldByTypeName(obj);
+        }
+
+        private static bool HasMember(System.Type type, string name, bool isProperty)
+        {
+            if (isProperty) return type.GetProperty(name, AnyBinding) != null;
+            return type.GetField(name, AnyBinding) != null;
+        }
+
+        /// <summary>
+        /// Extracts status information from a shield-like object using reflection.
+        /// Handles both energy-based shields and hitpoint-based interceptors with fuzzy matching.
+        /// </summary>
+        private static string GetStatusFromShieldObject(object shield)
+        {
+            var type = shield.GetType();
+
+            // 1. Check for Resetting/Recharging state
+            int? ticksToReset = GetFuzzyInt(shield, "ticksToReset", "resetTicks", "rechargeTicks");
+            if (ticksToReset.HasValue && ticksToReset.Value > 0)
+                return $"Resetting: {ticksToReset.Value.ToStringTicksToPeriod()}";
+
+            int? chargingTicks = GetFuzzyInt(shield, "ChargingTicksLeft", "chargingTicks", "TicksUntilReady");
+            if (chargingTicks.HasValue && chargingTicks.Value > 0)
+                return $"Recharging: {chargingTicks.Value.ToStringTicksToPeriod()}";
+
+            // 2. Check for Energy status
+            float? energy = GetFuzzyFloat(shield, "Energy", "energy", "curEnergy", "shieldEnergy", "currentEnergy");
+            if (energy.HasValue)
+            {
+                float? maxEnergy = GetFuzzyFloat(shield, "EnergyMax", "MaxEnergy", "energyMax", "maxEnergy", "maxShieldEnergy");
+                if (!maxEnergy.HasValue)
+                {
+                    // Try to get max energy from parent's stat
+                    var parent = GetFuzzyObject(shield, "parent", "thing", "owner", "pawn") as Thing;
+                    if (parent != null)
+                        maxEnergy = parent.GetStatValue(RimWorld.StatDefOf.EnergyShieldEnergyMax);
+                }
+
+                if (maxEnergy.HasValue && maxEnergy.Value > 0)
+                {
+                    float percent = (energy.Value / maxEnergy.Value) * 100f;
+                    
+                    // Standard RimWorld behavior: Energy is stored as a float where 1.0 = 100 display units.
+                    // If a shield has 1000 max charge, its internal maxEnergy is typically 10.0.
+                    float displayEnergy = energy.Value * 100f;
+                    float displayMax = maxEnergy.Value * 100f;
+                    
+                    // If the values are already very large (e.g. over 10,000), they might be raw ticks 
+                    // or already scaled. In that case, don't multiply by 100.
+                    if (maxEnergy.Value > 5000f)
+                    {
+                        displayEnergy = energy.Value;
+                        displayMax = maxEnergy.Value;
+                    }
+
+                    return $"{percent:F0}% ({displayEnergy:F0} / {displayMax:F0})";
+                }
+            }
+
+            // 3. Check for Hit Points status
+            int? hp = GetFuzzyInt(shield, "currentHitPoints", "hitPoints", "hp", "curHp", "currentHp");
+            if (hp.HasValue)
+            {
+                int? maxHp = GetFuzzyInt(shield, "HitPointsMax", "MaxHitPoints", "maxHp", "hpMax", "maxHitPoints");
+                if (maxHp.HasValue && maxHp.Value > 0)
+                {
+                    return $"{hp.Value} / {maxHp.Value} HP";
+                }
+            }
+
+            return "";
+        }
+
+        private static float? GetFuzzyFloat(object obj, params string[] names)
+        {
+            var type = obj.GetType();
+            foreach (var name in names)
+            {
+                var prop = type.GetProperty(name, AnyBinding);
+                if (prop != null && (prop.PropertyType == typeof(float) || prop.PropertyType == typeof(double)))
+                    return System.Convert.ToSingle(prop.GetValue(obj));
+
+                var field = type.GetField(name, AnyBinding);
+                if (field != null && (field.FieldType == typeof(float) || field.FieldType == typeof(double)))
+                    return System.Convert.ToSingle(field.GetValue(obj));
+            }
+            return null;
+        }
+
+        private static int? GetFuzzyInt(object obj, params string[] names)
+        {
+            var type = obj.GetType();
+            foreach (var name in names)
+            {
+                var prop = type.GetProperty(name, AnyBinding);
+                if (prop != null && (prop.PropertyType == typeof(int) || prop.PropertyType == typeof(long) || prop.PropertyType == typeof(short)))
+                    return System.Convert.ToInt32(prop.GetValue(obj));
+
+                var field = type.GetField(name, AnyBinding);
+                if (field != null && (field.FieldType == typeof(int) || field.FieldType == typeof(long) || field.FieldType == typeof(short)))
+                    return System.Convert.ToInt32(field.GetValue(obj));
+            }
+            return null;
+        }
+
+        private static object GetFuzzyObject(object obj, params string[] names)
+        {
+            var type = obj.GetType();
+            foreach (var name in names)
+            {
+                var prop = type.GetProperty(name, AnyBinding);
+                if (prop != null) return prop.GetValue(obj);
+
+                var field = type.GetField(name, AnyBinding);
+                if (field != null) return field.GetValue(obj);
+            }
+            return null;
         }
 
         /// <summary>
@@ -1740,32 +2044,7 @@ namespace RimWorldAccess
         /// </summary>
         private static string GetEnergyShieldStatus(Gizmo gizmo)
         {
-            var shieldField = gizmo.GetType().GetField("shield",
-                System.Reflection.BindingFlags.Instance |
-                System.Reflection.BindingFlags.Public);
-            if (shieldField == null) return "";
-
-            var shield = shieldField.GetValue(gizmo);
-            if (shield == null) return "";
-
-            var energyProp = shield.GetType().GetProperty("Energy");
-            var parentProp = shield.GetType().GetProperty("parent");
-
-            if (energyProp != null && parentProp != null)
-            {
-                float energy = (float)energyProp.GetValue(shield);
-                var parent = parentProp.GetValue(shield) as Thing;
-                if (parent != null)
-                {
-                    float maxEnergy = parent.GetStatValue(RimWorld.StatDefOf.EnergyShieldEnergyMax);
-                    if (maxEnergy > 0)
-                    {
-                        float percent = (energy / maxEnergy) * 100f;
-                        return $"{percent:F0}% ({energy * 100:F0} / {maxEnergy * 100:F0})";
-                    }
-                }
-            }
-            return "";
+            return TryGetGenericShieldStatus(gizmo);
         }
 
         /// <summary>
@@ -2155,15 +2434,30 @@ namespace RimWorldAccess
             var comp = compField.GetValue(gizmo);
             if (comp == null) return "";
 
-            var hpProp = comp.GetType().GetProperty("currentHitPoints",
+            // Check if it's charging/recharging
+            var chargingTicksProp = comp.GetType().GetProperty("ChargingTicksLeft",
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic |
+                System.Reflection.BindingFlags.Public);
+            if (chargingTicksProp != null)
+            {
+                int chargingTicks = (int)chargingTicksProp.GetValue(comp);
+                if (chargingTicks > 0)
+                {
+                    return $"Recharging: {chargingTicks.ToStringTicksToPeriod()}";
+                }
+            }
+
+            // Get hit points
+            var hpField = comp.GetType().GetField("currentHitPoints",
                 System.Reflection.BindingFlags.Instance |
                 System.Reflection.BindingFlags.NonPublic |
                 System.Reflection.BindingFlags.Public);
             var maxHpProp = comp.GetType().GetProperty("HitPointsMax");
 
-            if (hpProp != null && maxHpProp != null)
+            if (hpField != null && maxHpProp != null)
             {
-                int hp = (int)hpProp.GetValue(comp);
+                int hp = (int)hpField.GetValue(comp);
                 int maxHp = (int)maxHpProp.GetValue(comp);
                 return $"{hp} / {maxHp} HP";
             }
@@ -2185,6 +2479,37 @@ namespace RimWorldAccess
                 float value = (float)valueProp.GetValue(gizmo);
                 return $"{value * 100:F0}%";
             }
+            return "";
+        }
+
+        /// <summary>
+        /// Gets the status for the deathrest capacity gizmo.
+        /// </summary>
+        private static string GetDeathrestCapacityStatus(Gizmo gizmo)
+        {
+            try
+            {
+                var geneField = gizmo.GetType().GetField("gene",
+                    System.Reflection.BindingFlags.Instance |
+                    System.Reflection.BindingFlags.NonPublic);
+                if (geneField != null)
+                {
+                    var gene = geneField.GetValue(gizmo);
+                    if (gene != null)
+                    {
+                        // Buildings capacity
+                        var currentCapProp = gene.GetType().GetProperty("CurrentCapacity");
+                        var maxCapProp = gene.GetType().GetProperty("DeathrestCapacity");
+                        if (currentCapProp != null && maxCapProp != null)
+                        {
+                            int current = (int)currentCapProp.GetValue(gene);
+                            int max = (int)maxCapProp.GetValue(gene);
+                            return $"Deathrest Capacity: {current} / {max}";
+                        }
+                    }
+                }
+            }
+            catch { }
             return "";
         }
 
@@ -2545,12 +2870,12 @@ namespace RimWorldAccess
 
             try
             {
+                var flags = System.Reflection.BindingFlags.Instance |
+                    System.Reflection.BindingFlags.NonPublic |
+                    System.Reflection.BindingFlags.Public;
+
                 if (gizmo is Gizmo_Slider)
                 {
-                    var flags = System.Reflection.BindingFlags.Instance |
-                        System.Reflection.BindingFlags.NonPublic |
-                        System.Reflection.BindingFlags.Public;
-
                     var targetProp = gizmo.GetType().GetProperty("Target", flags);
                     var dragRangeProp = gizmo.GetType().GetProperty("DragRange", flags);
                     var incrementsProp = gizmo.GetType().GetProperty("Increments", flags);
@@ -2583,10 +2908,7 @@ namespace RimWorldAccess
                 else
                 {
                     string typeName = gizmo.GetType().Name;
-                    var flags = System.Reflection.BindingFlags.Instance |
-                        System.Reflection.BindingFlags.NonPublic |
-                        System.Reflection.BindingFlags.Public;
-
+                    // ... existing handling for other types ...
                     if (typeName == "PsychicEntropyGizmo")
                     {
                         var targetField = gizmo.GetType().GetField("targetValue", flags);
@@ -2640,8 +2962,8 @@ namespace RimWorldAccess
             }
 
             isAdjustingSlider = true;
-            string valueStr = $"{sliderValue * 100:F0}%";
-            TolkHelper.Speak($"Adjusting {title}. Current target: {valueStr}. Left and Right to adjust, Shift for larger steps, Escape to finish.");
+            string announcement = GetSliderAnnouncement(sliderGizmo, sliderValue);
+            TolkHelper.Speak($"Adjusting {title}. {announcement}. Left and Right to adjust, Shift for larger steps, Escape to finish.");
         }
 
         /// <summary>
@@ -2695,8 +3017,20 @@ namespace RimWorldAccess
 
             if (gizmo is Gizmo_Slider)
             {
+                // 1. Set the Target property (triggers the actual logic like gene.SetTargetValuePct)
                 var targetProp = gizmo.GetType().GetProperty("Target", flags);
-                targetProp?.SetValue(gizmo, value);
+                if (targetProp != null)
+                {
+                    targetProp.SetValue(gizmo, value);
+                    
+                    // Read it back to see if it was clamped or modified by the setter
+                    float actualValue = (float)targetProp.GetValue(gizmo);
+
+                    // 2. Set the private targetValuePct field in the base Gizmo_Slider class.
+                    // We must use the actualValue to keep them in sync.
+                    var field = typeof(Gizmo_Slider).GetField("targetValuePct", flags);
+                    field?.SetValue(gizmo, actualValue);
+                }
             }
             else
             {
@@ -2757,7 +3091,7 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Gets the announcement text for the current slider value.
-        /// Uses BarLabel where available for richer info (e.g., "75 / 200 fuel").
+        /// Distinguishes between target value and current level.
         /// </summary>
         private static string GetSliderAnnouncement(Gizmo gizmo, float value)
         {
@@ -2769,14 +3103,54 @@ namespace RimWorldAccess
             {
                 if (gizmo is Gizmo_Slider)
                 {
-                    // Try to get BarLabel for richer display
-                    var barLabelProp = gizmo.GetType().GetProperty("BarLabel", flags);
-                    if (barLabelProp != null)
+                    string typeName = gizmo.GetType().Name;
+
+                    // Specialized handling for GeneGizmo_Resource (Hemogen, etc.)
+                    if (typeName.Contains("GeneGizmo_Resource"))
                     {
-                        string barLabel = (string)barLabelProp.GetValue(gizmo);
-                        if (!string.IsNullOrEmpty(barLabel))
-                            return $"Target: {value * 100:F0}%, {barLabel}";
+                        var geneField = gizmo.GetType().GetField("gene", flags);
+                        var gene = geneField?.GetValue(gizmo);
+                        if (gene != null)
+                        {
+                            var curProp = gene.GetType().GetProperty("ValueForDisplay");
+                            var maxProp = gene.GetType().GetProperty("MaxForDisplay");
+                            var maxValProp = gene.GetType().GetProperty("Max");
+                            
+                            if (curProp != null && maxProp != null && maxValProp != null)
+                            {
+                                int curDisplay = (int)curProp.GetValue(gene);
+                                int maxDisplay = (int)maxProp.GetValue(gene);
+                                float maxVal = (float)maxValProp.GetValue(gene);
+
+                                // The 'value' passed is the Target percentage (0 to 1)
+                                // We need to convert it to a display value: value * gene.Max * 100
+                                float targetRaw = value * maxVal;
+                                int targetDisplay = Mathf.RoundToInt(targetRaw * 100f);
+                                float targetPercent = value * 100f;
+
+                                return $"Target: {targetPercent:F0}% ({targetDisplay} / {maxDisplay}). Current: {curDisplay} / {maxDisplay}";
+                            }
+                        }
                     }
+
+                    // Fallback for other sliders
+                    var valuePercentProp = gizmo.GetType().GetProperty("ValuePercent", flags);
+                    float currentPercent = 0f;
+                    if (valuePercentProp != null)
+                        currentPercent = (float)valuePercentProp.GetValue(gizmo);
+
+                    var barLabelProp = gizmo.GetType().GetProperty("BarLabel", flags);
+                    string barLabel = "";
+                    if (barLabelProp != null)
+                        barLabel = (string)barLabelProp.GetValue(gizmo);
+
+                    string targetStr = $"{value * 100:F0}%";
+                    string currentStr = $"{currentPercent * 100:F0}%";
+                    
+                    if (!string.IsNullOrEmpty(barLabel))
+                        return $"Target: {targetStr}. Current: {currentStr} ({barLabel})";
+                    else
+                        return $"Target: {targetStr}. Current: {currentStr}";
                 }
                 else if (gizmo.GetType().Name == "MechCarrierGizmo")
                 {
