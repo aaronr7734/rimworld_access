@@ -511,12 +511,16 @@ namespace RimWorldAccess
                 return;
 
             Gizmo selectedGizmo = availableGizmos[selectedGizmoIndex];
-            string gizmoLabel = GetGizmoLabel(selectedGizmo);
+
+            // Resolve lazy properties (Label, Disabled, disabledReason) with the owner
+            // selected so they don't read stale Find.Selector state.
+            string gizmoLabel = WithGizmoOwnerSelected(selectedGizmo, null, () => GetGizmoLabel(selectedGizmo));
+            bool gizmoDisabled = WithGizmoOwnerSelected(selectedGizmo, null, () => selectedGizmo.Disabled);
 
             // Check if disabled
-            if (selectedGizmo.Disabled)
+            if (gizmoDisabled)
             {
-                string reason = selectedGizmo.disabledReason;
+                string reason = WithGizmoOwnerSelected(selectedGizmo, null, () => selectedGizmo.disabledReason);
                 if (string.IsNullOrEmpty(reason))
                     reason = "Command not available";
 
@@ -1203,7 +1207,10 @@ namespace RimWorldAccess
             var labels = new List<string>();
             foreach (var gizmo in availableGizmos)
             {
-                labels.Add(GetGizmoLabel(gizmo));
+                // Lazy labels (e.g. Designator_Install) require the owner to be the
+                // single-selected Thing to resolve correctly.
+                Gizmo captured = gizmo;
+                labels.Add(WithGizmoOwnerSelected(captured, null, () => GetGizmoLabel(captured)));
             }
             return labels;
         }
@@ -1220,30 +1227,34 @@ namespace RimWorldAccess
                 return;
 
             Gizmo gizmo = availableGizmos[selectedGizmoIndex];
-            string label = GetGizmoLabel(gizmo);
 
             if (typeahead.HasActiveSearch)
             {
-                string announcement = $"{label}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
-
-                // Add disabled status if applicable
-                if (gizmo.Disabled)
+                // Lazy gizmo properties (Label, Disabled) check Find.Selector.SingleSelectedThing.
+                WithGizmoOwnerSelected(gizmo, null, () =>
                 {
-                    string reason = gizmo.disabledReason;
-                    if (string.IsNullOrEmpty(reason))
-                        reason = "Not available";
-                    announcement += $" Disabled: {reason}";
+                    string label = GetGizmoLabel(gizmo);
+                    string announcement = $"{label}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
 
-                    // Add helpful context for specific disabled scenarios (e.g., transport pod mass)
-                    ISelectable gizmoOwner = null;
-                    if (gizmoOwners.Count > 0)
-                        gizmoOwners.TryGetValue(gizmo, out gizmoOwner);
-                    string context = GetDisabledGizmoContext(gizmo, gizmoOwner);
-                    if (!string.IsNullOrEmpty(context))
-                        announcement += $". {context}";
-                }
+                    // Add disabled status if applicable
+                    if (gizmo.Disabled)
+                    {
+                        string reason = gizmo.disabledReason;
+                        if (string.IsNullOrEmpty(reason))
+                            reason = "Not available";
+                        announcement += $" Disabled: {reason}";
 
-                TolkHelper.Speak(announcement);
+                        // Add helpful context for specific disabled scenarios (e.g., transport pod mass)
+                        ISelectable gizmoOwner = null;
+                        if (gizmoOwners.Count > 0)
+                            gizmoOwners.TryGetValue(gizmo, out gizmoOwner);
+                        string context = GetDisabledGizmoContext(gizmo, gizmoOwner);
+                        if (!string.IsNullOrEmpty(context))
+                            announcement += $". {context}";
+                    }
+
+                    TolkHelper.Speak(announcement);
+                });
             }
             else
             {
@@ -1265,6 +1276,13 @@ namespace RimWorldAccess
 
             Gizmo gizmo = availableGizmos[selectedGizmoIndex];
 
+            // Lazy gizmo properties (Label, Desc, Disabled) check Find.Selector.SingleSelectedThing.
+            // Wrap the property-reading section so the owner is the single-selected Thing.
+            WithGizmoOwnerSelected(gizmo, null, () => AnnounceCurrentGizmoInner(gizmo));
+        }
+
+        private static void AnnounceCurrentGizmoInner(Gizmo gizmo)
+        {
             string label = GetGizmoLabel(gizmo);
             string description = GetGizmoDescription(gizmo);
             string hotkey = GetGizmoHotkey(gizmo);
@@ -1374,6 +1392,48 @@ namespace RimWorldAccess
             }
 
             TolkHelper.Speak(announcement);
+        }
+
+        /// <summary>
+        /// Runs <paramref name="body"/> with the gizmo's owning Thing temporarily set as
+        /// <c>Find.Selector.SingleSelectedThing</c>, then restores the previous selection.
+        /// Many vanilla gizmos lazy-evaluate properties (Label, Desc, Visible, Disabled)
+        /// against the live selection — e.g. <c>Designator_Install.Label</c> returns
+        /// "Reinstall at..." instead of "Install" when the MinifiedThing isn't selected.
+        /// Owner is taken from <paramref name="explicitOwner"/>, falling back to the
+        /// gizmoOwners dictionary. Selection is only swapped when the owner is a Thing
+        /// and isn't already the single-selected Thing; otherwise body runs unchanged.
+        /// </summary>
+        private static T WithGizmoOwnerSelected<T>(Gizmo gizmo, ISelectable explicitOwner, System.Func<T> body)
+        {
+            ISelectable owner = explicitOwner;
+            if (owner == null && gizmoOwners != null)
+                gizmoOwners.TryGetValue(gizmo, out owner);
+
+            if (Find.Selector == null || !(owner is Thing thingOwner))
+                return body();
+
+            if (Find.Selector.SingleSelectedThing == thingOwner)
+                return body();
+
+            var previousSelection = Find.Selector.SelectedObjects.ToList();
+            try
+            {
+                Find.Selector.ClearSelection();
+                Find.Selector.Select(thingOwner, playSound: false, forceDesignatorDeselect: false);
+                return body();
+            }
+            finally
+            {
+                Find.Selector.ClearSelection();
+                foreach (var obj in previousSelection.OfType<ISelectable>())
+                    Find.Selector.Select(obj, playSound: false, forceDesignatorDeselect: false);
+            }
+        }
+
+        private static void WithGizmoOwnerSelected(Gizmo gizmo, ISelectable explicitOwner, System.Action body)
+        {
+            WithGizmoOwnerSelected<bool>(gizmo, explicitOwner, () => { body(); return true; });
         }
 
         /// <summary>
@@ -3001,6 +3061,14 @@ namespace RimWorldAccess
         /// FloatMenuOption labels when Shift+hotkey has multiple matches.
         /// </summary>
         private static string BuildGizmoMenuLabel(Gizmo gizmo, ISelectable owner)
+        {
+            // Hotkey collector swaps selection per-thing during collection but restores it
+            // afterward. Lazy properties (Label, Desc, Disabled) here would otherwise see
+            // the stale selection and resolve incorrectly (e.g. Install -> "Reinstall at...").
+            return WithGizmoOwnerSelected(gizmo, owner, () => BuildGizmoMenuLabelInner(gizmo, owner));
+        }
+
+        private static string BuildGizmoMenuLabelInner(Gizmo gizmo, ISelectable owner)
         {
             string label = GetGizmoLabel(gizmo);
             string description = GetGizmoDescription(gizmo);

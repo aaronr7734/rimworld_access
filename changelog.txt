@@ -1,4 +1,18 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
+04/26/2026
+
+BUG FIXES
+---------
+- Gizmos for minified items at the cursor (e.g. an unloaded
+  bedroll on a quest map) now announce "Install" the first time
+  you open the gizmo menu, instead of incorrectly saying
+  "Reinstall at...". The same fix applies to the Shift+letter
+  hotkey collector, typeahead search, and the multi-match
+  disambiguation menu, so any vanilla command whose label
+  depends on the live selection (Designator_Install and
+  similar) now resolves correctly in every announcement path.
+
+
 04/24/2026
 
 The headline change: you can finally name your saves. The pause
