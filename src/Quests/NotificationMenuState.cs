@@ -53,7 +53,7 @@ namespace RimWorldAccess
 
             if (notifications.Count == 0)
             {
-                TolkHelper.Speak("No notifications available");
+                TolkHelper.Speak("RimWorldAccess.Notifications.Menu.None".Translate());
                 return;
             }
 
@@ -68,7 +68,9 @@ namespace RimWorldAccess
                     : 0,
                 populateButtons: PopulateButtonsForCurrentItem,
                 getHeaderAnnouncement: () => notifications != null && currentIndex >= 0 && currentIndex < notifications.Count
-                    ? $"{GetTypeLabel(notifications[currentIndex].Type)}: {notifications[currentIndex].Label}"
+                    ? "RimWorldAccess.Notifications.List.HeaderInDetail".Translate(
+                        GetTypeLabel(notifications[currentIndex].Type),
+                        notifications[currentIndex].Label).ToString()
                     : "",
                 getContentLineAnnouncement: (idx) => {
                     if (notifications == null || currentIndex < 0 || currentIndex >= notifications.Count)
@@ -76,8 +78,8 @@ namespace RimWorldAccess
                     var lines = notifications[currentIndex].ExplanationLines;
                     return idx >= 0 && idx < lines.Length ? lines[idx] : "";
                 },
-                endOfItemMessage: "End of letter",
-                startOfItemMessage: "Start of letter"
+                endOfItemMessage: "RimWorldAccess.Notifications.Detail.EndOfLetter".Translate(),
+                startOfItemMessage: "RimWorldAccess.Notifications.Detail.StartOfLetter".Translate()
             );
             detailHelper.RefreshButtons();
 
@@ -193,7 +195,7 @@ namespace RimWorldAccess
                 if (notifications.Count == 0)
                 {
                     Close();
-                    TolkHelper.Speak($"Activated {buttonLabel}. No notifications remaining");
+                    TolkHelper.Speak("RimWorldAccess.Notifications.Action.ActivatedNoneRemaining".Translate(buttonLabel));
                     return;
                 }
 
@@ -208,21 +210,21 @@ namespace RimWorldAccess
                 {
                     // For jump actions, close the menu after jumping
                     Close();
-                    MapNavigationState.SpeakJumpedTo("location");
+                    MapNavigationState.SpeakJumpedTo("RimWorldAccess.Notifications.Target.LocationFallback".Translate());
                 }
                 else
                 {
                     // For other actions, go back to list view and announce
                     detailHelper.GoBackToList();
                     detailHelper.RefreshButtons();
-                    TolkHelper.Speak($"Activated {buttonLabel}. Back to list");
+                    TolkHelper.Speak("RimWorldAccess.Notifications.Action.ActivatedBackToList".Translate(buttonLabel));
                     AnnounceCurrentSelection();
                 }
             }
             catch (Exception ex)
             {
                 Log.Warning($"RimWorld Access: Failed to activate button: {ex.Message}");
-                TolkHelper.Speak("Failed to activate button");
+                TolkHelper.Speak("RimWorldAccess.Notifications.Menu.FailedToActivateButton".Translate());
             }
         }
 
@@ -232,7 +234,7 @@ namespace RimWorldAccess
         public static void CloseMenu()
         {
             Close();
-            TolkHelper.Speak("Notification menu closed");
+            TolkHelper.Speak("RimWorldAccess.Notifications.Menu.Closed".Translate());
         }
 
         /// <summary>
@@ -293,9 +295,9 @@ namespace RimWorldAccess
         /// </summary>
         private static string GetTypeLabel(NotificationType type)
         {
-            return type == NotificationType.Message ? "Message" :
-                   type == NotificationType.Letter ? "Letter" :
-                   "Alert";
+            return (type == NotificationType.Message ? "RimWorldAccess.Notifications.Type.Message" :
+                    type == NotificationType.Letter ? "RimWorldAccess.Notifications.Type.Letter" :
+                    "RimWorldAccess.Notifications.Type.Alert").Translate();
         }
 
         /// <summary>
@@ -337,7 +339,7 @@ namespace RimWorldAccess
             // Only letters can be deleted
             if (item.Type != NotificationType.Letter)
             {
-                TolkHelper.Speak("Only letters can be deleted", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Notifications.Menu.OnlyLettersDeletable".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -345,7 +347,7 @@ namespace RimWorldAccess
             Letter letter = item.GetSourceLetter();
             if (letter == null)
             {
-                TolkHelper.Speak("Cannot delete this letter", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Notifications.Menu.CannotDeleteLetter".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -361,7 +363,7 @@ namespace RimWorldAccess
             if (notifications.Count == 0)
             {
                 Close();
-                TolkHelper.Speak($"Deleted {deletedLabel}. No notifications remaining");
+                TolkHelper.Speak("RimWorldAccess.Notifications.Action.DeletedNoneRemaining".Translate(deletedLabel));
                 return;
             }
 
@@ -379,7 +381,8 @@ namespace RimWorldAccess
             NotificationItem newItem = notifications[currentIndex];
             string typeLabel = GetTypeLabel(newItem.Type);
             string position = MenuHelper.FormatPosition(currentIndex, notifications.Count);
-            TolkHelper.Speak($"Deleted {deletedLabel}. {typeLabel}: {newItem.Label}. {position}");
+            TolkHelper.Speak("RimWorldAccess.Notifications.Action.DeletedNextItem".Translate(
+                deletedLabel, typeLabel, newItem.Label, position));
         }
 
         /// <summary>
@@ -492,7 +495,10 @@ namespace RimWorldAccess
             NotificationItem item = notifications[currentIndex];
 
             // Build announcement with just type and title
-            string announcement = $"{GetTypeLabel(item.Type)}: {item.Label}. {MenuHelper.FormatPosition(currentIndex, notifications.Count)}";
+            string announcement = "RimWorldAccess.Notifications.List.LineWithPosition".Translate(
+                GetTypeLabel(item.Type),
+                item.Label,
+                MenuHelper.FormatPosition(currentIndex, notifications.Count));
 
             TolkHelper.Speak(announcement);
         }
@@ -509,7 +515,9 @@ namespace RimWorldAccess
             // Handle growth moment letters (ChoiceLetter_GrowthMoment extends LetterWithTimeout, NOT ChoiceLetter)
             if (letter is ChoiceLetter_GrowthMoment growthLetter)
             {
-                string label = growthLetter.ArchiveView ? "View choices" : "Open growth moment";
+                string label = (growthLetter.ArchiveView
+                    ? "RimWorldAccess.Notifications.Button.ViewChoices"
+                    : "RimWorldAccess.Notifications.Button.OpenGrowthMoment").Translate();
                 buttons.Add(new ButtonInfo
                 {
                     Label = label,
@@ -541,7 +549,8 @@ namespace RimWorldAccess
                                 // Get the text field (protected)
                                 FieldInfo textField = typeof(DiaOption).GetField("text",
                                     BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
-                                string label = textField?.GetValue(option)?.ToString() ?? "Unknown";
+                                string label = textField?.GetValue(option)?.ToString()
+                                    ?? "RimWorldAccess.Notifications.Type.Unknown".Translate();
 
                                 // Skip "Close" button (already handled by Delete key)
                                 if (label.ToLower().Contains("close") || label == "Close".Translate())
@@ -588,7 +597,7 @@ namespace RimWorldAccess
                 {
                     buttons.Add(new ButtonInfo
                     {
-                        Label = "Open Research",
+                        Label = "RimWorldAccess.Notifications.Button.OpenResearch".Translate(),
                         Action = () => {
                             Close();
                             WindowlessResearchMenuState.Open();
@@ -638,7 +647,7 @@ namespace RimWorldAccess
                             var target = targets[0];
                             buttons.Add(new ButtonInfo
                             {
-                                Label = $"Jump to {GetTargetDescription(target)}",
+                                Label = "RimWorldAccess.Notifications.Button.JumpTo".Translate(GetTargetDescription(target)),
                                 Action = CreateJumpToTargetAction(target),
                                 IsDisabled = false
                             });
@@ -653,7 +662,8 @@ namespace RimWorldAccess
                                 int index = i + 1;
                                 buttons.Add(new ButtonInfo
                                 {
-                                    Label = $"Jump to {GetTargetDescription(target)} ({index} of {targets.Count})",
+                                    Label = "RimWorldAccess.Notifications.Button.JumpToWithIndex".Translate(
+                                        GetTargetDescription(target), index, targets.Count),
                                     Action = CreateJumpToTargetAction(target),
                                     IsDisabled = false
                                 });
@@ -672,12 +682,12 @@ namespace RimWorldAccess
                     {
                         buttons.Add(new ButtonInfo
                         {
-                            Label = "Activate",
+                            Label = "RimWorldAccess.Notifications.Button.Activate".Translate(),
                             Action = () => {
                                 try
                                 {
                                     onClickMethod.Invoke(alert, null);
-                                    TolkHelper.Speak("Alert activated");
+                                    TolkHelper.Speak("RimWorldAccess.Notifications.Action.AlertActivated".Translate());
                                 }
                                 catch (Exception ex)
                                 {
@@ -810,7 +820,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("Target location is not valid");
+                        TolkHelper.Speak("RimWorldAccess.Notifications.Menu.TargetNotValid".Translate());
                     }
                 };
             }
@@ -838,7 +848,7 @@ namespace RimWorldAccess
             if (option.hyperlink.def != null)
             {
                 return () => {
-                    TolkHelper.Speak($"Opening info card for {option.hyperlink.Label}");
+                    TolkHelper.Speak("RimWorldAccess.Notifications.Action.OpeningInfoCard".Translate(option.hyperlink.Label));
                     option.action?.Invoke();
                 };
             }
@@ -883,27 +893,29 @@ namespace RimWorldAccess
         private static string GetTargetDescription(GlobalTargetInfo target)
         {
             if (!target.IsValid)
-                return "unknown location";
+                return "RimWorldAccess.Notifications.Target.Unknown".Translate();
 
             if (target.HasThing)
             {
                 Thing thing = target.Thing;
                 if (thing is Pawn pawn)
                     return pawn.LabelShort;
-                return thing.LabelShort ?? thing.def?.label ?? "thing";
+                return thing.LabelShort ?? thing.def?.label
+                    ?? "RimWorldAccess.Notifications.Target.Thing".Translate().ToString();
             }
 
             if (target.Cell.IsValid)
             {
-                return $"position {target.Cell.x}, {target.Cell.z}";
+                return "RimWorldAccess.Notifications.Target.Position".Translate(target.Cell.x, target.Cell.z);
             }
 
             if (target.HasWorldObject)
             {
-                return target.WorldObject.LabelShort ?? "world location";
+                return target.WorldObject.LabelShort
+                    ?? "RimWorldAccess.Notifications.Target.WorldLocation".Translate().ToString();
             }
 
-            return "target location";
+            return "RimWorldAccess.Notifications.Target.Generic".Translate();
         }
 
         /// <summary>
@@ -913,7 +925,7 @@ namespace RimWorldAccess
         {
             if (!item.HasValidTarget)
             {
-                TolkHelper.Speak("No target location available");
+                TolkHelper.Speak("RimWorldAccess.Notifications.Menu.NoTargetLocation".Translate());
                 return;
             }
 
@@ -940,20 +952,24 @@ namespace RimWorldAccess
                     Close();
 
                     // Announce the jump
-                    string locationDesc = target.HasThing ? target.Thing.LabelShort :
-                                         target.Cell.IsValid ? $"position {target.Cell.x}, {target.Cell.z}" :
-                                         "target location";
+                    string locationDesc;
+                    if (target.HasThing)
+                        locationDesc = target.Thing.LabelShort;
+                    else if (target.Cell.IsValid)
+                        locationDesc = "RimWorldAccess.Notifications.Target.Position".Translate(target.Cell.x, target.Cell.z);
+                    else
+                        locationDesc = "RimWorldAccess.Notifications.Target.Generic".Translate();
                     MapNavigationState.SpeakJumpedTo(locationDesc);
                 }
                 else
                 {
-                    TolkHelper.Speak("Target location is not valid");
+                    TolkHelper.Speak("RimWorldAccess.Notifications.Menu.TargetNotValid".Translate());
                 }
             }
             catch (Exception ex)
             {
                 Log.Warning($"RimWorld Access: Failed to jump to target: {ex.Message}");
-                TolkHelper.Speak("Failed to jump to target", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Notifications.Menu.FailedToJump".Translate(), SpeechPriority.High);
             }
         }
 
@@ -1053,7 +1069,10 @@ namespace RimWorldAccess
 
             NotificationItem item = notifications[currentIndex];
 
-            string announcement = $"{GetTypeLabel(item.Type)}: {item.Label}. {MenuHelper.FormatPosition(currentIndex, notifications.Count)}";
+            string announcement = "RimWorldAccess.Notifications.List.LineWithPosition".Translate(
+                GetTypeLabel(item.Type),
+                item.Label,
+                MenuHelper.FormatPosition(currentIndex, notifications.Count));
 
             // Add search context if active
             if (typeahead.HasActiveSearch)

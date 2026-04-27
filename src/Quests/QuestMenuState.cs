@@ -85,14 +85,14 @@ namespace RimWorldAccess
 
             InitializeDetailHelper();
 
-            string openMessage = "Quest menu. Alt+A to accept, Alt+D to dismiss. Enter to arrow through quest details.";
+            string openMessage = "RimWorldAccess.Quests.Menu.OpenInstructions".Translate();
             if (currentQuests.Count > 0)
             {
                 openMessage += " " + BuildQuestAnnouncement(currentQuests[0]);
             }
             else
             {
-                openMessage += " " + GetTabName() + " tab - No quests";
+                openMessage += " " + "RimWorldAccess.Quests.Tab.NoQuests".Translate(GetTabName());
             }
             TolkHelper.Speak(openMessage);
         }
@@ -105,7 +105,7 @@ namespace RimWorldAccess
         {
             if (quest == null)
             {
-                TolkHelper.Speak("Quest no longer available");
+                TolkHelper.Speak("RimWorldAccess.Quests.Menu.QuestNoLongerAvailable".Translate());
                 return;
             }
 
@@ -126,7 +126,7 @@ namespace RimWorldAccess
             if (index >= 0)
             {
                 currentIndex = index;
-                TolkHelper.Speak("Quest menu");
+                TolkHelper.Speak("RimWorldAccess.Quests.Menu.Title".Translate());
                 AnnounceCurrentSelection();
             }
             else
@@ -139,13 +139,13 @@ namespace RimWorldAccess
                     if (index >= 0)
                     {
                         currentIndex = index;
-                        TolkHelper.Speak("Quest menu");
+                        TolkHelper.Speak("RimWorldAccess.Quests.Menu.Title".Translate());
                         AnnounceCurrentSelection();
                         return;
                     }
                 }
 
-                TolkHelper.Speak("Quest no longer available");
+                TolkHelper.Speak("RimWorldAccess.Quests.Menu.QuestNoLongerAvailable".Translate());
                 Close();
             }
         }
@@ -163,7 +163,7 @@ namespace RimWorldAccess
             cachedDetailLines.Clear();
             rewardPrefItems.Clear();
             CleanupRewardMenu();
-            TolkHelper.Speak("Quest menu closed");
+            TolkHelper.Speak("RimWorldAccess.Quests.Menu.Closed".Translate());
         }
 
         // =====================================================================
@@ -174,7 +174,7 @@ namespace RimWorldAccess
         {
             if (currentQuests.Count == 0)
             {
-                TolkHelper.Speak("No quests in this tab");
+                TolkHelper.Speak("RimWorldAccess.Quests.Menu.NoQuestsInTab".Translate());
                 return;
             }
 
@@ -186,7 +186,7 @@ namespace RimWorldAccess
         {
             if (currentQuests.Count == 0)
             {
-                TolkHelper.Speak("No quests in this tab");
+                TolkHelper.Speak("RimWorldAccess.Quests.Menu.NoQuestsInTab".Translate());
                 return;
             }
 
@@ -252,7 +252,7 @@ namespace RimWorldAccess
         {
             if (currentQuests.Count == 0)
             {
-                TolkHelper.Speak("No quest selected");
+                TolkHelper.Speak("RimWorldAccess.Quests.Menu.NoQuestSelected".Translate());
                 return;
             }
 
@@ -304,7 +304,7 @@ namespace RimWorldAccess
                     catch (Exception ex)
                     {
                         Log.Warning($"[RimWorld Access] Failed to activate quest button: {ex.Message}");
-                        TolkHelper.Speak("Failed to activate button");
+                        TolkHelper.Speak("RimWorldAccess.Quests.Menu.FailedToActivateButton".Translate());
                     }
                 }
             }
@@ -389,7 +389,7 @@ namespace RimWorldAccess
         {
             if (currentQuests.Count == 0 || currentTab != QuestsTab.Available)
             {
-                TolkHelper.Speak("Cannot accept quest", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Quests.Action.CannotAccept".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -397,14 +397,14 @@ namespace RimWorldAccess
 
             if (selectedQuest.State != QuestState.NotYetAccepted)
             {
-                TolkHelper.Speak("Quest is not available to accept", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Quests.Action.NotAvailableToAccept".Translate(), SpeechPriority.High);
                 return;
             }
 
             AcceptanceReport canAccept = QuestUtility.CanAcceptQuest(selectedQuest);
             if (!canAccept.Accepted)
             {
-                TolkHelper.Speak($"Cannot accept: {canAccept.Reason}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Quests.Action.CannotAcceptReason".Translate(canAccept.Reason), SpeechPriority.High);
                 return;
             }
 
@@ -425,7 +425,7 @@ namespace RimWorldAccess
             // Simple accept
             SoundDefOf.Quest_Accepted.PlayOneShotOnCamera();
             selectedQuest.Accept(null);
-            TolkHelper.Speak($"Accepted quest: {selectedQuest.name.StripTags()}");
+            TolkHelper.Speak("RimWorldAccess.Quests.Action.AcceptedQuest".Translate(selectedQuest.name.StripTags()));
 
             if (IsInDetailView)
             {
@@ -443,7 +443,7 @@ namespace RimWorldAccess
         {
             if (currentQuests.Count == 0)
             {
-                TolkHelper.Speak("No quest selected");
+                TolkHelper.Speak("RimWorldAccess.Quests.Menu.NoQuestSelected".Translate());
                 return;
             }
 
@@ -452,14 +452,16 @@ namespace RimWorldAccess
             if (selectedQuest.Historical)
             {
                 selectedQuest.hiddenInUI = true;
-                TolkHelper.Speak($"Deleted quest: {selectedQuest.name.StripTags()}");
+                TolkHelper.Speak("RimWorldAccess.Quests.Action.DeletedQuest".Translate(selectedQuest.name.StripTags()));
                 SoundDefOf.Tick_High.PlayOneShotOnCamera();
             }
             else
             {
                 selectedQuest.dismissed = !selectedQuest.dismissed;
-                string action = selectedQuest.dismissed ? "Dismissed" : "Resumed";
-                TolkHelper.Speak($"{action} quest: {selectedQuest.name.StripTags()}");
+                string actionKey = selectedQuest.dismissed
+                    ? "RimWorldAccess.Quests.Action.DismissedQuest"
+                    : "RimWorldAccess.Quests.Action.ResumedQuest";
+                TolkHelper.Speak(actionKey.Translate(selectedQuest.name.StripTags()));
                 SoundDefOf.Click.PlayOneShotOnCamera();
             }
 
@@ -489,7 +491,7 @@ namespace RimWorldAccess
             SoundDefOf.Quest_Accepted.PlayOneShotOnCamera();
             quest.Accept(null);
             string rewardDesc = QuestRewardHelper.BuildRewardDescription(choice.rewards);
-            TolkHelper.Speak($"Accepted quest with: {rewardDesc}");
+            TolkHelper.Speak("RimWorldAccess.Quests.Action.AcceptedWithRewards".Translate(rewardDesc));
 
             detailHelper?.GoBackToList();
             currentMode = QuestMenuMode.QuestList;
@@ -509,7 +511,7 @@ namespace RimWorldAccess
 
             if (eligiblePawns.Count == 0)
             {
-                TolkHelper.Speak("No eligible colonists to accept this quest", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Quests.Action.NoEligibleColonists".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -520,20 +522,22 @@ namespace RimWorldAccess
                 string label = localPawn.LabelShort;
                 if (localPawn.royalty != null && localPawn.royalty.AllTitlesInEffectForReading.Any())
                 {
-                    label += $" ({localPawn.royalty.MostSeniorTitle.def.GetLabelFor(localPawn)})";
+                    label = "RimWorldAccess.Quests.Action.PawnWithTitle".Translate(
+                        label,
+                        localPawn.royalty.MostSeniorTitle.def.GetLabelFor(localPawn));
                 }
 
                 options.Add(new FloatMenuOption(label, () =>
                 {
                     SoundDefOf.Quest_Accepted.PlayOneShotOnCamera();
                     quest.Accept(localPawn);
-                    TolkHelper.Speak($"Accepted quest with {localPawn.LabelShort}");
+                    TolkHelper.Speak("RimWorldAccess.Quests.Action.AcceptedWithPawn".Translate(localPawn.LabelShort));
                 }));
             }
 
             // Close quest menu BEFORE opening float menu to prevent priority routing conflict
             Close();
-            TolkHelper.Speak("Select a colonist to accept this quest");
+            TolkHelper.Speak("RimWorldAccess.Quests.Action.SelectColonist".Translate());
             WindowlessFloatMenuState.Open(options, false);
         }
 
@@ -549,7 +553,7 @@ namespace RimWorldAccess
             if (currentMode == QuestMenuMode.RewardPreferences)
             {
                 currentMode = QuestMenuMode.QuestList;
-                TolkHelper.Speak("Quest list");
+                TolkHelper.Speak("RimWorldAccess.Quests.Pref.QuestList".Translate());
                 AnnounceCurrentSelection();
             }
             else
@@ -560,12 +564,12 @@ namespace RimWorldAccess
 
                 if (rewardPrefItems.Count == 0)
                 {
-                    TolkHelper.Speak("No reward preferences available");
+                    TolkHelper.Speak("RimWorldAccess.Quests.Pref.None".Translate());
                     currentMode = QuestMenuMode.QuestList;
                     return;
                 }
 
-                TolkHelper.Speak("Reward preferences");
+                TolkHelper.Speak("RimWorldAccess.Quests.Pref.Title".Translate());
                 AnnounceRewardPref();
             }
         }
@@ -616,7 +620,7 @@ namespace RimWorldAccess
             if (rewardPrefItems.Count == 0) return;
             var item = rewardPrefItems[rewardPrefIndex];
             string position = MenuHelper.FormatPosition(rewardPrefIndex, rewardPrefItems.Count);
-            TolkHelper.Speak($"{item.Label}. {position}");
+            TolkHelper.Speak("RimWorldAccess.Quests.Pref.RowWithPosition".Translate(item.Label, position));
         }
 
         // =====================================================================
@@ -684,7 +688,7 @@ namespace RimWorldAccess
                 }));
             }
 
-            TolkHelper.Speak("Choose a reward");
+            TolkHelper.Speak("RimWorldAccess.Quests.RewardChoice.Prompt".Translate());
             WindowlessFloatMenuState.Open(options, false);
         }
 
@@ -715,7 +719,7 @@ namespace RimWorldAccess
             if (choiceIdx < 0 || choiceIdx >= choiceInspectables.Count)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No items to inspect");
+                TolkHelper.Speak("RimWorldAccess.Quests.RewardChoice.NoItemsToInspect".Translate());
                 return;
             }
 
@@ -723,7 +727,7 @@ namespace RimWorldAccess
             if (inspectables.Count == 0)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No items to inspect");
+                TolkHelper.Speak("RimWorldAccess.Quests.RewardChoice.NoItemsToInspect".Translate());
                 return;
             }
 
@@ -780,7 +784,7 @@ namespace RimWorldAccess
             if (consolidated.Count == 0)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No items to inspect");
+                TolkHelper.Speak("RimWorldAccess.Quests.RewardChoice.NoItemsToInspect".Translate());
                 return;
             }
 
@@ -799,7 +803,7 @@ namespace RimWorldAccess
 
             // Close current float menu and open item inspection menu
             WindowlessFloatMenuState.Close();
-            TolkHelper.Speak("Choose item to inspect");
+            TolkHelper.Speak("RimWorldAccess.Quests.Detail.ChooseItemToInspect".Translate());
             WindowlessFloatMenuState.Open(options, false);
         }
 
@@ -849,7 +853,7 @@ namespace RimWorldAccess
             if (rewardMenuQuest == null || rewardChoices == null)
             {
                 CleanupRewardMenu();
-                TolkHelper.Speak("Back to quest list");
+                TolkHelper.Speak("RimWorldAccess.Quests.RewardChoice.BackToList".Translate());
                 AnnounceCurrentSelection();
                 return;
             }
@@ -858,7 +862,7 @@ namespace RimWorldAccess
             if (choicePart == null)
             {
                 CleanupRewardMenu();
-                TolkHelper.Speak("Back to quest list");
+                TolkHelper.Speak("RimWorldAccess.Quests.RewardChoice.BackToList".Translate());
                 AnnounceCurrentSelection();
                 return;
             }
@@ -901,7 +905,7 @@ namespace RimWorldAccess
         {
             if (currentQuests.Count == 0)
             {
-                TolkHelper.Speak($"{GetTabName()} tab - No quests");
+                TolkHelper.Speak("RimWorldAccess.Quests.Tab.NoQuests".Translate(GetTabName()));
                 return;
             }
 
@@ -959,9 +963,9 @@ namespace RimWorldAccess
                 getHeaderAnnouncement: GetDetailHeaderAnnouncement,
                 getContentLineAnnouncement: (idx) =>
                     idx >= 0 && idx < cachedDetailLines.Count ? cachedDetailLines[idx].Text : "",
-                endOfItemMessage: "End of quest details",
-                startOfItemMessage: "Start of quest details",
-                openFirstMessage: "Press Enter to open quest details first"
+                endOfItemMessage: "RimWorldAccess.Quests.Detail.EndOfDetails".Translate(),
+                startOfItemMessage: "RimWorldAccess.Quests.Detail.StartOfDetails".Translate(),
+                openFirstMessage: "RimWorldAccess.Quests.Detail.OpenFirst".Translate()
             );
         }
 
@@ -972,16 +976,16 @@ namespace RimWorldAccess
 
             Quest quest = currentQuests[currentIndex];
             string name = quest.name.StripTags();
-            string status;
+            string statusKey;
 
-            if (quest.State == QuestState.NotYetAccepted) status = "Available";
-            else if (quest.State == QuestState.Ongoing && !quest.dismissed) status = "Active";
-            else if (quest.State == QuestState.Ongoing && quest.dismissed) status = "Dismissed";
-            else if (quest.State == QuestState.EndedSuccess) status = "Completed";
-            else if (quest.State == QuestState.EndedFailed) status = "Failed";
-            else status = "Expired";
+            if (quest.State == QuestState.NotYetAccepted) statusKey = "RimWorldAccess.Quests.Status.Available";
+            else if (quest.State == QuestState.Ongoing && !quest.dismissed) statusKey = "RimWorldAccess.Quests.Status.Active";
+            else if (quest.State == QuestState.Ongoing && quest.dismissed) statusKey = "RimWorldAccess.Quests.Status.Dismissed";
+            else if (quest.State == QuestState.EndedSuccess) statusKey = "RimWorldAccess.Quests.Status.Completed";
+            else if (quest.State == QuestState.EndedFailed) statusKey = "RimWorldAccess.Quests.Status.Failed";
+            else statusKey = "RimWorldAccess.Quests.Status.Expired";
 
-            return $"Quest: {name} ({status})";
+            return "RimWorldAccess.Quests.Detail.HeaderStatus".Translate(name, statusKey.Translate());
         }
 
         /// <summary>
@@ -993,26 +997,32 @@ namespace RimWorldAccess
 
             // Difficulty
             int rating = Math.Max(quest.challengeRating, 1);
-            string ratingLine = $"Difficulty: {rating} star{(rating == 1 ? "" : "s")}";
+            string ratingLine = rating == 1
+                ? "RimWorldAccess.Quests.Detail.DifficultyOne".Translate().ToString()
+                : "RimWorldAccess.Quests.Detail.DifficultyMany".Translate(rating).ToString();
             if (quest.charity)
-                ratingLine += " (Charity quest)";
+                ratingLine += "RimWorldAccess.Quests.Detail.CharitySuffix".Translate();
             lines.Add(new DetailLine(ratingLine));
 
             // Time info
             if (quest.State == QuestState.NotYetAccepted && quest.TicksUntilExpiry > 0)
             {
-                lines.Add(new DetailLine($"Expires in: {quest.TicksUntilExpiry.ToStringTicksToPeriod()}"));
+                lines.Add(new DetailLine("RimWorldAccess.Quests.Detail.ExpiresIn".Translate(
+                    quest.TicksUntilExpiry.ToStringTicksToPeriod())));
             }
             else if (quest.EverAccepted && !quest.Historical)
             {
-                lines.Add(new DetailLine($"Accepted: {quest.TicksSinceAccepted.ToStringTicksToPeriod()} ago"));
+                lines.Add(new DetailLine("RimWorldAccess.Quests.Detail.AcceptedAgo".Translate(
+                    quest.TicksSinceAccepted.ToStringTicksToPeriod())));
             }
             else if (quest.Historical)
             {
-                string outcome = quest.State == QuestState.EndedSuccess ? "Completed" :
-                                 quest.State == QuestState.EndedFailed ? "Failed" : "Expired";
-                lines.Add(new DetailLine($"Status: {outcome}"));
-                lines.Add(new DetailLine($"Finished: {quest.TicksSinceCleanup.ToStringTicksToPeriod()} ago"));
+                string outcomeKey = quest.State == QuestState.EndedSuccess ? "RimWorldAccess.Quests.Status.Completed" :
+                                    quest.State == QuestState.EndedFailed ? "RimWorldAccess.Quests.Status.Failed" :
+                                    "RimWorldAccess.Quests.Status.Expired";
+                lines.Add(new DetailLine("RimWorldAccess.Quests.Detail.Status".Translate(outcomeKey.Translate())));
+                lines.Add(new DetailLine("RimWorldAccess.Quests.Detail.Finished".Translate(
+                    quest.TicksSinceCleanup.ToStringTicksToPeriod())));
             }
 
             // Description (split into individual lines)
@@ -1061,7 +1071,7 @@ namespace RimWorldAccess
                             choicePart.choices[choiceIdx].rewards);
                         buttons.Add(new ButtonInfo
                         {
-                            Label = $"Accept Choice {choiceIdx + 1}: {rewardDesc}",
+                            Label = "RimWorldAccess.Quests.Button.AcceptChoice".Translate(choiceIdx + 1, rewardDesc),
                             Action = () => AcceptQuestWithChoice(quest, choicePart,
                                 choicePart.choices[choiceIdx]),
                             IsDisabled = !canAccept.Accepted,
@@ -1072,12 +1082,12 @@ namespace RimWorldAccess
                 else
                 {
                     // Single accept button with reward description
-                    string acceptLabel = "Accept";
+                    string acceptLabel = "RimWorldAccess.Quests.Button.Accept".Translate();
                     if (choicePart != null && choicePart.choices.Count == 1)
                     {
                         string rewardDesc = QuestRewardHelper.BuildRewardDescription(choicePart.choices[0].rewards);
                         if (!string.IsNullOrEmpty(rewardDesc))
-                            acceptLabel = $"Accept: {rewardDesc}";
+                            acceptLabel = "RimWorldAccess.Quests.Button.AcceptWithRewards".Translate(rewardDesc);
                     }
                     buttons.Add(new ButtonInfo
                     {
@@ -1087,7 +1097,7 @@ namespace RimWorldAccess
                             AcceptanceReport report = QuestUtility.CanAcceptQuest(quest);
                             if (!report.Accepted)
                             {
-                                TolkHelper.Speak($"Cannot accept: {report.Reason}", SpeechPriority.High);
+                                TolkHelper.Speak("RimWorldAccess.Quests.Action.CannotAcceptReason".Translate(report.Reason), SpeechPriority.High);
                                 return;
                             }
 
@@ -1099,7 +1109,7 @@ namespace RimWorldAccess
 
                             SoundDefOf.Quest_Accepted.PlayOneShotOnCamera();
                             quest.Accept(null);
-                            TolkHelper.Speak($"Accepted quest: {quest.name.StripTags()}");
+                            TolkHelper.Speak("RimWorldAccess.Quests.Action.AcceptedQuest".Translate(quest.name.StripTags()));
                             detailHelper?.GoBackToList();
                             currentMode = QuestMenuMode.QuestList;
                             RefreshQuestList();
@@ -1113,12 +1123,12 @@ namespace RimWorldAccess
                 // Dismiss button for available quests
                 buttons.Add(new ButtonInfo
                 {
-                    Label = "Dismiss",
+                    Label = "RimWorldAccess.Quests.Button.Dismiss".Translate(),
                     Action = () =>
                     {
                         quest.dismissed = true;
                         SoundDefOf.Click.PlayOneShotOnCamera();
-                        TolkHelper.Speak($"Dismissed quest: {quest.name.StripTags()}");
+                        TolkHelper.Speak("RimWorldAccess.Quests.Action.DismissedQuest".Translate(quest.name.StripTags()));
                         detailHelper?.GoBackToList();
                         currentMode = QuestMenuMode.QuestList;
                         RefreshQuestList();
@@ -1130,13 +1140,17 @@ namespace RimWorldAccess
             {
                 buttons.Add(new ButtonInfo
                 {
-                    Label = quest.dismissed ? "Resume" : "Dismiss",
+                    Label = (quest.dismissed
+                        ? "RimWorldAccess.Quests.Button.Resume"
+                        : "RimWorldAccess.Quests.Button.Dismiss").Translate(),
                     Action = () =>
                     {
                         quest.dismissed = !quest.dismissed;
-                        string action = quest.dismissed ? "Dismissed" : "Resumed";
+                        string actionKey = quest.dismissed
+                            ? "RimWorldAccess.Quests.Action.DismissedQuest"
+                            : "RimWorldAccess.Quests.Action.ResumedQuest";
                         SoundDefOf.Click.PlayOneShotOnCamera();
-                        TolkHelper.Speak($"{action} quest: {quest.name.StripTags()}");
+                        TolkHelper.Speak(actionKey.Translate(quest.name.StripTags()));
                         detailHelper?.GoBackToList();
                         currentMode = QuestMenuMode.QuestList;
                         RefreshQuestList();
@@ -1148,12 +1162,12 @@ namespace RimWorldAccess
             {
                 buttons.Add(new ButtonInfo
                 {
-                    Label = "Delete",
+                    Label = "RimWorldAccess.Quests.Button.Delete".Translate(),
                     Action = () =>
                     {
                         quest.hiddenInUI = true;
                         SoundDefOf.Tick_High.PlayOneShotOnCamera();
-                        TolkHelper.Speak($"Deleted quest: {quest.name.StripTags()}");
+                        TolkHelper.Speak("RimWorldAccess.Quests.Action.DeletedQuest".Translate(quest.name.StripTags()));
                         detailHelper?.GoBackToList();
                         currentMode = QuestMenuMode.QuestList;
                         RefreshQuestList();
@@ -1169,8 +1183,8 @@ namespace RimWorldAccess
                 GlobalTargetInfo localTarget = target;
                 string targetLabel = localTarget.Label;
                 string buttonLabel = string.IsNullOrEmpty(targetLabel)
-                    ? "Jump to location"
-                    : $"Jump to {targetLabel}";
+                    ? "RimWorldAccess.Quests.Button.JumpToLocation".Translate()
+                    : "RimWorldAccess.Quests.Button.JumpToTarget".Translate(targetLabel);
 
                 buttons.Add(new ButtonInfo
                 {
@@ -1250,8 +1264,12 @@ namespace RimWorldAccess
         private static void AnnounceTabSwitch()
         {
             string tabName = GetTabName();
-            string countInfo = currentQuests.Count == 1 ? "1 quest" : $"{currentQuests.Count} quests";
-            TolkHelper.Speak($"{tabName} tab - {countInfo}");
+            string sentence = currentQuests.Count == 0
+                ? "RimWorldAccess.Quests.Tab.NoQuests".Translate(tabName).ToString()
+                : currentQuests.Count == 1
+                    ? "RimWorldAccess.Quests.Tab.WithCountOne".Translate(tabName).ToString()
+                    : "RimWorldAccess.Quests.Tab.WithCountMany".Translate(tabName, currentQuests.Count).ToString();
+            TolkHelper.Speak(sentence);
 
             if (currentQuests.Count > 0)
             {
@@ -1263,7 +1281,7 @@ namespace RimWorldAccess
         {
             if (currentQuests.Count == 0)
             {
-                TolkHelper.Speak($"{GetTabName()} tab - No quests");
+                TolkHelper.Speak("RimWorldAccess.Quests.Tab.NoQuests".Translate(GetTabName()));
                 return;
             }
 
@@ -1279,21 +1297,24 @@ namespace RimWorldAccess
 
             // Name with status
             if (quest.dismissed && !quest.Historical)
-                parts.Add($"{name}, Dismissed");
+                parts.Add("RimWorldAccess.Quests.List.NameWithStatus".Translate(
+                    name, "RimWorldAccess.Quests.Status.Dismissed".Translate()));
             else if (quest.Historical)
             {
+                string statusKey;
                 switch (quest.State)
                 {
                     case QuestState.EndedSuccess:
-                        parts.Add($"{name}, Completed");
+                        statusKey = "RimWorldAccess.Quests.Status.Completed";
                         break;
                     case QuestState.EndedFailed:
-                        parts.Add($"{name}, Failed");
+                        statusKey = "RimWorldAccess.Quests.Status.Failed";
                         break;
                     default:
-                        parts.Add($"{name}, Expired");
+                        statusKey = "RimWorldAccess.Quests.Status.Expired";
                         break;
                 }
+                parts.Add("RimWorldAccess.Quests.List.NameWithStatus".Translate(name, statusKey.Translate()));
             }
             else
             {
@@ -1302,9 +1323,11 @@ namespace RimWorldAccess
 
             // Difficulty
             int rating = Math.Max(quest.challengeRating, 1);
-            string ratingText = rating == 1 ? "1 star" : $"{rating} stars";
+            string ratingText = rating == 1
+                ? "RimWorldAccess.Quests.List.StarsOne".Translate().ToString()
+                : "RimWorldAccess.Quests.List.StarsMany".Translate(rating).ToString();
             if (quest.charity)
-                ratingText += ", charity quest";
+                ratingText += "RimWorldAccess.Quests.List.CharitySuffix".Translate();
             parts.Add(ratingText);
 
             // Time info
@@ -1336,7 +1359,7 @@ namespace RimWorldAccess
 
             // Rewards
             string rewardSummary = QuestRewardHelper.BuildCompactRewardSummary(quest);
-            parts.Add($"Rewards: {rewardSummary}");
+            parts.Add("RimWorldAccess.Quests.List.RewardsSummary".Translate(rewardSummary));
 
             // Position
             string position = MenuHelper.FormatPosition(currentIndex, currentQuests.Count);
@@ -1348,15 +1371,18 @@ namespace RimWorldAccess
         {
             if (quest.State == QuestState.NotYetAccepted && quest.TicksUntilExpiry >= 0)
             {
-                return $"Expires in {quest.TicksUntilExpiry.ToStringTicksToPeriod(allowSeconds: true, shortForm: true)}";
+                return "RimWorldAccess.Quests.List.ExpiresIn".Translate(
+                    quest.TicksUntilExpiry.ToStringTicksToPeriod(allowSeconds: true, shortForm: true));
             }
             else if (quest.Historical)
             {
-                return $"{quest.TicksSinceCleanup.ToStringTicksToPeriod(allowSeconds: false, shortForm: true)} ago";
+                return "RimWorldAccess.Quests.List.AgoOnly".Translate(
+                    quest.TicksSinceCleanup.ToStringTicksToPeriod(allowSeconds: false, shortForm: true));
             }
             else if (quest.EverAccepted)
             {
-                return $"Accepted {quest.TicksSinceAccepted.ToStringTicksToPeriod(allowSeconds: false, shortForm: true)} ago";
+                return "RimWorldAccess.Quests.List.AcceptedAgo".Translate(
+                    quest.TicksSinceAccepted.ToStringTicksToPeriod(allowSeconds: false, shortForm: true));
             }
 
             return "";
@@ -1367,13 +1393,13 @@ namespace RimWorldAccess
             switch (currentTab)
             {
                 case QuestsTab.Available:
-                    return "Available Quests";
+                    return "RimWorldAccess.Quests.Tab.Available".Translate();
                 case QuestsTab.Active:
-                    return "Active Quests";
+                    return "RimWorldAccess.Quests.Tab.Active".Translate();
                 case QuestsTab.Historical:
-                    return "Historical Quests";
+                    return "RimWorldAccess.Quests.Tab.Historical".Translate();
                 default:
-                    return "Quests";
+                    return "RimWorldAccess.Quests.Tab.Generic".Translate();
             }
         }
     }

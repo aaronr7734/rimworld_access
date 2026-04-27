@@ -67,27 +67,28 @@ namespace RimWorldAccess
         {
             var lines = new List<DetailLine>();
             QuestPart_Choice choicePart = GetChoicePart(quest);
+            string indent = "RimWorldAccess.Quests.Reward.LineIndent".Translate();
 
             if (choicePart == null || choicePart.choices.Count == 0)
             {
-                lines.Add(new DetailLine("No rewards"));
+                lines.Add(new DetailLine("RimWorldAccess.Quests.Reward.NoRewards".Translate()));
                 return lines;
             }
 
             if (choicePart.choices.Count == 1)
             {
                 // Single reward set
-                lines.Add(new DetailLine("Rewards:"));
-                AddRewardItemLines(lines, choicePart.choices[0].rewards, "  ");
+                lines.Add(new DetailLine("RimWorldAccess.Quests.Reward.RewardsHeader".Translate()));
+                AddRewardItemLines(lines, choicePart.choices[0].rewards, indent);
             }
             else
             {
                 // Multiple reward choices
-                lines.Add(new DetailLine("Reward choices (choose one to accept):"));
+                lines.Add(new DetailLine("RimWorldAccess.Quests.Reward.ChoicesHeader".Translate()));
                 for (int i = 0; i < choicePart.choices.Count; i++)
                 {
-                    lines.Add(new DetailLine($"Choice {i + 1}:"));
-                    AddRewardItemLines(lines, choicePart.choices[i].rewards, "  ");
+                    lines.Add(new DetailLine("RimWorldAccess.Quests.Reward.ChoiceLabel".Translate(i + 1)));
+                    AddRewardItemLines(lines, choicePart.choices[i].rewards, indent);
                 }
             }
 
@@ -131,41 +132,48 @@ namespace RimWorldAccess
                             int count = kvp.Value.totalCount;
                             Thing rep = kvp.Value.representative;
                             string itemName = rep.LabelNoCount.CapitalizeFirst();
-                            string label = count > 1
-                                ? $"{indent}{count}x {itemName}"
-                                : $"{indent}{itemName}";
-                            lines.Add(new DetailLine(label, thing: rep));
+                            string itemPhrase = count > 1
+                                ? "RimWorldAccess.Quests.Reward.ItemWithCount".Translate(count, itemName).ToString()
+                                : "RimWorldAccess.Quests.Reward.ItemSingle".Translate(itemName).ToString();
+                            lines.Add(new DetailLine(indent + itemPhrase, thing: rep));
                         }
                     }
                     else
                     {
-                        lines.Add(new DetailLine($"{indent}{DescribeReward(reward)}"));
+                        lines.Add(new DetailLine(indent + DescribeReward(reward)));
                     }
                 }
                 else if (reward is Reward_Goodwill rewardGoodwill)
                 {
-                    string text = $"{indent}{rewardGoodwill.amount.ToStringWithSign()} goodwill with {rewardGoodwill.faction.Name}";
-                    lines.Add(new DetailLine(text, faction: rewardGoodwill.faction));
+                    string body = "RimWorldAccess.Quests.Reward.Goodwill".Translate(
+                        rewardGoodwill.amount.ToStringWithSign(),
+                        rewardGoodwill.faction.Name);
+                    lines.Add(new DetailLine(indent + body, faction: rewardGoodwill.faction));
                 }
                 else if (reward is Reward_RoyalFavor rewardFavor)
                 {
                     string favorLabel = rewardFavor.faction.def.royalFavorLabel.CapitalizeFirst();
-                    string text = $"{indent}{rewardFavor.amount.ToStringWithSign()} {favorLabel} with {rewardFavor.faction.Name}";
-                    lines.Add(new DetailLine(text, faction: rewardFavor.faction));
+                    string body = "RimWorldAccess.Quests.Reward.RoyalFavor".Translate(
+                        rewardFavor.amount.ToStringWithSign(),
+                        favorLabel,
+                        rewardFavor.faction.Name);
+                    lines.Add(new DetailLine(indent + body, faction: rewardFavor.faction));
                 }
                 else if (reward is Reward_Pawn rewardPawn)
                 {
                     if (rewardPawn.detailsHidden)
                     {
-                        lines.Add(new DetailLine($"{indent}Pawn (details hidden)"));
+                        lines.Add(new DetailLine(indent + "RimWorldAccess.Quests.Reward.PawnHidden".Translate()));
                     }
                     else if (rewardPawn.pawn != null)
                     {
-                        lines.Add(new DetailLine($"{indent}Pawn: {rewardPawn.pawn.LabelShort}", thing: rewardPawn.pawn));
+                        lines.Add(new DetailLine(
+                            indent + "RimWorldAccess.Quests.Reward.PawnWithName".Translate(rewardPawn.pawn.LabelShort),
+                            thing: rewardPawn.pawn));
                     }
                     else
                     {
-                        lines.Add(new DetailLine($"{indent}Pawn"));
+                        lines.Add(new DetailLine(indent + "RimWorldAccess.Quests.Reward.PawnGeneric".Translate()));
                     }
                 }
                 else if (reward is Reward_DefinedThingDef rewardDef)
@@ -173,18 +181,19 @@ namespace RimWorldAccess
                     string label = rewardDef.thingDef != null
                         ? rewardDef.thingDef.LabelCap.ToString()
                         : DescribeReward(reward);
-                    lines.Add(new DetailLine($"{indent}{label}"));
+                    lines.Add(new DetailLine(indent + label));
                 }
                 else
                 {
                     // Fallback for other reward types - use GetDescription for human-readable text
-                    lines.Add(new DetailLine($"{indent}{DescribeReward(reward)}"));
+                    lines.Add(new DetailLine(indent + DescribeReward(reward)));
                 }
             }
 
             if (totalValue > 0f)
             {
-                lines.Add(new DetailLine($"{indent}Total value: {totalValue.ToStringMoney("F0")}"));
+                lines.Add(new DetailLine(
+                    indent + "RimWorldAccess.Quests.Reward.TotalValue".Translate(totalValue.ToStringMoney("F0"))));
             }
         }
 
@@ -234,32 +243,43 @@ namespace RimWorldAccess
                     {
                         int count = kvp.Value.totalCount;
                         string itemName = kvp.Value.representative.LabelNoCount.CapitalizeFirst();
-                        itemDescs.Add(count > 1 ? $"{count}x {itemName}" : itemName);
+                        itemDescs.Add(count > 1
+                            ? "RimWorldAccess.Quests.Reward.ItemWithCount".Translate(count, itemName).ToString()
+                            : "RimWorldAccess.Quests.Reward.ItemSingle".Translate(itemName).ToString());
                     }
                 }
                 if (itemDescs.Count == 0)
                 {
-                    itemDescs.Add("Items");
+                    itemDescs.Add("RimWorldAccess.Quests.Reward.ItemsFallback".Translate());
                 }
                 return string.Join(", ", itemDescs);
             }
             else if (reward is Reward_Goodwill rg)
             {
-                return $"{rg.amount.ToStringWithSign()} goodwill with {rg.faction.Name}";
+                return "RimWorldAccess.Quests.Reward.Goodwill".Translate(
+                    rg.amount.ToStringWithSign(),
+                    rg.faction.Name);
             }
             else if (reward is Reward_RoyalFavor rf)
             {
                 string favorLabel = rf.faction.def.royalFavorLabel.CapitalizeFirst();
-                return $"{rf.amount.ToStringWithSign()} {favorLabel} with {rf.faction.Name}";
+                return "RimWorldAccess.Quests.Reward.RoyalFavor".Translate(
+                    rf.amount.ToStringWithSign(),
+                    favorLabel,
+                    rf.faction.Name);
             }
             else if (reward is Reward_Pawn rp)
             {
-                if (rp.detailsHidden) return "Pawn (details hidden)";
-                return rp.pawn != null ? $"Pawn: {rp.pawn.LabelShort}" : "Pawn";
+                if (rp.detailsHidden) return "RimWorldAccess.Quests.Reward.PawnHidden".Translate();
+                return rp.pawn != null
+                    ? "RimWorldAccess.Quests.Reward.PawnWithName".Translate(rp.pawn.LabelShort).ToString()
+                    : "RimWorldAccess.Quests.Reward.PawnGeneric".Translate().ToString();
             }
             else if (reward is Reward_DefinedThingDef rdt)
             {
-                return rdt.thingDef != null ? rdt.thingDef.LabelCap.ToString() : "Item";
+                return rdt.thingDef != null
+                    ? rdt.thingDef.LabelCap.ToString()
+                    : "RimWorldAccess.Quests.Reward.ItemFallback".Translate().ToString();
             }
             else
             {
@@ -289,25 +309,31 @@ namespace RimWorldAccess
 
                 if (faction.def.HasRoyalTitles)
                 {
-                    string status = faction.allowRoyalFavorRewards ? "checked" : "unchecked";
+                    string status = (faction.allowRoyalFavorRewards
+                        ? "RimWorldAccess.Quests.Pref.Checked"
+                        : "RimWorldAccess.Quests.Pref.Unchecked").Translate();
                     string favorLabel = faction.def.royalFavorLabel.CapitalizeFirst();
                     items.Add(new RewardPrefItem
                     {
                         Faction = faction,
                         Type = RewardPrefType.RoyalFavor,
-                        Label = $"{faction.Name}: Accept {favorLabel}, {status}"
+                        Label = "RimWorldAccess.Quests.Pref.RoyalFavorRow".Translate(faction.Name, favorLabel, status)
                     });
                 }
 
                 if (faction.CanEverGiveGoodwillRewards)
                 {
-                    string status = faction.allowGoodwillRewards ? "checked" : "unchecked";
-                    string relation = $"currently {faction.PlayerGoodwill.ToStringWithSign()}, {faction.PlayerRelationKind.GetLabelCap()}";
+                    string status = (faction.allowGoodwillRewards
+                        ? "RimWorldAccess.Quests.Pref.Checked"
+                        : "RimWorldAccess.Quests.Pref.Unchecked").Translate();
+                    string relation = "RimWorldAccess.Quests.Pref.RelationPhrase".Translate(
+                        faction.PlayerGoodwill.ToStringWithSign(),
+                        faction.PlayerRelationKind.GetLabelCap());
                     items.Add(new RewardPrefItem
                     {
                         Faction = faction,
                         Type = RewardPrefType.Goodwill,
-                        Label = $"{faction.Name}: Accept Goodwill, {status}, {relation}"
+                        Label = "RimWorldAccess.Quests.Pref.GoodwillRow".Translate(faction.Name, status, relation)
                     });
                 }
             }
@@ -323,9 +349,9 @@ namespace RimWorldAccess
         {
             QuestPart_Choice choicePart = GetChoicePart(quest);
             if (choicePart == null || choicePart.choices.Count == 0)
-                return "No rewards";
+                return "RimWorldAccess.Quests.Reward.NoRewards".Translate();
             if (choicePart.choices.Count >= 2)
-                return "Multiple reward choices available";
+                return "RimWorldAccess.Quests.Reward.MultipleChoices".Translate();
             return BuildRewardDescription(choicePart.choices[0].rewards);
         }
 
