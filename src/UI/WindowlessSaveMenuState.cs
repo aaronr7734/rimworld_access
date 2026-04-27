@@ -138,7 +138,7 @@ namespace RimWorldAccess
             // In save mode, index 0 is "Create New Save" which can't be deleted
             if (currentMode == SaveLoadMode.Save && selectedIndex == 0)
             {
-                TolkHelper.Speak("Cannot delete 'Create New Save' option", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.UI.Save.CannotDeleteCreateNew".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -152,7 +152,7 @@ namespace RimWorldAccess
             string fileName = Path.GetFileNameWithoutExtension(selectedFile.FileName);
 
             // Open confirmation
-            TolkHelper.Speak($"Delete {fileName}? Press Enter to confirm, Escape to cancel");
+            TolkHelper.Speak("RimWorldAccess.UI.Save.DeleteConfirmPrompt".Translate(fileName));
             WindowlessDeleteConfirmationState.Open(selectedFile.FileInfo, () => {
                 // After deletion, reload and reopen this menu
                 ReloadFiles();
@@ -190,13 +190,13 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("Invalid save selection");
+                TolkHelper.Speak("RimWorldAccess.UI.Save.InvalidSelection".Translate());
                 return;
             }
 
             if (string.IsNullOrEmpty(saveName))
             {
-                TolkHelper.Speak("Need a name for the save file");
+                TolkHelper.Speak("RimWorldAccess.UI.Save.NeedName".Translate());
                 return;
             }
 
@@ -214,14 +214,14 @@ namespace RimWorldAccess
             Messages.Message("SavedAs".Translate(saveName), MessageTypeDefOf.SilentInput, historical: false);
             PlayerKnowledgeDatabase.Save();
 
-            TolkHelper.Speak($"Saved as {saveName}");
+            TolkHelper.Speak("RimWorldAccess.UI.Save.SavedAs".Translate(saveName));
         }
 
         private static void ExecuteLoad()
         {
             if (saveFiles == null || saveFiles.Count == 0)
             {
-                TolkHelper.Speak("No save files available");
+                TolkHelper.Speak("RimWorldAccess.UI.Save.NoFiles".Translate());
                 return;
             }
 
@@ -243,7 +243,7 @@ namespace RimWorldAccess
                 GameDataSaveLoader.LoadGame(fileName);
             }, "LoadingLongEvent", doAsynchronously: false, GameAndMapInitExceptionHandlers.ErrorWhileLoadingGame);
 
-            TolkHelper.Speak($"Loading {fileName}");
+            TolkHelper.Speak("RimWorldAccess.UI.Save.Loading".Translate(fileName));
         }
 
         private static void ReloadFiles()
@@ -268,40 +268,7 @@ namespace RimWorldAccess
 
         private static void AnnounceCurrentState()
         {
-            if (currentMode == SaveLoadMode.Save)
-            {
-                // In save mode, we have "Create New Save" at index 0 (virtual entry), then existing files
-                int totalCount = saveFiles != null ? saveFiles.Count + 1 : 1;
-
-                // Index 0 is "Create New Save", indices 1+ are existing files
-                if (selectedIndex == 0)
-                {
-                    TolkHelper.Speak($"Create New Save: {typedSaveName}. {MenuHelper.FormatPosition(selectedIndex, totalCount)}");
-                }
-                else if (saveFiles != null && selectedIndex > 0 && selectedIndex <= saveFiles.Count)
-                {
-                    SaveFileInfo file = saveFiles[selectedIndex - 1]; // Adjust for "Create New Save" at index 0
-                    string fileName = Path.GetFileNameWithoutExtension(file.FileName);
-                    TolkHelper.Speak($"Overwrite: {fileName} - {FormatDateTime(file.LastWriteTime)}. {MenuHelper.FormatPosition(selectedIndex, totalCount)}");
-                }
-                else
-                {
-                    TolkHelper.Speak($"Create New Save: {typedSaveName}. {MenuHelper.FormatPosition(selectedIndex, totalCount)}");
-                }
-            }
-            else // Load mode
-            {
-                if (saveFiles != null && saveFiles.Count > 0 && selectedIndex >= 0 && selectedIndex < saveFiles.Count)
-                {
-                    SaveFileInfo file = saveFiles[selectedIndex];
-                    string fileName = Path.GetFileNameWithoutExtension(file.FileName);
-                    TolkHelper.Speak($"Load: {fileName} - {FormatDateTime(file.LastWriteTime)}. {MenuHelper.FormatPosition(selectedIndex, saveFiles.Count)}");
-                }
-                else
-                {
-                    TolkHelper.Speak("No save files available");
-                }
-            }
+            TolkHelper.Speak(GetCurrentItemDescription());
         }
 
         /// <summary>
@@ -501,35 +468,27 @@ namespace RimWorldAccess
             if (currentMode == SaveLoadMode.Save)
             {
                 int totalCount = saveFiles != null ? saveFiles.Count + 1 : 1;
+                string position = MenuHelper.FormatPosition(selectedIndex, totalCount);
 
-                if (selectedIndex == 0)
-                {
-                    return $"Create New Save: {typedSaveName}. {MenuHelper.FormatPosition(selectedIndex, totalCount)}";
-                }
-                else if (saveFiles != null && selectedIndex > 0 && selectedIndex <= saveFiles.Count)
+                if (selectedIndex > 0 && saveFiles != null && selectedIndex <= saveFiles.Count)
                 {
                     SaveFileInfo file = saveFiles[selectedIndex - 1];
                     string fileName = Path.GetFileNameWithoutExtension(file.FileName);
-                    return $"Overwrite: {fileName} - {FormatDateTime(file.LastWriteTime)}. {MenuHelper.FormatPosition(selectedIndex, totalCount)}";
+                    return "RimWorldAccess.UI.Save.OverwriteRow".Translate(fileName, FormatDateTime(file.LastWriteTime), position);
                 }
-                else
-                {
-                    return $"Create New Save: {typedSaveName}. {MenuHelper.FormatPosition(selectedIndex, totalCount)}";
-                }
+                // Index 0 (Create New Save) and out-of-range fall through to Create New
+                return "RimWorldAccess.UI.Save.CreateNewRow".Translate(typedSaveName, position);
             }
-            else // Load mode
+
+            // Load mode
+            if (saveFiles != null && saveFiles.Count > 0 && selectedIndex >= 0 && selectedIndex < saveFiles.Count)
             {
-                if (saveFiles != null && saveFiles.Count > 0 && selectedIndex >= 0 && selectedIndex < saveFiles.Count)
-                {
-                    SaveFileInfo file = saveFiles[selectedIndex];
-                    string fileName = Path.GetFileNameWithoutExtension(file.FileName);
-                    return $"Load: {fileName} - {FormatDateTime(file.LastWriteTime)}. {MenuHelper.FormatPosition(selectedIndex, saveFiles.Count)}";
-                }
-                else
-                {
-                    return "No save files available";
-                }
+                SaveFileInfo file = saveFiles[selectedIndex];
+                string fileName = Path.GetFileNameWithoutExtension(file.FileName);
+                string position = MenuHelper.FormatPosition(selectedIndex, saveFiles.Count);
+                return "RimWorldAccess.UI.Save.LoadRow".Translate(fileName, FormatDateTime(file.LastWriteTime), position);
             }
+            return "RimWorldAccess.UI.Save.NoFiles".Translate();
         }
 
         /// <summary>
@@ -573,7 +532,7 @@ namespace RimWorldAccess
 
             string fileName = fileToDelete.Name;
             fileToDelete.Delete();
-            TolkHelper.Speak($"Deleted {fileName}");
+            TolkHelper.Speak("RimWorldAccess.UI.Save.Deleted".Translate(fileName));
 
             Action callback = onDeleteComplete;
             Close();
@@ -585,7 +544,7 @@ namespace RimWorldAccess
             if (!isActive)
                 return;
 
-            TolkHelper.Speak("Delete cancelled");
+            TolkHelper.Speak("RimWorldAccess.UI.Save.DeleteCancelled".Translate());
 
             Action callback = onDeleteComplete;
             Close();

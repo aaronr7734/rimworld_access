@@ -505,11 +505,11 @@ namespace RimWorldAccess
 
         public override string GetAnnouncement()
         {
-            string announcement = $"{Label} button";
+            string announcement = "RimWorldAccess.UI.Dialog.ButtonAnnouncement".Translate(Label);
 
             if (Disabled && !string.IsNullOrEmpty(DisabledReason))
             {
-                announcement += $" (Disabled: {DisabledReason})";
+                announcement = "RimWorldAccess.UI.Dialog.ButtonDisabledSuffix".Translate(announcement, DisabledReason);
             }
 
             return announcement;
@@ -519,11 +519,11 @@ namespace RimWorldAccess
         {
             if (Disabled)
             {
-                TolkHelper.Speak($"Cannot activate: {DisabledReason}");
+                TolkHelper.Speak("RimWorldAccess.UI.Dialog.ButtonCannotActivate".Translate(DisabledReason));
                 return;
             }
 
-            TolkHelper.Speak($"Activated {Label}");
+            TolkHelper.Speak("RimWorldAccess.UI.Dialog.ButtonExecuted".Translate(Label));
             Action?.Invoke();
         }
     }
@@ -565,8 +565,10 @@ namespace RimWorldAccess
 
         public override string GetAnnouncement()
         {
-            string valueAnnouncement = string.IsNullOrEmpty(Value) ? "Empty" : Value;
-            return $"Text field: {Label}. Current value: {valueAnnouncement}. Press Enter to edit.";
+            string valueAnnouncement = string.IsNullOrEmpty(Value)
+                ? "RimWorldAccess.UI.Dialog.TextFieldEmpty".Translate().ToString()
+                : Value;
+            return "RimWorldAccess.UI.Dialog.TextField".Translate(Label, valueAnnouncement);
         }
     }
 

@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    UI module strings (src/UI/). The UI module hosts shared dialog and
+    menu infrastructure used by the rest of the mod; many of its files
+    (TypeaheadSearchHelper, GuardHelper, MenuHelper, TreeNavigationHelper,
+    TwoLevelMenuHelper, NumericStepperHelper) were already wired through
+    Common.xml in earlier phases. This file covers the remaining
+    state/patch/helper files that still emit module-specific phrasing:
+
+      - WindowlessSaveMenuState.cs       (save/load file browser)
+      - WindowlessFloatMenuState.cs      (keyboard-navigable float menu)
+      - WindowlessPauseMenuState.cs      (in-game pause menu)
+      - WindowlessOptionsMenuState.cs    (options panel + setting hints)
+      - WindowlessDialogState.cs         (generic dialog frame)
+      - WindowlessConfirmationState.cs   (yes/no confirmation)
+      - QuantityMenuState.cs             (numeric quantity picker)
+      - GiveNameDialogPatch.cs           (Dialog_GiveName randomize/accept)
+      - DialogElementExtractor.cs        (Dialog_Rename / Dialog_GiveName /
+                                           Dialog_NamePawn OK feedback)
+      - TransferableQuantityHelper.cs    (caravan/trade quantity setters)
+      - MessageBoxAccessibilityPatch.cs  (Dialog_MessageBox Cancel)
+      - ExtraMenusState.cs               (extra-menus picker)
+      - Dialog_NameAllowedArea.cs        (zone-area name dialog)
+
+    Phrasing decisions:
+      - "{Label}. {Position}" appears across pause/options/extra menus.
+        It uses a shared key (UI.Item.WithPosition).
+      - The "{Label}. {Position}. No matches for '{X}'" pattern (typeahead
+        no-match in pause/extra menus) is also shared.
+      - "OK", "Accept", "Cancel" button labels delegate to vanilla
+        translation keys via .Translate() at the call site.
+      - The "RimWorld Access" settings sub-category in the in-game options
+        panel reuses the existing RimWorldAccess.Core.Settings.* keys
+        (canonical wording lives in RimWorldAccess_Core.xml).
+
+    Data such as save file names, faction names, settings category labels
+    from the game (Prefs categories), modder-supplied SettingsCategory()
+    text, mass values, item labels, and dialog button text extracted via
+    reflection from RimWorld dialogs is NOT translated here.
+  -->
+
+  <!-- =================================================================
+       Composition keys shared across multiple state classes.
+       Item.WithPosition: {0} = label/option text, {1} = position string.
+       Item.WithPositionNoMatches: {0} = label, {1} = position,
+                                    {2} = current search buffer (failed).
+       ================================================================= -->
+  <RimWorldAccess.UI.Item.WithPosition>{0}. {1}</RimWorldAccess.UI.Item.WithPosition>
+  <RimWorldAccess.UI.Item.WithPositionNoMatches>{0}. {1}. No matches for '{2}'</RimWorldAccess.UI.Item.WithPositionNoMatches>
+
+  <!-- =================================================================
+       Save / load menu (WindowlessSaveMenuState +
+                         WindowlessDeleteConfirmationState).
+       Save mode introduces a virtual "Create New Save" entry at index 0,
+       so position composition has its own keys. Load mode shares
+       Item.WithPosition for the basic line.
+       ================================================================= -->
+  <RimWorldAccess.UI.Save.NoFiles>No save files available</RimWorldAccess.UI.Save.NoFiles>
+  <RimWorldAccess.UI.Save.InvalidSelection>Invalid save selection</RimWorldAccess.UI.Save.InvalidSelection>
+  <RimWorldAccess.UI.Save.NeedName>Need a name for the save file</RimWorldAccess.UI.Save.NeedName>
+  <RimWorldAccess.UI.Save.SavedAs>Saved as {0}</RimWorldAccess.UI.Save.SavedAs>
+  <RimWorldAccess.UI.Save.Loading>Loading {0}</RimWorldAccess.UI.Save.Loading>
+  <RimWorldAccess.UI.Save.CannotDeleteCreateNew>Cannot delete 'Create New Save' option</RimWorldAccess.UI.Save.CannotDeleteCreateNew>
+  <!-- {0} = file name (stripped of extension). -->
+  <RimWorldAccess.UI.Save.DeleteConfirmPrompt>Delete {0}? Press Enter to confirm, Escape to cancel</RimWorldAccess.UI.Save.DeleteConfirmPrompt>
+  <RimWorldAccess.UI.Save.Deleted>Deleted {0}</RimWorldAccess.UI.Save.Deleted>
+  <RimWorldAccess.UI.Save.DeleteCancelled>Delete cancelled</RimWorldAccess.UI.Save.DeleteCancelled>
+  <!-- Per-row composition. CreateNew: {0} = current typedSaveName,
+       {1} = position. Overwrite/Load: {0} = file name, {1} = formatted
+       date-time, {2} = position. -->
+  <RimWorldAccess.UI.Save.CreateNewRow>Create New Save: {0}. {1}</RimWorldAccess.UI.Save.CreateNewRow>
+  <RimWorldAccess.UI.Save.OverwriteRow>Overwrite: {0} - {1}. {2}</RimWorldAccess.UI.Save.OverwriteRow>
+  <RimWorldAccess.UI.Save.LoadRow>Load: {0} - {1}. {2}</RimWorldAccess.UI.Save.LoadRow>
+
+  <!-- =================================================================
+       Float menu (WindowlessFloatMenuState). The selection announcement
+       differentiates between a queued action (Shift held while clicking
+       a colonist order) and a normal one. {0} = option label.
+       FloatMenu.OptionTooltip: {0} = option text, {1} = tooltip text,
+                                 {2} = position phrase.
+       (The Item.WithPosition shared key handles the no-tooltip case.)
+       ================================================================= -->
+  <RimWorldAccess.UI.FloatMenu.SelectedQueued>{0}, {1}</RimWorldAccess.UI.FloatMenu.SelectedQueued>
+  <RimWorldAccess.UI.FloatMenu.Selected>{0} selected</RimWorldAccess.UI.FloatMenu.Selected>
+  <!-- Suffix appended to a disabled option label. -->
+  <RimWorldAccess.UI.FloatMenu.UnavailableSuffix> (unavailable)</RimWorldAccess.UI.FloatMenu.UnavailableSuffix>
+  <RimWorldAccess.UI.FloatMenu.OptionTooltip>{0}. {1} {2}</RimWorldAccess.UI.FloatMenu.OptionTooltip>
+  <!-- Tooltip variant inside an active typeahead search; the search
+       buffer suffix is appended by typeahead.BuildSearchContextSuffix(),
+       so this key does not include the query. -->
+  <RimWorldAccess.UI.FloatMenu.OptionTooltipSearch>{0}. {1}</RimWorldAccess.UI.FloatMenu.OptionTooltipSearch>
+
+  <!-- =================================================================
+       Quantity menu (QuantityMenuState).
+       OpenInstructions: {0} = item label.
+       Selected: {0} = quantity, {1} = item label.
+       Invalid: {0} = current numeric buffer.
+       Maximum / Minimum spoken when increment cap is hit. -->
+  <RimWorldAccess.UI.Quantity.OpenInstructions>Quantity menu for {0}. Use Up/Down to adjust, type a number, or press Enter to confirm.</RimWorldAccess.UI.Quantity.OpenInstructions>
+  <RimWorldAccess.UI.Quantity.Selected>{0} {1} selected</RimWorldAccess.UI.Quantity.Selected>
+  <RimWorldAccess.UI.Quantity.Cancelled>Quantity selection cancelled</RimWorldAccess.UI.Quantity.Cancelled>
+  <RimWorldAccess.UI.Quantity.Maximum>Maximum quantity</RimWorldAccess.UI.Quantity.Maximum>
+  <RimWorldAccess.UI.Quantity.Minimum>Minimum quantity</RimWorldAccess.UI.Quantity.Minimum>
+  <RimWorldAccess.UI.Quantity.InvalidNumber>Invalid number: {0}</RimWorldAccess.UI.Quantity.InvalidNumber>
+
+  <!-- =================================================================
+       Pause menu (WindowlessPauseMenuState).
+       Quit prompts share a "Press Enter to confirm, Escape to cancel"
+       suffix. Each prompt is a whole-phrase key so translators can vary
+       wording for politeness register (e.g. "Quit to desktop?" might be
+       expressed differently in some locales). -->
+  <RimWorldAccess.UI.Pause.QuitMainMenuPrompt>Confirm quit to main menu? Press Enter to confirm, Escape to cancel</RimWorldAccess.UI.Pause.QuitMainMenuPrompt>
+  <RimWorldAccess.UI.Pause.QuitDesktopPrompt>Confirm quit to desktop? Press Enter to confirm, Escape to cancel</RimWorldAccess.UI.Pause.QuitDesktopPrompt>
+  <RimWorldAccess.UI.Pause.ResumedGame>Resumed game</RimWorldAccess.UI.Pause.ResumedGame>
+
+  <!-- =================================================================
+       Options menu (WindowlessOptionsMenuState).
+       The "Press Enter to ..." button hints share a small key set;
+       each is one full phrase so translators can vary verb choice. -->
+  <RimWorldAccess.UI.Options.PressEnterToReset>Press Enter to Reset All Settings</RimWorldAccess.UI.Options.PressEnterToReset>
+  <RimWorldAccess.UI.Options.PressEnterToModify>Press Enter to Modify</RimWorldAccess.UI.Options.PressEnterToModify>
+  <RimWorldAccess.UI.Options.PressEnterToOpen>Press Enter to open</RimWorldAccess.UI.Options.PressEnterToOpen>
+  <RimWorldAccess.UI.Options.OpeningResetDialog>Opening reset confirmation dialog</RimWorldAccess.UI.Options.OpeningResetDialog>
+  <RimWorldAccess.UI.Options.CannotChangeStoryteller>Cannot change storyteller right now</RimWorldAccess.UI.Options.CannotChangeStoryteller>
+  <!-- {0} = mod's SettingsCategory() string. -->
+  <RimWorldAccess.UI.Options.OpeningModSettings>Opening settings for {0}</RimWorldAccess.UI.Options.OpeningModSettings>
+
+  <!-- =================================================================
+       Generic dialog frame (WindowlessDialogState).
+       ButtonExecuted: {0} = button label.
+       ButtonCannotActivate: {0} = disabled reason text.
+       Disabled suffix: ButtonAnnouncement: {0} = button label,
+                          DisabledSuffix: {0} = disabled reason. The two
+                        keys compose because the suffix is conditional. -->
+  <RimWorldAccess.UI.Dialog.ButtonExecuted>Activated {0}</RimWorldAccess.UI.Dialog.ButtonExecuted>
+  <RimWorldAccess.UI.Dialog.ButtonCannotActivate>Cannot activate: {0}</RimWorldAccess.UI.Dialog.ButtonCannotActivate>
+  <RimWorldAccess.UI.Dialog.ButtonAnnouncement>{0} button</RimWorldAccess.UI.Dialog.ButtonAnnouncement>
+  <RimWorldAccess.UI.Dialog.ButtonDisabledSuffix>{0} (Disabled: {1})</RimWorldAccess.UI.Dialog.ButtonDisabledSuffix>
+  <!-- TextField announcement: {0} = label, {1} = current value or
+       Empty marker. The Empty placeholder is its own key so non-Latin
+       languages can choose a punctuation-free word. -->
+  <RimWorldAccess.UI.Dialog.TextField>Text field: {0}. Current value: {1}. Press Enter to edit.</RimWorldAccess.UI.Dialog.TextField>
+  <RimWorldAccess.UI.Dialog.TextFieldEmpty>Empty</RimWorldAccess.UI.Dialog.TextFieldEmpty>
+
+  <!-- =================================================================
+       Name dialogs (DialogElementExtractor + GiveNameDialogPatch).
+       Both surfaces (Dialog_GiveName Patch + DialogElementExtractor's
+       reflection-based OK handlers) emit the same announcement set, so
+       the keys live in one place.
+       ================================================================= -->
+  <RimWorldAccess.UI.Name.Invalid>Invalid name</RimWorldAccess.UI.Name.Invalid>
+  <RimWorldAccess.UI.Name.InvalidSecond>Invalid second name</RimWorldAccess.UI.Name.InvalidSecond>
+  <!-- {0} = randomized name. -->
+  <RimWorldAccess.UI.Name.Randomized>Randomized: {0}</RimWorldAccess.UI.Name.Randomized>
+  <RimWorldAccess.UI.Name.RandomizedFirst>Randomized first name: {0}</RimWorldAccess.UI.Name.RandomizedFirst>
+  <RimWorldAccess.UI.Name.RandomizedSecond>Randomized second name: {0}</RimWorldAccess.UI.Name.RandomizedSecond>
+  <!-- Submit-success announcements. {0} = first name, {1} = second name. -->
+  <RimWorldAccess.UI.Name.Accepted>Name accepted: {0}</RimWorldAccess.UI.Name.Accepted>
+  <RimWorldAccess.UI.Name.AcceptedBoth>Names accepted: {0}, {1}</RimWorldAccess.UI.Name.AcceptedBoth>
+  <RimWorldAccess.UI.Name.Renamed>Renamed to {0}</RimWorldAccess.UI.Name.Renamed>
+  <RimWorldAccess.UI.Name.NamedSingle>Named {0}</RimWorldAccess.UI.Name.NamedSingle>
+  <RimWorldAccess.UI.Name.NamedBoth>Named {0} {1}</RimWorldAccess.UI.Name.NamedBoth>
+
+  <!-- Dialog_NameAllowedArea opening prompt. -->
+  <RimWorldAccess.UI.NameArea.OpenPrompt>Name this allowed area. Enter a name and press OK or Enter to continue.</RimWorldAccess.UI.NameArea.OpenPrompt>
+
+  <!-- =================================================================
+       TransferableQuantityHelper (caravan/trade quantity setters).
+       AdjustTo and SetToZero share a "{count} {item}" phrasing. The
+       SetToMax variant adds a localized "maximum" suffix and an
+       optional mass tag. {0} = count, {1} = item label.
+       MaxLine: {0} = count, {1} = item, {2} = mass suffix or empty.
+       MassSuffix: {0} = total mass formatted to one decimal. -->
+  <RimWorldAccess.UI.Transferable.QuantitySpoken>{0} {1}</RimWorldAccess.UI.Transferable.QuantitySpoken>
+  <RimWorldAccess.UI.Transferable.MaxLine>{0} {1}, maximum{2}</RimWorldAccess.UI.Transferable.MaxLine>
+  <RimWorldAccess.UI.Transferable.MassSuffix>, {0} kg</RimWorldAccess.UI.Transferable.MassSuffix>
+
+  <!-- =================================================================
+       MessageBox patch + ExtraMenusState + WindowlessConfirmationState.
+       Cancelled is shared (used by all three). -->
+  <RimWorldAccess.UI.Cancelled>Cancelled</RimWorldAccess.UI.Cancelled>
+  <RimWorldAccess.UI.Extra.None>No extra menus available</RimWorldAccess.UI.Extra.None>
+
+</LanguageData>

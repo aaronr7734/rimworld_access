@@ -464,7 +464,7 @@ namespace RimWorldAccess
                 {
                     ButtonElement okButton = new ButtonElement
                     {
-                        Label = "OK",
+                        Label = "OK".Translate(),
                         Action = () => ExecuteDialogRenameOK(dialog, dialogType),
                         IsConfirm = true,
                         IsClose = false // We'll close it manually if validation passes
@@ -476,7 +476,7 @@ namespace RimWorldAccess
                 {
                     ButtonElement okButton = new ButtonElement
                     {
-                        Label = "OK",
+                        Label = "OK".Translate(),
                         Action = () => ExecuteDialogGiveNameOK(dialog, dialogType),
                         IsConfirm = true,
                         IsClose = false // We'll close it manually if validation passes
@@ -488,7 +488,7 @@ namespace RimWorldAccess
                 {
                     ButtonElement okButton = new ButtonElement
                     {
-                        Label = "Accept",
+                        Label = "Accept".Translate(),
                         Action = () => NamePawnDialogHelper.ExecuteAccept(dialog, dialogType),
                         IsConfirm = true,
                         IsClose = false // We'll close it manually if validation passes
@@ -502,7 +502,7 @@ namespace RimWorldAccess
             {
                 ButtonElement cancelButton = new ButtonElement
                 {
-                    Label = "Cancel",
+                    Label = "Cancel".Translate(),
                     Action = () => { },
                     IsCancel = true,
                     IsClose = true
@@ -540,7 +540,7 @@ namespace RimWorldAccess
                         string reason = reasonProp?.GetValue(result, null) as string;
                         if (string.IsNullOrEmpty(reason))
                         {
-                            TolkHelper.Speak("Name is invalid", SpeechPriority.High);
+                            TolkHelper.Speak("RimWorldAccess.UI.Name.Invalid".Translate(), SpeechPriority.High);
                         }
                         else
                         {
@@ -574,7 +574,7 @@ namespace RimWorldAccess
                 onRenamedMethod.Invoke(dialog, new object[] { name });
             }
 
-            TolkHelper.Speak($"Renamed to {name}", SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.UI.Name.Renamed".Translate(name), SpeechPriority.High);
 
             // Close the windowless dialog
             WindowlessDialogState.Close();
@@ -610,7 +610,7 @@ namespace RimWorldAccess
                 if (!isValid)
                 {
                     FieldInfo invalidNameMessageKeyField = dialogType.GetField("invalidNameMessageKey", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                    string invalidMessage = "Invalid name";
+                    string invalidMessage = "RimWorldAccess.UI.Name.Invalid".Translate();
                     if (invalidNameMessageKeyField != null)
                     {
                         string key = (string)invalidNameMessageKeyField.GetValue(dialog);
@@ -635,7 +635,7 @@ namespace RimWorldAccess
                     if (!isValid)
                     {
                         FieldInfo invalidSecondNameMessageKeyField = dialogType.GetField("invalidSecondNameMessageKey", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                        string invalidMessage = "Invalid second name";
+                        string invalidMessage = "RimWorldAccess.UI.Name.InvalidSecond".Translate();
                         if (invalidSecondNameMessageKeyField != null)
                         {
                             string key = (string)invalidSecondNameMessageKeyField.GetValue(dialog);
@@ -666,11 +666,11 @@ namespace RimWorldAccess
                     namedSecondMethod.Invoke(dialog, new object[] { secondName });
                 }
 
-                TolkHelper.Speak($"Named {name} {secondName}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.UI.Name.NamedBoth".Translate(name, secondName), SpeechPriority.High);
             }
             else
             {
-                TolkHelper.Speak($"Named {name}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.UI.Name.NamedSingle".Translate(name), SpeechPriority.High);
             }
 
             // Close the windowless dialog

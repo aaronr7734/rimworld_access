@@ -95,7 +95,9 @@ namespace RimWorldAccess
         {
             if (selectedIndex >= 0 && selectedIndex < currentOptions.Count)
             {
-                TolkHelper.Speak($"{currentOptions[selectedIndex].Label}. {MenuHelper.FormatPosition(selectedIndex, currentOptions.Count)}");
+                TolkHelper.Speak("RimWorldAccess.UI.Item.WithPosition".Translate(
+                    currentOptions[selectedIndex].Label,
+                    MenuHelper.FormatPosition(selectedIndex, currentOptions.Count)));
             }
         }
 
@@ -280,7 +282,10 @@ namespace RimWorldAccess
             {
                 if (typeahead.HasNoMatches)
                 {
-                    TolkHelper.Speak($"{label}. {MenuHelper.FormatPosition(selectedIndex, currentOptions.Count)}. No matches for '{typeahead.LastFailedSearch}'");
+                    TolkHelper.Speak("RimWorldAccess.UI.Item.WithPositionNoMatches".Translate(
+                        label,
+                        MenuHelper.FormatPosition(selectedIndex, currentOptions.Count),
+                        typeahead.LastFailedSearch));
                 }
                 else
                 {
@@ -378,7 +383,7 @@ namespace RimWorldAccess
                             if (GameDataSaveLoader.CurrentGameStateIsValuable)
                             {
                                 // Show confirmation
-                                TolkHelper.Speak("Confirm quit to main menu? Press Enter to confirm, Escape to cancel");
+                                TolkHelper.Speak("RimWorldAccess.UI.Pause.QuitMainMenuPrompt".Translate());
                                 WindowlessConfirmationState.Open(
                                     "ConfirmQuit".Translate(),
                                     GenScene.GoToMainMenu
@@ -397,7 +402,7 @@ namespace RimWorldAccess
                             if (GameDataSaveLoader.CurrentGameStateIsValuable)
                             {
                                 // Show confirmation
-                                TolkHelper.Speak("Confirm quit to desktop? Press Enter to confirm, Escape to cancel");
+                                TolkHelper.Speak("RimWorldAccess.UI.Pause.QuitDesktopPrompt".Translate());
                                 WindowlessConfirmationState.Open(
                                     "ConfirmQuit".Translate(),
                                     Root.Shutdown
@@ -416,7 +421,7 @@ namespace RimWorldAccess
                     "ResumeGame".Translate(),
                     () => {
                         // Just close the menu
-                        TolkHelper.Speak("Resumed game");
+                        TolkHelper.Speak("RimWorldAccess.UI.Pause.ResumedGame".Translate());
                     }
                 ));
             }

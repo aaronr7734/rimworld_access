@@ -35,7 +35,7 @@ namespace RimWorldAccess
         {
             base.PostOpen();
             // Announce the dialog to the user
-            TolkHelper.Speak("Name this allowed area. Enter a name and press OK or Enter to continue.");
+            TolkHelper.Speak("RimWorldAccess.UI.NameArea.OpenPrompt".Translate());
         }
 
         public override void DoWindowContents(Rect inRect)

@@ -164,9 +164,9 @@ namespace RimWorldAccess
             if (!ArchitectState.IsInPlacementMode && announceOnExecute)
             {
                 if (shiftHeld && givesColonistOrders)
-                    TolkHelper.Speak($"{selectedOption.Label}, {"Queued".Translate()}");
+                    TolkHelper.Speak("RimWorldAccess.UI.FloatMenu.SelectedQueued".Translate(selectedOption.Label, "Queued".Translate()));
                 else
-                    TolkHelper.Speak($"{selectedOption.Label} selected");
+                    TolkHelper.Speak("RimWorldAccess.UI.FloatMenu.Selected".Translate(selectedOption.Label));
             }
         }
 
@@ -440,20 +440,21 @@ namespace RimWorldAccess
             string optionText = option.Label;
             if (option.Disabled)
             {
-                optionText += " (unavailable)";
+                optionText += "RimWorldAccess.UI.FloatMenu.UnavailableSuffix".Translate();
             }
 
             // Get tooltip text if available
             string tooltipText = GetTooltipText(option);
+            string position = MenuHelper.FormatPosition(selectedIndex, currentOptions.Count);
 
             // Build announcement - don't add period before tooltip since tooltips usually have their own
             if (!string.IsNullOrEmpty(tooltipText))
             {
-                TolkHelper.Speak($"{optionText}. {tooltipText} {MenuHelper.FormatPosition(selectedIndex, currentOptions.Count)}");
+                TolkHelper.Speak("RimWorldAccess.UI.FloatMenu.OptionTooltip".Translate(optionText, tooltipText, position));
             }
             else
             {
-                TolkHelper.Speak($"{optionText}. {MenuHelper.FormatPosition(selectedIndex, currentOptions.Count)}");
+                TolkHelper.Speak("RimWorldAccess.UI.Item.WithPosition".Translate(optionText, position));
             }
         }
 
@@ -549,7 +550,7 @@ namespace RimWorldAccess
             string optionText = option.Label;
             if (option.Disabled)
             {
-                optionText += " (unavailable)";
+                optionText += "RimWorldAccess.UI.FloatMenu.UnavailableSuffix".Translate();
             }
 
             // Get tooltip text if available
@@ -559,7 +560,9 @@ namespace RimWorldAccess
             {
                 if (!string.IsNullOrEmpty(tooltipText))
                 {
-                    TolkHelper.Speak($"{optionText}. {tooltipText}" + typeahead.BuildSearchContextSuffix());
+                    TolkHelper.Speak(
+                        "RimWorldAccess.UI.FloatMenu.OptionTooltipSearch".Translate(optionText, tooltipText)
+                        + typeahead.BuildSearchContextSuffix());
                 }
                 else
                 {
@@ -568,13 +571,14 @@ namespace RimWorldAccess
             }
             else
             {
+                string position = MenuHelper.FormatPosition(selectedIndex, currentOptions.Count);
                 if (!string.IsNullOrEmpty(tooltipText))
                 {
-                    TolkHelper.Speak($"{optionText}. {tooltipText} {MenuHelper.FormatPosition(selectedIndex, currentOptions.Count)}");
+                    TolkHelper.Speak("RimWorldAccess.UI.FloatMenu.OptionTooltip".Translate(optionText, tooltipText, position));
                 }
                 else
                 {
-                    TolkHelper.Speak($"{optionText}. {MenuHelper.FormatPosition(selectedIndex, currentOptions.Count)}");
+                    TolkHelper.Speak("RimWorldAccess.UI.Item.WithPosition".Translate(optionText, position));
                 }
             }
         }

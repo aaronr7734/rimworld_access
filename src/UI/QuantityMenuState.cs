@@ -80,7 +80,7 @@ namespace RimWorldAccess
             SoundDefOf.Click.PlayOneShotOnCamera();
 
             string itemName = transferable.LabelCap.StripTags();
-            TolkHelper.Speak($"Quantity menu for {itemName}. Use Up/Down to adjust, type a number, or press Enter to confirm.");
+            TolkHelper.Speak("RimWorldAccess.UI.Quantity.OpenInstructions".Translate(itemName));
             AnnounceCurrentQuantity();
         }
 
@@ -108,7 +108,7 @@ namespace RimWorldAccess
             var callback = onConfirm;
 
             string itemName = currentTransferable.LabelCap.StripTags();
-            TolkHelper.Speak($"{finalQuantity} {itemName} selected");
+            TolkHelper.Speak("RimWorldAccess.UI.Quantity.Selected".Translate(finalQuantity, itemName));
 
             Close();
 
@@ -122,7 +122,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void Cancel()
         {
-            TolkHelper.Speak("Quantity selection cancelled");
+            TolkHelper.Speak("RimWorldAccess.UI.Quantity.Cancelled".Translate());
             Close();
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
         }
@@ -160,7 +160,7 @@ namespace RimWorldAccess
             else
             {
                 // Already at max
-                TolkHelper.Speak("Maximum quantity");
+                TolkHelper.Speak("RimWorldAccess.UI.Quantity.Maximum".Translate());
             }
         }
 
@@ -197,7 +197,7 @@ namespace RimWorldAccess
             else
             {
                 // Already at min
-                TolkHelper.Speak("Minimum quantity");
+                TolkHelper.Speak("RimWorldAccess.UI.Quantity.Minimum".Translate());
             }
         }
 
@@ -267,7 +267,7 @@ namespace RimWorldAccess
             else
             {
                 // Invalid number - shouldn't happen since we only accept digit chars
-                TolkHelper.Speak($"Invalid number: {numericBuffer}");
+                TolkHelper.Speak("RimWorldAccess.UI.Quantity.InvalidNumber".Translate(numericBuffer));
                 numericBuffer = "";
             }
         }

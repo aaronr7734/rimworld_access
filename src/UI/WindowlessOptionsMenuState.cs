@@ -506,14 +506,14 @@ namespace RimWorldAccess
 
             // Reset to defaults button
             general.Settings.Add(new ButtonSetting("RestoreToDefaultSettingsLabel".Translate().ToString(),
-                () => "Press Enter to Reset All Settings",
+                () => "RimWorldAccess.UI.Options.PressEnterToReset".Translate(),
                 () => {
                     // Show confirmation dialog
                     Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
                         "ResetAndRestartConfirmationDialog".Translate(),
                         RestoreToDefaultSettings,
                         destructive: true));
-                    TolkHelper.Speak("Opening reset confirmation dialog");
+                    TolkHelper.Speak("RimWorldAccess.UI.Options.OpeningResetDialog".Translate());
                 }));
 
             categories.Add(general);
@@ -543,7 +543,7 @@ namespace RimWorldAccess
             if (Current.ProgramState == ProgramState.Playing)
             {
                 gameplay.Settings.Add(new ButtonSetting("ChangeStoryteller".Translate().ToString(),
-                    () => "Press Enter to Modify",
+                    () => "RimWorldAccess.UI.Options.PressEnterToModify".Translate(),
                     () => {
                         if (TutorSystem.AllowAction("ChooseStoryteller"))
                         {
@@ -553,7 +553,7 @@ namespace RimWorldAccess
                         }
                         else
                         {
-                            TolkHelper.Speak("Cannot change storyteller right now", SpeechPriority.High);
+                            TolkHelper.Speak("RimWorldAccess.UI.Options.CannotChangeStoryteller".Translate(), SpeechPriority.High);
                         }
                     }));
             }
@@ -623,30 +623,32 @@ namespace RimWorldAccess
                 categories.Add(dev);
             }
 
-            // RimWorld Access settings - directly editable here
-            var accessSettings = new OptionCategory("RimWorld Access");
-            accessSettings.Settings.Add(new CheckboxSetting("Wrap Navigation",
+            // RimWorld Access settings - directly editable here. Labels reuse
+            // the canonical Core.xml keys so the in-game options panel stays
+            // in sync with the Mod Settings panel.
+            var accessSettings = new OptionCategory("RimWorldAccess.Core.Settings.Category".Translate());
+            accessSettings.Settings.Add(new CheckboxSetting("RimWorldAccess.Core.Settings.WrapNavigation.Label".Translate(),
                 () => RimWorldAccessMod_Settings.Settings?.WrapNavigation ?? false,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.WrapNavigation = v; }));
-            accessSettings.Settings.Add(new CheckboxSetting("Announce Position",
+            accessSettings.Settings.Add(new CheckboxSetting("RimWorldAccess.Core.Settings.AnnouncePosition.Label".Translate(),
                 () => RimWorldAccessMod_Settings.Settings?.AnnouncePosition ?? true,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.AnnouncePosition = v; }));
-            accessSettings.Settings.Add(new CheckboxSetting("Show Pawn Activity on Map",
+            accessSettings.Settings.Add(new CheckboxSetting("RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label".Translate(),
                 () => RimWorldAccessMod_Settings.Settings?.ShowPawnActivityOnMap ?? true,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.ShowPawnActivityOnMap = v; }));
-            accessSettings.Settings.Add(new CheckboxSetting("Show Cover Info for Drafted and Hostile Pawns",
+            accessSettings.Settings.Add(new CheckboxSetting("RimWorldAccess.Core.Settings.ShowCoverInfo.Label".Translate(),
                 () => RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.ShowCoverInfo = v; }));
-            accessSettings.Settings.Add(new CheckboxSetting("Announce Terrain on Cursor Movement",
+            accessSettings.Settings.Add(new CheckboxSetting("RimWorldAccess.Core.Settings.AnnounceTerrain.Label".Translate(),
                 () => RimWorldAccessMod_Settings.Settings?.AnnounceTerrain ?? true,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.AnnounceTerrain = v; }));
-            accessSettings.Settings.Add(new CheckboxSetting("Announce Depth Levels in Treeviews",
+            accessSettings.Settings.Add(new CheckboxSetting("RimWorldAccess.Core.Settings.AnnounceLevels.Label".Translate(),
                 () => RimWorldAccessMod_Settings.Settings?.AnnounceLevels ?? true,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.AnnounceLevels = v; }));
-            accessSettings.Settings.Add(new CheckboxSetting("Rashad Hates Treeviews (Submenu-Style Navigation)",
+            accessSettings.Settings.Add(new CheckboxSetting("RimWorldAccess.Core.Settings.SubmenuTreeNavigation.Label".Translate(),
                 () => RimWorldAccessMod_Settings.Settings?.SubmenuTreeNavigation ?? false,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.SubmenuTreeNavigation = v; },
-                "Changes how treeviews work. When you expand a category, it disappears and you navigate only its items. Press Left Arrow to go back. Your position is remembered when you return."));
+                "RimWorldAccess.Core.Settings.SubmenuTreeNavigation.Tooltip".Translate()));
             categories.Add(accessSettings);
 
             // Mod Settings Category - list all mods that have settings
@@ -658,10 +660,10 @@ namespace RimWorldAccess
                     Mod localMod = mod; // Capture for closure
                     modSettings.Settings.Add(new ButtonSetting(
                         localMod.SettingsCategory(),
-                        () => "Press Enter to open",
+                        () => "RimWorldAccess.UI.Options.PressEnterToOpen".Translate(),
                         () => {
                             Find.WindowStack.Add(new Dialog_ModSettings(localMod));
-                            TolkHelper.Speak($"Opening settings for {localMod.SettingsCategory()}");
+                            TolkHelper.Speak("RimWorldAccess.UI.Options.OpeningModSettings".Translate(localMod.SettingsCategory()));
                         }));
                 }
             }

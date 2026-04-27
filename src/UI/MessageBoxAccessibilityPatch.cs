@@ -92,8 +92,8 @@ namespace RimWorldAccess
                 if (__instance.buttonAAction != null)
                 {
                     // Announce confirmation
-                    string buttonText = __instance.buttonAText ?? "Confirm";
-                    TolkHelper.Speak($"{buttonText}");
+                    string buttonText = __instance.buttonAText ?? "Confirm".Translate();
+                    TolkHelper.Speak(buttonText);
 
                     __instance.buttonAAction();
                     __instance.Close();
@@ -107,8 +107,8 @@ namespace RimWorldAccess
                 if (__instance.buttonBAction != null)
                 {
                     // Announce cancellation
-                    string buttonText = __instance.buttonBText ?? "Cancel";
-                    TolkHelper.Speak($"{buttonText}");
+                    string buttonText = __instance.buttonBText ?? "Cancel".Translate();
+                    TolkHelper.Speak(buttonText);
 
                     __instance.buttonBAction();
                     __instance.Close();
@@ -116,7 +116,7 @@ namespace RimWorldAccess
                 }
                 else if (__instance.cancelAction != null)
                 {
-                    TolkHelper.Speak("Cancelled");
+                    TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Translate());
                     __instance.cancelAction();
                     __instance.Close();
                     Event.current.Use();
