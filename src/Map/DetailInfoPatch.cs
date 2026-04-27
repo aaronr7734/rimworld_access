@@ -145,7 +145,7 @@ namespace RimWorldAccess
                 case KeyCode.Alpha7:
                     return TileInfoHelper.GetAreasInfo(position, map);
                 default:
-                    return "Unknown key";
+                    return "RimWorldAccess.Map.Detail.UnknownKey".Translate();
             }
         }
     }

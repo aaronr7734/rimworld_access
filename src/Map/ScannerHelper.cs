@@ -252,7 +252,7 @@ namespace RimWorldAccess
             TerrainRegions = regions;
             Position = regions[0].CenterPosition;
             Distance = regions[0].Distance;
-            Label = $"{oreDef.label} deposit";
+            Label = "RimWorldAccess.Map.Scanner.DeepOre.Deposit".Translate(oreDef.label);
             IsTerrain = true; // Treat as terrain-like for navigation
         }
 
@@ -1492,7 +1492,7 @@ namespace RimWorldAccess
         public static string GetLocalizedDesignationLabel(DesignationDef def)
         {
             if (def == null)
-                return "Unknown";
+                return "RimWorldAccess.Map.Label.Unknown".Translate();
 
             // Build cache on first call
             if (designatorLabelCache == null)

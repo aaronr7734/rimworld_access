@@ -1,8 +1,150 @@
 using System.Collections.Generic;
 using System.Linq;
+using Verse;
 
 namespace RimWorldAccess
 {
+    /// <summary>
+    /// Maps internal scanner category and subcategory names (which are used as
+    /// dictionary keys and persistent identifiers) to localized display names
+    /// announced to the user.
+    ///
+    /// The internal Name fields on ScannerCategory and ScannerSubcategory stay
+    /// in English so schema lookups continue to work. Announcement code paths
+    /// call into these helpers when a string needs to be spoken.
+    /// </summary>
+    internal static class ScannerNameLocalizer
+    {
+        // Map keyed by the canonical English category name. Values are XML key
+        // suffixes appended to RimWorldAccess.Map.Scanner.CatName.*.
+        private static readonly Dictionary<string, string> CategoryKeys = new Dictionary<string, string>
+        {
+            ["All"] = "All",
+            ["Pawns"] = "Pawns",
+            ["Tame"] = "Tame",
+            ["Wild"] = "Wild",
+            ["Hazards"] = "Hazards",
+            ["Buildings"] = "Buildings",
+            ["Trees"] = "Trees",
+            ["Plants"] = "Plants",
+            ["Items"] = "Items",
+            ["Terrain"] = "Terrain",
+            ["Mineable"] = "Mineable",
+            ["Orders"] = "Orders",
+            ["Zones"] = "Zones",
+            ["Rooms"] = "Rooms",
+            ["Uncategorized"] = "Uncategorized",
+        };
+
+        // Specialized subcategory English -> XML key suffix.
+        private static readonly Dictionary<string, string> SubcategoryKeys = new Dictionary<string, string>
+        {
+            ["All"] = "All",
+            ["Colonists"] = "Colonists",
+            ["Prisoners"] = "Prisoners",
+            ["Slaves"] = "Slaves",
+            ["Guests"] = "Guests",
+            ["Hostile"] = "Hostile",
+            ["Player Mechs"] = "PlayerMechs",
+            ["Hostile Mechs"] = "HostileMechs",
+            ["Pen"] = "Pen",
+            ["NonPen"] = "NonPen",
+            ["Passive"] = "Passive",
+            ["Fire"] = "Fire",
+            ["Blight"] = "Blight",
+            ["Structure"] = "Structure",
+            ["Production"] = "Production",
+            ["Furniture"] = "Furniture",
+            ["Power"] = "Power",
+            ["Security"] = "Security",
+            ["Misc"] = "Misc",
+            ["Recreation"] = "Recreation",
+            ["Ship"] = "Ship",
+            ["Temperature"] = "Temperature",
+            ["Traveling"] = "Traveling",
+            ["Harvestable"] = "Harvestable",
+            ["NonHarvestable"] = "NonHarvestable",
+            ["Debris"] = "Debris",
+            ["Stored"] = "Stored",
+            ["Scattered"] = "Scattered",
+            ["Forbidden"] = "Forbidden",
+            ["Natural"] = "Natural",
+            ["Constructed"] = "Constructed",
+            ["Rare"] = "Rare",
+            ["Stone"] = "Stone",
+            ["Chunks"] = "Chunks",
+            ["Scanned Ore"] = "ScannedOre",
+            ["Construction"] = "Construction",
+            ["Haul"] = "Haul",
+            ["Hunt"] = "Hunt",
+            ["Mine"] = "Mine",
+            ["Deconstruct"] = "Deconstruct",
+            ["Uninstall"] = "Uninstall",
+            ["Cut"] = "Cut",
+            ["Smooth"] = "Smooth",
+            ["Slaughter"] = "Slaughter",
+            ["Other"] = "Other",
+            ["Growing"] = "Growing",
+            ["Stockpile"] = "Stockpile",
+            ["Fishing"] = "Fishing",
+            ["Tame"] = "Tame",
+            ["Harvest"] = "Harvest",
+        };
+
+        /// <summary>
+        /// Returns the localized display name for a top-level scanner category
+        /// (the string used to address the user when navigating with
+        /// Ctrl+PageUp/Down). Falls back to the raw name for category strings
+        /// not in the static schema (e.g. dynamic uncategorized buckets).
+        /// </summary>
+        public static string LocalizeCategoryName(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return name;
+            return CategoryKeys.TryGetValue(name, out string suffix)
+                ? ("RimWorldAccess.Map.Scanner.CatName." + suffix).Translate().ToString()
+                : name;
+        }
+
+        /// <summary>
+        /// Returns the localized display name for a scanner subcategory.
+        /// Subcategories are stored internally as "{Cat}-{Sub}" (e.g.
+        /// "Pawns-Colonists"). The "-All" suffix announces as just the
+        /// category name; specialized suffixes compose as
+        /// "{LocalizedCat}: {LocalizedSub}". Names that don't follow the
+        /// schema (Search filter labels, dynamic Uncategorized buckets) are
+        /// returned unchanged so existing wording is preserved.
+        /// </summary>
+        public static string LocalizeSubcategoryName(string fullName)
+        {
+            if (string.IsNullOrEmpty(fullName)) return fullName;
+
+            int dash = fullName.IndexOf('-');
+            if (dash <= 0 || dash == fullName.Length - 1)
+                return fullName;
+
+            string catPart = fullName.Substring(0, dash);
+            string subPart = fullName.Substring(dash + 1);
+
+            // Only attempt to localize when both halves are part of the static
+            // schema. Anything dynamic (search "Search: foo-All", uncategorized
+            // "Uncategorized-{defName}") falls through to the original string.
+            if (!CategoryKeys.ContainsKey(catPart))
+                return fullName;
+
+            string localizedCat = LocalizeCategoryName(catPart);
+
+            if (subPart == "All")
+                return localizedCat;
+
+            if (!SubcategoryKeys.TryGetValue(subPart, out string subSuffix))
+                return fullName;
+
+            string localizedSub = ("RimWorldAccess.Map.Scanner.SubName." + subSuffix).Translate().ToString();
+            return "RimWorldAccess.Map.Scanner.SubFullName".Translate(localizedCat, localizedSub).ToString();
+        }
+    }
+
+
     /// <summary>
     /// Container for all scanner categories during CollectMapItems. Provides O(1) lookup
     /// by name for both categories (e.g., "Pawns") and specialized subcategories

@@ -17,7 +17,7 @@ namespace RimWorldAccess
         /// </summary>
         public static string BuildThingLabel(Thing thing)
         {
-            if (thing == null) return "Unknown";
+            if (thing == null) return "RimWorldAccess.Map.Label.Unknown".Translate();
 
             if (thing is Pawn pawn)
             {
@@ -26,11 +26,13 @@ namespace RimWorldAccess
 
             try
             {
-                string label = GetNoParenthesisLabel(thing) ?? thing.def.label ?? "Unknown";
+                string label = GetNoParenthesisLabel(thing) ?? thing.def.label ?? "RimWorldAccess.Map.Label.Unknown".Translate();
 
                 if (thing is Building_Door door)
                 {
-                    label += door.Open ? " (open)" : " (closed)";
+                    label = (door.Open
+                        ? "RimWorldAccess.Map.Label.WithDoorOpen"
+                        : "RimWorldAccess.Map.Label.WithDoorClosed").Translate(label);
                 }
 
                 return label;
@@ -38,7 +40,7 @@ namespace RimWorldAccess
             catch (Exception)
             {
                 // Handle corrupted things (e.g., Blueprint_Install with missing minified item)
-                return thing.def?.label ?? "Corrupted object";
+                return thing.def?.label ?? "RimWorldAccess.Map.Label.Corrupted".Translate();
             }
         }
 
@@ -49,7 +51,7 @@ namespace RimWorldAccess
         /// </summary>
         public static string BuildDesignationLabel(Designation designation, Map map)
         {
-            if (designation == null) return "Unknown";
+            if (designation == null) return "RimWorldAccess.Map.Label.Unknown".Translate();
 
             string defLabel = ScannerHelper.GetLocalizedDesignationLabel(designation.def);
 
@@ -57,11 +59,11 @@ namespace RimWorldAccess
             {
                 try
                 {
-                    return $"{designation.target.Thing.LabelNoParenthesis} ({defLabel})";
+                    return "RimWorldAccess.Map.Label.Suffixed".Translate(designation.target.Thing.LabelNoParenthesis, defLabel);
                 }
                 catch (Exception)
                 {
-                    return $"{designation.target.Thing.def?.label ?? "Corrupted object"} ({defLabel})";
+                    return "RimWorldAccess.Map.Label.Suffixed".Translate(designation.target.Thing.def?.label ?? "RimWorldAccess.Map.Label.Corrupted".Translate().ToString(), defLabel);
                 }
             }
 
@@ -74,17 +76,17 @@ namespace RimWorldAccess
             {
                 try
                 {
-                    return $"{edifice.LabelNoParenthesis} ({defLabel})";
+                    return "RimWorldAccess.Map.Label.Suffixed".Translate(edifice.LabelNoParenthesis, defLabel);
                 }
                 catch (Exception)
                 {
-                    return $"{edifice.def?.label ?? "Corrupted object"} ({defLabel})";
+                    return "RimWorldAccess.Map.Label.Suffixed".Translate(edifice.def?.label ?? "RimWorldAccess.Map.Label.Corrupted".Translate().ToString(), defLabel);
                 }
             }
 
             var terrain = cell.GetTerrain(map);
             return terrain != null
-                ? $"{terrain.LabelCap} ({defLabel})"
+                ? "RimWorldAccess.Map.Label.Suffixed".Translate(terrain.LabelCap, defLabel).ToString()
                 : defLabel;
         }
 
@@ -93,10 +95,10 @@ namespace RimWorldAccess
         /// </summary>
         public static string BuildZoneLabel(Zone zone)
         {
-            if (zone == null) return "Unknown";
+            if (zone == null) return "RimWorldAccess.Map.Label.Unknown".Translate();
 
             return zone is Zone_Growing growZone && growZone.PlantDefToGrow != null
-                ? $"{zone.label} ({growZone.PlantDefToGrow.label})"
+                ? "RimWorldAccess.Map.Label.Suffixed".Translate(zone.label, growZone.PlantDefToGrow.label).ToString()
                 : zone.label;
         }
 
@@ -105,7 +107,7 @@ namespace RimWorldAccess
         /// </summary>
         public static string BuildRoomLabel(Room room)
         {
-            if (room == null) return "Unknown";
+            if (room == null) return "RimWorldAccess.Map.Label.Unknown".Translate();
             return room.GetRoomRoleLabel();
         }
 

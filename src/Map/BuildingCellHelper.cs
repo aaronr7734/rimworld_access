@@ -154,9 +154,9 @@ namespace RimWorldAccess
                 IntVec3 slotFoot = BedUtility.GetFeetSlotPos(i, bedPosition, bedRotation, bedDef.size);
 
                 if (cursorPosition == slotHead)
-                    return "head";
+                    return "RimWorldAccess.Map.BuildingCell.Head".Translate();
                 if (cursorPosition == slotFoot)
-                    return "foot";
+                    return "RimWorldAccess.Map.BuildingCell.Foot".Translate();
             }
 
             // Cursor is on bed but not exactly on a head or foot cell
@@ -182,7 +182,7 @@ namespace RimWorldAccess
             {
                 string direction = GetCardinalDirection(offsetFromCursor);
                 if (!string.IsNullOrEmpty(direction))
-                    return $"fuel port {direction}";
+                    return "RimWorldAccess.Map.BuildingCell.FuelPort".Translate(direction);
             }
 
             return null;
@@ -218,7 +218,7 @@ namespace RimWorldAccess
             IntVec3 heatingSide = IntVec3.North.RotatedBy(rotation);
             string heatingDir = GetCardinalDirection(heatingSide);
 
-            return $"cooling {coolingDir}, heating {heatingDir}";
+            return "RimWorldAccess.Map.BuildingCell.Cooler".Translate(coolingDir, heatingDir);
         }
 
         /// <summary>
@@ -251,7 +251,7 @@ namespace RimWorldAccess
             string northDir = GetCardinalDirection(northSide);
             string southDir = GetCardinalDirection(southSide);
 
-            return $"connects {northDir} to {southDir}";
+            return "RimWorldAccess.Map.BuildingCell.Vent".Translate(northDir, southDir);
         }
 
         /// <summary>
@@ -299,7 +299,7 @@ namespace RimWorldAccess
         {
             // The dispenser accepts hoppers on any adjacent cardinal cell (north, south, east, west)
             // Per Building_NutrientPasteDispenser.AdjCellsCardinalInBounds - all 4 sides work
-            return "hoppers on any adjacent tile";
+            return "RimWorldAccess.Map.BuildingCell.HopperAdjacent".Translate();
         }
 
         /// <summary>
@@ -353,7 +353,7 @@ namespace RimWorldAccess
                 IntVec3 offset = def.interactionCellOffset.RotatedBy(rotation);
                 string standDir = GetCardinalDirection(offset);
                 if (!string.IsNullOrEmpty(standDir))
-                    return $"mech stands {standDir}";
+                    return "RimWorldAccess.Map.BuildingCell.MechCharger".Translate(standDir);
             }
             return null;
         }
@@ -380,7 +380,7 @@ namespace RimWorldAccess
             // Bookcases are accessed from the front (facing direction)
             // Books are rendered based on rotation, access is from that side
             string accessDir = GetRotationName(rotation);
-            return $"access from {accessDir}";
+            return "RimWorldAccess.Map.BuildingCell.Bookcase".Translate(accessDir);
         }
 
         /// <summary>
@@ -416,7 +416,7 @@ namespace RimWorldAccess
             {
                 string direction = GetCardinalDirection(rotation.FacingCell);
                 if (!string.IsNullOrEmpty(direction))
-                    return $"watch from {direction}";
+                    return "RimWorldAccess.Map.BuildingCell.Watchable".Translate(direction);
             }
             // Non-rotatable watchable buildings can be watched from any direction
             return null;
@@ -434,7 +434,7 @@ namespace RimWorldAccess
             // Check if cursor is ON the interaction cell
             if (cursorPosition == interactionCell)
             {
-                return "interaction spot";
+                return "RimWorldAccess.Map.BuildingCell.InteractionSpot".Translate();
             }
 
             // Only show "use from" when cursor is directly adjacent to the interaction cell
@@ -445,7 +445,7 @@ namespace RimWorldAccess
             {
                 string direction = GetCardinalDirection(offset);
                 if (!string.IsNullOrEmpty(direction))
-                    return $"use from {direction}";
+                    return "RimWorldAccess.Map.BuildingCell.UseFrom".Translate(direction);
             }
 
             return null;
@@ -458,16 +458,16 @@ namespace RimWorldAccess
         internal static string GetCardinalDirection(IntVec3 offset)
         {
             // Normalize to unit direction
-            if (offset.z > 0 && offset.x == 0) return "north";
-            if (offset.z < 0 && offset.x == 0) return "south";
-            if (offset.x > 0 && offset.z == 0) return "east";
-            if (offset.x < 0 && offset.z == 0) return "west";
+            if (offset.z > 0 && offset.x == 0) return "RimWorldAccess.Map.Direction.Lower.North".Translate();
+            if (offset.z < 0 && offset.x == 0) return "RimWorldAccess.Map.Direction.Lower.South".Translate();
+            if (offset.x > 0 && offset.z == 0) return "RimWorldAccess.Map.Direction.Lower.East".Translate();
+            if (offset.x < 0 && offset.z == 0) return "RimWorldAccess.Map.Direction.Lower.West".Translate();
 
             // Handle diagonals
-            if (offset.z > 0 && offset.x > 0) return "northeast";
-            if (offset.z > 0 && offset.x < 0) return "northwest";
-            if (offset.z < 0 && offset.x > 0) return "southeast";
-            if (offset.z < 0 && offset.x < 0) return "southwest";
+            if (offset.z > 0 && offset.x > 0) return "RimWorldAccess.Map.Direction.Lower.Northeast".Translate();
+            if (offset.z > 0 && offset.x < 0) return "RimWorldAccess.Map.Direction.Lower.Northwest".Translate();
+            if (offset.z < 0 && offset.x > 0) return "RimWorldAccess.Map.Direction.Lower.Southeast".Translate();
+            if (offset.z < 0 && offset.x < 0) return "RimWorldAccess.Map.Direction.Lower.Southwest".Translate();
 
             return null;
         }
@@ -544,7 +544,7 @@ namespace RimWorldAccess
                 if (def.rotatable)
                 {
                     string direction = GetRotationName(rotation);
-                    return $"Watch from {direction}";
+                    return "RimWorldAccess.Map.Placement.Watchable".Translate(direction);
                 }
             }
 
@@ -565,9 +565,9 @@ namespace RimWorldAccess
                 {
                     // Be specific about distance if more than 1 tile away
                     if (distance == 1)
-                        return $"Interact from {direction}";
+                        return "RimWorldAccess.Map.Placement.InteractFromAdjacent".Translate(direction);
                     else
-                        return $"Interact from {distance} tiles {direction}";
+                        return "RimWorldAccess.Map.Placement.InteractFromDistant".Translate(distance, direction);
                 }
             }
 
@@ -607,11 +607,11 @@ namespace RimWorldAccess
             if (slots >= 2)
             {
                 // Double bed - head is an edge, not a single tile
-                return $"Head on {headEdge} edge";
+                return "RimWorldAccess.Map.Placement.BedHeadEdge".Translate(headEdge);
             }
 
             // Single bed - head is on one side
-            return $"Head on {headEdge} side";
+            return "RimWorldAccess.Map.Placement.BedHeadSide".Translate(headEdge);
         }
 
         /// <summary>
@@ -635,11 +635,11 @@ namespace RimWorldAccess
             // Be specific about distance if more than 1 tile away
             if (distance == 1)
             {
-                return $"Fuel port {direction} of cursor";
+                return "RimWorldAccess.Map.Placement.FuelPortAdjacent".Translate(direction);
             }
             else
             {
-                return $"Fuel port {distance} tiles {direction} of cursor";
+                return "RimWorldAccess.Map.Placement.FuelPortDistant".Translate(distance, direction);
             }
         }
 
@@ -667,7 +667,7 @@ namespace RimWorldAccess
                 {
                     string direction = GetCardinalDirection(offset);
                     if (!string.IsNullOrEmpty(direction))
-                        return $"{spotLabel} {direction}";
+                        return "RimWorldAccess.Map.BuildingCell.SpotWithDirection".Translate(spotLabel, direction);
                 }
             }
 
@@ -690,7 +690,7 @@ namespace RimWorldAccess
 
                 if (!string.IsNullOrEmpty(direction))
                 {
-                    parts.Add($"{label} {direction}");
+                    parts.Add("RimWorldAccess.Map.BuildingCell.SpotWithDirection".Translate(label, direction));
                 }
             }
 
@@ -709,14 +709,14 @@ namespace RimWorldAccess
         {
             if (thingDef == ThingDefOf.SchoolDesk)
             {
-                if (index == 0) return "student spot";
-                if (index == 1) return "teacher spot";
+                if (index == 0) return "RimWorldAccess.Map.BuildingCell.StudentSpot".Translate();
+                if (index == 1) return "RimWorldAccess.Map.BuildingCell.TeacherSpot".Translate();
             }
 
             if (thingDef.multipleInteractionCellOffsets != null && thingDef.multipleInteractionCellOffsets.Count == 1)
-                return "interaction spot";
+                return "RimWorldAccess.Map.BuildingCell.InteractionSpot".Translate();
 
-            return $"interaction spot {index + 1}";
+            return "RimWorldAccess.Map.BuildingCell.NumberedSpot".Translate(index + 1);
         }
 
         /// <summary>

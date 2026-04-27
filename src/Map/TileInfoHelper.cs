@@ -20,7 +20,7 @@ namespace RimWorldAccess
         public static string GetTileSummary(IntVec3 position, Map map)
         {
             if (map == null || !position.InBounds(map))
-                return "Out of bounds";
+                return "RimWorldAccess.Map.Tile.OutOfBounds".Translate();
 
 
             // Check fog of war
@@ -29,8 +29,8 @@ namespace RimWorldAccess
                 // Still announce player-placed designations on fogged tiles
                 string fogDesignations = GetDesignationsInfo(position, map);
                 if (!string.IsNullOrEmpty(fogDesignations))
-                    return $"{fogDesignations}, unseen, {position.x}, {position.z}";
-                return $"unseen, {position.x}, {position.z}";
+                    return "RimWorldAccess.Map.Tile.UnseenWithDesignations".Translate(fogDesignations, position.x, position.z);
+                return "RimWorldAccess.Map.Tile.Unseen".Translate(position.x, position.z);
             }
             var sb = new StringBuilder();
 
@@ -122,20 +122,19 @@ namespace RimWorldAccess
                 if (thing is Frame frame)
                 {
                     sb.Append(frame.LabelEntityToBuild);
-                    sb.Append(", building");
+                    sb.Append("RimWorldAccess.Map.Tile.Frame.Building".Translate());
                     if (frame.IsCompleted())
                     {
-                        sb.Append(", work left: ");
-                        sb.Append(frame.WorkLeft.ToStringWorkAmount());
+                        sb.Append("RimWorldAccess.Map.Tile.Frame.WorkLeft".Translate(frame.WorkLeft.ToStringWorkAmount()));
                     }
                     else
                     {
-                        sb.Append(", awaiting supplies");
+                        sb.Append("RimWorldAccess.Map.Tile.Frame.AwaitingSupplies".Translate());
                     }
                     string frameCellInfo = BuildingCellHelper.GetCellPrefix(frame, position);
                     if (!string.IsNullOrEmpty(frameCellInfo))
                     {
-                        sb.Append($" ({frameCellInfo})");
+                        sb.Append("RimWorldAccess.Map.Tile.CellSuffix".Translate(frameCellInfo));
                     }
                 }
                 else if (thing is Building building)
@@ -143,18 +142,20 @@ namespace RimWorldAccess
                     string buildingLabel = building.LabelShort;
                     if (building.def.defName.StartsWith("Smoothed") && building.def.building != null && !building.def.building.isNaturalRock)
                     {
-                        buildingLabel += " wall";
+                        buildingLabel += "RimWorldAccess.Map.Tile.WallSuffix".Translate();
                     }
                     if (building is Building_Door door)
                     {
-                        buildingLabel += door.Open ? " (open)" : " (closed)";
+                        buildingLabel = (door.Open
+                            ? "RimWorldAccess.Map.Label.WithDoorOpen"
+                            : "RimWorldAccess.Map.Label.WithDoorClosed").Translate(buildingLabel);
                     }
                     sb.Append(buildingLabel);
 
                     string cellInfo = BuildingCellHelper.GetCellPrefix(building, position);
                     if (!string.IsNullOrEmpty(cellInfo))
                     {
-                        sb.Append($" ({cellInfo})");
+                        sb.Append("RimWorldAccess.Map.Tile.CellSuffix".Translate(cellInfo));
                     }
                     string tempControlInfo = GetTemperatureControlInfo(building);
                     if (!string.IsNullOrEmpty(tempControlInfo))
@@ -187,7 +188,7 @@ namespace RimWorldAccess
                     string cellInfo = BuildingCellHelper.GetCellPrefix(blueprint, position);
                     if (!string.IsNullOrEmpty(cellInfo))
                     {
-                        sb.Append($" ({cellInfo})");
+                        sb.Append("RimWorldAccess.Map.Tile.CellSuffix".Translate(cellInfo));
                     }
                     if (blueprint is RimWorld.Blueprint_Storage blueprintStorage)
                     {
@@ -208,8 +209,7 @@ namespace RimWorldAccess
                     sb.Append(unfinished.LabelShort);
                     if (unfinished.Initialized)
                     {
-                        sb.Append(", work left: ");
-                        sb.Append(unfinished.workLeft.ToStringWorkAmount());
+                        sb.Append("RimWorldAccess.Map.Tile.WorkLeftAppend".Translate(unfinished.workLeft.ToStringWorkAmount()));
                     }
                 }
                 else
@@ -219,7 +219,7 @@ namespace RimWorldAccess
                     CompForbiddable forbiddable = thing.TryGetComp<CompForbiddable>();
                     if (forbiddable != null && forbiddable.Forbidden)
                     {
-                        itemLabel = "Forbidden " + itemLabel;
+                        itemLabel = "RimWorldAccess.Map.Tile.ForbiddenPrefix".Translate(itemLabel);
                     }
                     sb.Append(itemLabel);
                 }
@@ -229,7 +229,7 @@ namespace RimWorldAccess
                 {
                     foreach (var desig in thingDesigs)
                     {
-                        sb.Append($" ({GetDesignationLabel(desig)})");
+                        sb.Append("RimWorldAccess.Map.Tile.CellSuffix".Translate(GetDesignationLabel(desig)));
                     }
                 }
 
@@ -247,7 +247,7 @@ namespace RimWorldAccess
                     : (string)terrain.LabelCap;
                 if (terrain.defName.EndsWith("_Smooth"))
                 {
-                    terrainLabel += " floor";
+                    terrainLabel += "RimWorldAccess.Map.Tile.FloorSuffix".Translate();
                 }
                 sb.Append(terrainLabel);
                 addedSomething = true;
@@ -257,9 +257,11 @@ namespace RimWorldAccess
             RoofDef roof = position.GetRoof(map);
             if (roof != null)
             {
-                string roofText = roof.isNatural ? "underground" : "roofed";
+                string roofText = (roof.isNatural
+                    ? "RimWorldAccess.Map.Tile.Roof.Underground"
+                    : "RimWorldAccess.Map.Tile.Roof.Roofed").Translate();
                 if (addedSomething)
-                    sb.Append(", " + roofText);
+                    sb.Append("RimWorldAccess.Map.Tile.Roof.Append".Translate(roofText));
                 else
                     sb.Append(roofText);
                 addedSomething = true;
@@ -288,23 +290,23 @@ namespace RimWorldAccess
 
             // Add coordinates
             if (addedSomething)
-                sb.Append($", {position.x}, {position.z}");
+                sb.Append("RimWorldAccess.Map.Tile.CoordsSuffix".Translate(position.x, position.z));
             else
-                sb.Append($"{position.x}, {position.z}");
+                sb.Append("RimWorldAccess.Map.Tile.CoordsBare".Translate(position.x, position.z));
 
             // Add landing validity when in drop pod landing targeting mode
             if (IsDropPodLandingTargeting())
             {
                 if (!DropCellFinder.IsGoodDropSpot(position, map, allowFogged: false, canRoofPunch: true))
                 {
-                    sb.Append(", can't land");
+                    sb.Append("RimWorldAccess.Map.Tile.CantLand".Translate());
                 }
             }
 
             // Add visibility status after coordinates when drafted pawn cannot see this position
             if (notVisible)
             {
-                sb.Append(", not visible");
+                sb.Append("RimWorldAccess.Map.Tile.NotVisible".Translate());
             }
 
             return sb.ToString();
@@ -317,10 +319,10 @@ namespace RimWorldAccess
         public static string GetDetailedTileInfo(IntVec3 position, Map map)
         {
             if (map == null || !position.InBounds(map))
-                return "Position out of bounds";
+                return "RimWorldAccess.Map.Tile.PositionOutOfBounds".Translate();
 
             var sb = new StringBuilder();
-            sb.AppendLine($"=== Tile {position.x}, {position.z} ===");
+            sb.AppendLine("RimWorldAccess.Map.Tile.Detail.Header".Translate(position.x, position.z));
 
             // Terrain
             TerrainDef terrain = position.GetTerrain(map);
@@ -330,7 +332,7 @@ namespace RimWorldAccess
                 string terrainLabel = isPolluted
                     ? (string)"PollutedTerrain".Translate(terrain.label).CapitalizeFirst()
                     : (string)terrain.LabelCap;
-                sb.AppendLine($"Terrain: {terrainLabel}");
+                sb.AppendLine("RimWorldAccess.Map.Tile.Detail.TerrainLine".Translate(terrainLabel));
             }
 
             // Get all things
@@ -338,7 +340,7 @@ namespace RimWorldAccess
 
             if (things.Count == 0)
             {
-                sb.AppendLine("No objects on this tile");
+                sb.AppendLine("RimWorldAccess.Map.Tile.Detail.NoObjects".Translate());
             }
             else
             {
@@ -350,30 +352,32 @@ namespace RimWorldAccess
 
                 if (pawns.Count > 0)
                 {
-                    sb.AppendLine($"\nPawns ({pawns.Count}):");
+                    sb.AppendLine("RimWorldAccess.Map.Tile.Detail.PawnsHeader".Translate(pawns.Count));
                     foreach (var pawn in pawns)
                     {
-                        sb.AppendLine($"  - {pawn.LabelShortCap}");
+                        sb.AppendLine("RimWorldAccess.Map.Tile.Detail.BulletItem".Translate(pawn.LabelShortCap));
                     }
                 }
 
                 if (buildings.Count > 0)
                 {
-                    sb.AppendLine($"\nBuildings ({buildings.Count}):");
+                    sb.AppendLine("RimWorldAccess.Map.Tile.Detail.BuildingsHeader".Translate(buildings.Count));
                     foreach (var building in buildings)
                     {
                         string detailLabel = building.LabelShortCap;
                         if (building is Building_Door door)
                         {
-                            detailLabel += door.Open ? " (open)" : " (closed)";
+                            detailLabel = (door.Open
+                                ? "RimWorldAccess.Map.Label.WithDoorOpen"
+                                : "RimWorldAccess.Map.Label.WithDoorClosed").Translate(detailLabel);
                         }
-                        sb.Append($"  - {detailLabel}");
+                        sb.Append("RimWorldAccess.Map.Tile.Detail.BulletItem".Translate(detailLabel));
 
                         // Add temperature control information if building is a cooler/heater
                         string tempControlInfo = GetTemperatureControlInfo(building);
                         if (!string.IsNullOrEmpty(tempControlInfo))
                         {
-                            sb.Append($" ({tempControlInfo})");
+                            sb.Append("RimWorldAccess.Map.Tile.Detail.ParenSuffix".Translate(tempControlInfo));
                         }
 
                         // Add power information if building has power components
@@ -381,9 +385,9 @@ namespace RimWorldAccess
                         if (!string.IsNullOrEmpty(powerInfo))
                         {
                             if (!string.IsNullOrEmpty(tempControlInfo))
-                                sb.Append($", {powerInfo}");
+                                sb.Append("RimWorldAccess.Map.Tile.Detail.CommaSuffix".Translate(powerInfo));
                             else
-                                sb.Append($" ({powerInfo})");
+                                sb.Append("RimWorldAccess.Map.Tile.Detail.ParenSuffix".Translate(powerInfo));
                         }
 
                         sb.AppendLine();
@@ -392,65 +396,65 @@ namespace RimWorldAccess
 
                 if (items.Count > 0)
                 {
-                    sb.AppendLine($"\nItems ({items.Count}):");
+                    sb.AppendLine("RimWorldAccess.Map.Tile.Detail.ItemsHeader".Translate(items.Count));
                     foreach (var item in items.Take(20)) // Limit to 20 items
                     {
                         string label = item.LabelShortCap;
                         if (item.stackCount > 1)
-                            label += $" x{item.stackCount}";
+                            label += "RimWorldAccess.Map.Tile.Detail.StackCount".Translate(item.stackCount);
 
                         // Check if item is forbidden
                         CompForbiddable forbiddable = item.TryGetComp<CompForbiddable>();
                         if (forbiddable != null && forbiddable.Forbidden)
                         {
-                            label = "Forbidden " + label;
+                            label = "RimWorldAccess.Map.Tile.ForbiddenPrefix".Translate(label);
                         }
 
-                        sb.AppendLine($"  - {label}");
+                        sb.AppendLine("RimWorldAccess.Map.Tile.Detail.BulletItem".Translate(label));
                     }
                     if (items.Count > 20)
-                        sb.AppendLine($"  ... and {items.Count - 20} more items");
+                        sb.AppendLine("RimWorldAccess.Map.Tile.Detail.MoreItems".Translate(items.Count - 20));
                 }
 
                 if (plants.Count > 0)
                 {
-                    sb.AppendLine($"\nPlants ({plants.Count}):");
+                    sb.AppendLine("RimWorldAccess.Map.Tile.Detail.PlantsHeader".Translate(plants.Count));
                     foreach (var plant in plants)
                     {
-                        sb.AppendLine($"  - {plant.LabelShortCap}");
+                        sb.AppendLine("RimWorldAccess.Map.Tile.Detail.BulletItem".Translate(plant.LabelShortCap));
                     }
                 }
             }
 
             // Additional info
-            sb.AppendLine("\n--- Environmental Info ---");
+            sb.AppendLine("RimWorldAccess.Map.Tile.Detail.EnvironmentalHeader".Translate());
 
             // Temperature (respects user's temperature mode preference)
             float temperature = position.GetTemperature(map);
-            sb.AppendLine($"Temperature: {MenuHelper.FormatTemperature(temperature, "F1")}");
+            sb.AppendLine("RimWorldAccess.Map.Tile.Detail.TemperatureLine".Translate(MenuHelper.FormatTemperature(temperature, "F1")));
 
             // Roof
             RoofDef roof = position.GetRoof(map);
             if (roof != null)
             {
-                sb.AppendLine($"Roof: {roof.LabelCap}");
+                sb.AppendLine("RimWorldAccess.Map.Tile.Detail.RoofLine".Translate(roof.LabelCap));
             }
             else
             {
-                sb.AppendLine("Roof: None (outdoors)");
+                sb.AppendLine("RimWorldAccess.Map.Tile.Detail.RoofNone".Translate());
             }
 
             // Fog of war
             if (position.Fogged(map))
             {
-                sb.AppendLine("Status: Fogged (not visible)");
+                sb.AppendLine("RimWorldAccess.Map.Tile.Detail.FoggedStatus".Translate());
             }
 
             // Zone
             Zone zone = position.GetZone(map);
             if (zone != null)
             {
-                sb.AppendLine($"Zone: {zone.label}");
+                sb.AppendLine("RimWorldAccess.Map.Tile.Detail.ZoneLine".Translate(zone.label));
             }
 
             return sb.ToString();
@@ -463,7 +467,7 @@ namespace RimWorldAccess
         public static string GetItemsAndPawnsInfo(IntVec3 position, Map map)
         {
             if (map == null || !position.InBounds(map))
-                return "Out of bounds";
+                return "RimWorldAccess.Map.Tile.OutOfBounds".Translate();
 
             var sb = new StringBuilder();
             List<Thing> things = position.GetThingList(map);
@@ -474,7 +478,7 @@ namespace RimWorldAccess
 
             if (pawns.Count == 0 && items.Count == 0)
             {
-                return "no items or pawns";
+                return "RimWorldAccess.Map.Tile.Items.None".Translate();
             }
 
             // List all pawns
@@ -507,18 +511,18 @@ namespace RimWorldAccess
 
                     string label = items[i].LabelShortCap;
                     if (items[i].stackCount > 1)
-                        label += $" x{items[i].stackCount}";
+                        label += "RimWorldAccess.Map.Tile.Detail.StackCount".Translate(items[i].stackCount);
 
                     // Check if forbidden
                     CompForbiddable forbiddable = items[i].TryGetComp<CompForbiddable>();
                     if (forbiddable != null && forbiddable.Forbidden)
-                        label = "Forbidden " + label;
+                        label = "RimWorldAccess.Map.Tile.ForbiddenPrefix".Translate(label);
 
                     sb.Append(label);
                 }
 
                 if (items.Count > displayLimit)
-                    sb.Append($", and {items.Count - displayLimit} more");
+                    sb.Append("RimWorldAccess.Map.Tile.Items.MoreSuffix".Translate(items.Count - displayLimit));
             }
 
             return sb.ToString();
@@ -531,13 +535,13 @@ namespace RimWorldAccess
         public static string GetFlooringInfo(IntVec3 position, Map map)
         {
             if (map == null || !position.InBounds(map))
-                return "Out of bounds";
+                return "RimWorldAccess.Map.Tile.OutOfBounds".Translate();
 
             var sb = new StringBuilder();
             TerrainDef terrain = position.GetTerrain(map);
 
             if (terrain == null)
-                return "no terrain information";
+                return "RimWorldAccess.Map.Tile.Flooring.None".Translate();
 
             bool isPolluted = position.IsPolluted(map);
             string terrainLabel = isPolluted
@@ -548,30 +552,30 @@ namespace RimWorldAccess
             // Add fertility if the terrain has it (matches MouseoverReadout display)
             float fertility = position.GetFertility(map);
             if (fertility > 0.0001f)
-                sb.Append($" ({fertility.ToStringPercent()} fertility)");
+                sb.Append("RimWorldAccess.Map.Tile.Flooring.Fertility".Translate(fertility.ToStringPercent()));
 
             // Add smoothness information
             if (terrain.defName.EndsWith("_Smooth"))
-                sb.Append(", smooth");
+                sb.Append("RimWorldAccess.Map.Tile.Flooring.Smooth".Translate());
             else if (terrain.defName.EndsWith("_Rough"))
-                sb.Append(", rough");
+                sb.Append("RimWorldAccess.Map.Tile.Flooring.Rough".Translate());
 
             // Add beauty if non-zero
             StatDef beautyStat = StatDefOf.Beauty;
             float beauty = terrain.GetStatValueAbstract(beautyStat);
             if (beauty != 0)
-                sb.Append($", beauty: {beauty:F0}");
+                sb.Append("RimWorldAccess.Map.Tile.Flooring.Beauty".Translate(beauty.ToString("F0")));
 
             // Add cleanliness if non-zero
             if (terrain.GetStatValueAbstract(StatDefOf.Cleanliness) != 0)
             {
                 float cleanliness = terrain.GetStatValueAbstract(StatDefOf.Cleanliness);
-                sb.Append($", cleanliness: {cleanliness:F1}");
+                sb.Append("RimWorldAccess.Map.Tile.Flooring.Cleanliness".Translate(cleanliness.ToString("F1")));
             }
 
             // Add movement speed modifier
             if (terrain.pathCost > 0)
-                sb.Append($", path cost: {terrain.pathCost}");
+                sb.Append("RimWorldAccess.Map.Tile.Flooring.PathCost".Translate(terrain.pathCost));
 
             // Add fishing info if Odyssey DLC is active (matches MouseoverReadout display)
             if (ModsConfig.OdysseyActive && map.waterBodyTracker.TryGetWaterBodyAt(position, out var waterBody) && waterBody.HasFish)
@@ -584,13 +588,13 @@ namespace RimWorldAccess
                 int population = Mathf.RoundToInt(waterBody.Population);
                 int maxPopulation = Mathf.RoundToInt(waterBody.MaxPopulation);
 
-                sb.Append($", fish: {fishList} ({population}/{maxPopulation})");
+                sb.Append("RimWorldAccess.Map.Tile.Flooring.Fish".Translate(fishList, population, maxPopulation));
 
                 // GillRot condition if active
                 var gillRot = map.gameConditionManager.GetActiveCondition<GameCondition_GillRot>();
                 if (gillRot != null && !gillRot.HiddenByOtherCondition(map))
                 {
-                    sb.Append($" ({gillRot.LabelCap})");
+                    sb.Append("RimWorldAccess.Map.Tile.Detail.ParenSuffix".Translate(gillRot.LabelCap));
                 }
             }
 
@@ -605,7 +609,7 @@ namespace RimWorldAccess
         public static string GetPlantsInfo(IntVec3 position, Map map)
         {
             if (map == null || !position.InBounds(map))
-                return "Out of bounds";
+                return "RimWorldAccess.Map.Tile.OutOfBounds".Translate();
 
             // Get plant info
             List<Thing> things = position.GetThingList(map);
@@ -625,9 +629,9 @@ namespace RimWorldAccess
             if (!hasPlants && !hasDeepOre)
             {
                 if (scannerActive)
-                    return "no plants or mineral deposits";
+                    return "RimWorldAccess.Map.Tile.Plants.NoneNoMinerals".Translate();
                 else
-                    return "no plants";
+                    return "RimWorldAccess.Map.Tile.Plants.None".Translate();
             }
 
             var sb = new StringBuilder();
@@ -644,17 +648,17 @@ namespace RimWorldAccess
 
                     // Add growth percentage
                     float growthPercent = plant.Growth * 100f;
-                    sb.Append($" ({growthPercent:F0}% grown)");
+                    sb.Append("RimWorldAccess.Map.Tile.Plants.Growth".Translate(growthPercent.ToString("F0")));
 
                     // Check if harvestable
                     if (plant.HarvestableNow)
-                        sb.Append(", harvestable");
+                        sb.Append("RimWorldAccess.Map.Tile.Plants.Harvestable".Translate());
                     else
-                        sb.Append(", not harvestable");
+                        sb.Append("RimWorldAccess.Map.Tile.Plants.NotHarvestable".Translate());
 
                     // Check if dying
                     if (plant.Dying)
-                        sb.Append(", dying");
+                        sb.Append("RimWorldAccess.Map.Tile.Plants.Dying".Translate());
                 }
             }
 
@@ -662,8 +666,8 @@ namespace RimWorldAccess
             if (hasDeepOre)
             {
                 if (hasPlants)
-                    sb.Append(". ");
-                sb.Append("Deep: ");
+                    sb.Append("RimWorldAccess.Map.Tile.Plants.DeepHeaderJoiner".Translate());
+                sb.Append("RimWorldAccess.Map.Tile.Plants.DeepHeader".Translate());
                 sb.Append(deepOreInfo);
             }
 
@@ -677,7 +681,7 @@ namespace RimWorldAccess
         public static string GetLightInfo(IntVec3 position, Map map)
         {
             if (map == null || !position.InBounds(map))
-                return "Out of bounds";
+                return "RimWorldAccess.Map.Tile.OutOfBounds".Translate();
 
             var sb = new StringBuilder();
 
@@ -685,18 +689,18 @@ namespace RimWorldAccess
             float glowValue = map.glowGrid.GroundGlowAt(position);
             PsychGlow lightLevel = map.glowGrid.PsychGlowAt(position);
             string lightLabel = lightLevel.GetLabel();
-            sb.Append($"light: {glowValue.ToStringPercent()} ({lightLabel})");
+            sb.Append("RimWorldAccess.Map.Tile.Light.LightLine".Translate(glowValue.ToStringPercent(), lightLabel));
 
             // Get temperature (respects user's temperature mode preference)
             float temperature = position.GetTemperature(map);
-            sb.Append($", temperature: {MenuHelper.FormatTemperature(temperature, "F1")}");
+            sb.Append("RimWorldAccess.Map.Tile.Light.TemperatureSuffix".Translate(MenuHelper.FormatTemperature(temperature, "F1")));
 
             // Check if indoors/outdoors
             RoofDef roof = position.GetRoof(map);
             if (roof != null)
-                sb.Append(", indoors");
+                sb.Append("RimWorldAccess.Map.Tile.Light.Indoors".Translate());
             else
-                sb.Append(", outdoors");
+                sb.Append("RimWorldAccess.Map.Tile.Light.Outdoors".Translate());
 
             // Check for temperature control buildings
             List<Thing> things = position.GetThingList(map);
@@ -707,7 +711,7 @@ namespace RimWorldAccess
                 string tempControlInfo = GetTemperatureControlInfo(building);
                 if (!string.IsNullOrEmpty(tempControlInfo))
                 {
-                    sb.Append($". {building.LabelShortCap}: {tempControlInfo}");
+                    sb.Append("RimWorldAccess.Map.Tile.Light.TempControlSuffix".Translate(building.LabelShortCap, tempControlInfo));
                 }
             }
 
@@ -721,13 +725,13 @@ namespace RimWorldAccess
         public static string GetPowerInfo(IntVec3 position, Map map)
         {
             if (map == null || !position.InBounds(map))
-                return "Out of bounds";
+                return "RimWorldAccess.Map.Tile.OutOfBounds".Translate();
 
             List<Thing> things = position.GetThingList(map);
             var buildings = things.OfType<Building>().ToList();
 
             if (buildings.Count == 0)
-                return "no buildings";
+                return "RimWorldAccess.Map.Tile.Power.NoBuildings".Translate();
 
             var sb = new StringBuilder();
             int buildingsWithPower = 0;
@@ -738,17 +742,15 @@ namespace RimWorldAccess
                 if (!string.IsNullOrEmpty(powerInfo))
                 {
                     if (buildingsWithPower > 0)
-                        sb.Append(". ");
+                        sb.Append("RimWorldAccess.Map.Tile.Power.Joiner".Translate());
 
-                    sb.Append(building.LabelShortCap);
-                    sb.Append(": ");
-                    sb.Append(powerInfo);
+                    sb.Append("RimWorldAccess.Map.Tile.Power.Line".Translate(building.LabelShortCap, powerInfo));
                     buildingsWithPower++;
                 }
             }
 
             if (buildingsWithPower == 0)
-                return "no power-connected buildings";
+                return "RimWorldAccess.Map.Tile.Power.NoneConnected".Translate();
 
             return sb.ToString();
         }
@@ -760,20 +762,20 @@ namespace RimWorldAccess
         public static string GetRoomStatsInfo(IntVec3 position, Map map)
         {
             if (map == null || !position.InBounds(map))
-                return "Out of bounds";
+                return "RimWorldAccess.Map.Tile.OutOfBounds".Translate();
 
             Room room = position.GetRoom(map);
 
             if (room == null)
-                return "no room";
+                return "RimWorldAccess.Map.Tile.Room.None".Translate();
 
             // Check if outdoor (no roof) or not a proper room
             RoofDef roof = position.GetRoof(map);
             if (roof == null)
-                return "outdoors";
+                return "RimWorldAccess.Map.Tile.Room.Outdoors".Translate();
 
             if (!room.ProperRoom)
-                return "not a proper room";
+                return "RimWorldAccess.Map.Tile.Room.NotProper".Translate();
 
             return GetRoomStatsInfo(room);
         }
@@ -786,7 +788,7 @@ namespace RimWorldAccess
         public static string GetRoomStatsInfo(Room room)
         {
             if (room == null)
-                return "no room";
+                return "RimWorldAccess.Map.Tile.Room.None".Translate();
 
             var sb = new StringBuilder();
 
@@ -802,7 +804,7 @@ namespace RimWorldAccess
             }
             else
             {
-                sb.Append("Room");
+                sb.Append("RimWorldAccess.Map.Tile.Room.Fallback".Translate());
             }
 
             // Stats ordered by volatility: dynamic first, static last
@@ -824,11 +826,11 @@ namespace RimWorldAccess
 
                 if (!string.IsNullOrEmpty(stageLabel))
                 {
-                    sb.Append($", {prefix}{statDef.LabelCap}: {stageLabel} ({statDef.ScoreToString(value)})");
+                    sb.Append("RimWorldAccess.Map.Tile.Room.StatWithStage".Translate(prefix, statDef.LabelCap, stageLabel, statDef.ScoreToString(value)));
                 }
                 else
                 {
-                    sb.Append($", {prefix}{statDef.LabelCap}: {statDef.ScoreToString(value)}");
+                    sb.Append("RimWorldAccess.Map.Tile.Room.Stat".Translate(prefix, statDef.LabelCap, statDef.ScoreToString(value)));
                 }
             }
 
@@ -844,11 +846,11 @@ namespace RimWorldAccess
 
                 if (!string.IsNullOrEmpty(stageLabel))
                 {
-                    sb.Append($", {prefix}{statDef.LabelCap}: {stageLabel} ({statDef.ScoreToString(value)})");
+                    sb.Append("RimWorldAccess.Map.Tile.Room.StatWithStage".Translate(prefix, statDef.LabelCap, stageLabel, statDef.ScoreToString(value)));
                 }
                 else
                 {
-                    sb.Append($", {prefix}{statDef.LabelCap}: {statDef.ScoreToString(value)}");
+                    sb.Append("RimWorldAccess.Map.Tile.Room.Stat".Translate(prefix, statDef.LabelCap, statDef.ScoreToString(value)));
                 }
             }
 
@@ -891,19 +893,19 @@ namespace RimWorldAccess
                 IntVec3 heatingSide = IntVec3.North.RotatedBy(rotation);
                 string heatingDir = GetCardinalDirection(heatingSide);
 
-                directionInfo = $"cooling {coolingDir}, heating {heatingDir}";
+                directionInfo = "RimWorldAccess.Map.Tile.TempControl.Cooler".Translate(coolingDir, heatingDir);
             }
             else
             {
                 // For other temperature control devices (heaters, vents, etc.)
-                directionInfo = "temperature control";
+                directionInfo = "RimWorldAccess.Map.Tile.TempControl.Generic".Translate();
             }
 
             // Add target temperature
             float targetTemp = tempControl.TargetTemperature;
             string tempString = MenuHelper.FormatTemperature(targetTemp, "F0");
 
-            return $"{directionInfo}, target {tempString}";
+            return "RimWorldAccess.Map.Tile.TempControl.WithTarget".Translate(directionInfo, tempString);
         }
 
         /// <summary>
@@ -912,7 +914,7 @@ namespace RimWorldAccess
         /// </summary>
         private static string GetCardinalDirection(IntVec3 direction)
         {
-            return BuildingCellHelper.GetCardinalDirection(direction) ?? "unknown";
+            return BuildingCellHelper.GetCardinalDirection(direction) ?? "RimWorldAccess.Map.Tile.TempControl.UnknownDir".Translate();
         }
 
         /// <summary>
@@ -926,13 +928,13 @@ namespace RimWorldAccess
             // Check if pawn is hostile to player (takes priority over trader status)
             if (pawn.Faction != null && pawn.Faction.HostileTo(Faction.OfPlayer))
             {
-                return " (hostile)";
+                return "RimWorldAccess.Map.Tile.Pawn.HostileSuffix".Translate();
             }
 
             // Check if pawn is a trader
             if (pawn.trader?.traderKind != null)
             {
-                return " (trader)";
+                return "RimWorldAccess.Map.Tile.Pawn.TraderSuffix".Translate();
             }
 
             return null;
@@ -972,7 +974,7 @@ namespace RimWorldAccess
                 // Append designations targeting this pawn (e.g., "hunt", "tame")
                 string designationSuffix = GetThingDesignationSuffix(pawns[i], thingDesignations);
                 if (!string.IsNullOrEmpty(designationSuffix))
-                    sb.Append($" ({designationSuffix})");
+                    sb.Append("RimWorldAccess.Map.Tile.Pawn.DesignationSuffix".Translate(designationSuffix));
 
                 string suffix = GetPawnSuffix(pawns[i]);
                 if (!string.IsNullOrEmpty(suffix))
@@ -982,7 +984,7 @@ namespace RimWorldAccess
                 {
                     string coverInfo = CoverHelper.GetCoverInfo(pawns[i]);
                     if (!string.IsNullOrEmpty(coverInfo))
-                        sb.Append($", {coverInfo}");
+                        sb.Append("RimWorldAccess.Map.Tile.Pawn.CoverSuffix".Translate(coverInfo));
                 }
             }
 
@@ -1027,7 +1029,7 @@ namespace RimWorldAccess
 
                 // Add designation info if present (e.g., "(hunt)")
                 if (!string.IsNullOrEmpty(group.designationInfo))
-                    groupText.Append($" ({group.designationInfo})");
+                    groupText.Append("RimWorldAccess.Map.Tile.Pawn.DesignationSuffix".Translate(group.designationInfo));
 
                 // Add suffix (hostile/trader) if present
                 if (!string.IsNullOrEmpty(group.suffix))
@@ -1035,11 +1037,11 @@ namespace RimWorldAccess
 
                 // Add cover info if present (before activity)
                 if (!string.IsNullOrEmpty(group.coverInfo))
-                    groupText.Append($", {group.coverInfo}");
+                    groupText.Append("RimWorldAccess.Map.Tile.Pawn.CoverSuffix".Translate(group.coverInfo));
 
                 // Add activity if present
                 if (!string.IsNullOrEmpty(group.activity))
-                    groupText.Append($" ({group.activity})");
+                    groupText.Append("RimWorldAccess.Map.Tile.Pawn.ActivitySuffix".Translate(group.activity));
 
                 parts.Add(groupText.ToString());
             }
@@ -1059,11 +1061,11 @@ namespace RimWorldAccess
                 return pawns[0].LabelShort;
 
             if (pawns.Count == 2)
-                return $"{pawns[0].LabelShort} and {pawns[1].LabelShort}";
+                return "RimWorldAccess.Map.Tile.Pawn.AndJoin".Translate(pawns[0].LabelShort, pawns[1].LabelShort);
 
             // 3+: "A, B, and C"
             var names = pawns.Select(p => p.LabelShort).ToList();
-            return string.Join(", ", names.Take(names.Count - 1)) + ", and " + names.Last();
+            return "RimWorldAccess.Map.Tile.Pawn.OxfordJoin".Translate(string.Join(", ", names.Take(names.Count - 1)), names.Last());
         }
 
         /// <summary>
@@ -1073,7 +1075,7 @@ namespace RimWorldAccess
         public static string GetAreasInfo(IntVec3 position, Map map)
         {
             if (map == null || !position.InBounds(map))
-                return "Out of bounds";
+                return "RimWorldAccess.Map.Tile.OutOfBounds".Translate();
 
             var sb = new StringBuilder();
             var areaNames = new List<string>();
@@ -1089,7 +1091,7 @@ namespace RimWorldAccess
             }
 
             if (areaNames.Count == 0)
-                return "not in any area";
+                return "RimWorldAccess.Map.Tile.Areas.None".Translate();
 
             // Build the result string
             for (int i = 0; i < areaNames.Count; i++)
@@ -1119,7 +1121,7 @@ namespace RimWorldAccess
             Zone zone = position.GetZone(map);
             if (zone != null)
             {
-                return $"(in {zone.label})";
+                return "RimWorldAccess.Map.Tile.Location.InZone".Translate(zone.label);
             }
 
             // Check for named storage group (shelves, etc.) - only if no zone (mutually exclusive)
@@ -1131,7 +1133,7 @@ namespace RimWorldAccess
                     string groupName = storage.Group.RenamableLabel;
                     if (!string.IsNullOrEmpty(groupName))
                     {
-                        return $"(at {groupName})";
+                        return "RimWorldAccess.Map.Tile.Location.AtStorage".Translate(groupName);
                     }
                 }
             }
@@ -1143,7 +1145,7 @@ namespace RimWorldAccess
                 string roomLabel = room.GetRoomRoleLabel();
                 if (!string.IsNullOrEmpty(roomLabel))
                 {
-                    return $"(in {roomLabel})";
+                    return "RimWorldAccess.Map.Tile.Location.InRoom".Translate(roomLabel);
                 }
             }
 
@@ -1192,7 +1194,7 @@ namespace RimWorldAccess
         private static string GetDesignationLabel(Designation designation)
         {
             if (designation == null || designation.def == null)
-                return "Unknown order";
+                return "RimWorldAccess.Map.Tile.UnknownOrder".Translate();
 
             // Get localized label from the Designator that uses this DesignationDef
             string label = GetLocalizedDesignationLabel(designation.def);
@@ -1206,7 +1208,7 @@ namespace RimWorldAccess
         private static string GetLocalizedDesignationLabel(DesignationDef def)
         {
             if (def == null)
-                return "Unknown";
+                return "RimWorldAccess.Map.Label.Unknown".Translate();
 
             // Try to find the Designator that uses this DesignationDef
             var designators = Find.ReverseDesignatorDatabase?.AllDesignators;
@@ -1249,14 +1251,14 @@ namespace RimWorldAccess
             if (building is Building_FermentingBarrel barrel)
             {
                 if (barrel.Fermented)
-                    return "fermented";
+                    return "RimWorldAccess.Map.Tile.Progress.Fermented".Translate();
                 if (barrel.Progress > 0f)
-                    return $"fermenting, {barrel.Progress.ToStringPercent()}";
+                    return "RimWorldAccess.Map.Tile.Progress.Fermenting".Translate(barrel.Progress.ToStringPercent());
             }
 
             if (building is Building_GeneAssembler assembler && assembler.Working)
             {
-                return $"assembling, {assembler.ProgressPercent.ToStringPercent()}";
+                return "RimWorldAccess.Map.Tile.Progress.Assembling".Translate(assembler.ProgressPercent.ToStringPercent());
             }
 
             return null;
@@ -1291,11 +1293,11 @@ namespace RimWorldAccess
                             {
                                 // Get fuel level if connected
                                 float fuel = TransportPodHelper.GetFuelLevel(launchable);
-                                return $"fueled ({fuel:F0} chemfuel)";
+                                return "RimWorldAccess.Map.Tile.TransportPod.Fueled".Translate(fuel.ToString("F0"));
                             }
                             else
                             {
-                                return "not connected to fuel";
+                                return "RimWorldAccess.Map.Tile.TransportPod.NotConnected".Translate();
                             }
                         }
                         catch { }
@@ -1322,7 +1324,9 @@ namespace RimWorldAccess
                     }
                 }
 
-                return hasAdjacentFuel ? "adjacent to launcher" : "not connected to fuel";
+                return (hasAdjacentFuel
+                    ? "RimWorldAccess.Map.Tile.TransportPod.AdjacentToLauncher"
+                    : "RimWorldAccess.Map.Tile.TransportPod.NotConnected").Translate();
             }
 
             // Check if this is a pod launcher (has CompRefuelable and is a launcher type)
@@ -1334,7 +1338,7 @@ namespace RimWorldAccess
                 if (fuelingPortCell.IsValid && fuelingPortCell.InBounds(map))
                 {
                     float fuel = refuelableComp.Fuel;
-                    return $"{fuel:F0} chemfuel, fuel port at {fuelingPortCell.x}, {fuelingPortCell.z}";
+                    return "RimWorldAccess.Map.Tile.TransportPod.LauncherWithFuelPort".Translate(fuel.ToString("F0"), fuelingPortCell.x, fuelingPortCell.z);
                 }
             }
 
@@ -1352,21 +1356,29 @@ namespace RimWorldAccess
             // Determine primary direction
             if (System.Math.Abs(dx) > System.Math.Abs(dz))
             {
-                return dx > 0 ? "east" : "west";
+                return (dx > 0
+                    ? "RimWorldAccess.Map.Direction.Lower.East"
+                    : "RimWorldAccess.Map.Direction.Lower.West").Translate();
             }
             else if (System.Math.Abs(dz) > System.Math.Abs(dx))
             {
-                return dz > 0 ? "north" : "south";
+                return (dz > 0
+                    ? "RimWorldAccess.Map.Direction.Lower.North"
+                    : "RimWorldAccess.Map.Direction.Lower.South").Translate();
             }
             else if (dx != 0 && dz != 0)
             {
                 // Diagonal
-                string ns = dz > 0 ? "north" : "south";
-                string ew = dx > 0 ? "east" : "west";
-                return $"{ns}{ew}";
+                string ns = (dz > 0
+                    ? "RimWorldAccess.Map.Direction.Lower.North"
+                    : "RimWorldAccess.Map.Direction.Lower.South").Translate();
+                string ew = (dx > 0
+                    ? "RimWorldAccess.Map.Direction.Lower.East"
+                    : "RimWorldAccess.Map.Direction.Lower.West").Translate();
+                return "RimWorldAccess.Map.Tile.RelDir.Diagonal".Translate(ns, ew);
             }
 
-            return "adjacent";
+            return "RimWorldAccess.Map.Tile.RelDir.Adjacent".Translate();
         }
 
         /// <summary>
@@ -1383,16 +1395,16 @@ namespace RimWorldAccess
             if (fuelingPortGiver != null)
             {
                 // This is a fueling port cell - announce it
-                string launcherName = fuelingPortGiver.LabelShort ?? "pod launcher";
+                string launcherName = fuelingPortGiver.LabelShort ?? "RimWorldAccess.Map.Tile.TransportPod.LauncherFallback".Translate().ToString();
 
                 // Check current fuel level
                 CompRefuelable refuelable = fuelingPortGiver.TryGetComp<CompRefuelable>();
                 if (refuelable != null)
                 {
-                    return $"fueling port for {launcherName} ({refuelable.Fuel:F0} chemfuel)";
+                    return "RimWorldAccess.Map.Tile.TransportPod.FuelingPortWithLevel".Translate(launcherName, refuelable.Fuel.ToString("F0"));
                 }
 
-                return $"fueling port for {launcherName}";
+                return "RimWorldAccess.Map.Tile.TransportPod.FuelingPort".Translate(launcherName);
             }
 
             return null;
@@ -1443,7 +1455,7 @@ namespace RimWorldAccess
             if (count <= 0)
                 return null;
 
-            return $"{oreDef.label}, {count} remaining";
+            return "RimWorldAccess.Map.Tile.Plants.DeepOreInfo".Translate(oreDef.label, count);
         }
 
         /// <summary>

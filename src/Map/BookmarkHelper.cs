@@ -38,7 +38,7 @@ namespace RimWorldAccess
             component.SetBookmark(slot, position);
 
             string tileSummary = TileInfoHelper.GetTileSummary(position, map);
-            TolkHelper.Speak($"Bookmark {slot} set: {tileSummary}");
+            TolkHelper.Speak("RimWorldAccess.Map.Bookmark.Set".Translate(slot, tileSummary));
         }
 
         public static void JumpToBookmark(int slot, bool announceJumped = false)
@@ -49,7 +49,7 @@ namespace RimWorldAccess
 
             if (!component.IsBookmarkSet(slot))
             {
-                TolkHelper.Speak($"Bookmark {slot} not set");
+                TolkHelper.Speak("RimWorldAccess.Map.Bookmark.NotSet".Translate(slot));
                 return;
             }
 
@@ -58,7 +58,7 @@ namespace RimWorldAccess
 
             if (!bookmarkPos.InBounds(map))
             {
-                TolkHelper.Speak($"Bookmark {slot} invalid");
+                TolkHelper.Speak("RimWorldAccess.Map.Bookmark.Invalid".Translate(slot));
                 return;
             }
 
@@ -76,7 +76,7 @@ namespace RimWorldAccess
             if (announceJumped)
             {
                 string tileInfo = TileInfoHelper.GetTileSummary(bookmarkPos, map);
-                TolkHelper.Speak($"Jumped. {tileInfo}");
+                TolkHelper.Speak("RimWorldAccess.Map.Bookmark.Jumped".Translate(tileInfo));
                 MapNavigationState.LastAnnouncedInfo = tileInfo;
             }
             else
@@ -93,7 +93,7 @@ namespace RimWorldAccess
 
             if (!component.IsBookmarkSet(slot))
             {
-                TolkHelper.Speak($"Bookmark {slot} not set");
+                TolkHelper.Speak("RimWorldAccess.Map.Bookmark.NotSet".Translate(slot));
                 return;
             }
 
@@ -102,7 +102,7 @@ namespace RimWorldAccess
 
             if (!bookmarkPos.InBounds(map))
             {
-                TolkHelper.Speak($"Bookmark {slot} invalid");
+                TolkHelper.Speak("RimWorldAccess.Map.Bookmark.Invalid".Translate(slot));
                 return;
             }
 
@@ -115,12 +115,12 @@ namespace RimWorldAccess
             float distance = (bookmarkPos - cursorPos).LengthHorizontal;
             if (distance < 0.5f)
             {
-                TolkHelper.Speak($"{tileSummary}, here");
+                TolkHelper.Speak("RimWorldAccess.Map.Bookmark.PeekHere".Translate(tileSummary));
             }
             else
             {
                 string direction = GetDirection(cursorPos, bookmarkPos);
-                TolkHelper.Speak($"{tileSummary}, {distance:F0} tiles {direction}");
+                TolkHelper.Speak("RimWorldAccess.Map.Bookmark.PeekDirection".Translate(tileSummary, distance.ToString("F0"), direction));
             }
         }
 
@@ -131,14 +131,14 @@ namespace RimWorldAccess
             double angle = Math.Atan2(offset.x, offset.z) * (180.0 / Math.PI);
             if (angle < 0) angle += 360;
 
-            if (angle >= 337.5 || angle < 22.5) return "North";
-            if (angle >= 22.5 && angle < 67.5) return "Northeast";
-            if (angle >= 67.5 && angle < 112.5) return "East";
-            if (angle >= 112.5 && angle < 157.5) return "Southeast";
-            if (angle >= 157.5 && angle < 202.5) return "South";
-            if (angle >= 202.5 && angle < 247.5) return "Southwest";
-            if (angle >= 247.5 && angle < 292.5) return "West";
-            return "Northwest";
+            if (angle >= 337.5 || angle < 22.5) return "RimWorldAccess.Map.Direction.North".Translate();
+            if (angle >= 22.5 && angle < 67.5) return "RimWorldAccess.Map.Direction.Northeast".Translate();
+            if (angle >= 67.5 && angle < 112.5) return "RimWorldAccess.Map.Direction.East".Translate();
+            if (angle >= 112.5 && angle < 157.5) return "RimWorldAccess.Map.Direction.Southeast".Translate();
+            if (angle >= 157.5 && angle < 202.5) return "RimWorldAccess.Map.Direction.South".Translate();
+            if (angle >= 202.5 && angle < 247.5) return "RimWorldAccess.Map.Direction.Southwest".Translate();
+            if (angle >= 247.5 && angle < 292.5) return "RimWorldAccess.Map.Direction.West".Translate();
+            return "RimWorldAccess.Map.Direction.Northwest".Translate();
         }
 
         private static BookmarkMapComponent GetComponent()

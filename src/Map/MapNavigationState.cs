@@ -221,7 +221,7 @@ namespace RimWorldAccess
         public static void IncreasePresetDistance(int amount = 1)
         {
             presetJumpDistance += amount;
-            TolkHelper.Speak($"Jump distance: {presetJumpDistance}");
+            TolkHelper.Speak("RimWorldAccess.Map.Jump.Distance".Translate(presetJumpDistance));
         }
 
         /// <summary>
@@ -232,11 +232,11 @@ namespace RimWorldAccess
             if (presetJumpDistance > 1)
             {
                 presetJumpDistance = System.Math.Max(1, presetJumpDistance - amount);
-                TolkHelper.Speak($"Jump distance: {presetJumpDistance}");
+                TolkHelper.Speak("RimWorldAccess.Map.Jump.Distance".Translate(presetJumpDistance));
             }
             else
             {
-                TolkHelper.Speak("Minimum distance");
+                TolkHelper.Speak("RimWorldAccess.Map.Jump.MinimumDistance".Translate());
             }
         }
 
@@ -248,35 +248,35 @@ namespace RimWorldAccess
             string modeText;
             if (currentJumpMode == JumpMode.Terrain)
             {
-                modeText = "Jump mode: Terrain";
+                modeText = "RimWorldAccess.Map.Jump.Mode.Terrain".Translate();
             }
             else if (currentJumpMode == JumpMode.Buildings)
             {
-                modeText = "Jump mode: Buildings";
+                modeText = "RimWorldAccess.Map.Jump.Mode.Buildings".Translate();
             }
             else if (currentJumpMode == JumpMode.Geysers)
             {
-                modeText = "Jump mode: Geysers";
+                modeText = "RimWorldAccess.Map.Jump.Mode.Geysers".Translate();
             }
             else if (currentJumpMode == JumpMode.HarvestableTrees)
             {
-                modeText = "Jump mode: Harvestable Trees";
+                modeText = "RimWorldAccess.Map.Jump.Mode.HarvestableTrees".Translate();
             }
             else if (currentJumpMode == JumpMode.MinableTiles)
             {
-                modeText = "Jump mode: Mineable Tiles";
+                modeText = "RimWorldAccess.Map.Jump.Mode.MinableTiles".Translate();
             }
             else if (currentJumpMode == JumpMode.PresetDistance)
             {
-                modeText = $"Jump mode: Preset distance, {presetJumpDistance} tiles";
+                modeText = "RimWorldAccess.Map.Jump.Mode.PresetDistance".Translate(presetJumpDistance);
             }
             else if (currentJumpMode == JumpMode.AdjacentToWall)
             {
-                modeText = "Jump mode: Adjacent to Wall";
+                modeText = "RimWorldAccess.Map.Jump.Mode.AdjacentToWall".Translate();
             }
             else
             {
-                modeText = "Jump mode: Unknown";
+                modeText = "RimWorldAccess.Map.Jump.Mode.Unknown".Translate();
             }
             TolkHelper.Speak(modeText);
         }
@@ -405,12 +405,12 @@ namespace RimWorldAccess
                     if (totalMaps == 2 && !hasAnnouncedMultiMapHint)
                     {
                         // First time having multiple maps - give the hint
-                        TolkHelper.Speak($"New map: {mapName}. You now have {totalMaps} maps. Use Shift+Period and Shift+Comma to switch between them.");
+                        TolkHelper.Speak("RimWorldAccess.Map.NewMap.WithHint".Translate(mapName, totalMaps));
                         hasAnnouncedMultiMapHint = true;
                     }
                     else if (totalMaps > 1)
                     {
-                        TolkHelper.Speak($"New map: {mapName}. {totalMaps} maps total.");
+                        TolkHelper.Speak("RimWorldAccess.Map.NewMap.Total".Translate(mapName, totalMaps));
                     }
                     // Don't announce when going from 0 to 1 map (game start)
                 }
@@ -426,12 +426,12 @@ namespace RimWorldAccess
                     int remainingMaps = Find.Maps.Count;
                     if (remainingMaps == 1)
                     {
-                        TolkHelper.Speak("Map closed. One map remaining.");
+                        TolkHelper.Speak("RimWorldAccess.Map.MapClosed.One".Translate());
                         hasAnnouncedMultiMapHint = false; // Reset hint for next time
                     }
                     else if (remainingMaps > 1)
                     {
-                        TolkHelper.Speak($"Map closed. {remainingMaps} maps remaining.");
+                        TolkHelper.Speak("RimWorldAccess.Map.MapClosed.Many".Translate(remainingMaps));
                     }
 
                     // Clean up cursor position for the removed map
@@ -449,7 +449,7 @@ namespace RimWorldAccess
         private static string GetMapDisplayName(Map map)
         {
             if (map == null)
-                return "Unknown";
+                return "RimWorldAccess.Map.Label.Unknown".Translate();
 
             // Try to get a meaningful name from the map parent
             if (map.Parent != null)
@@ -464,7 +464,7 @@ namespace RimWorldAccess
             }
 
             // Fallback: use "Map" with the unique ID
-            return $"Map {map.uniqueID}";
+            return "RimWorldAccess.Map.Display.Numbered".Translate(map.uniqueID);
         }
 
         /// <summary>
@@ -771,7 +771,7 @@ namespace RimWorldAccess
 
             if (newPosition == CurrentCursorPosition)
             {
-                TolkHelper.Speak("Map boundary");
+                TolkHelper.Speak("RimWorldAccess.Map.Jump.Boundary".Translate());
                 return false;
             }
 
@@ -875,7 +875,7 @@ namespace RimWorldAccess
             IntVec3 nextTile = CurrentCursorPosition + direction;
             if (nextTile.InBounds(map) && IsBlockingStructure(nextTile, map))
             {
-                TolkHelper.Speak("Already adjacent to wall");
+                TolkHelper.Speak("RimWorldAccess.Map.Jump.AlreadyAdjacent".Translate());
                 return false;  // Stay in place
             }
 
@@ -896,7 +896,7 @@ namespace RimWorldAccess
                         CurrentCursorPosition = lastValidPosition;
                         return true;
                     }
-                    TolkHelper.Speak("Map boundary");
+                    TolkHelper.Speak("RimWorldAccess.Map.Jump.Boundary".Translate());
                     return false;
                 }
 
@@ -909,7 +909,7 @@ namespace RimWorldAccess
                         return true;
                     }
                     // We were already at the last valid position
-                    TolkHelper.Speak("Already adjacent to wall");
+                    TolkHelper.Speak("RimWorldAccess.Map.Jump.AlreadyAdjacent".Translate());
                     return false;
                 }
 
@@ -917,7 +917,7 @@ namespace RimWorldAccess
             }
 
             // No wall found in this direction, stay in place
-            TolkHelper.Speak("No wall found");
+            TolkHelper.Speak("RimWorldAccess.Map.Jump.NoWallFound".Translate());
             return false;
         }
 

@@ -90,7 +90,7 @@ namespace RimWorldAccess
                 }
             }
 
-            TolkHelper.Speak("Search", SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.Map.Search.Activated".Translate(), SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -114,7 +114,7 @@ namespace RimWorldAccess
 
             char deleted = searchBuffer[searchBuffer.Length - 1];
             searchBuffer = searchBuffer.Substring(0, searchBuffer.Length - 1);
-            TolkHelper.Speak($"Deleted {deleted}", SpeechPriority.Low);
+            TolkHelper.Speak("RimWorldAccess.Map.Input.Deleted".Translate(deleted), SpeechPriority.Low);
 
             if (string.IsNullOrEmpty(searchBuffer))
             {
@@ -149,7 +149,7 @@ namespace RimWorldAccess
                 savedFilterQuery = "";
                 savedFilterIsWorldMap = false;
 
-                TolkHelper.Speak($"Scanner now filtering {activeFilterQuery}", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Search.NowFiltering".Translate(activeFilterQuery), SpeechPriority.Normal);
             }
             else
             {
@@ -189,7 +189,7 @@ namespace RimWorldAccess
                     var matching = RefreshWorldFilter();
                     if (matching != null && matching.Count > 0)
                     {
-                        WorldScannerState.CreateTemporaryCategory($"Search: {activeFilterQuery}", matching);
+                        WorldScannerState.CreateTemporaryCategory("RimWorldAccess.Map.Search.CategoryName".Translate(activeFilterQuery), matching);
                     }
                 }
                 else
@@ -199,11 +199,11 @@ namespace RimWorldAccess
                     var matching = RefreshMapFilter(map, cursor);
                     if (matching != null && matching.Count > 0)
                     {
-                        ScannerState.CreateTemporaryCategory($"Search: {activeFilterQuery}", matching);
+                        ScannerState.CreateTemporaryCategory("RimWorldAccess.Map.Search.CategoryName".Translate(activeFilterQuery), matching);
                     }
                 }
 
-                TolkHelper.Speak($"Search cancelled. Restored filter: {savedFilterQuery}", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Search.RestoredFilter".Translate(savedFilterQuery), SpeechPriority.Normal);
             }
             else
             {
@@ -217,7 +217,7 @@ namespace RimWorldAccess
                 {
                     ScannerState.RestoreFocus();
                 }
-                TolkHelper.Speak("Search cancelled", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Search.Cancelled".Translate(), SpeechPriority.Normal);
             }
 
             // Clear saved state
@@ -256,7 +256,7 @@ namespace RimWorldAccess
             savedFilterQuery = "";
             savedFilterIsWorldMap = false;
 
-            TolkHelper.Speak("Search filter cleared", SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.Map.Search.FilterCleared".Translate(), SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -342,7 +342,7 @@ namespace RimWorldAccess
         /// </summary>
         public static string GetFilterCategoryName()
         {
-            return $"Search: {activeFilterQuery}";
+            return "RimWorldAccess.Map.Search.CategoryName".Translate(activeFilterQuery);
         }
 
         /// <summary>
@@ -371,7 +371,7 @@ namespace RimWorldAccess
             var map = Find.CurrentMap;
             if (map == null || !MapNavigationState.IsInitialized)
             {
-                TolkHelper.Speak("No map available", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Map.Search.NoMap".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -389,14 +389,14 @@ namespace RimWorldAccess
             if (matching.Count == 0)
             {
                 // No matches - announce and clear buffer so user can type again
-                TolkHelper.Speak($"No matches for '{searchBuffer}'", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Search.NoMatches".Translate(searchBuffer), SpeechPriority.Normal);
                 searchBuffer = "";
                 return;
             }
 
             // Create temporary category with results
             // Note: Focus is saved in Activate() when search starts
-            ScannerState.CreateTemporaryCategory($"Search: {searchBuffer}", matching);
+            ScannerState.CreateTemporaryCategory("RimWorldAccess.Map.Search.CategoryName".Translate(searchBuffer), matching);
 
             // Announce results
             AnnounceSearchResults(matching);
@@ -409,7 +409,7 @@ namespace RimWorldAccess
         {
             if (!WorldNavigationState.IsActive || !WorldNavigationState.IsInitialized)
             {
-                TolkHelper.Speak("World navigation not active", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Map.Search.WorldNavInactive".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -426,14 +426,14 @@ namespace RimWorldAccess
             if (matching.Count == 0)
             {
                 // No matches - announce and clear buffer so user can type again
-                TolkHelper.Speak($"No matches for '{searchBuffer}'", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Search.NoMatches".Translate(searchBuffer), SpeechPriority.Normal);
                 searchBuffer = "";
                 return;
             }
 
             // Create temporary category with results
             // Note: Focus is saved in Activate() when search starts
-            WorldScannerState.CreateTemporaryCategory($"Search: {searchBuffer}", matching);
+            WorldScannerState.CreateTemporaryCategory("RimWorldAccess.Map.Search.CategoryName".Translate(searchBuffer), matching);
 
             // Announce results
             AnnounceWorldSearchResults(matching);
@@ -504,7 +504,7 @@ namespace RimWorldAccess
         {
             if (results.Count == 0)
             {
-                TolkHelper.Speak("No results", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Search.NoResults".Translate(), SpeechPriority.Normal);
                 return;
             }
 
@@ -513,11 +513,11 @@ namespace RimWorldAccess
 
             if (count == 1)
             {
-                TolkHelper.Speak($"{firstResult}, 1 result", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Search.Result.One".Translate(firstResult), SpeechPriority.Normal);
             }
             else
             {
-                TolkHelper.Speak($"{firstResult}, {count} results", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Search.Result.Many".Translate(firstResult, count), SpeechPriority.Normal);
             }
         }
 
@@ -528,7 +528,7 @@ namespace RimWorldAccess
         {
             if (results.Count == 0)
             {
-                TolkHelper.Speak("No results", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Search.NoResults".Translate(), SpeechPriority.Normal);
                 return;
             }
 
@@ -537,11 +537,11 @@ namespace RimWorldAccess
 
             if (count == 1)
             {
-                TolkHelper.Speak($"{firstResult}, 1 result", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Search.Result.One".Translate(firstResult), SpeechPriority.Normal);
             }
             else
             {
-                TolkHelper.Speak($"{firstResult}, {count} results", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Search.Result.Many".Translate(firstResult, count), SpeechPriority.Normal);
             }
         }
 

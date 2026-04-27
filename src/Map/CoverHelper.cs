@@ -53,7 +53,7 @@ namespace RimWorldAccess
             if (bestCover == null)
                 return "NoCoverLower".Translate();
 
-            return $"behind {bestCover.def.label} (blocks {bestBlockChance.ToStringPercent()})";
+            return "RimWorldAccess.Map.Cover.Behind".Translate(bestCover.def.label, bestBlockChance.ToStringPercent());
         }
     }
 }

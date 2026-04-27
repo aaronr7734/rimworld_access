@@ -25,14 +25,14 @@ namespace RimWorldAccess
             double angle = Math.Atan2(offset.x, offset.z) * (180.0 / Math.PI);
             if (angle < 0) angle += 360;
 
-            if (angle >= 337.5 || angle < 22.5) return "North";
-            if (angle >= 22.5 && angle < 67.5) return "Northeast";
-            if (angle >= 67.5 && angle < 112.5) return "East";
-            if (angle >= 112.5 && angle < 157.5) return "Southeast";
-            if (angle >= 157.5 && angle < 202.5) return "South";
-            if (angle >= 202.5 && angle < 247.5) return "Southwest";
-            if (angle >= 247.5 && angle < 292.5) return "West";
-            return "Northwest";
+            if (angle >= 337.5 || angle < 22.5) return "RimWorldAccess.Map.Direction.North".Translate();
+            if (angle >= 22.5 && angle < 67.5) return "RimWorldAccess.Map.Direction.Northeast".Translate();
+            if (angle >= 67.5 && angle < 112.5) return "RimWorldAccess.Map.Direction.East".Translate();
+            if (angle >= 112.5 && angle < 157.5) return "RimWorldAccess.Map.Direction.Southeast".Translate();
+            if (angle >= 157.5 && angle < 202.5) return "RimWorldAccess.Map.Direction.South".Translate();
+            if (angle >= 202.5 && angle < 247.5) return "RimWorldAccess.Map.Direction.Southwest".Translate();
+            if (angle >= 247.5 && angle < 292.5) return "RimWorldAccess.Map.Direction.West".Translate();
+            return "RimWorldAccess.Map.Direction.Northwest".Translate();
         }
     }
 }

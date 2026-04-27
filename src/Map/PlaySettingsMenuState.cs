@@ -98,10 +98,14 @@ namespace RimWorldAccess
 
             // Auto-rebuild toggle
             currentOptions.Add(new MenuOption(
-                $"Auto-Rebuild: {(Find.PlaySettings.autoRebuild ? "On" : "Off")}",
+                (Find.PlaySettings.autoRebuild
+                    ? "RimWorldAccess.Map.PlaySettings.AutoRebuild.LabelOn"
+                    : "RimWorldAccess.Map.PlaySettings.AutoRebuild.LabelOff").Translate(),
                 () => {
                     Find.PlaySettings.autoRebuild = !Find.PlaySettings.autoRebuild;
-                    TolkHelper.Speak($"Auto-Rebuild {(Find.PlaySettings.autoRebuild ? "enabled" : "disabled")}");
+                    TolkHelper.Speak((Find.PlaySettings.autoRebuild
+                        ? "RimWorldAccess.Map.PlaySettings.AutoRebuild.Enabled"
+                        : "RimWorldAccess.Map.PlaySettings.AutoRebuild.Disabled").Translate());
                     BuildMenuOptions(); // Refresh to update labels
                     AnnounceCurrentOption(); // Re-announce with new state
                 }
@@ -109,18 +113,22 @@ namespace RimWorldAccess
 
             // Auto-expand home area toggle
             currentOptions.Add(new MenuOption(
-                $"Auto-Expand Home Area: {(Find.PlaySettings.autoHomeArea ? "On" : "Off")}",
+                (Find.PlaySettings.autoHomeArea
+                    ? "RimWorldAccess.Map.PlaySettings.AutoHomeArea.LabelOn"
+                    : "RimWorldAccess.Map.PlaySettings.AutoHomeArea.LabelOff").Translate(),
                 () => {
                     Find.PlaySettings.autoHomeArea = !Find.PlaySettings.autoHomeArea;
-                    TolkHelper.Speak($"Auto-Expand Home Area {(Find.PlaySettings.autoHomeArea ? "enabled" : "disabled")}");
+                    TolkHelper.Speak((Find.PlaySettings.autoHomeArea
+                        ? "RimWorldAccess.Map.PlaySettings.AutoHomeArea.Enabled"
+                        : "RimWorldAccess.Map.PlaySettings.AutoHomeArea.Disabled").Translate());
                     BuildMenuOptions(); // Refresh
                     AnnounceCurrentOption();
                 }
             ));
 
-            // Cancel option
+            // Cancel option (vanilla key)
             currentOptions.Add(new MenuOption(
-                "Cancel",
+                "CancelButton".Translate(),
                 Close
             ));
         }

@@ -18,7 +18,7 @@ namespace RimWorldAccess
             TickManager tm = Find.TickManager;
             if (tm == null)
             {
-                TolkHelper.Speak("Performance data not available", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Map.Performance.Unavailable".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -28,7 +28,7 @@ namespace RimWorldAccess
             // Paused: no meaningful performance data (multiplier is 0, would divide by zero).
             if (speed == TimeSpeed.Paused || multiplier <= 0f)
             {
-                TolkHelper.Speak("Game paused");
+                TolkHelper.Speak("RimWorldAccess.Map.Game.Paused".Translate());
                 return;
             }
 
@@ -36,7 +36,7 @@ namespace RimWorldAccess
             // Guard against divide-by-zero immediately after load, before any ticks run.
             if (meanTickTime <= 0.0001f)
             {
-                TolkHelper.Speak("Performance data not available");
+                TolkHelper.Speak("RimWorldAccess.Map.Performance.Unavailable".Translate());
                 return;
             }
 
@@ -57,9 +57,11 @@ namespace RimWorldAccess
 
             string speedName = TimeControlAccessibilityPatch.LocalizedSpeedName(speed);
             bool slowedByThreat = tm.slower != null && tm.slower.ForcedNormalSpeed;
-            string threatClause = slowedByThreat ? ", slowed by threat" : "";
+            string announcementKey = slowedByThreat
+                ? "RimWorldAccess.Map.Performance.SpeedSlowed"
+                : "RimWorldAccess.Map.Performance.Speed";
             string announcement =
-                $"{speedName} speed{threatClause}, {actualTpsInt} of {targetTpsInt} ticks per second, {percent} percent";
+                announcementKey.Translate(speedName, actualTpsInt, targetTpsInt, percent);
 
             TolkHelper.Speak(announcement);
             SoundDefOf.Click.PlayOneShotOnCamera();

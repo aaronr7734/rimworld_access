@@ -198,7 +198,7 @@ namespace RimWorldAccess
 
             if (mapCount <= 1)
             {
-                TolkHelper.Speak("Only one map available");
+                TolkHelper.Speak("RimWorldAccess.Map.Switch.OnlyOne".Translate());
                 hasAnnouncedThisFrame = true;
                 return;
             }
@@ -211,7 +211,7 @@ namespace RimWorldAccess
             // Check if map switch actually happened (mapName will be set if successful)
             if (string.IsNullOrEmpty(mapName))
             {
-                TolkHelper.Speak("Could not switch maps");
+                TolkHelper.Speak("RimWorldAccess.Map.Switch.Failed".Translate());
                 hasAnnouncedThisFrame = true;
                 return;
             }
@@ -232,11 +232,11 @@ namespace RimWorldAccess
             string fullAnnouncement;
             if (string.IsNullOrEmpty(presenceInfo))
             {
-                fullAnnouncement = $"Now at {mapName}. No player pawns here.";
+                fullAnnouncement = "RimWorldAccess.Map.Switch.NoPawns".Translate(mapName);
             }
             else
             {
-                fullAnnouncement = $"Now at {mapName} ({presenceInfo})";
+                fullAnnouncement = "RimWorldAccess.Map.Switch.WithInfo".Translate(mapName, presenceInfo);
             }
             TolkHelper.Speak(fullAnnouncement);
             MapNavigationState.LastAnnouncedInfo = fullAnnouncement;
@@ -308,7 +308,7 @@ namespace RimWorldAccess
                 selectedPawn = ColonistBarState.SelectNextMech();
                 if (selectedPawn == null)
                 {
-                    TolkHelper.Speak("No mechs on this map");
+                    TolkHelper.Speak("RimWorldAccess.Map.Pawn.NoMechs".Translate());
                     return false;
                 }
             }
@@ -317,7 +317,7 @@ namespace RimWorldAccess
                 selectedPawn = PawnSelectionState.SelectNextColonist();
                 if (selectedPawn == null)
                 {
-                    TolkHelper.Speak("No colonists on this map");
+                    TolkHelper.Speak("RimWorldAccess.Map.Pawn.NoColonists".Translate());
                     return false;
                 }
             }
@@ -349,16 +349,20 @@ namespace RimWorldAccess
             // Announce selection
             string currentTask = selectedPawn.GetJobReport();
             if (string.IsNullOrEmpty(currentTask))
-                currentTask = "Idle";
+                currentTask = "RimWorldAccess.Map.Pawn.Idle".Translate();
 
-            string announcement = selectedPawn.LabelShort;
-            if (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
+            string announcement;
+            string coverInfo = (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
+                ? CoverHelper.GetCoverInfo(selectedPawn)
+                : null;
+            if (!string.IsNullOrEmpty(coverInfo))
             {
-                string coverInfo = CoverHelper.GetCoverInfo(selectedPawn);
-                if (!string.IsNullOrEmpty(coverInfo))
-                    announcement += $", {coverInfo}";
+                announcement = "RimWorldAccess.Map.Pawn.SelectionWithCover".Translate(selectedPawn.LabelShort, coverInfo, currentTask);
             }
-            announcement += $" - {currentTask}";
+            else
+            {
+                announcement = "RimWorldAccess.Map.Pawn.Selection".Translate(selectedPawn.LabelShort, currentTask);
+            }
             TolkHelper.Speak(announcement);
 
             return false; // Block original method
@@ -394,7 +398,7 @@ namespace RimWorldAccess
                 selectedPawn = ColonistBarState.SelectPreviousMech();
                 if (selectedPawn == null)
                 {
-                    TolkHelper.Speak("No mechs on this map");
+                    TolkHelper.Speak("RimWorldAccess.Map.Pawn.NoMechs".Translate());
                     return false;
                 }
             }
@@ -403,7 +407,7 @@ namespace RimWorldAccess
                 selectedPawn = PawnSelectionState.SelectPreviousColonist();
                 if (selectedPawn == null)
                 {
-                    TolkHelper.Speak("No colonists on this map");
+                    TolkHelper.Speak("RimWorldAccess.Map.Pawn.NoColonists".Translate());
                     return false;
                 }
             }
@@ -435,16 +439,20 @@ namespace RimWorldAccess
             // Announce selection
             string currentTask = selectedPawn.GetJobReport();
             if (string.IsNullOrEmpty(currentTask))
-                currentTask = "Idle";
+                currentTask = "RimWorldAccess.Map.Pawn.Idle".Translate();
 
-            string announcement = selectedPawn.LabelShort;
-            if (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
+            string announcement;
+            string coverInfo = (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
+                ? CoverHelper.GetCoverInfo(selectedPawn)
+                : null;
+            if (!string.IsNullOrEmpty(coverInfo))
             {
-                string coverInfo = CoverHelper.GetCoverInfo(selectedPawn);
-                if (!string.IsNullOrEmpty(coverInfo))
-                    announcement += $", {coverInfo}";
+                announcement = "RimWorldAccess.Map.Pawn.SelectionWithCover".Translate(selectedPawn.LabelShort, coverInfo, currentTask);
             }
-            announcement += $" - {currentTask}";
+            else
+            {
+                announcement = "RimWorldAccess.Map.Pawn.Selection".Translate(selectedPawn.LabelShort, currentTask);
+            }
             TolkHelper.Speak(announcement);
 
             return false; // Block original method

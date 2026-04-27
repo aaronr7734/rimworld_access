@@ -23,7 +23,7 @@ namespace RimWorldAccess
             // Check if there's a tick manager
             if (Find.TickManager == null)
             {
-                TolkHelper.Speak("Time information not available", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Map.Time.Unavailable".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -95,32 +95,32 @@ namespace RimWorldAccess
                     displayHour = hour - 12;
                     amPm = "PM".Translate();
                 }
-                timeString = $"{displayHour}:{minute:D2} {amPm}";
+                timeString = "RimWorldAccess.Map.Time.Hour12".Translate(displayHour, minute.ToString("D2"), amPm);
             }
             else
             {
                 // 24-hour format
-                timeString = $"{hour:D2}:{minute:D2}";
+                timeString = "RimWorldAccess.Map.Time.Hour24".Translate(hour.ToString("D2"), minute.ToString("D2"));
             }
 
-            sb.Append($"{"ClockTime".Translate()}: {timeString}");
+            sb.Append("RimWorldAccess.Map.Time.SectionFirst".Translate("ClockTime".Translate(), timeString));
 
             // Weather (only if on a map)
             if (Find.CurrentMap?.weatherManager?.curWeather != null)
             {
                 WeatherDef weather = Find.CurrentMap.weatherManager.curWeather;
-                sb.Append($", {"Weather".Translate()}: {weather.LabelCap}");
+                sb.Append("RimWorldAccess.Map.Time.SectionAppend".Translate("Weather".Translate(), weather.LabelCap));
             }
 
             // Date
             string dateString = GenDate.DateReadoutStringAt(absTicks, longLat);
-            sb.Append($", {"ClockDate".Translate()}: {dateString}");
+            sb.Append("RimWorldAccess.Map.Time.SectionAppend".Translate("ClockDate".Translate(), dateString));
 
             // Season (only if on a map, not on world view)
             if (Find.CurrentMap != null && season != Season.Undefined)
             {
                 string seasonLabel = season.LabelCap();
-                sb.Append($", Season: {seasonLabel}");
+                sb.Append("RimWorldAccess.Map.Time.SeasonAppend".Translate(seasonLabel));
             }
 
             // Days passed since game start (useful context)
@@ -128,7 +128,7 @@ namespace RimWorldAccess
             string daysPhrase = daysPassed == 1
                 ? "Period1Day".Translate().ToString()
                 : "PeriodDays".Translate(daysPassed).ToString();
-            sb.Append($", Days passed: {daysPhrase}");
+            sb.Append("RimWorldAccess.Map.Time.DaysPassedAppend".Translate(daysPhrase));
 
             // Copy to clipboard for screen reader
             TolkHelper.Speak(sb.ToString());

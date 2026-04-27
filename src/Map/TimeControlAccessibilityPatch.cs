@@ -1,7 +1,6 @@
 using HarmonyLib;
 using RimWorld;
 using Verse;
-using System.Reflection;
 
 namespace RimWorldAccess
 {
@@ -70,19 +69,19 @@ namespace RimWorldAccess
         private static string GetTimeSpeedAnnouncement(TimeSpeed speed)
         {
             if (speed == TimeSpeed.Paused)
-                return "Game paused";
-            return $"Time speed: {LocalizedSpeedName(speed)}";
+                return "RimWorldAccess.Map.Game.Paused".Translate();
+            return "RimWorldAccess.Map.Time.SpeedAnnouncement".Translate(LocalizedSpeedName(speed));
         }
 
         internal static string LocalizedSpeedName(TimeSpeed speed)
         {
             switch (speed)
             {
-                case TimeSpeed.Paused:    return "Paused";
-                case TimeSpeed.Normal:    return "Normal";
-                case TimeSpeed.Fast:      return "Fast";
-                case TimeSpeed.Superfast: return "Superfast";
-                case TimeSpeed.Ultrafast: return "Ultrafast";
+                case TimeSpeed.Paused:    return "RimWorldAccess.Map.Time.Speed.Paused".Translate();
+                case TimeSpeed.Normal:    return "RimWorldAccess.Map.Time.Speed.Normal".Translate();
+                case TimeSpeed.Fast:      return "RimWorldAccess.Map.Time.Speed.Fast".Translate();
+                case TimeSpeed.Superfast: return "RimWorldAccess.Map.Time.Speed.Superfast".Translate();
+                case TimeSpeed.Ultrafast: return "RimWorldAccess.Map.Time.Speed.Ultrafast".Translate();
                 default: return speed.ToString();
             }
         }
@@ -111,7 +110,7 @@ namespace RimWorldAccess
             {
                 // OFF -> ON: a threat just triggered the combat slowdown.
                 Messages.Message(
-                    "Game slowed down by presence of threat.",
+                    "RimWorldAccess.Map.Time.Threat.Slowed".Translate(),
                     MessageTypeDefOf.NeutralEvent,
                     historical: false);
             }
@@ -120,7 +119,7 @@ namespace RimWorldAccess
                 // ON -> OFF: the threat slowdown has expired and the game
                 // is about to resume the user's faster set speed.
                 Messages.Message(
-                    "Threat passed. Game speed resumed.",
+                    "RimWorldAccess.Map.Time.Threat.Passed".Translate(),
                     MessageTypeDefOf.NeutralEvent,
                     historical: false);
             }

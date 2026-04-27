@@ -1,0 +1,662 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Map module strings (src/Map/). Covers cursor navigation, the
+    scanner system (categories, items, search filter), tile info
+    readouts, time/weather announcements, bookmarks, go-to dialog,
+    and the play-settings overlay menu.
+
+    Phrasing decisions:
+      - Cursor and scanner readouts compose many small fragments
+        (label, distance, direction, bulk position, region size).
+        Each composed shape is its own key so translators can
+        reorder fragments instead of relying on C# concatenation.
+      - "{N} tiles {direction}" stays as a parameterized key. The
+        direction words come from Map.Direction.* and are bare
+        nouns, since the same word also appears in cell-side
+        descriptions ("fuel port east", "watch from north").
+      - Door "(open)" / "(closed)" suffixes appear in both
+        TileInfoHelper and ScannerLabelBuilder. Both delegate to
+        Map.Label.WithDoorOpen / WithDoorClosed so the parenthesis
+        style is editable in one place.
+      - PlaySettings toggle labels are split into one key per
+        semantic case (Auto-Rebuild on / Auto-Rebuild off / Auto-
+        Rebuild enabled / Auto-Rebuild disabled) rather than glue-
+        composing the noun with " enabled" / ": On".
+      - Game data flowing through these announcements (def labels,
+        designation labels, pawn names, terrain labels, room roles,
+        ToStringMoney/ToStringPercent output, vanilla ClockTime/
+        Weather/ClockDate labels) is NOT translated here - the game
+        already provides localized strings.
+
+    Shared phrases delegated elsewhere:
+      - Map.JumpedTo / Map.SelectedCell        -> Common.xml
+      - Search.NoMatches / Search.Cleared       -> Common.xml
+      - Edge.* (boundary announcements)         -> Common.xml
+      - Cancel button label                     -> vanilla "Cancel"
+  -->
+
+  <!-- =================================================================
+       Compass directions (ScannerDirectionHelper, BookmarkHelper).
+       Bare nouns composed into "{N} tiles {direction}" and into
+       building-cell descriptions ("fuel port {direction}",
+       "watch from {direction}", "Interact from {direction}", etc.).
+       ================================================================= -->
+  <RimWorldAccess.Map.Direction.North>North</RimWorldAccess.Map.Direction.North>
+  <RimWorldAccess.Map.Direction.Northeast>Northeast</RimWorldAccess.Map.Direction.Northeast>
+  <RimWorldAccess.Map.Direction.East>East</RimWorldAccess.Map.Direction.East>
+  <RimWorldAccess.Map.Direction.Southeast>Southeast</RimWorldAccess.Map.Direction.Southeast>
+  <RimWorldAccess.Map.Direction.South>South</RimWorldAccess.Map.Direction.South>
+  <RimWorldAccess.Map.Direction.Southwest>Southwest</RimWorldAccess.Map.Direction.Southwest>
+  <RimWorldAccess.Map.Direction.West>West</RimWorldAccess.Map.Direction.West>
+  <RimWorldAccess.Map.Direction.Northwest>Northwest</RimWorldAccess.Map.Direction.Northwest>
+  <!-- Lowercase forms used inside building-cell descriptions
+       (e.g. "fuel port east", "Watch from south"). The capitalized
+       variants above are spoken on their own; these compose into
+       larger phrases. -->
+  <RimWorldAccess.Map.Direction.Lower.North>north</RimWorldAccess.Map.Direction.Lower.North>
+  <RimWorldAccess.Map.Direction.Lower.Northeast>northeast</RimWorldAccess.Map.Direction.Lower.Northeast>
+  <RimWorldAccess.Map.Direction.Lower.East>east</RimWorldAccess.Map.Direction.Lower.East>
+  <RimWorldAccess.Map.Direction.Lower.Southeast>southeast</RimWorldAccess.Map.Direction.Lower.Southeast>
+  <RimWorldAccess.Map.Direction.Lower.South>south</RimWorldAccess.Map.Direction.Lower.South>
+  <RimWorldAccess.Map.Direction.Lower.Southwest>southwest</RimWorldAccess.Map.Direction.Lower.Southwest>
+  <RimWorldAccess.Map.Direction.Lower.West>west</RimWorldAccess.Map.Direction.Lower.West>
+  <RimWorldAccess.Map.Direction.Lower.Northwest>northwest</RimWorldAccess.Map.Direction.Lower.Northwest>
+
+  <!-- =================================================================
+       Generic label fragments shared by ScannerLabelBuilder,
+       TileInfoHelper, and other map readouts.
+       ================================================================= -->
+  <!-- Spoken when a thing/zone/room reference is null or unrecognized. -->
+  <RimWorldAccess.Map.Label.Unknown>Unknown</RimWorldAccess.Map.Label.Unknown>
+  <!-- Fallback when a Thing's label getter throws (e.g. corrupted
+       Blueprint_Install with a missing minified item). -->
+  <RimWorldAccess.Map.Label.Corrupted>Corrupted object</RimWorldAccess.Map.Label.Corrupted>
+  <!-- Generic "label (defLabel)" pattern, e.g. "monument marker
+       (haul)" or "concrete (smoothed)". {0} = primary label,
+       {1} = the secondary def/category label. -->
+  <RimWorldAccess.Map.Label.Suffixed>{0} ({1})</RimWorldAccess.Map.Label.Suffixed>
+  <!-- Door state annotation. {0} = the door's label. -->
+  <RimWorldAccess.Map.Label.WithDoorOpen>{0} (open)</RimWorldAccess.Map.Label.WithDoorOpen>
+  <RimWorldAccess.Map.Label.WithDoorClosed>{0} (closed)</RimWorldAccess.Map.Label.WithDoorClosed>
+
+  <!-- =================================================================
+       Bookmark slots (BookmarkHelper).
+       {0} = slot number (0-9, the user's typed digit).
+       Set:        {0} = slot, {1} = TileInfoHelper.GetTileSummary().
+       Jumped:     {0} = TileInfoHelper.GetTileSummary() at target.
+       PeekHere:   {0} = tile summary at target (cursor is already
+                   on the bookmarked tile).
+       PeekDirection: {0} = tile summary, {1} = distance (already
+                      formatted with no decimals), {2} = direction.
+       ================================================================= -->
+  <RimWorldAccess.Map.Bookmark.Set>Bookmark {0} set: {1}</RimWorldAccess.Map.Bookmark.Set>
+  <RimWorldAccess.Map.Bookmark.NotSet>Bookmark {0} not set</RimWorldAccess.Map.Bookmark.NotSet>
+  <RimWorldAccess.Map.Bookmark.Invalid>Bookmark {0} invalid</RimWorldAccess.Map.Bookmark.Invalid>
+  <RimWorldAccess.Map.Bookmark.Jumped>Jumped. {0}</RimWorldAccess.Map.Bookmark.Jumped>
+  <RimWorldAccess.Map.Bookmark.PeekHere>{0}, here</RimWorldAccess.Map.Bookmark.PeekHere>
+  <RimWorldAccess.Map.Bookmark.PeekDirection>{0}, {1} tiles {2}</RimWorldAccess.Map.Bookmark.PeekDirection>
+
+  <!-- =================================================================
+       Cover info (CoverHelper.GetCoverInfo).
+       Spoken as part of pawn announcements when a drafted player
+       pawn or a hostile pawn has cover nearby.
+       Behind: {0} = cover def label, {1} = block-chance percent
+               string (already formatted by ToStringPercent).
+       NoCoverLower: vanilla key reused via .Translate().
+       ================================================================= -->
+  <RimWorldAccess.Map.Cover.Behind>behind {0} (blocks {1})</RimWorldAccess.Map.Cover.Behind>
+
+  <!-- =================================================================
+       Tile detail hotkeys (DetailInfoPatch keys 1-7).
+       UnknownKey is a defensive fallback that should never reach a
+       user in normal play.
+       ================================================================= -->
+  <RimWorldAccess.Map.Detail.UnknownKey>Unknown key</RimWorldAccess.Map.Detail.UnknownKey>
+
+  <!-- =================================================================
+       Go-to dialog (GoToState, Ctrl+G).
+       Open: {0} = current cursor x, {1} = current cursor z.
+       FieldX/FieldZ: announced when the user moves between fields.
+       Deleted: {0} = the deleted character (echo).
+       ================================================================= -->
+  <RimWorldAccess.Map.GoTo.Open>Go to. Currently at {0}, {1}</RimWorldAccess.Map.GoTo.Open>
+  <RimWorldAccess.Map.GoTo.FieldX>X</RimWorldAccess.Map.GoTo.FieldX>
+  <RimWorldAccess.Map.GoTo.FieldZ>Z</RimWorldAccess.Map.GoTo.FieldZ>
+  <RimWorldAccess.Map.GoTo.InvalidX>Invalid X coordinate</RimWorldAccess.Map.GoTo.InvalidX>
+  <RimWorldAccess.Map.GoTo.InvalidZ>Invalid Z coordinate</RimWorldAccess.Map.GoTo.InvalidZ>
+  <RimWorldAccess.Map.GoTo.Cancelled>Cancelled</RimWorldAccess.Map.GoTo.Cancelled>
+  <!-- Backspace echo, shared between GoToState and ScannerSearchState.
+       {0} = the deleted character. -->
+  <RimWorldAccess.Map.Input.Deleted>Deleted {0}</RimWorldAccess.Map.Input.Deleted>
+
+  <!-- =================================================================
+       Map switching and pawn cycling (MapNavigationPatch,
+       ThingSelectionUtilityPatch). Triggered by Shift+. / Shift+, to
+       cycle maps and by . / , to cycle player pawns on the active map.
+       NewMapWithHint: spoken once when the user reaches a new map for
+                      the first time and a second map exists.
+                      {0} = map name, {1} = total map count.
+       NewMapTotal:    same shape but the user has already seen the hint.
+       MapClosedOne / MapClosedMany: spoken on map removal.
+       SwitchOnlyOne / SwitchFailed: error fallbacks for Shift+./,
+       SwitchNoPawns: {0} = target map name.
+       SwitchWithInfo: {0} = target map name, {1} = presence info
+                        (e.g. "3 colonists, 2 mechs") generated by
+                        PawnSelectionState.
+       ================================================================= -->
+  <RimWorldAccess.Map.NewMap.WithHint>New map: {0}. You now have {1} maps. Use Shift+Period and Shift+Comma to switch between them.</RimWorldAccess.Map.NewMap.WithHint>
+  <RimWorldAccess.Map.NewMap.Total>New map: {0}. {1} maps total.</RimWorldAccess.Map.NewMap.Total>
+  <RimWorldAccess.Map.MapClosed.One>Map closed. One map remaining.</RimWorldAccess.Map.MapClosed.One>
+  <RimWorldAccess.Map.MapClosed.Many>Map closed. {0} maps remaining.</RimWorldAccess.Map.MapClosed.Many>
+  <RimWorldAccess.Map.Switch.OnlyOne>Only one map available</RimWorldAccess.Map.Switch.OnlyOne>
+  <RimWorldAccess.Map.Switch.Failed>Could not switch maps</RimWorldAccess.Map.Switch.Failed>
+  <RimWorldAccess.Map.Switch.NoPawns>Now at {0}. No player pawns here.</RimWorldAccess.Map.Switch.NoPawns>
+  <RimWorldAccess.Map.Switch.WithInfo>Now at {0} ({1})</RimWorldAccess.Map.Switch.WithInfo>
+
+  <!-- Pawn cycling (. / , without Shift, filtered to the current map).
+       NoMechs / NoColonists: nothing to cycle to.
+       Idle: fallback when GetJobReport() returns empty.
+       Selection: {0} = pawn label, {1} = current job.
+       SelectionWithCover: {0} = pawn label, {1} = cover info,
+                           {2} = current job. -->
+  <RimWorldAccess.Map.Pawn.NoMechs>No mechs on this map</RimWorldAccess.Map.Pawn.NoMechs>
+  <RimWorldAccess.Map.Pawn.NoColonists>No colonists on this map</RimWorldAccess.Map.Pawn.NoColonists>
+  <RimWorldAccess.Map.Pawn.Idle>Idle</RimWorldAccess.Map.Pawn.Idle>
+  <RimWorldAccess.Map.Pawn.Selection>{0} - {1}</RimWorldAccess.Map.Pawn.Selection>
+  <RimWorldAccess.Map.Pawn.SelectionWithCover>{0}, {1} - {2}</RimWorldAccess.Map.Pawn.SelectionWithCover>
+
+  <!-- =================================================================
+       Performance announcement (PerformanceAnnouncementState, Shift+T).
+       Speed: {0} = speed name (Map.Time.Speed.*), {1} = actual TPS,
+              {2} = target TPS, {3} = percent (0-100).
+       SpeedSlowed: same shape with the threat slowdown clause baked in.
+       ================================================================= -->
+  <RimWorldAccess.Map.Performance.Unavailable>Performance data not available</RimWorldAccess.Map.Performance.Unavailable>
+  <RimWorldAccess.Map.Performance.Speed>{0} speed, {1} of {2} ticks per second, {3} percent</RimWorldAccess.Map.Performance.Speed>
+  <RimWorldAccess.Map.Performance.SpeedSlowed>{0} speed, slowed by threat, {1} of {2} ticks per second, {3} percent</RimWorldAccess.Map.Performance.SpeedSlowed>
+  <!-- "Game paused" is spoken by both the performance announcer and
+       the time-control patch when the user pauses. -->
+  <RimWorldAccess.Map.Game.Paused>Game paused</RimWorldAccess.Map.Game.Paused>
+
+  <!-- =================================================================
+       Play-settings menu (PlaySettingsMenuState, opened from gizmo bar).
+       Each toggle has four whole-phrase keys: option label in either
+       state, plus the post-toggle confirmation in either direction.
+       Splitting avoids glue-composing "Auto-Rebuild" + ": " + "On".
+       ================================================================= -->
+  <RimWorldAccess.Map.PlaySettings.AutoRebuild.LabelOn>Auto-Rebuild: On</RimWorldAccess.Map.PlaySettings.AutoRebuild.LabelOn>
+  <RimWorldAccess.Map.PlaySettings.AutoRebuild.LabelOff>Auto-Rebuild: Off</RimWorldAccess.Map.PlaySettings.AutoRebuild.LabelOff>
+  <RimWorldAccess.Map.PlaySettings.AutoRebuild.Enabled>Auto-Rebuild enabled</RimWorldAccess.Map.PlaySettings.AutoRebuild.Enabled>
+  <RimWorldAccess.Map.PlaySettings.AutoRebuild.Disabled>Auto-Rebuild disabled</RimWorldAccess.Map.PlaySettings.AutoRebuild.Disabled>
+  <RimWorldAccess.Map.PlaySettings.AutoHomeArea.LabelOn>Auto-Expand Home Area: On</RimWorldAccess.Map.PlaySettings.AutoHomeArea.LabelOn>
+  <RimWorldAccess.Map.PlaySettings.AutoHomeArea.LabelOff>Auto-Expand Home Area: Off</RimWorldAccess.Map.PlaySettings.AutoHomeArea.LabelOff>
+  <RimWorldAccess.Map.PlaySettings.AutoHomeArea.Enabled>Auto-Expand Home Area enabled</RimWorldAccess.Map.PlaySettings.AutoHomeArea.Enabled>
+  <RimWorldAccess.Map.PlaySettings.AutoHomeArea.Disabled>Auto-Expand Home Area disabled</RimWorldAccess.Map.PlaySettings.AutoHomeArea.Disabled>
+  <!-- The Cancel option label reuses vanilla "Cancel".Translate(). -->
+
+  <!-- =================================================================
+       Time announcement (TimeAnnouncementState, T).
+       Composed sentence: "{Time}: {timeString}, {Weather}: {weatherLabel},
+       {Date}: {dateString}, Season: {seasonLabel}, Days passed: {N days}".
+       ClockTime / Weather / ClockDate are vanilla labels obtained via
+       .Translate() at the call site; the section glue and the bare
+       Season / DaysPassed labels live here.
+       ================================================================= -->
+  <RimWorldAccess.Map.Time.Unavailable>Time information not available</RimWorldAccess.Map.Time.Unavailable>
+  <!-- 12-hour and 24-hour formatting. {0} = display hour, {1} =
+       minute (already 2-digit padded), {2} = AM/PM word. -->
+  <RimWorldAccess.Map.Time.Hour12>{0}:{1} {2}</RimWorldAccess.Map.Time.Hour12>
+  <RimWorldAccess.Map.Time.Hour24>{0}:{1}</RimWorldAccess.Map.Time.Hour24>
+  <!-- Section join. SectionFirst is used for the leading element of
+       the sentence ("Time: 8:00 AM"); SectionAppend is used for every
+       subsequent element (", Weather: Clear", ", Date: ...").
+       {0} = label (vanilla "ClockTime"/"Weather"/"ClockDate"),
+       {1} = value (the formatted time string, weather label,
+       date string). -->
+  <RimWorldAccess.Map.Time.SectionFirst>{0}: {1}</RimWorldAccess.Map.Time.SectionFirst>
+  <RimWorldAccess.Map.Time.SectionAppend>, {0}: {1}</RimWorldAccess.Map.Time.SectionAppend>
+  <!-- Standalone section labels for which vanilla has no exact key
+       (Season is referenced as a noun by itself, days-passed phrases
+       come from "Period1Day"/"PeriodDays").
+       {0} = season label, {0} = days phrase ("1 day", "5 days"). -->
+  <RimWorldAccess.Map.Time.SeasonAppend>, Season: {0}</RimWorldAccess.Map.Time.SeasonAppend>
+  <RimWorldAccess.Map.Time.DaysPassedAppend>, Days passed: {0}</RimWorldAccess.Map.Time.DaysPassedAppend>
+
+  <!-- =================================================================
+       Time speed announcer (TimeControlAccessibilityPatch).
+       Announcement composes a localized speed name into "Time speed:
+       {0}". Paused gets a dedicated phrase ("Game paused", shared
+       with Map.Game.Paused).
+       Threat slowdown messages are surfaced through Messages.Message
+       (so NotificationAccessibilityPatch already speaks them).
+       ================================================================= -->
+  <RimWorldAccess.Map.Time.SpeedAnnouncement>Time speed: {0}</RimWorldAccess.Map.Time.SpeedAnnouncement>
+  <RimWorldAccess.Map.Time.Speed.Paused>Paused</RimWorldAccess.Map.Time.Speed.Paused>
+  <RimWorldAccess.Map.Time.Speed.Normal>Normal</RimWorldAccess.Map.Time.Speed.Normal>
+  <RimWorldAccess.Map.Time.Speed.Fast>Fast</RimWorldAccess.Map.Time.Speed.Fast>
+  <RimWorldAccess.Map.Time.Speed.Superfast>Superfast</RimWorldAccess.Map.Time.Speed.Superfast>
+  <RimWorldAccess.Map.Time.Speed.Ultrafast>Ultrafast</RimWorldAccess.Map.Time.Speed.Ultrafast>
+  <RimWorldAccess.Map.Time.Threat.Slowed>Game slowed down by presence of threat.</RimWorldAccess.Map.Time.Threat.Slowed>
+  <RimWorldAccess.Map.Time.Threat.Passed>Threat passed. Game speed resumed.</RimWorldAccess.Map.Time.Threat.Passed>
+
+  <!-- =================================================================
+       Jump-mode navigation (MapNavigationState).
+       PageUp/PageDown cycles between modes; Ctrl+arrows jumps in the
+       active mode.
+       Distance:        {0} = the new preset jump distance (in tiles).
+       PresetDistanceMode: {0} = the preset jump distance.
+       Boundary / NoWallFound / AlreadyAdjacent: spoken when the jump
+       cannot proceed.
+       ================================================================= -->
+  <RimWorldAccess.Map.Jump.Distance>Jump distance: {0}</RimWorldAccess.Map.Jump.Distance>
+  <RimWorldAccess.Map.Jump.MinimumDistance>Minimum distance</RimWorldAccess.Map.Jump.MinimumDistance>
+  <RimWorldAccess.Map.Jump.Mode.Terrain>Jump mode: Terrain</RimWorldAccess.Map.Jump.Mode.Terrain>
+  <RimWorldAccess.Map.Jump.Mode.Buildings>Jump mode: Buildings</RimWorldAccess.Map.Jump.Mode.Buildings>
+  <RimWorldAccess.Map.Jump.Mode.Geysers>Jump mode: Geysers</RimWorldAccess.Map.Jump.Mode.Geysers>
+  <RimWorldAccess.Map.Jump.Mode.HarvestableTrees>Jump mode: Harvestable Trees</RimWorldAccess.Map.Jump.Mode.HarvestableTrees>
+  <RimWorldAccess.Map.Jump.Mode.MinableTiles>Jump mode: Mineable Tiles</RimWorldAccess.Map.Jump.Mode.MinableTiles>
+  <RimWorldAccess.Map.Jump.Mode.PresetDistance>Jump mode: Preset distance, {0} tiles</RimWorldAccess.Map.Jump.Mode.PresetDistance>
+  <RimWorldAccess.Map.Jump.Mode.AdjacentToWall>Jump mode: Adjacent to Wall</RimWorldAccess.Map.Jump.Mode.AdjacentToWall>
+  <RimWorldAccess.Map.Jump.Mode.Unknown>Jump mode: Unknown</RimWorldAccess.Map.Jump.Mode.Unknown>
+  <RimWorldAccess.Map.Jump.Boundary>Map boundary</RimWorldAccess.Map.Jump.Boundary>
+  <RimWorldAccess.Map.Jump.AlreadyAdjacent>Already adjacent to wall</RimWorldAccess.Map.Jump.AlreadyAdjacent>
+  <RimWorldAccess.Map.Jump.NoWallFound>No wall found</RimWorldAccess.Map.Jump.NoWallFound>
+
+  <!-- =================================================================
+       Map display name fallback (MapNavigationState.GetMapDisplayName).
+       Used in map-switch announcements and map-changed notifications
+       when the map's parent has no readable label.
+       Numbered: {0} = the map's unique numeric ID.
+       ================================================================= -->
+  <RimWorldAccess.Map.Display.Numbered>Map {0}</RimWorldAccess.Map.Display.Numbered>
+
+  <!-- =================================================================
+       Scanner search overlay (ScannerSearchState, Z key).
+       Activated:    spoken when search mode opens.
+       NowFiltering: {0} = the confirmed query; spoken on Enter.
+       CategoryName: {0} = active query; used as the temporary scanner
+                     category label, NOT spoken on its own.
+       RestoredFilter: {0} = previous filter restored on cancel.
+       NoResults / NoMatches: empty-result feedback. NoMatches reuses
+                              the shared Common Search.NoMatches key
+                              when announced from search input mode.
+       Result.One/Many: {0} = first result label, {1} = total count.
+       ================================================================= -->
+  <RimWorldAccess.Map.Search.Activated>Search</RimWorldAccess.Map.Search.Activated>
+  <RimWorldAccess.Map.Search.NowFiltering>Scanner now filtering {0}</RimWorldAccess.Map.Search.NowFiltering>
+  <RimWorldAccess.Map.Search.CategoryName>Search: {0}</RimWorldAccess.Map.Search.CategoryName>
+  <RimWorldAccess.Map.Search.RestoredFilter>Search cancelled. Restored filter: {0}</RimWorldAccess.Map.Search.RestoredFilter>
+  <RimWorldAccess.Map.Search.Cancelled>Search cancelled</RimWorldAccess.Map.Search.Cancelled>
+  <RimWorldAccess.Map.Search.FilterCleared>Search filter cleared</RimWorldAccess.Map.Search.FilterCleared>
+  <RimWorldAccess.Map.Search.NoMap>No map available</RimWorldAccess.Map.Search.NoMap>
+  <RimWorldAccess.Map.Search.WorldNavInactive>World navigation not active</RimWorldAccess.Map.Search.WorldNavInactive>
+  <RimWorldAccess.Map.Search.NoResults>No results</RimWorldAccess.Map.Search.NoResults>
+  <RimWorldAccess.Map.Search.Result.One>{0}, 1 result</RimWorldAccess.Map.Search.Result.One>
+  <RimWorldAccess.Map.Search.Result.Many>{0}, {1} results</RimWorldAccess.Map.Search.Result.Many>
+
+  <!-- =================================================================
+       Scanner state (ScannerState). Drives Page Up/Page Down navigation
+       through scanner items, plus the Ctrl/Shift modifiers for category
+       and subcategory switching.
+       ================================================================= -->
+  <!-- Auto-jump toggle (Alt+Home). Whole-phrase split per direction. -->
+  <RimWorldAccess.Map.Scanner.AutoJumpEnabled>Auto-jump mode enabled</RimWorldAccess.Map.Scanner.AutoJumpEnabled>
+  <RimWorldAccess.Map.Scanner.AutoJumpDisabled>Auto-jump mode disabled</RimWorldAccess.Map.Scanner.AutoJumpDisabled>
+
+  <!-- Error and edge announcements during scanner navigation. -->
+  <RimWorldAccess.Map.Scanner.NotInitialized>Map navigation not initialized</RimWorldAccess.Map.Scanner.NotInitialized>
+  <RimWorldAccess.Map.Scanner.NoActiveMap>No active map</RimWorldAccess.Map.Scanner.NoActiveMap>
+  <RimWorldAccess.Map.Scanner.NoItems>No items found on map</RimWorldAccess.Map.Scanner.NoItems>
+  <RimWorldAccess.Map.Scanner.ItemGone>Item no longer exists</RimWorldAccess.Map.Scanner.ItemGone>
+  <RimWorldAccess.Map.Scanner.NoItemSelected>No item selected</RimWorldAccess.Map.Scanner.NoItemSelected>
+  <RimWorldAccess.Map.Scanner.EmptyCategory>No items in this category</RimWorldAccess.Map.Scanner.EmptyCategory>
+
+  <!-- Category / subcategory switch announcements.
+       One/Many split for the item count.
+       {0} = localized category or subcategory name (see CatName.* /
+       SubName.* below), {1} = item count. -->
+  <RimWorldAccess.Map.Scanner.CategoryAnnouncementOne>{0} - 1 item</RimWorldAccess.Map.Scanner.CategoryAnnouncementOne>
+  <RimWorldAccess.Map.Scanner.CategoryAnnouncementMany>{0} - {1} items</RimWorldAccess.Map.Scanner.CategoryAnnouncementMany>
+
+  <!-- End-key distance/direction readout. -->
+  <RimWorldAccess.Map.Scanner.DistanceDirection>{0} tiles {1}</RimWorldAccess.Map.Scanner.DistanceDirection>
+  <RimWorldAccess.Map.Scanner.Here>here</RimWorldAccess.Map.Scanner.Here>
+
+  <!-- Item announcement composition (cursor-jumped to a scanner item).
+       The bare announcement is one of:
+         WithDirection: {0} = label, {1} = distance, {2} = direction.
+         Here:          {0} = label.
+       Optional suffixes are appended in this order:
+         LocationSuffix:  " {0}" — pawn location context (in jail, etc.).
+         CommaSuffix:     ", {0}" — cover info OR activity.
+         BulkSuffix:      ", {0} of {1}" — bulk index inside group.
+       Each suffix is its own key so a translator can change the
+       separator (space vs comma) without editing C#. -->
+  <RimWorldAccess.Map.Scanner.Item.WithDirection>{0}, {1} tiles {2}</RimWorldAccess.Map.Scanner.Item.WithDirection>
+  <RimWorldAccess.Map.Scanner.Item.Here>{0}, here</RimWorldAccess.Map.Scanner.Item.Here>
+  <RimWorldAccess.Map.Scanner.Item.LocationSuffix> {0}</RimWorldAccess.Map.Scanner.Item.LocationSuffix>
+  <RimWorldAccess.Map.Scanner.Item.CommaSuffix>, {0}</RimWorldAccess.Map.Scanner.Item.CommaSuffix>
+  <RimWorldAccess.Map.Scanner.Item.BulkSuffix>, {0} of {1}</RimWorldAccess.Map.Scanner.Item.BulkSuffix>
+
+  <!-- Bulk-mode (Alt+PageUp/Down) announcements. Each shape is a
+       whole phrase.
+       TerrainBulk:   {0} = label, {1} = position, {2} = total.
+       WithDirectionBulk: {0} = label, {1} = distance, {2} = direction,
+                          {3} = position, {4} = total.
+       HereBulk:      {0} = label, {1} = position, {2} = total. -->
+  <RimWorldAccess.Map.Scanner.Item.TerrainBulk>{0} - {1} of {2}</RimWorldAccess.Map.Scanner.Item.TerrainBulk>
+  <RimWorldAccess.Map.Scanner.Item.WithDirectionBulk>{0}, {1} tiles {2}, {3} of {4}</RimWorldAccess.Map.Scanner.Item.WithDirectionBulk>
+  <RimWorldAccess.Map.Scanner.Item.HereBulk>{0}, here, {1} of {2}</RimWorldAccess.Map.Scanner.Item.HereBulk>
+
+  <!-- Terrain region announcement (deep ore, contiguous-terrain bulk
+       groups).
+       WithDirection: {0} = label, {1} = size description,
+                      {2} = distance, {3} = direction.
+       Here:          {0} = label, {1} = size description.
+       AreaSuffix:    ", area {0} of {1}" — appended when the item has
+                      multiple terrain regions.
+       SizeWithQuantity: {0} = tile count, {1} = total quantity,
+                         {2} = ore def label. Used for deep ore deposits.
+       DepositLabel: "{0} deposit" — used to label a deep ore region.
+                     {0} = ore def label. -->
+  <RimWorldAccess.Map.Scanner.Region.WithDirection>{0}: {1}, {2} tiles {3}</RimWorldAccess.Map.Scanner.Region.WithDirection>
+  <RimWorldAccess.Map.Scanner.Region.Here>{0}: {1}, here</RimWorldAccess.Map.Scanner.Region.Here>
+  <RimWorldAccess.Map.Scanner.Region.AreaSuffix>, area {0} of {1}</RimWorldAccess.Map.Scanner.Region.AreaSuffix>
+  <RimWorldAccess.Map.Scanner.Region.SizeWithQuantity>{0} tiles ({1} {2})</RimWorldAccess.Map.Scanner.Region.SizeWithQuantity>
+  <RimWorldAccess.Map.Scanner.DeepOre.Deposit>{0} deposit</RimWorldAccess.Map.Scanner.DeepOre.Deposit>
+
+  <!-- Localized scanner category names (announced when navigating
+       Ctrl+PageUp/Down). Internal Name strings stay in English so
+       schema lookups still work; ScannerHelper.LocalizeCategoryName()
+       maps the internal name to one of these keys for announcement. -->
+  <RimWorldAccess.Map.Scanner.CatName.All>All</RimWorldAccess.Map.Scanner.CatName.All>
+  <RimWorldAccess.Map.Scanner.CatName.Pawns>Pawns</RimWorldAccess.Map.Scanner.CatName.Pawns>
+  <RimWorldAccess.Map.Scanner.CatName.Tame>Tame</RimWorldAccess.Map.Scanner.CatName.Tame>
+  <RimWorldAccess.Map.Scanner.CatName.Wild>Wild</RimWorldAccess.Map.Scanner.CatName.Wild>
+  <RimWorldAccess.Map.Scanner.CatName.Hazards>Hazards</RimWorldAccess.Map.Scanner.CatName.Hazards>
+  <RimWorldAccess.Map.Scanner.CatName.Buildings>Buildings</RimWorldAccess.Map.Scanner.CatName.Buildings>
+  <RimWorldAccess.Map.Scanner.CatName.Trees>Trees</RimWorldAccess.Map.Scanner.CatName.Trees>
+  <RimWorldAccess.Map.Scanner.CatName.Plants>Plants</RimWorldAccess.Map.Scanner.CatName.Plants>
+  <RimWorldAccess.Map.Scanner.CatName.Items>Items</RimWorldAccess.Map.Scanner.CatName.Items>
+  <RimWorldAccess.Map.Scanner.CatName.Terrain>Terrain</RimWorldAccess.Map.Scanner.CatName.Terrain>
+  <RimWorldAccess.Map.Scanner.CatName.Mineable>Mineable</RimWorldAccess.Map.Scanner.CatName.Mineable>
+  <RimWorldAccess.Map.Scanner.CatName.Orders>Orders</RimWorldAccess.Map.Scanner.CatName.Orders>
+  <RimWorldAccess.Map.Scanner.CatName.Zones>Zones</RimWorldAccess.Map.Scanner.CatName.Zones>
+  <RimWorldAccess.Map.Scanner.CatName.Rooms>Rooms</RimWorldAccess.Map.Scanner.CatName.Rooms>
+  <RimWorldAccess.Map.Scanner.CatName.Uncategorized>Uncategorized</RimWorldAccess.Map.Scanner.CatName.Uncategorized>
+
+  <!-- Localized scanner subcategory display.
+       Subcat names are stored internally as "{Cat}-{Sub}" (e.g.
+       "Pawns-Colonists"). The "-All" subcategory of every category is
+       announced as just the localized category name (so the user
+       hears "Pawns - 5 items", not "Pawns-All - 5 items").
+       Specialized subcategories announce as
+       "{LocalizedCat}: {LocalizedSub}" via SubFullName so the joiner
+       (": ") can change per language.
+       SubName.* keys are the bare specialized words. Names not listed
+       here pass through unchanged (e.g. dynamic Uncategorized def
+       labels). -->
+  <RimWorldAccess.Map.Scanner.SubFullName>{0}: {1}</RimWorldAccess.Map.Scanner.SubFullName>
+  <RimWorldAccess.Map.Scanner.SubName.All>All</RimWorldAccess.Map.Scanner.SubName.All>
+  <RimWorldAccess.Map.Scanner.SubName.Colonists>Colonists</RimWorldAccess.Map.Scanner.SubName.Colonists>
+  <RimWorldAccess.Map.Scanner.SubName.Prisoners>Prisoners</RimWorldAccess.Map.Scanner.SubName.Prisoners>
+  <RimWorldAccess.Map.Scanner.SubName.Slaves>Slaves</RimWorldAccess.Map.Scanner.SubName.Slaves>
+  <RimWorldAccess.Map.Scanner.SubName.Guests>Guests</RimWorldAccess.Map.Scanner.SubName.Guests>
+  <RimWorldAccess.Map.Scanner.SubName.Hostile>Hostile</RimWorldAccess.Map.Scanner.SubName.Hostile>
+  <RimWorldAccess.Map.Scanner.SubName.PlayerMechs>Player Mechs</RimWorldAccess.Map.Scanner.SubName.PlayerMechs>
+  <RimWorldAccess.Map.Scanner.SubName.HostileMechs>Hostile Mechs</RimWorldAccess.Map.Scanner.SubName.HostileMechs>
+  <RimWorldAccess.Map.Scanner.SubName.Pen>Pen</RimWorldAccess.Map.Scanner.SubName.Pen>
+  <RimWorldAccess.Map.Scanner.SubName.NonPen>Non-Pen</RimWorldAccess.Map.Scanner.SubName.NonPen>
+  <RimWorldAccess.Map.Scanner.SubName.Passive>Passive</RimWorldAccess.Map.Scanner.SubName.Passive>
+  <RimWorldAccess.Map.Scanner.SubName.Fire>Fire</RimWorldAccess.Map.Scanner.SubName.Fire>
+  <RimWorldAccess.Map.Scanner.SubName.Blight>Blight</RimWorldAccess.Map.Scanner.SubName.Blight>
+  <RimWorldAccess.Map.Scanner.SubName.Structure>Structure</RimWorldAccess.Map.Scanner.SubName.Structure>
+  <RimWorldAccess.Map.Scanner.SubName.Production>Production</RimWorldAccess.Map.Scanner.SubName.Production>
+  <RimWorldAccess.Map.Scanner.SubName.Furniture>Furniture</RimWorldAccess.Map.Scanner.SubName.Furniture>
+  <RimWorldAccess.Map.Scanner.SubName.Power>Power</RimWorldAccess.Map.Scanner.SubName.Power>
+  <RimWorldAccess.Map.Scanner.SubName.Security>Security</RimWorldAccess.Map.Scanner.SubName.Security>
+  <RimWorldAccess.Map.Scanner.SubName.Misc>Misc</RimWorldAccess.Map.Scanner.SubName.Misc>
+  <RimWorldAccess.Map.Scanner.SubName.Recreation>Recreation</RimWorldAccess.Map.Scanner.SubName.Recreation>
+  <RimWorldAccess.Map.Scanner.SubName.Ship>Ship</RimWorldAccess.Map.Scanner.SubName.Ship>
+  <RimWorldAccess.Map.Scanner.SubName.Temperature>Temperature</RimWorldAccess.Map.Scanner.SubName.Temperature>
+  <RimWorldAccess.Map.Scanner.SubName.Traveling>Traveling</RimWorldAccess.Map.Scanner.SubName.Traveling>
+  <RimWorldAccess.Map.Scanner.SubName.Harvestable>Harvestable</RimWorldAccess.Map.Scanner.SubName.Harvestable>
+  <RimWorldAccess.Map.Scanner.SubName.NonHarvestable>Non-Harvestable</RimWorldAccess.Map.Scanner.SubName.NonHarvestable>
+  <RimWorldAccess.Map.Scanner.SubName.Debris>Debris</RimWorldAccess.Map.Scanner.SubName.Debris>
+  <RimWorldAccess.Map.Scanner.SubName.Stored>Stored</RimWorldAccess.Map.Scanner.SubName.Stored>
+  <RimWorldAccess.Map.Scanner.SubName.Scattered>Scattered</RimWorldAccess.Map.Scanner.SubName.Scattered>
+  <RimWorldAccess.Map.Scanner.SubName.Forbidden>Forbidden</RimWorldAccess.Map.Scanner.SubName.Forbidden>
+  <RimWorldAccess.Map.Scanner.SubName.Natural>Natural</RimWorldAccess.Map.Scanner.SubName.Natural>
+  <RimWorldAccess.Map.Scanner.SubName.Constructed>Constructed</RimWorldAccess.Map.Scanner.SubName.Constructed>
+  <RimWorldAccess.Map.Scanner.SubName.Rare>Rare</RimWorldAccess.Map.Scanner.SubName.Rare>
+  <RimWorldAccess.Map.Scanner.SubName.Stone>Stone</RimWorldAccess.Map.Scanner.SubName.Stone>
+  <RimWorldAccess.Map.Scanner.SubName.Chunks>Chunks</RimWorldAccess.Map.Scanner.SubName.Chunks>
+  <RimWorldAccess.Map.Scanner.SubName.ScannedOre>Scanned Ore</RimWorldAccess.Map.Scanner.SubName.ScannedOre>
+  <RimWorldAccess.Map.Scanner.SubName.Construction>Construction</RimWorldAccess.Map.Scanner.SubName.Construction>
+  <RimWorldAccess.Map.Scanner.SubName.Haul>Haul</RimWorldAccess.Map.Scanner.SubName.Haul>
+  <RimWorldAccess.Map.Scanner.SubName.Hunt>Hunt</RimWorldAccess.Map.Scanner.SubName.Hunt>
+  <RimWorldAccess.Map.Scanner.SubName.Mine>Mine</RimWorldAccess.Map.Scanner.SubName.Mine>
+  <RimWorldAccess.Map.Scanner.SubName.Deconstruct>Deconstruct</RimWorldAccess.Map.Scanner.SubName.Deconstruct>
+  <RimWorldAccess.Map.Scanner.SubName.Uninstall>Uninstall</RimWorldAccess.Map.Scanner.SubName.Uninstall>
+  <RimWorldAccess.Map.Scanner.SubName.Cut>Cut</RimWorldAccess.Map.Scanner.SubName.Cut>
+  <RimWorldAccess.Map.Scanner.SubName.Smooth>Smooth</RimWorldAccess.Map.Scanner.SubName.Smooth>
+  <RimWorldAccess.Map.Scanner.SubName.Slaughter>Slaughter</RimWorldAccess.Map.Scanner.SubName.Slaughter>
+  <RimWorldAccess.Map.Scanner.SubName.Other>Other</RimWorldAccess.Map.Scanner.SubName.Other>
+  <RimWorldAccess.Map.Scanner.SubName.Growing>Growing</RimWorldAccess.Map.Scanner.SubName.Growing>
+  <RimWorldAccess.Map.Scanner.SubName.Stockpile>Stockpile</RimWorldAccess.Map.Scanner.SubName.Stockpile>
+  <RimWorldAccess.Map.Scanner.SubName.Fishing>Fishing</RimWorldAccess.Map.Scanner.SubName.Fishing>
+  <RimWorldAccess.Map.Scanner.SubName.Tame>Tame</RimWorldAccess.Map.Scanner.SubName.Tame>
+  <RimWorldAccess.Map.Scanner.SubName.Harvest>Harvest</RimWorldAccess.Map.Scanner.SubName.Harvest>
+
+  <!-- =================================================================
+       Building cell context (BuildingCellHelper). Spoken as a
+       parenthesized suffix on the building label when the cursor is
+       on or adjacent to a special cell of a multi-cell building (bed
+       head/foot, fuel port, cooler vent direction, school desk seat,
+       etc.). Keys here use lowercase directions; the placement
+       variants below use sentence-cap forms.
+       ================================================================= -->
+  <RimWorldAccess.Map.BuildingCell.Head>head</RimWorldAccess.Map.BuildingCell.Head>
+  <RimWorldAccess.Map.BuildingCell.Foot>foot</RimWorldAccess.Map.BuildingCell.Foot>
+  <RimWorldAccess.Map.BuildingCell.FuelPort>fuel port {0}</RimWorldAccess.Map.BuildingCell.FuelPort>
+  <RimWorldAccess.Map.BuildingCell.Cooler>cooling {0}, heating {1}</RimWorldAccess.Map.BuildingCell.Cooler>
+  <RimWorldAccess.Map.BuildingCell.Vent>connects {0} to {1}</RimWorldAccess.Map.BuildingCell.Vent>
+  <RimWorldAccess.Map.BuildingCell.HopperAdjacent>hoppers on any adjacent tile</RimWorldAccess.Map.BuildingCell.HopperAdjacent>
+  <RimWorldAccess.Map.BuildingCell.MechCharger>mech stands {0}</RimWorldAccess.Map.BuildingCell.MechCharger>
+  <RimWorldAccess.Map.BuildingCell.Bookcase>access from {0}</RimWorldAccess.Map.BuildingCell.Bookcase>
+  <RimWorldAccess.Map.BuildingCell.Watchable>watch from {0}</RimWorldAccess.Map.BuildingCell.Watchable>
+  <RimWorldAccess.Map.BuildingCell.InteractionSpot>interaction spot</RimWorldAccess.Map.BuildingCell.InteractionSpot>
+  <RimWorldAccess.Map.BuildingCell.UseFrom>use from {0}</RimWorldAccess.Map.BuildingCell.UseFrom>
+  <!-- {0} = labelled spot (student/teacher/interaction spot/...),
+       {1} = direction. -->
+  <RimWorldAccess.Map.BuildingCell.SpotWithDirection>{0} {1}</RimWorldAccess.Map.BuildingCell.SpotWithDirection>
+  <RimWorldAccess.Map.BuildingCell.StudentSpot>student spot</RimWorldAccess.Map.BuildingCell.StudentSpot>
+  <RimWorldAccess.Map.BuildingCell.TeacherSpot>teacher spot</RimWorldAccess.Map.BuildingCell.TeacherSpot>
+  <!-- {0} = 1-based interaction-cell index. -->
+  <RimWorldAccess.Map.BuildingCell.NumberedSpot>interaction spot {0}</RimWorldAccess.Map.BuildingCell.NumberedSpot>
+
+  <!-- Placement-mode prompts (sentence-capitalized).
+       BedHeadEdge / BedHeadSide: {0} = edge name (north/south/...).
+       FuelPortAdjacent: {0} = direction.
+       FuelPortDistant: {0} = distance, {1} = direction.
+       InteractFromAdjacent: {0} = direction.
+       InteractFromDistant: {0} = distance, {1} = direction.
+       PlacementWatchable: {0} = direction (rotation name). -->
+  <RimWorldAccess.Map.Placement.BedHeadEdge>Head on {0} edge</RimWorldAccess.Map.Placement.BedHeadEdge>
+  <RimWorldAccess.Map.Placement.BedHeadSide>Head on {0} side</RimWorldAccess.Map.Placement.BedHeadSide>
+  <RimWorldAccess.Map.Placement.FuelPortAdjacent>Fuel port {0} of cursor</RimWorldAccess.Map.Placement.FuelPortAdjacent>
+  <RimWorldAccess.Map.Placement.FuelPortDistant>Fuel port {0} tiles {1} of cursor</RimWorldAccess.Map.Placement.FuelPortDistant>
+  <RimWorldAccess.Map.Placement.InteractFromAdjacent>Interact from {0}</RimWorldAccess.Map.Placement.InteractFromAdjacent>
+  <RimWorldAccess.Map.Placement.InteractFromDistant>Interact from {0} tiles {1}</RimWorldAccess.Map.Placement.InteractFromDistant>
+  <RimWorldAccess.Map.Placement.Watchable>Watch from {0}</RimWorldAccess.Map.Placement.Watchable>
+
+  <!-- =================================================================
+       Tile readout (TileInfoHelper). Composes the per-tile summary
+       used by arrow-key navigation and the 1-7 detail keys.
+       Most fragments here are appended to a StringBuilder so each
+       phrase is a whole-phrase key the translator can rearrange.
+       ================================================================= -->
+  <RimWorldAccess.Map.Tile.OutOfBounds>Out of bounds</RimWorldAccess.Map.Tile.OutOfBounds>
+  <RimWorldAccess.Map.Tile.PositionOutOfBounds>Position out of bounds</RimWorldAccess.Map.Tile.PositionOutOfBounds>
+  <!-- Fogged tiles: "{designations}, unseen, {x}, {z}" or just
+       "unseen, {x}, {z}". -->
+  <RimWorldAccess.Map.Tile.UnseenWithDesignations>{0}, unseen, {1}, {2}</RimWorldAccess.Map.Tile.UnseenWithDesignations>
+  <RimWorldAccess.Map.Tile.Unseen>unseen, {0}, {1}</RimWorldAccess.Map.Tile.Unseen>
+  <!-- Coordinates appended to a non-empty / empty summary. -->
+  <RimWorldAccess.Map.Tile.CoordsSuffix>, {0}, {1}</RimWorldAccess.Map.Tile.CoordsSuffix>
+  <RimWorldAccess.Map.Tile.CoordsBare>{0}, {1}</RimWorldAccess.Map.Tile.CoordsBare>
+  <RimWorldAccess.Map.Tile.CantLand>, can't land</RimWorldAccess.Map.Tile.CantLand>
+  <RimWorldAccess.Map.Tile.NotVisible>, not visible</RimWorldAccess.Map.Tile.NotVisible>
+
+  <!-- Item / building line fragments (appended after the running
+       summary already has content). -->
+  <RimWorldAccess.Map.Tile.Frame.Building>, building</RimWorldAccess.Map.Tile.Frame.Building>
+  <RimWorldAccess.Map.Tile.Frame.WorkLeft>, work left: {0}</RimWorldAccess.Map.Tile.Frame.WorkLeft>
+  <RimWorldAccess.Map.Tile.Frame.AwaitingSupplies>, awaiting supplies</RimWorldAccess.Map.Tile.Frame.AwaitingSupplies>
+  <!-- Cell-info parenthesized suffix: " ({BuildingCellHelper})". -->
+  <RimWorldAccess.Map.Tile.CellSuffix> ({0})</RimWorldAccess.Map.Tile.CellSuffix>
+  <!-- " wall" appended to smoothed-stone walls. -->
+  <RimWorldAccess.Map.Tile.WallSuffix> wall</RimWorldAccess.Map.Tile.WallSuffix>
+  <RimWorldAccess.Map.Tile.WorkLeftAppend>, work left: {0}</RimWorldAccess.Map.Tile.WorkLeftAppend>
+  <!-- "Forbidden " prefix on item labels. -->
+  <RimWorldAccess.Map.Tile.ForbiddenPrefix>Forbidden {0}</RimWorldAccess.Map.Tile.ForbiddenPrefix>
+  <!-- " floor" appended to smoothed-stone terrain labels. -->
+  <RimWorldAccess.Map.Tile.FloorSuffix> floor</RimWorldAccess.Map.Tile.FloorSuffix>
+  <!-- Roof status (composed differently when the summary is empty). -->
+  <RimWorldAccess.Map.Tile.Roof.Underground>underground</RimWorldAccess.Map.Tile.Roof.Underground>
+  <RimWorldAccess.Map.Tile.Roof.Roofed>roofed</RimWorldAccess.Map.Tile.Roof.Roofed>
+  <RimWorldAccess.Map.Tile.Roof.Append>, {0}</RimWorldAccess.Map.Tile.Roof.Append>
+
+  <!-- Detail-mode tile dump (GetDetailedTileInfo). -->
+  <RimWorldAccess.Map.Tile.Detail.Header>=== Tile {0}, {1} ===</RimWorldAccess.Map.Tile.Detail.Header>
+  <RimWorldAccess.Map.Tile.Detail.TerrainLine>Terrain: {0}</RimWorldAccess.Map.Tile.Detail.TerrainLine>
+  <RimWorldAccess.Map.Tile.Detail.NoObjects>No objects on this tile</RimWorldAccess.Map.Tile.Detail.NoObjects>
+  <RimWorldAccess.Map.Tile.Detail.PawnsHeader>
+Pawns ({0}):</RimWorldAccess.Map.Tile.Detail.PawnsHeader>
+  <RimWorldAccess.Map.Tile.Detail.BuildingsHeader>
+Buildings ({0}):</RimWorldAccess.Map.Tile.Detail.BuildingsHeader>
+  <RimWorldAccess.Map.Tile.Detail.ItemsHeader>
+Items ({0}):</RimWorldAccess.Map.Tile.Detail.ItemsHeader>
+  <RimWorldAccess.Map.Tile.Detail.PlantsHeader>
+Plants ({0}):</RimWorldAccess.Map.Tile.Detail.PlantsHeader>
+  <RimWorldAccess.Map.Tile.Detail.BulletItem>  - {0}</RimWorldAccess.Map.Tile.Detail.BulletItem>
+  <RimWorldAccess.Map.Tile.Detail.MoreItems>  ... and {0} more items</RimWorldAccess.Map.Tile.Detail.MoreItems>
+  <RimWorldAccess.Map.Tile.Detail.EnvironmentalHeader>
+--- Environmental Info ---</RimWorldAccess.Map.Tile.Detail.EnvironmentalHeader>
+  <RimWorldAccess.Map.Tile.Detail.TemperatureLine>Temperature: {0}</RimWorldAccess.Map.Tile.Detail.TemperatureLine>
+  <RimWorldAccess.Map.Tile.Detail.RoofLine>Roof: {0}</RimWorldAccess.Map.Tile.Detail.RoofLine>
+  <RimWorldAccess.Map.Tile.Detail.RoofNone>Roof: None (outdoors)</RimWorldAccess.Map.Tile.Detail.RoofNone>
+  <RimWorldAccess.Map.Tile.Detail.FoggedStatus>Status: Fogged (not visible)</RimWorldAccess.Map.Tile.Detail.FoggedStatus>
+  <RimWorldAccess.Map.Tile.Detail.ZoneLine>Zone: {0}</RimWorldAccess.Map.Tile.Detail.ZoneLine>
+  <!-- Stack count and parenthesized info-suffix in detail dump. -->
+  <RimWorldAccess.Map.Tile.Detail.StackCount> x{0}</RimWorldAccess.Map.Tile.Detail.StackCount>
+  <RimWorldAccess.Map.Tile.Detail.ParenSuffix> ({0})</RimWorldAccess.Map.Tile.Detail.ParenSuffix>
+  <RimWorldAccess.Map.Tile.Detail.CommaSuffix>, {0}</RimWorldAccess.Map.Tile.Detail.CommaSuffix>
+
+  <!-- Items+pawns hotkey (key 1). -->
+  <RimWorldAccess.Map.Tile.Items.None>no items or pawns</RimWorldAccess.Map.Tile.Items.None>
+  <RimWorldAccess.Map.Tile.Items.MoreSuffix>, and {0} more</RimWorldAccess.Map.Tile.Items.MoreSuffix>
+
+  <!-- Flooring hotkey (key 2). -->
+  <RimWorldAccess.Map.Tile.Flooring.None>no terrain information</RimWorldAccess.Map.Tile.Flooring.None>
+  <RimWorldAccess.Map.Tile.Flooring.Fertility> ({0} fertility)</RimWorldAccess.Map.Tile.Flooring.Fertility>
+  <RimWorldAccess.Map.Tile.Flooring.Smooth>, smooth</RimWorldAccess.Map.Tile.Flooring.Smooth>
+  <RimWorldAccess.Map.Tile.Flooring.Rough>, rough</RimWorldAccess.Map.Tile.Flooring.Rough>
+  <RimWorldAccess.Map.Tile.Flooring.Beauty>, beauty: {0}</RimWorldAccess.Map.Tile.Flooring.Beauty>
+  <RimWorldAccess.Map.Tile.Flooring.Cleanliness>, cleanliness: {0}</RimWorldAccess.Map.Tile.Flooring.Cleanliness>
+  <RimWorldAccess.Map.Tile.Flooring.PathCost>, path cost: {0}</RimWorldAccess.Map.Tile.Flooring.PathCost>
+  <RimWorldAccess.Map.Tile.Flooring.Fish>, fish: {0} ({1}/{2})</RimWorldAccess.Map.Tile.Flooring.Fish>
+
+  <!-- Plants hotkey (key 3). -->
+  <RimWorldAccess.Map.Tile.Plants.NoneNoMinerals>no plants or mineral deposits</RimWorldAccess.Map.Tile.Plants.NoneNoMinerals>
+  <RimWorldAccess.Map.Tile.Plants.None>no plants</RimWorldAccess.Map.Tile.Plants.None>
+  <RimWorldAccess.Map.Tile.Plants.Growth> ({0}% grown)</RimWorldAccess.Map.Tile.Plants.Growth>
+  <RimWorldAccess.Map.Tile.Plants.Harvestable>, harvestable</RimWorldAccess.Map.Tile.Plants.Harvestable>
+  <RimWorldAccess.Map.Tile.Plants.NotHarvestable>, not harvestable</RimWorldAccess.Map.Tile.Plants.NotHarvestable>
+  <RimWorldAccess.Map.Tile.Plants.Dying>, dying</RimWorldAccess.Map.Tile.Plants.Dying>
+  <RimWorldAccess.Map.Tile.Plants.DeepHeader>Deep: </RimWorldAccess.Map.Tile.Plants.DeepHeader>
+  <RimWorldAccess.Map.Tile.Plants.DeepHeaderJoiner>. </RimWorldAccess.Map.Tile.Plants.DeepHeaderJoiner>
+  <RimWorldAccess.Map.Tile.Plants.DeepOreInfo>{0}, {1} remaining</RimWorldAccess.Map.Tile.Plants.DeepOreInfo>
+
+  <!-- Light/temperature hotkey (key 4). -->
+  <RimWorldAccess.Map.Tile.Light.LightLine>light: {0} ({1})</RimWorldAccess.Map.Tile.Light.LightLine>
+  <RimWorldAccess.Map.Tile.Light.TemperatureSuffix>, temperature: {0}</RimWorldAccess.Map.Tile.Light.TemperatureSuffix>
+  <RimWorldAccess.Map.Tile.Light.Indoors>, indoors</RimWorldAccess.Map.Tile.Light.Indoors>
+  <RimWorldAccess.Map.Tile.Light.Outdoors>, outdoors</RimWorldAccess.Map.Tile.Light.Outdoors>
+  <!-- ". {label}: {tempControlInfo}" appended for each cooler/heater. -->
+  <RimWorldAccess.Map.Tile.Light.TempControlSuffix>. {0}: {1}</RimWorldAccess.Map.Tile.Light.TempControlSuffix>
+
+  <!-- Power hotkey (key 6). -->
+  <RimWorldAccess.Map.Tile.Power.NoBuildings>no buildings</RimWorldAccess.Map.Tile.Power.NoBuildings>
+  <RimWorldAccess.Map.Tile.Power.NoneConnected>no power-connected buildings</RimWorldAccess.Map.Tile.Power.NoneConnected>
+  <!-- {0} = building label, {1} = power info; ". " is added between
+       multiple powered buildings via PowerJoiner. -->
+  <RimWorldAccess.Map.Tile.Power.Line>{0}: {1}</RimWorldAccess.Map.Tile.Power.Line>
+  <RimWorldAccess.Map.Tile.Power.Joiner>. </RimWorldAccess.Map.Tile.Power.Joiner>
+
+  <!-- Room stats hotkey (key 5). -->
+  <RimWorldAccess.Map.Tile.Room.None>no room</RimWorldAccess.Map.Tile.Room.None>
+  <RimWorldAccess.Map.Tile.Room.Outdoors>outdoors</RimWorldAccess.Map.Tile.Room.Outdoors>
+  <RimWorldAccess.Map.Tile.Room.NotProper>not a proper room</RimWorldAccess.Map.Tile.Room.NotProper>
+  <RimWorldAccess.Map.Tile.Room.Fallback>Room</RimWorldAccess.Map.Tile.Room.Fallback>
+  <!-- Stat lines: ", {prefix}{label}: {stage} ({score})" or
+       ", {prefix}{label}: {score}" when there is no stage label. -->
+  <RimWorldAccess.Map.Tile.Room.StatWithStage>, {0}{1}: {2} ({3})</RimWorldAccess.Map.Tile.Room.StatWithStage>
+  <RimWorldAccess.Map.Tile.Room.Stat>, {0}{1}: {2}</RimWorldAccess.Map.Tile.Room.Stat>
+
+  <!-- Temperature control building info (used in tile summary and
+       in the light/temp hotkey). -->
+  <RimWorldAccess.Map.Tile.TempControl.Cooler>cooling {0}, heating {1}</RimWorldAccess.Map.Tile.TempControl.Cooler>
+  <RimWorldAccess.Map.Tile.TempControl.Generic>temperature control</RimWorldAccess.Map.Tile.TempControl.Generic>
+  <!-- {0} = direction info from above, {1} = formatted target temp. -->
+  <RimWorldAccess.Map.Tile.TempControl.WithTarget>{0}, target {1}</RimWorldAccess.Map.Tile.TempControl.WithTarget>
+  <RimWorldAccess.Map.Tile.TempControl.UnknownDir>unknown</RimWorldAccess.Map.Tile.TempControl.UnknownDir>
+
+  <!-- Pawn suffix on tile readouts. -->
+  <RimWorldAccess.Map.Tile.Pawn.HostileSuffix> (hostile)</RimWorldAccess.Map.Tile.Pawn.HostileSuffix>
+  <RimWorldAccess.Map.Tile.Pawn.TraderSuffix> (trader)</RimWorldAccess.Map.Tile.Pawn.TraderSuffix>
+  <!-- Pawn formatting helpers.
+       AndJoin: "{0} and {1}" — two pawns sharing the same activity.
+       OxfordJoin: "{0}, and {1}" — three or more pawns; {0} = the
+                    comma-joined head, {1} = the final pawn. -->
+  <RimWorldAccess.Map.Tile.Pawn.AndJoin>{0} and {1}</RimWorldAccess.Map.Tile.Pawn.AndJoin>
+  <RimWorldAccess.Map.Tile.Pawn.OxfordJoin>{0}, and {1}</RimWorldAccess.Map.Tile.Pawn.OxfordJoin>
+  <!-- Pawn group suffix patterns. -->
+  <RimWorldAccess.Map.Tile.Pawn.DesignationSuffix> ({0})</RimWorldAccess.Map.Tile.Pawn.DesignationSuffix>
+  <RimWorldAccess.Map.Tile.Pawn.CoverSuffix>, {0}</RimWorldAccess.Map.Tile.Pawn.CoverSuffix>
+  <RimWorldAccess.Map.Tile.Pawn.ActivitySuffix> ({0})</RimWorldAccess.Map.Tile.Pawn.ActivitySuffix>
+
+  <!-- Areas hotkey (key 7). -->
+  <RimWorldAccess.Map.Tile.Areas.None>not in any area</RimWorldAccess.Map.Tile.Areas.None>
+
+  <!-- Location-context phrasing (used by scanner pawn announcements). -->
+  <RimWorldAccess.Map.Tile.Location.InZone>(in {0})</RimWorldAccess.Map.Tile.Location.InZone>
+  <RimWorldAccess.Map.Tile.Location.AtStorage>(at {0})</RimWorldAccess.Map.Tile.Location.AtStorage>
+  <RimWorldAccess.Map.Tile.Location.InRoom>(in {0})</RimWorldAccess.Map.Tile.Location.InRoom>
+
+  <!-- Designation labels. -->
+  <RimWorldAccess.Map.Tile.UnknownOrder>Unknown order</RimWorldAccess.Map.Tile.UnknownOrder>
+
+  <!-- Building progress info (fermentation, gene assembly). -->
+  <RimWorldAccess.Map.Tile.Progress.Fermented>fermented</RimWorldAccess.Map.Tile.Progress.Fermented>
+  <RimWorldAccess.Map.Tile.Progress.Fermenting>fermenting, {0}</RimWorldAccess.Map.Tile.Progress.Fermenting>
+  <RimWorldAccess.Map.Tile.Progress.Assembling>assembling, {0}</RimWorldAccess.Map.Tile.Progress.Assembling>
+
+  <!-- Transport pod fueling. -->
+  <RimWorldAccess.Map.Tile.TransportPod.Fueled>fueled ({0} chemfuel)</RimWorldAccess.Map.Tile.TransportPod.Fueled>
+  <RimWorldAccess.Map.Tile.TransportPod.NotConnected>not connected to fuel</RimWorldAccess.Map.Tile.TransportPod.NotConnected>
+  <RimWorldAccess.Map.Tile.TransportPod.AdjacentToLauncher>adjacent to launcher</RimWorldAccess.Map.Tile.TransportPod.AdjacentToLauncher>
+  <RimWorldAccess.Map.Tile.TransportPod.LauncherWithFuelPort>{0} chemfuel, fuel port at {1}, {2}</RimWorldAccess.Map.Tile.TransportPod.LauncherWithFuelPort>
+  <RimWorldAccess.Map.Tile.TransportPod.LauncherFallback>pod launcher</RimWorldAccess.Map.Tile.TransportPod.LauncherFallback>
+  <RimWorldAccess.Map.Tile.TransportPod.FuelingPortWithLevel>fueling port for {0} ({1} chemfuel)</RimWorldAccess.Map.Tile.TransportPod.FuelingPortWithLevel>
+  <RimWorldAccess.Map.Tile.TransportPod.FuelingPort>fueling port for {0}</RimWorldAccess.Map.Tile.TransportPod.FuelingPort>
+
+  <!-- Relative direction (TileInfoHelper.GetRelativeDirection).
+       NESW reuse Map.Direction.Lower.* for a single direction.
+       Diagonal: "{NS}{EW}" — two lowercase directions concatenated.
+       Adjacent: spoken when both axes differ by 0. -->
+  <RimWorldAccess.Map.Tile.RelDir.Diagonal>{0}{1}</RimWorldAccess.Map.Tile.RelDir.Diagonal>
+  <RimWorldAccess.Map.Tile.RelDir.Adjacent>adjacent</RimWorldAccess.Map.Tile.RelDir.Adjacent>
+
+</LanguageData>
