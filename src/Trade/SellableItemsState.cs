@@ -54,7 +54,7 @@ namespace RimWorldAccess
         {
             if (dialog == null)
             {
-                TolkHelper.Speak("No dialog");
+                TolkHelper.Speak("RimWorldAccess.Sellable.Open.NoDialog".Translate());
                 return;
             }
 
@@ -98,7 +98,7 @@ namespace RimWorldAccess
                 Find.WindowStack.TryRemove(dialogToClose, doCloseSound: false);
             }
 
-            TolkHelper.Speak("Closed");
+            TolkHelper.Speak("RimWorldAccess.Sellable.Open.Closed".Translate());
             SoundDefOf.Click.PlayOneShotOnCamera();
         }
 
@@ -311,7 +311,7 @@ namespace RimWorldAccess
             if (items == null || items.Count == 0)
             {
                 typeahead.ClearSearch();
-                TolkHelper.Speak("Search cleared");
+                TolkHelper.Speak("RimWorldAccess.Search.Cleared".Translate());
                 return true;
             }
 
@@ -335,7 +335,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak("Search cleared");
+                    TolkHelper.Speak("RimWorldAccess.Search.Cleared".Translate());
                 }
             }
             return true;
@@ -347,7 +347,7 @@ namespace RimWorldAccess
         public static void ClearTypeaheadSearch()
         {
             typeahead.ClearSearch();
-            TolkHelper.Speak("Search cleared");
+            TolkHelper.Speak("RimWorldAccess.Search.Cleared".Translate());
         }
 
         // ===== Private Methods =====
@@ -422,7 +422,7 @@ namespace RimWorldAccess
         {
             var tabs = GetTabs();
             if (tabs == null || currentTabIndex < 0 || currentTabIndex >= tabs.Count)
-                return "Unknown";
+                return "RimWorldAccess.Sellable.Tab.UnknownTab".Translate();
 
             return tabs[currentTabIndex].label;
         }
@@ -447,8 +447,14 @@ namespace RimWorldAccess
             var trader = GetTrader();
             var tabs = GetTabs();
 
-            string traderName = trader?.TraderName ?? "Trader";
-            string tabCount = tabs != null ? $"{tabs.Count} categories" : "";
+            string traderName = trader?.TraderName ?? "RimWorldAccess.Sellable.Open.TraderFallback".Translate().ToString();
+            string tabCount = "";
+            if (tabs != null)
+            {
+                tabCount = tabs.Count == 1
+                    ? "RimWorldAccess.Sellable.Open.CategoriesOne".Translate().ToString()
+                    : "RimWorldAccess.Sellable.Open.CategoriesMany".Translate(tabs.Count).ToString();
+            }
 
             // Build restock info
             string restockInfo = "";
@@ -458,21 +464,21 @@ namespace RimWorldAccess
                 if (nextRestockTick != -1)
                 {
                     float daysUntilRestock = (nextRestockTick - Find.TickManager.TicksGame).TicksToDays();
-                    restockInfo = $"Next restock: {daysUntilRestock:0.0} days. ";
+                    restockInfo = "RimWorldAccess.Sellable.Restock.NextRestock".Translate(daysUntilRestock.ToString("0.0"));
                 }
                 else if (!restockProvider.EverVisited)
                 {
-                    restockInfo = "Not visited yet. ";
+                    restockInfo = "RimWorldAccess.Sellable.Restock.NotVisited".Translate();
                 }
                 else if (restockProvider.RestockedSinceLastVisit)
                 {
-                    restockInfo = "Restocked since last visit. ";
+                    restockInfo = "RimWorldAccess.Sellable.Restock.Restocked".Translate();
                 }
             }
 
-            string controls = "Switch tabs: Left, Right. Navigate: Up, Down.";
+            string controls = "RimWorldAccess.Sellable.Open.Controls".Translate();
 
-            return $"{traderName} will buy. {restockInfo}{tabCount}. {controls}";
+            return "RimWorldAccess.Sellable.Open.Heading".Translate(traderName, restockInfo, tabCount, controls);
         }
 
         private static void AnnounceTabSwitch()
@@ -481,7 +487,10 @@ namespace RimWorldAccess
             var items = GetCurrentItems();
             int count = items?.Count ?? 0;
 
-            TolkHelper.Speak($"{tabName}. {count} items.");
+            string sentence = count == 1
+                ? "RimWorldAccess.Sellable.Tab.SwitchOne".Translate(tabName).ToString()
+                : "RimWorldAccess.Sellable.Tab.SwitchMany".Translate(tabName, count).ToString();
+            TolkHelper.Speak(sentence);
 
             if (count > 0)
             {
@@ -494,7 +503,7 @@ namespace RimWorldAccess
             var items = GetCurrentItems();
             if (items == null || items.Count == 0)
             {
-                TolkHelper.Speak("No items");
+                TolkHelper.Speak("RimWorldAccess.Sellable.Tab.NoItems".Translate());
                 return;
             }
 
@@ -509,14 +518,10 @@ namespace RimWorldAccess
             // Add search info if active
             if (typeahead.HasActiveSearch)
             {
-                if (typeahead.HasNoMatches)
-                {
-                    announcement = $"No matches for '{typeahead.SearchBuffer}'. {announcement}";
-                }
-                else
-                {
-                    announcement = $"Search '{typeahead.SearchBuffer}': {announcement}";
-                }
+                string key = typeahead.HasNoMatches
+                    ? "RimWorldAccess.Sellable.Search.NoMatchesPrefix"
+                    : "RimWorldAccess.Sellable.Search.Prefix";
+                announcement = key.Translate(typeahead.SearchBuffer, announcement);
             }
 
             TolkHelper.Speak(announcement);
@@ -525,26 +530,23 @@ namespace RimWorldAccess
         private static string BuildItemAnnouncement(ThingDef item, int totalCount)
         {
             if (item == null)
-                return "Unknown item";
+                return "RimWorldAccess.Sellable.Item.Unknown".Translate();
 
             // Item name
             string name = item.LabelCap;
-
-            // Description (from tooltip)
-            string description = "";
-            if (!string.IsNullOrEmpty(item.description))
-            {
-                description = $" {item.description}";
-            }
-
-            // Position (if setting enabled)
+            string description = item.description;
             string position = MenuHelper.FormatPosition(currentIndex, totalCount);
-            if (!string.IsNullOrEmpty(position))
-            {
-                position = $" {position}";
-            }
 
-            return $"{name}.{description}{position}";
+            bool hasDesc = !string.IsNullOrEmpty(description);
+            bool hasPos = !string.IsNullOrEmpty(position);
+
+            if (hasDesc && hasPos)
+                return "RimWorldAccess.Sellable.Item.WithDescriptionPosition".Translate(name, description, position);
+            if (hasDesc)
+                return "RimWorldAccess.Sellable.Item.WithDescription".Translate(name, description);
+            if (hasPos)
+                return "RimWorldAccess.Sellable.Item.WithPosition".Translate(name, position);
+            return "RimWorldAccess.Sellable.Item.Bare".Translate(name);
         }
     }
 }

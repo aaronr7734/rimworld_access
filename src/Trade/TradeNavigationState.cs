@@ -145,13 +145,13 @@ namespace RimWorldAccess
         {
             if (dialog == null)
             {
-                TolkHelper.Speak("No trade dialog");
+                TolkHelper.Speak("RimWorldAccess.Trade.Open.NoDialog".Translate());
                 return;
             }
 
             if (!TradeSession.Active)
             {
-                TolkHelper.Speak("No active trade session");
+                TolkHelper.Speak("RimWorldAccess.Trade.Open.NoSession".Translate());
                 return;
             }
 
@@ -195,7 +195,7 @@ namespace RimWorldAccess
 
             if (cachedDeal == null || cachedTrader == null)
             {
-                TolkHelper.Speak("Trade session not properly initialized");
+                TolkHelper.Speak("RimWorldAccess.Trade.Open.SessionNotInitialized".Translate());
                 return;
             }
 
@@ -226,9 +226,11 @@ namespace RimWorldAccess
             currentCategory = TradeCategory.TraderItems;
 
             // Announce opening with essential controls only
-            string traderName = cachedTrader.TraderName ?? "Unknown Trader";
-            string traderKind = cachedTrader.TraderKind?.label ?? "trader";
-            TolkHelper.Speak($"Trading with {traderName} ({traderKind}). Alt+B for balance, Alt+A to accept.");
+            string traderName = cachedTrader.TraderName
+                ?? "RimWorldAccess.Trade.Open.UnknownTrader".Translate().ToString();
+            string traderKind = cachedTrader.TraderKind?.label
+                ?? "RimWorldAccess.Trade.Open.TraderKindFallback".Translate().ToString();
+            TolkHelper.Speak("RimWorldAccess.Trade.Open.Heading".Translate(traderName, traderKind));
 
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
 
@@ -287,7 +289,7 @@ namespace RimWorldAccess
         public static void CloseAndAnnounceCancel()
         {
             Close();
-            TolkHelper.Speak("Trade cancelled");
+            TolkHelper.Speak("RimWorldAccess.Trade.Cancelled".Translate());
             SoundDefOf.Click.PlayOneShotOnCamera();
         }
 
@@ -616,7 +618,7 @@ namespace RimWorldAccess
             List<Tradeable> list = GetCurrentList();
             if (list.Count == 0)
             {
-                TolkHelper.Speak("No items in this category");
+                TolkHelper.Speak("RimWorldAccess.Trade.NoItemsInCategory".Translate());
                 return;
             }
 
@@ -657,7 +659,7 @@ namespace RimWorldAccess
             List<Tradeable> list = GetCurrentList();
             if (list.Count == 0)
             {
-                TolkHelper.Speak("No items in this category");
+                TolkHelper.Speak("RimWorldAccess.Trade.NoItemsInCategory".Translate());
                 return;
             }
 
@@ -708,7 +710,7 @@ namespace RimWorldAccess
         {
             if (isInQuantityMode)
             {
-                TolkHelper.Speak("Exit quantity mode first (press Enter or Escape)");
+                TolkHelper.Speak("RimWorldAccess.Trade.Mode.ExitFirstHint".Translate());
                 return;
             }
 
@@ -739,7 +741,7 @@ namespace RimWorldAccess
         {
             if (isInQuantityMode)
             {
-                TolkHelper.Speak("Exit quantity mode first (press Enter or Escape)");
+                TolkHelper.Speak("RimWorldAccess.Trade.Mode.ExitFirstHint".Translate());
                 return;
             }
 
@@ -785,14 +787,14 @@ namespace RimWorldAccess
 
             if (!tradeable.Interactive)
             {
-                TolkHelper.Speak("Cannot adjust quantity for this item", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Trade.Reject.CannotAdjustItem".Translate(), SpeechPriority.High);
                 return;
             }
 
             // In gift mode, any item can be gifted regardless of TraderWillTrade
             if (!tradeable.TraderWillTrade && !TradeSession.giftMode)
             {
-                TolkHelper.Speak("Trader will not trade this item");
+                TolkHelper.Speak("RimWorldAccess.Trade.Reject.WillNotTrade".Translate());
                 return;
             }
 
@@ -830,7 +832,7 @@ namespace RimWorldAccess
             // In gift mode, any item can be gifted regardless of TraderWillTrade
             if (!tradeable.TraderWillTrade && !TradeSession.giftMode)
             {
-                TolkHelper.Speak("Trader will not trade this item");
+                TolkHelper.Speak("RimWorldAccess.Trade.Reject.WillNotTrade".Translate());
                 return;
             }
 
@@ -851,7 +853,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("Cannot adjust to this amount", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Trade.Reject.CannotAdjustAmount".Translate(), SpeechPriority.High);
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
             }
         }
@@ -950,7 +952,7 @@ namespace RimWorldAccess
             // In gift mode, any item can be gifted regardless of TraderWillTrade
             if (!tradeable.TraderWillTrade && !TradeSession.giftMode)
             {
-                TolkHelper.Speak("Trader will not trade this item");
+                TolkHelper.Speak("RimWorldAccess.Trade.Reject.WillNotTrade".Translate());
                 return;
             }
 
@@ -966,7 +968,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("Cannot adjust to maximum");
+                TolkHelper.Speak("RimWorldAccess.Trade.Reject.CannotAdjustMax".Translate());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
             }
         }
@@ -983,7 +985,7 @@ namespace RimWorldAccess
             // In gift mode, any item can be gifted regardless of TraderWillTrade
             if (!tradeable.TraderWillTrade && !TradeSession.giftMode)
             {
-                TolkHelper.Speak("Trader will not trade this item");
+                TolkHelper.Speak("RimWorldAccess.Trade.Reject.WillNotTrade".Translate());
                 return;
             }
 
@@ -999,7 +1001,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("Cannot adjust to minimum");
+                TolkHelper.Speak("RimWorldAccess.Trade.Reject.CannotAdjustMin".Translate());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
             }
         }
@@ -1014,18 +1016,20 @@ namespace RimWorldAccess
 
             if (amount == 0)
             {
-                TolkHelper.Speak($"Reset {GetCleanLabel(tradeable)} to none");
+                TolkHelper.Speak("RimWorldAccess.Trade.Max.Reset".Translate(GetCleanLabel(tradeable)));
             }
             else if (amount < 0)
             {
                 // Negative = selling/gifting
-                string action = TradeSession.giftMode ? "Gifting" : "Selling";
-                TolkHelper.Speak($"{action} all {count} {GetCleanLabel(tradeable)}, {FormatPrice(value)}");
+                string key = TradeSession.giftMode
+                    ? "RimWorldAccess.Trade.Max.Gifting"
+                    : "RimWorldAccess.Trade.Max.Selling";
+                TolkHelper.Speak(key.Translate(count, GetCleanLabel(tradeable), FormatPrice(value)));
             }
             else
             {
                 // Positive = buying
-                TolkHelper.Speak($"Buying all {count} {GetCleanLabel(tradeable)}, {FormatPrice(value)}");
+                TolkHelper.Speak("RimWorldAccess.Trade.Max.Buying".Translate(count, GetCleanLabel(tradeable), FormatPrice(value)));
             }
         }
 
@@ -1038,7 +1042,7 @@ namespace RimWorldAccess
             // Can't reset the balance entry
             if (IsOnBalanceEntry())
             {
-                TolkHelper.Speak("Cannot reset balance entry");
+                TolkHelper.Speak("RimWorldAccess.Trade.Reset.CannotResetBalance".Translate());
                 return;
             }
 
@@ -1049,7 +1053,7 @@ namespace RimWorldAccess
             {
                 tradeable.AdjustTo(0);
                 NotifyTradeChanged();
-                TolkHelper.Speak($"Reset {GetCleanLabel(tradeable)}");
+                TolkHelper.Speak("RimWorldAccess.Trade.Reset.SingleItem".Translate(GetCleanLabel(tradeable)));
                 SoundDefOf.Checkbox_TurnedOff.PlayOneShotOnCamera();
 
                 // Refresh Trade Summary list
@@ -1095,8 +1099,10 @@ namespace RimWorldAccess
             if (c == '-' && string.IsNullOrEmpty(numericBuffer))
             {
                 numericBuffer = "-";
-                string action = TradeSession.giftMode ? "Gifting" : "Selling";
-                TolkHelper.Speak($"{action}. Type quantity.");
+                string promptKey = TradeSession.giftMode
+                    ? "RimWorldAccess.Trade.Numeric.PromptGifting"
+                    : "RimWorldAccess.Trade.Numeric.PromptSelling";
+                TolkHelper.Speak(promptKey.Translate());
                 return;
             }
 
@@ -1104,7 +1110,7 @@ namespace RimWorldAccess
             if (c == '+' && string.IsNullOrEmpty(numericBuffer))
             {
                 numericBuffer = "+";
-                TolkHelper.Speak("Buying. Type quantity.");
+                TolkHelper.Speak("RimWorldAccess.Trade.Numeric.PromptBuying".Translate());
                 return;
             }
 
@@ -1135,33 +1141,53 @@ namespace RimWorldAccess
                     NotifyTradeChanged();
                     RefreshTradeSummaryOnly();
 
-                    // Announce the result with price (same format as arrow key adjustment)
-                    string action = targetQty > 0 ? "Buying" :
-                                   (targetQty < 0 ? (TradeSession.giftMode ? "Gifting" : "Selling") : "No trade");
-                    int count = Math.Abs(targetQty);
-
-                    if (targetQty == 0)
-                    {
-                        TolkHelper.Speak($"{GetCleanLabel(tradeable)}: No trade. Typing: {numericBuffer}");
-                    }
-                    else if (TradeSession.giftMode)
-                    {
-                        TolkHelper.Speak($"{action} {count} {GetCleanLabel(tradeable)}. Typing: {numericBuffer}");
-                    }
-                    else
-                    {
-                        float totalCost = Math.Abs(tradeable.CurTotalCurrencyCostForDestination);
-                        TolkHelper.Speak($"{action} {count} {GetCleanLabel(tradeable)} for {FormatPrice(totalCost)}. Typing: {numericBuffer}");
-                    }
+                    AnnounceNumericQuantityChange(tradeable, targetQty);
                     SoundDefOf.Tick_Low.PlayOneShotOnCamera();
                 }
             }
             else if (numericBuffer != "-")
             {
                 // Invalid number (but not just a minus sign)
-                TolkHelper.Speak($"Invalid: {numericBuffer}");
+                TolkHelper.Speak("RimWorldAccess.Trade.Numeric.Invalid".Translate(numericBuffer));
                 numericBuffer = "";
             }
+        }
+
+        /// <summary>
+        /// Speaks the post-numeric-edit announcement for the given tradeable
+        /// at the given target quantity, with the current numericBuffer as the
+        /// "Typing: ..." suffix.
+        /// </summary>
+        private static void AnnounceNumericQuantityChange(Tradeable tradeable, int targetQty)
+        {
+            string label = GetCleanLabel(tradeable);
+            string suffix = "RimWorldAccess.Trade.Numeric.Suffix".Translate(numericBuffer);
+
+            if (targetQty == 0)
+            {
+                TolkHelper.Speak("RimWorldAccess.Trade.Numeric.NoTradeBody".Translate(label) + suffix);
+                return;
+            }
+
+            int count = Math.Abs(targetQty);
+            string actionKey = targetQty > 0
+                ? "RimWorldAccess.Trade.Pending.ActionBuying"
+                : (TradeSession.giftMode
+                    ? "RimWorldAccess.Trade.Pending.ActionGifting"
+                    : "RimWorldAccess.Trade.Pending.ActionSelling");
+            string action = actionKey.Translate();
+
+            string body;
+            if (TradeSession.giftMode)
+            {
+                body = "RimWorldAccess.Trade.Numeric.GiftingBody".Translate(action, count, label);
+            }
+            else
+            {
+                float totalCost = Math.Abs(tradeable.CurTotalCurrencyCostForDestination);
+                body = "RimWorldAccess.Trade.Numeric.BuyingSellingBody".Translate(action, count, label, FormatPrice(totalCost));
+            }
+            TolkHelper.Speak(body + suffix);
         }
 
         /// <summary>
@@ -1188,8 +1214,12 @@ namespace RimWorldAccess
                     NotifyTradeChanged();
                     RefreshTradeSummaryOnly();
                 }
-                string message = string.IsNullOrEmpty(numericBuffer) ? "Cleared" : $"Typing: {numericBuffer}";
-                TolkHelper.Speak($"{GetCleanLabel(tradeable)}: No trade. {message}");
+                string message = string.IsNullOrEmpty(numericBuffer)
+                    ? "RimWorldAccess.Trade.Numeric.Cleared".Translate().ToString()
+                    : "RimWorldAccess.Trade.Numeric.Typing".Translate(numericBuffer).ToString();
+                TolkHelper.Speak(
+                    "RimWorldAccess.Trade.Numeric.NoTradeBody".Translate(GetCleanLabel(tradeable))
+                    + ". " + message);
                 return;
             }
 
@@ -1216,31 +1246,14 @@ namespace RimWorldAccess
                     NotifyTradeChanged();
                     RefreshTradeSummaryOnly();
 
-                    // Announce result (same format as HandleNumericInput)
-                    string action = targetQty > 0 ? "Buying" :
-                                   (targetQty < 0 ? (TradeSession.giftMode ? "Gifting" : "Selling") : "No trade");
-                    int count = Math.Abs(targetQty);
-
-                    if (targetQty == 0)
-                    {
-                        TolkHelper.Speak($"{GetCleanLabel(tradeable)}: No trade. Typing: {numericBuffer}");
-                    }
-                    else if (TradeSession.giftMode)
-                    {
-                        TolkHelper.Speak($"{action} {count} {GetCleanLabel(tradeable)}. Typing: {numericBuffer}");
-                    }
-                    else
-                    {
-                        float totalCost = Math.Abs(tradeable.CurTotalCurrencyCostForDestination);
-                        TolkHelper.Speak($"{action} {count} {GetCleanLabel(tradeable)} for {FormatPrice(totalCost)}. Typing: {numericBuffer}");
-                    }
+                    AnnounceNumericQuantityChange(tradeable, targetQty);
                     SoundDefOf.Tick_Low.PlayOneShotOnCamera();
                 }
             }
             else
             {
                 // Buffer isn't a valid number yet, just announce what's typed
-                TolkHelper.Speak($"Typing: {numericBuffer}");
+                TolkHelper.Speak("RimWorldAccess.Trade.Numeric.Typing".Translate(numericBuffer));
             }
         }
 
@@ -1276,7 +1289,7 @@ namespace RimWorldAccess
             currentIndex = tabPositions.TryGetValue(currentCategory, out int savedPos) ? savedPos : 0;
             ClampCurrentIndex();
 
-            TolkHelper.Speak($"Trade Summary empty. Returning to {GetCategoryName()}");
+            TolkHelper.Speak("RimWorldAccess.Trade.Tab.SwitchedReturning".Translate(GetCategoryName()));
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
             AnnounceCurrentSelection();
         }
@@ -1292,7 +1305,7 @@ namespace RimWorldAccess
 
             deal.Reset();
             RefreshTradeables();
-            TolkHelper.Speak("All trades reset");
+            TolkHelper.Speak("RimWorldAccess.Trade.Reset.AllTrades".Translate());
             SoundDefOf.Checkbox_TurnedOff.PlayOneShotOnCamera();
             AnnounceCurrentSelection();
         }
@@ -1304,19 +1317,19 @@ namespace RimWorldAccess
         {
             if (cachedTrader == null || cachedTrader.Faction == null)
             {
-                TolkHelper.Speak("Cannot gift to this trader", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Trade.Gift.CannotGiftTrader".Translate(), SpeechPriority.High);
                 return;
             }
 
             if (cachedTrader.Faction.HostileTo(Faction.OfPlayer))
             {
-                TolkHelper.Speak("Cannot gift to hostile faction", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Trade.Gift.CannotGiftHostile".Translate(), SpeechPriority.High);
                 return;
             }
 
             if (cachedTrader.TradeCurrency == TradeCurrency.Favor)
             {
-                TolkHelper.Speak("Cannot gift when trading for royal favor", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Trade.Gift.CannotGiftFavor".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -1331,8 +1344,10 @@ namespace RimWorldAccess
                 currentIndex = 0;
             }
 
-            string mode = TradeSession.giftMode ? "gift mode" : "trade mode";
-            TolkHelper.Speak($"Switched to {mode}");
+            string mode = (TradeSession.giftMode
+                ? "RimWorldAccess.Trade.Gift.ModeGift"
+                : "RimWorldAccess.Trade.Gift.ModeTrade").Translate();
+            TolkHelper.Speak("RimWorldAccess.Trade.Gift.SwitchedTo".Translate(mode));
             SoundDefOf.Checkbox_TurnedOn.PlayOneShotOnCamera();
             AnnounceCurrentSelection();
         }
@@ -1345,7 +1360,7 @@ namespace RimWorldAccess
             TradeDeal deal = CurrentDeal;
             if (deal == null)
             {
-                TolkHelper.Speak("No trade to execute");
+                TolkHelper.Speak("RimWorldAccess.Trade.Accept.NoDeal".Translate());
                 return;
             }
 
@@ -1365,7 +1380,7 @@ namespace RimWorldAccess
             {
                 // Trader doesn't have enough funds - warn and ask for confirmation
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("Warning: Trader does not have enough silver. Confirm to proceed anyway.", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Trade.Accept.WarnTraderShortFunds".Translate(), SpeechPriority.High);
                 Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
                     "ConfirmTraderShortFunds".Translate(),
                     ExecuteTradeAction));
@@ -1392,7 +1407,7 @@ namespace RimWorldAccess
                 // Announce failure reason - game may also show a dialog
                 if (!string.IsNullOrEmpty(result.Reason))
                 {
-                    TolkHelper.Speak($"Cannot complete trade: {result.Reason}", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Trade.Accept.CannotComplete".Translate(result.Reason), SpeechPriority.High);
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 }
                 // Refresh our state in case the game modified trade data during the failed attempt
@@ -1403,14 +1418,14 @@ namespace RimWorldAccess
             if (actuallyTraded)
             {
                 SoundDefOf.ExecuteTrade.PlayOneShotOnCamera();
-                TolkHelper.Speak("Trade completed successfully");
+                TolkHelper.Speak("RimWorldAccess.Trade.Accept.Completed".Translate());
 
                 // Close our state - dialog closes naturally via TradeSession.Close
                 Close();
             }
             else
             {
-                TolkHelper.Speak("No items to trade");
+                TolkHelper.Speak("RimWorldAccess.Trade.Accept.NoItemsToTrade".Translate());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 // Refresh in case state is out of sync
                 RefreshTradeables();
@@ -1426,14 +1441,14 @@ namespace RimWorldAccess
             TradeDeal deal = CurrentDeal;
             if (deal == null || cachedTrader == null)
             {
-                TolkHelper.Speak("No gift session active");
+                TolkHelper.Speak("RimWorldAccess.Trade.Gift.NoSession".Translate());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }
 
             if (cachedTrader.Faction == null)
             {
-                TolkHelper.Speak("Cannot gift to this trader");
+                TolkHelper.Speak("RimWorldAccess.Trade.Gift.CannotGiftTrader".Translate());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 RefreshTradeables();
                 return;
@@ -1448,7 +1463,7 @@ namespace RimWorldAccess
             catch (System.Exception ex)
             {
                 Log.Warning($"RimWorld Access: Error calculating gift goodwill: {ex.Message}");
-                TolkHelper.Speak("Error calculating gift value");
+                TolkHelper.Speak("RimWorldAccess.Trade.Gift.ErrorCalculating".Translate());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 RefreshTradeables();
                 return;
@@ -1456,7 +1471,7 @@ namespace RimWorldAccess
 
             if (goodwillChange <= 0)
             {
-                TolkHelper.Speak("No gifts to offer");
+                TolkHelper.Speak("RimWorldAccess.Trade.Gift.NoGifts".Translate());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 // Refresh in case state is out of sync
                 RefreshTradeables();
@@ -1486,7 +1501,7 @@ namespace RimWorldAccess
                 FactionGiftUtility.GiveGift(deal.AllTradeables.ToList(), cachedTrader.Faction, lookTarget);
 
                 SoundDefOf.ExecuteTrade.PlayOneShotOnCamera();
-                TolkHelper.Speak($"Gifts offered, goodwill +{goodwillChange}");
+                TolkHelper.Speak("RimWorldAccess.Trade.Gift.Offered".Translate(goodwillChange));
 
                 // Close the trade dialog (don't call TradeSession.Close - see Close() comment)
                 Close();
@@ -1494,7 +1509,7 @@ namespace RimWorldAccess
             catch (System.Exception ex)
             {
                 Log.Warning($"RimWorld Access: Error executing gift: {ex.Message}");
-                TolkHelper.Speak("Error offering gifts");
+                TolkHelper.Speak("RimWorldAccess.Trade.Gift.ErrorOffering".Translate());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 // Refresh state to prevent desync
                 RefreshTradeables();
@@ -1525,15 +1540,15 @@ namespace RimWorldAccess
                 {
                     // Their Items tab - announce trader's currency (projected balance after pending trade)
                     int traderCurrency = currency.CountPostDealFor(Transactor.Trader);
-                    string currencyStr = isFavorTrade ? $"{traderCurrency} favor" : ((float)traderCurrency).ToStringMoney();
-                    announcement += $". Trader has {currencyStr}";
+                    string currencyStr = FormatCurrencyHolding(traderCurrency, isFavorTrade);
+                    announcement += ". " + "RimWorldAccess.Trade.Currency.TraderHas".Translate(currencyStr);
                 }
                 else if (currentCategory == TradeCategory.ColonyItems)
                 {
                     // Your Items tab - announce player's currency (projected balance after pending trade)
                     int playerCurrency = currency.CountPostDealFor(Transactor.Colony);
-                    string currencyStr = isFavorTrade ? $"{playerCurrency} favor" : ((float)playerCurrency).ToStringMoney();
-                    announcement += $". You have {currencyStr}";
+                    string currencyStr = FormatCurrencyHolding(playerCurrency, isFavorTrade);
+                    announcement += ". " + "RimWorldAccess.Trade.Currency.YouHave".Translate(currencyStr);
                 }
             }
 
@@ -1562,7 +1577,7 @@ namespace RimWorldAccess
             {
                 List<Tradeable> list = GetCurrentList();
                 string categoryName = GetCategoryName();
-                TolkHelper.Speak($"{categoryName} - No items");
+                TolkHelper.Speak("RimWorldAccess.Trade.Tab.Empty".Translate(categoryName));
                 return;
             }
 
@@ -1583,6 +1598,7 @@ namespace RimWorldAccess
             // Use TradeSession.deal directly for freshest data
             TradeDeal deal = TradeSession.deal ?? cachedDeal;
 
+            string body;
             if (TradeSession.giftMode)
             {
                 // Gift mode: show goodwill gain
@@ -1591,17 +1607,11 @@ namespace RimWorldAccess
                     int goodwillChange = FactionGiftUtility.GetGoodwillChange(
                         deal.AllTradeables.ToList(),
                         cachedTrader.Faction);
-                    string announcement = $"Goodwill +{goodwillChange}";
-                    if (!string.IsNullOrEmpty(posStr))
-                        announcement += $". {posStr}";
-                    TolkHelper.Speak(announcement);
+                    body = "RimWorldAccess.Trade.Balance.Goodwill".Translate(goodwillChange);
                 }
                 else
                 {
-                    string announcement = "Gift mode balance";
-                    if (!string.IsNullOrEmpty(posStr))
-                        announcement += $". {posStr}";
-                    TolkHelper.Speak(announcement);
+                    body = "RimWorldAccess.Trade.Balance.GiftFallback".Translate();
                 }
             }
             else
@@ -1609,27 +1619,23 @@ namespace RimWorldAccess
                 // Normal trade: ensure currency is up-to-date before reading
                 deal?.UpdateCurrencyCount();
                 Tradeable currency = deal?.CurrencyTradeable;
-                string currencyName = cachedTrader?.TradeCurrency == TradeCurrency.Favor ? "favor" : "silver";
+                string currencyName = (cachedTrader?.TradeCurrency == TradeCurrency.Favor
+                    ? "RimWorldAccess.Trade.Currency.FavorNoun"
+                    : "RimWorldAccess.Trade.Currency.SilverNoun").Translate();
                 int transfer = currency?.CountToTransfer ?? 0;
 
-                string balanceText;
                 if (transfer < 0)
-                {
-                    balanceText = $"Net balance: Spending {-transfer} {currencyName}";
-                }
+                    body = "RimWorldAccess.Trade.Balance.Spending".Translate(-transfer, currencyName);
                 else if (transfer > 0)
-                {
-                    balanceText = $"Net balance: Receiving {transfer} {currencyName}";
-                }
+                    body = "RimWorldAccess.Trade.Balance.Receiving".Translate(transfer, currencyName);
                 else
-                {
-                    balanceText = "Net balance: Balanced trade";
-                }
-
-                if (!string.IsNullOrEmpty(posStr))
-                    balanceText += $". {posStr}";
-                TolkHelper.Speak(balanceText);
+                    body = "RimWorldAccess.Trade.Balance.Balanced".Translate();
             }
+
+            string balanceText = string.IsNullOrEmpty(posStr)
+                ? body
+                : "RimWorldAccess.Trade.Balance.WithPosition".Translate(body, posStr).ToString();
+            TolkHelper.Speak(balanceText);
         }
 
         /// <summary>
@@ -1637,21 +1643,24 @@ namespace RimWorldAccess
         /// </summary>
         private static void AnnounceQuantityChange(Tradeable tradeable)
         {
-            string action = tradeable.ActionToDo == TradeAction.PlayerBuys ? "Buying" :
-                           (TradeSession.giftMode ? "Gifting" : "Selling");
-
-            int count = Math.Abs(tradeable.CountToTransfer);
+            string label = GetCleanLabel(tradeable);
 
             if (tradeable.ActionToDo == TradeAction.None)
             {
-                TolkHelper.Speak($"{GetCleanLabel(tradeable)}: No trade");
+                TolkHelper.Speak("RimWorldAccess.Trade.Adjust.NoTrade".Translate(label));
+                return;
             }
-            else
-            {
-                // Show price for both trade and gift mode (vanilla game shows prices in gift mode)
-                float totalCost = Math.Abs(tradeable.CurTotalCurrencyCostForDestination);
-                TolkHelper.Speak($"{action} {count} {GetCleanLabel(tradeable)}, value {FormatPrice(totalCost)}");
-            }
+
+            int count = Math.Abs(tradeable.CountToTransfer);
+            // Show price for both trade and gift mode (vanilla game shows prices in gift mode)
+            float totalCost = Math.Abs(tradeable.CurTotalCurrencyCostForDestination);
+
+            string key = tradeable.ActionToDo == TradeAction.PlayerBuys
+                ? "RimWorldAccess.Trade.Adjust.Buying"
+                : (TradeSession.giftMode
+                    ? "RimWorldAccess.Trade.Adjust.Gifting"
+                    : "RimWorldAccess.Trade.Adjust.Selling");
+            TolkHelper.Speak(key.Translate(count, label, FormatPrice(totalCost)));
         }
 
         /// <summary>
@@ -1670,8 +1679,12 @@ namespace RimWorldAccess
             // If there's an active trade on this item, show that prominently
             if (tradeable.CountToTransfer != 0)
             {
-                string action = tradeable.ActionToDo == TradeAction.PlayerBuys ? "Buying" :
-                               (TradeSession.giftMode ? "Gifting" : "Selling");
+                string actionKey = tradeable.ActionToDo == TradeAction.PlayerBuys
+                    ? "RimWorldAccess.Trade.Pending.ActionBuying"
+                    : (TradeSession.giftMode
+                        ? "RimWorldAccess.Trade.Pending.ActionGifting"
+                        : "RimWorldAccess.Trade.Pending.ActionSelling");
+                string action = actionKey.Translate();
                 int count = Math.Abs(tradeable.CountToTransfer);
 
                 // Trade Summary includes balance entry at the end
@@ -1679,11 +1692,13 @@ namespace RimWorldAccess
                 string position = MenuHelper.FormatPosition(currentIndex, totalItems);
 
                 var parts = new List<string> { GetCleanLabel(tradeable) };
-                parts.Add($"{action} {count}");
+                parts.Add("RimWorldAccess.Trade.Pending.ActionWithCount".Translate(action, count));
                 // Show price in both trade and gift mode (vanilla game shows prices in gift mode)
                 float totalCost = Math.Abs(tradeable.CurTotalCurrencyCostForDestination);
-                string priceLabel = TradeSession.giftMode ? "Value" : "Total";
-                parts.Add($"{priceLabel}: {FormatPrice(totalCost)}");
+                string priceLabel = (TradeSession.giftMode
+                    ? "RimWorldAccess.Trade.Pending.PriceLabelValue"
+                    : "RimWorldAccess.Trade.Pending.PriceLabelTotal").Translate();
+                parts.Add("RimWorldAccess.Trade.Pending.PriceLine".Translate(priceLabel, FormatPrice(totalCost)));
                 // Position at end
                 if (!string.IsNullOrEmpty(position))
                     parts.Add(position);
@@ -1715,40 +1730,29 @@ namespace RimWorldAccess
                             string sellQuality = GetPriceQuality(tradeable, TradeAction.PlayerSells);
                             string buyQuality = GetPriceQuality(tradeable, TradeAction.PlayerBuys);
 
-                            string yourPart = $"Yours: {colonyCount} at {FormatPrice(sellPrice)}";
-                            if (!string.IsNullOrEmpty(sellQuality))
-                                yourPart += $" ({sellQuality})";
-
-                            string theirPart = $"Theirs: {traderCount} at {FormatPrice(buyPrice)}";
-                            if (!string.IsNullOrEmpty(buyQuality))
-                                theirPart += $" ({buyQuality})";
-
-                            info.Add(yourPart);
-                            info.Add(theirPart);
+                            info.Add(BuildSharedSidePhrase("RimWorldAccess.Trade.Item.YoursAt", "RimWorldAccess.Trade.Item.YoursAtWithQuality",
+                                colonyCount, sellPrice, sellQuality));
+                            info.Add(BuildSharedSidePhrase("RimWorldAccess.Trade.Item.TheirsAt", "RimWorldAccess.Trade.Item.TheirsAtWithQuality",
+                                traderCount, buyPrice, buyQuality));
                         }
                         else
                         {
-                            info.Add($"Yours: {colonyCount}");
-                            info.Add($"Theirs: {traderCount}");
-                            info.Add("Not tradeable");
+                            info.Add("RimWorldAccess.Trade.Item.YoursOnly".Translate(colonyCount));
+                            info.Add("RimWorldAccess.Trade.Item.TheirsOnly".Translate(traderCount));
+                            info.Add("RimWorldAccess.Trade.Item.NotTradeable".Translate());
                         }
                     }
                     else
                     {
                         // Only you have it: "Steel. 20 available. $2.25."
-                        info.Add($"{colonyCount} available");
+                        info.Add("RimWorldAccess.Trade.Item.SoloAvailable".Translate(colonyCount));
                         if (tradeable.TraderWillTrade)
                         {
-                            float sellPrice = tradeable.GetPriceFor(TradeAction.PlayerSells);
-                            string quality = GetPriceQuality(tradeable, TradeAction.PlayerSells);
-                            string priceStr = FormatPrice(sellPrice);
-                            if (!string.IsNullOrEmpty(quality))
-                                priceStr += $", {quality}";
-                            info.Add(priceStr);
+                            info.Add(BuildSoloPriceLine(tradeable, TradeAction.PlayerSells));
                         }
                         else
                         {
-                            info.Add("Not tradeable");
+                            info.Add("RimWorldAccess.Trade.Item.NotTradeable".Translate());
                         }
                     }
                     break;
@@ -1765,40 +1769,29 @@ namespace RimWorldAccess
                             string sellQuality = GetPriceQuality(tradeable, TradeAction.PlayerSells);
                             string buyQuality = GetPriceQuality(tradeable, TradeAction.PlayerBuys);
 
-                            string theirPart = $"Theirs: {traderCount} at {FormatPrice(buyPrice)}";
-                            if (!string.IsNullOrEmpty(buyQuality))
-                                theirPart += $" ({buyQuality})";
-
-                            string yourPart = $"Yours: {colonyCount} at {FormatPrice(sellPrice)}";
-                            if (!string.IsNullOrEmpty(sellQuality))
-                                yourPart += $" ({sellQuality})";
-
-                            info.Add(theirPart);
-                            info.Add(yourPart);
+                            info.Add(BuildSharedSidePhrase("RimWorldAccess.Trade.Item.TheirsAt", "RimWorldAccess.Trade.Item.TheirsAtWithQuality",
+                                traderCount, buyPrice, buyQuality));
+                            info.Add(BuildSharedSidePhrase("RimWorldAccess.Trade.Item.YoursAt", "RimWorldAccess.Trade.Item.YoursAtWithQuality",
+                                colonyCount, sellPrice, sellQuality));
                         }
                         else
                         {
-                            info.Add($"Theirs: {traderCount}");
-                            info.Add($"Yours: {colonyCount}");
-                            info.Add("Not tradeable");
+                            info.Add("RimWorldAccess.Trade.Item.TheirsOnly".Translate(traderCount));
+                            info.Add("RimWorldAccess.Trade.Item.YoursOnly".Translate(colonyCount));
+                            info.Add("RimWorldAccess.Trade.Item.NotTradeable".Translate());
                         }
                     }
                     else
                     {
                         // Only they have it: "Jade knife. 1 available. $250."
-                        info.Add($"{traderCount} available");
+                        info.Add("RimWorldAccess.Trade.Item.SoloAvailable".Translate(traderCount));
                         if (tradeable.TraderWillTrade)
                         {
-                            float buyPrice = tradeable.GetPriceFor(TradeAction.PlayerBuys);
-                            string quality = GetPriceQuality(tradeable, TradeAction.PlayerBuys);
-                            string priceStr = FormatPrice(buyPrice);
-                            if (!string.IsNullOrEmpty(quality))
-                                priceStr += $", {quality}";
-                            info.Add(priceStr);
+                            info.Add(BuildSoloPriceLine(tradeable, TradeAction.PlayerBuys));
                         }
                         else
                         {
-                            info.Add("Not tradeable");
+                            info.Add("RimWorldAccess.Trade.Item.NotTradeable".Translate());
                         }
                     }
                     break;
@@ -1823,28 +1816,31 @@ namespace RimWorldAccess
         /// </summary>
         private static string BuildQuantityModeAnnouncement(Tradeable tradeable, int colonyCount, int traderCount)
         {
-            var parts = new List<string> { GetCleanLabel(tradeable), "Adjusting" };
+            var parts = new List<string> {
+                GetCleanLabel(tradeable),
+                "RimWorldAccess.Trade.Mode.Adjusting".Translate()
+            };
             bool isShared = colonyCount > 0 && traderCount > 0;
 
             // Gift mode: can only gift your items
             if (TradeSession.giftMode)
             {
-                parts.Add($"Gift up to {colonyCount}");
+                parts.Add("RimWorldAccess.Trade.Mode.GiftUpTo".Translate(colonyCount));
             }
             else if (isShared)
             {
                 // Shared item: can buy or sell
-                parts.Add($"Sell up to {colonyCount}, buy up to {traderCount}");
+                parts.Add("RimWorldAccess.Trade.Mode.SellAndBuy".Translate(colonyCount, traderCount));
             }
             else if (currentCategory == TradeCategory.ColonyItems)
             {
                 // Only you have it - selling context
-                parts.Add($"Sell up to {colonyCount}");
+                parts.Add("RimWorldAccess.Trade.Mode.SellUpTo".Translate(colonyCount));
             }
             else
             {
                 // Only they have it - buying context
-                parts.Add($"Buy up to {traderCount}");
+                parts.Add("RimWorldAccess.Trade.Mode.BuyUpTo".Translate(traderCount));
             }
 
             return string.Join(". ", parts) + ".";
@@ -1857,42 +1853,47 @@ namespace RimWorldAccess
         private static string BuildDetailedAnnouncement(Tradeable tradeable)
         {
             var parts = new List<string> { GetCleanLabel(tradeable) };
-            string currencyName = cachedTrader?.TradeCurrency == TradeCurrency.Favor ? "favor" : "silver";
+            string currencyName = (cachedTrader?.TradeCurrency == TradeCurrency.Favor
+                ? "RimWorldAccess.Trade.Currency.FavorNoun"
+                : "RimWorldAccess.Trade.Currency.SilverNoun").Translate();
 
             int colonyCount = tradeable.CountHeldBy(Transactor.Colony);
             int traderCount = tradeable.CountHeldBy(Transactor.Trader);
 
             if (colonyCount > 0)
             {
-                parts.Add($"You have: {colonyCount}");
+                parts.Add("RimWorldAccess.Trade.Detail.YouHave".Translate(colonyCount));
                 if (tradeable.TraderWillTrade)
                 {
                     float sellPrice = tradeable.GetPriceFor(TradeAction.PlayerSells);
-                    parts.Add($"Sell price: {sellPrice:F1} {currencyName} each");
+                    parts.Add("RimWorldAccess.Trade.Detail.SellPrice".Translate(sellPrice.ToString("F1"), currencyName));
                 }
             }
 
             if (traderCount > 0)
             {
-                parts.Add($"Trader has: {traderCount}");
+                parts.Add("RimWorldAccess.Trade.Detail.TraderHas".Translate(traderCount));
                 if (tradeable.TraderWillTrade)
                 {
                     float buyPrice = tradeable.GetPriceFor(TradeAction.PlayerBuys);
-                    parts.Add($"Buy price: {buyPrice:F1} {currencyName} each");
+                    parts.Add("RimWorldAccess.Trade.Detail.BuyPrice".Translate(buyPrice.ToString("F1"), currencyName));
                 }
             }
 
             if (tradeable.CountToTransfer != 0)
             {
-                string action = tradeable.ActionToDo == TradeAction.PlayerBuys ? "Buying" : "Selling";
+                string action = (tradeable.ActionToDo == TradeAction.PlayerBuys
+                    ? "RimWorldAccess.Trade.Pending.ActionBuying"
+                    : "RimWorldAccess.Trade.Pending.ActionSelling").Translate();
                 int count = Math.Abs(tradeable.CountToTransfer);
                 float totalCost = Math.Abs(tradeable.CurTotalCurrencyCostForDestination);
-                parts.Add($"Current trade: {action} {count} for {totalCost:F0} {currencyName}");
+                parts.Add("RimWorldAccess.Trade.Detail.CurrentTrade".Translate(
+                    action, count, totalCost.ToString("F0"), currencyName));
             }
 
             if (!tradeable.TraderWillTrade)
             {
-                parts.Add("Trader will not trade this item");
+                parts.Add("RimWorldAccess.Trade.Reject.WillNotTrade".Translate());
             }
 
             return string.Join(". ", parts) + ".";
@@ -1921,7 +1922,7 @@ namespace RimWorldAccess
 
             if (!tradeable.TraderWillTrade)
             {
-                TolkHelper.Speak("Trader will not trade this item");
+                TolkHelper.Speak("RimWorldAccess.Trade.Reject.WillNotTrade".Translate());
                 return;
             }
 
@@ -1933,26 +1934,26 @@ namespace RimWorldAccess
             {
                 // In trader's inventory - show buy price breakdown
                 action = TradeAction.PlayerBuys;
-                title = $"Buy Price: {GetCleanLabel(tradeable)}";
+                title = "RimWorldAccess.Trade.Detail.PriceTitleBuy".Translate(GetCleanLabel(tradeable));
             }
             else
             {
                 // In colony inventory or currency - show sell price breakdown
                 action = TradeAction.PlayerSells;
-                title = $"Sell Price: {GetCleanLabel(tradeable)}";
+                title = "RimWorldAccess.Trade.Detail.PriceTitleSell".Translate(GetCleanLabel(tradeable));
             }
 
             // In gift mode, price breakdown isn't relevant
             if (TradeSession.giftMode)
             {
-                TolkHelper.Speak("Price breakdown not available in gift mode");
+                TolkHelper.Speak("RimWorldAccess.Trade.Detail.NotInGiftMode".Translate());
                 return;
             }
 
             string tooltip = tradeable.GetPriceTooltip(action);
             if (string.IsNullOrEmpty(tooltip))
             {
-                TolkHelper.Speak("No price information available");
+                TolkHelper.Speak("RimWorldAccess.Trade.Detail.NoPriceInfo".Translate());
                 return;
             }
 
@@ -1980,7 +1981,7 @@ namespace RimWorldAccess
             Thing thing = tradeable.AnyThing;
             if (thing == null)
             {
-                TolkHelper.Speak("Cannot inspect this item");
+                TolkHelper.Speak("RimWorldAccess.Trade.Reject.CannotInspect".Translate());
                 return;
             }
 
@@ -2003,7 +2004,46 @@ namespace RimWorldAccess
 
             // Silver uses "$" prefix (ToStringMoney), favor says "favor"
             bool isSilver = cachedTrader?.TradeCurrency != TradeCurrency.Favor;
-            return isSilver ? "$" + number : number + " favor";
+            return isSilver
+                ? "RimWorldAccess.Trade.Price.Silver".Translate(number).ToString()
+                : "RimWorldAccess.Trade.Price.Favor".Translate(number).ToString();
+        }
+
+        /// <summary>
+        /// Formats a currency holding (whole-integer amount) for "You have"
+        /// / "Trader has" sentences. Silver uses ToStringMoney; favor uses
+        /// the localized "{0} favor" key.
+        /// </summary>
+        private static string FormatCurrencyHolding(int amount, bool isFavorTrade)
+        {
+            return isFavorTrade
+                ? "RimWorldAccess.Trade.Currency.FavorCount".Translate(amount).ToString()
+                : ((float)amount).ToStringMoney();
+        }
+
+        /// <summary>
+        /// Builds one side of a shared-item phrase ("Yours: 20 at $2.25" or
+        /// "Theirs: 40 at $4.33 (good deal)"). Picks the with-quality key if
+        /// the quality string is non-empty.
+        /// </summary>
+        private static string BuildSharedSidePhrase(string baseKey, string qualityKey, int count, float price, string quality)
+        {
+            string priceStr = FormatPrice(price);
+            if (!string.IsNullOrEmpty(quality))
+                return qualityKey.Translate(count, priceStr, quality);
+            return baseKey.Translate(count, priceStr);
+        }
+
+        /// <summary>
+        /// Builds the solo-item price line ("$2.25" or "$2.25, great deal").
+        /// </summary>
+        private static string BuildSoloPriceLine(Tradeable tradeable, TradeAction action)
+        {
+            string priceStr = FormatPrice(tradeable.GetPriceFor(action));
+            string quality = GetPriceQuality(tradeable, action);
+            if (!string.IsNullOrEmpty(quality))
+                return "RimWorldAccess.Trade.Item.SoloPriceWithQuality".Translate(priceStr, quality);
+            return "RimWorldAccess.Trade.Item.SoloPrice".Translate(priceStr);
         }
 
         // Regex to match rich text tags like <color=#FF0000>...</color>, <b>, </b>, etc.
@@ -2078,13 +2118,13 @@ namespace RimWorldAccess
                 switch (priceType)
                 {
                     case PriceType.VeryCheap:
-                        return "great deal";
+                        return "RimWorldAccess.Trade.Quality.Buy.VeryCheap".Translate();
                     case PriceType.Cheap:
-                        return "good deal";
+                        return "RimWorldAccess.Trade.Quality.Buy.Cheap".Translate();
                     case PriceType.Expensive:
-                        return "pricey";
+                        return "RimWorldAccess.Trade.Quality.Buy.Expensive".Translate();
                     case PriceType.Exorbitant:
-                        return "very expensive";
+                        return "RimWorldAccess.Trade.Quality.Buy.Exorbitant".Translate();
                     default:
                         return "";
                 }
@@ -2094,13 +2134,13 @@ namespace RimWorldAccess
                 switch (priceType)
                 {
                     case PriceType.VeryCheap:
-                        return "poor offer";
+                        return "RimWorldAccess.Trade.Quality.Sell.VeryCheap".Translate();
                     case PriceType.Cheap:
-                        return "low offer";
+                        return "RimWorldAccess.Trade.Quality.Sell.Cheap".Translate();
                     case PriceType.Expensive:
-                        return "good offer";
+                        return "RimWorldAccess.Trade.Quality.Sell.Expensive".Translate();
                     case PriceType.Exorbitant:
-                        return "great offer";
+                        return "RimWorldAccess.Trade.Quality.Sell.Exorbitant".Translate();
                     default:
                         return "";
                 }
@@ -2116,14 +2156,15 @@ namespace RimWorldAccess
             switch (currentCategory)
             {
                 case TradeCategory.ColonyItems:
-                    return "Your Items";
+                    return "RimWorldAccess.Trade.Tab.YourItems".Translate();
                 case TradeCategory.TraderItems:
-                    string traderName = cachedTrader?.TraderName ?? "Trader";
-                    return $"{traderName}'s Items";
+                    string traderName = cachedTrader?.TraderName
+                        ?? "RimWorldAccess.Sellable.Open.TraderFallback".Translate().ToString();
+                    return "RimWorldAccess.Trade.Tab.TraderItems".Translate(traderName);
                 case TradeCategory.TradeSummary:
-                    return "Trade Summary";
+                    return "RimWorldAccess.Trade.Tab.TradeSummary".Translate();
                 default:
-                    return "Unknown";
+                    return "RimWorldAccess.Trade.Tab.Unknown".Translate();
             }
         }
 
@@ -2145,7 +2186,7 @@ namespace RimWorldAccess
             if (currency == null)
             {
                 // Gift mode or no currency tradeable
-                TolkHelper.Speak("No currency available");
+                TolkHelper.Speak("RimWorldAccess.Trade.Currency.None".Translate());
                 return;
             }
 
@@ -2153,11 +2194,10 @@ namespace RimWorldAccess
             int traderCurrency = currency.CountPostDealFor(Transactor.Trader);
 
             bool isFavorTrade = cachedTrader?.TradeCurrency == TradeCurrency.Favor;
-            string playerStr = isFavorTrade ? $"{playerCurrency} favor" : ((float)playerCurrency).ToStringMoney();
-            string traderStr = isFavorTrade ? $"{traderCurrency} favor" : ((float)traderCurrency).ToStringMoney();
+            string playerStr = FormatCurrencyHolding(playerCurrency, isFavorTrade);
+            string traderStr = FormatCurrencyHolding(traderCurrency, isFavorTrade);
 
-            string announcement = $"You have {playerStr}. Trader has {traderStr}";
-            TolkHelper.Speak(announcement);
+            TolkHelper.Speak("RimWorldAccess.Trade.Currency.Both".Translate(playerStr, traderStr));
         }
 
         #region Typeahead Search Methods
@@ -2254,14 +2294,14 @@ namespace RimWorldAccess
         {
             if (isInQuantityMode)
             {
-                TolkHelper.Speak("Exit quantity mode first");
+                TolkHelper.Speak("RimWorldAccess.Trade.Mode.ExitFirst".Translate());
                 return;
             }
 
             List<Tradeable> list = GetCurrentList();
             if (list.Count == 0)
             {
-                TolkHelper.Speak("No items in this category");
+                TolkHelper.Speak("RimWorldAccess.Trade.NoItemsInCategory".Translate());
                 return;
             }
 
@@ -2278,14 +2318,14 @@ namespace RimWorldAccess
         {
             if (isInQuantityMode)
             {
-                TolkHelper.Speak("Exit quantity mode first");
+                TolkHelper.Speak("RimWorldAccess.Trade.Mode.ExitFirst".Translate());
                 return;
             }
 
             List<Tradeable> list = GetCurrentList();
             if (list.Count == 0)
             {
-                TolkHelper.Speak("No items in this category");
+                TolkHelper.Speak("RimWorldAccess.Trade.NoItemsInCategory".Translate());
                 return;
             }
 
