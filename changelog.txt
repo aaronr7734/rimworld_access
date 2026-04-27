@@ -17,11 +17,7 @@ BUG FIXES
   silently re-selecting them and announcing "deselected,
   selection cleared". Multi-select is now a sticky mode you
   enter and leave deliberately: pressing Alt+Space on the last
-  remaining pawn in the multi-select list exits the mode, and
-  comma/period or Alt+Escape also drop you back to single-
-  select. While the mode is on, Alt+arrows and Alt+number
-  navigate the colonist bar's focus without changing the
-  selection so you can pick more pawns to add.
+  remaining pawn in the multi-select list exits the mode, as does pressing control alt space. More specifically, control alt space will toggle between selecting all and selecting none.
 
 
 04/24/2026
