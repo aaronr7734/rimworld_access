@@ -12,6 +12,17 @@ BUG FIXES
   depends on the live selection (Designator_Install and
   similar) now resolves correctly in every announcement path.
 
+- Alt+Space when only one pawn is selected now starts
+  multi-select with that pawn as the first item, instead of
+  silently re-selecting them and announcing "deselected,
+  selection cleared". Multi-select is now a sticky mode you
+  enter and leave deliberately: pressing Alt+Space on the last
+  remaining pawn in the multi-select list exits the mode, and
+  comma/period or Alt+Escape also drop you back to single-
+  select. While the mode is on, Alt+arrows and Alt+number
+  navigate the colonist bar's focus without changing the
+  selection so you can pick more pawns to add.
+
 
 04/24/2026
 

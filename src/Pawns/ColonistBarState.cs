@@ -476,7 +476,7 @@ namespace RimWorldAccess
             lastAltNumberPosition = positionOnPage;
             lastAltNumberTime = now;
 
-            if (MultiSelectState.IsMultiSelectActive)
+            if (MultiSelectState.IsMultiSelectMode)
             {
                 var pawn = JumpFocusToPosition(positionOnPage);
                 if (pawn != null)

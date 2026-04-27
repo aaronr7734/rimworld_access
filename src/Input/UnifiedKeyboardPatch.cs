@@ -5351,7 +5351,7 @@ namespace RimWorldAccess
                 // Alt+Space: toggle focused pawn in/out of multi-selection
                 if (alt && !shift && !ctrl && key == KeyCode.Space)
                 {
-                    Pawn focusedPawn = MultiSelectState.IsMultiSelectActive
+                    Pawn focusedPawn = MultiSelectState.IsMultiSelectMode
                         ? MultiSelectState.FocusedPawn ?? ColonistBarState.GetPawnAtCurrentPosition()
                         : Find.Selector?.SingleSelectedThing as Pawn ?? ColonistBarState.GetPawnAtCurrentPosition();
                     MultiSelectState.TogglePawn(focusedPawn);
@@ -5365,7 +5365,7 @@ namespace RimWorldAccess
                     var allColonists = ColonistBarState.GetColonistsPublic();
                     if (allColonists.Count > 0)
                     {
-                        if (MultiSelectState.IsMultiSelectActive)
+                        if (MultiSelectState.IsMultiSelectMode)
                         {
                             // Already in multi-select → clear
                             MultiSelectState.ClearMultiSelect();
@@ -5434,7 +5434,7 @@ namespace RimWorldAccess
                 // In multi-select mode, moves focus only without changing selection
                 if (alt && !ctrl && key == KeyCode.RightArrow)
                 {
-                    if (MultiSelectState.IsMultiSelectActive)
+                    if (MultiSelectState.IsMultiSelectMode)
                         MultiSelectState.NavigateFocusNext();
                     else
                         ColonistBarState.NavigateRight();
@@ -5443,7 +5443,7 @@ namespace RimWorldAccess
                 }
                 if (alt && !ctrl && key == KeyCode.LeftArrow)
                 {
-                    if (MultiSelectState.IsMultiSelectActive)
+                    if (MultiSelectState.IsMultiSelectMode)
                         MultiSelectState.NavigateFocusPrevious();
                     else
                         ColonistBarState.NavigateLeft();
@@ -5454,7 +5454,7 @@ namespace RimWorldAccess
                 // Alt+Down/Up: page down/up through colonist pages, then mech pages
                 if (alt && !ctrl && key == KeyCode.DownArrow)
                 {
-                    if (MultiSelectState.IsMultiSelectActive)
+                    if (MultiSelectState.IsMultiSelectMode)
                     {
                         var pawn = ColonistBarState.PageFocusDown();
                         if (pawn != null)
@@ -5470,7 +5470,7 @@ namespace RimWorldAccess
                 }
                 if (alt && !ctrl && key == KeyCode.UpArrow)
                 {
-                    if (MultiSelectState.IsMultiSelectActive)
+                    if (MultiSelectState.IsMultiSelectMode)
                     {
                         var pawn = ColonistBarState.PageFocusUp();
                         if (pawn != null)
@@ -5489,7 +5489,7 @@ namespace RimWorldAccess
                 // Blocked during multi-select to avoid confusion
                 if (alt && ctrl && key == KeyCode.RightArrow)
                 {
-                    if (MultiSelectState.IsMultiSelectActive)
+                    if (MultiSelectState.IsMultiSelectMode)
                     {
                         TolkHelper.Speak("Cannot reorder during multi-select");
                         Event.current.Use();
@@ -5501,7 +5501,7 @@ namespace RimWorldAccess
                 }
                 if (alt && ctrl && key == KeyCode.LeftArrow)
                 {
-                    if (MultiSelectState.IsMultiSelectActive)
+                    if (MultiSelectState.IsMultiSelectMode)
                     {
                         TolkHelper.Speak("Cannot reorder during multi-select");
                         Event.current.Use();
@@ -5515,7 +5515,7 @@ namespace RimWorldAccess
                 // Ctrl+Alt+Down/Up: move colonist between pages (shift/insert)
                 if (alt && ctrl && key == KeyCode.DownArrow)
                 {
-                    if (MultiSelectState.IsMultiSelectActive)
+                    if (MultiSelectState.IsMultiSelectMode)
                     {
                         TolkHelper.Speak("Cannot reorder during multi-select");
                         Event.current.Use();
@@ -5527,7 +5527,7 @@ namespace RimWorldAccess
                 }
                 if (alt && ctrl && key == KeyCode.UpArrow)
                 {
-                    if (MultiSelectState.IsMultiSelectActive)
+                    if (MultiSelectState.IsMultiSelectMode)
                     {
                         TolkHelper.Speak("Cannot reorder during multi-select");
                         Event.current.Use();

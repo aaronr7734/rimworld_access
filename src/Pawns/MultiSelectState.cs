@@ -35,11 +35,49 @@ namespace RimWorldAccess
         private static Pawn rangeAnchorPawn = null;
 
         /// <summary>
+        /// User-intent flag: true once the user has explicitly entered multi-select
+        /// (via Alt+Space, contiguous range, select-all, or group recall) and not
+        /// yet exited it (single-select, clear, or removing the last pawn).
+        ///
+        /// This is distinct from <see cref="IsMultiSelectActive"/>, which is derived
+        /// purely from how many pawns are selected. A user can be in multi-select
+        /// mode with only a single pawn — that's the "I just started multi-selecting,
+        /// here's my first pawn" state — and Alt+Space on that lone pawn should
+        /// remove it and exit the mode rather than just deselecting.
+        /// </summary>
+        private static bool inMultiSelectMode = false;
+
+        /// <summary>
         /// Whether multi-select mode is active (more than one pawn selected in
         /// Find.Selector). Derived from the game's own selection state.
         /// </summary>
         public static bool IsMultiSelectActive
             => (Find.Selector?.SelectedPawns?.Count ?? 0) > 1;
+
+        /// <summary>
+        /// Whether the user is in multi-select MODE — a stickier state than
+        /// <see cref="IsMultiSelectActive"/>. True when:
+        ///   - More than one pawn is selected (always implies multi-select), OR
+        ///   - The user explicitly entered multi-select via Alt+Space / contiguous
+        ///     range / select-all / group recall and the selection is non-empty.
+        ///
+        /// Use this when deciding whether Alt+Space should ADD/REMOVE from the
+        /// multi-select list (mode active) or START multi-select (mode inactive).
+        /// Use <see cref="IsMultiSelectActive"/> when deciding whether to apply
+        /// an action to multiple pawns at once (drafting, gizmo broadcast, etc.).
+        /// </summary>
+        public static bool IsMultiSelectMode
+        {
+            get
+            {
+                int count = SelectedCount;
+                if (count > 1)
+                    return true;
+                if (count == 0)
+                    return false;
+                return inMultiSelectMode;
+            }
+        }
 
         /// <summary>
         /// The currently focused pawn (bar cursor position).
@@ -101,6 +139,14 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Toggles a pawn in/out of the multi-selection (Alt+Space).
+        ///
+        /// When multi-select mode is NOT active, Alt+Space ENTERS the mode with
+        /// the focused pawn as the first item — the pawn stays selected (or is
+        /// added to the selection if not already), and the mode flag is set so
+        /// subsequent Alt+Space presses toggle membership.
+        ///
+        /// When multi-select mode IS active, Alt+Space toggles the pawn in/out
+        /// of the multi-select list. Removing the last pawn exits the mode.
         /// </summary>
         public static void TogglePawn(Pawn pawn)
         {
@@ -116,6 +162,26 @@ namespace RimWorldAccess
             if (selector == null)
                 return;
 
+            // Not in multi-select mode → ENTER mode with this pawn as the first item.
+            // Don't deselect anything; if the pawn isn't already selected, add it.
+            if (!IsMultiSelectMode)
+            {
+                bool alreadySelected = selector.IsSelected(pawn);
+                if (!alreadySelected)
+                    selector.Select(pawn, playSound: false, forceDesignatorDeselect: false);
+
+                focusedPawn = pawn;
+                inMultiSelectMode = true;
+                rangeAnchorPawn = null;
+                GizmoNavigationState.PawnJustSelected = true;
+                ColonistBarState.SyncBarPosition(pawn);
+
+                int count = selector.SelectedPawns.Count;
+                TolkHelper.Speak($"{pawn.LabelShort} added. Multi-select started. {count} selected.");
+                return;
+            }
+
+            // In multi-select mode → toggle membership.
             if (selector.IsSelected(pawn))
             {
                 selector.Deselect(pawn);
@@ -123,18 +189,15 @@ namespace RimWorldAccess
 
                 if (remaining == 0)
                 {
-                    focusedPawn = pawn;
-                    SingleSelectFocusedPawn();
-                    TolkHelper.Speak($"{pawn.LabelShort} deselected. Selection cleared.");
-                }
-                else if (remaining == 1)
-                {
-                    focusedPawn = selector.SelectedPawns.First();
-                    SingleSelectFocusedPawn();
-                    TolkHelper.Speak($"{pawn.LabelShort} removed. {focusedPawn.LabelShort} selected.");
+                    inMultiSelectMode = false;
+                    focusedPawn = null;
+                    rangeAnchorPawn = null;
+                    TolkHelper.Speak($"{pawn.LabelShort} removed. Multi-select disabled.");
                 }
                 else
                 {
+                    if (focusedPawn == pawn)
+                        focusedPawn = selector.SelectedPawns.First();
                     GizmoNavigationState.PawnJustSelected = true;
                     TolkHelper.Speak($"{pawn.LabelShort} removed. {remaining} selected.");
                 }
@@ -142,6 +205,7 @@ namespace RimWorldAccess
             else
             {
                 selector.Select(pawn, playSound: false, forceDesignatorDeselect: false);
+                focusedPawn = pawn;
                 GizmoNavigationState.PawnJustSelected = true;
                 int count = selector.SelectedPawns.Count;
                 TolkHelper.Speak($"{pawn.LabelShort} added. {count} selected.");
@@ -239,6 +303,7 @@ namespace RimWorldAccess
 
             focusedPawn = anchor;
             rangeAnchorPawn = anchor;
+            inMultiSelectMode = true;
             ColonistBarState.SyncBarPosition(anchor);
             return true;
         }
@@ -319,13 +384,14 @@ namespace RimWorldAccess
         /// </summary>
         public static void ClearMultiSelect()
         {
-            if (!IsMultiSelectActive)
+            if (!IsMultiSelectMode)
             {
                 TolkHelper.Speak("No multi-selection active");
                 return;
             }
 
             rangeAnchorPawn = null;
+            inMultiSelectMode = false;
             SingleSelectFocusedPawn();
 
             if (focusedPawn != null)
@@ -370,6 +436,7 @@ namespace RimWorldAccess
             {
                 focusedPawn = selected.First();
                 ColonistBarState.SyncBarPosition(focusedPawn);
+                inMultiSelectMode = true;
             }
 
             GizmoNavigationState.PawnJustSelected = true;
@@ -411,6 +478,11 @@ namespace RimWorldAccess
                 focusedPawn = selected.First();
                 ColonistBarState.SyncBarPosition(focusedPawn);
                 GizmoNavigationState.PawnJustSelected = true;
+                inMultiSelectMode = true;
+            }
+            else
+            {
+                inMultiSelectMode = false;
             }
         }
 
@@ -430,6 +502,7 @@ namespace RimWorldAccess
             {
                 if (focusedPawn != null && !IsPawnValid(focusedPawn))
                     focusedPawn = null;
+                inMultiSelectMode = false;
                 return;
             }
 
@@ -454,12 +527,14 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Called when a pawn is selected via normal single-select (comma/period).
-        /// Updates the focus cursor to track the newly selected pawn.
+        /// Updates the focus cursor to track the newly selected pawn and exits
+        /// multi-select mode (single-selecting is the canonical way out).
         /// </summary>
         public static void NotifySingleSelect(Pawn pawn)
         {
             focusedPawn = pawn;
             rangeAnchorPawn = null;
+            inMultiSelectMode = false;
         }
 
         /// <summary>
@@ -472,6 +547,7 @@ namespace RimWorldAccess
         {
             focusedPawn = null;
             rangeAnchorPawn = null;
+            inMultiSelectMode = false;
         }
 
         /// <summary>

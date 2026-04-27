@@ -650,7 +650,7 @@ namespace RimWorldAccess
                 // For non-Designator gizmos, also select the owner so FloatMenu actions work correctly
                 // (some actions check Find.Selector.SelectedObjects or Find.WorldSelector.SelectedObjects)
                 // Skip when multi-select is active — selection is already correct and must not be cleared
-                if (!PawnJustSelected && !MultiSelectState.IsMultiSelectActive && gizmoOwners.ContainsKey(selectedGizmo))
+                if (!PawnJustSelected && !MultiSelectState.IsMultiSelectMode && gizmoOwners.ContainsKey(selectedGizmo))
                 {
                     ISelectable owner = gizmoOwners[selectedGizmo];
                     // Use WorldSelector for WorldObjects, Selector for map Things

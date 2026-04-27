@@ -296,7 +296,7 @@ namespace RimWorldAccess
                 return false; // Block original - our map switching already handled it
 
             // Multi-select mode: move focus only, don't change selection or camera
-            if (MultiSelectState.IsMultiSelectActive)
+            if (MultiSelectState.IsMultiSelectMode)
             {
                 MultiSelectState.NavigateFocusNext();
                 return false;
@@ -388,7 +388,7 @@ namespace RimWorldAccess
                 return false; // Block original - our map switching already handled it
 
             // Multi-select mode: move focus only, don't change selection or camera
-            if (MultiSelectState.IsMultiSelectActive)
+            if (MultiSelectState.IsMultiSelectMode)
             {
                 MultiSelectState.NavigateFocusPrevious();
                 return false;
