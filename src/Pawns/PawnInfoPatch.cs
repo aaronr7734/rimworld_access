@@ -78,8 +78,8 @@ namespace RimWorldAccess
                 foreach (var pawn in MultiSelectState.SelectedPawns)
                 {
                     string task = pawn.GetJobReport();
-                    if (string.IsNullOrEmpty(task)) task = "Idle";
-                    string label = $"{pawn.LabelShort}: {task}";
+                    if (string.IsNullOrEmpty(task)) task = "RimWorldAccess.Pawns.MultiSelect.Idle".Translate();
+                    string label = "RimWorldAccess.Pawns.Info.JumpPickerRow".Translate(pawn.LabelShort, task);
                     var p = pawn;
                     options.Add(new FloatMenuOption(label, () =>
                     {
@@ -162,7 +162,7 @@ namespace RimWorldAccess
                     info = PawnInfoHelper.GetWorkInfo(selectedPawn);
                     break;
                 default:
-                    info = "Unknown info type";
+                    info = "RimWorldAccess.Pawns.Info.UnknownInfoType".Translate();
                     break;
             }
 
@@ -176,14 +176,14 @@ namespace RimWorldAccess
         {
             if (Find.Selector == null || Find.Selector.NumSelected == 0)
             {
-                TolkHelper.Speak("No pawn selected");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Info.NoPawnSelected".Translate());
                 return null;
             }
 
             Pawn selectedPawn = Find.Selector.FirstSelectedObject as Pawn;
             if (selectedPawn == null)
             {
-                TolkHelper.Speak("Selected object is not a pawn");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Info.NotAPawn".Translate());
                 return null;
             }
 

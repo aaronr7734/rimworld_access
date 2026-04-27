@@ -34,14 +34,14 @@ namespace RimWorldAccess
 
             if (pawn.playerSettings == null || !pawn.playerSettings.SupportsAllowedAreas)
             {
-                TolkHelper.Speak($"{pawn.LabelShort} does not support area restrictions");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Area.NoSupport".Translate(pawn.LabelShort));
                 return;
             }
 
             Map map = Find.CurrentMap;
             if (map?.areaManager == null)
             {
-                TolkHelper.Speak("No map available");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Area.NoMap".Translate());
                 return;
             }
 
@@ -74,8 +74,8 @@ namespace RimWorldAccess
             isActive = true;
             typeaheadHelper = new TypeaheadSearchHelper();
 
-            string currentAreaName = currentArea?.Label ?? "Unrestricted";
-            TolkHelper.Speak($"Area assignment for {pawn.LabelShort}. Current area: {currentAreaName}");
+            string currentAreaName = currentArea?.Label ?? "RimWorldAccess.Pawns.Area.Unrestricted".Translate().ToString();
+            TolkHelper.Speak("RimWorldAccess.Pawns.Area.OpenAnnouncement".Translate(pawn.LabelShort, currentAreaName));
             AnnounceCurrentSelection();
         }
 
@@ -154,7 +154,7 @@ namespace RimWorldAccess
         {
             if (targetPawn == null || targetPawn.playerSettings == null)
             {
-                TolkHelper.Speak("Pawn no longer available");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Area.PawnGone".Translate());
                 Close();
                 return;
             }
@@ -172,15 +172,15 @@ namespace RimWorldAccess
 
                 targetPawn.playerSettings.AreaRestrictionInPawnCurrentMap = area;
 
-                string areaName = area?.Label ?? "Unrestricted";
-                TolkHelper.Speak($"{targetPawn.LabelShort}: {areaName} applied");
+                string areaName = area?.Label ?? "RimWorldAccess.Pawns.Area.Unrestricted".Translate().ToString();
+                TolkHelper.Speak("RimWorldAccess.Pawns.Area.Applied".Translate(targetPawn.LabelShort, areaName));
                 Close();
             }
         }
 
         public static void Cancel()
         {
-            TolkHelper.Speak("Area assignment cancelled");
+            TolkHelper.Speak("RimWorldAccess.Pawns.Area.Cancelled".Translate());
             Close();
         }
 
@@ -228,13 +228,13 @@ namespace RimWorldAccess
             foreach (var option in areaOptions)
             {
                 if (option == ManageAreasSentinel)
-                    labels.Add("Manage Areas");
+                    labels.Add("RimWorldAccess.Pawns.Area.ManageAreas".Translate());
                 else if (option == null)
-                    labels.Add("Unrestricted");
+                    labels.Add("RimWorldAccess.Pawns.Area.Unrestricted".Translate());
                 else if (option is Area area)
                     labels.Add(area.Label);
                 else
-                    labels.Add("Unknown");
+                    labels.Add("RimWorldAccess.Pawns.Area.UnknownLabel".Translate());
             }
             return labels;
         }
@@ -249,13 +249,15 @@ namespace RimWorldAccess
 
             if (focused == ManageAreasSentinel)
             {
-                string announcement = string.IsNullOrEmpty(position) ? "Manage Areas" : $"Manage Areas, {position}";
+                string announcement = string.IsNullOrEmpty(position)
+                    ? "RimWorldAccess.Pawns.Area.ManageAreas".Translate().ToString()
+                    : "RimWorldAccess.Pawns.Area.ManageAreasWithPosition".Translate(position).ToString();
                 TolkHelper.Speak(announcement);
             }
             else
             {
                 Area area = focused as Area;
-                string areaName = area?.Label ?? "Unrestricted";
+                string areaName = area?.Label ?? "RimWorldAccess.Pawns.Area.Unrestricted".Translate().ToString();
 
                 // Indicate if this is the pawn's current area
                 string currentSuffix = "";
@@ -263,22 +265,24 @@ namespace RimWorldAccess
                 {
                     Area pawnArea = targetPawn.playerSettings.AreaRestrictionInPawnCurrentMap;
                     if (area == pawnArea) // works for both null==null and area==area
-                        currentSuffix = " (current)";
+                        currentSuffix = "RimWorldAccess.Pawns.Area.CurrentSuffix".Translate();
                 }
 
                 string content;
                 if (area != null)
                 {
                     int cellCount = area.TrueCount;
-                    content = $"{areaName}{currentSuffix}, {cellCount} cells";
+                    content = "RimWorldAccess.Pawns.Area.AreaWithCells".Translate(areaName, currentSuffix, cellCount);
                     area.MarkForDraw();
                 }
                 else
                 {
-                    content = $"{areaName}{currentSuffix}";
+                    content = "RimWorldAccess.Pawns.Area.AreaBare".Translate(areaName, currentSuffix);
                 }
 
-                string announcement = string.IsNullOrEmpty(position) ? content : $"{content}, {position}";
+                string announcement = string.IsNullOrEmpty(position)
+                    ? content
+                    : "RimWorldAccess.Pawns.Area.WithPosition".Translate(content, position).ToString();
                 TolkHelper.Speak(announcement);
             }
         }
@@ -292,12 +296,12 @@ namespace RimWorldAccess
 
             if (focused == ManageAreasSentinel)
             {
-                TolkHelper.Speak(typeaheadHelper.BuildItemAnnouncement("Manage Areas"));
+                TolkHelper.Speak(typeaheadHelper.BuildItemAnnouncement("RimWorldAccess.Pawns.Area.ManageAreas".Translate()));
             }
             else
             {
                 Area area = focused as Area;
-                string areaName = area?.Label ?? "Unrestricted";
+                string areaName = area?.Label ?? "RimWorldAccess.Pawns.Area.Unrestricted".Translate().ToString();
                 TolkHelper.Speak(typeaheadHelper.BuildItemAnnouncement(areaName));
             }
         }

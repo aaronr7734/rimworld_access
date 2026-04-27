@@ -71,7 +71,7 @@ namespace RimWorldAccess
 
         private static string GetHourColumnName(int hourIndex)
         {
-            return $"Hour {hourIndex}";
+            return "RimWorldAccess.Pawns.Schedule.HourColumn".Translate(hourIndex);
         }
 
         private static string GetCellValue(Pawn pawn, int hourIndex)
@@ -160,7 +160,7 @@ namespace RimWorldAccess
             availableAreas.Clear();
             selectedAreaIndex = 0;
 
-            TolkHelper.Speak(ScheduleTabLabel + " closed");
+            TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.Closed".Translate(ScheduleTabLabel));
         }
 
         // ===== Announcements =====
@@ -178,28 +178,28 @@ namespace RimWorldAccess
 
             // Current brush
             if (selectedAssignment != null)
-                parts.Add($"Currently selected brush: {selectedAssignment.LabelCap}.");
+                parts.Add("RimWorldAccess.Pawns.Schedule.Brush.Selected".Translate(selectedAssignment.LabelCap));
 
             // Brush selection help with number keys
             if (availableAssignments.Count > 0)
             {
-                parts.Add("Press the following numbers to choose your brush:");
+                parts.Add("RimWorldAccess.Pawns.Schedule.Brush.HelpHeader".Translate());
                 for (int i = 0; i < availableAssignments.Count && i < 10; i++)
                 {
                     int displayKey = (i + 1) % 10; // 1,2,3...9,0
-                    parts.Add($"{displayKey}: {availableAssignments[i].LabelCap}.");
+                    parts.Add("RimWorldAccess.Pawns.Schedule.Brush.NumberKeyHelp".Translate(displayKey, availableAssignments[i].LabelCap));
                 }
             }
 
             // Usage instructions
-            parts.Add("Press space to apply the active brush to the current cell.");
-            parts.Add("Hold down the shift key and tap the arrow keys to paint the selected brush across multiple cells.");
+            parts.Add("RimWorldAccess.Pawns.Schedule.Brush.ApplyHelp".Translate());
+            parts.Add("RimWorldAccess.Pawns.Schedule.Brush.PaintHelp".Translate());
 
             // Copy/paste shortcuts
-            parts.Add($"{"Copy".Translate()} Ctrl+C, {"Paste".Translate()} Ctrl+V.");
+            parts.Add("RimWorldAccess.Pawns.Schedule.Brush.CopyPasteHelp".Translate("Copy".Translate(), "Paste".Translate()));
 
             // Column switch hint
-            parts.Add($"Tab for {"AllowedArea".Translate()}.");
+            parts.Add("RimWorldAccess.Pawns.Schedule.Brush.TabForArea".Translate("AllowedArea".Translate()));
 
             TolkHelper.Speak(string.Join(" ", parts));
         }
@@ -210,11 +210,11 @@ namespace RimWorldAccess
         private static string BuildCellAnnouncement()
         {
             if (pawns.Count == 0 || tableHelper.CurrentRowIndex < 0 || tableHelper.CurrentRowIndex >= pawns.Count)
-                return "No pawns available";
+                return "RimWorldAccess.Pawns.Schedule.NoPawnsAvailable".Translate();
 
             Pawn pawn = pawns[tableHelper.CurrentRowIndex];
             if (pawn.timetable == null)
-                return $"{pawn.LabelShort}: No schedule";
+                return "RimWorldAccess.Pawns.Schedule.NoSchedule".Translate(pawn.LabelShort);
 
             int hour = tableHelper.CurrentColumnIndex;
             TimeAssignmentDef assignment = pawn.timetable.GetAssignment(hour);
@@ -222,9 +222,9 @@ namespace RimWorldAccess
             string pawnPos = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, pawns.Count);
             string hourPos = MenuHelper.FormatPosition(hour, 24);
 
-            string message = $"{pawn.LabelShort}, Hour {hour}: {assignment.LabelCap}";
-            if (!string.IsNullOrEmpty(pawnPos) || !string.IsNullOrEmpty(hourPos))
-                message += $". Pawn {pawnPos}, Hour {hourPos}.";
+            string message = (!string.IsNullOrEmpty(pawnPos) || !string.IsNullOrEmpty(hourPos))
+                ? "RimWorldAccess.Pawns.Schedule.CellWithPositions".Translate(pawn.LabelShort, hour, assignment.LabelCap, pawnPos, hourPos).ToString()
+                : "RimWorldAccess.Pawns.Schedule.Cell".Translate(pawn.LabelShort, hour, assignment.LabelCap).ToString();
 
             // Add search context if active
             if (tableHelper.Typeahead.HasActiveSearch)
@@ -240,7 +240,7 @@ namespace RimWorldAccess
 
         private static void AnnouncePaint(Pawn pawn, int hour, TimeAssignmentDef assignment)
         {
-            TolkHelper.Speak($"{pawn.LabelShort}, Hour {hour} set to {assignment.LabelCap}");
+            TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.PaintApplied".Translate(pawn.LabelShort, hour, assignment.LabelCap));
         }
 
         // ===== Brush Selection =====
@@ -253,7 +253,7 @@ namespace RimWorldAccess
             if (index < 0 || index >= availableAssignments.Count)
             {
                 int displayKey = (index + 1) % 10;
-                TolkHelper.Speak($"No brush assigned to key {displayKey}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.Brush.NoBrushOnKey".Translate(displayKey));
                 return;
             }
 
@@ -290,7 +290,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"Hour {hour}: already set to {selectedAssignment.LabelCap}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.AlreadyAtHour".Translate(hour, selectedAssignment.LabelCap));
             }
         }
 
@@ -433,7 +433,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"{pawn.LabelShort}, Hour {hour}: already set to {selectedAssignment.LabelCap}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.AlreadyAtPawnHour".Translate(pawn.LabelShort, hour, selectedAssignment.LabelCap));
             }
         }
 
@@ -459,15 +459,21 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    ranges.Add(rangeStart == rangeEnd ? $"{rangeStart}" : $"{rangeStart} through {rangeEnd}");
+                    ranges.Add(rangeStart == rangeEnd
+                        ? "RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeOne".Translate(rangeStart).ToString()
+                        : "RimWorldAccess.Pawns.Schedule.BulkPaint.HourRange".Translate(rangeStart, rangeEnd).ToString());
                     rangeStart = hours[i];
                     rangeEnd = hours[i];
                 }
             }
-            ranges.Add(rangeStart == rangeEnd ? $"{rangeStart}" : $"{rangeStart} through {rangeEnd}");
+            ranges.Add(rangeStart == rangeEnd
+                ? "RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeOne".Translate(rangeStart).ToString()
+                : "RimWorldAccess.Pawns.Schedule.BulkPaint.HourRange".Translate(rangeStart, rangeEnd).ToString());
 
-            string label = hours.Count == 1 ? "hour" : "hours";
-            return $"{label} {MenuHelper.FormatNameList(ranges)}";
+            string label = hours.Count == 1
+                ? "RimWorldAccess.Pawns.Schedule.BulkPaint.HoursLabelOne".Translate().ToString()
+                : "RimWorldAccess.Pawns.Schedule.BulkPaint.HoursLabelMany".Translate().ToString();
+            return "RimWorldAccess.Pawns.Schedule.BulkPaint.HoursWithList".Translate(label, MenuHelper.FormatNameList(ranges));
         }
 
         /// <summary>
@@ -499,12 +505,14 @@ namespace RimWorldAccess
             if (changedHours.Count > 0)
             {
                 changedHours.Sort();
-                TolkHelper.Speak($"Painted {selectedAssignment.LabelCap} on {FormatChangedHourRanges(changedHours)} for {pawn.LabelShort}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.BulkPaint.PaintedHours".Translate(selectedAssignment.LabelCap, FormatChangedHourRanges(changedHours), pawn.LabelShort));
             }
             else
             {
-                string hourRange = startHour == 0 ? "Hour 0" : $"Hours 0 through {startHour}";
-                TolkHelper.Speak($"{hourRange} already set to {selectedAssignment.LabelCap} for {pawn.LabelShort}");
+                string hourRange = startHour == 0
+                    ? "RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeFirstOnly".Translate().ToString()
+                    : "RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeFromZero".Translate(startHour).ToString();
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.BulkPaint.HoursAlready".Translate(hourRange, selectedAssignment.LabelCap, pawn.LabelShort));
             }
         }
 
@@ -536,12 +544,14 @@ namespace RimWorldAccess
 
             if (changedHours.Count > 0)
             {
-                TolkHelper.Speak($"Painted {selectedAssignment.LabelCap} on {FormatChangedHourRanges(changedHours)} for {pawn.LabelShort}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.BulkPaint.PaintedHours".Translate(selectedAssignment.LabelCap, FormatChangedHourRanges(changedHours), pawn.LabelShort));
             }
             else
             {
-                string hourRange = startHour == 23 ? "Hour 23" : $"Hours {startHour} through 23";
-                TolkHelper.Speak($"{hourRange} already set to {selectedAssignment.LabelCap} for {pawn.LabelShort}");
+                string hourRange = startHour == 23
+                    ? "RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeLastOnly".Translate().ToString()
+                    : "RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeToLast".Translate(startHour).ToString();
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.BulkPaint.HoursAlready".Translate(hourRange, selectedAssignment.LabelCap, pawn.LabelShort));
             }
         }
 
@@ -577,11 +587,11 @@ namespace RimWorldAccess
 
             if (changedNames.Count > 0)
             {
-                TolkHelper.Speak($"Painted {selectedAssignment.LabelCap} on hour {hour} for {MenuHelper.FormatNameList(changedNames)}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.BulkPaint.PaintedHourForPawns".Translate(selectedAssignment.LabelCap, hour, MenuHelper.FormatNameList(changedNames)));
             }
             else
             {
-                TolkHelper.Speak($"Hour {hour} already set to {selectedAssignment.LabelCap} for all pawns");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.BulkPaint.HourAllPawnsAlready".Translate(hour, selectedAssignment.LabelCap));
             }
         }
 
@@ -617,11 +627,11 @@ namespace RimWorldAccess
 
             if (changedNames.Count > 0)
             {
-                TolkHelper.Speak($"Painted {selectedAssignment.LabelCap} on hour {hour} for {MenuHelper.FormatNameList(changedNames)}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.BulkPaint.PaintedHourForPawns".Translate(selectedAssignment.LabelCap, hour, MenuHelper.FormatNameList(changedNames)));
             }
             else
             {
-                TolkHelper.Speak($"Hour {hour} already set to {selectedAssignment.LabelCap} for all pawns");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.BulkPaint.HourAllPawnsAlready".Translate(hour, selectedAssignment.LabelCap));
             }
         }
 
@@ -644,7 +654,7 @@ namespace RimWorldAccess
                 copiedSchedule.Add(pawn.timetable.GetAssignment(hour));
             }
 
-            TolkHelper.Speak($"{"Copy".Translate()}: {pawn.LabelShort}");
+            TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.CopyPasteAnnouncement".Translate("Copy".Translate(), pawn.LabelShort));
         }
 
         /// <summary>
@@ -654,7 +664,7 @@ namespace RimWorldAccess
         {
             if (copiedSchedule == null)
             {
-                TolkHelper.Speak("No schedule copied");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.NoSchedCopied".Translate());
                 return;
             }
 
@@ -669,7 +679,7 @@ namespace RimWorldAccess
                 pawn.timetable.SetAssignment(hour, copiedSchedule[hour]);
             }
 
-            TolkHelper.Speak($"{"Paste".Translate()}: {pawn.LabelShort}");
+            TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.CopyPasteAnnouncement".Translate("Paste".Translate(), pawn.LabelShort));
         }
 
         // ===== Typeahead Search =====
@@ -746,7 +756,7 @@ namespace RimWorldAccess
             {
                 var parts = new List<string> { ScheduleTabLabel + "." };
                 if (selectedAssignment != null)
-                    parts.Add($"Currently selected brush: {selectedAssignment.LabelCap}.");
+                    parts.Add("RimWorldAccess.Pawns.Schedule.Brush.Selected".Translate(selectedAssignment.LabelCap));
                 parts.Add(BuildCellAnnouncement());
                 TolkHelper.Speak(string.Join(" ", parts));
             }
@@ -754,7 +764,7 @@ namespace RimWorldAccess
             {
                 if (pawns.Count == 0 || tableHelper.CurrentRowIndex < 0 || tableHelper.CurrentRowIndex >= pawns.Count)
                 {
-                    TolkHelper.Speak($"{"AllowedArea".Translate()}. No pawns available");
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.AreaSwitchEmpty".Translate("AllowedArea".Translate()));
                     return;
                 }
 
@@ -762,7 +772,8 @@ namespace RimWorldAccess
                 string areaName = GetAreaName(selectedAreaIndex);
                 string pawnPos = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, pawns.Count);
                 string areaPos = MenuHelper.FormatPosition(selectedAreaIndex, availableAreas.Count);
-                TolkHelper.Speak($"{"AllowedArea".Translate()}. {pawn.LabelShort}: {areaName}. Pawn {pawnPos}, Area {areaPos}");
+                string summary = "RimWorldAccess.Pawns.Schedule.AreaCellSummary".Translate(pawn.LabelShort, areaName, pawnPos, areaPos);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.AreaSwitchHeader".Translate("AllowedArea".Translate(), summary));
             }
         }
 
@@ -892,7 +903,7 @@ namespace RimWorldAccess
 
             string areaName = GetAreaName(selectedAreaIndex);
             string position = MenuHelper.FormatPosition(selectedAreaIndex, availableAreas.Count);
-            TolkHelper.Speak($"{areaName}. {position}");
+            TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.AreaFocus".Translate(areaName, position));
         }
 
         /// <summary>
@@ -969,7 +980,7 @@ namespace RimWorldAccess
 
             string areaName = area?.Label ?? "NoAreaAllowed".Translate();
             string position = MenuHelper.FormatPosition(selectedAreaIndex, availableAreas.Count);
-            TolkHelper.Speak($"{pawn.LabelShort}: {areaName} applied. {position}");
+            TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.AreaApplied".Translate(pawn.LabelShort, areaName, position));
         }
 
         /// <summary>
@@ -995,7 +1006,7 @@ namespace RimWorldAccess
 
             string areaName = sourceArea?.Label ?? "NoAreaAllowed".Translate();
             string pawnPosition = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, pawns.Count);
-            TolkHelper.Speak($"{targetPawn.LabelShort}: {areaName} applied. Pawn {pawnPosition}");
+            TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.AreaAppliedPawnPos".Translate(targetPawn.LabelShort, areaName, pawnPosition));
         }
 
         /// <summary>
@@ -1021,7 +1032,7 @@ namespace RimWorldAccess
 
             string areaName = sourceArea?.Label ?? "NoAreaAllowed".Translate();
             string pawnPosition = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, pawns.Count);
-            TolkHelper.Speak($"{targetPawn.LabelShort}: {areaName} applied. Pawn {pawnPosition}");
+            TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.AreaAppliedPawnPos".Translate(targetPawn.LabelShort, areaName, pawnPosition));
         }
 
         /// <summary>
@@ -1059,11 +1070,11 @@ namespace RimWorldAccess
             string areaName = sourceArea?.Label ?? "NoAreaAllowed".Translate();
             if (changedNames.Count > 0)
             {
-                TolkHelper.Speak($"Painted {areaName} for {MenuHelper.FormatNameList(changedNames)}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.AreaPaintedFor".Translate(areaName, MenuHelper.FormatNameList(changedNames)));
             }
             else
             {
-                TolkHelper.Speak($"All pawns already set to {areaName}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.AreaAllAlready".Translate(areaName));
             }
         }
 
@@ -1102,11 +1113,11 @@ namespace RimWorldAccess
             string areaName = sourceArea?.Label ?? "NoAreaAllowed".Translate();
             if (changedNames.Count > 0)
             {
-                TolkHelper.Speak($"Painted {areaName} for {MenuHelper.FormatNameList(changedNames)}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.AreaPaintedFor".Translate(areaName, MenuHelper.FormatNameList(changedNames)));
             }
             else
             {
-                TolkHelper.Speak($"All pawns already set to {areaName}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.AreaAllAlready".Translate(areaName));
             }
         }
 
@@ -1147,11 +1158,11 @@ namespace RimWorldAccess
             string areaName = sourceArea?.Label ?? "NoAreaAllowed".Translate();
             if (changedNames.Count > 0)
             {
-                TolkHelper.Speak($"Painted {areaName} for {MenuHelper.FormatNameList(changedNames)}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.AreaPaintedFor".Translate(areaName, MenuHelper.FormatNameList(changedNames)));
             }
             else
             {
-                TolkHelper.Speak($"All pawns already set to {areaName}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.AreaAllAlready".Translate(areaName));
             }
         }
 
@@ -1162,7 +1173,7 @@ namespace RimWorldAccess
         {
             if (pawns.Count == 0 || tableHelper.CurrentRowIndex < 0 || tableHelper.CurrentRowIndex >= pawns.Count)
             {
-                TolkHelper.Speak("No pawns available");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.NoPawnsAvailable".Translate());
                 return;
             }
 
@@ -1171,7 +1182,7 @@ namespace RimWorldAccess
             string pawnPos = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, pawns.Count);
             string areaPos = MenuHelper.FormatPosition(selectedAreaIndex, availableAreas.Count);
 
-            TolkHelper.Speak($"{pawn.LabelShort}: {areaName}. Pawn {pawnPos}, Area {areaPos}");
+            TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.AreaCellSummary".Translate(pawn.LabelShort, areaName, pawnPos, areaPos));
         }
 
         /// <summary>
@@ -1221,14 +1232,14 @@ namespace RimWorldAccess
         {
             if (currentColumn != ScheduleColumnMode.Areas)
             {
-                TolkHelper.Speak("Context menu only available in Areas column");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.ContextOnlyAreas".Translate());
                 return;
             }
 
             var options = new List<FloatMenuOption>
             {
-                new FloatMenuOption("Set All to Home Area", () => SetAllToHomeArea()),
-                new FloatMenuOption("Clear All Allowed Areas", () => ClearAllAreas())
+                new FloatMenuOption("RimWorldAccess.Pawns.Schedule.ContextMenu.SetAllHome".Translate(), () => SetAllToHomeArea()),
+                new FloatMenuOption("RimWorldAccess.Pawns.Schedule.ContextMenu.ClearAll".Translate(), () => ClearAllAreas())
             };
 
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
@@ -1239,7 +1250,7 @@ namespace RimWorldAccess
             Area homeArea = Find.CurrentMap?.areaManager?.Home;
             if (homeArea == null)
             {
-                TolkHelper.Speak("No home area defined");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.NoHomeArea".Translate());
                 return;
             }
 
@@ -1256,7 +1267,7 @@ namespace RimWorldAccess
             selectedAreaIndex = availableAreas.IndexOf(homeArea);
             if (selectedAreaIndex < 0) selectedAreaIndex = 0;
 
-            TolkHelper.Speak($"Set {count} pawns to Home area");
+            TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.SetCountToHome".Translate(count));
         }
 
         private static void ClearAllAreas()
@@ -1272,7 +1283,7 @@ namespace RimWorldAccess
             }
 
             selectedAreaIndex = UnrestrictedIndex;
-            TolkHelper.Speak($"Cleared allowed areas for {count} pawns");
+            TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.ClearedCount".Translate(count));
         }
     }
 }

@@ -618,7 +618,7 @@ namespace RimWorldAccess
             {
                 var newPolicy = createNew();
                 refreshCallback?.Invoke();
-                TolkHelper.Speak($"Created: {newPolicy.label}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PolicyCreated".Translate(newPolicy.label));
             }));
 
             if (currentPolicy != null)
@@ -637,7 +637,7 @@ namespace RimWorldAccess
                         var newPolicy = createNew();
                         newPolicy.CopyFrom(currentPolicy);
                         refreshCallback?.Invoke();
-                        TolkHelper.Speak($"Duplicated: {newPolicy.label}");
+                        TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PolicyDuplicated".Translate(newPolicy.label));
                     }));
 
                 // Delete
@@ -650,7 +650,7 @@ namespace RimWorldAccess
                         else
                         {
                             refreshCallback?.Invoke();
-                            TolkHelper.Speak("Policy deleted");
+                            TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PolicyDeleted".Translate());
                         }
                     }));
 
@@ -661,7 +661,7 @@ namespace RimWorldAccess
                         $"{"Default".Translate()}: {currentPolicy.label}", () =>
                         {
                             setDefault(currentPolicy);
-                            TolkHelper.Speak($"{currentPolicy.label} set as default");
+                            TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PolicySetAsDefault".Translate(currentPolicy.label));
                         }));
                 }
             }
@@ -749,7 +749,7 @@ namespace RimWorldAccess
                 case PolicyAction.New:
                     var newPolicy = createNew();
                     refreshCallback?.Invoke();
-                    TolkHelper.Speak($"Created: {newPolicy.label}");
+                    TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PolicyCreated".Translate(newPolicy.label));
                     return true;
 
                 case PolicyAction.Rename:
@@ -762,7 +762,7 @@ namespace RimWorldAccess
                     var copied = createNew();
                     copied.CopyFrom(policy);
                     refreshCallback?.Invoke();
-                    TolkHelper.Speak($"Duplicated: {copied.label}");
+                    TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PolicyDuplicated".Translate(copied.label));
                     return true;
 
                 case PolicyAction.Delete:
@@ -773,7 +773,7 @@ namespace RimWorldAccess
                     else
                     {
                         refreshCallback?.Invoke();
-                        TolkHelper.Speak("Policy deleted");
+                        TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PolicyDeleted".Translate());
                     }
                     return true;
 

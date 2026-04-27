@@ -154,13 +154,13 @@ namespace RimWorldAccess
 
                 role.Assign(pawn, addThoughts: true);
                 string roleName = role.LabelForPawn(pawn);
-                TolkHelper.Speak($"{pawn.LabelShort} assigned as {roleName}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Social.RoleAssigned".Translate(pawn.LabelShort, roleName));
                 return true;
             }
             catch (Exception ex)
             {
                 Log.Error($"[RimWorldAccess] Error assigning role: {ex}");
-                TolkHelper.Speak("Error assigning role", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Social.ErrorAssignRole".Translate(), SpeechPriority.High);
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return false;
             }
@@ -178,13 +178,13 @@ namespace RimWorldAccess
 
                 string roleName = role.LabelForPawn(pawn);
                 role.Unassign(pawn, generateThoughts: true);
-                TolkHelper.Speak($"{pawn.LabelShort} unassigned from {roleName}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Social.RoleUnassigned".Translate(pawn.LabelShort, roleName));
                 return true;
             }
             catch (Exception ex)
             {
                 Log.Error($"[RimWorldAccess] Error unassigning role: {ex}");
-                TolkHelper.Speak("Error unassigning role", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Social.ErrorUnassignRole".Translate(), SpeechPriority.High);
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return false;
             }
@@ -438,14 +438,14 @@ namespace RimWorldAccess
 
                 string approachLabel = approach.GetLabel().CapitalizeFirst();
 
-                TolkHelper.Speak($"Pregnancy approach set to: {approachLabel}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Social.PregnancyApproachSet".Translate(approachLabel));
                 SoundDefOf.Click.PlayOneShotOnCamera();
                 return true;
             }
             catch (Exception ex)
             {
                 Log.Error($"[RimWorldAccess] Error setting pregnancy approach: {ex}");
-                TolkHelper.Speak("Error setting pregnancy approach", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Social.ErrorSetPregnancyApproach".Translate(), SpeechPriority.High);
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return false;
             }
@@ -604,7 +604,7 @@ namespace RimWorldAccess
             catch (Exception ex)
             {
                 Log.Error($"[RimWorldAccess] Error initiating romance: {ex}");
-                TolkHelper.Speak("Error initiating romance", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Social.ErrorInitiateRomance".Translate(), SpeechPriority.High);
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return false;
             }

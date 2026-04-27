@@ -56,7 +56,7 @@ namespace RimWorldAccess
         {
             if (pawn == null)
             {
-                TolkHelper.Speak("No pawn focused");
+                TolkHelper.Speak("RimWorldAccess.Pawns.MultiSelect.NoFocus".Translate());
                 return;
             }
 
@@ -71,7 +71,7 @@ namespace RimWorldAccess
                     IsMultiSelectActive = false;
                     focusedPawn = pawn;
                     SingleSelectFocusedPawn();
-                    TolkHelper.Speak($"{pawn.LabelShort} deselected. Selection cleared.");
+                    TolkHelper.Speak("RimWorldAccess.Pawns.MultiSelect.DeselectedCleared".Translate(pawn.LabelShort));
                 }
                 else if (selectedPawns.Count == 1)
                 {
@@ -79,12 +79,12 @@ namespace RimWorldAccess
                     IsMultiSelectActive = false;
                     focusedPawn = selectedPawns.First();
                     SingleSelectFocusedPawn();
-                    TolkHelper.Speak($"{pawn.LabelShort} removed. {focusedPawn.LabelShort} selected.");
+                    TolkHelper.Speak("RimWorldAccess.Pawns.MultiSelect.RemovedThenSingle".Translate(pawn.LabelShort, focusedPawn.LabelShort));
                 }
                 else
                 {
                     SyncSelectionWithGame();
-                    TolkHelper.Speak($"{pawn.LabelShort} removed. {selectedPawns.Count} selected.");
+                    TolkHelper.Speak("RimWorldAccess.Pawns.MultiSelect.Removed".Translate(pawn.LabelShort, selectedPawns.Count));
                 }
             }
             else
@@ -102,7 +102,7 @@ namespace RimWorldAccess
                 selectedPawns.Add(pawn);
                 IsMultiSelectActive = selectedPawns.Count > 1;
                 SyncSelectionWithGame();
-                TolkHelper.Speak($"{pawn.LabelShort} added. {selectedPawns.Count} selected.");
+                TolkHelper.Speak("RimWorldAccess.Pawns.MultiSelect.Added".Translate(pawn.LabelShort, selectedPawns.Count));
             }
         }
 
@@ -152,11 +152,11 @@ namespace RimWorldAccess
 
             if (!alreadySelected)
             {
-                TolkHelper.Speak($"{nextPawn.LabelShort} added. {selectedPawns.Count} selected.");
+                TolkHelper.Speak("RimWorldAccess.Pawns.MultiSelect.Added".Translate(nextPawn.LabelShort, selectedPawns.Count));
             }
             else
             {
-                TolkHelper.Speak($"{nextPawn.LabelShort}, already selected. {selectedPawns.Count} selected.");
+                TolkHelper.Speak("RimWorldAccess.Pawns.MultiSelect.AlreadySelected".Translate(nextPawn.LabelShort, selectedPawns.Count));
             }
         }
 
@@ -193,11 +193,11 @@ namespace RimWorldAccess
 
             if (!alreadySelected)
             {
-                TolkHelper.Speak($"{prevPawn.LabelShort} added. {selectedPawns.Count} selected.");
+                TolkHelper.Speak("RimWorldAccess.Pawns.MultiSelect.Added".Translate(prevPawn.LabelShort, selectedPawns.Count));
             }
             else
             {
-                TolkHelper.Speak($"{prevPawn.LabelShort}, already selected. {selectedPawns.Count} selected.");
+                TolkHelper.Speak("RimWorldAccess.Pawns.MultiSelect.AlreadySelected".Translate(prevPawn.LabelShort, selectedPawns.Count));
             }
         }
 
@@ -235,7 +235,7 @@ namespace RimWorldAccess
         {
             if (!IsMultiSelectActive)
             {
-                TolkHelper.Speak("No multi-selection active");
+                TolkHelper.Speak("RimWorldAccess.Pawns.MultiSelect.Inactive".Translate());
                 return;
             }
 
@@ -248,8 +248,8 @@ namespace RimWorldAccess
             {
                 string task = focusedPawn.GetJobReport();
                 if (string.IsNullOrEmpty(task))
-                    task = "Idle";
-                TolkHelper.Speak($"{focusedPawn.LabelShort} - {task}");
+                    task = "RimWorldAccess.Pawns.MultiSelect.Idle".Translate();
+                TolkHelper.Speak("RimWorldAccess.Pawns.MultiSelect.FocusedTask".Translate(focusedPawn.LabelShort, task));
             }
         }
 
@@ -260,7 +260,7 @@ namespace RimWorldAccess
         {
             if (allColonists == null || allColonists.Count == 0)
             {
-                TolkHelper.Speak("No colonists on this map");
+                TolkHelper.Speak("RimWorldAccess.Pawns.MultiSelect.NoColonists".Translate());
                 return;
             }
 
@@ -282,11 +282,11 @@ namespace RimWorldAccess
             {
                 string names = MenuHelper.FormatNameList(
                     selectedPawns.Select(p => p.LabelShort).ToList());
-                TolkHelper.Speak($"All selected: {names}. {selectedPawns.Count} colonists.");
+                TolkHelper.Speak("RimWorldAccess.Pawns.MultiSelect.AllSelectedNamed".Translate(names, selectedPawns.Count));
             }
             else
             {
-                TolkHelper.Speak($"All {selectedPawns.Count} colonists selected");
+                TolkHelper.Speak("RimWorldAccess.Pawns.MultiSelect.AllSelectedCount".Translate(selectedPawns.Count));
             }
         }
 
@@ -429,11 +429,13 @@ namespace RimWorldAccess
 
         public static void AnnounceFocusedPawn(Pawn pawn)
         {
-            string selectedStatus = selectedPawns.Contains(pawn) ? "selected" : "not selected";
+            string selectedStatus = (selectedPawns.Contains(pawn)
+                ? "RimWorldAccess.Pawns.MultiSelect.SelectedStatus"
+                : "RimWorldAccess.Pawns.MultiSelect.NotSelectedStatus").Translate();
 
             string task = pawn.GetJobReport();
             if (string.IsNullOrEmpty(task))
-                task = "Idle";
+                task = "RimWorldAccess.Pawns.MultiSelect.Idle".Translate();
 
             var list = ColonistBarState.IsOnMechSection
                 ? Find.CurrentMap?.mapPawns?.SpawnedColonyMechs?.OrderBy(p => p.LabelShort).ToList()
@@ -442,9 +444,9 @@ namespace RimWorldAccess
             int total = list?.Count ?? 0;
             string positionPart = MenuHelper.FormatPosition(ColonistBarState.BarPosition, total);
 
-            string announcement = $"{pawn.LabelShort}, {selectedStatus}, {task}";
-            if (!string.IsNullOrEmpty(positionPart))
-                announcement += $". {positionPart}";
+            string announcement = !string.IsNullOrEmpty(positionPart)
+                ? "RimWorldAccess.Pawns.MultiSelect.PawnSummaryWithPos".Translate(pawn.LabelShort, selectedStatus, task, positionPart).ToString()
+                : "RimWorldAccess.Pawns.MultiSelect.PawnSummary".Translate(pawn.LabelShort, selectedStatus, task).ToString();
 
             TolkHelper.Speak(announcement);
         }

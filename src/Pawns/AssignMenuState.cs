@@ -64,7 +64,7 @@ namespace RimWorldAccess
 
             if (pawnsList.Count == 0)
             {
-                TolkHelper.Speak("No colonists found");
+                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.NoColonists".Translate());
                 return;
             }
 
@@ -111,7 +111,7 @@ namespace RimWorldAccess
 
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
             string tabLabel = DefDatabase<MainButtonDef>.GetNamed("Assign").LabelCap;
-            TolkHelper.Speak($"{tabLabel}, {pawnsList.Count} colonists");
+            TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.Opened".Translate(tabLabel, pawnsList.Count));
             AnnounceCurrentCell(includeItemName: true);
         }
 
@@ -127,7 +127,7 @@ namespace RimWorldAccess
 
             SoundDefOf.TabClose.PlayOneShotOnCamera();
             string tabLabel = DefDatabase<MainButtonDef>.GetNamed("Assign").LabelCap;
-            TolkHelper.Speak($"{tabLabel} closed");
+            TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.Closed".Translate(tabLabel));
         }
 
         public static void PrepareForPolicyEditorReturn()
@@ -195,7 +195,7 @@ namespace RimWorldAccess
             if (result == null)
             {
                 string colName = tableHelper.GetCurrentColumnName();
-                TolkHelper.Speak($"{colName} cannot be sorted");
+                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.SortCannot".Translate(colName));
                 return;
             }
 
@@ -204,13 +204,13 @@ namespace RimWorldAccess
             if (sortCleared)
             {
                 SoundDefOf.Tick_Low.PlayOneShotOnCamera();
-                TolkHelper.Speak("Sort cleared, default order");
+                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.SortCleared".Translate());
             }
             else
             {
                 string columnName = tableHelper.GetCurrentColumnName();
                 SoundDefOf.Tick_High.PlayOneShotOnCamera();
-                TolkHelper.Speak($"Sorted by {columnName} ({direction})");
+                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.SortedBy".Translate(columnName, direction));
             }
 
             AnnounceCurrentCell(includeItemName: true);
@@ -255,7 +255,7 @@ namespace RimWorldAccess
         {
             if (pawn == null || pawn.Map == null)
             {
-                TolkHelper.Speak("Pawn not on map", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PawnNotOnMap".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -289,13 +289,13 @@ namespace RimWorldAccess
             // Check if column is usable for this specific pawn
             if (colType == AssignMenuHelper.AssignColumnType.MedicineCarry && pawn.inventoryStock == null)
             {
-                TolkHelper.Speak("N/A", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.NotApplicable".Translate(), SpeechPriority.High);
                 return;
             }
             if ((colType == AssignMenuHelper.AssignColumnType.HostilityResponse ||
                  colType == AssignMenuHelper.AssignColumnType.MedicalCare) && pawn.playerSettings == null)
             {
-                TolkHelper.Speak("N/A", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.NotApplicable".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -303,7 +303,7 @@ namespace RimWorldAccess
 
             if (submenuOptions.Count == 0)
             {
-                TolkHelper.Speak("No options available");
+                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.NoOptions".Translate());
                 return;
             }
 
@@ -344,7 +344,7 @@ namespace RimWorldAccess
             SoundDefOf.Click.PlayOneShotOnCamera();
 
             string colName = AssignMenuHelper.GetColumnName(tableHelper.CurrentColumnIndex);
-            TolkHelper.Speak($"{currentPawn.LabelShort}: {colName} set to {option.Label}");
+            TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.SetTo".Translate(currentPawn.LabelShort, colName, option.Label));
 
             CloseSubmenu();
             ResortAfterEdit();
@@ -360,9 +360,9 @@ namespace RimWorldAccess
             if (resorted != null)
             {
                 pawnsList = resorted.ToList();
-                string announcement = "Now at " + tableHelper.BuildCellAnnouncement(
+                string cell = tableHelper.BuildCellAnnouncement(
                     pawnsList[tableHelper.CurrentRowIndex], pawnsList.Count, includeItemName: true);
-                TolkHelper.Speak(announcement);
+                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.ResortNowAt".Translate(cell));
             }
         }
 
@@ -511,7 +511,7 @@ namespace RimWorldAccess
 
             if (!AssignMenuHelper.HasContextMenu(colIndex))
             {
-                TolkHelper.Speak("No context menu for this column");
+                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.NoContextMenuColumn".Translate());
                 return;
             }
 
@@ -589,7 +589,7 @@ namespace RimWorldAccess
 
             if (options == null || options.Count == 0)
             {
-                TolkHelper.Speak("No context menu for this column");
+                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.NoContextMenuColumn".Translate());
                 return;
             }
 
@@ -605,7 +605,7 @@ namespace RimWorldAccess
             var policy = selectedOption.PolicyObject;
             if (policy == null)
             {
-                TolkHelper.Speak("No context menu for this item");
+                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.NoContextMenuItem".Translate());
                 return;
             }
 
@@ -673,7 +673,7 @@ namespace RimWorldAccess
 
             if (options == null || options.Count == 0)
             {
-                TolkHelper.Speak("No context menu for this item");
+                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.NoContextMenuItem".Translate());
                 return;
             }
 
@@ -707,14 +707,14 @@ namespace RimWorldAccess
             if (sourceValue == targetValue)
             {
                 string colName = AssignMenuHelper.GetColumnName(colIndex);
-                TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} already {targetValue}. {position}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.AlreadyAt".Translate(targetPawn.LabelShort, colName, targetValue, position));
                 return;
             }
 
             AssignMenuHelper.ApplyValueToPawn(sourcePawn, targetPawn, colIndex);
             SoundDefOf.Click.PlayOneShotOnCamera();
             string value = AssignMenuHelper.GetColumnValue(targetPawn, colIndex);
-            TolkHelper.Speak($"{targetPawn.LabelShort}: {value} applied. {position}");
+            TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.AppliedAt".Translate(targetPawn.LabelShort, value, position));
         }
 
         public static void PaintUp()
@@ -740,14 +740,14 @@ namespace RimWorldAccess
             if (sourceValue == targetValue)
             {
                 string colName = AssignMenuHelper.GetColumnName(colIndex);
-                TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} already {targetValue}. {position}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.AlreadyAt".Translate(targetPawn.LabelShort, colName, targetValue, position));
                 return;
             }
 
             AssignMenuHelper.ApplyValueToPawn(sourcePawn, targetPawn, colIndex);
             SoundDefOf.Click.PlayOneShotOnCamera();
             string value = AssignMenuHelper.GetColumnValue(targetPawn, colIndex);
-            TolkHelper.Speak($"{targetPawn.LabelShort}: {value} applied. {position}");
+            TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.AppliedAt".Translate(targetPawn.LabelShort, value, position));
         }
 
         /// <summary>
@@ -825,11 +825,11 @@ namespace RimWorldAccess
             if (changed.Count > 0)
             {
                 BulkSoundQueue.Queue(changed.Count, SoundDefOf.Click);
-                TolkHelper.Speak($"Painted {colName} to {sourceValue} for {MenuHelper.FormatNameList(changed)}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PaintedTo".Translate(colName, sourceValue, MenuHelper.FormatNameList(changed)));
             }
             else
             {
-                TolkHelper.Speak($"{colName} already {sourceValue} for all colonists");
+                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.AllAlready".Translate(colName, sourceValue));
             }
         }
 
@@ -880,7 +880,7 @@ namespace RimWorldAccess
         {
             if (pawnsList.Count == 0)
             {
-                TolkHelper.Speak("No colonists");
+                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.NoColonistsShort".Translate());
                 return;
             }
 

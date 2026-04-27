@@ -31,11 +31,11 @@ namespace RimWorldAccess
             string genderPrefix = "";
             if (pawn.gender == Gender.Male)
             {
-                genderPrefix = "Male ";
+                genderPrefix = "RimWorldAccess.Pawns.Group.MalePrefix".Translate();
             }
             else if (pawn.gender == Gender.Female)
             {
-                genderPrefix = "Female ";
+                genderPrefix = "RimWorldAccess.Pawns.Group.FemalePrefix".Translate();
             }
 
             // Collect suffixes (life stage, pregnancy)
@@ -63,12 +63,14 @@ namespace RimWorldAccess
             // Add pregnancy status if pregnant
             if (pawn.health?.hediffSet?.HasHediff(HediffDefOf.Pregnant) == true)
             {
-                suffixes.Add("pregnant");
+                suffixes.Add("RimWorldAccess.Pawns.Group.Pregnant".Translate());
             }
 
             // Build the final label
-            string suffix = suffixes.Count > 0 ? $" ({string.Join(", ", suffixes)})" : "";
-            return $"{genderPrefix}{kindLabel.CapitalizeFirst()}{suffix}";
+            string suffix = suffixes.Count > 0
+                ? "RimWorldAccess.Pawns.Group.SuffixWrap".Translate(string.Join(", ", suffixes)).ToString()
+                : "";
+            return "RimWorldAccess.Pawns.Group.Label".Translate(genderPrefix, kindLabel.CapitalizeFirst(), suffix);
         }
     }
 }

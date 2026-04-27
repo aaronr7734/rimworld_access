@@ -298,7 +298,7 @@ namespace RimWorldAccess
             string drugName = entry.drug.LabelCap;
             string status = GetDrugStatusSummary(entry);
             string position = MenuHelper.FormatPosition(selectedDrugIndex, policy.Count);
-            TolkHelper.Speak($"{drugName}. {status}. {position}");
+            TolkHelper.Speak("RimWorldAccess.Pawns.DrugPolicy.DrugLine".Translate(drugName, status, position));
         }
 
         private static void AnnounceDrugSetting()
@@ -310,14 +310,20 @@ namespace RimWorldAccess
             var setting = currentSettings[selectedSettingIndex];
             string value = GetSettingValueString(entry, setting);
             string position = MenuHelper.FormatPosition(selectedSettingIndex, currentSettings.Count);
-            string tooltip = setting.Tooltip != null ? $" {setting.Tooltip}" : "";
-            TolkHelper.Speak($"{setting.Label}: {value}.{tooltip} {position}");
+            if (setting.Tooltip != null)
+            {
+                TolkHelper.Speak("RimWorldAccess.Pawns.DrugPolicy.SettingWithTooltip".Translate(setting.Label, value, setting.Tooltip, position));
+            }
+            else
+            {
+                TolkHelper.Speak("RimWorldAccess.Pawns.DrugPolicy.SettingNoTooltip".Translate(setting.Label, value, position));
+            }
         }
 
         private static void AnnounceSettingValue(DrugPolicyEntry entry, DrugSetting setting)
         {
             string value = GetSettingValueString(entry, setting);
-            TolkHelper.Speak($"{setting.Label}: {value}");
+            TolkHelper.Speak("RimWorldAccess.Pawns.DrugPolicy.SettingChange".Translate(setting.Label, value));
         }
 
         private static string GetSettingValueString(DrugPolicyEntry entry, DrugSetting setting)

@@ -18,12 +18,12 @@ namespace RimWorldAccess
         public static string GetCurrentTask(Pawn pawn)
         {
             if (pawn == null)
-                return "No pawn";
+                return "RimWorldAccess.Pawns.Info.NoPawn".Translate();
 
             string task = pawn.GetJobReport();
             if (string.IsNullOrEmpty(task))
             {
-                return "Idle";
+                return "RimWorldAccess.Pawns.Info.Idle".Translate();
             }
             return task;
         }
@@ -39,20 +39,20 @@ namespace RimWorldAccess
         public static string GetHealthInfo(Pawn pawn)
         {
             if (pawn == null)
-                return "No pawn selected";
+                return "RimWorldAccess.Pawns.Info.NoPawnSelected".Translate();
 
             if (pawn.health == null)
-                return $"{pawn.LabelShort}: No health tracker";
+                return "RimWorldAccess.Pawns.Health.NoTracker".Translate(pawn.LabelShort);
 
             StringBuilder sb = new StringBuilder();
-            sb.Append($"{pawn.LabelShort}. ");
+            sb.Append("RimWorldAccess.Pawns.Health.NameHeader".Translate(pawn.LabelShort));
             bool hasHealthDetails = false;
 
             // Pain (uses vanilla translation keys and qualitative labels)
             string painLabel = HealthTabHelper.GetPainLabel(pawn);
             if (painLabel != null)
             {
-                sb.Append($"{painLabel}. ");
+                sb.Append("RimWorldAccess.Pawns.Health.SentenceSuffix".Translate(painLabel));
                 hasHealthDetails = true;
             }
 
@@ -60,7 +60,7 @@ namespace RimWorldAccess
             string bleedingLabel = HealthTabHelper.GetBleedingLabel(pawn);
             if (bleedingLabel != null)
             {
-                sb.Append($"{bleedingLabel}. ");
+                sb.Append("RimWorldAccess.Pawns.Health.SentenceSuffix".Translate(bleedingLabel));
                 hasHealthDetails = true;
             }
 
@@ -76,7 +76,7 @@ namespace RimWorldAccess
 
                 foreach (var cap in impaired)
                 {
-                    sb.Append($"{cap.Label}: {cap.LevelLabel}. ");
+                    sb.Append("RimWorldAccess.Pawns.Health.Capacity".Translate(cap.Label, cap.LevelLabel));
                     hasHealthDetails = true;
                 }
             }
@@ -102,7 +102,8 @@ namespace RimWorldAccess
 
                 foreach (var p in damagedParts)
                 {
-                    sb.Append($"{p.Part.LabelCap}: {p.Health:F0}/{p.MaxHealth:F0}. ");
+                    sb.Append("RimWorldAccess.Pawns.Health.PartHealth".Translate(
+                        p.Part.LabelCap, p.Health.ToString("F0"), p.MaxHealth.ToString("F0")));
                     hasHealthDetails = true;
                 }
             }
@@ -114,13 +115,13 @@ namespace RimWorldAccess
 
             foreach (var hediff in wholeBodyHediffs)
             {
-                sb.Append($"{hediff.LabelCap}. ");
+                sb.Append("RimWorldAccess.Pawns.Health.SentenceSuffix".Translate(hediff.LabelCap));
                 hasHealthDetails = true;
             }
 
             if (!hasHealthDetails)
             {
-                sb.Append($"{ "Healthy".Translate()}.");
+                sb.Append("RimWorldAccess.Pawns.Health.HealthySuffix".Translate("Healthy".Translate()));
             }
 
             return sb.ToString().TrimEnd();
@@ -133,13 +134,13 @@ namespace RimWorldAccess
         public static string GetNeedsInfo(Pawn pawn)
         {
             if (pawn == null)
-                return "No pawn selected";
+                return "RimWorldAccess.Pawns.Info.NoPawnSelected".Translate();
 
             if (pawn.needs == null)
-                return $"{pawn.LabelShort}: No needs tracker";
+                return "RimWorldAccess.Pawns.Needs.NoTracker".Translate(pawn.LabelShort);
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"{pawn.LabelShort}'s Needs.");
+            sb.AppendLine("RimWorldAccess.Pawns.Needs.Header".Translate(pawn.LabelShort));
 
             var needs = pawn.needs.AllNeeds;
             if (needs != null && needs.Count > 0)
@@ -153,7 +154,7 @@ namespace RimWorldAccess
                 foreach (var need in sortedNeeds)
                 {
                     float percentage = need.CurLevelPercentage * 100f;
-                    sb.AppendLine($"  {need.LabelCap}: {percentage:F0}%.");
+                    sb.AppendLine("RimWorldAccess.Pawns.Needs.NeedLine".Translate(need.LabelCap, percentage.ToString("F0")));
 
                     // After the Learning need, list active learning desires (Biotech children only)
                     if (need.def == NeedDefOf.Learning && pawn.learning?.ActiveLearningDesires != null
@@ -162,13 +163,13 @@ namespace RimWorldAccess
                         var desireLabels = pawn.learning.ActiveLearningDesires
                             .Select(d => d.LabelCap.ToString())
                             .ToArray();
-                        sb.AppendLine($"    Learning desires: {string.Join(", ", desireLabels)}.");
+                        sb.AppendLine("RimWorldAccess.Pawns.Needs.LearningDesires".Translate(string.Join(", ", desireLabels)));
                     }
                 }
             }
             else
             {
-                sb.AppendLine("No needs to display.");
+                sb.AppendLine("RimWorldAccess.Pawns.Needs.Empty".Translate());
             }
 
             return sb.ToString().TrimEnd();
@@ -181,20 +182,20 @@ namespace RimWorldAccess
         public static string GetMoodInfo(Pawn pawn)
         {
             if (pawn == null)
-                return "No pawn selected";
+                return "RimWorldAccess.Pawns.Info.NoPawnSelected".Translate();
 
             if (pawn.needs?.mood == null)
-                return $"{pawn.LabelShort}: No mood tracker";
+                return "RimWorldAccess.Pawns.Mood.NoTracker".Translate(pawn.LabelShort);
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"{pawn.LabelShort}'s Mood.");
+            sb.AppendLine("RimWorldAccess.Pawns.Mood.Header".Translate(pawn.LabelShort));
 
             Need_Mood mood = pawn.needs.mood;
 
             // Current mood level and description
             float moodPercentage = mood.CurLevelPercentage * 100f;
             string moodDescription = mood.MoodString;
-            sb.AppendLine($"Mood: {moodPercentage:F0}% ({moodDescription}).");
+            sb.AppendLine("RimWorldAccess.Pawns.Mood.MoodLine".Translate(moodPercentage.ToString("F0"), moodDescription));
 
             // Get thoughts affecting mood
             List<Thought> thoughtGroups = new List<Thought>();
@@ -202,7 +203,7 @@ namespace RimWorldAccess
 
             if (thoughtGroups.Count > 0)
             {
-                sb.AppendLine($"\nThoughts affecting mood. {thoughtGroups.Count} total.");
+                sb.AppendLine("RimWorldAccess.Pawns.Mood.ThoughtsHeader".Translate(thoughtGroups.Count));
 
                 List<Thought> thoughtGroup = new List<Thought>();
                 foreach (Thought group in thoughtGroups)
@@ -222,18 +223,18 @@ namespace RimWorldAccess
                     string thoughtLabel = leadingThought.LabelCap;
                     if (thoughtGroup.Count > 1)
                     {
-                        thoughtLabel = $"{thoughtLabel} x{thoughtGroup.Count}";
+                        thoughtLabel = "RimWorldAccess.Pawns.Mood.ThoughtMultiplier".Translate(thoughtLabel, thoughtGroup.Count);
                     }
 
                     string offsetText = moodOffset.ToString("+0;-0;0");
-                    sb.AppendLine($"  {thoughtLabel}: {offsetText}.");
+                    sb.AppendLine("RimWorldAccess.Pawns.Mood.ThoughtLine".Translate(thoughtLabel, offsetText));
 
                     thoughtGroup.Clear();
                 }
             }
             else
             {
-                sb.AppendLine("\nNo thoughts affecting mood.");
+                sb.AppendLine("RimWorldAccess.Pawns.Mood.NoThoughts".Translate());
             }
 
             return sb.ToString().TrimEnd();
@@ -246,32 +247,31 @@ namespace RimWorldAccess
         public static string GetGearInfo(Pawn pawn)
         {
             if (pawn == null)
-                return "No pawn selected";
+                return "RimWorldAccess.Pawns.Info.NoPawnSelected".Translate();
 
             StringBuilder sb = new StringBuilder();
-            sb.Append($"{pawn.LabelShort}'s Gear. ");
+            sb.Append("RimWorldAccess.Pawns.GearInfo.Header".Translate(pawn.LabelShort));
 
             // Weapon
             if (pawn.equipment != null && pawn.equipment.Primary != null)
             {
                 var weapon = pawn.equipment.Primary;
-                sb.Append($"Wielding: {weapon.LabelNoParenthesisCap.StripTags()}");
+                sb.Append("RimWorldAccess.Pawns.GearInfo.WieldingItem".Translate(weapon.LabelNoParenthesisCap.StripTags()));
                 var qualityComp = weapon.TryGetComp<CompQuality>();
                 if (qualityComp != null)
                 {
-                    sb.Append($" ({qualityComp.Quality})");
+                    sb.Append("RimWorldAccess.Pawns.GearInfo.QualityParen".Translate(qualityComp.Quality.GetLabel()));
                 }
-                sb.Append(". ");
+                sb.Append("RimWorldAccess.Pawns.GearInfo.WieldingTerminator".Translate());
             }
             else
             {
-                sb.Append("Wielding: Nothing. ");
+                sb.Append("RimWorldAccess.Pawns.GearInfo.WieldingNothing".Translate());
             }
 
             // Apparel
             if (pawn.apparel != null && pawn.apparel.WornApparel != null && pawn.apparel.WornApparel.Count > 0)
             {
-                sb.Append("Wearing: ");
                 var apparelList = new List<string>();
                 foreach (var apparel in pawn.apparel.WornApparel)
                 {
@@ -279,16 +279,15 @@ namespace RimWorldAccess
                     var qualityComp = apparel.TryGetComp<CompQuality>();
                     if (qualityComp != null)
                     {
-                        apparelEntry += $" ({qualityComp.Quality})";
+                        apparelEntry += "RimWorldAccess.Pawns.GearInfo.QualityParen".Translate(qualityComp.Quality.GetLabel());
                     }
                     apparelList.Add(apparelEntry);
                 }
-                sb.Append(string.Join(", ", apparelList));
-                sb.Append(".");
+                sb.Append("RimWorldAccess.Pawns.GearInfo.Wearing".Translate(string.Join(", ", apparelList)));
             }
             else
             {
-                sb.Append("Wearing: Nothing.");
+                sb.Append("RimWorldAccess.Pawns.GearInfo.WearingNothing".Translate());
             }
 
             return sb.ToString();
@@ -301,26 +300,26 @@ namespace RimWorldAccess
         public static string GetSocialInfo(Pawn pawn)
         {
             if (pawn == null)
-                return "No pawn selected";
+                return "RimWorldAccess.Pawns.Info.NoPawnSelected".Translate();
 
             if (pawn.relations == null)
-                return $"{pawn.LabelShort}: No relations tracker";
+                return "RimWorldAccess.Pawns.SocialInfo.NoTracker".Translate(pawn.LabelShort);
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"{pawn.LabelShort} Social:");
+            sb.AppendLine("RimWorldAccess.Pawns.SocialInfo.Header".Translate(pawn.LabelShort));
 
             // Direct relations (family, lovers, etc.)
             var directRelations = pawn.relations.DirectRelations;
             if (directRelations != null && directRelations.Count > 0)
             {
-                sb.AppendLine($"\nRelationships ({directRelations.Count}):");
+                sb.AppendLine("RimWorldAccess.Pawns.SocialInfo.RelationshipsHeader".Translate(directRelations.Count));
                 foreach (var rel in directRelations)
                 {
                     if (rel.otherPawn != null)
                     {
                         // Use GetGenderSpecificLabelCap to get the correct label based on the other pawn's gender
                         string relationLabel = rel.def.GetGenderSpecificLabelCap(rel.otherPawn);
-                        sb.AppendLine($"  - {relationLabel}: {rel.otherPawn.LabelShort}");
+                        sb.AppendLine("RimWorldAccess.Pawns.SocialInfo.RelationshipLine".Translate(relationLabel, rel.otherPawn.LabelShort));
                     }
                 }
             }
@@ -337,28 +336,28 @@ namespace RimWorldAccess
                         int opinion = otherPawn.relations.OpinionOf(pawn);
                         if (opinion != 0)
                         {
-                            opinions.Add($"  - {otherPawn.LabelShort}: {opinion:+0;-0}");
+                            opinions.Add("RimWorldAccess.Pawns.SocialInfo.OpinionLine".Translate(otherPawn.LabelShort, opinion.ToString("+0;-0")));
                         }
                     }
                 }
 
                 if (opinions.Count > 0)
                 {
-                    sb.AppendLine($"\nOpinions from others ({opinions.Count}):");
+                    sb.AppendLine("RimWorldAccess.Pawns.SocialInfo.OpinionsHeader".Translate(opinions.Count));
                     foreach (var opinion in opinions.Take(10)) // Limit to 10 to avoid spam
                     {
                         sb.AppendLine(opinion);
                     }
                     if (opinions.Count > 10)
                     {
-                        sb.AppendLine($"  ... and {opinions.Count - 10} more");
+                        sb.AppendLine("RimWorldAccess.Pawns.SocialInfo.OpinionsMore".Translate(opinions.Count - 10));
                     }
                 }
             }
 
             if (directRelations == null || directRelations.Count == 0)
             {
-                sb.AppendLine("No direct relationships");
+                sb.AppendLine("RimWorldAccess.Pawns.SocialInfo.NoRelationships".Translate());
             }
 
             return sb.ToString().TrimEnd();
@@ -370,13 +369,13 @@ namespace RimWorldAccess
         public static string GetTrainingInfo(Pawn pawn)
         {
             if (pawn == null)
-                return "No pawn selected";
+                return "RimWorldAccess.Pawns.Info.NoPawnSelected".Translate();
 
             if (pawn.training == null)
-                return $"{pawn.LabelShort}: Not trainable";
+                return "RimWorldAccess.Pawns.TrainingInfo.NotTrainable".Translate(pawn.LabelShort);
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"{pawn.LabelShort} Training:");
+            sb.AppendLine("RimWorldAccess.Pawns.TrainingInfo.Header".Translate(pawn.LabelShort));
 
             var trainableDefs = DefDatabase<TrainableDef>.AllDefsListForReading;
             var trainedSkills = new List<string>();
@@ -388,19 +387,19 @@ namespace RimWorldAccess
                 {
                     if (pawn.training.HasLearned(trainable))
                     {
-                        trainedSkills.Add($"  - {trainable.LabelCap}: Learned");
+                        trainedSkills.Add("RimWorldAccess.Pawns.TrainingInfo.LineLearned".Translate(trainable.LabelCap));
                     }
                     else
                     {
                         // Training in progress - show without step count since GetSteps is not available
-                        untrainedSkills.Add($"  - {trainable.LabelCap}: In progress");
+                        untrainedSkills.Add("RimWorldAccess.Pawns.TrainingInfo.LineInProgress".Translate(trainable.LabelCap));
                     }
                 }
             }
 
             if (trainedSkills.Count > 0)
             {
-                sb.AppendLine($"\nTrained ({trainedSkills.Count}):");
+                sb.AppendLine("RimWorldAccess.Pawns.TrainingInfo.TrainedHeader".Translate(trainedSkills.Count));
                 foreach (var skill in trainedSkills)
                 {
                     sb.AppendLine(skill);
@@ -409,7 +408,7 @@ namespace RimWorldAccess
 
             if (untrainedSkills.Count > 0)
             {
-                sb.AppendLine($"\nIn Progress ({untrainedSkills.Count}):");
+                sb.AppendLine("RimWorldAccess.Pawns.TrainingInfo.InProgressHeader".Translate(untrainedSkills.Count));
                 foreach (var skill in untrainedSkills)
                 {
                     sb.AppendLine(skill);
@@ -418,7 +417,7 @@ namespace RimWorldAccess
 
             if (trainedSkills.Count == 0 && untrainedSkills.Count == 0)
             {
-                sb.AppendLine("No trainable skills");
+                sb.AppendLine("RimWorldAccess.Pawns.TrainingInfo.NoSkills".Translate());
             }
 
             return sb.ToString().TrimEnd();
@@ -431,15 +430,15 @@ namespace RimWorldAccess
         public static string GetCharacterInfo(Pawn pawn)
         {
             if (pawn == null)
-                return "No pawn selected";
+                return "RimWorldAccess.Pawns.Info.NoPawnSelected".Translate();
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"{pawn.LabelShort} Character:");
+            sb.AppendLine("RimWorldAccess.Pawns.Character.Header".Translate(pawn.LabelShort));
 
             // Basic info
             if (pawn.ageTracker != null)
             {
-                sb.AppendLine($"Age: {pawn.ageTracker.AgeBiologicalYears} years");
+                sb.AppendLine("RimWorldAccess.Pawns.Character.Age".Translate(pawn.ageTracker.AgeBiologicalYears));
             }
 
             // Traits
@@ -448,10 +447,10 @@ namespace RimWorldAccess
                 var traits = pawn.story.traits.allTraits;
                 if (traits != null && traits.Count > 0)
                 {
-                    sb.AppendLine($"\nTraits ({traits.Count}):");
+                    sb.AppendLine("RimWorldAccess.Pawns.Character.TraitsHeader".Translate(traits.Count));
                     foreach (var trait in traits)
                     {
-                        sb.AppendLine($"  - {trait.LabelCap}");
+                        sb.AppendLine("RimWorldAccess.Pawns.Character.TraitLine".Translate(trait.LabelCap));
                     }
                 }
             }
@@ -461,11 +460,11 @@ namespace RimWorldAccess
             {
                 if (pawn.story.Childhood != null)
                 {
-                    sb.AppendLine($"\nChildhood: {pawn.story.Childhood.TitleCapFor(pawn.gender)}");
+                    sb.AppendLine("RimWorldAccess.Pawns.Character.Childhood".Translate(pawn.story.Childhood.TitleCapFor(pawn.gender)));
                 }
                 if (pawn.story.Adulthood != null)
                 {
-                    sb.AppendLine($"Adulthood: {pawn.story.Adulthood.TitleCapFor(pawn.gender)}");
+                    sb.AppendLine("RimWorldAccess.Pawns.Character.Adulthood".Translate(pawn.story.Adulthood.TitleCapFor(pawn.gender)));
                 }
             }
 
@@ -479,16 +478,16 @@ namespace RimWorldAccess
 
                 if (topSkills.Any())
                 {
-                    sb.AppendLine($"\nTop Skills:");
+                    sb.AppendLine("RimWorldAccess.Pawns.Character.TopSkillsHeader".Translate());
                     foreach (var skill in topSkills)
                     {
                         string passion = "";
                         if (skill.passion == Passion.Minor)
-                            passion = " (•)";
+                            passion = "RimWorldAccess.Pawns.Character.PassionMinor".Translate();
                         else if (skill.passion == Passion.Major)
-                            passion = " (••)";
+                            passion = "RimWorldAccess.Pawns.Character.PassionMajor".Translate();
 
-                        sb.AppendLine($"  - {skill.def.LabelCap}: {skill.Level}{passion}");
+                        sb.AppendLine("RimWorldAccess.Pawns.Character.SkillLine".Translate(skill.def.LabelCap, skill.Level, passion));
                     }
                 }
             }
@@ -502,10 +501,10 @@ namespace RimWorldAccess
         public static string GetTopSkillsInfo(Pawn pawn)
         {
             if (pawn == null)
-                return "No pawn selected";
+                return "RimWorldAccess.Pawns.Info.NoPawnSelected".Translate();
 
             if (pawn.skills == null || pawn.skills.skills == null)
-                return $"{pawn.LabelShort}: No skills";
+                return "RimWorldAccess.Pawns.TopSkills.NoSkills".Translate(pawn.LabelShort);
 
             var topSkills = pawn.skills.skills
                 .Where(s => !s.TotallyDisabled && s.Level > 0)
@@ -514,19 +513,19 @@ namespace RimWorldAccess
                 .ToList();
 
             if (!topSkills.Any())
-                return $"{pawn.LabelShort}: No skills";
+                return "RimWorldAccess.Pawns.TopSkills.NoSkills".Translate(pawn.LabelShort);
 
             StringBuilder sb = new StringBuilder();
-            sb.Append($"{pawn.LabelShort}'s Top Skills. ");
+            sb.Append("RimWorldAccess.Pawns.TopSkills.Header".Translate(pawn.LabelShort));
 
             foreach (var skill in topSkills)
             {
-                sb.Append($"{skill.def.LabelCap}: {skill.Level}.");
+                sb.Append("RimWorldAccess.Pawns.TopSkills.SkillEntry".Translate(skill.def.LabelCap, skill.Level));
 
                 if (skill.passion == Passion.Minor)
-                    sb.Append(" (passion.)");
+                    sb.Append("RimWorldAccess.Pawns.TopSkills.PassionMinor".Translate());
                 else if (skill.passion == Passion.Major)
-                    sb.Append(" (double passion.)");
+                    sb.Append("RimWorldAccess.Pawns.TopSkills.PassionMajor".Translate());
 
                 sb.Append(" ");
             }
@@ -540,13 +539,13 @@ namespace RimWorldAccess
         public static string GetWorkInfo(Pawn pawn)
         {
             if (pawn == null)
-                return "No pawn selected";
+                return "RimWorldAccess.Pawns.Info.NoPawnSelected".Translate();
 
             if (pawn.workSettings == null)
-                return $"{pawn.LabelShort}: No work settings";
+                return "RimWorldAccess.Pawns.WorkInfo.NoSettings".Translate(pawn.LabelShort);
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"{pawn.LabelShort} Work:");
+            sb.AppendLine("RimWorldAccess.Pawns.WorkInfo.Header".Translate(pawn.LabelShort));
 
             var workTypes = DefDatabase<WorkTypeDef>.AllDefsListForReading;
             var enabledWork = new List<string>();
@@ -559,19 +558,21 @@ namespace RimWorldAccess
                     if (pawn.workSettings.WorkIsActive(workType))
                     {
                         int priority = pawn.workSettings.GetPriority(workType);
-                        string priorityText = priority > 0 ? $" (Priority {priority})" : " (Enabled)";
-                        enabledWork.Add($"  - {workType.labelShort}{priorityText}");
+                        string entry = priority > 0
+                            ? "RimWorldAccess.Pawns.WorkInfo.LinePriority".Translate(workType.labelShort, priority).ToString()
+                            : "RimWorldAccess.Pawns.WorkInfo.LineEnabled".Translate(workType.labelShort).ToString();
+                        enabledWork.Add(entry);
                     }
                     else if (!pawn.WorkTypeIsDisabled(workType))
                     {
-                        disabledWork.Add($"  - {workType.labelShort}");
+                        disabledWork.Add("RimWorldAccess.Pawns.WorkInfo.LineDisabled".Translate(workType.labelShort));
                     }
                 }
             }
 
             if (enabledWork.Count > 0)
             {
-                sb.AppendLine($"\nEnabled ({enabledWork.Count}):");
+                sb.AppendLine("RimWorldAccess.Pawns.WorkInfo.EnabledHeader".Translate(enabledWork.Count));
                 foreach (var work in enabledWork)
                 {
                     sb.AppendLine(work);
@@ -580,7 +581,7 @@ namespace RimWorldAccess
 
             if (disabledWork.Count > 0 && disabledWork.Count <= 10)
             {
-                sb.AppendLine($"\nDisabled ({disabledWork.Count}):");
+                sb.AppendLine("RimWorldAccess.Pawns.WorkInfo.DisabledHeader".Translate(disabledWork.Count));
                 foreach (var work in disabledWork)
                 {
                     sb.AppendLine(work);
@@ -589,7 +590,7 @@ namespace RimWorldAccess
 
             if (enabledWork.Count == 0)
             {
-                sb.AppendLine("No work types enabled");
+                sb.AppendLine("RimWorldAccess.Pawns.WorkInfo.NoWork".Translate());
             }
 
             return sb.ToString().TrimEnd();

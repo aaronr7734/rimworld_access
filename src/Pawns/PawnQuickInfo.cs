@@ -48,7 +48,7 @@ namespace RimWorldAccess
                 foreach (var pawn in MultiSelectState.SelectedPawns)
                 {
                     string info = extractor(pawn);
-                    string label = $"{pawn.LabelShort}: {info}";
+                    string label = "RimWorldAccess.Pawns.QuickInfo.PickerRow".Translate(pawn.LabelShort, info);
                     var p = pawn;
                     options.Add(new FloatMenuOption(label, () => TolkHelper.Speak(extractor(p))));
                 }

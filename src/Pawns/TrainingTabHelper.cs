@@ -176,7 +176,9 @@ namespace RimWorldAccess
                 PlayerKnowledgeDatabase.KnowledgeDemonstrated(
                     ConceptDefOf.AnimalTraining, KnowledgeAmount.Total);
 
-                string status = newWanted ? "Wanted" : "Not wanted";
+                string status = newWanted
+                    ? "RimWorldAccess.Pawns.Training.Wanted".Translate().ToString()
+                    : "RimWorldAccess.Pawns.Training.NotWanted".Translate().ToString();
                 TolkHelper.Speak(status);
                 SoundDefOf.Click.PlayOneShotOnCamera();
                 return true;
@@ -184,7 +186,7 @@ namespace RimWorldAccess
             catch (Exception ex)
             {
                 Log.Error($"[RimWorldAccess] Error toggling trainable: {ex}");
-                TolkHelper.Speak("Error toggling training", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Training.ErrorToggleTraining".Translate(), SpeechPriority.High);
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return false;
             }
@@ -210,7 +212,7 @@ namespace RimWorldAccess
             catch (Exception ex)
             {
                 Log.Error($"[RimWorldAccess] Error setting master: {ex}");
-                TolkHelper.Speak("Error setting master", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Training.ErrorSetMaster".Translate(), SpeechPriority.High);
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return false;
             }
@@ -235,7 +237,7 @@ namespace RimWorldAccess
             catch (Exception ex)
             {
                 Log.Error($"[RimWorldAccess] Error toggling follow drafted: {ex}");
-                TolkHelper.Speak("Error toggling setting", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Training.ErrorToggleSetting".Translate(), SpeechPriority.High);
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return false;
             }
@@ -260,7 +262,7 @@ namespace RimWorldAccess
             catch (Exception ex)
             {
                 Log.Error($"[RimWorldAccess] Error toggling follow fieldwork: {ex}");
-                TolkHelper.Speak("Error toggling setting", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Training.ErrorToggleSetting".Translate(), SpeechPriority.High);
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return false;
             }
@@ -285,7 +287,7 @@ namespace RimWorldAccess
             catch (Exception ex)
             {
                 Log.Error($"[RimWorldAccess] Error toggling foraging: {ex}");
-                TolkHelper.Speak("Error toggling setting", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Training.ErrorToggleSetting".Translate(), SpeechPriority.High);
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return false;
             }
@@ -310,7 +312,7 @@ namespace RimWorldAccess
             catch (Exception ex)
             {
                 Log.Error($"[RimWorldAccess] Error toggling digging: {ex}");
-                TolkHelper.Speak("Error toggling setting", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Training.ErrorToggleSetting".Translate(), SpeechPriority.High);
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return false;
             }

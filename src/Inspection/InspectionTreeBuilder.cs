@@ -1051,16 +1051,17 @@ namespace RimWorldAccess
 
             foreach (var action in actions)
             {
+                var capturedAction = action;
                 var actionItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Action,
-                    Label = action,
-                    Data = new { Pawn = pawn, Gear = gear, Action = action },
+                    Label = InteractiveGearHelper.GetActionLabel(capturedAction),
+                    Data = new { Pawn = pawn, Gear = gear, Action = capturedAction },
                     IndentLevel = gearItem.IndentLevel + 1,
                     IsExpandable = false
                 };
 
-                actionItem.OnActivate = () => ExecuteGearAction(pawn, gear, action);
+                actionItem.OnActivate = () => ExecuteGearAction(pawn, gear, capturedAction);
                 AddChild(gearItem, actionItem);
             }
         }
@@ -1068,13 +1069,13 @@ namespace RimWorldAccess
         /// <summary>
         /// Executes a gear action.
         /// </summary>
-        private static void ExecuteGearAction(Pawn pawn, InteractiveGearHelper.GearItem gear, string action)
+        private static void ExecuteGearAction(Pawn pawn, InteractiveGearHelper.GearItem gear, GearAction action)
         {
             bool success = false;
 
             switch (action)
             {
-                case "Drop":
+                case GearAction.Drop:
                     success = InteractiveGearHelper.ExecuteDropAction(gear, pawn);
                     if (success)
                     {
@@ -1082,7 +1083,7 @@ namespace RimWorldAccess
                         WindowlessInspectionState.RebuildTree();
                     }
                     break;
-                case "Consume":
+                case GearAction.Consume:
                     success = InteractiveGearHelper.ExecuteConsumeAction(gear, pawn);
                     if (success)
                     {
@@ -1090,7 +1091,7 @@ namespace RimWorldAccess
                         WindowlessInspectionState.RebuildTree();
                     }
                     break;
-                case "View Info":
+                case GearAction.ViewInfo:
                     // Close current inspection menu and open new one for the item
                     // Pass the pawn as parent so Escape returns to the pawn's inspection
                     WindowlessInspectionState.Close();

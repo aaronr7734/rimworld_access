@@ -52,7 +52,7 @@ namespace RimWorldAccess
 
             string names = MenuHelper.FormatNameList(
                 groupList.Select(p => p.LabelShort).ToList());
-            TolkHelper.Speak($"Group {slot + 1} saved: {names}");
+            TolkHelper.Speak("RimWorldAccess.Pawns.Group.Saved".Translate(slot + 1, names));
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace RimWorldAccess
 
             if (groupList.Count == 0)
             {
-                TolkHelper.Speak($"Group {slot + 1} is empty");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Group.SlotEmpty".Translate(slot + 1));
                 return;
             }
 
@@ -83,7 +83,7 @@ namespace RimWorldAccess
 
             if (validPawns.Count == 0)
             {
-                TolkHelper.Speak($"Group {slot + 1}: no pawns available on this map");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Group.NoPawnsAvailable".Translate(slot + 1));
                 return;
             }
 
@@ -95,14 +95,13 @@ namespace RimWorldAccess
 
             if (unavailableCount > 0)
             {
-                TolkHelper.Speak(
-                    $"Group {slot + 1} recalled: {names}. " +
-                    $"{unavailableCount} unavailable. {validPawns.Count} selected.");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Group.RecalledPartial".Translate(
+                    slot + 1, names, unavailableCount, validPawns.Count));
             }
             else
             {
-                TolkHelper.Speak(
-                    $"Group {slot + 1} recalled: {names}. {validPawns.Count} selected.");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Group.Recalled".Translate(
+                    slot + 1, names, validPawns.Count));
             }
         }
 

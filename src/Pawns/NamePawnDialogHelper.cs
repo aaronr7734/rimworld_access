@@ -53,7 +53,7 @@ namespace RimWorldAccess
                 object nameContext = namesList[i];
                 string current = currentField.GetValue(nameContext) as string ?? "";
                 object labelObj = labelField.GetValue(nameContext);
-                string label = labelObj?.ToString()?.TrimEnd(':') ?? $"Name {i + 1}";
+                string label = labelObj?.ToString()?.TrimEnd(':') ?? "RimWorldAccess.Pawns.NameDialog.NameFallback".Translate(i + 1).ToString();
                 bool editable = editableField != null && (bool)editableField.GetValue(nameContext);
                 int maxLength = maxLengthField != null ? (int)maxLengthField.GetValue(nameContext) : 16;
 
@@ -145,7 +145,7 @@ namespace RimWorldAccess
             Pawn pawn = pawnField?.GetValue(dialog) as Pawn;
             if (pawn == null)
             {
-                TolkHelper.Speak("Error: Could not find pawn", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.NoPawn".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -153,14 +153,14 @@ namespace RimWorldAccess
             MethodInfo buildNameMethod = dialogType.GetMethod("BuildName", BindingFlags.NonPublic | BindingFlags.Instance);
             if (buildNameMethod == null)
             {
-                TolkHelper.Speak("Error: BuildName method not found", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.MethodNotFound".Translate(), SpeechPriority.High);
                 return;
             }
 
             Name name = buildNameMethod.Invoke(dialog, null) as Name;
             if (name == null || !name.IsValid)
             {
-                TolkHelper.Speak("Name is invalid. Please check the name fields.", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.Invalid".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -175,7 +175,7 @@ namespace RimWorldAccess
             else if (name is NameSingle single)
                 displayName = single.Name;
 
-            TolkHelper.Speak($"Named {displayName}", SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.Named".Translate(displayName), SpeechPriority.High);
 
             // Close the windowless dialog
             WindowlessDialogState.Close();
@@ -201,7 +201,7 @@ namespace RimWorldAccess
                 Pawn pawn = pawnField?.GetValue(dialog) as Pawn;
                 if (pawn == null)
                 {
-                    TolkHelper.Speak("Could not find pawn");
+                    TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.RandomCannotFindPawn".Translate());
                     return;
                 }
 
@@ -210,7 +210,7 @@ namespace RimWorldAccess
                 var namesList = namesField?.GetValue(dialog) as System.Collections.IList;
                 if (namesList == null || fieldIndex < 0 || fieldIndex >= namesList.Count)
                 {
-                    TolkHelper.Speak("Invalid field index");
+                    TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.RandomInvalidIndex".Translate());
                     return;
                 }
 
@@ -222,7 +222,7 @@ namespace RimWorldAccess
 
                 if (tripleIndex < 0)
                 {
-                    TolkHelper.Speak("This field cannot be randomized");
+                    TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.RandomCannotRandomize".Translate());
                     return;
                 }
 
@@ -243,17 +243,17 @@ namespace RimWorldAccess
                 {
                     textField.Value = newValue;
                     SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                    TolkHelper.Speak($"Randomized to {newValue}");
+                    TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.RandomizedTo".Translate(newValue));
                 }
                 else
                 {
-                    TolkHelper.Speak("Could not generate random name");
+                    TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.RandomCouldNotGenerate".Translate());
                 }
             }
             catch (Exception ex)
             {
                 Log.Warning($"[NamePawnDialogHelper] Error randomizing: {ex.Message}");
-                TolkHelper.Speak("Could not randomize");
+                TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.RandomFailed".Translate());
             }
         }
     }

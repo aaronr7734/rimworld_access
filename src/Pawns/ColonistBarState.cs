@@ -261,7 +261,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("Start of bar");
+                        TolkHelper.Speak("RimWorldAccess.Pawns.Bar.StartOfBar".Translate());
                         return;
                     }
                 }
@@ -322,7 +322,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("Last page");
+                        TolkHelper.Speak("RimWorldAccess.Pawns.Bar.LastPage".Translate());
                     }
                 }
                 else
@@ -338,7 +338,7 @@ namespace RimWorldAccess
                 var mechs = GetMechs();
                 if (mechs.Count == 0)
                 {
-                    TolkHelper.Speak("No mechs on this map");
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NoMechsHere".Translate());
                     return;
                 }
 
@@ -348,7 +348,7 @@ namespace RimWorldAccess
 
                 if (targetPosition / PageSize == CurrentPage)
                 {
-                    TolkHelper.Speak("Last page");
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Bar.LastPage".Translate());
                 }
                 else
                 {
@@ -392,7 +392,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("First page");
+                        TolkHelper.Speak("RimWorldAccess.Pawns.Bar.FirstPage".Translate());
                     }
                 }
             }
@@ -408,7 +408,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak("First page");
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Bar.FirstPage".Translate());
                 }
             }
         }
@@ -432,7 +432,9 @@ namespace RimWorldAccess
 
             if (targetIndex >= list.Count)
             {
-                TolkHelper.Speak($"No {(onMechSection ? "mech" : "colonist")} at position {positionOnPage + 1}");
+                TolkHelper.Speak((onMechSection
+                    ? "RimWorldAccess.Pawns.Bar.NoMechAtPosition"
+                    : "RimWorldAccess.Pawns.Bar.NoColonistAtPosition").Translate(positionOnPage + 1));
                 return;
             }
 
@@ -452,7 +454,7 @@ namespace RimWorldAccess
 
             if (onMechSection)
             {
-                TolkHelper.Speak("Cannot reorder mechs");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.CannotReorderMechs".Translate());
                 return;
             }
 
@@ -498,7 +500,7 @@ namespace RimWorldAccess
 
             if (onMechSection)
             {
-                TolkHelper.Speak("Cannot reorder mechs");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.CannotReorderMechs".Translate());
                 return;
             }
 
@@ -545,7 +547,7 @@ namespace RimWorldAccess
 
             if (onMechSection)
             {
-                TolkHelper.Speak("Cannot reorder mechs");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.CannotReorderMechs".Translate());
                 return;
             }
 
@@ -560,7 +562,7 @@ namespace RimWorldAccess
 
             if (targetBarPosition / PageSize == barPosition / PageSize)
             {
-                TolkHelper.Speak("Already on last page");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.AlreadyOnLastPage".Translate());
                 return;
             }
 
@@ -594,7 +596,7 @@ namespace RimWorldAccess
 
             if (onMechSection)
             {
-                TolkHelper.Speak("Cannot reorder mechs");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.CannotReorderMechs".Translate());
                 return;
             }
 
@@ -609,7 +611,7 @@ namespace RimWorldAccess
 
             if (targetBarPosition / PageSize == barPosition / PageSize)
             {
-                TolkHelper.Speak("Already on first page");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.AlreadyOnFirstPage".Translate());
                 return;
             }
 
@@ -757,22 +759,19 @@ namespace RimWorldAccess
         {
             string task = pawn.GetJobReport();
             if (string.IsNullOrEmpty(task))
-                task = "Idle";
+                task = "RimWorldAccess.Pawns.Bar.Idle".Translate();
 
-            string announcement = pawn.LabelShort;
+            string coverInfo = (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
+                ? CoverHelper.GetCoverInfo(pawn)
+                : null;
 
-            if (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
-            {
-                string coverInfo = CoverHelper.GetCoverInfo(pawn);
-                if (!string.IsNullOrEmpty(coverInfo))
-                    announcement += $", {coverInfo}";
-            }
-
-            announcement += $" - {task}";
+            string announcement = !string.IsNullOrEmpty(coverInfo)
+                ? "RimWorldAccess.Pawns.Bar.PawnTaskWithCover".Translate(pawn.LabelShort, coverInfo, task).ToString()
+                : "RimWorldAccess.Pawns.Bar.PawnTask".Translate(pawn.LabelShort, task).ToString();
 
             string positionPart = MenuHelper.FormatPosition(barPosition, totalInSection);
             if (!string.IsNullOrEmpty(positionPart))
-                announcement += $". {positionPart}";
+                announcement = "RimWorldAccess.Pawns.Bar.WithPosition".Translate(announcement, positionPart);
 
             TolkHelper.Speak(announcement);
         }
@@ -782,8 +781,9 @@ namespace RimWorldAccess
         /// </summary>
         private static void AnnouncePageChange()
         {
-            string section = onMechSection ? "Mechs page" : "Page";
-            TolkHelper.Speak($"{section} {CurrentPage + 1}");
+            TolkHelper.Speak((onMechSection
+                ? "RimWorldAccess.Pawns.Bar.MechsPage"
+                : "RimWorldAccess.Pawns.Bar.Page").Translate(CurrentPage + 1));
         }
 
         /// <summary>
@@ -791,10 +791,9 @@ namespace RimWorldAccess
         /// </summary>
         private static void AnnounceSectionChange()
         {
-            if (onMechSection)
-                TolkHelper.Speak("Mechs");
-            else
-                TolkHelper.Speak("Colonists");
+            TolkHelper.Speak((onMechSection
+                ? "RimWorldAccess.Pawns.Bar.SectionMechs"
+                : "RimWorldAccess.Pawns.Bar.SectionColonists").Translate());
         }
 
         /// <summary>
@@ -814,15 +813,15 @@ namespace RimWorldAccess
             // Build neighbor context
             string context;
             if (newIndex == 0 && colonists.Count == 1)
-                context = "only colonist";
+                context = "RimWorldAccess.Pawns.Bar.OnlyColonist".Translate();
             else if (newIndex == 0)
-                context = "leftmost";
+                context = "RimWorldAccess.Pawns.Bar.Leftmost".Translate();
             else if (newIndex == colonists.Count - 1)
-                context = "rightmost";
+                context = "RimWorldAccess.Pawns.Bar.Rightmost".Translate();
             else
-                context = $"between {colonists[newIndex - 1].LabelShort} and {colonists[newIndex + 1].LabelShort}";
+                context = "RimWorldAccess.Pawns.Bar.Between".Translate(colonists[newIndex - 1].LabelShort, colonists[newIndex + 1].LabelShort);
 
-            TolkHelper.Speak($"{pawn.LabelShort}, position {newIndex + 1}, {context}");
+            TolkHelper.Speak("RimWorldAccess.Pawns.Bar.ReorderResult".Translate(pawn.LabelShort, newIndex + 1, context));
         }
 
         /// <summary>
@@ -830,10 +829,9 @@ namespace RimWorldAccess
         /// </summary>
         private static void AnnounceEmpty()
         {
-            if (onMechSection)
-                TolkHelper.Speak("No mechs on this map");
-            else
-                TolkHelper.Speak("No colonists on this map");
+            TolkHelper.Speak((onMechSection
+                ? "RimWorldAccess.Pawns.Bar.NoMechsHere"
+                : "RimWorldAccess.Pawns.Bar.NoColonistsHere").Translate());
         }
 
         // ===== FOCUS-ONLY NAVIGATION (for multi-select mode) =====
@@ -855,14 +853,14 @@ namespace RimWorldAccess
             Map map = Find.CurrentMap;
             if (map == null)
             {
-                TolkHelper.Speak("Not on colonist bar");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NotOnBar".Translate());
                 return;
             }
 
             IntVec3 cursor = MapNavigationState.CurrentCursorPosition;
             if (!cursor.IsValid || !cursor.InBounds(map))
             {
-                TolkHelper.Speak("Not on colonist bar");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NotOnBar".Translate());
                 return;
             }
 
@@ -872,7 +870,7 @@ namespace RimWorldAccess
 
             if (pawn == null)
             {
-                TolkHelper.Speak("Not on colonist bar");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NotOnBar".Translate());
                 return;
             }
 
@@ -883,7 +881,7 @@ namespace RimWorldAccess
             bool inMechs = !inColonists && mechs.Contains(pawn);
             if (!inColonists && !inMechs)
             {
-                TolkHelper.Speak("Not on colonist bar");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NotOnBar".Translate());
                 return;
             }
 
@@ -1013,7 +1011,9 @@ namespace RimWorldAccess
             int targetIndex = CurrentPage * PageSize + positionOnPage;
             if (targetIndex >= list.Count)
             {
-                TolkHelper.Speak($"No {(onMechSection ? "mech" : "colonist")} at position {positionOnPage + 1}");
+                TolkHelper.Speak((onMechSection
+                    ? "RimWorldAccess.Pawns.Bar.NoMechAtPosition"
+                    : "RimWorldAccess.Pawns.Bar.NoColonistAtPosition").Translate(positionOnPage + 1));
                 return null;
             }
 

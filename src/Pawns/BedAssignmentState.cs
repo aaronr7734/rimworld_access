@@ -19,11 +19,21 @@ namespace RimWorldAccess
             BedTypeMenu
         }
 
+        private enum MainMenuAction
+        {
+            AssignPawn,
+            UnassignPawn,
+            ChangeBedType,
+            ToggleMedical,
+            CloseMenu
+        }
+
         private static bool isActive = false;
         private static Building_Bed selectedBed = null;
         private static MenuLevel currentMenuLevel = MenuLevel.MainMenu;
         private static int selectedIndex = 0;
         private static List<string> menuOptions = new List<string>();
+        private static List<MainMenuAction> mainMenuActions = new List<MainMenuAction>();
         private static List<Pawn> candidatePawns = new List<Pawn>();
         private static List<Pawn> assignedPawns = new List<Pawn>();
 
@@ -37,7 +47,7 @@ namespace RimWorldAccess
         {
             if (bed == null)
             {
-                TolkHelper.Speak("No bed to configure");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.NoBed".Translate());
                 return;
             }
 
@@ -59,6 +69,7 @@ namespace RimWorldAccess
             currentMenuLevel = MenuLevel.MainMenu;
             selectedIndex = 0;
             menuOptions.Clear();
+            mainMenuActions.Clear();
             candidatePawns.Clear();
             assignedPawns.Clear();
         }
@@ -120,7 +131,7 @@ namespace RimWorldAccess
             if (currentMenuLevel == MenuLevel.MainMenu)
             {
                 Close();
-                InspectionReturnHelper.AnnounceParentOrFallback("Bed menu closed");
+                InspectionReturnHelper.AnnounceParentOrFallback("RimWorldAccess.Pawns.Bed.MenuClosed".Translate());
             }
             else
             {
@@ -136,6 +147,7 @@ namespace RimWorldAccess
         private static void BuildMainMenu()
         {
             menuOptions.Clear();
+            mainMenuActions.Clear();
 
             if (selectedBed == null)
             {
@@ -144,18 +156,23 @@ namespace RimWorldAccess
             }
 
             // Build menu options
-            menuOptions.Add("Assign pawn");
+            menuOptions.Add("RimWorldAccess.Pawns.Bed.Action.AssignPawn".Translate());
+            mainMenuActions.Add(MainMenuAction.AssignPawn);
 
             // Add unassign option if bed has assignments
             CompAssignableToPawn_Bed comp = selectedBed.CompAssignableToPawn as CompAssignableToPawn_Bed;
             if (comp != null && comp.AssignedPawnsForReading.Count > 0)
             {
-                menuOptions.Add("Unassign pawn");
+                menuOptions.Add("RimWorldAccess.Pawns.Bed.Action.UnassignPawn".Translate());
+                mainMenuActions.Add(MainMenuAction.UnassignPawn);
             }
 
-            menuOptions.Add("Change bed type");
-            menuOptions.Add("Toggle medical");
-            menuOptions.Add("Close menu");
+            menuOptions.Add("RimWorldAccess.Pawns.Bed.Action.ChangeBedType".Translate());
+            mainMenuActions.Add(MainMenuAction.ChangeBedType);
+            menuOptions.Add("RimWorldAccess.Pawns.Bed.Action.ToggleMedical".Translate());
+            mainMenuActions.Add(MainMenuAction.ToggleMedical);
+            menuOptions.Add("RimWorldAccess.Pawns.Bed.Action.CloseMenu".Translate());
+            mainMenuActions.Add(MainMenuAction.CloseMenu);
 
             AnnounceMainMenu();
         }
@@ -168,18 +185,20 @@ namespace RimWorldAccess
             CompAssignableToPawn_Bed comp = selectedBed.CompAssignableToPawn as CompAssignableToPawn_Bed;
 
             // Build bed info string
-            string bedInfo = $"{selectedBed.LabelCap}";
+            string bedInfo = selectedBed.LabelCap;
 
             // Add bed type
             if (selectedBed.ForPrisoners)
-                bedInfo += " - For prisoners";
+                bedInfo += "RimWorldAccess.Pawns.Bed.ForPrisoners".Translate();
             else if (selectedBed.ForSlaves)
-                bedInfo += " - For slaves";
+                bedInfo += "RimWorldAccess.Pawns.Bed.ForSlaves".Translate();
             else if (selectedBed.ForColonists)
-                bedInfo += " - For colonists";
+                bedInfo += "RimWorldAccess.Pawns.Bed.ForColonists".Translate();
 
             // Add medical status
-            bedInfo += selectedBed.Medical ? " - Medical" : " - Not medical";
+            bedInfo += (selectedBed.Medical
+                ? "RimWorldAccess.Pawns.Bed.MedicalSuffix"
+                : "RimWorldAccess.Pawns.Bed.NotMedicalSuffix").Translate();
 
             // Add assignment info
             if (comp != null)
@@ -187,11 +206,11 @@ namespace RimWorldAccess
                 if (comp.AssignedPawnsForReading.Count > 0)
                 {
                     string assignedNames = string.Join(", ", comp.AssignedPawnsForReading.Select(p => p.LabelShort));
-                    bedInfo += $" - Assigned to: {assignedNames}";
+                    bedInfo += "RimWorldAccess.Pawns.Bed.AssignedToList".Translate(assignedNames);
                 }
                 else
                 {
-                    bedInfo += " - Unassigned";
+                    bedInfo += "RimWorldAccess.Pawns.Bed.UnassignedSuffix".Translate();
                 }
             }
 
@@ -199,7 +218,7 @@ namespace RimWorldAccess
             string announcement = bedInfo;
             if (menuOptions.Count > 0 && selectedIndex < menuOptions.Count)
             {
-                announcement += $" - {menuOptions[selectedIndex]}";
+                announcement += "RimWorldAccess.Pawns.Bed.OptionSuffix".Translate(menuOptions[selectedIndex]);
             }
 
             TolkHelper.Speak(announcement);
@@ -207,28 +226,26 @@ namespace RimWorldAccess
 
         private static void ExecuteMainMenuOption()
         {
-            if (selectedIndex >= menuOptions.Count)
+            if (selectedIndex >= mainMenuActions.Count)
                 return;
 
-            string option = menuOptions[selectedIndex];
-
-            switch (option)
+            switch (mainMenuActions[selectedIndex])
             {
-                case "Assign pawn":
+                case MainMenuAction.AssignPawn:
                     OpenAssignMenu();
                     break;
-                case "Unassign pawn":
+                case MainMenuAction.UnassignPawn:
                     OpenUnassignMenu();
                     break;
-                case "Change bed type":
+                case MainMenuAction.ChangeBedType:
                     OpenBedTypeMenu();
                     break;
-                case "Toggle medical":
+                case MainMenuAction.ToggleMedical:
                     ToggleMedical();
                     break;
-                case "Close menu":
+                case MainMenuAction.CloseMenu:
                     Close();
-                    TolkHelper.Speak("Bed menu closed");
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Bed.MenuClosed".Translate());
                     break;
             }
         }
@@ -242,7 +259,7 @@ namespace RimWorldAccess
             CompAssignableToPawn_Bed comp = selectedBed.CompAssignableToPawn as CompAssignableToPawn_Bed;
             if (comp == null)
             {
-                TolkHelper.Speak("Cannot assign pawns to this bed", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.CannotAssign".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -251,7 +268,7 @@ namespace RimWorldAccess
 
             if (candidatePawns.Count == 0)
             {
-                TolkHelper.Speak("No available pawns to assign");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.NoCandidates".Translate());
                 return;
             }
 
@@ -259,20 +276,24 @@ namespace RimWorldAccess
             menuOptions.Clear();
             foreach (Pawn pawn in candidatePawns)
             {
-                string option = pawn.LabelShort;
+                string option;
 
                 // Check if pawn can be assigned
                 if (!comp.CanAssignTo(pawn))
                 {
-                    option += " (Cannot assign)";
+                    option = "RimWorldAccess.Pawns.Bed.AssignWithCannot".Translate(pawn.LabelShort);
                 }
                 else if (comp.IdeoligionForbids(pawn))
                 {
-                    option += " (Ideology forbids)";
+                    option = "RimWorldAccess.Pawns.Bed.AssignIdeologyForbids".Translate(pawn.LabelShort);
                 }
                 else if (pawn.ownership?.OwnedBed != null)
                 {
-                    option += " (Already assigned)";
+                    option = "RimWorldAccess.Pawns.Bed.AlreadyAssigned".Translate(pawn.LabelShort);
+                }
+                else
+                {
+                    option = pawn.LabelShort;
                 }
 
                 menuOptions.Add(option);
@@ -282,7 +303,7 @@ namespace RimWorldAccess
             selectedIndex = 0;
 
             // Announce first option
-            TolkHelper.Speak($"Assign pawn - {menuOptions[0]}");
+            TolkHelper.Speak("RimWorldAccess.Pawns.Bed.AssignFirstOption".Translate(menuOptions[0]));
         }
 
         private static void ExecuteAssignMenuOption()
@@ -295,20 +316,20 @@ namespace RimWorldAccess
 
             if (comp == null)
             {
-                TolkHelper.Speak("Cannot assign pawn", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.CannotAssignSingle".Translate(), SpeechPriority.High);
                 return;
             }
 
             // Check if pawn can be assigned
             if (!comp.CanAssignTo(selectedPawn))
             {
-                TolkHelper.Speak($"Cannot assign {selectedPawn.LabelShort} to this bed", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.CannotAssignToBed".Translate(selectedPawn.LabelShort), SpeechPriority.High);
                 return;
             }
 
             if (comp.IdeoligionForbids(selectedPawn))
             {
-                TolkHelper.Speak($"Ideology forbids {selectedPawn.LabelShort} from using this bed");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.IdeologyForbidsBed".Translate(selectedPawn.LabelShort));
                 return;
             }
 
@@ -318,11 +339,11 @@ namespace RimWorldAccess
             // Check if assignment succeeded
             if (comp.AssignedPawnsForReading.Contains(selectedPawn))
             {
-                TolkHelper.Speak($"{selectedPawn.LabelShort} assigned to {selectedBed.LabelCap}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.AssignedSuccess".Translate(selectedPawn.LabelShort, selectedBed.LabelCap));
             }
             else
             {
-                TolkHelper.Speak($"Failed to assign {selectedPawn.LabelShort}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.AssignFailed".Translate(selectedPawn.LabelShort), SpeechPriority.High);
             }
 
             // Go back to main menu
@@ -340,7 +361,7 @@ namespace RimWorldAccess
             CompAssignableToPawn_Bed comp = selectedBed.CompAssignableToPawn as CompAssignableToPawn_Bed;
             if (comp == null)
             {
-                TolkHelper.Speak("Cannot unassign pawns from this bed", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.CannotUnassign".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -349,7 +370,7 @@ namespace RimWorldAccess
 
             if (assignedPawns.Count == 0)
             {
-                TolkHelper.Speak("No pawns assigned to this bed");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.NoneAssigned".Translate());
                 return;
             }
 
@@ -364,7 +385,7 @@ namespace RimWorldAccess
             selectedIndex = 0;
 
             // Announce first option
-            TolkHelper.Speak($"Unassign pawn - {menuOptions[0]}");
+            TolkHelper.Speak("RimWorldAccess.Pawns.Bed.UnassignFirstOption".Translate(menuOptions[0]));
         }
 
         private static void ExecuteUnassignMenuOption()
@@ -377,7 +398,7 @@ namespace RimWorldAccess
 
             if (comp == null)
             {
-                TolkHelper.Speak("Cannot unassign pawn", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.CannotUnassignSingle".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -387,11 +408,11 @@ namespace RimWorldAccess
             // Check if unassignment succeeded
             if (!comp.AssignedPawnsForReading.Contains(selectedPawn))
             {
-                TolkHelper.Speak($"{selectedPawn.LabelShort} unassigned from {selectedBed.LabelCap}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.UnassignedSuccess".Translate(selectedPawn.LabelShort, selectedBed.LabelCap));
             }
             else
             {
-                TolkHelper.Speak($"Failed to unassign {selectedPawn.LabelShort}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.UnassignFailed".Translate(selectedPawn.LabelShort), SpeechPriority.High);
             }
 
             // Go back to main menu
@@ -407,9 +428,9 @@ namespace RimWorldAccess
         private static void OpenBedTypeMenu()
         {
             menuOptions.Clear();
-            menuOptions.Add("Colonist");
-            menuOptions.Add("Prisoner");
-            menuOptions.Add("Slave");
+            menuOptions.Add("RimWorldAccess.Pawns.Bed.Type.Colonist".Translate());
+            menuOptions.Add("RimWorldAccess.Pawns.Bed.Type.Prisoner".Translate());
+            menuOptions.Add("RimWorldAccess.Pawns.Bed.Type.Slave".Translate());
 
             currentMenuLevel = MenuLevel.BedTypeMenu;
             selectedIndex = 0;
@@ -423,7 +444,7 @@ namespace RimWorldAccess
                 selectedIndex = 0;
 
             // Announce current selection
-            TolkHelper.Speak($"Change bed type - {menuOptions[selectedIndex]} (current)");
+            TolkHelper.Speak("RimWorldAccess.Pawns.Bed.ChangeTypeOption".Translate(menuOptions[selectedIndex]));
         }
 
         private static void ExecuteBedTypeMenuOption()
@@ -452,7 +473,7 @@ namespace RimWorldAccess
                 Room room = selectedBed.GetRoom();
                 if (room == null || !Building_Bed.RoomCanBePrisonCell(room))
                 {
-                    TolkHelper.Speak("Cannot set bed for prisoners - not in an enclosed room. Build walls around the bed first.", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Bed.NeedEnclosed".Translate(), SpeechPriority.High);
                     return;
                 }
             }
@@ -484,7 +505,7 @@ namespace RimWorldAccess
                 }
             }
 
-            TolkHelper.Speak($"Bed type changed to: {menuOptions[selectedIndex]}");
+            TolkHelper.Speak("RimWorldAccess.Pawns.Bed.TypeChanged".Translate(menuOptions[selectedIndex]));
 
             // Go back to main menu
             currentMenuLevel = MenuLevel.MainMenu;
@@ -504,8 +525,10 @@ namespace RimWorldAccess
             // Toggle medical status
             selectedBed.Medical = !selectedBed.Medical;
 
-            string status = selectedBed.Medical ? "Medical" : "Not medical";
-            TolkHelper.Speak($"Bed medical status: {status}");
+            string status = (selectedBed.Medical
+                ? "RimWorldAccess.Pawns.Bed.MedicalState.Medical"
+                : "RimWorldAccess.Pawns.Bed.MedicalState.NotMedical").Translate();
+            TolkHelper.Speak("RimWorldAccess.Pawns.Bed.MedicalStatus".Translate(status));
 
             // Rebuild main menu to reflect changes
             BuildMainMenu();
@@ -527,17 +550,17 @@ namespace RimWorldAccess
                     prefix = "";
                     break;
                 case MenuLevel.AssignMenu:
-                    prefix = "Assign: ";
+                    prefix = "RimWorldAccess.Pawns.Bed.Prefix.Assign".Translate();
                     break;
                 case MenuLevel.UnassignMenu:
-                    prefix = "Unassign: ";
+                    prefix = "RimWorldAccess.Pawns.Bed.Prefix.Unassign".Translate();
                     break;
                 case MenuLevel.BedTypeMenu:
-                    prefix = "Bed type: ";
+                    prefix = "RimWorldAccess.Pawns.Bed.Prefix.BedType".Translate();
                     break;
             }
 
-            TolkHelper.Speak($"{prefix}{menuOptions[selectedIndex]}");
+            TolkHelper.Speak("RimWorldAccess.Pawns.Bed.PrefixedOption".Translate(prefix, menuOptions[selectedIndex]));
         }
 
         #endregion

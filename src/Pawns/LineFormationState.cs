@@ -41,7 +41,7 @@ namespace RimWorldAccess
             pawnsToMove = pawns.Where(p => p != null && !p.Destroyed && p.Spawned).ToList();
             if (pawnsToMove.Count == 0)
             {
-                TolkHelper.Speak("No valid pawns to move");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.NoValidPawns".Translate());
                 return;
             }
 
@@ -49,9 +49,7 @@ namespace RimWorldAccess
             firstPoint = IntVec3.Invalid;
             secondPoint = IntVec3.Invalid;
 
-            TolkHelper.Speak(
-                $"Formation line mode. {pawnsToMove.Count} pawns. " +
-                "Navigate with arrow keys, press Space to place first point.");
+            TolkHelper.Speak("RimWorldAccess.Pawns.Formation.Activated".Translate(pawnsToMove.Count));
         }
 
         /// <summary>
@@ -66,21 +64,19 @@ namespace RimWorldAccess
             IntVec3 cursorPos = MapNavigationState.CurrentCursorPosition;
             if (!cursorPos.IsValid || !cursorPos.InBounds(Find.CurrentMap))
             {
-                TolkHelper.Speak("Invalid position");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.InvalidPosition".Translate());
                 return;
             }
 
             if (!HasFirstPoint)
             {
                 firstPoint = cursorPos;
-                TolkHelper.Speak(
-                    "First point placed. Navigate to second point and press Space.");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.FirstPlaced".Translate());
             }
             else if (!HasBothPoints)
             {
                 secondPoint = cursorPos;
-                TolkHelper.Speak(
-                    "Formation line set. Press Enter to confirm, Escape to cancel.");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.SecondPlaced".Translate());
             }
         }
 
@@ -133,23 +129,23 @@ namespace RimWorldAccess
             string everyone = ((string)"ConfirmAbandonHomeNegativeThoughts_Everyone".Translate()).TrimEnd(':', ' ');
             if (unchanged.Count == 0)
             {
-                TolkHelper.Speak($"{everyone} moving in formation");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.AllMoving".Translate(everyone));
             }
             else if (succeeded.Count == 0)
             {
-                TolkHelper.Speak("No pawns could reach their destinations");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.NoneMoving".Translate());
             }
             else if (unchanged.Count <= succeeded.Count)
             {
                 string names = MenuHelper.FormatNameList(
                     unchanged.Select(p => p.LabelShort).ToList());
-                TolkHelper.Speak($"{everyone} except {names} moving in formation");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.AllExcept".Translate(everyone, names));
             }
             else
             {
                 string names = MenuHelper.FormatNameList(
                     succeeded.Select(p => p.LabelShort).ToList());
-                TolkHelper.Speak($"Only {names} moving in formation");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.OnlySome".Translate(names));
             }
 
             Close();
@@ -160,7 +156,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void Cancel()
         {
-            TolkHelper.Speak("Formation cancelled");
+            TolkHelper.Speak("RimWorldAccess.Pawns.Formation.Cancelled".Translate());
             Close();
         }
 

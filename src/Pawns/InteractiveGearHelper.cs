@@ -10,11 +10,36 @@ using Verse.Sound;
 namespace RimWorldAccess
 {
     /// <summary>
+    /// Available gear actions. Used as the dispatch discriminator so callers
+    /// don't switch on localized labels.
+    /// </summary>
+    public enum GearAction
+    {
+        Drop,
+        Consume,
+        ViewInfo
+    }
+
+    /// <summary>
     /// Helper class for interactive gear management.
     /// Provides methods to extract gear items, determine available actions, and execute those actions.
     /// </summary>
     public static class InteractiveGearHelper
     {
+        /// <summary>
+        /// Returns the localized menu label for a gear action.
+        /// </summary>
+        public static string GetActionLabel(GearAction action)
+        {
+            switch (action)
+            {
+                case GearAction.Drop: return "RimWorldAccess.Pawns.Gear.Action.Drop".Translate();
+                case GearAction.Consume: return "RimWorldAccess.Pawns.Gear.Action.Consume".Translate();
+                case GearAction.ViewInfo: return "RimWorldAccess.Pawns.Gear.Action.ViewInfo".Translate();
+                default: return action.ToString();
+            }
+        }
+
         /// <summary>
         /// Gear item wrapper with display information.
         /// </summary>
@@ -133,25 +158,26 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Gets all available actions for a gear item.
+        /// Returns enum values; callers use GetActionLabel() to localize.
         /// </summary>
-        public static List<string> GetAvailableActions(GearItem item, Pawn pawn)
+        public static List<GearAction> GetAvailableActions(GearItem item, Pawn pawn)
         {
-            var actions = new List<string>();
+            var actions = new List<GearAction>();
 
             // Drop action is almost always available
             if (CanDropItem(item, pawn))
             {
-                actions.Add("Drop");
+                actions.Add(GearAction.Drop);
             }
 
             // Consume action for food/drugs in inventory
             if (CanConsumeItem(item, pawn))
             {
-                actions.Add("Consume");
+                actions.Add(GearAction.Consume);
             }
 
             // Info action is always available
-            actions.Add("View Info");
+            actions.Add(GearAction.ViewInfo);
 
             return actions;
         }
@@ -226,7 +252,7 @@ namespace RimWorldAccess
             {
                 if (!CanDropItem(item, pawn))
                 {
-                    TolkHelper.Speak($"Cannot drop {item.Label}", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Gear.CannotDrop".Translate(item.Label), SpeechPriority.High);
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
                     return false;
                 }
@@ -238,7 +264,7 @@ namespace RimWorldAccess
                 {
                     Job job = JobMaker.MakeJob(JobDefOf.RemoveApparel, apparel);
                     pawn.jobs.TryTakeOrderedJob(job, JobTag.Misc);
-                    TolkHelper.Speak($"Removing {item.Label}");
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Gear.Removing".Translate(item.Label));
                     SoundDefOf.Tick_High.PlayOneShotOnCamera();
                     return true;
                 }
@@ -249,7 +275,7 @@ namespace RimWorldAccess
                 {
                     Job job = JobMaker.MakeJob(JobDefOf.DropEquipment, equipment);
                     pawn.jobs.TryTakeOrderedJob(job, JobTag.Misc);
-                    TolkHelper.Speak($"Dropping {item.Label}");
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Gear.Dropping".Translate(item.Label));
                     SoundDefOf.Tick_High.PlayOneShotOnCamera();
                     return true;
                 }
@@ -260,26 +286,26 @@ namespace RimWorldAccess
                     Thing droppedThing;
                     if (pawn.inventory.innerContainer.TryDrop(thing, pawn.Position, pawn.Map, ThingPlaceMode.Near, out droppedThing))
                     {
-                        TolkHelper.Speak($"Dropped {item.Label}");
+                        TolkHelper.Speak("RimWorldAccess.Pawns.Gear.Dropped".Translate(item.Label));
                         SoundDefOf.Tick_High.PlayOneShotOnCamera();
                         return true;
                     }
                     else
                     {
-                        TolkHelper.Speak($"Failed to drop {item.Label}", SpeechPriority.High);
+                        TolkHelper.Speak("RimWorldAccess.Pawns.Gear.FailedToDrop".Translate(item.Label), SpeechPriority.High);
                         SoundDefOf.ClickReject.PlayOneShotOnCamera();
                         return false;
                     }
                 }
 
-                TolkHelper.Speak($"Cannot drop {item.Label}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Gear.CannotDrop".Translate(item.Label), SpeechPriority.High);
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return false;
             }
             catch (Exception ex)
             {
                 Log.Error($"[RimWorldAccess] Error dropping item: {ex}");
-                TolkHelper.Speak($"Error dropping {item.Label}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Gear.ErrorDropping".Translate(item.Label), SpeechPriority.High);
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return false;
             }
@@ -294,7 +320,7 @@ namespace RimWorldAccess
             {
                 if (!CanConsumeItem(item, pawn))
                 {
-                    TolkHelper.Speak($"Cannot consume {item.Label}", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Gear.CannotConsume".Translate(item.Label), SpeechPriority.High);
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
                     return false;
                 }
@@ -303,14 +329,14 @@ namespace RimWorldAccess
 
                 // Use RimWorld's built-in consume logic
                 FoodUtility.IngestFromInventoryNow(pawn, thing);
-                TolkHelper.Speak($"Consuming {item.Label}");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Gear.Consuming".Translate(item.Label));
                 SoundDefOf.Tick_High.PlayOneShotOnCamera();
                 return true;
             }
             catch (Exception ex)
             {
                 Log.Error($"[RimWorldAccess] Error consuming item: {ex}");
-                TolkHelper.Speak($"Error consuming {item.Label}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Gear.ErrorConsuming".Translate(item.Label), SpeechPriority.High);
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return false;
             }
@@ -323,7 +349,7 @@ namespace RimWorldAccess
         {
             if (item == null || item.Thing == null)
             {
-                TolkHelper.Speak("No item information available");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Gear.NoItemInfo".Translate());
                 return;
             }
 
@@ -383,12 +409,12 @@ namespace RimWorldAccess
         /// <summary>
         /// Gets a summary of available actions for announcing.
         /// </summary>
-        public static string GetActionsSummary(List<string> actions)
+        public static string GetActionsSummary(List<GearAction> actions)
         {
             if (actions == null || actions.Count == 0)
-                return "No actions available";
+                return "RimWorldAccess.Pawns.Gear.NoActions".Translate();
 
-            return string.Join(", ", actions);
+            return string.Join(", ", actions.Select(GetActionLabel));
         }
     }
 }
