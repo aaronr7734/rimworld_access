@@ -1,6 +1,18 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
 04/28/2026
 
+CHANGES
+-------
+- Starting-pawn selection now folds each pawn's quick stats
+  into the collapsed treeview label instead of announcing
+  them only on Alt+R. Arrowing onto a collapsed pawn reads
+  name, title, age, gender, traits, and top five skills with
+  passions; expanding the pawn collapses the label back to
+  just the name and title so the screen reader does not
+  re-read the long form on every category visit. Alt+R no
+  longer appends an extra summary — the rebuilt tree
+  re-announces the new pawn automatically.
+
 BUG FIXES
 ---------
 - Pressing Home on a captured Anomaly entity in the scanner

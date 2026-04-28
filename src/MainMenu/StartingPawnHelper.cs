@@ -116,11 +116,13 @@ namespace RimWorldAccess
                 : pawn.LabelShort;
             string title = pawn.story?.TitleCap;
 
-            string label = string.IsNullOrEmpty(title) ? nick : $"{nick}, {title}";
+            string shortLabel = string.IsNullOrEmpty(title) ? nick : $"{nick}, {title}";
+            string verboseLabel = BuildCollapsedPawnLabel(pawn, shortLabel);
 
             var pawnNode = new InspectionTreeItem
             {
-                Label = label,
+                Label = verboseLabel,
+                ExpandedLabel = shortLabel,
                 IndentLevel = 1,
                 Type = InspectionTreeItem.ItemType.Object,
                 IsExpandable = true,
@@ -592,19 +594,23 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets a brief summary of a pawn for reroll announcements.
-        /// Includes age, traits (names only), and top 3 skills with passion levels.
+        /// Builds the verbose collapsed-state label for a pawn node: name/title, age,
+        /// gender, traits, and top 5 non-disabled skills with passion levels.
+        /// Read aloud whenever the cursor lands on a collapsed pawn (including
+        /// after a reroll rebuilds the tree); the short form is used when expanded.
         /// </summary>
-        public static string GetPawnRollSummary(Pawn pawn)
+        public static string BuildCollapsedPawnLabel(Pawn pawn, string shortLabel)
         {
-            if (pawn == null) return "";
+            if (pawn == null) return shortLabel ?? "";
 
-            var parts = new List<string>();
+            var parts = new List<string> { shortLabel };
 
-            // Age
             parts.Add($"{"Stat_Age_Label".Translate()}: {pawn.ageTracker.AgeBiologicalYears}");
 
-            // Traits (names only, no descriptions)
+            string gender = pawn.gender.GetLabel().CapitalizeFirst();
+            if (!string.IsNullOrEmpty(gender))
+                parts.Add($"{"Gender".Translate()}: {gender}");
+
             if (pawn.story?.traits?.allTraits != null && pawn.story.traits.allTraits.Count > 0)
             {
                 var traitNames = pawn.story.traits.allTraits
@@ -617,13 +623,12 @@ namespace RimWorldAccess
                 parts.Add($"{"Traits".Translate()}: {"None".Translate()}");
             }
 
-            // Top 3 skills (excluding TotallyDisabled, sorted by level descending)
             if (pawn.skills?.skills != null)
             {
                 var topSkills = pawn.skills.skills
                     .Where(s => !s.TotallyDisabled)
                     .OrderByDescending(s => s.Level)
-                    .Take(3)
+                    .Take(5)
                     .Select(s =>
                     {
                         string passion = GetPassionLabel(s.passion);

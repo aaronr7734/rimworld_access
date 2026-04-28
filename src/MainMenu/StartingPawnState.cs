@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HarmonyLib;
 using RimWorld;
 using UnityEngine;
@@ -547,21 +546,14 @@ namespace RimWorldAccess
                     randomizeAnnouncement += $". No match after {PawnFilterData.LastRerollAttempts} attempts, keeping last result.";
             }
 
-            // Append pawn summary (age, traits, top skills)
-            var pawn = StartingPawnHelper.GetPawnAtIndex(pawnIdx);
-            if (pawn != null)
-            {
-                string summary = StartingPawnHelper.GetPawnRollSummary(pawn);
-                if (!string.IsNullOrEmpty(summary))
-                    randomizeAnnouncement += $". {summary}";
-            }
             TolkHelper.Speak(randomizeAnnouncement);
+            // Tree rebuild + cursor restore re-announces the pawn's collapsed label,
+            // which now carries age, gender, traits, and top skills inline.
             treeNav.ReannounceCurrentItem();
         }
 
         public static void OnRerollComplete(bool success, int attempts, bool cancelled)
         {
-            int savedPawnIdx = rerollPawnIdx;
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
             RebuildTree();
             RestoreRerollPosition();
@@ -574,16 +566,9 @@ namespace RimWorldAccess
             else
                 announcement = $"No match after {attempts} attempts, keeping last result.";
 
-            // Append pawn summary (age, traits, top skills)
-            var pawn = StartingPawnHelper.GetPawnAtIndex(savedPawnIdx);
-            if (pawn != null)
-            {
-                string summary = StartingPawnHelper.GetPawnRollSummary(pawn);
-                if (!string.IsNullOrEmpty(summary))
-                    announcement += $". {summary}";
-            }
-
             TolkHelper.Speak(announcement);
+            // Tree rebuild + cursor restore re-announces the pawn's collapsed label,
+            // which now carries age, gender, traits, and top skills inline.
             treeNav.ReannounceCurrentItem();
         }
 
