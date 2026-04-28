@@ -1,4 +1,15 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
+04/28/2026
+
+BUG FIXES
+---------
+- Pressing Home on a captured Anomaly entity in the scanner
+  (e.g. a sightstealer on a holding platform) now jumps the
+  cursor to the platform instead of saying "Item no longer
+  exists". Distance and direction announcements for held
+  entities are also now reported relative to the platform.
+
+
 04/26/2026
 
 BUG FIXES

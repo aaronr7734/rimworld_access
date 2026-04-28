@@ -1029,6 +1029,12 @@ namespace RimWorldAccess
                 // For rooms, use the calculated center position
                 targetPosition = currentItem.Position;
             }
+            else if (currentItem.IsCapturedEntity)
+            {
+                // Held pawn is not Spawned and its Position is stale; jump to the
+                // platform's position. Liveness is already validated by RefreshLabel above.
+                targetPosition = currentItem.Position;
+            }
             else
             {
                 // Get the actual thing to jump to (considering bulk index)
@@ -1383,9 +1389,17 @@ namespace RimWorldAccess
                 var nearestCell = FindNearestCell(item, currentCursorPos);
                 targetPos = nearestCell.IsValid ? nearestCell : item.Position;
             }
+            else if (item.IsCapturedEntity)
+            {
+                // Held pawn is not Spawned and Thing.Position is stale; use the
+                // platform position stored on the item.
+                targetPos = item.Position;
+            }
             else
             {
-                targetPos = item.Thing != null ? item.Thing.Position : item.Position;
+                targetPos = item.Thing != null && item.Thing.Spawned && !item.Thing.Destroyed
+                    ? item.Thing.Position
+                    : item.Position;
             }
             var freshDistance = (targetPos - currentCursorPos).LengthHorizontal;  // Calculate fresh distance
             var itemDirection = GetDirectionFromCursor(targetPos);
