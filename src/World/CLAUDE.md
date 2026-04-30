@@ -38,7 +38,7 @@ WorldNavigationState tracks current world tile with `PlanetTile`. 3D geographic 
 **Used by:** Quests/ (quest jump targets), MainMenu/ (StartingSitePatch + StartingSiteContext use WorldNavigationState)
 
 ## Localization
-All speak calls in the State, Patch, and Helper layers (except `WorldInfoHelper`) route through `Languages/English/Keyed/RimWorldAccess_World.xml`. Tab labels reuse vanilla keys (`PawnsTab`, `ItemsTab`, `TravelSupplies`). Compass nouns reuse `RimWorldAccess.Map.Direction.Lower.*`. `WorldInfoHelper` (1729 lines of tile read-out / caravan status composition) still emits English strings and is a follow-up wiring task — see refactor roadmap.
+All speak calls in the State, Patch, and Helper layers route through `Languages/English/Keyed/RimWorldAccess_World.xml`. Tab labels reuse vanilla keys (`PawnsTab`, `ItemsTab`, `TravelSupplies`). Compass nouns reuse `RimWorldAccess.Map.Direction.Lower.*`. `WorldInfoHelper` keeps internal English compass tokens (north/east/...) for opposite-direction and priority dictionary lookups and only translates them at announcement time via a private `LocalizeCompass` helper. Two narrow English-game-data parsers remain: `ConvertToInfinitive` (turning the game's "Entering X" inspect string into an infinitive "enter X") and the "Traveling to " prefix extraction inside `GetDestinationSuffix`/`GetCaravanDestinationName`. Both fall through to localized fallback paths when the game data is non-English.
 
 ## Testing
 - [ ] Arrow keys navigate world tiles (both contexts)

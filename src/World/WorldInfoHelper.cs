@@ -14,6 +14,27 @@ namespace RimWorldAccess
     /// </summary>
     public static class WorldInfoHelper
     {
+        // Maps internal English compass tokens (north/east/south/west and four
+        // diagonals) to localized lower-case nouns from Map.Direction.Lower.*.
+        // The tokens stay English inside this class so the dictionary lookups
+        // (opposite-direction, priority ordering) keep working - localization
+        // happens at announcement time only.
+        private static string LocalizeCompass(string englishCompass)
+        {
+            switch (englishCompass)
+            {
+                case "north":     return "RimWorldAccess.Map.Direction.Lower.North".Translate();
+                case "south":     return "RimWorldAccess.Map.Direction.Lower.South".Translate();
+                case "east":      return "RimWorldAccess.Map.Direction.Lower.East".Translate();
+                case "west":      return "RimWorldAccess.Map.Direction.Lower.West".Translate();
+                case "northeast": return "RimWorldAccess.Map.Direction.Lower.Northeast".Translate();
+                case "southeast": return "RimWorldAccess.Map.Direction.Lower.Southeast".Translate();
+                case "southwest": return "RimWorldAccess.Map.Direction.Lower.Southwest".Translate();
+                case "northwest": return "RimWorldAccess.Map.Direction.Lower.Northwest".Translate();
+                default:          return englishCompass;
+            }
+        }
+
         /// <summary>
         /// Gets a brief summary of a world tile (for navigation announcements).
         /// </summary>
@@ -27,11 +48,11 @@ namespace RimWorldAccess
         public static string GetTileSummary(PlanetTile planetTile, bool includeRouteInfo = true, bool minimal = false, string fuelCostInfo = null)
         {
             if (!planetTile.Valid || Find.WorldGrid == null)
-                return "Invalid tile";
+                return "RimWorldAccess.World.Tile.Invalid".Translate();
 
             Tile tile = planetTile.Tile;
             if (tile == null)
-                return "Unknown tile";
+                return "RimWorldAccess.World.Tile.Unknown".Translate();
 
             StringBuilder summary = new StringBuilder();
 
@@ -43,7 +64,7 @@ namespace RimWorldAccess
                 {
                     if (Find.WorldRoutePlanner.waypoints[i].Tile == planetTile)
                     {
-                        summary.Append($"Waypoint {i + 1}. ");
+                        summary.Append("RimWorldAccess.World.Tile.Summary.WaypointPrefix".Translate(i + 1));
                         break;
                     }
                 }
@@ -100,19 +121,20 @@ namespace RimWorldAccess
                         {
                             if (settlement.Faction == Faction.OfPlayer)
                             {
-                                summary.Append($" ({Faction.OfPlayer.Name})");
+                                summary.Append(" (");
+                                summary.Append("RimWorldAccess.World.Settlement.FactionInline".Translate(Faction.OfPlayer.Name));
+                                summary.Append(")");
                             }
                             else
                             {
-                                // Faction name
-                                summary.Append($" ({settlement.Faction.Name}");
-
-                                // Relationship with goodwill (visible on inspect pane)
                                 string relationship = settlement.Faction.PlayerRelationKind.GetLabelCap();
                                 int goodwill = settlement.Faction.PlayerGoodwill;
-                                string goodwillStr = goodwill >= 0 ? $"+{goodwill}" : goodwill.ToString();
-                                summary.Append($", {relationship} {goodwillStr}");
-
+                                string goodwillStr = goodwill >= 0
+                                    ? (string)"RimWorldAccess.World.Settlement.GoodwillPositive".Translate(goodwill)
+                                    : goodwill.ToString();
+                                summary.Append(" (");
+                                summary.Append("RimWorldAccess.World.Settlement.FactionWithRelationInline".Translate(
+                                    settlement.Faction.Name, relationship, goodwillStr));
                                 summary.Append(")");
 
                                 // Title required for trading (shown on inspect pane for Empire)
@@ -121,7 +143,9 @@ namespace RimWorldAccess
                                     RoyalTitleDef titleRequired = settlement.TraderKind.TitleRequiredToTrade;
                                     if (titleRequired != null)
                                     {
-                                        summary.Append($". Requires {titleRequired.GetLabelCapForBothGenders()} title to trade");
+                                        summary.Append(". ");
+                                        summary.Append("RimWorldAccess.World.Settlement.RequiresTitleToTrade".Translate(
+                                            titleRequired.GetLabelCapForBothGenders()));
                                     }
                                 }
                             }
@@ -134,59 +158,14 @@ namespace RimWorldAccess
                     if (caravans.Count > 0)
                     {
                         summary.Append(". ");
-                        if (caravans.Count == 1)
-                        {
-                            var caravan = caravans[0];
-                            summary.Append($"{caravan.Label}");
-
-                            // Add faction for non-player caravans, or status for player caravans
-                            if (caravan.Faction != null && caravan.Faction != Faction.OfPlayer)
-                            {
-                                summary.Append($" ({caravan.Faction.Name})");
-                            }
-                            else
-                            {
-                                string shortStatus = GetCaravanShortStatus(caravan);
-                                if (!string.IsNullOrEmpty(shortStatus))
-                                {
-                                    summary.Append($" ({shortStatus})");
-                                }
-                            }
-                            summary.Append(" is here");
-                        }
-                        else
-                        {
-                            // Multiple caravans - format naturally: "A (status), B (status), and C (status) are here"
-                            for (int i = 0; i < caravans.Count; i++)
-                            {
-                                var caravan = caravans[i];
-                                summary.Append(caravan.Label);
-
-                                // Add faction for non-player caravans, or status for player caravans
-                                if (caravan.Faction != null && caravan.Faction != Faction.OfPlayer)
-                                {
-                                    summary.Append($" ({caravan.Faction.Name})");
-                                }
-                                else
-                                {
-                                    string shortStatus = GetCaravanShortStatus(caravan);
-                                    if (!string.IsNullOrEmpty(shortStatus))
-                                    {
-                                        summary.Append($" ({shortStatus})");
-                                    }
-                                }
-
-                                if (i < caravans.Count - 2)
-                                {
-                                    summary.Append(", ");
-                                }
-                                else if (i == caravans.Count - 2)
-                                {
-                                    summary.Append(" and ");
-                                }
-                            }
-                            summary.Append(" are here");
-                        }
+                        var caravanLabels = caravans
+                            .Select(c => FormatCaravanWithDetail(c))
+                            .ToList();
+                        string joined = caravanLabels.ToCommaList(useAnd: true);
+                        string key = caravans.Count == 1
+                            ? "RimWorldAccess.World.Tile.Caravan.IsHere"
+                            : "RimWorldAccess.World.Tile.Caravan.AreHere";
+                        summary.Append(key.Translate(joined));
                     }
 
                     // If no settlement or caravan, list other world objects (like sites)
@@ -208,20 +187,23 @@ namespace RimWorldAccess
                 if (surfaceTile.Roads != null && surfaceTile.Roads.Count > 0)
                 {
                     string roadName = surfaceTile.Roads.First().road.label;
-                    string roadDir = GetRoadDirectionDescription(planetTile, surfaceTile.Roads);
-                    if (!string.IsNullOrEmpty(roadDir))
+                    string roadInline = GetRoadDirectionInline(planetTile, surfaceTile.Roads);
+                    if (!string.IsNullOrEmpty(roadInline))
                     {
-                        summary.Append($". {roadName.CapitalizeFirst()} {roadDir.TrimEnd('.').ToLower()}");
+                        summary.Append(". ");
+                        summary.Append("RimWorldAccess.World.Tile.Summary.RoadInline".Translate(
+                            roadName.CapitalizeFirst(), roadInline));
                     }
                 }
 
                 // River direction
                 if (surfaceTile.Rivers != null && surfaceTile.Rivers.Count > 0)
                 {
-                    string riverDir = GetRiverDirectionDescription(planetTile, surfaceTile.Rivers);
-                    if (!string.IsNullOrEmpty(riverDir))
+                    string riverInline = GetRiverDirectionInline(planetTile, surfaceTile.Rivers);
+                    if (!string.IsNullOrEmpty(riverInline))
                     {
-                        summary.Append($". River {riverDir.TrimEnd('.').ToLower()}");
+                        summary.Append(". ");
+                        summary.Append("RimWorldAccess.World.Tile.Summary.RiverInline".Translate(riverInline));
                     }
                 }
             }
@@ -266,22 +248,23 @@ namespace RimWorldAccess
         public static string GetDetailedTileInfo(PlanetTile planetTile)
         {
             if (!planetTile.Valid || Find.WorldGrid == null)
-                return "Invalid tile";
+                return "RimWorldAccess.World.Tile.Invalid".Translate();
 
             Tile tile = planetTile.Tile;
             if (tile == null)
-                return "Unknown tile";
+                return "RimWorldAccess.World.Tile.Unknown".Translate();
 
             StringBuilder info = new StringBuilder();
 
             // Coordinates
             Vector2 longlat = Find.WorldGrid.LongLatOf(planetTile);
-            info.AppendLine($"Coordinates: {longlat.y:F2}° N, {longlat.x:F2}° E");
+            info.AppendLine("RimWorldAccess.World.Tile.Detail.Coordinates".Translate(
+                longlat.y.ToString("F2"), longlat.x.ToString("F2")));
 
             // Biome
             if (tile.PrimaryBiome != null)
             {
-                info.AppendLine($"Biome: {tile.PrimaryBiome.LabelCap}");
+                info.AppendLine("RimWorldAccess.World.Tile.Detail.Biome".Translate(tile.PrimaryBiome.LabelCap));
             }
 
             // Surface-only data (orbit tiles have default/meaningless values for these)
@@ -291,19 +274,20 @@ namespace RimWorldAccess
                 // Hilliness
                 if (tile.hilliness != Hilliness.Undefined)
                 {
-                    info.AppendLine($"Hilliness: {tile.hilliness.GetLabelCap()}");
+                    info.AppendLine("RimWorldAccess.World.Tile.Detail.Hilliness".Translate(tile.hilliness.GetLabelCap()));
                 }
 
                 // Elevation
-                info.AppendLine($"Elevation: {tile.elevation:F0}m");
+                info.AppendLine("RimWorldAccess.World.Tile.Detail.Elevation".Translate(tile.elevation.ToString("F0")));
 
                 // Temperature (respects user's temperature mode preference)
-                info.AppendLine($"Temperature: Average {MenuHelper.FormatTemperature(tile.temperature, "F0")}");
+                info.AppendLine("RimWorldAccess.World.Tile.Detail.TemperatureAverage".Translate(
+                    MenuHelper.FormatTemperature(tile.temperature, "F0")));
 
                 // Pollution (if Biotech active)
                 if (ModsConfig.BiotechActive && tile.pollution > 0)
                 {
-                    info.AppendLine($"Pollution: {tile.pollution:F0}%");
+                    info.AppendLine("RimWorldAccess.World.Tile.Detail.Pollution".Translate(tile.pollution.ToString("F0")));
                 }
             }
 
@@ -314,11 +298,12 @@ namespace RimWorldAccess
 
                 if (objectsAtTile.Count > 0)
                 {
-                    info.AppendLine("\nWorld Objects:");
+                    info.AppendLine();
+                    info.AppendLine("RimWorldAccess.World.Tile.Detail.WorldObjectsHeader".Translate());
 
                     foreach (WorldObject obj in objectsAtTile)
                     {
-                        info.Append($"  - {obj.Label}");
+                        info.Append("RimWorldAccess.World.Tile.Detail.ObjectIndentBullet".Translate(obj.Label));
 
                         // Add type-specific information
                         if (obj is Settlement settlement)
@@ -327,17 +312,22 @@ namespace RimWorldAccess
                             {
                                 if (settlement.Faction == Faction.OfPlayer)
                                 {
-                                    info.Append($" ({Faction.OfPlayer.Name})");
+                                    info.Append(" (");
+                                    info.Append("RimWorldAccess.World.Settlement.FactionInline".Translate(Faction.OfPlayer.Name));
+                                    info.Append(")");
                                 }
                                 else
                                 {
                                     // Only show what's visible on the world map inspect pane
                                     string relationship = settlement.Faction.PlayerRelationKind.GetLabelCap();
                                     int goodwill = settlement.Faction.PlayerGoodwill;
-                                    string goodwillStr = goodwill >= 0 ? $"+{goodwill}" : goodwill.ToString();
+                                    string goodwillStr = goodwill >= 0
+                                        ? (string)"RimWorldAccess.World.Settlement.GoodwillPositive".Translate(goodwill)
+                                        : goodwill.ToString();
                                     info.AppendLine();
-                                    info.AppendLine($"    Faction: {settlement.Faction.Name}");
-                                    info.AppendLine($"    Relationship: {relationship} ({goodwillStr})");
+                                    info.AppendLine("RimWorldAccess.World.Tile.Detail.IndentedFaction".Translate(settlement.Faction.Name));
+                                    info.AppendLine("RimWorldAccess.World.Tile.Detail.IndentedRelationshipWithGoodwill".Translate(
+                                        relationship, goodwillStr));
 
                                     // Title required for trading (shown on inspect pane for Empire)
                                     if (settlement.TraderKind != null)
@@ -345,7 +335,8 @@ namespace RimWorldAccess
                                         RoyalTitleDef titleRequired = settlement.TraderKind.TitleRequiredToTrade;
                                         if (titleRequired != null)
                                         {
-                                            info.Append($"    Requires {titleRequired.GetLabelCapForBothGenders()} title to trade");
+                                            info.Append("RimWorldAccess.World.Tile.Detail.IndentedRequiresTitleToTrade".Translate(
+                                                titleRequired.GetLabelCapForBothGenders()));
                                         }
                                     }
                                 }
@@ -355,12 +346,12 @@ namespace RimWorldAccess
                         {
                             if (caravan.Faction != null)
                             {
-                                info.Append($" (Caravan, {caravan.Faction.Name})");
+                                info.Append("RimWorldAccess.World.Tile.Detail.CaravanFactionInline".Translate(caravan.Faction.Name));
                             }
                         }
                         else if (obj is Site site)
                         {
-                            info.Append(" (Site)");
+                            info.Append("RimWorldAccess.World.Tile.Detail.SiteInline".Translate());
                         }
 
                         info.AppendLine();
@@ -372,7 +363,8 @@ namespace RimWorldAccess
             string questInfo = GetDetailedQuestInfoForTile(planetTile);
             if (!string.IsNullOrEmpty(questInfo))
             {
-                info.AppendLine("\nQuest Targets:");
+                info.AppendLine();
+                info.AppendLine("RimWorldAccess.World.Tile.Detail.QuestTargetsHeader".Translate());
                 info.Append(questInfo);
             }
 
@@ -385,41 +377,43 @@ namespace RimWorldAccess
         public static string GetSettlementInfo(Settlement settlement)
         {
             if (settlement == null)
-                return "No settlement";
+                return "RimWorldAccess.World.Settlement.None".Translate();
 
             StringBuilder info = new StringBuilder();
 
-            info.AppendLine($"Settlement: {settlement.Label}");
+            info.AppendLine("RimWorldAccess.World.Settlement.LabelField".Translate(settlement.Label));
 
             if (settlement.Faction != null)
             {
-                info.AppendLine($"Faction: {settlement.Faction.Name}");
+                info.AppendLine("RimWorldAccess.World.Settlement.FactionField".Translate(settlement.Faction.Name));
 
                 if (settlement.Faction == Faction.OfPlayer)
                 {
-                    info.AppendLine("Relationship: Player Colony");
+                    info.AppendLine("RimWorldAccess.World.Settlement.RelationshipField".Translate(
+                        "RimWorldAccess.World.Settlement.PlayerColonyRelationship".Translate()));
                 }
                 else
                 {
-                    string relationship = settlement.Faction.HostileTo(Faction.OfPlayer) ? "Hostile" :
-                                         settlement.Faction.PlayerRelationKind.GetLabel();
-                    info.AppendLine($"Relationship: {relationship}");
+                    string relationship = settlement.Faction.HostileTo(Faction.OfPlayer)
+                        ? (string)"RimWorldAccess.World.Settlement.HostileRelationship".Translate()
+                        : settlement.Faction.PlayerRelationKind.GetLabel();
+                    info.AppendLine("RimWorldAccess.World.Settlement.RelationshipField".Translate(relationship));
 
                     // Add goodwill
                     int goodwill = settlement.Faction.PlayerGoodwill;
-                    info.AppendLine($"Goodwill: {goodwill}");
+                    info.AppendLine("RimWorldAccess.World.Settlement.GoodwillField".Translate(goodwill));
                 }
             }
 
             // Add visitable/attackable status
             if (settlement.Visitable)
             {
-                info.AppendLine("Status: Visitable");
+                info.AppendLine("RimWorldAccess.World.Settlement.StatusVisitable".Translate());
             }
 
             if (settlement.Attackable)
             {
-                info.AppendLine("Status: Attackable");
+                info.AppendLine("RimWorldAccess.World.Settlement.StatusAttackable".Translate());
             }
 
             return info.ToString().TrimEnd();
@@ -471,59 +465,70 @@ namespace RimWorldAccess
         public static string GetCaravanStatus(Caravan caravan)
         {
             if (caravan == null)
-                return "unknown";
+                return "RimWorldAccess.World.Caravan.Status.Unknown".Translate();
 
             // Check problem states first (these are most important)
             if (caravan.AllOwnersDowned)
-                return "all downed";
+                return "RimWorldAccess.World.Caravan.Status.AllDowned".Translate();
 
             if (caravan.AllOwnersHaveMentalBreak)
-                return "mental break";
+                return "RimWorldAccess.World.Caravan.Status.MentalBreak".Translate();
 
             if (caravan.ImmobilizedByMass)
-                return "overloaded";
+                return "RimWorldAccess.World.Caravan.Status.Overloaded".Translate();
 
             // Check if visiting a settlement (this takes priority - they've arrived)
             Settlement visitedSettlement = CaravanVisitUtility.SettlementVisitedNow(caravan);
             if (visitedSettlement != null)
-                return $"visiting {visitedSettlement.Label}";
+                return "RimWorldAccess.World.Caravan.Status.Visiting".Translate(visitedSettlement.Label);
 
             // Check movement status
             if (caravan.pather.Moving)
             {
                 if (caravan.pather.Paused)
-                    return $"paused{GetDestinationSuffix(caravan, "will")}";
+                    return "RimWorldAccess.World.Caravan.Status.Paused".Translate() + GetDestinationSuffix(caravan, active: false);
 
                 // Check if actually moving right now or stopped for some reason
                 if (caravan.NightResting)
                 {
-                    int bedCount = caravan.beds.GetUsedBedCount();
-                    string bedInfo = bedCount > 0 ? $" ({bedCount} {(bedCount == 1 ? "bedroll" : "bedrolls")})" : "";
-                    return $"resting{bedInfo}{GetDestinationSuffix(caravan, "will")}";
+                    return BuildRestingStatus(caravan) + GetDestinationSuffix(caravan, active: false);
                 }
 
                 // Actively traveling - use "to [infinitive]" format
-                return $"traveling{GetDestinationSuffix(caravan, "to")}";
+                return "RimWorldAccess.World.Caravan.Status.Traveling".Translate() + GetDestinationSuffix(caravan, active: true);
             }
 
             // Not moving - no destination is meaningful (Destination field may have stale data)
             if (caravan.NightResting)
             {
-                int bedCount = caravan.beds.GetUsedBedCount();
-                string bedInfo = bedCount > 0 ? $" ({bedCount} {(bedCount == 1 ? "bedroll" : "bedrolls")})" : "";
-                return $"resting{bedInfo}";
+                return BuildRestingStatus(caravan);
             }
 
             // Caravan is stopped - they have no active destination
-            return "waiting";
+            return "RimWorldAccess.World.Caravan.Status.Waiting".Translate();
+        }
+
+        // "resting" with optional bedroll-count parenthetical (one/many split).
+        private static string BuildRestingStatus(Caravan caravan)
+        {
+            string baseWord = "RimWorldAccess.World.Caravan.Status.Resting".Translate();
+            int bedCount = caravan?.beds?.GetUsedBedCount() ?? 0;
+            if (bedCount <= 0)
+                return baseWord;
+            string suffix = bedCount == 1
+                ? "RimWorldAccess.World.Caravan.RestingBedsOneSuffix".Translate()
+                : "RimWorldAccess.World.Caravan.RestingBedsManySuffix".Translate(bedCount);
+            return baseWord + suffix;
         }
 
         /// <summary>
         /// Gets a destination suffix with proper grammar.
-        /// prefix="to" gives "to enter Mikaelville" (for traveling)
-        /// prefix="will" gives "will enter Mikaelville" (for paused/resting)
+        /// active=true (caravan currently traveling): " to X" (clean) or
+        /// ", to <infinitive>" (verb-extracted).
+        /// active=false (paused/resting): ". To X" (clean) or
+        /// ", will <infinitive>" (verb-extracted).
         /// </summary>
-        private static string GetDestinationSuffix(Caravan caravan, string prefix)
+        private static string GetDestinationSuffix(Caravan caravan, bool active)
         {
             if (caravan?.pather == null)
                 return "";
@@ -536,21 +541,22 @@ namespace RimWorldAccess
                 {
                     string trimmedReport = report.TrimEnd('.');
 
-                    // If it starts with "Traveling to", extract the destination
+                    // If it starts with "Traveling to", extract the destination.
+                    // This pattern only matches the game's English inspect string -
+                    // localized game data falls through to the destination-tile fallback.
                     if (trimmedReport.StartsWith("Traveling to ", System.StringComparison.OrdinalIgnoreCase))
                     {
                         string destination = trimmedReport.Substring(13);
-                        // "to" prefix means actively traveling: "traveling to X"
-                        // "will" prefix means paused/resting: ". To X" (separate sentences)
-                        if (prefix == "to")
-                            return $" to {destination}";
-                        else
-                            return $". To {destination}";
+                        return active
+                            ? "RimWorldAccess.World.Caravan.SuffixActiveTo".Translate(destination)
+                            : "RimWorldAccess.World.Caravan.SuffixPausedSeparate".Translate(destination);
                     }
 
                     // Convert "-ing" verb to infinitive: "Entering X" -> "enter X"
                     string infinitive = ConvertToInfinitive(trimmedReport);
-                    return $", {prefix} {infinitive}";
+                    return active
+                        ? "RimWorldAccess.World.Caravan.SuffixActiveVerb".Translate(infinitive)
+                        : "RimWorldAccess.World.Caravan.SuffixPausedVerb".Translate(infinitive);
                 }
             }
 
@@ -563,19 +569,17 @@ namespace RimWorldAccess
                     var settlement = destObjects.OfType<Settlement>().FirstOrDefault();
                     if (settlement != null)
                     {
-                        if (prefix == "to")
-                            return $" to {settlement.Label}";
-                        else
-                            return $". To {settlement.Label}";
+                        return active
+                            ? "RimWorldAccess.World.Caravan.SuffixActiveTo".Translate(settlement.Label)
+                            : "RimWorldAccess.World.Caravan.SuffixPausedSeparate".Translate(settlement.Label);
                     }
 
                     var site = destObjects.OfType<Site>().FirstOrDefault();
                     if (site != null)
                     {
-                        if (prefix == "to")
-                            return $" to {site.Label}";
-                        else
-                            return $". To {site.Label}";
+                        return active
+                            ? "RimWorldAccess.World.Caravan.SuffixActiveTo".Translate(site.Label)
+                            : "RimWorldAccess.World.Caravan.SuffixPausedSeparate".Translate(site.Label);
                     }
                 }
             }
@@ -687,21 +691,18 @@ namespace RimWorldAccess
                 if (isQuestTarget)
                 {
                     string questName = quest.name.StripTags();
-                    StringBuilder questEntry = new StringBuilder();
-                    questEntry.Append($"Quest: {questName}");
-
-                    // Add difficulty rating as text (avoid unicode symbols that screen readers may not handle)
+                    string difficulty = null;
                     if (quest.challengeRating > 0)
                     {
-                        string difficulty = quest.challengeRating == 1 ? "1 star" : $"{quest.challengeRating} stars";
-                        questEntry.Append($" ({difficulty})");
+                        difficulty = quest.challengeRating == 1
+                            ? "RimWorldAccess.World.Quest.DifficultyOneStar".Translate()
+                            : "RimWorldAccess.World.Quest.DifficultyManyStars".Translate(quest.challengeRating);
                     }
 
                     // Add description (first two sentences or up to 250 chars)
                     string questDesc = quest.description.ToString().StripTags();
                     if (!string.IsNullOrEmpty(questDesc))
                     {
-                        // Find second sentence end or use first 250 characters
                         int firstPeriod = questDesc.IndexOf('.');
                         int secondPeriod = firstPeriod > 0 ? questDesc.IndexOf('.', firstPeriod + 1) : -1;
 
@@ -717,10 +718,21 @@ namespace RimWorldAccess
                         {
                             questDesc = questDesc.Substring(0, 247) + "...";
                         }
-                        questEntry.Append($" - {questDesc}");
                     }
 
-                    questInfos.Add(questEntry.ToString());
+                    string entry;
+                    bool hasDifficulty = !string.IsNullOrEmpty(difficulty);
+                    bool hasDesc = !string.IsNullOrEmpty(questDesc);
+                    if (hasDifficulty && hasDesc)
+                        entry = "RimWorldAccess.World.Quest.LabelWithDifficultyAndDescription".Translate(questName, difficulty, questDesc);
+                    else if (hasDifficulty)
+                        entry = "RimWorldAccess.World.Quest.LabelWithDifficulty".Translate(questName, difficulty);
+                    else if (hasDesc)
+                        entry = "RimWorldAccess.World.Quest.LabelWithDescription".Translate(questName, questDesc);
+                    else
+                        entry = "RimWorldAccess.World.Quest.Label".Translate(questName);
+
+                    questInfos.Add(entry);
                 }
             }
 
@@ -776,13 +788,15 @@ namespace RimWorldAccess
                     string questName = quest.name.StripTags();
                     string questDesc = quest.description.ToString().StripTags();
 
-                    info.AppendLine($"Quest: {questName}");
+                    info.AppendLine("RimWorldAccess.World.Quest.Label".Translate(questName));
 
                     // Add challenge rating if available (use text instead of unicode symbols)
                     if (quest.challengeRating > 0)
                     {
-                        string difficulty = quest.challengeRating == 1 ? "1 star" : $"{quest.challengeRating} stars";
-                        info.AppendLine($"  Difficulty: {difficulty}");
+                        string difficulty = quest.challengeRating == 1
+                            ? (string)"RimWorldAccess.World.Quest.DifficultyOneStar".Translate()
+                            : (string)"RimWorldAccess.World.Quest.DifficultyManyStars".Translate(quest.challengeRating);
+                        info.AppendLine("RimWorldAccess.World.Quest.DetailDifficultyField".Translate(difficulty));
                     }
 
                     // Add description (truncate if too long)
@@ -790,7 +804,7 @@ namespace RimWorldAccess
                     {
                         if (questDesc.Length > 200)
                             questDesc = questDesc.Substring(0, 197) + "...";
-                        info.AppendLine($"  Description: {questDesc}");
+                        info.AppendLine("RimWorldAccess.World.Quest.DetailDescriptionField".Translate(questDesc));
                     }
 
                     info.AppendLine();
@@ -811,37 +825,40 @@ namespace RimWorldAccess
         public static string GetTileGrowingInfo(PlanetTile planetTile)
         {
             if (!planetTile.Valid || Find.WorldGrid == null)
-                return "Invalid tile";
+                return "RimWorldAccess.World.Tile.Invalid".Translate();
 
             if (planetTile.LayerDef?.isSpace == true)
-                return "No growing information for space tiles.";
+                return "RimWorldAccess.World.Tile.Growing.NoSpaceInfo".Translate();
 
             Tile tile = planetTile.Tile;
             if (tile == null)
-                return "Unknown tile";
+                return "RimWorldAccess.World.Tile.Unknown".Translate();
 
             StringBuilder info = new StringBuilder();
 
             // Growing period - use game's calculation
             string growingPeriod = Zone_Growing.GrowingQuadrumsDescription(planetTile);
-            info.Append($"Growing period: {growingPeriod}.");
+            info.Append("RimWorldAccess.World.Tile.Growing.Period".Translate(growingPeriod));
 
             // Rainfall
-            info.Append($" Rainfall: {tile.rainfall:F0} mm.");
+            info.Append("RimWorldAccess.World.Tile.Growing.Rainfall".Translate(tile.rainfall.ToString("F0")));
 
             // Forageability
             if (tile.PrimaryBiome?.foragedFood != null && tile.PrimaryBiome.forageability > 0f)
             {
-                info.Append($" Forageability: {tile.PrimaryBiome.forageability.ToStringPercent()} ({tile.PrimaryBiome.foragedFood.label}).");
+                info.Append("RimWorldAccess.World.Tile.Growing.Forageability".Translate(
+                    tile.PrimaryBiome.forageability.ToStringPercent(), tile.PrimaryBiome.foragedFood.label));
             }
             else
             {
-                info.Append(" Forageability: 0%.");
+                info.Append("RimWorldAccess.World.Tile.Growing.NoForageability".Translate());
             }
 
             // Grazing (animals can graze now)
             bool canGraze = VirtualPlantsUtility.EnvironmentAllowsEatingVirtualPlantsNowAt(planetTile);
-            info.Append($" Animals can graze: {(canGraze ? "yes" : "no")}.");
+            info.Append(canGraze
+                ? "RimWorldAccess.World.Tile.Growing.GrazeYes".Translate()
+                : "RimWorldAccess.World.Tile.Growing.GrazeNo".Translate());
 
             // Stone types (if can build base here)
             if (tile.PrimaryBiome?.canBuildBase == true)
@@ -851,7 +868,8 @@ namespace RimWorldAccess
                     .ToList();
                 if (stoneTypes.Count > 0)
                 {
-                    info.Append($" Stone types: {stoneTypes.ToCommaList(useAnd: true).CapitalizeFirst()}.");
+                    info.Append("RimWorldAccess.World.Tile.Growing.StoneTypes".Translate(
+                        stoneTypes.ToCommaList(useAnd: true).CapitalizeFirst()));
                 }
             }
 
@@ -866,14 +884,14 @@ namespace RimWorldAccess
         public static string GetTileMovementInfo(PlanetTile planetTile)
         {
             if (!planetTile.Valid || Find.WorldGrid == null)
-                return "Invalid tile";
+                return "RimWorldAccess.World.Tile.Invalid".Translate();
 
             if (planetTile.LayerDef?.isSpace == true)
-                return "No movement information for space tiles.";
+                return "RimWorldAccess.World.Tile.Movement.NoSpaceInfo".Translate();
 
             Tile tile = planetTile.Tile;
             if (tile == null)
-                return "Unknown tile";
+                return "RimWorldAccess.World.Tile.Unknown".Translate();
 
             StringBuilder info = new StringBuilder();
 
@@ -890,7 +908,7 @@ namespace RimWorldAccess
                 if (timing.HasValue)
                 {
                     string timeFromStart = timing.Value.ticksFromStart.ToStringTicksToDays("0.#");
-                    info.Append($" Arrival: {timeFromStart}.");
+                    info.Append("RimWorldAccess.World.Tile.Movement.RouteArrival".Translate(timeFromStart));
                 }
 
                 info.Append(" ");
@@ -911,14 +929,14 @@ namespace RimWorldAccess
             // Movement difficulty
             if (Find.World.Impassable(planetTile))
             {
-                info.Append("Movement: Impassable.");
+                info.Append("RimWorldAccess.World.Tile.Movement.Impassable".Translate());
             }
             else
             {
                 float difficulty = WorldPathGrid.CalculatedMovementDifficultyAt(planetTile, false, null, null);
                 float roadMultiplier = Find.WorldGrid.GetRoadMovementDifficultyMultiplier(planetTile, PlanetTile.Invalid, null);
                 float totalDifficulty = difficulty * roadMultiplier;
-                info.Append($"Movement difficulty: {totalDifficulty:F1}.");
+                info.Append("RimWorldAccess.World.Tile.Movement.Difficulty".Translate(totalDifficulty.ToString("F1")));
 
                 // Winter penalty
                 if (WorldPathGrid.WillWinterEverAffectMovementDifficulty(planetTile))
@@ -926,11 +944,11 @@ namespace RimWorldAccess
                     float currentWinterOffset = WorldPathGrid.GetCurrentWinterMovementDifficultyOffset(planetTile);
                     if (currentWinterOffset > 0)
                     {
-                        info.Append($" Current winter penalty: +{currentWinterOffset:F1}.");
+                        info.Append("RimWorldAccess.World.Tile.Movement.WinterPenaltyCurrent".Translate(currentWinterOffset.ToString("F1")));
                     }
                     else
                     {
-                        info.Append(" Winter penalty: +2.0 in winter.");
+                        info.Append("RimWorldAccess.World.Tile.Movement.WinterPenaltyDefault".Translate());
                     }
                 }
             }
@@ -938,11 +956,11 @@ namespace RimWorldAccess
             // Terrain/Hilliness
             if (tile.HillinessLabel != Hilliness.Undefined)
             {
-                info.Append($" Terrain: {tile.HillinessLabel.GetLabelCap()}.");
+                info.Append("RimWorldAccess.World.Tile.Movement.Terrain".Translate(tile.HillinessLabel.GetLabelCap()));
             }
 
             // Elevation
-            info.Append($" Elevation: {tile.elevation:F0} m.");
+            info.Append("RimWorldAccess.World.Tile.Movement.Elevation".Translate(tile.elevation.ToString("F0")));
 
             // Roads and Rivers (only for surface tiles)
             if (tile is SurfaceTile surfaceTile)
@@ -953,7 +971,7 @@ namespace RimWorldAccess
                         .Select(r => r.road.label)
                         .Distinct()
                         .ToCommaList(useAnd: true);
-                    info.Append($" Road: {roads.CapitalizeFirst()}.");
+                    info.Append("RimWorldAccess.World.Tile.Movement.Road".Translate(roads.CapitalizeFirst()));
 
                     // Add road direction description
                     string roadDirection = GetRoadDirectionDescription(planetTile, surfaceTile.Roads);
@@ -966,7 +984,7 @@ namespace RimWorldAccess
                 if (surfaceTile.Rivers != null && surfaceTile.Rivers.Count > 0)
                 {
                     var largestRiver = surfaceTile.Rivers.MaxBy(r => r.river.degradeThreshold);
-                    info.Append($" River: {largestRiver.river.LabelCap}.");
+                    info.Append("RimWorldAccess.World.Tile.Movement.River".Translate(largestRiver.river.LabelCap));
 
                     // Add river direction description
                     string riverDirection = GetRiverDirectionDescription(planetTile, surfaceTile.Rivers);
@@ -980,7 +998,7 @@ namespace RimWorldAccess
             // Coastal
             if (tile.IsCoastal)
             {
-                info.Append(" Coastal.");
+                info.Append("RimWorldAccess.World.Tile.Movement.Coastal".Translate());
             }
 
             return info.ToString();
@@ -993,14 +1011,14 @@ namespace RimWorldAccess
         public static string GetTileHealthInfo(PlanetTile planetTile)
         {
             if (!planetTile.Valid || Find.WorldGrid == null)
-                return "Invalid tile";
+                return "RimWorldAccess.World.Tile.Invalid".Translate();
 
             if (planetTile.LayerDef?.isSpace == true)
-                return "No health information for space tiles.";
+                return "RimWorldAccess.World.Tile.Health.NoSpaceInfo".Translate();
 
             Tile tile = planetTile.Tile;
             if (tile == null)
-                return "Unknown tile";
+                return "RimWorldAccess.World.Tile.Unknown".Translate();
 
             StringBuilder info = new StringBuilder();
 
@@ -1008,31 +1026,31 @@ namespace RimWorldAccess
             if (tile.PrimaryBiome?.diseaseMtbDays > 0)
             {
                 float diseasesPerYear = 60f / tile.PrimaryBiome.diseaseMtbDays;
-                info.Append($"Disease frequency: {diseasesPerYear:F1} per year.");
+                info.Append("RimWorldAccess.World.Tile.Health.DiseaseFrequency".Translate(diseasesPerYear.ToString("F1")));
             }
             else
             {
-                info.Append("Disease frequency: None.");
+                info.Append("RimWorldAccess.World.Tile.Health.DiseaseNone".Translate());
             }
 
             // Pollution (Biotech DLC)
             if (ModsConfig.BiotechActive)
             {
-                info.Append($" Tile pollution: {tile.pollution.ToStringPercent()}.");
+                info.Append("RimWorldAccess.World.Tile.Health.TilePollution".Translate(tile.pollution.ToStringPercent()));
 
                 // Nearby pollution score
                 float nearbyPollution = WorldPollutionUtility.CalculateNearbyPollutionScore(planetTile);
-                info.Append($" Nearby pollution: {nearbyPollution:F2}.");
+                info.Append("RimWorldAccess.World.Tile.Health.NearbyPollution".Translate(nearbyPollution.ToString("F2")));
 
                 // Noxious haze risk
                 if (nearbyPollution >= GameConditionDefOf.NoxiousHaze.minNearbyPollution)
                 {
                     float hazeInterval = GameConditionDefOf.NoxiousHaze.mtbOverNearbyPollutionCurve.Evaluate(nearbyPollution);
-                    info.Append($" Noxious haze interval: {hazeInterval:F0} days.");
+                    info.Append("RimWorldAccess.World.Tile.Health.NoxiousHazeInterval".Translate(hazeInterval.ToString("F0")));
                 }
                 else
                 {
-                    info.Append(" Noxious haze: Never.");
+                    info.Append("RimWorldAccess.World.Tile.Health.NoxiousHazeNever".Translate());
                 }
             }
 
@@ -1046,23 +1064,31 @@ namespace RimWorldAccess
         public static string GetTileLocationInfo(PlanetTile planetTile)
         {
             if (!planetTile.Valid || Find.WorldGrid == null)
-                return "Invalid tile";
+                return "RimWorldAccess.World.Tile.Invalid".Translate();
 
             StringBuilder info = new StringBuilder();
 
             // Coordinates
             Vector2 longlat = Find.WorldGrid.LongLatOf(planetTile);
-            string latDir = longlat.y >= 0 ? "N" : "S";
-            string lonDir = longlat.x >= 0 ? "E" : "W";
-            info.Append($"Coordinates: {Mathf.Abs(longlat.y):F1} degrees {latDir}, {Mathf.Abs(longlat.x):F1} degrees {lonDir}.");
+            string latDir = longlat.y >= 0
+                ? (string)"RimWorldAccess.World.Tile.Location.LatNorth".Translate()
+                : (string)"RimWorldAccess.World.Tile.Location.LatSouth".Translate();
+            string lonDir = longlat.x >= 0
+                ? (string)"RimWorldAccess.World.Tile.Location.LonEast".Translate()
+                : (string)"RimWorldAccess.World.Tile.Location.LonWest".Translate();
+            info.Append("RimWorldAccess.World.Tile.Location.Coordinates".Translate(
+                Mathf.Abs(longlat.y).ToString("F1"), latDir,
+                Mathf.Abs(longlat.x).ToString("F1"), lonDir));
 
             // Time zone
             int timeZone = GenDate.TimeZoneAt(longlat.x);
-            string tzStr = timeZone >= 0 ? $"+{timeZone}" : timeZone.ToString();
-            info.Append($" Time zone: UTC{tzStr}.");
+            string tzStr = timeZone >= 0
+                ? (string)"RimWorldAccess.World.Tile.Location.TimeZonePositive".Translate(timeZone)
+                : timeZone.ToString();
+            info.Append("RimWorldAccess.World.Tile.Location.TimeZone".Translate(tzStr));
 
             // Tile ID (useful for debugging/reporting)
-            info.Append($" Tile ID: {planetTile}.");
+            info.Append("RimWorldAccess.World.Tile.Location.TileId".Translate(planetTile.ToString()));
 
             return info.ToString();
         }
@@ -1074,11 +1100,11 @@ namespace RimWorldAccess
         public static string GetTileFeaturesInfo(PlanetTile planetTile)
         {
             if (!planetTile.Valid || Find.WorldGrid == null)
-                return "Invalid tile";
+                return "RimWorldAccess.World.Tile.Invalid".Translate();
 
             Tile tile = planetTile.Tile;
             if (tile == null)
-                return "Unknown tile";
+                return "RimWorldAccess.World.Tile.Unknown".Translate();
 
             StringBuilder info = new StringBuilder();
             bool hasContent = false;
@@ -1096,11 +1122,11 @@ namespace RimWorldAccess
                     string label = m.Label(planetTile);
                     string desc = m.Description(planetTile);
                     if (!string.IsNullOrEmpty(desc) && desc != label)
-                        mutatorParts.Add($"{label}: {desc}");
+                        mutatorParts.Add("RimWorldAccess.World.Tile.Features.MutatorWithDescription".Translate(label, desc));
                     else
                         mutatorParts.Add(label);
                 }
-                info.Append($"Tile features: {string.Join(". ", mutatorParts)}.");
+                info.Append("RimWorldAccess.World.Tile.Features.Mutators".Translate(string.Join(". ", mutatorParts)));
                 hasContent = true;
             }
 
@@ -1108,7 +1134,8 @@ namespace RimWorldAccess
             if (ModsConfig.OdysseyActive && tile.Landmark != null)
             {
                 if (hasContent) info.Append(" ");
-                info.Append($"Landmark: {tile.Landmark.name}, {tile.Landmark.def.LabelCap}.");
+                info.Append("RimWorldAccess.World.Tile.Features.Landmark".Translate(
+                    tile.Landmark.name, tile.Landmark.def.LabelCap));
                 hasContent = true;
             }
 
@@ -1116,7 +1143,7 @@ namespace RimWorldAccess
             if (tile.feature != null)
             {
                 if (hasContent) info.Append(" ");
-                info.Append($"Region: {tile.feature.name}.");
+                info.Append("RimWorldAccess.World.Tile.Features.Region".Translate(tile.feature.name));
                 hasContent = true;
             }
 
@@ -1125,13 +1152,13 @@ namespace RimWorldAccess
             if (hasCaves)
             {
                 if (hasContent) info.Append(" ");
-                info.Append("May have caves.");
+                info.Append("RimWorldAccess.World.Tile.Features.MayHaveCaves".Translate());
                 hasContent = true;
             }
 
             if (!hasContent)
             {
-                info.Append("No special features.");
+                info.Append("RimWorldAccess.World.Tile.Features.None".Translate());
             }
 
             return info.ToString();
@@ -1153,10 +1180,22 @@ namespace RimWorldAccess
         /// </summary>
         private static string GetRoadDirectionDescription(PlanetTile fromTile, List<SurfaceTile.RoadLink> roads)
         {
+            return BuildRoadDirection(fromTile, roads, inline: false);
+        }
+
+        // Lower-case mid-sentence form used by GetTileSummary so the
+        // composition "Highway1 runs north to south" doesn't depend on
+        // ToLower() over the capitalized phrase.
+        private static string GetRoadDirectionInline(PlanetTile fromTile, List<SurfaceTile.RoadLink> roads)
+        {
+            return BuildRoadDirection(fromTile, roads, inline: true);
+        }
+
+        private static string BuildRoadDirection(PlanetTile fromTile, List<SurfaceTile.RoadLink> roads, bool inline)
+        {
             if (roads == null || roads.Count == 0 || Find.WorldGrid == null)
                 return null;
 
-            // Get arrow key direction for each road connection
             List<string> directions = new List<string>();
             foreach (var roadLink in roads)
             {
@@ -1169,12 +1208,17 @@ namespace RimWorldAccess
 
             if (directions.Count == 0)
             {
-                return "Ends here.";
+                return inline
+                    ? "RimWorldAccess.World.Road.EndsHere.Inline".Translate()
+                    : "RimWorldAccess.World.Road.EndsHere".Translate();
             }
 
             if (directions.Count == 1)
             {
-                return $"Ends here, continues {directions[0]}.";
+                string dir = LocalizeCompass(directions[0]);
+                return inline
+                    ? "RimWorldAccess.World.Road.EndsContinues.Inline".Translate(dir)
+                    : "RimWorldAccess.World.Road.EndsContinues".Translate(dir);
             }
 
             if (directions.Count == 2)
@@ -1182,15 +1226,26 @@ namespace RimWorldAccess
                 if (AreOppositeDirections8Way(directions[0], directions[1]))
                 {
                     var ordered = OrderDirectionPair8Way(directions[0], directions[1]);
-                    return $"Runs {ordered.Item1} to {ordered.Item2}.";
+                    string a = LocalizeCompass(ordered.Item1);
+                    string b = LocalizeCompass(ordered.Item2);
+                    return inline
+                        ? "RimWorldAccess.World.Road.Runs.Inline".Translate(a, b)
+                        : "RimWorldAccess.World.Road.Runs".Translate(a, b);
                 }
                 else
                 {
-                    return $"Curves from {directions[0]} to {directions[1]}.";
+                    string a = LocalizeCompass(directions[0]);
+                    string b = LocalizeCompass(directions[1]);
+                    return inline
+                        ? "RimWorldAccess.World.Road.Curves.Inline".Translate(a, b)
+                        : "RimWorldAccess.World.Road.Curves".Translate(a, b);
                 }
             }
 
-            return $"Junction: {directions.ToCommaList(useAnd: true)}.";
+            string list = directions.Select(LocalizeCompass).ToList().ToCommaList(useAnd: true);
+            return inline
+                ? "RimWorldAccess.World.Road.Junction.Inline".Translate(list)
+                : "RimWorldAccess.World.Road.Junction".Translate(list);
         }
 
         /// <summary>
@@ -1206,10 +1261,20 @@ namespace RimWorldAccess
         /// </summary>
         private static string GetRiverDirectionDescription(PlanetTile fromTile, List<SurfaceTile.RiverLink> rivers)
         {
+            return BuildRiverDirection(fromTile, rivers, inline: false);
+        }
+
+        // Lower-case mid-sentence form used by GetTileSummary.
+        private static string GetRiverDirectionInline(PlanetTile fromTile, List<SurfaceTile.RiverLink> rivers)
+        {
+            return BuildRiverDirection(fromTile, rivers, inline: true);
+        }
+
+        private static string BuildRiverDirection(PlanetTile fromTile, List<SurfaceTile.RiverLink> rivers, bool inline)
+        {
             if (rivers == null || rivers.Count == 0 || Find.WorldGrid == null)
                 return null;
 
-            // Get arrow key direction for each river connection
             List<string> directions = new List<string>();
             foreach (var riverLink in rivers)
             {
@@ -1227,7 +1292,10 @@ namespace RimWorldAccess
 
             if (directions.Count == 1)
             {
-                return $"Flows {directions[0]}.";
+                string dir = LocalizeCompass(directions[0]);
+                return inline
+                    ? "RimWorldAccess.World.River.Flows.Inline".Translate(dir)
+                    : "RimWorldAccess.World.River.Flows".Translate(dir);
             }
 
             if (directions.Count == 2)
@@ -1235,15 +1303,26 @@ namespace RimWorldAccess
                 if (AreOppositeDirections8Way(directions[0], directions[1]))
                 {
                     var ordered = OrderDirectionPair8Way(directions[0], directions[1]);
-                    return $"Flows {ordered.Item1} to {ordered.Item2}.";
+                    string a = LocalizeCompass(ordered.Item1);
+                    string b = LocalizeCompass(ordered.Item2);
+                    return inline
+                        ? "RimWorldAccess.World.River.FlowsBetween.Inline".Translate(a, b)
+                        : "RimWorldAccess.World.River.FlowsBetween".Translate(a, b);
                 }
                 else
                 {
-                    return $"Bends from {directions[0]} to {directions[1]}.";
+                    string a = LocalizeCompass(directions[0]);
+                    string b = LocalizeCompass(directions[1]);
+                    return inline
+                        ? "RimWorldAccess.World.River.Bends.Inline".Translate(a, b)
+                        : "RimWorldAccess.World.River.Bends".Translate(a, b);
                 }
             }
 
-            return $"Confluence: {directions.ToCommaList(useAnd: true)}.";
+            string list = directions.Select(LocalizeCompass).ToList().ToCommaList(useAnd: true);
+            return inline
+                ? "RimWorldAccess.World.River.Confluence.Inline".Translate(list)
+                : "RimWorldAccess.World.River.Confluence".Translate(list);
         }
 
         /// <summary>
@@ -1422,17 +1501,18 @@ namespace RimWorldAccess
                     if (path == null || !path.Found || path.NodesLeftCount <= 0)
                         continue;
 
-                    string caravanName = caravan.Label ?? "Caravan";
+                    string caravanName = caravan.Label ?? (string)"RimWorldAccess.World.Caravan.DefaultLabel".Translate();
 
                     // Get direction to next tile on path
                     string direction = GetCaravanTravelDirection(caravan);
                     if (!string.IsNullOrEmpty(direction))
                     {
                         string destination = GetCaravanDestinationName(caravan);
+                        string dirLocalized = LocalizeCompass(direction);
                         if (!string.IsNullOrEmpty(destination))
-                            pathAnnouncements.Add($"{caravanName} heading {direction} toward {destination}.");
+                            pathAnnouncements.Add("RimWorldAccess.World.Caravan.PathHeadingTowardOnTile".Translate(caravanName, dirLocalized, destination));
                         else
-                            pathAnnouncements.Add($"{caravanName} heading {direction}.");
+                            pathAnnouncements.Add("RimWorldAccess.World.Caravan.PathHeadingOnTile".Translate(caravanName, dirLocalized));
                     }
                 }
             }
@@ -1458,7 +1538,7 @@ namespace RimWorldAccess
                     if (!path.Found || path.NodesLeftCount <= 0)
                         continue;
 
-                    string caravanName = caravan.Label ?? "Caravan";
+                    string caravanName = caravan.Label ?? (string)"RimWorldAccess.World.Caravan.DefaultLabel".Translate();
 
                     // Check if this tile is the caravan's destination
                     if (IsCaravanDestination(tile, path))
@@ -1474,7 +1554,7 @@ namespace RimWorldAccess
 
                         if (!string.IsNullOrEmpty(direction))
                         {
-                            pathAnnouncements.Add($"{caravanName} will head {direction}.");
+                            pathAnnouncements.Add("RimWorldAccess.World.Caravan.PathWillHead".Translate(caravanName, LocalizeCompass(direction)));
                         }
                     }
                 }
@@ -1486,7 +1566,7 @@ namespace RimWorldAccess
             // Add stopping announcement if any caravans stop here
             if (stoppingCaravans.Count > 0)
             {
-                string stoppingText = FormatCaravanList(stoppingCaravans) + " will stop here.";
+                string stoppingText = "RimWorldAccess.World.Caravan.PathWillStopHere".Translate(FormatCaravanList(stoppingCaravans));
                 allAnnouncements.Add(stoppingText);
             }
 
@@ -1514,18 +1594,35 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Formats a list of caravan names naturally: "A", "A and B", or "A, B, and C".
+        /// Delegates to the game's ToCommaList(useAnd: true) so the conjunction
+        /// honours the active language (vanilla "AndListItem" translation key).
         /// </summary>
         private static string FormatCaravanList(List<string> names)
         {
             if (names.Count == 0)
                 return "";
-            if (names.Count == 1)
-                return names[0];
-            if (names.Count == 2)
-                return $"{names[0]} and {names[1]}";
+            return names.ToCommaList(useAnd: true);
+        }
 
-            // Three or more: "A, B, and C"
-            return string.Join(", ", names.Take(names.Count - 1)) + ", and " + names[names.Count - 1];
+        // Formats a single caravan label with an optional parenthetical
+        // detail (foreign-faction name for non-player caravans, or short
+        // status for player caravans). Used by GetTileSummary's caravan
+        // listing.
+        private static string FormatCaravanWithDetail(Caravan caravan)
+        {
+            string label = caravan.Label;
+            string detail;
+            if (caravan.Faction != null && caravan.Faction != Faction.OfPlayer)
+            {
+                detail = caravan.Faction.Name;
+            }
+            else
+            {
+                detail = GetCaravanShortStatus(caravan);
+            }
+            if (string.IsNullOrEmpty(detail))
+                return label;
+            return "RimWorldAccess.World.Tile.Caravan.WithDetailParenthetical".Translate(label, detail);
         }
 
         /// <summary>
@@ -1602,47 +1699,47 @@ namespace RimWorldAccess
 
             // Check problem states first
             if (caravan.AllOwnersDowned)
-                return "all downed";
+                return "RimWorldAccess.World.Caravan.Status.AllDowned".Translate();
 
             if (caravan.AllOwnersHaveMentalBreak)
-                return "mental break";
+                return "RimWorldAccess.World.Caravan.Status.MentalBreak".Translate();
 
             if (caravan.ImmobilizedByMass)
-                return "overloaded";
+                return "RimWorldAccess.World.Caravan.Status.Overloaded".Translate();
 
             // Check if visiting a settlement
             Settlement visitedSettlement = CaravanVisitUtility.SettlementVisitedNow(caravan);
             if (visitedSettlement != null)
-                return $"visiting {visitedSettlement.Label}";
+                return "RimWorldAccess.World.Caravan.Status.Visiting".Translate(visitedSettlement.Label);
 
             // Check movement status
             if (caravan.pather != null && caravan.pather.Moving)
             {
                 if (caravan.pather.Paused)
-                    return "paused";
+                    return "RimWorldAccess.World.Caravan.Status.Paused".Translate();
 
                 if (caravan.NightResting)
-                    return "resting";
+                    return "RimWorldAccess.World.Caravan.Status.Resting".Translate();
 
                 // Actively traveling - get direction and destination
                 string direction = GetCaravanTravelDirection(caravan);
                 string destination = GetCaravanDestinationName(caravan);
 
                 if (!string.IsNullOrEmpty(direction) && !string.IsNullOrEmpty(destination))
-                    return $"heading {direction} toward {destination}";
+                    return "RimWorldAccess.World.Caravan.Status.HeadingDirectionToward".Translate(LocalizeCompass(direction), destination);
                 else if (!string.IsNullOrEmpty(destination))
-                    return $"traveling to {destination}";
+                    return "RimWorldAccess.World.Caravan.Status.TravelingTo".Translate(destination);
                 else if (!string.IsNullOrEmpty(direction))
-                    return $"heading {direction}";
+                    return "RimWorldAccess.World.Caravan.Status.HeadingDirection".Translate(LocalizeCompass(direction));
                 else
-                    return "traveling";
+                    return "RimWorldAccess.World.Caravan.Status.Traveling".Translate();
             }
 
             // Not moving
             if (caravan.NightResting)
-                return "resting";
+                return "RimWorldAccess.World.Caravan.Status.Resting".Translate();
 
-            return "stopped";
+            return "RimWorldAccess.World.Caravan.Status.Stopped".Translate();
         }
 
         /// <summary>
