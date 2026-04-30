@@ -40,7 +40,7 @@ namespace RimWorldAccess
         {
             if (Find.QuestManager == null || Find.WorldGrid == null)
             {
-                TolkHelper.Speak("Quest system not available", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.QuestBrowser.QuestSystemUnavailable".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -52,7 +52,7 @@ namespace RimWorldAccess
 
             if (questLocations.Count == 0)
             {
-                TolkHelper.Speak("No quest locations found");
+                TolkHelper.Speak("RimWorldAccess.QuestBrowser.NoQuestLocationsFound".Translate());
                 return;
             }
 
@@ -68,7 +68,7 @@ namespace RimWorldAccess
             questLocations.Clear();
             currentIndex = 0;
             originTile = PlanetTile.Invalid;
-            TolkHelper.Speak("Quest locations browser closed");
+            TolkHelper.Speak("RimWorldAccess.QuestBrowser.Closed".Translate());
         }
 
         /// <summary>
@@ -143,7 +143,7 @@ namespace RimWorldAccess
         {
             if (questLocations.Count == 0)
             {
-                TolkHelper.Speak("No quest locations available");
+                TolkHelper.Speak("RimWorldAccess.QuestBrowser.NoQuestLocationsAvailable".Translate());
                 return;
             }
 
@@ -159,7 +159,7 @@ namespace RimWorldAccess
         {
             if (questLocations.Count == 0)
             {
-                TolkHelper.Speak("No quest locations available");
+                TolkHelper.Speak("RimWorldAccess.QuestBrowser.NoQuestLocationsAvailable".Translate());
                 return;
             }
 
@@ -175,7 +175,7 @@ namespace RimWorldAccess
         {
             if (questLocations.Count == 0 || currentIndex < 0 || currentIndex >= questLocations.Count)
             {
-                TolkHelper.Speak("No quest location selected");
+                TolkHelper.Speak("RimWorldAccess.QuestBrowser.NoQuestLocationSelected".Translate());
                 return;
             }
 
@@ -226,7 +226,7 @@ namespace RimWorldAccess
         {
             if (questLocations.Count == 0)
             {
-                TolkHelper.Speak("No quest locations available");
+                TolkHelper.Speak("RimWorldAccess.QuestBrowser.NoQuestLocationsAvailable".Translate());
                 return;
             }
 
@@ -249,13 +249,15 @@ namespace RimWorldAccess
                 // Use tile biome if no world object
                 Tile tile = entry.Tile.Tile;
                 BiomeDef biome = tile?.PrimaryBiome;
-                locationDesc = biome?.LabelCap ?? "Unknown location";
+                locationDesc = biome?.LabelCap ?? (string)"RimWorldAccess.QuestBrowser.UnknownLocation".Translate();
             }
 
             // Get tile summary for additional context
             string tileSummary = WorldInfoHelper.GetTileSummary(entry.Tile);
 
-            string announcement = $"{questName} - {locationDesc}, {entry.DistanceFromOrigin:F1} tiles. {tileSummary}. {MenuHelper.FormatPosition(currentIndex, questLocations.Count)}";
+            string announcement = "RimWorldAccess.QuestBrowser.LocationAnnouncement".Translate(
+                questName, locationDesc, entry.DistanceFromOrigin.ToString("F1"),
+                tileSummary, MenuHelper.FormatPosition(currentIndex, questLocations.Count));
 
             TolkHelper.Speak(announcement);
         }

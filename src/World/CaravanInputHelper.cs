@@ -34,7 +34,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("No pawn selected. Navigate to Pawns tab first.");
+                        TolkHelper.Speak("RimWorldAccess.Caravan.Input.NoPawnSelected".Translate());
                     }
                     return true;
 
@@ -45,7 +45,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("No pawn selected. Navigate to Pawns tab first.");
+                        TolkHelper.Speak("RimWorldAccess.Caravan.Input.NoPawnSelected".Translate());
                     }
                     return true;
 
@@ -56,7 +56,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("No pawn selected. Navigate to Pawns tab first.");
+                        TolkHelper.Speak("RimWorldAccess.Caravan.Input.NoPawnSelected".Translate());
                     }
                     return true;
 
@@ -67,7 +67,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("No pawn selected. Navigate to Pawns tab first.");
+                        TolkHelper.Speak("RimWorldAccess.Caravan.Input.NoPawnSelected".Translate());
                     }
                     return true;
 
@@ -78,7 +78,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("No pawn selected. Navigate to Pawns tab first.");
+                        TolkHelper.Speak("RimWorldAccess.Caravan.Input.NoPawnSelected".Translate());
                     }
                     return true;
 
@@ -114,7 +114,9 @@ namespace RimWorldAccess
                 {
                     transferable.AdjustTo(0);
                     notifyChanged?.Invoke();
-                    string msg = currentCount == 1 ? $"Removed {itemName}" : $"Removed all {currentCount} {itemName}";
+                    string msg = currentCount == 1
+                        ? (string)"RimWorldAccess.Caravan.Input.RemovedSingle".Translate(itemName)
+                        : (string)"RimWorldAccess.Caravan.Input.RemovedAllOf".Translate(currentCount, itemName);
                     TolkHelper.Speak(msg);
                     return true;
                 }
@@ -129,7 +131,7 @@ namespace RimWorldAccess
                 // For items
                 if (isSuppliesTabLocked)
                 {
-                    TolkHelper.Speak("Supplies tab locked. Press Alt+A to disable auto-provision.");
+                    TolkHelper.Speak("RimWorldAccess.Caravan.Form.SuppliesTabLocked".Translate());
                     return true;
                 }
 
@@ -137,7 +139,9 @@ namespace RimWorldAccess
                 {
                     transferable.AdjustTo(0);
                     notifyChanged?.Invoke();
-                    string msg = currentCount == 1 ? $"Removed {itemName}" : $"Removed all {currentCount} {itemName}";
+                    string msg = currentCount == 1
+                        ? (string)"RimWorldAccess.Caravan.Input.RemovedSingle".Translate(itemName)
+                        : (string)"RimWorldAccess.Caravan.Input.RemovedAllOf".Translate(currentCount, itemName);
                     TolkHelper.Speak(msg);
                     return true;
                 }

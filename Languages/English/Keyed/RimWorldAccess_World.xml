@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    World module strings (src/World/). Covers the world map, settlements,
+    caravan formation/split, route planning (waypoint editor for caravan
+    travel), gear-equip menu (pawn-side equip/swap from Caravan Inspect),
+    settlement and quest browsers, world scanner (mirrors Map.Scanner's
+    category structure), caravan multi-select, layer switching, and the
+    stat-breakdown overlay.
+
+    Files contributing strings:
+      - WorldNavigationState.cs        (main world map + caravan focus)
+      - CaravanFormationState.cs       (Dialog_FormCaravan)
+      - SplitCaravanState.cs           (Dialog_SplitCaravan)
+      - CaravanInspectState.cs         (windowless caravan inspect tree)
+      - CaravanInputHelper.cs          (Alt+H/M/N/G/K caravan tab dispatch)
+      - CaravanUIHelper.cs             (transferable check/uncheck)
+      - CaravanQuantityHelper.cs       (per-stack quantity adjust feedback)
+      - CaravanFormationPatch.cs / SplitCaravanPatch.cs / CaravanAnnouncementHelper.cs
+      - GearEquipMenuState.cs          (equip-this-item picker)
+      - QuestLocationsBrowserState.cs / SettlementBrowserState.cs
+      - StatBreakdownState.cs          (Alt+I breakdown overlay)
+      - RoutePlannerState.cs           (caravan waypoint planner)
+      - WorldNavigationPatch.cs / WorldObjectSelectionState.cs
+      - WorldScannerState.cs           (PgUp/PgDn world map scanner)
+
+    Shared phrases delegated elsewhere:
+      - Position / Edge / Search / Stepper / Map.JumpedTo -> Common.xml
+      - "Cancelled"                                       -> UI.Cancelled
+      - World/scanner direction nouns                     -> Map.Direction.*
+      - Pawn quick-info hotkeys ("No pawn selected")      -> Common.Guard
+      - vanilla labels: caravan/settlement names, faction relations,
+        biome names, pawn labels, item labels, days/hours, layer
+        labels (LabelCap from LayerDef) - all from game.
+
+    Data such as caravan names, settlement labels, pawn names, item
+    labels, faction names, biome descriptions, ETA strings ("X days"),
+    speed-source nouns from the game, and stat values come from the
+    game's translation system and are NOT duplicated here.
+  -->
+
+  <!-- =================================================================
+       World map shell + caravan navigation (WorldNavigationState).
+       Covers tile read-out, caravan multi-select, layer switching,
+       pole compass mode, jump-to-home / jump-to-caravan.
+       {0} = caravan label, {1} = count, {2} = pole name, {3} = layer name.
+       ================================================================= -->
+  <RimWorldAccess.World.NotAvailable>World not available</RimWorldAccess.World.NotAvailable>
+  <RimWorldAccess.World.OpenWithRoute>World map. Route planner active with {0} waypoints. {1}</RimWorldAccess.World.OpenWithRoute>
+  <RimWorldAccess.World.OpenRoutePlannerActive>World map. Route planner active. {0}</RimWorldAccess.World.OpenRoutePlannerActive>
+  <RimWorldAccess.World.OpenInstructions>World map. {0}</RimWorldAccess.World.OpenInstructions>
+  <RimWorldAccess.World.NearPole>Near {0} pole - using relative directions</RimWorldAccess.World.NearPole>
+  <RimWorldAccess.World.LeavingPole>Leaving pole territory - using compass directions</RimWorldAccess.World.LeavingPole>
+  <RimWorldAccess.World.LayerSwitchFailed>Cannot switch to {0}: {1}</RimWorldAccess.World.LayerSwitchFailed>
+  <RimWorldAccess.World.NoOtherLayers>No other layers available</RimWorldAccess.World.NoOtherLayers>
+  <RimWorldAccess.World.SwitchedToLayer>Switched to {0} layer.</RimWorldAccess.World.SwitchedToLayer>
+  <RimWorldAccess.World.SwitchedToLayerSpace>Switched to {0} layer. Space layer.</RimWorldAccess.World.SwitchedToLayerSpace>
+  <RimWorldAccess.World.NoHomeSettlement>No home settlement found</RimWorldAccess.World.NoHomeSettlement>
+  <RimWorldAccess.World.NoPlayerCaravans>No player caravans found</RimWorldAccess.World.NoPlayerCaravans>
+  <RimWorldAccess.World.NoCaravansAtAll>No caravans found</RimWorldAccess.World.NoCaravansAtAll>
+  <RimWorldAccess.World.NoTileSelected>No tile selected</RimWorldAccess.World.NoTileSelected>
+  <RimWorldAccess.World.NoSettlementAtTile>No settlement at current tile</RimWorldAccess.World.NoSettlementAtTile>
+  <RimWorldAccess.World.OnlyPlayerSettlements>Can only form caravans from player settlements</RimWorldAccess.World.OnlyPlayerSettlements>
+  <RimWorldAccess.World.SettlementHasNoMap>Settlement has no map</RimWorldAccess.World.SettlementHasNoMap>
+  <RimWorldAccess.World.NoCaravanSelected>No caravan selected</RimWorldAccess.World.NoCaravanSelected>
+  <RimWorldAccess.World.CaravanTraveling>{0} traveling to destination</RimWorldAccess.World.CaravanTraveling>
+  <RimWorldAccess.World.NoOrdersAlreadyHere>No orders available - already at this location</RimWorldAccess.World.NoOrdersAlreadyHere>
+  <RimWorldAccess.World.CaravanOrders>{0} orders: {1} options available</RimWorldAccess.World.CaravanOrders>
+  <RimWorldAccess.World.NoCaravanFocused>No caravan focused. Use comma or period to cycle through caravans first.</RimWorldAccess.World.NoCaravanFocused>
+  <RimWorldAccess.World.CaravanDeselected>{0} deselected. {1} caravans selected.</RimWorldAccess.World.CaravanDeselected>
+  <RimWorldAccess.World.CaravanSelected>{0} selected. {1} caravans selected.</RimWorldAccess.World.CaravanSelected>
+  <RimWorldAccess.World.MultiSelectDifferentTiles>You can't be in two places at once! Selected caravans are on different tiles.</RimWorldAccess.World.MultiSelectDifferentTiles>
+  <RimWorldAccess.World.JumpedToMultipleCaravans>Jumped to {0} selected caravans. {1}</RimWorldAccess.World.JumpedToMultipleCaravans>
+  <RimWorldAccess.World.JumpedToCaravan>Jumped to {0}. {1}</RimWorldAccess.World.JumpedToCaravan>
+  <RimWorldAccess.World.NoCaravanSelectedHint>No caravan selected. Use comma or period to cycle through caravans first.</RimWorldAccess.World.NoCaravanSelectedHint>
+
+  <!-- =================================================================
+       Caravan formation dialog (CaravanFormationState).
+       Uses Dialog_FormCaravan with tabs (Pawns / Items / Animals /
+       Travel Supplies). Tab-summary view is split off; many block
+       reasons are user-facing.
+       {0} = tab name, {1} = item count, {2} = error message,
+       {3} = stat / item / position label.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.Form.CannotReformFromHome>Cannot reform caravan from home settlement. Use world map to form new caravans.</RimWorldAccess.Caravan.Form.CannotReformFromHome>
+  <RimWorldAccess.Caravan.Form.MapHasNoParent>Map has no parent world object</RimWorldAccess.Caravan.Form.MapHasNoParent>
+  <RimWorldAccess.Caravan.Form.MapDoesNotSupport>This map does not support caravan reformation</RimWorldAccess.Caravan.Form.MapDoesNotSupport>
+  <RimWorldAccess.Caravan.Form.CannotReformEnemiesPresent>Cannot reform caravan while enemies are present</RimWorldAccess.Caravan.Form.CannotReformEnemiesPresent>
+  <RimWorldAccess.Caravan.Form.CannotReformAtThisTime>Cannot reform caravan at this time</RimWorldAccess.Caravan.Form.CannotReformAtThisTime>
+  <RimWorldAccess.Caravan.Form.OpeningReformation>Opening caravan reformation dialog</RimWorldAccess.Caravan.Form.OpeningReformation>
+  <RimWorldAccess.Caravan.Form.NoFormationDialog>No caravan formation dialog available</RimWorldAccess.Caravan.Form.NoFormationDialog>
+  <RimWorldAccess.Caravan.Form.OpenInstructions>Form caravan dialog opened. Tab for summary, Alt+I to inspect, Alt+S to send.</RimWorldAccess.Caravan.Form.OpenInstructions>
+  <RimWorldAccess.Caravan.Form.TabHeader>{0} tab, {1} items</RimWorldAccess.Caravan.Form.TabHeader>
+  <RimWorldAccess.Caravan.Form.NoItemsInTab>No items in this tab</RimWorldAccess.Caravan.Form.NoItemsInTab>
+  <RimWorldAccess.Caravan.Form.ReturnedToTab>Returned to {0} tab</RimWorldAccess.Caravan.Form.ReturnedToTab>
+  <RimWorldAccess.Caravan.Form.SummaryViewWithHint>Summary view. Up/Down navigates stats, Alt+I for breakdown. Tab to return.</RimWorldAccess.Caravan.Form.SummaryViewWithHint>
+  <RimWorldAccess.Caravan.Form.SummaryView>Summary view.</RimWorldAccess.Caravan.Form.SummaryView>
+  <RimWorldAccess.Caravan.Form.NoSummaryData>No summary data</RimWorldAccess.Caravan.Form.NoSummaryData>
+  <RimWorldAccess.Caravan.Form.ItemPosition>{0}. {1}</RimWorldAccess.Caravan.Form.ItemPosition>
+  <RimWorldAccess.Caravan.Form.NoDialog>No dialog available</RimWorldAccess.Caravan.Form.NoDialog>
+  <RimWorldAccess.Caravan.Form.ChoosingDestination>Choosing caravan destination. Use arrow keys to navigate the world map, Enter to select destination, or Escape to cancel.</RimWorldAccess.Caravan.Form.ChoosingDestination>
+  <RimWorldAccess.Caravan.Form.FailedRoutePlanner>Failed to open route planner: {0}</RimWorldAccess.Caravan.Form.FailedRoutePlanner>
+  <RimWorldAccess.Caravan.Form.InvalidDestination>Invalid destination tile</RimWorldAccess.Caravan.Form.InvalidDestination>
+  <RimWorldAccess.Caravan.Form.FailedAccessNotifyChoseRoute>Failed to access Notify_ChoseRoute method</RimWorldAccess.Caravan.Form.FailedAccessNotifyChoseRoute>
+  <RimWorldAccess.Caravan.Form.DestinationSet>Destination set to {0}.</RimWorldAccess.Caravan.Form.DestinationSet>
+  <RimWorldAccess.Caravan.Form.FailedSetDestination>Failed to set destination: {0}</RimWorldAccess.Caravan.Form.FailedSetDestination>
+  <RimWorldAccess.Caravan.Form.DestinationCancelled>Destination selection cancelled. Returning to caravan formation dialog.</RimWorldAccess.Caravan.Form.DestinationCancelled>
+  <RimWorldAccess.Caravan.Form.FailedCancelDestination>Failed to cancel destination selection: {0}</RimWorldAccess.Caravan.Form.FailedCancelDestination>
+  <RimWorldAccess.Caravan.Form.FailedSendCaravan>Failed to send caravan: {0}</RimWorldAccess.Caravan.Form.FailedSendCaravan>
+  <RimWorldAccess.Caravan.Form.SelectionsReset>Selections reset</RimWorldAccess.Caravan.Form.SelectionsReset>
+  <RimWorldAccess.Caravan.Form.FailedReset>Failed to reset: {0}</RimWorldAccess.Caravan.Form.FailedReset>
+  <RimWorldAccess.Caravan.Form.AutoProvisionOff>Auto-provision off. Manual selection restored.</RimWorldAccess.Caravan.Form.AutoProvisionOff>
+  <RimWorldAccess.Caravan.Form.AutoProvisionOn>Auto-provision on. Supplies tab locked. Press Alt+A again to disable.</RimWorldAccess.Caravan.Form.AutoProvisionOn>
+  <RimWorldAccess.Caravan.Form.FailedToggleAutoProvision>Failed to toggle auto-provision: {0}</RimWorldAccess.Caravan.Form.FailedToggleAutoProvision>
+  <RimWorldAccess.Caravan.Form.ReformationCancelled>Caravan reformation cancelled</RimWorldAccess.Caravan.Form.ReformationCancelled>
+  <RimWorldAccess.Caravan.Form.SuppliesTabLocked>Supplies tab locked. Press Alt+A to disable auto-provision.</RimWorldAccess.Caravan.Form.SuppliesTabLocked>
+  <RimWorldAccess.Caravan.Form.NoBreakdownForItem>No breakdown available for this item</RimWorldAccess.Caravan.Form.NoBreakdownForItem>
+  <RimWorldAccess.Caravan.Form.FormationCancelled>Caravan formation cancelled</RimWorldAccess.Caravan.Form.FormationCancelled>
+
+  <!-- =================================================================
+       Split caravan dialog (SplitCaravanState).
+       Same shape as form-caravan but the two-caravan summary view
+       has a Left/Right swap to switch between source and split-target.
+       {0} = tab name, {1} = item count, {2} = stat value,
+       {3} = caravan name, {4} = position fragment.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.Split.NoDialog>No split caravan dialog available</RimWorldAccess.Caravan.Split.NoDialog>
+  <RimWorldAccess.Caravan.Split.OpenInstructions>Split caravan dialog opened. Tab for summary, Alt+I to inspect, Alt+S to split.</RimWorldAccess.Caravan.Split.OpenInstructions>
+  <RimWorldAccess.Caravan.Split.TabHeader>{0} tab, {1} items</RimWorldAccess.Caravan.Split.TabHeader>
+  <RimWorldAccess.Caravan.Split.BottomEdge>Bottom. {0}. {1} of {2}</RimWorldAccess.Caravan.Split.BottomEdge>
+  <RimWorldAccess.Caravan.Split.TopEdge>Top. {0}. {1} of {2}</RimWorldAccess.Caravan.Split.TopEdge>
+  <RimWorldAccess.Caravan.Split.NoItemsInTab>No items in this tab</RimWorldAccess.Caravan.Split.NoItemsInTab>
+  <RimWorldAccess.Caravan.Split.ReturnedToTab>Returned to {0} tab</RimWorldAccess.Caravan.Split.ReturnedToTab>
+  <RimWorldAccess.Caravan.Split.SummaryViewWithHint>Summary view. Up/Down navigates stats, Left/Right switches caravans, Alt+I for breakdown. Tab to return.</RimWorldAccess.Caravan.Split.SummaryViewWithHint>
+  <RimWorldAccess.Caravan.Split.SummaryView>Summary view.</RimWorldAccess.Caravan.Split.SummaryView>
+  <RimWorldAccess.Caravan.Split.NoCaravanData>No caravan data available</RimWorldAccess.Caravan.Split.NoCaravanData>
+  <RimWorldAccess.Caravan.Split.StatPosition>{0}. {1} of {2}</RimWorldAccess.Caravan.Split.StatPosition>
+  <RimWorldAccess.Caravan.Split.StatCaravanPosition>{0}. {1}, {2} of {3}</RimWorldAccess.Caravan.Split.StatCaravanPosition>
+  <RimWorldAccess.Caravan.Split.NoDialogAvailable>No dialog available</RimWorldAccess.Caravan.Split.NoDialogAvailable>
+  <RimWorldAccess.Caravan.Split.SplitSuccessfully>Caravan split successfully</RimWorldAccess.Caravan.Split.SplitSuccessfully>
+  <RimWorldAccess.Caravan.Split.FailedToSplit>Failed to split caravan: {0}</RimWorldAccess.Caravan.Split.FailedToSplit>
+  <RimWorldAccess.Caravan.Split.SelectionsReset>Selections reset</RimWorldAccess.Caravan.Split.SelectionsReset>
+  <RimWorldAccess.Caravan.Split.FailedReset>Failed to reset: {0}</RimWorldAccess.Caravan.Split.FailedReset>
+  <RimWorldAccess.Caravan.Split.NoBreakdownForStat>No breakdown available for this stat</RimWorldAccess.Caravan.Split.NoBreakdownForStat>
+  <RimWorldAccess.Caravan.Split.SplitCancelled>Split caravan cancelled</RimWorldAccess.Caravan.Split.SplitCancelled>
+
+  <!-- =================================================================
+       Caravan inspect (CaravanInspectState).
+       Windowless inspection of a single caravan. Per-tab readouts
+       reuse PawnInfoHelper output.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.Inspect.NoCaravanSpecified>No caravan specified</RimWorldAccess.Caravan.Inspect.NoCaravanSpecified>
+  <RimWorldAccess.Caravan.Inspect.Closed>Caravan inspect closed</RimWorldAccess.Caravan.Inspect.Closed>
+  <RimWorldAccess.Caravan.Inspect.CannotAbandon>Cannot abandon this item</RimWorldAccess.Caravan.Inspect.CannotAbandon>
+  <RimWorldAccess.Caravan.Inspect.NoMoodForItem>No mood info available for this item</RimWorldAccess.Caravan.Inspect.NoMoodForItem>
+  <RimWorldAccess.Caravan.Inspect.NoNeedsForItem>No needs info available for this item</RimWorldAccess.Caravan.Inspect.NoNeedsForItem>
+  <RimWorldAccess.Caravan.Inspect.NoHealthForItem>No health info available for this item</RimWorldAccess.Caravan.Inspect.NoHealthForItem>
+  <RimWorldAccess.Caravan.Inspect.NoGearForItem>No gear info available for this item</RimWorldAccess.Caravan.Inspect.NoGearForItem>
+  <RimWorldAccess.Caravan.Inspect.NoSkillsForItem>No skills info available for this item</RimWorldAccess.Caravan.Inspect.NoSkillsForItem>
+  <RimWorldAccess.Caravan.Inspect.NoActionAvailable>No action available</RimWorldAccess.Caravan.Inspect.NoActionAvailable>
+  <RimWorldAccess.Caravan.Inspect.NoBreakdown>No breakdown available</RimWorldAccess.Caravan.Inspect.NoBreakdown>
+
+  <!-- =================================================================
+       Caravan input helper (CaravanInputHelper).
+       Alt+H/M/N/G/K dispatch from inside the caravan dialog tabs.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.Input.NoPawnSelected>No pawn selected. Navigate to Pawns tab first.</RimWorldAccess.Caravan.Input.NoPawnSelected>
+  <RimWorldAccess.Caravan.Input.RemovedSingle>Removed {0}</RimWorldAccess.Caravan.Input.RemovedSingle>
+  <RimWorldAccess.Caravan.Input.RemovedAllOf>Removed all {0} {1}</RimWorldAccess.Caravan.Input.RemovedAllOf>
+
+  <!-- =================================================================
+       Caravan UI helper (CaravanUIHelper).
+       Toggling individual transferable rows. Spoken on space-bar
+       check / uncheck. {0} = item label.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.UI.TransferableUnchecked>{0} unchecked</RimWorldAccess.Caravan.UI.TransferableUnchecked>
+  <RimWorldAccess.Caravan.UI.TransferableChecked>{0} checked</RimWorldAccess.Caravan.UI.TransferableChecked>
+
+  <!-- =================================================================
+       Caravan quantity helper (CaravanQuantityHelper).
+       Boundary feedback when adjusting per-item quantities.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.Quantity.NotEnoughCapacity>Not enough capacity for more</RimWorldAccess.Caravan.Quantity.NotEnoughCapacity>
+
+  <!-- =================================================================
+       Caravan announcement helper (CaravanAnnouncementHelper).
+       Shared per-tab "no items" announcement.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.Announce.NoItemsInTab>No items in this tab</RimWorldAccess.Caravan.Announce.NoItemsInTab>
+
+  <!-- =================================================================
+       Gear-equip menu (GearEquipMenuState).
+       Pawn picker shown by Alt+E while inspecting an item; user
+       chooses who to equip the item on. Handles swap/replace/equip
+       paths and apparel locking.
+       {0} = action verb (Equip / Wear / Drop), {1} = item label,
+       {2} = target pawn, {3} = previously-equipped item or owner.
+       ================================================================= -->
+  <RimWorldAccess.Gear.CannotOpenEquipMenu>Cannot open equip menu</RimWorldAccess.Gear.CannotOpenEquipMenu>
+  <RimWorldAccess.Gear.NoPawnsAvailable>No pawns available to equip this item</RimWorldAccess.Gear.NoPawnsAvailable>
+  <RimWorldAccess.Gear.OpenInstructions>{0} {1} to whom? Use arrows to navigate, Enter to select, Escape to cancel.</RimWorldAccess.Gear.OpenInstructions>
+  <RimWorldAccess.Gear.CannotEquipReason>Cannot equip: {0}</RimWorldAccess.Gear.CannotEquipReason>
+  <RimWorldAccess.Gear.UnequippedToInventory>Unequipped {0} to inventory.</RimWorldAccess.Gear.UnequippedToInventory>
+  <RimWorldAccess.Gear.SwappedTwoOwners>Swapped. {0} now has {1}, and {2} now has {3}.</RimWorldAccess.Gear.SwappedTwoOwners>
+  <RimWorldAccess.Gear.SwappedToInventory>Swapped. {0} now has {1}. {2} moved to inventory.</RimWorldAccess.Gear.SwappedToInventory>
+  <RimWorldAccess.Gear.EquippedTo>Equipped {0} to {1}.</RimWorldAccess.Gear.EquippedTo>
+  <RimWorldAccess.Gear.FailedToEquip>Failed to equip item</RimWorldAccess.Gear.FailedToEquip>
+  <RimWorldAccess.Gear.CannotRemoveLockedApparel>Cannot remove locked apparel</RimWorldAccess.Gear.CannotRemoveLockedApparel>
+  <RimWorldAccess.Gear.CannotRemoveLockedFromPawn>Cannot remove locked apparel {0} from {1}</RimWorldAccess.Gear.CannotRemoveLockedFromPawn>
+  <RimWorldAccess.Gear.LabelPosition>{0}. {1}</RimWorldAccess.Gear.LabelPosition>
+
+  <!-- =================================================================
+       Quest locations browser (QuestLocationsBrowserState).
+       List of tiles flagged by quests; J key opens it from the world
+       map. {0} = filter or position.
+       ================================================================= -->
+  <RimWorldAccess.QuestBrowser.QuestSystemUnavailable>Quest system not available</RimWorldAccess.QuestBrowser.QuestSystemUnavailable>
+  <RimWorldAccess.QuestBrowser.NoQuestLocationsFound>No quest locations found</RimWorldAccess.QuestBrowser.NoQuestLocationsFound>
+  <RimWorldAccess.QuestBrowser.Closed>Quest locations browser closed</RimWorldAccess.QuestBrowser.Closed>
+  <RimWorldAccess.QuestBrowser.NoQuestLocationsAvailable>No quest locations available</RimWorldAccess.QuestBrowser.NoQuestLocationsAvailable>
+  <RimWorldAccess.QuestBrowser.NoQuestLocationSelected>No quest location selected</RimWorldAccess.QuestBrowser.NoQuestLocationSelected>
+  <RimWorldAccess.QuestBrowser.UnknownLocation>Unknown location</RimWorldAccess.QuestBrowser.UnknownLocation>
+  <RimWorldAccess.QuestBrowser.LocationAnnouncement>{0} - {1}, {2} tiles. {3}. {4}</RimWorldAccess.QuestBrowser.LocationAnnouncement>
+
+  <!-- =================================================================
+       Settlement browser (SettlementBrowserState).
+       Filterable settlement list (Friendly / Hostile / Neutral / Player).
+       {0} = filter name, {1} = match count.
+       ================================================================= -->
+  <RimWorldAccess.SettlementBrowser.WorldObjectsUnavailable>World objects not available</RimWorldAccess.SettlementBrowser.WorldObjectsUnavailable>
+  <RimWorldAccess.SettlementBrowser.NoSettlementsFound>No settlements found</RimWorldAccess.SettlementBrowser.NoSettlementsFound>
+  <RimWorldAccess.SettlementBrowser.Closed>Settlement browser closed</RimWorldAccess.SettlementBrowser.Closed>
+  <RimWorldAccess.SettlementBrowser.NoSettlementsMatchFilter>No settlements match this filter</RimWorldAccess.SettlementBrowser.NoSettlementsMatchFilter>
+  <RimWorldAccess.SettlementBrowser.NoSettlementsAvailable>No settlements available</RimWorldAccess.SettlementBrowser.NoSettlementsAvailable>
+  <RimWorldAccess.SettlementBrowser.NoSettlementSelected>No settlement selected</RimWorldAccess.SettlementBrowser.NoSettlementSelected>
+  <RimWorldAccess.SettlementBrowser.FilterCount>{0}, {1} found</RimWorldAccess.SettlementBrowser.FilterCount>
+  <RimWorldAccess.SettlementBrowser.FilterPlayer>Player settlements</RimWorldAccess.SettlementBrowser.FilterPlayer>
+  <RimWorldAccess.SettlementBrowser.FilterAllied>Allied settlements</RimWorldAccess.SettlementBrowser.FilterAllied>
+  <RimWorldAccess.SettlementBrowser.FilterNeutral>Neutral settlements</RimWorldAccess.SettlementBrowser.FilterNeutral>
+  <RimWorldAccess.SettlementBrowser.FilterHostile>Hostile settlements</RimWorldAccess.SettlementBrowser.FilterHostile>
+  <RimWorldAccess.SettlementBrowser.FilterAll>All settlements</RimWorldAccess.SettlementBrowser.FilterAll>
+  <RimWorldAccess.SettlementBrowser.FilterUnknown>Unknown filter</RimWorldAccess.SettlementBrowser.FilterUnknown>
+  <RimWorldAccess.SettlementBrowser.RelationshipUnknown>Unknown</RimWorldAccess.SettlementBrowser.RelationshipUnknown>
+  <RimWorldAccess.SettlementBrowser.RelationshipPlayer>Player</RimWorldAccess.SettlementBrowser.RelationshipPlayer>
+  <RimWorldAccess.SettlementBrowser.RelationshipHostile>Hostile</RimWorldAccess.SettlementBrowser.RelationshipHostile>
+  <RimWorldAccess.SettlementBrowser.SettlementAnnouncement>{0}, {1}, {2}, {3} tiles. {4}</RimWorldAccess.SettlementBrowser.SettlementAnnouncement>
+  <RimWorldAccess.SettlementBrowser.SearchAnnouncement>{0}: {1}, {2}, {3}, {4} tiles</RimWorldAccess.SettlementBrowser.SearchAnnouncement>
+  <RimWorldAccess.SettlementBrowser.SearchInfo>'{0}' match {1} of {2}</RimWorldAccess.SettlementBrowser.SearchInfo>
+
+  <!-- =================================================================
+       Stat-breakdown overlay (StatBreakdownState).
+       Tree of stat factors opened by Alt+I from a summary stat row.
+       {0} = stat name, {1} = factor count, {2} = suffix.
+       ================================================================= -->
+  <RimWorldAccess.StatBreakdown.NoBreakdownFor>No breakdown available for {0}</RimWorldAccess.StatBreakdown.NoBreakdownFor>
+  <RimWorldAccess.StatBreakdown.NoFactorsFor>No breakdown factors for {0}</RimWorldAccess.StatBreakdown.NoFactorsFor>
+  <RimWorldAccess.StatBreakdown.HeaderWithSuffix>{0} breakdown ({1} factors){2}.</RimWorldAccess.StatBreakdown.HeaderWithSuffix>
+  <RimWorldAccess.StatBreakdown.Closed>Breakdown closed</RimWorldAccess.StatBreakdown.Closed>
+  <RimWorldAccess.StatBreakdown.NotExpandable>Not expandable</RimWorldAccess.StatBreakdown.NotExpandable>
+  <RimWorldAccess.StatBreakdown.AlreadyExpanded>Already expanded</RimWorldAccess.StatBreakdown.AlreadyExpanded>
+  <RimWorldAccess.StatBreakdown.TreeviewSuffix> treeview</RimWorldAccess.StatBreakdown.TreeviewSuffix>
+
+  <!-- =================================================================
+       Route planner (RoutePlannerState).
+       Caravan waypoint planner. Estimated travel time always pairs
+       with the speed-source noun ("walking", "driving", etc.) which
+       comes from game data, lowercased before display.
+       {0} = waypoint count, {1} = travel time string,
+       {2} = speed source noun, {3} = error/limit message,
+       {4} = destination name.
+       ================================================================= -->
+  <RimWorldAccess.Route.WorldNavMustBeActive>World navigation must be active</RimWorldAccess.Route.WorldNavMustBeActive>
+  <RimWorldAccess.Route.PlannerNotAvailable>Route planner not available</RimWorldAccess.Route.PlannerNotAvailable>
+  <RimWorldAccess.Route.NoCaravanDialog>No caravan dialog</RimWorldAccess.Route.NoCaravanDialog>
+  <RimWorldAccess.Route.PlannerNotActive>Route planner not active</RimWorldAccess.Route.PlannerNotActive>
+  <RimWorldAccess.Route.WorldNavNotActive>World navigation not active</RimWorldAccess.Route.WorldNavNotActive>
+  <RimWorldAccess.Route.ChoosingPrompt>Choosing route. {0} Space to add waypoint, E for travel time, Enter to confirm, Escape to cancel.</RimWorldAccess.Route.ChoosingPrompt>
+  <RimWorldAccess.Route.Closed>Route planner closed</RimWorldAccess.Route.Closed>
+  <RimWorldAccess.Route.WaypointAddedWithEta>Waypoint {0} added. Estimated travel time: {1} {2}</RimWorldAccess.Route.WaypointAddedWithEta>
+  <RimWorldAccess.Route.WaypointAddedStarting>Waypoint {0} added (starting point)</RimWorldAccess.Route.WaypointAddedStarting>
+  <RimWorldAccess.Route.NoWaypointToRemove>No waypoint here to remove</RimWorldAccess.Route.NoWaypointToRemove>
+  <RimWorldAccess.Route.EtaWithSource>Estimated travel time: {0} {1}</RimWorldAccess.Route.EtaWithSource>
+  <RimWorldAccess.Route.NoWaypointsSet>No waypoints set</RimWorldAccess.Route.NoWaypointsSet>
+  <RimWorldAccess.Route.StartingPoint>Starting point: {0}. Add more waypoints with Space.</RimWorldAccess.Route.StartingPoint>
+  <RimWorldAccess.Route.WaypointSummary>{0} waypoints. {1} {2}</RimWorldAccess.Route.WaypointSummary>
+  <RimWorldAccess.Route.RouteConfirmed>Route confirmed. Destination: {0}</RimWorldAccess.Route.RouteConfirmed>
+  <RimWorldAccess.Route.AlreadySent>Caravan already sent. Route planner closed.</RimWorldAccess.Route.AlreadySent>
+
+  <!-- =================================================================
+       World scanner (WorldScannerState).
+       Mirrors Map scanner pattern - same category structure,
+       PgUp/PgDn for items inside categories, etc. {0} = layer,
+       {1} = direction noun, {2} = distance, {3} = category name,
+       {4} = item count, {5} = position.
+       ================================================================= -->
+  <RimWorldAccess.WorldScanner.AutoJumpStatus>Auto-jump mode {0}</RimWorldAccess.WorldScanner.AutoJumpStatus>
+  <RimWorldAccess.WorldScanner.NavNotActive>World navigation not active</RimWorldAccess.WorldScanner.NavNotActive>
+  <RimWorldAccess.WorldScanner.NoWorldObjects>No world objects found</RimWorldAccess.WorldScanner.NoWorldObjects>
+  <RimWorldAccess.WorldScanner.NoSubcategories>No subcategories</RimWorldAccess.WorldScanner.NoSubcategories>
+  <RimWorldAccess.WorldScanner.NoItemsInCategory>No items in this category</RimWorldAccess.WorldScanner.NoItemsInCategory>
+  <RimWorldAccess.WorldScanner.NoInstancesToNavigate>No instances to navigate</RimWorldAccess.WorldScanner.NoInstancesToNavigate>
+  <RimWorldAccess.WorldScanner.SwitchedToLayer>Switched to {0} layer.</RimWorldAccess.WorldScanner.SwitchedToLayer>
+  <RimWorldAccess.WorldScanner.DirectionDistance>{0}, {1} tiles</RimWorldAccess.WorldScanner.DirectionDistance>
+  <RimWorldAccess.WorldScanner.CategoryAnnouncement>{0}, {1} items. Category {2} of {3}</RimWorldAccess.WorldScanner.CategoryAnnouncement>
+  <RimWorldAccess.WorldScanner.SubcategoryAnnouncement>{0}, {1} items. Subcategory {2} of {3}</RimWorldAccess.WorldScanner.SubcategoryAnnouncement>
+
+  <!-- =================================================================
+       World object inspect (WorldObjectSelectionState + WorldNavigationPatch).
+       The "Selection" overlay opened by Alt+I on the world map,
+       listing world objects on the focused tile.
+       {0} = settlement / map-parent label.
+       ================================================================= -->
+  <RimWorldAccess.WorldObject.NoObjectsHere>No objects here</RimWorldAccess.WorldObject.NoObjectsHere>
+  <RimWorldAccess.WorldObject.NoObjectsToInspect>No objects here to inspect</RimWorldAccess.WorldObject.NoObjectsToInspect>
+  <RimWorldAccess.WorldObject.Entering>Entering {0}</RimWorldAccess.WorldObject.Entering>
+  <RimWorldAccess.WorldObject.NoActionAvailable>No action available</RimWorldAccess.WorldObject.NoActionAvailable>
+  <RimWorldAccess.WorldObject.SelectionClosed>Selection closed</RimWorldAccess.WorldObject.SelectionClosed>
+  <RimWorldAccess.WorldObject.ObjectsAtTile>{0} objects at this tile</RimWorldAccess.WorldObject.ObjectsAtTile>
+
+</LanguageData>
+</content>
+</invoke>

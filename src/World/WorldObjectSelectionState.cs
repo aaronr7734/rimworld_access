@@ -38,7 +38,7 @@ namespace RimWorldAccess
         {
             if (!tile.Valid || Find.WorldObjects == null)
             {
-                TolkHelper.Speak("No objects here");
+                TolkHelper.Speak("RimWorldAccess.WorldObject.NoObjectsHere".Translate());
                 return;
             }
 
@@ -52,7 +52,7 @@ namespace RimWorldAccess
 
             if (worldObjects.Count == 0)
             {
-                TolkHelper.Speak("No objects here to inspect");
+                TolkHelper.Speak("RimWorldAccess.WorldObject.NoObjectsToInspect".Translate());
                 return;
             }
 
@@ -72,7 +72,7 @@ namespace RimWorldAccess
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
 
             // Announce opening
-            string announcement = $"{worldObjects.Count} objects at this tile";
+            string announcement = "RimWorldAccess.WorldObject.ObjectsAtTile".Translate(worldObjects.Count);
             TolkHelper.Speak(announcement);
             treeNav.ReannounceCurrentItem();
         }
@@ -185,7 +185,7 @@ namespace RimWorldAccess
                     {
                         Close();
                         CameraJumper.TryJumpAndSelect(new GlobalTargetInfo(settlement.Map.Center, settlement.Map));
-                        TolkHelper.Speak($"Entering {settlement.Label}");
+                        TolkHelper.Speak("RimWorldAccess.WorldObject.Entering".Translate(settlement.Label));
                     }
                 };
                 parent.Children.Add(enterNode);
@@ -260,7 +260,7 @@ namespace RimWorldAccess
                     {
                         Close();
                         CameraJumper.TryJumpAndSelect(new GlobalTargetInfo(mapParent.Map.Center, mapParent.Map));
-                        TolkHelper.Speak($"Entering {mapParent.Label}");
+                        TolkHelper.Speak("RimWorldAccess.WorldObject.Entering".Translate(mapParent.Label));
                     }
                 };
                 parent.Children.Add(enterNode);
@@ -400,7 +400,7 @@ namespace RimWorldAccess
             {
                 // Enter player settlement
                 CameraJumper.TryJumpAndSelect(new GlobalTargetInfo(settlement.Map.Center, settlement.Map));
-                TolkHelper.Speak($"Entering {settlement.Label}");
+                TolkHelper.Speak("RimWorldAccess.WorldObject.Entering".Translate(settlement.Label));
             }
             else if (obj is Settlement otherSettlement)
             {
@@ -466,7 +466,7 @@ namespace RimWorldAccess
             if (item.OnActivate == null)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No action available");
+                TolkHelper.Speak("RimWorldAccess.WorldObject.NoActionAvailable".Translate());
                 return true;
             }
 
@@ -508,7 +508,7 @@ namespace RimWorldAccess
                 if (key == KeyCode.Escape)
                 {
                     Close();
-                    TolkHelper.Speak("Selection closed");
+                    TolkHelper.Speak("RimWorldAccess.WorldObject.SelectionClosed".Translate());
                     ev.Use();
                     return true;
                 }

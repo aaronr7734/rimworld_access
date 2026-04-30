@@ -180,7 +180,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void AnnounceNoItems()
         {
-            TolkHelper.Speak("No items in this tab");
+            TolkHelper.Speak("RimWorldAccess.Caravan.Announce.NoItemsInTab".Translate());
         }
     }
 }

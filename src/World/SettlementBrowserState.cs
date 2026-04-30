@@ -44,7 +44,7 @@ namespace RimWorldAccess
         {
             if (Find.WorldObjects == null)
             {
-                TolkHelper.Speak("World objects not available", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.WorldObjectsUnavailable".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -58,7 +58,7 @@ namespace RimWorldAccess
 
             if (filteredSettlements.Count == 0)
             {
-                TolkHelper.Speak("No settlements found");
+                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsFound".Translate());
                 return;
             }
 
@@ -75,7 +75,7 @@ namespace RimWorldAccess
             currentIndex = 0;
             originTile = PlanetTile.Invalid;
             typeahead.ClearSearch();
-            TolkHelper.Speak("Settlement browser closed");
+            TolkHelper.Speak("RimWorldAccess.SettlementBrowser.Closed".Translate());
         }
 
         /// <summary>
@@ -160,7 +160,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("No settlements match this filter");
+                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsMatchFilter".Translate());
             }
         }
 
@@ -181,7 +181,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("No settlements match this filter");
+                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsMatchFilter".Translate());
             }
         }
 
@@ -192,7 +192,7 @@ namespace RimWorldAccess
         {
             if (filteredSettlements.Count == 0)
             {
-                TolkHelper.Speak("No settlements available");
+                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsAvailable".Translate());
                 return;
             }
 
@@ -221,7 +221,7 @@ namespace RimWorldAccess
         {
             if (filteredSettlements.Count == 0)
             {
-                TolkHelper.Speak("No settlements available");
+                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsAvailable".Translate());
                 return;
             }
 
@@ -250,7 +250,7 @@ namespace RimWorldAccess
         {
             if (filteredSettlements.Count == 0)
             {
-                TolkHelper.Speak("No settlements available");
+                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsAvailable".Translate());
                 return;
             }
 
@@ -265,7 +265,7 @@ namespace RimWorldAccess
         {
             if (filteredSettlements.Count == 0)
             {
-                TolkHelper.Speak("No settlements available");
+                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsAvailable".Translate());
                 return;
             }
 
@@ -280,7 +280,7 @@ namespace RimWorldAccess
         {
             if (filteredSettlements.Count == 0 || currentIndex < 0 || currentIndex >= filteredSettlements.Count)
             {
-                TolkHelper.Speak("No settlement selected");
+                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementSelected".Translate());
                 return;
             }
 
@@ -327,26 +327,26 @@ namespace RimWorldAccess
             switch (currentFilter)
             {
                 case FactionFilter.Player:
-                    filterName = "Player settlements";
+                    filterName = "RimWorldAccess.SettlementBrowser.FilterPlayer".Translate();
                     break;
                 case FactionFilter.Allied:
-                    filterName = "Allied settlements";
+                    filterName = "RimWorldAccess.SettlementBrowser.FilterAllied".Translate();
                     break;
                 case FactionFilter.Neutral:
-                    filterName = "Neutral settlements";
+                    filterName = "RimWorldAccess.SettlementBrowser.FilterNeutral".Translate();
                     break;
                 case FactionFilter.Hostile:
-                    filterName = "Hostile settlements";
+                    filterName = "RimWorldAccess.SettlementBrowser.FilterHostile".Translate();
                     break;
                 case FactionFilter.All:
-                    filterName = "All settlements";
+                    filterName = "RimWorldAccess.SettlementBrowser.FilterAll".Translate();
                     break;
                 default:
-                    filterName = "Unknown filter";
+                    filterName = "RimWorldAccess.SettlementBrowser.FilterUnknown".Translate();
                     break;
             }
 
-            TolkHelper.Speak($"{filterName}, {filteredSettlements.Count} found");
+            TolkHelper.Speak("RimWorldAccess.SettlementBrowser.FilterCount".Translate(filterName, filteredSettlements.Count));
         }
 
         /// <summary>
@@ -356,7 +356,7 @@ namespace RimWorldAccess
         {
             if (filteredSettlements.Count == 0)
             {
-                TolkHelper.Speak("No settlements available");
+                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsAvailable".Translate());
                 return;
             }
 
@@ -373,14 +373,14 @@ namespace RimWorldAccess
             }
 
             // Get faction relationship
-            string relationship = "Unknown";
+            string relationship = "RimWorldAccess.SettlementBrowser.RelationshipUnknown".Translate();
             if (settlement.Faction == Faction.OfPlayer)
             {
-                relationship = "Player";
+                relationship = "RimWorldAccess.SettlementBrowser.RelationshipPlayer".Translate();
             }
             else if (settlement.Faction.HostileTo(Faction.OfPlayer))
             {
-                relationship = "Hostile";
+                relationship = "RimWorldAccess.SettlementBrowser.RelationshipHostile".Translate();
             }
             else
             {
@@ -388,7 +388,9 @@ namespace RimWorldAccess
             }
 
             // Build announcement
-            string announcement = $"{settlement.Label}, {settlement.Faction.Name}, {relationship}, {distance:F1} tiles. {MenuHelper.FormatPosition(currentIndex, filteredSettlements.Count)}";
+            string announcement = "RimWorldAccess.SettlementBrowser.SettlementAnnouncement".Translate(
+                settlement.Label, settlement.Faction.Name, relationship,
+                distance.ToString("F1"), MenuHelper.FormatPosition(currentIndex, filteredSettlements.Count));
 
             TolkHelper.Speak(announcement);
         }
@@ -408,7 +410,7 @@ namespace RimWorldAccess
         {
             if (filteredSettlements.Count == 0)
             {
-                TolkHelper.Speak("No settlements available");
+                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsAvailable".Translate());
                 return;
             }
 
@@ -425,14 +427,14 @@ namespace RimWorldAccess
             }
 
             // Get faction relationship
-            string relationship = "Unknown";
+            string relationship = "RimWorldAccess.SettlementBrowser.RelationshipUnknown".Translate();
             if (settlement.Faction == Faction.OfPlayer)
             {
-                relationship = "Player";
+                relationship = "RimWorldAccess.SettlementBrowser.RelationshipPlayer".Translate();
             }
             else if (settlement.Faction.HostileTo(Faction.OfPlayer))
             {
-                relationship = "Hostile";
+                relationship = "RimWorldAccess.SettlementBrowser.RelationshipHostile".Translate();
             }
             else
             {
@@ -440,8 +442,9 @@ namespace RimWorldAccess
             }
 
             // Build announcement with search info
-            string searchInfo = $"'{typeahead.SearchBuffer}' match {typeahead.CurrentMatchPosition} of {typeahead.MatchCount}";
-            string announcement = $"{searchInfo}: {settlement.Label}, {settlement.Faction.Name}, {relationship}, {distance:F1} tiles";
+            string searchInfo = "RimWorldAccess.SettlementBrowser.SearchInfo".Translate(typeahead.SearchBuffer, typeahead.CurrentMatchPosition, typeahead.MatchCount);
+            string announcement = "RimWorldAccess.SettlementBrowser.SearchAnnouncement".Translate(
+                searchInfo, settlement.Label, settlement.Faction.Name, relationship, distance.ToString("F1"));
 
             TolkHelper.Speak(announcement);
         }

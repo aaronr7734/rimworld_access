@@ -129,7 +129,7 @@ namespace RimWorldAccess
             // (successful send is announced by the game itself)
             if (!wasSendAttempted)
             {
-                TolkHelper.Speak("Caravan formation cancelled");
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.FormationCancelled".Translate());
             }
         }
 
