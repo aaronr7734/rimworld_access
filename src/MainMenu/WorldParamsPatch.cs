@@ -35,8 +35,8 @@ namespace RimWorldAccess
                 // Announce window title once
                 if (!hasAnnouncedTitle)
                 {
-                    string help = "Press Enter to generate world with default settings, or Up/Down to browse fields, Left/Right to change values. Tab to switch to factions.";
-                    TolkHelper.Speak($"Create World. {help}");
+                    string help = "RimWorldAccess.WorldParams.OpenHelp".Translate();
+                    TolkHelper.Speak("RimWorldAccess.WorldParams.OpenInstructions".Translate(help));
                     hasAnnouncedTitle = true;
                 }
 
@@ -82,7 +82,7 @@ namespace RimWorldAccess
                     // Switch to World Params
                     currentSection = CreateWorldSection.WorldParams;
                     FactionsNavigationState.Deactivate();
-                    TolkHelper.Speak("World parameters");
+                    TolkHelper.Speak("RimWorldAccess.WorldParams.Title".Translate());
                     WorldParamsNavigationState.AnnounceCurrentField();
                 }
                 evt.Use();
@@ -392,12 +392,12 @@ namespace RimWorldAccess
 
                 if (WorldParamsNavigationState.IsEditingSeed)
                 {
-                    text = $"[Typing Seed: {WorldParamsNavigationState.SeedInputBuffer}] (Enter=Confirm, Esc=Cancel)";
+                    text = "RimWorldAccess.WorldParams.SeedTypingIndicator".Translate(WorldParamsNavigationState.SeedInputBuffer);
                 }
                 else
                 {
                     string fieldName = WorldParamsNavigationState.GetCurrentFieldName();
-                    text = $"[Field: {fieldName}] (Arrow keys to navigate)";
+                    text = "RimWorldAccess.WorldParams.FieldIndicator".Translate(fieldName);
                 }
 
                 Widgets.DrawBoxSolid(indicatorRect, new Color(0.2f, 0.2f, 0.2f, 0.8f));

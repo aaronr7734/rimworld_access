@@ -30,7 +30,7 @@ namespace RimWorldAccess
                 cachedColumn0.Add(new ListableOption(tutorialLabel, delegate {
                     // Display accessibility message instead of launching tutorial
                     Find.WindowStack.Add(new Dialog_MessageBox(
-                        "The tutorial is currently not accessible. This will be added soon.",
+                        "RimWorldAccess.MainMenu.TutorialNotAccessible".Translate(),
                         null, // buttonAText (OK button, default)
                         null, // buttonAAction (close on OK, default)
                         null, // buttonBText (no second button)

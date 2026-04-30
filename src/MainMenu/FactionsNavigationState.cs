@@ -84,13 +84,13 @@ namespace RimWorldAccess
             if (factions.Count > 0)
             {
                 // Announce section name, then current faction, then Alt+A hint
-                TolkHelper.Speak("Factions");
+                TolkHelper.Speak("RimWorldAccess.Factions.Title".Translate());
                 AnnounceCurrentFaction();
-                TolkHelper.Speak("Press Alt+A to add factions.", SpeechPriority.Low);
+                TolkHelper.Speak("RimWorldAccess.Factions.PressAddHint".Translate(), SpeechPriority.Low);
             }
             else
             {
-                TolkHelper.Speak("Factions. No factions in list. Press Alt+A to add factions.");
+                TolkHelper.Speak("RimWorldAccess.Factions.NoFactionsInList".Translate());
             }
 
             // Announce warnings if any
@@ -159,7 +159,7 @@ namespace RimWorldAccess
 
             if (visibleFactions.Count == 0 || selectedIndex < 0 || selectedIndex >= visibleFactions.Count)
             {
-                TolkHelper.Speak("No faction selected");
+                TolkHelper.Speak("RimWorldAccess.Factions.NoFactionSelected".Translate());
                 return;
             }
 
@@ -168,14 +168,14 @@ namespace RimWorldAccess
             // Check if locked by scenario
             if (IsFactionLocked(selectedFaction))
             {
-                TolkHelper.Speak($"Cannot remove {selectedFaction.LabelCap}: locked by scenario");
+                TolkHelper.Speak("RimWorldAccess.Factions.CannotRemoveLocked".Translate(selectedFaction.LabelCap));
                 return;
             }
 
             // Check tutorial
             if (!TutorSystem.AllowAction("ConfiguringWorldFactions"))
             {
-                TolkHelper.Speak("Cannot modify factions in tutorial mode");
+                TolkHelper.Speak("RimWorldAccess.Factions.CannotModifyTutorial".Translate());
                 return;
             }
 
@@ -192,7 +192,7 @@ namespace RimWorldAccess
                     selectedIndex = Math.Max(0, visibleFactions.Count - 1);
                 }
 
-                TolkHelper.Speak($"{selectedFaction.LabelCap} removed. {visibleFactions.Count} factions remaining.");
+                TolkHelper.Speak("RimWorldAccess.Factions.RemovedRemaining".Translate(selectedFaction.LabelCap, visibleFactions.Count));
 
                 if (visibleFactions.Count > 0)
                 {
@@ -200,7 +200,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak("No factions remaining. Press Alt+A to add factions.");
+                    TolkHelper.Speak("RimWorldAccess.Factions.NoneRemaining".Translate());
                 }
 
                 // Check for warnings after removal
@@ -215,7 +215,7 @@ namespace RimWorldAccess
             // Check tutorial
             if (!TutorSystem.AllowAction("ConfiguringWorldFactions"))
             {
-                TolkHelper.Speak("Cannot modify factions in tutorial mode");
+                TolkHelper.Speak("RimWorldAccess.Factions.CannotModifyTutorial".Translate());
                 return;
             }
 
@@ -223,7 +223,7 @@ namespace RimWorldAccess
 
             if (addMenuOptions.Count == 0)
             {
-                TolkHelper.Speak("No factions available to add");
+                TolkHelper.Speak("RimWorldAccess.Factions.NoneAvailableToAdd".Translate());
                 return;
             }
 
@@ -231,7 +231,7 @@ namespace RimWorldAccess
             addMenuIndex = 0;
             addMenuTypeahead.ClearSearch();
 
-            TolkHelper.Speak("Add faction menu opened");
+            TolkHelper.Speak("RimWorldAccess.Factions.AddMenuOpened".Translate());
             AnnounceAddMenuOption();
         }
 
@@ -239,7 +239,7 @@ namespace RimWorldAccess
         {
             IsAddMenuOpen = false;
             addMenuTypeahead.ClearSearch();
-            TolkHelper.Speak("Add menu closed");
+            TolkHelper.Speak("RimWorldAccess.Factions.AddMenuClosed".Translate());
 
             // Re-announce current faction
             var visibleFactions = GetVisibleFactions();
@@ -289,7 +289,7 @@ namespace RimWorldAccess
         {
             if (addMenuOptions.Count == 0 || addMenuIndex < 0 || addMenuIndex >= addMenuOptions.Count)
             {
-                TolkHelper.Speak("No faction selected");
+                TolkHelper.Speak("RimWorldAccess.Factions.NoFactionSelected".Translate());
                 return;
             }
 
@@ -297,7 +297,7 @@ namespace RimWorldAccess
 
             if (option.IsDisabled)
             {
-                TolkHelper.Speak($"Cannot add {option.Faction.LabelCap}: {option.DisabledReason}");
+                TolkHelper.Speak("RimWorldAccess.Factions.CannotAddReason".Translate(option.Faction.LabelCap, option.DisabledReason));
                 return;
             }
 
@@ -306,7 +306,7 @@ namespace RimWorldAccess
             factions.Add(option.Faction);
 
             int newCount = factions.Count(f => f == option.Faction);
-            TolkHelper.Speak($"{option.Faction.LabelCap} added. Now {newCount} in list.");
+            TolkHelper.Speak("RimWorldAccess.Factions.AddedNowInList".Translate(option.Faction.LabelCap, newCount));
 
             // Refresh the menu options (counts may have changed, some may now be disabled)
             RefreshAddMenuOptions();
@@ -508,13 +508,13 @@ namespace RimWorldAccess
             // Check total non-hidden limit (12)
             if (!f.hidden && factions.Count(x => !x.hidden) >= 12)
             {
-                return "Maximum 12 factions allowed";
+                return (string)"RimWorldAccess.Factions.MaxAllowed".Translate(12);
             }
 
             // Check per-faction limit
             if (f.maxConfigurableAtWorldCreation > 0 && factions.Count(x => x == f) >= f.maxConfigurableAtWorldCreation)
             {
-                return $"Maximum {f.maxConfigurableAtWorldCreation} of this faction type";
+                return (string)"RimWorldAccess.Factions.MaxOfType".Translate(f.maxConfigurableAtWorldCreation);
             }
 
             return true;
@@ -538,11 +538,11 @@ namespace RimWorldAccess
                 {
                     option.IsDisabled = true;
                     option.DisabledReason = canAdd.Reason;
-                    option.Label = $"{def.LabelCap} ({canAdd.Reason})";
+                    option.Label = "RimWorldAccess.Factions.LabelWithReason".Translate(def.LabelCap, canAdd.Reason);
                 }
                 else if (count > 0)
                 {
-                    option.Label = $"{def.LabelCap} ({count})";
+                    option.Label = "RimWorldAccess.Factions.LabelWithCount".Translate(def.LabelCap, count);
                 }
                 else
                 {
@@ -561,7 +561,7 @@ namespace RimWorldAccess
 
             if (visibleCount == 0)
             {
-                warnings.Add("Warning: Without factions, raids, trading, and quests won't occur as normal.");
+                warnings.Add("RimWorldAccess.Factions.WarningNoFactions".Translate());
                 return warnings;
             }
 
@@ -571,7 +571,7 @@ namespace RimWorldAccess
                 bool hasEmpire = factions.Any(f => f.defName == "Empire");
                 if (!hasEmpire)
                 {
-                    warnings.Add("Warning: Missing Empire faction may reduce Royalty quest content.");
+                    warnings.Add("RimWorldAccess.Factions.WarningMissingEmpire".Translate());
                 }
             }
 
@@ -579,14 +579,14 @@ namespace RimWorldAccess
             bool hasMechanoid = factions.Any(f => f.defName == "Mechanoid");
             if (!hasMechanoid)
             {
-                warnings.Add("Warning: Missing Mechanoids may reduce quest variety.");
+                warnings.Add("RimWorldAccess.Factions.WarningMissingMechanoid".Translate());
             }
 
             // Insect warning
             bool hasInsect = factions.Any(f => f.defName == "Insect");
             if (!hasInsect)
             {
-                warnings.Add("Warning: Missing Insects may reduce quest variety.");
+                warnings.Add("RimWorldAccess.Factions.WarningMissingInsect".Translate());
             }
 
             return warnings;
@@ -607,18 +607,18 @@ namespace RimWorldAccess
             // Include description (use Description property to get xenotype info if Biotech active)
             if (!string.IsNullOrEmpty(faction.Description))
             {
-                text += $". {faction.Description.StripTags()}";
+                text += "RimWorldAccess.Factions.WithDescriptionSuffix".Translate(faction.Description.StripTags());
             }
 
             if (!string.IsNullOrEmpty(position))
             {
-                text += $" {position}";
+                text += "RimWorldAccess.Factions.PositionSpaceSuffix".Translate(position);
             }
 
             // Note if locked
             if (IsFactionLocked(faction))
             {
-                text += " (locked by scenario)";
+                text += "RimWorldAccess.Factions.LockedSuffix".Translate();
             }
 
             TolkHelper.Speak(text);
@@ -653,17 +653,17 @@ namespace RimWorldAccess
             // Include description (use Description property to get xenotype info if Biotech active)
             if (!string.IsNullOrEmpty(option.Faction.Description))
             {
-                text += $". {option.Faction.Description.StripTags()}";
+                text += "RimWorldAccess.Factions.WithDescriptionSuffix".Translate(option.Faction.Description.StripTags());
             }
 
             if (!string.IsNullOrEmpty(position))
             {
-                text += $" {position}";
+                text += "RimWorldAccess.Factions.PositionSpaceSuffix".Translate(position);
             }
 
             if (option.IsDisabled)
             {
-                text += " (disabled)";
+                text += "RimWorldAccess.Factions.DisabledSuffix".Translate();
             }
 
             TolkHelper.Speak(text);
@@ -677,8 +677,8 @@ namespace RimWorldAccess
 
             if (addMenuTypeahead.HasActiveSearch)
             {
-                string status = option.IsDisabled ? " (disabled)" : "";
-                TolkHelper.Speak(addMenuTypeahead.BuildItemAnnouncement($"{option.Faction.LabelCap}{status}"));
+                string status = option.IsDisabled ? (string)"RimWorldAccess.Factions.DisabledSuffix".Translate() : "";
+                TolkHelper.Speak(addMenuTypeahead.BuildItemAnnouncement(option.Faction.LabelCap + status));
             }
             else
             {

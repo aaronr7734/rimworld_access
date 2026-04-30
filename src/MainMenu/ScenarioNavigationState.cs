@@ -131,7 +131,7 @@ namespace RimWorldAccess
             var labels = flatScenarioList.Select(s => s.name).ToList();
             if (hasScenarioBuilderEntry)
             {
-                labels.Add("Scenario Builder");
+                labels.Add("RimWorldAccess.ScenarioSelect.BuilderSearchLabel".Translate());
             }
 
             if (listTypeaheadHelper.ProcessCharacterInput(character, labels, out int newIndex))
@@ -159,7 +159,7 @@ namespace RimWorldAccess
             var labels = flatScenarioList.Select(s => s.name).ToList();
             if (hasScenarioBuilderEntry)
             {
-                labels.Add("Scenario Builder");
+                labels.Add("RimWorldAccess.ScenarioSelect.BuilderSearchLabel".Translate());
             }
 
             if (listTypeaheadHelper.ProcessBackspace(labels, out int newIndex))
@@ -228,7 +228,7 @@ namespace RimWorldAccess
 
             if (listTypeaheadHelper.HasActiveSearch)
             {
-                TolkHelper.Speak(listTypeaheadHelper.BuildItemAnnouncement($"{selected.name}{categorySuffix}"));
+                TolkHelper.Speak(listTypeaheadHelper.BuildItemAnnouncement(selected.name + categorySuffix));
             }
             else
             {
@@ -257,11 +257,11 @@ namespace RimWorldAccess
         private static void AnnounceScenarioBuilder()
         {
             string positionPart = MenuHelper.FormatPosition(selectedIndex, TotalNavigationCount);
-            string text = "Scenario Builder - Create a custom scenario from scratch";
+            string text = "RimWorldAccess.ScenarioSelect.BuilderEntryLabel".Translate();
 
             if (!string.IsNullOrEmpty(positionPart))
             {
-                text += $" ({positionPart})";
+                text += "RimWorldAccess.ScenarioSelect.WithPositionSuffix".Translate(positionPart);
             }
 
             TolkHelper.Speak(text);
@@ -275,18 +275,18 @@ namespace RimWorldAccess
             string categorySuffix = GetCategorySuffix(selected);
             string positionPart = MenuHelper.FormatPosition(selectedIndex, TotalNavigationCount);
 
-            string text = $"{selected.name} - {selected.summary}{categorySuffix}";
+            string text = "RimWorldAccess.ScenarioSelect.NameSummary".Translate(selected.name, selected.summary, categorySuffix);
 
             // Append warning for invalid scenarios
             if (!selected.valid)
             {
-                text += $". Warning: {"ScenPart_Error".Translate()}";
+                text += "RimWorldAccess.ScenarioSelect.WarningSuffix".Translate("ScenPart_Error".Translate());
             }
 
             // Add position if enabled
             if (!string.IsNullOrEmpty(positionPart))
             {
-                text += $" ({positionPart})";
+                text += "RimWorldAccess.ScenarioSelect.WithPositionSuffix".Translate(positionPart);
             }
 
             TolkHelper.Speak(text);
@@ -303,11 +303,11 @@ namespace RimWorldAccess
             switch (scenario.Category)
             {
                 case ScenarioCategory.FromDef:
-                    return " (Built-in)";
+                    return "RimWorldAccess.ScenarioSelect.CategoryBuiltIn".Translate();
                 case ScenarioCategory.CustomLocal:
-                    return " (Custom)";
+                    return "RimWorldAccess.ScenarioSelect.CategoryCustom".Translate();
                 case ScenarioCategory.SteamWorkshop:
-                    return " (Workshop)";
+                    return "RimWorldAccess.ScenarioSelect.CategoryWorkshop".Translate();
                 default:
                     return "";
             }
@@ -325,7 +325,7 @@ namespace RimWorldAccess
             // Don't open detail panel for Scenario Builder entry
             if (IsScenarioBuilderSelected && !DetailPanelActive)
             {
-                TolkHelper.Speak("No details for Scenario Builder. Press Enter to open.");
+                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.NoDetailsForBuilder".Translate());
                 return;
             }
 
@@ -338,7 +338,7 @@ namespace RimWorldAccess
                 {
                     root.Children.Add(new InspectionTreeItem
                     {
-                        Label = "No additional details available",
+                        Label = "RimWorldAccess.ScenarioSelect.NoAdditionalDetails".Translate(),
                         IndentLevel = 0,
                         IsExpandable = false,
                         Parent = root
@@ -346,13 +346,13 @@ namespace RimWorldAccess
                 }
 
                 detailTreeNav.Initialize(root);
-                TolkHelper.Speak("Details");
+                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.DetailsLabel".Translate());
                 detailTreeNav.ReannounceCurrentItem();
             }
             else
             {
                 detailTreeNav.Reset();
-                TolkHelper.Speak("Scenario list");
+                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.ScenarioListLabel".Translate());
                 CopySelectedToClipboard();
             }
         }
@@ -365,7 +365,7 @@ namespace RimWorldAccess
         {
             var root = new InspectionTreeItem
             {
-                Label = "Details",
+                Label = "RimWorldAccess.ScenarioSelect.DetailsLabel".Translate(),
                 IndentLevel = -1,
                 IsExpanded = true,
                 IsExpandable = false
@@ -394,7 +394,7 @@ namespace RimWorldAccess
 
                     root.Children.Add(new InspectionTreeItem
                     {
-                        Label = $"Description: {mainDesc}",
+                        Label = "RimWorldAccess.ScenarioSelect.DescriptionLine".Translate(mainDesc),
                         IndentLevel = 0,
                         IsExpandable = false,
                         Parent = root
@@ -415,7 +415,7 @@ namespace RimWorldAccess
                 {
                     root.Children.Add(new InspectionTreeItem
                     {
-                        Label = $"Description: {desc}",
+                        Label = "RimWorldAccess.ScenarioSelect.DescriptionLine".Translate(desc),
                         IndentLevel = 0,
                         IsExpandable = false,
                         Parent = root
@@ -552,7 +552,7 @@ namespace RimWorldAccess
             {
                 var startWithSection = new InspectionTreeItem
                 {
-                    Label = "Start with",
+                    Label = "RimWorldAccess.ScenarioSelect.StartWith".Translate(),
                     IndentLevel = 0,
                     IsExpandable = true,
                     IsExpanded = false,
@@ -603,7 +603,7 @@ namespace RimWorldAccess
             {
                 var mapScatteredSection = new InspectionTreeItem
                 {
-                    Label = "Map is scattered with",
+                    Label = "RimWorldAccess.ScenarioSelect.MapScatteredWith".Translate(),
                     IndentLevel = 0,
                     IsExpandable = true,
                     IsExpanded = false,
@@ -627,7 +627,7 @@ namespace RimWorldAccess
             {
                 var createIncidentSection = new InspectionTreeItem
                 {
-                    Label = "Create incident",
+                    Label = "RimWorldAccess.ScenarioSelect.CreateIncident".Translate(),
                     IndentLevel = 0,
                     IsExpandable = true,
                     IsExpanded = false,
@@ -651,7 +651,7 @@ namespace RimWorldAccess
             {
                 var disableIncidentSection = new InspectionTreeItem
                 {
-                    Label = "Disable incident",
+                    Label = "RimWorldAccess.ScenarioSelect.DisableIncident".Translate(),
                     IndentLevel = 0,
                     IsExpandable = true,
                     IsExpanded = false,
@@ -675,7 +675,7 @@ namespace RimWorldAccess
             {
                 var permaGameConditionSection = new InspectionTreeItem
                 {
-                    Label = "Permanent game condition",
+                    Label = "RimWorldAccess.ScenarioSelect.PermanentGameCondition".Translate(),
                     IndentLevel = 0,
                     IsExpandable = true,
                     IsExpanded = false,
@@ -993,7 +993,7 @@ namespace RimWorldAccess
             Scenario selected = SelectedScenario;
             if (selected == null || selected.Category != ScenarioCategory.CustomLocal)
             {
-                TolkHelper.Speak("Cannot delete this scenario");
+                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.CannotDelete".Translate());
                 return;
             }
 
@@ -1034,7 +1034,7 @@ namespace RimWorldAccess
                         AccessTools.Field(typeof(Page_SelectScenario), "curScen").SetValue(page, newSelection);
                     }
 
-                    TolkHelper.Speak($"Deleted {scenarioName}");
+                    TolkHelper.Speak("RimWorldAccess.ScenarioSelect.Deleted".Translate(scenarioName));
 
                     // Announce the new selection
                     if (newSelection != null)
@@ -1060,7 +1060,7 @@ namespace RimWorldAccess
             Scenario selected = SelectedScenario;
             if (selected == null || selected.Category != ScenarioCategory.SteamWorkshop)
             {
-                TolkHelper.Speak("Cannot unsubscribe from this scenario");
+                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.CannotUnsubscribe".Translate());
                 return;
             }
 
@@ -1112,7 +1112,7 @@ namespace RimWorldAccess
                         AccessTools.Field(typeof(Page_SelectScenario), "curScen").SetValue(page, newSelection);
                     }
 
-                    TolkHelper.Speak($"Unsubscribed from {scenarioName}");
+                    TolkHelper.Speak("RimWorldAccess.ScenarioSelect.UnsubscribedFrom".Translate(scenarioName));
 
                     // Announce the new selection
                     if (newSelection != null)

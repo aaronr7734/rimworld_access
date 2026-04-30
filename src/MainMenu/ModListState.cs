@@ -575,7 +575,7 @@ namespace RimWorldAccess
                     Action = () =>
                     {
                         Application.OpenURL(mod.Url);
-                        TolkHelper.Speak($"Opening website for {mod.Name}");
+                        TolkHelper.Speak("RimWorldAccess.ModList.OpeningWebsiteFor".Translate(mod.Name));
                     }
                 });
             }
@@ -589,7 +589,7 @@ namespace RimWorldAccess
                     Action = () =>
                     {
                         SteamUtility.OpenWorkshopPage(mod.GetPublishedFileId());
-                        TolkHelper.Speak($"Opening Workshop page for {mod.Name}");
+                        TolkHelper.Speak("RimWorldAccess.ModList.OpeningWorkshopPageFor".Translate(mod.Name));
                     }
                 });
             }
@@ -615,7 +615,7 @@ namespace RimWorldAccess
                     {
                         Application.OpenURL(path);
                     }
-                    TolkHelper.Speak($"Opening folder for {mod.Name}");
+                    TolkHelper.Speak("RimWorldAccess.ModList.OpeningFolderFor".Translate(mod.Name));
                 }
             });
 
@@ -640,7 +640,7 @@ namespace RimWorldAccess
                                 unsubMethod?.Invoke(null, new object[] { mod });
                                 modListsDirtyField?.SetValue(currentPage, true);
                                 detailHelper.GoBackToList();
-                                TolkHelper.Speak($"Unsubscribed from {mod.Name}");
+                                TolkHelper.Speak("RimWorldAccess.ModList.UnsubscribedFrom".Translate(mod.Name));
                             },
                             destructive: true
                         ));
@@ -666,7 +666,7 @@ namespace RimWorldAccess
                 var result = trySetModActiveMethod?.Invoke(currentPage, new object[] { mod });
                 if (result is bool success && !success)
                 {
-                    TolkHelper.Speak("Could not enable mod. A mod with the same package ID may already be active.", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.ModList.CouldNotEnableMod".Translate(), SpeechPriority.High);
                     return;
                 }
             }
@@ -691,8 +691,10 @@ namespace RimWorldAccess
             BuildContentLines();
             detailHelper.RefreshButtons();
 
-            string action = wasActive ? "disabled" : "enabled";
-            TolkHelper.Speak($"{mod.Name} {action}");
+            string action = wasActive
+                ? (string)"RimWorldAccess.ModList.ActionDisabled".Translate()
+                : (string)"RimWorldAccess.ModList.ActionEnabled".Translate();
+            TolkHelper.Speak("RimWorldAccess.ModList.ModWithAction".Translate(mod.Name, action));
         }
 
         /// <summary>
@@ -718,7 +720,7 @@ namespace RimWorldAccess
                 var result = trySetModActiveMethod?.Invoke(currentPage, new object[] { mod });
                 if (result is bool success && !success)
                 {
-                    TolkHelper.Speak("Could not enable mod. A mod with the same package ID may already be active.", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.ModList.CouldNotEnableMod".Translate(), SpeechPriority.High);
                     return;
                 }
             }
@@ -742,25 +744,27 @@ namespace RimWorldAccess
                 }
             }
 
-            string action = wasActive ? "disabled" : "enabled";
+            string action = wasActive
+                ? (string)"RimWorldAccess.ModList.ActionDisabled".Translate()
+                : (string)"RimWorldAccess.ModList.ActionEnabled".Translate();
             string nextModInfo = "";
             var nextMod = GetSelectedMod();
             if (nextMod != null && currentList != null && currentList.Count > 0)
             {
-                nextModInfo = $" Now on: {nextMod.Name}, {MenuHelper.FormatPosition(selectedIndex, currentList.Count)}";
+                nextModInfo = "RimWorldAccess.ModList.NowOnNext".Translate(nextMod.Name, MenuHelper.FormatPosition(selectedIndex, currentList.Count));
             }
             else if (currentList == null || currentList.Count == 0)
             {
-                nextModInfo = " List is now empty.";
+                nextModInfo = "RimWorldAccess.ModList.NowEmpty".Translate();
             }
-            TolkHelper.Speak($"{mod.Name} {action}.{nextModInfo}");
+            TolkHelper.Speak("RimWorldAccess.ModList.ModWithActionAndNext".Translate(mod.Name, action, nextModInfo));
         }
 
         private static void MoveUp()
         {
             if (currentColumn != ModListColumn.Active)
             {
-                TolkHelper.Speak("Can only reorder active mods");
+                TolkHelper.Speak("RimWorldAccess.ModList.CanOnlyReorderActiveMods".Translate());
                 return;
             }
 
@@ -783,11 +787,11 @@ namespace RimWorldAccess
                 SyncSelection();
                 BuildContentLines();
                 detailHelper.RefreshButtons();
-                TolkHelper.Speak($"{mod.Name} moved to position {selectedIndex + 1}");
+                TolkHelper.Speak("RimWorldAccess.ModList.MovedToPosition".Translate(mod.Name, selectedIndex + 1));
             }
             else if (!string.IsNullOrEmpty(errorMessage))
             {
-                TolkHelper.Speak($"Cannot reorder: {errorMessage}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.ModList.CannotReorder".Translate(errorMessage), SpeechPriority.High);
             }
         }
 
@@ -795,7 +799,7 @@ namespace RimWorldAccess
         {
             if (currentColumn != ModListColumn.Active)
             {
-                TolkHelper.Speak("Can only reorder active mods");
+                TolkHelper.Speak("RimWorldAccess.ModList.CanOnlyReorderActiveMods".Translate());
                 return;
             }
 
@@ -819,11 +823,11 @@ namespace RimWorldAccess
                 SyncSelection();
                 BuildContentLines();
                 detailHelper.RefreshButtons();
-                TolkHelper.Speak($"{mod.Name} moved to position {selectedIndex + 1}");
+                TolkHelper.Speak("RimWorldAccess.ModList.MovedToPosition".Translate(mod.Name, selectedIndex + 1));
             }
             else if (!string.IsNullOrEmpty(errorMessage))
             {
-                TolkHelper.Speak($"Cannot reorder: {errorMessage}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.ModList.CannotReorder".Translate(errorMessage), SpeechPriority.High);
             }
         }
 
@@ -834,7 +838,7 @@ namespace RimWorldAccess
             var saveChangesField = typeof(Page_ModsConfig).GetField("saveChanges", BindingFlags.NonPublic | BindingFlags.Instance);
             saveChangesField?.SetValue(currentPage, true);
             ModsConfig.Save();
-            TolkHelper.Speak("Mod changes saved");
+            TolkHelper.Speak("RimWorldAccess.ModList.ChangesSaved".Translate());
         }
 
         private static void AutoSortMods()
@@ -848,7 +852,7 @@ namespace RimWorldAccess
             SyncSelection();
             BuildContentLines();
             detailHelper.RefreshButtons();
-            TolkHelper.Speak("Mods automatically sorted");
+            TolkHelper.Speak("RimWorldAccess.ModList.AutoSorted".Translate());
         }
 
         private static void ActivateCurrentButton()
@@ -866,7 +870,7 @@ namespace RimWorldAccess
             catch (Exception ex)
             {
                 Log.Warning($"[RimWorld Access] Failed to activate mod button: {ex.Message}");
-                TolkHelper.Speak("Failed to activate button");
+                TolkHelper.Speak("RimWorldAccess.ModList.FailedToActivateButton".Translate());
             }
         }
 
@@ -917,7 +921,7 @@ namespace RimWorldAccess
                 string columnName = currentColumn == ModListColumn.Active
                     ? "Active".Translate().ToString()
                     : "Inactive".Translate().ToString();
-                TolkHelper.Speak($"{columnName} mods list, empty");
+                TolkHelper.Speak("RimWorldAccess.ModList.ColumnEmpty".Translate(columnName));
             }
         }
 
@@ -1036,15 +1040,16 @@ namespace RimWorldAccess
                 : "Disabled".Translate().ToString();
             int currentCount = currentColumn == ModListColumn.Active ? activeCount : inactiveCount;
 
-            string announcement = $"{"Mods".Translate()}. {columnName}, {currentCount} mods. ";
-            announcement += "ResolveModOrder".Translate() + ": Alt+R. " + "SaveModChanges".Translate() + ": Alt+S.";
+            string announcement = "RimWorldAccess.ModList.OpeningAnnouncement".Translate(
+                "Mods".Translate(), columnName, currentCount,
+                "ResolveModOrder".Translate(), "SaveModChanges".Translate());
 
             // Announce the menu info first, then the selected mod separately
             // so the screen reader pauses between them
             var mod = GetSelectedMod();
             if (mod != null)
             {
-                announcement += " ... " + GetModListAnnouncement(mod);
+                announcement = "RimWorldAccess.ModList.OpeningWithMod".Translate(announcement, GetModListAnnouncement(mod));
             }
 
             TolkHelper.Speak(announcement);
@@ -1058,7 +1063,7 @@ namespace RimWorldAccess
                 : "Disabled".Translate().ToString();
             int count = list?.Count ?? 0;
 
-            string announcement = $"{columnName} mods, {count} mods. ";
+            string announcement = "RimWorldAccess.ModList.ColumnHeader".Translate(columnName, count);
 
             var mod = GetSelectedMod();
             if (mod != null)
@@ -1097,13 +1102,13 @@ namespace RimWorldAccess
             var warnings = modWarningsCachedField?.GetValue(null) as Dictionary<string, string>;
             if (warnings != null && warnings.TryGetValue(mod.PackageId, out string warning) && !string.IsNullOrEmpty(warning))
             {
-                parts.Add("contains errors");
+                parts.Add("RimWorldAccess.ModList.ContainsErrors".Translate());
             }
 
             // Author
             if (!mod.AuthorsString.NullOrEmpty())
             {
-                parts.Add($"by {mod.AuthorsString}");
+                parts.Add("RimWorldAccess.ModList.ByAuthor".Translate(mod.AuthorsString));
             }
 
             // Position
@@ -1123,7 +1128,7 @@ namespace RimWorldAccess
 
             if (typeahead.HasActiveSearch)
             {
-                TolkHelper.Speak($"{mod.Name}, {position} of {total}" + typeahead.BuildSearchContextSuffix());
+                TolkHelper.Speak("RimWorldAccess.ModList.SearchPosition".Translate(mod.Name, position, total) + typeahead.BuildSearchContextSuffix());
             }
             else
             {

@@ -39,11 +39,17 @@ namespace RimWorldAccess
         private static bool[] isPlanetCoverageDev;  // Tracks which coverage options are dev-only
         private static int planetCoverageIndex = 0;
 
-        // Rainfall/Temperature/Population/LandmarkDensity labels derived from enum names
-        private static readonly string[] RainfallLabels = { "Almost None", "Little", "A Little Less", "Normal", "A Little More", "High", "Very High" };
-        private static readonly string[] TemperatureLabels = { "Very Cold", "Cold", "A Little Colder", "Normal", "A Little Warmer", "Hot", "Very Hot" };
-        private static readonly string[] PopulationLabels = { "Almost None", "Little", "A Little Less", "Normal", "A Little More", "High", "Very High" };
-        private static readonly string[] LandmarkDensityLabels = { "Sparse", "Slightly More Sparse", "Slightly Sparse", "Normal", "Slightly Crowded", "Slightly More Crowded", "Crowded" };
+        // Rainfall/Temperature/Population/LandmarkDensity labels derived from enum names.
+        // Strings come from RimWorldAccess_MainMenu.xml so they're translatable.
+        private static readonly string[] RainfallLabelKeys = { "RimWorldAccess.WorldParams.Rainfall.AlmostNone", "RimWorldAccess.WorldParams.Rainfall.Little", "RimWorldAccess.WorldParams.Rainfall.LittleLess", "RimWorldAccess.WorldParams.Rainfall.Normal", "RimWorldAccess.WorldParams.Rainfall.LittleMore", "RimWorldAccess.WorldParams.Rainfall.High", "RimWorldAccess.WorldParams.Rainfall.VeryHigh" };
+        private static readonly string[] TemperatureLabelKeys = { "RimWorldAccess.WorldParams.Temperature.VeryCold", "RimWorldAccess.WorldParams.Temperature.Cold", "RimWorldAccess.WorldParams.Temperature.LittleColder", "RimWorldAccess.WorldParams.Temperature.Normal", "RimWorldAccess.WorldParams.Temperature.LittleWarmer", "RimWorldAccess.WorldParams.Temperature.Hot", "RimWorldAccess.WorldParams.Temperature.VeryHot" };
+        private static readonly string[] PopulationLabelKeys = { "RimWorldAccess.WorldParams.Rainfall.AlmostNone", "RimWorldAccess.WorldParams.Rainfall.Little", "RimWorldAccess.WorldParams.Rainfall.LittleLess", "RimWorldAccess.WorldParams.Rainfall.Normal", "RimWorldAccess.WorldParams.Rainfall.LittleMore", "RimWorldAccess.WorldParams.Rainfall.High", "RimWorldAccess.WorldParams.Rainfall.VeryHigh" };
+        private static readonly string[] LandmarkDensityLabelKeys = { "RimWorldAccess.WorldParams.LandmarkDensity.Sparse", "RimWorldAccess.WorldParams.LandmarkDensity.MoreSparse", "RimWorldAccess.WorldParams.LandmarkDensity.SlightSparse", "RimWorldAccess.WorldParams.LandmarkDensity.Normal", "RimWorldAccess.WorldParams.LandmarkDensity.SlightCrowded", "RimWorldAccess.WorldParams.LandmarkDensity.MoreCrowded", "RimWorldAccess.WorldParams.LandmarkDensity.Crowded" };
+
+        private static string[] RainfallLabels => System.Array.ConvertAll(RainfallLabelKeys, k => k.Translate().ToString());
+        private static string[] TemperatureLabels => System.Array.ConvertAll(TemperatureLabelKeys, k => k.Translate().ToString());
+        private static string[] PopulationLabels => System.Array.ConvertAll(PopulationLabelKeys, k => k.Translate().ToString());
+        private static string[] LandmarkDensityLabels => System.Array.ConvertAll(LandmarkDensityLabelKeys, k => k.Translate().ToString());
 
         private static int rainfallIndex = 3;       // Default: Normal
         private static int temperatureIndex = 3;    // Default: Normal
@@ -294,7 +300,7 @@ namespace RimWorldAccess
             switch (field)
             {
                 case WorldParamField.Seed:
-                    TolkHelper.Speak("Press Enter to type custom seed, or R to randomize");
+                    TolkHelper.Speak("RimWorldAccess.WorldParams.SeedInstructions".Translate());
                     break;
 
                 case WorldParamField.PlanetCoverage:
@@ -413,17 +419,17 @@ namespace RimWorldAccess
                     if (!string.IsNullOrEmpty(seed))
                     {
                         AccessTools.Field(typeof(Page_CreateWorldParams), "seedString").SetValue(currentInstance, seed);
-                        TolkHelper.Speak($"World Seed: {seed} (Confirmed)");
+                        TolkHelper.Speak("RimWorldAccess.WorldParams.SeedConfirmed".Translate(seed));
                     }
                     else
                     {
-                        TolkHelper.Speak("Seed input canceled (empty)");
+                        TolkHelper.Speak("RimWorldAccess.WorldParams.SeedEmptyCancelled".Translate());
                     }
                 },
                 onCancel: () =>
                 {
                     isEditingSeed = false;
-                    TolkHelper.Speak("Seed editing canceled");
+                    TolkHelper.Speak("RimWorldAccess.WorldParams.SeedEditCancelled".Translate());
                 },
                 replaceOnType: false,
                 modal: true);
@@ -434,7 +440,7 @@ namespace RimWorldAccess
             if (currentInstance == null) return;
             string newSeed = GenText.RandomSeedString();
             AccessTools.Field(typeof(Page_CreateWorldParams), "seedString").SetValue(currentInstance, newSeed);
-            TolkHelper.Speak($"World Seed: {newSeed} (Randomized)");
+            TolkHelper.Speak("RimWorldAccess.WorldParams.SeedRandomized".Translate(newSeed));
         }
 
         // ===== TYPEAHEAD SEARCH =====
@@ -535,7 +541,7 @@ namespace RimWorldAccess
             string fieldName = GetFieldLabel(field, includeAdvancedSuffix: false);
             string value = GetFieldValueString(field);
             string warning = GetFieldWarning(field);
-            TolkHelper.Speak($"{fieldName}: {value}{warning}");
+            TolkHelper.Speak("RimWorldAccess.WorldParams.FieldColonValue".Translate(fieldName, value, warning));
         }
 
         private static string GetFieldWarning(WorldParamField field)
@@ -570,7 +576,7 @@ namespace RimWorldAccess
 
             if (fieldTypeahead.HasActiveSearch)
             {
-                TolkHelper.Speak(fieldTypeahead.BuildItemAnnouncement($"{fieldName}: {value}"));
+                TolkHelper.Speak(fieldTypeahead.BuildItemAnnouncement("RimWorldAccess.WorldParams.FieldColonValueNoWarning".Translate(fieldName, value)));
             }
             else
             {

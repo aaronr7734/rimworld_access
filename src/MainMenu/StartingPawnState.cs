@@ -57,8 +57,8 @@ namespace RimWorldAccess
                     }
                 }
                 string title = context == PawnEditorContext.Wanderer
-                    ? "ChooseNewWanderers".Translate() + ". Alt+A to add, Delete to remove."
-                    : "CreateCharacters".Translate();
+                    ? (string)"RimWorldAccess.StartingPawn.WandererTitle".Translate("ChooseNewWanderers".Translate())
+                    : (string)"CreateCharacters".Translate();
                 TolkHelper.Speak(title);
                 treeNav.ReannounceCurrentItem();
             }
@@ -542,9 +542,9 @@ namespace RimWorldAccess
             if (PawnFilterData.HasActiveFilters())
             {
                 if (PawnFilterData.LastRerollSucceeded)
-                    randomizeAnnouncement += $". Found match in {PawnFilterData.LastRerollAttempts} attempts.";
+                    randomizeAnnouncement = "RimWorldAccess.StartingPawn.RandomizeWithMatch".Translate(randomizeAnnouncement, PawnFilterData.LastRerollAttempts);
                 else
-                    randomizeAnnouncement += $". No match after {PawnFilterData.LastRerollAttempts} attempts, keeping last result.";
+                    randomizeAnnouncement = "RimWorldAccess.StartingPawn.RandomizeNoMatch".Translate(randomizeAnnouncement, PawnFilterData.LastRerollAttempts);
             }
 
             // Append pawn summary (age, traits, top skills)
@@ -553,7 +553,7 @@ namespace RimWorldAccess
             {
                 string summary = StartingPawnHelper.GetPawnRollSummary(pawn);
                 if (!string.IsNullOrEmpty(summary))
-                    randomizeAnnouncement += $". {summary}";
+                    randomizeAnnouncement = "RimWorldAccess.StartingPawn.RandomizeWithSummary".Translate(randomizeAnnouncement, summary);
             }
             TolkHelper.Speak(randomizeAnnouncement);
             treeNav.ReannounceCurrentItem();
@@ -568,11 +568,11 @@ namespace RimWorldAccess
 
             string announcement;
             if (cancelled)
-                announcement = $"Stopped at {attempts} attempts.";
+                announcement = "RimWorldAccess.StartingPawn.RerollStopped".Translate(attempts);
             else if (success)
-                announcement = $"Found match in {attempts} attempts.";
+                announcement = "RimWorldAccess.StartingPawn.RerollFound".Translate(attempts);
             else
-                announcement = $"No match after {attempts} attempts, keeping last result.";
+                announcement = "RimWorldAccess.StartingPawn.RerollNoMatch".Translate(attempts);
 
             // Append pawn summary (age, traits, top skills)
             var pawn = StartingPawnHelper.GetPawnAtIndex(savedPawnIdx);
@@ -580,7 +580,7 @@ namespace RimWorldAccess
             {
                 string summary = StartingPawnHelper.GetPawnRollSummary(pawn);
                 if (!string.IsNullOrEmpty(summary))
-                    announcement += $". {summary}";
+                    announcement = "RimWorldAccess.StartingPawn.RandomizeWithSummary".Translate(announcement, summary);
             }
 
             TolkHelper.Speak(announcement);
@@ -715,11 +715,11 @@ namespace RimWorldAccess
             string nextName = targetIdx < pawns.Count - 1 ? pawns[targetIdx + 1].LabelShort : null;
 
             if (prevName != null && nextName != null)
-                announceParts.Add($"between {prevName} and {nextName}");
+                announceParts.Add("RimWorldAccess.StartingPawn.NeighborBetween".Translate(prevName, nextName));
             else if (prevName != null)
-                announceParts.Add($"after {prevName}");
+                announceParts.Add("RimWorldAccess.StartingPawn.NeighborAfter".Translate(prevName));
             else if (nextName != null)
-                announceParts.Add($"before {nextName}");
+                announceParts.Add("RimWorldAccess.StartingPawn.NeighborBefore".Translate(nextName));
 
             TolkHelper.Speak(string.Join(", ", announceParts));
             treeNav.ReannounceCurrentItem();
@@ -732,7 +732,7 @@ namespace RimWorldAccess
                 int pawnIdx = GetCurrentPawnIndex();
                 if (pawnIdx < 0)
                 {
-                    TolkHelper.Speak("No pawn selected");
+                    TolkHelper.Speak("RimWorldAccess.StartingPawn.NoPawnSelected".Translate());
                     return;
                 }
 
@@ -762,7 +762,7 @@ namespace RimWorldAccess
                 names.Add(pawns[i].LabelShort);
 
             string pawnList = names.ToCommaList(useAnd: true);
-            string message = $"Start the game with {pawnList}?";
+            string message = "RimWorldAccess.StartingPawn.StartGameConfirm".Translate(pawnList);
 
             Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
                 message,
@@ -786,13 +786,13 @@ namespace RimWorldAccess
             if (Event.current != null && Event.current.type == EventType.KeyDown)
                 Event.current.Use();
 
-            string message = "Going back will discard the current starting colonists. Continue?";
+            string message = "RimWorldAccess.StartingPawn.GoBackConfirm".Translate();
             Action confirm = () => StartingPawnPatch.DoBack();
             Find.WindowStack.Add(new Dialog_MessageBox(
                 message,
-                buttonAText: "Continue",
+                buttonAText: "RimWorldAccess.StartingPawn.GoBackContinue".Translate(),
                 buttonAAction: confirm,
-                buttonBText: "Cancel",
+                buttonBText: "RimWorldAccess.StartingPawn.GoBackCancel".Translate(),
                 buttonBAction: null,
                 title: null,
                 buttonADestructive: true,
@@ -810,7 +810,7 @@ namespace RimWorldAccess
                 names.Add(pawns[i].LabelShort);
 
             string pawnList = names.ToCommaList(useAnd: true);
-            string message = "Confirm".Translate() + ": " + pawnList + "?";
+            string message = "RimWorldAccess.StartingPawn.WandererConfirm".Translate("Confirm".Translate(), pawnList);
 
             Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
                 message,
@@ -824,7 +824,7 @@ namespace RimWorldAccess
             if (pawns.Count >= 6)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("Maximum 6");
+                TolkHelper.Speak("RimWorldAccess.StartingPawn.MaximumPawns".Translate(6));
                 return;
             }
 
@@ -843,7 +843,7 @@ namespace RimWorldAccess
             }
 
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            TolkHelper.Speak("Pawn added");
+            TolkHelper.Speak("RimWorldAccess.StartingPawn.PawnAdded".Translate());
             treeNav.ReannounceCurrentItem();
         }
 
@@ -856,7 +856,7 @@ namespace RimWorldAccess
             if (pawns.Count <= 1)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("Minimum 1");
+                TolkHelper.Speak("RimWorldAccess.StartingPawn.MinimumPawns".Translate(1));
                 return;
             }
 
@@ -869,7 +869,7 @@ namespace RimWorldAccess
                 treeNav.SetSelectedIndex(Math.Max(0, treeNav.Count - 1));
 
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            TolkHelper.Speak(removedName + " removed");
+            TolkHelper.Speak("RimWorldAccess.StartingPawn.PawnRemoved".Translate(removedName));
             treeNav.ReannounceCurrentItem();
         }
 
@@ -893,11 +893,11 @@ namespace RimWorldAccess
             {
                 case PawnNodeType.Pawn:
                     string pawnState = TreeNavigationHelper.GetExpansionStateWord(item);
-                    announcement = $"{item.Label}, {pawnState}";
+                    announcement = "RimWorldAccess.StartingPawn.PawnLabelWithState".Translate(item.Label, pawnState);
                     if (!string.IsNullOrEmpty(positionPart))
-                        announcement += $" ({positionPart})";
+                        announcement += "RimWorldAccess.StartingPawn.PositionParenSuffix".Translate(positionPart);
                     announcement += MenuHelper.GetLevelSuffix("PawnSelection", item.IndentLevel, skipLevelOne: false);
-                    if (HasInfoCard(item)) announcement += " Inspectable.";
+                    if (HasInfoCard(item)) announcement += "RimWorldAccess.StartingPawn.InspectableSuffix".Translate();
                     break;
 
                 case PawnNodeType.Category:
@@ -913,17 +913,17 @@ namespace RimWorldAccess
                         {
                             string summary = StartingPawnHelper.GetCategorySummary(item);
                             if (!string.IsNullOrEmpty(summary))
-                                announcement = $"{item.Label}: {summary}, {catState}";
+                                announcement = "RimWorldAccess.StartingPawn.CategoryWithSummary".Translate(item.Label, summary, catState);
                             else
-                                announcement = $"{item.Label}, {catState}";
+                                announcement = "RimWorldAccess.StartingPawn.CategoryLabelWithState".Translate(item.Label, catState);
                         }
                         else
                         {
-                            announcement = $"{item.Label}, {catState}";
+                            announcement = "RimWorldAccess.StartingPawn.CategoryLabelWithState".Translate(item.Label, catState);
                         }
                     }
                     if (!string.IsNullOrEmpty(positionPart))
-                        announcement += $" ({positionPart})";
+                        announcement += "RimWorldAccess.StartingPawn.PositionParenSuffix".Translate(positionPart);
                     announcement += MenuHelper.GetLevelSuffix("PawnSelection", item.IndentLevel, skipLevelOne: false);
                     break;
 
@@ -940,9 +940,9 @@ namespace RimWorldAccess
                         announcement += ". " + spokenTooltip;
                     }
                     if (!string.IsNullOrEmpty(positionPart))
-                        announcement += $" ({positionPart})";
+                        announcement += "RimWorldAccess.StartingPawn.PositionParenSuffix".Translate(positionPart);
                     announcement += MenuHelper.GetLevelSuffix("PawnSelection", item.IndentLevel, skipLevelOne: false);
-                    if (HasInfoCard(item)) announcement += " Inspectable.";
+                    if (HasInfoCard(item)) announcement += "RimWorldAccess.StartingPawn.InspectableSuffix".Translate();
                     break;
             }
 
@@ -952,7 +952,7 @@ namespace RimWorldAccess
             string sectionName = GetSectionForItem(item);
             if (!string.IsNullOrEmpty(sectionName) && sectionName != lastAnnouncedSection)
             {
-                announcement = $"{sectionName}. {announcement}";
+                announcement = "RimWorldAccess.StartingPawn.SectionPrefix".Translate(sectionName, announcement);
                 lastAnnouncedSection = sectionName;
             }
             else if (string.IsNullOrEmpty(sectionName))

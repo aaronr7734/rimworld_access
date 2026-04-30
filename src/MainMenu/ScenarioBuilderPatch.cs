@@ -245,8 +245,8 @@ namespace RimWorldAccess
             var prevPage = AccessTools.Field(typeof(Page), "prev")?.GetValue(editorWindow) as Page;
 
             var dialog = new Dialog_MessageBox(
-                "You have unsaved changes to this scenario.",
-                "Save",
+                "RimWorldAccess.ScenarioBuilder.UnsavedChangesPrompt".Translate(),
+                "RimWorldAccess.ScenarioBuilder.UnsavedSave".Translate(),
                 () =>
                 {
                     // Save then close
@@ -257,11 +257,11 @@ namespace RimWorldAccess
                         editorWindow?.Close();
                     });
                 },
-                "Discard",
+                "RimWorldAccess.ScenarioBuilder.UnsavedDiscard".Translate(),
                 () =>
                 {
                     // Discard changes and navigate back to scenario list
-                    TolkHelper.Speak("Changes discarded.");
+                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.ChangesDiscarded".Translate());
                     ScenarioBuilderState.ResetDirty();
                     ScenarioBuilderState.Close();
                     // Navigate back to previous page (scenario list) instead of just closing
@@ -271,15 +271,15 @@ namespace RimWorldAccess
                     }
                     editorWindow?.Close();
                 },
-                "Unsaved Changes",
+                "RimWorldAccess.ScenarioBuilder.UnsavedChangesTitle".Translate(),
                 false
             );
 
             // Add a third button for Cancel
-            dialog.buttonCText = "Cancel";
+            dialog.buttonCText = "RimWorldAccess.ScenarioBuilder.UnsavedCancel".Translate();
             dialog.buttonCAction = () =>
             {
-                TolkHelper.Speak("Continuing to edit.");
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.ContinuingToEdit".Translate());
             };
             dialog.buttonCClose = true;
 

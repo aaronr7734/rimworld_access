@@ -32,7 +32,7 @@ namespace RimWorldAccess
             isTypingName = true;
             IsActive = true;
 
-            TolkHelper.Speak($"Save filter preset. Type name or press Down to select existing preset to overwrite. Current name: {nameController.CurrentText}");
+            TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.OpenInstructions".Translate(nameController.CurrentText));
         }
 
         public static void Close()
@@ -54,12 +54,12 @@ namespace RimWorldAccess
         {
             if (selectedIndex == 0)
             {
-                TolkHelper.Speak($"Save as: {nameController.CurrentText} ({MenuHelper.FormatPosition(0, TotalCount)})");
+                TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.SaveAs".Translate(nameController.CurrentText, MenuHelper.FormatPosition(0, TotalCount)));
             }
             else if (selectedIndex > 0 && selectedIndex <= existingPresets.Count)
             {
                 string presetName = existingPresets[selectedIndex - 1];
-                TolkHelper.Speak($"Overwrite: {presetName} ({MenuHelper.FormatPosition(selectedIndex, TotalCount)})");
+                TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.Overwrite".Translate(presetName, MenuHelper.FormatPosition(selectedIndex, TotalCount)));
             }
         }
 
@@ -112,7 +112,7 @@ namespace RimWorldAccess
                 string name = nameController.CurrentText;
                 if (string.IsNullOrWhiteSpace(name))
                 {
-                    TolkHelper.Speak("Name cannot be empty");
+                    TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.NameEmpty".Translate());
                     return;
                 }
 
@@ -125,19 +125,19 @@ namespace RimWorldAccess
                     {
                         PawnFilterPresetSerializer.OverwritePreset(filterToSave, name, existingIndex);
                         Close();
-                        TolkHelper.Speak($"Preset {name} overwritten");
+                        TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.PresetOverwritten".Translate(name));
                     }
                     else
                     {
                         PawnFilterPresetSerializer.SavePreset(filterToSave, name);
                         Close();
-                        TolkHelper.Speak($"Preset saved as {name}");
+                        TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.PresetSavedAs".Translate(name));
                     }
                 }
                 catch (Exception ex)
                 {
                     Log.Error($"[RimWorld Access] Error saving preset: {ex}");
-                    TolkHelper.Speak($"Error saving: {ex.Message}");
+                    TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.ErrorSaving".Translate(ex.Message));
                 }
             }
             else if (selectedIndex > 0 && selectedIndex <= existingPresets.Count)
@@ -149,17 +149,17 @@ namespace RimWorldAccess
                 {
                     PawnFilterPresetSerializer.OverwritePreset(filterToSave, name, presetIndex);
                     Close();
-                    TolkHelper.Speak($"Preset {name} overwritten");
+                    TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.PresetOverwritten".Translate(name));
                 }
                 catch (Exception ex)
                 {
                     Log.Error($"[RimWorld Access] Error saving preset: {ex}");
-                    TolkHelper.Speak($"Error saving: {ex.Message}");
+                    TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.ErrorSaving".Translate(ex.Message));
                 }
             }
             else
             {
-                TolkHelper.Speak("Invalid selection");
+                TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.InvalidSelection".Translate());
             }
         }
 
@@ -214,7 +214,7 @@ namespace RimWorldAccess
 
                 case KeyCode.Escape:
                     Close();
-                    TolkHelper.Speak("Cancelled");
+                    TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Translate());
                     return true;
 
                 case KeyCode.Backspace:

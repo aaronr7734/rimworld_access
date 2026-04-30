@@ -39,8 +39,8 @@ namespace RimWorldAccess
                 selectedIndex = 1;
 
             int filterCount = workingCopy.GetActiveFilterCount();
-            string countPart = filterCount > 0 ? $" {filterCount} active filters." : "";
-            TolkHelper.Speak($"Pawn filter editor.{countPart}");
+            string countPart = filterCount > 0 ? "RimWorldAccess.PawnFilter.ActiveFiltersCountSuffix".Translate(filterCount).ToString() : "";
+            TolkHelper.Speak("RimWorldAccess.PawnFilter.Editor".Translate(countPart));
             AnnounceCurrentItem();
         }
 
@@ -52,11 +52,11 @@ namespace RimWorldAccess
             {
                 PawnFilterData.ActiveFilter.CopyFrom(workingCopy);
                 int filterCount = PawnFilterData.ActiveFilter.GetActiveFilterCount();
-                TolkHelper.Speak($"Filter saved. {filterCount} active filters.");
+                TolkHelper.Speak("RimWorldAccess.PawnFilter.FilterSaved".Translate(filterCount));
             }
             else
             {
-                TolkHelper.Speak("Filter editor closed. Changes discarded.");
+                TolkHelper.Speak("RimWorldAccess.PawnFilter.EditorClosedDiscarded".Translate());
             }
 
             isActive = false;
@@ -571,7 +571,7 @@ namespace RimWorldAccess
                             selectedIndex = 0;
                             SkipToNextNonHeader(1);
                             int filterCount = workingCopy.GetActiveFilterCount();
-                            TolkHelper.Speak($"Preset loaded. {filterCount} active filters.");
+                            TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoaded".Translate(filterCount));
                             AnnounceCurrentItem();
                         }
                     });
@@ -601,14 +601,14 @@ namespace RimWorldAccess
             {
                 string modeLabel = PawnFilterHelper.GetTraitModeLabel(mode);
                 var lastTrait = workingCopy.Traits.Last();
-                TolkHelper.Speak($"{modeLabel}: {lastTrait.Label} added");
+                TolkHelper.Speak("RimWorldAccess.PawnFilter.TraitAdded".Translate(modeLabel, lastTrait.Label));
                 RebuildMenu();
                 AnnounceCurrentItem();
             });
 
             if (options.Count == 0)
             {
-                TolkHelper.Speak("No available traits");
+                TolkHelper.Speak("RimWorldAccess.PawnFilter.NoAvailableTraits".Translate());
                 return;
             }
 
@@ -629,7 +629,7 @@ namespace RimWorldAccess
             string modeLabel = PawnFilterHelper.GetTraitModeLabel(item.TraitFilter.Mode);
             string traitLabel = item.TraitFilter.Label;
             workingCopy.Traits.Remove(item.TraitFilter);
-            TolkHelper.Speak($"{modeLabel}: {traitLabel} removed");
+            TolkHelper.Speak("RimWorldAccess.PawnFilter.TraitRemoved".Translate(modeLabel, traitLabel));
 
             RebuildMenu();
             AnnounceCurrentItem();
@@ -691,7 +691,7 @@ namespace RimWorldAccess
             string positionPart = MenuHelper.FormatPosition(position - 1, total);
             string announcement = item.Label;
             if (!string.IsNullOrEmpty(positionPart))
-                announcement += $" ({positionPart})";
+                announcement += "RimWorldAccess.StartingPawn.PositionParenSuffix".Translate(positionPart);
 
             TolkHelper.Speak(announcement);
         }

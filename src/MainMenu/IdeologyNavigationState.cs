@@ -56,7 +56,7 @@ namespace RimWorldAccess
             sb.Append(TreeNavigationHelper.FormatExpansionSuffix(item, includeChildCount: true));
 
             var (pos, total) = presetsTreeNav.GetSiblingPosition(item);
-            sb.Append($". {pos} of {total}");
+            sb.Append("RimWorldAccess.Ideology.PresetSiblingPosition".Translate(pos, total));
 
             string levelSuffix = MenuHelper.GetLevelSuffix("IdeoPresets", item.IndentLevel, skipLevelOne: false);
             if (!string.IsNullOrEmpty(levelSuffix))
@@ -73,8 +73,10 @@ namespace RimWorldAccess
 
         private static string FormatPresetsStateChangeAnnouncement(InspectionTreeItem item)
         {
-            string state = item.IsExpanded ? "Expanded" : "Collapsed";
-            return state + ". " + FormatPresetsItemAnnouncement(item);
+            string state = item.IsExpanded
+                ? (string)"RimWorldAccess.Tree.StateExpanded".Translate()
+                : (string)"RimWorldAccess.Tree.StateCollapsed".Translate();
+            return "RimWorldAccess.Ideology.StateChangeAnnouncement".Translate(state.CapitalizeFirst(), FormatPresetsItemAnnouncement(item));
         }
 
         #region Initialize / Reset
@@ -164,7 +166,7 @@ namespace RimWorldAccess
                 // Category node (level 0)
                 var categoryNode = new InspectionTreeItem
                 {
-                    Label = category.LabelCap + ": " + category.description,
+                    Label = "RimWorldAccess.Ideology.CategoryWithDescription".Translate(category.LabelCap, category.description),
                     IndentLevel = 0,
                     IsExpandable = true,
                     IsExpanded = false,
@@ -239,24 +241,24 @@ namespace RimWorldAccess
         {
             if (currentTab == TabOptions)
             {
-                string tabName = "Options";
-                TolkHelper.Speak(tabName + ". " + BuildOptionAnnouncement());
+                string tabName = "RimWorldAccess.Ideology.OptionsTab".Translate();
+                TolkHelper.Speak("RimWorldAccess.Ideology.TabPrefix".Translate(tabName, BuildOptionAnnouncement()));
             }
             else
             {
-                string tabName = "Presets";
+                string tabName = "RimWorldAccess.Ideology.PresetsTab".Translate();
                 if (presetsTreeNav.Count > 0)
                 {
                     string hint = "";
                     if (!hasShownPresetsHint)
                     {
                         hasShownPresetsHint = true;
-                        hint = ". Alt+S to set structure, Alt+Y to set style for your chosen preset";
+                        hint = "RimWorldAccess.Ideology.PresetsHint".Translate();
                     }
-                    TolkHelper.Speak(tabName + ". " + BuildTreeItemAnnouncement() + hint);
+                    TolkHelper.Speak("RimWorldAccess.Ideology.TabPrefix".Translate(tabName, BuildTreeItemAnnouncement() + hint));
                 }
                 else
-                    TolkHelper.Speak(tabName + ". " + "NoneLower".Translate() + ".");
+                    TolkHelper.Speak("RimWorldAccess.Ideology.TabNoneSuffix".Translate(tabName, "NoneLower".Translate()));
             }
         }
 
@@ -378,15 +380,15 @@ namespace RimWorldAccess
                 return "";
 
             var opt = options[optionsIndex];
-            var sb = new StringBuilder(opt.Label);
+            string text = opt.Label;
             if (!string.IsNullOrEmpty(opt.Description))
-                sb.Append(". ").Append(opt.Description);
+                text = "RimWorldAccess.Ideology.OptionWithDescription".Translate(text, opt.Description);
 
             string position = MenuHelper.FormatPosition(optionsIndex, options.Count);
             if (!string.IsNullOrEmpty(position))
-                sb.Append(". ").Append(position);
+                text = "RimWorldAccess.Ideology.OptionDotPosition".Translate(text, position);
 
-            return sb.ToString();
+            return text;
         }
 
         private static void AnnounceOptionWithSearch()
@@ -553,7 +555,7 @@ namespace RimWorldAccess
                 {
                     HarmonyLib.AccessTools.Field(typeof(Page_ChooseIdeoPreset), "selectedStructure")
                         .SetValue(page, null);
-                    TolkHelper.Speak("Structure".Translate() + ": " + "Random".Translate() + ". " + "RandomStructureTip".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Ideology.StructureRandomTip".Translate("Structure".Translate(), "Random".Translate(), "RandomStructureTip".Translate()));
                 }));
             }
 
@@ -568,11 +570,11 @@ namespace RimWorldAccess
                     continue;
 
                 var captured = meme;
-                menuOptions.Add(new FloatMenuOption(captured.LabelCap + ". " + captured.description, () =>
+                menuOptions.Add(new FloatMenuOption("RimWorldAccess.Ideology.StructureMemeOption".Translate(captured.LabelCap, captured.description), () =>
                 {
                     HarmonyLib.AccessTools.Field(typeof(Page_ChooseIdeoPreset), "selectedStructure")
                         .SetValue(page, captured);
-                    TolkHelper.Speak("Structure".Translate() + ": " + captured.LabelCap);
+                    TolkHelper.Speak("RimWorldAccess.Ideology.StructureColon".Translate("Structure".Translate(), captured.LabelCap));
                 }));
             }
 
@@ -597,7 +599,7 @@ namespace RimWorldAccess
                 string slotName = styles[i] != null
                     ? styles[i].LabelCap.ToString()
                     : "Random".Translate().ToString();
-                string label = "Styles".Translate() + " " + (i + 1) + ": " + slotName;
+                string label = "RimWorldAccess.Ideology.StyleSlot".Translate("Styles".Translate(), i + 1, slotName);
 
                 menuOptions.Add(new FloatMenuOption(label, () =>
                 {
@@ -685,7 +687,7 @@ namespace RimWorldAccess
             {
                 styleNames.Add(styles[i] != null ? styles[i].LabelCap.ToString() : "Random".Translate().ToString());
             }
-            return "Styles".Translate() + ": " + string.Join(", ", styleNames);
+            return "RimWorldAccess.Ideology.StylesAnnouncement".Translate("Styles".Translate(), string.Join(", ", styleNames));
         }
 
         #endregion
@@ -694,13 +696,10 @@ namespace RimWorldAccess
 
         public static string BuildOpeningAnnouncement()
         {
-            var sb = new StringBuilder();
-            sb.Append("ChooseYourIdeoligion".Translate());
-            sb.Append(". ");
-            sb.Append("ChooseYourIdeoligionDesc".Translate());
-            sb.Append(". ");
-            sb.Append(BuildOptionAnnouncement());
-            return sb.ToString();
+            return "RimWorldAccess.Ideology.OpeningAnnouncement".Translate(
+                "ChooseYourIdeoligion".Translate(),
+                "ChooseYourIdeoligionDesc".Translate(),
+                BuildOptionAnnouncement());
         }
 
         #endregion

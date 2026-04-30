@@ -48,9 +48,7 @@ namespace RimWorldAccess
                 if (!hasAnnouncedTitle)
                 {
                     string pageTitle = "SelectStartingSite".Translate();
-                    TolkHelper.Speak($"{pageTitle} - Arrow keys to navigate, Control+arrows to jump by biome, " +
-                        "Page Up/Down for scanner, Z to search, 1-5 for tile info, " +
-                        "I for detailed info menu, F for factions, Enter to validate selection");
+                    TolkHelper.Speak("RimWorldAccess.StartingSite.OpenInstructions".Translate(pageTitle));
                     hasAnnouncedTitle = true;
                 }
 
@@ -297,7 +295,7 @@ namespace RimWorldAccess
             PlanetTile tile = WorldNavigationState.CurrentSelectedTile;
             if (!tile.Valid)
             {
-                TolkHelper.Speak("No tile selected. Use arrow keys to navigate to a tile first.");
+                TolkHelper.Speak("RimWorldAccess.StartingSite.NoTileSelected".Translate());
                 return false;
             }
 
@@ -307,7 +305,7 @@ namespace RimWorldAccess
 
             if (!isValid)
             {
-                string errorMessage = "Cannot settle here: " + reason.ToString();
+                string errorMessage = "RimWorldAccess.StartingSite.CannotSettleHere".Translate(reason.ToString());
                 TolkHelper.Speak(errorMessage, SpeechPriority.High);
                 return false;
             }
@@ -316,7 +314,7 @@ namespace RimWorldAccess
             WorldNavigationState.SyncSelectionWithGame();
 
             // Announce confirmation before advancing
-            TolkHelper.Speak("Starting site selected.");
+            TolkHelper.Speak("RimWorldAccess.StartingSite.Selected".Translate());
 
             // Save tile so we can restore it if the user comes back from chargen
             savedTileForReturn = WorldNavigationState.CurrentSelectedTile;
@@ -350,7 +348,7 @@ namespace RimWorldAccess
                     Text.Font = GameFont.Medium;
                     Text.Anchor = TextAnchor.UpperCenter;
                     Rect titleRect = new Rect(menuRect.x, menuRect.y + 5f, menuRect.width, 30f);
-                    Widgets.Label(titleRect, "Additional Information Menu");
+                    Widgets.Label(titleRect, "RimWorldAccess.StartingSite.MenuOverlayTitle".Translate());
 
                     Text.Font = GameFont.Small;
                     Text.Anchor = TextAnchor.UpperLeft;
@@ -363,12 +361,16 @@ namespace RimWorldAccess
                     int selectedIndex = StartingSiteContext.SelectedMenuIndex;
                     int totalItems = StartingSiteContext.MenuItemCount;
 
-                    string menuContent = $"Selected: {currentItem}\n" +
-                                       $"Item {selectedIndex + 1} of {totalItems}\n\n" +
-                                       "Controls:\n" +
-                                       "  Up/Down Arrows: Navigate menu items\n" +
-                                       "  Enter: Read detailed information\n" +
-                                       "  Escape: Close menu";
+                    string menuContent = string.Join("\n", new[]
+                    {
+                        ((string)"RimWorldAccess.StartingSite.MenuOverlaySelected".Translate(currentItem)),
+                        ((string)"RimWorldAccess.StartingSite.MenuOverlayItemPosition".Translate(selectedIndex + 1, totalItems)),
+                        "",
+                        ((string)"RimWorldAccess.StartingSite.MenuOverlayControls".Translate()),
+                        ((string)"RimWorldAccess.StartingSite.MenuOverlayControlNavigate".Translate()),
+                        ((string)"RimWorldAccess.StartingSite.MenuOverlayControlEnter".Translate()),
+                        ((string)"RimWorldAccess.StartingSite.MenuOverlayControlEscape".Translate()),
+                    });
 
                     Widgets.Label(contentRect, menuContent);
                     Text.Anchor = TextAnchor.UpperLeft;
@@ -383,9 +385,12 @@ namespace RimWorldAccess
                     Text.Font = GameFont.Small;
                     Text.Anchor = TextAnchor.UpperLeft;
 
-                    string helpText = "Starting Site Selection:\n" +
-                                    "Arrow Keys: Navigate  |  Ctrl+Arrows: Jump by biome  |  PgUp/PgDn: Scanner\n" +
-                                    "1-5: Tile info  |  Z: Search  |  I: Info menu  |  F: Factions  |  R: Random  |  Enter: Validate";
+                    string helpText = string.Join("\n", new[]
+                    {
+                        ((string)"RimWorldAccess.StartingSite.HelpOverlayTitle".Translate()),
+                        ((string)"RimWorldAccess.StartingSite.HelpOverlayLine1".Translate()),
+                        ((string)"RimWorldAccess.StartingSite.HelpOverlayLine2".Translate()),
+                    });
 
                     Widgets.Label(helpRect.ContractedBy(5f), helpText);
                     Text.Anchor = TextAnchor.UpperLeft;

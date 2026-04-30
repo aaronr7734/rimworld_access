@@ -834,7 +834,7 @@ namespace RimWorldAccess
                         req.AllowedDevelopmentalStages = localStage;
                         StartingPawnUtility.SetGenerationRequest(pawnIndex, req);
                         StartingPawnUtility.RandomizePawn(pawnIndex);
-                        TolkHelper.Speak(localStage.ToString().Translate().CapitalizeFirst() + ", " + "Randomize".Translate());
+                        TolkHelper.Speak("RimWorldAccess.StartingPawn.LabelRandomize".Translate(localStage.ToString().Translate().CapitalizeFirst(), "Randomize".Translate()));
                         rebuildCallback?.Invoke();
                     }));
                 }
@@ -858,7 +858,7 @@ namespace RimWorldAccess
                 req.ForceBaselinerChance = 0.5f;
                 StartingPawnUtility.SetGenerationRequest(pawnIndex, req);
                 StartingPawnUtility.RandomizePawn(pawnIndex);
-                TolkHelper.Speak("AnyNonArchite".Translate() + ", " + "Randomize".Translate());
+                TolkHelper.Speak("RimWorldAccess.StartingPawn.LabelRandomize".Translate("AnyNonArchite".Translate(), "Randomize".Translate()));
                 rebuildCallback?.Invoke();
             }));
             infoCardDefs.Add(null);
@@ -888,7 +888,7 @@ namespace RimWorldAccess
                     req.ForceBaselinerChance = 0f;
                     StartingPawnUtility.SetGenerationRequest(pawnIndex, req);
                     StartingPawnUtility.RandomizePawn(pawnIndex);
-                    TolkHelper.Speak(localXeno.LabelCap + ", " + "Randomize".Translate());
+                    TolkHelper.Speak("RimWorldAccess.StartingPawn.LabelRandomize".Translate(localXeno.LabelCap, "Randomize".Translate()));
                     rebuildCallback?.Invoke();
                 });
                 string desc = localXeno.descriptionShort ?? localXeno.description;

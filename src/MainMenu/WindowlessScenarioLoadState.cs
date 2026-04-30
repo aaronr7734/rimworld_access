@@ -33,7 +33,7 @@ namespace RimWorldAccess
 
             if (scenarioFiles.Count == 0)
             {
-                TolkHelper.Speak("No saved scenarios found.");
+                TolkHelper.Speak("RimWorldAccess.ScenarioLoad.NoSavedScenarios".Translate());
                 onScenarioLoaded?.Invoke(null);
                 return;
             }
@@ -41,7 +41,7 @@ namespace RimWorldAccess
             selectedIndex = 0;
             IsActive = true;
 
-            TolkHelper.Speak($"Load Scenario. {scenarioFiles.Count} scenarios available. Type to search.");
+            TolkHelper.Speak("RimWorldAccess.ScenarioLoad.OpenInstructions".Translate(scenarioFiles.Count));
             AnnounceCurrentFile();
         }
 
@@ -88,7 +88,7 @@ namespace RimWorldAccess
         {
             if (scenarioFiles.Count == 0)
             {
-                TolkHelper.Speak("No scenarios available.");
+                TolkHelper.Speak("RimWorldAccess.ScenarioLoad.NoScenariosAvailable".Translate());
                 return;
             }
 
@@ -97,7 +97,7 @@ namespace RimWorldAccess
             string positionPart = MenuHelper.FormatPosition(selectedIndex, scenarioFiles.Count);
             string dateStr = FormatDateTime(file.LastWriteTime);
 
-            string text = $"{fileName} - {dateStr}";
+            string text = "RimWorldAccess.ScenarioLoad.FileWithDate".Translate(fileName, dateStr);
 
             if (typeaheadHelper.HasActiveSearch)
             {
@@ -105,7 +105,7 @@ namespace RimWorldAccess
             }
             else if (!string.IsNullOrEmpty(positionPart))
             {
-                text += $" ({positionPart})";
+                text += "RimWorldAccess.ScenarioLoad.WithPositionSuffix".Translate(positionPart);
             }
 
             TolkHelper.Speak(text);
@@ -250,7 +250,7 @@ namespace RimWorldAccess
         {
             if (scenarioFiles.Count == 0 || selectedIndex >= scenarioFiles.Count)
             {
-                TolkHelper.Speak("No scenario selected.");
+                TolkHelper.Speak("RimWorldAccess.ScenarioLoad.NoScenarioSelected".Translate());
                 return;
             }
 
@@ -268,14 +268,14 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak($"Failed to load scenario: {fileName}");
+                        TolkHelper.Speak("RimWorldAccess.ScenarioLoad.FailedToLoad".Translate(fileName));
                     }
                 });
             }
             catch (Exception ex)
             {
                 Log.Error($"[RimWorld Access] Error loading scenario: {ex}");
-                TolkHelper.Speak($"Error loading scenario: {ex.Message}");
+                TolkHelper.Speak("RimWorldAccess.ScenarioLoad.ErrorLoading".Translate(ex.Message));
             }
         }
 
@@ -289,7 +289,7 @@ namespace RimWorldAccess
             var file = scenarioFiles[selectedIndex];
             string fileName = Path.GetFileNameWithoutExtension(file.FileName);
 
-            TolkHelper.Speak($"Delete {fileName}? Press Enter to confirm, Escape to cancel.");
+            TolkHelper.Speak("RimWorldAccess.ScenarioLoad.DeleteConfirm".Translate(fileName));
             WindowlessScenarioDeleteConfirmState.Open(file.FileInfo, () =>
             {
                 ReloadFiles();
@@ -357,7 +357,7 @@ namespace RimWorldAccess
                     else
                     {
                         Close();
-                        TolkHelper.Speak("Cancelled");
+                        TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Translate());
                         onScenarioLoaded?.Invoke(null);
                     }
                     return true;
@@ -415,7 +415,7 @@ namespace RimWorldAccess
 
             string fileName = fileToDelete.Name;
             fileToDelete.Delete();
-            TolkHelper.Speak($"Deleted {fileName}");
+            TolkHelper.Speak("RimWorldAccess.ScenarioLoad.Deleted".Translate(fileName));
 
             Close();
             onComplete?.Invoke();
@@ -425,7 +425,7 @@ namespace RimWorldAccess
         {
             if (!IsActive) return;
 
-            TolkHelper.Speak("Delete cancelled");
+            TolkHelper.Speak("RimWorldAccess.ScenarioLoad.DeleteCancelled".Translate());
             Close();
             onComplete?.Invoke();
         }

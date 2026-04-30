@@ -224,7 +224,7 @@ namespace RimWorldAccess
             // Progress announcement
             if (stopwatch.ElapsedMilliseconds >= nextAnnounceMs)
             {
-                TolkHelper.Speak($"Searching, {attempts} attempts...", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Reroll.SearchingAttempts".Translate(attempts), SpeechPriority.High);
                 nextAnnounceMs = stopwatch.ElapsedMilliseconds + 2000;
             }
         }

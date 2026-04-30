@@ -411,10 +411,10 @@ namespace RimWorldAccess
             if (storyteller == null) return;
 
             string position = MenuHelper.FormatPosition(storytellerIndex, storytellers.Count);
-            string text = $"{storyteller.label} - {storyteller.description}";
+            string text = "RimWorldAccess.Storyteller.LabelDescription".Translate(storyteller.label, storyteller.description);
             if (!string.IsNullOrEmpty(position))
             {
-                text += $" ({position})";
+                text += "RimWorldAccess.Storyteller.WithPositionSuffix".Translate(position);
             }
             TolkHelper.Speak(text);
         }
@@ -440,17 +440,17 @@ namespace RimWorldAccess
             if (difficulty == null) return;
 
             string position = MenuHelper.FormatPosition(difficultyIndex, difficulties.Count);
-            string customSuffix = difficulty.isCustom ? " (Custom settings)" : "";
-            string text = $"{difficulty.LabelCap}{customSuffix}";
+            string customSuffix = difficulty.isCustom ? (string)"RimWorldAccess.Storyteller.CustomSettingsSuffix".Translate() : "";
+            string text = difficulty.LabelCap + customSuffix;
 
             if (!string.IsNullOrEmpty(difficulty.description))
             {
-                text += $" - {difficulty.description.StripTags()}";
+                text += "RimWorldAccess.Storyteller.WithDescriptionSuffix".Translate(difficulty.description.StripTags());
             }
 
             if (!string.IsNullOrEmpty(position))
             {
-                text += $" ({position})";
+                text += "RimWorldAccess.Storyteller.WithPositionSuffix".Translate(position);
             }
 
             TolkHelper.Speak(text);
@@ -484,10 +484,10 @@ namespace RimWorldAccess
             string label = GetPermadeathLabel(permadeathIndex);
             string description = GetPermadeathDescription(permadeathIndex);
 
-            string text = $"{label} - {description}";
+            string text = "RimWorldAccess.Storyteller.LabelDescription".Translate(label, description);
             if (!string.IsNullOrEmpty(position))
             {
-                text += $" ({position})";
+                text += "RimWorldAccess.Storyteller.WithPositionSuffix".Translate(position);
             }
             TolkHelper.Speak(text);
         }

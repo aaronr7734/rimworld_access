@@ -242,7 +242,7 @@ namespace RimWorldAccess
                         currentLevel = StorytellerSelectionLevel.CustomSectionList;
                         selectedSectionIndex = 0;
                         typeahead.ClearSearch();
-                        TolkHelper.Speak("Custom difficulty settings. Use Up and Down to navigate sections, Enter to edit settings, Escape to go back.");
+                        TolkHelper.Speak("RimWorldAccess.Storyteller.CustomDifficultyOpenInstructions".Translate());
                         AnnounceCurrentState();
                     }
                     else
@@ -266,7 +266,7 @@ namespace RimWorldAccess
                         }
                         else
                         {
-                            TolkHelper.Speak("No settings available in this section");
+                            TolkHelper.Speak("RimWorldAccess.Storyteller.NoSettingsInSection".Translate());
                         }
                     }
                     break;
@@ -364,7 +364,7 @@ namespace RimWorldAccess
                     options.Add(new FloatMenuOption(def.LabelCap, () =>
                     {
                         Current.Game.storyteller.difficulty.CopyFrom(localDef);
-                        TolkHelper.Speak($"All settings reset to {localDef.LabelCap}");
+                        TolkHelper.Speak("RimWorldAccess.Storyteller.AllSettingsResetTo".Translate(localDef.LabelCap));
                         // Rebuild sections to reflect new values
                         BuildCustomDifficultySections();
                         AnnounceCurrentState();
@@ -374,7 +374,7 @@ namespace RimWorldAccess
 
             // Use accessible WindowlessFloatMenuState instead of native FloatMenu
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
-            TolkHelper.Speak("Reset all settings to preset. Select a difficulty preset.");
+            TolkHelper.Speak("RimWorldAccess.Storyteller.ResetSelectPreset".Translate());
         }
 
         /// <summary>
@@ -606,7 +606,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void Confirm()
         {
-            TolkHelper.Speak("Storyteller and difficulty confirmed. Closing selection.");
+            TolkHelper.Speak("RimWorldAccess.Storyteller.Confirmed".Translate());
             Close();
             Find.WindowStack.TryRemove(typeof(Page_SelectStorytellerInGame));
         }
@@ -653,7 +653,7 @@ namespace RimWorldAccess
                 onReset: (DifficultyDef def) =>
                 {
                     storyteller.difficulty.CopyFrom(def);
-                    TolkHelper.Speak($"All settings reset to {def.LabelCap}");
+                    TolkHelper.Speak("RimWorldAccess.Storyteller.AllSettingsResetTo".Translate(def.LabelCap));
                     // Rebuild sections to reflect new values
                     BuildCustomDifficultySections();
                     // Navigate back to section list
@@ -754,22 +754,22 @@ namespace RimWorldAccess
                     if (selectedStorytellerIndex >= 0 && selectedStorytellerIndex < storytellers.Count)
                     {
                         var st = storytellers[selectedStorytellerIndex];
-                        return $"{st.label}. {st.description.StripTags()}";
+                        return "RimWorldAccess.Storyteller.LabelDot".Translate(st.label, st.description.StripTags());
                     }
                     break;
                 case StorytellerSelectionLevel.DifficultyList:
                     if (selectedDifficultyIndex >= 0 && selectedDifficultyIndex < difficulties.Count)
                     {
                         var diff = difficulties[selectedDifficultyIndex];
-                        string customHint = diff.isCustom ? " Press Enter to customize settings." : "";
-                        return $"{diff.LabelCap}. {diff.description.StripTags()}{customHint}";
+                        string customHint = diff.isCustom ? (string)"RimWorldAccess.Storyteller.CustomizeHintSuffix".Translate() : "";
+                        return "RimWorldAccess.Storyteller.LabelDotWithHint".Translate(diff.LabelCap, diff.description.StripTags(), customHint);
                     }
                     break;
                 case StorytellerSelectionLevel.CustomSectionList:
                     if (selectedSectionIndex >= 0 && selectedSectionIndex < sections.Count)
                     {
                         var section = sections[selectedSectionIndex];
-                        return $"{section.Name}. {section.Settings.Count} {section.ItemsLabel}";
+                        return "RimWorldAccess.Storyteller.SectionWithCount".Translate(section.Name, section.Settings.Count, section.ItemsLabel);
                     }
                     break;
                 case StorytellerSelectionLevel.CustomSettingsList:
@@ -796,21 +796,21 @@ namespace RimWorldAccess
                 case StorytellerSelectionLevel.StorytellerList:
                     position = MenuHelper.FormatPosition(selectedStorytellerIndex, storytellers.Count);
                     if (!string.IsNullOrEmpty(position))
-                        announcement += $" {position}";
-                    announcement += " Press Tab to switch to difficulty selection.";
+                        announcement += "RimWorldAccess.Storyteller.PositionSpacePrefix".Translate(position);
+                    announcement += "RimWorldAccess.Storyteller.SwitchToDifficultyHint".Translate();
                     break;
 
                 case StorytellerSelectionLevel.DifficultyList:
                     position = MenuHelper.FormatPosition(selectedDifficultyIndex, difficulties.Count);
                     if (!string.IsNullOrEmpty(position))
-                        announcement += $" {position}";
-                    announcement += " Press Tab to switch to storyteller selection. Press Enter to confirm.";
+                        announcement += "RimWorldAccess.Storyteller.PositionSpacePrefix".Translate(position);
+                    announcement += "RimWorldAccess.Storyteller.SwitchToStorytellerHint".Translate();
                     break;
 
                 case StorytellerSelectionLevel.CustomSectionList:
                     position = MenuHelper.FormatPosition(selectedSectionIndex, sections.Count);
                     if (!string.IsNullOrEmpty(position))
-                        announcement += $" {position}";
+                        announcement += "RimWorldAccess.Storyteller.PositionSpacePrefix".Translate(position);
                     break;
 
                 case StorytellerSelectionLevel.CustomSettingsList:
@@ -821,7 +821,7 @@ namespace RimWorldAccess
                         int enabledIndex = ActualIndexToEnabledIndex(selectedSettingIndex);
                         position = MenuHelper.FormatPosition(enabledIndex, enabledSettings.Count);
                         if (!string.IsNullOrEmpty(position))
-                            announcement += $" {position}";
+                            announcement += "RimWorldAccess.Storyteller.PositionSpacePrefix".Translate(position);
                     }
                     break;
             }

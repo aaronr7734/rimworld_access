@@ -118,7 +118,7 @@ namespace RimWorldAccess
                 string chanceText = GetTraitRollChanceText(trait.Def);
                 items.Add(new FilterMenuItem
                 {
-                    Label = $"{modeLabel}: {trait.Label} {chanceText}",
+                    Label = "RimWorldAccess.PawnFilter.TraitEntryFormat".Translate(modeLabel, trait.Label, chanceText),
                     ItemType = FilterItemType.TraitEntry,
                     TraitFilter = trait
                 });
@@ -136,26 +136,26 @@ namespace RimWorldAccess
 
             items.Add(new FilterMenuItem
             {
-                Label = "Add required trait...",
+                Label = "RimWorldAccess.PawnFilter.AddRequiredTrait".Translate(),
                 ItemType = FilterItemType.AddRequiredTrait
             });
 
             items.Add(new FilterMenuItem
             {
-                Label = "Add excluded trait...",
+                Label = "RimWorldAccess.PawnFilter.AddExcludedTrait".Translate(),
                 ItemType = FilterItemType.AddExcludedTrait
             });
 
             items.Add(new FilterMenuItem
             {
-                Label = "Add optional trait...",
+                Label = "RimWorldAccess.PawnFilter.AddOptionalTrait".Translate(),
                 ItemType = FilterItemType.AddOptionalTrait
             });
 
             // Demographics section
             items.Add(new FilterMenuItem
             {
-                Label = "Demographics",
+                Label = "RimWorldAccess.PawnFilter.SectionDemographics".Translate(),
                 ItemType = FilterItemType.SectionHeader
             });
 
@@ -180,7 +180,7 @@ namespace RimWorldAccess
             // Conditions section
             items.Add(new FilterMenuItem
             {
-                Label = "Conditions",
+                Label = "RimWorldAccess.PawnFilter.SectionConditions".Translate(),
                 ItemType = FilterItemType.SectionHeader
             });
 
@@ -212,19 +212,19 @@ namespace RimWorldAccess
             // Actions section
             items.Add(new FilterMenuItem
             {
-                Label = "Actions",
+                Label = "RimWorldAccess.PawnFilter.SectionActions".Translate(),
                 ItemType = FilterItemType.SectionHeader
             });
 
             items.Add(new FilterMenuItem
             {
-                Label = "Save preset...",
+                Label = "RimWorldAccess.PawnFilter.SavePreset".Translate(),
                 ItemType = FilterItemType.SavePreset
             });
 
             items.Add(new FilterMenuItem
             {
-                Label = "Load preset...",
+                Label = "RimWorldAccess.PawnFilter.LoadPreset".Translate(),
                 ItemType = FilterItemType.LoadPreset
             });
 
@@ -391,7 +391,7 @@ namespace RimWorldAccess
             {
                 case WorkFilterMode.AllowAll: value = "AllowAll".Translate(); break;
                 case WorkFilterMode.NoDumbLabor: value = "No dumb labor"; break;
-                case WorkFilterMode.AllowNone: value = "Allow none"; break;
+                case WorkFilterMode.AllowNone: value = "RimWorldAccess.PawnFilter.WorkAllowNone".Translate(); break;
                 default: value = "AllowAll".Translate(); break;
             }
             return "IncapableOf".Translate() + ": " + value;

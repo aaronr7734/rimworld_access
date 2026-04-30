@@ -41,8 +41,8 @@ namespace RimWorldAccess
                     {
                         string position = MenuHelper.FormatPosition(0, StorytellerNavigationState.StorytellerCount);
                         string description = storyteller.description.TrimEnd('.');
-                        string positionPart = string.IsNullOrEmpty(position) ? "" : $" ({position})";
-                        TolkHelper.Speak($"{pageTitle} - {storyteller.label} - {description}{positionPart}. Tab and Shift+Tab to move between Storyteller, Difficulty, and Save Mode.");
+                        string positionPart = string.IsNullOrEmpty(position) ? "" : (string)"RimWorldAccess.Storyteller.OpenPositionSuffix".Translate(position);
+                        TolkHelper.Speak("RimWorldAccess.Storyteller.OpenInstructions".Translate(pageTitle, storyteller.label, description, positionPart));
                     }
                     else
                     {
@@ -182,6 +182,7 @@ namespace RimWorldAccess
                     TolkHelper.Speak("Difficulty".Translate());
                     StorytellerNavigationState.AnnounceDifficulty();
                 }
+                // (Difficulty title comes from vanilla)
                 return true;
             }
             else if (keyCode == KeyCode.Home)
@@ -285,7 +286,7 @@ namespace RimWorldAccess
         private static void AnnouncePermadeathMode()
         {
             StorytellerNavigationState.EnsurePermadeathSelected();
-            TolkHelper.Speak("Save Mode");
+            TolkHelper.Speak("RimWorldAccess.Storyteller.SaveMode".Translate());
             StorytellerNavigationState.AnnouncePermadeath();
         }
 
@@ -496,13 +497,13 @@ namespace RimWorldAccess
                 switch (currentMode)
                 {
                     case NavigationMode.Storyteller:
-                        modeText = $"[{"ChooseAIStoryteller".Translate()}]";
+                        modeText = "RimWorldAccess.Storyteller.ModeIndicator".Translate("ChooseAIStoryteller".Translate());
                         break;
                     case NavigationMode.Difficulty:
-                        modeText = $"[{"Difficulty".Translate()}]";
+                        modeText = "RimWorldAccess.Storyteller.ModeIndicator".Translate("Difficulty".Translate());
                         break;
                     case NavigationMode.Permadeath:
-                        modeText = "[Save Mode]";
+                        modeText = "RimWorldAccess.Storyteller.ModeIndicator".Translate("RimWorldAccess.Storyteller.SaveMode".Translate());
                         break;
                 }
 

@@ -59,13 +59,13 @@ namespace RimWorldAccess
             if (canEditDirectly)
             {
                 scenarioToEdit = selected;
-                actionDescription = $"Editing scenario: {selected.name}";
+                actionDescription = "RimWorldAccess.ScenarioSelect.EditingScenario".Translate(selected.name);
             }
             else
             {
                 // Create an editable copy for built-in or others' workshop scenarios
                 scenarioToEdit = selected.CopyForEditing();
-                actionDescription = $"Editing copy of: {selected.name}";
+                actionDescription = "RimWorldAccess.ScenarioSelect.EditingCopyOf".Translate(selected.name);
             }
 
             Page_ScenarioEditor editor = new Page_ScenarioEditor(scenarioToEdit);
@@ -113,7 +113,7 @@ namespace RimWorldAccess
                     if (firstScenario != null)
                     {
                         string categorySuffix = GetCategorySuffixString(firstScenario.Category);
-                        TolkHelper.Speak($"{pageTitle} - {firstScenario.name} - {firstScenario.summary}{categorySuffix}. Tab for details, Alt+E to edit.");
+                        TolkHelper.Speak("RimWorldAccess.ScenarioSelect.OpenInstructions".Translate(pageTitle, firstScenario.name, firstScenario.summary, categorySuffix));
                     }
                     else
                     {
@@ -236,7 +236,7 @@ namespace RimWorldAccess
                         {
                             if (ScenarioNavigationState.IsScenarioBuilderSelected)
                             {
-                                TolkHelper.Speak("Cannot edit Scenario Builder entry. Press Enter to create a new scenario.");
+                                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.CannotEditBuilderEntry".Translate());
                             }
                             else
                             {
@@ -316,7 +316,7 @@ namespace RimWorldAccess
                             // Delete key: delete custom scenarios or unsubscribe from workshop scenarios
                             if (ScenarioNavigationState.IsScenarioBuilderSelected)
                             {
-                                TolkHelper.Speak("Cannot delete Scenario Builder entry");
+                                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.CannotDeleteBuilderEntry".Translate());
                             }
                             else if (ScenarioNavigationState.CanDeleteSelectedScenario())
                             {
@@ -328,7 +328,7 @@ namespace RimWorldAccess
                             }
                             else
                             {
-                                TolkHelper.Speak("Cannot delete built-in scenarios");
+                                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.CannotDeleteBuiltIn".Translate());
                             }
                             Event.current.Use();
                             patchActive = true;
@@ -515,11 +515,11 @@ namespace RimWorldAccess
             switch (category)
             {
                 case ScenarioCategory.FromDef:
-                    return " (Built-in)";
+                    return "RimWorldAccess.ScenarioSelect.CategoryBuiltIn".Translate();
                 case ScenarioCategory.CustomLocal:
-                    return $" ({"ScenariosCustom".Translate()})";
+                    return "RimWorldAccess.ScenarioSelect.CategoryGeneric".Translate("ScenariosCustom".Translate());
                 case ScenarioCategory.SteamWorkshop:
-                    return $" ({"ScenariosSteamWorkshop".Translate()})";
+                    return "RimWorldAccess.ScenarioSelect.CategoryGeneric".Translate("ScenariosSteamWorkshop".Translate());
                 default:
                     return "";
             }

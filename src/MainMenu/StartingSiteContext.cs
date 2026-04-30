@@ -74,7 +74,7 @@ namespace RimWorldAccess
             PlanetTile tile = WorldNavigationState.CurrentSelectedTile;
             if (!tile.Valid)
             {
-                TolkHelper.Speak("No tile selected. Use arrow keys to navigate to a tile first.");
+                TolkHelper.Speak("RimWorldAccess.StartingSite.NoTileSelected".Translate());
                 return;
             }
 
@@ -86,13 +86,13 @@ namespace RimWorldAccess
 
                 if (availableMenuItems.Count > 0)
                 {
-                    string menuTitle = "Additional Information Menu - " + availableMenuItems.Count + " categories available";
+                    string menuTitle = "RimWorldAccess.StartingSite.MenuTitle".Translate(availableMenuItems.Count);
                     string firstItem = GetMenuItemName(availableMenuItems[0]);
-                    TolkHelper.Speak($"{menuTitle}. Selected: {firstItem}. Use arrow keys to navigate, Enter to read details, Escape to close.");
+                    TolkHelper.Speak("RimWorldAccess.StartingSite.MenuOpened".Translate(menuTitle, firstItem));
                 }
                 else
                 {
-                    TolkHelper.Speak("No additional information available for this tile.");
+                    TolkHelper.Speak("RimWorldAccess.StartingSite.NoAdditionalInfo".Translate());
                     isMenuOpen = false;
                 }
             }
@@ -115,7 +115,7 @@ namespace RimWorldAccess
                 selectedMenuIndex = 0;
 
             string itemName = GetMenuItemName(availableMenuItems[selectedMenuIndex]);
-            TolkHelper.Speak($"{itemName} ({selectedMenuIndex + 1} of {availableMenuItems.Count})");
+            TolkHelper.Speak("RimWorldAccess.StartingSite.MenuItemPosition".Translate(itemName, selectedMenuIndex + 1, availableMenuItems.Count));
         }
 
         public static void ReadSelectedMenuItem()
@@ -137,7 +137,7 @@ namespace RimWorldAccess
             if (isMenuOpen)
             {
                 isMenuOpen = false;
-                TolkHelper.Speak("Menu closed.");
+                TolkHelper.Speak("RimWorldAccess.StartingSite.MenuClosed".Translate());
             }
         }
 
@@ -157,7 +157,7 @@ namespace RimWorldAccess
             PlanetTile randomTile = TileFinder.RandomStartingTile();
             if (!randomTile.Valid)
             {
-                TolkHelper.Speak("Failed to find a valid random starting site.", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.StartingSite.RandomSiteFailed".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -184,7 +184,7 @@ namespace RimWorldAccess
                 tileInfo += $". {biomeDesc}";
             }
 
-            TolkHelper.Speak($"Random site selected: {tileInfo}");
+            TolkHelper.Speak("RimWorldAccess.StartingSite.RandomSiteSelected".Translate(tileInfo));
         }
 
         // =============================================
@@ -207,7 +207,7 @@ namespace RimWorldAccess
             BiomeDef currentBiome = currentTile.Tile?.PrimaryBiome;
             if (currentBiome == null)
             {
-                TolkHelper.Speak("Cannot determine biome at current location");
+                TolkHelper.Speak("RimWorldAccess.StartingSite.CannotDetermineBiome".Translate());
                 return;
             }
             isMenuOpen = false;
@@ -281,7 +281,7 @@ namespace RimWorldAccess
                 iterations++;
             }
 
-            TolkHelper.Speak($"No different biome found (searched {iterations} tiles)");
+            TolkHelper.Speak("RimWorldAccess.StartingSite.NoDifferentBiomeFound".Translate(iterations));
         }
 
         // =============================================
@@ -305,7 +305,10 @@ namespace RimWorldAccess
 
             if (proximityOffsets.Count > 0)
             {
-                return $"{"Warning".Translate()}: Settling here affects {proximityOffsets.Count} faction{(proximityOffsets.Count > 1 ? "s" : "")}";
+                string key = proximityOffsets.Count == 1
+                    ? "RimWorldAccess.StartingSite.SettlingAffectsFactionsOne"
+                    : "RimWorldAccess.StartingSite.SettlingAffectsFactionsMany";
+                return key.Translate("Warning".Translate(), proximityOffsets.Count);
             }
 
             return null;
@@ -361,21 +364,21 @@ namespace RimWorldAccess
             switch (category)
             {
                 case AdditionalInfoCategory.RoadsAndRivers:
-                    return "Roads, Rivers, and Coastline";
+                    return "RimWorldAccess.StartingSite.Category.RoadsAndRivers".Translate();
                 case AdditionalInfoCategory.StoneTypes:
-                    return "Stone Types";
+                    return "RimWorldAccess.StartingSite.Category.StoneTypes".Translate();
                 case AdditionalInfoCategory.GrowingInfo:
-                    return "Growing and Foraging";
+                    return "RimWorldAccess.StartingSite.Category.GrowingInfo".Translate();
                 case AdditionalInfoCategory.HealthInfo:
-                    return "Disease Frequency";
+                    return "RimWorldAccess.StartingSite.Category.HealthInfo".Translate();
                 case AdditionalInfoCategory.MovementAndLocation:
-                    return "Movement and Time Zone";
+                    return "RimWorldAccess.StartingSite.Category.MovementAndLocation".Translate();
                 case AdditionalInfoCategory.DLCFeatures:
-                    return "DLC Features";
+                    return "RimWorldAccess.StartingSite.Category.DLCFeatures".Translate();
                 case AdditionalInfoCategory.Coordinates:
-                    return "Coordinates";
+                    return "RimWorldAccess.StartingSite.Category.Coordinates".Translate();
                 default:
-                    return "Unknown";
+                    return "RimWorldAccess.StartingSite.Category.Unknown".Translate();
             }
         }
 
@@ -400,7 +403,7 @@ namespace RimWorldAccess
                 case AdditionalInfoCategory.DLCFeatures:
                     return GetDLCFeaturesInfo(tile);
                 default:
-                    return "No information available.";
+                    return "RimWorldAccess.StartingSite.NoInfoAvailable".Translate();
             }
         }
 
@@ -411,7 +414,7 @@ namespace RimWorldAccess
         private static string GetRoadsAndRiversInfo(PlanetTile tile)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("Roads, Rivers, and Coastline:");
+            sb.AppendLine("RimWorldAccess.StartingSite.RoadsRivers.Header".Translate());
 
             Tile tileData = tile.Tile;
             if (tileData is SurfaceTile surfaceTile)
@@ -419,32 +422,32 @@ namespace RimWorldAccess
                 if (surfaceTile.Roads != null && surfaceTile.Roads.Count > 0)
                 {
                     string roads = string.Join(", ", surfaceTile.Roads.Select(r => r.road.label).Distinct());
-                    sb.AppendLine($"Roads: {roads}");
+                    sb.AppendLine("RimWorldAccess.StartingSite.RoadsRivers.RoadsList".Translate(roads));
                 }
                 else
                 {
-                    sb.AppendLine("Roads: None");
+                    sb.AppendLine("RimWorldAccess.StartingSite.RoadsRivers.RoadsNone".Translate());
                 }
 
                 if (surfaceTile.Rivers != null && surfaceTile.Rivers.Count > 0)
                 {
                     var largestRiver = surfaceTile.Rivers.MaxBy(r => r.river.degradeThreshold);
-                    sb.AppendLine($"River: {largestRiver.river.LabelCap}");
+                    sb.AppendLine("RimWorldAccess.StartingSite.RoadsRivers.River".Translate(largestRiver.river.LabelCap));
                 }
                 else
                 {
-                    sb.AppendLine("River: None");
+                    sb.AppendLine("RimWorldAccess.StartingSite.RoadsRivers.RiverNone".Translate());
                 }
             }
 
             Rot4 coastDirection = Find.World.CoastDirectionAt(tile);
             if (coastDirection != Rot4.Invalid)
             {
-                sb.AppendLine($"Coastal: Yes (water to the {coastDirection})");
+                sb.AppendLine("RimWorldAccess.StartingSite.RoadsRivers.CoastalYes".Translate(coastDirection.ToString()));
             }
             else
             {
-                sb.AppendLine("Coastal: No");
+                sb.AppendLine("RimWorldAccess.StartingSite.RoadsRivers.CoastalNo".Translate());
             }
 
             return sb.ToString().TrimEnd();
@@ -453,7 +456,7 @@ namespace RimWorldAccess
         private static string GetStoneTypesInfo(PlanetTile tile)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("Stone Types:");
+            sb.AppendLine("RimWorldAccess.StartingSite.Stone.Header".Translate());
 
             var stoneTypes = Find.World.NaturalRockTypesIn(tile);
             if (stoneTypes != null && stoneTypes.Any())
@@ -463,7 +466,7 @@ namespace RimWorldAccess
             }
             else
             {
-                sb.AppendLine("No stone information available.");
+                sb.AppendLine("RimWorldAccess.StartingSite.NoStoneInfo".Translate());
             }
 
             return sb.ToString().TrimEnd();
@@ -472,7 +475,7 @@ namespace RimWorldAccess
         private static string GetDLCFeaturesInfo(PlanetTile tile)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("DLC Features:");
+            sb.AppendLine("RimWorldAccess.StartingSite.Dlc.Header".Translate());
 
             Tile tileData = tile.Tile;
             bool hasAnyInfo = false;
@@ -480,17 +483,17 @@ namespace RimWorldAccess
             if (ModsConfig.BiotechActive)
             {
                 float pollution = tileData.pollution;
-                sb.AppendLine($"Pollution: {pollution.ToStringPercent()}");
+                sb.AppendLine("RimWorldAccess.StartingSite.Dlc.Pollution".Translate(pollution.ToStringPercent()));
 
                 float nearbyPollution = WorldPollutionUtility.CalculateNearbyPollutionScore(tile.tileId);
                 if (nearbyPollution >= GameConditionDefOf.NoxiousHaze.minNearbyPollution)
                 {
                     float hazeInterval = GameConditionDefOf.NoxiousHaze.mtbOverNearbyPollutionCurve.Evaluate(nearbyPollution);
-                    sb.AppendLine($"Noxious Haze: Every {hazeInterval:F1} days on average");
+                    sb.AppendLine("RimWorldAccess.StartingSite.Dlc.NoxiousHazeEvery".Translate(hazeInterval.ToString("F1")));
                 }
                 else
                 {
-                    sb.AppendLine("Noxious Haze: Not occurring");
+                    sb.AppendLine("RimWorldAccess.StartingSite.Dlc.NoxiousHazeNone".Translate());
                 }
 
                 hasAnyInfo = true;
@@ -498,23 +501,23 @@ namespace RimWorldAccess
 
             if (tileData.Landmark != null)
             {
-                sb.AppendLine($"Landmark: {tileData.Landmark.name}");
+                sb.AppendLine("RimWorldAccess.StartingSite.Dlc.Landmark".Translate(tileData.Landmark.name));
                 hasAnyInfo = true;
             }
 
             if (tileData.Mutators != null && tileData.Mutators.Count > 0)
             {
-                sb.AppendLine($"Tile Mutators: {tileData.Mutators.Count}");
+                sb.AppendLine("RimWorldAccess.StartingSite.Dlc.TileMutators".Translate(tileData.Mutators.Count));
                 foreach (var mutator in tileData.Mutators)
                 {
-                    sb.AppendLine($"  - {mutator.label}");
+                    sb.AppendLine("RimWorldAccess.StartingSite.Dlc.MutatorBullet".Translate(mutator.label));
                 }
                 hasAnyInfo = true;
             }
 
             if (!hasAnyInfo)
             {
-                sb.AppendLine("No DLC features present at this tile.");
+                sb.AppendLine("RimWorldAccess.StartingSite.NoDlcFeatures".Translate());
             }
 
             return sb.ToString().TrimEnd();

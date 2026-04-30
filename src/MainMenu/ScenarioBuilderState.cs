@@ -184,8 +184,8 @@ namespace RimWorldAccess
             IsActive = true;
 
             // Announce the builder opening
-            string title = currentScenario?.name ?? "New Scenario";
-            TolkHelper.Speak($"Scenario Builder: {title}. Metadata section. Press Tab to switch to Parts. Alt+L to load, Alt+S to save, Alt+R to randomize, Alt+A to add part.");
+            string title = currentScenario?.name ?? (string)"RimWorldAccess.ScenarioBuilder.NewScenarioFallback".Translate();
+            TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.OpenInstructions".Translate(title));
         }
 
         /// <summary>
@@ -2474,7 +2474,7 @@ namespace RimWorldAccess
                     countField.SetValue(newItem, 1);
                     kindCounts.Add(newItem);
                     SetDirty();
-                    TolkHelper.Speak("Added new pawn kind entry.");
+                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.AddedPawnKindEntry".Translate());
                 }
             }
             else if (ModsConfig.BiotechActive && typeName == "ScenPart_ConfigPage_ConfigureStartingPawns_Xenotypes")
@@ -2491,7 +2491,7 @@ namespace RimWorldAccess
                     countField.SetValue(newItem, 1);
                     xenotypeCounts.Add(newItem);
                     SetDirty();
-                    TolkHelper.Speak("Added new xenotype entry.");
+                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.AddedXenotypeEntry".Translate());
                 }
             }
             else if (ModsConfig.AnomalyActive && typeName == "ScenPart_ConfigPage_ConfigureStartingPawns_Mutants")
@@ -2507,7 +2507,7 @@ namespace RimWorldAccess
                     // mutant field defaults to null which means "None"
                     mutantCounts.Add(newItem);
                     SetDirty();
-                    TolkHelper.Speak("Added new mutant entry.");
+                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.AddedMutantEntry".Translate());
                 }
             }
             else if (typeName == "ScenPart_PlanetLayer")
@@ -2548,7 +2548,7 @@ namespace RimWorldAccess
 
                     if (availableTag == null)
                     {
-                        TolkHelper.Speak("No available layer tags to connect to.");
+                        TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.NoLayerTagsAvailable".Translate());
                         return;
                     }
 
@@ -2558,7 +2558,7 @@ namespace RimWorldAccess
                     newTagField.SetValue(newItem, availableTag);
                     connections.Add(newItem);
                     SetDirty();
-                    TolkHelper.Speak($"Added connection to {availableTag}.");
+                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.AddedConnectionTo".Translate(availableTag));
                 }
             }
         }
@@ -2603,7 +2603,7 @@ namespace RimWorldAccess
             {
                 list.RemoveAt(listItemIndex);
                 SetDirty();
-                TolkHelper.Speak($"Removed {itemType}.");
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.RemovedItemType".Translate(itemType));
             }
         }
 
@@ -2618,7 +2618,7 @@ namespace RimWorldAccess
         {
             if (IsEditingText)
             {
-                TolkHelper.Speak("Press Enter to confirm or Escape to cancel editing first");
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.ConfirmOrCancelEditingFirst".Translate());
                 return;
             }
 
@@ -2628,14 +2628,14 @@ namespace RimWorldAccess
                 partsTreeNav.SetSelectedIndex(0);
                 partsTreeNav.Typeahead.ClearSearch();
                 MenuHelper.ResetLevel("ScenarioBuilderParts");
-                TolkHelper.Speak("Parts section");
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartsSection".Translate());
                 AnnounceCurrentTreeItem();
             }
             else
             {
                 currentSection = Section.Metadata;
                 metadataIndex = 0;
-                TolkHelper.Speak("Metadata section");
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.MetadataSection".Translate());
                 AnnounceCurrentMetadataField();
             }
         }
@@ -2798,12 +2798,12 @@ namespace RimWorldAccess
                 case 2: currentScenario.description = newValue; break;
             }
             isDirty = true;
-            TolkHelper.Speak($"{editingFieldName} set to: {(string.IsNullOrEmpty(newValue) ? "empty" : newValue)}");
+            TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.FieldSetTo".Translate(editingFieldName, string.IsNullOrEmpty(newValue) ? (string)"RimWorldAccess.ScenarioBuilder.FieldEmptyValue".Translate() : newValue));
         }
 
         private static void OnMetadataCancel()
         {
-            TolkHelper.Speak($"Cancelled. {editingFieldName} unchanged.");
+            TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.FieldEditCancelled".Translate(editingFieldName));
         }
 
         #endregion
@@ -2817,7 +2817,7 @@ namespace RimWorldAccess
         {
             if (partsTreeNav.Count == 0)
             {
-                TolkHelper.Speak("No scenario parts. Press Alt+A to add a part.");
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.NoParts".Translate());
                 return;
             }
 
@@ -2831,7 +2831,7 @@ namespace RimWorldAccess
         {
             if (partsTreeNav.Count == 0)
             {
-                TolkHelper.Speak("No scenario parts. Press Alt+A to add a part.");
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.NoParts".Translate());
                 return;
             }
 
@@ -2912,7 +2912,7 @@ namespace RimWorldAccess
             else if (data.IsPart && !selected.IsExpandable)
             {
                 // Part has no editable fields - provide feedback
-                TolkHelper.Speak("This part has no editable fields. Press Delete to remove it.");
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartHasNoFields".Translate());
             }
         }
 
@@ -3014,7 +3014,7 @@ namespace RimWorldAccess
         {
             if (partsTreeNav.Count == 0)
             {
-                TolkHelper.Speak("No scenario parts. Press Alt+A to add a part.");
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.NoParts".Translate());
                 return;
             }
 
@@ -3167,7 +3167,7 @@ namespace RimWorldAccess
             var selected = partsTreeNav.SelectedItem;
             if (selected == null)
             {
-                TolkHelper.Speak("No item selected.");
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.NoItemSelected".Translate());
                 return;
             }
 
@@ -3181,7 +3181,7 @@ namespace RimWorldAccess
                 {
                     if (string.IsNullOrEmpty(fullText))
                     {
-                        TolkHelper.Speak("Field is empty.");
+                        TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.FieldEmpty".Translate());
                     }
                     else
                     {
@@ -3192,7 +3192,7 @@ namespace RimWorldAccess
             }
 
             // Not a text field
-            TolkHelper.Speak("Not a text field.");
+            TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.NotATextField".Translate());
         }
 
         /// <summary>
@@ -3262,7 +3262,7 @@ namespace RimWorldAccess
             // Handle "Add New Item" action - can't delete this
             if (data.IsAddAction)
             {
-                TolkHelper.Speak("Cannot delete the add action.");
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.CannotDeleteAddAction".Translate());
                 return;
             }
 
@@ -3275,7 +3275,7 @@ namespace RimWorldAccess
             // Check if part can be removed
             if (!part.def.PlayerAddRemovable)
             {
-                TolkHelper.Speak("This part cannot be removed.");
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartCannotBeRemoved".Translate());
                 return;
             }
 
@@ -3288,7 +3288,7 @@ namespace RimWorldAccess
             BuildPartsTree();
             RebuildPartsInspectionTree();
 
-            TolkHelper.Speak($"Removed {label}.");
+            TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.RemovedLabel".Translate(label));
             AnnounceCurrentTreeItem();
         }
 
@@ -3316,7 +3316,7 @@ namespace RimWorldAccess
 
             if (!currentScenario.CanReorder(part, ReorderDirection.Up))
             {
-                TolkHelper.Speak($"Cannot move {partName} up.");
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.CannotMoveUp".Translate(partName));
                 return;
             }
 
@@ -3345,11 +3345,11 @@ namespace RimWorldAccess
                 if (!atBottom && partsHierarchy.Count > 1)
                 {
                     string belowName = GetPartDisplayName(partsHierarchy[newHierarchyIndex + 1]);
-                    TolkHelper.Speak($"Moved {partName} to top, above {belowName}.");
+                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.MovedToTopAbove".Translate(partName, belowName));
                 }
                 else
                 {
-                    TolkHelper.Speak($"Moved {partName} to top of list.");
+                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.MovedToTopOfList".Translate(partName));
                 }
             }
             else
@@ -3358,11 +3358,11 @@ namespace RimWorldAccess
                 if (!atBottom)
                 {
                     string belowName = GetPartDisplayName(partsHierarchy[newHierarchyIndex + 1]);
-                    TolkHelper.Speak($"Moved {partName} up, now between {aboveName} and {belowName}.");
+                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.MovedUpBetween".Translate(partName, aboveName, belowName));
                 }
                 else
                 {
-                    TolkHelper.Speak($"Moved {partName} up, now below {aboveName}.");
+                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.MovedUpBelow".Translate(partName, aboveName));
                 }
             }
         }
@@ -3391,7 +3391,7 @@ namespace RimWorldAccess
 
             if (!currentScenario.CanReorder(part, ReorderDirection.Down))
             {
-                TolkHelper.Speak($"Cannot move {partName} down.");
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.CannotMoveDown".Translate(partName));
                 return;
             }
 
@@ -3420,11 +3420,11 @@ namespace RimWorldAccess
                 if (!atTop && partsHierarchy.Count > 1)
                 {
                     string aboveName = GetPartDisplayName(partsHierarchy[newHierarchyIndex - 1]);
-                    TolkHelper.Speak($"Moved {partName} to bottom, below {aboveName}.");
+                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.MovedToBottomBelow".Translate(partName, aboveName));
                 }
                 else
                 {
-                    TolkHelper.Speak($"Moved {partName} to bottom of list.");
+                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.MovedToBottomOfList".Translate(partName));
                 }
             }
             else
@@ -3433,11 +3433,11 @@ namespace RimWorldAccess
                 if (!atTop)
                 {
                     string aboveName = GetPartDisplayName(partsHierarchy[newHierarchyIndex - 1]);
-                    TolkHelper.Speak($"Moved {partName} down, now between {aboveName} and {belowName}.");
+                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.MovedDownBetween".Translate(partName, aboveName, belowName));
                 }
                 else
                 {
-                    TolkHelper.Speak($"Moved {partName} down, now above {belowName}.");
+                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.MovedDownAbove".Translate(partName, belowName));
                 }
             }
         }
@@ -3605,7 +3605,7 @@ namespace RimWorldAccess
 
                     currentSection = Section.Parts;
 
-                    TolkHelper.Speak($"Added {selectedDef.LabelCap}. Press Enter to edit.");
+                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.AddedPressEnterToEdit".Translate(selectedDef.LabelCap));
                 }
             });
         }
@@ -3631,7 +3631,7 @@ namespace RimWorldAccess
                     metadataIndex = 0;
                     partsTreeNav.SetSelectedIndex(0);
 
-                    TolkHelper.Speak($"Loaded scenario: {loadedScenario.name}");
+                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.LoadedScenario".Translate(loadedScenario.name));
                 }
             });
         }
@@ -3646,7 +3646,7 @@ namespace RimWorldAccess
             WindowlessScenarioSaveState.Open(currentScenario, () =>
             {
                 isDirty = false;
-                TolkHelper.Speak("Scenario saved.");
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.ScenarioSaved".Translate());
             });
         }
 
@@ -3670,7 +3670,7 @@ namespace RimWorldAccess
                 RebuildPartsInspectionTree();
                 partsTreeNav.SetSelectedIndex(0);
 
-                TolkHelper.Speak($"Randomized. New scenario: {currentScenario?.name ?? "New Scenario"}");
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.RandomizedNew".Translate(currentScenario?.name ?? (string)"RimWorldAccess.ScenarioBuilder.NewScenarioFallback".Translate()));
             }
         }
 

@@ -89,7 +89,7 @@ namespace RimWorldAccess
                     if (threshold > lastAnnouncedThreshold)
                     {
                         lastAnnouncedThreshold = threshold;
-                        string message = "LoadingAssets".Translate() + " " + threshold + "%";
+                        string message = "RimWorldAccess.Loading.AssetsPercent".Translate("LoadingAssets".Translate(), threshold);
                         TolkHelper.Speak(message, SpeechPriority.Normal);
                     }
                 }
@@ -136,7 +136,7 @@ namespace RimWorldAccess
                     if (tips != null && currentIndex >= 0 && currentIndex < tips.Count)
                     {
                         string tip = tips[currentIndex];
-                        TolkHelper.Speak($"Tip: {tip}", SpeechPriority.Normal);
+                        TolkHelper.Speak("RimWorldAccess.Loading.Tip".Translate(tip), SpeechPriority.Normal);
                     }
                 }
             }
