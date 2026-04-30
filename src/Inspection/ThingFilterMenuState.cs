@@ -1,63 +1,58 @@
-using System.Collections.Generic;
 using System.Linq;
 using Verse;
-using Verse.Sound;
 using RimWorld;
-using UnityEngine;
 
 namespace RimWorldAccess
 {
     /// <summary>
-    /// Reusable windowless menu for thing filtering.
-    /// Used by both BillConfigState (ingredient filters) and StorageSettingsMenuState.
+    /// Reusable windowless menu for thing filtering. Used by BillConfigState
+    /// (ingredient filters), pen markers (animal / auto-cut filters), and the
+    /// shells tab. Built on TreeNavigationHelper so it shares sounds, search
+    /// auto-expansion, submenu mode, and level announcements with every other
+    /// modern treeview in the mod.
     /// </summary>
     public static class ThingFilterMenuState
     {
-        private static List<MenuItem> menuItems = null;
-        private static int selectedIndex = 0;
-        private static bool isActive = false;
-        private static ThingFilter currentFilter = null;
-        private static ThingFilter parentFilter = null;  // Defines what's possible (tree structure)
-        private static HashSet<string> expandedCategories = new HashSet<string>();
-        private static string menuTitle = "";
-        private static bool forceHideHitPoints = false;
-        private static bool forceHideQuality = false;
-        private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
-
-        private enum MenuItemType
+        private enum NodeType
         {
             ClearAll,
             AllowAll,
-            Category,
-            ThingDef,
-            SpecialFilter,
             HitPointsRange,
-            QualityRange
+            QualityRange,
+            SpecialFilter,
+            Category,
+            ThingDef
         }
 
-        private class MenuItem
+        private class FilterNodeData
         {
-            public MenuItemType type;
-            public string label;
-            public object data; // Can be TreeNode_ThingCategory, ThingDef, SpecialThingFilterDef
-            public int indentLevel;
-            public bool isExpanded;
-            public bool isAllowed; // Current state
-            public MenuItem parent;
-
-            public MenuItem(MenuItemType type, string label, object data, int indent = 0)
-            {
-                this.type = type;
-                this.label = label;
-                this.data = data;
-                this.indentLevel = indent;
-                this.isExpanded = false;
-                this.isAllowed = false;
-                this.parent = null;
-            }
+            public NodeType Type;
+            public bool IsChecked;
+            public object Reference;
         }
+
+        private static bool isActive = false;
+        private static ThingFilter currentFilter = null;
+        private static ThingFilter parentFilter = null;
+        private static string menuTitle = "";
+        private static bool forceHideHitPoints = false;
+        private static bool forceHideQuality = false;
+
+        private static TreeNavigationHelper treeNav = new TreeNavigationHelper("ThingFilterMenu");
 
         public static bool IsActive => isActive;
+        public static bool HasActiveSearch => treeNav.HasActiveSearch;
+        public static bool HasNoMatches => treeNav.HasNoMatches;
+
+        static ThingFilterMenuState()
+        {
+            treeNav.FormatItemAnnouncement = FormatItemAnnouncement;
+            treeNav.FormatSearchAnnouncement = FormatSearchAnnouncement;
+            treeNav.OnActivate = HandleActivate;
+            treeNav.AnnounceChildCounts = false;
+            treeNav.ShouldExpandForSearch = item =>
+                (item.Data as FilterNodeData)?.Type == NodeType.Category;
+        }
 
         /// <summary>
         /// Opens the thing filter menu.
@@ -79,804 +74,504 @@ namespace RimWorldAccess
             menuTitle = title;
             forceHideHitPoints = forceHideHitPointsConfig;
             forceHideQuality = forceHideQualityConfig;
-            menuItems = new List<MenuItem>();
-            selectedIndex = 0;
             isActive = true;
-            MenuHelper.ResetLevel("ThingFilterMenu");
 
-            BuildMenuItems();
-            AnnounceCurrentSelection();
+            var treeRoot = BuildTree();
+            treeNav.Initialize(treeRoot);
+            treeNav.ReannounceCurrentItem();
 
             Log.Message($"Opened thing filter menu: {title}");
         }
 
-        /// <summary>
-        /// Closes the thing filter menu.
-        /// </summary>
         public static void Close()
         {
-            menuItems = null;
-            selectedIndex = 0;
             isActive = false;
             currentFilter = null;
             parentFilter = null;
-            expandedCategories.Clear();
-            MenuHelper.ResetLevel("ThingFilterMenu");
-            typeahead.ClearSearch();
+            treeNav.Reset();
         }
 
-        private static void BuildMenuItems()
+        // ===== Tree construction =====
+
+        private static InspectionTreeItem BuildTree()
         {
-            menuItems.Clear();
+            var root = new InspectionTreeItem
+            {
+                Label = "Root",
+                IndentLevel = -1,
+                IsExpanded = true,
+                IsExpandable = false
+            };
 
             // Quick actions
-            menuItems.Add(new MenuItem(MenuItemType.ClearAll, "ClearAll".Translate(), null));
-            menuItems.Add(new MenuItem(MenuItemType.AllowAll, "AllowAll".Translate(), null));
+            root.Children.Add(new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.Item,
+                Label = "ClearAll".Translate(),
+                IndentLevel = 0,
+                IsExpandable = false,
+                Parent = root,
+                Data = new FilterNodeData { Type = NodeType.ClearAll }
+            });
+            root.Children.Add(new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.Item,
+                Label = "AllowAll".Translate(),
+                IndentLevel = 0,
+                IsExpandable = false,
+                Parent = root,
+                Data = new FilterNodeData { Type = NodeType.AllowAll }
+            });
 
-            // Hit points range (use parent filter's configurability if available)
-            bool hpConfigurable = parentFilter?.allowedHitPointsConfigurable ?? currentFilter.allowedHitPointsConfigurable;
+            // Match vanilla ThingFilterUI: touching DisplayRootCategory triggers
+            // RecalculateDisplayRootCategory(), which is what populates
+            // allowedHitPointsConfigurable / allowedQualitiesConfigurable on the
+            // parent filter. Read the flags only after that has run.
+            TreeNode_ThingCategory rootNode = parentFilter?.DisplayRootCategory
+                ?? currentFilter.DisplayRootCategory;
+            bool hpConfigurable = parentFilter?.allowedHitPointsConfigurable ?? true;
+            bool qualityConfigurable = parentFilter?.allowedQualitiesConfigurable ?? true;
+
             if (hpConfigurable && !forceHideHitPoints)
             {
-                FloatRange hpRange = currentFilter.AllowedHitPointsPercents;
-                string hpLabel = $"{"HitPointsBasic".Translate().CapitalizeFirst()}: {hpRange.min:P0} - {hpRange.max:P0}";
-                menuItems.Add(new MenuItem(MenuItemType.HitPointsRange, hpLabel, hpRange));
+                root.Children.Add(new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = "HitPointsBasic".Translate().CapitalizeFirst(),
+                    IndentLevel = 0,
+                    IsExpandable = false,
+                    Parent = root,
+                    Data = new FilterNodeData { Type = NodeType.HitPointsRange }
+                });
             }
 
-            // Quality range (use parent filter's configurability if available)
-            bool qualityConfigurable = parentFilter?.allowedQualitiesConfigurable ?? currentFilter.allowedQualitiesConfigurable;
             if (qualityConfigurable && !forceHideQuality)
             {
-                QualityRange qualityRange = currentFilter.AllowedQualityLevels;
-                string qualityLabel = $"{"Quality".Translate()}: {qualityRange.min.GetLabel()} - {qualityRange.max.GetLabel()}";
-                menuItems.Add(new MenuItem(MenuItemType.QualityRange, qualityLabel, qualityRange));
+                root.Children.Add(new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = "Quality".Translate(),
+                    IndentLevel = 0,
+                    IsExpandable = false,
+                    Parent = root,
+                    Data = new FilterNodeData { Type = NodeType.QualityRange }
+                });
+            }
+            if (rootNode != null)
+            {
+                AddCategoryChildren(rootNode, root, 0, isRoot: true);
             }
 
-            // Thing filter tree - use parent filter's tree structure if available
-            TreeNode_ThingCategory rootNode = parentFilter?.DisplayRootCategory ?? currentFilter.DisplayRootCategory;
-            BuildCategoryItems(rootNode, 0, null, isRoot: true);
+            return root;
         }
 
-        private static void BuildCategoryItems(TreeNode_ThingCategory node, int indent, MenuItem parentItem, bool isRoot = false)
+        private static void AddCategoryChildren(TreeNode_ThingCategory node, InspectionTreeItem parent,
+            int indentLevel, bool isRoot = false)
         {
-            if (node == null)
-                return;
-
-            // Add parent special filters at root level (e.g., AllowRotten, AllowFresh from Root category)
+            // Parent special filters surface only at the root (e.g. AllowRotten / AllowFresh).
             if (isRoot)
             {
-                foreach (SpecialThingFilterDef specialFilter in node.catDef.ParentsSpecialThingFilterDefs)
+                foreach (var specialFilter in node.catDef.ParentsSpecialThingFilterDefs)
                 {
-                    if (specialFilter.configurable && IsVisibleSpecialFilter(specialFilter))
+                    if (specialFilter.configurable
+                        && ThingFilterHelper.IsVisibleSpecialFilter(specialFilter, node, currentFilter, parentFilter))
                     {
-                        MenuItem item = new MenuItem(MenuItemType.SpecialFilter, specialFilter.LabelCap, specialFilter, indent);
-                        item.isAllowed = currentFilter.Allows(specialFilter);
-                        item.parent = parentItem;
-                        menuItems.Add(item);
+                        parent.Children.Add(new InspectionTreeItem
+                        {
+                            Type = InspectionTreeItem.ItemType.Item,
+                            Label = specialFilter.LabelCap,
+                            Description = specialFilter.description,
+                            IndentLevel = indentLevel,
+                            IsExpandable = false,
+                            Parent = parent,
+                            Data = new FilterNodeData
+                            {
+                                Type = NodeType.SpecialFilter,
+                                IsChecked = currentFilter.Allows(specialFilter),
+                                Reference = specialFilter
+                            }
+                        });
                     }
                 }
             }
 
-            // Add special filters for this category
-            foreach (SpecialThingFilterDef specialFilter in node.catDef.childSpecialFilters)
+            // Special filters scoped to this category
+            foreach (var specialFilter in node.catDef.childSpecialFilters)
             {
-                if (specialFilter.configurable && IsVisibleSpecialFilter(specialFilter))
+                if (specialFilter.configurable
+                    && ThingFilterHelper.IsVisibleSpecialFilter(specialFilter, node, currentFilter, parentFilter))
                 {
-                    MenuItem item = new MenuItem(MenuItemType.SpecialFilter, specialFilter.LabelCap, specialFilter, indent);
-                    item.isAllowed = currentFilter.Allows(specialFilter);
-                    item.parent = parentItem;
-                    menuItems.Add(item);
+                    parent.Children.Add(new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.Item,
+                        Label = specialFilter.LabelCap,
+                        Description = specialFilter.description,
+                        IndentLevel = indentLevel,
+                        IsExpandable = false,
+                        Parent = parent,
+                        Data = new FilterNodeData
+                        {
+                            Type = NodeType.SpecialFilter,
+                            IsChecked = currentFilter.Allows(specialFilter),
+                            Reference = specialFilter
+                        }
+                    });
                 }
             }
 
-            // Add child categories
-            foreach (TreeNode_ThingCategory childNode in node.ChildCategoryNodes)
+            // Child categories — recurse fully so TreeNavigationHelper drives
+            // expand/collapse natively. Default IsExpanded = false matches vanilla.
+            foreach (var childCategory in node.ChildCategoryNodes)
             {
-                if (!IsVisibleCategory(childNode))
+                if (!ThingFilterHelper.IsVisibleCategory(childCategory, parentFilter))
                     continue;
 
-                MenuItem catItem = new MenuItem(MenuItemType.Category, childNode.LabelCap, childNode, indent);
-                catItem.isAllowed = IsCategoryAllowed(childNode);
-                catItem.parent = parentItem;
+                var allowanceState = ThingFilterHelper.GetAllowanceState(
+                    childCategory.catDef, currentFilter,
+                    td => ThingFilterHelper.IsVisible(td, parentFilter));
+                bool isChecked = allowanceState != ThingFilterHelper.CategoryAllowanceState.NoneAllowed;
 
-                // Check if this category should be expanded
-                string categoryKey = childNode.catDef.defName;
-                catItem.isExpanded = expandedCategories.Contains(categoryKey);
-
-                menuItems.Add(catItem);
-
-                // If expanded, add children
-                if (catItem.isExpanded)
+                var catItem = new InspectionTreeItem
                 {
-                    BuildCategoryItems(childNode, indent + 1, catItem, isRoot: false);
-                }
+                    Type = InspectionTreeItem.ItemType.Category,
+                    Label = childCategory.LabelCap,
+                    Description = childCategory.catDef.description,
+                    IndentLevel = indentLevel,
+                    IsExpandable = true,
+                    IsExpanded = false,
+                    Parent = parent,
+                    Data = new FilterNodeData
+                    {
+                        Type = NodeType.Category,
+                        IsChecked = isChecked,
+                        Reference = childCategory
+                    }
+                };
+                parent.Children.Add(catItem);
+
+                AddCategoryChildren(childCategory, catItem, indentLevel + 1);
             }
 
-            // Add thing defs in this category
-            foreach (ThingDef thingDef in node.catDef.childThingDefs)
+            // Thing defs in this category
+            foreach (var thingDef in node.catDef.childThingDefs.OrderBy(t => t.label))
             {
-                if (IsVisible(thingDef) && !Find.HiddenItemsManager.Hidden(thingDef))
+                if (ThingFilterHelper.IsVisible(thingDef, parentFilter))
                 {
-                    MenuItem item = new MenuItem(MenuItemType.ThingDef, thingDef.LabelCap, thingDef, indent);
-                    item.isAllowed = currentFilter.Allows(thingDef);
-                    item.parent = parentItem;
-                    menuItems.Add(item);
+                    parent.Children.Add(new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.Item,
+                        Label = thingDef.LabelCap,
+                        Description = thingDef.DescriptionDetailed,
+                        IndentLevel = indentLevel,
+                        IsExpandable = false,
+                        Parent = parent,
+                        LinkedDef = thingDef,
+                        Data = new FilterNodeData
+                        {
+                            Type = NodeType.ThingDef,
+                            IsChecked = currentFilter.Allows(thingDef),
+                            Reference = thingDef
+                        }
+                    });
                 }
             }
         }
 
         /// <summary>
-        /// Checks if a ThingDef should be visible in the filter tree.
-        /// Mirrors Listing_TreeThingFilter.Visible(ThingDef).
+        /// Walks the existing tree and refreshes IsChecked on every leaf and
+        /// category node. Used after any filter change so the cursor stays put —
+        /// no structural rebuild.
         /// </summary>
-        private static bool IsVisible(ThingDef td)
+        private static void RefreshAllowanceStates()
         {
-            if (!td.PlayerAcquirable)
-                return false;
-            if (td.virtualDefParent != null)
-                return false;
-            if (parentFilter != null)
-            {
-                if (!parentFilter.Allows(td))
-                    return false;
-                if (parentFilter.IsAlwaysDisallowedDueToSpecialFilters(td))
-                    return false;
-            }
-            return true;
+            if (treeNav.RootItem == null) return;
+            RefreshAllowanceStatesRecursive(treeNav.RootItem);
         }
 
-        /// <summary>
-        /// Checks if a category node has any visible descendant ThingDefs.
-        /// Mirrors Listing_TreeThingFilter.Visible(TreeNode_ThingCategory).
-        /// </summary>
-        private static bool IsVisibleCategory(TreeNode_ThingCategory node)
+        private static void RefreshAllowanceStatesRecursive(InspectionTreeItem node)
         {
-            return node.catDef.DescendantThingDefs.Any(td => IsVisible(td));
-        }
-
-        /// <summary>
-        /// Checks if a special filter should be visible.
-        /// Mirrors Listing_TreeThingFilter.Visible(SpecialThingFilterDef) — hidden when
-        /// no visible ThingDef in the scope can ever be matched by the filter's worker
-        /// (e.g. "Allow rotten" on an ammunition filter has no rottable shells to apply to).
-        /// </summary>
-        private static bool IsVisibleSpecialFilter(SpecialThingFilterDef f)
-        {
-            if (parentFilter != null && !parentFilter.Allows(f))
-                return false;
-
-            TreeNode_ThingCategory root = parentFilter?.DisplayRootCategory ?? currentFilter.DisplayRootCategory;
-            if (root == null || f.Worker == null)
-                return true;
-
-            foreach (ThingDef td in root.catDef.DescendantThingDefs)
+            var data = node.Data as FilterNodeData;
+            if (data != null)
             {
-                if (!IsVisible(td)) continue;
-                if (f.Worker.CanEverMatch(td)) return true;
-            }
-            return false;
-        }
-
-        private static bool IsCategoryAllowed(TreeNode_ThingCategory node)
-        {
-            foreach (ThingDef thingDef in node.catDef.DescendantThingDefs)
-            {
-                if (IsVisible(thingDef) && currentFilter.Allows(thingDef))
+                switch (data.Type)
                 {
-                    return true;
+                    case NodeType.SpecialFilter:
+                        if (data.Reference is SpecialThingFilterDef sf)
+                            data.IsChecked = currentFilter.Allows(sf);
+                        break;
+                    case NodeType.ThingDef:
+                        if (data.Reference is ThingDef td)
+                            data.IsChecked = currentFilter.Allows(td);
+                        break;
+                    case NodeType.Category:
+                        if (data.Reference is TreeNode_ThingCategory cat)
+                        {
+                            var state = ThingFilterHelper.GetAllowanceState(
+                                cat.catDef, currentFilter,
+                                t => ThingFilterHelper.IsVisible(t, parentFilter));
+                            data.IsChecked = state != ThingFilterHelper.CategoryAllowanceState.NoneAllowed;
+                        }
+                        break;
                 }
             }
-            return false;
+
+            foreach (var child in node.Children)
+                RefreshAllowanceStatesRecursive(child);
         }
 
-        public static void SelectNext()
-        {
-            if (menuItems == null || menuItems.Count == 0)
-                return;
+        // ===== Public navigation API =====
 
-            selectedIndex = MenuHelper.SelectNext(selectedIndex, menuItems.Count);
-            AnnounceCurrentSelection();
-        }
+        public static void SelectNext() => treeNav.SelectNext();
+        public static void SelectPrevious() => treeNav.SelectPrevious();
+        public static void JumpToFirst(bool ctrlPressed = false) => treeNav.JumpToFirst(ctrlPressed);
+        public static void JumpToLast(bool ctrlPressed = false) => treeNav.JumpToLast(ctrlPressed);
+        public static void ExpandAllSiblings() => treeNav.ExpandAllSiblings();
 
-        public static void SelectPrevious()
-        {
-            if (menuItems == null || menuItems.Count == 0)
-                return;
-
-            selectedIndex = MenuHelper.SelectPrevious(selectedIndex, menuItems.Count);
-            AnnounceCurrentSelection();
-        }
-
+        /// <summary>
+        /// Right arrow handler. Expand category / drill into expanded category
+        /// via TreeNavigationHelper — leaves are rejected with the standard sound.
+        /// </summary>
         public static void ExpandOrToggleOn()
         {
-            if (menuItems == null || selectedIndex >= menuItems.Count)
-                return;
-
-            MenuItem item = menuItems[selectedIndex];
-
-            switch (item.type)
-            {
-                case MenuItemType.Category:
-                    // WCAG Right arrow: collapsed -> expand (focus stays); expanded -> move to first child
-                    if (!item.isExpanded)
-                    {
-                        // Collapsed: expand it, focus stays on current item
-                        TreeNode_ThingCategory node = item.data as TreeNode_ThingCategory;
-                        if (node != null)
-                        {
-                            expandedCategories.Add(node.catDef.defName);
-                            RebuildMenu();
-                            SoundDefOf.TabOpen.PlayOneShotOnCamera();
-                            AnnounceCurrentSelection();
-                        }
-                    }
-                    else
-                    {
-                        // Already expanded: move to first child if it has children
-                        if (!MoveToFirstChild())
-                        {
-                            // No children, play reject sound
-                            SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                        }
-                    }
-                    break;
-
-                case MenuItemType.ThingDef:
-                case MenuItemType.SpecialFilter:
-                    // End node: play reject sound (no children to expand into)
-                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    break;
-
-                case MenuItemType.HitPointsRange:
-                case MenuItemType.QualityRange:
-                    TolkHelper.Speak("Press Enter to edit range");
-                    break;
-
-                case MenuItemType.ClearAll:
-                    ClearAllItems();
-                    break;
-
-                case MenuItemType.AllowAll:
-                    AllowAllItems();
-                    break;
-            }
-        }
-
-        public static void CollapseOrToggleOff()
-        {
-            if (menuItems == null || selectedIndex >= menuItems.Count)
-                return;
-
-            MenuItem item = menuItems[selectedIndex];
-
-            switch (item.type)
-            {
-                case MenuItemType.Category:
-                    // WCAG Left arrow: expanded -> collapse (focus stays); collapsed -> move to parent
-                    if (item.isExpanded)
-                    {
-                        // Expanded: collapse it, focus stays on current item
-                        TreeNode_ThingCategory node = item.data as TreeNode_ThingCategory;
-                        if (node != null)
-                        {
-                            expandedCategories.Remove(node.catDef.defName);
-                            RebuildMenu();
-                            SoundDefOf.TabClose.PlayOneShotOnCamera();
-                            AnnounceCurrentSelection();
-                        }
-                    }
-                    else
-                    {
-                        // Collapsed: move to parent without collapsing
-                        MoveToParent();
-                    }
-                    break;
-
-                case MenuItemType.ThingDef:
-                case MenuItemType.SpecialFilter:
-                    // End node: move to parent
-                    MoveToParent();
-                    break;
-
-                case MenuItemType.HitPointsRange:
-                case MenuItemType.QualityRange:
-                    TolkHelper.Speak("Press Enter to edit range");
-                    break;
-            }
+            if (treeNav.SelectedItem == null) return;
+            treeNav.ExpandOrDrillDown();
         }
 
         /// <summary>
-        /// Expands all sibling categories at the same level as the current item.
-        /// WCAG tree view pattern: * key expands all siblings.
+        /// Left arrow handler. Collapse category if expanded; drill up to parent
+        /// otherwise. TreeNavigationHelper handles the standard sound and submenu
+        /// mode behavior.
         /// </summary>
-        public static void ExpandAllSiblings()
+        public static void CollapseOrToggleOff()
         {
-            if (menuItems == null || selectedIndex < 0 || selectedIndex >= menuItems.Count)
-                return;
-
-            MenuItem currentItem = menuItems[selectedIndex];
-            int currentIndent = currentItem.indentLevel;
-            MenuItem currentParent = currentItem.parent;
-
-            int expandedCount = 0;
-            foreach (var item in menuItems)
-            {
-                if (item.indentLevel == currentIndent && item.parent == currentParent
-                    && item.type == MenuItemType.Category && !item.isExpanded)
-                {
-                    TreeNode_ThingCategory node = item.data as TreeNode_ThingCategory;
-                    if (node != null)
-                    {
-                        expandedCategories.Add(node.catDef.defName);
-                        expandedCount++;
-                    }
-                }
-            }
-
-            if (expandedCount > 0)
-            {
-                RebuildMenu();
-                typeahead.ClearSearch();
-                EmbeddedAudioHelper.PlaySoundDefWithReverb(SoundDefOf.FloatMenu_Open);
-                if (expandedCount == 1)
-                    TolkHelper.Speak("Expanded 1 category");
-                else
-                    TolkHelper.Speak($"Expanded {expandedCount} categories");
-            }
-            else
-            {
-                bool hasAnySiblingCategories = false;
-                foreach (var item in menuItems)
-                {
-                    if (item.indentLevel == currentIndent && item.parent == currentParent
-                        && item.type == MenuItemType.Category)
-                    {
-                        hasAnySiblingCategories = true;
-                        break;
-                    }
-                }
-
-                if (hasAnySiblingCategories)
-                    TolkHelper.Speak("All categories already expanded at this level");
-                else
-                    TolkHelper.Speak("No categories to expand at this level");
-            }
+            if (treeNav.SelectedItem == null) return;
+            treeNav.CollapseOrDrillUp();
         }
 
         public static void ToggleCurrent()
         {
-            if (menuItems == null || selectedIndex >= menuItems.Count)
-                return;
+            if (treeNav.SelectedItem == null) return;
+            var item = treeNav.SelectedItem;
+            var data = item.Data as FilterNodeData;
+            if (data == null) return;
 
-            MenuItem item = menuItems[selectedIndex];
+            // Commit on activation: clear any active typeahead and restore the
+            // pre-search expansion snapshot. Matches the expand/collapse behavior,
+            // so a subsequent Down arrow walks the full list rather than only matches.
+            treeNav.CommitAndClearSearch();
 
-            switch (item.type)
+            switch (data.Type)
             {
-                case MenuItemType.Category:
-                    ToggleCategory(item);
+                case NodeType.ClearAll:
+                    currentFilter.SetDisallowAll();
+                    RefreshAllowanceStates();
+                    TolkHelper.Speak("ClearAll".Translate());
                     break;
 
-                case MenuItemType.ThingDef:
-                case MenuItemType.SpecialFilter:
-                    ToggleItem(item, !item.isAllowed);
+                case NodeType.AllowAll:
+                    currentFilter.SetAllowAll(parentFilter);
+                    RefreshAllowanceStates();
+                    TolkHelper.Speak("AllowAll".Translate());
                     break;
 
-                case MenuItemType.HitPointsRange:
-                    // Open range edit submenu
+                case NodeType.HitPointsRange:
                     RangeEditMenuState.OpenHitPointsRange(currentFilter.AllowedHitPointsPercents);
                     break;
 
-                case MenuItemType.QualityRange:
-                    // Open range edit submenu
+                case NodeType.QualityRange:
                     RangeEditMenuState.OpenQualityRange(currentFilter.AllowedQualityLevels);
                     break;
 
-                case MenuItemType.ClearAll:
-                    ClearAllItems();
+                case NodeType.SpecialFilter:
+                    if (data.Reference is SpecialThingFilterDef sf)
+                    {
+                        bool desired = !currentFilter.Allows(sf);
+                        currentFilter.SetAllow(sf, desired);
+                        data.IsChecked = currentFilter.Allows(sf);
+                        TolkHelper.Speak($"{item.Label}: {(data.IsChecked ? "Allowed" : "Disallowed")}");
+                    }
                     break;
 
-                case MenuItemType.AllowAll:
-                    AllowAllItems();
+                case NodeType.Category:
+                    if (data.Reference is TreeNode_ThingCategory catNode)
+                    {
+                        var state = ThingFilterHelper.GetAllowanceState(
+                            catNode.catDef, currentFilter,
+                            x => ThingFilterHelper.IsVisible(x, parentFilter));
+                        bool desiredCat = state != ThingFilterHelper.CategoryAllowanceState.AllAllowed;
+                        currentFilter.SetAllow(catNode.catDef, desiredCat);
+                        RefreshAllowanceStates();
+                        var actualState = ThingFilterHelper.GetAllowanceState(
+                            catNode.catDef, currentFilter,
+                            x => ThingFilterHelper.IsVisible(x, parentFilter));
+                        string result = actualState == ThingFilterHelper.CategoryAllowanceState.NoneAllowed
+                            ? "Disallowed"
+                            : "Allowed";
+                        TolkHelper.Speak($"{item.Label}: {result}");
+                    }
+                    break;
+
+                case NodeType.ThingDef:
+                    if (data.Reference is ThingDef td)
+                    {
+                        bool desiredThing = !currentFilter.Allows(td);
+                        currentFilter.SetAllow(td, desiredThing);
+                        data.IsChecked = currentFilter.Allows(td);
+                        TolkHelper.Speak($"{item.Label}: {(data.IsChecked ? "Allowed" : "Disallowed")}");
+                    }
                     break;
             }
         }
 
-        /// <summary>
-        /// Applies range changes from the range edit submenu.
-        /// </summary>
         public static void ApplyRangeChanges(FloatRange hitPoints, QualityRange quality)
         {
-            if (menuItems == null || selectedIndex >= menuItems.Count)
-                return;
+            if (treeNav.SelectedItem == null) return;
+            var data = treeNav.SelectedItem.Data as FilterNodeData;
+            if (data == null) return;
 
-            MenuItem item = menuItems[selectedIndex];
-
-            if (item.type == MenuItemType.HitPointsRange)
+            if (data.Type == NodeType.HitPointsRange)
             {
                 currentFilter.AllowedHitPointsPercents = hitPoints;
-                item.label = $"{"HitPointsBasic".Translate().CapitalizeFirst()}: {hitPoints.min:P0} - {hitPoints.max:P0}";
-                item.data = hitPoints;
-                TolkHelper.Speak(item.label);
+                treeNav.ReannounceCurrentItem();
             }
-            else if (item.type == MenuItemType.QualityRange)
+            else if (data.Type == NodeType.QualityRange)
             {
                 currentFilter.AllowedQualityLevels = quality;
-                item.label = $"{"Quality".Translate()}: {quality.min.GetLabel()} - {quality.max.GetLabel()}";
-                item.data = quality;
-                TolkHelper.Speak(item.label);
+                treeNav.ReannounceCurrentItem();
             }
         }
 
-        private static void ToggleCategory(MenuItem item)
+        // ===== Typeahead routing =====
+
+        public static void ProcessTypeaheadCharacter(char c)
         {
-            TreeNode_ThingCategory node = item.data as TreeNode_ThingCategory;
-            if (node == null) return;
-
-            // Tri-state toggle matching vanilla: Off→On, Partial→On, On→Off
-            var state = ThingFilterHelper.GetAllowanceState(
-                node.catDef, currentFilter, td => IsVisible(td));
-            bool desired = (state != ThingFilterHelper.CategoryAllowanceState.AllAllowed);
-
-            currentFilter.SetAllow(node.catDef, desired);
-
-            // Update child items if expanded
-            if (item.isExpanded)
-            {
-                RebuildMenu();
-            }
-
-            // Re-read actual state from the game
-            var actualState = ThingFilterHelper.GetAllowanceState(
-                node.catDef, currentFilter, td => IsVisible(td));
-            item.isAllowed = (actualState != ThingFilterHelper.CategoryAllowanceState.NoneAllowed);
-            string stateStr = actualState == ThingFilterHelper.CategoryAllowanceState.NoneAllowed ? "Disallowed" : "Allowed";
-            TolkHelper.Speak($"{item.label}: {stateStr}");
+            if (!isActive || treeNav.Count == 0) return;
+            // Delegate to the helper so search-time auto-expansion (ShouldExpandForSearch)
+            // exposes matches inside collapsed categories.
+            treeNav.HandleTypeaheadCharacter(c);
         }
 
-        private static void ToggleItem(MenuItem item, bool allow)
+        public static void ProcessBackspace()
         {
-            if (item.type == MenuItemType.ThingDef)
-            {
-                ThingDef thingDef = item.data as ThingDef;
-                if (thingDef != null)
-                {
-                    currentFilter.SetAllow(thingDef, allow);
-                    // Re-read from game to verify actual state
-                    item.isAllowed = currentFilter.Allows(thingDef);
-                }
-            }
-            else if (item.type == MenuItemType.SpecialFilter)
-            {
-                SpecialThingFilterDef specialFilter = item.data as SpecialThingFilterDef;
-                if (specialFilter != null)
-                {
-                    currentFilter.SetAllow(specialFilter, allow);
-                    // Re-read from game to verify actual state
-                    item.isAllowed = currentFilter.Allows(specialFilter);
-                }
-            }
-
-            string state = item.isAllowed ? "Allowed" : "Disallowed";
-            TolkHelper.Speak($"{item.label}: {state}");
+            if (!isActive || treeNav.Count == 0) return;
+            treeNav.HandleTypeaheadBackspace();
         }
 
-        private static void ClearAllItems()
-        {
-            currentFilter.SetDisallowAll();
-            RebuildMenu();
-            TolkHelper.Speak("ClearAll".Translate());
-        }
-
-        private static void AllowAllItems()
-        {
-            currentFilter.SetAllowAll(parentFilter);
-            RebuildMenu();
-            TolkHelper.Speak("AllowAll".Translate());
-        }
-
-        private static void RebuildMenu()
-        {
-            // Save current selection
-            MenuItem currentItem = (selectedIndex >= 0 && selectedIndex < menuItems.Count) ? menuItems[selectedIndex] : null;
-
-            // Rebuild
-            BuildMenuItems();
-
-            // Try to restore selection
-            if (currentItem != null)
-            {
-                for (int i = 0; i < menuItems.Count; i++)
-                {
-                    if (menuItems[i].label == currentItem.label && menuItems[i].type == currentItem.type)
-                    {
-                        selectedIndex = i;
-                        break;
-                    }
-                }
-            }
-
-            selectedIndex = Mathf.Clamp(selectedIndex, 0, menuItems.Count - 1);
-        }
-
-        private static void AnnounceCurrentSelection()
-        {
-            if (selectedIndex >= 0 && selectedIndex < menuItems.Count)
-            {
-                MenuItem item = menuItems[selectedIndex];
-
-                // Format: "{name}. {state}. {X of Y}. level N"
-                string announcement = item.label;
-
-                // Add allowed/disallowed state for toggleable items
-                if (item.type == MenuItemType.Category)
-                {
-                    string expandState = item.isExpanded ? "expanded" : "collapsed";
-                    var catNode = item.data as TreeNode_ThingCategory;
-                    if (catNode != null)
-                    {
-                        var summary = ThingFilterHelper.GetCategorySummary(
-                            catNode.catDef, currentFilter, td => IsVisible(td));
-                        announcement += $". {ThingFilterHelper.FormatCategorySummary(summary)}, {expandState}";
-                    }
-                    else
-                    {
-                        announcement += $" {expandState}";
-                    }
-                }
-                else if (item.type == MenuItemType.ThingDef || item.type == MenuItemType.SpecialFilter)
-                {
-                    string allowState = item.isAllowed ? "allowed" : "disallowed";
-                    announcement += $". {allowState}";
-                }
-
-                // Add sibling position (X of Y) at the end
-                var (position, total) = GetSiblingPosition(item);
-                announcement += $". {MenuHelper.FormatPosition(position - 1, total)}";
-
-                // Add level suffix at the end (only announced when level changes)
-                announcement += MenuHelper.GetLevelSuffix("ThingFilterMenu", item.indentLevel);
-
-                TolkHelper.Speak(announcement);
-            }
-        }
-
-        /// <summary>
-        /// Gets the position of an item among its siblings at the same indent level.
-        /// </summary>
-        private static (int position, int total) GetSiblingPosition(MenuItem item)
-        {
-            // Find siblings: items with the same parent reference
-            var siblings = new List<MenuItem>();
-            foreach (var m in menuItems)
-            {
-                if (m.parent == item.parent && m.indentLevel == item.indentLevel)
-                {
-                    siblings.Add(m);
-                }
-            }
-
-            int position = siblings.IndexOf(item) + 1;
-            return (position, siblings.Count);
-        }
-
-        /// <summary>
-        /// Moves focus to the first child of the current category.
-        /// Returns true if successful, false if no children exist.
-        /// </summary>
-        private static bool MoveToFirstChild()
-        {
-            if (menuItems == null || selectedIndex >= menuItems.Count)
-                return false;
-
-            MenuItem item = menuItems[selectedIndex];
-            int currentIndent = item.indentLevel;
-
-            // Find first child in the flat list (next item with higher indent level)
-            for (int i = selectedIndex + 1; i < menuItems.Count; i++)
-            {
-                if (menuItems[i].indentLevel > currentIndent)
-                {
-                    // Found a child
-                    selectedIndex = i;
-                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                    AnnounceCurrentSelection();
-                    return true;
-                }
-                if (menuItems[i].indentLevel <= currentIndent)
-                {
-                    // Hit a sibling or ancestor, no children
-                    break;
-                }
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Moves focus to the parent of the current item.
-        /// </summary>
-        private static void MoveToParent()
-        {
-            if (menuItems == null || selectedIndex >= menuItems.Count)
-                return;
-
-            MenuItem item = menuItems[selectedIndex];
-
-            // If item has a parent reference, find it in the list
-            if (item.parent != null)
-            {
-                for (int i = 0; i < menuItems.Count; i++)
-                {
-                    if (menuItems[i] == item.parent)
-                    {
-                        selectedIndex = i;
-                        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                        AnnounceCurrentSelection();
-                        return;
-                    }
-                }
-            }
-
-            // No parent found (top-level item), play reject sound
-            SoundDefOf.ClickReject.PlayOneShotOnCamera();
-        }
-
-        /// <summary>
-        /// Jumps to the first sibling at the same level (Home key) or absolute first (Ctrl+Home).
-        /// </summary>
-        public static void JumpToFirst(bool ctrlPressed = false)
-        {
-            if (menuItems == null || menuItems.Count == 0) return;
-            MenuHelper.HandleTreeHomeKey(menuItems, ref selectedIndex, m => m.indentLevel, ctrlPressed, ClearAndAnnounce);
-        }
-
-        /// <summary>
-        /// Jumps to the last item in scope (End key) or absolute last (Ctrl+End).
-        /// For expanded nodes: jumps to last visible descendant.
-        /// For collapsed/leaf nodes: jumps to last sibling.
-        /// </summary>
-        public static void JumpToLast(bool ctrlPressed = false)
-        {
-            if (menuItems == null || menuItems.Count == 0) return;
-            MenuHelper.HandleTreeEndKey(
-                menuItems,
-                ref selectedIndex,
-                m => m.indentLevel,
-                m => m.type == MenuItemType.Category && m.isExpanded,
-                m => HasVisibleChildren(m),
-                ctrlPressed,
-                ClearAndAnnounce);
-        }
-
-        /// <summary>
-        /// Checks if a menu item has visible children (next item has higher indent level).
-        /// </summary>
-        private static bool HasVisibleChildren(MenuItem item)
-        {
-            if (item.type != MenuItemType.Category || !item.isExpanded)
-                return false;
-
-            int itemIndex = menuItems.IndexOf(item);
-            if (itemIndex < 0 || itemIndex >= menuItems.Count - 1)
-                return false;
-
-            return menuItems[itemIndex + 1].indentLevel > item.indentLevel;
-        }
-
-        /// <summary>
-        /// Clears typeahead search and announces current selection.
-        /// </summary>
-        private static void ClearAndAnnounce()
-        {
-            typeahead.ClearSearch();
-            AnnounceCurrentSelection();
-        }
-
-        /// <summary>
-        /// Checks if typeahead search has an active search buffer.
-        /// </summary>
-        public static bool HasActiveSearch => typeahead.HasActiveSearch;
-
-        /// <summary>
-        /// Clears the current typeahead search.
-        /// </summary>
         public static void ClearTypeaheadSearch()
         {
-            typeahead.ClearSearchAndAnnounce();
-            AnnounceCurrentSelection();
+            treeNav.Typeahead.ClearSearchAndAnnounce();
+            treeNav.ReannounceCurrentItem();
         }
 
-        /// <summary>
-        /// Processes a backspace key for typeahead search.
-        /// </summary>
-        public static bool ProcessBackspace()
+        public static void SelectNextMatch()
         {
-            if (!typeahead.HasActiveSearch) return false;
-
-            var labels = GetVisibleItemLabels();
-            if (typeahead.ProcessBackspace(labels, out int newIndex))
-            {
-                if (newIndex >= 0) selectedIndex = newIndex;
-                AnnounceWithSearch();
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Processes a character input for typeahead search.
-        /// </summary>
-        public static bool ProcessTypeaheadCharacter(char c)
-        {
-            var labels = GetVisibleItemLabels();
-            if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
-            {
-                if (newIndex >= 0) { selectedIndex = newIndex; AnnounceWithSearch(); }
-            }
-            else
-            {
-                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Navigates to the next matching item when search is active.
-        /// </summary>
-        public static bool SelectNextMatch()
-        {
-            if (!typeahead.HasActiveSearch) return false;
-
-            int next = typeahead.GetNextMatch(selectedIndex);
+            if (treeNav.Count == 0) return;
+            int next = treeNav.Typeahead.GetNextMatch(treeNav.SelectedIndex);
             if (next >= 0)
             {
-                selectedIndex = next;
+                treeNav.SetSelectedIndex(next);
                 AnnounceWithSearch();
             }
-            return true;
         }
 
-        /// <summary>
-        /// Navigates to the previous matching item when search is active.
-        /// </summary>
-        public static bool SelectPreviousMatch()
+        public static void SelectPreviousMatch()
         {
-            if (!typeahead.HasActiveSearch) return false;
-
-            int prev = typeahead.GetPreviousMatch(selectedIndex);
+            if (treeNav.Count == 0) return;
+            int prev = treeNav.Typeahead.GetPreviousMatch(treeNav.SelectedIndex);
             if (prev >= 0)
             {
-                selectedIndex = prev;
+                treeNav.SetSelectedIndex(prev);
                 AnnounceWithSearch();
             }
-            return true;
-        }
-
-        private static List<string> GetVisibleItemLabels()
-        {
-            var labels = new List<string>();
-            if (menuItems != null)
-            {
-                foreach (var item in menuItems)
-                {
-                    labels.Add(item.label);
-                }
-            }
-            return labels;
         }
 
         private static void AnnounceWithSearch()
         {
-            if (menuItems == null || selectedIndex < 0 || selectedIndex >= menuItems.Count) return;
-
-            string label = menuItems[selectedIndex].label;
-
-            if (typeahead.HasActiveSearch)
-            {
-                TolkHelper.Speak($"{label}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'");
-            }
+            if (treeNav.SelectedItem == null) return;
+            if (treeNav.HasActiveSearch)
+                TolkHelper.Speak(FormatSearchAnnouncement(treeNav.SelectedItem, treeNav.Typeahead));
             else
+                treeNav.ReannounceCurrentItem();
+        }
+
+        // ===== Announcement formatting =====
+
+        private static string FormatItemAnnouncement(InspectionTreeItem item)
+        {
+            var data = item.Data as FilterNodeData;
+            if (data == null) return item.Label;
+
+            var (position, total) = treeNav.GetSiblingPosition(item);
+            string suffix = MenuHelper.GetLevelSuffix("ThingFilterMenu", item.IndentLevel);
+            string posStr = MenuHelper.FormatPosition(position - 1, total);
+            string positionTail = string.IsNullOrEmpty(posStr) ? "" : $" {posStr}";
+
+            switch (data.Type)
             {
-                AnnounceCurrentSelection();
+                case NodeType.ClearAll:
+                case NodeType.AllowAll:
+                    return $"{item.Label}.{positionTail}{suffix}";
+
+                case NodeType.HitPointsRange:
+                {
+                    var range = currentFilter.AllowedHitPointsPercents;
+                    return $"{item.Label}: {range.min:P0} - {range.max:P0}.{positionTail}{suffix}";
+                }
+
+                case NodeType.QualityRange:
+                {
+                    var range = currentFilter.AllowedQualityLevels;
+                    return $"{item.Label}: {range.min.GetLabel()} - {range.max.GetLabel()}.{positionTail}{suffix}";
+                }
+
+                case NodeType.SpecialFilter:
+                {
+                    string state = data.IsChecked ? "allowed" : "disallowed";
+                    string desc = string.IsNullOrEmpty(item.Description) ? "" : $" {item.Description}";
+                    return $"{item.Label}. {state}.{desc}{positionTail}{suffix}";
+                }
+
+                case NodeType.Category:
+                {
+                    string summary = "disallowed";
+                    if (data.Reference is TreeNode_ThingCategory catNode)
+                    {
+                        var s = ThingFilterHelper.GetCategorySummary(
+                            catNode.catDef, currentFilter,
+                            td => ThingFilterHelper.IsVisible(td, parentFilter));
+                        summary = ThingFilterHelper.FormatCategorySummary(s);
+                    }
+                    string expanded = item.IsExpanded ? "expanded" : "collapsed";
+                    string desc = string.IsNullOrEmpty(item.Description) ? "" : $" {item.Description}";
+                    return $"{item.Label}. {summary}, {expanded}.{desc}{positionTail}{suffix}";
+                }
+
+                case NodeType.ThingDef:
+                {
+                    string state = data.IsChecked ? "allowed" : "disallowed";
+                    string desc = string.IsNullOrEmpty(item.Description) ? "" : $" {item.Description}";
+                    return $"{item.Label}. {state}.{desc}{positionTail}{suffix}";
+                }
+
+                default:
+                    return $"{item.Label}.{positionTail}{suffix}";
             }
+        }
+
+        private static string FormatSearchAnnouncement(InspectionTreeItem item, TypeaheadSearchHelper typeahead)
+        {
+            // Reuse the regular announcement so the user still hears the full label,
+            // state, and description while searching — then append match position.
+            string baseAnnouncement = FormatItemAnnouncement(item);
+            if (!typeahead.HasActiveSearch)
+                return baseAnnouncement;
+            return $"{baseAnnouncement} {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
+        }
+
+        private static bool HandleActivate(InspectionTreeItem item)
+        {
+            ToggleCurrent();
+            return true;
         }
     }
 }

@@ -1,4 +1,45 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
+04/29/2026
+
+CHANGES
+-------
+- Bills now read the produced item's full description (e.g. "Make
+  duster... Makes 1 Duster, Work amount: 167, Crafting. {full
+  description}") in both the recipe picker and the active bill row.
+
+BUG FIXES
+---------
+- Health conditions in character creation no longer announce a
+  stray "newline-period" between mechanical effects and the
+  description.
+- Escape with an active typeahead in character creation now clears
+  the search instead of opening the "discard starting colonists"
+  dialog.
+- The pause menu cursor resets between game sessions, so reloading
+  after "Quit to main menu" no longer lands the cursor on "Quit
+  to main menu".
+- The schedule menu (F2) no longer says a trailing "." when the
+  Announce Position setting is off.
+- The 5-key room info no longer reads role-relevant stats as
+  "star, star, star..."; instead, those stats are suffixed with
+  "Important for this type of room."
+- The storage settings screen now uses the modern treeview
+  (matching sounds, Rashad Hates Treeviews submenu mode, search
+  auto-expansion). Priority lives as a node at the top.
+- The bills' ingredient filter and the apparel/food/reading-policy
+  filters also use the modern treeview, with the standard expand
+  sound (replacing the old click sound).
+- Typeahead in filter screens now announces the full label and
+  description (not just the bare label) plus the match position.
+- Pressing Enter or Space on a filter row clears the typeahead
+  buffer, so the next Down arrow walks the full list.
+- "Allow rotten" / "Allow fresh" are now hidden in the bills'
+  ingredient filter when no allowed ingredient could ever match —
+  matching vanilla (e.g. minigun, bionic eye recipes).
+- Space and Enter now behave identically across all filter
+  screens.
+
+
 04/28/2026
 
 CHANGES

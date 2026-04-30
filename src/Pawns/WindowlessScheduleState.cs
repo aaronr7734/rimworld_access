@@ -237,8 +237,8 @@ namespace RimWorldAccess
                 message = assignment.LabelCap;
 
             var positions = new List<string>();
-            if (includePawn) positions.Add($"Pawn {pawnPos}");
-            if (includeHour) positions.Add($"Hour {hourPos}");
+            if (includePawn && !string.IsNullOrEmpty(pawnPos)) positions.Add($"Pawn {pawnPos}");
+            if (includeHour && !string.IsNullOrEmpty(hourPos)) positions.Add($"Hour {hourPos}");
             if (positions.Count > 0)
                 message += ". " + string.Join(", ", positions) + ".";
 

@@ -1,7 +1,6 @@
 using HarmonyLib;
 using UnityEngine;
 using Verse;
-using RimWorld;
 
 namespace RimWorldAccess
 {
@@ -648,6 +647,18 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Unity IMGUI sends two KeyDown events per keystroke: a KeyCode-only
+            // event, then a keyCode=None event carrying the layout-aware character.
+            // Forward the character event to any pending typeahead callback BEFORE
+            // the switch's default case consumes it, otherwise typeahead never
+            // receives the character (this is what was breaking bills' ingredient
+            // filter typeahead).
+            if (TypeaheadCharacterBuffer.TryForwardCharacterEvent())
+            {
+                Event.current.Use();
+                return;
+            }
+
             KeyCode key = Event.current.keyCode;
 
             // Asterisk (*) - expand all sibling categories (WCAG tree view pattern)
@@ -719,6 +730,7 @@ namespace RimWorldAccess
 
                 case KeyCode.Return:
                 case KeyCode.KeypadEnter:
+                case KeyCode.Space:
                     ThingFilterMenuState.ToggleCurrent();
                     Event.current.Use();
                     break;

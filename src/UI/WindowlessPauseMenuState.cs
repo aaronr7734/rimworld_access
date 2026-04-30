@@ -26,6 +26,12 @@ namespace RimWorldAccess
         // Escape, so the next time they pause they start at the top.
         private static string lastSelectedLabel = null;
 
+        // Tracks the Game instance the saved cursor belongs to. Cleared in
+        // Open() whenever we detect a different (or null) Game, so quitting
+        // to the main menu and loading a new save doesn't carry the cursor
+        // forward onto "Quit to main menu" in the new session.
+        private static System.WeakReference<Game> lastSessionGame = null;
+
         // Set when a quit-confirmation dialog is queued. If the user cancels the
         // dialog (game stays running), WindowlessDialogState.Close notifies us via
         // OnWindowClosed and we reopen the pause menu with cursor restored.
@@ -39,6 +45,22 @@ namespace RimWorldAccess
         /// </summary>
         public static void Open()
         {
+            // Reset the cursor when the underlying Game changes. After a
+            // "Quit to main menu" + load, Current.Game is a new instance, so
+            // the next pause should start at the top instead of restoring
+            // the "Quit to main menu" cursor from the previous session.
+            Game current = Current.Game;
+            Game tracked = null;
+            lastSessionGame?.TryGetTarget(out tracked);
+            if (current == null || !ReferenceEquals(current, tracked))
+            {
+                lastSelectedLabel = null;
+                reopenPendingForDialog = null;
+                lastSessionGame = current != null
+                    ? new System.WeakReference<Game>(current)
+                    : null;
+            }
+
             currentOptions = BuildMenuOptions();
             selectedIndex = 0;
             if (!string.IsNullOrEmpty(lastSelectedLabel))

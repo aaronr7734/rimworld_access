@@ -681,14 +681,30 @@ namespace RimWorldAccess
 
                 // Inline the full hediff info: mechanical effects + def description
                 // (so screen-reader users don't need to open an info card)
+                string mechanical = null;
                 string tipExtra = hediff.TipStringExtra;
-                string mechanical = !string.IsNullOrEmpty(tipExtra)
-                    ? tipExtra.Replace("\n", ", ").TrimEnd(',', ' ')
-                    : null;
-                string description = hediff.def?.description;
+                if (!string.IsNullOrWhiteSpace(tipExtra))
+                {
+                    // Normalize line endings, trim outer whitespace, then collapse
+                    // remaining newlines to ", " separators so the text reads as
+                    // one sentence without stray line breaks reaching the screen reader.
+                    mechanical = tipExtra
+                        .Replace("\r\n", "\n")
+                        .Replace("\r", "\n")
+                        .Trim()
+                        .Replace("\n", ", ");
+                    if (string.IsNullOrWhiteSpace(mechanical)) mechanical = null;
+                }
+
+                string description = hediff.def?.description?.Trim();
+
                 string tooltip;
                 if (!string.IsNullOrEmpty(mechanical) && !string.IsNullOrEmpty(description))
-                    tooltip = mechanical + ". " + description;
+                {
+                    char last = mechanical[mechanical.Length - 1];
+                    string sep = (last == '.' || last == '!' || last == '?') ? " " : ". ";
+                    tooltip = mechanical + sep + description;
+                }
                 else
                     tooltip = mechanical ?? description;
 

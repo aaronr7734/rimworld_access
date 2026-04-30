@@ -24,6 +24,19 @@ namespace RimWorldAccess
 
         public static bool IsActive => isActive;
         public static bool HasActiveSearch => treeNav.HasActiveSearch;
+
+        /// <summary>
+        /// Clears any active typeahead search and re-announces the current item.
+        /// Called from StartingPawnDoBackBlockPatch as a fallback when Escape would
+        /// otherwise show the discard-confirm dialog while the user only meant to
+        /// cancel their typeahead search.
+        /// </summary>
+        public static void ClearActiveSearch()
+        {
+            if (!treeNav.HasActiveSearch) return;
+            treeNav.Typeahead.ClearSearchAndAnnounce();
+            treeNav.ReannounceCurrentItem();
+        }
         public static PawnEditorContext Context { get; private set; } = PawnEditorContext.GameStart;
 
         static StartingPawnState()

@@ -186,7 +186,7 @@ namespace RimWorldAccess
                 return;
             }
 
-            if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+            if (key == KeyCode.Return || key == KeyCode.KeypadEnter || key == KeyCode.Space)
             {
                 StorageSettingsMenuState.ToggleCurrent();
                 Event.current.Use();

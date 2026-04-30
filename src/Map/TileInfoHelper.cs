@@ -817,19 +817,7 @@ namespace RimWorldAccess
                 var statDef = visibleStats.FirstOrDefault(s => s.defName == statName);
                 if (statDef == null) continue;
 
-                float value = room.GetStat(statDef);
-                RoomStatScoreStage stage = statDef.GetScoreStage(value);
-                string stageLabel = stage?.label?.CapitalizeFirst() ?? "";
-                string prefix = (room.Role != null && room.Role.IsStatRelated(statDef)) ? "*" : "";
-
-                if (!string.IsNullOrEmpty(stageLabel))
-                {
-                    sb.Append($", {prefix}{statDef.LabelCap}: {stageLabel} ({statDef.ScoreToString(value)})");
-                }
-                else
-                {
-                    sb.Append($", {prefix}{statDef.LabelCap}: {statDef.ScoreToString(value)}");
-                }
+                AppendRoomStat(sb, room, statDef);
             }
 
             // 3. Any remaining stats not in our predefined order
@@ -837,22 +825,38 @@ namespace RimWorldAccess
             {
                 if (statOrder.Contains(statDef.defName)) continue;
 
-                float value = room.GetStat(statDef);
-                RoomStatScoreStage stage = statDef.GetScoreStage(value);
-                string stageLabel = stage?.label?.CapitalizeFirst() ?? "";
-                string prefix = (room.Role != null && room.Role.IsStatRelated(statDef)) ? "*" : "";
-
-                if (!string.IsNullOrEmpty(stageLabel))
-                {
-                    sb.Append($", {prefix}{statDef.LabelCap}: {stageLabel} ({statDef.ScoreToString(value)})");
-                }
-                else
-                {
-                    sb.Append($", {prefix}{statDef.LabelCap}: {statDef.ScoreToString(value)}");
-                }
+                AppendRoomStat(sb, room, statDef);
             }
 
             return sb.ToString();
+        }
+
+        // Vanilla draws a "*" before stats that are relevant to the room's role
+        // (with a "* StatRelatesToCurrentRoom" footnote). For screen reader users
+        // we surface the same information with the translated phrase as a suffix
+        // on relevant stats — no leading asterisks for the screen reader to read
+        // out as "star, star, star".
+        private static void AppendRoomStat(StringBuilder sb, Room room, RoomStatDef statDef)
+        {
+            float value = room.GetStat(statDef);
+            RoomStatScoreStage stage = statDef.GetScoreStage(value);
+            string stageLabel = stage?.label?.CapitalizeFirst() ?? "";
+
+            if (!string.IsNullOrEmpty(stageLabel))
+            {
+                sb.Append($", {statDef.LabelCap}: {stageLabel} ({statDef.ScoreToString(value)})");
+            }
+            else
+            {
+                sb.Append($", {statDef.LabelCap}: {statDef.ScoreToString(value)}");
+            }
+
+            if (room.Role != null && room.Role.IsStatRelated(statDef))
+            {
+                sb.Append(" (");
+                sb.Append("StatRelatesToCurrentRoom".Translate());
+                sb.Append(")");
+            }
         }
 
         /// <summary>

@@ -952,6 +952,61 @@ namespace RimWorldAccess
             }
         }
 
+        /// <summary>
+        /// Public typeahead-character entry point for states that drive their own
+        /// keyboard routing instead of going through HandleInput. Honors the same
+        /// search-time auto-expansion (ShouldExpandForSearch) and announcement format
+        /// (FormatSearchAnnouncement) as the in-helper handler.
+        /// </summary>
+        public void HandleTypeaheadCharacter(char c) => HandleTypeahead(c);
+
+        /// <summary>
+        /// Public backspace handler for states that drive their own keyboard
+        /// routing. Delegates through TypeaheadSearchHelper.ProcessBackspace and
+        /// re-announces via AnnounceWithSearch / restores pre-search expansion
+        /// when the buffer empties.
+        /// </summary>
+        public void HandleTypeaheadBackspace()
+        {
+            if (!typeahead.HasActiveSearch) return;
+
+            var labels = GetSearchableLabels();
+            if (typeahead.ProcessBackspace(labels, out int newIndex))
+            {
+                if (newIndex >= 0)
+                    selectedIndex = newIndex;
+                SoundDefOf.Click.PlayOneShotOnCamera();
+                if (!typeahead.HasActiveSearch)
+                {
+                    RestorePreSearchExpansion();
+                    AnnounceCurrentItem();
+                }
+                else
+                {
+                    AnnounceWithSearch();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Clears any active typeahead search and restores the pre-search expansion
+        /// snapshot so the tree returns to its original shape. Use this after the
+        /// user commits to an item via Enter / Space — matches the behavior the
+        /// helper applies internally on expand/collapse.
+        /// </summary>
+        public void CommitAndClearSearch()
+        {
+            if (typeahead.HasActiveSearch)
+            {
+                typeahead.ClearSearch();
+                RestorePreSearchExpansion();
+            }
+            else if (preSearchExpansion != null)
+            {
+                RestorePreSearchExpansion();
+            }
+        }
+
         private void HandleEnterKey()
         {
             if (visibleItems.Count == 0 || selectedIndex < 0 || selectedIndex >= visibleItems.Count)

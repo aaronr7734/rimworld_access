@@ -7126,13 +7126,12 @@ namespace RimWorldAccess
                     ThingFilterNavigationState.SelectNext();
                 return true;
             }
-            else if (key == KeyCode.Space)
+            else if (key == KeyCode.Space
+                     || key == KeyCode.Return
+                     || key == KeyCode.KeypadEnter)
             {
-                ThingFilterNavigationState.ToggleSelected();
-                return true;
-            }
-            else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
-            {
+                // Space and Enter behave identically across all filter screens
+                // (toggle leaves, cycle priority, open range editor, enter slider edit).
                 ThingFilterNavigationState.ActivateSelected();
                 return true;
             }

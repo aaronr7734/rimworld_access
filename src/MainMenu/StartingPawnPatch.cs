@@ -141,6 +141,14 @@ namespace RimWorldAccess
                 if (StartingPawnState.IsActive
                     && StartingPawnState.Context != PawnEditorContext.Wanderer)
                 {
+                    // If the user has an active typeahead search, the first Escape
+                    // should cancel that search rather than open the discard dialog.
+                    if (StartingPawnState.HasActiveSearch)
+                    {
+                        StartingPawnState.ClearActiveSearch();
+                        return false;
+                    }
+
                     StartingPawnState.RequestBackConfirm();
                     return false;
                 }
