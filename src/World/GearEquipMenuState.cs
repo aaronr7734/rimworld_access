@@ -41,13 +41,13 @@ namespace RimWorldAccess
             {
                 if (IsUnequipOption)
                 {
-                    return "Unequip to inventory";
+                    return "RimWorldAccess.Gear.UnequipToInventory".Translate();
                 }
                 if (!CanEquip)
                 {
-                    return $"{Pawn.LabelShortCap} (can't equip: {CantEquipReason})";
+                    return "RimWorldAccess.Gear.PawnCantEquip".Translate(Pawn.LabelShortCap, CantEquipReason);
                 }
-                return $"{Pawn.LabelShortCap} ({CurrentEquipmentLabel})";
+                return "RimWorldAccess.Gear.PawnWithCurrent".Translate(Pawn.LabelShortCap, CurrentEquipmentLabel);
             }
         }
 
@@ -61,7 +61,7 @@ namespace RimWorldAccess
         {
             if (caravan == null || item == null)
             {
-                TolkHelper.Speak("Cannot open equip menu", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Gear.CannotOpenEquipMenu".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -74,7 +74,7 @@ namespace RimWorldAccess
 
             if (options.Count == 0)
             {
-                TolkHelper.Speak("No pawns available to equip this item", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Gear.NoPawnsAvailable".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -85,8 +85,10 @@ namespace RimWorldAccess
 
             // Build header announcement
             string itemName = item.LabelCap;
-            string actionType = currentOwner != null ? "Give" : "Equip";
-            TolkHelper.Speak($"{actionType} {itemName} to whom? Use arrows to navigate, Enter to select, Escape to cancel.");
+            string actionType = currentOwner != null
+                ? "RimWorldAccess.Gear.ActionGive".Translate()
+                : "RimWorldAccess.Gear.ActionEquip".Translate();
+            TolkHelper.Speak("RimWorldAccess.Gear.OpenInstructions".Translate(actionType, itemName));
 
             AnnounceCurrentSelection();
         }
@@ -336,7 +338,7 @@ namespace RimWorldAccess
             if (!option.CanEquip)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak($"Cannot equip: {option.CantEquipReason}");
+                TolkHelper.Speak("RimWorldAccess.Gear.CannotEquipReason".Translate(option.CantEquipReason));
                 return;
             }
 
@@ -348,7 +350,7 @@ namespace RimWorldAccess
                 if (option.IsUnequipOption)
                 {
                     PerformUnequipToInventory();
-                    TolkHelper.Speak($"Unequipped {itemName} to inventory.");
+                    TolkHelper.Speak("RimWorldAccess.Gear.UnequippedToInventory".Translate(itemName));
                     SoundDefOf.Click.PlayOneShotOnCamera();
                 }
                 else
@@ -366,17 +368,17 @@ namespace RimWorldAccess
                         if (sourceOwner != null)
                         {
                             // Both pawns now have each other's gear
-                            TolkHelper.Speak($"Swapped. {targetName} now has {itemName}, and {sourceOwner.LabelShortCap} now has {swappedItem}.");
+                            TolkHelper.Speak("RimWorldAccess.Gear.SwappedTwoOwners".Translate(targetName, itemName, sourceOwner.LabelShortCap, swappedItem));
                         }
                         else
                         {
                             // Item was from inventory, target's old item goes to inventory
-                            TolkHelper.Speak($"Swapped. {targetName} now has {itemName}. {swappedItem} moved to inventory.");
+                            TolkHelper.Speak("RimWorldAccess.Gear.SwappedToInventory".Translate(targetName, itemName, swappedItem));
                         }
                     }
                     else
                     {
-                        TolkHelper.Speak($"Equipped {itemName} to {targetName}.");
+                        TolkHelper.Speak("RimWorldAccess.Gear.EquippedTo".Translate(itemName, targetName));
                     }
 
                     SoundDefOf.Click.PlayOneShotOnCamera();
@@ -385,7 +387,7 @@ namespace RimWorldAccess
             catch (Exception ex)
             {
                 Log.Error($"[RimWorldAccess] Error equipping gear: {ex}");
-                TolkHelper.Speak("Failed to equip item");
+                TolkHelper.Speak("RimWorldAccess.Gear.FailedToEquip".Translate());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
             }
 
@@ -511,7 +513,7 @@ namespace RimWorldAccess
                 // Check if apparel is locked (Issue 6: Locked apparel check)
                 if (sourceOwner.apparel.IsLocked(apparel))
                 {
-                    TolkHelper.Speak("Cannot remove locked apparel");
+                    TolkHelper.Speak("RimWorldAccess.Gear.CannotRemoveLockedApparel".Translate());
                     return;
                 }
                 sourceOwner.apparel.Remove(apparel);
@@ -538,7 +540,7 @@ namespace RimWorldAccess
                 // Check if conflicting apparel on target is locked
                 if (targetPawn.apparel.IsLocked(worn))
                 {
-                    TolkHelper.Speak($"Cannot remove locked apparel {worn.LabelCap} from {targetPawn.LabelShortCap}");
+                    TolkHelper.Speak("RimWorldAccess.Gear.CannotRemoveLockedFromPawn".Translate(worn.LabelCap, targetPawn.LabelShortCap));
                     // If we split off an item, put it back
                     if (apparelToEquip != apparel)
                     {
@@ -610,7 +612,7 @@ namespace RimWorldAccess
             string label = option.GetDisplayLabel();
             string position = MenuHelper.FormatPosition(selectedIndex, options.Count);
 
-            TolkHelper.Speak($"{label}. {position}");
+            TolkHelper.Speak("RimWorldAccess.Gear.LabelPosition".Translate(label, position));
         }
 
         /// <summary>
@@ -659,7 +661,7 @@ namespace RimWorldAccess
                 }
                 Close();
                 SoundDefOf.Click.PlayOneShotOnCamera();
-                TolkHelper.Speak("Cancelled");
+                TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Translate());
                 ev.Use();
                 return true;
             }

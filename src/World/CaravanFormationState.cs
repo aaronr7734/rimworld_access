@@ -115,21 +115,21 @@ namespace RimWorldAccess
 
             if (currentMap.IsPlayerHome)
             {
-                TolkHelper.Speak("Cannot reform caravan from home settlement. Use world map to form new caravans.", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.CannotReformFromHome".Translate(), SpeechPriority.High);
                 return;
             }
 
             MapParent mapParent = currentMap.Parent;
             if (mapParent == null)
             {
-                TolkHelper.Speak("Map has no parent world object", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.MapHasNoParent".Translate(), SpeechPriority.High);
                 return;
             }
 
             FormCaravanComp formCaravanComp = mapParent.GetComponent<FormCaravanComp>();
             if (formCaravanComp == null)
             {
-                TolkHelper.Speak("This map does not support caravan reformation", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.MapDoesNotSupport".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -137,11 +137,11 @@ namespace RimWorldAccess
             {
                 if (GenHostility.AnyHostileActiveThreatToPlayer(currentMap, countDormantPawnsAsHostile: false))
                 {
-                    TolkHelper.Speak("Cannot reform caravan while enemies are present", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Caravan.Form.CannotReformEnemiesPresent".Translate(), SpeechPriority.High);
                 }
                 else
                 {
-                    TolkHelper.Speak("Cannot reform caravan at this time", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Caravan.Form.CannotReformAtThisTime".Translate(), SpeechPriority.High);
                 }
                 return;
             }
@@ -149,7 +149,7 @@ namespace RimWorldAccess
             Dialog_FormCaravan reformDialog = new Dialog_FormCaravan(currentMap, reform: true);
             Find.WindowStack.Add(reformDialog);
 
-            TolkHelper.Speak("Opening caravan reformation dialog", SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.Caravan.Form.OpeningReformation".Translate(), SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -159,7 +159,7 @@ namespace RimWorldAccess
         {
             if (dialog == null)
             {
-                TolkHelper.Speak("No caravan formation dialog available", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.NoFormationDialog".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -174,7 +174,7 @@ namespace RimWorldAccess
             // Disable auto-select travel supplies to prevent it from resetting our manual selections
             DisableAutoSelectTravelSupplies();
 
-            TolkHelper.Speak("Form caravan dialog opened. Tab for summary, Alt+I to inspect, Alt+S to send.");
+            TolkHelper.Speak("RimWorldAccess.Caravan.Form.OpenInstructions".Translate());
             AnnounceCurrentTab();
             AnnounceCurrentItem();
         }
@@ -253,7 +253,7 @@ namespace RimWorldAccess
         {
             string tabName = GetTabName(currentTab);
             List<TransferableOneWay> tabTransferables = GetCurrentTabTransferables();
-            TolkHelper.Speak($"{tabName} tab, {tabTransferables.Count} items");
+            TolkHelper.Speak("RimWorldAccess.Caravan.Form.TabHeader".Translate(tabName, tabTransferables.Count));
         }
 
         /// <summary>
@@ -334,7 +334,7 @@ namespace RimWorldAccess
 
             if (transferables.Count == 0)
             {
-                TolkHelper.Speak("No items in this tab");
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.NoItemsInTab".Translate());
                 return;
             }
 
@@ -369,7 +369,7 @@ namespace RimWorldAccess
 
             if (transferables.Count == 0)
             {
-                TolkHelper.Speak("No items in this tab");
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.NoItemsInTab".Translate());
                 return;
             }
 
@@ -510,7 +510,7 @@ namespace RimWorldAccess
                 SoundDefOf.Click.PlayOneShotOnCamera();
 
                 string tabName = GetTabName(currentTab);
-                TolkHelper.Speak($"Returned to {tabName} tab");
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.ReturnedToTab".Translate(tabName));
                 AnnounceCurrentItem();
             }
             else
@@ -524,12 +524,12 @@ namespace RimWorldAccess
                 // Only announce full instructions the first time per session
                 if (!summaryInstructionsShown)
                 {
-                    TolkHelper.Speak("Summary view. Up/Down navigates stats, Alt+I for breakdown. Tab to return.");
+                    TolkHelper.Speak("RimWorldAccess.Caravan.Form.SummaryViewWithHint".Translate());
                     summaryInstructionsShown = true;
                 }
                 else
                 {
-                    TolkHelper.Speak("Summary view.");
+                    TolkHelper.Speak("RimWorldAccess.Caravan.Form.SummaryView".Translate());
                 }
                 AnnounceSummary();
             }
@@ -548,7 +548,7 @@ namespace RimWorldAccess
 
             if (currentDialog == null)
             {
-                summaryItems.Add("No caravan data available");
+                summaryItems.Add("RimWorldAccess.Caravan.Form.SummaryNoCaravanData".Translate());
                 return;
             }
 
@@ -602,7 +602,7 @@ namespace RimWorldAccess
                     if (destTile.Valid && Find.WorldGrid != null)
                     {
                         string tileName = WorldInfoHelper.GetTileSummary(destTile);
-                        string destItem = $"Destination: {tileName}";
+                        string destItem = "RimWorldAccess.Caravan.Form.SummaryDestination".Translate(tileName);
 
                         PropertyInfo ticksToArriveProp = AccessTools.Property(typeof(Dialog_FormCaravan), "TicksToArrive");
                         if (ticksToArriveProp != null)
@@ -613,7 +613,7 @@ namespace RimWorldAccess
                                 if (ticksToArrive > 0)
                                 {
                                     float daysToArrive = ticksToArrive / 60000f;
-                                    destItem += $", ETA: {daysToArrive:F1} days";
+                                    destItem = "RimWorldAccess.Caravan.Form.SummaryDestinationWithEta".Translate(tileName, daysToArrive.ToString("F1"));
                                 }
                             }
                             catch { }
@@ -622,14 +622,14 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        summaryItems.Add("Destination: Not set");
+                        summaryItems.Add("RimWorldAccess.Caravan.Form.SummaryDestinationNotSet".Translate());
                     }
                 }
             }
             catch (Exception ex)
             {
                 Log.Warning($"RimWorld Access: Failed to get caravan stats: {ex.Message}");
-                summaryItems.Add("Stats unavailable");
+                summaryItems.Add("RimWorldAccess.Caravan.Form.SummaryStatsUnavailable".Translate());
             }
         }
 
@@ -650,7 +650,7 @@ namespace RimWorldAccess
         {
             if (summaryItems.Count == 0)
             {
-                TolkHelper.Speak("No summary data");
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.NoSummaryData".Translate());
                 return;
             }
 
@@ -661,7 +661,7 @@ namespace RimWorldAccess
 
             string item = summaryItems[summaryIndex];
             string position = MenuHelper.FormatPosition(summaryIndex, summaryItems.Count);
-            TolkHelper.Speak($"{item}. {position}");
+            TolkHelper.Speak("RimWorldAccess.Caravan.Form.ItemPosition".Translate(item, position));
         }
 
         /// <summary>
@@ -885,7 +885,7 @@ namespace RimWorldAccess
         {
             if (currentDialog == null)
             {
-                TolkHelper.Speak("No dialog available", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.NoDialog".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -905,11 +905,11 @@ namespace RimWorldAccess
                     WorldNavigationState.Open();
                 }
 
-                TolkHelper.Speak("Choosing caravan destination. Use arrow keys to navigate the world map, Enter to select destination, or Escape to cancel.");
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.ChoosingDestination".Translate());
             }
             catch (Exception ex)
             {
-                TolkHelper.Speak($"Failed to open route planner: {ex.Message}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.FailedRoutePlanner".Translate(ex.Message), SpeechPriority.High);
                 Log.Error($"RimWorld Access: Failed to start route planner: {ex.Message}");
             }
         }
@@ -921,14 +921,14 @@ namespace RimWorldAccess
         {
             if (currentDialog == null)
             {
-                TolkHelper.Speak("No dialog available", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.NoDialog".Translate(), SpeechPriority.High);
                 isChoosingDestination = false;
                 return;
             }
 
             if (!destinationTile.Valid)
             {
-                TolkHelper.Speak("Invalid destination tile", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.InvalidDestination".Translate(), SpeechPriority.High);
                 isChoosingDestination = false;
                 return;
             }
@@ -938,7 +938,7 @@ namespace RimWorldAccess
                 MethodInfo notifyChoseRouteMethod = AccessTools.Method(typeof(Dialog_FormCaravan), "Notify_ChoseRoute");
                 if (notifyChoseRouteMethod == null)
                 {
-                    TolkHelper.Speak("Failed to access Notify_ChoseRoute method", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Caravan.Form.FailedAccessNotifyChoseRoute".Translate(), SpeechPriority.High);
                     isChoosingDestination = false;
                     return;
                 }
@@ -955,11 +955,11 @@ namespace RimWorldAccess
                 notifyChoseRouteMethod.Invoke(currentDialog, new object[] { destinationTile });
 
                 string tileInfo = WorldInfoHelper.GetTileSummary(destinationTile);
-                TolkHelper.Speak($"Destination set to {tileInfo}.");
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.DestinationSet".Translate(tileInfo));
             }
             catch (Exception ex)
             {
-                TolkHelper.Speak($"Failed to set destination: {ex.Message}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.FailedSetDestination".Translate(ex.Message), SpeechPriority.High);
                 Log.Error($"RimWorld Access: Failed to set caravan destination: {ex}");
                 isChoosingDestination = false;
             }
@@ -987,11 +987,11 @@ namespace RimWorldAccess
 
                 isChoosingDestination = false;
 
-                TolkHelper.Speak("Destination selection cancelled. Returning to caravan formation dialog.");
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.DestinationCancelled".Translate());
             }
             catch (Exception ex)
             {
-                TolkHelper.Speak($"Failed to cancel destination selection: {ex.Message}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.FailedCancelDestination".Translate(ex.Message), SpeechPriority.High);
                 Log.Error($"RimWorld Access: Failed to cancel destination selection: {ex.Message}");
                 isChoosingDestination = false;
             }
@@ -1004,7 +1004,7 @@ namespace RimWorldAccess
         {
             if (currentDialog == null)
             {
-                TolkHelper.Speak("No dialog available", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.NoDialog".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -1071,7 +1071,7 @@ namespace RimWorldAccess
             }
             catch (Exception ex)
             {
-                TolkHelper.Speak($"Failed to send caravan: {ex.Message}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.FailedSendCaravan".Translate(ex.Message), SpeechPriority.High);
                 Log.Error($"RimWorld Access: Failed to send caravan: {ex.Message}\n{ex.StackTrace}");
                 isActive = true;
                 // Only reset sendAttempted on actual exception - not when dialog stays open
@@ -1086,7 +1086,7 @@ namespace RimWorldAccess
         {
             if (currentDialog == null)
             {
-                TolkHelper.Speak("No dialog available", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.NoDialog".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -1097,13 +1097,13 @@ namespace RimWorldAccess
                 {
                     method.Invoke(currentDialog, null);
                     selectedIndex = 0;
-                    TolkHelper.Speak("Selections reset");
+                    TolkHelper.Speak("RimWorldAccess.Caravan.Form.SelectionsReset".Translate());
                     AnnounceCurrentItem();
                 }
             }
             catch (Exception ex)
             {
-                TolkHelper.Speak($"Failed to reset: {ex.Message}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.FailedReset".Translate(ex.Message), SpeechPriority.High);
                 Log.Error($"RimWorld Access: Failed to reset caravan formation: {ex.Message}");
             }
         }
@@ -1117,7 +1117,7 @@ namespace RimWorldAccess
         {
             if (currentDialog == null)
             {
-                TolkHelper.Speak("No dialog available", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.NoDialog".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -1143,7 +1143,7 @@ namespace RimWorldAccess
                     savedSupplyAmounts.Clear();
 
                     NotifyTransferablesChanged();
-                    TolkHelper.Speak("Auto-provision off. Manual selection restored.");
+                    TolkHelper.Speak("RimWorldAccess.Caravan.Form.AutoProvisionOff".Translate());
                 }
                 else
                 {
@@ -1179,12 +1179,12 @@ namespace RimWorldAccess
 
                     autoProvisionEnabled = true;
                     NotifyTransferablesChanged();
-                    TolkHelper.Speak("Auto-provision on. Supplies tab locked. Press Alt+A again to disable.");
+                    TolkHelper.Speak("RimWorldAccess.Caravan.Form.AutoProvisionOn".Translate());
                 }
             }
             catch (Exception ex)
             {
-                TolkHelper.Speak($"Failed to toggle auto-provision: {ex.Message}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.FailedToggleAutoProvision".Translate(ex.Message), SpeechPriority.High);
                 Log.Error($"RimWorld Access: Failed to toggle auto-provision: {ex.Message}");
             }
         }
@@ -1196,9 +1196,9 @@ namespace RimWorldAccess
         {
             switch (tab)
             {
-                case Tab.Pawns: return "Pawns";
-                case Tab.Items: return "Items";
-                case Tab.TravelSupplies: return "Travel Supplies";
+                case Tab.Pawns: return "PawnsTab".Translate();
+                case Tab.Items: return "ItemsTab".Translate();
+                case Tab.TravelSupplies: return "TravelSupplies".Translate();
                 default: return tab.ToString();
             }
         }
@@ -1290,7 +1290,7 @@ namespace RimWorldAccess
                         Current.Game.CurrentMap = mapToReturnTo;
                     }
 
-                    TolkHelper.Speak("Caravan reformation cancelled");
+                    TolkHelper.Speak("RimWorldAccess.Caravan.Form.ReformationCancelled".Translate());
                     return true;
                 }
 
@@ -1345,7 +1345,7 @@ namespace RimWorldAccess
                 {
                     if (autoProvisionEnabled)
                     {
-                        TolkHelper.Speak("Supplies tab locked. Press Alt+A to disable auto-provision.");
+                        TolkHelper.Speak("RimWorldAccess.Caravan.Form.SuppliesTabLocked".Translate());
                     }
                     else
                     {
@@ -1464,7 +1464,7 @@ namespace RimWorldAccess
                         {
                             if (currentTab == Tab.TravelSupplies && autoProvisionEnabled)
                             {
-                                TolkHelper.Speak("Supplies tab locked. Press Alt+A to disable auto-provision.");
+                                TolkHelper.Speak("RimWorldAccess.Caravan.Form.SuppliesTabLocked".Translate());
                                 return true;
                             }
 
@@ -1511,7 +1511,7 @@ namespace RimWorldAccess
                         {
                             if (autoProvisionEnabled)
                             {
-                                TolkHelper.Speak("Supplies tab locked. Press Alt+A to disable auto-provision.");
+                                TolkHelper.Speak("RimWorldAccess.Caravan.Form.SuppliesTabLocked".Translate());
                                 return true;
                             }
                             OpenQuantityMenu(transferable);
@@ -1561,7 +1561,7 @@ namespace RimWorldAccess
                             }
                             else
                             {
-                                TolkHelper.Speak("No breakdown available for this item");
+                                TolkHelper.Speak("RimWorldAccess.Caravan.Form.NoBreakdownForItem".Translate());
                             }
                         }
                         else

@@ -73,6 +73,9 @@
   <RimWorldAccess.World.JumpedToMultipleCaravans>Jumped to {0} selected caravans. {1}</RimWorldAccess.World.JumpedToMultipleCaravans>
   <RimWorldAccess.World.JumpedToCaravan>Jumped to {0}. {1}</RimWorldAccess.World.JumpedToCaravan>
   <RimWorldAccess.World.NoCaravanSelectedHint>No caravan selected. Use comma or period to cycle through caravans first.</RimWorldAccess.World.NoCaravanSelectedHint>
+  <RimWorldAccess.World.CycleCaravanSelected>{0}, {1}, selected, {2} of {3}</RimWorldAccess.World.CycleCaravanSelected>
+  <RimWorldAccess.World.CycleCaravanNotSelected>{0}, {1}, {2} of {3}</RimWorldAccess.World.CycleCaravanNotSelected>
+  <RimWorldAccess.World.TravelToTile>Travel to this tile</RimWorldAccess.World.TravelToTile>
 
   <!-- =================================================================
        Caravan formation dialog (CaravanFormationState).
@@ -96,6 +99,41 @@
   <RimWorldAccess.Caravan.Form.SummaryViewWithHint>Summary view. Up/Down navigates stats, Alt+I for breakdown. Tab to return.</RimWorldAccess.Caravan.Form.SummaryViewWithHint>
   <RimWorldAccess.Caravan.Form.SummaryView>Summary view.</RimWorldAccess.Caravan.Form.SummaryView>
   <RimWorldAccess.Caravan.Form.NoSummaryData>No summary data</RimWorldAccess.Caravan.Form.NoSummaryData>
+  <RimWorldAccess.Caravan.Form.SummaryNoCaravanData>No caravan data available</RimWorldAccess.Caravan.Form.SummaryNoCaravanData>
+  <RimWorldAccess.Caravan.Form.SummaryDestination>Destination: {0}</RimWorldAccess.Caravan.Form.SummaryDestination>
+  <RimWorldAccess.Caravan.Form.SummaryDestinationWithEta>Destination: {0}, ETA: {1} days</RimWorldAccess.Caravan.Form.SummaryDestinationWithEta>
+  <RimWorldAccess.Caravan.Form.SummaryDestinationNotSet>Destination: Not set</RimWorldAccess.Caravan.Form.SummaryDestinationNotSet>
+  <RimWorldAccess.Caravan.Form.SummaryStatsUnavailable>Stats unavailable</RimWorldAccess.Caravan.Form.SummaryStatsUnavailable>
+
+  <!-- =================================================================
+       Caravan stat formatter (CaravanStatFormatter).
+       Shared formatter used by formation/split summary views and the
+       transport pod loader. Tooltip descriptions come from game keys
+       (CaravanMovementSpeedTip, DaysWorthOfFoodTooltip, etc.).
+       {0} = primary value, {1} = secondary value, {2} = description.
+       ================================================================= -->
+  <RimWorldAccess.Stat.Mass>Mass: {0} of {1} kg</RimWorldAccess.Stat.Mass>
+  <RimWorldAccess.Stat.MassOverloaded>Mass: {0} of {1} kg - OVERLOADED</RimWorldAccess.Stat.MassOverloaded>
+  <RimWorldAccess.Stat.SpeedImmobile>Speed: {0}</RimWorldAccess.Stat.SpeedImmobile>
+  <RimWorldAccess.Stat.SpeedImmobileWithDesc>Speed: {0}. {1}</RimWorldAccess.Stat.SpeedImmobileWithDesc>
+  <RimWorldAccess.Stat.SpeedTilesPerDay>Speed: {0} tiles per day</RimWorldAccess.Stat.SpeedTilesPerDay>
+  <RimWorldAccess.Stat.SpeedTilesPerDayWithDesc>Speed: {0} tiles per day. {1}</RimWorldAccess.Stat.SpeedTilesPerDayWithDesc>
+  <RimWorldAccess.Stat.SpeedCannotMove>Speed: Cannot move</RimWorldAccess.Stat.SpeedCannotMove>
+  <RimWorldAccess.Stat.SpeedCannotMoveWithDesc>Speed: Cannot move. {0}</RimWorldAccess.Stat.SpeedCannotMoveWithDesc>
+  <RimWorldAccess.Stat.FoodInfinite>Food: {0}</RimWorldAccess.Stat.FoodInfinite>
+  <RimWorldAccess.Stat.FoodInfiniteWithDesc>Food: {0}. {1}</RimWorldAccess.Stat.FoodInfiniteWithDesc>
+  <RimWorldAccess.Stat.FoodNone>Food: None</RimWorldAccess.Stat.FoodNone>
+  <RimWorldAccess.Stat.FoodNoneWithDesc>Food: None. {0}</RimWorldAccess.Stat.FoodNoneWithDesc>
+  <RimWorldAccess.Stat.FoodDays>Food: {0} days</RimWorldAccess.Stat.FoodDays>
+  <RimWorldAccess.Stat.FoodDaysWithDesc>Food: {0} days. {1}</RimWorldAccess.Stat.FoodDaysWithDesc>
+  <RimWorldAccess.Stat.FoodDaysWithSpoil>Food: {0} days, spoils in {1} days</RimWorldAccess.Stat.FoodDaysWithSpoil>
+  <RimWorldAccess.Stat.FoodDaysWithSpoilWithDesc>Food: {0} days, spoils in {1} days. {2}</RimWorldAccess.Stat.FoodDaysWithSpoilWithDesc>
+  <RimWorldAccess.Stat.ForagingPerDay>Foraging: {0} per day</RimWorldAccess.Stat.ForagingPerDay>
+  <RimWorldAccess.Stat.ForagingPerDayWithDesc>Foraging: {0} per day. {1}</RimWorldAccess.Stat.ForagingPerDayWithDesc>
+  <RimWorldAccess.Stat.ForagingPerDayWithType>Foraging: {0} ({1}) per day</RimWorldAccess.Stat.ForagingPerDayWithType>
+  <RimWorldAccess.Stat.ForagingPerDayWithTypeWithDesc>Foraging: {0} ({1}) per day. {2}</RimWorldAccess.Stat.ForagingPerDayWithTypeWithDesc>
+  <RimWorldAccess.Stat.Visibility>Visibility: {0}</RimWorldAccess.Stat.Visibility>
+  <RimWorldAccess.Stat.VisibilityWithDesc>Visibility: {0}. {1}</RimWorldAccess.Stat.VisibilityWithDesc>
   <RimWorldAccess.Caravan.Form.ItemPosition>{0}. {1}</RimWorldAccess.Caravan.Form.ItemPosition>
   <RimWorldAccess.Caravan.Form.NoDialog>No dialog available</RimWorldAccess.Caravan.Form.NoDialog>
   <RimWorldAccess.Caravan.Form.ChoosingDestination>Choosing caravan destination. Use arrow keys to navigate the world map, Enter to select destination, or Escape to cancel.</RimWorldAccess.Caravan.Form.ChoosingDestination>
@@ -134,6 +172,9 @@
   <RimWorldAccess.Caravan.Split.SummaryViewWithHint>Summary view. Up/Down navigates stats, Left/Right switches caravans, Alt+I for breakdown. Tab to return.</RimWorldAccess.Caravan.Split.SummaryViewWithHint>
   <RimWorldAccess.Caravan.Split.SummaryView>Summary view.</RimWorldAccess.Caravan.Split.SummaryView>
   <RimWorldAccess.Caravan.Split.NoCaravanData>No caravan data available</RimWorldAccess.Caravan.Split.NoCaravanData>
+  <RimWorldAccess.Caravan.Split.NewCaravanLabel>New caravan</RimWorldAccess.Caravan.Split.NewCaravanLabel>
+  <RimWorldAccess.Caravan.Split.OriginalCaravanLabel>Original caravan</RimWorldAccess.Caravan.Split.OriginalCaravanLabel>
+  <RimWorldAccess.Caravan.Split.UnknownStatValue>Unknown</RimWorldAccess.Caravan.Split.UnknownStatValue>
   <RimWorldAccess.Caravan.Split.StatPosition>{0}. {1} of {2}</RimWorldAccess.Caravan.Split.StatPosition>
   <RimWorldAccess.Caravan.Split.StatCaravanPosition>{0}. {1}, {2} of {3}</RimWorldAccess.Caravan.Split.StatCaravanPosition>
   <RimWorldAccess.Caravan.Split.NoDialogAvailable>No dialog available</RimWorldAccess.Caravan.Split.NoDialogAvailable>
@@ -208,6 +249,11 @@
   <RimWorldAccess.Gear.CannotRemoveLockedApparel>Cannot remove locked apparel</RimWorldAccess.Gear.CannotRemoveLockedApparel>
   <RimWorldAccess.Gear.CannotRemoveLockedFromPawn>Cannot remove locked apparel {0} from {1}</RimWorldAccess.Gear.CannotRemoveLockedFromPawn>
   <RimWorldAccess.Gear.LabelPosition>{0}. {1}</RimWorldAccess.Gear.LabelPosition>
+  <RimWorldAccess.Gear.UnequipToInventory>Unequip to inventory</RimWorldAccess.Gear.UnequipToInventory>
+  <RimWorldAccess.Gear.PawnCantEquip>{0} (can't equip: {1})</RimWorldAccess.Gear.PawnCantEquip>
+  <RimWorldAccess.Gear.PawnWithCurrent>{0} ({1})</RimWorldAccess.Gear.PawnWithCurrent>
+  <RimWorldAccess.Gear.ActionGive>Give</RimWorldAccess.Gear.ActionGive>
+  <RimWorldAccess.Gear.ActionEquip>Equip</RimWorldAccess.Gear.ActionEquip>
 
   <!-- =================================================================
        Quest locations browser (QuestLocationsBrowserState).
@@ -275,10 +321,13 @@
   <RimWorldAccess.Route.PlannerNotActive>Route planner not active</RimWorldAccess.Route.PlannerNotActive>
   <RimWorldAccess.Route.WorldNavNotActive>World navigation not active</RimWorldAccess.Route.WorldNavNotActive>
   <RimWorldAccess.Route.ChoosingPrompt>Choosing route. {0} Space to add waypoint, E for travel time, Enter to confirm, Escape to cancel.</RimWorldAccess.Route.ChoosingPrompt>
+  <RimWorldAccess.Route.StandaloneInstructions>Route planner active. Space to add waypoint, Shift+Space to remove waypoint at cursor, E for travel time, Escape to exit.</RimWorldAccess.Route.StandaloneInstructions>
   <RimWorldAccess.Route.Closed>Route planner closed</RimWorldAccess.Route.Closed>
   <RimWorldAccess.Route.WaypointAddedWithEta>Waypoint {0} added. Estimated travel time: {1} {2}</RimWorldAccess.Route.WaypointAddedWithEta>
   <RimWorldAccess.Route.WaypointAddedStarting>Waypoint {0} added (starting point)</RimWorldAccess.Route.WaypointAddedStarting>
   <RimWorldAccess.Route.NoWaypointToRemove>No waypoint here to remove</RimWorldAccess.Route.NoWaypointToRemove>
+  <RimWorldAccess.Route.WaypointRemoved>Waypoint {0} removed. {1} waypoints remaining.</RimWorldAccess.Route.WaypointRemoved>
+  <RimWorldAccess.Route.WaypointRemovedWithEta>Waypoint {0} removed. {1} waypoints remaining. Estimated travel time: {2} {3}</RimWorldAccess.Route.WaypointRemovedWithEta>
   <RimWorldAccess.Route.EtaWithSource>Estimated travel time: {0} {1}</RimWorldAccess.Route.EtaWithSource>
   <RimWorldAccess.Route.NoWaypointsSet>No waypoints set</RimWorldAccess.Route.NoWaypointsSet>
   <RimWorldAccess.Route.StartingPoint>Starting point: {0}. Add more waypoints with Space.</RimWorldAccess.Route.StartingPoint>
@@ -293,7 +342,8 @@
        {1} = direction noun, {2} = distance, {3} = category name,
        {4} = item count, {5} = position.
        ================================================================= -->
-  <RimWorldAccess.WorldScanner.AutoJumpStatus>Auto-jump mode {0}</RimWorldAccess.WorldScanner.AutoJumpStatus>
+  <RimWorldAccess.WorldScanner.AutoJumpEnabled>Auto-jump mode enabled</RimWorldAccess.WorldScanner.AutoJumpEnabled>
+  <RimWorldAccess.WorldScanner.AutoJumpDisabled>Auto-jump mode disabled</RimWorldAccess.WorldScanner.AutoJumpDisabled>
   <RimWorldAccess.WorldScanner.NavNotActive>World navigation not active</RimWorldAccess.WorldScanner.NavNotActive>
   <RimWorldAccess.WorldScanner.NoWorldObjects>No world objects found</RimWorldAccess.WorldScanner.NoWorldObjects>
   <RimWorldAccess.WorldScanner.NoSubcategories>No subcategories</RimWorldAccess.WorldScanner.NoSubcategories>

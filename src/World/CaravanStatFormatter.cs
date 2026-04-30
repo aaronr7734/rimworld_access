@@ -18,12 +18,11 @@ namespace RimWorldAccess
         /// <returns>Formatted string like "Mass: 150.0 of 500.0 kg" or "Mass: 600.0 of 500.0 kg - OVERLOADED"</returns>
         public static string FormatMass(float usage, float capacity)
         {
-            string result = $"Mass: {usage:F1} of {capacity:F1} kg";
-            if (usage > capacity)
-            {
-                result += " - OVERLOADED";
-            }
-            return result;
+            string usageStr = usage.ToString("F1");
+            string capacityStr = capacity.ToString("F1");
+            return usage > capacity
+                ? "RimWorldAccess.Stat.MassOverloaded".Translate(usageStr, capacityStr)
+                : "RimWorldAccess.Stat.Mass".Translate(usageStr, capacityStr);
         }
 
         /// <summary>
@@ -35,20 +34,27 @@ namespace RimWorldAccess
         /// <returns>Formatted string like "Speed: 1.5 tiles per day" or "Speed: Immobile"</returns>
         public static string FormatSpeed(float tilesPerDay, bool isOverloaded, bool includeDescription = true)
         {
-            string description = includeDescription ? $". {"CaravanMovementSpeedTip".Translate()}" : "";
+            string description = "CaravanMovementSpeedTip".Translate();
 
             if (isOverloaded)
             {
                 string immobileLabel = "TilesPerDayImmobile".Translate();
-                return $"Speed: {immobileLabel}{description}".TrimEnd('.');
+                return includeDescription
+                    ? "RimWorldAccess.Stat.SpeedImmobileWithDesc".Translate(immobileLabel, description)
+                    : "RimWorldAccess.Stat.SpeedImmobile".Translate(immobileLabel);
             }
             else if (tilesPerDay > 0)
             {
-                return $"Speed: {tilesPerDay:F1} tiles per day{description}".TrimEnd('.');
+                string speedStr = tilesPerDay.ToString("F1");
+                return includeDescription
+                    ? "RimWorldAccess.Stat.SpeedTilesPerDayWithDesc".Translate(speedStr, description)
+                    : "RimWorldAccess.Stat.SpeedTilesPerDay".Translate(speedStr);
             }
             else
             {
-                return $"Speed: Cannot move{description}".TrimEnd('.');
+                return includeDescription
+                    ? "RimWorldAccess.Stat.SpeedCannotMoveWithDesc".Translate(description)
+                    : "RimWorldAccess.Stat.SpeedCannotMove".Translate();
             }
         }
 
@@ -61,28 +67,37 @@ namespace RimWorldAccess
         /// <returns>Formatted string like "Food: 5.2 days, spoils in 3.1 days" or "Food: Infinite"</returns>
         public static string FormatFood(float days, float tillRot, bool includeDescription = true)
         {
-            string description = includeDescription ? $". {"DaysWorthOfFoodTooltip".Translate()}" : "";
+            string description = "DaysWorthOfFoodTooltip".Translate();
 
             // Match game behavior: >= 600 days means "Infinite" (no consumers or tons of food)
             if (days >= 600f)
             {
                 string infiniteLabel = "InfiniteDaysWorthOfFoodInfo".Translate();
-                return $"Food: {infiniteLabel}{description}".TrimEnd('.');
+                return includeDescription
+                    ? "RimWorldAccess.Stat.FoodInfiniteWithDesc".Translate(infiniteLabel, description)
+                    : "RimWorldAccess.Stat.FoodInfinite".Translate(infiniteLabel);
             }
             else if (days < 0.1f)
             {
-                return $"Food: None{description}".TrimEnd('.');
+                return includeDescription
+                    ? "RimWorldAccess.Stat.FoodNoneWithDesc".Translate(description)
+                    : "RimWorldAccess.Stat.FoodNone".Translate();
             }
             else
             {
-                string result = $"Food: {days:F1} days";
+                string daysStr = days.ToString("F1");
                 // Only show spoilage if food will rot before it's consumed AND it's not "infinite"
-                if (tillRot < days && tillRot > 0 && tillRot < 600f)
+                bool showSpoil = tillRot < days && tillRot > 0 && tillRot < 600f;
+                if (showSpoil)
                 {
-                    result += $", spoils in {tillRot:F1} days";
+                    string rotStr = tillRot.ToString("F1");
+                    return includeDescription
+                        ? "RimWorldAccess.Stat.FoodDaysWithSpoilWithDesc".Translate(daysStr, rotStr, description)
+                        : "RimWorldAccess.Stat.FoodDaysWithSpoil".Translate(daysStr, rotStr);
                 }
-                result += description;
-                return result.TrimEnd('.');
+                return includeDescription
+                    ? "RimWorldAccess.Stat.FoodDaysWithDesc".Translate(daysStr, description)
+                    : "RimWorldAccess.Stat.FoodDays".Translate(daysStr);
             }
         }
 
@@ -95,15 +110,19 @@ namespace RimWorldAccess
         /// <returns>Formatted string like "Foraging: 1.5 (berries) per day"</returns>
         public static string FormatForaging(ThingDef foodType, float perDay, bool includeDescription = true)
         {
-            string description = includeDescription ? $". {"ForagedFoodPerDayTip".Translate()}" : "";
+            string description = "ForagedFoodPerDayTip".Translate();
+            string perDayStr = perDay.ToString("F1");
 
-            string result = $"Foraging: {perDay:F1}";
             if (perDay > 0 && foodType != null)
             {
-                result += $" ({foodType.label})";
+                return includeDescription
+                    ? "RimWorldAccess.Stat.ForagingPerDayWithTypeWithDesc".Translate(perDayStr, foodType.label, description)
+                    : "RimWorldAccess.Stat.ForagingPerDayWithType".Translate(perDayStr, foodType.label);
             }
-            result += $" per day{description}";
-            return result.TrimEnd('.');
+
+            return includeDescription
+                ? "RimWorldAccess.Stat.ForagingPerDayWithDesc".Translate(perDayStr, description)
+                : "RimWorldAccess.Stat.ForagingPerDay".Translate(perDayStr);
         }
 
         /// <summary>
@@ -114,8 +133,11 @@ namespace RimWorldAccess
         /// <returns>Formatted string like "Visibility: 75%"</returns>
         public static string FormatVisibility(float visibility, bool includeDescription = true)
         {
-            string description = includeDescription ? $". {"CaravanVisibilityTip".Translate()}" : "";
-            return $"Visibility: {visibility:P0}{description}".TrimEnd('.');
+            string description = "CaravanVisibilityTip".Translate();
+            string percentStr = visibility.ToString("P0");
+            return includeDescription
+                ? "RimWorldAccess.Stat.VisibilityWithDesc".Translate(percentStr, description)
+                : "RimWorldAccess.Stat.Visibility".Translate(percentStr);
         }
     }
 }

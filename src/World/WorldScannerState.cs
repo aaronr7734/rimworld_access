@@ -361,8 +361,9 @@ namespace RimWorldAccess
         public static void ToggleAutoJumpMode()
         {
             autoJumpMode = !autoJumpMode;
-            string status = autoJumpMode ? "enabled" : "disabled";
-            TolkHelper.Speak($"Auto-jump mode {status}", SpeechPriority.High);
+            TolkHelper.Speak(autoJumpMode
+                ? "RimWorldAccess.WorldScanner.AutoJumpEnabled".Translate()
+                : "RimWorldAccess.WorldScanner.AutoJumpDisabled".Translate(), SpeechPriority.High);
         }
 
         /// <summary>
@@ -457,7 +458,7 @@ namespace RimWorldAccess
         {
             if (!WorldNavigationState.IsActive || !WorldNavigationState.IsInitialized)
             {
-                TolkHelper.Speak("World navigation not active", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.WorldScanner.NavNotActive".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -531,7 +532,7 @@ namespace RimWorldAccess
 
             if (categories.Count == 0)
             {
-                TolkHelper.Speak("No world objects found", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoWorldObjects".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -1597,7 +1598,7 @@ namespace RimWorldAccess
             var category = GetCurrentCategory();
             if (category == null || category.Subcategories.Count <= 1)
             {
-                TolkHelper.Speak("No subcategories", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoSubcategories".Translate(), SpeechPriority.Normal);
                 return;
             }
 
@@ -1634,7 +1635,7 @@ namespace RimWorldAccess
             var category = GetCurrentCategory();
             if (category == null || category.Subcategories.Count <= 1)
             {
-                TolkHelper.Speak("No subcategories", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoSubcategories".Translate(), SpeechPriority.Normal);
                 return;
             }
 
@@ -1672,7 +1673,7 @@ namespace RimWorldAccess
             var subcat = GetCurrentSubcategory();
             if (subcat == null || subcat.Items.Count == 0)
             {
-                TolkHelper.Speak("No items in this category", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoItemsInCategory".Translate(), SpeechPriority.Normal);
                 return;
             }
 
@@ -1705,7 +1706,7 @@ namespace RimWorldAccess
             var subcat = GetCurrentSubcategory();
             if (subcat == null || subcat.Items.Count == 0)
             {
-                TolkHelper.Speak("No items in this category", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoItemsInCategory".Translate(), SpeechPriority.Normal);
                 return;
             }
 
@@ -1737,7 +1738,7 @@ namespace RimWorldAccess
             var item = GetCurrentItem();
             if (item == null || !item.HasInstances)
             {
-                TolkHelper.Speak("No instances to navigate", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoInstancesToNavigate".Translate(), SpeechPriority.Normal);
                 return;
             }
 
@@ -1767,7 +1768,7 @@ namespace RimWorldAccess
             var item = GetCurrentItem();
             if (item == null || !item.HasInstances)
             {
-                TolkHelper.Speak("No instances to navigate", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoInstancesToNavigate".Translate(), SpeechPriority.Normal);
                 return;
             }
 
@@ -1803,7 +1804,7 @@ namespace RimWorldAccess
             if (targetTile.Valid && targetTile.Layer != PlanetLayer.Selected)
             {
                 PlanetLayer.Selected = targetTile.Layer;
-                TolkHelper.Speak($"Switched to {targetTile.LayerDef.LabelCap} layer.");
+                TolkHelper.Speak("RimWorldAccess.WorldScanner.SwitchedToLayer".Translate(targetTile.LayerDef.LabelCap));
             }
 
             WorldNavigationState.CurrentSelectedTile = targetTile;
@@ -1845,7 +1846,7 @@ namespace RimWorldAccess
             float distance = item.GetDistance(originTile, currentInstanceIndex);
             string direction = item.GetDirectionFrom(originTile, currentInstanceIndex);
 
-            TolkHelper.Speak($"{direction}, {distance:F0} tiles", SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.WorldScanner.DirectionDistance".Translate(direction, distance.ToString("F0")), SpeechPriority.Normal);
         }
 
         #endregion
@@ -1860,7 +1861,7 @@ namespace RimWorldAccess
             int catPos = currentCategoryIndex + 1;
             int catTotal = categories.Count;
 
-            TolkHelper.Speak($"{category.Name}, {category.TotalItemCount} items. Category {catPos} of {catTotal}", SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.WorldScanner.CategoryAnnouncement".Translate(category.Name, category.TotalItemCount, catPos, catTotal), SpeechPriority.Normal);
         }
 
         private static void AnnounceCurrentSubcategory()
@@ -1872,7 +1873,7 @@ namespace RimWorldAccess
             int subPos = currentSubcategoryIndex + 1;
             int subTotal = category.Subcategories.Count;
 
-            TolkHelper.Speak($"{subcat.Name}, {subcat.Items.Count} items. Subcategory {subPos} of {subTotal}", SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.WorldScanner.SubcategoryAnnouncement".Translate(subcat.Name, subcat.Items.Count, subPos, subTotal), SpeechPriority.Normal);
         }
 
         private static void AnnounceCurrentItem()
@@ -1880,7 +1881,7 @@ namespace RimWorldAccess
             var item = GetCurrentItem();
             if (item == null)
             {
-                TolkHelper.Speak("No items in this category", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoItemsInCategory".Translate(), SpeechPriority.Normal);
                 return;
             }
 

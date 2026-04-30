@@ -106,7 +106,7 @@ namespace RimWorldAccess
         {
             if (Find.World == null)
             {
-                TolkHelper.Speak("World not available", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.World.NotAvailable".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -249,16 +249,16 @@ namespace RimWorldAccess
                 int waypointCount = RoutePlannerState.WaypointCount;
                 if (waypointCount > 0)
                 {
-                    TolkHelper.Speak($"World map. Route planner active with {waypointCount} waypoints. {initialInfo}");
+                    TolkHelper.Speak("RimWorldAccess.World.OpenWithRoute".Translate(waypointCount, initialInfo));
                 }
                 else
                 {
-                    TolkHelper.Speak($"World map. Route planner active. {initialInfo}");
+                    TolkHelper.Speak("RimWorldAccess.World.OpenRoutePlannerActive".Translate(initialInfo));
                 }
             }
             else
             {
-                TolkHelper.Speak($"World map. {initialInfo}");
+                TolkHelper.Speak("RimWorldAccess.World.OpenInstructions".Translate(initialInfo));
             }
 
 
@@ -366,12 +366,14 @@ namespace RimWorldAccess
             // Announce when entering pole territory (only on state change)
             if (isInPoleTerritory && !lastWasInPoleTerritory)
             {
-                string pole = latitude > 0 ? "north" : "south";
-                TolkHelper.Speak($"Near {pole} pole - using relative directions", SpeechPriority.Normal);
+                string pole = latitude > 0
+                    ? "RimWorldAccess.Map.Direction.Lower.North".Translate()
+                    : "RimWorldAccess.Map.Direction.Lower.South".Translate();
+                TolkHelper.Speak("RimWorldAccess.World.NearPole".Translate(pole), SpeechPriority.Normal);
             }
             else if (!isInPoleTerritory && lastWasInPoleTerritory)
             {
-                TolkHelper.Speak("Leaving pole territory - using compass directions", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.World.LeavingPole".Translate(), SpeechPriority.Normal);
             }
 
             lastWasInPoleTerritory = isInPoleTerritory;
@@ -477,7 +479,7 @@ namespace RimWorldAccess
                 AcceptanceReport report = layer.CanSelectLayer();
                 if (!report.Accepted)
                 {
-                    TolkHelper.Speak($"Cannot switch to {layer.Def.LabelCap}: {report.Reason}");
+                    TolkHelper.Speak("RimWorldAccess.World.LayerSwitchFailed".Translate(layer.Def.LabelCap, report.Reason));
                     return;
                 }
                 nextLayer = layer;
@@ -486,7 +488,7 @@ namespace RimWorldAccess
 
             if (nextLayer == null)
             {
-                TolkHelper.Speak("No other layers available");
+                TolkHelper.Speak("RimWorldAccess.World.NoOtherLayers".Translate());
                 return;
             }
 
@@ -506,7 +508,9 @@ namespace RimWorldAccess
 
             string layerName = nextLayer.Def.LabelCap;
             bool isSpace = nextLayer.Def.isSpace;
-            TolkHelper.Speak($"Switched to {layerName} layer.{(isSpace ? " Space layer." : "")}");
+            TolkHelper.Speak(isSpace
+                ? "RimWorldAccess.World.SwitchedToLayerSpace".Translate(layerName)
+                : "RimWorldAccess.World.SwitchedToLayer".Translate(layerName));
             AnnounceTile();
         }
 
@@ -643,7 +647,7 @@ namespace RimWorldAccess
 
             if (homeSettlement == null)
             {
-                TolkHelper.Speak("No home settlement found", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.World.NoHomeSettlement".Translate(), SpeechPriority.Normal);
                 return;
             }
 
@@ -686,7 +690,7 @@ namespace RimWorldAccess
 
             if (playerCaravans == null || playerCaravans.Count == 0)
             {
-                TolkHelper.Speak("No player caravans found", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.World.NoPlayerCaravans".Translate(), SpeechPriority.Normal);
                 return;
             }
 
@@ -709,7 +713,7 @@ namespace RimWorldAccess
 
             if (nearestCaravan == null)
             {
-                TolkHelper.Speak("No caravans found", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.World.NoCaravansAtAll".Translate(), SpeechPriority.Normal);
                 return;
             }
 
@@ -820,7 +824,7 @@ namespace RimWorldAccess
             if (context != WorldNavContext.InGame) return;
             if (!isInitialized || !currentSelectedTile.Valid)
             {
-                TolkHelper.Speak("No tile selected", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.World.NoTileSelected".Translate(), SpeechPriority.Normal);
                 return;
             }
 
@@ -828,19 +832,19 @@ namespace RimWorldAccess
 
             if (settlement == null)
             {
-                TolkHelper.Speak("No settlement at current tile", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.World.NoSettlementAtTile".Translate(), SpeechPriority.Normal);
                 return;
             }
 
             if (settlement.Faction != Faction.OfPlayer)
             {
-                TolkHelper.Speak("Can only form caravans from player settlements", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.World.OnlyPlayerSettlements".Translate(), SpeechPriority.Normal);
                 return;
             }
 
             if (!settlement.HasMap)
             {
-                TolkHelper.Speak("Settlement has no map", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.World.SettlementHasNoMap".Translate(), SpeechPriority.Normal);
                 return;
             }
 
@@ -865,7 +869,7 @@ namespace RimWorldAccess
             Caravan caravan = GetSelectedCaravan();
             if (caravan == null)
             {
-                TolkHelper.Speak("No caravan selected", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.World.NoCaravanSelected".Translate(), SpeechPriority.Normal);
                 return;
             }
 
@@ -881,14 +885,14 @@ namespace RimWorldAccess
             if (context != WorldNavContext.InGame) return;
             if (!isInitialized || !currentSelectedTile.Valid)
             {
-                TolkHelper.Speak("No tile selected", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.World.NoTileSelected".Translate(), SpeechPriority.Normal);
                 return;
             }
 
             Caravan caravan = GetSelectedCaravan();
             if (caravan == null)
             {
-                TolkHelper.Speak("No caravan selected", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.World.NoCaravanSelected".Translate(), SpeechPriority.Normal);
                 return;
             }
 
@@ -898,13 +902,13 @@ namespace RimWorldAccess
             if (currentSelectedTile != caravan.Tile)
             {
                 FloatMenuOption travelOption = new FloatMenuOption(
-                    $"Travel to this tile",
+                    "RimWorldAccess.World.TravelToTile".Translate(),
                     delegate
                     {
                         if (caravan.pather != null)
                         {
                             caravan.pather.StartPath(currentSelectedTile, null, repathImmediately: false, resetPauseStatus: true);
-                            TolkHelper.Speak($"{caravan.Label} traveling to destination");
+                            TolkHelper.Speak("RimWorldAccess.World.CaravanTraveling".Translate(caravan.Label));
                         }
                     },
                     MenuOptionPriority.Default,
@@ -926,13 +930,13 @@ namespace RimWorldAccess
 
             if (orders.Count == 0)
             {
-                TolkHelper.Speak("No orders available - already at this location", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.World.NoOrdersAlreadyHere".Translate(), SpeechPriority.Normal);
                 return;
             }
 
             // Open windowless float menu with caravan orders (includes disabled options)
             WindowlessFloatMenuState.Open(orders, colonistOrders: false);
-            TolkHelper.Speak($"{caravan.Label} orders: {orders.Count} options available");
+            TolkHelper.Speak("RimWorldAccess.World.CaravanOrders".Translate(caravan.Label, orders.Count));
         }
 
         /// <summary>
@@ -952,7 +956,7 @@ namespace RimWorldAccess
 
             if (playerCaravans == null || playerCaravans.Count == 0)
             {
-                TolkHelper.Speak("No player caravans found", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.World.NoPlayerCaravans".Translate(), SpeechPriority.Normal);
                 selectedCaravan = null;
                 return;
             }
@@ -980,8 +984,10 @@ namespace RimWorldAccess
 
             // Announce caravan with status and selection status
             string caravanStatus = WorldInfoHelper.GetCaravanStatus(selectedCaravan);
-            string selectionStatus = multiSelectedCaravans.Contains(selectedCaravan) ? ", selected" : "";
-            string announcement = $"{selectedCaravan.Label}, {caravanStatus}{selectionStatus}, {nextIndex + 1} of {playerCaravans.Count}";
+            bool isMultiSelected = multiSelectedCaravans.Contains(selectedCaravan);
+            string announcement = isMultiSelected
+                ? "RimWorldAccess.World.CycleCaravanSelected".Translate(selectedCaravan.Label, caravanStatus, nextIndex + 1, playerCaravans.Count)
+                : "RimWorldAccess.World.CycleCaravanNotSelected".Translate(selectedCaravan.Label, caravanStatus, nextIndex + 1, playerCaravans.Count);
             TolkHelper.Speak(announcement);
         }
 
@@ -1002,7 +1008,7 @@ namespace RimWorldAccess
 
             if (playerCaravans == null || playerCaravans.Count == 0)
             {
-                TolkHelper.Speak("No player caravans found", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.World.NoPlayerCaravans".Translate(), SpeechPriority.Normal);
                 selectedCaravan = null;
                 return;
             }
@@ -1033,8 +1039,10 @@ namespace RimWorldAccess
 
             // Announce caravan with status and selection status
             string caravanStatus = WorldInfoHelper.GetCaravanStatus(selectedCaravan);
-            string selectionStatus = multiSelectedCaravans.Contains(selectedCaravan) ? ", selected" : "";
-            string announcement = $"{selectedCaravan.Label}, {caravanStatus}{selectionStatus}, {prevIndex + 1} of {playerCaravans.Count}";
+            bool isMultiSelected = multiSelectedCaravans.Contains(selectedCaravan);
+            string announcement = isMultiSelected
+                ? "RimWorldAccess.World.CycleCaravanSelected".Translate(selectedCaravan.Label, caravanStatus, prevIndex + 1, playerCaravans.Count)
+                : "RimWorldAccess.World.CycleCaravanNotSelected".Translate(selectedCaravan.Label, caravanStatus, prevIndex + 1, playerCaravans.Count);
             TolkHelper.Speak(announcement);
         }
 
@@ -1085,7 +1093,7 @@ namespace RimWorldAccess
             if (context != WorldNavContext.InGame) return;
             if (selectedCaravan == null)
             {
-                TolkHelper.Speak("No caravan focused. Use comma or period to cycle through caravans first.");
+                TolkHelper.Speak("RimWorldAccess.World.NoCaravanFocused".Translate());
                 return;
             }
 
@@ -1095,12 +1103,12 @@ namespace RimWorldAccess
             if (multiSelectedCaravans.Contains(selectedCaravan))
             {
                 multiSelectedCaravans.Remove(selectedCaravan);
-                TolkHelper.Speak($"{selectedCaravan.Label} deselected. {multiSelectedCaravans.Count} caravans selected.");
+                TolkHelper.Speak("RimWorldAccess.World.CaravanDeselected".Translate(selectedCaravan.Label, multiSelectedCaravans.Count));
             }
             else
             {
                 multiSelectedCaravans.Add(selectedCaravan);
-                TolkHelper.Speak($"{selectedCaravan.Label} selected. {multiSelectedCaravans.Count} caravans selected.");
+                TolkHelper.Speak("RimWorldAccess.World.CaravanSelected".Translate(selectedCaravan.Label, multiSelectedCaravans.Count));
             }
 
             // Sync multi-selection with game's WorldSelector
@@ -1174,7 +1182,7 @@ namespace RimWorldAccess
                 var tiles = multiSelectedCaravans.Select(c => c.Tile).Distinct().ToList();
                 if (tiles.Count > 1)
                 {
-                    TolkHelper.Speak("You can't be in two places at once! Selected caravans are on different tiles.");
+                    TolkHelper.Speak("RimWorldAccess.World.MultiSelectDifferentTiles".Translate());
                     return;
                 }
 
@@ -1187,7 +1195,7 @@ namespace RimWorldAccess
                 Find.WorldCameraDriver?.JumpTo(Find.WorldGrid.GetTileCenter(targetTile));
 
                 string tileInfo = WorldInfoHelper.GetTileSummary(targetTile);
-                TolkHelper.Speak($"Jumped to {multiSelectedCaravans.Count} selected caravans. {tileInfo}");
+                TolkHelper.Speak("RimWorldAccess.World.JumpedToMultipleCaravans".Translate(multiSelectedCaravans.Count, tileInfo));
                 return;
             }
 
@@ -1199,11 +1207,11 @@ namespace RimWorldAccess
                 Find.WorldCameraDriver?.JumpTo(Find.WorldGrid.GetTileCenter(selectedCaravan.Tile));
 
                 string tileInfo = WorldInfoHelper.GetTileSummary(selectedCaravan.Tile);
-                TolkHelper.Speak($"Jumped to {selectedCaravan.Label}. {tileInfo}");
+                TolkHelper.Speak("RimWorldAccess.World.JumpedToCaravan".Translate(selectedCaravan.Label, tileInfo));
                 return;
             }
 
-            TolkHelper.Speak("No caravan selected. Use comma or period to cycle through caravans first.");
+            TolkHelper.Speak("RimWorldAccess.World.NoCaravanSelectedHint".Translate());
         }
 
         /// <summary>

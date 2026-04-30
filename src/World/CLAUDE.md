@@ -37,6 +37,9 @@ WorldNavigationState tracks current world tile with `PlanetTile`. 3D geographic 
 **Requires:** ScreenReader/, Input/, Map/ (cursor sync)
 **Used by:** Quests/ (quest jump targets), MainMenu/ (StartingSitePatch + StartingSiteContext use WorldNavigationState)
 
+## Localization
+All speak calls in the State, Patch, and Helper layers (except `WorldInfoHelper`) route through `Languages/English/Keyed/RimWorldAccess_World.xml`. Tab labels reuse vanilla keys (`PawnsTab`, `ItemsTab`, `TravelSupplies`). Compass nouns reuse `RimWorldAccess.Map.Direction.Lower.*`. `WorldInfoHelper` (1729 lines of tile read-out / caravan status composition) still emits English strings and is a follow-up wiring task — see refactor roadmap.
+
 ## Testing
 - [ ] Arrow keys navigate world tiles (both contexts)
 - [ ] Scanner works (both contexts)
