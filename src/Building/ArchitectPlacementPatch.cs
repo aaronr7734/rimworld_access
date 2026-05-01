@@ -180,10 +180,15 @@ namespace RimWorldAccess
             {
                 handled = HandleTabKey(activeDesignator, shiftHeld, supportsShapes, inArchitectMode, availableShapes);
             }
-            // Ctrl+A - select entire enclosed room, or the entire map when outdoors
+            // Ctrl+A - step outward: enclosure, then entire map.
             else if (ctrlHeld && !shiftHeld && key == KeyCode.A)
             {
                 handled = HandleCtrlAKey();
+            }
+            // Ctrl+Shift+A - step back to the previous Ctrl+A scope.
+            else if (ctrlHeld && shiftHeld && key == KeyCode.A)
+            {
+                handled = HandleCtrlShiftAKey();
             }
             // Shift+Space - Remove shape points OR cancel blueprint at cursor position
             else if (shiftHeld && key == KeyCode.Space)
@@ -402,9 +407,12 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Handles Ctrl+A input for selecting the current room (when enclosed) or the
-        /// entire map (when outdoors). Only works for rectangle/oval shapes since lines
-        /// cannot meaningfully fill a room.
+        /// Handles Ctrl+A input for stepping outward through selection scopes.
+        /// First press selects the current enclosure (room or blueprint flood);
+        /// when no enclosure is detected the press jumps straight to entire map.
+        /// A subsequent press while the enclosure is selected expands to entire map.
+        /// Pressing again at entire-map scope is a no-op with an announcement.
+        /// Only works for rectangle/oval shapes since lines cannot meaningfully fill a room.
         /// </summary>
         /// <returns>True if the key was handled, false otherwise.</returns>
         private static bool HandleCtrlAKey()
@@ -428,6 +436,23 @@ namespace RimWorldAccess
             if (map == null)
                 return false;
 
+            CtrlAStage currentStage = ShapePlacementState.CurrentCtrlAStage;
+
+            // Already at the broadest scope — nothing to expand to.
+            if (currentStage == CtrlAStage.EntireMap)
+            {
+                TolkHelper.Speak("Entire map already selected. Press Ctrl plus Shift plus A to step back.");
+                return true;
+            }
+
+            // From the enclosure stage we step out to the entire map.
+            if (currentStage == CtrlAStage.Enclosure)
+            {
+                ApplyEntireMapScope(map, shape, "Expanded to ");
+                return true;
+            }
+
+            // First press (CtrlAStage.None): try enclosure first, fall back to entire map.
             IntVec3 cursor = MapNavigationState.CurrentCursorPosition;
             bool cursorValid = cursor.IsValid && cursor.InBounds(map);
 
@@ -455,16 +480,94 @@ namespace RimWorldAccess
             }
             else
             {
-                cornerA = new IntVec3(0, 0, 0);
-                cornerB = new IntVec3(map.Size.x - 1, 0, map.Size.z - 1);
-                scopeLabel = $"entire map, {map.Size.x} by {map.Size.z}";
+                // No enclosure to step through — jump straight to entire map.
+                ApplyEntireMapScope(map, shape, "No enclosure detected, selected ");
+                return true;
             }
 
+            ShapePlacementState.PushCtrlAHistory();
             ShapePlacementState.SetBothPoints(cornerA, cornerB);
+            ShapePlacementState.SetCtrlAStage(CtrlAStage.Enclosure);
 
             int cellCount = ShapePlacementState.PreviewCells?.Count ?? 0;
             string shapeName = ShapeHelper.GetShapeName(shape);
-            TolkHelper.Speak($"Selected {scopeLabel}. {shapeName}, {cellCount} cells. Enter to confirm.");
+            TolkHelper.Speak($"Selected {scopeLabel}. {shapeName}, {cellCount} cells. Press Ctrl plus A again for entire map. Enter to confirm.");
+            return true;
+        }
+
+        /// <summary>
+        /// Applies entire-map corners and announces the new scope.
+        /// </summary>
+        private static void ApplyEntireMapScope(Map map, ShapeType shape, string prefix)
+        {
+            IntVec3 cornerA = new IntVec3(0, 0, 0);
+            IntVec3 cornerB = new IntVec3(map.Size.x - 1, 0, map.Size.z - 1);
+            string scopeLabel = $"entire map, {map.Size.x} by {map.Size.z}";
+
+            ShapePlacementState.PushCtrlAHistory();
+            ShapePlacementState.SetBothPoints(cornerA, cornerB);
+            ShapePlacementState.SetCtrlAStage(CtrlAStage.EntireMap);
+
+            int cellCount = ShapePlacementState.PreviewCells?.Count ?? 0;
+            string shapeName = ShapeHelper.GetShapeName(shape);
+            TolkHelper.Speak($"{prefix}{scopeLabel}. {shapeName}, {cellCount} cells. Press Ctrl plus Shift plus A to step back. Enter to confirm.");
+        }
+
+        /// <summary>
+        /// Handles Ctrl+Shift+A input by popping the most recent Ctrl+A scope and
+        /// restoring the prior selection (or clearing it if the prior step had no points).
+        /// </summary>
+        /// <returns>True if the key was handled, false otherwise.</returns>
+        private static bool HandleCtrlShiftAKey()
+        {
+            if (!ShapePlacementState.IsActive)
+                return false;
+
+            ShapeType shape = ShapePlacementState.CurrentShape;
+            if (shape == ShapeType.Manual)
+            {
+                TolkHelper.Speak("Select all requires a shape. Press Tab to choose one.");
+                return true;
+            }
+            if (shape == ShapeType.Line || shape == ShapeType.AngledLine)
+            {
+                TolkHelper.Speak("Select all is not available for line shapes.");
+                return true;
+            }
+
+            if (!ShapePlacementState.HasCtrlAHistory)
+            {
+                TolkHelper.Speak("No previous selection scope to return to.");
+                return true;
+            }
+
+            if (!ShapePlacementState.TryUndoCtrlA())
+            {
+                TolkHelper.Speak("No previous selection scope to return to.");
+                return true;
+            }
+
+            CtrlAStage stage = ShapePlacementState.CurrentCtrlAStage;
+            string shapeName = ShapeHelper.GetShapeName(shape);
+
+            if (stage == CtrlAStage.None)
+            {
+                // Restored to a state with no Ctrl+A selection in effect.
+                if (!ShapePlacementState.HasFirstPoint)
+                {
+                    TolkHelper.Speak("Selection cleared. Move to first point and press Space.");
+                }
+                else
+                {
+                    int cells = ShapePlacementState.PreviewCells?.Count ?? 0;
+                    TolkHelper.Speak($"Returned to previous selection. {shapeName}, {cells} cells.");
+                }
+                return true;
+            }
+
+            int cellCount = ShapePlacementState.PreviewCells?.Count ?? 0;
+            string scopeName = stage == CtrlAStage.Enclosure ? "enclosure" : "entire map";
+            TolkHelper.Speak($"Returned to {scopeName}. {shapeName}, {cellCount} cells. Enter to confirm.");
             return true;
         }
 

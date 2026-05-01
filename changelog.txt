@@ -1,6 +1,14 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
 04/30/2026
 
+CHANGES
+-------
+- Ctrl+A in shape placement now steps through scopes. The first
+  press still selects the current enclosure (room or blueprint
+  flood); a second press expands to the entire map. Ctrl+Shift+A
+  steps back to the previous scope. Any manual point change clears
+  the step history.
+
 BUG FIXES
 ---------
 - The resurrector mech serum (and other dual-target psicasts like

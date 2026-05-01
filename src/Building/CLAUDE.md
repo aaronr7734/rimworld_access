@@ -53,12 +53,23 @@ var cells = previewHelper.PreviewCells;
 ```
 
 ### Select-All Shortcut
-`Ctrl+A` in shape placement fills both corners automatically:
-- Inside a finished enclosed room → room bounds via `Room.ExtentsClose`.
-- Inside an area ringed by wall BLUEPRINTS/frames (no finished room yet) →
-  `EnclosureDetector.TryFloodFillFromCell(cursor, map)` picks it up and the
-  bounding box of its interior cells is used.
-- Otherwise (outdoors / open map) → entire map bounds.
+`Ctrl+A` in shape placement steps through nested scopes:
+1. First press → current enclosure. Tries `Room.ExtentsClose` first; falls
+   back to `EnclosureDetector.TryFloodFillFromCell(cursor, map)` for areas
+   ringed by wall blueprints/frames; if neither resolves, jumps straight to
+   step 2.
+2. Second press → entire map (`map.Size` bounds).
+3. Third press → no-op with an "already at maximum" announcement.
+
+`Ctrl+Shift+A` pops the most recent step and restores the prior selection.
+
+`ShapePlacementState` owns the step history. `CurrentCtrlAStage` records what
+the most recent Ctrl+A applied (`None` / `Enclosure` / `EntireMap`), and
+`PushCtrlAHistory` / `TryUndoCtrlA` / `ClearCtrlAHistory` manage the stack.
+Any manual point change (`SetFirstPoint`, `SetSecondPoint`, `RemoveLastPoint`,
+`ClearSelectionAndStay`, `Reset`, `Enter`) clears the history because the
+stack would otherwise reference an incoherent prior state.
+
 - Line and AngledLine shapes refuse — only rect/oval variants apply.
 - Uses `ShapePlacementState.SetBothPoints` which jumps straight to `Previewing`.
 
