@@ -22,19 +22,19 @@
   <RimWorldAccess.Prisoner.Guest.NotSlave>{0}: Not a slave</RimWorldAccess.Prisoner.Guest.NotSlave>
   <RimWorldAccess.Prisoner.Guest.NotPrisonerOrSlave>{0} is not a prisoner or slave</RimWorldAccess.Prisoner.Guest.NotPrisonerOrSlave>
 
-  <!-- Prisoner stats block (multi-line info announced line-by-line).
-       Headers are standalone labels; data keys take formatted values. -->
+  <!-- Prisoner stats block. Fragments are clean phrases; the
+       AnnouncementBuilder owns separators between them. -->
   <RimWorldAccess.Prisoner.Info.HeaderPrisoner>{0} - Prisoner</RimWorldAccess.Prisoner.Info.HeaderPrisoner>
   <RimWorldAccess.Prisoner.Info.HeaderSlave>{0} - Slave</RimWorldAccess.Prisoner.Info.HeaderSlave>
   <RimWorldAccess.Prisoner.Info.PrisonBreakInProgress>Prison Break: Currently Prison Breaking!</RimWorldAccess.Prisoner.Info.PrisonBreakInProgress>
   <RimWorldAccess.Prisoner.Info.PrisonBreakNever>Prison Break MTB: Never</RimWorldAccess.Prisoner.Info.PrisonBreakNever>
-  <RimWorldAccess.Prisoner.Info.PrisonBreakPreventedByGene>  (Prevented by gene: {0})</RimWorldAccess.Prisoner.Info.PrisonBreakPreventedByGene>
+  <RimWorldAccess.Prisoner.Info.PrisonBreakPreventedByGene>Prevented by gene: {0}</RimWorldAccess.Prisoner.Info.PrisonBreakPreventedByGene>
   <RimWorldAccess.Prisoner.Info.PrisonBreakDays>Prison Break MTB: {0} days</RimWorldAccess.Prisoner.Info.PrisonBreakDays>
   <RimWorldAccess.Prisoner.Info.Resistance>Recruitment Resistance: {0}</RimWorldAccess.Prisoner.Info.Resistance>
-  <RimWorldAccess.Prisoner.Info.ResistanceInitialRange>  (Initial range: {0}~{1})</RimWorldAccess.Prisoner.Info.ResistanceInitialRange>
+  <RimWorldAccess.Prisoner.Info.ResistanceInitialRange>Initial range: {0} to {1}</RimWorldAccess.Prisoner.Info.ResistanceInitialRange>
   <RimWorldAccess.Prisoner.Info.NonRecruitable>Recruitment: Non-Recruitable</RimWorldAccess.Prisoner.Info.NonRecruitable>
   <RimWorldAccess.Prisoner.Info.WillLevel>Will Level: {0}</RimWorldAccess.Prisoner.Info.WillLevel>
-  <RimWorldAccess.Prisoner.Info.WillInitialRange>  (Initial range: {0}~{1})</RimWorldAccess.Prisoner.Info.WillInitialRange>
+  <RimWorldAccess.Prisoner.Info.WillInitialRange>Initial range: {0} to {1}</RimWorldAccess.Prisoner.Info.WillInitialRange>
   <RimWorldAccess.Prisoner.Info.SlavePrice>Slave Price: {0} silver</RimWorldAccess.Prisoner.Info.SlavePrice>
   <RimWorldAccess.Prisoner.Info.StudiableYes>Studiable: Yes</RimWorldAccess.Prisoner.Info.StudiableYes>
   <RimWorldAccess.Prisoner.Info.ReleaseRelationGains>Release Relation Gains: {0}</RimWorldAccess.Prisoner.Info.ReleaseRelationGains>
@@ -42,14 +42,13 @@
   <RimWorldAccess.Prisoner.Info.GuiltyNoTimer>Guilty: No timer (in {0})</RimWorldAccess.Prisoner.Info.GuiltyNoTimer>
   <RimWorldAccess.Prisoner.Info.IdeoConversionTarget>Ideo Conversion Target: {0}</RimWorldAccess.Prisoner.Info.IdeoConversionTarget>
 
-  <!-- Last recruitment attempt breakdown. The header is a standalone line;
-       the remaining keys are indented "  Label: value" rows. -->
-  <RimWorldAccess.Prisoner.Info.LastRecruitmentHeader>Last Recruitment:</RimWorldAccess.Prisoner.Info.LastRecruitmentHeader>
-  <RimWorldAccess.Prisoner.Info.LastRecruitmentResistance>  Resistance Reduction: {0}</RimWorldAccess.Prisoner.Info.LastRecruitmentResistance>
-  <RimWorldAccess.Prisoner.Info.LastRecruitmentRecruiter>  Recruiter: {0}</RimWorldAccess.Prisoner.Info.LastRecruitmentRecruiter>
-  <RimWorldAccess.Prisoner.Info.LastRecruitmentMoodFactor>  Mood Factor: x{0}</RimWorldAccess.Prisoner.Info.LastRecruitmentMoodFactor>
-  <RimWorldAccess.Prisoner.Info.LastRecruitmentNegotiation>  Negotiation Ability: x{0}</RimWorldAccess.Prisoner.Info.LastRecruitmentNegotiation>
-  <RimWorldAccess.Prisoner.Info.LastRecruitmentOpinion>  Opinion Factor: x{0}</RimWorldAccess.Prisoner.Info.LastRecruitmentOpinion>
+  <!-- Last recruitment attempt breakdown. -->
+  <RimWorldAccess.Prisoner.Info.LastRecruitmentHeader>Last Recruitment</RimWorldAccess.Prisoner.Info.LastRecruitmentHeader>
+  <RimWorldAccess.Prisoner.Info.LastRecruitmentResistance>Resistance Reduction: {0}</RimWorldAccess.Prisoner.Info.LastRecruitmentResistance>
+  <RimWorldAccess.Prisoner.Info.LastRecruitmentRecruiter>Recruiter: {0}</RimWorldAccess.Prisoner.Info.LastRecruitmentRecruiter>
+  <RimWorldAccess.Prisoner.Info.LastRecruitmentMoodFactor>Mood Factor: x{0}</RimWorldAccess.Prisoner.Info.LastRecruitmentMoodFactor>
+  <RimWorldAccess.Prisoner.Info.LastRecruitmentNegotiation>Negotiation Ability: x{0}</RimWorldAccess.Prisoner.Info.LastRecruitmentNegotiation>
+  <RimWorldAccess.Prisoner.Info.LastRecruitmentOpinion>Opinion Factor: x{0}</RimWorldAccess.Prisoner.Info.LastRecruitmentOpinion>
 
   <!-- Slave stats block. -->
   <RimWorldAccess.Prisoner.Slave.Suppression>Suppression: {0}</RimWorldAccess.Prisoner.Slave.Suppression>
@@ -76,20 +75,17 @@
   <RimWorldAccess.Prisoner.MedicalCare.Announce>Medical Care: {0}</RimWorldAccess.Prisoner.MedicalCare.Announce>
   <RimWorldAccess.Prisoner.MedicalCare.AnnounceWithHint>Medical Care: {0}. Use Up/Down arrows to adjust</RimWorldAccess.Prisoner.MedicalCare.AnnounceWithHint>
 
-  <!-- Interaction mode descriptions - warning suffixes appended to the
-       def's own description. {0} = ideo name (IdeoWarden only). -->
-  <RimWorldAccess.Prisoner.Warning.NoEnslavementWarden>
-[WARNING: No warden capable of enslavement]</RimWorldAccess.Prisoner.Warning.NoEnslavementWarden>
-  <RimWorldAccess.Prisoner.Warning.NoViolenceWarden>
-[WARNING: No warden capable of violence]</RimWorldAccess.Prisoner.Warning.NoViolenceWarden>
-  <RimWorldAccess.Prisoner.Warning.NoIdeoWarden>
-[WARNING: No warden of {0}]</RimWorldAccess.Prisoner.Warning.NoIdeoWarden>
-  <RimWorldAccess.Prisoner.Warning.NoIdeoWardenInline> [WARNING: No warden of this ideology]</RimWorldAccess.Prisoner.Warning.NoIdeoWardenInline>
+  <!-- Interaction mode descriptions - warning suffixes appended after the
+       def's own description through AnnouncementBuilder. {0} = ideo name. -->
+  <RimWorldAccess.Prisoner.Warning.NoEnslavementWarden>WARNING: No warden capable of enslavement</RimWorldAccess.Prisoner.Warning.NoEnslavementWarden>
+  <RimWorldAccess.Prisoner.Warning.NoViolenceWarden>WARNING: No warden capable of violence</RimWorldAccess.Prisoner.Warning.NoViolenceWarden>
+  <RimWorldAccess.Prisoner.Warning.NoIdeoWarden>WARNING: No warden of {0}</RimWorldAccess.Prisoner.Warning.NoIdeoWarden>
+  <RimWorldAccess.Prisoner.Warning.NoIdeoWardenInline>. WARNING: No warden of this ideology</RimWorldAccess.Prisoner.Warning.NoIdeoWardenInline>
 
   <!-- Slave emancipation outcome suffixes. {0} = slave faction name. -->
-  <RimWorldAccess.Prisoner.Emancipate.BecomeColonist> (Will become colonist)</RimWorldAccess.Prisoner.Emancipate.BecomeColonist>
-  <RimWorldAccess.Prisoner.Emancipate.BecomeFreeNoFaction> (Will become free, no faction)</RimWorldAccess.Prisoner.Emancipate.BecomeFreeNoFaction>
-  <RimWorldAccess.Prisoner.Emancipate.ReturnToFaction> (Will return to {0})</RimWorldAccess.Prisoner.Emancipate.ReturnToFaction>
+  <RimWorldAccess.Prisoner.Emancipate.BecomeColonist>Will become colonist</RimWorldAccess.Prisoner.Emancipate.BecomeColonist>
+  <RimWorldAccess.Prisoner.Emancipate.BecomeFreeNoFaction>Will become free, no faction</RimWorldAccess.Prisoner.Emancipate.BecomeFreeNoFaction>
+  <RimWorldAccess.Prisoner.Emancipate.ReturnToFaction>Will return to {0}</RimWorldAccess.Prisoner.Emancipate.ReturnToFaction>
 
   <!-- Tab open / close announcements. -->
   <RimWorldAccess.Prisoner.Tab.Closed>Prisoner tab closed</RimWorldAccess.Prisoner.Tab.Closed>
