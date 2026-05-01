@@ -503,107 +503,84 @@
        "unseen, {x}, {z}". -->
   <RimWorldAccess.Map.Tile.UnseenWithDesignations>{0}, unseen, {1}, {2}</RimWorldAccess.Map.Tile.UnseenWithDesignations>
   <RimWorldAccess.Map.Tile.Unseen>unseen, {0}, {1}</RimWorldAccess.Map.Tile.Unseen>
-  <!-- Coordinates appended to a non-empty / empty summary. -->
-  <RimWorldAccess.Map.Tile.CoordsSuffix>, {0}, {1}</RimWorldAccess.Map.Tile.CoordsSuffix>
-  <RimWorldAccess.Map.Tile.CoordsBare>{0}, {1}</RimWorldAccess.Map.Tile.CoordsBare>
-  <RimWorldAccess.Map.Tile.CantLand>, can't land</RimWorldAccess.Map.Tile.CantLand>
-  <RimWorldAccess.Map.Tile.NotVisible>, not visible</RimWorldAccess.Map.Tile.NotVisible>
+  <!-- Tile coordinates fragment ({x}, {z}). AnnouncementBuilder owns
+       the leading comma when other content is present. -->
+  <RimWorldAccess.Map.Tile.Coords>{0}, {1}</RimWorldAccess.Map.Tile.Coords>
+  <RimWorldAccess.Map.Tile.CantLand>can't land</RimWorldAccess.Map.Tile.CantLand>
+  <RimWorldAccess.Map.Tile.NotVisible>not visible</RimWorldAccess.Map.Tile.NotVisible>
 
-  <!-- Item / building line fragments (appended after the running
-       summary already has content). -->
-  <RimWorldAccess.Map.Tile.Frame.Building>, building</RimWorldAccess.Map.Tile.Frame.Building>
-  <RimWorldAccess.Map.Tile.Frame.WorkLeft>, work left: {0}</RimWorldAccess.Map.Tile.Frame.WorkLeft>
-  <RimWorldAccess.Map.Tile.Frame.AwaitingSupplies>, awaiting supplies</RimWorldAccess.Map.Tile.Frame.AwaitingSupplies>
-  <!-- Cell-info parenthesized suffix: " ({BuildingCellHelper})". -->
+  <!-- Frame qualifier fragments. AnnouncementBuilder owns separators. -->
+  <RimWorldAccess.Map.Tile.Frame.Building>building</RimWorldAccess.Map.Tile.Frame.Building>
+  <RimWorldAccess.Map.Tile.Frame.WorkLeft>work left: {0}</RimWorldAccess.Map.Tile.Frame.WorkLeft>
+  <RimWorldAccess.Map.Tile.Frame.AwaitingSupplies>awaiting supplies</RimWorldAccess.Map.Tile.Frame.AwaitingSupplies>
+  <!-- Cell-info parenthesized suffix: " ({BuildingCellHelper})".
+       Inlined onto the thing label, so leading space is intentional. -->
   <RimWorldAccess.Map.Tile.CellSuffix> ({0})</RimWorldAccess.Map.Tile.CellSuffix>
   <!-- " wall" appended to smoothed-stone walls. -->
   <RimWorldAccess.Map.Tile.WallSuffix> wall</RimWorldAccess.Map.Tile.WallSuffix>
-  <RimWorldAccess.Map.Tile.WorkLeftAppend>, work left: {0}</RimWorldAccess.Map.Tile.WorkLeftAppend>
+  <!-- Work-left fragment for unfinished things (e.g., joinery in progress). -->
+  <RimWorldAccess.Map.Tile.WorkLeftAppend>work left: {0}</RimWorldAccess.Map.Tile.WorkLeftAppend>
   <!-- "Forbidden " prefix on item labels. -->
   <RimWorldAccess.Map.Tile.ForbiddenPrefix>Forbidden {0}</RimWorldAccess.Map.Tile.ForbiddenPrefix>
   <!-- " floor" appended to smoothed-stone terrain labels. -->
   <RimWorldAccess.Map.Tile.FloorSuffix> floor</RimWorldAccess.Map.Tile.FloorSuffix>
-  <!-- Roof status (composed differently when the summary is empty). -->
+  <!-- Roof status. -->
   <RimWorldAccess.Map.Tile.Roof.Underground>underground</RimWorldAccess.Map.Tile.Roof.Underground>
   <RimWorldAccess.Map.Tile.Roof.Roofed>roofed</RimWorldAccess.Map.Tile.Roof.Roofed>
-  <RimWorldAccess.Map.Tile.Roof.Append>, {0}</RimWorldAccess.Map.Tile.Roof.Append>
 
-  <!-- Detail-mode tile dump (GetDetailedTileInfo). -->
-  <RimWorldAccess.Map.Tile.Detail.Header>=== Tile {0}, {1} ===</RimWorldAccess.Map.Tile.Detail.Header>
-  <RimWorldAccess.Map.Tile.Detail.TerrainLine>Terrain: {0}</RimWorldAccess.Map.Tile.Detail.TerrainLine>
-  <RimWorldAccess.Map.Tile.Detail.NoObjects>No objects on this tile</RimWorldAccess.Map.Tile.Detail.NoObjects>
-  <RimWorldAccess.Map.Tile.Detail.PawnsHeader>
-Pawns ({0}):</RimWorldAccess.Map.Tile.Detail.PawnsHeader>
-  <RimWorldAccess.Map.Tile.Detail.BuildingsHeader>
-Buildings ({0}):</RimWorldAccess.Map.Tile.Detail.BuildingsHeader>
-  <RimWorldAccess.Map.Tile.Detail.ItemsHeader>
-Items ({0}):</RimWorldAccess.Map.Tile.Detail.ItemsHeader>
-  <RimWorldAccess.Map.Tile.Detail.PlantsHeader>
-Plants ({0}):</RimWorldAccess.Map.Tile.Detail.PlantsHeader>
-  <RimWorldAccess.Map.Tile.Detail.BulletItem>  - {0}</RimWorldAccess.Map.Tile.Detail.BulletItem>
-  <RimWorldAccess.Map.Tile.Detail.MoreItems>  ... and {0} more items</RimWorldAccess.Map.Tile.Detail.MoreItems>
-  <RimWorldAccess.Map.Tile.Detail.EnvironmentalHeader>
---- Environmental Info ---</RimWorldAccess.Map.Tile.Detail.EnvironmentalHeader>
-  <RimWorldAccess.Map.Tile.Detail.TemperatureLine>Temperature: {0}</RimWorldAccess.Map.Tile.Detail.TemperatureLine>
-  <RimWorldAccess.Map.Tile.Detail.RoofLine>Roof: {0}</RimWorldAccess.Map.Tile.Detail.RoofLine>
-  <RimWorldAccess.Map.Tile.Detail.RoofNone>Roof: None (outdoors)</RimWorldAccess.Map.Tile.Detail.RoofNone>
-  <RimWorldAccess.Map.Tile.Detail.FoggedStatus>Status: Fogged (not visible)</RimWorldAccess.Map.Tile.Detail.FoggedStatus>
-  <RimWorldAccess.Map.Tile.Detail.ZoneLine>Zone: {0}</RimWorldAccess.Map.Tile.Detail.ZoneLine>
-  <!-- Stack count and parenthesized info-suffix in detail dump. -->
-  <RimWorldAccess.Map.Tile.Detail.StackCount> x{0}</RimWorldAccess.Map.Tile.Detail.StackCount>
-  <RimWorldAccess.Map.Tile.Detail.ParenSuffix> ({0})</RimWorldAccess.Map.Tile.Detail.ParenSuffix>
-  <RimWorldAccess.Map.Tile.Detail.CommaSuffix>, {0}</RimWorldAccess.Map.Tile.Detail.CommaSuffix>
+  <!-- Stack count appended to item label (e.g. "wood x5"). -->
+  <RimWorldAccess.Map.Tile.Item.StackCount> x{0}</RimWorldAccess.Map.Tile.Item.StackCount>
 
   <!-- Items+pawns hotkey (key 1). -->
   <RimWorldAccess.Map.Tile.Items.None>no items or pawns</RimWorldAccess.Map.Tile.Items.None>
-  <RimWorldAccess.Map.Tile.Items.MoreSuffix>, and {0} more</RimWorldAccess.Map.Tile.Items.MoreSuffix>
+  <RimWorldAccess.Map.Tile.Items.MoreSuffix>and {0} more</RimWorldAccess.Map.Tile.Items.MoreSuffix>
 
-  <!-- Flooring hotkey (key 2). -->
+  <!-- Flooring hotkey (key 2). All fragments below are comma-separated
+       qualifiers added via AnnouncementBuilder. -->
   <RimWorldAccess.Map.Tile.Flooring.None>no terrain information</RimWorldAccess.Map.Tile.Flooring.None>
-  <RimWorldAccess.Map.Tile.Flooring.Fertility> ({0} fertility)</RimWorldAccess.Map.Tile.Flooring.Fertility>
-  <RimWorldAccess.Map.Tile.Flooring.Smooth>, smooth</RimWorldAccess.Map.Tile.Flooring.Smooth>
-  <RimWorldAccess.Map.Tile.Flooring.Rough>, rough</RimWorldAccess.Map.Tile.Flooring.Rough>
-  <RimWorldAccess.Map.Tile.Flooring.Beauty>, beauty: {0}</RimWorldAccess.Map.Tile.Flooring.Beauty>
-  <RimWorldAccess.Map.Tile.Flooring.Cleanliness>, cleanliness: {0}</RimWorldAccess.Map.Tile.Flooring.Cleanliness>
-  <RimWorldAccess.Map.Tile.Flooring.PathCost>, path cost: {0}</RimWorldAccess.Map.Tile.Flooring.PathCost>
-  <RimWorldAccess.Map.Tile.Flooring.Fish>, fish: {0} ({1}/{2})</RimWorldAccess.Map.Tile.Flooring.Fish>
+  <RimWorldAccess.Map.Tile.Flooring.Fertility>fertility: {0}</RimWorldAccess.Map.Tile.Flooring.Fertility>
+  <RimWorldAccess.Map.Tile.Flooring.Smooth>smooth</RimWorldAccess.Map.Tile.Flooring.Smooth>
+  <RimWorldAccess.Map.Tile.Flooring.Rough>rough</RimWorldAccess.Map.Tile.Flooring.Rough>
+  <RimWorldAccess.Map.Tile.Flooring.Beauty>beauty: {0}</RimWorldAccess.Map.Tile.Flooring.Beauty>
+  <RimWorldAccess.Map.Tile.Flooring.Cleanliness>cleanliness: {0}</RimWorldAccess.Map.Tile.Flooring.Cleanliness>
+  <RimWorldAccess.Map.Tile.Flooring.PathCost>path cost: {0}</RimWorldAccess.Map.Tile.Flooring.PathCost>
+  <RimWorldAccess.Map.Tile.Flooring.Fish>fish: {0} ({1}/{2})</RimWorldAccess.Map.Tile.Flooring.Fish>
 
   <!-- Plants hotkey (key 3). -->
   <RimWorldAccess.Map.Tile.Plants.NoneNoMinerals>no plants or mineral deposits</RimWorldAccess.Map.Tile.Plants.NoneNoMinerals>
   <RimWorldAccess.Map.Tile.Plants.None>no plants</RimWorldAccess.Map.Tile.Plants.None>
-  <RimWorldAccess.Map.Tile.Plants.Growth> ({0}% grown)</RimWorldAccess.Map.Tile.Plants.Growth>
-  <RimWorldAccess.Map.Tile.Plants.Harvestable>, harvestable</RimWorldAccess.Map.Tile.Plants.Harvestable>
-  <RimWorldAccess.Map.Tile.Plants.NotHarvestable>, not harvestable</RimWorldAccess.Map.Tile.Plants.NotHarvestable>
-  <RimWorldAccess.Map.Tile.Plants.Dying>, dying</RimWorldAccess.Map.Tile.Plants.Dying>
-  <RimWorldAccess.Map.Tile.Plants.DeepHeader>Deep: </RimWorldAccess.Map.Tile.Plants.DeepHeader>
-  <RimWorldAccess.Map.Tile.Plants.DeepHeaderJoiner>. </RimWorldAccess.Map.Tile.Plants.DeepHeaderJoiner>
+  <!-- {0} = plant label, {1} = growth percentage. -->
+  <RimWorldAccess.Map.Tile.Plants.LabelWithGrowth>{0} ({1}% grown)</RimWorldAccess.Map.Tile.Plants.LabelWithGrowth>
+  <RimWorldAccess.Map.Tile.Plants.Harvestable>harvestable</RimWorldAccess.Map.Tile.Plants.Harvestable>
+  <RimWorldAccess.Map.Tile.Plants.NotHarvestable>not harvestable</RimWorldAccess.Map.Tile.Plants.NotHarvestable>
+  <RimWorldAccess.Map.Tile.Plants.Dying>dying</RimWorldAccess.Map.Tile.Plants.Dying>
+  <RimWorldAccess.Map.Tile.Plants.DeepHeader>Deep: {0}</RimWorldAccess.Map.Tile.Plants.DeepHeader>
   <RimWorldAccess.Map.Tile.Plants.DeepOreInfo>{0}, {1} remaining</RimWorldAccess.Map.Tile.Plants.DeepOreInfo>
 
   <!-- Light/temperature hotkey (key 4). -->
   <RimWorldAccess.Map.Tile.Light.LightLine>light: {0} ({1})</RimWorldAccess.Map.Tile.Light.LightLine>
-  <RimWorldAccess.Map.Tile.Light.TemperatureSuffix>, temperature: {0}</RimWorldAccess.Map.Tile.Light.TemperatureSuffix>
-  <RimWorldAccess.Map.Tile.Light.Indoors>, indoors</RimWorldAccess.Map.Tile.Light.Indoors>
-  <RimWorldAccess.Map.Tile.Light.Outdoors>, outdoors</RimWorldAccess.Map.Tile.Light.Outdoors>
-  <!-- ". {label}: {tempControlInfo}" appended for each cooler/heater. -->
-  <RimWorldAccess.Map.Tile.Light.TempControlSuffix>. {0}: {1}</RimWorldAccess.Map.Tile.Light.TempControlSuffix>
+  <RimWorldAccess.Map.Tile.Light.Temperature>temperature: {0}</RimWorldAccess.Map.Tile.Light.Temperature>
+  <RimWorldAccess.Map.Tile.Light.Indoors>indoors</RimWorldAccess.Map.Tile.Light.Indoors>
+  <RimWorldAccess.Map.Tile.Light.Outdoors>outdoors</RimWorldAccess.Map.Tile.Light.Outdoors>
+  <!-- "{label}: {tempControlInfo}" — period-separated by AnnouncementBuilder. -->
+  <RimWorldAccess.Map.Tile.Light.TempControl>{0}: {1}</RimWorldAccess.Map.Tile.Light.TempControl>
 
   <!-- Power hotkey (key 6). -->
   <RimWorldAccess.Map.Tile.Power.NoBuildings>no buildings</RimWorldAccess.Map.Tile.Power.NoBuildings>
   <RimWorldAccess.Map.Tile.Power.NoneConnected>no power-connected buildings</RimWorldAccess.Map.Tile.Power.NoneConnected>
-  <!-- {0} = building label, {1} = power info; ". " is added between
-       multiple powered buildings via PowerJoiner. -->
+  <!-- {0} = building label, {1} = power info. AnnouncementBuilder owns
+       the period between multiple powered buildings. -->
   <RimWorldAccess.Map.Tile.Power.Line>{0}: {1}</RimWorldAccess.Map.Tile.Power.Line>
-  <RimWorldAccess.Map.Tile.Power.Joiner>. </RimWorldAccess.Map.Tile.Power.Joiner>
 
   <!-- Room stats hotkey (key 5). -->
   <RimWorldAccess.Map.Tile.Room.None>no room</RimWorldAccess.Map.Tile.Room.None>
   <RimWorldAccess.Map.Tile.Room.Outdoors>outdoors</RimWorldAccess.Map.Tile.Room.Outdoors>
   <RimWorldAccess.Map.Tile.Room.NotProper>not a proper room</RimWorldAccess.Map.Tile.Room.NotProper>
   <RimWorldAccess.Map.Tile.Room.Fallback>Room</RimWorldAccess.Map.Tile.Room.Fallback>
-  <!-- Stat lines: ", {prefix}{label}: {stage} ({score})" or
-       ", {prefix}{label}: {score}" when there is no stage label. -->
-  <RimWorldAccess.Map.Tile.Room.StatWithStage>, {0}{1}: {2} ({3})</RimWorldAccess.Map.Tile.Room.StatWithStage>
-  <RimWorldAccess.Map.Tile.Room.Stat>, {0}{1}: {2}</RimWorldAccess.Map.Tile.Room.Stat>
+  <!-- Stat lines: "{prefix}{label}: {stage} ({score})" or
+       "{prefix}{label}: {score}" when there is no stage label. -->
+  <RimWorldAccess.Map.Tile.Room.StatWithStage>{0}{1}: {2} ({3})</RimWorldAccess.Map.Tile.Room.StatWithStage>
+  <RimWorldAccess.Map.Tile.Room.Stat>{0}{1}: {2}</RimWorldAccess.Map.Tile.Room.Stat>
 
   <!-- Temperature control building info (used in tile summary and
        in the light/temp hotkey). -->

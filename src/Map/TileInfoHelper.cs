@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 using Verse;
 using RimWorld;
@@ -22,35 +21,25 @@ namespace RimWorldAccess
             if (map == null || !position.InBounds(map))
                 return "RimWorldAccess.Map.Tile.OutOfBounds".Translate();
 
-
-            // Check fog of war
             if (position.Fogged(map))
             {
-                // Still announce player-placed designations on fogged tiles
                 string fogDesignations = GetDesignationsInfo(position, map);
                 if (!string.IsNullOrEmpty(fogDesignations))
                     return "RimWorldAccess.Map.Tile.UnseenWithDesignations".Translate(fogDesignations, position.x, position.z);
                 return "RimWorldAccess.Map.Tile.Unseen".Translate(position.x, position.z);
             }
-            var sb = new StringBuilder();
 
-            // Check visibility from drafted pawn (if one is selected)
             bool notVisible = false;
             Pawn selectedPawn = Find.Selector?.FirstSelectedObject as Pawn;
             if (selectedPawn != null && selectedPawn.Drafted && selectedPawn.Spawned && selectedPawn.Map == map)
             {
-                // Check if pawn can see this position using line of sight
                 if (!GenSight.LineOfSight(selectedPawn.Position, position, map))
-                {
                     notVisible = true;
-                }
             }
 
-            // Collect designations and partition by target type
-            var allDesignations = map.designationManager.AllDesignationsAt(position).ToList();
             var thingDesignations = new Dictionary<Thing, List<Designation>>();
             var cellDesignations = new List<Designation>();
-            foreach (var designation in allDesignations)
+            foreach (var designation in map.designationManager.AllDesignationsAt(position))
             {
                 if (designation.target.HasThing)
                 {
@@ -67,13 +56,11 @@ namespace RimWorldAccess
                 }
             }
 
-            // Get all things sorted by AltitudeLayer descending (game's visual priority)
             var sortedThings = position.GetThingList(map)
                 .Where(t => !(t is Mote) && t.def.category != ThingCategory.Mote)
                 .OrderByDescending(t => (int)t.def.altitudeLayer)
                 .ToList();
 
-            // Separate pawns for grouped formatting; collect remaining things
             var pawns = new List<Pawn>();
             var nonPawnThings = new List<Thing>();
             bool hasBuildings = false;
@@ -92,372 +79,154 @@ namespace RimWorldAccess
                 }
             }
 
-            bool addedSomething = false;
+            var builder = new AnnouncementBuilder().DefaultSep(Separator.Comma);
 
-            // 1. Cell-targeted designations (e.g., "mine", "smooth floor")
             foreach (var designation in cellDesignations)
-            {
-                if (addedSomething) sb.Append(", ");
-                sb.Append(GetDesignationLabel(designation));
-                addedSomething = true;
-            }
+                builder.Add(GetDesignationLabel(designation));
 
-            // 2. Pawns (grouped by activity, no truncation)
             if (pawns.Count > 0)
-            {
-                string pawnsText = FormatPawnsForTileSummary(pawns, thingDesignations);
-                if (!string.IsNullOrEmpty(pawnsText))
-                {
-                    if (addedSomething) sb.Append(", ");
-                    sb.Append(pawnsText);
-                    addedSomething = true;
-                }
-            }
+                builder.Add(FormatPawnsForTileSummary(pawns, thingDesignations));
 
-            // 3. Non-pawn things in AltitudeLayer order (no truncation)
             foreach (var thing in nonPawnThings)
-            {
-                if (addedSomething) sb.Append(", ");
+                AppendThingSummary(builder, thing, position, map, thingDesignations);
 
-                if (thing is Frame frame)
-                {
-                    sb.Append(frame.LabelEntityToBuild);
-                    sb.Append("RimWorldAccess.Map.Tile.Frame.Building".Translate());
-                    if (frame.IsCompleted())
-                    {
-                        sb.Append("RimWorldAccess.Map.Tile.Frame.WorkLeft".Translate(frame.WorkLeft.ToStringWorkAmount()));
-                    }
-                    else
-                    {
-                        sb.Append("RimWorldAccess.Map.Tile.Frame.AwaitingSupplies".Translate());
-                    }
-                    string frameCellInfo = BuildingCellHelper.GetCellPrefix(frame, position);
-                    if (!string.IsNullOrEmpty(frameCellInfo))
-                    {
-                        sb.Append("RimWorldAccess.Map.Tile.CellSuffix".Translate(frameCellInfo));
-                    }
-                }
-                else if (thing is Building building)
-                {
-                    string buildingLabel = building.LabelShort;
-                    if (building.def.defName.StartsWith("Smoothed") && building.def.building != null && !building.def.building.isNaturalRock)
-                    {
-                        buildingLabel += "RimWorldAccess.Map.Tile.WallSuffix".Translate();
-                    }
-                    if (building is Building_Door door)
-                    {
-                        buildingLabel = (door.Open
-                            ? "RimWorldAccess.Map.Label.WithDoorOpen"
-                            : "RimWorldAccess.Map.Label.WithDoorClosed").Translate(buildingLabel);
-                    }
-                    sb.Append(buildingLabel);
-
-                    string cellInfo = BuildingCellHelper.GetCellPrefix(building, position);
-                    if (!string.IsNullOrEmpty(cellInfo))
-                    {
-                        sb.Append("RimWorldAccess.Map.Tile.CellSuffix".Translate(cellInfo));
-                    }
-                    string tempControlInfo = GetTemperatureControlInfo(building);
-                    if (!string.IsNullOrEmpty(tempControlInfo))
-                    {
-                        sb.Append(", ");
-                        sb.Append(tempControlInfo);
-                    }
-                    string transportPodInfo = GetTransportPodInfo(building, map);
-                    if (!string.IsNullOrEmpty(transportPodInfo))
-                    {
-                        sb.Append(", ");
-                        sb.Append(transportPodInfo);
-                    }
-                    string progressInfo = GetBuildingProgressInfo(building);
-                    if (!string.IsNullOrEmpty(progressInfo))
-                    {
-                        sb.Append(", ");
-                        sb.Append(progressInfo);
-                    }
-                    // Inline storage group with the building
-                    if (building is IStorageGroupMember storageMember && storageMember.Group != null)
-                    {
-                        sb.Append(", ");
-                        sb.Append(storageMember.Group.RenamableLabel);
-                    }
-                }
-                else if (thing is Blueprint blueprint)
-                {
-                    sb.Append(blueprint.LabelShort);
-                    string cellInfo = BuildingCellHelper.GetCellPrefix(blueprint, position);
-                    if (!string.IsNullOrEmpty(cellInfo))
-                    {
-                        sb.Append("RimWorldAccess.Map.Tile.CellSuffix".Translate(cellInfo));
-                    }
-                    if (blueprint is RimWorld.Blueprint_Storage blueprintStorage)
-                    {
-                        var storageBpMember = (IStorageGroupMember)blueprintStorage;
-                        if (storageBpMember.Group != null)
-                        {
-                            sb.Append(", ");
-                            sb.Append(storageBpMember.Group.RenamableLabel);
-                        }
-                    }
-                }
-                else if (thing is Plant plant)
-                {
-                    sb.Append(plant.LabelCap);
-                }
-                else if (thing is UnfinishedThing unfinished)
-                {
-                    sb.Append(unfinished.LabelShort);
-                    if (unfinished.Initialized)
-                    {
-                        sb.Append("RimWorldAccess.Map.Tile.WorkLeftAppend".Translate(unfinished.workLeft.ToStringWorkAmount()));
-                    }
-                }
-                else
-                {
-                    // Regular items
-                    string itemLabel = thing.LabelMouseover;
-                    CompForbiddable forbiddable = thing.TryGetComp<CompForbiddable>();
-                    if (forbiddable != null && forbiddable.Forbidden)
-                    {
-                        itemLabel = "RimWorldAccess.Map.Tile.ForbiddenPrefix".Translate(itemLabel);
-                    }
-                    sb.Append(itemLabel);
-                }
-
-                // Append thing-targeted designations in parentheses
-                if (thingDesignations.TryGetValue(thing, out var thingDesigs))
-                {
-                    foreach (var desig in thingDesigs)
-                    {
-                        sb.Append("RimWorldAccess.Map.Tile.CellSuffix".Translate(GetDesignationLabel(desig)));
-                    }
-                }
-
-                addedSomething = true;
-            }
-
-            // 4. Terrain (gated by AnnounceTerrain setting)
             TerrainDef terrain = position.GetTerrain(map);
             if (terrain != null && RimWorldAccessMod_Settings.Settings.AnnounceTerrain)
             {
-                if (addedSomething) sb.Append(", ");
                 bool isPolluted = position.IsPolluted(map);
                 string terrainLabel = isPolluted
                     ? (string)"PollutedTerrain".Translate(terrain.label).CapitalizeFirst()
                     : (string)terrain.LabelCap;
                 if (terrain.defName.EndsWith("_Smooth"))
-                {
                     terrainLabel += "RimWorldAccess.Map.Tile.FloorSuffix".Translate();
-                }
-                sb.Append(terrainLabel);
-                addedSomething = true;
+                builder.Add(terrainLabel);
             }
 
-            // 5. Roof status (after terrain - both environmental info)
             RoofDef roof = position.GetRoof(map);
             if (roof != null)
             {
-                string roofText = (roof.isNatural
+                builder.Add((roof.isNatural
                     ? "RimWorldAccess.Map.Tile.Roof.Underground"
-                    : "RimWorldAccess.Map.Tile.Roof.Roofed").Translate();
-                if (addedSomething)
-                    sb.Append("RimWorldAccess.Map.Tile.Roof.Append".Translate(roofText));
-                else
-                    sb.Append(roofText);
-                addedSomething = true;
+                    : "RimWorldAccess.Map.Tile.Roof.Roofed").Translate());
             }
 
-            // 6. Empty fueling port cell (only if no buildings on tile)
             if (!hasBuildings)
             {
                 string fuelingPortInfo = GetEmptyFuelingPortInfo(position, map);
                 if (!string.IsNullOrEmpty(fuelingPortInfo))
-                {
-                    if (addedSomething) sb.Append(", ");
-                    sb.Append(fuelingPortInfo);
-                    addedSomething = true;
-                }
+                    builder.Add(fuelingPortInfo);
             }
 
-            // 7. Zone information
             Zone zone = position.GetZone(map);
             if (zone != null)
+                builder.Add(zone.label);
+
+            builder.Add("RimWorldAccess.Map.Tile.Coords".Translate(position.x, position.z));
+
+            if (IsDropPodLandingTargeting() &&
+                !DropCellFinder.IsGoodDropSpot(position, map, allowFogged: false, canRoofPunch: true))
             {
-                if (addedSomething) sb.Append(", ");
-                sb.Append(zone.label);
-                addedSomething = true;
+                builder.Add("RimWorldAccess.Map.Tile.CantLand".Translate());
             }
 
-            // Add coordinates
-            if (addedSomething)
-                sb.Append("RimWorldAccess.Map.Tile.CoordsSuffix".Translate(position.x, position.z));
-            else
-                sb.Append("RimWorldAccess.Map.Tile.CoordsBare".Translate(position.x, position.z));
-
-            // Add landing validity when in drop pod landing targeting mode
-            if (IsDropPodLandingTargeting())
-            {
-                if (!DropCellFinder.IsGoodDropSpot(position, map, allowFogged: false, canRoofPunch: true))
-                {
-                    sb.Append("RimWorldAccess.Map.Tile.CantLand".Translate());
-                }
-            }
-
-            // Add visibility status after coordinates when drafted pawn cannot see this position
             if (notVisible)
-            {
-                sb.Append("RimWorldAccess.Map.Tile.NotVisible".Translate());
-            }
+                builder.Add("RimWorldAccess.Map.Tile.NotVisible".Translate());
 
-            return sb.ToString();
+            return builder.Build();
         }
 
-        /// <summary>
-        /// Gets detailed information about a tile for verbose mode.
-        /// Includes all items, terrain, temperature, and other properties.
-        /// </summary>
-        public static string GetDetailedTileInfo(IntVec3 position, Map map)
+        private static void AppendThingSummary(AnnouncementBuilder builder, Thing thing, IntVec3 position, Map map,
+            Dictionary<Thing, List<Designation>> thingDesignations)
         {
-            if (map == null || !position.InBounds(map))
-                return "RimWorldAccess.Map.Tile.PositionOutOfBounds".Translate();
-
-            var sb = new StringBuilder();
-            sb.AppendLine("RimWorldAccess.Map.Tile.Detail.Header".Translate(position.x, position.z));
-
-            // Terrain
-            TerrainDef terrain = position.GetTerrain(map);
-            if (terrain != null)
+            if (thing is Frame frame)
             {
-                bool isPolluted = position.IsPolluted(map);
-                string terrainLabel = isPolluted
-                    ? (string)"PollutedTerrain".Translate(terrain.label).CapitalizeFirst()
-                    : (string)terrain.LabelCap;
-                sb.AppendLine("RimWorldAccess.Map.Tile.Detail.TerrainLine".Translate(terrainLabel));
+                string label = (string)frame.LabelEntityToBuild;
+                string frameCellInfo = BuildingCellHelper.GetCellPrefix(frame, position);
+                if (!string.IsNullOrEmpty(frameCellInfo))
+                    label += "RimWorldAccess.Map.Tile.CellSuffix".Translate(frameCellInfo);
+                label += ComposeThingDesignationSuffix(thing, thingDesignations);
+
+                builder.Add(label);
+                builder.Add("RimWorldAccess.Map.Tile.Frame.Building".Translate());
+                builder.Add(frame.IsCompleted()
+                    ? "RimWorldAccess.Map.Tile.Frame.WorkLeft".Translate(frame.WorkLeft.ToStringWorkAmount())
+                    : "RimWorldAccess.Map.Tile.Frame.AwaitingSupplies".Translate());
             }
-
-            // Get all things
-            List<Thing> things = position.GetThingList(map);
-
-            if (things.Count == 0)
+            else if (thing is Building building)
             {
-                sb.AppendLine("RimWorldAccess.Map.Tile.Detail.NoObjects".Translate());
+                string label = building.LabelShort;
+                if (building.def.defName.StartsWith("Smoothed") && building.def.building != null && !building.def.building.isNaturalRock)
+                    label += "RimWorldAccess.Map.Tile.WallSuffix".Translate();
+                if (building is Building_Door door)
+                {
+                    label = (door.Open
+                        ? "RimWorldAccess.Map.Label.WithDoorOpen"
+                        : "RimWorldAccess.Map.Label.WithDoorClosed").Translate(label);
+                }
+
+                string cellInfo = BuildingCellHelper.GetCellPrefix(building, position);
+                if (!string.IsNullOrEmpty(cellInfo))
+                    label += "RimWorldAccess.Map.Tile.CellSuffix".Translate(cellInfo);
+
+                builder.Add(label + ComposeThingDesignationSuffix(thing, thingDesignations));
+
+                string tempControlInfo = GetTemperatureControlInfo(building);
+                if (!string.IsNullOrEmpty(tempControlInfo))
+                    builder.Add(tempControlInfo);
+
+                string transportPodInfo = GetTransportPodInfo(building, map);
+                if (!string.IsNullOrEmpty(transportPodInfo))
+                    builder.Add(transportPodInfo);
+
+                string progressInfo = GetBuildingProgressInfo(building);
+                if (!string.IsNullOrEmpty(progressInfo))
+                    builder.Add(progressInfo);
+
+                if (building is IStorageGroupMember storageMember && storageMember.Group != null)
+                    builder.Add(storageMember.Group.RenamableLabel);
+            }
+            else if (thing is Blueprint blueprint)
+            {
+                string label = blueprint.LabelShort;
+                string cellInfo = BuildingCellHelper.GetCellPrefix(blueprint, position);
+                if (!string.IsNullOrEmpty(cellInfo))
+                    label += "RimWorldAccess.Map.Tile.CellSuffix".Translate(cellInfo);
+
+                builder.Add(label + ComposeThingDesignationSuffix(thing, thingDesignations));
+
+                if (blueprint is Blueprint_Storage blueprintStorage
+                    && ((IStorageGroupMember)blueprintStorage).Group is StorageGroup bpGroup)
+                {
+                    builder.Add(bpGroup.RenamableLabel);
+                }
+            }
+            else if (thing is Plant plant)
+            {
+                builder.Add(plant.LabelCap + ComposeThingDesignationSuffix(thing, thingDesignations));
+            }
+            else if (thing is UnfinishedThing unfinished)
+            {
+                builder.Add(unfinished.LabelShort + ComposeThingDesignationSuffix(thing, thingDesignations));
+                if (unfinished.Initialized)
+                    builder.Add("RimWorldAccess.Map.Tile.WorkLeftAppend".Translate(unfinished.workLeft.ToStringWorkAmount()));
             }
             else
             {
-                // Group by category
-                var pawns = things.OfType<Pawn>().ToList();
-                var buildings = things.OfType<Building>().ToList();
-                var plants = things.OfType<Plant>().ToList();
-                var items = things.Where(t => !(t is Pawn) && !(t is Building) && !(t is Plant)).ToList();
-
-                if (pawns.Count > 0)
-                {
-                    sb.AppendLine("RimWorldAccess.Map.Tile.Detail.PawnsHeader".Translate(pawns.Count));
-                    foreach (var pawn in pawns)
-                    {
-                        sb.AppendLine("RimWorldAccess.Map.Tile.Detail.BulletItem".Translate(pawn.LabelShortCap));
-                    }
-                }
-
-                if (buildings.Count > 0)
-                {
-                    sb.AppendLine("RimWorldAccess.Map.Tile.Detail.BuildingsHeader".Translate(buildings.Count));
-                    foreach (var building in buildings)
-                    {
-                        string detailLabel = building.LabelShortCap;
-                        if (building is Building_Door door)
-                        {
-                            detailLabel = (door.Open
-                                ? "RimWorldAccess.Map.Label.WithDoorOpen"
-                                : "RimWorldAccess.Map.Label.WithDoorClosed").Translate(detailLabel);
-                        }
-                        sb.Append("RimWorldAccess.Map.Tile.Detail.BulletItem".Translate(detailLabel));
-
-                        // Add temperature control information if building is a cooler/heater
-                        string tempControlInfo = GetTemperatureControlInfo(building);
-                        if (!string.IsNullOrEmpty(tempControlInfo))
-                        {
-                            sb.Append("RimWorldAccess.Map.Tile.Detail.ParenSuffix".Translate(tempControlInfo));
-                        }
-
-                        // Add power information if building has power components
-                        string powerInfo = PowerInfoHelper.GetPowerInfo(building);
-                        if (!string.IsNullOrEmpty(powerInfo))
-                        {
-                            if (!string.IsNullOrEmpty(tempControlInfo))
-                                sb.Append("RimWorldAccess.Map.Tile.Detail.CommaSuffix".Translate(powerInfo));
-                            else
-                                sb.Append("RimWorldAccess.Map.Tile.Detail.ParenSuffix".Translate(powerInfo));
-                        }
-
-                        sb.AppendLine();
-                    }
-                }
-
-                if (items.Count > 0)
-                {
-                    sb.AppendLine("RimWorldAccess.Map.Tile.Detail.ItemsHeader".Translate(items.Count));
-                    foreach (var item in items.Take(20)) // Limit to 20 items
-                    {
-                        string label = item.LabelShortCap;
-                        if (item.stackCount > 1)
-                            label += "RimWorldAccess.Map.Tile.Detail.StackCount".Translate(item.stackCount);
-
-                        // Check if item is forbidden
-                        CompForbiddable forbiddable = item.TryGetComp<CompForbiddable>();
-                        if (forbiddable != null && forbiddable.Forbidden)
-                        {
-                            label = "RimWorldAccess.Map.Tile.ForbiddenPrefix".Translate(label);
-                        }
-
-                        sb.AppendLine("RimWorldAccess.Map.Tile.Detail.BulletItem".Translate(label));
-                    }
-                    if (items.Count > 20)
-                        sb.AppendLine("RimWorldAccess.Map.Tile.Detail.MoreItems".Translate(items.Count - 20));
-                }
-
-                if (plants.Count > 0)
-                {
-                    sb.AppendLine("RimWorldAccess.Map.Tile.Detail.PlantsHeader".Translate(plants.Count));
-                    foreach (var plant in plants)
-                    {
-                        sb.AppendLine("RimWorldAccess.Map.Tile.Detail.BulletItem".Translate(plant.LabelShortCap));
-                    }
-                }
+                string itemLabel = thing.LabelMouseover;
+                CompForbiddable forbiddable = thing.TryGetComp<CompForbiddable>();
+                if (forbiddable != null && forbiddable.Forbidden)
+                    itemLabel = "RimWorldAccess.Map.Tile.ForbiddenPrefix".Translate(itemLabel);
+                builder.Add(itemLabel + ComposeThingDesignationSuffix(thing, thingDesignations));
             }
+        }
 
-            // Additional info
-            sb.AppendLine("RimWorldAccess.Map.Tile.Detail.EnvironmentalHeader".Translate());
+        private static string ComposeThingDesignationSuffix(Thing thing, Dictionary<Thing, List<Designation>> thingDesignations)
+        {
+            if (!thingDesignations.TryGetValue(thing, out var thingDesigs))
+                return string.Empty;
 
-            // Temperature (respects user's temperature mode preference)
-            float temperature = position.GetTemperature(map);
-            sb.AppendLine("RimWorldAccess.Map.Tile.Detail.TemperatureLine".Translate(MenuHelper.FormatTemperature(temperature, "F1")));
-
-            // Roof
-            RoofDef roof = position.GetRoof(map);
-            if (roof != null)
-            {
-                sb.AppendLine("RimWorldAccess.Map.Tile.Detail.RoofLine".Translate(roof.LabelCap));
-            }
-            else
-            {
-                sb.AppendLine("RimWorldAccess.Map.Tile.Detail.RoofNone".Translate());
-            }
-
-            // Fog of war
-            if (position.Fogged(map))
-            {
-                sb.AppendLine("RimWorldAccess.Map.Tile.Detail.FoggedStatus".Translate());
-            }
-
-            // Zone
-            Zone zone = position.GetZone(map);
-            if (zone != null)
-            {
-                sb.AppendLine("RimWorldAccess.Map.Tile.Detail.ZoneLine".Translate(zone.label));
-            }
-
-            return sb.ToString();
+            return string.Concat(thingDesigs.Select(d =>
+                (string)"RimWorldAccess.Map.Tile.CellSuffix".Translate(GetDesignationLabel(d))));
         }
 
         /// <summary>
@@ -469,63 +238,36 @@ namespace RimWorldAccess
             if (map == null || !position.InBounds(map))
                 return "RimWorldAccess.Map.Tile.OutOfBounds".Translate();
 
-            var sb = new StringBuilder();
             List<Thing> things = position.GetThingList(map);
-
-            // Separate items and pawns
             var pawns = things.OfType<Pawn>().ToList();
             var items = things.Where(t => !(t is Pawn) && !(t is Building) && !(t is Plant)).ToList();
 
             if (pawns.Count == 0 && items.Count == 0)
-            {
                 return "RimWorldAccess.Map.Tile.Items.None".Translate();
-            }
 
-            // List all pawns
-            if (pawns.Count > 0)
+            var builder = new AnnouncementBuilder().DefaultSep(Separator.Comma);
+
+            foreach (var pawn in pawns)
+                builder.Add(pawn.LabelShortCap + (GetPawnSuffix(pawn) ?? string.Empty));
+
+            const int displayLimit = 10;
+            for (int i = 0; i < items.Count && i < displayLimit; i++)
             {
-                for (int i = 0; i < pawns.Count; i++)
-                {
-                    if (i > 0) sb.Append(", ");
+                string label = items[i].LabelShortCap;
+                if (items[i].stackCount > 1)
+                    label += "RimWorldAccess.Map.Tile.Item.StackCount".Translate(items[i].stackCount);
 
-                    sb.Append(pawns[i].LabelShortCap);
+                CompForbiddable forbiddable = items[i].TryGetComp<CompForbiddable>();
+                if (forbiddable != null && forbiddable.Forbidden)
+                    label = "RimWorldAccess.Map.Tile.ForbiddenPrefix".Translate(label);
 
-                    // Add suffix for hostile or trader pawns
-                    string suffix = GetPawnSuffix(pawns[i]);
-                    if (!string.IsNullOrEmpty(suffix))
-                    {
-                        sb.Append(suffix);
-                    }
-                }
+                builder.Add(label);
             }
 
-            // List all items
-            if (items.Count > 0)
-            {
-                if (pawns.Count > 0) sb.Append(", ");
+            if (items.Count > displayLimit)
+                builder.Add("RimWorldAccess.Map.Tile.Items.MoreSuffix".Translate(items.Count - displayLimit));
 
-                int displayLimit = 10;
-                for (int i = 0; i < items.Count && i < displayLimit; i++)
-                {
-                    if (i > 0) sb.Append(", ");
-
-                    string label = items[i].LabelShortCap;
-                    if (items[i].stackCount > 1)
-                        label += "RimWorldAccess.Map.Tile.Detail.StackCount".Translate(items[i].stackCount);
-
-                    // Check if forbidden
-                    CompForbiddable forbiddable = items[i].TryGetComp<CompForbiddable>();
-                    if (forbiddable != null && forbiddable.Forbidden)
-                        label = "RimWorldAccess.Map.Tile.ForbiddenPrefix".Translate(label);
-
-                    sb.Append(label);
-                }
-
-                if (items.Count > displayLimit)
-                    sb.Append("RimWorldAccess.Map.Tile.Items.MoreSuffix".Translate(items.Count - displayLimit));
-            }
-
-            return sb.ToString();
+            return builder.Build();
         }
 
         /// <summary>
@@ -537,9 +279,7 @@ namespace RimWorldAccess
             if (map == null || !position.InBounds(map))
                 return "RimWorldAccess.Map.Tile.OutOfBounds".Translate();
 
-            var sb = new StringBuilder();
             TerrainDef terrain = position.GetTerrain(map);
-
             if (terrain == null)
                 return "RimWorldAccess.Map.Tile.Flooring.None".Translate();
 
@@ -547,58 +287,46 @@ namespace RimWorldAccess
             string terrainLabel = isPolluted
                 ? (string)"PollutedTerrain".Translate(terrain.label).CapitalizeFirst()
                 : (string)terrain.LabelCap;
-            sb.Append(terrainLabel);
 
-            // Add fertility if the terrain has it (matches MouseoverReadout display)
+            var builder = new AnnouncementBuilder().DefaultSep(Separator.Comma);
+            builder.Add(terrainLabel);
+
             float fertility = position.GetFertility(map);
             if (fertility > 0.0001f)
-                sb.Append("RimWorldAccess.Map.Tile.Flooring.Fertility".Translate(fertility.ToStringPercent()));
+                builder.Add("RimWorldAccess.Map.Tile.Flooring.Fertility".Translate(fertility.ToStringPercent()));
 
-            // Add smoothness information
             if (terrain.defName.EndsWith("_Smooth"))
-                sb.Append("RimWorldAccess.Map.Tile.Flooring.Smooth".Translate());
+                builder.Add("RimWorldAccess.Map.Tile.Flooring.Smooth".Translate());
             else if (terrain.defName.EndsWith("_Rough"))
-                sb.Append("RimWorldAccess.Map.Tile.Flooring.Rough".Translate());
+                builder.Add("RimWorldAccess.Map.Tile.Flooring.Rough".Translate());
 
-            // Add beauty if non-zero
-            StatDef beautyStat = StatDefOf.Beauty;
-            float beauty = terrain.GetStatValueAbstract(beautyStat);
+            float beauty = terrain.GetStatValueAbstract(StatDefOf.Beauty);
             if (beauty != 0)
-                sb.Append("RimWorldAccess.Map.Tile.Flooring.Beauty".Translate(beauty.ToString("F0")));
+                builder.Add("RimWorldAccess.Map.Tile.Flooring.Beauty".Translate(beauty.ToString("F0")));
 
-            // Add cleanliness if non-zero
-            if (terrain.GetStatValueAbstract(StatDefOf.Cleanliness) != 0)
-            {
-                float cleanliness = terrain.GetStatValueAbstract(StatDefOf.Cleanliness);
-                sb.Append("RimWorldAccess.Map.Tile.Flooring.Cleanliness".Translate(cleanliness.ToString("F1")));
-            }
+            float cleanliness = terrain.GetStatValueAbstract(StatDefOf.Cleanliness);
+            if (cleanliness != 0)
+                builder.Add("RimWorldAccess.Map.Tile.Flooring.Cleanliness".Translate(cleanliness.ToString("F1")));
 
-            // Add movement speed modifier
             if (terrain.pathCost > 0)
-                sb.Append("RimWorldAccess.Map.Tile.Flooring.PathCost".Translate(terrain.pathCost));
+                builder.Add("RimWorldAccess.Map.Tile.Flooring.PathCost".Translate(terrain.pathCost));
 
-            // Add fishing info if Odyssey DLC is active (matches MouseoverReadout display)
             if (ModsConfig.OdysseyActive && map.waterBodyTracker.TryGetWaterBodyAt(position, out var waterBody) && waterBody.HasFish)
             {
-                // Fish species list (common + uncommon)
                 var allFish = waterBody.CommonFishIncludingExtras.Concat(waterBody.UncommonFish);
                 string fishList = allFish.Select(f => f.label).ToCommaList().CapitalizeFirst();
 
-                // Population numbers (current/max) - use rounding to match Zone_Fishing.GetInspectString()
                 int population = Mathf.RoundToInt(waterBody.Population);
                 int maxPopulation = Mathf.RoundToInt(waterBody.MaxPopulation);
 
-                sb.Append("RimWorldAccess.Map.Tile.Flooring.Fish".Translate(fishList, population, maxPopulation));
+                builder.Add("RimWorldAccess.Map.Tile.Flooring.Fish".Translate(fishList, population, maxPopulation));
 
-                // GillRot condition if active
                 var gillRot = map.gameConditionManager.GetActiveCondition<GameCondition_GillRot>();
                 if (gillRot != null && !gillRot.HiddenByOtherCondition(map))
-                {
-                    sb.Append("RimWorldAccess.Map.Tile.Detail.ParenSuffix".Translate(gillRot.LabelCap));
-                }
+                    builder.Add(gillRot.LabelCap);
             }
 
-            return sb.ToString();
+            return builder.Build();
         }
 
         /// <summary>
@@ -634,44 +362,29 @@ namespace RimWorldAccess
                     return "RimWorldAccess.Map.Tile.Plants.None".Translate();
             }
 
-            var sb = new StringBuilder();
+            var builder = new AnnouncementBuilder().DefaultSep(Separator.Comma);
 
-            // Add plant info first (if present)
             if (hasPlants)
             {
-                for (int i = 0; i < plants.Count; i++)
+                foreach (var plant in plants)
                 {
-                    if (i > 0) sb.Append(", ");
-
-                    Plant plant = plants[i];
-                    sb.Append(plant.LabelShortCap);
-
-                    // Add growth percentage
                     float growthPercent = plant.Growth * 100f;
-                    sb.Append("RimWorldAccess.Map.Tile.Plants.Growth".Translate(growthPercent.ToString("F0")));
+                    builder.Add("RimWorldAccess.Map.Tile.Plants.LabelWithGrowth".Translate(
+                        plant.LabelShortCap, growthPercent.ToString("F0")));
 
-                    // Check if harvestable
-                    if (plant.HarvestableNow)
-                        sb.Append("RimWorldAccess.Map.Tile.Plants.Harvestable".Translate());
-                    else
-                        sb.Append("RimWorldAccess.Map.Tile.Plants.NotHarvestable".Translate());
+                    builder.Add(plant.HarvestableNow
+                        ? "RimWorldAccess.Map.Tile.Plants.Harvestable".Translate()
+                        : "RimWorldAccess.Map.Tile.Plants.NotHarvestable".Translate());
 
-                    // Check if dying
                     if (plant.Dying)
-                        sb.Append("RimWorldAccess.Map.Tile.Plants.Dying".Translate());
+                        builder.Add("RimWorldAccess.Map.Tile.Plants.Dying".Translate());
                 }
             }
 
-            // Add deep ore info (if present)
             if (hasDeepOre)
-            {
-                if (hasPlants)
-                    sb.Append("RimWorldAccess.Map.Tile.Plants.DeepHeaderJoiner".Translate());
-                sb.Append("RimWorldAccess.Map.Tile.Plants.DeepHeader".Translate());
-                sb.Append(deepOreInfo);
-            }
+                builder.Add("RimWorldAccess.Map.Tile.Plants.DeepHeader".Translate(deepOreInfo), Separator.Period);
 
-            return sb.ToString();
+            return builder.Build();
         }
 
         /// <summary>
@@ -683,39 +396,32 @@ namespace RimWorldAccess
             if (map == null || !position.InBounds(map))
                 return "RimWorldAccess.Map.Tile.OutOfBounds".Translate();
 
-            var sb = new StringBuilder();
+            var builder = new AnnouncementBuilder().DefaultSep(Separator.Comma);
 
-            // Get light level - percentage and label (matches what sighted players see)
             float glowValue = map.glowGrid.GroundGlowAt(position);
             PsychGlow lightLevel = map.glowGrid.PsychGlowAt(position);
-            string lightLabel = lightLevel.GetLabel();
-            sb.Append("RimWorldAccess.Map.Tile.Light.LightLine".Translate(glowValue.ToStringPercent(), lightLabel));
+            builder.Add("RimWorldAccess.Map.Tile.Light.LightLine".Translate(
+                glowValue.ToStringPercent(), lightLevel.GetLabel()));
 
-            // Get temperature (respects user's temperature mode preference)
             float temperature = position.GetTemperature(map);
-            sb.Append("RimWorldAccess.Map.Tile.Light.TemperatureSuffix".Translate(MenuHelper.FormatTemperature(temperature, "F1")));
+            builder.Add("RimWorldAccess.Map.Tile.Light.Temperature".Translate(
+                MenuHelper.FormatTemperature(temperature, "F1")));
 
-            // Check if indoors/outdoors
             RoofDef roof = position.GetRoof(map);
-            if (roof != null)
-                sb.Append("RimWorldAccess.Map.Tile.Light.Indoors".Translate());
-            else
-                sb.Append("RimWorldAccess.Map.Tile.Light.Outdoors".Translate());
+            builder.Add(roof != null
+                ? "RimWorldAccess.Map.Tile.Light.Indoors".Translate()
+                : "RimWorldAccess.Map.Tile.Light.Outdoors".Translate());
 
-            // Check for temperature control buildings
             List<Thing> things = position.GetThingList(map);
-            var buildings = things.OfType<Building>().ToList();
-
-            foreach (var building in buildings)
+            foreach (var building in things.OfType<Building>())
             {
                 string tempControlInfo = GetTemperatureControlInfo(building);
                 if (!string.IsNullOrEmpty(tempControlInfo))
-                {
-                    sb.Append("RimWorldAccess.Map.Tile.Light.TempControlSuffix".Translate(building.LabelShortCap, tempControlInfo));
-                }
+                    builder.Add("RimWorldAccess.Map.Tile.Light.TempControl".Translate(
+                        building.LabelShortCap, tempControlInfo), Separator.Period);
             }
 
-            return sb.ToString();
+            return builder.Build();
         }
 
         /// <summary>
@@ -733,7 +439,7 @@ namespace RimWorldAccess
             if (buildings.Count == 0)
                 return "RimWorldAccess.Map.Tile.Power.NoBuildings".Translate();
 
-            var sb = new StringBuilder();
+            var builder = new AnnouncementBuilder().DefaultSep(Separator.Period);
             int buildingsWithPower = 0;
 
             foreach (var building in buildings)
@@ -741,10 +447,7 @@ namespace RimWorldAccess
                 string powerInfo = PowerInfoHelper.GetPowerInfo(building);
                 if (!string.IsNullOrEmpty(powerInfo))
                 {
-                    if (buildingsWithPower > 0)
-                        sb.Append("RimWorldAccess.Map.Tile.Power.Joiner".Translate());
-
-                    sb.Append("RimWorldAccess.Map.Tile.Power.Line".Translate(building.LabelShortCap, powerInfo));
+                    builder.Add("RimWorldAccess.Map.Tile.Power.Line".Translate(building.LabelShortCap, powerInfo));
                     buildingsWithPower++;
                 }
             }
@@ -752,7 +455,7 @@ namespace RimWorldAccess
             if (buildingsWithPower == 0)
                 return "RimWorldAccess.Map.Tile.Power.NoneConnected".Translate();
 
-            return sb.ToString();
+            return builder.Build();
         }
 
         /// <summary>
@@ -790,71 +493,45 @@ namespace RimWorldAccess
             if (room == null)
                 return "RimWorldAccess.Map.Tile.Room.None".Translate();
 
-            var sb = new StringBuilder();
+            var builder = new AnnouncementBuilder().DefaultSep(Separator.Comma);
 
-            // 1. Room label (identifier) - what room is this
             string roomLabel = room.GetRoomRoleLabel();
             if (!string.IsNullOrEmpty(roomLabel))
-            {
-                sb.Append(roomLabel.CapitalizeFirst());
-            }
+                builder.Add(roomLabel.CapitalizeFirst());
             else if (room.Role != null)
-            {
-                sb.Append(room.Role.LabelCap);
-            }
+                builder.Add(room.Role.LabelCap);
             else
-            {
-                sb.Append("RimWorldAccess.Map.Tile.Room.Fallback".Translate());
-            }
+                builder.Add("RimWorldAccess.Map.Tile.Room.Fallback".Translate());
 
             // Stats ordered by volatility: dynamic first, static last
-            // Dynamic: Cleanliness (changes constantly), Wealth (changes often)
-            // Static: Impressiveness (derived), Beauty, Space (rarely changes)
             var statOrder = new[] { "Cleanliness", "Wealth", "Impressiveness", "Beauty", "Space" };
-            var visibleStats = DefDatabase<RoomStatDef>.AllDefsListForReading.Where(def => !def.isHidden);
+            var visibleStats = DefDatabase<RoomStatDef>.AllDefsListForReading.Where(def => !def.isHidden).ToList();
 
-            // 2. Output stats in defined order
+            void AppendStat(RoomStatDef statDef)
+            {
+                float value = room.GetStat(statDef);
+                RoomStatScoreStage stage = statDef.GetScoreStage(value);
+                string stageLabel = stage?.label?.CapitalizeFirst() ?? "";
+                string prefix = (room.Role != null && room.Role.IsStatRelated(statDef)) ? "*" : "";
+
+                builder.Add(string.IsNullOrEmpty(stageLabel)
+                    ? "RimWorldAccess.Map.Tile.Room.Stat".Translate(prefix, statDef.LabelCap, statDef.ScoreToString(value))
+                    : "RimWorldAccess.Map.Tile.Room.StatWithStage".Translate(prefix, statDef.LabelCap, stageLabel, statDef.ScoreToString(value)));
+            }
+
             foreach (var statName in statOrder)
             {
                 var statDef = visibleStats.FirstOrDefault(s => s.defName == statName);
-                if (statDef == null) continue;
-
-                float value = room.GetStat(statDef);
-                RoomStatScoreStage stage = statDef.GetScoreStage(value);
-                string stageLabel = stage?.label?.CapitalizeFirst() ?? "";
-                string prefix = (room.Role != null && room.Role.IsStatRelated(statDef)) ? "*" : "";
-
-                if (!string.IsNullOrEmpty(stageLabel))
-                {
-                    sb.Append("RimWorldAccess.Map.Tile.Room.StatWithStage".Translate(prefix, statDef.LabelCap, stageLabel, statDef.ScoreToString(value)));
-                }
-                else
-                {
-                    sb.Append("RimWorldAccess.Map.Tile.Room.Stat".Translate(prefix, statDef.LabelCap, statDef.ScoreToString(value)));
-                }
+                if (statDef != null) AppendStat(statDef);
             }
 
-            // 3. Any remaining stats not in our predefined order
             foreach (RoomStatDef statDef in visibleStats)
             {
-                if (statOrder.Contains(statDef.defName)) continue;
-
-                float value = room.GetStat(statDef);
-                RoomStatScoreStage stage = statDef.GetScoreStage(value);
-                string stageLabel = stage?.label?.CapitalizeFirst() ?? "";
-                string prefix = (room.Role != null && room.Role.IsStatRelated(statDef)) ? "*" : "";
-
-                if (!string.IsNullOrEmpty(stageLabel))
-                {
-                    sb.Append("RimWorldAccess.Map.Tile.Room.StatWithStage".Translate(prefix, statDef.LabelCap, stageLabel, statDef.ScoreToString(value)));
-                }
-                else
-                {
-                    sb.Append("RimWorldAccess.Map.Tile.Room.Stat".Translate(prefix, statDef.LabelCap, statDef.ScoreToString(value)));
-                }
+                if (!statOrder.Contains(statDef.defName))
+                    AppendStat(statDef);
             }
 
-            return sb.ToString();
+            return builder.Build();
         }
 
         /// <summary>
@@ -963,32 +640,28 @@ namespace RimWorldAccess
         /// </summary>
         private static string FormatPawnsSimple(List<Pawn> pawns, Dictionary<Thing, List<Designation>> thingDesignations = null)
         {
-            var sb = new StringBuilder();
             bool showCover = RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true;
-
-            for (int i = 0; i < pawns.Count; i++)
+            return string.Join(", ", pawns.Select(p =>
             {
-                if (i > 0) sb.Append(", ");
-                sb.Append(pawns[i].LabelShort);
+                string entry = p.LabelShort;
 
-                // Append designations targeting this pawn (e.g., "hunt", "tame")
-                string designationSuffix = GetThingDesignationSuffix(pawns[i], thingDesignations);
+                string designationSuffix = GetThingDesignationSuffix(p, thingDesignations);
                 if (!string.IsNullOrEmpty(designationSuffix))
-                    sb.Append("RimWorldAccess.Map.Tile.Pawn.DesignationSuffix".Translate(designationSuffix));
+                    entry += "RimWorldAccess.Map.Tile.Pawn.DesignationSuffix".Translate(designationSuffix);
 
-                string suffix = GetPawnSuffix(pawns[i]);
+                string suffix = GetPawnSuffix(p);
                 if (!string.IsNullOrEmpty(suffix))
-                    sb.Append(suffix);
+                    entry += suffix;
 
                 if (showCover)
                 {
-                    string coverInfo = CoverHelper.GetCoverInfo(pawns[i]);
+                    string coverInfo = CoverHelper.GetCoverInfo(p);
                     if (!string.IsNullOrEmpty(coverInfo))
-                        sb.Append("RimWorldAccess.Map.Tile.Pawn.CoverSuffix".Translate(coverInfo));
+                        entry += "RimWorldAccess.Map.Tile.Pawn.CoverSuffix".Translate(coverInfo);
                 }
-            }
 
-            return sb.ToString();
+                return entry;
+            }));
         }
 
         /// <summary>
@@ -1020,33 +693,24 @@ namespace RimWorldAccess
                 }
             }
 
-            // Format each group
-            var parts = new List<string>();
-            foreach (var group in groups)
+            return string.Join(", ", groups.Select(group =>
             {
-                string names = FormatPawnNames(group.pawns);
-                var groupText = new StringBuilder(names);
+                string entry = FormatPawnNames(group.pawns);
 
-                // Add designation info if present (e.g., "(hunt)")
                 if (!string.IsNullOrEmpty(group.designationInfo))
-                    groupText.Append("RimWorldAccess.Map.Tile.Pawn.DesignationSuffix".Translate(group.designationInfo));
+                    entry += "RimWorldAccess.Map.Tile.Pawn.DesignationSuffix".Translate(group.designationInfo);
 
-                // Add suffix (hostile/trader) if present
                 if (!string.IsNullOrEmpty(group.suffix))
-                    groupText.Append(group.suffix);
+                    entry += group.suffix;
 
-                // Add cover info if present (before activity)
                 if (!string.IsNullOrEmpty(group.coverInfo))
-                    groupText.Append("RimWorldAccess.Map.Tile.Pawn.CoverSuffix".Translate(group.coverInfo));
+                    entry += "RimWorldAccess.Map.Tile.Pawn.CoverSuffix".Translate(group.coverInfo);
 
-                // Add activity if present
                 if (!string.IsNullOrEmpty(group.activity))
-                    groupText.Append("RimWorldAccess.Map.Tile.Pawn.ActivitySuffix".Translate(group.activity));
+                    entry += "RimWorldAccess.Map.Tile.Pawn.ActivitySuffix".Translate(group.activity);
 
-                parts.Add(groupText.ToString());
-            }
-
-            return string.Join(", ", parts);
+                return entry;
+            }));
         }
 
         /// <summary>
@@ -1077,31 +741,19 @@ namespace RimWorldAccess
             if (map == null || !position.InBounds(map))
                 return "RimWorldAccess.Map.Tile.OutOfBounds".Translate();
 
-            var sb = new StringBuilder();
-            var areaNames = new List<string>();
-
-            // Check all areas
-            foreach (Area area in map.areaManager.AllAreas)
-            {
-                // Check if this position is in the area
-                if (area[position])
-                {
-                    areaNames.Add(area.Label);
-                }
-            }
+            var areaNames = map.areaManager.AllAreas
+                .Where(a => a[position])
+                .Select(a => a.Label)
+                .ToList();
 
             if (areaNames.Count == 0)
                 return "RimWorldAccess.Map.Tile.Areas.None".Translate();
 
-            // Build the result string
-            for (int i = 0; i < areaNames.Count; i++)
-            {
-                if (i > 0)
-                    sb.Append(", ");
-                sb.Append(areaNames[i]);
-            }
+            var builder = new AnnouncementBuilder().DefaultSep(Separator.Comma);
+            foreach (var name in areaNames)
+                builder.Add(name);
 
-            return sb.ToString();
+            return builder.Build();
         }
 
         /// <summary>
@@ -1178,14 +830,7 @@ namespace RimWorldAccess
             if (designations == null || designations.Count == 0)
                 return null;
 
-            var sb = new StringBuilder();
-            for (int i = 0; i < designations.Count; i++)
-            {
-                if (i > 0) sb.Append(", ");
-                sb.Append(GetDesignationLabel(designations[i]));
-            }
-
-            return sb.ToString();
+            return string.Join(", ", designations.Select(d => GetDesignationLabel(d)));
         }
 
         /// <summary>
