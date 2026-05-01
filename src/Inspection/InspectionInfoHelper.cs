@@ -53,43 +53,44 @@ namespace RimWorldAccess
         /// </summary>
         public static string GetObjectSummary(object obj)
         {
-            if (obj == null) return "Unknown object";
+            if (obj == null) return "RimWorldAccess.Inspection.Summary.Unknown".Translate();
 
             if (obj is Pawn pawn)
             {
-                string pawnType = pawn.RaceProps.Humanlike ? "Pawn" : "Animal";
-                string status = "";
-
+                bool isHumanlike = pawn.RaceProps.Humanlike;
+                string label = pawn.LabelCap.StripTags();
+                string statusKey;
                 if (pawn.Dead)
-                    status = " (Dead)";
+                    statusKey = isHumanlike ? "RimWorldAccess.Inspection.Summary.PawnDead" : "RimWorldAccess.Inspection.Summary.AnimalDead";
                 else if (pawn.Downed)
-                    status = " (Downed)";
+                    statusKey = isHumanlike ? "RimWorldAccess.Inspection.Summary.PawnDowned" : "RimWorldAccess.Inspection.Summary.AnimalDowned";
                 else if (pawn.Drafted)
-                    status = " (Drafted)";
-
-                return $"{pawnType}: {pawn.LabelCap.StripTags()}{status}";
+                    statusKey = isHumanlike ? "RimWorldAccess.Inspection.Summary.PawnDrafted" : "RimWorldAccess.Inspection.Summary.AnimalDrafted";
+                else
+                    statusKey = isHumanlike ? "RimWorldAccess.Inspection.Summary.Pawn" : "RimWorldAccess.Inspection.Summary.Animal";
+                return statusKey.Translate(label);
             }
 
             if (obj is Building building)
             {
-                return $"Building: {building.LabelCap.StripTags()}";
+                return "RimWorldAccess.Inspection.Summary.Building".Translate(building.LabelCap.StripTags());
             }
 
             if (obj is Plant plant)
             {
-                return $"Plant: {plant.LabelCap.StripTags()}";
+                return "RimWorldAccess.Inspection.Summary.Plant".Translate(plant.LabelCap.StripTags());
             }
 
             if (obj is Thing thing)
             {
-                return $"Item: {thing.LabelCap.StripTags()}";
+                return "RimWorldAccess.Inspection.Summary.Item".Translate(thing.LabelCap.StripTags());
             }
 
             if (obj is Zone zone)
             {
                 // Include zone type for clarity
                 string zoneType = GetZoneTypeName(zone);
-                return $"{zone.label} ({zoneType})";
+                return "RimWorldAccess.Inspection.Summary.Zone".Translate(zone.label, zoneType);
             }
 
             return obj.ToString();
@@ -487,7 +488,7 @@ namespace RimWorldAccess
         /// </summary>
         public static string GetCategoryInfo(object obj, string category)
         {
-            if (obj == null) return "No information available.";
+            if (obj == null) return "RimWorldAccess.Inspection.Category.NoInfo".Translate();
 
             try
             {
@@ -521,10 +522,10 @@ namespace RimWorldAccess
             }
             catch (Exception ex)
             {
-                return $"Error retrieving {category} information: {ex.Message}";
+                return "RimWorldAccess.Inspection.Category.Error".Translate(category, ex.Message);
             }
 
-            return "No information available for this category.";
+            return "RimWorldAccess.Inspection.Category.NoCategoryInfo".Translate();
         }
 
         /// <summary>
@@ -544,32 +545,7 @@ namespace RimWorldAccess
                     return PawnInfoHelper.GetNeedsInfo(pawn);
 
                 case "Mood":
-                    if (pawn.needs?.mood != null)
-                    {
-                        var sb = new StringBuilder();
-                        sb.AppendLine($"Mood: {pawn.needs.mood.CurLevelPercentage:P0}");
-                        sb.AppendLine();
-
-                        // Get mood thoughts
-                        List<Thought> thoughts = new List<Thought>();
-                        pawn.needs.mood.thoughts.GetAllMoodThoughts(thoughts);
-
-                        if (thoughts.Any())
-                        {
-                            sb.AppendLine("Recent Thoughts:");
-                            foreach (var thought in thoughts.Take(10))
-                            {
-                                sb.AppendLine($"  {thought.LabelCap.StripTags()}: {thought.MoodOffset():+0.#;-0.#}");
-                            }
-                        }
-                        else
-                        {
-                            sb.AppendLine("No significant thoughts.");
-                        }
-
-                        return sb.ToString();
-                    }
-                    return "No mood information available.";
+                    return GetPawnMoodInfo(pawn);
 
                 case "Gear":
                     return PawnInfoHelper.GetGearInfo(pawn);
@@ -598,7 +574,7 @@ namespace RimWorldAccess
                     {
                         return PrisonerTabHelper.GetSlaveInfo(pawn);
                     }
-                    return "Not a prisoner or slave.";
+                    return "RimWorldAccess.Inspection.Pawn.NotPrisonerOrSlave".Translate();
 
                 default:
                     // Try to get info from dynamic tab using GetInspectString as fallback
@@ -612,7 +588,7 @@ namespace RimWorldAccess
         private static string GetDynamicTabInfo(Thing thing, string category)
         {
             if (thing == null)
-                return "No information available.";
+                return "RimWorldAccess.Inspection.Category.NoInfo".Translate();
 
             // Try to find the matching tab
             var tabs = thing.GetInspectTabs();
@@ -636,7 +612,41 @@ namespace RimWorldAccess
             if (!string.IsNullOrEmpty(inspectString))
                 return inspectString;
 
-            return $"No information available for '{category}'.";
+            return "RimWorldAccess.Inspection.Category.NoFallback".Translate(category);
+        }
+
+        /// <summary>
+        /// Gets mood information for a pawn (extracted from GetPawnCategoryInfo).
+        /// </summary>
+        private static string GetPawnMoodInfo(Pawn pawn)
+        {
+            if (pawn.needs?.mood == null)
+                return "RimWorldAccess.Inspection.Pawn.NoMood".Translate();
+
+            var lines = new List<string>();
+            lines.Add("RimWorldAccess.Inspection.Pawn.MoodHeader"
+                .Translate(pawn.needs.mood.CurLevelPercentage.ToStringPercent()));
+            lines.Add("");
+
+            List<Thought> thoughts = new List<Thought>();
+            pawn.needs.mood.thoughts.GetAllMoodThoughts(thoughts);
+
+            if (thoughts.Any())
+            {
+                lines.Add("RimWorldAccess.Inspection.Pawn.RecentThoughtsHeader".Translate());
+                foreach (var thought in thoughts.Take(10))
+                {
+                    lines.Add("  " + (string)"RimWorldAccess.Inspection.Pawn.ThoughtEntry"
+                        .Translate(thought.LabelCap.StripTags(),
+                            thought.MoodOffset().ToString("+0.#;-0.#")));
+                }
+            }
+            else
+            {
+                lines.Add("RimWorldAccess.Inspection.Pawn.NoThoughts".Translate());
+            }
+
+            return string.Join("\n", lines);
         }
 
         /// <summary>
@@ -644,9 +654,9 @@ namespace RimWorldAccess
         /// </summary>
         private static string GetPawnOverview(Pawn pawn)
         {
-            var sb = new StringBuilder();
-            sb.AppendLine(pawn.LabelCap.StripTags());
-            sb.AppendLine();
+            var lines = new List<string>();
+            lines.Add(pawn.LabelCap.StripTags());
+            lines.Add("");
 
             // Get the inspect string (current activity, status)
             // This already includes age, gender, faction, equipped items, and current activity
@@ -654,21 +664,21 @@ namespace RimWorldAccess
             string inspectString = pawn.GetInspectString();
             if (!string.IsNullOrEmpty(inspectString))
             {
-                sb.AppendLine(FormatInspectStringWithPunctuation(inspectString));
+                lines.Add(FormatInspectStringWithPunctuation(inspectString));
             }
 
             // Add description for animals (humanlike pawns have backstories in Character category instead)
             if (!pawn.RaceProps.Humanlike && pawn.def != null && !string.IsNullOrEmpty(pawn.def.description))
             {
-                sb.AppendLine();
-                sb.AppendLine("Description:");
+                lines.Add("");
+                lines.Add("RimWorldAccess.Inspection.DescriptionHeader".Translate("Description".Translate()));
                 string description = pawn.def.description.StripTags().Trim();
                 // Clean up whitespace
                 description = System.Text.RegularExpressions.Regex.Replace(description, @"\s+", " ");
-                sb.AppendLine(description);
+                lines.Add(description);
             }
 
-            return sb.ToString();
+            return string.Join("\n", lines);
         }
 
         /// <summary>
@@ -676,18 +686,18 @@ namespace RimWorldAccess
         /// </summary>
         private static string GetPawnCharacterInfo(Pawn pawn)
         {
-            var sb = new StringBuilder();
+            var lines = new List<string>();
 
             // Name information
             if (pawn.Name is NameTriple nameTriple)
             {
-                sb.AppendLine($"Name: {nameTriple.ToStringFull}");
-                sb.AppendLine();
+                lines.Add("RimWorldAccess.Inspection.Pawn.NameLabel".Translate(nameTriple.ToStringFull));
+                lines.Add("");
             }
             else if (pawn.Name != null)
             {
-                sb.AppendLine($"Name: {pawn.Name}");
-                sb.AppendLine();
+                lines.Add("RimWorldAccess.Inspection.Pawn.NameLabel".Translate(pawn.Name.ToStringFull));
+                lines.Add("");
             }
 
             if (pawn.story != null)
@@ -695,85 +705,72 @@ namespace RimWorldAccess
                 // Traits
                 if (pawn.story.traits?.allTraits != null && pawn.story.traits.allTraits.Any())
                 {
-                    sb.AppendLine("Traits:");
+                    lines.Add("RimWorldAccess.Inspection.Pawn.TraitsHeader".Translate());
                     foreach (var trait in pawn.story.traits.allTraits)
                     {
-                        // Get trait name
-                        sb.Append($"  {trait.LabelCap.StripTags()}");
-
-                        // Get trait description and effects using TipString
-                        string tipString = trait.TipString(pawn);
-                        if (!string.IsNullOrEmpty(tipString))
-                        {
-                            // Strip tags and extract description and effects
-                            tipString = tipString.StripTags();
-
-                            // Split into lines and format
-                            var lines = tipString.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-                            if (lines.Length > 0)
-                            {
-                                // First line is usually the description
-                                sb.Append($": {lines[0].Trim()}");
-
-                                // Add effects if present (skip empty lines and the description)
-                                var effects = new List<string>();
-                                for (int i = 1; i < lines.Length; i++)
-                                {
-                                    string line = lines[i].Trim();
-                                    if (!string.IsNullOrEmpty(line))
-                                    {
-                                        effects.Add(line);
-                                    }
-                                }
-
-                                if (effects.Any())
-                                {
-                                    sb.Append(": " + string.Join(", ", effects));
-                                }
-                            }
-                        }
-
-                        sb.AppendLine();
+                        lines.Add("  " + FormatTraitLine(trait, pawn));
                     }
-                    sb.AppendLine();
+                    lines.Add("");
                 }
 
                 // Backstory
                 if (pawn.story.Childhood != null)
                 {
-                    sb.Append($"Childhood: {pawn.story.Childhood.TitleCapFor(pawn.gender)}");
-
-                    // Add description and effects
-                    string childDesc = pawn.story.Childhood.FullDescriptionFor(pawn).ToString().StripTags();
-                    if (!string.IsNullOrEmpty(childDesc))
-                    {
-                        // Clean up the description (remove extra whitespace)
-                        childDesc = childDesc.Replace("\r", "").Replace("\n", " ").Trim();
-                        // Remove redundant info
-                        childDesc = System.Text.RegularExpressions.Regex.Replace(childDesc, @"\s+", " ");
-                        sb.Append($": {childDesc}");
-                    }
-                    sb.AppendLine();
+                    string title = pawn.story.Childhood.TitleCapFor(pawn.gender);
+                    string desc = CleanBackstoryDescription(pawn.story.Childhood.FullDescriptionFor(pawn).ToString());
+                    lines.Add(string.IsNullOrEmpty(desc)
+                        ? (string)"RimWorldAccess.Inspection.Pawn.Childhood".Translate(title)
+                        : (string)"RimWorldAccess.Inspection.Pawn.ChildhoodWithDesc".Translate(title, desc));
                 }
                 if (pawn.story.Adulthood != null)
                 {
-                    sb.Append($"Adulthood: {pawn.story.Adulthood.TitleCapFor(pawn.gender)}");
-
-                    // Add description and effects
-                    string adultDesc = pawn.story.Adulthood.FullDescriptionFor(pawn).ToString().StripTags();
-                    if (!string.IsNullOrEmpty(adultDesc))
-                    {
-                        // Clean up the description (remove extra whitespace)
-                        adultDesc = adultDesc.Replace("\r", "").Replace("\n", " ").Trim();
-                        // Remove redundant info
-                        adultDesc = System.Text.RegularExpressions.Regex.Replace(adultDesc, @"\s+", " ");
-                        sb.Append($": {adultDesc}");
-                    }
-                    sb.AppendLine();
+                    string title = pawn.story.Adulthood.TitleCapFor(pawn.gender);
+                    string desc = CleanBackstoryDescription(pawn.story.Adulthood.FullDescriptionFor(pawn).ToString());
+                    lines.Add(string.IsNullOrEmpty(desc)
+                        ? (string)"RimWorldAccess.Inspection.Pawn.Adulthood".Translate(title)
+                        : (string)"RimWorldAccess.Inspection.Pawn.AdulthoodWithDesc".Translate(title, desc));
                 }
             }
 
-            return sb.ToString().Trim();
+            return string.Join("\n", lines).Trim();
+        }
+
+        private static string FormatTraitLine(Trait trait, Pawn pawn)
+        {
+            string label = trait.LabelCap.StripTags();
+            string tipString = trait.TipString(pawn);
+            if (string.IsNullOrEmpty(tipString))
+                return "RimWorldAccess.Inspection.Pawn.TraitOnly".Translate(label);
+
+            tipString = tipString.StripTags();
+            var tipLines = tipString.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            if (tipLines.Length == 0)
+                return "RimWorldAccess.Inspection.Pawn.TraitOnly".Translate(label);
+
+            string description = tipLines[0].Trim();
+
+            var effects = new List<string>();
+            for (int i = 1; i < tipLines.Length; i++)
+            {
+                string line = tipLines[i].Trim();
+                if (!string.IsNullOrEmpty(line))
+                    effects.Add(line);
+            }
+
+            if (effects.Count == 0)
+                return "RimWorldAccess.Inspection.Pawn.TraitWithDesc".Translate(label, description);
+
+            return "RimWorldAccess.Inspection.Pawn.TraitWithDescAndEffects"
+                .Translate(label, description, string.Join(", ", effects));
+        }
+
+        private static string CleanBackstoryDescription(string raw)
+        {
+            string desc = raw.StripTags();
+            if (string.IsNullOrEmpty(desc))
+                return string.Empty;
+            desc = desc.Replace("\r", "").Replace("\n", " ").Trim();
+            return System.Text.RegularExpressions.Regex.Replace(desc, @"\s+", " ");
         }
 
         /// <summary>
@@ -1292,9 +1289,9 @@ namespace RimWorldAccess
         /// </summary>
         private static string GetGeneSetHolderOverview(GeneSetHolderBase holder)
         {
-            var sb = new StringBuilder();
-            sb.AppendLine(holder.LabelCap.StripTags());
-            sb.AppendLine();
+            var lines = new List<string>();
+            lines.Add(holder.LabelCap.StripTags());
+            lines.Add("");
 
             // Get the full inspect string
             string inspectString = holder.GetInspectString();
@@ -1309,27 +1306,26 @@ namespace RimWorldAccess
                 string preGenes = inspectString.Substring(0, headerIndex).Trim();
                 if (!string.IsNullOrEmpty(preGenes))
                 {
-                    sb.AppendLine(FormatInspectStringWithPunctuation(preGenes));
+                    lines.Add(FormatInspectStringWithPunctuation(preGenes));
                 }
 
                 // Build our own gene section with shade-aware labels
                 var genes = holder.GeneSet.GenesListForReading;
                 if (genes != null && genes.Count > 0)
                 {
-                    sb.AppendLine(genesHeader);
+                    lines.Add(genesHeader);
                     int cap = Math.Min(5, genes.Count);
                     for (int i = 0; i < cap; i++)
                     {
                         string geneLabel = GeneTreeBuilder.GetGeneDisplayLabel(genes[i]);
-                        if (holder.GeneSet.IsOverridden(genes[i]))
-                        {
-                            geneLabel += $" ({"Overridden".Translate()})";
-                        }
-                        sb.AppendLine($"  - {geneLabel}.");
+                        lines.Add(holder.GeneSet.IsOverridden(genes[i])
+                            ? (string)"RimWorldAccess.Inspection.GeneHolder.GeneEntryOverridden"
+                                .Translate(geneLabel, "Overridden".Translate())
+                            : (string)"RimWorldAccess.Inspection.GeneHolder.GeneEntry".Translate(geneLabel));
                     }
                     if (genes.Count > cap)
                     {
-                        sb.AppendLine($"  - {"Etc".Translate()}...");
+                        lines.Add("RimWorldAccess.Inspection.GeneHolder.Etc".Translate("Etc".Translate()));
                     }
                 }
             }
@@ -1338,21 +1334,21 @@ namespace RimWorldAccess
                 // No gene section found - just format the whole string
                 if (!string.IsNullOrEmpty(inspectString))
                 {
-                    sb.AppendLine(FormatInspectStringWithPunctuation(inspectString));
+                    lines.Add(FormatInspectStringWithPunctuation(inspectString));
                 }
             }
 
             // Add description
             if (holder.def != null && !string.IsNullOrEmpty(holder.def.description))
             {
-                sb.AppendLine();
-                sb.AppendLine("Description:");
+                lines.Add("");
+                lines.Add("RimWorldAccess.Inspection.DescriptionHeader".Translate("Description".Translate()));
                 string description = holder.def.description.StripTags().Trim();
                 description = System.Text.RegularExpressions.Regex.Replace(description, @"\s+", " ");
-                sb.AppendLine(description);
+                lines.Add(description);
             }
 
-            return sb.ToString();
+            return string.Join("\n", lines);
         }
     }
 }

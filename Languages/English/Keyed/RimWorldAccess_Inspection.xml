@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Inspection module strings (src/Inspection/InspectionInfoHelper.cs and
+    consumers in InspectionTreeBuilder). Covers object summaries, category
+    fallback messages, pawn overview / character info / mood readout, the
+    GeneSetHolder overview, and the dynamic-tab fallback path.
+
+    Phrasing decisions:
+
+    - Each line in a multi-line readout is a complete tree-item label.
+      The consumer (BuildDetailedInfoChildren) splits on newlines into
+      one tree item per line, so each value below should be a clean
+      stand-alone phrase, not a fragment glued onto another line.
+
+    - Object-summary status suffixes ("Dead" / "Downed" / "Drafted") are
+      whole-phrase keys per status × pawn-type combination so the noun
+      and the parenthetical can vary per language.
+
+    - "Description" reuses the vanilla key of the same name; trait /
+      backstory body text comes from the game and is not duplicated.
+
+    Shared phrases delegated elsewhere:
+      - Vanilla Friend / Rival / Acquaintance for relations -> vanilla
+      - Vanilla Description / Genes / Overridden / Etc -> vanilla keys
+  -->
+
+  <!-- =================================================================
+       Object summary (InspectionInfoHelper.GetObjectSummary). Each
+       phrase is the entire summary line for one object kind, with the
+       game-provided label substituted in. Status variants exist so the
+       parenthetical reads naturally across languages.
+       Pawn / Animal: {0} = pawn label.
+       Building / Plant / Item: {0} = thing label.
+       Zone: {0} = zone label, {1} = zone-type noun.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Summary.Unknown>Unknown object</RimWorldAccess.Inspection.Summary.Unknown>
+  <RimWorldAccess.Inspection.Summary.Pawn>Pawn: {0}</RimWorldAccess.Inspection.Summary.Pawn>
+  <RimWorldAccess.Inspection.Summary.PawnDead>Pawn: {0} (Dead)</RimWorldAccess.Inspection.Summary.PawnDead>
+  <RimWorldAccess.Inspection.Summary.PawnDowned>Pawn: {0} (Downed)</RimWorldAccess.Inspection.Summary.PawnDowned>
+  <RimWorldAccess.Inspection.Summary.PawnDrafted>Pawn: {0} (Drafted)</RimWorldAccess.Inspection.Summary.PawnDrafted>
+  <RimWorldAccess.Inspection.Summary.Animal>Animal: {0}</RimWorldAccess.Inspection.Summary.Animal>
+  <RimWorldAccess.Inspection.Summary.AnimalDead>Animal: {0} (Dead)</RimWorldAccess.Inspection.Summary.AnimalDead>
+  <RimWorldAccess.Inspection.Summary.AnimalDowned>Animal: {0} (Downed)</RimWorldAccess.Inspection.Summary.AnimalDowned>
+  <RimWorldAccess.Inspection.Summary.AnimalDrafted>Animal: {0} (Drafted)</RimWorldAccess.Inspection.Summary.AnimalDrafted>
+  <RimWorldAccess.Inspection.Summary.Building>Building: {0}</RimWorldAccess.Inspection.Summary.Building>
+  <RimWorldAccess.Inspection.Summary.Plant>Plant: {0}</RimWorldAccess.Inspection.Summary.Plant>
+  <RimWorldAccess.Inspection.Summary.Item>Item: {0}</RimWorldAccess.Inspection.Summary.Item>
+  <RimWorldAccess.Inspection.Summary.Zone>{0} ({1})</RimWorldAccess.Inspection.Summary.Zone>
+
+  <!-- =================================================================
+       Category-level fallbacks (InspectionInfoHelper.GetCategoryInfo,
+       GetDynamicTabInfo, GetPawnCategoryInfo, the per-type switches).
+       NoInfo: no object given.
+       NoCategoryInfo: no info for the requested category.
+       Error: {0} = category, {1} = exception message.
+       NoFallback: {0} = category. NotFound: per-type "category not found".
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Category.NoInfo>No information available.</RimWorldAccess.Inspection.Category.NoInfo>
+  <RimWorldAccess.Inspection.Category.NoCategoryInfo>No information available for this category.</RimWorldAccess.Inspection.Category.NoCategoryInfo>
+  <RimWorldAccess.Inspection.Category.Error>Error retrieving {0} information: {1}</RimWorldAccess.Inspection.Category.Error>
+  <RimWorldAccess.Inspection.Category.NoFallback>No information available for '{0}'.</RimWorldAccess.Inspection.Category.NoFallback>
+  <RimWorldAccess.Inspection.Category.NotFound>Category not found.</RimWorldAccess.Inspection.Category.NotFound>
+
+  <!-- =================================================================
+       Pawn overview / mood / character / gene-holder readouts.
+       Each value is one tree-item line. {0} placeholders are described
+       per key.
+       ================================================================= -->
+  <!-- Mood case (GetPawnCategoryInfo / GetPawnMoodInfo).
+       MoodHeader: {0} = mood percentage.
+       ThoughtEntry: {0} = thought label, {1} = signed mood offset. -->
+  <RimWorldAccess.Inspection.Pawn.NoMood>No mood information available.</RimWorldAccess.Inspection.Pawn.NoMood>
+  <RimWorldAccess.Inspection.Pawn.MoodHeader>Mood: {0}</RimWorldAccess.Inspection.Pawn.MoodHeader>
+  <RimWorldAccess.Inspection.Pawn.RecentThoughtsHeader>Recent Thoughts:</RimWorldAccess.Inspection.Pawn.RecentThoughtsHeader>
+  <RimWorldAccess.Inspection.Pawn.ThoughtEntry>{0}: {1}</RimWorldAccess.Inspection.Pawn.ThoughtEntry>
+  <RimWorldAccess.Inspection.Pawn.NoThoughts>No significant thoughts.</RimWorldAccess.Inspection.Pawn.NoThoughts>
+  <RimWorldAccess.Inspection.Pawn.NotPrisonerOrSlave>Not a prisoner or slave.</RimWorldAccess.Inspection.Pawn.NotPrisonerOrSlave>
+
+  <!-- Description header (animal overview, building overview, plant
+       overview, item overview). Reuses the vanilla "Description" key
+       and appends the colon ourselves. -->
+  <RimWorldAccess.Inspection.DescriptionHeader>{0}:</RimWorldAccess.Inspection.DescriptionHeader>
+
+  <!-- Character info (GetPawnCharacterInfo).
+       NameLabel: {0} = full name.
+       TraitOnly: {0} = trait label.
+       TraitWithDesc: {0} = trait label, {1} = trait description sentence.
+       TraitWithDescAndEffects: {0} = label, {1} = description, {2} =
+       comma-joined effect bullets.
+       Childhood / Adulthood: {0} = title.
+       ChildhoodWithDesc / AdulthoodWithDesc: {0} = title, {1} =
+       cleaned full description sentence. -->
+  <RimWorldAccess.Inspection.Pawn.NameLabel>Name: {0}</RimWorldAccess.Inspection.Pawn.NameLabel>
+  <RimWorldAccess.Inspection.Pawn.TraitsHeader>Traits:</RimWorldAccess.Inspection.Pawn.TraitsHeader>
+  <RimWorldAccess.Inspection.Pawn.TraitOnly>{0}</RimWorldAccess.Inspection.Pawn.TraitOnly>
+  <RimWorldAccess.Inspection.Pawn.TraitWithDesc>{0}: {1}</RimWorldAccess.Inspection.Pawn.TraitWithDesc>
+  <RimWorldAccess.Inspection.Pawn.TraitWithDescAndEffects>{0}: {1}: {2}</RimWorldAccess.Inspection.Pawn.TraitWithDescAndEffects>
+  <RimWorldAccess.Inspection.Pawn.Childhood>Childhood: {0}</RimWorldAccess.Inspection.Pawn.Childhood>
+  <RimWorldAccess.Inspection.Pawn.ChildhoodWithDesc>Childhood: {0}: {1}</RimWorldAccess.Inspection.Pawn.ChildhoodWithDesc>
+  <RimWorldAccess.Inspection.Pawn.Adulthood>Adulthood: {0}</RimWorldAccess.Inspection.Pawn.Adulthood>
+  <RimWorldAccess.Inspection.Pawn.AdulthoodWithDesc>Adulthood: {0}: {1}</RimWorldAccess.Inspection.Pawn.AdulthoodWithDesc>
+
+  <!-- GeneSetHolder overview (GetGeneSetHolderOverview).
+       GeneEntry: {0} = gene display label (already shade-aware).
+       GeneEntryOverridden: {0} = gene label, {1} = vanilla "Overridden".
+       Etc: {0} = vanilla "Etc". -->
+  <RimWorldAccess.Inspection.GeneHolder.GeneEntry>  - {0}.</RimWorldAccess.Inspection.GeneHolder.GeneEntry>
+  <RimWorldAccess.Inspection.GeneHolder.GeneEntryOverridden>  - {0} ({1}).</RimWorldAccess.Inspection.GeneHolder.GeneEntryOverridden>
+  <RimWorldAccess.Inspection.GeneHolder.Etc>  - {0}...</RimWorldAccess.Inspection.GeneHolder.Etc>
+</LanguageData>
