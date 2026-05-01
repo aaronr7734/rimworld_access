@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 using RimWorld;
 using RimWorld.Planet;
@@ -54,54 +53,38 @@ namespace RimWorldAccess
             if (tile == null)
                 return "RimWorldAccess.World.Tile.Unknown".Translate();
 
-            StringBuilder summary = new StringBuilder();
+            var builder = new AnnouncementBuilder().DefaultSep(Separator.Comma);
 
-            // Check for route planner waypoint at this tile FIRST (before everything else)
-            // Only include if caller wants route info (e.g., arrow key navigation)
             if (includeRouteInfo && Find.WorldRoutePlanner != null && Find.WorldRoutePlanner.Active)
             {
                 for (int i = 0; i < Find.WorldRoutePlanner.waypoints.Count; i++)
                 {
                     if (Find.WorldRoutePlanner.waypoints[i].Tile == planetTile)
                     {
-                        summary.Append("RimWorldAccess.World.Tile.Summary.WaypointPrefix".Translate(i + 1));
+                        builder.Add("RimWorldAccess.World.Tile.Summary.WaypointPrefix".Translate(i + 1));
                         break;
                     }
                 }
             }
 
-            // Add biome
             if (tile.PrimaryBiome != null)
-            {
-                summary.Append(tile.PrimaryBiome.LabelCap);
-            }
+                builder.Add(tile.PrimaryBiome.LabelCap);
 
-            // Add landmark name (Odyssey DLC) - sighted players see this in inspect pane header
             if (ModsConfig.OdysseyActive && tile.Landmark != null)
-            {
-                summary.Append($", {tile.Landmark.name}");
-            }
+                builder.Add(tile.Landmark.name);
 
-            // Add fuel cost right after biome (for transport pod targeting)
             if (!string.IsNullOrEmpty(fuelCostInfo))
-            {
-                summary.Append($", {fuelCostInfo}");
-            }
+                builder.Add(fuelCostInfo);
 
-            // Add hilliness and temperature (surface layers only - orbit tiles have default/meaningless values)
             bool isSpaceLayer = planetTile.LayerDef?.isSpace == true;
             if (!isSpaceLayer)
             {
                 if (tile.hilliness != Hilliness.Impassable && tile.hilliness != Hilliness.Undefined)
-                {
-                    summary.Append($", {tile.hilliness.GetLabelCap()}");
-                }
+                    builder.Add(tile.hilliness.GetLabelCap());
 
-                // Add temperature (average, respects user's temperature mode preference)
-                summary.Append($", {MenuHelper.FormatTemperature(tile.temperature, "F0")}");
+                builder.Add(MenuHelper.FormatTemperature(tile.temperature, "F0"));
             }
 
-            // Check for world objects at this tile (excluding route planner waypoints - we handle those separately above)
             if (Find.WorldObjects != null)
             {
                 List<WorldObject> objectsAtTile = Find.WorldObjects.ObjectsAt(planetTile)
@@ -110,136 +93,109 @@ namespace RimWorldAccess
 
                 if (objectsAtTile.Count > 0)
                 {
-                    // Prioritize settlements
                     Settlement settlement = objectsAtTile.OfType<Settlement>().FirstOrDefault();
                     if (settlement != null)
-                    {
-                        summary.Append($", {settlement.Label}");
+                        AppendSettlementSummary(builder, settlement);
 
-                        // Add faction info - only what's visible on the world map tooltip
-                        if (settlement.Faction != null)
-                        {
-                            if (settlement.Faction == Faction.OfPlayer)
-                            {
-                                summary.Append(" (");
-                                summary.Append("RimWorldAccess.World.Settlement.FactionInline".Translate(Faction.OfPlayer.Name));
-                                summary.Append(")");
-                            }
-                            else
-                            {
-                                string relationship = settlement.Faction.PlayerRelationKind.GetLabelCap();
-                                int goodwill = settlement.Faction.PlayerGoodwill;
-                                string goodwillStr = goodwill >= 0
-                                    ? (string)"RimWorldAccess.World.Settlement.GoodwillPositive".Translate(goodwill)
-                                    : goodwill.ToString();
-                                summary.Append(" (");
-                                summary.Append("RimWorldAccess.World.Settlement.FactionWithRelationInline".Translate(
-                                    settlement.Faction.Name, relationship, goodwillStr));
-                                summary.Append(")");
-
-                                // Title required for trading (shown on inspect pane for Empire)
-                                if (settlement.TraderKind != null)
-                                {
-                                    RoyalTitleDef titleRequired = settlement.TraderKind.TitleRequiredToTrade;
-                                    if (titleRequired != null)
-                                    {
-                                        summary.Append(". ");
-                                        summary.Append("RimWorldAccess.World.Settlement.RequiresTitleToTrade".Translate(
-                                            titleRequired.GetLabelCapForBothGenders()));
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Check for caravans on this tile (regardless of settlement presence)
-                    // List all caravans with natural language formatting and status
                     var caravans = objectsAtTile.OfType<Caravan>().ToList();
                     if (caravans.Count > 0)
                     {
-                        summary.Append(". ");
-                        var caravanLabels = caravans
-                            .Select(c => FormatCaravanWithDetail(c))
-                            .ToList();
-                        string joined = caravanLabels.ToCommaList(useAnd: true);
+                        string joined = caravans.Select(FormatCaravanWithDetail).ToList().ToCommaList(useAnd: true);
                         string key = caravans.Count == 1
                             ? "RimWorldAccess.World.Tile.Caravan.IsHere"
                             : "RimWorldAccess.World.Tile.Caravan.AreHere";
-                        summary.Append(key.Translate(joined));
+                        builder.Add(key.Translate(joined), Separator.Period);
                     }
 
-                    // If no settlement or caravan, list other world objects (like sites)
                     if (settlement == null && caravans.Count == 0)
                     {
                         WorldObject firstObject = objectsAtTile.FirstOrDefault();
                         if (firstObject != null)
-                        {
-                            summary.Append($", {firstObject.Label}");
-                        }
+                            builder.Add(firstObject.Label);
                     }
                 }
             }
 
-            // Add road/river direction info for navigation (skip in minimal mode)
             if (!minimal && tile is SurfaceTile surfaceTile)
             {
-                // Road direction with name
                 if (surfaceTile.Roads != null && surfaceTile.Roads.Count > 0)
                 {
                     string roadName = surfaceTile.Roads.First().road.label;
                     string roadInline = GetRoadDirectionInline(planetTile, surfaceTile.Roads);
                     if (!string.IsNullOrEmpty(roadInline))
-                    {
-                        summary.Append(". ");
-                        summary.Append("RimWorldAccess.World.Tile.Summary.RoadInline".Translate(
-                            roadName.CapitalizeFirst(), roadInline));
-                    }
+                        builder.Add("RimWorldAccess.World.Tile.Summary.RoadInline".Translate(
+                            roadName.CapitalizeFirst(), roadInline), Separator.Period);
                 }
 
-                // River direction
                 if (surfaceTile.Rivers != null && surfaceTile.Rivers.Count > 0)
                 {
                     string riverInline = GetRiverDirectionInline(planetTile, surfaceTile.Rivers);
                     if (!string.IsNullOrEmpty(riverInline))
-                    {
-                        summary.Append(". ");
-                        summary.Append("RimWorldAccess.World.Tile.Summary.RiverInline".Translate(riverInline));
-                    }
+                        builder.Add("RimWorldAccess.World.Tile.Summary.RiverInline".Translate(riverInline),
+                            Separator.Period);
                 }
             }
 
-            // Add quest information for this tile (skip in minimal mode)
             if (!minimal)
             {
                 string questInfo = GetQuestInfoForTile(planetTile);
                 if (!string.IsNullOrEmpty(questInfo))
-                {
-                    summary.Append($". {questInfo}");
-                }
+                    builder.Add(questInfo, Separator.Period);
             }
 
-            // Add route planner path info at the END (when on a planned route)
-            // Only include if caller wants route info (e.g., arrow key navigation)
             if (includeRouteInfo)
             {
                 string routeInfo = RoutePlannerState.GetRouteAnnouncement(planetTile);
                 if (!string.IsNullOrEmpty(routeInfo))
                 {
-                    summary.Append($". {routeInfo}");
+                    builder.Add(routeInfo, Separator.Period);
                 }
                 else
                 {
-                    // Only show caravan path info when route planner is NOT active
-                    // (route planner has its own path display)
                     string caravanPathInfo = GetCaravanPathAnnouncement(planetTile);
                     if (!string.IsNullOrEmpty(caravanPathInfo))
-                    {
-                        summary.Append($". {caravanPathInfo}");
-                    }
+                        builder.Add(caravanPathInfo, Separator.Period);
                 }
             }
 
-            return summary.ToString();
+            return builder.Build();
+        }
+
+        private static void AppendSettlementSummary(AnnouncementBuilder builder, Settlement settlement)
+        {
+            string label = settlement.Label;
+
+            if (settlement.Faction == null)
+            {
+                builder.Add(label);
+                return;
+            }
+
+            string factionDisplay;
+            if (settlement.Faction == Faction.OfPlayer)
+            {
+                factionDisplay = "RimWorldAccess.World.Settlement.FactionInline".Translate(Faction.OfPlayer.Name);
+            }
+            else
+            {
+                string relationship = settlement.Faction.PlayerRelationKind.GetLabelCap();
+                int goodwill = settlement.Faction.PlayerGoodwill;
+                string goodwillStr = goodwill >= 0
+                    ? (string)"RimWorldAccess.World.Settlement.GoodwillPositive".Translate(goodwill)
+                    : goodwill.ToString();
+                factionDisplay = "RimWorldAccess.World.Settlement.FactionWithRelationInline".Translate(
+                    settlement.Faction.Name, relationship, goodwillStr);
+            }
+
+            builder.Add("RimWorldAccess.World.Settlement.LabelWithFaction".Translate(label, factionDisplay));
+
+            if (settlement.Faction != Faction.OfPlayer && settlement.TraderKind != null)
+            {
+                RoyalTitleDef titleRequired = settlement.TraderKind.TitleRequiredToTrade;
+                if (titleRequired != null)
+                    builder.Add("RimWorldAccess.World.Settlement.RequiresTitleToTrade".Translate(
+                        titleRequired.GetLabelCapForBothGenders()), Separator.Period);
+            }
         }
 
         /// <summary>
@@ -361,17 +317,17 @@ namespace RimWorldAccess
             if (settlement == null)
                 return "RimWorldAccess.World.Settlement.None".Translate();
 
-            StringBuilder info = new StringBuilder();
+            var builder = new AnnouncementBuilder().DefaultSep(Separator.Period);
 
-            info.AppendLine("RimWorldAccess.World.Settlement.LabelField".Translate(settlement.Label));
+            builder.Add("RimWorldAccess.World.Settlement.LabelField".Translate(settlement.Label));
 
             if (settlement.Faction != null)
             {
-                info.AppendLine("RimWorldAccess.World.Settlement.FactionField".Translate(settlement.Faction.Name));
+                builder.Add("RimWorldAccess.World.Settlement.FactionField".Translate(settlement.Faction.Name));
 
                 if (settlement.Faction == Faction.OfPlayer)
                 {
-                    info.AppendLine("RimWorldAccess.World.Settlement.RelationshipField".Translate(
+                    builder.Add("RimWorldAccess.World.Settlement.RelationshipField".Translate(
                         "RimWorldAccess.World.Settlement.PlayerColonyRelationship".Translate()));
                 }
                 else
@@ -379,26 +335,20 @@ namespace RimWorldAccess
                     string relationship = settlement.Faction.HostileTo(Faction.OfPlayer)
                         ? (string)"RimWorldAccess.World.Settlement.HostileRelationship".Translate()
                         : settlement.Faction.PlayerRelationKind.GetLabel();
-                    info.AppendLine("RimWorldAccess.World.Settlement.RelationshipField".Translate(relationship));
+                    builder.Add("RimWorldAccess.World.Settlement.RelationshipField".Translate(relationship));
 
-                    // Add goodwill
                     int goodwill = settlement.Faction.PlayerGoodwill;
-                    info.AppendLine("RimWorldAccess.World.Settlement.GoodwillField".Translate(goodwill));
+                    builder.Add("RimWorldAccess.World.Settlement.GoodwillField".Translate(goodwill));
                 }
             }
 
-            // Add visitable/attackable status
             if (settlement.Visitable)
-            {
-                info.AppendLine("RimWorldAccess.World.Settlement.StatusVisitable".Translate());
-            }
+                builder.Add("RimWorldAccess.World.Settlement.StatusVisitable".Translate());
 
             if (settlement.Attackable)
-            {
-                info.AppendLine("RimWorldAccess.World.Settlement.StatusAttackable".Translate());
-            }
+                builder.Add("RimWorldAccess.World.Settlement.StatusAttackable".Translate());
 
-            return info.ToString().TrimEnd();
+            return builder.Build();
         }
 
         /// <summary>

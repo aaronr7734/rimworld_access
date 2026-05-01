@@ -404,6 +404,8 @@
   <RimWorldAccess.World.Settlement.None>No settlement</RimWorldAccess.World.Settlement.None>
   <RimWorldAccess.World.Settlement.FactionInline>{0}</RimWorldAccess.World.Settlement.FactionInline>
   <RimWorldAccess.World.Settlement.FactionWithRelationInline>{0}, {1} {2}</RimWorldAccess.World.Settlement.FactionWithRelationInline>
+  <!-- Settlement label with parenthesized faction info: "Outpost (Empire, Ally +30)". -->
+  <RimWorldAccess.World.Settlement.LabelWithFaction>{0} ({1})</RimWorldAccess.World.Settlement.LabelWithFaction>
   <RimWorldAccess.World.Settlement.GoodwillPositive>+{0}</RimWorldAccess.World.Settlement.GoodwillPositive>
   <RimWorldAccess.World.Settlement.RequiresTitleToTrade>Requires {0} title to trade</RimWorldAccess.World.Settlement.RequiresTitleToTrade>
   <RimWorldAccess.World.Settlement.LabelField>Settlement: {0}</RimWorldAccess.World.Settlement.LabelField>
