@@ -469,6 +469,54 @@
   <RimWorldAccess.Pawns.Social.ErrorInitiateRomance>Error initiating romance</RimWorldAccess.Pawns.Social.ErrorInitiateRomance>
 
   <!-- =================================================================
+       Social tab tree display (SocialTabHelper + InspectionTreeBuilder
+       social/ideology/romance branches). Each phrase below is a complete
+       tree-item label, so word order can vary by language. Friend /
+       Rival / Acquaintance reuse the vanilla keys of the same names.
+       Each detail line composed by SocialTabHelper becomes one tree item;
+       no separators are glued in C#.
+       ================================================================= -->
+  <RimWorldAccess.Pawns.Social.Ideology.None>None</RimWorldAccess.Pawns.Social.Ideology.None>
+  <RimWorldAccess.Pawns.Social.Ideology.NotAvailable>No ideology information available</RimWorldAccess.Pawns.Social.Ideology.NotAvailable>
+  <RimWorldAccess.Pawns.Social.Ideology.Header>Ideology: {0}</RimWorldAccess.Pawns.Social.Ideology.Header>
+
+  <!-- Relations list. Entry: {0} = pawn label, {1} = relations
+       (comma-joined or "Acquaintance"), {2} = signed opinion. Header:
+       {0} = other pawn label. Relationships: {0} = relations list.
+       MyOpinion / TheirOpinion: {0} = signed opinion. OpinionFactor:
+       {0} = factor label, {1} = signed offset. -->
+  <RimWorldAccess.Pawns.Social.Relation.NoRelations>No relations</RimWorldAccess.Pawns.Social.Relation.NoRelations>
+  <RimWorldAccess.Pawns.Social.Relation.Entry>{0} ({1}, opinion: {2})</RimWorldAccess.Pawns.Social.Relation.Entry>
+  <RimWorldAccess.Pawns.Social.Relation.Header>Relation with {0}:</RimWorldAccess.Pawns.Social.Relation.Header>
+  <RimWorldAccess.Pawns.Social.Relation.Relationships>Relationship: {0}</RimWorldAccess.Pawns.Social.Relation.Relationships>
+  <RimWorldAccess.Pawns.Social.Relation.MyOpinion>My opinion: {0}</RimWorldAccess.Pawns.Social.Relation.MyOpinion>
+  <RimWorldAccess.Pawns.Social.Relation.TheirOpinion>Their opinion: {0}</RimWorldAccess.Pawns.Social.Relation.TheirOpinion>
+  <RimWorldAccess.Pawns.Social.Relation.OpinionFactorsHeader>Opinion factors:</RimWorldAccess.Pawns.Social.Relation.OpinionFactorsHeader>
+  <RimWorldAccess.Pawns.Social.Relation.OpinionFactor>{0}: {1}</RimWorldAccess.Pawns.Social.Relation.OpinionFactor>
+  <RimWorldAccess.Pawns.Social.Relation.NoFactors>(None)</RimWorldAccess.Pawns.Social.Relation.NoFactors>
+  <RimWorldAccess.Pawns.Social.Relation.LovePartners>Love partners</RimWorldAccess.Pawns.Social.Relation.LovePartners>
+
+  <!-- Try Romance sub-menu. WillTry: {0} = initiator, {1} = target.
+       TargetEntry: {0} = target name, {1} = chance percent, {2} = the
+       vanilla "chance" word. TargetUnavailable: {0} = target name,
+       {1} = vanilla rejection reason. BreakdownHeader: {0} = target,
+       {1} = vanilla "RomanceChance" label, {2} = chance percent. -->
+  <RimWorldAccess.Pawns.Social.Romance.WillTry>{0} will try to romance {1}</RimWorldAccess.Pawns.Social.Romance.WillTry>
+  <RimWorldAccess.Pawns.Social.Romance.TargetEntry>{0} ({1} {2})</RimWorldAccess.Pawns.Social.Romance.TargetEntry>
+  <RimWorldAccess.Pawns.Social.Romance.TargetUnavailable>{0} ({1})</RimWorldAccess.Pawns.Social.Romance.TargetUnavailable>
+  <RimWorldAccess.Pawns.Social.Romance.BreakdownHeader>{0} - {1}: {2}</RimWorldAccess.Pawns.Social.Romance.BreakdownHeader>
+
+  <!-- Ideology role assign/unassign actions and headers. LabelWithHolder:
+       {0} = role label, {1} = current holder name (or vanilla
+       "NoRoleAssigned"). Assign/Unassign: {0} = pawn name. -->
+  <RimWorldAccess.Pawns.Social.Role.LabelWithHolder>{0}: {1}</RimWorldAccess.Pawns.Social.Role.LabelWithHolder>
+  <RimWorldAccess.Pawns.Social.Role.Assign>Assign {0}</RimWorldAccess.Pawns.Social.Role.Assign>
+  <RimWorldAccess.Pawns.Social.Role.Unassign>Unassign {0}</RimWorldAccess.Pawns.Social.Role.Unassign>
+  <RimWorldAccess.Pawns.Social.Role.CannotAssignReason>Cannot assign: {0}</RimWorldAccess.Pawns.Social.Role.CannotAssignReason>
+  <RimWorldAccess.Pawns.Social.Role.CannotAssignDefault>Cannot assign: requirements not met</RimWorldAccess.Pawns.Social.Role.CannotAssignDefault>
+  <RimWorldAccess.Pawns.Social.Role.RequirementsHeader>Requirements</RimWorldAccess.Pawns.Social.Role.RequirementsHeader>
+
+  <!-- =================================================================
        Pawn quick-info readouts (PawnInfoHelper.GetHealthInfo /
        GetMoodInfo / GetNeedsInfo / GetGearInfo / GetSocialInfo /
        GetTrainingInfo / GetCharacterInfo / GetTopSkillsInfo /

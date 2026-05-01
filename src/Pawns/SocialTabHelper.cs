@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using HarmonyLib;
 using RimWorld;
 using Verse;
@@ -26,14 +25,16 @@ namespace RimWorldAccess
             public List<string> Relations { get; set; }
             public int MyOpinion { get; set; }
             public int TheirOpinion { get; set; }
-            public string Situation { get; set; }
-            public string DetailedInfo { get; set; }
+            public List<string> DetailLines { get; set; }
+            public int RelationshipLineIndex { get; set; }
             public bool CanChangePregnancyApproach { get; set; }
             public RimWorld.PregnancyApproach CurrentPregnancyApproach { get; set; }
 
             public RelationInfo()
             {
                 Relations = new List<string>();
+                DetailLines = new List<string>();
+                RelationshipLineIndex = -1;
             }
         }
 
@@ -47,7 +48,6 @@ namespace RimWorldAccess
             public float Certainty { get; set; }
             public Precept_Role Role { get; set; }
             public string RoleName { get; set; }
-            public string RoleDetails { get; set; }
         }
 
         // Uses RimWorld.PregnancyApproach enum (Normal, AvoidPregnancy, TryForBaby)
@@ -62,10 +62,11 @@ namespace RimWorldAccess
             if (pawn?.ideo == null || !ModsConfig.IdeologyActive)
                 return null;
 
+            string noneLabel = "RimWorldAccess.Pawns.Social.Ideology.None".Translate();
             var info = new IdeologyInfo
             {
                 Ideo = pawn.Ideo,
-                IdeoName = pawn.Ideo?.name ?? "None",
+                IdeoName = pawn.Ideo?.name ?? noneLabel,
                 Certainty = pawn.ideo.Certainty
             };
 
@@ -73,55 +74,10 @@ namespace RimWorldAccess
             if (pawn.Ideo != null)
             {
                 info.Role = pawn.Ideo.GetRole(pawn);
-                info.RoleName = info.Role?.LabelCap ?? "None";
-            }
-
-            // Get detailed role info
-            if (info.Role != null)
-            {
-                info.RoleDetails = GetRoleDetails(pawn, info.Role);
+                info.RoleName = info.Role?.LabelCap ?? noneLabel;
             }
 
             return info;
-        }
-
-        private static string GetRoleDetails(Pawn pawn, Precept_Role role)
-        {
-            var sb = new StringBuilder();
-            // Use LabelForPawn for pawn-specific role label
-            sb.AppendLine($"Role: {role.LabelForPawn(pawn)}");
-            sb.AppendLine();
-
-            if (!string.IsNullOrEmpty(role.def.description))
-            {
-                sb.AppendLine(role.def.description);
-                sb.AppendLine();
-            }
-
-            // Role requirements
-            if (role.def.roleRequirements != null && role.def.roleRequirements.Count > 0)
-            {
-                sb.AppendLine("Requirements:");
-                foreach (var req in role.def.roleRequirements)
-                {
-                    // RoleRequirement has GetLabelCap method that takes the role
-                    sb.AppendLine($"  {req.GetLabelCap(role)}");
-                }
-                sb.AppendLine();
-            }
-
-            // Role effects
-            if (role.def.roleEffects != null && role.def.roleEffects.Count > 0)
-            {
-                sb.AppendLine("Effects:");
-                foreach (var effect in role.def.roleEffects)
-                {
-                    // RoleEffect.Label requires pawn and role parameters
-                    sb.AppendLine($"  {effect.Label(pawn, role)}");
-                }
-            }
-
-            return sb.ToString().TrimEnd();
         }
 
         /// <summary>
@@ -220,24 +176,7 @@ namespace RimWorldAccess
 
             foreach (var otherPawn in relatedPawns)
             {
-                var relationInfo = new RelationInfo
-                {
-                    OtherPawn = otherPawn,
-                    OtherPawnName = otherPawn.LabelShort.StripTags(),
-                    Relations = GetRelationLabels(pawn, otherPawn),
-                    MyOpinion = pawn.relations.OpinionOf(otherPawn),
-                    TheirOpinion = otherPawn.relations?.OpinionOf(pawn) ?? 0,
-                    Situation = GetPawnSituation(otherPawn),
-                    DetailedInfo = GetRelationDetailedInfo(pawn, otherPawn)
-                };
-
-                // Check if can change pregnancy approach (Biotech DLC required)
-                if (ModsConfig.BiotechActive && LovePartnerRelationUtility.LovePartnerRelationExists(pawn, otherPawn))
-                {
-                    relationInfo.CanChangePregnancyApproach = true;
-                    relationInfo.CurrentPregnancyApproach = GetPregnancyApproach(pawn, otherPawn);
-                }
-
+                var relationInfo = BuildRelationInfo(pawn, otherPawn, pawn.relations.OpinionOf(otherPawn));
                 relations.Add(relationInfo);
             }
 
@@ -253,18 +192,7 @@ namespace RimWorldAccess
                     int opinion = pawn.relations.OpinionOf(otherPawn);
                     if (opinion != 0)
                     {
-                        var relationInfo = new RelationInfo
-                        {
-                            OtherPawn = otherPawn,
-                            OtherPawnName = otherPawn.LabelShort.StripTags(),
-                            Relations = GetRelationLabels(pawn, otherPawn),
-                            MyOpinion = opinion,
-                            TheirOpinion = otherPawn.relations?.OpinionOf(pawn) ?? 0,
-                            Situation = GetPawnSituation(otherPawn),
-                            DetailedInfo = GetRelationDetailedInfo(pawn, otherPawn)
-                        };
-
-                        relations.Add(relationInfo);
+                        relations.Add(BuildRelationInfo(pawn, otherPawn, opinion));
                     }
                 }
             }
@@ -292,68 +220,67 @@ namespace RimWorldAccess
                 }
             }
 
-            // Add friendship/rivalry labels if no family relations
+            // Add friendship/rivalry labels if no family relations.
+            // "Friend" / "Rival" / "Acquaintance" reuse the vanilla keys of the same names.
             if (labels.Count == 0)
             {
                 int opinion = pawn.relations.OpinionOf(otherPawn);
                 if (opinion >= 20)
-                    labels.Add("Friend");
+                    labels.Add("Friend".Translate());
                 else if (opinion <= -20)
-                    labels.Add("Rival");
+                    labels.Add("Rival".Translate());
                 else
-                    labels.Add("Acquaintance");
+                    labels.Add("Acquaintance".Translate());
             }
 
             return labels;
         }
 
-        private static string GetPawnSituation(Pawn pawn)
+        private static RelationInfo BuildRelationInfo(Pawn pawn, Pawn otherPawn, int myOpinion)
         {
-            if (pawn.Dead)
-                return "Dead";
-            if (pawn.Destroyed && !pawn.Dead)
-                return "Missing";
-            if (pawn.IsPrisonerOfColony)
-                return "Prisoner";
-            if (pawn.IsSlaveOfColony)
-                return "Slave";
-            if (pawn.Faction == null)
-                return "No faction";
-
-            string factionLabel = pawn.Faction.Name;
-            if (pawn.Faction.HostileTo(Faction.OfPlayer))
-                return $"Hostile, {factionLabel}";
-            if (pawn.Faction.IsPlayer)
-                return $"Colonist, {factionLabel}";
-            return $"Neutral, {factionLabel}";
-        }
-
-        private static string GetRelationDetailedInfo(Pawn pawn, Pawn otherPawn)
-        {
-            var sb = new StringBuilder();
-            sb.AppendLine($"Relation with {otherPawn.LabelShort.StripTags()}:");
-            sb.AppendLine();
-
-            // Relations
-            var relations = GetRelationLabels(pawn, otherPawn);
-            if (relations.Count > 0)
+            var info = new RelationInfo
             {
-                sb.AppendLine($"Relationship: {string.Join(", ", relations)}");
+                OtherPawn = otherPawn,
+                OtherPawnName = otherPawn.LabelShort.StripTags(),
+                Relations = GetRelationLabels(pawn, otherPawn),
+                MyOpinion = myOpinion,
+                TheirOpinion = otherPawn.relations?.OpinionOf(pawn) ?? 0
+            };
+
+            PopulateDetailLines(info, pawn, otherPawn);
+
+            if (ModsConfig.BiotechActive && LovePartnerRelationUtility.LovePartnerRelationExists(pawn, otherPawn))
+            {
+                info.CanChangePregnancyApproach = true;
+                info.CurrentPregnancyApproach = GetPregnancyApproach(pawn, otherPawn);
             }
 
-            // Opinions
-            int myOpinion = pawn.relations.OpinionOf(otherPawn);
-            int theirOpinion = otherPawn.relations?.OpinionOf(pawn) ?? 0;
+            return info;
+        }
 
-            sb.AppendLine($"My opinion: {myOpinion:+0;-0;0}");
-            sb.AppendLine($"Their opinion: {theirOpinion:+0;-0;0}");
-            sb.AppendLine();
+        private static void PopulateDetailLines(RelationInfo info, Pawn pawn, Pawn otherPawn)
+        {
+            var lines = info.DetailLines;
 
-            // Opinion breakdown
-            sb.AppendLine("Opinion factors:");
+            lines.Add("RimWorldAccess.Pawns.Social.Relation.Header"
+                .Translate(otherPawn.LabelShort.StripTags()));
+
+            if (info.Relations.Count > 0)
+            {
+                info.RelationshipLineIndex = lines.Count;
+                lines.Add("RimWorldAccess.Pawns.Social.Relation.Relationships"
+                    .Translate(string.Join(", ", info.Relations)));
+            }
+
+            lines.Add("RimWorldAccess.Pawns.Social.Relation.MyOpinion"
+                .Translate(info.MyOpinion.ToString("+0;-0;0")));
+            lines.Add("RimWorldAccess.Pawns.Social.Relation.TheirOpinion"
+                .Translate(info.TheirOpinion.ToString("+0;-0;0")));
+
+            lines.Add("RimWorldAccess.Pawns.Social.Relation.OpinionFactorsHeader".Translate());
+
             bool hasFactors = false;
 
-            // Add relation opinion modifiers
             var directRelations = pawn.relations.DirectRelations;
             if (directRelations != null)
             {
@@ -361,13 +288,14 @@ namespace RimWorldAccess
                 {
                     if (rel.otherPawn == otherPawn && rel.def.opinionOffset != 0)
                     {
-                        sb.AppendLine($"  {rel.def.GetGenderSpecificLabelCap(otherPawn)}: {rel.def.opinionOffset:+0;-0;0}");
+                        lines.Add("RimWorldAccess.Pawns.Social.Relation.OpinionFactor"
+                            .Translate(rel.def.GetGenderSpecificLabelCap(otherPawn),
+                                rel.def.opinionOffset.ToString("+0;-0;0")));
                         hasFactors = true;
                     }
                 }
             }
 
-            // Add social thought opinion modifiers
             if (pawn.RaceProps.Humanlike && pawn.needs?.mood?.thoughts != null)
             {
                 var thoughts = pawn.needs.mood.thoughts;
@@ -382,7 +310,6 @@ namespace RimWorldAccess
                         Thought thought = (Thought)socialThought;
                         string label = thought.LabelCapSocial.StripTags();
 
-                        // Check if there are multiple instances of this thought
                         int count = 1;
                         if (thought.def.IsMemory && socialThought is Thought_MemorySocial memorySocial)
                         {
@@ -394,7 +321,8 @@ namespace RimWorldAccess
                             label += $" x{count}";
                         }
 
-                        sb.AppendLine($"  {label}: {opinionOffset:+0;-0;0}");
+                        lines.Add("RimWorldAccess.Pawns.Social.Relation.OpinionFactor"
+                            .Translate(label, opinionOffset.ToString("+0;-0;0")));
                         hasFactors = true;
                     }
                 }
@@ -402,17 +330,13 @@ namespace RimWorldAccess
 
             if (!hasFactors)
             {
-                sb.AppendLine("  (None)");
+                lines.Add("RimWorldAccess.Pawns.Social.Relation.NoFactors".Translate());
             }
 
-            // Romance info if applicable
             if (LovePartnerRelationUtility.LovePartnerRelationExists(pawn, otherPawn))
             {
-                sb.AppendLine();
-                sb.AppendLine("Love partners");
+                lines.Add("RimWorldAccess.Pawns.Social.Relation.LovePartners".Translate());
             }
-
-            return sb.ToString().TrimEnd();
         }
 
         private static RimWorld.PregnancyApproach GetPregnancyApproach(Pawn pawn, Pawn partner)

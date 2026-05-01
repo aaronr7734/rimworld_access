@@ -1334,7 +1334,7 @@ namespace RimWorldAccess
                 var noRelationsItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = "No relations",
+                    Label = "RimWorldAccess.Pawns.Social.Relation.NoRelations".Translate(),
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = false
                 };
@@ -1344,11 +1344,16 @@ namespace RimWorldAccess
 
             foreach (var relation in relations)
             {
-                string relationsStr = relation.Relations.Count > 0 ? string.Join(", ", relation.Relations) : "Acquaintance";
+                string relationsStr = relation.Relations.Count > 0
+                    ? string.Join(", ", relation.Relations)
+                    : (string)"Acquaintance".Translate();
                 var relationItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
-                    Label = $"{relation.OtherPawnName} ({relationsStr}, opinion: {relation.MyOpinion:+0;-0;0})",
+                    Label = "RimWorldAccess.Pawns.Social.Relation.Entry".Translate(
+                        relation.OtherPawnName,
+                        relationsStr,
+                        relation.MyOpinion.ToString("+0;-0;0")),
                     Data = relation,
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = true,
@@ -1367,23 +1372,22 @@ namespace RimWorldAccess
             if (relationItem.Children.Count > 0)
                 return; // Already built
 
-            string detailedInfo = relation.DetailedInfo.StripTags();
-            var lines = detailedInfo.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
             bool pregnancyApproachInserted = false;
+            int childIndent = relationItem.IndentLevel + 1;
 
-            foreach (var line in lines.Where(l => !string.IsNullOrWhiteSpace(l)))
+            for (int i = 0; i < relation.DetailLines.Count; i++)
             {
                 var detailItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = line.Trim(),
-                    IndentLevel = relationItem.IndentLevel + 1,
+                    Label = relation.DetailLines[i].StripTags(),
+                    IndentLevel = childIndent,
                     IsExpandable = false
                 };
                 AddChild(relationItem, detailItem);
 
                 // Insert pregnancy approach right after the Relationship line
-                if (!pregnancyApproachInserted && line.TrimStart().StartsWith("Relationship:")
+                if (!pregnancyApproachInserted && i == relation.RelationshipLineIndex
                     && relation.CanChangePregnancyApproach && ModsConfig.BiotechActive)
                 {
                     BuildPregnancyApproachMenu(relationItem, inspectedPawn, relation);
@@ -1547,7 +1551,7 @@ namespace RimWorldAccess
                 {
                     if (target.IsViable)
                     {
-                        string targetLabel = string.Format("{0} ({1} {2})",
+                        string targetLabel = "RimWorldAccess.Pawns.Social.Romance.TargetEntry".Translate(
                             target.TargetName,
                             target.Chance.ToStringPercent(),
                             "chance".Translate());
@@ -1566,7 +1570,8 @@ namespace RimWorldAccess
                         {
                             if (SocialTabHelper.InitiateRomance(pawn, capturedTarget.Target))
                             {
-                                TolkHelper.Speak($"{pawn.LabelShort} will try to romance {capturedTarget.TargetName}");
+                                TolkHelper.Speak("RimWorldAccess.Pawns.Social.Romance.WillTry"
+                                    .Translate(pawn.LabelShort, capturedTarget.TargetName));
                             }
                             else
                             {
@@ -1579,7 +1584,10 @@ namespace RimWorldAccess
                             string breakdown = SocialTabHelper.BuildRomanceBreakdown(
                                 pawn, capturedTarget.Target);
                             StatBreakdownState.Open(
-                                $"{capturedTarget.TargetName} - {"RomanceChance".Translate()}: {capturedTarget.Chance.ToStringPercent()}",
+                                "RimWorldAccess.Pawns.Social.Romance.BreakdownHeader".Translate(
+                                    capturedTarget.TargetName,
+                                    "RomanceChance".Translate(),
+                                    capturedTarget.Chance.ToStringPercent()),
                                 breakdown);
                         };
 
@@ -1590,7 +1598,8 @@ namespace RimWorldAccess
                         AddChild(romanceItem, new InspectionTreeItem
                         {
                             Type = InspectionTreeItem.ItemType.DetailText,
-                            Label = $"{target.TargetName} ({target.Reason})",
+                            Label = "RimWorldAccess.Pawns.Social.Romance.TargetUnavailable".Translate(
+                                target.TargetName, target.Reason),
                             IndentLevel = targetIndent,
                             IsExpandable = false
                         });
@@ -1615,7 +1624,7 @@ namespace RimWorldAccess
                 var noIdeologyItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = "No ideology information available",
+                    Label = "RimWorldAccess.Pawns.Social.Ideology.NotAvailable".Translate(),
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = false
                 };
@@ -1629,7 +1638,7 @@ namespace RimWorldAccess
             AddChild(parentItem, new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.DetailText,
-                Label = $"Ideology: {ideologyInfo.IdeoName}",
+                Label = "RimWorldAccess.Pawns.Social.Ideology.Header".Translate(ideologyInfo.IdeoName),
                 IndentLevel = childIndent,
                 IsExpandable = false
             });
@@ -1685,7 +1694,8 @@ namespace RimWorldAccess
             {
                 Pawn currentHolder = role.ChosenPawnSingle();
                 string holderName = currentHolder != null ? currentHolder.LabelShort.StripTags() : (string)"NoRoleAssigned".Translate();
-                string roleLabel = $"{role.LabelCap}: {holderName}";
+                string roleLabel = "RimWorldAccess.Pawns.Social.Role.LabelWithHolder"
+                    .Translate(role.LabelCap, holderName);
 
                 var roleItem = new InspectionTreeItem
                 {
@@ -1721,7 +1731,7 @@ namespace RimWorldAccess
                 var assignItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Action,
-                    Label = $"Assign {pawn.LabelShort.StripTags()}",
+                    Label = "RimWorldAccess.Pawns.Social.Role.Assign".Translate(pawn.LabelShort.StripTags()),
                     IndentLevel = childIndent,
                     IsExpandable = false
                 };
@@ -1732,7 +1742,8 @@ namespace RimWorldAccess
                     roleItem.Children.Clear();
                     roleItem.IsExpanded = false;
                     // Update the role label
-                    roleItem.Label = $"{role.LabelCap}: {pawn.LabelShort.StripTags()}";
+                    roleItem.Label = "RimWorldAccess.Pawns.Social.Role.LabelWithHolder"
+                        .Translate(role.LabelCap, pawn.LabelShort.StripTags());
                 };
                 AddChild(roleItem, assignItem);
             }
@@ -1743,7 +1754,7 @@ namespace RimWorldAccess
                 var unassignItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Action,
-                    Label = $"Unassign {pawn.LabelShort.StripTags()}",
+                    Label = "RimWorldAccess.Pawns.Social.Role.Unassign".Translate(pawn.LabelShort.StripTags()),
                     IndentLevel = childIndent,
                     IsExpandable = false
                 };
@@ -1754,7 +1765,8 @@ namespace RimWorldAccess
                     roleItem.Children.Clear();
                     roleItem.IsExpanded = false;
                     // Update the role label
-                    roleItem.Label = $"{role.LabelCap}: {"NoRoleAssigned".Translate()}";
+                    roleItem.Label = "RimWorldAccess.Pawns.Social.Role.LabelWithHolder"
+                        .Translate(role.LabelCap, "NoRoleAssigned".Translate());
                 };
                 AddChild(roleItem, unassignItem);
             }
@@ -1764,8 +1776,8 @@ namespace RimWorldAccess
             {
                 var unmetReq = role.GetFirstUnmetRequirement(pawn);
                 string reason = unmetReq != null
-                    ? $"Cannot assign: {unmetReq.GetLabelCap(role).StripTags()}"
-                    : "Cannot assign: requirements not met";
+                    ? (string)"RimWorldAccess.Pawns.Social.Role.CannotAssignReason".Translate(unmetReq.GetLabelCap(role).StripTags())
+                    : (string)"RimWorldAccess.Pawns.Social.Role.CannotAssignDefault".Translate();
                 AddChild(roleItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
@@ -1793,7 +1805,7 @@ namespace RimWorldAccess
                 var reqsItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.SubCategory,
-                    Label = "Requirements",
+                    Label = "RimWorldAccess.Pawns.Social.Role.RequirementsHeader".Translate(),
                     IndentLevel = childIndent,
                     IsExpandable = true,
                     IsExpanded = false
