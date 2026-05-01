@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using RimWorld;
 using Verse;
 using Verse.Sound;
@@ -24,10 +23,10 @@ namespace RimWorldAccess
             if (string.IsNullOrEmpty(inspectString))
                 return inspectString;
 
-            var lines = inspectString.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            var result = new StringBuilder();
+            var rawLines = inspectString.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var formatted = new List<string>();
 
-            foreach (var line in lines)
+            foreach (var line in rawLines)
             {
                 string trimmed = line.Trim();
                 if (string.IsNullOrEmpty(trimmed))
@@ -40,12 +39,10 @@ namespace RimWorldAccess
                     trimmed += ".";
                 }
 
-                if (result.Length > 0)
-                    result.AppendLine();
-                result.Append(trimmed);
+                formatted.Add(trimmed);
             }
 
-            return result.ToString();
+            return string.Join("\n", formatted);
         }
 
         /// <summary>
@@ -1085,7 +1082,7 @@ namespace RimWorldAccess
                     return GetPlantGrowthInfo(plant);
 
                 default:
-                    return "Category not found.";
+                    return "RimWorldAccess.Inspection.Category.NotFound".Translate();
             }
         }
 
@@ -1094,29 +1091,29 @@ namespace RimWorldAccess
         /// </summary>
         private static string GetPlantOverview(Plant plant)
         {
-            var sb = new StringBuilder();
-            sb.AppendLine(plant.LabelCap.StripTags());
-            sb.AppendLine();
+            var lines = new List<string>();
+            lines.Add(plant.LabelCap.StripTags());
+            lines.Add("");
 
             // Get the inspect string and format with punctuation for screen reader clarity
             string inspectString = plant.GetInspectString();
             if (!string.IsNullOrEmpty(inspectString))
             {
-                sb.AppendLine(FormatInspectStringWithPunctuation(inspectString));
+                lines.Add(FormatInspectStringWithPunctuation(inspectString));
             }
 
             // Add description for plants
             if (plant.def != null && !string.IsNullOrEmpty(plant.def.description))
             {
-                sb.AppendLine();
-                sb.AppendLine("Description:");
+                lines.Add("");
+                lines.Add("RimWorldAccess.Inspection.DescriptionHeader".Translate("Description".Translate()));
                 string description = plant.def.description.StripTags().Trim();
                 // Clean up whitespace
                 description = System.Text.RegularExpressions.Regex.Replace(description, @"\s+", " ");
-                sb.AppendLine(description);
+                lines.Add(description);
             }
 
-            return sb.ToString();
+            return string.Join("\n", lines);
         }
 
         /// <summary>
@@ -1124,20 +1121,20 @@ namespace RimWorldAccess
         /// </summary>
         private static string GetPlantGrowthInfo(Plant plant)
         {
-            var sb = new StringBuilder();
-
-            sb.AppendLine($"Growth: {plant.Growth:P0}");
-            sb.AppendLine($"Lifespan: {plant.Age} / {plant.def.plant.LifespanTicks.TicksToDays():F1} days");
+            var lines = new List<string>();
+            lines.Add("RimWorldAccess.Inspection.Plant.Growth".Translate(plant.Growth.ToStringPercent()));
+            lines.Add("RimWorldAccess.Inspection.Plant.Lifespan"
+                .Translate(plant.Age, plant.def.plant.LifespanTicks.TicksToDays().ToString("F1")));
 
             if (plant.Blighted)
-                sb.AppendLine("Status: Blighted");
+                lines.Add("RimWorldAccess.Inspection.Plant.StatusBlighted".Translate());
             else if (plant.Dying)
-                sb.AppendLine("Status: Dying");
+                lines.Add("RimWorldAccess.Inspection.Plant.StatusDying".Translate());
 
             if (plant.HarvestableNow)
-                sb.AppendLine("Ready to harvest!");
+                lines.Add("RimWorldAccess.Inspection.Plant.ReadyHarvest".Translate());
 
-            return sb.ToString();
+            return string.Join("\n", lines);
         }
 
         /// <summary>
@@ -1146,11 +1143,11 @@ namespace RimWorldAccess
         private static string GetZoneTypeName(Zone zone)
         {
             if (zone is Zone_Stockpile)
-                return "Stockpile";
+                return "RimWorldAccess.Inspection.Zone.TypeStockpile".Translate();
             if (zone is Zone_Growing)
-                return "Growing Zone";
+                return "RimWorldAccess.Inspection.Zone.TypeGrowing".Translate();
             // Could add Zone_Fishing for Odyssey DLC if needed
-            return "Zone";
+            return "RimWorldAccess.Inspection.Zone.TypeGeneric".Translate();
         }
 
         /// <summary>
@@ -1166,10 +1163,10 @@ namespace RimWorldAccess
                 case "Plant Info":
                     if (zone is Zone_Growing growing)
                         return GetGrowingZonePlantInfo(growing);
-                    return "No plant information available.";
+                    return "RimWorldAccess.Inspection.Zone.NoPlantInfo".Translate();
 
                 default:
-                    return "Category not found.";
+                    return "RimWorldAccess.Inspection.Category.NotFound".Translate();
             }
         }
 
@@ -1178,20 +1175,20 @@ namespace RimWorldAccess
         /// </summary>
         private static string GetZoneOverview(Zone zone)
         {
-            var sb = new StringBuilder();
+            var lines = new List<string>();
 
             // Zone name and type
-            sb.AppendLine(zone.label);
+            lines.Add(zone.label);
 
             // Get the inspect string from RimWorld (already localized)
             // Format with punctuation for screen reader clarity
             string inspectString = zone.GetInspectString();
             if (!string.IsNullOrWhiteSpace(inspectString))
             {
-                sb.AppendLine(FormatInspectStringWithPunctuation(inspectString));
+                lines.Add(FormatInspectStringWithPunctuation(inspectString));
             }
 
-            return sb.ToString();
+            return string.Join("\n", lines);
         }
 
         /// <summary>
@@ -1199,37 +1196,40 @@ namespace RimWorldAccess
         /// </summary>
         private static string GetGrowingZonePlantInfo(Zone_Growing zone)
         {
-            var sb = new StringBuilder();
+            var lines = new List<string>();
 
             // Current plant type
             var plantDef = zone.GetPlantDefToGrow();
             if (plantDef != null)
             {
-                sb.AppendLine($"Plant: {plantDef.LabelCap}");
+                lines.Add("RimWorldAccess.Inspection.Zone.PlantLabel".Translate(plantDef.LabelCap));
 
                 // Growth time
                 if (plantDef.plant != null)
                 {
                     float growDays = plantDef.plant.growDays;
-                    sb.AppendLine($"Growth time: {growDays:F1} days");
+                    lines.Add("RimWorldAccess.Inspection.Zone.GrowthTime".Translate(growDays.ToString("F1")));
 
                     // Harvest yield if applicable
                     if (plantDef.plant.harvestedThingDef != null)
                     {
-                        sb.AppendLine($"Harvest: {plantDef.plant.harvestedThingDef.LabelCap}");
+                        lines.Add("RimWorldAccess.Inspection.Zone.HarvestLabel"
+                            .Translate(plantDef.plant.harvestedThingDef.LabelCap));
                     }
                 }
             }
             else
             {
-                sb.AppendLine("No plant selected");
+                lines.Add("RimWorldAccess.Inspection.Zone.NoPlantSelected".Translate());
             }
 
             // Sow and cut toggles
-            sb.AppendLine($"Allow sow: {(zone.allowSow ? "Yes" : "No")}");
-            sb.AppendLine($"Allow cut: {(zone.allowCut ? "Yes" : "No")}");
+            lines.Add("RimWorldAccess.Inspection.Zone.AllowSow"
+                .Translate(zone.allowSow ? "Yes".Translate() : "No".Translate()));
+            lines.Add("RimWorldAccess.Inspection.Zone.AllowCut"
+                .Translate(zone.allowCut ? "Yes".Translate() : "No".Translate()));
 
-            return sb.ToString();
+            return string.Join("\n", lines);
         }
 
         /// <summary>
@@ -1243,7 +1243,7 @@ namespace RimWorldAccess
                     return GetThingOverview(thing);
 
                 default:
-                    return "Category not found.";
+                    return "RimWorldAccess.Inspection.Category.NotFound".Translate();
             }
         }
 
@@ -1258,33 +1258,33 @@ namespace RimWorldAccess
                 return GetGeneSetHolderOverview(geneHolder);
             }
 
-            var sb = new StringBuilder();
-            sb.AppendLine(thing.LabelCap.StripTags());
-            sb.AppendLine();
+            var lines = new List<string>();
+            lines.Add(thing.LabelCap.StripTags());
+            lines.Add("");
 
             // Stack count
             if (thing.stackCount > 1)
-                sb.AppendLine($"Stack: {thing.stackCount}");
+                lines.Add("RimWorldAccess.Inspection.Thing.Stack".Translate(thing.stackCount));
 
             // Get the inspect string and format with punctuation for screen reader clarity
             string inspectString = thing.GetInspectString();
             if (!string.IsNullOrEmpty(inspectString))
             {
-                sb.AppendLine(FormatInspectStringWithPunctuation(inspectString));
+                lines.Add(FormatInspectStringWithPunctuation(inspectString));
             }
 
             // Add description for items
             if (thing.def != null && !string.IsNullOrEmpty(thing.def.description))
             {
-                sb.AppendLine();
-                sb.AppendLine("Description:");
+                lines.Add("");
+                lines.Add("RimWorldAccess.Inspection.DescriptionHeader".Translate("Description".Translate()));
                 string description = thing.def.description.StripTags().Trim();
                 // Clean up whitespace
                 description = System.Text.RegularExpressions.Regex.Replace(description, @"\s+", " ");
-                sb.AppendLine(description);
+                lines.Add(description);
             }
 
-            return sb.ToString();
+            return string.Join("\n", lines);
         }
 
         /// <summary>

@@ -170,4 +170,38 @@
 
   <!-- Linked facilities fallback (when FacilityLinkHelper returns null). -->
   <RimWorldAccess.Inspection.Building.NoFacilityInfo>No facility linking information.</RimWorldAccess.Inspection.Building.NoFacilityInfo>
+
+  <!-- =================================================================
+       Plant readouts (GetPlantOverview / GetPlantGrowthInfo).
+       Growth: {0} = percent. Lifespan: {0} = current age in days
+       (already formatted), {1} = lifespan in days. Status keys are
+       whole-phrase per state.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Plant.Growth>Growth: {0}</RimWorldAccess.Inspection.Plant.Growth>
+  <RimWorldAccess.Inspection.Plant.Lifespan>Lifespan: {0} / {1} days</RimWorldAccess.Inspection.Plant.Lifespan>
+  <RimWorldAccess.Inspection.Plant.StatusBlighted>Status: Blighted</RimWorldAccess.Inspection.Plant.StatusBlighted>
+  <RimWorldAccess.Inspection.Plant.StatusDying>Status: Dying</RimWorldAccess.Inspection.Plant.StatusDying>
+  <RimWorldAccess.Inspection.Plant.ReadyHarvest>Ready to harvest!</RimWorldAccess.Inspection.Plant.ReadyHarvest>
+
+  <!-- =================================================================
+       Zone readouts (GetZoneTypeName / GetZoneCategoryInfo /
+       GetGrowingZonePlantInfo). Type names are whole-phrase nouns
+       used to label generic zones in GetObjectSummary; the real zone
+       name comes from RimWorld. Allow-sow / allow-cut split into one
+       key per Yes/No state (vanilla "Yes"/"No" supplied as {0}).
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Zone.TypeStockpile>Stockpile</RimWorldAccess.Inspection.Zone.TypeStockpile>
+  <RimWorldAccess.Inspection.Zone.TypeGrowing>Growing Zone</RimWorldAccess.Inspection.Zone.TypeGrowing>
+  <RimWorldAccess.Inspection.Zone.TypeGeneric>Zone</RimWorldAccess.Inspection.Zone.TypeGeneric>
+  <RimWorldAccess.Inspection.Zone.NoPlantInfo>No plant information available.</RimWorldAccess.Inspection.Zone.NoPlantInfo>
+  <RimWorldAccess.Inspection.Zone.PlantLabel>Plant: {0}</RimWorldAccess.Inspection.Zone.PlantLabel>
+  <RimWorldAccess.Inspection.Zone.GrowthTime>Growth time: {0} days</RimWorldAccess.Inspection.Zone.GrowthTime>
+  <RimWorldAccess.Inspection.Zone.HarvestLabel>Harvest: {0}</RimWorldAccess.Inspection.Zone.HarvestLabel>
+  <RimWorldAccess.Inspection.Zone.NoPlantSelected>No plant selected</RimWorldAccess.Inspection.Zone.NoPlantSelected>
+  <RimWorldAccess.Inspection.Zone.AllowSow>Allow sow: {0}</RimWorldAccess.Inspection.Zone.AllowSow>
+  <RimWorldAccess.Inspection.Zone.AllowCut>Allow cut: {0}</RimWorldAccess.Inspection.Zone.AllowCut>
+
+  <!-- =================================================================
+       Generic Thing overview (GetThingOverview). Stack: {0} = count. -->
+  <RimWorldAccess.Inspection.Thing.Stack>Stack: {0}</RimWorldAccess.Inspection.Thing.Stack>
 </LanguageData>
