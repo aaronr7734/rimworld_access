@@ -834,46 +834,34 @@ namespace RimWorldAccess
             if (tile == null)
                 return "RimWorldAccess.World.Tile.Unknown".Translate();
 
-            StringBuilder info = new StringBuilder();
+            var builder = new AnnouncementBuilder().DefaultSep(Separator.Period);
 
-            // Growing period - use game's calculation
             string growingPeriod = Zone_Growing.GrowingQuadrumsDescription(planetTile);
-            info.Append("RimWorldAccess.World.Tile.Growing.Period".Translate(growingPeriod));
+            builder.Add("RimWorldAccess.World.Tile.Growing.Period".Translate(growingPeriod));
+            builder.Add("RimWorldAccess.World.Tile.Growing.Rainfall".Translate(tile.rainfall.ToString("F0")));
 
-            // Rainfall
-            info.Append("RimWorldAccess.World.Tile.Growing.Rainfall".Translate(tile.rainfall.ToString("F0")));
-
-            // Forageability
             if (tile.PrimaryBiome?.foragedFood != null && tile.PrimaryBiome.forageability > 0f)
-            {
-                info.Append("RimWorldAccess.World.Tile.Growing.Forageability".Translate(
+                builder.Add("RimWorldAccess.World.Tile.Growing.Forageability".Translate(
                     tile.PrimaryBiome.forageability.ToStringPercent(), tile.PrimaryBiome.foragedFood.label));
-            }
             else
-            {
-                info.Append("RimWorldAccess.World.Tile.Growing.NoForageability".Translate());
-            }
+                builder.Add("RimWorldAccess.World.Tile.Growing.NoForageability".Translate());
 
-            // Grazing (animals can graze now)
             bool canGraze = VirtualPlantsUtility.EnvironmentAllowsEatingVirtualPlantsNowAt(planetTile);
-            info.Append(canGraze
+            builder.Add(canGraze
                 ? "RimWorldAccess.World.Tile.Growing.GrazeYes".Translate()
                 : "RimWorldAccess.World.Tile.Growing.GrazeNo".Translate());
 
-            // Stone types (if can build base here)
             if (tile.PrimaryBiome?.canBuildBase == true)
             {
                 var stoneTypes = Find.World.NaturalRockTypesIn(planetTile)
                     .Select(rt => rt.label)
                     .ToList();
                 if (stoneTypes.Count > 0)
-                {
-                    info.Append("RimWorldAccess.World.Tile.Growing.StoneTypes".Translate(
+                    builder.Add("RimWorldAccess.World.Tile.Growing.StoneTypes".Translate(
                         stoneTypes.ToCommaList(useAnd: true).CapitalizeFirst()));
-                }
             }
 
-            return info.ToString();
+            return builder.Build();
         }
 
         /// <summary>
@@ -893,76 +881,53 @@ namespace RimWorldAccess
             if (tile == null)
                 return "RimWorldAccess.World.Tile.Unknown".Translate();
 
-            StringBuilder info = new StringBuilder();
+            var builder = new AnnouncementBuilder().DefaultSep(Separator.Period);
 
             // Route/path info at the BEGINNING (for quick path tracing with Key 2)
-            // Priority: Route planner if active, otherwise caravan paths
             string routeAnnouncement = RoutePlannerState.GetRouteAnnouncement(planetTile);
             if (!string.IsNullOrEmpty(routeAnnouncement))
             {
-                info.Append(routeAnnouncement);
+                builder.Add(routeAnnouncement);
 
-                // Add context-aware timing based on current path segment
-                // Shows cumulative time from start to reach this tile (matches game tooltip)
                 var timing = RoutePlannerState.GetCurrentSegmentTiming(planetTile);
                 if (timing.HasValue)
                 {
                     string timeFromStart = timing.Value.ticksFromStart.ToStringTicksToDays("0.#");
-                    info.Append("RimWorldAccess.World.Tile.Movement.RouteArrival".Translate(timeFromStart));
+                    builder.Add("RimWorldAccess.World.Tile.Movement.RouteArrival".Translate(timeFromStart));
                 }
-
-                info.Append(" ");
             }
             else
             {
-                // Show caravan path info when route planner is not active
-                // For the "2" key, include ALL moving caravans on this tile (not just selected)
-                // since user is specifically asking for movement info
                 string caravanPathInfo = GetCaravanPathAnnouncement(planetTile, includeCaravansOnTile: true);
                 if (!string.IsNullOrEmpty(caravanPathInfo))
-                {
-                    info.Append(caravanPathInfo);
-                    info.Append(" ");
-                }
+                    builder.Add(caravanPathInfo);
             }
 
-            // Movement difficulty
             if (Find.World.Impassable(planetTile))
             {
-                info.Append("RimWorldAccess.World.Tile.Movement.Impassable".Translate());
+                builder.Add("RimWorldAccess.World.Tile.Movement.Impassable".Translate());
             }
             else
             {
                 float difficulty = WorldPathGrid.CalculatedMovementDifficultyAt(planetTile, false, null, null);
                 float roadMultiplier = Find.WorldGrid.GetRoadMovementDifficultyMultiplier(planetTile, PlanetTile.Invalid, null);
                 float totalDifficulty = difficulty * roadMultiplier;
-                info.Append("RimWorldAccess.World.Tile.Movement.Difficulty".Translate(totalDifficulty.ToString("F1")));
+                builder.Add("RimWorldAccess.World.Tile.Movement.Difficulty".Translate(totalDifficulty.ToString("F1")));
 
-                // Winter penalty
                 if (WorldPathGrid.WillWinterEverAffectMovementDifficulty(planetTile))
                 {
                     float currentWinterOffset = WorldPathGrid.GetCurrentWinterMovementDifficultyOffset(planetTile);
-                    if (currentWinterOffset > 0)
-                    {
-                        info.Append("RimWorldAccess.World.Tile.Movement.WinterPenaltyCurrent".Translate(currentWinterOffset.ToString("F1")));
-                    }
-                    else
-                    {
-                        info.Append("RimWorldAccess.World.Tile.Movement.WinterPenaltyDefault".Translate());
-                    }
+                    builder.Add(currentWinterOffset > 0
+                        ? "RimWorldAccess.World.Tile.Movement.WinterPenaltyCurrent".Translate(currentWinterOffset.ToString("F1"))
+                        : "RimWorldAccess.World.Tile.Movement.WinterPenaltyDefault".Translate());
                 }
             }
 
-            // Terrain/Hilliness
             if (tile.HillinessLabel != Hilliness.Undefined)
-            {
-                info.Append("RimWorldAccess.World.Tile.Movement.Terrain".Translate(tile.HillinessLabel.GetLabelCap()));
-            }
+                builder.Add("RimWorldAccess.World.Tile.Movement.Terrain".Translate(tile.HillinessLabel.GetLabelCap()));
 
-            // Elevation
-            info.Append("RimWorldAccess.World.Tile.Movement.Elevation".Translate(tile.elevation.ToString("F0")));
+            builder.Add("RimWorldAccess.World.Tile.Movement.Elevation".Translate(tile.elevation.ToString("F0")));
 
-            // Roads and Rivers (only for surface tiles)
             if (tile is SurfaceTile surfaceTile)
             {
                 if (surfaceTile.Roads != null && surfaceTile.Roads.Count > 0)
@@ -971,37 +936,32 @@ namespace RimWorldAccess
                         .Select(r => r.road.label)
                         .Distinct()
                         .ToCommaList(useAnd: true);
-                    info.Append("RimWorldAccess.World.Tile.Movement.Road".Translate(roads.CapitalizeFirst()));
+                    string roadEntry = "RimWorldAccess.World.Tile.Movement.Road".Translate(roads.CapitalizeFirst());
 
-                    // Add road direction description
                     string roadDirection = GetRoadDirectionDescription(planetTile, surfaceTile.Roads);
                     if (!string.IsNullOrEmpty(roadDirection))
-                    {
-                        info.Append($" {roadDirection}");
-                    }
+                        roadEntry += " " + roadDirection;
+
+                    builder.Add(roadEntry);
                 }
 
                 if (surfaceTile.Rivers != null && surfaceTile.Rivers.Count > 0)
                 {
                     var largestRiver = surfaceTile.Rivers.MaxBy(r => r.river.degradeThreshold);
-                    info.Append("RimWorldAccess.World.Tile.Movement.River".Translate(largestRiver.river.LabelCap));
+                    string riverEntry = "RimWorldAccess.World.Tile.Movement.River".Translate(largestRiver.river.LabelCap);
 
-                    // Add river direction description
                     string riverDirection = GetRiverDirectionDescription(planetTile, surfaceTile.Rivers);
                     if (!string.IsNullOrEmpty(riverDirection))
-                    {
-                        info.Append($" {riverDirection}");
-                    }
+                        riverEntry += " " + riverDirection;
+
+                    builder.Add(riverEntry);
                 }
             }
 
-            // Coastal
             if (tile.IsCoastal)
-            {
-                info.Append("RimWorldAccess.World.Tile.Movement.Coastal".Translate());
-            }
+                builder.Add("RimWorldAccess.World.Tile.Movement.Coastal".Translate());
 
-            return info.ToString();
+            return builder.Build();
         }
 
         /// <summary>
@@ -1020,41 +980,37 @@ namespace RimWorldAccess
             if (tile == null)
                 return "RimWorldAccess.World.Tile.Unknown".Translate();
 
-            StringBuilder info = new StringBuilder();
+            var builder = new AnnouncementBuilder().DefaultSep(Separator.Period);
 
-            // Disease frequency
             if (tile.PrimaryBiome?.diseaseMtbDays > 0)
             {
                 float diseasesPerYear = 60f / tile.PrimaryBiome.diseaseMtbDays;
-                info.Append("RimWorldAccess.World.Tile.Health.DiseaseFrequency".Translate(diseasesPerYear.ToString("F1")));
+                builder.Add("RimWorldAccess.World.Tile.Health.DiseaseFrequency".Translate(diseasesPerYear.ToString("F1")));
             }
             else
             {
-                info.Append("RimWorldAccess.World.Tile.Health.DiseaseNone".Translate());
+                builder.Add("RimWorldAccess.World.Tile.Health.DiseaseNone".Translate());
             }
 
-            // Pollution (Biotech DLC)
             if (ModsConfig.BiotechActive)
             {
-                info.Append("RimWorldAccess.World.Tile.Health.TilePollution".Translate(tile.pollution.ToStringPercent()));
+                builder.Add("RimWorldAccess.World.Tile.Health.TilePollution".Translate(tile.pollution.ToStringPercent()));
 
-                // Nearby pollution score
                 float nearbyPollution = WorldPollutionUtility.CalculateNearbyPollutionScore(planetTile);
-                info.Append("RimWorldAccess.World.Tile.Health.NearbyPollution".Translate(nearbyPollution.ToString("F2")));
+                builder.Add("RimWorldAccess.World.Tile.Health.NearbyPollution".Translate(nearbyPollution.ToString("F2")));
 
-                // Noxious haze risk
                 if (nearbyPollution >= GameConditionDefOf.NoxiousHaze.minNearbyPollution)
                 {
                     float hazeInterval = GameConditionDefOf.NoxiousHaze.mtbOverNearbyPollutionCurve.Evaluate(nearbyPollution);
-                    info.Append("RimWorldAccess.World.Tile.Health.NoxiousHazeInterval".Translate(hazeInterval.ToString("F0")));
+                    builder.Add("RimWorldAccess.World.Tile.Health.NoxiousHazeInterval".Translate(hazeInterval.ToString("F0")));
                 }
                 else
                 {
-                    info.Append("RimWorldAccess.World.Tile.Health.NoxiousHazeNever".Translate());
+                    builder.Add("RimWorldAccess.World.Tile.Health.NoxiousHazeNever".Translate());
                 }
             }
 
-            return info.ToString();
+            return builder.Build();
         }
 
         /// <summary>
@@ -1066,9 +1022,8 @@ namespace RimWorldAccess
             if (!planetTile.Valid || Find.WorldGrid == null)
                 return "RimWorldAccess.World.Tile.Invalid".Translate();
 
-            StringBuilder info = new StringBuilder();
+            var builder = new AnnouncementBuilder().DefaultSep(Separator.Period);
 
-            // Coordinates
             Vector2 longlat = Find.WorldGrid.LongLatOf(planetTile);
             string latDir = longlat.y >= 0
                 ? (string)"RimWorldAccess.World.Tile.Location.LatNorth".Translate()
@@ -1076,21 +1031,19 @@ namespace RimWorldAccess
             string lonDir = longlat.x >= 0
                 ? (string)"RimWorldAccess.World.Tile.Location.LonEast".Translate()
                 : (string)"RimWorldAccess.World.Tile.Location.LonWest".Translate();
-            info.Append("RimWorldAccess.World.Tile.Location.Coordinates".Translate(
+            builder.Add("RimWorldAccess.World.Tile.Location.Coordinates".Translate(
                 Mathf.Abs(longlat.y).ToString("F1"), latDir,
                 Mathf.Abs(longlat.x).ToString("F1"), lonDir));
 
-            // Time zone
             int timeZone = GenDate.TimeZoneAt(longlat.x);
             string tzStr = timeZone >= 0
                 ? (string)"RimWorldAccess.World.Tile.Location.TimeZonePositive".Translate(timeZone)
                 : timeZone.ToString();
-            info.Append("RimWorldAccess.World.Tile.Location.TimeZone".Translate(tzStr));
+            builder.Add("RimWorldAccess.World.Tile.Location.TimeZone".Translate(tzStr));
 
-            // Tile ID (useful for debugging/reporting)
-            info.Append("RimWorldAccess.World.Tile.Location.TileId".Translate(planetTile.ToString()));
+            builder.Add("RimWorldAccess.World.Tile.Location.TileId".Translate(planetTile.ToString()));
 
-            return info.ToString();
+            return builder.Build();
         }
 
         /// <summary>
@@ -1106,62 +1059,38 @@ namespace RimWorldAccess
             if (tile == null)
                 return "RimWorldAccess.World.Tile.Unknown".Translate();
 
-            StringBuilder info = new StringBuilder();
-            bool hasContent = false;
+            var builder = new AnnouncementBuilder().DefaultSep(Separator.Period);
 
-            // Mutators (Odyssey DLC) - show labels and descriptions
             if (tile.Mutators.Any())
             {
-                var mutators = tile.Mutators
+                var mutatorParts = tile.Mutators
                     .OrderByDescending(m => m.displayPriority)
+                    .Select(m =>
+                    {
+                        string label = m.Label(planetTile);
+                        string desc = m.Description(planetTile);
+                        return !string.IsNullOrEmpty(desc) && desc != label
+                            ? (string)"RimWorldAccess.World.Tile.Features.MutatorWithDescription".Translate(label, desc)
+                            : label;
+                    })
                     .ToList();
-
-                var mutatorParts = new List<string>();
-                foreach (var m in mutators)
-                {
-                    string label = m.Label(planetTile);
-                    string desc = m.Description(planetTile);
-                    if (!string.IsNullOrEmpty(desc) && desc != label)
-                        mutatorParts.Add("RimWorldAccess.World.Tile.Features.MutatorWithDescription".Translate(label, desc));
-                    else
-                        mutatorParts.Add(label);
-                }
-                info.Append("RimWorldAccess.World.Tile.Features.Mutators".Translate(string.Join(". ", mutatorParts)));
-                hasContent = true;
+                builder.Add("RimWorldAccess.World.Tile.Features.Mutators".Translate(string.Join(". ", mutatorParts)));
             }
 
-            // Landmarks (Odyssey DLC)
             if (ModsConfig.OdysseyActive && tile.Landmark != null)
-            {
-                if (hasContent) info.Append(" ");
-                info.Append("RimWorldAccess.World.Tile.Features.Landmark".Translate(
+                builder.Add("RimWorldAccess.World.Tile.Features.Landmark".Translate(
                     tile.Landmark.name, tile.Landmark.def.LabelCap));
-                hasContent = true;
-            }
 
-            // World feature (e.g., part of a named region)
             if (tile.feature != null)
-            {
-                if (hasContent) info.Append(" ");
-                info.Append("RimWorldAccess.World.Tile.Features.Region".Translate(tile.feature.name));
-                hasContent = true;
-            }
+                builder.Add("RimWorldAccess.World.Tile.Features.Region".Translate(tile.feature.name));
 
-            // Check for caves using game's method
-            bool hasCaves = Find.World.HasCaves(planetTile);
-            if (hasCaves)
-            {
-                if (hasContent) info.Append(" ");
-                info.Append("RimWorldAccess.World.Tile.Features.MayHaveCaves".Translate());
-                hasContent = true;
-            }
+            if (Find.World.HasCaves(planetTile))
+                builder.Add("RimWorldAccess.World.Tile.Features.MayHaveCaves".Translate());
 
-            if (!hasContent)
-            {
-                info.Append("RimWorldAccess.World.Tile.Features.None".Translate());
-            }
-
-            return info.ToString();
+            string result = builder.Build();
+            if (string.IsNullOrEmpty(result))
+                return "RimWorldAccess.World.Tile.Features.None".Translate();
+            return result;
         }
 
         #endregion

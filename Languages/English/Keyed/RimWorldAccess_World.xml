@@ -499,55 +499,56 @@
   <RimWorldAccess.World.Tile.Detail.CaravanFactionInline> (Caravan, {0})</RimWorldAccess.World.Tile.Detail.CaravanFactionInline>
   <RimWorldAccess.World.Tile.Detail.SiteInline> (Site)</RimWorldAccess.World.Tile.Detail.SiteInline>
 
-  <!-- Number key 1: growing / food / resources. -->
-  <RimWorldAccess.World.Tile.Growing.NoSpaceInfo>No growing information for space tiles.</RimWorldAccess.World.Tile.Growing.NoSpaceInfo>
-  <RimWorldAccess.World.Tile.Growing.Period>Growing period: {0}.</RimWorldAccess.World.Tile.Growing.Period>
-  <RimWorldAccess.World.Tile.Growing.Rainfall> Rainfall: {0} mm.</RimWorldAccess.World.Tile.Growing.Rainfall>
-  <RimWorldAccess.World.Tile.Growing.Forageability> Forageability: {0} ({1}).</RimWorldAccess.World.Tile.Growing.Forageability>
-  <RimWorldAccess.World.Tile.Growing.NoForageability> Forageability: 0%.</RimWorldAccess.World.Tile.Growing.NoForageability>
-  <RimWorldAccess.World.Tile.Growing.GrazeYes> Animals can graze: yes.</RimWorldAccess.World.Tile.Growing.GrazeYes>
-  <RimWorldAccess.World.Tile.Growing.GrazeNo> Animals can graze: no.</RimWorldAccess.World.Tile.Growing.GrazeNo>
-  <RimWorldAccess.World.Tile.Growing.StoneTypes> Stone types: {0}.</RimWorldAccess.World.Tile.Growing.StoneTypes>
+  <!-- Number key 1: growing / food / resources. AnnouncementBuilder
+       owns the period separator, so each fragment is a clean phrase. -->
+  <RimWorldAccess.World.Tile.Growing.NoSpaceInfo>No growing information for space tiles</RimWorldAccess.World.Tile.Growing.NoSpaceInfo>
+  <RimWorldAccess.World.Tile.Growing.Period>Growing period: {0}</RimWorldAccess.World.Tile.Growing.Period>
+  <RimWorldAccess.World.Tile.Growing.Rainfall>Rainfall: {0} mm</RimWorldAccess.World.Tile.Growing.Rainfall>
+  <RimWorldAccess.World.Tile.Growing.Forageability>Forageability: {0} ({1})</RimWorldAccess.World.Tile.Growing.Forageability>
+  <RimWorldAccess.World.Tile.Growing.NoForageability>Forageability: 0%</RimWorldAccess.World.Tile.Growing.NoForageability>
+  <RimWorldAccess.World.Tile.Growing.GrazeYes>Animals can graze: yes</RimWorldAccess.World.Tile.Growing.GrazeYes>
+  <RimWorldAccess.World.Tile.Growing.GrazeNo>Animals can graze: no</RimWorldAccess.World.Tile.Growing.GrazeNo>
+  <RimWorldAccess.World.Tile.Growing.StoneTypes>Stone types: {0}</RimWorldAccess.World.Tile.Growing.StoneTypes>
 
   <!-- Number key 2: movement / terrain. -->
-  <RimWorldAccess.World.Tile.Movement.NoSpaceInfo>No movement information for space tiles.</RimWorldAccess.World.Tile.Movement.NoSpaceInfo>
-  <RimWorldAccess.World.Tile.Movement.RouteArrival> Arrival: {0}.</RimWorldAccess.World.Tile.Movement.RouteArrival>
-  <RimWorldAccess.World.Tile.Movement.Impassable>Movement: Impassable.</RimWorldAccess.World.Tile.Movement.Impassable>
-  <RimWorldAccess.World.Tile.Movement.Difficulty>Movement difficulty: {0}.</RimWorldAccess.World.Tile.Movement.Difficulty>
-  <RimWorldAccess.World.Tile.Movement.WinterPenaltyCurrent> Current winter penalty: +{0}.</RimWorldAccess.World.Tile.Movement.WinterPenaltyCurrent>
-  <RimWorldAccess.World.Tile.Movement.WinterPenaltyDefault> Winter penalty: +2.0 in winter.</RimWorldAccess.World.Tile.Movement.WinterPenaltyDefault>
-  <RimWorldAccess.World.Tile.Movement.Terrain> Terrain: {0}.</RimWorldAccess.World.Tile.Movement.Terrain>
-  <RimWorldAccess.World.Tile.Movement.Elevation> Elevation: {0} m.</RimWorldAccess.World.Tile.Movement.Elevation>
-  <RimWorldAccess.World.Tile.Movement.Road> Road: {0}.</RimWorldAccess.World.Tile.Movement.Road>
-  <RimWorldAccess.World.Tile.Movement.River> River: {0}.</RimWorldAccess.World.Tile.Movement.River>
-  <RimWorldAccess.World.Tile.Movement.Coastal> Coastal.</RimWorldAccess.World.Tile.Movement.Coastal>
+  <RimWorldAccess.World.Tile.Movement.NoSpaceInfo>No movement information for space tiles</RimWorldAccess.World.Tile.Movement.NoSpaceInfo>
+  <RimWorldAccess.World.Tile.Movement.RouteArrival>Arrival: {0}</RimWorldAccess.World.Tile.Movement.RouteArrival>
+  <RimWorldAccess.World.Tile.Movement.Impassable>Movement: Impassable</RimWorldAccess.World.Tile.Movement.Impassable>
+  <RimWorldAccess.World.Tile.Movement.Difficulty>Movement difficulty: {0}</RimWorldAccess.World.Tile.Movement.Difficulty>
+  <RimWorldAccess.World.Tile.Movement.WinterPenaltyCurrent>Current winter penalty: +{0}</RimWorldAccess.World.Tile.Movement.WinterPenaltyCurrent>
+  <RimWorldAccess.World.Tile.Movement.WinterPenaltyDefault>Winter penalty: +2.0 in winter</RimWorldAccess.World.Tile.Movement.WinterPenaltyDefault>
+  <RimWorldAccess.World.Tile.Movement.Terrain>Terrain: {0}</RimWorldAccess.World.Tile.Movement.Terrain>
+  <RimWorldAccess.World.Tile.Movement.Elevation>Elevation: {0} m</RimWorldAccess.World.Tile.Movement.Elevation>
+  <RimWorldAccess.World.Tile.Movement.Road>Road: {0}</RimWorldAccess.World.Tile.Movement.Road>
+  <RimWorldAccess.World.Tile.Movement.River>River: {0}</RimWorldAccess.World.Tile.Movement.River>
+  <RimWorldAccess.World.Tile.Movement.Coastal>Coastal</RimWorldAccess.World.Tile.Movement.Coastal>
 
   <!-- Number key 3: health / environment. -->
-  <RimWorldAccess.World.Tile.Health.NoSpaceInfo>No health information for space tiles.</RimWorldAccess.World.Tile.Health.NoSpaceInfo>
-  <RimWorldAccess.World.Tile.Health.DiseaseFrequency>Disease frequency: {0} per year.</RimWorldAccess.World.Tile.Health.DiseaseFrequency>
-  <RimWorldAccess.World.Tile.Health.DiseaseNone>Disease frequency: None.</RimWorldAccess.World.Tile.Health.DiseaseNone>
-  <RimWorldAccess.World.Tile.Health.TilePollution> Tile pollution: {0}.</RimWorldAccess.World.Tile.Health.TilePollution>
-  <RimWorldAccess.World.Tile.Health.NearbyPollution> Nearby pollution: {0}.</RimWorldAccess.World.Tile.Health.NearbyPollution>
-  <RimWorldAccess.World.Tile.Health.NoxiousHazeInterval> Noxious haze interval: {0} days.</RimWorldAccess.World.Tile.Health.NoxiousHazeInterval>
-  <RimWorldAccess.World.Tile.Health.NoxiousHazeNever> Noxious haze: Never.</RimWorldAccess.World.Tile.Health.NoxiousHazeNever>
+  <RimWorldAccess.World.Tile.Health.NoSpaceInfo>No health information for space tiles</RimWorldAccess.World.Tile.Health.NoSpaceInfo>
+  <RimWorldAccess.World.Tile.Health.DiseaseFrequency>Disease frequency: {0} per year</RimWorldAccess.World.Tile.Health.DiseaseFrequency>
+  <RimWorldAccess.World.Tile.Health.DiseaseNone>Disease frequency: None</RimWorldAccess.World.Tile.Health.DiseaseNone>
+  <RimWorldAccess.World.Tile.Health.TilePollution>Tile pollution: {0}</RimWorldAccess.World.Tile.Health.TilePollution>
+  <RimWorldAccess.World.Tile.Health.NearbyPollution>Nearby pollution: {0}</RimWorldAccess.World.Tile.Health.NearbyPollution>
+  <RimWorldAccess.World.Tile.Health.NoxiousHazeInterval>Noxious haze interval: {0} days</RimWorldAccess.World.Tile.Health.NoxiousHazeInterval>
+  <RimWorldAccess.World.Tile.Health.NoxiousHazeNever>Noxious haze: Never</RimWorldAccess.World.Tile.Health.NoxiousHazeNever>
 
   <!-- Number key 4: location / coordinates / time zone. -->
-  <RimWorldAccess.World.Tile.Location.Coordinates>Coordinates: {0} degrees {1}, {2} degrees {3}.</RimWorldAccess.World.Tile.Location.Coordinates>
+  <RimWorldAccess.World.Tile.Location.Coordinates>Coordinates: {0} degrees {1}, {2} degrees {3}</RimWorldAccess.World.Tile.Location.Coordinates>
   <RimWorldAccess.World.Tile.Location.LatNorth>N</RimWorldAccess.World.Tile.Location.LatNorth>
   <RimWorldAccess.World.Tile.Location.LatSouth>S</RimWorldAccess.World.Tile.Location.LatSouth>
   <RimWorldAccess.World.Tile.Location.LonEast>E</RimWorldAccess.World.Tile.Location.LonEast>
   <RimWorldAccess.World.Tile.Location.LonWest>W</RimWorldAccess.World.Tile.Location.LonWest>
   <RimWorldAccess.World.Tile.Location.TimeZonePositive>+{0}</RimWorldAccess.World.Tile.Location.TimeZonePositive>
-  <RimWorldAccess.World.Tile.Location.TimeZone> Time zone: UTC{0}.</RimWorldAccess.World.Tile.Location.TimeZone>
-  <RimWorldAccess.World.Tile.Location.TileId> Tile ID: {0}.</RimWorldAccess.World.Tile.Location.TileId>
+  <RimWorldAccess.World.Tile.Location.TimeZone>Time zone: UTC{0}</RimWorldAccess.World.Tile.Location.TimeZone>
+  <RimWorldAccess.World.Tile.Location.TileId>Tile ID: {0}</RimWorldAccess.World.Tile.Location.TileId>
 
   <!-- Number key 5: features / DLC content. -->
-  <RimWorldAccess.World.Tile.Features.Mutators>Tile features: {0}.</RimWorldAccess.World.Tile.Features.Mutators>
+  <RimWorldAccess.World.Tile.Features.Mutators>Tile features: {0}</RimWorldAccess.World.Tile.Features.Mutators>
   <RimWorldAccess.World.Tile.Features.MutatorWithDescription>{0}: {1}</RimWorldAccess.World.Tile.Features.MutatorWithDescription>
-  <RimWorldAccess.World.Tile.Features.Landmark>Landmark: {0}, {1}.</RimWorldAccess.World.Tile.Features.Landmark>
-  <RimWorldAccess.World.Tile.Features.Region>Region: {0}.</RimWorldAccess.World.Tile.Features.Region>
-  <RimWorldAccess.World.Tile.Features.MayHaveCaves>May have caves.</RimWorldAccess.World.Tile.Features.MayHaveCaves>
-  <RimWorldAccess.World.Tile.Features.None>No special features.</RimWorldAccess.World.Tile.Features.None>
+  <RimWorldAccess.World.Tile.Features.Landmark>Landmark: {0}, {1}</RimWorldAccess.World.Tile.Features.Landmark>
+  <RimWorldAccess.World.Tile.Features.Region>Region: {0}</RimWorldAccess.World.Tile.Features.Region>
+  <RimWorldAccess.World.Tile.Features.MayHaveCaves>May have caves</RimWorldAccess.World.Tile.Features.MayHaveCaves>
+  <RimWorldAccess.World.Tile.Features.None>No special features</RimWorldAccess.World.Tile.Features.None>
 
   <!-- Road and river direction descriptions. The capitalized form
        (Cap) is used standalone at sentence start; the inline lowercase
