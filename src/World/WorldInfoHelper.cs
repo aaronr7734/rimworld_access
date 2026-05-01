@@ -254,121 +254,103 @@ namespace RimWorldAccess
             if (tile == null)
                 return "RimWorldAccess.World.Tile.Unknown".Translate();
 
-            StringBuilder info = new StringBuilder();
+            var builder = new AnnouncementBuilder().DefaultSep(Separator.Period);
 
-            // Coordinates
             Vector2 longlat = Find.WorldGrid.LongLatOf(planetTile);
-            info.AppendLine("RimWorldAccess.World.Tile.Detail.Coordinates".Translate(
+            builder.Add("RimWorldAccess.World.Tile.Detail.Coordinates".Translate(
                 longlat.y.ToString("F2"), longlat.x.ToString("F2")));
 
-            // Biome
             if (tile.PrimaryBiome != null)
-            {
-                info.AppendLine("RimWorldAccess.World.Tile.Detail.Biome".Translate(tile.PrimaryBiome.LabelCap));
-            }
+                builder.Add("RimWorldAccess.World.Tile.Detail.Biome".Translate(tile.PrimaryBiome.LabelCap));
 
-            // Surface-only data (orbit tiles have default/meaningless values for these)
             bool isSpaceLayer = planetTile.LayerDef?.isSpace == true;
             if (!isSpaceLayer)
             {
-                // Hilliness
                 if (tile.hilliness != Hilliness.Undefined)
-                {
-                    info.AppendLine("RimWorldAccess.World.Tile.Detail.Hilliness".Translate(tile.hilliness.GetLabelCap()));
-                }
+                    builder.Add("RimWorldAccess.World.Tile.Detail.Hilliness".Translate(tile.hilliness.GetLabelCap()));
 
-                // Elevation
-                info.AppendLine("RimWorldAccess.World.Tile.Detail.Elevation".Translate(tile.elevation.ToString("F0")));
-
-                // Temperature (respects user's temperature mode preference)
-                info.AppendLine("RimWorldAccess.World.Tile.Detail.TemperatureAverage".Translate(
+                builder.Add("RimWorldAccess.World.Tile.Detail.Elevation".Translate(tile.elevation.ToString("F0")));
+                builder.Add("RimWorldAccess.World.Tile.Detail.TemperatureAverage".Translate(
                     MenuHelper.FormatTemperature(tile.temperature, "F0")));
 
-                // Pollution (if Biotech active)
                 if (ModsConfig.BiotechActive && tile.pollution > 0)
-                {
-                    info.AppendLine("RimWorldAccess.World.Tile.Detail.Pollution".Translate(tile.pollution.ToString("F0")));
-                }
+                    builder.Add("RimWorldAccess.World.Tile.Detail.Pollution".Translate(tile.pollution.ToString("F0")));
             }
 
-            // World objects at this tile
             if (Find.WorldObjects != null)
             {
                 List<WorldObject> objectsAtTile = Find.WorldObjects.ObjectsAt(planetTile).ToList();
-
                 if (objectsAtTile.Count > 0)
                 {
-                    info.AppendLine();
-                    info.AppendLine("RimWorldAccess.World.Tile.Detail.WorldObjectsHeader".Translate());
+                    builder.Add("RimWorldAccess.World.Tile.Detail.WorldObjectsHeader".Translate());
 
                     foreach (WorldObject obj in objectsAtTile)
-                    {
-                        info.Append("RimWorldAccess.World.Tile.Detail.ObjectIndentBullet".Translate(obj.Label));
-
-                        // Add type-specific information
-                        if (obj is Settlement settlement)
-                        {
-                            if (settlement.Faction != null)
-                            {
-                                if (settlement.Faction == Faction.OfPlayer)
-                                {
-                                    info.Append(" (");
-                                    info.Append("RimWorldAccess.World.Settlement.FactionInline".Translate(Faction.OfPlayer.Name));
-                                    info.Append(")");
-                                }
-                                else
-                                {
-                                    // Only show what's visible on the world map inspect pane
-                                    string relationship = settlement.Faction.PlayerRelationKind.GetLabelCap();
-                                    int goodwill = settlement.Faction.PlayerGoodwill;
-                                    string goodwillStr = goodwill >= 0
-                                        ? (string)"RimWorldAccess.World.Settlement.GoodwillPositive".Translate(goodwill)
-                                        : goodwill.ToString();
-                                    info.AppendLine();
-                                    info.AppendLine("RimWorldAccess.World.Tile.Detail.IndentedFaction".Translate(settlement.Faction.Name));
-                                    info.AppendLine("RimWorldAccess.World.Tile.Detail.IndentedRelationshipWithGoodwill".Translate(
-                                        relationship, goodwillStr));
-
-                                    // Title required for trading (shown on inspect pane for Empire)
-                                    if (settlement.TraderKind != null)
-                                    {
-                                        RoyalTitleDef titleRequired = settlement.TraderKind.TitleRequiredToTrade;
-                                        if (titleRequired != null)
-                                        {
-                                            info.Append("RimWorldAccess.World.Tile.Detail.IndentedRequiresTitleToTrade".Translate(
-                                                titleRequired.GetLabelCapForBothGenders()));
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        else if (obj is Caravan caravan)
-                        {
-                            if (caravan.Faction != null)
-                            {
-                                info.Append("RimWorldAccess.World.Tile.Detail.CaravanFactionInline".Translate(caravan.Faction.Name));
-                            }
-                        }
-                        else if (obj is Site site)
-                        {
-                            info.Append("RimWorldAccess.World.Tile.Detail.SiteInline".Translate());
-                        }
-
-                        info.AppendLine();
-                    }
+                        AppendDetailedWorldObject(builder, obj);
                 }
             }
 
-            // Add quest information
             string questInfo = GetDetailedQuestInfoForTile(planetTile);
             if (!string.IsNullOrEmpty(questInfo))
             {
-                info.AppendLine();
-                info.AppendLine("RimWorldAccess.World.Tile.Detail.QuestTargetsHeader".Translate());
-                info.Append(questInfo);
+                builder.Add("RimWorldAccess.World.Tile.Detail.QuestTargetsHeader".Translate());
+                builder.Add(questInfo);
             }
 
-            return info.ToString().TrimEnd();
+            return builder.Build();
+        }
+
+        private static void AppendDetailedWorldObject(AnnouncementBuilder builder, WorldObject obj)
+        {
+            if (obj is Settlement settlement)
+            {
+                if (settlement.Faction == Faction.OfPlayer)
+                {
+                    builder.Add("RimWorldAccess.World.Tile.Detail.PlayerSettlement".Translate(
+                        obj.Label, Faction.OfPlayer.Name));
+                    return;
+                }
+
+                if (settlement.Faction != null)
+                {
+                    builder.Add(obj.Label);
+                    builder.Add("RimWorldAccess.World.Tile.Detail.Faction".Translate(settlement.Faction.Name));
+
+                    string relationship = settlement.Faction.PlayerRelationKind.GetLabelCap();
+                    int goodwill = settlement.Faction.PlayerGoodwill;
+                    string goodwillStr = goodwill >= 0
+                        ? (string)"RimWorldAccess.World.Settlement.GoodwillPositive".Translate(goodwill)
+                        : goodwill.ToString();
+                    builder.Add("RimWorldAccess.World.Tile.Detail.RelationshipWithGoodwill".Translate(
+                        relationship, goodwillStr));
+
+                    RoyalTitleDef titleRequired = settlement.TraderKind?.TitleRequiredToTrade;
+                    if (titleRequired != null)
+                        builder.Add("RimWorldAccess.World.Tile.Detail.RequiresTitleToTrade".Translate(
+                            titleRequired.GetLabelCapForBothGenders()));
+                    return;
+                }
+
+                builder.Add(obj.Label);
+                return;
+            }
+
+            if (obj is Caravan caravan)
+            {
+                if (caravan.Faction != null)
+                    builder.Add("RimWorldAccess.World.Tile.Detail.CaravanWithFaction".Translate(
+                        obj.Label, caravan.Faction.Name));
+                else
+                    builder.Add(obj.Label);
+                return;
+            }
+
+            if (obj is Site)
+            {
+                builder.Add("RimWorldAccess.World.Tile.Detail.Site".Translate(obj.Label));
+                return;
+            }
+
+            builder.Add(obj.Label);
         }
 
         /// <summary>
@@ -750,71 +732,58 @@ namespace RimWorldAccess
             if (!planetTile.Valid || Find.QuestManager == null)
                 return null;
 
-            StringBuilder info = new StringBuilder();
+            var builder = new AnnouncementBuilder().DefaultSep(Separator.Period);
 
             var activeQuests = Find.QuestManager.questsInDisplayOrder
-                .Where(q => q.State == QuestState.Ongoing && !q.hidden && !q.hiddenInUI)
-                .ToList();
+                .Where(q => q.State == QuestState.Ongoing && !q.hidden && !q.hiddenInUI);
 
             foreach (Quest quest in activeQuests)
             {
-                bool isQuestTarget = false;
+                if (!QuestTargetsTile(quest, planetTile))
+                    continue;
 
-                foreach (GlobalTargetInfo target in quest.QuestLookTargets)
+                string questName = quest.name.StripTags();
+                string questDesc = quest.description.ToString().StripTags();
+
+                builder.Add("RimWorldAccess.World.Quest.Label".Translate(questName));
+
+                if (quest.challengeRating > 0)
                 {
-                    if (!target.IsValid || !target.IsWorldTarget)
-                        continue;
-
-                    PlanetTile targetTile = PlanetTile.Invalid;
-
-                    if (target.HasWorldObject && target.WorldObject != null)
-                    {
-                        targetTile = target.WorldObject.Tile;
-                    }
-                    else if (target.Tile.Valid)
-                    {
-                        targetTile = target.Tile;
-                    }
-
-                    if (targetTile.Valid && targetTile == planetTile)
-                    {
-                        isQuestTarget = true;
-                        break;
-                    }
+                    string difficulty = quest.challengeRating == 1
+                        ? (string)"RimWorldAccess.World.Quest.DifficultyOneStar".Translate()
+                        : (string)"RimWorldAccess.World.Quest.DifficultyManyStars".Translate(quest.challengeRating);
+                    builder.Add("RimWorldAccess.World.Quest.DetailDifficultyField".Translate(difficulty));
                 }
 
-                if (isQuestTarget)
+                if (!string.IsNullOrEmpty(questDesc))
                 {
-                    string questName = quest.name.StripTags();
-                    string questDesc = quest.description.ToString().StripTags();
-
-                    info.AppendLine("RimWorldAccess.World.Quest.Label".Translate(questName));
-
-                    // Add challenge rating if available (use text instead of unicode symbols)
-                    if (quest.challengeRating > 0)
-                    {
-                        string difficulty = quest.challengeRating == 1
-                            ? (string)"RimWorldAccess.World.Quest.DifficultyOneStar".Translate()
-                            : (string)"RimWorldAccess.World.Quest.DifficultyManyStars".Translate(quest.challengeRating);
-                        info.AppendLine("RimWorldAccess.World.Quest.DetailDifficultyField".Translate(difficulty));
-                    }
-
-                    // Add description (truncate if too long)
-                    if (!string.IsNullOrEmpty(questDesc))
-                    {
-                        if (questDesc.Length > 200)
-                            questDesc = questDesc.Substring(0, 197) + "...";
-                        info.AppendLine("RimWorldAccess.World.Quest.DetailDescriptionField".Translate(questDesc));
-                    }
-
-                    info.AppendLine();
+                    if (questDesc.Length > 200)
+                        questDesc = questDesc.Substring(0, 197) + "...";
+                    builder.Add("RimWorldAccess.World.Quest.DetailDescriptionField".Translate(questDesc));
                 }
             }
 
-            if (info.Length == 0)
-                return null;
+            string result = builder.Build();
+            return string.IsNullOrEmpty(result) ? null : result;
+        }
 
-            return info.ToString().TrimEnd();
+        private static bool QuestTargetsTile(Quest quest, PlanetTile planetTile)
+        {
+            foreach (GlobalTargetInfo target in quest.QuestLookTargets)
+            {
+                if (!target.IsValid || !target.IsWorldTarget)
+                    continue;
+
+                PlanetTile targetTile = PlanetTile.Invalid;
+                if (target.HasWorldObject && target.WorldObject != null)
+                    targetTile = target.WorldObject.Tile;
+                else if (target.Tile.Valid)
+                    targetTile = target.Tile;
+
+                if (targetTile.Valid && targetTile == planetTile)
+                    return true;
+            }
+            return false;
         }
         #region Number Key Tile Info (Keys 1-5)
 

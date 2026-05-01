@@ -480,8 +480,8 @@
   <RimWorldAccess.World.Quest.LabelWithDifficulty>Quest: {0} ({1})</RimWorldAccess.World.Quest.LabelWithDifficulty>
   <RimWorldAccess.World.Quest.LabelWithDescription>Quest: {0} - {1}</RimWorldAccess.World.Quest.LabelWithDescription>
   <RimWorldAccess.World.Quest.LabelWithDifficultyAndDescription>Quest: {0} ({1}) - {2}</RimWorldAccess.World.Quest.LabelWithDifficultyAndDescription>
-  <RimWorldAccess.World.Quest.DetailDifficultyField>  Difficulty: {0}</RimWorldAccess.World.Quest.DetailDifficultyField>
-  <RimWorldAccess.World.Quest.DetailDescriptionField>  Description: {0}</RimWorldAccess.World.Quest.DetailDescriptionField>
+  <RimWorldAccess.World.Quest.DetailDifficultyField>Difficulty: {0}</RimWorldAccess.World.Quest.DetailDifficultyField>
+  <RimWorldAccess.World.Quest.DetailDescriptionField>Description: {0}</RimWorldAccess.World.Quest.DetailDescriptionField>
 
   <!-- Detailed tile info (GetDetailedTileInfo) - I-key view. -->
   <RimWorldAccess.World.Tile.Detail.Coordinates>Coordinates: {0}° N, {1}° E</RimWorldAccess.World.Tile.Detail.Coordinates>
@@ -490,14 +490,16 @@
   <RimWorldAccess.World.Tile.Detail.Elevation>Elevation: {0}m</RimWorldAccess.World.Tile.Detail.Elevation>
   <RimWorldAccess.World.Tile.Detail.TemperatureAverage>Temperature: Average {0}</RimWorldAccess.World.Tile.Detail.TemperatureAverage>
   <RimWorldAccess.World.Tile.Detail.Pollution>Pollution: {0}%</RimWorldAccess.World.Tile.Detail.Pollution>
-  <RimWorldAccess.World.Tile.Detail.WorldObjectsHeader>World Objects:</RimWorldAccess.World.Tile.Detail.WorldObjectsHeader>
-  <RimWorldAccess.World.Tile.Detail.QuestTargetsHeader>Quest Targets:</RimWorldAccess.World.Tile.Detail.QuestTargetsHeader>
-  <RimWorldAccess.World.Tile.Detail.ObjectIndentBullet>  - {0}</RimWorldAccess.World.Tile.Detail.ObjectIndentBullet>
-  <RimWorldAccess.World.Tile.Detail.IndentedFaction>    Faction: {0}</RimWorldAccess.World.Tile.Detail.IndentedFaction>
-  <RimWorldAccess.World.Tile.Detail.IndentedRelationshipWithGoodwill>    Relationship: {0} ({1})</RimWorldAccess.World.Tile.Detail.IndentedRelationshipWithGoodwill>
-  <RimWorldAccess.World.Tile.Detail.IndentedRequiresTitleToTrade>    Requires {0} title to trade</RimWorldAccess.World.Tile.Detail.IndentedRequiresTitleToTrade>
-  <RimWorldAccess.World.Tile.Detail.CaravanFactionInline> (Caravan, {0})</RimWorldAccess.World.Tile.Detail.CaravanFactionInline>
-  <RimWorldAccess.World.Tile.Detail.SiteInline> (Site)</RimWorldAccess.World.Tile.Detail.SiteInline>
+  <RimWorldAccess.World.Tile.Detail.WorldObjectsHeader>World objects</RimWorldAccess.World.Tile.Detail.WorldObjectsHeader>
+  <RimWorldAccess.World.Tile.Detail.QuestTargetsHeader>Quest targets</RimWorldAccess.World.Tile.Detail.QuestTargetsHeader>
+  <!-- Whole-phrase keys for the four world-object shapes. Spoken as
+       comma- and period-separated fragments by AnnouncementBuilder. -->
+  <RimWorldAccess.World.Tile.Detail.PlayerSettlement>{0} ({1})</RimWorldAccess.World.Tile.Detail.PlayerSettlement>
+  <RimWorldAccess.World.Tile.Detail.Faction>Faction: {0}</RimWorldAccess.World.Tile.Detail.Faction>
+  <RimWorldAccess.World.Tile.Detail.RelationshipWithGoodwill>Relationship: {0} ({1})</RimWorldAccess.World.Tile.Detail.RelationshipWithGoodwill>
+  <RimWorldAccess.World.Tile.Detail.RequiresTitleToTrade>Requires {0} title to trade</RimWorldAccess.World.Tile.Detail.RequiresTitleToTrade>
+  <RimWorldAccess.World.Tile.Detail.CaravanWithFaction>Caravan: {0} ({1})</RimWorldAccess.World.Tile.Detail.CaravanWithFaction>
+  <RimWorldAccess.World.Tile.Detail.Site>Site: {0}</RimWorldAccess.World.Tile.Detail.Site>
 
   <!-- Number key 1: growing / food / resources. AnnouncementBuilder
        owns the period separator, so each fragment is a clean phrase. -->
