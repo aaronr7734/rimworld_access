@@ -965,6 +965,23 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 0.3737: Handle item-targeting R/T so they don't fall through
+            // to the game's "draft selected pawn" (R) and time-announcement (T) shortcuts
+            // during a callback-based targeting session (force-wear, force-equip, etc.).
+            // No range or AOE on these, so R says "no range constraint" and T describes
+            // the cell. Same convention as AbilityTargetingState / JumpTargetingState.
+            if (ItemTargetingState.IsActive && !WindowlessDialogState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = KeyboardHelper.IsAltHeld;
+                if (ItemTargetingState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 0.374: Handle Command_Target targeting with range context (R key) =====
             // This provides R key range check during animal attack targeting and similar Command_Target operations
             if (TargetingPatch.HasTargetingContext && Find.Targeter.IsTargeting && !WindowlessDialogState.IsActive)

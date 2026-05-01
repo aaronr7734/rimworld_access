@@ -323,6 +323,12 @@ namespace RimWorldAccess
                 }
             }
 
+            // If the game's Targeter is active, changing Selector would trigger vanilla
+            // Targeter.ConfirmStillValid → StopTargeting (caster no longer selected).
+            // Redirect to a cursor jump so the user can press Enter to target the pawn.
+            if (PawnSelectionState.TryRedirectForActiveTargeting(selectedPawn))
+                return false;
+
             // Select the pawn and jump camera to follow
             if (Find.Selector != null)
             {
@@ -414,6 +420,10 @@ namespace RimWorldAccess
                     return false;
                 }
             }
+
+            // See SelectNextColonist_Prefix for rationale.
+            if (PawnSelectionState.TryRedirectForActiveTargeting(selectedPawn))
+                return false;
 
             // Select the pawn and jump camera to follow
             if (Find.Selector != null)

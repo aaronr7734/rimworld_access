@@ -16,6 +16,15 @@ namespace RimWorldAccess
         private static HashSet<string> announcedAlerts = new HashSet<string>();
 
         /// <summary>
+        /// Monotonic counter incremented every time Messages.Message announces something
+        /// via this patch. Callers that wrap a game operation (e.g., ValidateTarget) can
+        /// sample it before and after to detect whether the game itself emitted a message,
+        /// and skip their own fallback announcement when it did. Avoids predicting which
+        /// abilities/verbs/comps speak vs. stay silent — we just measure.
+        /// </summary>
+        public static long MessageEmissionCount { get; private set; } = 0;
+
+        /// <summary>
         /// Patches the Messages.Message(Message msg, bool historical) method to announce messages.
         /// This is the core method that all message variants funnel through.
         /// Location: Verse.Messages line 55
@@ -31,6 +40,7 @@ namespace RimWorldAccess
                 string announcement = $"Message: {cleanText}";
                 TolkHelper.Speak(announcement);
                 Log.Message($"[Notification] {announcement}");
+                MessageEmissionCount++;
             }
         }
 

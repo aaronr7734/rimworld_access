@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text;
 using RimWorld;
 using Verse;
 
@@ -17,11 +18,20 @@ namespace RimWorldAccess
         private static Map casterMap = null;
         private static bool isDestinationPhase = false;
         private static float destinationRange = 0f;
+        private static bool destinationRequiresLineOfSight = false;
+        private static CompAbilityEffect_WithDest destinationComp = null;
 
         /// <summary>
         /// Gets whether ability targeting mode is currently active.
         /// </summary>
         public static bool IsActive => isActive;
+
+        /// <summary>
+        /// Gets whether targeting is in the destination-selection phase of a dual-target
+        /// ability (e.g., Skip's second click). Used by callers that need to gate behavior
+        /// on phase since the game emits no Messages for destination-phase rejections.
+        /// </summary>
+        public static bool IsDestinationPhase => isDestinationPhase;
 
         /// <summary>
         /// Gets the current ability being targeted.
@@ -65,6 +75,8 @@ namespace RimWorldAccess
             casterMap = null;
             isDestinationPhase = false;
             destinationRange = 0f;
+            destinationRequiresLineOfSight = false;
+            destinationComp = null;
         }
 
         /// <summary>
@@ -73,11 +85,52 @@ namespace RimWorldAccess
         /// comp's range instead of the ability's verb range.
         /// Called from TargetingPatch when DestinationSelector is detected.
         /// </summary>
-        public static void EnterDestinationPhase(IntVec3 selectedTargetPos, float destRange)
+        public static void EnterDestinationPhase(IntVec3 selectedTargetPos, CompAbilityEffect_WithDest destComp)
         {
-            casterPosition = selectedTargetPos;  // Range is now measured from the selected target
-            destinationRange = destRange;
+            casterPosition = selectedTargetPos;  // Range and LOS are now measured from the selected target
+            destinationComp = destComp;
+            destinationRange = destComp?.Props?.range ?? 0f;
+            destinationRequiresLineOfSight = destComp?.Props?.requiresLineOfSight ?? false;
             isDestinationPhase = true;
+        }
+
+        /// <summary>
+        /// Returns null if the destination cell is a valid teleport target for the
+        /// selected pawn/thing, or a human-readable error describing why it isn't.
+        /// Wraps CompAbilityEffect_WithDest.CanPlaceSelectedTargetAt with reason detection
+        /// so screen reader users get the same info sighted players see in the ring color.
+        /// </summary>
+        public static string ValidateDestinationCell(IntVec3 cursorPos)
+        {
+            if (!isDestinationPhase || destinationComp == null || casterMap == null)
+                return null;
+
+            var target = new LocalTargetInfo(cursorPos);
+            if (destinationComp.CanPlaceSelectedTargetAt(target))
+                return null;
+
+            // Surface the specific reason the cell was rejected.
+            if (cursorPos.Impassable(casterMap))
+                return "Cannot teleport here, cell is impassable";
+
+            var door = cursorPos.GetDoor(casterMap);
+            if (door != null && !door.Open)
+                return "Cannot teleport here, door is closed";
+
+            foreach (var thing in cursorPos.GetThingList(casterMap))
+            {
+                if (thing.def.category == ThingCategory.Item)
+                    return $"Cannot teleport here, item in cell: {thing.LabelShort}";
+            }
+
+            var edifice = cursorPos.GetEdifice(casterMap);
+            if (edifice != null)
+                return $"Cannot teleport here, blocked by {edifice.LabelShort}";
+
+            if (!cursorPos.Standable(casterMap))
+                return "Cannot teleport here, cell is not standable";
+
+            return "Cannot teleport here";
         }
 
 
@@ -110,6 +163,18 @@ namespace RimWorldAccess
                     announcement += ", IN RANGE";
                 else
                     announcement += $", OUT OF RANGE (max {destinationRange:F0})";
+
+                // Append LOS and cell-validity info so the user gets the full picture from one R press.
+                if (destinationRequiresLineOfSight && casterMap != null
+                    && !GenSight.LineOfSight(casterPosition, cursorPos, casterMap))
+                {
+                    announcement += ", NO LINE OF SIGHT";
+                }
+                string cellError = ValidateDestinationCell(cursorPos);
+                if (cellError != null)
+                    announcement += $". {cellError}";
+                else
+                    announcement += ". Valid teleport destination";
             }
             else
             {
@@ -138,9 +203,53 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Destination phase: there's no AOE on the destination tile — describe what's
+            // at the cell so the user can judge whether it's a sensible teleport target.
+            if (isDestinationPhase)
+            {
+                TolkHelper.Speak(BuildDestinationCellAnnouncement(cursorPos), SpeechPriority.Normal);
+                return;
+            }
+
             string announcement = AbilityTargetingHelper.BuildAffectedTargetsAnnouncement(
                 currentAbility, cursorPos, casterMap);
             TolkHelper.Speak(announcement, SpeechPriority.Normal);
+        }
+
+        /// <summary>
+        /// Builds an announcement describing the destination cell for dual-target abilities
+        /// (e.g., Skip). Lists terrain, things at the cell, and impassability so the user can
+        /// judge whether the cell is a valid teleport destination before pressing Enter.
+        /// </summary>
+        private static string BuildDestinationCellAnnouncement(IntVec3 cursorPos)
+        {
+            var sb = new StringBuilder();
+
+            var terrain = casterMap.terrainGrid.TerrainAt(cursorPos);
+            string terrainName = terrain?.label ?? "ground";
+            sb.Append($"Destination: {terrainName}");
+
+            var things = cursorPos.GetThingList(casterMap);
+            var pawnsAtCell = things.OfType<Pawn>().Select(p => p.LabelShort).ToList();
+            var otherThings = things
+                .Where(t => !(t is Pawn)
+                         && t.def.category != ThingCategory.Mote
+                         && t.def.category != ThingCategory.Filth)
+                .Select(t => t.LabelShort)
+                .ToList();
+
+            if (pawnsAtCell.Count > 0)
+                sb.Append($", contains {string.Join(", ", pawnsAtCell)}");
+            if (otherThings.Count > 0)
+                sb.Append($", contains {string.Join(", ", otherThings)}");
+
+            string cellError = ValidateDestinationCell(cursorPos);
+            if (cellError != null)
+                sb.Append($". {cellError}");
+            else
+                sb.Append(". Valid teleport destination");
+
+            return sb.ToString();
         }
 
         /// <summary>
@@ -211,7 +320,23 @@ namespace RimWorldAccess
         /// </summary>
         public static string ValidateLineOfSight(IntVec3 targetPos)
         {
-            if (!isActive || currentAbility == null || currentAbility.pawn == null)
+            if (!isActive || currentAbility == null || casterMap == null)
+                return null;
+
+            // Destination phase: LOS is from the selected target to the destination,
+            // not from the caster (matches CompAbilityEffect_WithDest.CanHitTarget).
+            // The destination comp's own requiresLineOfSight prop drives this, which
+            // can differ from the verb's requireLineOfSight.
+            if (isDestinationPhase)
+            {
+                if (!destinationRequiresLineOfSight)
+                    return null;
+                if (!GenSight.LineOfSight(casterPosition, targetPos, casterMap))
+                    return "No line of sight to destination";
+                return null;
+            }
+
+            if (currentAbility.pawn == null)
                 return null;
 
             if (AbilityTargetingHelper.RequiresLineOfSight(currentAbility))
@@ -234,6 +359,13 @@ namespace RimWorldAccess
         public static string ValidateTargetPresent(LocalTargetInfo target, IntVec3 cursorPos)
         {
             if (!isActive || currentAbility == null || casterMap == null)
+                return null;
+
+            // Destination phase (e.g., Skip teleport target) targets a cell, not a pawn —
+            // CompAbilityEffect_WithDest.targetParams sets canTargetLocations = true. Don't
+            // gate on the first-phase pawn requirement; the game's CanHitTarget /
+            // CanPlaceSelectedTargetAt validates the cell downstream.
+            if (isDestinationPhase)
                 return null;
 
             // If the ability can target locations (like Wallraise, Smokepop), any cell is valid
@@ -266,6 +398,32 @@ namespace RimWorldAccess
 
             string requirement = AbilityTargetingHelper.GetTargetRequirementDescription(currentAbility);
             return $"No {requirement} at cursor. Move cursor onto a valid target";
+        }
+
+        /// <summary>
+        /// Diagnoses why the current ability/comp's ValidateTarget rejected the cursor
+        /// position. Only called by TargetingPatch when it detected the rejection was
+        /// silent (no Messages.Message emitted). Tries the same checks the vanilla
+        /// ValidateTarget paths use (range, LOS) and falls back to a generic message.
+        /// Works for both first phase and destination phase since the underlying
+        /// validators read isDestinationPhase to pick the right range/origin.
+        /// </summary>
+        public static string DiagnoseRejection(LocalTargetInfo target, IntVec3 cursorPos)
+        {
+            if (!isActive || currentAbility == null)
+                return null;
+
+            string rangeError = ValidateRange(cursorPos);
+            if (rangeError != null)
+                return rangeError;
+
+            string losError = ValidateLineOfSight(cursorPos);
+            if (losError != null)
+                return losError;
+
+            // No specific reason found — surface a generic but phase-aware message so the
+            // user knows the cast didn't queue and can move/retry.
+            return isDestinationPhase ? "Invalid teleport destination" : "Invalid target";
         }
 
         /// <summary>

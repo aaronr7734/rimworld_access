@@ -520,6 +520,12 @@ namespace RimWorldAccess
             var map = Find.CurrentMap;
             var pos = pawn.Position;
 
+            // If the game's Targeter is active, calling Find.Selector.Select on a
+            // different pawn would deselect the caster and trigger vanilla
+            // Targeter.ConfirmStillValid → StopTargeting. Redirect to cursor instead.
+            if (PawnSelectionState.TryRedirectForActiveTargeting(pawn))
+                return;
+
             if (Find.Selector != null)
             {
                 Find.Selector.ClearSelection();
@@ -830,6 +836,11 @@ namespace RimWorldAccess
         private static void SelectPawnInGame(Pawn pawn)
         {
             if (pawn == null)
+                return;
+
+            // If the game's Targeter is active, redirect to cursor jump so the targeting
+            // session stays alive (see PawnSelectionState.TryRedirectForActiveTargeting).
+            if (PawnSelectionState.TryRedirectForActiveTargeting(pawn))
                 return;
 
             if (Find.Selector != null)

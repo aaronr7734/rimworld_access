@@ -1,4 +1,5 @@
 using RimWorld;
+using UnityEngine;
 using Verse;
 
 namespace RimWorldAccess
@@ -57,6 +58,54 @@ namespace RimWorldAccess
 
             string announcement = $"{itemLabel}. Navigate with arrow keys, Enter to confirm, Escape to cancel.";
             TolkHelper.Speak(announcement, SpeechPriority.Normal);
+        }
+
+        /// <summary>
+        /// The user-facing label for the active item-targeting session — typically the
+        /// localized float-menu option that started it (e.g.,
+        /// "Force target to wear alpaca wool face mask"). Strictly more accurate than
+        /// describing TargetingParameters' boolean flags, because callback-based targeting
+        /// (ForForceWear, force-equip, etc.) often pairs permissive defaults with a real
+        /// filter in TargetingParameters.validator that we cannot describe textually.
+        /// </summary>
+        public static string ItemLabel => itemLabel;
+
+        /// <summary>
+        /// Handles R / T during item targeting so they don't fall through to the game's
+        /// global shortcuts (R = draft selected pawn, T = time/weather announcement),
+        /// which is jarring mid-cast. Mirrors the AbilityTargetingState / JumpTargetingState
+        /// convention of consuming R and T while targeting is active.
+        ///
+        /// Item targeting has no range and no AOE preview to give. R announces "no range
+        /// constraint" (with the active session label as a reminder of what the user is
+        /// doing); T is consumed silently — arrow-key navigation already announces what's
+        /// at the cursor on every move, so re-reading on T would just be redundant chatter.
+        /// </summary>
+        public static bool HandleInput(KeyCode key, bool shift, bool ctrl, bool alt)
+        {
+            if (!isActive)
+                return false;
+            if (shift || ctrl || alt)
+                return false;
+
+            if (key == KeyCode.R)
+            {
+                AnnounceRangeInfo();
+                return true;
+            }
+            if (key == KeyCode.T)
+            {
+                // Consumed silently — see method docs.
+                return true;
+            }
+            return false;
+        }
+
+        private static void AnnounceRangeInfo()
+        {
+            string label = !string.IsNullOrEmpty(itemLabel) ? itemLabel : "this action";
+            TolkHelper.Speak($"No range constraint for {label}. Move cursor to a valid target and press Enter.",
+                SpeechPriority.Normal);
         }
 
         /// <summary>

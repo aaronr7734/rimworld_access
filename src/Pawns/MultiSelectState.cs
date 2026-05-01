@@ -148,6 +148,29 @@ namespace RimWorldAccess
         /// When multi-select mode IS active, Alt+Space toggles the pawn in/out
         /// of the multi-select list. Removing the last pawn exits the mode.
         /// </summary>
+        /// <summary>
+        /// Returns true (and announces a polite refusal) if the game's Targeter is
+        /// currently active and the caller should bail out of a Selector-modifying
+        /// multi-select operation. Reads Find.Targeter.IsTargeting directly so a
+        /// stale "we think it's targeting" state cannot strand the user.
+        ///
+        /// Adding/removing pawns to the Selector during active targeting is at best
+        /// confusing (it triggers vanilla Targeter.ConfirmStillValid logic, the second
+        /// caster's gizmo broadcast emits stray "nothing to attack at this location"
+        /// messages, etc.) and at worst kills the cast outright. Better to refuse
+        /// the action with a clear message and let the user finish or cancel first.
+        /// </summary>
+        private static bool BlockedByActiveTargeting(string actionDescription)
+        {
+            var targeter = Find.Targeter;
+            if (targeter == null || !targeter.IsTargeting)
+                return false;
+            TolkHelper.Speak(
+                $"Cannot {actionDescription} while targeting. Press Escape to cancel targeting first.",
+                SpeechPriority.High);
+            return true;
+        }
+
         public static void TogglePawn(Pawn pawn)
         {
             if (pawn == null)
@@ -155,6 +178,9 @@ namespace RimWorldAccess
                 TolkHelper.Speak("No pawn focused");
                 return;
             }
+
+            if (BlockedByActiveTargeting("change selection"))
+                return;
 
             ValidateAndCleanupSelection();
 
@@ -193,6 +219,20 @@ namespace RimWorldAccess
                     focusedPawn = null;
                     rangeAnchorPawn = null;
                     TolkHelper.Speak($"{pawn.LabelShort} removed. Multi-select disabled.");
+                }
+                else if (remaining == 1)
+                {
+                    // Shrunk back to a single pawn — the multi-select session is over.
+                    // Without this, inMultiSelectMode stays true, IsMultiSelectMode keeps
+                    // returning true (count==1 + flag), and pawn-cycling hotkeys (Alt+1..n,
+                    // comma/period) fall into the "navigate focus only" multi-select branch
+                    // instead of the normal jump-to-pawn behavior.
+                    Pawn lone = selector.SelectedPawns.First();
+                    inMultiSelectMode = false;
+                    focusedPawn = lone;
+                    rangeAnchorPawn = null;
+                    GizmoNavigationState.PawnJustSelected = true;
+                    TolkHelper.Speak($"{pawn.LabelShort} removed. Multi-select disabled. {lone.LabelShort} selected.");
                 }
                 else
                 {
@@ -238,6 +278,9 @@ namespace RimWorldAccess
             if (Find.CurrentMap == null)
                 return;
 
+            if (BlockedByActiveTargeting("extend selection"))
+                return;
+
             ValidateAndCleanupSelection();
 
             var selector = Find.Selector;
@@ -257,6 +300,9 @@ namespace RimWorldAccess
         public static void SelectContiguousPrevious()
         {
             if (Find.CurrentMap == null)
+                return;
+
+            if (BlockedByActiveTargeting("extend selection"))
                 return;
 
             ValidateAndCleanupSelection();
@@ -338,7 +384,19 @@ namespace RimWorldAccess
                     selector.Deselect(oldFocus);
                 GizmoNavigationState.PawnJustSelected = true;
                 int count = selector.SelectedPawns.Count;
-                TolkHelper.Speak($"{oldFocus.LabelShort} removed. {newFocus.LabelShort}, {count} selected.");
+
+                // Shrunk back to a single pawn — the multi-select session is over.
+                // See TogglePawn's remaining==1 branch for the rationale.
+                if (count == 1)
+                {
+                    inMultiSelectMode = false;
+                    rangeAnchorPawn = null;
+                    TolkHelper.Speak($"{oldFocus.LabelShort} removed. Multi-select disabled. {newFocus.LabelShort} selected.");
+                }
+                else
+                {
+                    TolkHelper.Speak($"{oldFocus.LabelShort} removed. {newFocus.LabelShort}, {count} selected.");
+                }
             }
             else
             {
@@ -384,6 +442,9 @@ namespace RimWorldAccess
         /// </summary>
         public static void ClearMultiSelect()
         {
+            if (BlockedByActiveTargeting("clear selection"))
+                return;
+
             if (!IsMultiSelectMode)
             {
                 TolkHelper.Speak("No multi-selection active");
@@ -412,6 +473,9 @@ namespace RimWorldAccess
         /// </summary>
         public static void SelectAllColonists(List<Pawn> allColonists)
         {
+            if (BlockedByActiveTargeting("select all"))
+                return;
+
             if (allColonists == null || allColonists.Count == 0)
             {
                 TolkHelper.Speak("No colonists on this map");

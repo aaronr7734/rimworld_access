@@ -341,6 +341,47 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Redirects a pawn-selection action (comma/period cycling, Alt+1..n bar jump,
+        /// Alt+Left/Right bar navigation) when the game's Targeter is currently active.
+        /// Returns true if the action was handled as a cursor-redirect (caller must NOT
+        /// call Find.Selector.Select afterwards — that would kill the active targeter via
+        /// vanilla Targeter.ConfirmStillValid, which calls StopTargeting whenever the
+        /// caster is no longer in the Selector). Returns false if no targeting is active
+        /// and the caller should perform its normal selection logic.
+        ///
+        /// Reads Find.Targeter.IsTargeting directly each call: no shadow state, no
+        /// caching, so a stale "we think targeting is active" can never strand the user.
+        /// The game itself updates IsTargeting real-time (Escape, cast complete, caster
+        /// lost, etc.).
+        /// </summary>
+        public static bool TryRedirectForActiveTargeting(Pawn pawn)
+        {
+            if (pawn == null)
+                return false;
+            var targeter = Find.Targeter;
+            if (targeter == null || !targeter.IsTargeting)
+                return false;
+
+            // Same shape as a bookmark jump: cursor + camera move, terrain audio,
+            // standard tile announcement. Selector is left untouched so the targeter's
+            // caster-still-selected check keeps passing.
+            var map = Find.CurrentMap;
+            var pos = pawn.Position;
+            MapNavigationState.CurrentCursorPosition = pos;
+            if (Find.CameraDriver != null)
+                Find.CameraDriver.JumpToCurrentMapLoc(pos);
+            MapNavigationState.CurrentCameraMode = CameraFollowMode.Cursor;
+
+            if (map != null)
+            {
+                TerrainAudioHelper.PlayTerrainAudio(pos.GetTerrain(map), 0.5f);
+                MapNavigationState.LastAnnouncedInfo = "";
+                MapArrowKeyHandler.AnnouncePosition(pos, map);
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Resets the selection state.
         /// </summary>
         public static void Reset()

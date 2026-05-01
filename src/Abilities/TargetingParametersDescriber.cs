@@ -20,35 +20,105 @@ namespace RimWorldAccess
         {
             if (p == null) return "";
 
-            // Single-shot exclusives — vanilla rejects everything else.
-            if (p.targetSpecificThing != null) return $"Looking for {p.targetSpecificThing.LabelShort}";
-            if (p.onlyTargetDoors) return "Looking for a door";
-            if (p.onlyTargetCorpses) return "Looking for a corpse";
-            if (p.onlyTargetIncapacitatedPawns) return "Looking for a downed pawn";
-            if (p.onlyTargetAnimaTrees) return "Looking for an anima tree";
-            if (p.onlyTargetDamagedThings) return "Looking for a damaged thing";
-            if (p.onlyTargetFlammables) return "Looking for a flammable target";
+            // Vanilla one-word noun keys we lean on. CanTranslate() guards each so a
+            // missing/DLC-gated key falls back to a safe English default rather than
+            // emitting the raw key name. Verified against the Core/Royalty/Ideology/
+            // Biotech/Anomaly Keyed XML at lookup time:
+            //   "Person"     → Misc_Gameplay.xml (Core)
+            //   "Location"   → Misc_Gameplay.xml (Core)
+            //   "Colonist"   → Misc.xml          (Core)
+            //   "Prisoner"   → Misc_Gameplay.xml (Core)
+            //   "Slave"      → ITabs.xml         (Core)
+            //   "Animal"     → ITabs.xml         (Ideology)
+            //   "Mechanoid"  → ScenParts.xml     (Biotech)
+            string person   = Tr("Person",    "person");
+            string colonist = Tr("Colonist",  "colonist");
+            string prisoner = Tr("Prisoner",  "prisoner");
+            string slave    = Tr("Slave",     "slave");
+            string animal   = Tr("Animal",    "animal");
+            string mech     = Tr("Mechanoid", "mech");
+            string location = Tr("Location",  "location");
 
+            // Single-shot exclusives — vanilla rejects everything else when these are set.
+            if (p.targetSpecificThing != null) return $"Looking for {p.targetSpecificThing.LabelShort}";
+            if (p.onlyTargetDoors) return $"Looking for a door";
+            if (p.onlyTargetCorpses) return $"Looking for a corpse";
+            if (p.onlyTargetIncapacitatedPawns) return $"Looking for a downed {person}";
+            if (p.onlyTargetAnimaTrees) return $"Looking for an anima tree";
+            if (p.onlyTargetDamagedThings) return $"Looking for a damaged thing";
+            if (p.onlyTargetFlammables) return $"Looking for a flammable target";
+            if (p.onlyTargetColonists) return $"Looking for a {colonist}";
+            if (p.onlyTargetPrisonersOfColony) return $"Looking for a {prisoner}";
+            if (p.onlyTargetColonistsOrPrisoners) return $"Looking for a {colonist} or {prisoner}";
+            if (p.onlyTargetColonistsOrPrisonersOrSlaves) return $"Looking for a {colonist}, {prisoner}, or {slave}";
+
+            // Mirror vanilla TargetingParameters.CanTarget so we only mention what the
+            // params actually accept. The pawn sub-flags (canTargetHumans/Mechs/Entities/
+            // Animals) only matter when a parent flag (canTargetPawns or canTargetCorpses)
+            // is true; iterating them independently produced bogus descriptions like
+            // "Looking for a human, a mech, an entity, or a corpse" for the resurrector
+            // serum, which actually has canTargetPawns=false and canTargetCorpses=true.
             var parts = new List<string>();
-            if (p.canTargetHumans) parts.Add("a human");
-            else if (p.canTargetPawns)
+
+            if (p.canTargetPawns)
             {
-                if (p.canTargetAnimals && !p.canTargetMechs) parts.Add("a pawn or animal");
-                else parts.Add("a pawn");
+                parts.Add(DescribePawnCategory(p, person, animal, mech));
             }
-            else if (p.canTargetAnimals) parts.Add("an animal");
-            if (p.canTargetMechs && !p.canTargetPawns) parts.Add("a mech");
-            if (p.canTargetEntities) parts.Add("an entity");
+
+            if (p.canTargetCorpses)
+            {
+                parts.Add(DescribeCorpseCategory(p, person, animal, mech));
+            }
+
             if (p.canTargetBuildings) parts.Add("a building");
             if (p.canTargetItems) parts.Add("an item");
             if (p.canTargetFires) parts.Add("a fire");
             if (p.canTargetPlants) parts.Add("a plant");
-            if (p.canTargetCorpses) parts.Add("a corpse");
             if (p.canTargetSelf) parts.Add("self");
-            if (p.canTargetLocations) parts.Add("a map location");
+            if (p.canTargetLocations) parts.Add($"a {location}");
 
             if (parts.Count == 0) return "";
             return $"Looking for {Join(parts)}";
+        }
+
+        private static string DescribePawnCategory(TargetingParameters p, string person, string animal, string mech)
+        {
+            // Sub-flags filter which races the params accept. All four default true →
+            // just "person" (matches vanilla's user-facing language); otherwise enumerate.
+            bool allDefault = p.canTargetHumans && p.canTargetAnimals && p.canTargetMechs && p.canTargetEntities;
+            if (allDefault) return $"a {person}";
+
+            var subs = new List<string>();
+            if (p.canTargetHumans) subs.Add($"a {person}");
+            if (p.canTargetAnimals) subs.Add($"an {animal}");
+            if (p.canTargetMechs) subs.Add($"a {mech}");
+            if (p.canTargetEntities) subs.Add("an entity");
+            return subs.Count == 0 ? $"a {person}" : Join(subs);
+        }
+
+        private static string DescribeCorpseCategory(TargetingParameters p, string person, string animal, string mech)
+        {
+            // Inside the corpse branch vanilla also filters by canTargetMechs / Animals /
+            // Humans against the InnerPawn's race. Default (all true) → just "a corpse".
+            bool defaults = p.canTargetHumans && p.canTargetAnimals && p.canTargetMechs;
+            if (defaults) return "a corpse";
+
+            var subs = new List<string>();
+            if (p.canTargetHumans) subs.Add($"a {person}'s corpse");
+            if (p.canTargetAnimals) subs.Add($"an {animal} corpse");
+            if (p.canTargetMechs) subs.Add($"a {mech} corpse");
+            return subs.Count == 0 ? "a corpse" : Join(subs);
+        }
+
+        /// <summary>
+        /// Returns the localized string for <paramref name="key"/>, or
+        /// <paramref name="fallback"/> if the key is not present in the loaded language
+        /// (for DLC-gated keys like "Animal" / "Mechanoid" or for languages that haven't
+        /// been updated yet). Never emits the raw key name to the user.
+        /// </summary>
+        private static string Tr(string key, string fallback)
+        {
+            return key.CanTranslate() ? key.Translate().ToString() : fallback;
         }
 
         /// <summary>Returns true if the params will accept an empty cell (no Thing required).</summary>

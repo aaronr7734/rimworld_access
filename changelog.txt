@@ -1,4 +1,20 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
+04/30/2026
+
+BUG FIXES
+---------
+- The resurrector mech serum (and other dual-target psicasts like
+  Skip) now works correctly when picking a destination tile.
+- During targeting, picking a different pawn from the colonist bar
+  (comma/period, Alt+1..n, Alt+Left/Right) used to interrupt the
+  cast. Those hotkeys now move the cursor to that pawn instead, so
+  you can press Enter to target them.
+
+NOTE
+----
+The targeting system received deeper rework today. If you hit any
+new oddities mid-cast, please report them.
+
 04/29/2026
 
 CHANGES
