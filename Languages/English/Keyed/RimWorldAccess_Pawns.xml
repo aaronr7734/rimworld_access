@@ -474,110 +474,91 @@
        GetTrainingInfo / GetCharacterInfo / GetTopSkillsInfo /
        GetWorkInfo). Spoken by the Alt+H/M/N/G/K hotkeys (and consumed
        by other modules through these methods). Each helper composes
-       fragments into a multi-line string; whole-phrase keys here let
-       the translator decide separators per language.
+       clean phrase fragments through AnnouncementBuilder, which owns
+       the period separators between fragments — values below carry no
+       trailing punctuation.
        ================================================================= -->
   <RimWorldAccess.Pawns.Info.NoPawn>No pawn</RimWorldAccess.Pawns.Info.NoPawn>
   <RimWorldAccess.Pawns.Info.Idle>Idle</RimWorldAccess.Pawns.Info.Idle>
 
-  <!-- Health (combat-focused dump). Each fragment ends with ". " so
-       fragments compose into a single sentence-like dump.
-       NameHeader: "{0}. " — pawn label + period to start.
-       PainLine / BleedingLine: "{0}. " for pre-formatted helper output.
+  <!-- Health (combat-focused dump). Fragments are clean phrases; the
+       AnnouncementBuilder owns separators between them.
+       NameHeader: pawn label only — opens the readout.
        Capacity: {0} = capacity label, {1} = level label.
-       PartHealth: {0} = body part label, {1} = current HP, {2} = max HP.
-       WholeBodyHediff: "{0}. " — bare hediff label.
-       HealthyFallback: spoken when no other detail was added; uses
-       vanilla "Healthy" key. -->
+       PartHealth: {0} = body part label, {1} = current HP, {2} = max HP. -->
   <RimWorldAccess.Pawns.Health.NoTracker>{0}: No health tracker</RimWorldAccess.Pawns.Health.NoTracker>
-  <RimWorldAccess.Pawns.Health.NameHeader>{0}. </RimWorldAccess.Pawns.Health.NameHeader>
-  <RimWorldAccess.Pawns.Health.SentenceSuffix>{0}. </RimWorldAccess.Pawns.Health.SentenceSuffix>
-  <RimWorldAccess.Pawns.Health.Capacity>{0}: {1}. </RimWorldAccess.Pawns.Health.Capacity>
-  <RimWorldAccess.Pawns.Health.PartHealth>{0}: {1}/{2}. </RimWorldAccess.Pawns.Health.PartHealth>
-  <RimWorldAccess.Pawns.Health.HealthySuffix>{0}.</RimWorldAccess.Pawns.Health.HealthySuffix>
+  <RimWorldAccess.Pawns.Health.NameHeader>{0}</RimWorldAccess.Pawns.Health.NameHeader>
+  <RimWorldAccess.Pawns.Health.Capacity>{0}: {1}</RimWorldAccess.Pawns.Health.Capacity>
+  <RimWorldAccess.Pawns.Health.PartHealth>{0}: {1}/{2}</RimWorldAccess.Pawns.Health.PartHealth>
 
-  <!-- Needs. AppendLine joins fragments. -->
+  <!-- Needs. -->
   <RimWorldAccess.Pawns.Needs.NoTracker>{0}: No needs tracker</RimWorldAccess.Pawns.Needs.NoTracker>
-  <RimWorldAccess.Pawns.Needs.Header>{0}'s Needs.</RimWorldAccess.Pawns.Needs.Header>
-  <RimWorldAccess.Pawns.Needs.NeedLine>  {0}: {1}%.</RimWorldAccess.Pawns.Needs.NeedLine>
-  <RimWorldAccess.Pawns.Needs.LearningDesires>    Learning desires: {0}.</RimWorldAccess.Pawns.Needs.LearningDesires>
-  <RimWorldAccess.Pawns.Needs.Empty>No needs to display.</RimWorldAccess.Pawns.Needs.Empty>
+  <RimWorldAccess.Pawns.Needs.Header>{0}'s Needs</RimWorldAccess.Pawns.Needs.Header>
+  <RimWorldAccess.Pawns.Needs.NeedLine>{0}: {1}%</RimWorldAccess.Pawns.Needs.NeedLine>
+  <RimWorldAccess.Pawns.Needs.LearningDesires>Learning desires: {0}</RimWorldAccess.Pawns.Needs.LearningDesires>
+  <RimWorldAccess.Pawns.Needs.Empty>No needs to display</RimWorldAccess.Pawns.Needs.Empty>
 
   <!-- Mood. -->
   <RimWorldAccess.Pawns.Mood.NoTracker>{0}: No mood tracker</RimWorldAccess.Pawns.Mood.NoTracker>
-  <RimWorldAccess.Pawns.Mood.Header>{0}'s Mood.</RimWorldAccess.Pawns.Mood.Header>
-  <RimWorldAccess.Pawns.Mood.MoodLine>Mood: {0}% ({1}).</RimWorldAccess.Pawns.Mood.MoodLine>
-  <RimWorldAccess.Pawns.Mood.ThoughtsHeader>
-Thoughts affecting mood. {0} total.</RimWorldAccess.Pawns.Mood.ThoughtsHeader>
-  <RimWorldAccess.Pawns.Mood.ThoughtLine>  {0}: {1}.</RimWorldAccess.Pawns.Mood.ThoughtLine>
+  <RimWorldAccess.Pawns.Mood.Header>{0}'s Mood</RimWorldAccess.Pawns.Mood.Header>
+  <RimWorldAccess.Pawns.Mood.MoodLine>Mood: {0}% ({1})</RimWorldAccess.Pawns.Mood.MoodLine>
+  <RimWorldAccess.Pawns.Mood.ThoughtsHeader>Thoughts affecting mood, {0} total</RimWorldAccess.Pawns.Mood.ThoughtsHeader>
+  <RimWorldAccess.Pawns.Mood.ThoughtLine>{0}: {1}</RimWorldAccess.Pawns.Mood.ThoughtLine>
   <RimWorldAccess.Pawns.Mood.ThoughtMultiplier>{0} x{1}</RimWorldAccess.Pawns.Mood.ThoughtMultiplier>
-  <RimWorldAccess.Pawns.Mood.NoThoughts>
-No thoughts affecting mood.</RimWorldAccess.Pawns.Mood.NoThoughts>
+  <RimWorldAccess.Pawns.Mood.NoThoughts>No thoughts affecting mood</RimWorldAccess.Pawns.Mood.NoThoughts>
 
   <!-- Gear. -->
-  <RimWorldAccess.Pawns.GearInfo.Header>{0}'s Gear. </RimWorldAccess.Pawns.GearInfo.Header>
-  <RimWorldAccess.Pawns.GearInfo.WieldingNothing>Wielding: Nothing. </RimWorldAccess.Pawns.GearInfo.WieldingNothing>
-  <RimWorldAccess.Pawns.GearInfo.WieldingItem>Wielding: {0}</RimWorldAccess.Pawns.GearInfo.WieldingItem>
-  <RimWorldAccess.Pawns.GearInfo.QualityParen> ({0})</RimWorldAccess.Pawns.GearInfo.QualityParen>
-  <RimWorldAccess.Pawns.GearInfo.WieldingTerminator>. </RimWorldAccess.Pawns.GearInfo.WieldingTerminator>
-  <RimWorldAccess.Pawns.GearInfo.WearingNothing>Wearing: Nothing.</RimWorldAccess.Pawns.GearInfo.WearingNothing>
-  <RimWorldAccess.Pawns.GearInfo.Wearing>Wearing: {0}.</RimWorldAccess.Pawns.GearInfo.Wearing>
+  <RimWorldAccess.Pawns.GearInfo.Header>{0}'s Gear</RimWorldAccess.Pawns.GearInfo.Header>
+  <RimWorldAccess.Pawns.GearInfo.Wielding>Wielding: {0}</RimWorldAccess.Pawns.GearInfo.Wielding>
+  <RimWorldAccess.Pawns.GearInfo.WieldingNothing>Wielding nothing</RimWorldAccess.Pawns.GearInfo.WieldingNothing>
+  <RimWorldAccess.Pawns.GearInfo.QualifiedItem>{0} ({1})</RimWorldAccess.Pawns.GearInfo.QualifiedItem>
+  <RimWorldAccess.Pawns.GearInfo.Wearing>Wearing: {0}</RimWorldAccess.Pawns.GearInfo.Wearing>
+  <RimWorldAccess.Pawns.GearInfo.WearingNothing>Wearing nothing</RimWorldAccess.Pawns.GearInfo.WearingNothing>
 
-  <!-- Social. Multi-line block per section. -->
+  <!-- Social. -->
   <RimWorldAccess.Pawns.SocialInfo.NoTracker>{0}: No relations tracker</RimWorldAccess.Pawns.SocialInfo.NoTracker>
-  <RimWorldAccess.Pawns.SocialInfo.Header>{0} Social:</RimWorldAccess.Pawns.SocialInfo.Header>
-  <RimWorldAccess.Pawns.SocialInfo.RelationshipsHeader>
-Relationships ({0}):</RimWorldAccess.Pawns.SocialInfo.RelationshipsHeader>
-  <RimWorldAccess.Pawns.SocialInfo.RelationshipLine>  - {0}: {1}</RimWorldAccess.Pawns.SocialInfo.RelationshipLine>
-  <RimWorldAccess.Pawns.SocialInfo.OpinionsHeader>
-Opinions from others ({0}):</RimWorldAccess.Pawns.SocialInfo.OpinionsHeader>
-  <RimWorldAccess.Pawns.SocialInfo.OpinionLine>  - {0}: {1}</RimWorldAccess.Pawns.SocialInfo.OpinionLine>
-  <RimWorldAccess.Pawns.SocialInfo.OpinionsMore>  ... and {0} more</RimWorldAccess.Pawns.SocialInfo.OpinionsMore>
+  <RimWorldAccess.Pawns.SocialInfo.Header>{0}'s Social info</RimWorldAccess.Pawns.SocialInfo.Header>
+  <RimWorldAccess.Pawns.SocialInfo.RelationshipsHeader>{0} relationships</RimWorldAccess.Pawns.SocialInfo.RelationshipsHeader>
+  <RimWorldAccess.Pawns.SocialInfo.RelationshipLine>{0}: {1}</RimWorldAccess.Pawns.SocialInfo.RelationshipLine>
+  <RimWorldAccess.Pawns.SocialInfo.OpinionsHeader>Opinions from others, {0} total</RimWorldAccess.Pawns.SocialInfo.OpinionsHeader>
+  <RimWorldAccess.Pawns.SocialInfo.OpinionLine>{0}: {1}</RimWorldAccess.Pawns.SocialInfo.OpinionLine>
+  <RimWorldAccess.Pawns.SocialInfo.OpinionsMore>and {0} more</RimWorldAccess.Pawns.SocialInfo.OpinionsMore>
   <RimWorldAccess.Pawns.SocialInfo.NoRelationships>No direct relationships</RimWorldAccess.Pawns.SocialInfo.NoRelationships>
 
   <!-- Training (animal trainable readout). -->
   <RimWorldAccess.Pawns.TrainingInfo.NotTrainable>{0}: Not trainable</RimWorldAccess.Pawns.TrainingInfo.NotTrainable>
-  <RimWorldAccess.Pawns.TrainingInfo.Header>{0} Training:</RimWorldAccess.Pawns.TrainingInfo.Header>
-  <RimWorldAccess.Pawns.TrainingInfo.LineLearned>  - {0}: Learned</RimWorldAccess.Pawns.TrainingInfo.LineLearned>
-  <RimWorldAccess.Pawns.TrainingInfo.LineInProgress>  - {0}: In progress</RimWorldAccess.Pawns.TrainingInfo.LineInProgress>
-  <RimWorldAccess.Pawns.TrainingInfo.TrainedHeader>
-Trained ({0}):</RimWorldAccess.Pawns.TrainingInfo.TrainedHeader>
-  <RimWorldAccess.Pawns.TrainingInfo.InProgressHeader>
-In Progress ({0}):</RimWorldAccess.Pawns.TrainingInfo.InProgressHeader>
+  <RimWorldAccess.Pawns.TrainingInfo.Header>{0} Training</RimWorldAccess.Pawns.TrainingInfo.Header>
+  <RimWorldAccess.Pawns.TrainingInfo.LineLearned>{0}: Learned</RimWorldAccess.Pawns.TrainingInfo.LineLearned>
+  <RimWorldAccess.Pawns.TrainingInfo.LineInProgress>{0}: In progress</RimWorldAccess.Pawns.TrainingInfo.LineInProgress>
+  <RimWorldAccess.Pawns.TrainingInfo.TrainedHeader>{0} trained</RimWorldAccess.Pawns.TrainingInfo.TrainedHeader>
+  <RimWorldAccess.Pawns.TrainingInfo.InProgressHeader>{0} in progress</RimWorldAccess.Pawns.TrainingInfo.InProgressHeader>
   <RimWorldAccess.Pawns.TrainingInfo.NoSkills>No trainable skills</RimWorldAccess.Pawns.TrainingInfo.NoSkills>
 
   <!-- Character (traits, backstory, top skills). -->
-  <RimWorldAccess.Pawns.Character.Header>{0} Character:</RimWorldAccess.Pawns.Character.Header>
+  <RimWorldAccess.Pawns.Character.Header>{0} Character</RimWorldAccess.Pawns.Character.Header>
   <RimWorldAccess.Pawns.Character.Age>Age: {0} years</RimWorldAccess.Pawns.Character.Age>
-  <RimWorldAccess.Pawns.Character.TraitsHeader>
-Traits ({0}):</RimWorldAccess.Pawns.Character.TraitsHeader>
-  <RimWorldAccess.Pawns.Character.TraitLine>  - {0}</RimWorldAccess.Pawns.Character.TraitLine>
-  <RimWorldAccess.Pawns.Character.Childhood>
-Childhood: {0}</RimWorldAccess.Pawns.Character.Childhood>
+  <RimWorldAccess.Pawns.Character.TraitsHeader>{0} traits</RimWorldAccess.Pawns.Character.TraitsHeader>
+  <RimWorldAccess.Pawns.Character.Childhood>Childhood: {0}</RimWorldAccess.Pawns.Character.Childhood>
   <RimWorldAccess.Pawns.Character.Adulthood>Adulthood: {0}</RimWorldAccess.Pawns.Character.Adulthood>
-  <RimWorldAccess.Pawns.Character.TopSkillsHeader>
-Top Skills:</RimWorldAccess.Pawns.Character.TopSkillsHeader>
-  <RimWorldAccess.Pawns.Character.SkillLine>  - {0}: {1}{2}</RimWorldAccess.Pawns.Character.SkillLine>
+  <RimWorldAccess.Pawns.Character.TopSkillsHeader>Top Skills</RimWorldAccess.Pawns.Character.TopSkillsHeader>
+  <RimWorldAccess.Pawns.Character.SkillLine>{0}: {1}{2}</RimWorldAccess.Pawns.Character.SkillLine>
   <RimWorldAccess.Pawns.Character.PassionMinor> (•)</RimWorldAccess.Pawns.Character.PassionMinor>
   <RimWorldAccess.Pawns.Character.PassionMajor> (••)</RimWorldAccess.Pawns.Character.PassionMajor>
 
   <!-- Top-3 skills concise format (Alt+K). -->
   <RimWorldAccess.Pawns.TopSkills.NoSkills>{0}: No skills</RimWorldAccess.Pawns.TopSkills.NoSkills>
-  <RimWorldAccess.Pawns.TopSkills.Header>{0}'s Top Skills. </RimWorldAccess.Pawns.TopSkills.Header>
-  <RimWorldAccess.Pawns.TopSkills.SkillEntry>{0}: {1}.</RimWorldAccess.Pawns.TopSkills.SkillEntry>
-  <RimWorldAccess.Pawns.TopSkills.PassionMinor> (passion.)</RimWorldAccess.Pawns.TopSkills.PassionMinor>
-  <RimWorldAccess.Pawns.TopSkills.PassionMajor> (double passion.)</RimWorldAccess.Pawns.TopSkills.PassionMajor>
+  <RimWorldAccess.Pawns.TopSkills.Header>{0}'s Top Skills</RimWorldAccess.Pawns.TopSkills.Header>
+  <RimWorldAccess.Pawns.TopSkills.SkillEntry>{0}: {1}</RimWorldAccess.Pawns.TopSkills.SkillEntry>
+  <RimWorldAccess.Pawns.TopSkills.SkillEntryMinorPassion>{0}: {1}, passion</RimWorldAccess.Pawns.TopSkills.SkillEntryMinorPassion>
+  <RimWorldAccess.Pawns.TopSkills.SkillEntryMajorPassion>{0}: {1}, double passion</RimWorldAccess.Pawns.TopSkills.SkillEntryMajorPassion>
 
   <!-- Work priorities readout. -->
   <RimWorldAccess.Pawns.WorkInfo.NoSettings>{0}: No work settings</RimWorldAccess.Pawns.WorkInfo.NoSettings>
-  <RimWorldAccess.Pawns.WorkInfo.Header>{0} Work:</RimWorldAccess.Pawns.WorkInfo.Header>
-  <RimWorldAccess.Pawns.WorkInfo.LinePriority>  - {0} (Priority {1})</RimWorldAccess.Pawns.WorkInfo.LinePriority>
-  <RimWorldAccess.Pawns.WorkInfo.LineEnabled>  - {0} (Enabled)</RimWorldAccess.Pawns.WorkInfo.LineEnabled>
-  <RimWorldAccess.Pawns.WorkInfo.LineDisabled>  - {0}</RimWorldAccess.Pawns.WorkInfo.LineDisabled>
-  <RimWorldAccess.Pawns.WorkInfo.EnabledHeader>
-Enabled ({0}):</RimWorldAccess.Pawns.WorkInfo.EnabledHeader>
-  <RimWorldAccess.Pawns.WorkInfo.DisabledHeader>
-Disabled ({0}):</RimWorldAccess.Pawns.WorkInfo.DisabledHeader>
+  <RimWorldAccess.Pawns.WorkInfo.Header>{0} Work</RimWorldAccess.Pawns.WorkInfo.Header>
+  <RimWorldAccess.Pawns.WorkInfo.LinePriority>{0} (Priority {1})</RimWorldAccess.Pawns.WorkInfo.LinePriority>
+  <RimWorldAccess.Pawns.WorkInfo.LineEnabled>{0} (Enabled)</RimWorldAccess.Pawns.WorkInfo.LineEnabled>
+  <RimWorldAccess.Pawns.WorkInfo.EnabledHeader>{0} enabled</RimWorldAccess.Pawns.WorkInfo.EnabledHeader>
+  <RimWorldAccess.Pawns.WorkInfo.DisabledHeader>{0} disabled</RimWorldAccess.Pawns.WorkInfo.DisabledHeader>
   <RimWorldAccess.Pawns.WorkInfo.NoWork>No work types enabled</RimWorldAccess.Pawns.WorkInfo.NoWork>
 
   <!-- =================================================================
