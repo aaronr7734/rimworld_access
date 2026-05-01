@@ -805,7 +805,8 @@ namespace RimWorldAccess
                     return GetBuildingPowerInfo(building);
 
                 case "Linked Facilities":
-                    return FacilityLinkHelper.GetInspectionInfo(building) ?? "No facility linking information.";
+                    return FacilityLinkHelper.GetInspectionInfo(building)
+                        ?? (string)"RimWorldAccess.Inspection.Building.NoFacilityInfo".Translate();
 
                 default:
                     // Try to get info from dynamic tab using GetInspectString as fallback
@@ -818,37 +819,38 @@ namespace RimWorldAccess
         /// </summary>
         private static string GetBuildingOverview(Building building)
         {
-            var sb = new StringBuilder();
-            sb.AppendLine(building.LabelCap.StripTags());
-            sb.AppendLine();
+            var lines = new List<string>();
+            lines.Add(building.LabelCap.StripTags());
+            lines.Add("");
 
             // Get the inspect string and format with punctuation for screen reader clarity
             string inspectString = building.GetInspectString();
             if (!string.IsNullOrEmpty(inspectString))
             {
-                sb.AppendLine(FormatInspectStringWithPunctuation(inspectString));
-                sb.AppendLine();
+                lines.Add(FormatInspectStringWithPunctuation(inspectString));
+                lines.Add("");
             }
 
             // Health
             if (building.HitPoints < building.MaxHitPoints)
             {
                 float healthPercent = (float)building.HitPoints / building.MaxHitPoints;
-                sb.AppendLine($"Health: {healthPercent:P0} ({building.HitPoints} / {building.MaxHitPoints})");
+                lines.Add("RimWorldAccess.Inspection.Building.Health"
+                    .Translate(healthPercent.ToStringPercent(), building.HitPoints, building.MaxHitPoints));
             }
 
             // Add description for buildings
             if (building.def != null && !string.IsNullOrEmpty(building.def.description))
             {
-                sb.AppendLine();
-                sb.AppendLine("Description:");
+                lines.Add("");
+                lines.Add("RimWorldAccess.Inspection.DescriptionHeader".Translate("Description".Translate()));
                 string description = building.def.description.StripTags().Trim();
                 // Clean up whitespace
                 description = System.Text.RegularExpressions.Regex.Replace(description, @"\s+", " ");
-                sb.AppendLine(description);
+                lines.Add(description);
             }
 
-            return sb.ToString();
+            return string.Join("\n", lines);
         }
 
         /// <summary>
@@ -858,42 +860,42 @@ namespace RimWorldAccess
         {
             if (building is IBillGiver billGiver && billGiver.BillStack != null)
             {
-                var sb = new StringBuilder();
-
                 if (billGiver.BillStack.Count == 0)
                 {
-                    return "No bills queued.";
+                    return "RimWorldAccess.Inspection.Building.NoBills".Translate();
                 }
 
-                sb.AppendLine($"Bills ({billGiver.BillStack.Count}):");
-                sb.AppendLine();
+                var lines = new List<string>();
+                lines.Add("RimWorldAccess.Inspection.Building.BillsHeader".Translate(billGiver.BillStack.Count));
+                lines.Add("");
 
                 int index = 1;
                 foreach (var bill in billGiver.BillStack.Bills)
                 {
-                    sb.AppendLine($"{index}. {bill.LabelCap.StripTags()}");
+                    lines.Add("RimWorldAccess.Inspection.Building.BillEntry"
+                        .Translate(index, bill.LabelCap.StripTags()));
 
                     if (bill is Bill_Production productionBill)
                     {
                         if (productionBill.repeatMode == BillRepeatModeDefOf.RepeatCount)
-                            sb.AppendLine($"   Target: {productionBill.repeatCount}");
+                            lines.Add("RimWorldAccess.Inspection.Building.BillTarget".Translate(productionBill.repeatCount));
                         else if (productionBill.repeatMode == BillRepeatModeDefOf.TargetCount)
-                            sb.AppendLine($"   Target: {productionBill.targetCount}");
+                            lines.Add("RimWorldAccess.Inspection.Building.BillTarget".Translate(productionBill.targetCount));
                         else
-                            sb.AppendLine($"   Mode: {productionBill.repeatMode.label}");
+                            lines.Add("RimWorldAccess.Inspection.Building.BillMode".Translate(productionBill.repeatMode.label));
                     }
 
                     if (bill.suspended)
-                        sb.AppendLine("   (Suspended)");
+                        lines.Add("RimWorldAccess.Inspection.Building.BillSuspended".Translate("Suspended".Translate()));
 
-                    sb.AppendLine();
+                    lines.Add("");
                     index++;
                 }
 
-                return sb.ToString();
+                return string.Join("\n", lines);
             }
 
-            return "This building does not have bills.";
+            return "RimWorldAccess.Inspection.Building.NoBillsCapability".Translate();
         }
 
         /// <summary>
@@ -904,10 +906,11 @@ namespace RimWorldAccess
             if (building is IStoreSettingsParent storeParent && storeParent.GetStoreSettings() != null)
             {
                 var settings = storeParent.GetStoreSettings();
-                var sb = new StringBuilder();
+                var lines = new List<string>();
 
-                sb.AppendLine($"Priority: {settings.Priority}");
-                sb.AppendLine();
+                lines.Add("RimWorldAccess.Inspection.Building.PriorityLine"
+                    .Translate("Priority".Translate(), settings.Priority.ToString()));
+                lines.Add("");
 
                 // Get filter summary
                 if (settings.filter != null)
@@ -915,19 +918,19 @@ namespace RimWorldAccess
                     string summary = settings.filter.Summary;
                     if (!string.IsNullOrEmpty(summary))
                     {
-                        sb.AppendLine("Allowed items:");
-                        sb.AppendLine(summary);
+                        lines.Add("RimWorldAccess.Inspection.Building.AllowedItemsHeader".Translate());
+                        lines.Add(summary);
                     }
                     else
                     {
-                        sb.AppendLine("No items allowed.");
+                        lines.Add("RimWorldAccess.Inspection.Building.NoItemsAllowed".Translate());
                     }
                 }
 
-                return sb.ToString();
+                return string.Join("\n", lines);
             }
 
-            return "This building does not have storage settings.";
+            return "RimWorldAccess.Inspection.Building.NoStorageSettings".Translate();
         }
 
         /// <summary>
@@ -938,21 +941,21 @@ namespace RimWorldAccess
             var powerComp = building.TryGetComp<CompPowerTrader>();
             if (powerComp != null)
             {
-                var sb = new StringBuilder();
-
-                sb.AppendLine($"Power: {(powerComp.PowerOn ? "On" : "Off")}");
-                sb.AppendLine($"Consumption: {powerComp.PowerOutput} W");
+                var lines = new List<string>();
+                lines.Add("RimWorldAccess.Inspection.Building.PowerStatus"
+                    .Translate("Power".Translate(), powerComp.PowerOn ? "On".Translate() : "Off".Translate()));
+                lines.Add("RimWorldAccess.Inspection.Building.PowerConsumption".Translate(powerComp.PowerOutput));
 
                 if (!powerComp.PowerOn)
                 {
-                    sb.AppendLine();
-                    sb.AppendLine("Power is currently off or unavailable.");
+                    lines.Add("");
+                    lines.Add("RimWorldAccess.Inspection.Building.PowerOff".Translate());
                 }
 
-                return sb.ToString();
+                return string.Join("\n", lines);
             }
 
-            return "This building does not use power.";
+            return "RimWorldAccess.Inspection.Building.NoPower".Translate();
         }
 
         /// <summary>
@@ -962,39 +965,39 @@ namespace RimWorldAccess
         {
             if (building is Building_Bed bed)
             {
-                var sb = new StringBuilder();
+                var lines = new List<string>();
 
                 // Show if it's for colonists, prisoners, slaves, or medical
                 if (bed.ForPrisoners)
-                    sb.AppendLine("Type: Prison Bed");
+                    lines.Add("RimWorldAccess.Inspection.Building.PrisonBed".Translate());
                 else if (bed.Medical)
-                    sb.AppendLine("Type: Medical Bed");
+                    lines.Add("RimWorldAccess.Inspection.Building.MedicalBed".Translate());
                 else
-                    sb.AppendLine("Type: Colonist Bed");
+                    lines.Add("RimWorldAccess.Inspection.Building.ColonistBed".Translate());
 
-                sb.AppendLine();
+                lines.Add("");
 
                 // Show current assignments
                 if (bed.OwnersForReading != null && bed.OwnersForReading.Any())
                 {
-                    sb.AppendLine("Assigned to:");
+                    lines.Add("RimWorldAccess.Inspection.Building.AssignedToHeader".Translate());
                     foreach (var owner in bed.OwnersForReading)
                     {
-                        sb.AppendLine($"  {owner.LabelShort}");
+                        lines.Add("RimWorldAccess.Inspection.Building.OwnerEntry".Translate(owner.LabelShort));
                     }
                 }
                 else
                 {
-                    sb.AppendLine("Not assigned to anyone");
+                    lines.Add("RimWorldAccess.Inspection.Building.NotAssigned".Translate());
                 }
 
-                sb.AppendLine();
-                sb.AppendLine("Press Enter to change assignments");
+                lines.Add("");
+                lines.Add("RimWorldAccess.Inspection.Building.PressEnterAssign".Translate());
 
-                return sb.ToString();
+                return string.Join("\n", lines);
             }
 
-            return "This building is not a bed.";
+            return "RimWorldAccess.Inspection.Building.NotABed".Translate();
         }
 
         /// <summary>
@@ -1004,27 +1007,27 @@ namespace RimWorldAccess
         {
             var comp = (building as ThingWithComps)?.TryGetComp<CompAssignableToPawn>();
             if (comp == null)
-                return "This building does not support owner assignment.";
+                return "RimWorldAccess.Inspection.Building.NoOwnerAssignment".Translate();
 
-            var sb = new StringBuilder();
+            var lines = new List<string>();
 
             if (comp.AssignedPawnsForReading.Count > 0)
             {
-                sb.AppendLine("Assigned to:");
+                lines.Add("RimWorldAccess.Inspection.Building.AssignedToHeader".Translate());
                 foreach (var pawn in comp.AssignedPawnsForReading)
                 {
-                    sb.AppendLine($"  {pawn.LabelShort}");
+                    lines.Add("RimWorldAccess.Inspection.Building.OwnerEntry".Translate(pawn.LabelShort));
                 }
             }
             else
             {
-                sb.AppendLine("Not assigned to anyone");
+                lines.Add("RimWorldAccess.Inspection.Building.NotAssigned".Translate());
             }
 
-            sb.AppendLine();
-            sb.AppendLine("Press Enter to change assignments");
+            lines.Add("");
+            lines.Add("RimWorldAccess.Inspection.Building.PressEnterAssign".Translate());
 
-            return sb.ToString();
+            return string.Join("\n", lines);
         }
 
         /// <summary>
@@ -1033,9 +1036,10 @@ namespace RimWorldAccess
         private static string GetMeditationFocusInfo(Building building)
         {
             if (!ModsConfig.RoyaltyActive || !building.Spawned)
-                return "No meditation focus information available.";
+                return "RimWorldAccess.Inspection.Building.NoMeditationInfo".Translate();
 
-            return $"No meditation focus objects nearby. Place focus objects within {MeditationUtility.FocusObjectSearchRadius:F0} cells.";
+            return "RimWorldAccess.Inspection.Building.NoMeditationFocus"
+                .Translate(MeditationUtility.FocusObjectSearchRadius.ToString("F0"));
         }
 
         /// <summary>
@@ -1046,24 +1050,25 @@ namespace RimWorldAccess
             var tempControl = building.TryGetComp<CompTempControl>();
             if (tempControl != null)
             {
-                var sb = new StringBuilder();
-
-                sb.AppendLine($"Target Temperature: {MenuHelper.FormatTemperature(tempControl.targetTemperature, "F0")}");
+                var lines = new List<string>();
+                lines.Add("RimWorldAccess.Inspection.Building.TargetTemperature"
+                    .Translate(MenuHelper.FormatTemperature(tempControl.targetTemperature, "F0")));
 
                 // Check if it's powered
                 var powerComp = building.TryGetComp<CompPowerTrader>();
                 if (powerComp != null)
                 {
-                    sb.AppendLine($"Power: {(powerComp.PowerOn ? "On" : "Off")}");
+                    lines.Add("RimWorldAccess.Inspection.Building.PowerStatus"
+                        .Translate("Power".Translate(), powerComp.PowerOn ? "On".Translate() : "Off".Translate()));
                 }
 
-                sb.AppendLine();
-                sb.AppendLine("Press Enter to adjust temperature");
+                lines.Add("");
+                lines.Add("RimWorldAccess.Inspection.Building.PressEnterTemperature".Translate());
 
-                return sb.ToString();
+                return string.Join("\n", lines);
             }
 
-            return "This building does not have temperature control.";
+            return "RimWorldAccess.Inspection.Building.NoTempControl".Translate();
         }
 
         /// <summary>

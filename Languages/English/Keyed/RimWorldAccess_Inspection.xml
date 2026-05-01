@@ -108,4 +108,66 @@
   <RimWorldAccess.Inspection.GeneHolder.GeneEntry>  - {0}.</RimWorldAccess.Inspection.GeneHolder.GeneEntry>
   <RimWorldAccess.Inspection.GeneHolder.GeneEntryOverridden>  - {0} ({1}).</RimWorldAccess.Inspection.GeneHolder.GeneEntryOverridden>
   <RimWorldAccess.Inspection.GeneHolder.Etc>  - {0}...</RimWorldAccess.Inspection.GeneHolder.Etc>
+
+  <!-- =================================================================
+       Building readouts. Each value is one tree-item line composed by
+       the building helpers (GetBuildingOverview / Bills / Storage /
+       Power / BedAssignment / OwnerAssignment / MeditationFocus /
+       Temperature). Vanilla nouns reused: Health, Priority, Power,
+       Temperature, Suspended, On, Off.
+       ================================================================= -->
+  <!-- Overview. Health: {0} = percent, {1} = current HP, {2} = max HP.
+       The vanilla "Health" noun is used as the leading label; the
+       composition lives in C# so the Description: header keeps reusing
+       the shared DescriptionHeader key. -->
+  <RimWorldAccess.Inspection.Building.Health>Health: {0} ({1} / {2})</RimWorldAccess.Inspection.Building.Health>
+
+  <!-- Bills. BillsHeader: {0} = count. BillEntry: {0} = index, {1} = bill
+       label. BillTarget / BillMode: {0} = value. BillSuspended: {0} =
+       vanilla "Suspended" word. -->
+  <RimWorldAccess.Inspection.Building.NoBills>No bills queued.</RimWorldAccess.Inspection.Building.NoBills>
+  <RimWorldAccess.Inspection.Building.BillsHeader>Bills ({0}):</RimWorldAccess.Inspection.Building.BillsHeader>
+  <RimWorldAccess.Inspection.Building.BillEntry>{0}. {1}</RimWorldAccess.Inspection.Building.BillEntry>
+  <RimWorldAccess.Inspection.Building.BillTarget>Target: {0}</RimWorldAccess.Inspection.Building.BillTarget>
+  <RimWorldAccess.Inspection.Building.BillMode>Mode: {0}</RimWorldAccess.Inspection.Building.BillMode>
+  <RimWorldAccess.Inspection.Building.BillSuspended>({0})</RimWorldAccess.Inspection.Building.BillSuspended>
+  <RimWorldAccess.Inspection.Building.NoBillsCapability>This building does not have bills.</RimWorldAccess.Inspection.Building.NoBillsCapability>
+
+  <!-- Storage. PriorityLine: {0} = vanilla "Priority", {1} = value. -->
+  <RimWorldAccess.Inspection.Building.PriorityLine>{0}: {1}</RimWorldAccess.Inspection.Building.PriorityLine>
+  <RimWorldAccess.Inspection.Building.AllowedItemsHeader>Allowed items:</RimWorldAccess.Inspection.Building.AllowedItemsHeader>
+  <RimWorldAccess.Inspection.Building.NoItemsAllowed>No items allowed.</RimWorldAccess.Inspection.Building.NoItemsAllowed>
+  <RimWorldAccess.Inspection.Building.NoStorageSettings>This building does not have storage settings.</RimWorldAccess.Inspection.Building.NoStorageSettings>
+
+  <!-- Power. PowerStatus: {0} = vanilla "Power", {1} = vanilla "On"/"Off".
+       PowerConsumption: {0} = wattage. -->
+  <RimWorldAccess.Inspection.Building.PowerStatus>{0}: {1}</RimWorldAccess.Inspection.Building.PowerStatus>
+  <RimWorldAccess.Inspection.Building.PowerConsumption>Consumption: {0} W</RimWorldAccess.Inspection.Building.PowerConsumption>
+  <RimWorldAccess.Inspection.Building.PowerOff>Power is currently off or unavailable.</RimWorldAccess.Inspection.Building.PowerOff>
+  <RimWorldAccess.Inspection.Building.NoPower>This building does not use power.</RimWorldAccess.Inspection.Building.NoPower>
+
+  <!-- Bed assignment. -->
+  <RimWorldAccess.Inspection.Building.PrisonBed>Type: Prison Bed</RimWorldAccess.Inspection.Building.PrisonBed>
+  <RimWorldAccess.Inspection.Building.MedicalBed>Type: Medical Bed</RimWorldAccess.Inspection.Building.MedicalBed>
+  <RimWorldAccess.Inspection.Building.ColonistBed>Type: Colonist Bed</RimWorldAccess.Inspection.Building.ColonistBed>
+  <RimWorldAccess.Inspection.Building.AssignedToHeader>Assigned to:</RimWorldAccess.Inspection.Building.AssignedToHeader>
+  <RimWorldAccess.Inspection.Building.OwnerEntry>  {0}</RimWorldAccess.Inspection.Building.OwnerEntry>
+  <RimWorldAccess.Inspection.Building.NotAssigned>Not assigned to anyone</RimWorldAccess.Inspection.Building.NotAssigned>
+  <RimWorldAccess.Inspection.Building.PressEnterAssign>Press Enter to change assignments</RimWorldAccess.Inspection.Building.PressEnterAssign>
+  <RimWorldAccess.Inspection.Building.NotABed>This building is not a bed.</RimWorldAccess.Inspection.Building.NotABed>
+
+  <!-- Owner assignment (non-bed CompAssignableToPawn). -->
+  <RimWorldAccess.Inspection.Building.NoOwnerAssignment>This building does not support owner assignment.</RimWorldAccess.Inspection.Building.NoOwnerAssignment>
+
+  <!-- Meditation focus. NoMeditationFocus: {0} = search-radius cells. -->
+  <RimWorldAccess.Inspection.Building.NoMeditationInfo>No meditation focus information available.</RimWorldAccess.Inspection.Building.NoMeditationInfo>
+  <RimWorldAccess.Inspection.Building.NoMeditationFocus>No meditation focus objects nearby. Place focus objects within {0} cells.</RimWorldAccess.Inspection.Building.NoMeditationFocus>
+
+  <!-- Temperature. TargetTemperature: {0} = formatted temperature. -->
+  <RimWorldAccess.Inspection.Building.TargetTemperature>Target Temperature: {0}</RimWorldAccess.Inspection.Building.TargetTemperature>
+  <RimWorldAccess.Inspection.Building.PressEnterTemperature>Press Enter to adjust temperature</RimWorldAccess.Inspection.Building.PressEnterTemperature>
+  <RimWorldAccess.Inspection.Building.NoTempControl>This building does not have temperature control.</RimWorldAccess.Inspection.Building.NoTempControl>
+
+  <!-- Linked facilities fallback (when FacilityLinkHelper returns null). -->
+  <RimWorldAccess.Inspection.Building.NoFacilityInfo>No facility linking information.</RimWorldAccess.Inspection.Building.NoFacilityInfo>
 </LanguageData>
