@@ -414,10 +414,21 @@ namespace RimWorldAccess
                 return "No pawns within AOE radius";
             }
 
+            // Build the target we'll show comp warnings for. Pawn-target abilities
+            // (e.g., bloodfeed) ignore cell-only LocalTargetInfo — wrap the affected
+            // pawn directly so the comp can read target.Pawn.
+            LocalTargetInfo warnTarget = affected.Count > 0
+                ? new LocalTargetInfo(affected[0])
+                : new LocalTargetInfo(cursorPos);
+            string warnings = GetExtraTargetWarnings(ability, warnTarget);
+
             if (!ability.def.HasAreaOfEffect)
             {
                 // Single target
-                return $"Target: {affected[0].LabelShort}";
+                string targetLine = $"Target: {affected[0].LabelShort}";
+                if (!string.IsNullOrEmpty(warnings))
+                    targetLine += $". Warning: {warnings}";
+                return targetLine;
             }
 
             // AOE - list affected
@@ -435,7 +446,44 @@ namespace RimWorldAccess
                 sb.Append($", and {affected.Count - maxNames} more");
             }
 
+            if (!string.IsNullOrEmpty(warnings))
+                sb.Append($". Warning: {warnings}");
+
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Collects mouse-attachment warnings from each of the ability's effect comps.
+        /// These are the cursor-side messages sighted players see (e.g., bloodfeed's
+        /// "Will kill" / "Will cause serious blood loss"). Returns null if no comp
+        /// returns a non-empty string. Multiple warnings are joined with periods so
+        /// they read naturally without using newlines as separators.
+        /// </summary>
+        public static string GetExtraTargetWarnings(Ability ability, LocalTargetInfo target)
+        {
+            if (ability?.comps == null || !target.IsValid)
+                return null;
+
+            var warnings = new List<string>();
+            foreach (var comp in ability.comps)
+            {
+                // ExtraLabelMouseAttachment is defined on CompAbilityEffect, not the
+                // base AbilityComp — only effect comps emit cursor-side warnings.
+                if (!(comp is CompAbilityEffect effectComp)) continue;
+                string text = null;
+                try { text = effectComp.ExtraLabelMouseAttachment(target); }
+                catch { continue; }
+                if (string.IsNullOrEmpty(text)) continue;
+                // Strip color tags and flatten any newlines the comp embedded.
+                string clean = text.StripTags()
+                    .Replace("\r", " ")
+                    .Replace("\n", ". ")
+                    .Trim();
+                if (!string.IsNullOrEmpty(clean))
+                    warnings.Add(clean);
+            }
+            if (warnings.Count == 0) return null;
+            return string.Join(". ", warnings);
         }
 
         /// <summary>

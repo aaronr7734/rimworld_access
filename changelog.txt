@@ -1,4 +1,20 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
+05/03/2026
+
+CHANGES
+-------
+- Sanguophage accessibility pass:
+  - Deathrest Capacity gizmo now reads its progress, bound
+    building count, description, and the names of bound
+    deathrest buildings.
+  - Hemogen bar now reads its full tooltip (drain rates,
+    consumption threshold, description).
+  - On the Hemogen bar, Enter toggles "Allow hemogen packs";
+    right bracket sets the target value.
+- Bloodfeed and other ability targeting now announce cursor-
+  side warnings like "Will kill" or "Will cause serious blood
+  loss" before you confirm the action.
+
 04/30/2026
 
 CHANGES

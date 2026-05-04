@@ -467,9 +467,10 @@ namespace RimWorldAccess
             }
 
             // For non-AOE abilities
+            string baseLine;
             if (target.HasThing)
             {
-                return $"Targeting: {target.Thing.LabelShort}";
+                baseLine = $"Targeting: {target.Thing.LabelShort}";
             }
             else
             {
@@ -477,8 +478,15 @@ namespace RimWorldAccess
                 // Try to describe what's at the cell
                 var terrain = casterMap.terrainGrid.TerrainAt(cursorPos);
                 string terrainName = terrain?.label ?? "ground";
-                return $"Targeting: {terrainName}";
+                baseLine = $"Targeting: {terrainName}";
             }
+
+            // Append any cursor-side warnings the ability's effect comps emit
+            // (e.g., bloodfeed's "Will kill" / "Will cause serious blood loss").
+            string warnings = AbilityTargetingHelper.GetExtraTargetWarnings(currentAbility, target);
+            if (!string.IsNullOrEmpty(warnings))
+                baseLine += $". Warning: {warnings}";
+            return baseLine;
         }
     }
 }
