@@ -340,6 +340,93 @@
   <RimWorldAccess.Inspection.Inventory.Label.StackForbiddenSuffix> (forbidden)</RimWorldAccess.Inspection.Inventory.Label.StackForbiddenSuffix>
   <RimWorldAccess.Inspection.Inventory.Label.StackLine>{0} x{1}, {2}{3}</RimWorldAccess.Inspection.Inventory.Label.StackLine>
 
+  <!-- =================================================================
+       Fishing zone configuration menu (FishingZoneMenuState).
+       Odyssey-DLC fishing zones; the menu is opened by pressing Enter
+       on a Zone_Fishing tile. Reflection reads the zone fields and
+       presents them as a flat keyboard-navigable list with
+       allow/forbid toggle, repeat-mode cycle, count steppers, and an
+       expandable fish-species list.
+
+       Vanilla nouns reused: "FishPopulationDesc" and
+       "MinimumPopulationDesc" tooltips, "Yes" / "No" for boolean
+       toggles. The repeat-mode / population-status / Unknown nouns
+       below are dedicated keys because RimWorld doesn't expose
+       single-word translations for them.
+
+       SearchLabel.* are stable typeahead lookup keys (separate from
+       the spoken row label so translators can localize each
+       independently). Status.Detail: {0} = fish-type label, {1} =
+       current population, {2} = max population, {3} = status word.
+       Label.MinimumPopulation: {0} = pct, {1} = fish-at-threshold.
+       Label.FishSpecies: {0} = count, {1} = expanded/collapsed word.
+       Action.ExpandedFishSpecies*: {0} = species count (One/Many
+       split for subject-verb agreement). Action.OpeningInfoCard: {0}
+       = fish label. Numeric.* govern the numeric-input overlay.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Fishing.NotAvailable>Fishing zone settings not available - Odyssey DLC may not be installed</RimWorldAccess.Inspection.Fishing.NotAvailable>
+
+  <RimWorldAccess.Inspection.Fishing.SearchLabel.ZoneStatus>Zone status</RimWorldAccess.Inspection.Fishing.SearchLabel.ZoneStatus>
+  <RimWorldAccess.Inspection.Fishing.SearchLabel.AllowFishing>Allow fishing</RimWorldAccess.Inspection.Fishing.SearchLabel.AllowFishing>
+  <RimWorldAccess.Inspection.Fishing.SearchLabel.RepeatMode>Repeat mode</RimWorldAccess.Inspection.Fishing.SearchLabel.RepeatMode>
+  <RimWorldAccess.Inspection.Fishing.SearchLabel.RepeatCount>Repeat count</RimWorldAccess.Inspection.Fishing.SearchLabel.RepeatCount>
+  <RimWorldAccess.Inspection.Fishing.SearchLabel.TargetCount>Target count</RimWorldAccess.Inspection.Fishing.SearchLabel.TargetCount>
+  <RimWorldAccess.Inspection.Fishing.SearchLabel.CurrentlyHave>Currently have</RimWorldAccess.Inspection.Fishing.SearchLabel.CurrentlyHave>
+  <RimWorldAccess.Inspection.Fishing.SearchLabel.PauseWhenSatisfied>Pause when satisfied</RimWorldAccess.Inspection.Fishing.SearchLabel.PauseWhenSatisfied>
+  <RimWorldAccess.Inspection.Fishing.SearchLabel.UnpauseAt>Unpause at</RimWorldAccess.Inspection.Fishing.SearchLabel.UnpauseAt>
+  <RimWorldAccess.Inspection.Fishing.SearchLabel.MinimumPopulation>Minimum population</RimWorldAccess.Inspection.Fishing.SearchLabel.MinimumPopulation>
+  <RimWorldAccess.Inspection.Fishing.SearchLabel.FishSpecies>Fish species</RimWorldAccess.Inspection.Fishing.SearchLabel.FishSpecies>
+
+  <RimWorldAccess.Inspection.Fishing.Status.NoWaterBody>Zone info: No water body found</RimWorldAccess.Inspection.Fishing.Status.NoWaterBody>
+  <RimWorldAccess.Inspection.Fishing.Status.UnableToRead>Zone info: Unable to read</RimWorldAccess.Inspection.Fishing.Status.UnableToRead>
+  <RimWorldAccess.Inspection.Fishing.Status.Detail>Zone info: {0}, {1}/{2} fish ({3})</RimWorldAccess.Inspection.Fishing.Status.Detail>
+  <RimWorldAccess.Inspection.Fishing.Status.PopulationVeryLow>very low</RimWorldAccess.Inspection.Fishing.Status.PopulationVeryLow>
+  <RimWorldAccess.Inspection.Fishing.Status.PopulationLow>low</RimWorldAccess.Inspection.Fishing.Status.PopulationLow>
+  <RimWorldAccess.Inspection.Fishing.Status.PopulationModerate>moderate</RimWorldAccess.Inspection.Fishing.Status.PopulationModerate>
+  <RimWorldAccess.Inspection.Fishing.Status.PopulationHealthy>healthy</RimWorldAccess.Inspection.Fishing.Status.PopulationHealthy>
+  <RimWorldAccess.Inspection.Fishing.Status.UnknownFishType>Unknown</RimWorldAccess.Inspection.Fishing.Status.UnknownFishType>
+
+  <RimWorldAccess.Inspection.Fishing.Label.AllowFishing>Allow fishing: {0}</RimWorldAccess.Inspection.Fishing.Label.AllowFishing>
+  <RimWorldAccess.Inspection.Fishing.Label.RepeatMode>Repeat mode: {0}</RimWorldAccess.Inspection.Fishing.Label.RepeatMode>
+  <RimWorldAccess.Inspection.Fishing.Label.RepeatModeDoForever>Do forever</RimWorldAccess.Inspection.Fishing.Label.RepeatModeDoForever>
+  <RimWorldAccess.Inspection.Fishing.Label.RepeatModeRepeatCount>Repeat count</RimWorldAccess.Inspection.Fishing.Label.RepeatModeRepeatCount>
+  <RimWorldAccess.Inspection.Fishing.Label.RepeatModeTargetCount>Target count</RimWorldAccess.Inspection.Fishing.Label.RepeatModeTargetCount>
+  <RimWorldAccess.Inspection.Fishing.Label.RepeatModeUnknown>Unknown</RimWorldAccess.Inspection.Fishing.Label.RepeatModeUnknown>
+  <RimWorldAccess.Inspection.Fishing.Label.RepeatCount>Repeat count: {0}</RimWorldAccess.Inspection.Fishing.Label.RepeatCount>
+  <RimWorldAccess.Inspection.Fishing.Label.TargetCount>Target count: {0}</RimWorldAccess.Inspection.Fishing.Label.TargetCount>
+  <RimWorldAccess.Inspection.Fishing.Label.CurrentlyHave>Currently have: {0}</RimWorldAccess.Inspection.Fishing.Label.CurrentlyHave>
+  <RimWorldAccess.Inspection.Fishing.Label.PauseWhenSatisfied>Pause when satisfied: {0}</RimWorldAccess.Inspection.Fishing.Label.PauseWhenSatisfied>
+  <RimWorldAccess.Inspection.Fishing.Label.UnpauseAt>Unpause at: {0}</RimWorldAccess.Inspection.Fishing.Label.UnpauseAt>
+  <RimWorldAccess.Inspection.Fishing.Label.MinimumPopulation>Minimum population: {0}% ({1} fish)</RimWorldAccess.Inspection.Fishing.Label.MinimumPopulation>
+  <RimWorldAccess.Inspection.Fishing.Label.MinimumPopulationValue>{0}% ({1} fish)</RimWorldAccess.Inspection.Fishing.Label.MinimumPopulationValue>
+  <RimWorldAccess.Inspection.Fishing.Label.FishSpecies>Fish species ({0}), {1}</RimWorldAccess.Inspection.Fishing.Label.FishSpecies>
+  <RimWorldAccess.Inspection.Fishing.Label.UncommonSuffix> (uncommon)</RimWorldAccess.Inspection.Fishing.Label.UncommonSuffix>
+
+  <RimWorldAccess.Inspection.Fishing.Action.AlreadyExpanded>Already expanded</RimWorldAccess.Inspection.Fishing.Action.AlreadyExpanded>
+  <RimWorldAccess.Inspection.Fishing.Action.AlreadyCollapsed>Already collapsed</RimWorldAccess.Inspection.Fishing.Action.AlreadyCollapsed>
+  <RimWorldAccess.Inspection.Fishing.Action.PressAltIToViewFishInfo>Press Alt+I to view fish info</RimWorldAccess.Inspection.Fishing.Action.PressAltIToViewFishInfo>
+  <RimWorldAccess.Inspection.Fishing.Action.UseEnterToActivate>Use Enter to activate</RimWorldAccess.Inspection.Fishing.Action.UseEnterToActivate>
+  <RimWorldAccess.Inspection.Fishing.Action.ExpandedFishSpeciesOne>Expanded, {0} fish species</RimWorldAccess.Inspection.Fishing.Action.ExpandedFishSpeciesOne>
+  <RimWorldAccess.Inspection.Fishing.Action.ExpandedFishSpeciesMany>Expanded, {0} fish species</RimWorldAccess.Inspection.Fishing.Action.ExpandedFishSpeciesMany>
+  <RimWorldAccess.Inspection.Fishing.Action.Collapsed>Collapsed</RimWorldAccess.Inspection.Fishing.Action.Collapsed>
+  <RimWorldAccess.Inspection.Fishing.Action.UseRightLeftToExpand>Use Right arrow to expand, Left to collapse</RimWorldAccess.Inspection.Fishing.Action.UseRightLeftToExpand>
+  <RimWorldAccess.Inspection.Fishing.Action.UseLeftRightToAdjust>Use left/right arrows to adjust</RimWorldAccess.Inspection.Fishing.Action.UseLeftRightToAdjust>
+  <RimWorldAccess.Inspection.Fishing.Action.NotAdjustable>This item cannot be adjusted</RimWorldAccess.Inspection.Fishing.Action.NotAdjustable>
+  <RimWorldAccess.Inspection.Fishing.Action.FieldNotAdjustable>This field cannot be adjusted</RimWorldAccess.Inspection.Fishing.Action.FieldNotAdjustable>
+  <RimWorldAccess.Inspection.Fishing.Action.NoMaximumLimit>No maximum limit. Use numeric input for large values.</RimWorldAccess.Inspection.Fishing.Action.NoMaximumLimit>
+  <RimWorldAccess.Inspection.Fishing.Action.FishingAllowed>Fishing allowed</RimWorldAccess.Inspection.Fishing.Action.FishingAllowed>
+  <RimWorldAccess.Inspection.Fishing.Action.FishingForbidden>Fishing forbidden</RimWorldAccess.Inspection.Fishing.Action.FishingForbidden>
+  <RimWorldAccess.Inspection.Fishing.Action.PauseEnabled>Pause when satisfied enabled</RimWorldAccess.Inspection.Fishing.Action.PauseEnabled>
+  <RimWorldAccess.Inspection.Fishing.Action.PauseDisabled>Pause when satisfied disabled</RimWorldAccess.Inspection.Fishing.Action.PauseDisabled>
+  <RimWorldAccess.Inspection.Fishing.Action.SelectFishSpeciesFirst>Select a fish species first</RimWorldAccess.Inspection.Fishing.Action.SelectFishSpeciesFirst>
+  <RimWorldAccess.Inspection.Fishing.Action.OpeningInfoCard>Opening info card for {0}</RimWorldAccess.Inspection.Fishing.Action.OpeningInfoCard>
+
+  <RimWorldAccess.Inspection.Fishing.Numeric.Prompt>Type a number, then press Enter to confirm or Escape to cancel</RimWorldAccess.Inspection.Fishing.Numeric.Prompt>
+  <RimWorldAccess.Inspection.Fishing.Numeric.Empty>Empty</RimWorldAccess.Inspection.Fishing.Numeric.Empty>
+  <RimWorldAccess.Inspection.Fishing.Numeric.InvalidNumber>Invalid number</RimWorldAccess.Inspection.Fishing.Numeric.InvalidNumber>
+  <RimWorldAccess.Inspection.Fishing.Numeric.Cancelled>Cancelled</RimWorldAccess.Inspection.Fishing.Numeric.Cancelled>
+  <RimWorldAccess.Inspection.Fishing.Numeric.NotApplicable>Cannot apply numeric value to this field</RimWorldAccess.Inspection.Fishing.Numeric.NotApplicable>
+
   <!-- Power. PowerStatus: {0} = vanilla "Power", {1} = vanilla "On"/"Off".
        PowerConsumption: {0} = wattage. -->
   <RimWorldAccess.Inspection.Building.PowerStatus>{0}: {1}</RimWorldAccess.Inspection.Building.PowerStatus>

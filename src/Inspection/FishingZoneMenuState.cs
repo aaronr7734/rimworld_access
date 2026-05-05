@@ -150,7 +150,7 @@ namespace RimWorldAccess
 
             if (!InitializeReflection())
             {
-                TolkHelper.Speak("Fishing zone settings not available - Odyssey DLC may not be installed");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.NotAvailable".Translate());
                 return;
             }
 
@@ -192,13 +192,19 @@ namespace RimWorldAccess
 
             // Zone status (read-only) - tooltip from "FishPopulationDesc"
             string fishPopTooltip = "FishPopulationDesc".Translate();
-            menuItems.Add(new MenuItem(MenuItemType.ZoneStatus, GetZoneStatusLabel(), "Zone status", null, false, indent: 0, tooltip: fishPopTooltip));
+            menuItems.Add(new MenuItem(MenuItemType.ZoneStatus, GetZoneStatusLabel(),
+                "RimWorldAccess.Inspection.Fishing.SearchLabel.ZoneStatus".Translate(),
+                null, false, indent: 0, tooltip: fishPopTooltip));
 
             // Allow/Forbid toggle
-            menuItems.Add(new MenuItem(MenuItemType.AllowToggle, GetAllowLabel(), "Allow fishing", null, true));
+            menuItems.Add(new MenuItem(MenuItemType.AllowToggle, GetAllowLabel(),
+                "RimWorldAccess.Inspection.Fishing.SearchLabel.AllowFishing".Translate(),
+                null, true));
 
             // Repeat mode
-            menuItems.Add(new MenuItem(MenuItemType.RepeatMode, GetRepeatModeLabel(), "Repeat mode", null, true));
+            menuItems.Add(new MenuItem(MenuItemType.RepeatMode, GetRepeatModeLabel(),
+                "RimWorldAccess.Inspection.Fishing.SearchLabel.RepeatMode".Translate(),
+                null, true));
 
             // Conditional items based on repeat mode
             object repeatMode = repeatModeField?.GetValue(fishingZone);
@@ -206,42 +212,59 @@ namespace RimWorldAccess
             if (repeatMode != null && repeatMode.Equals(repeatCountValue))
             {
                 // Repeat count (only if mode is RepeatCount)
-                menuItems.Add(new MenuItem(MenuItemType.RepeatCount, GetRepeatCountLabel(), "Repeat count", null, true));
+                menuItems.Add(new MenuItem(MenuItemType.RepeatCount, GetRepeatCountLabel(),
+                    "RimWorldAccess.Inspection.Fishing.SearchLabel.RepeatCount".Translate(),
+                    null, true));
             }
 
             if (repeatMode != null && repeatMode.Equals(targetCountValue))
             {
                 // Target count
-                menuItems.Add(new MenuItem(MenuItemType.TargetCount, GetTargetCountLabel(), "Target count", null, true));
+                menuItems.Add(new MenuItem(MenuItemType.TargetCount, GetTargetCountLabel(),
+                    "RimWorldAccess.Inspection.Fishing.SearchLabel.TargetCount".Translate(),
+                    null, true));
 
                 // Currently have (read-only)
-                menuItems.Add(new MenuItem(MenuItemType.CurrentlyHave, GetCurrentlyHaveLabel(), "Currently have", null, false));
+                menuItems.Add(new MenuItem(MenuItemType.CurrentlyHave, GetCurrentlyHaveLabel(),
+                    "RimWorldAccess.Inspection.Fishing.SearchLabel.CurrentlyHave".Translate(),
+                    null, false));
 
                 // Pause when satisfied
-                menuItems.Add(new MenuItem(MenuItemType.PauseWhenSatisfied, GetPauseWhenSatisfiedLabel(), "Pause when satisfied", null, true));
+                menuItems.Add(new MenuItem(MenuItemType.PauseWhenSatisfied, GetPauseWhenSatisfiedLabel(),
+                    "RimWorldAccess.Inspection.Fishing.SearchLabel.PauseWhenSatisfied".Translate(),
+                    null, true));
 
                 // Unpause at (only if pause is enabled)
                 bool pauseWhenSatisfied = pauseWhenSatisfiedField != null && (bool)pauseWhenSatisfiedField.GetValue(fishingZone);
                 if (pauseWhenSatisfied)
                 {
-                    menuItems.Add(new MenuItem(MenuItemType.UnpauseAt, GetUnpauseAtLabel(), "Unpause at", null, true));
+                    menuItems.Add(new MenuItem(MenuItemType.UnpauseAt, GetUnpauseAtLabel(),
+                        "RimWorldAccess.Inspection.Fishing.SearchLabel.UnpauseAt".Translate(),
+                        null, true));
                 }
             }
 
             // Minimum population slider - tooltip from "MinimumPopulationDesc"
             string minPopTooltip = "MinimumPopulationDesc".Translate();
-            menuItems.Add(new MenuItem(MenuItemType.MinimumPopulation, GetMinPopulationLabel(), "Minimum population", null, true, indent: 0, tooltip: minPopTooltip));
+            menuItems.Add(new MenuItem(MenuItemType.MinimumPopulation, GetMinPopulationLabel(),
+                "RimWorldAccess.Inspection.Fishing.SearchLabel.MinimumPopulation".Translate(),
+                null, true, indent: 0, tooltip: minPopTooltip));
 
             // Fish species (expandable) - indent level 0
-            menuItems.Add(new MenuItem(MenuItemType.FishSpecies, GetFishSpeciesLabel(), "Fish species", null, true, indent: 0));
+            menuItems.Add(new MenuItem(MenuItemType.FishSpecies, GetFishSpeciesLabel(),
+                "RimWorldAccess.Inspection.Fishing.SearchLabel.FishSpecies".Translate(),
+                null, true, indent: 0));
 
             // Add fish species items if expanded - indent level 1
             if (fishSpeciesExpanded && fishSpeciesList != null)
             {
                 foreach (var fish in fishSpeciesList)
                 {
-                    string uncommonMarker = IsUncommonFish(fish) ? " (uncommon)" : "";
-                    menuItems.Add(new MenuItem(MenuItemType.FishSpeciesItem, $"{fish.LabelCap}{uncommonMarker}", fish.LabelCap, fish, false, indent: 1));
+                    string uncommonMarker = IsUncommonFish(fish)
+                        ? "RimWorldAccess.Inspection.Fishing.Label.UncommonSuffix".Translate().ToString()
+                        : "";
+                    menuItems.Add(new MenuItem(MenuItemType.FishSpeciesItem,
+                        $"{fish.LabelCap}{uncommonMarker}", fish.LabelCap, fish, false, indent: 1));
                 }
             }
         }
@@ -254,78 +277,81 @@ namespace RimWorldAccess
             {
                 var waterBody = GetWaterBody();
                 if (waterBody == null)
-                    return "Zone info: No water body found";
+                    return "RimWorldAccess.Inspection.Fishing.Status.NoWaterBody".Translate();
 
                 int population = Mathf.RoundToInt(waterBody.Population);
                 int maxPop = Mathf.RoundToInt(waterBody.MaxPopulation);
 
                 object fishTypeValue = fishTypeProp?.GetValue(fishingZone);
-                string fishType = fishTypeValue?.ToString() ?? "Unknown";
+                string fishType = fishTypeValue?.ToString()
+                    ?? "RimWorldAccess.Inspection.Fishing.Status.UnknownFishType".Translate().ToString();
 
                 // Determine population status
-                string status;
+                string statusKey;
                 float ratio = maxPop > 0 ? (float)population / maxPop : 0;
-                if (ratio < 0.25f) status = "very low";
-                else if (ratio < 0.5f) status = "low";
-                else if (ratio < 0.75f) status = "moderate";
-                else status = "healthy";
+                if (ratio < 0.25f) statusKey = "RimWorldAccess.Inspection.Fishing.Status.PopulationVeryLow";
+                else if (ratio < 0.5f) statusKey = "RimWorldAccess.Inspection.Fishing.Status.PopulationLow";
+                else if (ratio < 0.75f) statusKey = "RimWorldAccess.Inspection.Fishing.Status.PopulationModerate";
+                else statusKey = "RimWorldAccess.Inspection.Fishing.Status.PopulationHealthy";
 
-                return $"Zone info: {fishType}, {population}/{maxPop} fish ({status})";
+                return "RimWorldAccess.Inspection.Fishing.Status.Detail".Translate(
+                    fishType, population, maxPop, statusKey.Translate());
             }
             catch (Exception ex)
             {
                 Log.Warning($"[RimWorld Access] Error getting zone status: {ex.Message}");
-                return "Zone info: Unable to read";
+                return "RimWorldAccess.Inspection.Fishing.Status.UnableToRead".Translate();
             }
         }
 
         private static string GetAllowLabel()
         {
             bool allowed = allowedProp != null && (bool)allowedProp.GetValue(fishingZone);
-            return $"Allow fishing: {(allowed ? "Yes" : "No")}";
+            return "RimWorldAccess.Inspection.Fishing.Label.AllowFishing".Translate(YesNoLabel(allowed));
         }
 
         private static string GetRepeatModeLabel()
         {
             object repeatMode = repeatModeField?.GetValue(fishingZone);
-            string modeName = repeatMode?.ToString() ?? "Unknown";
+            string modeName = repeatMode?.ToString();
 
-            // Make mode name more readable
-            if (modeName == "DoForever") modeName = "Do forever";
-            else if (modeName == "RepeatCount") modeName = "Repeat count";
-            else if (modeName == "TargetCount") modeName = "Target count";
+            string nameKey;
+            if (modeName == "DoForever") nameKey = "RimWorldAccess.Inspection.Fishing.Label.RepeatModeDoForever";
+            else if (modeName == "RepeatCount") nameKey = "RimWorldAccess.Inspection.Fishing.Label.RepeatModeRepeatCount";
+            else if (modeName == "TargetCount") nameKey = "RimWorldAccess.Inspection.Fishing.Label.RepeatModeTargetCount";
+            else nameKey = "RimWorldAccess.Inspection.Fishing.Label.RepeatModeUnknown";
 
-            return $"Repeat mode: {modeName}";
+            return "RimWorldAccess.Inspection.Fishing.Label.RepeatMode".Translate(nameKey.Translate());
         }
 
         private static string GetRepeatCountLabel()
         {
             int count = repeatCountField != null ? (int)repeatCountField.GetValue(fishingZone) : 0;
-            return $"Repeat count: {count}";
+            return "RimWorldAccess.Inspection.Fishing.Label.RepeatCount".Translate(count);
         }
 
         private static string GetTargetCountLabel()
         {
             int count = targetCountField != null ? (int)targetCountField.GetValue(fishingZone) : 0;
-            return $"Target count: {count}";
+            return "RimWorldAccess.Inspection.Fishing.Label.TargetCount".Translate(count);
         }
 
         private static string GetCurrentlyHaveLabel()
         {
             int count = ownedFishCountProp != null ? (int)ownedFishCountProp.GetValue(fishingZone) : 0;
-            return $"Currently have: {count}";
+            return "RimWorldAccess.Inspection.Fishing.Label.CurrentlyHave".Translate(count);
         }
 
         private static string GetPauseWhenSatisfiedLabel()
         {
             bool pause = pauseWhenSatisfiedField != null && (bool)pauseWhenSatisfiedField.GetValue(fishingZone);
-            return $"Pause when satisfied: {(pause ? "Yes" : "No")}";
+            return "RimWorldAccess.Inspection.Fishing.Label.PauseWhenSatisfied".Translate(YesNoLabel(pause));
         }
 
         private static string GetUnpauseAtLabel()
         {
             int count = unpauseAtCountField != null ? (int)unpauseAtCountField.GetValue(fishingZone) : 0;
-            return $"Unpause at: {count}";
+            return "RimWorldAccess.Inspection.Fishing.Label.UnpauseAt".Translate(count);
         }
 
         private static string GetMinPopulationLabel()
@@ -338,14 +364,34 @@ namespace RimWorldAccess
             int maxPop = waterBody != null ? Mathf.RoundToInt(waterBody.MaxPopulation) : 0;
             int fishAtThreshold = Mathf.RoundToInt(pct * maxPop);
 
-            return $"Minimum population: {pctInt}% ({fishAtThreshold} fish)";
+            return "RimWorldAccess.Inspection.Fishing.Label.MinimumPopulation".Translate(pctInt, fishAtThreshold);
         }
 
         private static string GetFishSpeciesLabel()
         {
             int count = GetFishSpeciesCount();
-            string expandState = fishSpeciesExpanded ? "expanded" : "collapsed";
-            return $"Fish species ({count}), {expandState}";
+            string expandState = (fishSpeciesExpanded
+                ? "RimWorldAccess.Tree.StateExpanded"
+                : "RimWorldAccess.Tree.StateCollapsed").Translate();
+            return "RimWorldAccess.Inspection.Fishing.Label.FishSpecies".Translate(count, expandState);
+        }
+
+        /// <summary>
+        /// Returns the localized "Yes" or "No" label (vanilla keys).
+        /// </summary>
+        private static string YesNoLabel(bool value)
+        {
+            return (value ? "Yes" : "No").Translate();
+        }
+
+        /// <summary>
+        /// Returns the bare "{0}% ({1} fish)" value used by the numeric stepper
+        /// boundary announcements; matches the value section of
+        /// Label.MinimumPopulation without the leading "Minimum population: ".
+        /// </summary>
+        private static string FormatMinPopulationValue(int pctInt, int fishAtThreshold)
+        {
+            return "RimWorldAccess.Inspection.Fishing.Label.MinimumPopulationValue".Translate(pctInt, fishAtThreshold);
         }
 
         #endregion
@@ -570,7 +616,7 @@ namespace RimWorldAccess
 
             if (!item.isEditable)
             {
-                TolkHelper.Speak("This item cannot be adjusted", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.NotAdjustable".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -608,11 +654,11 @@ namespace RimWorldAccess
                     }
                     else if (direction > 0 && fishSpeciesExpanded)
                     {
-                        TolkHelper.Speak("Already expanded");
+                        TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.AlreadyExpanded".Translate());
                     }
                     else if (direction < 0 && !fishSpeciesExpanded)
                     {
-                        TolkHelper.Speak("Already collapsed");
+                        TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.AlreadyCollapsed".Translate());
                     }
                     break;
 
@@ -624,12 +670,12 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("Press Alt+I to view fish info");
+                        TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.PressAltIToViewFishInfo".Translate());
                     }
                     break;
 
                 default:
-                    TolkHelper.Speak("Use Enter to activate");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.UseEnterToActivate".Translate());
                     break;
             }
         }
@@ -639,7 +685,11 @@ namespace RimWorldAccess
             fishSpeciesExpanded = true;
             LoadFishSpeciesList();
             BuildMenuItems();
-            TolkHelper.Speak($"Expanded, {fishSpeciesList?.Count ?? 0} fish species");
+            int speciesCount = fishSpeciesList?.Count ?? 0;
+            string countKey = speciesCount == 1
+                ? "RimWorldAccess.Inspection.Fishing.Action.ExpandedFishSpeciesOne"
+                : "RimWorldAccess.Inspection.Fishing.Action.ExpandedFishSpeciesMany";
+            TolkHelper.Speak(countKey.Translate(speciesCount));
             AnnounceCurrentSelection();
         }
 
@@ -653,7 +703,7 @@ namespace RimWorldAccess
             {
                 selectedIndex = fishSpeciesIndex;
             }
-            TolkHelper.Speak("Collapsed");
+            TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.Collapsed".Translate());
             AnnounceCurrentSelection();
         }
 
@@ -829,18 +879,19 @@ namespace RimWorldAccess
 
             int pctInt = Mathf.RoundToInt(newValue * 100f);
             int fishAtThreshold = Mathf.RoundToInt(newValue * maxPop);
+            string valueLabel = FormatMinPopulationValue(pctInt, fishAtThreshold);
 
             if (Mathf.Approximately(newValue, minPct) && direction < 0)
             {
-                NumericStepperHelper.SpeakValueAtMinimum($"{pctInt}% ({fishAtThreshold} fish)");
+                NumericStepperHelper.SpeakValueAtMinimum(valueLabel);
             }
             else if (Mathf.Approximately(newValue, 1.0f) && direction > 0)
             {
-                NumericStepperHelper.SpeakValueAtMaximum($"{pctInt}% ({fishAtThreshold} fish)");
+                NumericStepperHelper.SpeakValueAtMaximum(valueLabel);
             }
             else
             {
-                TolkHelper.Speak($"{pctInt}% ({fishAtThreshold} fish)");
+                TolkHelper.Speak(valueLabel);
             }
 
             menuItems[selectedIndex].label = GetMinPopulationLabel();
@@ -929,13 +980,13 @@ namespace RimWorldAccess
                         targetPopulationPctField.SetValue(fishingZone, minPct);
                         int pctInt = Mathf.RoundToInt(minPct * 100f);
                         int fishAtThreshold = Mathf.RoundToInt(minPct * maxPop);
-                        NumericStepperHelper.SpeakValueAtMinimum($"{pctInt}% ({fishAtThreshold} fish)");
+                        NumericStepperHelper.SpeakValueAtMinimum(FormatMinPopulationValue(pctInt, fishAtThreshold));
                         menuItems[selectedIndex].label = GetMinPopulationLabel();
                     }
                     break;
 
                 default:
-                    TolkHelper.Speak("This field cannot be adjusted");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.FieldNotAdjustable".Translate());
                     break;
             }
         }
@@ -951,7 +1002,7 @@ namespace RimWorldAccess
             {
                 case MenuItemType.RepeatCount:
                 case MenuItemType.TargetCount:
-                    TolkHelper.Speak("No maximum limit. Use numeric input for large values.");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.NoMaximumLimit".Translate());
                     break;
 
                 case MenuItemType.UnpauseAt:
@@ -989,7 +1040,7 @@ namespace RimWorldAccess
                     break;
 
                 default:
-                    TolkHelper.Speak("This field cannot be adjusted");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.FieldNotAdjustable".Translate());
                     break;
             }
         }
@@ -1017,7 +1068,7 @@ namespace RimWorldAccess
 
                 case MenuItemType.FishSpecies:
                     // Treeview pattern: Use Right to expand, Left to collapse
-                    TolkHelper.Speak("Use Right arrow to expand, Left to collapse");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.UseRightLeftToExpand".Translate());
                     break;
 
                 case MenuItemType.FishSpeciesItem:
@@ -1026,7 +1077,7 @@ namespace RimWorldAccess
                     break;
 
                 default:
-                    TolkHelper.Speak("Use left/right arrows to adjust");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.UseLeftRightToAdjust".Translate());
                     break;
             }
         }
@@ -1039,7 +1090,10 @@ namespace RimWorldAccess
             bool current = allowedProp != null ? (bool)allowedProp.GetValue(fishingZone) : (bool)allowedField.GetValue(fishingZone);
             allowedField.SetValue(fishingZone, !current);
             BuildMenuItems();
-            TolkHelper.Speak(!current ? "Fishing allowed" : "Fishing forbidden");
+            string toggleKey = !current
+                ? "RimWorldAccess.Inspection.Fishing.Action.FishingAllowed"
+                : "RimWorldAccess.Inspection.Fishing.Action.FishingForbidden";
+            TolkHelper.Speak(toggleKey.Translate());
             AnnounceCurrentSelection();
         }
 
@@ -1063,7 +1117,10 @@ namespace RimWorldAccess
             }
 
             BuildMenuItems();
-            TolkHelper.Speak(!current ? "Pause when satisfied enabled" : "Pause when satisfied disabled");
+            string pauseKey = !current
+                ? "RimWorldAccess.Inspection.Fishing.Action.PauseEnabled"
+                : "RimWorldAccess.Inspection.Fishing.Action.PauseDisabled";
+            TolkHelper.Speak(pauseKey.Translate());
             AnnounceCurrentSelection();
         }
 
@@ -1078,7 +1135,7 @@ namespace RimWorldAccess
             MenuItem item = menuItems[selectedIndex];
             if (item.type != MenuItemType.FishSpeciesItem || item.data == null)
             {
-                TolkHelper.Speak("Select a fish species first");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.SelectFishSpeciesFirst".Translate());
                 return;
             }
 
@@ -1086,7 +1143,7 @@ namespace RimWorldAccess
             if (fishDef != null)
             {
                 Find.WindowStack.Add(new Dialog_InfoCard(fishDef));
-                TolkHelper.Speak($"Opening info card for {fishDef.LabelCap}");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.OpeningInfoCard".Translate(fishDef.LabelCap));
             }
         }
 
@@ -1113,7 +1170,7 @@ namespace RimWorldAccess
 
             numericBuffer = "";
             isNumericInputMode = true;
-            TolkHelper.Speak("Type a number, then press Enter to confirm or Escape to cancel");
+            TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Numeric.Prompt".Translate());
         }
 
         public static void HandleNumericDigit(char digit)
@@ -1135,7 +1192,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("Empty", SpeechPriority.Low);
+                TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Numeric.Empty".Translate(), SpeechPriority.Low);
             }
         }
 
@@ -1149,7 +1206,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("Invalid number");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Numeric.InvalidNumber".Translate());
             }
 
             isNumericInputMode = false;
@@ -1160,7 +1217,7 @@ namespace RimWorldAccess
         {
             isNumericInputMode = false;
             numericBuffer = "";
-            TolkHelper.Speak("Cancelled");
+            TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Numeric.Cancelled".Translate());
         }
 
         private static void ApplyNumericValue(int value)
@@ -1217,7 +1274,7 @@ namespace RimWorldAccess
                     break;
 
                 default:
-                    TolkHelper.Speak("Cannot apply numeric value to this field");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Numeric.NotApplicable".Translate());
                     break;
             }
         }
