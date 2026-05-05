@@ -159,6 +159,64 @@
   <!-- Owner assignment (non-bed CompAssignableToPawn). -->
   <RimWorldAccess.Inspection.Building.NoOwnerAssignment>This building does not support owner assignment.</RimWorldAccess.Inspection.Building.NoOwnerAssignment>
 
+  <!-- BuildingOwnerAssignmentState: keyboard-driven assign/unassign menu
+       for non-bed CompAssignableToPawn (thrones, graves, meditation
+       spots, etc.). MainMenu.* are the three top-level menu options;
+       the C# code dispatches on an enum so the labels can vary per
+       language. {0} = building label, {1} = comma-joined assigned names,
+       {2} = currently-highlighted option label.
+       AssignReason.* are short parenthetical hints that describe why a
+       candidate cannot be assigned right now. ResultAssigned /
+       ResultUnassigned: {0} = pawn short-name, {1} = building label.
+       Failure forms cover the cases where TryAssignPawn /
+       TryUnassignPawn does not actually move the pawn into / out of the
+       owner list. -->
+  <RimWorldAccess.Inspection.OwnerAssignment.MainMenu.AssignOwner>Assign owner</RimWorldAccess.Inspection.OwnerAssignment.MainMenu.AssignOwner>
+  <RimWorldAccess.Inspection.OwnerAssignment.MainMenu.UnassignOwner>Unassign owner</RimWorldAccess.Inspection.OwnerAssignment.MainMenu.UnassignOwner>
+  <RimWorldAccess.Inspection.OwnerAssignment.MainMenu.CloseMenu>Close menu</RimWorldAccess.Inspection.OwnerAssignment.MainMenu.CloseMenu>
+  <RimWorldAccess.Inspection.OwnerAssignment.MainAnnouncement.Assigned>{0}. Assigned to: {1}. {2}</RimWorldAccess.Inspection.OwnerAssignment.MainAnnouncement.Assigned>
+  <RimWorldAccess.Inspection.OwnerAssignment.MainAnnouncement.Unassigned>{0}. Unassigned. {1}</RimWorldAccess.Inspection.OwnerAssignment.MainAnnouncement.Unassigned>
+  <RimWorldAccess.Inspection.OwnerAssignment.MenuClosed>Assignment menu closed</RimWorldAccess.Inspection.OwnerAssignment.MenuClosed>
+
+  <RimWorldAccess.Inspection.OwnerAssignment.CannotAssignBuilding>Cannot assign owners to this building</RimWorldAccess.Inspection.OwnerAssignment.CannotAssignBuilding>
+  <RimWorldAccess.Inspection.OwnerAssignment.CannotUnassignBuilding>Cannot unassign owners from this building</RimWorldAccess.Inspection.OwnerAssignment.CannotUnassignBuilding>
+  <RimWorldAccess.Inspection.OwnerAssignment.NoCandidates>No available pawns to assign</RimWorldAccess.Inspection.OwnerAssignment.NoCandidates>
+  <RimWorldAccess.Inspection.OwnerAssignment.NoneAssigned>No pawns assigned to this building</RimWorldAccess.Inspection.OwnerAssignment.NoneAssigned>
+  <RimWorldAccess.Inspection.OwnerAssignment.CannotAssignOwner>Cannot assign owner</RimWorldAccess.Inspection.OwnerAssignment.CannotAssignOwner>
+  <RimWorldAccess.Inspection.OwnerAssignment.CannotUnassignOwner>Cannot unassign owner</RimWorldAccess.Inspection.OwnerAssignment.CannotUnassignOwner>
+
+  <!-- AssignReason suffixes are appended to the candidate row label.
+       The leading space is part of the value. CannotAssignWithReason:
+       {0} = StripTags(report.Reason). -->
+  <RimWorldAccess.Inspection.OwnerAssignment.AssignReason.CannotAssign> (Cannot assign)</RimWorldAccess.Inspection.OwnerAssignment.AssignReason.CannotAssign>
+  <RimWorldAccess.Inspection.OwnerAssignment.AssignReason.CannotAssignWithReason> ({0})</RimWorldAccess.Inspection.OwnerAssignment.AssignReason.CannotAssignWithReason>
+  <RimWorldAccess.Inspection.OwnerAssignment.AssignReason.IdeologyForbids> (Ideology forbids)</RimWorldAccess.Inspection.OwnerAssignment.AssignReason.IdeologyForbids>
+  <RimWorldAccess.Inspection.OwnerAssignment.AssignReason.HasOtherAssignment> (Has other assignment)</RimWorldAccess.Inspection.OwnerAssignment.AssignReason.HasOtherAssignment>
+
+  <!-- Submenu announcements ("Assign owner - first option"). The first
+       form lists the picker's first option immediately so screen reader
+       users know the submenu opened. {0} = first candidate / first
+       assigned pawn label. -->
+  <RimWorldAccess.Inspection.OwnerAssignment.AssignSubmenu.Announce>Assign owner - {0}</RimWorldAccess.Inspection.OwnerAssignment.AssignSubmenu.Announce>
+  <RimWorldAccess.Inspection.OwnerAssignment.UnassignSubmenu.Announce>Unassign owner - {0}</RimWorldAccess.Inspection.OwnerAssignment.UnassignSubmenu.Announce>
+  <!-- Item announcements while inside the submenus. {0} = pawn label. -->
+  <RimWorldAccess.Inspection.OwnerAssignment.AssignSubmenu.Item>Assign: {0}</RimWorldAccess.Inspection.OwnerAssignment.AssignSubmenu.Item>
+  <RimWorldAccess.Inspection.OwnerAssignment.UnassignSubmenu.Item>Unassign: {0}</RimWorldAccess.Inspection.OwnerAssignment.UnassignSubmenu.Item>
+
+  <!-- Cannot-assign rejection messages (when the user actually tries to
+       assign a flagged candidate). {0} = pawn label, {1} = stripped
+       reason. -->
+  <RimWorldAccess.Inspection.OwnerAssignment.CannotAssignPawn>Cannot assign {0} to this building</RimWorldAccess.Inspection.OwnerAssignment.CannotAssignPawn>
+  <RimWorldAccess.Inspection.OwnerAssignment.CannotAssignPawnWithReason>Cannot assign {0}: {1}</RimWorldAccess.Inspection.OwnerAssignment.CannotAssignPawnWithReason>
+  <RimWorldAccess.Inspection.OwnerAssignment.IdeologyForbidsPawn>Ideology forbids {0} from using this building</RimWorldAccess.Inspection.OwnerAssignment.IdeologyForbidsPawn>
+
+  <!-- Result announcements after the assignment actually changed (or
+       failed to change). {0} = pawn label, {1} = building label. -->
+  <RimWorldAccess.Inspection.OwnerAssignment.ResultAssigned>{0} assigned to {1}</RimWorldAccess.Inspection.OwnerAssignment.ResultAssigned>
+  <RimWorldAccess.Inspection.OwnerAssignment.ResultUnassigned>{0} unassigned from {1}</RimWorldAccess.Inspection.OwnerAssignment.ResultUnassigned>
+  <RimWorldAccess.Inspection.OwnerAssignment.ResultAssignFailed>Failed to assign {0}</RimWorldAccess.Inspection.OwnerAssignment.ResultAssignFailed>
+  <RimWorldAccess.Inspection.OwnerAssignment.ResultUnassignFailed>Failed to unassign {0}</RimWorldAccess.Inspection.OwnerAssignment.ResultUnassignFailed>
+
   <!-- Meditation focus. NoMeditationFocus: {0} = search-radius cells. -->
   <RimWorldAccess.Inspection.Building.NoMeditationInfo>No meditation focus information available.</RimWorldAccess.Inspection.Building.NoMeditationInfo>
   <RimWorldAccess.Inspection.Building.NoMeditationFocus>No meditation focus objects nearby. Place focus objects within {0} cells.</RimWorldAccess.Inspection.Building.NoMeditationFocus>

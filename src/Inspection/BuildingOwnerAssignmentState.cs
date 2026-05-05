@@ -19,12 +19,20 @@ namespace RimWorldAccess
             UnassignMenu
         }
 
+        private enum MainAction
+        {
+            AssignOwner,
+            UnassignOwner,
+            CloseMenu
+        }
+
         private static bool isActive = false;
         private static ThingWithComps selectedBuilding = null;
         private static CompAssignableToPawn selectedComp = null;
         private static MenuLevel currentMenuLevel = MenuLevel.MainMenu;
         private static int selectedIndex = 0;
         private static List<string> menuOptions = new List<string>();
+        private static List<MainAction> mainActions = new List<MainAction>();
         private static List<Pawn> candidatePawns = new List<Pawn>();
         private static List<Pawn> assignedPawns = new List<Pawn>();
 
@@ -37,7 +45,7 @@ namespace RimWorldAccess
         {
             if (building == null || comp == null)
             {
-                TolkHelper.Speak("No building to configure");
+                TolkHelper.Speak("RimWorldAccess.Guard.NoBuildingToConfigure".Translate());
                 return;
             }
 
@@ -61,6 +69,7 @@ namespace RimWorldAccess
             currentMenuLevel = MenuLevel.MainMenu;
             selectedIndex = 0;
             menuOptions.Clear();
+            mainActions.Clear();
             candidatePawns.Clear();
             assignedPawns.Clear();
         }
@@ -119,7 +128,7 @@ namespace RimWorldAccess
             if (currentMenuLevel == MenuLevel.MainMenu)
             {
                 Close();
-                InspectionReturnHelper.AnnounceParentOrFallback("Assignment menu closed");
+                InspectionReturnHelper.AnnounceParentOrFallback("RimWorldAccess.Inspection.OwnerAssignment.MenuClosed".Translate());
             }
             else
             {
@@ -134,6 +143,7 @@ namespace RimWorldAccess
         private static void BuildMainMenu()
         {
             menuOptions.Clear();
+            mainActions.Clear();
 
             if (selectedBuilding == null || selectedComp == null)
             {
@@ -141,14 +151,17 @@ namespace RimWorldAccess
                 return;
             }
 
-            menuOptions.Add("Assign owner");
+            menuOptions.Add("RimWorldAccess.Inspection.OwnerAssignment.MainMenu.AssignOwner".Translate());
+            mainActions.Add(MainAction.AssignOwner);
 
             if (selectedComp.AssignedPawnsForReading.Count > 0)
             {
-                menuOptions.Add("Unassign owner");
+                menuOptions.Add("RimWorldAccess.Inspection.OwnerAssignment.MainMenu.UnassignOwner".Translate());
+                mainActions.Add(MainAction.UnassignOwner);
             }
 
-            menuOptions.Add("Close menu");
+            menuOptions.Add("RimWorldAccess.Inspection.OwnerAssignment.MainMenu.CloseMenu".Translate());
+            mainActions.Add(MainAction.CloseMenu);
 
             AnnounceMainMenu();
         }
@@ -158,21 +171,22 @@ namespace RimWorldAccess
             if (selectedBuilding == null || selectedComp == null)
                 return;
 
-            string info = $"{selectedBuilding.LabelCap}";
+            if (menuOptions.Count == 0 || selectedIndex >= menuOptions.Count)
+                return;
+
+            string currentOption = menuOptions[selectedIndex];
+            string info;
 
             if (selectedComp.AssignedPawnsForReading.Count > 0)
             {
                 string assignedNames = string.Join(", ", selectedComp.AssignedPawnsForReading.Select(p => p.LabelShort));
-                info += $" - Assigned to: {assignedNames}";
+                info = "RimWorldAccess.Inspection.OwnerAssignment.MainAnnouncement.Assigned".Translate(
+                    selectedBuilding.LabelCap, assignedNames, currentOption);
             }
             else
             {
-                info += " - Unassigned";
-            }
-
-            if (menuOptions.Count > 0 && selectedIndex < menuOptions.Count)
-            {
-                info += $" - {menuOptions[selectedIndex]}";
+                info = "RimWorldAccess.Inspection.OwnerAssignment.MainAnnouncement.Unassigned".Translate(
+                    selectedBuilding.LabelCap, currentOption);
             }
 
             TolkHelper.Speak(info);
@@ -180,22 +194,20 @@ namespace RimWorldAccess
 
         private static void ExecuteMainMenuOption()
         {
-            if (selectedIndex >= menuOptions.Count)
+            if (selectedIndex >= mainActions.Count)
                 return;
 
-            string option = menuOptions[selectedIndex];
-
-            switch (option)
+            switch (mainActions[selectedIndex])
             {
-                case "Assign owner":
+                case MainAction.AssignOwner:
                     OpenAssignMenu();
                     break;
-                case "Unassign owner":
+                case MainAction.UnassignOwner:
                     OpenUnassignMenu();
                     break;
-                case "Close menu":
+                case MainAction.CloseMenu:
                     Close();
-                    TolkHelper.Speak("Assignment menu closed");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.OwnerAssignment.MenuClosed".Translate());
                     break;
             }
         }
@@ -208,7 +220,7 @@ namespace RimWorldAccess
         {
             if (selectedComp == null)
             {
-                TolkHelper.Speak("Cannot assign owners to this building", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Inspection.OwnerAssignment.CannotAssignBuilding".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -216,7 +228,7 @@ namespace RimWorldAccess
 
             if (candidatePawns.Count == 0)
             {
-                TolkHelper.Speak("No available pawns to assign");
+                TolkHelper.Speak("RimWorldAccess.Inspection.OwnerAssignment.NoCandidates".Translate());
                 return;
             }
 
@@ -229,15 +241,18 @@ namespace RimWorldAccess
                 if (!report.Accepted)
                 {
                     string reason = report.Reason;
-                    option += !string.IsNullOrEmpty(reason) ? $" ({reason.StripTags()})" : " (Cannot assign)";
+                    if (!string.IsNullOrEmpty(reason))
+                        option += "RimWorldAccess.Inspection.OwnerAssignment.AssignReason.CannotAssignWithReason".Translate(reason.StripTags());
+                    else
+                        option += "RimWorldAccess.Inspection.OwnerAssignment.AssignReason.CannotAssign".Translate();
                 }
                 else if (selectedComp.IdeoligionForbids(pawn))
                 {
-                    option += " (Ideology forbids)";
+                    option += "RimWorldAccess.Inspection.OwnerAssignment.AssignReason.IdeologyForbids".Translate();
                 }
                 else if (selectedComp.AssignedAnything(pawn))
                 {
-                    option += " (Has other assignment)";
+                    option += "RimWorldAccess.Inspection.OwnerAssignment.AssignReason.HasOtherAssignment".Translate();
                 }
 
                 menuOptions.Add(option);
@@ -246,7 +261,7 @@ namespace RimWorldAccess
             currentMenuLevel = MenuLevel.AssignMenu;
             selectedIndex = 0;
 
-            TolkHelper.Speak($"Assign owner - {menuOptions[0]}");
+            TolkHelper.Speak("RimWorldAccess.Inspection.OwnerAssignment.AssignSubmenu.Announce".Translate(menuOptions[0]));
         }
 
         private static void ExecuteAssignMenuOption()
@@ -258,7 +273,7 @@ namespace RimWorldAccess
 
             if (selectedComp == null)
             {
-                TolkHelper.Speak("Cannot assign owner", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Inspection.OwnerAssignment.CannotAssignOwner".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -267,15 +282,15 @@ namespace RimWorldAccess
             {
                 string reason = report.Reason;
                 string message = !string.IsNullOrEmpty(reason)
-                    ? $"Cannot assign {selectedPawn.LabelShort}: {reason.StripTags()}"
-                    : $"Cannot assign {selectedPawn.LabelShort} to this building";
+                    ? "RimWorldAccess.Inspection.OwnerAssignment.CannotAssignPawnWithReason".Translate(selectedPawn.LabelShort, reason.StripTags()).ToString()
+                    : "RimWorldAccess.Inspection.OwnerAssignment.CannotAssignPawn".Translate(selectedPawn.LabelShort).ToString();
                 TolkHelper.Speak(message, SpeechPriority.High);
                 return;
             }
 
             if (selectedComp.IdeoligionForbids(selectedPawn))
             {
-                TolkHelper.Speak($"Ideology forbids {selectedPawn.LabelShort} from using this building");
+                TolkHelper.Speak("RimWorldAccess.Inspection.OwnerAssignment.IdeologyForbidsPawn".Translate(selectedPawn.LabelShort));
                 return;
             }
 
@@ -283,11 +298,11 @@ namespace RimWorldAccess
 
             if (selectedComp.AssignedPawnsForReading.Contains(selectedPawn))
             {
-                TolkHelper.Speak($"{selectedPawn.LabelShort} assigned to {selectedBuilding.LabelCap}");
+                TolkHelper.Speak("RimWorldAccess.Inspection.OwnerAssignment.ResultAssigned".Translate(selectedPawn.LabelShort, selectedBuilding.LabelCap));
             }
             else
             {
-                TolkHelper.Speak($"Failed to assign {selectedPawn.LabelShort}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Inspection.OwnerAssignment.ResultAssignFailed".Translate(selectedPawn.LabelShort), SpeechPriority.High);
             }
 
             currentMenuLevel = MenuLevel.MainMenu;
@@ -303,7 +318,7 @@ namespace RimWorldAccess
         {
             if (selectedComp == null)
             {
-                TolkHelper.Speak("Cannot unassign owners from this building", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Inspection.OwnerAssignment.CannotUnassignBuilding".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -311,7 +326,7 @@ namespace RimWorldAccess
 
             if (assignedPawns.Count == 0)
             {
-                TolkHelper.Speak("No pawns assigned to this building");
+                TolkHelper.Speak("RimWorldAccess.Inspection.OwnerAssignment.NoneAssigned".Translate());
                 return;
             }
 
@@ -324,7 +339,7 @@ namespace RimWorldAccess
             currentMenuLevel = MenuLevel.UnassignMenu;
             selectedIndex = 0;
 
-            TolkHelper.Speak($"Unassign owner - {menuOptions[0]}");
+            TolkHelper.Speak("RimWorldAccess.Inspection.OwnerAssignment.UnassignSubmenu.Announce".Translate(menuOptions[0]));
         }
 
         private static void ExecuteUnassignMenuOption()
@@ -336,7 +351,7 @@ namespace RimWorldAccess
 
             if (selectedComp == null)
             {
-                TolkHelper.Speak("Cannot unassign owner", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Inspection.OwnerAssignment.CannotUnassignOwner".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -344,11 +359,11 @@ namespace RimWorldAccess
 
             if (!selectedComp.AssignedPawnsForReading.Contains(selectedPawn))
             {
-                TolkHelper.Speak($"{selectedPawn.LabelShort} unassigned from {selectedBuilding.LabelCap}");
+                TolkHelper.Speak("RimWorldAccess.Inspection.OwnerAssignment.ResultUnassigned".Translate(selectedPawn.LabelShort, selectedBuilding.LabelCap));
             }
             else
             {
-                TolkHelper.Speak($"Failed to unassign {selectedPawn.LabelShort}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Inspection.OwnerAssignment.ResultUnassignFailed".Translate(selectedPawn.LabelShort), SpeechPriority.High);
             }
 
             currentMenuLevel = MenuLevel.MainMenu;
@@ -365,21 +380,18 @@ namespace RimWorldAccess
             if (menuOptions.Count == 0 || selectedIndex >= menuOptions.Count)
                 return;
 
-            string prefix = "";
             switch (currentMenuLevel)
             {
                 case MenuLevel.MainMenu:
-                    prefix = "";
-                    break;
+                    AnnounceMainMenu();
+                    return;
                 case MenuLevel.AssignMenu:
-                    prefix = "Assign: ";
-                    break;
+                    TolkHelper.Speak("RimWorldAccess.Inspection.OwnerAssignment.AssignSubmenu.Item".Translate(menuOptions[selectedIndex]));
+                    return;
                 case MenuLevel.UnassignMenu:
-                    prefix = "Unassign: ";
-                    break;
+                    TolkHelper.Speak("RimWorldAccess.Inspection.OwnerAssignment.UnassignSubmenu.Item".Translate(menuOptions[selectedIndex]));
+                    return;
             }
-
-            TolkHelper.Speak($"{prefix}{menuOptions[selectedIndex]}");
         }
 
         #endregion
