@@ -247,6 +247,99 @@
   <RimWorldAccess.Inspection.ThingFilter.SliderEdit.Announcement>{0} - {1}: {2}. Use Left/Right to adjust, Up/Down to switch Min/Max, Enter to confirm.</RimWorldAccess.Inspection.ThingFilter.SliderEdit.Announcement>
   <RimWorldAccess.Inspection.ThingFilter.SliderEdit.PartWithValue>{0}: {1}</RimWorldAccess.Inspection.ThingFilter.SliderEdit.PartWithValue>
 
+  <!-- =================================================================
+       Colony inventory menu (WindowlessInventoryState). Triggered with
+       the I shortcut. Builds a hierarchical tree of every item on the
+       map, grouped by category / def-group / material / stack. The
+       state announces top-level open / close, recursive expand-all
+       results, the contextual drop / jump / install actions, and
+       composes display labels for each tree row from English fragments
+       (carried-by-colonists parenthetical, material lists, tainted /
+       forbidden flag suffixes, ViewItemDetails sentence list).
+
+       Open.SummaryOne / SummaryMany: {0} = item-type count, {1} =
+       category count. Split by item-type count since "1 item type" vs
+       "N item types" needs subject-verb agreement. Categories are
+       always many in practice (the empty case takes the OpenedEmpty
+       branch).
+
+       Drop.Dropped: {0} = quantity, {1} = carrier short name.
+       Drop.Failed: {0} = item label.
+
+       Jump.JumpedToAt: {0} = subject (carrier label or location
+       label), {1} = grid coords.
+
+       Detail.* are the sentences ViewItemDetails joins with ". "; each
+       value below is one stand-alone phrase with no trailing period.
+       MarketValue: {0} = per-item value, {1} = total value (both
+       formatted with "F2"). Mass: {0} = kg value (formatted with
+       "F2"; the "kg" unit can be translated per locale).
+
+       Label.GroupHead: {0} = head label, {1} = total count. The "x"
+       glyph is RimWorld's standard count separator. Label.GroupHeadCarried
+       extends with the carried-by-colonists parenthetical: {2} = carried
+       count. MaterialEntry: {0} = count, {1} = stuff label - one entry
+       in the comma-joined materials list. MaterialAndOne: {0} = count,
+       {1} = stuff label. MaterialAndOther: {0} = count of additional
+       materials (always > 1).
+
+       Label.StackTaintedSuffix / StackForbiddenSuffix: leading space
+       is part of the value. Label.StackLine: {0} = name, {1} =
+       quantity, {2} = location, {3} = optional flag suffix.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Inventory.OpenedEmpty>Inventory menu opened. No items in colony storage or carried by pawns.</RimWorldAccess.Inspection.Inventory.OpenedEmpty>
+  <RimWorldAccess.Inspection.Inventory.OpenedSummaryOne>Colony inventory opened. {0} item type. {1} categories.</RimWorldAccess.Inspection.Inventory.OpenedSummaryOne>
+  <RimWorldAccess.Inspection.Inventory.OpenedSummaryMany>Colony inventory opened. {0} item types. {1} categories.</RimWorldAccess.Inspection.Inventory.OpenedSummaryMany>
+  <RimWorldAccess.Inspection.Inventory.Closed>Inventory menu closed.</RimWorldAccess.Inspection.Inventory.Closed>
+
+  <RimWorldAccess.Inspection.Inventory.Expand.NoneToExpand>No categories to expand.</RimWorldAccess.Inspection.Inventory.Expand.NoneToExpand>
+  <RimWorldAccess.Inspection.Inventory.Expand.AllAlreadyExpanded>All categories already expanded.</RimWorldAccess.Inspection.Inventory.Expand.AllAlreadyExpanded>
+
+  <RimWorldAccess.Inspection.Inventory.Drop.SelectCarriedItem>Select a carried item to drop.</RimWorldAccess.Inspection.Inventory.Drop.SelectCarriedItem>
+  <RimWorldAccess.Inspection.Inventory.Drop.NotCarriedStack>This item is in storage, not carried by a pawn.</RimWorldAccess.Inspection.Inventory.Drop.NotCarriedStack>
+  <RimWorldAccess.Inspection.Inventory.Drop.ExpandToSelectStack>Expand this item to select a specific stack to drop.</RimWorldAccess.Inspection.Inventory.Drop.ExpandToSelectStack>
+  <RimWorldAccess.Inspection.Inventory.Drop.ExpandGroupToSelectStack>Expand this group and select a specific stack to drop.</RimWorldAccess.Inspection.Inventory.Drop.ExpandGroupToSelectStack>
+  <RimWorldAccess.Inspection.Inventory.Drop.NoItem>No item to drop.</RimWorldAccess.Inspection.Inventory.Drop.NoItem>
+  <RimWorldAccess.Inspection.Inventory.Drop.CarrierUnavailable>Carrier pawn no longer available.</RimWorldAccess.Inspection.Inventory.Drop.CarrierUnavailable>
+  <RimWorldAccess.Inspection.Inventory.Drop.CannotAccessInventory>Cannot access carrier's inventory.</RimWorldAccess.Inspection.Inventory.Drop.CannotAccessInventory>
+  <RimWorldAccess.Inspection.Inventory.Drop.Dropped>Dropped x{0} from {1}.</RimWorldAccess.Inspection.Inventory.Drop.Dropped>
+  <RimWorldAccess.Inspection.Inventory.Drop.Failed>Failed to drop {0}.</RimWorldAccess.Inspection.Inventory.Drop.Failed>
+
+  <RimWorldAccess.Inspection.Inventory.Context.NoMenuAvailable>No context menu available</RimWorldAccess.Inspection.Inventory.Context.NoMenuAvailable>
+  <RimWorldAccess.Inspection.Inventory.Context.NoActionsAvailable>No actions available</RimWorldAccess.Inspection.Inventory.Context.NoActionsAvailable>
+
+  <RimWorldAccess.Inspection.Inventory.Action.JumpToPawn>Jump to pawn (Alt+J)</RimWorldAccess.Inspection.Inventory.Action.JumpToPawn>
+  <RimWorldAccess.Inspection.Inventory.Action.JumpToLocation>Jump to location (Alt+J)</RimWorldAccess.Inspection.Inventory.Action.JumpToLocation>
+  <RimWorldAccess.Inspection.Inventory.Action.JumpToFirstLocation>Jump to first location (Alt+J)</RimWorldAccess.Inspection.Inventory.Action.JumpToFirstLocation>
+  <RimWorldAccess.Inspection.Inventory.Action.Drop>Drop (Delete)</RimWorldAccess.Inspection.Inventory.Action.Drop>
+  <RimWorldAccess.Inspection.Inventory.Action.Install>Install at</RimWorldAccess.Inspection.Inventory.Action.Install>
+  <RimWorldAccess.Inspection.Inventory.Action.ShowInfo>Show info (Alt+I)</RimWorldAccess.Inspection.Inventory.Action.ShowInfo>
+  <RimWorldAccess.Inspection.Inventory.Action.ViewDetails>View details</RimWorldAccess.Inspection.Inventory.Action.ViewDetails>
+
+  <RimWorldAccess.Inspection.Inventory.Jump.SelectItem>Select an item to jump to.</RimWorldAccess.Inspection.Inventory.Jump.SelectItem>
+  <RimWorldAccess.Inspection.Inventory.Jump.NoLocation>No location found.</RimWorldAccess.Inspection.Inventory.Jump.NoLocation>
+  <RimWorldAccess.Inspection.Inventory.Jump.JumpedToAt>Jumped to {0} at {1}.</RimWorldAccess.Inspection.Inventory.Jump.JumpedToAt>
+
+  <RimWorldAccess.Inspection.Inventory.Install.NoItem>No installable item found.</RimWorldAccess.Inspection.Inventory.Install.NoItem>
+
+  <RimWorldAccess.Inspection.Inventory.Detail.Item>Item: {0}</RimWorldAccess.Inspection.Inventory.Detail.Item>
+  <RimWorldAccess.Inspection.Inventory.Detail.TotalQuantity>Total quantity: {0}</RimWorldAccess.Inspection.Inventory.Detail.TotalQuantity>
+  <RimWorldAccess.Inspection.Inventory.Detail.Description>Description: {0}</RimWorldAccess.Inspection.Inventory.Detail.Description>
+  <RimWorldAccess.Inspection.Inventory.Detail.StackLimit>Stack limit: {0}</RimWorldAccess.Inspection.Inventory.Detail.StackLimit>
+  <RimWorldAccess.Inspection.Inventory.Detail.MarketValue>Market value: ${0} each, ${1} total</RimWorldAccess.Inspection.Inventory.Detail.MarketValue>
+  <RimWorldAccess.Inspection.Inventory.Detail.Mass>Mass: {0} kg</RimWorldAccess.Inspection.Inventory.Detail.Mass>
+  <RimWorldAccess.Inspection.Inventory.Detail.Stacks>Stacks: {0}</RimWorldAccess.Inspection.Inventory.Detail.Stacks>
+  <RimWorldAccess.Inspection.Inventory.Detail.CarriedByColonists>Carried by colonists: {0}</RimWorldAccess.Inspection.Inventory.Detail.CarriedByColonists>
+
+  <RimWorldAccess.Inspection.Inventory.Label.GroupHead>{0} x{1}</RimWorldAccess.Inspection.Inventory.Label.GroupHead>
+  <RimWorldAccess.Inspection.Inventory.Label.GroupHeadCarried>{0} x{1} ({2} carried by colonists)</RimWorldAccess.Inspection.Inventory.Label.GroupHeadCarried>
+  <RimWorldAccess.Inspection.Inventory.Label.MaterialEntry>{0} {1}</RimWorldAccess.Inspection.Inventory.Label.MaterialEntry>
+  <RimWorldAccess.Inspection.Inventory.Label.MaterialAndOne>, and {0} {1}</RimWorldAccess.Inspection.Inventory.Label.MaterialAndOne>
+  <RimWorldAccess.Inspection.Inventory.Label.MaterialAndOther>, and {0} other materials</RimWorldAccess.Inspection.Inventory.Label.MaterialAndOther>
+  <RimWorldAccess.Inspection.Inventory.Label.StackTaintedSuffix> (tainted)</RimWorldAccess.Inspection.Inventory.Label.StackTaintedSuffix>
+  <RimWorldAccess.Inspection.Inventory.Label.StackForbiddenSuffix> (forbidden)</RimWorldAccess.Inspection.Inventory.Label.StackForbiddenSuffix>
+  <RimWorldAccess.Inspection.Inventory.Label.StackLine>{0} x{1}, {2}{3}</RimWorldAccess.Inspection.Inventory.Label.StackLine>
+
   <!-- Power. PowerStatus: {0} = vanilla "Power", {1} = vanilla "On"/"Off".
        PowerConsumption: {0} = wattage. -->
   <RimWorldAccess.Inspection.Building.PowerStatus>{0}: {1}</RimWorldAccess.Inspection.Building.PowerStatus>

@@ -84,7 +84,7 @@ namespace RimWorldAccess
 
             if (allStoredItems.Count == 0 && pawnCarriedThings.Count == 0)
             {
-                TolkHelper.Speak("Inventory menu opened. No items in colony storage or carried by pawns.");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.OpenedEmpty".Translate());
                 var emptyRoot = new InspectionTreeItem
                 {
                     Label = "Root",
@@ -111,8 +111,10 @@ namespace RimWorldAccess
             int distinctItemCount = CountDistinctItems(root);
 
             // Announcement
-            string announcement = $"Colony inventory opened. {distinctItemCount} item types. {root.Children.Count} categories.";
-            TolkHelper.Speak(announcement);
+            string summaryKey = distinctItemCount == 1
+                ? "RimWorldAccess.Inspection.Inventory.OpenedSummaryOne"
+                : "RimWorldAccess.Inspection.Inventory.OpenedSummaryMany";
+            TolkHelper.Speak(summaryKey.Translate(distinctItemCount, root.Children.Count));
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
 
             // Announce first selection
@@ -130,7 +132,7 @@ namespace RimWorldAccess
             isActive = false;
             treeNav.Reset();
 
-            TolkHelper.Speak("Inventory menu closed.");
+            TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Closed".Translate());
             SoundDefOf.TabClose.PlayOneShotOnCamera();
         }
 
@@ -519,11 +521,7 @@ namespace RimWorldAccess
             int totalCount = items.Sum(i => i.TotalQuantity);
             int carriedCount = items.Sum(i => i.CarriedCount);
 
-            string label = $"{def.LabelCap} x{totalCount}";
-            if (carriedCount > 0)
-            {
-                label += $" ({carriedCount} carried by colonists)";
-            }
+            string label = BuildGroupHead(def.LabelCap, totalCount, carriedCount);
 
             // Add material summary if items have stuff variations
             var materialCounts = items
@@ -546,7 +544,8 @@ namespace RimWorldAccess
                 {
                     if (shownMaterials.Count < maxShown && accumulated < threshold)
                     {
-                        shownMaterials.Add($"{mat.Count} {mat.Stuff.LabelAsStuff}");
+                        shownMaterials.Add("RimWorldAccess.Inspection.Inventory.Label.MaterialEntry".Translate(
+                            mat.Count, mat.Stuff.LabelAsStuff));
                         accumulated += mat.Count;
                     }
                     else
@@ -560,16 +559,32 @@ namespace RimWorldAccess
                     label += ", " + string.Join(", ", shownMaterials);
                     if (truncatedMaterials.Count == 1)
                     {
-                        label += $", and {truncatedMaterials[0].count} {truncatedMaterials[0].name}";
+                        label += "RimWorldAccess.Inspection.Inventory.Label.MaterialAndOne".Translate(
+                            truncatedMaterials[0].count, truncatedMaterials[0].name);
                     }
                     else if (truncatedMaterials.Count > 1)
                     {
-                        label += $", and {truncatedMaterials.Count} other materials";
+                        label += "RimWorldAccess.Inspection.Inventory.Label.MaterialAndOther".Translate(
+                            truncatedMaterials.Count);
                     }
                 }
             }
 
             return label;
+        }
+
+        /// <summary>
+        /// Builds the "{label} x{total}" head shared by all three group label
+        /// builders, optionally extending with the localized "(N carried by
+        /// colonists)" parenthetical when at least one stack is in a pawn's
+        /// inventory.
+        /// </summary>
+        private static string BuildGroupHead(string label, int totalCount, int carriedCount)
+        {
+            if (carriedCount > 0)
+                return "RimWorldAccess.Inspection.Inventory.Label.GroupHeadCarried".Translate(
+                    label, totalCount, carriedCount);
+            return "RimWorldAccess.Inspection.Inventory.Label.GroupHead".Translate(label, totalCount);
         }
 
         /// <summary>
@@ -587,13 +602,7 @@ namespace RimWorldAccess
                 .OrderBy(i => i.Def.label.Length)
                 .First().Def.LabelCap;
 
-            string label = $"{baseName} x{totalCount}";
-            if (carriedCount > 0)
-            {
-                label += $" ({carriedCount} carried by colonists)";
-            }
-
-            return label;
+            return BuildGroupHead(baseName, totalCount, carriedCount);
         }
 
         /// <summary>
@@ -618,11 +627,7 @@ namespace RimWorldAccess
             }
 
             int carriedCount = items.Sum(i => i.CarriedCount);
-            if (carriedCount > 0)
-            {
-                return $"{name} x{totalQty} ({carriedCount} carried by colonists)";
-            }
-            return $"{name} x{totalQty}";
+            return BuildGroupHead(name, totalQty, carriedCount);
         }
 
         /// <summary>
@@ -633,9 +638,12 @@ namespace RimWorldAccess
         {
             string name = item.GetItemName();
             string suffix = "";
-            if (stack.IsTainted) suffix += " (tainted)";
-            if (stack.IsForbidden) suffix += " (forbidden)";
-            return $"{name} x{stack.Quantity}, {stack.LocationLabel}{suffix}";
+            if (stack.IsTainted)
+                suffix += "RimWorldAccess.Inspection.Inventory.Label.StackTaintedSuffix".Translate();
+            if (stack.IsForbidden)
+                suffix += "RimWorldAccess.Inspection.Inventory.Label.StackForbiddenSuffix".Translate();
+            return "RimWorldAccess.Inspection.Inventory.Label.StackLine".Translate(
+                name, stack.Quantity, stack.LocationLabel, suffix);
         }
 
         #endregion
@@ -670,20 +678,10 @@ namespace RimWorldAccess
             // Get state info (only for expandable nodes)
             string stateInfo = TreeNavigationHelper.FormatExpansionSpaceSuffix(item);
 
-            // Get sibling position
-            var (position, total) = treeNav.GetSiblingPosition(item);
-            string positionInfo = $"{position} of {total}";
-
             // Build announcement with search context
-            string announcement;
-            if (string.IsNullOrEmpty(stateInfo))
-            {
-                announcement = $"{item.Label}";
-            }
-            else
-            {
-                announcement = $"{item.Label}{stateInfo}";
-            }
+            string announcement = string.IsNullOrEmpty(stateInfo)
+                ? item.Label
+                : $"{item.Label}{stateInfo}";
 
             if (typeahead.HasActiveSearch)
             {
@@ -691,7 +689,10 @@ namespace RimWorldAccess
             }
             else
             {
-                announcement += $". {positionInfo}";
+                var (position, total) = treeNav.GetSiblingPosition(item);
+                string positionInfo = MenuHelper.FormatPosition(position - 1, total);
+                if (!string.IsNullOrEmpty(positionInfo))
+                    announcement += $". {positionInfo}";
             }
 
             return announcement.Trim();
@@ -710,7 +711,7 @@ namespace RimWorldAccess
         {
             if (treeNav.RootItem == null || treeNav.RootItem.Children.Count == 0)
             {
-                TolkHelper.Speak("No categories to expand.");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Expand.NoneToExpand".Translate());
                 return;
             }
 
@@ -720,14 +721,14 @@ namespace RimWorldAccess
             {
                 treeNav.RebuildVisibleList();
                 EmbeddedAudioHelper.PlaySoundDefWithReverb(SoundDefOf.FloatMenu_Open);
-                if (expandedCount == 1)
-                    TolkHelper.Speak("Expanded 1 category");
-                else
-                    TolkHelper.Speak($"Expanded {expandedCount} categories");
+                string countKey = expandedCount == 1
+                    ? "RimWorldAccess.Tree.ExpandedCountOne"
+                    : "RimWorldAccess.Tree.ExpandedCountMany";
+                TolkHelper.Speak(countKey.Translate(expandedCount));
             }
             else
             {
-                TolkHelper.Speak("All categories already expanded");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Expand.AllAlreadyExpanded".Translate());
             }
         }
 
@@ -791,7 +792,7 @@ namespace RimWorldAccess
             var data = item.Data as InventoryNodeData;
             if (data == null)
             {
-                TolkHelper.Speak("Select a carried item to drop.");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.SelectCarriedItem".Translate());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return true;
             }
@@ -804,7 +805,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak("This item is in storage, not carried by a pawn.");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.NotCarriedStack".Translate());
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 }
                 return true;
@@ -812,26 +813,22 @@ namespace RimWorldAccess
 
             if (data.Type == NodeType.ItemGroup && data.ItemData != null)
             {
-                if (data.ItemData.HasCarriedStacks)
-                {
-                    TolkHelper.Speak("Expand this item to select a specific stack to drop.");
-                }
-                else
-                {
-                    TolkHelper.Speak("This item is in storage, not carried by a pawn.");
-                }
+                string key = data.ItemData.HasCarriedStacks
+                    ? "RimWorldAccess.Inspection.Inventory.Drop.ExpandToSelectStack"
+                    : "RimWorldAccess.Inspection.Inventory.Drop.NotCarriedStack";
+                TolkHelper.Speak(key.Translate());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return true;
             }
 
             if (data.Type == NodeType.DefGroup || data.Type == NodeType.MaterialGroup)
             {
-                TolkHelper.Speak("Expand this group and select a specific stack to drop.");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.ExpandGroupToSelectStack".Translate());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return true;
             }
 
-            TolkHelper.Speak("Select a carried item to drop.");
+            TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.SelectCarriedItem".Translate());
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
             return true;
         }
@@ -890,7 +887,7 @@ namespace RimWorldAccess
             var item = treeNav.SelectedItem;
             if (item == null)
             {
-                TolkHelper.Speak("No context menu available");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Context.NoMenuAvailable".Translate());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }
@@ -898,7 +895,7 @@ namespace RimWorldAccess
             var data = item.Data as InventoryNodeData;
             if (data == null)
             {
-                TolkHelper.Speak("No context menu available");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Context.NoMenuAvailable".Translate());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }
@@ -915,7 +912,7 @@ namespace RimWorldAccess
                 return;
             }
 
-            TolkHelper.Speak("No context menu available");
+            TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Context.NoMenuAvailable".Translate());
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
         }
 
@@ -928,26 +925,36 @@ namespace RimWorldAccess
 
             if (stack.IsCarried)
             {
-                options.Add(new FloatMenuOption("Jump to pawn (Alt+J)", () => JumpToStack(stack)));
-                options.Add(new FloatMenuOption("Drop (Delete)", () => DropStack(stack)));
+                options.Add(new FloatMenuOption(
+                    "RimWorldAccess.Inspection.Inventory.Action.JumpToPawn".Translate(),
+                    () => JumpToStack(stack)));
+                options.Add(new FloatMenuOption(
+                    "RimWorldAccess.Inspection.Inventory.Action.Drop".Translate(),
+                    () => DropStack(stack)));
             }
             else
             {
                 if (stack.IsMinifiedThing)
                 {
-                    options.Add(new FloatMenuOption("Install at", () => InstallStack(stack)));
+                    options.Add(new FloatMenuOption(
+                        "RimWorldAccess.Inspection.Inventory.Action.Install".Translate(),
+                        () => InstallStack(stack)));
                 }
-                options.Add(new FloatMenuOption("Jump to location (Alt+J)", () => JumpToStack(stack)));
+                options.Add(new FloatMenuOption(
+                    "RimWorldAccess.Inspection.Inventory.Action.JumpToLocation".Translate(),
+                    () => JumpToStack(stack)));
             }
 
             if (item?.Def != null)
             {
-                options.Add(new FloatMenuOption("Show info (Alt+I)", () => InfoCardState.OpenInfoCardForDef(item.Def)));
+                options.Add(new FloatMenuOption(
+                    "RimWorldAccess.Inspection.Inventory.Action.ShowInfo".Translate(),
+                    () => InfoCardState.OpenInfoCardForDef(item.Def)));
             }
 
             if (options.Count == 0)
             {
-                TolkHelper.Speak("No actions available");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Context.NoActionsAvailable".Translate());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }
@@ -965,15 +972,21 @@ namespace RimWorldAccess
             var firstStack = item.Stacks.FirstOrDefault();
             if (firstStack != null)
             {
-                options.Add(new FloatMenuOption("Jump to first location (Alt+J)", () => JumpToStack(firstStack)));
+                options.Add(new FloatMenuOption(
+                    "RimWorldAccess.Inspection.Inventory.Action.JumpToFirstLocation".Translate(),
+                    () => JumpToStack(firstStack)));
             }
 
             if (item.Def != null)
             {
-                options.Add(new FloatMenuOption("Show info (Alt+I)", () => InfoCardState.OpenInfoCardForDef(item.Def)));
+                options.Add(new FloatMenuOption(
+                    "RimWorldAccess.Inspection.Inventory.Action.ShowInfo".Translate(),
+                    () => InfoCardState.OpenInfoCardForDef(item.Def)));
             }
 
-            options.Add(new FloatMenuOption("View details", () => ViewItemDetails(item)));
+            options.Add(new FloatMenuOption(
+                "RimWorldAccess.Inspection.Inventory.Action.ViewDetails".Translate(),
+                () => ViewItemDetails(item)));
 
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
         }
@@ -986,7 +999,7 @@ namespace RimWorldAccess
             var item = treeNav.SelectedItem;
             if (item == null)
             {
-                TolkHelper.Speak("Select an item to jump to.");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Jump.SelectItem".Translate());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }
@@ -1012,7 +1025,7 @@ namespace RimWorldAccess
                 }
             }
 
-            TolkHelper.Speak("Select an item to jump to.");
+            TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Jump.SelectItem".Translate());
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
         }
 
@@ -1027,29 +1040,30 @@ namespace RimWorldAccess
         {
             if (stack == null)
             {
-                TolkHelper.Speak("No location found.");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Jump.NoLocation".Translate());
                 return;
             }
 
             IntVec3 location;
-            string announcement;
+            string subject;
 
             if (stack.IsCarried)
             {
                 Pawn carrier = stack.CarrierPawn;
                 if (carrier == null || carrier.Destroyed || carrier.Dead)
                 {
-                    TolkHelper.Speak("Carrier pawn no longer available.");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.CarrierUnavailable".Translate());
                     return;
                 }
                 location = carrier.Position;
-                announcement = $"Jumped to {carrier.LabelShort} at {location}.";
+                subject = carrier.LabelShort;
             }
             else
             {
                 location = stack.Thing.Position;
-                announcement = $"Jumped to {stack.LocationLabel} at {location}.";
+                subject = stack.LocationLabel;
             }
+            string announcement = "RimWorldAccess.Inspection.Inventory.Jump.JumpedToAt".Translate(subject, location);
 
             if (Find.CameraDriver != null)
             {
@@ -1073,7 +1087,7 @@ namespace RimWorldAccess
         {
             if (stack == null || stack.Thing == null)
             {
-                TolkHelper.Speak("No item to drop.");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.NoItem".Translate());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }
@@ -1081,14 +1095,14 @@ namespace RimWorldAccess
             Pawn carrier = stack.CarrierPawn;
             if (carrier == null || carrier.Destroyed || carrier.Dead)
             {
-                TolkHelper.Speak("Carrier pawn no longer available.");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.CarrierUnavailable".Translate());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }
 
             if (carrier.inventory?.innerContainer == null)
             {
-                TolkHelper.Speak("Cannot access carrier's inventory.");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.CannotAccessInventory".Translate());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }
@@ -1101,12 +1115,12 @@ namespace RimWorldAccess
 
                 RefreshInventory();
 
-                TolkHelper.Speak($"Dropped x{quantity} from {carrierName}.");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.Dropped".Translate(quantity, carrierName));
                 SoundDefOf.Click.PlayOneShotOnCamera();
             }
             else
             {
-                TolkHelper.Speak($"Failed to drop {stack.Thing.LabelCap}.");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.Failed".Translate(stack.Thing.LabelCap));
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
             }
         }
@@ -1118,7 +1132,7 @@ namespace RimWorldAccess
         {
             if (!stack.IsMinifiedThing || stack.Thing == null || stack.Thing.Destroyed)
             {
-                TolkHelper.Speak("No installable item found.");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Install.NoItem".Translate());
                 return;
             }
 
@@ -1139,29 +1153,32 @@ namespace RimWorldAccess
             ThingDef def = item.Def;
 
             List<string> details = new List<string>();
-            details.Add($"Item: {def.LabelCap}");
-            details.Add($"Total quantity: {item.TotalQuantity}");
-            details.Add($"Description: {def.description}");
+            details.Add("RimWorldAccess.Inspection.Inventory.Detail.Item".Translate(def.LabelCap));
+            details.Add("RimWorldAccess.Inspection.Inventory.Detail.TotalQuantity".Translate(item.TotalQuantity));
+            details.Add("RimWorldAccess.Inspection.Inventory.Detail.Description".Translate(def.description));
 
             if (def.stackLimit > 1)
             {
-                details.Add($"Stack limit: {def.stackLimit}");
+                details.Add("RimWorldAccess.Inspection.Inventory.Detail.StackLimit".Translate(def.stackLimit));
             }
 
             if (def.BaseMarketValue > 0)
             {
-                details.Add($"Market value: ${def.BaseMarketValue:F2} each, ${def.BaseMarketValue * item.TotalQuantity:F2} total");
+                details.Add("RimWorldAccess.Inspection.Inventory.Detail.MarketValue".Translate(
+                    def.BaseMarketValue.ToString("F2"),
+                    (def.BaseMarketValue * item.TotalQuantity).ToString("F2")));
             }
 
             if (def.statBases != null && def.statBases.Count > 0)
             {
-                details.Add($"Mass: {def.statBases.GetStatValueFromList(StatDefOf.Mass, 0):F2} kg");
+                details.Add("RimWorldAccess.Inspection.Inventory.Detail.Mass".Translate(
+                    def.statBases.GetStatValueFromList(StatDefOf.Mass, 0).ToString("F2")));
             }
 
-            details.Add($"Stacks: {item.Stacks.Count}");
+            details.Add("RimWorldAccess.Inspection.Inventory.Detail.Stacks".Translate(item.Stacks.Count));
             if (item.HasCarriedStacks)
             {
-                details.Add($"Carried by colonists: {item.CarriedCount}");
+                details.Add("RimWorldAccess.Inspection.Inventory.Detail.CarriedByColonists".Translate(item.CarriedCount));
             }
 
             string announcement = string.Join(". ", details);
