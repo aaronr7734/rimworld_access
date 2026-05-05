@@ -406,4 +406,80 @@
   <RimWorldAccess.Inspection.InfoCard.CannotExpand>Cannot expand this item.</RimWorldAccess.Inspection.InfoCard.CannotExpand>
   <RimWorldAccess.Inspection.InfoCard.MenuClosed>Menu closed</RimWorldAccess.Inspection.InfoCard.MenuClosed>
   <RimWorldAccess.Inspection.InfoCard.InfoCardClosed>Info card closed.</RimWorldAccess.Inspection.InfoCard.InfoCardClosed>
+
+  <!-- =================================================================
+       Info Card tree builder (InfoCardTreeBuilder). Section names
+       (the InspectionTreeItem.Description value spoken as
+       "{section} section." via InfoCard.SectionPrefix), empty-state
+       fallback messages, status / passion / met-prerequisite suffixes,
+       permit announcements, and the misc Actions / Rename / Gene
+       labels. Vanilla nouns reused: Backstory, Traits, Skills,
+       IncapableOf, Abilities, Disabled, None, Rename, Xenotype
+       (Biotech), TabGenes (Biotech), and the existing royal-permit
+       keys (NoPermitsToReturn, NotEnoughFavor, ReturnAllPermits,
+       UnusedPermits, AcceptPermit, RequiresTitle, UpgradeFrom,
+       Cooldown, PeriodDays, CooldownUseFavorCost, CurrentTitle).
+       ================================================================= -->
+
+  <!-- Section names not covered by a vanilla translation key. Each is
+       passed as InspectionTreeItem.Description, used both for grouping
+       logic and for the "{section} section." boundary announcement
+       composed by InfoCardState.FormatItemAnnouncement. -->
+  <RimWorldAccess.Inspection.InfoCardTree.Section.RoyalTitles>Royal Titles</RimWorldAccess.Inspection.InfoCardTree.Section.RoyalTitles>
+  <RimWorldAccess.Inspection.InfoCardTree.Section.IdeologyRole>Ideology Role</RimWorldAccess.Inspection.InfoCardTree.Section.IdeologyRole>
+  <RimWorldAccess.Inspection.InfoCardTree.Section.FavoriteColor>Favorite Color</RimWorldAccess.Inspection.InfoCardTree.Section.FavoriteColor>
+  <RimWorldAccess.Inspection.InfoCardTree.Section.Capacities>Capacities</RimWorldAccess.Inspection.InfoCardTree.Section.Capacities>
+  <RimWorldAccess.Inspection.InfoCardTree.Section.Conditions>Conditions</RimWorldAccess.Inspection.InfoCardTree.Section.Conditions>
+  <RimWorldAccess.Inspection.InfoCardTree.Section.TimeRecords>Time Records</RimWorldAccess.Inspection.InfoCardTree.Section.TimeRecords>
+  <RimWorldAccess.Inspection.InfoCardTree.Section.Miscellaneous>Miscellaneous</RimWorldAccess.Inspection.InfoCardTree.Section.Miscellaneous>
+
+  <!-- Empty-state messages emitted via CreateInfoItem when an extractor
+       returns no data. -->
+  <RimWorldAccess.Inspection.InfoCardTree.NoStats>No stats available</RimWorldAccess.Inspection.InfoCardTree.NoStats>
+  <RimWorldAccess.Inspection.InfoCardTree.UnableToLoadDetails>Unable to load details</RimWorldAccess.Inspection.InfoCardTree.UnableToLoadDetails>
+  <RimWorldAccess.Inspection.InfoCardTree.NoGenes>No genes</RimWorldAccess.Inspection.InfoCardTree.NoGenes>
+  <RimWorldAccess.Inspection.InfoCardTree.NoCharacterData>No character data available</RimWorldAccess.Inspection.InfoCardTree.NoCharacterData>
+  <RimWorldAccess.Inspection.InfoCardTree.NoHealthData>No health data available</RimWorldAccess.Inspection.InfoCardTree.NoHealthData>
+  <RimWorldAccess.Inspection.InfoCardTree.NoHealthConditions>No health conditions</RimWorldAccess.Inspection.InfoCardTree.NoHealthConditions>
+  <RimWorldAccess.Inspection.InfoCardTree.NoRecordsAvailable>No records available</RimWorldAccess.Inspection.InfoCardTree.NoRecordsAvailable>
+  <RimWorldAccess.Inspection.InfoCardTree.NoRecordsYet>No records yet</RimWorldAccess.Inspection.InfoCardTree.NoRecordsYet>
+  <RimWorldAccess.Inspection.InfoCardTree.NoPermitsAvailable>No permits available</RimWorldAccess.Inspection.InfoCardTree.NoPermitsAvailable>
+
+  <!-- Inline status suffixes. The leading space is part of the value so
+       the suffix joins onto whatever label precedes it. Whole-phrase
+       per status because the parenthetical wrapping varies per
+       language. -->
+  <RimWorldAccess.Inspection.InfoCardTree.SuppressedSuffix> (Suppressed)</RimWorldAccess.Inspection.InfoCardTree.SuppressedSuffix>
+  <RimWorldAccess.Inspection.InfoCardTree.MinorPassionSuffix> (Minor passion)</RimWorldAccess.Inspection.InfoCardTree.MinorPassionSuffix>
+  <RimWorldAccess.Inspection.InfoCardTree.MajorPassionSuffix> (Major passion)</RimWorldAccess.Inspection.InfoCardTree.MajorPassionSuffix>
+  <RimWorldAccess.Inspection.InfoCardTree.NotMetSuffix> (not met)</RimWorldAccess.Inspection.InfoCardTree.NotMetSuffix>
+
+  <!-- Skill rows. Disabled form: {0} = skill label, {1} = vanilla
+       "Disabled" word. Leveled form: {0} = skill label, {1} = level
+       integer, {2} = passion suffix (may be empty), {3} = level
+       description ("Awful" / "Great" etc., from the game). -->
+  <RimWorldAccess.Inspection.InfoCardTree.SkillLabelDisabled>{0}: {1}</RimWorldAccess.Inspection.InfoCardTree.SkillLabelDisabled>
+  <RimWorldAccess.Inspection.InfoCardTree.SkillLabelLeveled>{0}: {1}{2} ({3})</RimWorldAccess.Inspection.InfoCardTree.SkillLabelLeveled>
+
+  <!-- Misc labels. ActionsTab is the synthetic Actions tab inserted at
+       the top level when a pawn has at least one available action.
+       GeneEntry is the per-gene row label in the xenotype card.
+       FavorFallback is the dim "favor" word substituted when a faction
+       definition leaves royalFavorLabel empty (extremely rare in
+       vanilla). -->
+  <RimWorldAccess.Inspection.InfoCardTree.ActionsTab>Actions</RimWorldAccess.Inspection.InfoCardTree.ActionsTab>
+  <RimWorldAccess.Inspection.InfoCardTree.GeneEntry>Gene: {0}</RimWorldAccess.Inspection.InfoCardTree.GeneEntry>
+  <RimWorldAccess.Inspection.InfoCardTree.FavorFallback>favor</RimWorldAccess.Inspection.InfoCardTree.FavorFallback>
+
+  <!-- Permit announcements. PermitNoLongerAvailable fires when the
+       Accept button is activated after the permit became unavailable
+       between rendering and click. PermitReturnAllResult is spoken
+       after refunding all permits: {0} = vanilla "ReturnAllPermits"
+       string, {1} = vanilla "UnusedPermits" string, {2} = remaining
+       points. PermitGranted is spoken after accepting a permit: {0} =
+       permit label, {1} = vanilla "UnusedPermits", {2} = remaining
+       points. -->
+  <RimWorldAccess.Inspection.InfoCardTree.PermitNoLongerAvailable>Permit no longer available.</RimWorldAccess.Inspection.InfoCardTree.PermitNoLongerAvailable>
+  <RimWorldAccess.Inspection.InfoCardTree.PermitReturnAllResult>{0}. {1}: {2}</RimWorldAccess.Inspection.InfoCardTree.PermitReturnAllResult>
+  <RimWorldAccess.Inspection.InfoCardTree.PermitGranted>{0} granted. {1}: {2}</RimWorldAccess.Inspection.InfoCardTree.PermitGranted>
 </LanguageData>

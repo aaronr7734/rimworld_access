@@ -51,7 +51,7 @@ namespace RimWorldAccess
                 var actionsTab = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Category,
-                    Label = "Actions",
+                    Label = "RimWorldAccess.Inspection.InfoCardTree.ActionsTab".Translate(),
                     Data = pawn,
                     IsExpandable = true,
                     IsExpanded = false,
@@ -206,7 +206,7 @@ namespace RimWorldAccess
             var entries = InfoCardDataExtractor.GetStatEntries();
             if (entries.Count == 0)
             {
-                AddChild(tabNode, CreateInfoItem("No stats available", tabNode.IndentLevel + 1));
+                AddChild(tabNode, CreateInfoItem("RimWorldAccess.Inspection.InfoCardTree.NoStats".Translate(), tabNode.IndentLevel + 1));
                 return;
             }
 
@@ -464,7 +464,7 @@ namespace RimWorldAccess
             catch (Exception ex)
             {
                 Log.Error($"[InfoCardTreeBuilder] Error building stat details: {ex.Message}");
-                AddChild(statNode, CreateInfoItem("Unable to load details", statNode.IndentLevel + 1));
+                AddChild(statNode, CreateInfoItem("RimWorldAccess.Inspection.InfoCardTree.UnableToLoadDetails".Translate(), statNode.IndentLevel + 1));
             }
         }
 
@@ -491,7 +491,7 @@ namespace RimWorldAccess
             }
 
             if (statNode.Children.Count == 0)
-                AddChild(statNode, CreateInfoItem("No genes", statNode.IndentLevel + 1));
+                AddChild(statNode, CreateInfoItem("RimWorldAccess.Inspection.InfoCardTree.NoGenes".Translate(), statNode.IndentLevel + 1));
         }
 
         #endregion
@@ -503,7 +503,7 @@ namespace RimWorldAccess
             var pawn = InfoCardDataExtractor.GetPawn(dialog);
             if (pawn == null)
             {
-                AddChild(tabNode, CreateInfoItem("No character data available", tabNode.IndentLevel + 1));
+                AddChild(tabNode, CreateInfoItem("RimWorldAccess.Inspection.InfoCardTree.NoCharacterData".Translate(), tabNode.IndentLevel + 1));
                 return;
             }
 
@@ -527,7 +527,7 @@ namespace RimWorldAccess
                         Type = InspectionTreeItem.ItemType.Item,
                         Label = storyLabel,
                         ExpandedLabel = storyExpandedLabel,
-                        Description = "Backstory",
+                        Description = "Backstory".Translate(),
                         IsExpandable = hasDescription,
                         IsExpanded = false,
                         IndentLevel = tabNode.IndentLevel + 1
@@ -555,7 +555,9 @@ namespace RimWorldAccess
             {
                 foreach (var (label, description, suppressed) in traitsInfo)
                 {
-                    string displayLabel = suppressed ? $"{label} (Suppressed)" : label;
+                    string displayLabel = suppressed
+                        ? label + (string)"RimWorldAccess.Inspection.InfoCardTree.SuppressedSuffix".Translate()
+                        : label;
                     bool hasTraitDescription = !string.IsNullOrEmpty(description);
                     string traitExpandedLabel = null;
                     if (hasTraitDescription)
@@ -569,7 +571,7 @@ namespace RimWorldAccess
                         Type = InspectionTreeItem.ItemType.Item,
                         Label = displayLabel,
                         ExpandedLabel = traitExpandedLabel,
-                        Description = "Traits",
+                        Description = "Traits".Translate(),
                         IsExpandable = hasTraitDescription,
                         IsExpanded = false,
                         IndentLevel = tabNode.IndentLevel + 1
@@ -599,16 +601,17 @@ namespace RimWorldAccess
                 {
                     string passionStr = "";
                     if (passion == Passion.Minor)
-                        passionStr = " (Minor passion)";
+                        passionStr = "RimWorldAccess.Inspection.InfoCardTree.MinorPassionSuffix".Translate();
                     else if (passion == Passion.Major)
-                        passionStr = " (Major passion)";
+                        passionStr = "RimWorldAccess.Inspection.InfoCardTree.MajorPassionSuffix".Translate();
 
+                    string skillName = def.skillLabel.CapitalizeFirst();
                     string label = disabled
-                        ? $"{def.skillLabel.CapitalizeFirst()}: Disabled"
-                        : $"{def.skillLabel.CapitalizeFirst()}: {level}{passionStr} ({levelDesc})";
+                        ? "RimWorldAccess.Inspection.InfoCardTree.SkillLabelDisabled".Translate(skillName, "Disabled".Translate())
+                        : "RimWorldAccess.Inspection.InfoCardTree.SkillLabelLeveled".Translate(skillName, level, passionStr, levelDesc);
 
                     var skillNode = CreateInfoItem(label, tabNode.IndentLevel + 1);
-                    skillNode.Description = "Skills";
+                    skillNode.Description = "Skills".Translate();
                     AddChild(tabNode, skillNode);
                 }
             }
@@ -618,7 +621,7 @@ namespace RimWorldAccess
             if (incapableTagsInfo.Count == 0)
             {
                 var noneNode = CreateInfoItem("None".Translate(), tabNode.IndentLevel + 1);
-                noneNode.Description = "Incapable Of";
+                noneNode.Description = "IncapableOf".Translate();
                 AddChild(tabNode, noneNode);
             }
             else
@@ -642,7 +645,7 @@ namespace RimWorldAccess
                         Type = InspectionTreeItem.ItemType.Item,
                         Label = incapableLabel,
                         ExpandedLabel = incapableExpandedLabel,
-                        Description = "Incapable Of",
+                        Description = "IncapableOf".Translate(),
                         IsExpandable = hasWorkTypes,
                         IsExpanded = false,
                         IndentLevel = tabNode.IndentLevel + 1
@@ -691,7 +694,7 @@ namespace RimWorldAccess
                         Type = InspectionTreeItem.ItemType.Item,
                         Label = titleLabel,
                         ExpandedLabel = titleExpandedLabel,
-                        Description = "Royal Titles",
+                        Description = "RimWorldAccess.Inspection.InfoCardTree.Section.RoyalTitles".Translate(),
                         IsExpandable = hasTitleDescription,
                         IsExpanded = false,
                         IndentLevel = tabNode.IndentLevel + 1
@@ -714,7 +717,7 @@ namespace RimWorldAccess
             if (roleInfo.HasValue)
             {
                 var roleNode = CreateInfoItem($"{roleInfo.Value.roleName} ({roleInfo.Value.ideoName})", tabNode.IndentLevel + 1);
-                roleNode.Description = "Ideology Role";
+                roleNode.Description = "RimWorldAccess.Inspection.InfoCardTree.Section.IdeologyRole".Translate();
                 AddChild(tabNode, roleNode);
             }
 
@@ -738,7 +741,7 @@ namespace RimWorldAccess
                         Type = InspectionTreeItem.ItemType.Item,
                         Label = abilityLabel,
                         ExpandedLabel = abilityExpandedLabel,
-                        Description = "Abilities",
+                        Description = "Abilities".Translate(),
                         IsExpandable = hasAbilityDescription,
                         IsExpanded = false,
                         IndentLevel = tabNode.IndentLevel + 1
@@ -781,7 +784,7 @@ namespace RimWorldAccess
                     Type = InspectionTreeItem.ItemType.Item,
                     Label = xenoLabel,
                     ExpandedLabel = xenoExpandedLabel,
-                    Description = "Xenotype",
+                    Description = "Xenotype".Translate(),
                     IsExpandable = xenoExpandable,
                     IsExpanded = false,
                     IndentLevel = tabNode.IndentLevel + 1
@@ -799,7 +802,7 @@ namespace RimWorldAccess
                         var geneNode = new InspectionTreeItem
                         {
                             Type = InspectionTreeItem.ItemType.Item,
-                            Label = $"Gene: {name}",
+                            Label = "RimWorldAccess.Inspection.InfoCardTree.GeneEntry".Translate(name),
                             IsExpandable = false,
                             IsExpanded = false,
                             IndentLevel = xenoNode.IndentLevel + 1
@@ -825,7 +828,7 @@ namespace RimWorldAccess
                     orIdeoColor.Named("ORIDEO")
                 ).Resolve();
                 var colorNode = CreateInfoItem(colorLabel, tabNode.IndentLevel + 1);
-                colorNode.Description = "Favorite Color";
+                colorNode.Description = "RimWorldAccess.Inspection.InfoCardTree.Section.FavoriteColor".Translate();
                 AddChild(tabNode, colorNode);
             }
         }
@@ -839,7 +842,7 @@ namespace RimWorldAccess
             var pawn = InfoCardDataExtractor.GetPawn(dialog);
             if (pawn == null)
             {
-                AddChild(tabNode, CreateInfoItem("No health data available", tabNode.IndentLevel + 1));
+                AddChild(tabNode, CreateInfoItem("RimWorldAccess.Inspection.InfoCardTree.NoHealthData".Translate(), tabNode.IndentLevel + 1));
                 return;
             }
 
@@ -869,7 +872,7 @@ namespace RimWorldAccess
                         Type = InspectionTreeItem.ItemType.Item,
                         Label = displayLabel,
                         ExpandedLabel = capExpandedLabel,
-                        Description = "Capacities",
+                        Description = "RimWorldAccess.Inspection.InfoCardTree.Section.Capacities".Translate(),
                         IsExpandable = hasCapTip,
                         IsExpanded = false,
                         IndentLevel = tabNode.IndentLevel + 1
@@ -920,7 +923,7 @@ namespace RimWorldAccess
                         Type = InspectionTreeItem.ItemType.Item,
                         Label = displayLabel,
                         ExpandedLabel = hediffExpandedLabel,
-                        Description = "Conditions",
+                        Description = "RimWorldAccess.Inspection.InfoCardTree.Section.Conditions".Translate(),
                         IsExpandable = hasHediffTip,
                         IsExpanded = false,
                         IndentLevel = tabNode.IndentLevel + 1
@@ -943,8 +946,8 @@ namespace RimWorldAccess
             }
             else
             {
-                var noConditionsNode = CreateInfoItem("No health conditions", tabNode.IndentLevel + 1);
-                noConditionsNode.Description = "Conditions";
+                var noConditionsNode = CreateInfoItem("RimWorldAccess.Inspection.InfoCardTree.NoHealthConditions".Translate(), tabNode.IndentLevel + 1);
+                noConditionsNode.Description = "RimWorldAccess.Inspection.InfoCardTree.Section.Conditions".Translate();
                 AddChild(tabNode, noConditionsNode);
             }
         }
@@ -958,7 +961,7 @@ namespace RimWorldAccess
             var pawn = InfoCardDataExtractor.GetPawn(dialog);
             if (pawn == null)
             {
-                AddChild(tabNode, CreateInfoItem("No records available", tabNode.IndentLevel + 1));
+                AddChild(tabNode, CreateInfoItem("RimWorldAccess.Inspection.InfoCardTree.NoRecordsAvailable".Translate(), tabNode.IndentLevel + 1));
                 return;
             }
 
@@ -969,7 +972,7 @@ namespace RimWorldAccess
                 foreach (var (label, value) in timeRecords)
                 {
                     var recordNode = CreateInfoItem($"{label}: {value}", tabNode.IndentLevel + 1);
-                    recordNode.Description = "Time Records";
+                    recordNode.Description = "RimWorldAccess.Inspection.InfoCardTree.Section.TimeRecords".Translate();
                     AddChild(tabNode, recordNode);
                 }
             }
@@ -981,14 +984,14 @@ namespace RimWorldAccess
                 foreach (var (label, value) in miscRecords)
                 {
                     var recordNode = CreateInfoItem($"{label}: {value}", tabNode.IndentLevel + 1);
-                    recordNode.Description = "Miscellaneous";
+                    recordNode.Description = "RimWorldAccess.Inspection.InfoCardTree.Section.Miscellaneous".Translate();
                     AddChild(tabNode, recordNode);
                 }
             }
 
             if (timeRecords.Count == 0 && miscRecords.Count == 0)
             {
-                AddChild(tabNode, CreateInfoItem("No records yet", tabNode.IndentLevel + 1));
+                AddChild(tabNode, CreateInfoItem("RimWorldAccess.Inspection.InfoCardTree.NoRecordsYet".Translate(), tabNode.IndentLevel + 1));
             }
         }
 
@@ -1001,14 +1004,14 @@ namespace RimWorldAccess
             var pawn = InfoCardDataExtractor.GetPawn(dialog);
             if (pawn == null || !ModsConfig.RoyaltyActive || pawn.royalty == null)
             {
-                AddChild(tabNode, CreateInfoItem("No permits available", tabNode.IndentLevel + 1));
+                AddChild(tabNode, CreateInfoItem("RimWorldAccess.Inspection.InfoCardTree.NoPermitsAvailable".Translate(), tabNode.IndentLevel + 1));
                 return;
             }
 
             var permitsInfo = InfoCardDataExtractor.GetPermitsInfo(pawn);
             if (permitsInfo.Count == 0)
             {
-                AddChild(tabNode, CreateInfoItem("No permits available", tabNode.IndentLevel + 1));
+                AddChild(tabNode, CreateInfoItem("RimWorldAccess.Inspection.InfoCardTree.NoPermitsAvailable".Translate(), tabNode.IndentLevel + 1));
                 return;
             }
 
@@ -1052,7 +1055,8 @@ namespace RimWorldAccess
                 {
                     int returnCost = InfoCardDataExtractor.TotalReturnPermitsCost(pawn);
                     string favorLabel = faction.def.royalFavorLabel.NullOrEmpty()
-                        ? "favor" : faction.def.royalFavorLabel;
+                        ? (string)"RimWorldAccess.Inspection.InfoCardTree.FavorFallback".Translate()
+                        : faction.def.royalFavorLabel;
 
                     var returnNode = new InspectionTreeItem
                     {
@@ -1109,9 +1113,10 @@ namespace RimWorldAccess
                             capturedPawn.royalty.RefundPermits(baseCost, capturedFaction);
                             SoundDefOf.Quest_Accepted.PlayOneShotOnCamera();
                             TolkHelper.Speak(
-                                "ReturnAllPermits".Translate() + ". " +
-                                "UnusedPermits".Translate() + ": " +
-                                capturedPawn.royalty.GetPermitPoints(capturedFaction),
+                                "RimWorldAccess.Inspection.InfoCardTree.PermitReturnAllResult".Translate(
+                                    "ReturnAllPermits".Translate(),
+                                    "UnusedPermits".Translate(),
+                                    capturedPawn.royalty.GetPermitPoints(capturedFaction)),
                                 SpeechPriority.High);
                             RebuildPermitsTab(capturedTabNode, capturedDialog);
                         }, destructive: true));
@@ -1168,7 +1173,7 @@ namespace RimWorldAccess
                             {
                                 var curTitle = capturedPawn.royalty.GetCurrentTitle(capturedFaction);
                                 bool titleMet = curTitle != null && curTitle.seniority >= capturedDef.minTitle.seniority;
-                                string titleStatus = titleMet ? "" : " (not met)";
+                                string titleStatus = titleMet ? "" : (string)"RimWorldAccess.Inspection.InfoCardTree.NotMetSuffix".Translate();
                                 AddChild(permitNode, CreateInfoItem(
                                     "RequiresTitle".Translate(capturedDef.minTitle.GetLabelForBothGenders()).Resolve() + titleStatus,
                                     permitNode.IndentLevel + 1));
@@ -1179,7 +1184,7 @@ namespace RimWorldAccess
                             {
                                 bool prereqMet = InfoCardDataExtractor.IsPermitUnlocked(
                                     capturedDef.prerequisite, capturedPawn, capturedFaction);
-                                string prereqStatus = prereqMet ? "" : " (not met)";
+                                string prereqStatus = prereqMet ? "" : (string)"RimWorldAccess.Inspection.InfoCardTree.NotMetSuffix".Translate();
                                 AddChild(permitNode, CreateInfoItem(
                                     "UpgradeFrom".Translate(capturedDef.prerequisite.LabelCap).Resolve() + prereqStatus,
                                     permitNode.IndentLevel + 1));
@@ -1232,7 +1237,7 @@ namespace RimWorldAccess
                                     if (!capturedDef.AvailableForPawn(capturedPawn, capturedFaction))
                                     {
                                         SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                                        TolkHelper.Speak("Permit no longer available.", SpeechPriority.High);
+                                        TolkHelper.Speak("RimWorldAccess.Inspection.InfoCardTree.PermitNoLongerAvailable".Translate(), SpeechPriority.High);
                                         return;
                                     }
 
@@ -1241,8 +1246,10 @@ namespace RimWorldAccess
 
                                     int remainingPoints = capturedPawn.royalty.GetPermitPoints(capturedFaction);
                                     TolkHelper.Speak(
-                                        capturedDef.LabelCap + " granted. " +
-                                        "UnusedPermits".Translate() + ": " + remainingPoints,
+                                        "RimWorldAccess.Inspection.InfoCardTree.PermitGranted".Translate(
+                                            capturedDef.LabelCap,
+                                            "UnusedPermits".Translate(),
+                                            remainingPoints),
                                         SpeechPriority.High);
 
                                     RebuildPermitsTab(capturedTabNode, capturedDialog);
@@ -1352,7 +1359,7 @@ namespace RimWorldAccess
             var renameItem = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.Action,
-                Label = "Rename",
+                Label = "Rename".Translate(),
                 Data = pawn,
                 IsExpandable = false,
                 IsExpanded = false,
