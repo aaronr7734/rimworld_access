@@ -1196,4 +1196,123 @@
   <RimWorldAccess.Inspection.Tree.JobCurrentIdle>Current: Idle</RimWorldAccess.Inspection.Tree.JobCurrentIdle>
   <RimWorldAccess.Inspection.Tree.JobQueued>Queued {0}: {1}</RimWorldAccess.Inspection.Tree.JobQueued>
   <RimWorldAccess.Inspection.Tree.JobUnknown>Unknown job</RimWorldAccess.Inspection.Tree.JobUnknown>
+
+  <!-- =================================================================
+       InspectionTreeBuilder section / heading labels. These are the
+       headings and empty-state messages shown by category builders.
+       Each is a stand-alone phrase (no parameter unless noted).
+
+       Top-level / dynamic-tab fallbacks:
+       - Root: hidden parent of the inspection tree (rarely spoken).
+       - MeditationFocusNoFocus: replaces the expandable Meditation
+         Focus tab when no focus objects are nearby.
+       - NoTabInfo: empty-state when a dynamic tab returns no
+         keyboard-accessible content. TabNoKeyboardContent: {0} =
+         tab category name (already game-localized).
+       - UnrecognizedTab: hint added below TabNoKeyboardContent when
+         the tab is not in our known registry.
+       - NoFacilityInfo: empty-state for the Linked Facilities
+         category fallback.
+
+       Pawn category empty states:
+       - NoNeedsToDisplay: pawn has no visible needs.
+       - NoTrainableSkills: pawn has no trainable skills (animal
+         tab).
+       - NoGeneInfo: shared between BuildGenesChildren and
+         BuildGeneSetHolderGenesChildren when biotech is inactive or
+         the gene set is empty.
+       - NoMoodInfo: pawn has no mood need.
+       - NoThoughts: pawn has no thoughts affecting mood.
+       - NoCombatEntries / NoSocialEntries: log subcategories.
+
+       Headings (subcategories):
+       - SkillsSubcategory: animal-tab Skills heading.
+       - HealthSettings: Action that opens the medical-care settings
+         menu.
+       - Capacities: Health-tab Capacities subtree heading.
+       - BreakThresholds: Mood-tab Break Thresholds subtree heading.
+       - CombatLog / SocialLog: Log-tab subcategories.
+
+       Break thresholds (BuildBreakThresholdsChildren). The vanilla
+       MentalBreakIntensityMinor / Major / Extreme keys give the
+       lowercase intensity word; Capitalize is applied client-side.
+       BreakThresholdLine: {0} = capitalized intensity word, {1} =
+       threshold percent (F0).
+
+       Combat / social log entries:
+       - LogEntryFormat: {0} = timestamp ("4 hours" etc, already
+         translated by the game), {1} = entry text.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Tree.Root>Inspection</RimWorldAccess.Inspection.Tree.Root>
+  <RimWorldAccess.Inspection.Tree.MeditationFocusNoFocus>Meditation Focus - No focus objects within range</RimWorldAccess.Inspection.Tree.MeditationFocusNoFocus>
+  <RimWorldAccess.Inspection.Tree.NoTabInfo>No information available for this tab.</RimWorldAccess.Inspection.Tree.NoTabInfo>
+  <RimWorldAccess.Inspection.Tree.TabNoKeyboardContent>Tab '{0}' has no keyboard-accessible content.</RimWorldAccess.Inspection.Tree.TabNoKeyboardContent>
+  <RimWorldAccess.Inspection.Tree.UnrecognizedTab>This is an unrecognized tab from a mod or DLC.</RimWorldAccess.Inspection.Tree.UnrecognizedTab>
+  <RimWorldAccess.Inspection.Tree.NoFacilityInfo>No facility linking information.</RimWorldAccess.Inspection.Tree.NoFacilityInfo>
+
+  <RimWorldAccess.Inspection.Tree.NoNeedsToDisplay>No needs to display.</RimWorldAccess.Inspection.Tree.NoNeedsToDisplay>
+  <RimWorldAccess.Inspection.Tree.NoTrainableSkills>No trainable skills</RimWorldAccess.Inspection.Tree.NoTrainableSkills>
+  <RimWorldAccess.Inspection.Tree.NoGeneInfo>No gene information available</RimWorldAccess.Inspection.Tree.NoGeneInfo>
+  <RimWorldAccess.Inspection.Tree.NoMoodInfo>No mood information available</RimWorldAccess.Inspection.Tree.NoMoodInfo>
+  <RimWorldAccess.Inspection.Tree.NoThoughts>No thoughts affecting mood</RimWorldAccess.Inspection.Tree.NoThoughts>
+  <RimWorldAccess.Inspection.Tree.NoCombatEntries>No combat entries found</RimWorldAccess.Inspection.Tree.NoCombatEntries>
+  <RimWorldAccess.Inspection.Tree.NoSocialEntries>No social entries found</RimWorldAccess.Inspection.Tree.NoSocialEntries>
+
+  <RimWorldAccess.Inspection.Tree.SkillsSubcategory>Skills</RimWorldAccess.Inspection.Tree.SkillsSubcategory>
+  <RimWorldAccess.Inspection.Tree.HealthSettings>Health Settings</RimWorldAccess.Inspection.Tree.HealthSettings>
+  <RimWorldAccess.Inspection.Tree.Capacities>Capacities</RimWorldAccess.Inspection.Tree.Capacities>
+  <RimWorldAccess.Inspection.Tree.BreakThresholds>Break Thresholds</RimWorldAccess.Inspection.Tree.BreakThresholds>
+  <RimWorldAccess.Inspection.Tree.CombatLog>Combat Log</RimWorldAccess.Inspection.Tree.CombatLog>
+  <RimWorldAccess.Inspection.Tree.SocialLog>Social Log</RimWorldAccess.Inspection.Tree.SocialLog>
+
+  <RimWorldAccess.Inspection.Tree.BreakThresholdLine>{0}: {1}%</RimWorldAccess.Inspection.Tree.BreakThresholdLine>
+  <RimWorldAccess.Inspection.Tree.LogEntryFormat>{0} ago - {1}</RimWorldAccess.Inspection.Tree.LogEntryFormat>
+
+  <!-- =================================================================
+       Pen marker (BuildPenMarkerChildren) details. These are the
+       heading and per-row labels for the pen-summary subtree, paired
+       with the action announcements above.
+
+       PenSize: {0} = vanilla pen size description (already
+       translated). PenBalance: {0} = signed balance string (already
+       formatted, includes leading + or -), {1} = growth (F1),
+       {2} = consumption (F1).
+       PenStockpiled: {0} = stockpile nutrition (F1).
+       PenStockpileLasts: {0} = days remaining (F1).
+       PenAnimalsHeader: {0} = species count.
+       PenAnimalRow: {0} = animal label (capitalized), {1} = head
+         count, {2} = consumption per day (F2). The leading minus is
+         part of the value.
+       PenStockpiledItemsHeader: {0} = item-type count.
+       PenStockpiledItemRow: {0} = food label (capitalized),
+         {1} = nutrition (F1).
+       PenMeditationNoFocusObjects: {0} = search radius (F0).
+
+       Meditation focus row (BuildMeditationFocusChildren):
+       MeditationFocusEntry composes one row from the focus thing's
+       label, focus types (joined with ", "), strength percent,
+       distance, and an optional "no LOS" marker. Each fragment is a
+       separate key so the dash separators stay client-side and word
+       order can vary per language.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Tree.PenSize>Pen Size: {0}</RimWorldAccess.Inspection.Tree.PenSize>
+  <RimWorldAccess.Inspection.Tree.PenBalance>Balance: {0} nutrition/day (growth: {1}, consumption: {2})</RimWorldAccess.Inspection.Tree.PenBalance>
+  <RimWorldAccess.Inspection.Tree.PenStockpiled>Stockpiled: {0} nutrition</RimWorldAccess.Inspection.Tree.PenStockpiled>
+  <RimWorldAccess.Inspection.Tree.PenStockpileLasts>Stockpile lasts: {0} days</RimWorldAccess.Inspection.Tree.PenStockpileLasts>
+  <RimWorldAccess.Inspection.Tree.PenAnimalsHeader>Animals ({0} types)</RimWorldAccess.Inspection.Tree.PenAnimalsHeader>
+  <RimWorldAccess.Inspection.Tree.PenAnimalRow>{0} ({1}): -{2}/day</RimWorldAccess.Inspection.Tree.PenAnimalRow>
+  <RimWorldAccess.Inspection.Tree.PenStockpiledItemsHeader>Stockpiled Items ({0} types)</RimWorldAccess.Inspection.Tree.PenStockpiledItemsHeader>
+  <RimWorldAccess.Inspection.Tree.PenStockpiledItemRow>{0}: {1} nutrition</RimWorldAccess.Inspection.Tree.PenStockpiledItemRow>
+  <RimWorldAccess.Inspection.Tree.PenMeditationNoFocusObjects>No meditation focus objects within {0} cells.</RimWorldAccess.Inspection.Tree.PenMeditationNoFocusObjects>
+
+  <RimWorldAccess.Inspection.Tree.MeditationFocusTypesSuffix> - {0}</RimWorldAccess.Inspection.Tree.MeditationFocusTypesSuffix>
+  <RimWorldAccess.Inspection.Tree.MeditationFocusStrengthSuffix> - Strength: {0}</RimWorldAccess.Inspection.Tree.MeditationFocusStrengthSuffix>
+  <RimWorldAccess.Inspection.Tree.MeditationFocusDistanceSuffix> - {0} cells</RimWorldAccess.Inspection.Tree.MeditationFocusDistanceSuffix>
+  <RimWorldAccess.Inspection.Tree.MeditationFocusNoLineOfSightSuffix> - No line of sight</RimWorldAccess.Inspection.Tree.MeditationFocusNoLineOfSightSuffix>
+
+  <!-- Skill XP progress row (BuildSkillChildren). {0} = XP since last
+       level (F0), {1} = XP required for next level (F0). The "XP"
+       prefix is mod-side because the vanilla Skills.xml exposes only
+       the long-form "Experience" word and we want a compact row. -->
+  <RimWorldAccess.Inspection.Tree.SkillXpProgress>XP: {0} / {1}</RimWorldAccess.Inspection.Tree.SkillXpProgress>
 </LanguageData>

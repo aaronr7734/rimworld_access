@@ -66,7 +66,7 @@ namespace RimWorldAccess
             var root = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.Object,
-                Label = "Inspection",
+                Label = "RimWorldAccess.Inspection.Tree.Root".Translate(),
                 IsExpandable = true,
                 IsExpanded = true,
                 IndentLevel = -1  // Root is not shown
@@ -219,7 +219,7 @@ namespace RimWorldAccess
                         if (categoryKey == "Meditation Focus")
                         {
                             // No focus objects nearby - show non-expandable warning
-                            item.Label = "Meditation Focus - No focus objects within range";
+                            item.Label = "RimWorldAccess.Inspection.Tree.MeditationFocusNoFocus".Translate();
                             item.IsExpandable = false;
                         }
                         else
@@ -275,7 +275,7 @@ namespace RimWorldAccess
                 AddChild(parentItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = "No information available for this tab.",
+                    Label = "RimWorldAccess.Inspection.Tree.NoTabInfo".Translate(),
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = false
                 });
@@ -290,7 +290,7 @@ namespace RimWorldAccess
                 AddChild(parentItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = $"Tab '{categoryInfo.Name}' has no keyboard-accessible content.",
+                    Label = "RimWorldAccess.Inspection.Tree.TabNoKeyboardContent".Translate(categoryInfo.Name),
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = false
                 });
@@ -301,7 +301,7 @@ namespace RimWorldAccess
                     AddChild(parentItem, new InspectionTreeItem
                     {
                         Type = InspectionTreeItem.ItemType.DetailText,
-                        Label = "This is an unrecognized tab from a mod or DLC.",
+                        Label = "RimWorldAccess.Inspection.Tree.UnrecognizedTab".Translate(),
                         IndentLevel = parentItem.IndentLevel + 1,
                         IsExpandable = false
                     });
@@ -1126,7 +1126,7 @@ namespace RimWorldAccess
                 AddChild(parentItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = "No needs to display.",
+                    Label = "RimWorldAccess.Inspection.Tree.NoNeedsToDisplay".Translate(),
                     IndentLevel = indent,
                     IsExpandable = false
                 });
@@ -1259,7 +1259,9 @@ namespace RimWorldAccess
             AddChild(skillItem, new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.DetailText,
-                Label = $"XP: {skill.xpSinceLastLevel:F0} / {skill.XpRequiredForLevelUp:F0}",
+                Label = "RimWorldAccess.Inspection.Tree.SkillXpProgress".Translate(
+                    skill.xpSinceLastLevel.ToString("F0"),
+                    skill.XpRequiredForLevelUp.ToString("F0")),
                 IndentLevel = childIndent,
                 IsExpandable = false
             });
@@ -2159,7 +2161,7 @@ namespace RimWorldAccess
             var skillsItem = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.SubCategory,
-                Label = "Skills",
+                Label = "RimWorldAccess.Inspection.Tree.SkillsSubcategory".Translate(),
                 Data = pawn,
                 IndentLevel = indent,
                 IsExpandable = true,
@@ -2179,7 +2181,7 @@ namespace RimWorldAccess
                     AddChild(skillsItem, new InspectionTreeItem
                     {
                         Type = InspectionTreeItem.ItemType.DetailText,
-                        Label = "No trainable skills",
+                        Label = "RimWorldAccess.Inspection.Tree.NoTrainableSkills".Translate(),
                         IndentLevel = childIndent,
                         IsExpandable = false
                     });
@@ -2296,7 +2298,7 @@ namespace RimWorldAccess
                 AddChild(categoryItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = "No gene information available",
+                    Label = "RimWorldAccess.Inspection.Tree.NoGeneInfo".Translate(),
                     IndentLevel = categoryItem.IndentLevel + 1,
                     IsExpandable = false
                 });
@@ -2339,7 +2341,7 @@ namespace RimWorldAccess
                 AddChild(categoryItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = "No gene information available",
+                    Label = "RimWorldAccess.Inspection.Tree.NoGeneInfo".Translate(),
                     IndentLevel = categoryItem.IndentLevel + 1,
                     IsExpandable = false
                 });
@@ -2434,7 +2436,7 @@ namespace RimWorldAccess
                 var healthSettingsItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Action,
-                    Label = "Health Settings",
+                    Label = "RimWorldAccess.Inspection.Tree.HealthSettings".Translate(),
                     Data = pawn,
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = false
@@ -2519,7 +2521,7 @@ namespace RimWorldAccess
                 var capacities = HealthTabHelper.GetCapacities(pawn);
                 if (capacities.Count > 0)
                 {
-                    string capacitiesLabel = "Capacities";
+                    string capacitiesLabel = "RimWorldAccess.Inspection.Tree.Capacities".Translate();
                     var capacitiesItem = new InspectionTreeItem
                     {
                         Type = InspectionTreeItem.ItemType.SubCategory,
@@ -2791,7 +2793,7 @@ namespace RimWorldAccess
                 var noMoodItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = "No mood information available",
+                    Label = "RimWorldAccess.Inspection.Tree.NoMoodInfo".Translate(),
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = false
                 };
@@ -2808,7 +2810,7 @@ namespace RimWorldAccess
                 var breakThresholdsItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.SubCategory,
-                    Label = "Break Thresholds",
+                    Label = "RimWorldAccess.Inspection.Tree.BreakThresholds".Translate(),
                     Data = pawn,
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = true,
@@ -2827,7 +2829,7 @@ namespace RimWorldAccess
                 var noThoughtsItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = "No thoughts affecting mood",
+                    Label = "RimWorldAccess.Inspection.Tree.NoThoughts".Translate(),
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = false
                 };
@@ -2935,10 +2937,15 @@ namespace RimWorldAccess
             float major = breaker.BreakThresholdMajor * 100f;
             float extreme = breaker.BreakThresholdExtreme * 100f;
 
+            string MakeBreakLine(string vanillaIntensityKey, float percent) =>
+                "RimWorldAccess.Inspection.Tree.BreakThresholdLine".Translate(
+                    vanillaIntensityKey.Translate().ToString().CapitalizeFirst(),
+                    percent.ToString("F0"));
+
             var minorItem = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.DetailText,
-                Label = $"Minor: {minor:F0}%",
+                Label = MakeBreakLine("MentalBreakIntensityMinor", minor),
                 IndentLevel = parentItem.IndentLevel + 1,
                 IsExpandable = false
             };
@@ -2947,7 +2954,7 @@ namespace RimWorldAccess
             var majorItem = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.DetailText,
-                Label = $"Major: {major:F0}%",
+                Label = MakeBreakLine("MentalBreakIntensityMajor", major),
                 IndentLevel = parentItem.IndentLevel + 1,
                 IsExpandable = false
             };
@@ -2956,7 +2963,7 @@ namespace RimWorldAccess
             var extremeItem = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.DetailText,
-                Label = $"Extreme: {extreme:F0}%",
+                Label = MakeBreakLine("MentalBreakIntensityExtreme", extreme),
                 IndentLevel = parentItem.IndentLevel + 1,
                 IsExpandable = false
             };
@@ -3008,7 +3015,7 @@ namespace RimWorldAccess
             var combatLogItem = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.SubCategory,
-                Label = "Combat Log",
+                Label = "RimWorldAccess.Inspection.Tree.CombatLog".Translate(),
                 Data = pawn,
                 IndentLevel = parentItem.IndentLevel + 1,
                 IsExpandable = true,
@@ -3021,7 +3028,7 @@ namespace RimWorldAccess
             var socialLogItem = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.SubCategory,
-                Label = "Social Log",
+                Label = "RimWorldAccess.Inspection.Tree.SocialLog".Translate(),
                 Data = pawn,
                 IndentLevel = parentItem.IndentLevel + 1,
                 IsExpandable = true,
@@ -3055,7 +3062,7 @@ namespace RimWorldAccess
 
                         string entryText = entry.ToGameStringFromPOV(pawn).StripTags();
                         string timestamp = entry.Age.ToStringTicksToPeriod();
-                        string displayText = $"{timestamp} ago - {entryText}";
+                        string displayText = "RimWorldAccess.Inspection.Tree.LogEntryFormat".Translate(timestamp, entryText);
 
                         entries.Add((entry.Age, displayText, entry));
                     }
@@ -3070,7 +3077,7 @@ namespace RimWorldAccess
                 var noEntriesItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = "No combat entries found",
+                    Label = "RimWorldAccess.Inspection.Tree.NoCombatEntries".Translate(),
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = false
                 };
@@ -3121,7 +3128,7 @@ namespace RimWorldAccess
 
                     string entryText = entry.ToGameStringFromPOV(pawn).StripTags();
                     string timestamp = entry.Age.ToStringTicksToPeriod();
-                    string displayText = $"{timestamp} ago - {entryText}";
+                    string displayText = "RimWorldAccess.Inspection.Tree.LogEntryFormat".Translate(timestamp, entryText);
 
                     entries.Add((entry.Age, displayText, entry));
                 }
@@ -3135,7 +3142,7 @@ namespace RimWorldAccess
                 var noEntriesItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = "No social entries found",
+                    Label = "RimWorldAccess.Inspection.Tree.NoSocialEntries".Translate(),
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = false
                 };
@@ -3200,7 +3207,7 @@ namespace RimWorldAccess
                 AddChild(parentItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
-                    Label = $"Pen Size: {penSize}",
+                    Label = "RimWorldAccess.Inspection.Tree.PenSize".Translate(penSize),
                     IndentLevel = indent,
                     IsExpandable = false
                 });
@@ -3211,7 +3218,8 @@ namespace RimWorldAccess
             float consumption = calculator.SumNutritionConsumptionPerDay;
             float balance = growth - consumption;
             string balanceStr = balance >= 0 ? $"+{balance:F1}" : $"{balance:F1}";
-            string summaryText = $"Balance: {balanceStr} nutrition/day (growth: {growth:F1}, consumption: {consumption:F1})";
+            string summaryText = "RimWorldAccess.Inspection.Tree.PenBalance".Translate(
+                balanceStr, growth.ToString("F1"), consumption.ToString("F1"));
 
             AddChild(parentItem, new InspectionTreeItem
             {
@@ -3227,7 +3235,8 @@ namespace RimWorldAccess
                 AddChild(parentItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
-                    Label = $"Stockpiled: {calculator.sumStockpiledNutritionAvailableNow:F1} nutrition",
+                    Label = "RimWorldAccess.Inspection.Tree.PenStockpiled".Translate(
+                        calculator.sumStockpiledNutritionAvailableNow.ToString("F1")),
                     IndentLevel = indent,
                     IsExpandable = false
                 });
@@ -3239,7 +3248,7 @@ namespace RimWorldAccess
                     AddChild(parentItem, new InspectionTreeItem
                     {
                         Type = InspectionTreeItem.ItemType.Item,
-                        Label = $"Stockpile lasts: {daysUntilEmpty:F1} days",
+                        Label = "RimWorldAccess.Inspection.Tree.PenStockpileLasts".Translate(daysUntilEmpty.ToString("F1")),
                         IndentLevel = indent,
                         IsExpandable = false
                     });
@@ -3253,7 +3262,7 @@ namespace RimWorldAccess
                 var animalsCategory = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.SubCategory,
-                    Label = $"Animals ({animalInfos.Count} types)",
+                    Label = "RimWorldAccess.Inspection.Tree.PenAnimalsHeader".Translate(animalInfos.Count),
                     IndentLevel = indent,
                     IsExpandable = true,
                     IsExpanded = false
@@ -3262,12 +3271,14 @@ namespace RimWorldAccess
                 {
                     if (animalsCategory.Children.Count == 0)
                     {
+                        string unknownAnimal = "RimWorldAccess.Inspection.Tree.PenUnknownAnimal".Translate();
                         foreach (var info in animalInfos)
                         {
-                            string animalLabel = info.animalDef?.label?.CapitalizeFirst() ?? "Unknown";
+                            string animalLabel = info.animalDef?.label?.CapitalizeFirst() ?? unknownAnimal;
                             float animalConsumption = info.nutritionConsumptionPerDay;
                             int count = info.count;
-                            string animalText = $"{animalLabel} ({count}): -{animalConsumption:F2}/day";
+                            string animalText = "RimWorldAccess.Inspection.Tree.PenAnimalRow".Translate(
+                                animalLabel, count, animalConsumption.ToString("F2"));
 
                             AddChild(animalsCategory, new InspectionTreeItem
                             {
@@ -3418,7 +3429,7 @@ namespace RimWorldAccess
             // Update the example animals label with current count
             var initialDefs = penMarker.ForceDisplayedAnimalDefs;
             int initialCount = (initialDefs != null) ? initialDefs.Count : 0;
-            examplesCategory.Label = $"Example Animals ({initialCount} types)";
+            examplesCategory.Label = "RimWorldAccess.Inspection.Tree.PenExamplesHeaderWithCount".Translate(initialCount);
 
             AddChild(parentItem, examplesCategory);
             AddChild(parentItem, addExampleCategory);
@@ -3430,7 +3441,7 @@ namespace RimWorldAccess
                 var foodCategory = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.SubCategory,
-                    Label = $"Stockpiled Items ({stockpileInfos.Count} types)",
+                    Label = "RimWorldAccess.Inspection.Tree.PenStockpiledItemsHeader".Translate(stockpileInfos.Count),
                     IndentLevel = indent,
                     IsExpandable = true,
                     IsExpanded = false
@@ -3439,11 +3450,13 @@ namespace RimWorldAccess
                 {
                     if (foodCategory.Children.Count == 0)
                     {
+                        string unknownFoodItem = "RimWorldAccess.Inspection.Tree.PenUnknownAnimal".Translate();
                         foreach (var info in stockpileInfos)
                         {
-                            string foodLabel = info.itemDef?.label?.CapitalizeFirst() ?? "Unknown";
+                            string foodLabel = info.itemDef?.label?.CapitalizeFirst() ?? unknownFoodItem;
                             float nutrition = info.totalNutritionAvailable;
-                            string foodText = $"{foodLabel}: {nutrition:F1} nutrition";
+                            string foodText = "RimWorldAccess.Inspection.Tree.PenStockpiledItemRow".Translate(
+                                foodLabel, nutrition.ToString("F1"));
 
                             AddChild(foodCategory, new InspectionTreeItem
                             {
@@ -3556,7 +3569,7 @@ namespace RimWorldAccess
                 AddChild(parentItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = "No facility linking information.",
+                    Label = "RimWorldAccess.Inspection.Tree.NoFacilityInfo".Translate(),
                     IndentLevel = indent,
                     IsExpandable = false
                 });
@@ -3609,21 +3622,21 @@ namespace RimWorldAccess
                 {
                     string types = string.Join(", ",
                         focusComp.Props.focusTypes.Select(f => f.label.CapitalizeFirst()));
-                    sb.Append($" - {types}");
+                    sb.Append("RimWorldAccess.Inspection.Tree.MeditationFocusTypesSuffix".Translate(types));
                 }
 
                 // Focus strength
                 float strength = thing.GetStatValue(StatDefOf.MeditationFocusStrength);
-                sb.Append($" - Strength: {strength.ToStringPercent()}");
+                sb.Append("RimWorldAccess.Inspection.Tree.MeditationFocusStrengthSuffix".Translate(strength.ToStringPercent()));
 
                 // Distance
                 float distance = center.DistanceTo(thing.Position);
-                sb.Append($" - {distance:F1} cells");
+                sb.Append("RimWorldAccess.Inspection.Tree.MeditationFocusDistanceSuffix".Translate(distance.ToString("F1")));
 
                 // Line of sight
                 if (!GenSight.LineOfSightToThing(center, thing, map))
                 {
-                    sb.Append(" - No line of sight");
+                    sb.Append("RimWorldAccess.Inspection.Tree.MeditationFocusNoLineOfSightSuffix".Translate());
                 }
 
                 AddChild(parentItem, new InspectionTreeItem
@@ -3642,7 +3655,7 @@ namespace RimWorldAccess
                 AddChild(parentItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = $"No meditation focus objects within {searchRadius:F0} cells.",
+                    Label = "RimWorldAccess.Inspection.Tree.PenMeditationNoFocusObjects".Translate(searchRadius.ToString("F0")),
                     IndentLevel = indent,
                     IsExpandable = false
                 });
