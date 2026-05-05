@@ -108,8 +108,8 @@ namespace RimWorldAccess
             menuItems.Add(new MenuItem(MenuItemType.Priority, GetPriorityLabel(), currentSettings.Priority));
 
             // Quick actions
-            menuItems.Add(new MenuItem(MenuItemType.ClearAll, "Clear All", null));
-            menuItems.Add(new MenuItem(MenuItemType.AllowAll, "Allow All", null));
+            menuItems.Add(new MenuItem(MenuItemType.ClearAll, "RimWorldAccess.Inspection.Storage.ClearAll".Translate(), null));
+            menuItems.Add(new MenuItem(MenuItemType.AllowAll, "RimWorldAccess.Inspection.Storage.AllowAll".Translate(), null));
 
             // Get the parent filter to determine what categories are configurable
             // This mirrors how ThingFilterUI.DoThingFilterConfigWindow works
@@ -120,8 +120,7 @@ namespace RimWorldAccess
             if (hpConfigurable)
             {
                 FloatRange hpRange = currentSettings.filter.AllowedHitPointsPercents;
-                string hpLabel = $"Hit Points: {hpRange.min:P0} - {hpRange.max:P0}";
-                menuItems.Add(new MenuItem(MenuItemType.HitPointsRange, hpLabel, hpRange));
+                menuItems.Add(new MenuItem(MenuItemType.HitPointsRange, FormatHitPointsLabel(hpRange), hpRange));
             }
 
             // Quality range (use parent filter's configurability if available)
@@ -129,8 +128,7 @@ namespace RimWorldAccess
             if (qualityConfigurable)
             {
                 QualityRange qualityRange = currentSettings.filter.AllowedQualityLevels;
-                string qualityLabel = $"Quality: {qualityRange.min} - {qualityRange.max}";
-                menuItems.Add(new MenuItem(MenuItemType.QualityRange, qualityLabel, qualityRange));
+                menuItems.Add(new MenuItem(MenuItemType.QualityRange, FormatQualityLabel(qualityRange), qualityRange));
             }
 
             // Thing filter tree
@@ -254,9 +252,19 @@ namespace RimWorldAccess
             return false;
         }
 
+        private static string FormatHitPointsLabel(FloatRange range)
+        {
+            return "RimWorldAccess.Inspection.Storage.RangeLabel.HitPoints".Translate(range.min.ToStringPercent(), range.max.ToStringPercent());
+        }
+
+        private static string FormatQualityLabel(QualityRange range)
+        {
+            return "RimWorldAccess.Inspection.Storage.RangeLabel.Quality".Translate(range.min.GetLabel(), range.max.GetLabel());
+        }
+
         private static string GetPriorityLabel()
         {
-            return $"Priority: {currentSettings.Priority.Label().CapitalizeFirst()}";
+            return "RimWorldAccess.Inspection.Storage.PriorityLabel".Translate(currentSettings.Priority.Label().CapitalizeFirst());
         }
 
         public static void SelectNext()
@@ -397,7 +405,7 @@ namespace RimWorldAccess
             // Check if this item has a parent
             if (item.parent == null)
             {
-                TolkHelper.Speak("At top level");
+                MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.TopLevel);
                 return;
             }
 
@@ -435,7 +443,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("At top level");
+                MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.TopLevel);
             }
         }
 
@@ -490,14 +498,14 @@ namespace RimWorldAccess
             if (item.type == MenuItemType.HitPointsRange)
             {
                 currentSettings.filter.AllowedHitPointsPercents = hitPoints;
-                item.label = $"Hit Points: {hitPoints.min:P0} - {hitPoints.max:P0}";
+                item.label = FormatHitPointsLabel(hitPoints);
                 item.data = hitPoints;
                 TolkHelper.Speak(item.label);
             }
             else if (item.type == MenuItemType.QualityRange)
             {
                 currentSettings.filter.AllowedQualityLevels = quality;
-                item.label = $"Quality: {quality.min} - {quality.max}";
+                item.label = FormatQualityLabel(quality);
                 item.data = quality;
                 TolkHelper.Speak(item.label);
             }
@@ -556,8 +564,10 @@ namespace RimWorldAccess
             var actualState = ThingFilterHelper.GetAllowanceState(
                 node.catDef, currentSettings.filter, td => IsVisible(td));
             item.isAllowed = (actualState != ThingFilterHelper.CategoryAllowanceState.NoneAllowed);
-            string stateStr = actualState == ThingFilterHelper.CategoryAllowanceState.NoneAllowed ? "Disallowed" : "Allowed";
-            TolkHelper.Speak($"{item.label}: {stateStr}");
+            string toggleKey = item.isAllowed
+                ? "RimWorldAccess.Inspection.Storage.ToggleResultAllowed"
+                : "RimWorldAccess.Inspection.Storage.ToggleResultDisallowed";
+            TolkHelper.Speak(toggleKey.Translate(item.label));
         }
 
         private static void ToggleItem(MenuItem item, bool allow)
@@ -583,8 +593,10 @@ namespace RimWorldAccess
                 }
             }
 
-            string state = item.isAllowed ? "Allowed" : "Disallowed";
-            TolkHelper.Speak($"{item.label}: {state}");
+            string itemToggleKey = item.isAllowed
+                ? "RimWorldAccess.Inspection.Storage.ToggleResultAllowed"
+                : "RimWorldAccess.Inspection.Storage.ToggleResultDisallowed";
+            TolkHelper.Speak(itemToggleKey.Translate(item.label));
         }
 
         /// <summary>
@@ -606,14 +618,14 @@ namespace RimWorldAccess
         {
             currentSettings.filter.SetDisallowAll();
             RebuildMenu();
-            TolkHelper.Speak("Cleared all items");
+            TolkHelper.Speak("RimWorldAccess.Inspection.Storage.ClearedAllItems".Translate());
         }
 
         private static void AllowAllItems()
         {
             currentSettings.filter.SetAllowAll(parentFilter);
             RebuildMenu();
-            TolkHelper.Speak("Allowed all items");
+            TolkHelper.Speak("RimWorldAccess.Inspection.Storage.AllowedAllItems".Translate());
         }
 
         private static void AdjustHitPointsRange(bool increase)
@@ -651,7 +663,7 @@ namespace RimWorldAccess
             currentSettings.filter.AllowedHitPointsPercents = current;
 
             // Update menu item
-            menuItems[selectedIndex].label = $"Hit Points: {current.min:P0} - {current.max:P0}";
+            menuItems[selectedIndex].label = FormatHitPointsLabel(current);
             menuItems[selectedIndex].data = current;
 
             TolkHelper.Speak(menuItems[selectedIndex].label);
@@ -695,7 +707,7 @@ namespace RimWorldAccess
             currentSettings.filter.AllowedQualityLevels = current;
 
             // Update menu item
-            menuItems[selectedIndex].label = $"Quality: {current.min} - {current.max}";
+            menuItems[selectedIndex].label = FormatQualityLabel(current);
             menuItems[selectedIndex].data = current;
 
             TolkHelper.Speak(menuItems[selectedIndex].label);
@@ -810,23 +822,28 @@ namespace RimWorldAccess
                 // Add allowed/disallowed state
                 if (item.type == MenuItemType.Category)
                 {
-                    string expandState = item.isExpanded ? "expanded" : "collapsed";
+                    string expandState = (item.isExpanded
+                        ? "RimWorldAccess.Tree.StateExpanded"
+                        : "RimWorldAccess.Tree.StateCollapsed").Translate().ToString();
                     var catNode = item.data as TreeNode_ThingCategory;
                     if (catNode != null)
                     {
                         var summary = ThingFilterHelper.GetCategorySummary(
                             catNode.catDef, currentSettings.filter, td => IsVisible(td));
-                        announcement += $". {ThingFilterHelper.FormatCategorySummary(summary)}, {expandState}";
+                        announcement = "RimWorldAccess.Inspection.Storage.CategoryWithSummary".Translate(
+                            item.label, ThingFilterHelper.FormatCategorySummary(summary), expandState);
                     }
                     else
                     {
-                        announcement += $" {expandState}";
+                        announcement = "RimWorldAccess.Inspection.Storage.LabelWithExpandState".Translate(item.label, expandState);
                     }
                 }
                 else if (item.type == MenuItemType.ThingDef || item.type == MenuItemType.SpecialFilter)
                 {
-                    string allowState = item.isAllowed ? "allowed" : "disallowed";
-                    announcement += $". {allowState}";
+                    string itemKey = item.isAllowed
+                        ? "RimWorldAccess.Inspection.Storage.ItemAllowed"
+                        : "RimWorldAccess.Inspection.Storage.ItemDisallowed";
+                    announcement = itemKey.Translate(item.label);
                 }
 
                 // Add sibling position (X of Y) at the end
@@ -872,19 +889,19 @@ namespace RimWorldAccess
                 RebuildMenu();
                 typeahead.ClearSearch(); // Clear search since visible items changed
                 EmbeddedAudioHelper.PlaySoundDefWithReverb(SoundDefOf.FloatMenu_Open);
-                if (expandedCount == 1)
-                    TolkHelper.Speak("Expanded 1 category");
-                else
-                    TolkHelper.Speak($"Expanded {expandedCount} categories");
+                string countKey = expandedCount == 1
+                    ? "RimWorldAccess.Tree.ExpandedCountOne"
+                    : "RimWorldAccess.Tree.ExpandedCountMany";
+                TolkHelper.Speak(countKey.Translate(expandedCount));
             }
             else
             {
                 // Check if there are any sibling categories at all
                 bool hasAnySiblingCategories = menuItems.Any(m => m.parent == parent && m.type == MenuItemType.Category);
                 if (hasAnySiblingCategories)
-                    TolkHelper.Speak("All categories already expanded at this level");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.AllAlreadyExpanded".Translate());
                 else
-                    TolkHelper.Speak("No categories to expand at this level");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.NoneToExpand".Translate());
             }
         }
 

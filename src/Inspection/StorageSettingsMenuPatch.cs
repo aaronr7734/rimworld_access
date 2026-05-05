@@ -99,7 +99,7 @@ namespace RimWorldAccess
                     return;
                 }
                 StorageSettingsMenuState.Close();
-                InspectionReturnHelper.AnnounceParentOrFallback("Closed storage settings menu");
+                InspectionReturnHelper.AnnounceParentOrFallback("RimWorldAccess.Inspection.Storage.MenuClosed".Translate());
                 Event.current.Use();
                 return;
             }
@@ -208,14 +208,14 @@ namespace RimWorldAccess
                     if (RangeEditMenuState.ApplyAndClose(out var hitPoints, out var quality))
                     {
                         StorageSettingsMenuState.ApplyRangeChanges(hitPoints, quality);
-                        TolkHelper.Speak("Applied range changes");
+                        TolkHelper.Speak("RimWorldAccess.Inspection.Storage.RangeApplied".Translate());
                     }
                     Event.current.Use();
                     break;
 
                 case KeyCode.Escape:
                     RangeEditMenuState.Close();
-                    TolkHelper.Speak("Cancelled range editing");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.RangeCancelled".Translate());
                     Event.current.Use();
                     break;
             }
@@ -245,7 +245,7 @@ namespace RimWorldAccess
 
                 case KeyCode.Escape:
                     PlantSelectionMenuState.Close();
-                    InspectionReturnHelper.AnnounceParentOrFallback("Closed plant selection menu");
+                    InspectionReturnHelper.AnnounceParentOrFallback("RimWorldAccess.Inspection.Storage.PlantSelectionClosed".Translate());
                     Event.current.Use();
                     break;
 
@@ -295,7 +295,7 @@ namespace RimWorldAccess
 
                 case KeyCode.Escape:
                     PlaySettingsMenuState.Close();
-                    TolkHelper.Speak("Closed play settings menu");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.PlaySettingsClosed".Translate());
                     Event.current.Use();
                     break;
             }
