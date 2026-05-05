@@ -1101,4 +1101,99 @@
   <RimWorldAccess.Inspection.Patch.ClosedDoorControls>Closed door controls</RimWorldAccess.Inspection.Patch.ClosedDoorControls>
   <RimWorldAccess.Inspection.Patch.ClosedForbidControls>Closed forbid controls</RimWorldAccess.Inspection.Patch.ClosedForbidControls>
   <RimWorldAccess.Inspection.Patch.ClosedFishingZoneMenu>Closed fishing zone menu</RimWorldAccess.Inspection.Patch.ClosedFishingZoneMenu>
+
+  <!-- =================================================================
+       InspectionTreeBuilder action announcements. Spoken when the user
+       activates (Enter) or deletes (Delete) a tree item that mutates
+       game state from inside the inspection panel.
+
+       Job queue (BuildJobQueueChildren):
+       - JobCancelled: {0} = job report. Spoken at SpeechPriority.High
+         when the user deletes a queued job from the Jobs tab.
+
+       Pen marker (BuildPenMarkerChildren):
+       - PenRemovedExample / PenAddedExample: {0} = animal label
+         (capitalized). Spoken after the user removes / adds an animal
+         from the Example Animals list.
+       - PenAutoCutToggleAnnouncement: {0} = vanilla Enabled / Disabled
+         word. Spoken when the user toggles the pen's auto-cut flag.
+       - PenDesignatedPlantsForCutting: standalone phrase spoken when
+         the Cut Now action successfully designates plants.
+
+       Bookcase (BuildContentsBooksChildren):
+       - BookEjected: {0} = vanilla EjectBookTooltip header,
+         {1} = book label (capitalized). Spoken after a book is
+         dropped onto an adjacent walkable cell.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Tree.JobCancelled>Cancelled: {0}</RimWorldAccess.Inspection.Tree.JobCancelled>
+  <RimWorldAccess.Inspection.Tree.PenRemovedExample>Removed example: {0}</RimWorldAccess.Inspection.Tree.PenRemovedExample>
+  <RimWorldAccess.Inspection.Tree.PenAddedExample>Added example: {0}</RimWorldAccess.Inspection.Tree.PenAddedExample>
+  <RimWorldAccess.Inspection.Tree.PenAutoCutToggleAnnouncement>Auto-cut {0}</RimWorldAccess.Inspection.Tree.PenAutoCutToggleAnnouncement>
+  <RimWorldAccess.Inspection.Tree.PenDesignatedPlantsForCutting>Designated plants for cutting</RimWorldAccess.Inspection.Tree.PenDesignatedPlantsForCutting>
+  <RimWorldAccess.Inspection.Tree.BookEjected>{0}. {1}</RimWorldAccess.Inspection.Tree.BookEjected>
+
+  <!-- =================================================================
+       InspectionTreeBuilder tree-item labels paired with the actions
+       above. Spoken when the user navigates onto these items (so a
+       sighted screen reader user reads the same wording as the
+       post-action announcement).
+
+       Pen marker labels:
+       - PenAutoCutPlantsLabel: {0} = vanilla Enabled / Disabled word,
+         {1} = optional unenclosed suffix (PenNotEnclosedSuffix or
+         empty).
+       - PenNotEnclosedSuffix: appended to Auto-Cut and Cut Now labels
+         when the pen is not enclosed; the leading space is part of
+         the value.
+       - PenCutNow / PenCutNowUnenclosed: vanilla AutoCutNow ("Cut
+         now") is spoken with the unenclosed suffix when applicable.
+         CutNow itself is left to the vanilla key.
+       - PenPlantFilter: standalone "Plant Filter" header label.
+       - PenAutoCutMenuTitle: passed to ThingFilterMenuState.Open() as
+         the menu title for the pen's auto-cut filter.
+       - PenNotEnclosedDescription: the read-only fallback row label
+         when the pen state is not enclosed (replaces the earlier
+         "Not Enclosed - pen must be fully enclosed to function"
+         English string with vanilla AutocutUnenclosedPen + a brief
+         mod-side suffix that explains the consequence).
+
+       Pen examples (Example Animals subtree):
+       - PenExamplesHeader / PenAddExamplesHeader: subcategory titles.
+       - PenExamplesHeaderWithCount: {0} = count of types. Replaces
+         the bare PenExamplesHeader once the section has been
+         rebuilt.
+       - PenExampleEntry: {0} = animal label, {1} = capacity (F0),
+         {2} = nutrition consumption per day (F2). Whole-phrase key
+         per row including the "Enter to remove" affordance.
+       - PenNoMoreAnimalsAvailable: empty-state row when the user has
+         already added every grazing animal.
+       - PenUnknownAnimal: per-callsite fallback when an animal def
+         lacks a label.
+
+       Job queue labels:
+       - JobCurrent: {0} = job report. The currently-executing job
+         row.
+       - JobCurrentIdle: standalone phrase when no job is current.
+       - JobQueued: {0} = 1-based queue index, {1} = job report.
+       - JobUnknown: fallback when the job's GetReport throws or
+         returns null.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Tree.PenAutoCutPlantsLabel>Auto-Cut Plants: {0}{1}</RimWorldAccess.Inspection.Tree.PenAutoCutPlantsLabel>
+  <RimWorldAccess.Inspection.Tree.PenNotEnclosedSuffix> (pen not enclosed)</RimWorldAccess.Inspection.Tree.PenNotEnclosedSuffix>
+  <RimWorldAccess.Inspection.Tree.PenCutNowLabel>{0}{1}</RimWorldAccess.Inspection.Tree.PenCutNowLabel>
+  <RimWorldAccess.Inspection.Tree.PenPlantFilter>Plant Filter</RimWorldAccess.Inspection.Tree.PenPlantFilter>
+  <RimWorldAccess.Inspection.Tree.PenAutoCutMenuTitle>Pen Auto-Cut Plants</RimWorldAccess.Inspection.Tree.PenAutoCutMenuTitle>
+  <RimWorldAccess.Inspection.Tree.PenNotEnclosedDescription>{0} - pen must be fully enclosed to function</RimWorldAccess.Inspection.Tree.PenNotEnclosedDescription>
+
+  <RimWorldAccess.Inspection.Tree.PenExamplesHeader>Example Animals</RimWorldAccess.Inspection.Tree.PenExamplesHeader>
+  <RimWorldAccess.Inspection.Tree.PenAddExamplesHeader>Add Example Animal</RimWorldAccess.Inspection.Tree.PenAddExamplesHeader>
+  <RimWorldAccess.Inspection.Tree.PenExamplesHeaderWithCount>Example Animals ({0} types)</RimWorldAccess.Inspection.Tree.PenExamplesHeaderWithCount>
+  <RimWorldAccess.Inspection.Tree.PenExampleEntry>{0}: max {1}, consumes {2}/day (Enter to remove)</RimWorldAccess.Inspection.Tree.PenExampleEntry>
+  <RimWorldAccess.Inspection.Tree.PenNoMoreAnimalsAvailable>No more animals available</RimWorldAccess.Inspection.Tree.PenNoMoreAnimalsAvailable>
+  <RimWorldAccess.Inspection.Tree.PenUnknownAnimal>Unknown</RimWorldAccess.Inspection.Tree.PenUnknownAnimal>
+
+  <RimWorldAccess.Inspection.Tree.JobCurrent>Current: {0}</RimWorldAccess.Inspection.Tree.JobCurrent>
+  <RimWorldAccess.Inspection.Tree.JobCurrentIdle>Current: Idle</RimWorldAccess.Inspection.Tree.JobCurrentIdle>
+  <RimWorldAccess.Inspection.Tree.JobQueued>Queued {0}: {1}</RimWorldAccess.Inspection.Tree.JobQueued>
+  <RimWorldAccess.Inspection.Tree.JobUnknown>Unknown job</RimWorldAccess.Inspection.Tree.JobUnknown>
 </LanguageData>

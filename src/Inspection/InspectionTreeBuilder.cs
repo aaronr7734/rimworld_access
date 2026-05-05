@@ -879,20 +879,21 @@ namespace RimWorldAccess
             // Add current job (not deletable)
             if (jobTracker.curJob != null)
             {
-                string currentJobReport = "Idle";
+                string unknownJob = "RimWorldAccess.Inspection.Tree.JobUnknown".Translate();
+                string currentJobReport;
                 try
                 {
-                    currentJobReport = jobTracker.curJob.GetReport(pawn)?.CapitalizeFirst() ?? "Unknown job";
+                    currentJobReport = jobTracker.curJob.GetReport(pawn)?.CapitalizeFirst() ?? unknownJob;
                 }
                 catch
                 {
-                    currentJobReport = jobTracker.curJob.def?.label?.CapitalizeFirst() ?? "Unknown job";
+                    currentJobReport = jobTracker.curJob.def?.label?.CapitalizeFirst() ?? unknownJob;
                 }
 
                 var currentItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
-                    Label = $"Current: {currentJobReport}",
+                    Label = "RimWorldAccess.Inspection.Tree.JobCurrent".Translate(currentJobReport),
                     Data = jobTracker.curJob,
                     IndentLevel = indent,
                     IsExpandable = false
@@ -904,7 +905,7 @@ namespace RimWorldAccess
                 var idleItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
-                    Label = "Current: Idle",
+                    Label = "RimWorldAccess.Inspection.Tree.JobCurrentIdle".Translate(),
                     IndentLevel = indent,
                     IsExpandable = false
                 };
@@ -922,19 +923,20 @@ namespace RimWorldAccess
                         continue;
 
                     string jobReport;
+                    string unknownJobLabel = "RimWorldAccess.Inspection.Tree.JobUnknown".Translate();
                     try
                     {
-                        jobReport = queuedJob.job.GetReport(pawn)?.CapitalizeFirst() ?? "Unknown job";
+                        jobReport = queuedJob.job.GetReport(pawn)?.CapitalizeFirst() ?? unknownJobLabel;
                     }
                     catch
                     {
-                        jobReport = queuedJob.job.def?.label?.CapitalizeFirst() ?? "Unknown job";
+                        jobReport = queuedJob.job.def?.label?.CapitalizeFirst() ?? unknownJobLabel;
                     }
 
                     var queuedItem = new InspectionTreeItem
                     {
                         Type = InspectionTreeItem.ItemType.Item,
-                        Label = $"Queued {queueIndex}: {jobReport}",
+                        Label = "RimWorldAccess.Inspection.Tree.JobQueued".Translate(queueIndex, jobReport),
                         Data = queuedJob,
                         IndentLevel = indent,
                         IsExpandable = false
@@ -950,7 +952,7 @@ namespace RimWorldAccess
                         {
                             // Cancel the queued job
                             jobQueue.Extract(jobToCancel);
-                            TolkHelper.Speak($"Cancelled: {jobLabel}", SpeechPriority.High);
+                            TolkHelper.Speak("RimWorldAccess.Inspection.Tree.JobCancelled".Translate(jobLabel), SpeechPriority.High);
 
                             // Rebuild the parent to reflect the change
                             parentItem.Children.Clear();
@@ -3183,7 +3185,8 @@ namespace RimWorldAccess
                 AddChild(parentItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
-                    Label = "Not Enclosed - pen must be fully enclosed to function",
+                    Label = "RimWorldAccess.Inspection.Tree.PenNotEnclosedDescription".Translate(
+                        "AutocutUnenclosedPen".Translate()),
                     IndentLevel = indent,
                     IsExpandable = false
                 });
@@ -3284,7 +3287,7 @@ namespace RimWorldAccess
             var examplesCategory = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.SubCategory,
-                Label = "Example Animals",
+                Label = "RimWorldAccess.Inspection.Tree.PenExamplesHeader".Translate(),
                 IndentLevel = indent,
                 IsExpandable = true,
                 IsExpanded = false
@@ -3293,7 +3296,7 @@ namespace RimWorldAccess
             var addExampleCategory = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.SubCategory,
-                Label = "Add Example Animal",
+                Label = "RimWorldAccess.Inspection.Tree.PenAddExamplesHeader".Translate(),
                 IndentLevel = indent,
                 IsExpandable = true,
                 IsExpanded = false
@@ -3310,16 +3313,18 @@ namespace RimWorldAccess
                 {
                     var infos = calculator.ComputeExampleAnimals(currentDefs);
                     Quadrum bestQuadrum = calculator.GetSummerOrBestQuadrum();
-                    examplesCategory.Label = $"Example Animals ({(infos?.Count ?? 0)} types)";
+                    examplesCategory.Label = "RimWorldAccess.Inspection.Tree.PenExamplesHeaderWithCount".Translate(infos?.Count ?? 0);
                     if (infos != null)
                     {
+                        string unknownAnimal = "RimWorldAccess.Inspection.Tree.PenUnknownAnimal".Translate();
                         foreach (var info in infos)
                         {
                             if (info.animalDef == null) continue;
-                            string label = info.animalDef.label?.CapitalizeFirst() ?? "Unknown";
+                            string label = info.animalDef.label?.CapitalizeFirst() ?? unknownAnimal;
                             float capacity = calculator.CapacityOf(bestQuadrum, info.animalDef);
                             float perAnimal = info.nutritionConsumptionPerDay;
-                            string text = $"{label}: max {capacity:F0}, consumes {perAnimal:F2}/day (Enter to remove)";
+                            string text = "RimWorldAccess.Inspection.Tree.PenExampleEntry".Translate(
+                                label, capacity.ToString("F0"), perAnimal.ToString("F2"));
 
                             var exampleItem = new InspectionTreeItem
                             {
@@ -3332,8 +3337,8 @@ namespace RimWorldAccess
                             exampleItem.OnActivate = () =>
                             {
                                 penMarker.RemoveForceDisplayedAnimal(capturedDef);
-                                string removedName = capturedDef.label?.CapitalizeFirst() ?? "Unknown";
-                                TolkHelper.Speak($"Removed example: {removedName}");
+                                string removedName = capturedDef.label?.CapitalizeFirst() ?? unknownAnimal;
+                                TolkHelper.Speak("RimWorldAccess.Inspection.Tree.PenRemovedExample".Translate(removedName));
                                 rebuildExampleSections();
                             };
                             AddChild(examplesCategory, exampleItem);
@@ -3342,7 +3347,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    examplesCategory.Label = "Example Animals (0 types)";
+                    examplesCategory.Label = "RimWorldAccess.Inspection.Tree.PenExamplesHeaderWithCount".Translate(0);
                 }
 
                 // Rebuild "Add Example Animal" children
@@ -3364,16 +3369,17 @@ namespace RimWorldAccess
                         AddChild(addExampleCategory, new InspectionTreeItem
                         {
                             Type = InspectionTreeItem.ItemType.Item,
-                            Label = "No more animals available",
+                            Label = "RimWorldAccess.Inspection.Tree.PenNoMoreAnimalsAvailable".Translate(),
                             IndentLevel = indent + 1,
                             IsExpandable = false
                         });
                     }
                     else
                     {
+                        string unknownAnimal = "RimWorldAccess.Inspection.Tree.PenUnknownAnimal".Translate();
                         foreach (var animal in available)
                         {
-                            string animalName = animal.label?.CapitalizeFirst() ?? "Unknown";
+                            string animalName = animal.label?.CapitalizeFirst() ?? unknownAnimal;
                             ThingDef capturedAnimal = animal;
                             var animalChoice = new InspectionTreeItem
                             {
@@ -3385,7 +3391,7 @@ namespace RimWorldAccess
                             animalChoice.OnActivate = () =>
                             {
                                 penMarker.AddForceDisplayedAnimal(capturedAnimal);
-                                TolkHelper.Speak($"Added example: {animalName}");
+                                TolkHelper.Speak("RimWorldAccess.Inspection.Tree.PenAddedExample".Translate(animalName));
                                 rebuildExampleSections();
                             };
                             AddChild(addExampleCategory, animalChoice);
@@ -3467,29 +3473,29 @@ namespace RimWorldAccess
             bool penEnclosed = penMarker.PenState.Enclosed;
 
             // Auto-cut toggle
-            string toggleLabel = penMarker.autoCut
-                ? "Auto-Cut Plants: Enabled"
-                : "Auto-Cut Plants: Disabled";
-            if (!penEnclosed)
-                toggleLabel += " (pen not enclosed)";
+            string PenStateWord(bool enabled) => enabled
+                ? "Enabled".Translate().ToString()
+                : "Disabled".Translate().ToString();
+            string PenUnenclosedSuffix(bool enclosed) => enclosed
+                ? ""
+                : "RimWorldAccess.Inspection.Tree.PenNotEnclosedSuffix".Translate().ToString();
+            string PenAutoCutLabel(bool enabled, bool enclosed) =>
+                "RimWorldAccess.Inspection.Tree.PenAutoCutPlantsLabel".Translate(
+                    PenStateWord(enabled), PenUnenclosedSuffix(enclosed));
 
             var toggleItem = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.Action,
-                Label = toggleLabel,
+                Label = PenAutoCutLabel(penMarker.autoCut, penEnclosed),
                 IndentLevel = indent,
                 IsExpandable = false
             };
             toggleItem.OnActivate = () =>
             {
                 penMarker.autoCut = !penMarker.autoCut;
-                string state = penMarker.autoCut ? "Enabled" : "Disabled";
-                toggleItem.Label = penMarker.autoCut
-                    ? "Auto-Cut Plants: Enabled"
-                    : "Auto-Cut Plants: Disabled";
-                if (!penMarker.PenState.Enclosed)
-                    toggleItem.Label += " (pen not enclosed)";
-                TolkHelper.Speak($"Auto-cut {state}");
+                string stateWord = PenStateWord(penMarker.autoCut);
+                toggleItem.Label = PenAutoCutLabel(penMarker.autoCut, penMarker.PenState.Enclosed);
+                TolkHelper.Speak("RimWorldAccess.Inspection.Tree.PenAutoCutToggleAnnouncement".Translate(stateWord));
             };
             AddChild(parentItem, toggleItem);
 
@@ -3497,7 +3503,9 @@ namespace RimWorldAccess
             var cutNowItem = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.Action,
-                Label = penEnclosed ? "Cut Now" : "Cut Now (pen not enclosed)",
+                Label = "RimWorldAccess.Inspection.Tree.PenCutNowLabel".Translate(
+                    "AutoCutNow".Translate(),
+                    PenUnenclosedSuffix(penEnclosed)),
                 IndentLevel = indent,
                 IsExpandable = false
             };
@@ -3506,7 +3514,7 @@ namespace RimWorldAccess
                 if (penMarker.PenState.Enclosed)
                 {
                     penMarker.DesignatePlantsToCut();
-                    TolkHelper.Speak("Designated plants for cutting");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Tree.PenDesignatedPlantsForCutting".Translate());
                 }
                 else
                 {
@@ -3519,14 +3527,14 @@ namespace RimWorldAccess
             var filterItem = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.Action,
-                Label = "Plant Filter",
+                Label = "RimWorldAccess.Inspection.Tree.PenPlantFilter".Translate(),
                 IndentLevel = indent,
                 IsExpandable = false
             };
             filterItem.OnActivate = () =>
             {
                 var fixedFilter = penMarker.parent.Map?.animalPenManager?.GetFixedAutoCutFilter();
-                ThingFilterMenuState.Open(penMarker.AutoCutFilter, fixedFilter, "Pen Auto-Cut Plants");
+                ThingFilterMenuState.Open(penMarker.AutoCutFilter, fixedFilter, "RimWorldAccess.Inspection.Tree.PenAutoCutMenuTitle".Translate());
             };
             AddChild(parentItem, filterItem);
         }
@@ -4056,7 +4064,8 @@ namespace RimWorldAccess
                         if (dropped?.TryGetComp<CompForbiddable>() is CompForbiddable forbiddable)
                             forbiddable.Forbidden = true;
 
-                        TolkHelper.Speak($"{"EjectBookTooltip".Translate()}. {localBook.LabelCap}");
+                        TolkHelper.Speak("RimWorldAccess.Inspection.Tree.BookEjected".Translate(
+                            "EjectBookTooltip".Translate(), localBook.LabelCap));
                         SoundDefOf.Click.PlayOneShotOnCamera();
 
                         // Rebuild children
@@ -4282,7 +4291,7 @@ namespace RimWorldAccess
                                 GenDrop.TryDropSpawn(localThing.SplitOff(localThing.stackCount),
                                     building.Position, building.Map, ThingPlaceMode.Near, out _);
                                 transporter.Notify_ThingRemoved(localThing);
-                                TolkHelper.Speak($"{itemLabel}");
+                                TolkHelper.Speak(itemLabel);
                                 SoundDefOf.Click.PlayOneShotOnCamera();
 
                                 // Rebuild
