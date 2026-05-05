@@ -129,7 +129,8 @@ namespace RimWorldAccess
             menuItems.Clear();
 
             // 1. Recipe info (read-only)
-            menuItems.Add(new MenuItem(MenuItemType.RecipeInfo, GetRecipeInfoLabel(), "Recipe", null, false));
+            menuItems.Add(new MenuItem(MenuItemType.RecipeInfo, GetRecipeInfoLabel(),
+                "RimWorldAccess.Inspection.BillConfig.SearchLabel.Recipe".Translate(), null, false));
 
             // 2. Suspend/Resume toggle
             string suspendLabel = bill.suspended ? "Suspended".Translate().ToString() : "NotSuspended".Translate().ToString();
@@ -143,21 +144,25 @@ namespace RimWorldAccess
             }
 
             // 3. Repeat mode
-            menuItems.Add(new MenuItem(MenuItemType.RepeatMode, GetRepeatModeLabel(), "Repeat mode", null, true));
+            menuItems.Add(new MenuItem(MenuItemType.RepeatMode, GetRepeatModeLabel(),
+                "RimWorldAccess.Inspection.BillConfig.SearchLabel.RepeatMode".Translate(), null, true));
 
             // 4. Repeat count (only if mode is RepeatCount)
             if (bill.repeatMode == BillRepeatModeDefOf.RepeatCount)
             {
-                menuItems.Add(new MenuItem(MenuItemType.RepeatCount, GetRepeatCountLabel(), "Repeat count", null, true));
+                menuItems.Add(new MenuItem(MenuItemType.RepeatCount, GetRepeatCountLabel(),
+                    "RimWorldAccess.Inspection.BillConfig.SearchLabel.RepeatCount".Translate(), null, true));
             }
 
             // 5-14. Target count block (only if mode is TargetCount)
             if (bill.repeatMode == BillRepeatModeDefOf.TargetCount)
             {
-                menuItems.Add(new MenuItem(MenuItemType.TargetCount, GetTargetCountLabel(), "Target count", null, true));
+                menuItems.Add(new MenuItem(MenuItemType.TargetCount, GetTargetCountLabel(),
+                    "RimWorldAccess.Inspection.BillConfig.SearchLabel.TargetCount".Translate(), null, true));
 
                 // Currently have (read-only live count)
-                menuItems.Add(new MenuItem(MenuItemType.CurrentlyHave, GetCurrentlyHaveLabel(), "Currently have", null, false));
+                menuItems.Add(new MenuItem(MenuItemType.CurrentlyHave, GetCurrentlyHaveLabel(),
+                    "RimWorldAccess.Inspection.BillConfig.SearchLabel.CurrentlyHave".Translate(), null, false));
 
                 ThingDef producedThingDef = bill.recipe.ProducedThingDef;
                 if (producedThingDef != null)
@@ -256,9 +261,10 @@ namespace RimWorldAccess
 
         private static string GetRecipeInfoLabel()
         {
-            string label = $"Recipe: {bill.recipe.LabelCap}";
+            string label = "RimWorldAccess.Inspection.BillConfig.Recipe.Title".Translate(bill.recipe.LabelCap);
 
-            // Recipe description
+            // Recipe description (description text already includes trailing punctuation
+            // from the def; we wrap with ". " separator only).
             if (!bill.recipe.description.NullOrEmpty())
             {
                 label += $". {bill.recipe.description}";
@@ -268,19 +274,23 @@ namespace RimWorldAccess
             float workAmount = bill.recipe.WorkAmountTotal(null);
             if (workAmount > 0f)
             {
-                label += $". {"WorkAmount".Translate()}: {workAmount.ToStringWorkAmount()}";
+                label += "RimWorldAccess.Inspection.BillConfig.Recipe.WorkAmountSuffix".Translate(
+                    "WorkAmount".Translate(), workAmount.ToStringWorkAmount());
             }
 
             // Minimum skill requirements (or just skill name if no requirements)
             if (!bill.recipe.skillRequirements.NullOrEmpty())
             {
                 var reqs = bill.recipe.skillRequirements
-                    .Select(r => $"{r.skill.LabelCap} {r.minLevel}");
-                label += $". {"MinimumSkills".Translate()}: {string.Join(", ", reqs)}";
+                    .Select(r => "RimWorldAccess.Inspection.BillConfig.Recipe.SkillRequirement".Translate(
+                        r.skill.LabelCap, r.minLevel).ToString());
+                label += "RimWorldAccess.Inspection.BillConfig.Recipe.MinSkillsSuffix".Translate(
+                    "MinimumSkills".Translate(), string.Join(", ", reqs));
             }
             else if (bill.recipe.workSkill != null)
             {
-                label += $". {bill.recipe.workSkill.LabelCap}";
+                label += "RimWorldAccess.Inspection.BillConfig.Recipe.WorkSkillSuffix".Translate(
+                    bill.recipe.workSkill.LabelCap);
             }
 
             // Biotech: wearable by developmental stages
@@ -289,23 +299,29 @@ namespace RimWorldAccess
                 ThingDef thingDef = bill.recipe.products[0].thingDef;
                 if (thingDef.IsApparel)
                 {
-                    label += $". {"WearableBy".Translate()}: {thingDef.apparel.developmentalStageFilter.ToCommaList().CapitalizeFirst()}";
+                    label += "RimWorldAccess.Inspection.BillConfig.Recipe.WearableBySuffix".Translate(
+                        "WearableBy".Translate(),
+                        thingDef.apparel.developmentalStageFilter.ToCommaList().CapitalizeFirst());
                 }
             }
 
             // Mech bill info
             if (bill is Bill_Mech)
             {
-                label += $". {"GestationCycles".Translate()}: {bill.recipe.gestationCycles}";
+                label += "RimWorldAccess.Inspection.BillConfig.Recipe.GestationCyclesSuffix".Translate(
+                    "GestationCycles".Translate(), bill.recipe.gestationCycles);
                 ThingDef mechDef = bill.recipe.ProducedThingDef;
                 if (mechDef != null)
                 {
-                    label += $", {"Bandwidth".Translate()}: {mechDef.GetStatValueAbstract(StatDefOf.BandwidthCost)}";
+                    label += "RimWorldAccess.Inspection.BillConfig.Recipe.BandwidthSuffix".Translate(
+                        "Bandwidth".Translate(), mechDef.GetStatValueAbstract(StatDefOf.BandwidthCost));
                     if (!bill.recipe.mechResurrection)
                     {
                         float wastepacks = (float)(int)mechDef.GetStatValueAbstract(StatDefOf.WastepacksPerRecharge)
                             * mechDef.GetStatValueAbstract(StatDefOf.BandwidthCost);
-                        label += $", {Find.ActiveLanguageWorker.Pluralize(ThingDefOf.Wastepack.LabelCap)} {"ThingsProduced".Translate()}: {wastepacks}";
+                        label += "RimWorldAccess.Inspection.BillConfig.Recipe.WastepacksSuffix".Translate(
+                            Find.ActiveLanguageWorker.Pluralize(ThingDefOf.Wastepack.LabelCap),
+                            "ThingsProduced".Translate(), wastepacks);
                     }
                 }
             }
@@ -315,47 +331,51 @@ namespace RimWorldAccess
 
         private static string GetRepeatModeLabel()
         {
-            return $"Repeat mode: {bill.repeatMode.LabelCap}";
+            return "RimWorldAccess.Inspection.BillConfig.Label.RepeatMode".Translate(bill.repeatMode.LabelCap);
         }
 
         private static string GetRepeatCountLabel()
         {
-            return "RepeatCount".Translate() + " " + bill.repeatCount;
+            return "RimWorldAccess.Inspection.BillConfig.Label.LabelWithValue".Translate(
+                "RepeatCount".Translate(), bill.repeatCount);
         }
 
         private static string GetTargetCountLabel()
         {
             if (bill.targetCount >= 999999)
             {
-                return $"Target count: {"Infinite".Translate()}";
+                return "RimWorldAccess.Inspection.BillConfig.Label.TargetCountInfinite".Translate("Infinite".Translate());
             }
-            return $"Target count: {bill.targetCount}";
+            return "RimWorldAccess.Inspection.BillConfig.Label.TargetCount".Translate(bill.targetCount);
         }
 
         private static string GetCurrentlyHaveLabel()
         {
-            string label = "CurrentlyHave".Translate() + ": "
-                + bill.recipe.WorkerCounter.CountProducts(bill) + " / "
-                + ((bill.targetCount < 999999)
-                    ? bill.targetCount.ToString()
-                    : "Infinite".Translate().ToLower().ToString());
+            string targetSide = (bill.targetCount < 999999)
+                ? bill.targetCount.ToString()
+                : "Infinite".Translate().ToLower().ToString();
+            string label = "RimWorldAccess.Inspection.BillConfig.Label.CurrentlyHave".Translate(
+                "CurrentlyHave".Translate(),
+                bill.recipe.WorkerCounter.CountProducts(bill),
+                targetSide);
 
             string productsDesc = bill.recipe.WorkerCounter.ProductsDescription(bill);
             if (!productsDesc.NullOrEmpty())
             {
-                label += $", {"CountingProducts".Translate()}: {productsDesc.CapitalizeFirst()}";
+                label += "RimWorldAccess.Inspection.BillConfig.Label.CountingProductsSuffix".Translate(
+                    "CountingProducts".Translate(), productsDesc.CapitalizeFirst());
             }
             return label;
         }
 
         private static string GetIncludeEquippedLabel()
         {
-            return $"{"IncludeEquipped".Translate()}: {(bill.includeEquipped ? "On".Translate() : "Off".Translate())}";
+            return LabelWithOnOff("IncludeEquipped".Translate(), bill.includeEquipped);
         }
 
         private static string GetIncludeTaintedLabel()
         {
-            return $"{"IncludeTainted".Translate()}: {(bill.includeTainted ? "On".Translate() : "Off".Translate())}";
+            return LabelWithOnOff("IncludeTainted".Translate(), bill.includeTainted);
         }
 
         private static string GetIncludeSourceLabel()
@@ -368,27 +388,32 @@ namespace RimWorldAccess
 
         private static string GetHpRangeLabel()
         {
-            return $"{"HitPointsBasic".Translate().CapitalizeFirst()}: {bill.hpRange.min:P0} - {bill.hpRange.max:P0}";
+            return "RimWorldAccess.Inspection.BillConfig.Label.LabelWithRangePercent".Translate(
+                "HitPointsBasic".Translate().CapitalizeFirst(),
+                bill.hpRange.min.ToStringPercent(),
+                bill.hpRange.max.ToStringPercent());
         }
 
         private static string GetQualityRangeLabel()
         {
-            return $"{"Quality".Translate()}: {bill.qualityRange.min} - {bill.qualityRange.max}";
+            return "RimWorldAccess.Inspection.BillConfig.Label.LabelWithRangeQuality".Translate(
+                "Quality".Translate(), bill.qualityRange.min.GetLabel(), bill.qualityRange.max.GetLabel());
         }
 
         private static string GetLimitToAllowedStuffLabel()
         {
-            return $"{"LimitToAllowedStuff".Translate()}: {(bill.limitToAllowedStuff ? "On".Translate() : "Off".Translate())}";
+            return LabelWithOnOff("LimitToAllowedStuff".Translate(), bill.limitToAllowedStuff);
         }
 
         private static string GetPauseWhenSatisfiedLabel()
         {
-            return $"{"PauseWhenSatisfied".Translate()}: {(bill.pauseWhenSatisfied ? "On".Translate() : "Off".Translate())}";
+            return LabelWithOnOff("PauseWhenSatisfied".Translate(), bill.pauseWhenSatisfied);
         }
 
         private static string GetUnpauseAtLabel()
         {
-            return $"{"UnpauseWhenYouHave".Translate()}: {bill.unpauseWhenYouHave}";
+            return "RimWorldAccess.Inspection.BillConfig.Label.LabelWithValue".Translate(
+                "UnpauseWhenYouHave".Translate(), bill.unpauseWhenYouHave);
         }
 
         private static string GetStoreModeLabel()
@@ -402,7 +427,8 @@ namespace RimWorldAccess
             if (bill.GetSlotGroup() != null
                 && !bill.recipe.WorkerCounter.CanPossiblyStore(bill, bill.GetSlotGroup()))
             {
-                label += string.Format(" ({0})", "IncompatibleLower".Translate());
+                label += "RimWorldAccess.Inspection.BillConfig.Label.IncompatibleSuffix".Translate(
+                    "IncompatibleLower".Translate());
             }
 
             return label;
@@ -410,39 +436,45 @@ namespace RimWorldAccess
 
         private static string GetPawnRestrictionLabel()
         {
+            string worker;
             if (bill.PawnRestriction != null)
-                return $"Worker: {bill.PawnRestriction.LabelShortCap}";
-            if (ModsConfig.IdeologyActive && bill.SlavesOnly)
-                return $"Worker: {"AnySlave".Translate()}";
-            if (ModsConfig.BiotechActive && bill.recipe.mechanitorOnlyRecipe)
-                return $"Worker: {"AnyMechanitor".Translate()}";
-            if (ModsConfig.BiotechActive && bill.MechsOnly)
-                return $"Worker: {"AnyMech".Translate()}";
-            if (ModsConfig.BiotechActive && bill.NonMechsOnly)
-                return $"Worker: {"AnyNonMech".Translate()}";
-            return $"Worker: {"AnyWorker".Translate()}";
+                worker = bill.PawnRestriction.LabelShortCap;
+            else if (ModsConfig.IdeologyActive && bill.SlavesOnly)
+                worker = "AnySlave".Translate();
+            else if (ModsConfig.BiotechActive && bill.recipe.mechanitorOnlyRecipe)
+                worker = "AnyMechanitor".Translate();
+            else if (ModsConfig.BiotechActive && bill.MechsOnly)
+                worker = "AnyMech".Translate();
+            else if (ModsConfig.BiotechActive && bill.NonMechsOnly)
+                worker = "AnyNonMech".Translate();
+            else
+                worker = "AnyWorker".Translate();
+            return "RimWorldAccess.Inspection.BillConfig.Label.WorkerWithLabel".Translate(worker);
         }
 
         private static string GetSkillRangeMinLabel()
         {
-            return $"{"AllowedSkillRange".Translate(bill.recipe.workSkill.label)}: Minimum {bill.allowedSkillRange.min}";
+            return "RimWorldAccess.Inspection.BillConfig.Label.SkillRangeMin".Translate(
+                "AllowedSkillRange".Translate(bill.recipe.workSkill.label),
+                "RimWorldAccess.Stepper.Minimum".Translate(),
+                bill.allowedSkillRange.min);
         }
 
         private static string GetSkillRangeMaxLabel()
         {
-            return $"{"AllowedSkillRange".Translate(bill.recipe.workSkill.label)}: Maximum {bill.allowedSkillRange.max}";
+            return "RimWorldAccess.Inspection.BillConfig.Label.SkillRangeMax".Translate(
+                "AllowedSkillRange".Translate(bill.recipe.workSkill.label),
+                "RimWorldAccess.Stepper.Maximum".Translate(),
+                bill.allowedSkillRange.max);
         }
 
         private static string GetIngredientRadiusLabel()
         {
-            if (bill.ingredientSearchRadius >= 999f)
-            {
-                return $"{"IngredientSearchRadius".Translate()}: {"Unlimited".Translate()}";
-            }
-            else
-            {
-                return $"{"IngredientSearchRadius".Translate()}: {bill.ingredientSearchRadius:F0}";
-            }
+            string value = bill.ingredientSearchRadius >= 999f
+                ? "Unlimited".Translate().ToString()
+                : bill.ingredientSearchRadius.ToString("F0");
+            return "RimWorldAccess.Inspection.BillConfig.Label.LabelWithValue".Translate(
+                "IngredientSearchRadius".Translate(), value);
         }
 
         private static string GetRenameBillLabel()
@@ -450,7 +482,8 @@ namespace RimWorldAccess
             string custom = bill.RenamableLabel;
             string baseName = bill.BaseLabel;
             if (custom != baseName)
-                return $"{"Rename".Translate()}: {custom} (original: {baseName})";
+                return "RimWorldAccess.Inspection.BillConfig.Label.RenameWithCustom".Translate(
+                    "Rename".Translate(), custom, baseName);
             return "Rename".Translate().ToString();
         }
 
@@ -459,13 +492,25 @@ namespace RimWorldAccess
             string stylePrefix = "Stat_Thing_StyleLabel".Translate().ToString();
             if (bill.globalStyle)
             {
-                return $"{stylePrefix}: {"UseGlobalStyle".Translate()}";
+                return "RimWorldAccess.Inspection.BillConfig.Label.LabelWithValue".Translate(
+                    stylePrefix, "UseGlobalStyle".Translate());
             }
             if (bill.style != null)
             {
-                return $"{stylePrefix}: {bill.style.Category.LabelCap}";
+                return "RimWorldAccess.Inspection.BillConfig.Label.LabelWithValue".Translate(
+                    stylePrefix, bill.style.Category.LabelCap);
             }
             return stylePrefix;
+        }
+
+        /// <summary>
+        /// Composes "{label}: {On/Off}" using vanilla "On" and "Off" keys for the
+        /// boolean state and the shared LabelWithValue key for the colon glue.
+        /// </summary>
+        private static string LabelWithOnOff(string label, bool value)
+        {
+            return "RimWorldAccess.Inspection.BillConfig.Label.LabelWithValue".Translate(
+                label, (value ? "On" : "Off").Translate());
         }
 
         /// <summary>
@@ -502,7 +547,7 @@ namespace RimWorldAccess
 
             if (isEditing)
             {
-                TolkHelper.Speak("Finish editing first (press Enter or Escape)");
+                TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.FinishEditingFirst".Translate());
                 return;
             }
 
@@ -517,7 +562,7 @@ namespace RimWorldAccess
 
             if (isEditing)
             {
-                TolkHelper.Speak("Finish editing first (press Enter or Escape)");
+                TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.FinishEditingFirst".Translate());
                 return;
             }
 
@@ -707,7 +752,7 @@ namespace RimWorldAccess
 
             if (!item.isEditable)
             {
-                TolkHelper.Speak("This item cannot be adjusted", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.NotAdjustable".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -742,7 +787,7 @@ namespace RimWorldAccess
                     break;
 
                 default:
-                    TolkHelper.Speak("Use Enter to open submenu");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.UseEnterToOpenSubmenu".Translate());
                     break;
             }
         }
@@ -833,7 +878,7 @@ namespace RimWorldAccess
                     break;
 
                 default:
-                    TolkHelper.Speak("Use left/right arrows to adjust");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.UseLeftRightToAdjust".Translate());
                     break;
             }
         }
@@ -1056,7 +1101,7 @@ namespace RimWorldAccess
                     break;
 
                 default:
-                    TolkHelper.Speak("This field cannot be adjusted");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.FieldNotAdjustable".Translate());
                     return;
             }
 
@@ -1076,7 +1121,7 @@ namespace RimWorldAccess
             switch (item.type)
             {
                 case MenuItemType.RepeatCount:
-                    TolkHelper.Speak("No maximum limit. Use numeric input for large values.");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.NoMaximumLimit".Translate());
                     return;
 
                 case MenuItemType.TargetCount:
@@ -1107,7 +1152,7 @@ namespace RimWorldAccess
                         return;
                     }
                     bill.ingredientSearchRadius = 999f;
-                    NumericStepperHelper.SpeakValueAtMaximum("Unlimited");
+                    NumericStepperHelper.SpeakValueAtMaximum("Unlimited".Translate());
                     break;
 
                 case MenuItemType.SkillRangeMin:
@@ -1131,7 +1176,7 @@ namespace RimWorldAccess
                     break;
 
                 default:
-                    TolkHelper.Speak("This field cannot be adjusted");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.FieldNotAdjustable".Translate());
                     return;
             }
 
@@ -1167,7 +1212,7 @@ namespace RimWorldAccess
 
             numericBuffer = "";
             isNumericInputMode = true;
-            TolkHelper.Speak("Type a number, then press Enter to confirm or Escape to cancel");
+            TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Numeric.Prompt".Translate());
         }
 
         /// <summary>
@@ -1195,7 +1240,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("Empty", SpeechPriority.Low);
+                TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Numeric.Empty".Translate(), SpeechPriority.Low);
             }
         }
 
@@ -1212,7 +1257,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("Invalid number");
+                TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Numeric.InvalidNumber".Translate());
             }
 
             isNumericInputMode = false;
@@ -1226,7 +1271,7 @@ namespace RimWorldAccess
         {
             isNumericInputMode = false;
             numericBuffer = "";
-            TolkHelper.Speak("Cancelled");
+            TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Numeric.Cancelled".Translate());
         }
 
         private static void ApplyNumericValue(int value)
@@ -1275,7 +1320,7 @@ namespace RimWorldAccess
                     if (value > 100)
                     {
                         bill.ingredientSearchRadius = 999f;
-                        TolkHelper.Speak("Unlimited");
+                        TolkHelper.Speak("Unlimited".Translate());
                     }
                     else
                     {
@@ -1300,7 +1345,7 @@ namespace RimWorldAccess
                     break;
 
                 default:
-                    TolkHelper.Speak("Cannot apply numeric value to this field");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Numeric.NotApplicable".Translate());
                     break;
             }
         }
@@ -1326,13 +1371,13 @@ namespace RimWorldAccess
             bill.RenamableLabel = newName;
             BuildMenuItems();
             BillsMenuState.RefreshMenuItems();
-            TolkHelper.Speak($"Bill renamed to {newName}");
+            TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.RenamedTo".Translate(newName));
             AnnounceCurrentSelection();
         }
 
         private static void OnBillRenameCancel()
         {
-            TolkHelper.Speak("Rename cancelled");
+            TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.RenameCancelled".Translate());
         }
 
         #endregion
@@ -1356,12 +1401,14 @@ namespace RimWorldAccess
                 bill.hpRange = new FloatRange(
                     Mathf.Round(bill.hpRange.min * 100f) / 100f,
                     Mathf.Round(bill.hpRange.max * 100f) / 100f);
-                TolkHelper.Speak($"Hit points: {bill.hpRange.min:P0} to {bill.hpRange.max:P0}");
+                TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.HitPointsApplied".Translate(
+                    bill.hpRange.min.ToStringPercent(), bill.hpRange.max.ToStringPercent()));
             }
             else if (item.type == MenuItemType.QualityRange)
             {
                 bill.qualityRange = quality;
-                TolkHelper.Speak($"Quality: {bill.qualityRange.min} to {bill.qualityRange.max}");
+                TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.QualityApplied".Translate(
+                    bill.qualityRange.min.GetLabel(), bill.qualityRange.max.GetLabel()));
             }
 
             BuildMenuItems();
@@ -1400,7 +1447,7 @@ namespace RimWorldAccess
                     if (bill.ingredientSearchRadius >= 100f)
                     {
                         bill.ingredientSearchRadius = 999f;
-                        NumericStepperHelper.SpeakValueAtMaximum("Unlimited");
+                        NumericStepperHelper.SpeakValueAtMaximum("Unlimited".Translate());
                     }
                     else
                     {
@@ -1577,7 +1624,8 @@ namespace RimWorldAccess
                     if (bill.recipe.workSkill != null)
                     {
                         int skillLevel = pawn.skills.GetSkill(bill.recipe.workSkill).Level;
-                        label += $" (Skill: {skillLevel})";
+                        label = "RimWorldAccess.Inspection.BillConfig.Label.PawnWithSkillSuffix".Translate(
+                            label, skillLevel);
                     }
 
                     Pawn localPawn = pawn;
@@ -1637,7 +1685,7 @@ namespace RimWorldAccess
             }));
 
             // Basic (no style)
-            options.Add(new FloatMenuOption("Basic", delegate
+            options.Add(new FloatMenuOption("RimWorldAccess.Inspection.BillConfig.Style.Basic".Translate(), delegate
             {
                 bill.globalStyle = false;
                 bill.style = null;
@@ -1739,21 +1787,23 @@ namespace RimWorldAccess
             {
                 string label = string.Format(prefix, SlotGroup.GetGroupLabel(group));
                 options.Add(new FloatMenuOption(
-                    string.Format("{0} ({1})", label, "IncompatibleLower".Translate()),
+                    label + "RimWorldAccess.Inspection.BillConfig.Label.IncompatibleSuffix".Translate(
+                        "IncompatibleLower".Translate()),
                     null));
             }
         }
 
         private static void OpenIngredientFilterMenu()
         {
-            ThingFilterMenuState.Open(bill.ingredientFilter, bill.recipe.fixedIngredientFilter, "Ingredient Filter");
+            ThingFilterMenuState.Open(bill.ingredientFilter, bill.recipe.fixedIngredientFilter,
+                "RimWorldAccess.Inspection.BillConfig.IngredientFilterTitle".Translate());
         }
 
         private static void DeleteBill()
         {
             string billLabel = bill.LabelCap;
             bill.billStack.Delete(bill);
-            TolkHelper.Speak($"Deleted bill: {billLabel}");
+            TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.DeletedBill".Translate(billLabel));
             Close();
 
             // Go back to bills menu

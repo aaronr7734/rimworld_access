@@ -427,6 +427,111 @@
   <RimWorldAccess.Inspection.Fishing.Numeric.Cancelled>Cancelled</RimWorldAccess.Inspection.Fishing.Numeric.Cancelled>
   <RimWorldAccess.Inspection.Fishing.Numeric.NotApplicable>Cannot apply numeric value to this field</RimWorldAccess.Inspection.Fishing.Numeric.NotApplicable>
 
+  <!-- =================================================================
+       Bill configuration menu (BillConfigState). Opened from
+       BillsMenuState when the user presses Enter on a bill row.
+       Provides keyboard navigation through every bill field
+       (recipe info, repeat mode, target/repeat counts, ingredient
+       filter, skill range, store mode, pawn restriction, rename
+       and delete).
+
+       Vanilla nouns reused as `{0}` / `{1}` placeholders or as
+       complete keys: WorkAmount, MinimumSkills, WearableBy,
+       GestationCycles, Bandwidth, ThingsProduced, RepeatCount,
+       Suspended, NotSuspended, Unpause, Quality, HitPointsBasic,
+       Infinite, Unlimited, On / Off, IncludeEquipped, IncludeTainted,
+       IncludeFromAll, IncludeSpecific, LimitToAllowedStuff,
+       PauseWhenSatisfied, UnpauseWhenYouHave, IngredientSearchRadius,
+       AllowedSkillRange, AnyWorker, AnySlave, AnyMech, AnyNonMech,
+       AnyMechanitor, IncompatibleLower, UseGlobalStyle, Rename,
+       Stat_Thing_StyleLabel, DeleteBillTip, CountingProducts,
+       Filter, Ingredients.
+
+       Recipe.* phrases compose the long recipe-info row. Each form
+       embeds the vanilla label as {0} so the colon glue stays in
+       the key (typographic punctuation, not a translatable particle)
+       and the per-language word order can vary within one line.
+
+       Label.LabelWithRangePercent: {0} = vanilla noun, {1}/{2} =
+       percent strings. Label.LabelWithRangeQuality: same shape but
+       {1}/{2} are QualityCategory enum values. Label.LabelWithValue
+       is the plain "{0}: {1}" composition shared by IncludeEquipped /
+       IncludeTainted / LimitToAllowedStuff / PauseWhenSatisfied /
+       UnpauseAt / IngredientRadius / Style.
+
+       Worker.LabelWith*: {0} = pawn / mech short label. The leading
+       "Worker: " prefix is its own key per restriction class so
+       word order can vary; English happens to share the prefix.
+       SkillRange.MinLine / MaxLine: {0} = "AllowedSkillRange"
+       template (already translated with skill name substituted),
+       {1} = numeric value. The "Minimum"/"Maximum" word inside
+       reuses Stepper.Minimum / Stepper.Maximum (Common.xml).
+
+       PawnRestrictionWithSkill: {0} = pawn label, {1} = skill level.
+       Numeric.* govern the typed-input overlay; behavior parallels
+       the FishingZoneMenuState numeric overlay.
+
+       TargetCount.Infinite: vanilla "Infinite" is reused for the
+       value side; the "Target count: " prefix gets its own
+       Label.TargetCountInfinite key for word-order flexibility.
+
+       Action.* phrases are top-level menu chrome announcements
+       (rename confirmed/cancelled, bill deleted, range applied).
+       ================================================================= -->
+  <RimWorldAccess.Inspection.BillConfig.SearchLabel.Recipe>Recipe</RimWorldAccess.Inspection.BillConfig.SearchLabel.Recipe>
+  <RimWorldAccess.Inspection.BillConfig.SearchLabel.RepeatMode>Repeat mode</RimWorldAccess.Inspection.BillConfig.SearchLabel.RepeatMode>
+  <RimWorldAccess.Inspection.BillConfig.SearchLabel.RepeatCount>Repeat count</RimWorldAccess.Inspection.BillConfig.SearchLabel.RepeatCount>
+  <RimWorldAccess.Inspection.BillConfig.SearchLabel.TargetCount>Target count</RimWorldAccess.Inspection.BillConfig.SearchLabel.TargetCount>
+  <RimWorldAccess.Inspection.BillConfig.SearchLabel.CurrentlyHave>Currently have</RimWorldAccess.Inspection.BillConfig.SearchLabel.CurrentlyHave>
+
+  <RimWorldAccess.Inspection.BillConfig.Recipe.Title>Recipe: {0}</RimWorldAccess.Inspection.BillConfig.Recipe.Title>
+  <RimWorldAccess.Inspection.BillConfig.Recipe.WorkAmountSuffix>. {0}: {1}</RimWorldAccess.Inspection.BillConfig.Recipe.WorkAmountSuffix>
+  <RimWorldAccess.Inspection.BillConfig.Recipe.SkillRequirement>{0} {1}</RimWorldAccess.Inspection.BillConfig.Recipe.SkillRequirement>
+  <RimWorldAccess.Inspection.BillConfig.Recipe.MinSkillsSuffix>. {0}: {1}</RimWorldAccess.Inspection.BillConfig.Recipe.MinSkillsSuffix>
+  <RimWorldAccess.Inspection.BillConfig.Recipe.WorkSkillSuffix>. {0}</RimWorldAccess.Inspection.BillConfig.Recipe.WorkSkillSuffix>
+  <RimWorldAccess.Inspection.BillConfig.Recipe.WearableBySuffix>. {0}: {1}</RimWorldAccess.Inspection.BillConfig.Recipe.WearableBySuffix>
+  <RimWorldAccess.Inspection.BillConfig.Recipe.GestationCyclesSuffix>. {0}: {1}</RimWorldAccess.Inspection.BillConfig.Recipe.GestationCyclesSuffix>
+  <RimWorldAccess.Inspection.BillConfig.Recipe.BandwidthSuffix>, {0}: {1}</RimWorldAccess.Inspection.BillConfig.Recipe.BandwidthSuffix>
+  <RimWorldAccess.Inspection.BillConfig.Recipe.WastepacksSuffix>, {0} {1}: {2}</RimWorldAccess.Inspection.BillConfig.Recipe.WastepacksSuffix>
+
+  <RimWorldAccess.Inspection.BillConfig.Label.RepeatMode>Repeat mode: {0}</RimWorldAccess.Inspection.BillConfig.Label.RepeatMode>
+  <RimWorldAccess.Inspection.BillConfig.Label.TargetCount>Target count: {0}</RimWorldAccess.Inspection.BillConfig.Label.TargetCount>
+  <RimWorldAccess.Inspection.BillConfig.Label.TargetCountInfinite>Target count: {0}</RimWorldAccess.Inspection.BillConfig.Label.TargetCountInfinite>
+  <RimWorldAccess.Inspection.BillConfig.Label.CurrentlyHave>{0}: {1} / {2}</RimWorldAccess.Inspection.BillConfig.Label.CurrentlyHave>
+  <RimWorldAccess.Inspection.BillConfig.Label.CountingProductsSuffix>, {0}: {1}</RimWorldAccess.Inspection.BillConfig.Label.CountingProductsSuffix>
+  <RimWorldAccess.Inspection.BillConfig.Label.LabelWithValue>{0}: {1}</RimWorldAccess.Inspection.BillConfig.Label.LabelWithValue>
+  <RimWorldAccess.Inspection.BillConfig.Label.LabelWithRangePercent>{0}: {1} - {2}</RimWorldAccess.Inspection.BillConfig.Label.LabelWithRangePercent>
+  <RimWorldAccess.Inspection.BillConfig.Label.LabelWithRangeQuality>{0}: {1} - {2}</RimWorldAccess.Inspection.BillConfig.Label.LabelWithRangeQuality>
+  <RimWorldAccess.Inspection.BillConfig.Label.IncompatibleSuffix> ({0})</RimWorldAccess.Inspection.BillConfig.Label.IncompatibleSuffix>
+  <RimWorldAccess.Inspection.BillConfig.Label.WorkerWithLabel>Worker: {0}</RimWorldAccess.Inspection.BillConfig.Label.WorkerWithLabel>
+  <RimWorldAccess.Inspection.BillConfig.Label.SkillRangeMin>{0}: {1} {2}</RimWorldAccess.Inspection.BillConfig.Label.SkillRangeMin>
+  <RimWorldAccess.Inspection.BillConfig.Label.SkillRangeMax>{0}: {1} {2}</RimWorldAccess.Inspection.BillConfig.Label.SkillRangeMax>
+  <RimWorldAccess.Inspection.BillConfig.Label.RenameWithCustom>{0}: {1} (original: {2})</RimWorldAccess.Inspection.BillConfig.Label.RenameWithCustom>
+  <RimWorldAccess.Inspection.BillConfig.Label.PawnWithSkillSuffix>{0} (Skill: {1})</RimWorldAccess.Inspection.BillConfig.Label.PawnWithSkillSuffix>
+
+  <RimWorldAccess.Inspection.BillConfig.Action.FinishEditingFirst>Finish editing first (press Enter or Escape)</RimWorldAccess.Inspection.BillConfig.Action.FinishEditingFirst>
+  <RimWorldAccess.Inspection.BillConfig.Action.NotAdjustable>This item cannot be adjusted</RimWorldAccess.Inspection.BillConfig.Action.NotAdjustable>
+  <RimWorldAccess.Inspection.BillConfig.Action.UseEnterToOpenSubmenu>Use Enter to open submenu</RimWorldAccess.Inspection.BillConfig.Action.UseEnterToOpenSubmenu>
+  <RimWorldAccess.Inspection.BillConfig.Action.UseLeftRightToAdjust>Use left/right arrows to adjust</RimWorldAccess.Inspection.BillConfig.Action.UseLeftRightToAdjust>
+  <RimWorldAccess.Inspection.BillConfig.Action.NoMaximumLimit>No maximum limit. Use numeric input for large values.</RimWorldAccess.Inspection.BillConfig.Action.NoMaximumLimit>
+  <RimWorldAccess.Inspection.BillConfig.Action.FieldNotAdjustable>This field cannot be adjusted</RimWorldAccess.Inspection.BillConfig.Action.FieldNotAdjustable>
+  <RimWorldAccess.Inspection.BillConfig.Action.RenamedTo>Bill renamed to {0}</RimWorldAccess.Inspection.BillConfig.Action.RenamedTo>
+  <RimWorldAccess.Inspection.BillConfig.Action.RenameCancelled>Rename cancelled</RimWorldAccess.Inspection.BillConfig.Action.RenameCancelled>
+  <RimWorldAccess.Inspection.BillConfig.Action.HitPointsApplied>Hit points: {0} to {1}</RimWorldAccess.Inspection.BillConfig.Action.HitPointsApplied>
+  <RimWorldAccess.Inspection.BillConfig.Action.QualityApplied>Quality: {0} to {1}</RimWorldAccess.Inspection.BillConfig.Action.QualityApplied>
+  <RimWorldAccess.Inspection.BillConfig.Action.DeletedBill>Deleted bill: {0}</RimWorldAccess.Inspection.BillConfig.Action.DeletedBill>
+
+  <RimWorldAccess.Inspection.BillConfig.Numeric.Prompt>Type a number, then press Enter to confirm or Escape to cancel</RimWorldAccess.Inspection.BillConfig.Numeric.Prompt>
+  <RimWorldAccess.Inspection.BillConfig.Numeric.Empty>Empty</RimWorldAccess.Inspection.BillConfig.Numeric.Empty>
+  <RimWorldAccess.Inspection.BillConfig.Numeric.InvalidNumber>Invalid number</RimWorldAccess.Inspection.BillConfig.Numeric.InvalidNumber>
+  <RimWorldAccess.Inspection.BillConfig.Numeric.Cancelled>Cancelled</RimWorldAccess.Inspection.BillConfig.Numeric.Cancelled>
+  <RimWorldAccess.Inspection.BillConfig.Numeric.NotApplicable>Cannot apply numeric value to this field</RimWorldAccess.Inspection.BillConfig.Numeric.NotApplicable>
+
+  <!-- IngredientFilter window title (passed to ThingFilterMenuState.Open). -->
+  <RimWorldAccess.Inspection.BillConfig.IngredientFilterTitle>Ingredient Filter</RimWorldAccess.Inspection.BillConfig.IngredientFilterTitle>
+  <!-- "Basic" style choice in OpenStyleMenu. -->
+  <RimWorldAccess.Inspection.BillConfig.Style.Basic>Basic</RimWorldAccess.Inspection.BillConfig.Style.Basic>
+
   <!-- Power. PowerStatus: {0} = vanilla "Power", {1} = vanilla "On"/"Off".
        PowerConsumption: {0} = wattage. -->
   <RimWorldAccess.Inspection.Building.PowerStatus>{0}: {1}</RimWorldAccess.Inspection.Building.PowerStatus>
