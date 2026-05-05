@@ -1075,4 +1075,30 @@
   <RimWorldAccess.Inspection.InfoCardTree.PermitNoLongerAvailable>Permit no longer available.</RimWorldAccess.Inspection.InfoCardTree.PermitNoLongerAvailable>
   <RimWorldAccess.Inspection.InfoCardTree.PermitReturnAllResult>{0}. {1}: {2}</RimWorldAccess.Inspection.InfoCardTree.PermitReturnAllResult>
   <RimWorldAccess.Inspection.InfoCardTree.PermitGranted>{0} granted. {1}: {2}</RimWorldAccess.Inspection.InfoCardTree.PermitGranted>
+
+  <!-- =================================================================
+       BuildingInspectPatch fallback announcements. Each phrase is the
+       message spoken by InspectionReturnHelper.AnnounceParentOrFallback
+       when a submenu closes and there is no active parent menu to
+       re-announce (which happens when the submenu was opened outside
+       the inspection flow, e.g. from the scanner). One whole-phrase
+       key per submenu so the verb (Closed / Cancelled) and the menu
+       noun can vary per language without sentence-templating.
+       AppliedRangeChanges is announced after the user confirms the
+       hit-points / quality range editor; it is a TolkHelper.Speak
+       (not a fallback) since the user always lands back in the thing
+       filter menu after applying.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Patch.ClosedTemperatureControl>Closed temperature control menu</RimWorldAccess.Inspection.Patch.ClosedTemperatureControl>
+  <RimWorldAccess.Inspection.Patch.ClosedBillsMenu>Closed bills menu</RimWorldAccess.Inspection.Patch.ClosedBillsMenu>
+  <RimWorldAccess.Inspection.Patch.ClosedBillConfiguration>Closed bill configuration</RimWorldAccess.Inspection.Patch.ClosedBillConfiguration>
+  <RimWorldAccess.Inspection.Patch.ClosedThingFilterMenu>Closed thing filter menu</RimWorldAccess.Inspection.Patch.ClosedThingFilterMenu>
+  <RimWorldAccess.Inspection.Patch.CancelledRangeEditing>Cancelled range editing</RimWorldAccess.Inspection.Patch.CancelledRangeEditing>
+  <RimWorldAccess.Inspection.Patch.AppliedRangeChanges>Applied range changes</RimWorldAccess.Inspection.Patch.AppliedRangeChanges>
+  <RimWorldAccess.Inspection.Patch.ClosedPowerControl>Closed power control menu</RimWorldAccess.Inspection.Patch.ClosedPowerControl>
+  <RimWorldAccess.Inspection.Patch.ClosedFuelSettings>Closed fuel settings menu</RimWorldAccess.Inspection.Patch.ClosedFuelSettings>
+  <RimWorldAccess.Inspection.Patch.ClosedBreakdownStatus>Closed breakdown status view</RimWorldAccess.Inspection.Patch.ClosedBreakdownStatus>
+  <RimWorldAccess.Inspection.Patch.ClosedDoorControls>Closed door controls</RimWorldAccess.Inspection.Patch.ClosedDoorControls>
+  <RimWorldAccess.Inspection.Patch.ClosedForbidControls>Closed forbid controls</RimWorldAccess.Inspection.Patch.ClosedForbidControls>
+  <RimWorldAccess.Inspection.Patch.ClosedFishingZoneMenu>Closed fishing zone menu</RimWorldAccess.Inspection.Patch.ClosedFishingZoneMenu>
 </LanguageData>

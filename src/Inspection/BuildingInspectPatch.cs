@@ -149,7 +149,7 @@ namespace RimWorldAccess
 
                 case KeyCode.Escape:
                     TempControlMenuState.Close();
-                    InspectionReturnHelper.AnnounceParentOrFallback("Closed temperature control menu");
+                    InspectionReturnHelper.AnnounceParentOrFallback("RimWorldAccess.Inspection.Patch.ClosedTemperatureControl".Translate());
                     Event.current.Use();
                     break;
             }
@@ -186,7 +186,7 @@ namespace RimWorldAccess
                     return;
                 }
                 BillsMenuState.Close();
-                InspectionReturnHelper.AnnounceParentOrFallback("Closed bills menu");
+                InspectionReturnHelper.AnnounceParentOrFallback("RimWorldAccess.Inspection.Patch.ClosedBillsMenu".Translate());
                 Event.current.Use();
                 return;
             }
@@ -377,7 +377,7 @@ namespace RimWorldAccess
                     return;
                 }
                 BillConfigState.Close();
-                InspectionReturnHelper.AnnounceParentOrFallback("Closed bill configuration");
+                InspectionReturnHelper.AnnounceParentOrFallback("RimWorldAccess.Inspection.Patch.ClosedBillConfiguration".Translate());
                 Event.current.Use();
                 return;
             }
@@ -568,7 +568,7 @@ namespace RimWorldAccess
 
                 case KeyCode.Escape:
                     RangeEditMenuState.Close();
-                    InspectionReturnHelper.AnnounceParentOrFallback("Cancelled range editing");
+                    InspectionReturnHelper.AnnounceParentOrFallback("RimWorldAccess.Inspection.Patch.CancelledRangeEditing".Translate());
                     Event.current.Use();
                     break;
             }
@@ -665,7 +665,7 @@ namespace RimWorldAccess
                     else
                     {
                         ThingFilterMenuState.Close();
-                        InspectionReturnHelper.AnnounceParentOrFallback("Closed thing filter menu");
+                        InspectionReturnHelper.AnnounceParentOrFallback("RimWorldAccess.Inspection.Patch.ClosedThingFilterMenu".Translate());
                     }
                     Event.current.Use();
                     break;
@@ -709,14 +709,14 @@ namespace RimWorldAccess
                     if (RangeEditMenuState.ApplyAndClose(out var hitPoints, out var quality))
                     {
                         ThingFilterMenuState.ApplyRangeChanges(hitPoints, quality);
-                        TolkHelper.Speak("Applied range changes");
+                        TolkHelper.Speak("RimWorldAccess.Inspection.Patch.AppliedRangeChanges".Translate());
                     }
                     Event.current.Use();
                     break;
 
                 case KeyCode.Escape:
                     RangeEditMenuState.Close();
-                    InspectionReturnHelper.AnnounceParentOrFallback("Cancelled range editing");
+                    InspectionReturnHelper.AnnounceParentOrFallback("RimWorldAccess.Inspection.Patch.CancelledRangeEditing".Translate());
                     Event.current.Use();
                     break;
             }
@@ -800,7 +800,7 @@ namespace RimWorldAccess
 
                 case KeyCode.Escape:
                     FlickableComponentState.Close();
-                    InspectionReturnHelper.AnnounceParentOrFallback("Closed power control menu");
+                    InspectionReturnHelper.AnnounceParentOrFallback("RimWorldAccess.Inspection.Patch.ClosedPowerControl".Translate());
                     Event.current.Use();
                     break;
             }
@@ -877,7 +877,7 @@ namespace RimWorldAccess
                     else
                     {
                         RefuelableComponentState.Close();
-                        InspectionReturnHelper.AnnounceParentOrFallback("Closed fuel settings menu");
+                        InspectionReturnHelper.AnnounceParentOrFallback("RimWorldAccess.Inspection.Patch.ClosedFuelSettings".Translate());
                     }
                     Event.current.Use();
                     break;
@@ -897,7 +897,7 @@ namespace RimWorldAccess
 
                 case KeyCode.Escape:
                     BreakdownableComponentState.Close();
-                    InspectionReturnHelper.AnnounceParentOrFallback("Closed breakdown status view");
+                    InspectionReturnHelper.AnnounceParentOrFallback("RimWorldAccess.Inspection.Patch.ClosedBreakdownStatus".Translate());
                     Event.current.Use();
                     break;
             }
@@ -923,7 +923,7 @@ namespace RimWorldAccess
 
                 case KeyCode.Escape:
                     DoorControlState.Close();
-                    InspectionReturnHelper.AnnounceParentOrFallback("Closed door controls");
+                    InspectionReturnHelper.AnnounceParentOrFallback("RimWorldAccess.Inspection.Patch.ClosedDoorControls".Translate());
                     Event.current.Use();
                     break;
             }
@@ -949,7 +949,7 @@ namespace RimWorldAccess
 
                 case KeyCode.Escape:
                     ForbidControlState.Close();
-                    InspectionReturnHelper.AnnounceParentOrFallback("Closed forbid controls");
+                    InspectionReturnHelper.AnnounceParentOrFallback("RimWorldAccess.Inspection.Patch.ClosedForbidControls".Translate());
                     Event.current.Use();
                     break;
             }
@@ -1010,7 +1010,7 @@ namespace RimWorldAccess
                     return;
                 }
                 FishingZoneMenuState.Close();
-                InspectionReturnHelper.AnnounceParentOrFallback("Closed fishing zone menu");
+                InspectionReturnHelper.AnnounceParentOrFallback("RimWorldAccess.Inspection.Patch.ClosedFishingZoneMenu".Translate());
                 Event.current.Use();
                 return;
             }
