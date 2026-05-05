@@ -140,16 +140,19 @@
   <RimWorldAccess.Inspection.Building.NoStorageSettings>This building does not have storage settings.</RimWorldAccess.Inspection.Building.NoStorageSettings>
 
   <!-- Storage settings menu (StorageSettingsMenuState +
-       StorageSettingsMenuPatch). Top-level menu item labels and the
-       summaries spoken as the user navigates the filter tree, plus the
-       result announcements after editing the range submenu and after
-       expand-all-siblings. Vanilla StoragePriority labels and category
-       labels come from the game and are used as data placeholders.
-       The "expanded" / "collapsed" tree state words and the
-       "Expanded N item(s)" announcements after * delegate to
-       Common.Tree.* keys. The "Already at top level" boundary
-       announcement delegates to Common.Edge.TopLevel via
-       MenuHelper.SpeakAlreadyAtEdge. -->
+       StorageSettingsMenuPatch) and the parallel ThingFilterMenuState
+       (used by BillConfigState ingredient filters and the storage
+       sub-states in InspectionTreeBuilder). Both states render the
+       same filter-tree shape and share these keys: top-level menu
+       item labels and the summaries spoken as the user navigates the
+       filter tree, plus the result announcements after editing the
+       range submenu and after expand-all-siblings. Vanilla
+       StoragePriority labels and category labels come from the game
+       and are used as data placeholders. The "expanded" / "collapsed"
+       tree state words and the "Expanded N item(s)" announcements
+       after * delegate to Common.Tree.* keys. The "Already at top
+       level" boundary announcement delegates to Common.Edge.TopLevel
+       via MenuHelper.SpeakAlreadyAtEdge. -->
   <!-- Top-level menu rows. PriorityLabel: {0} = capitalized priority
        label. RangeLabel.HitPoints: {0} = min %, {1} = max %.
        RangeLabel.Quality: {0} = min QualityCategory, {1} = max
@@ -186,9 +189,13 @@
   <RimWorldAccess.Inspection.Storage.NoneToExpand>No categories to expand at this level</RimWorldAccess.Inspection.Storage.NoneToExpand>
 
   <!-- Range editing announcements (StorageSettingsMenuPatch). Spoken
-       after Enter applies the new range or Escape discards it. -->
+       after Enter applies the new range or Escape discards it.
+       PressEnterEditRange is spoken by ThingFilterMenuState when the
+       user presses Right/Left on a range row (instead of expanding
+       since ranges have no children). -->
   <RimWorldAccess.Inspection.Storage.RangeApplied>Applied range changes</RimWorldAccess.Inspection.Storage.RangeApplied>
   <RimWorldAccess.Inspection.Storage.RangeCancelled>Cancelled range editing</RimWorldAccess.Inspection.Storage.RangeCancelled>
+  <RimWorldAccess.Inspection.Storage.PressEnterEditRange>Press Enter to edit range</RimWorldAccess.Inspection.Storage.PressEnterEditRange>
 
   <!-- Submenu close fallbacks (used by InspectionReturnHelper when no
        parent inspection menu is active). -->

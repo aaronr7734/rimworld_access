@@ -118,7 +118,8 @@ namespace RimWorldAccess
             if (hpConfigurable && !forceHideHitPoints)
             {
                 FloatRange hpRange = currentFilter.AllowedHitPointsPercents;
-                string hpLabel = $"{"HitPointsBasic".Translate().CapitalizeFirst()}: {hpRange.min:P0} - {hpRange.max:P0}";
+                string hpLabel = "RimWorldAccess.Inspection.Storage.RangeLabel.HitPoints".Translate(
+                    hpRange.min.ToStringPercent(), hpRange.max.ToStringPercent());
                 menuItems.Add(new MenuItem(MenuItemType.HitPointsRange, hpLabel, hpRange));
             }
 
@@ -127,7 +128,8 @@ namespace RimWorldAccess
             if (qualityConfigurable && !forceHideQuality)
             {
                 QualityRange qualityRange = currentFilter.AllowedQualityLevels;
-                string qualityLabel = $"{"Quality".Translate()}: {qualityRange.min.GetLabel()} - {qualityRange.max.GetLabel()}";
+                string qualityLabel = "RimWorldAccess.Inspection.Storage.RangeLabel.Quality".Translate(
+                    qualityRange.min.GetLabel(), qualityRange.max.GetLabel());
                 menuItems.Add(new MenuItem(MenuItemType.QualityRange, qualityLabel, qualityRange));
             }
 
@@ -328,7 +330,7 @@ namespace RimWorldAccess
 
                 case MenuItemType.HitPointsRange:
                 case MenuItemType.QualityRange:
-                    TolkHelper.Speak("Press Enter to edit range");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.PressEnterEditRange".Translate());
                     break;
 
                 case MenuItemType.ClearAll:
@@ -379,7 +381,7 @@ namespace RimWorldAccess
 
                 case MenuItemType.HitPointsRange:
                 case MenuItemType.QualityRange:
-                    TolkHelper.Speak("Press Enter to edit range");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.PressEnterEditRange".Translate());
                     break;
             }
         }
@@ -417,10 +419,10 @@ namespace RimWorldAccess
                 RebuildMenu();
                 typeahead.ClearSearch();
                 EmbeddedAudioHelper.PlaySoundDefWithReverb(SoundDefOf.FloatMenu_Open);
-                if (expandedCount == 1)
-                    TolkHelper.Speak("Expanded 1 category");
-                else
-                    TolkHelper.Speak($"Expanded {expandedCount} categories");
+                string countKey = expandedCount == 1
+                    ? "RimWorldAccess.Tree.ExpandedCountOne"
+                    : "RimWorldAccess.Tree.ExpandedCountMany";
+                TolkHelper.Speak(countKey.Translate(expandedCount));
             }
             else
             {
@@ -436,9 +438,9 @@ namespace RimWorldAccess
                 }
 
                 if (hasAnySiblingCategories)
-                    TolkHelper.Speak("All categories already expanded at this level");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.AllAlreadyExpanded".Translate());
                 else
-                    TolkHelper.Speak("No categories to expand at this level");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.NoneToExpand".Translate());
             }
         }
 
@@ -493,14 +495,16 @@ namespace RimWorldAccess
             if (item.type == MenuItemType.HitPointsRange)
             {
                 currentFilter.AllowedHitPointsPercents = hitPoints;
-                item.label = $"{"HitPointsBasic".Translate().CapitalizeFirst()}: {hitPoints.min:P0} - {hitPoints.max:P0}";
+                item.label = "RimWorldAccess.Inspection.Storage.RangeLabel.HitPoints".Translate(
+                    hitPoints.min.ToStringPercent(), hitPoints.max.ToStringPercent());
                 item.data = hitPoints;
                 TolkHelper.Speak(item.label);
             }
             else if (item.type == MenuItemType.QualityRange)
             {
                 currentFilter.AllowedQualityLevels = quality;
-                item.label = $"{"Quality".Translate()}: {quality.min.GetLabel()} - {quality.max.GetLabel()}";
+                item.label = "RimWorldAccess.Inspection.Storage.RangeLabel.Quality".Translate(
+                    quality.min.GetLabel(), quality.max.GetLabel());
                 item.data = quality;
                 TolkHelper.Speak(item.label);
             }
@@ -528,8 +532,10 @@ namespace RimWorldAccess
             var actualState = ThingFilterHelper.GetAllowanceState(
                 node.catDef, currentFilter, td => IsVisible(td));
             item.isAllowed = (actualState != ThingFilterHelper.CategoryAllowanceState.NoneAllowed);
-            string stateStr = actualState == ThingFilterHelper.CategoryAllowanceState.NoneAllowed ? "Disallowed" : "Allowed";
-            TolkHelper.Speak($"{item.label}: {stateStr}");
+            string stateKey = actualState == ThingFilterHelper.CategoryAllowanceState.NoneAllowed
+                ? "RimWorldAccess.Inspection.Storage.ToggleResultDisallowed"
+                : "RimWorldAccess.Inspection.Storage.ToggleResultAllowed";
+            TolkHelper.Speak(stateKey.Translate(item.label));
         }
 
         private static void ToggleItem(MenuItem item, bool allow)
@@ -555,8 +561,10 @@ namespace RimWorldAccess
                 }
             }
 
-            string state = item.isAllowed ? "Allowed" : "Disallowed";
-            TolkHelper.Speak($"{item.label}: {state}");
+            string stateKey = item.isAllowed
+                ? "RimWorldAccess.Inspection.Storage.ToggleResultAllowed"
+                : "RimWorldAccess.Inspection.Storage.ToggleResultDisallowed";
+            TolkHelper.Speak(stateKey.Translate(item.label));
         }
 
         private static void ClearAllItems()
@@ -609,23 +617,29 @@ namespace RimWorldAccess
                 // Add allowed/disallowed state for toggleable items
                 if (item.type == MenuItemType.Category)
                 {
-                    string expandState = item.isExpanded ? "expanded" : "collapsed";
+                    string expandState = (item.isExpanded
+                        ? "RimWorldAccess.Tree.StateExpanded"
+                        : "RimWorldAccess.Tree.StateCollapsed").Translate().ToString();
                     var catNode = item.data as TreeNode_ThingCategory;
                     if (catNode != null)
                     {
                         var summary = ThingFilterHelper.GetCategorySummary(
                             catNode.catDef, currentFilter, td => IsVisible(td));
-                        announcement += $". {ThingFilterHelper.FormatCategorySummary(summary)}, {expandState}";
+                        announcement = "RimWorldAccess.Inspection.Storage.CategoryWithSummary".Translate(
+                            item.label, ThingFilterHelper.FormatCategorySummary(summary), expandState);
                     }
                     else
                     {
-                        announcement += $" {expandState}";
+                        announcement = "RimWorldAccess.Inspection.Storage.LabelWithExpandState".Translate(
+                            item.label, expandState);
                     }
                 }
                 else if (item.type == MenuItemType.ThingDef || item.type == MenuItemType.SpecialFilter)
                 {
-                    string allowState = item.isAllowed ? "allowed" : "disallowed";
-                    announcement += $". {allowState}";
+                    string itemKey = item.isAllowed
+                        ? "RimWorldAccess.Inspection.Storage.ItemAllowed"
+                        : "RimWorldAccess.Inspection.Storage.ItemDisallowed";
+                    announcement = itemKey.Translate(item.label);
                 }
 
                 // Add sibling position (X of Y) at the end
