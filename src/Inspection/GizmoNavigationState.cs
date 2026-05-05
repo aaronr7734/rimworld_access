@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Verse;
 using Verse.Sound;
 using RimWorld;
@@ -1410,10 +1409,10 @@ namespace RimWorldAccess
                     return GetEnergyShieldLabel(gizmo);
 
                 case "PsychicEntropyGizmo":
-                    return "Neural Heat and Psyfocus";
+                    return "RimWorldAccess.Inspection.Gizmo.Type.PsychicEntropy".Translate();
 
                 case "MechanitorBandwidthGizmo":
-                    return "Mechanitor Bandwidth";
+                    return "RimWorldAccess.Inspection.Gizmo.Type.MechanitorBandwidth".Translate();
 
                 case "Gizmo_GrowthTier":
                     return GetGrowthTierLabel(gizmo);
@@ -1425,28 +1424,28 @@ namespace RimWorldAccess
                     return GetMechCarrierLabel(gizmo);
 
                 case "MechPowerCellGizmo":
-                    return "Mech Power Cell";
+                    return "RimWorldAccess.Inspection.Gizmo.Type.MechPowerCell".Translate();
 
                 case "MechanitorControlGroupGizmo":
                     return MechControlGroupState.GetGizmoLabel(gizmo);
 
                 case "Gizmo_MechResurrectionCharges":
-                    return "Resurrector Charges";
+                    return "RimWorldAccess.Inspection.Gizmo.Type.ResurrectionCharges".Translate();
 
                 case "Gizmo_ProjectileInterceptorHitPoints":
-                    return "Shield Hit Points";
+                    return "RimWorldAccess.Inspection.Gizmo.Type.ShieldHitPoints".Translate();
 
                 case "Gizmo_PruningConfig":
-                    return "Pruning Configuration";
+                    return "RimWorldAccess.Inspection.Gizmo.Type.PruningConfig".Translate();
 
                 case "GuardianShipGizmo":
-                    return "Guardian Ship";
+                    return "RimWorldAccess.Inspection.Gizmo.Type.GuardianShip".Translate();
 
                 case "Gizmo_CaravanInfo":
-                    return "Caravan Info";
+                    return "RimWorldAccess.Inspection.Gizmo.Type.CaravanInfo".Translate();
 
                 case "GeneGizmo_DeathrestCapacity":
-                    return "Deathrest Capacity";
+                    return "RimWorldAccess.Inspection.Gizmo.Type.DeathrestCapacity".Translate();
 
                 case "ActivityGizmo":
                     return GetActivityGizmoLabel(gizmo);
@@ -1480,14 +1479,14 @@ namespace RimWorldAccess
                         var parent = parentProp?.GetValue(shield) as Thing;
 
                         if (isApparel && parent != null)
-                            return $"Shield: {parent.LabelCap}";
+                            return "RimWorldAccess.Inspection.Gizmo.Type.ShieldApparel".Translate(parent.LabelCap);
                         else
-                            return "Shield (Inbuilt)";
+                            return "RimWorldAccess.Inspection.Gizmo.Type.ShieldInbuilt".Translate();
                     }
                 }
             }
             catch { }
-            return "Energy Shield";
+            return "RimWorldAccess.Inspection.Gizmo.Type.EnergyShield".Translate();
         }
 
         /// <summary>
@@ -1514,10 +1513,10 @@ namespace RimWorldAccess
         {
             var child = GetGrowthTierChild(gizmo);
             if (child?.ageTracker == null)
-                return "Growth Tier";
+                return "RimWorldAccess.Inspection.Gizmo.Type.GrowthTier".Translate();
 
             int tier = child.ageTracker.GrowthTier;
-            return $"Growth Tier {tier}";
+            return "RimWorldAccess.Inspection.Gizmo.Type.GrowthTierWithLevel".Translate(tier);
         }
 
         /// <summary>
@@ -1542,7 +1541,7 @@ namespace RimWorldAccess
                 }
             }
             catch { }
-            return "Room Stats";
+            return "RimWorldAccess.Inspection.Gizmo.Type.RoomStatsFallback".Translate();
         }
 
         /// <summary>
@@ -1567,13 +1566,13 @@ namespace RimWorldAccess
                             var ingredientField = props.GetType().GetField("fixedIngredient");
                             var ingredient = ingredientField?.GetValue(props) as Def;
                             if (ingredient != null)
-                                return $"Mech Carrier: {ingredient.label?.CapitalizeFirst()}";
+                                return "RimWorldAccess.Inspection.Gizmo.Type.MechCarrierWithIngredient".Translate(ingredient.label?.CapitalizeFirst());
                         }
                     }
                 }
             }
             catch { }
-            return "Mech Carrier";
+            return "RimWorldAccess.Inspection.Gizmo.Type.MechCarrier".Translate();
         }
 
         /// <summary>
@@ -1595,7 +1594,7 @@ namespace RimWorldAccess
                 }
             }
             catch { }
-            return "Activity";
+            return "RimWorldAccess.Inspection.Gizmo.Type.Activity".Translate();
         }
 
         /// <summary>
@@ -1622,7 +1621,9 @@ namespace RimWorldAccess
             }
 
             string label = result.ToString().Trim();
-            return string.IsNullOrEmpty(label) ? "Status Display" : label;
+            return string.IsNullOrEmpty(label)
+                ? "RimWorldAccess.Inspection.Gizmo.Type.StatusDisplayFallback".Translate().ToString()
+                : label;
         }
 
         /// <summary>
@@ -1701,7 +1702,7 @@ namespace RimWorldAccess
             {
                 int used = (int)usedProp.GetValue(tracker);
                 int total = (int)totalProp.GetValue(tracker);
-                return $"{used} / {total}";
+                return "RimWorldAccess.Inspection.Gizmo.Status.UsedTotal".Translate(used, total);
             }
             return "";
         }
@@ -1732,7 +1733,10 @@ namespace RimWorldAccess
                     if (maxEnergy > 0)
                     {
                         float percent = (energy / maxEnergy) * 100f;
-                        return $"{percent:F0}% ({energy * 100:F0} / {maxEnergy * 100:F0})";
+                        return "RimWorldAccess.Inspection.Gizmo.Status.PercentEnergy".Translate(
+                            percent.ToString("F0"),
+                            (energy * 100).ToString("F0"),
+                            (maxEnergy * 100).ToString("F0"));
                     }
                 }
             }
@@ -1760,24 +1764,34 @@ namespace RimWorldAccess
                 float maxEntropy = (float)maxEntropyProp.GetValue(tracker);
                 float psyfocus = (float)psyfocusProp.GetValue(tracker);
 
-                string status = $"Neural heat: {entropy:F0} / {maxEntropy:F0}, Psyfocus: {psyfocus * 100:F0}%";
+                var parts = new List<string>
+                {
+                    "RimWorldAccess.Inspection.Gizmo.Status.NeuralHeat".Translate(
+                        entropy.ToString("F0"), maxEntropy.ToString("F0")),
+                    "RimWorldAccess.Inspection.Gizmo.Status.PsyfocusValue".Translate(
+                        (psyfocus * 100).ToString("F0")),
+                };
 
                 // Add psyfocus target (sighted players see a target indicator on the bar)
                 var targetPsyfocusProp = tracker.GetType().GetProperty("TargetPsyfocus");
                 if (targetPsyfocusProp != null)
                 {
                     float target = (float)targetPsyfocusProp.GetValue(tracker);
-                    status += $", Target: {target * 100:F0}%";
+                    parts.Add("RimWorldAccess.Inspection.Gizmo.Status.PsyfocusTarget".Translate(
+                        (target * 100).ToString("F0")));
                 }
 
                 // Add limiter state
                 if (limitField != null)
                 {
                     bool isLimited = (bool)limitField.GetValue(tracker);
-                    status += $", Limiter: {(isLimited ? "ON" : "OFF")}";
+                    string stateWord = isLimited
+                        ? "RimWorldAccess.Inspection.Gizmo.LimiterStateOn".Translate()
+                        : "RimWorldAccess.Inspection.Gizmo.LimiterStateOff".Translate();
+                    parts.Add("RimWorldAccess.Inspection.Gizmo.Status.LimiterStatus".Translate(stateWord));
                 }
 
-                return status;
+                return string.Join(", ", parts);
             }
             return "";
         }
@@ -1852,17 +1866,21 @@ namespace RimWorldAccess
                 if (psyfocusCost > float.Epsilon && minRequired > float.Epsilon)
                 {
                     // Both cost and minimum requirement
-                    parts.Add($"Costs {(psyfocusCost * 100f):F0}% psyfocus, requires {(minRequired * 100f):F0}%");
+                    parts.Add("RimWorldAccess.Inspection.Gizmo.Ability.PsyfocusCostAndMin".Translate(
+                        (psyfocusCost * 100f).ToString("F0"),
+                        (minRequired * 100f).ToString("F0")));
                 }
                 else if (psyfocusCost > float.Epsilon)
                 {
                     // Just cost, no minimum band requirement
-                    parts.Add($"Costs {(psyfocusCost * 100f):F0}% psyfocus");
+                    parts.Add("RimWorldAccess.Inspection.Gizmo.Ability.PsyfocusCost".Translate(
+                        (psyfocusCost * 100f).ToString("F0")));
                 }
                 else if (minRequired > float.Epsilon)
                 {
                     // Just minimum requirement (unusual but possible)
-                    parts.Add($"Requires {(minRequired * 100f):F0}% psyfocus");
+                    parts.Add("RimWorldAccess.Inspection.Gizmo.Ability.PsyfocusMinRequired".Translate(
+                        (minRequired * 100f).ToString("F0")));
                 }
             }
 
@@ -1870,7 +1888,8 @@ namespace RimWorldAccess
             float entropyGain = ability.def.EntropyGain;
             if (entropyGain > float.Epsilon)
             {
-                parts.Add($"Neural heat: {entropyGain:F0}");
+                parts.Add("RimWorldAccess.Inspection.Gizmo.Ability.NeuralHeatGain".Translate(
+                    entropyGain.ToString("F0")));
             }
 
             if (parts.Count == 0)
@@ -1891,16 +1910,16 @@ namespace RimWorldAccess
             // Determine base range text
             string rangeText;
             if (!ability.def.targetRequired)
-                rangeText = "Range: self";
+                rangeText = "RimWorldAccess.Inspection.Gizmo.Ability.RangeSelf".Translate();
             else if (ability.def.targetWorldCell)
-                rangeText = "Range: world map";
+                rangeText = "RimWorldAccess.Inspection.Gizmo.Ability.RangeWorldMap".Translate();
             else if (AbilityTargetingHelper.IsTouchRange(ability))
-                rangeText = "Range: touch";
+                rangeText = "RimWorldAccess.Inspection.Gizmo.Ability.RangeTouch".Translate();
             else
             {
                 float range = AbilityTargetingHelper.GetRange(ability);
                 if (range > 0f)
-                    rangeText = $"Range: {range:F0} tiles";
+                    rangeText = "RimWorldAccess.Inspection.Gizmo.Ability.RangeTiles".Translate(range.ToString("F0"));
                 else
                     return null;
             }
@@ -1908,7 +1927,8 @@ namespace RimWorldAccess
             // Append effect radius if this ability has one
             float effectRadius = ability.def.EffectRadius;
             if (effectRadius > 0f)
-                rangeText += $", {effectRadius:F0} tile radius";
+                rangeText += "RimWorldAccess.Inspection.Gizmo.Ability.EffectRadiusSuffix".Translate(
+                    effectRadius.ToString("F0"));
 
             return rangeText;
         }
@@ -1930,7 +1950,8 @@ namespace RimWorldAccess
             if (ability.OnCooldown && ability.CooldownTicksRemaining > 0)
             {
                 string remaining = ability.CooldownTicksRemaining.ToStringTicksToPeriod();
-                return cooldownLabel + ": " + remaining;
+                return "RimWorldAccess.Inspection.Gizmo.Ability.CooldownLine".Translate(
+                    cooldownLabel, remaining);
             }
 
             // When not on cooldown, show base cooldown duration (matches game's stats report).
@@ -1952,7 +1973,8 @@ namespace RimWorldAccess
             {
                 string baseDuration = baseCooldownTicks.ToStringTicksToPeriod(
                     allowSeconds: true, shortForm: false, canUseDecimals: true, allowYears: false);
-                return cooldownLabel + ": " + baseDuration;
+                return "RimWorldAccess.Inspection.Gizmo.Ability.CooldownLine".Translate(
+                    cooldownLabel, baseDuration);
             }
 
             return null;
@@ -1974,21 +1996,26 @@ namespace RimWorldAccess
             if (child.ageTracker.AtMaxGrowthTier)
             {
                 float maxPoints = GrowthUtility.GrowthTiers[GrowthUtility.GrowthTiers.Length - 1].pointsRequirement;
-                parts.Add($"{maxPoints} of {maxPoints} points, max tier");
+                parts.Add("RimWorldAccess.Inspection.Gizmo.Status.GrowthPointsMaxTier".Translate(maxPoints));
             }
             else
             {
                 int currentPoints = Mathf.FloorToInt(child.ageTracker.growthPoints);
                 float nextTierPoints = GrowthUtility.GrowthTiers[tier + 1].pointsRequirement;
-                string pointsText = $"{currentPoints} of {nextTierPoints} points";
+                string pointsText = "RimWorldAccess.Inspection.Gizmo.Status.GrowthPointsCurrentOfNext".Translate(
+                    currentPoints, nextTierPoints);
                 if (child.ageTracker.canGainGrowthPoints)
-                    pointsText += $" (+{"PerDay".Translate(child.ageTracker.GrowthPointsPerDay.ToStringByStyle(ToStringStyle.FloatMaxTwo))})";
+                {
+                    string perDay = "PerDay".Translate(child.ageTracker.GrowthPointsPerDay.ToStringByStyle(ToStringStyle.FloatMaxTwo));
+                    pointsText += "RimWorldAccess.Inspection.Gizmo.Status.GrowthPointsPerDaySuffix".Translate(perDay);
+                }
                 parts.Add(pointsText);
             }
 
             // Learning need (at-a-glance bar)
             if (child.needs?.learning != null)
-                parts.Add($"Learning {child.needs.learning.CurLevelPercentage.ToStringPercent()}");
+                parts.Add("RimWorldAccess.Inspection.Gizmo.Status.GrowthLearningProgress".Translate(
+                    child.needs.learning.CurLevelPercentage.ToStringPercent()));
 
             // Next growth moment age (from tooltip)
             if (child.ageTracker.AgeBiologicalYears < 13)
@@ -1997,7 +2024,8 @@ namespace RimWorldAccess
                 {
                     if (GrowthUtility.IsGrowthBirthday(i))
                     {
-                        parts.Add($"{"NextGrowthMomentAt".Translate()}: {i}");
+                        parts.Add("RimWorldAccess.Inspection.Gizmo.Status.GrowthNextMomentLine".Translate(
+                            "NextGrowthMomentAt".Translate(), i));
                         break;
                     }
                 }
@@ -2005,13 +2033,14 @@ namespace RimWorldAccess
 
             // Current tier rewards (from tooltip)
             var currentTier = GrowthUtility.GrowthTiers[tier];
-            parts.Add(FormatTierRewards("ThisGrowthTier".Translate(tier), currentTier));
+            parts.Add(FormatTierRewards("ThisGrowthTier".Translate(tier).ToString().StripTags(), currentTier));
 
             // Next tier rewards (from tooltip)
             if (!child.ageTracker.AtMaxGrowthTier)
             {
                 var nextTier = GrowthUtility.GrowthTiers[tier + 1];
-                parts.Add(FormatTierRewards($"If growth tier {tier + 1} is reached", nextTier));
+                string nextHeader = "RimWorldAccess.Inspection.Gizmo.Status.GrowthNextTierHeader".Translate(tier + 1);
+                parts.Add(FormatTierRewards(nextHeader, nextTier));
             }
 
             // Trim trailing periods from each part to avoid double periods in the joined result
@@ -2022,7 +2051,8 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Formats tier reward text using the same translation keys as the game's tooltip.
-        /// Joins multiple rewards with "and" for natural speech flow.
+        /// Joins multiple rewards with the localized RewardsAnd connective for natural
+        /// speech flow.
         /// </summary>
         private static string FormatTierRewards(string header, GrowthUtility.GrowthTier tier)
         {
@@ -2030,7 +2060,10 @@ namespace RimWorldAccess
             if (tier.passionGainsRange.TrueMax > 0)
                 rewards.Add("NumPassionsFromOptions".Translate(tier.passionGainsRange.ToString(), tier.passionChoices).Resolve().StripTags().TrimEnd('.'));
             rewards.Add("NumTraitsFromOptions".Translate(tier.traitGains, tier.traitChoices).Resolve().StripTags().TrimEnd('.'));
-            return $"{header.StripTags()}: {string.Join(" and ", rewards)}";
+            string connective = "RimWorldAccess.Inspection.Gizmo.Status.GrowthRewardsAnd".Translate();
+            return "RimWorldAccess.Inspection.Gizmo.Status.GrowthTierRewardsLine".Translate(
+                header,
+                string.Join(connective, rewards));
         }
 
         /// <summary>
@@ -2059,7 +2092,7 @@ namespace RimWorldAccess
                     if (maxField != null)
                     {
                         int max = (int)maxField.GetValue(props);
-                        return $"{count} / {max}";
+                        return "RimWorldAccess.Inspection.Gizmo.Status.UsedTotal".Translate(count, max);
                     }
                 }
             }
@@ -2084,7 +2117,8 @@ namespace RimWorldAccess
             float max = mech.needs.energy.MaxLevel;
             float percent = (energy / max) * 100f;
 
-            return $"{percent:F0}% ({energy:F1} / {max:F1})";
+            return "RimWorldAccess.Inspection.Gizmo.Status.PercentEnergy".Translate(
+                percent.ToString("F0"), energy.ToString("F1"), max.ToString("F1"));
         }
 
         /// <summary>
@@ -2107,7 +2141,7 @@ namespace RimWorldAccess
             {
                 int charges = (int)chargesProp.GetValue(gene);
                 int max = (int)maxProp.GetValue(gene);
-                return $"{charges} / {max} charges";
+                return "RimWorldAccess.Inspection.Gizmo.Status.Charges".Translate(charges, max);
             }
             return "";
         }
@@ -2136,7 +2170,7 @@ namespace RimWorldAccess
             {
                 int hp = (int)hpProp.GetValue(comp);
                 int maxHp = (int)maxHpProp.GetValue(comp);
-                return $"{hp} / {maxHp} HP";
+                return "RimWorldAccess.Inspection.Gizmo.Status.HitPoints".Translate(hp, maxHp);
             }
             return "";
         }
@@ -2154,7 +2188,7 @@ namespace RimWorldAccess
             if (valueProp != null)
             {
                 float value = (float)valueProp.GetValue(gizmo);
-                return $"{value * 100:F0}%";
+                return "RimWorldAccess.Inspection.Gizmo.Status.Percent".Translate((value * 100).ToString("F0"));
             }
             return "";
         }
@@ -2261,24 +2295,27 @@ namespace RimWorldAccess
             }
 
             // Build helpful context message
-            var context = new StringBuilder();
-
-            // Show group mass stats
-            context.Append($"Group total: {groupMassUsage:F0} / {groupMassCapacity:F0} kg");
+            var fragments = new List<string>
+            {
+                "RimWorldAccess.Inspection.Gizmo.Launch.GroupTotal".Translate(
+                    groupMassUsage.ToString("F0"), groupMassCapacity.ToString("F0")),
+            };
 
             // If group isn't overloaded but this pod is, explain the workaround
             if (groupMassUsage <= groupMassCapacity && overloadedCount > 0 && canLaunchCount > 0)
             {
-                context.Append($". {canLaunchCount} of {transportersInGroup.Count} pods can launch the group.");
-                context.Append(" Select another pod to launch.");
+                fragments.Add("RimWorldAccess.Inspection.Gizmo.Launch.PodsCanLaunch".Translate(
+                    canLaunchCount, transportersInGroup.Count));
+                fragments.Add("RimWorldAccess.Inspection.Gizmo.Launch.SelectAnotherPod".Translate());
             }
             else if (groupMassUsage > groupMassCapacity)
             {
                 float overBy = groupMassUsage - groupMassCapacity;
-                context.Append($". Group is over capacity by {overBy:F0} kg.");
+                fragments.Add("RimWorldAccess.Inspection.Gizmo.Launch.OverCapacity".Translate(
+                    overBy.ToString("F0")));
             }
 
-            return context.ToString();
+            return string.Join(". ", fragments);
         }
 
         /// <summary>
@@ -2746,7 +2783,8 @@ namespace RimWorldAccess
                     {
                         string barLabel = (string)barLabelProp.GetValue(gizmo);
                         if (!string.IsNullOrEmpty(barLabel))
-                            return $"Target: {value * 100:F0}%, {barLabel}";
+                            return "RimWorldAccess.Inspection.Gizmo.Status.SliderTargetWithLabel".Translate(
+                                (value * 100).ToString("F0"), barLabel);
                     }
                 }
                 else if (gizmo.GetType().Name == "MechCarrierGizmo")
@@ -2765,7 +2803,8 @@ namespace RimWorldAccess
                             {
                                 int maxCount = (int)maxField.GetValue(props);
                                 int targetCount = Mathf.RoundToInt(value * maxCount);
-                                return $"Target: {targetCount} / {maxCount}";
+                                return "RimWorldAccess.Inspection.Gizmo.Status.SliderTargetCount".Translate(
+                                    targetCount, maxCount);
                             }
                         }
                     }
@@ -2781,7 +2820,11 @@ namespace RimWorldAccess
                         if (hoursMethod != null)
                         {
                             float hours = (float)hoursMethod.Invoke(connection, new object[] { value });
-                            return $"Target: {value * 100:F0}%, {hours:F1} " + "PruningHoursToMaintain".Translate().ToString().Split(':')[0].Trim();
+                            string hoursLabel = "PruningHoursToMaintain".Translate().ToString().Split(':')[0].Trim();
+                            string trailing = "RimWorldAccess.Inspection.Gizmo.Status.PruningHoursValue".Translate(
+                                hours.ToString("F1"), hoursLabel);
+                            return "RimWorldAccess.Inspection.Gizmo.Status.SliderTargetWithLabel".Translate(
+                                (value * 100).ToString("F0"), trailing);
                         }
                     }
                 }
@@ -2791,7 +2834,7 @@ namespace RimWorldAccess
                 // Fall through to default
             }
 
-            return $"{value * 100:F0}%";
+            return "RimWorldAccess.Inspection.Gizmo.Status.SliderTargetPercent".Translate((value * 100).ToString("F0"));
         }
 
         /// <summary>
@@ -2823,7 +2866,7 @@ namespace RimWorldAccess
                 }
             }
             catch { }
-            return "Carrier";
+            return "RimWorldAccess.Inspection.Gizmo.Type.CarrierFallback".Translate();
         }
 
         /// <summary>

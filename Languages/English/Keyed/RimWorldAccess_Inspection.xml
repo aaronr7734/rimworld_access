@@ -613,6 +613,182 @@
   <RimWorldAccess.Inspection.Gizmo.HintEnterToAdjust>. Press Enter to adjust</RimWorldAccess.Inspection.Gizmo.HintEnterToAdjust>
   <RimWorldAccess.Inspection.Gizmo.HintPsychicEntropy>. Press Enter to toggle limiter, right bracket to set psyfocus target</RimWorldAccess.Inspection.Gizmo.HintPsychicEntropy>
 
+  <!-- =================================================================
+       Gizmo type labels (GetNonCommandGizmoLabel and helpers). These
+       are the friendly names shown for gizmos that don't have a
+       standard Label property (status displays, slider gizmos with no
+       reachable Title, fallback names). The C# code identifies the
+       gizmo by its runtime type name and picks the matching key.
+       Energy shield: ApparelSuffix takes {0} = parent thing label
+       (e.g., "Shield Belt") and is used when the shield is worn.
+       Inbuilt is used when the shield is built into a turret/etc.
+       EnergyShieldFallback fires when the shield component cannot be
+       reached at all.
+       Growth tier: WithLevel takes {0} = tier index (0..3); the bare
+       GrowthTier key is the fallback when the child's age tracker is
+       not reachable.
+       Mech carrier: WithIngredient takes {0} = ingredient label
+       (capitalized); MechCarrier is the fallback. CarrierFallback is
+       a last-resort label for the slider title.
+       StatusDisplayFallback is used when CleanupGizmoTypeName produces
+       an empty string after stripping prefixes/suffixes.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Gizmo.Type.PsychicEntropy>Neural Heat and Psyfocus</RimWorldAccess.Inspection.Gizmo.Type.PsychicEntropy>
+  <RimWorldAccess.Inspection.Gizmo.Type.MechanitorBandwidth>Mechanitor Bandwidth</RimWorldAccess.Inspection.Gizmo.Type.MechanitorBandwidth>
+  <RimWorldAccess.Inspection.Gizmo.Type.MechPowerCell>Mech Power Cell</RimWorldAccess.Inspection.Gizmo.Type.MechPowerCell>
+  <RimWorldAccess.Inspection.Gizmo.Type.ResurrectionCharges>Resurrector Charges</RimWorldAccess.Inspection.Gizmo.Type.ResurrectionCharges>
+  <RimWorldAccess.Inspection.Gizmo.Type.ShieldHitPoints>Shield Hit Points</RimWorldAccess.Inspection.Gizmo.Type.ShieldHitPoints>
+  <RimWorldAccess.Inspection.Gizmo.Type.PruningConfig>Pruning Configuration</RimWorldAccess.Inspection.Gizmo.Type.PruningConfig>
+  <RimWorldAccess.Inspection.Gizmo.Type.GuardianShip>Guardian Ship</RimWorldAccess.Inspection.Gizmo.Type.GuardianShip>
+  <RimWorldAccess.Inspection.Gizmo.Type.CaravanInfo>Caravan Info</RimWorldAccess.Inspection.Gizmo.Type.CaravanInfo>
+  <RimWorldAccess.Inspection.Gizmo.Type.DeathrestCapacity>Deathrest Capacity</RimWorldAccess.Inspection.Gizmo.Type.DeathrestCapacity>
+  <RimWorldAccess.Inspection.Gizmo.Type.Activity>Activity</RimWorldAccess.Inspection.Gizmo.Type.Activity>
+  <RimWorldAccess.Inspection.Gizmo.Type.RoomStatsFallback>Room Stats</RimWorldAccess.Inspection.Gizmo.Type.RoomStatsFallback>
+  <RimWorldAccess.Inspection.Gizmo.Type.StatusDisplayFallback>Status Display</RimWorldAccess.Inspection.Gizmo.Type.StatusDisplayFallback>
+
+  <RimWorldAccess.Inspection.Gizmo.Type.EnergyShield>Energy Shield</RimWorldAccess.Inspection.Gizmo.Type.EnergyShield>
+  <RimWorldAccess.Inspection.Gizmo.Type.ShieldApparel>Shield: {0}</RimWorldAccess.Inspection.Gizmo.Type.ShieldApparel>
+  <RimWorldAccess.Inspection.Gizmo.Type.ShieldInbuilt>Shield (Inbuilt)</RimWorldAccess.Inspection.Gizmo.Type.ShieldInbuilt>
+
+  <RimWorldAccess.Inspection.Gizmo.Type.GrowthTier>Growth Tier</RimWorldAccess.Inspection.Gizmo.Type.GrowthTier>
+  <RimWorldAccess.Inspection.Gizmo.Type.GrowthTierWithLevel>Growth Tier {0}</RimWorldAccess.Inspection.Gizmo.Type.GrowthTierWithLevel>
+
+  <RimWorldAccess.Inspection.Gizmo.Type.MechCarrier>Mech Carrier</RimWorldAccess.Inspection.Gizmo.Type.MechCarrier>
+  <RimWorldAccess.Inspection.Gizmo.Type.MechCarrierWithIngredient>Mech Carrier: {0}</RimWorldAccess.Inspection.Gizmo.Type.MechCarrierWithIngredient>
+  <RimWorldAccess.Inspection.Gizmo.Type.CarrierFallback>Carrier</RimWorldAccess.Inspection.Gizmo.Type.CarrierFallback>
+
+  <!-- =================================================================
+       Gizmo status values (GetGizmoStatusValue and helpers). These are
+       the at-a-glance numbers spoken alongside non-Command gizmo
+       labels (bandwidth meters, shield energy, mech power, etc.).
+       Common compositions:
+       - UsedTotal: {0} = used count, {1} = total count. Used by
+         bandwidth and mech-carrier helpers.
+       - PercentEnergy: {0} = percent (F0), {1} = current (F0 or F1),
+         {2} = max (F0 or F1). Used by shield and mech power cell.
+       - HitPoints: {0} = current HP, {1} = max HP.
+       - Charges: {0} = remaining charges, {1} = max charges.
+       - Percent: {0} = formatted percent (F0). Slider gizmos.
+       Slider announcements (slider edit-mode after a value change):
+       - SliderTargetWithLabel: {0} = percent, {1} = BarLabel
+         (game-provided rich text e.g. "75 / 200 fuel").
+       - SliderTargetCount: {0} = target count, {1} = max count
+         (mech carrier).
+       - SliderTargetPercent: {0} = percent fallback when no richer
+         info is available.
+       - SliderTargetPercentWith: {0} = percent, {1} = trailing label
+         (pruning hours).
+       - PruningHoursValue: {0} = hours (F1), {1} = vanilla
+         PruningHoursToMaintain header (already translated). The
+         pruning slider announces "Target: X%, N.N <hours-to-maintain
+         label>" so this key composes the trailing fragment in a
+         language-neutral way.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Gizmo.Status.UsedTotal>{0} / {1}</RimWorldAccess.Inspection.Gizmo.Status.UsedTotal>
+  <RimWorldAccess.Inspection.Gizmo.Status.PercentEnergy>{0}% ({1} / {2})</RimWorldAccess.Inspection.Gizmo.Status.PercentEnergy>
+  <RimWorldAccess.Inspection.Gizmo.Status.HitPoints>{0} / {1} HP</RimWorldAccess.Inspection.Gizmo.Status.HitPoints>
+  <RimWorldAccess.Inspection.Gizmo.Status.Charges>{0} / {1} charges</RimWorldAccess.Inspection.Gizmo.Status.Charges>
+  <RimWorldAccess.Inspection.Gizmo.Status.Percent>{0}%</RimWorldAccess.Inspection.Gizmo.Status.Percent>
+
+  <RimWorldAccess.Inspection.Gizmo.Status.SliderTargetWithLabel>Target: {0}%, {1}</RimWorldAccess.Inspection.Gizmo.Status.SliderTargetWithLabel>
+  <RimWorldAccess.Inspection.Gizmo.Status.SliderTargetCount>Target: {0} / {1}</RimWorldAccess.Inspection.Gizmo.Status.SliderTargetCount>
+  <RimWorldAccess.Inspection.Gizmo.Status.SliderTargetPercent>{0}%</RimWorldAccess.Inspection.Gizmo.Status.SliderTargetPercent>
+  <RimWorldAccess.Inspection.Gizmo.Status.PruningHoursValue>{0} {1}</RimWorldAccess.Inspection.Gizmo.Status.PruningHoursValue>
+
+  <!-- Psychic entropy status (GetPsychicEntropyStatus). The C# code
+       composes the readout from individual fragments so word order can
+       vary per language. Header takes neural heat (F0) / max neural
+       heat (F0); Psyfocus takes percent (F0); TargetPsyfocus takes
+       percent (F0); LimiterStatus takes the localized On/Off word.
+       Joins use the period+space separator added in C#. -->
+  <RimWorldAccess.Inspection.Gizmo.Status.NeuralHeat>Neural heat: {0} / {1}</RimWorldAccess.Inspection.Gizmo.Status.NeuralHeat>
+  <RimWorldAccess.Inspection.Gizmo.Status.PsyfocusValue>Psyfocus: {0}%</RimWorldAccess.Inspection.Gizmo.Status.PsyfocusValue>
+  <RimWorldAccess.Inspection.Gizmo.Status.PsyfocusTarget>Target: {0}%</RimWorldAccess.Inspection.Gizmo.Status.PsyfocusTarget>
+  <RimWorldAccess.Inspection.Gizmo.Status.LimiterStatus>Limiter: {0}</RimWorldAccess.Inspection.Gizmo.Status.LimiterStatus>
+
+  <!-- =================================================================
+       Growth tier rich status (GetGrowthTierStatus / FormatTierRewards).
+       PointsMaxTier: {0} = max growth points (already an integer or
+       F0). Spoken when the child has reached the highest tier.
+       PointsCurrentOfNext: {0} = current points (int), {1} = points
+       required for the next tier (F0).
+       PointsPerDaySuffix: {0} = vanilla PerDay key already resolved
+       (e.g., "1.5 per day"); appended to the points readout when the
+       child is currently gaining points.
+       LearningProgress: {0} = vanilla learning percent string.
+       NextGrowthMomentLine: {0} = vanilla NextGrowthMomentAt header
+       (already translated), {1} = age in years.
+       NextTierHeader: {0} = next tier index. The vanilla
+       NextGrowthTier key reads "Next growth tier" without a level
+       number, so we interpolate it ourselves to make the announcement
+       clearer for screen reader users.
+       TierRewardsLine: {0} = header (current/next tier), {1} = list
+       of rewards joined by RewardsAnd.
+       RewardsAnd: connective used between two rewards in
+       FormatTierRewards (matches the game's tooltip wording).
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Gizmo.Status.GrowthPointsMaxTier>{0} of {0} points, max tier</RimWorldAccess.Inspection.Gizmo.Status.GrowthPointsMaxTier>
+  <RimWorldAccess.Inspection.Gizmo.Status.GrowthPointsCurrentOfNext>{0} of {1} points</RimWorldAccess.Inspection.Gizmo.Status.GrowthPointsCurrentOfNext>
+  <RimWorldAccess.Inspection.Gizmo.Status.GrowthPointsPerDaySuffix> (+{0})</RimWorldAccess.Inspection.Gizmo.Status.GrowthPointsPerDaySuffix>
+  <RimWorldAccess.Inspection.Gizmo.Status.GrowthLearningProgress>Learning {0}</RimWorldAccess.Inspection.Gizmo.Status.GrowthLearningProgress>
+  <RimWorldAccess.Inspection.Gizmo.Status.GrowthNextMomentLine>{0}: {1}</RimWorldAccess.Inspection.Gizmo.Status.GrowthNextMomentLine>
+  <RimWorldAccess.Inspection.Gizmo.Status.GrowthNextTierHeader>If growth tier {0} is reached</RimWorldAccess.Inspection.Gizmo.Status.GrowthNextTierHeader>
+  <RimWorldAccess.Inspection.Gizmo.Status.GrowthTierRewardsLine>{0}: {1}</RimWorldAccess.Inspection.Gizmo.Status.GrowthTierRewardsLine>
+  <RimWorldAccess.Inspection.Gizmo.Status.GrowthRewardsAnd> and </RimWorldAccess.Inspection.Gizmo.Status.GrowthRewardsAnd>
+
+  <!-- =================================================================
+       Ability cost / range / cooldown info (GetAbilityCostInfo,
+       GetAbilityRangeInfo, GetAbilityCooldownInfo). These compose the
+       short, screen-reader-friendly fragments appended after an
+       ability's name when the user is browsing gizmos.
+       Cost compositions: each takes a percent value (F0). When both a
+       cost and a minimum required psyfocus exist, PsyfocusCostAndMin
+       reads them together; otherwise only one of PsyfocusCost or
+       PsyfocusMinRequired fires. NeuralHeatGain takes entropy gain
+       (F0).
+       Range compositions: RangeSelf / RangeWorldMap / RangeTouch are
+       whole-phrase keys (no parameter) since each describes the entire
+       reach. RangeTiles takes range in tiles (F0). EffectRadiusSuffix
+       is appended when the ability has an area-of-effect; {0} = radius
+       in tiles (F0).
+       Cooldown: takes {0} = vanilla StatsReport_Cooldown ("Cooldown")
+       and {1} = pre-formatted duration (the game's
+       ToStringTicksToPeriod output). One key serves both the
+       on-cooldown remaining-time form and the base-cooldown form.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Gizmo.Ability.PsyfocusCostAndMin>Costs {0}% psyfocus, requires {1}%</RimWorldAccess.Inspection.Gizmo.Ability.PsyfocusCostAndMin>
+  <RimWorldAccess.Inspection.Gizmo.Ability.PsyfocusCost>Costs {0}% psyfocus</RimWorldAccess.Inspection.Gizmo.Ability.PsyfocusCost>
+  <RimWorldAccess.Inspection.Gizmo.Ability.PsyfocusMinRequired>Requires {0}% psyfocus</RimWorldAccess.Inspection.Gizmo.Ability.PsyfocusMinRequired>
+  <RimWorldAccess.Inspection.Gizmo.Ability.NeuralHeatGain>Neural heat: {0}</RimWorldAccess.Inspection.Gizmo.Ability.NeuralHeatGain>
+
+  <RimWorldAccess.Inspection.Gizmo.Ability.RangeSelf>Range: self</RimWorldAccess.Inspection.Gizmo.Ability.RangeSelf>
+  <RimWorldAccess.Inspection.Gizmo.Ability.RangeWorldMap>Range: world map</RimWorldAccess.Inspection.Gizmo.Ability.RangeWorldMap>
+  <RimWorldAccess.Inspection.Gizmo.Ability.RangeTouch>Range: touch</RimWorldAccess.Inspection.Gizmo.Ability.RangeTouch>
+  <RimWorldAccess.Inspection.Gizmo.Ability.RangeTiles>Range: {0} tiles</RimWorldAccess.Inspection.Gizmo.Ability.RangeTiles>
+  <RimWorldAccess.Inspection.Gizmo.Ability.EffectRadiusSuffix>, {0} tile radius</RimWorldAccess.Inspection.Gizmo.Ability.EffectRadiusSuffix>
+
+  <RimWorldAccess.Inspection.Gizmo.Ability.CooldownLine>{0}: {1}</RimWorldAccess.Inspection.Gizmo.Ability.CooldownLine>
+
+  <!-- =================================================================
+       Disabled-launch context (GetDisabledGizmoContext for transport
+       pods). Spoken after the standard Disabled suffix when a Launch
+       gizmo is rejected for individual mass capacity but the group as
+       a whole has alternatives. The C# code sequences the lines with
+       periods so each fragment is a stand-alone phrase.
+       GroupTotal: {0} = current group mass (F0), {1} = group capacity
+       (F0). Always the first fragment.
+       PodsCanLaunch: {0} = pods that can launch, {1} = total pods in
+       group. Spoken when the user can salvage the launch by selecting
+       a different pod.
+       SelectAnotherPod: standalone hint following PodsCanLaunch.
+       OverCapacity: {0} = overage in kg (F0). Spoken when no pod in
+       the group can launch.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Gizmo.Launch.GroupTotal>Group total: {0} / {1} kg</RimWorldAccess.Inspection.Gizmo.Launch.GroupTotal>
+  <RimWorldAccess.Inspection.Gizmo.Launch.PodsCanLaunch>{0} of {1} pods can launch the group.</RimWorldAccess.Inspection.Gizmo.Launch.PodsCanLaunch>
+  <RimWorldAccess.Inspection.Gizmo.Launch.SelectAnotherPod>Select another pod to launch.</RimWorldAccess.Inspection.Gizmo.Launch.SelectAnotherPod>
+  <RimWorldAccess.Inspection.Gizmo.Launch.OverCapacity>Group is over capacity by {0} kg.</RimWorldAccess.Inspection.Gizmo.Launch.OverCapacity>
+
   <!-- Power. PowerStatus: {0} = vanilla "Power", {1} = vanilla "On"/"Off".
        PowerConsumption: {0} = wattage. -->
   <RimWorldAccess.Inspection.Building.PowerStatus>{0}: {1}</RimWorldAccess.Inspection.Building.PowerStatus>
