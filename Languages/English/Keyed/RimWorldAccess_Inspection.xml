@@ -382,4 +382,28 @@
   <RimWorldAccess.Inspection.Panel.NoAction>No action available for this item.</RimWorldAccess.Inspection.Panel.NoAction>
   <RimWorldAccess.Inspection.Panel.CannotExpand>Cannot expand this item.</RimWorldAccess.Inspection.Panel.CannotExpand>
   <RimWorldAccess.Inspection.Panel.NoItemsToShow>No items to show.</RimWorldAccess.Inspection.Panel.NoItemsToShow>
+
+  <!-- =================================================================
+       Info Card dialog (InfoCardState). Announcements spoken when the
+       Dialog_InfoCard accessibility state opens, navigates between
+       sections, rejects an action, or closes (including the nested
+       float-menu cancel path). Vanilla "InfoCard" / "Description" / hyperlink
+       labels come from the game.
+       Opening announcements: {0} = root label, {1} = count. Split into
+       One/Many per the established plural pattern even though counts of
+       1 are unusual in practice. The keyboard-hint sentence is part of
+       each whole-phrase key so word order can vary per language.
+       SectionPrefix: {0} = section name, {1} = the rest of the
+       per-item announcement built by FormatItemAnnouncement.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.InfoCard.OpeningWithTabsOne>{0}. {1} tab available. Use Up and Down to navigate, Right to expand, Left to collapse.</RimWorldAccess.Inspection.InfoCard.OpeningWithTabsOne>
+  <RimWorldAccess.Inspection.InfoCard.OpeningWithTabsMany>{0}. {1} tabs available. Use Up and Down to navigate, Right to expand, Left to collapse.</RimWorldAccess.Inspection.InfoCard.OpeningWithTabsMany>
+  <RimWorldAccess.Inspection.InfoCard.OpeningFlatOne>{0}. {1} item. Use Up and Down to navigate, Page Up and Page Down to jump between categories.</RimWorldAccess.Inspection.InfoCard.OpeningFlatOne>
+  <RimWorldAccess.Inspection.InfoCard.OpeningFlatMany>{0}. {1} items. Use Up and Down to navigate, Page Up and Page Down to jump between categories.</RimWorldAccess.Inspection.InfoCard.OpeningFlatMany>
+  <RimWorldAccess.Inspection.InfoCard.SectionPrefix>{0} section. {1}</RimWorldAccess.Inspection.InfoCard.SectionPrefix>
+  <RimWorldAccess.Inspection.InfoCard.AlreadyExpanded>Already expanded.</RimWorldAccess.Inspection.InfoCard.AlreadyExpanded>
+  <RimWorldAccess.Inspection.InfoCard.NoAction>No action available for this item.</RimWorldAccess.Inspection.InfoCard.NoAction>
+  <RimWorldAccess.Inspection.InfoCard.CannotExpand>Cannot expand this item.</RimWorldAccess.Inspection.InfoCard.CannotExpand>
+  <RimWorldAccess.Inspection.InfoCard.MenuClosed>Menu closed</RimWorldAccess.Inspection.InfoCard.MenuClosed>
+  <RimWorldAccess.Inspection.InfoCard.InfoCardClosed>Info card closed.</RimWorldAccess.Inspection.InfoCard.InfoCardClosed>
 </LanguageData>

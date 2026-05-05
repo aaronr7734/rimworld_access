@@ -293,7 +293,8 @@ namespace RimWorldAccess
 
                 Close();
                 SoundDefOf.Click.PlayOneShotOnCamera();
-                InspectionReturnHelper.AnnounceParentOrFallback("Info card closed.");
+                InspectionReturnHelper.AnnounceParentOrFallback(
+                    "RimWorldAccess.Inspection.InfoCard.InfoCardClosed".Translate());
             }
         }
 
@@ -483,7 +484,7 @@ namespace RimWorldAccess
                     SoundDefOf.FloatMenu_Cancel.PlayOneShotOnCamera();
                     WindowlessFloatMenuState.Close();
                     ownsFloatMenu = false;
-                    TolkHelper.Speak("Menu closed");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.InfoCard.MenuClosed".Translate());
                     return true;
                 }
 
@@ -566,12 +567,18 @@ namespace RimWorldAccess
             if (hasTabs)
             {
                 int tabCount = treeNav.RootItem.Children.Count;
-                announcement = $"{rootLabel}. {tabCount} tabs available. Use Up and Down to navigate, Right to expand, Left to collapse.";
+                string key = tabCount == 1
+                    ? "RimWorldAccess.Inspection.InfoCard.OpeningWithTabsOne"
+                    : "RimWorldAccess.Inspection.InfoCard.OpeningWithTabsMany";
+                announcement = key.Translate(rootLabel, tabCount);
             }
             else
             {
                 int itemCount = treeNav.RootItem.Children.Count;
-                announcement = $"{rootLabel}. {itemCount} items. Use Up and Down to navigate, Page Up and Page Down to jump between categories.";
+                string key = itemCount == 1
+                    ? "RimWorldAccess.Inspection.InfoCard.OpeningFlatOne"
+                    : "RimWorldAccess.Inspection.InfoCard.OpeningFlatMany";
+                announcement = key.Translate(rootLabel, itemCount);
             }
 
             TolkHelper.Speak(announcement);
@@ -617,7 +624,7 @@ namespace RimWorldAccess
                 string sectionName = item.Description;
                 if (!string.IsNullOrEmpty(sectionName) && sectionName != lastAnnouncedSection)
                 {
-                    announcement = $"{sectionName} section. {announcement}";
+                    announcement = "RimWorldAccess.Inspection.InfoCard.SectionPrefix".Translate(sectionName, announcement);
                     lastAnnouncedSection = sectionName;
                 }
                 else if (string.IsNullOrEmpty(sectionName) && lastAnnouncedSection != null)
@@ -665,7 +672,7 @@ namespace RimWorldAccess
                 if (item.IsExpanded)
                 {
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak("Already expanded.");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.InfoCard.AlreadyExpanded".Translate());
                     return true;
                 }
                 // Collapsed: expand with lazy-load empty correction (same as Right arrow)
@@ -683,7 +690,7 @@ namespace RimWorldAccess
 
             // Otherwise, nothing to do
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            TolkHelper.Speak("No action available for this item.");
+            TolkHelper.Speak("RimWorldAccess.Inspection.InfoCard.NoAction".Translate());
             return true;
         }
 
@@ -716,7 +723,7 @@ namespace RimWorldAccess
             if (!item.IsExpandable)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("Cannot expand this item.", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Inspection.InfoCard.CannotExpand".Translate(), SpeechPriority.High);
                 return;
             }
 
