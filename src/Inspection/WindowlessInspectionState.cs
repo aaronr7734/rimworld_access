@@ -48,7 +48,7 @@ namespace RimWorldAccess
 
                 if (objects.Count == 0)
                 {
-                    TolkHelper.Speak("No items here to inspect.");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Panel.NoItems".Translate());
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
                     return;
                 }
@@ -123,7 +123,7 @@ namespace RimWorldAccess
             {
                 if (obj == null)
                 {
-                    TolkHelper.Speak("No object to inspect.");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Panel.NoObject".Translate());
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
                     return;
                 }
@@ -210,7 +210,7 @@ namespace RimWorldAccess
             {
                 if (obj == null)
                 {
-                    TolkHelper.Speak("No object to inspect.");
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Panel.NoObject".Translate());
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
                     return;
                 }
@@ -429,7 +429,7 @@ namespace RimWorldAccess
             {
                 Close();
                 SoundDefOf.Click.PlayOneShotOnCamera();
-                TolkHelper.Speak("Inspection panel closed.");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Panel.PanelClosed".Translate());
             }
         }
 
@@ -553,11 +553,17 @@ namespace RimWorldAccess
                     rawLabel = item.Label;
                 string label = rawLabel.StripTags().TrimEnd('.', '!', '?');
 
-                // Build state indicator (only for expandable items)
+                // Build state indicator (only for expandable items). The
+                // bare "expanded" / "collapsed" word comes from
+                // Common.Tree.State*; the leading ". " is typographic
+                // punctuation composed in C#.
                 string stateIndicator = "";
                 if (item.IsExpandable)
                 {
-                    stateIndicator = item.IsExpanded ? ". expanded" : ". collapsed";
+                    string stateWord = (item.IsExpanded
+                        ? "RimWorldAccess.Tree.StateExpanded"
+                        : "RimWorldAccess.Tree.StateCollapsed").Translate().ToString();
+                    stateIndicator = $". {stateWord}";
                 }
 
                 // Get sibling position
@@ -602,11 +608,16 @@ namespace RimWorldAccess
                 rawLabel = item.Label;
             string label = rawLabel.StripTags();
 
-            // Build state indicator (only for expandable items)
+            // Build state indicator (only for expandable items). Same
+            // composition as FormatItemAnnouncement — bare state word
+            // from Common.Tree, ". " separator in C#.
             string stateIndicator = "";
             if (item.IsExpandable)
             {
-                stateIndicator = item.IsExpanded ? ". expanded" : ". collapsed";
+                string stateWord = (item.IsExpanded
+                    ? "RimWorldAccess.Tree.StateExpanded"
+                    : "RimWorldAccess.Tree.StateCollapsed").Translate().ToString();
+                stateIndicator = $". {stateWord}";
             }
 
             return typeahead.BuildItemAnnouncement($"{label}{stateIndicator}");
@@ -663,7 +674,7 @@ namespace RimWorldAccess
 
             // Otherwise, nothing to do
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            TolkHelper.Speak("No action available for this item.");
+            TolkHelper.Speak("RimWorldAccess.Inspection.Panel.NoAction".Translate());
             return true;
         }
 
@@ -727,7 +738,7 @@ namespace RimWorldAccess
             if (!item.IsExpandable)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("Cannot expand this item.", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Inspection.Panel.CannotExpand".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -747,7 +758,7 @@ namespace RimWorldAccess
             if (item.Children.Count == 0)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No items to show.");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Panel.NoItemsToShow".Translate());
                 return;
             }
 

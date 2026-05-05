@@ -366,4 +366,20 @@
   <RimWorldAccess.Inspection.Bills.MakesCount>Makes {0} {1}</RimWorldAccess.Inspection.Bills.MakesCount>
   <RimWorldAccess.Inspection.Bills.MakesProduct>Makes {0}</RimWorldAccess.Inspection.Bills.MakesProduct>
   <RimWorldAccess.Inspection.Bills.SkillRequirement>{0} {1}</RimWorldAccess.Inspection.Bills.SkillRequirement>
+
+  <!-- =================================================================
+       Inspection panel (WindowlessInspectionState). Top-level
+       open/close announcements and the rejection messages spoken when
+       a tree action cannot run on the current item. The "expanded" /
+       "collapsed" state suffix used inside FormatItemAnnouncement and
+       FormatSearchAnnouncement reuses Common.Tree.StateExpanded /
+       StateCollapsed; the leading period+space is composed in C# since
+       it is typographic punctuation, not a translatable particle.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Panel.NoItems>No items here to inspect.</RimWorldAccess.Inspection.Panel.NoItems>
+  <RimWorldAccess.Inspection.Panel.NoObject>No object to inspect.</RimWorldAccess.Inspection.Panel.NoObject>
+  <RimWorldAccess.Inspection.Panel.PanelClosed>Inspection panel closed.</RimWorldAccess.Inspection.Panel.PanelClosed>
+  <RimWorldAccess.Inspection.Panel.NoAction>No action available for this item.</RimWorldAccess.Inspection.Panel.NoAction>
+  <RimWorldAccess.Inspection.Panel.CannotExpand>Cannot expand this item.</RimWorldAccess.Inspection.Panel.CannotExpand>
+  <RimWorldAccess.Inspection.Panel.NoItemsToShow>No items to show.</RimWorldAccess.Inspection.Panel.NoItemsToShow>
 </LanguageData>
