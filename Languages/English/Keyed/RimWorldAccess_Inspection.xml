@@ -204,4 +204,51 @@
   <!-- =================================================================
        Generic Thing overview (GetThingOverview). Stack: {0} = count. -->
   <RimWorldAccess.Inspection.Thing.Stack>Stack: {0}</RimWorldAccess.Inspection.Thing.Stack>
+
+  <!-- =================================================================
+       Bills menu (BillsMenuState). Announcements spoken when navigating
+       the bills list at a workbench, adding/deleting/reordering bills,
+       and viewing recipe metadata. Vanilla AddBill / Paused / RecipeMake
+       / WorkAmount / MinimumSkills / PasteBillTip / ClipboardBillNotAvailableHere
+       are reused as-is and not duplicated here.
+       ================================================================= -->
+  <!-- Empty list. The parens are deliberate — the placeholder appears as
+       a single inert row beneath the "Add bill..." entry. -->
+  <RimWorldAccess.Inspection.Bills.Empty>(No bills)</RimWorldAccess.Inspection.Bills.Empty>
+  <!-- Suffix appended to a row's label when the entry is disabled.
+       Includes the leading space so it joins onto whatever label
+       precedes it. -->
+  <RimWorldAccess.Inspection.Bills.UnavailableSuffix> (unavailable)</RimWorldAccess.Inspection.Bills.UnavailableSuffix>
+
+  <!-- Action result announcements. {0} = bill or recipe label, {1} =
+       new position (MovedUp / MovedDown only). Each verb gets its own
+       whole-phrase key so word order can vary per language. -->
+  <RimWorldAccess.Inspection.Bills.OptionNotAvailable>Option not available</RimWorldAccess.Inspection.Bills.OptionNotAvailable>
+  <RimWorldAccess.Inspection.Bills.CannotDelete>Cannot delete this item</RimWorldAccess.Inspection.Bills.CannotDelete>
+  <RimWorldAccess.Inspection.Bills.CannotReorder>Cannot reorder this item</RimWorldAccess.Inspection.Bills.CannotReorder>
+  <RimWorldAccess.Inspection.Bills.CannotCopy>Cannot copy this item</RimWorldAccess.Inspection.Bills.CannotCopy>
+  <RimWorldAccess.Inspection.Bills.CannotAddBills>Cannot add bills to this object</RimWorldAccess.Inspection.Bills.CannotAddBills>
+  <RimWorldAccess.Inspection.Bills.NoRecipes>No recipes available</RimWorldAccess.Inspection.Bills.NoRecipes>
+  <RimWorldAccess.Inspection.Bills.NoBillSelected>No bill selected</RimWorldAccess.Inspection.Bills.NoBillSelected>
+  <RimWorldAccess.Inspection.Bills.ClipboardEmpty>Clipboard is empty</RimWorldAccess.Inspection.Bills.ClipboardEmpty>
+  <RimWorldAccess.Inspection.Bills.Deleted>Deleted: {0}</RimWorldAccess.Inspection.Bills.Deleted>
+  <RimWorldAccess.Inspection.Bills.MovedUp>Moved up: {0}, now position {1}</RimWorldAccess.Inspection.Bills.MovedUp>
+  <RimWorldAccess.Inspection.Bills.MovedDown>Moved down: {0}, now position {1}</RimWorldAccess.Inspection.Bills.MovedDown>
+  <RimWorldAccess.Inspection.Bills.CopiedToClipboard>Copied to clipboard: {0}</RimWorldAccess.Inspection.Bills.CopiedToClipboard>
+  <RimWorldAccess.Inspection.Bills.AddedBill>Added bill: {0}</RimWorldAccess.Inspection.Bills.AddedBill>
+  <RimWorldAccess.Inspection.Bills.PastedBill>Pasted bill: {0}</RimWorldAccess.Inspection.Bills.PastedBill>
+  <RimWorldAccess.Inspection.Bills.RecipeRequiresMechanitor>Recipe requires mechanitor: {0}</RimWorldAccess.Inspection.Bills.RecipeRequiresMechanitor>
+  <RimWorldAccess.Inspection.Bills.RecipeRequiresSkills>No pawns have required skills for: {0}</RimWorldAccess.Inspection.Bills.RecipeRequiresSkills>
+  <!-- {0} = full type name of the unsupported Bill subclass. -->
+  <RimWorldAccess.Inspection.Bills.UnsupportedType>Bill type {0} not yet supported</RimWorldAccess.Inspection.Bills.UnsupportedType>
+
+  <!-- Recipe / bill description fragments composed by GetRecipeDescription
+       and GetBillDescription. The two "Makes …" forms are split by the
+       presence of an explicit count: MakesCount uses {0} = count and
+       {1} = product label, MakesProduct just uses {0} = product label.
+       SkillRequirement is the per-skill format inside the comma-joined
+       MinimumSkills list ({0} = skill label, {1} = level). -->
+  <RimWorldAccess.Inspection.Bills.MakesCount>Makes {0} {1}</RimWorldAccess.Inspection.Bills.MakesCount>
+  <RimWorldAccess.Inspection.Bills.MakesProduct>Makes {0}</RimWorldAccess.Inspection.Bills.MakesProduct>
+  <RimWorldAccess.Inspection.Bills.SkillRequirement>{0} {1}</RimWorldAccess.Inspection.Bills.SkillRequirement>
 </LanguageData>
