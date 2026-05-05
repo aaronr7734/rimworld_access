@@ -532,6 +532,87 @@
   <!-- "Basic" style choice in OpenStyleMenu. -->
   <RimWorldAccess.Inspection.BillConfig.Style.Basic>Basic</RimWorldAccess.Inspection.BillConfig.Style.Basic>
 
+  <!-- =================================================================
+       Gizmo navigation (GizmoNavigationState). Keyboard-driven access
+       to the action bar (G key when an object is selected, the
+       cursor-based opening from inspection, and the world-map
+       version). Covers selection-empty messages, generic execution
+       errors, the Command_Toggle ON/OFF state suffixes, the disabled
+       suffix, and the slider edit-mode help text. The deeper
+       gizmo-type-specific labels and ability info compositions stay
+       English for now (follow-up PR); this PR moves the
+       general-purpose announcements off hardcoded strings so the
+       common navigation paths are localizable.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Gizmo.NoCommandsAvailable>No commands available</RimWorldAccess.Inspection.Gizmo.NoCommandsAvailable>
+  <RimWorldAccess.Inspection.Gizmo.NoCommandsAtCursor>No commands available at cursor position</RimWorldAccess.Inspection.Gizmo.NoCommandsAtCursor>
+  <RimWorldAccess.Inspection.Gizmo.NoWorldObject>No world object at this tile</RimWorldAccess.Inspection.Gizmo.NoWorldObject>
+  <RimWorldAccess.Inspection.Gizmo.NoCommandsForObject>No commands available for {0}</RimWorldAccess.Inspection.Gizmo.NoCommandsForObject>
+  <RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName>world object</RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName>
+  <RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions>No additional options</RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions>
+
+  <!-- Disabled status. {0} = the disabledReason from the game (already
+       translated by RimWorld). The DisabledNotAvailable* fallbacks fire
+       when the gizmo doesn't supply a reason; ExecuteFallback varies
+       slightly because Command_Action sometimes uses "Command not
+       available" while the gizmo nav uses "Not available". -->
+  <RimWorldAccess.Inspection.Gizmo.DisabledSuffix>Disabled: {0}</RimWorldAccess.Inspection.Gizmo.DisabledSuffix>
+  <RimWorldAccess.Inspection.Gizmo.DisabledNotAvailable>Not available</RimWorldAccess.Inspection.Gizmo.DisabledNotAvailable>
+  <RimWorldAccess.Inspection.Gizmo.DisabledExecuteFallback>Command not available</RimWorldAccess.Inspection.Gizmo.DisabledExecuteFallback>
+
+  <!-- Generic execution error pattern. {0} = gizmo label, {1} = exception
+       message. ErrorActivationFailed: {0} = label (used for Designator
+       activation when DesignatorManager.SelectedDesignator is still null
+       afterward). -->
+  <RimWorldAccess.Inspection.Gizmo.ErrorExecuting>Error executing {0}: {1}</RimWorldAccess.Inspection.Gizmo.ErrorExecuting>
+  <RimWorldAccess.Inspection.Gizmo.ErrorActivationFailed>Error: {0} could not be activated. Check if the item can be placed.</RimWorldAccess.Inspection.Gizmo.ErrorActivationFailed>
+  <RimWorldAccess.Inspection.Gizmo.ErrorWithMessage>Error: {0}</RimWorldAccess.Inspection.Gizmo.ErrorWithMessage>
+
+  <!-- Command_Toggle / state-bearing gizmos. ON/OFF suffix: {0} should be
+       picked from StateOn/StateOff (separate keys so word order can vary
+       per language). LabelWithState: {0} = label, {1} = state phrase. -->
+  <RimWorldAccess.Inspection.Gizmo.StateOn>: ON</RimWorldAccess.Inspection.Gizmo.StateOn>
+  <RimWorldAccess.Inspection.Gizmo.StateOff>: OFF</RimWorldAccess.Inspection.Gizmo.StateOff>
+  <RimWorldAccess.Inspection.Gizmo.LabelWithState>{0}: {1}</RimWorldAccess.Inspection.Gizmo.LabelWithState>
+  <RimWorldAccess.Inspection.Gizmo.NeuralHeatLimiter>Neural heat limiter: {0}</RimWorldAccess.Inspection.Gizmo.NeuralHeatLimiter>
+  <RimWorldAccess.Inspection.Gizmo.LimiterStateOn>ON</RimWorldAccess.Inspection.Gizmo.LimiterStateOn>
+  <RimWorldAccess.Inspection.Gizmo.LimiterStateOff>OFF</RimWorldAccess.Inspection.Gizmo.LimiterStateOff>
+
+  <!-- Targeting prompts when activating a gizmo that needs a target.
+       {0} = gizmo / weapon label. AnimalTargetingWithRange: {0} =
+       gizmo label, {1} = range in tiles. UseMapNavigationToTarget is
+       the standard fallback. CastingAbility: {0} = ability label. -->
+  <RimWorldAccess.Inspection.Gizmo.AnimalTargetingWithRange>{0} targeting. Range: {1} tiles from master. Press R to check distance.</RimWorldAccess.Inspection.Gizmo.AnimalTargetingWithRange>
+  <RimWorldAccess.Inspection.Gizmo.UseMapNavigationToTarget>{0} - Use map navigation to select target, then press Enter</RimWorldAccess.Inspection.Gizmo.UseMapNavigationToTarget>
+  <RimWorldAccess.Inspection.Gizmo.WeaponVerbTargeting>{0} {1} - Use map navigation to select target, then press Enter</RimWorldAccess.Inspection.Gizmo.WeaponVerbTargeting>
+  <RimWorldAccess.Inspection.Gizmo.CastingAbility>Casting {0}</RimWorldAccess.Inspection.Gizmo.CastingAbility>
+
+  <!-- Material selection (Designator_Build). NoMaterials: {0} = buildable
+       label. SelectMaterialPrompt: {0} = buildable label.
+       MaterialSelected: {0} = material label. -->
+  <RimWorldAccess.Inspection.Gizmo.NoMaterialsForBuildable>No materials available for {0}</RimWorldAccess.Inspection.Gizmo.NoMaterialsForBuildable>
+  <RimWorldAccess.Inspection.Gizmo.SelectMaterialFor>Select material for {0}</RimWorldAccess.Inspection.Gizmo.SelectMaterialFor>
+  <RimWorldAccess.Inspection.Gizmo.MaterialSelected>{0} selected</RimWorldAccess.Inspection.Gizmo.MaterialSelected>
+
+  <!-- Slider adjustment overlay. EnterPrompt: {0} = slider title, {1} =
+       current value (already formatted as percent). Read* and
+       CouldNotAdjust are the rare fallbacks fired when reflection
+       can't reach the underlying field. -->
+  <RimWorldAccess.Inspection.Gizmo.SliderEnterPrompt>Adjusting {0}. Current target: {1}. Left and Right to adjust, Shift for larger steps, Escape to finish.</RimWorldAccess.Inspection.Gizmo.SliderEnterPrompt>
+  <RimWorldAccess.Inspection.Gizmo.CouldNotReadSliderValue>Could not read slider value</RimWorldAccess.Inspection.Gizmo.CouldNotReadSliderValue>
+  <RimWorldAccess.Inspection.Gizmo.CouldNotReadPsyfocusValue>Could not read psyfocus value</RimWorldAccess.Inspection.Gizmo.CouldNotReadPsyfocusValue>
+  <RimWorldAccess.Inspection.Gizmo.CouldNotReadPruningValue>Could not read pruning value</RimWorldAccess.Inspection.Gizmo.CouldNotReadPruningValue>
+  <RimWorldAccess.Inspection.Gizmo.CouldNotReadCarrierValue>Could not read carrier value</RimWorldAccess.Inspection.Gizmo.CouldNotReadCarrierValue>
+  <RimWorldAccess.Inspection.Gizmo.CouldNotAdjustControl>Could not adjust this control</RimWorldAccess.Inspection.Gizmo.CouldNotAdjustControl>
+
+  <!-- Hint suffixes appended to AnnounceCurrentGizmo for interactive
+       gizmos. RightClickHint and EnterAdjustHint are the standard
+       cases; PsychicEntropyHints describes both actions for that
+       specific gizmo (Enter toggles limiter, ] adjusts psyfocus). -->
+  <RimWorldAccess.Inspection.Gizmo.HintRightClickOptions>. Press right bracket for more options</RimWorldAccess.Inspection.Gizmo.HintRightClickOptions>
+  <RimWorldAccess.Inspection.Gizmo.HintEnterToAdjust>. Press Enter to adjust</RimWorldAccess.Inspection.Gizmo.HintEnterToAdjust>
+  <RimWorldAccess.Inspection.Gizmo.HintPsychicEntropy>. Press Enter to toggle limiter, right bracket to set psyfocus target</RimWorldAccess.Inspection.Gizmo.HintPsychicEntropy>
+
   <!-- Power. PowerStatus: {0} = vanilla "Power", {1} = vanilla "On"/"Off".
        PowerConsumption: {0} = wattage. -->
   <RimWorldAccess.Inspection.Building.PowerStatus>{0}: {1}</RimWorldAccess.Inspection.Building.PowerStatus>
