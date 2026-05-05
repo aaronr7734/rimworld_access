@@ -605,7 +605,7 @@ namespace RimWorldAccess
                 string levelSuffix = MenuHelper.GetLevelSuffix("InfoCard", item.IndentLevel, skipLevelOne: false);
 
                 // Add inspectable hint for items with hyperlinks (stat entries only, matching vanilla)
-                string inspectableHint = TryGetInspectableDef(item) != null ? " Inspectable." : "";
+                string inspectableHint = TryGetInspectableDef(item) != null ? "RimWorldAccess.InfoCard.Inspectable".Translate().ToString() : "";
 
                 // Build full announcement (respects AnnouncePosition setting)
                 string positionPart = MenuHelper.FormatPosition(position - 1, total);
@@ -781,7 +781,7 @@ namespace RimWorldAccess
                     string label = def.label?.CapitalizeFirst() ?? def.defName;
                     options.Add(new FloatMenuOption(label, () => PushStateAndOpenDef(capturedDef)));
                 }
-                TolkHelper.Speak("Choose item to inspect");
+                TolkHelper.Speak("RimWorldAccess.InfoCard.ChooseItemToInspect".Translate());
                 ownsFloatMenu = true;
                 WindowlessFloatMenuState.Open(options, false);
             }

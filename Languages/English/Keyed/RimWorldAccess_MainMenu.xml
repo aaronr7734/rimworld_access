@@ -505,14 +505,13 @@
        Splits into per-shape keys so the order of {label}/{state}/{position} can
        differ per language. {0} = label, {1} = state word (expanded/collapsed),
        {2} = summary text or position fragment. The bare " ({0})" position
-       suffix is reused by all branches. " Inspectable." is shared across the
-       whole project — kept here to avoid touching unrelated modules. -->
+       suffix is reused by all branches. The " Inspectable." suffix lives
+       in Common.xml as RimWorldAccess.InfoCard.Inspectable. -->
   <RimWorldAccess.StartingPawn.PawnLabelWithState>{0}, {1}</RimWorldAccess.StartingPawn.PawnLabelWithState>
   <RimWorldAccess.StartingPawn.CategoryLabelWithState>{0}, {1}</RimWorldAccess.StartingPawn.CategoryLabelWithState>
   <RimWorldAccess.StartingPawn.CategoryWithSummary>{0}: {1}, {2}</RimWorldAccess.StartingPawn.CategoryWithSummary>
   <RimWorldAccess.StartingPawn.PositionParenSuffix> ({0})</RimWorldAccess.StartingPawn.PositionParenSuffix>
   <RimWorldAccess.StartingPawn.SectionPrefix>{0}. {1}</RimWorldAccess.StartingPawn.SectionPrefix>
-  <RimWorldAccess.StartingPawn.InspectableSuffix> Inspectable.</RimWorldAccess.StartingPawn.InspectableSuffix>
   <RimWorldAccess.Reroll.SearchingAttempts>Searching, {0} attempts...</RimWorldAccess.Reroll.SearchingAttempts>
 
   <!-- =================================================================

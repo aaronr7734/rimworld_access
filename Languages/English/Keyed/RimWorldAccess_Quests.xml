@@ -119,7 +119,9 @@
   <RimWorldAccess.Quests.Detail.StartOfDetails>Start of quest details</RimWorldAccess.Quests.Detail.StartOfDetails>
   <RimWorldAccess.Quests.Detail.EndOfDetails>End of quest details</RimWorldAccess.Quests.Detail.EndOfDetails>
   <RimWorldAccess.Quests.Detail.OpenFirst>Press Enter to open quest details first</RimWorldAccess.Quests.Detail.OpenFirst>
-  <RimWorldAccess.Quests.Detail.ChooseItemToInspect>Choose item to inspect</RimWorldAccess.Quests.Detail.ChooseItemToInspect>
+  <!-- "Choose item to inspect" lives in Common.xml as
+       RimWorldAccess.InfoCard.ChooseItemToInspect. -->
+
 
   <!-- =================================================================
        Detail-view button labels (PopulateQuestButtons).

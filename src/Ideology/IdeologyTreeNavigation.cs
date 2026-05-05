@@ -84,7 +84,7 @@ namespace RimWorldAccess
                 ? "" : $". {positionPart}";
 
             string levelSuffix = MenuHelper.GetLevelSuffix("IdeologyTree", item.IndentLevel);
-            string inspectable = GetInspectableDefs().Count > 0 ? "RimWorldAccess.Ideology.Tree.InspectableSuffix".Translate().ToString() : "";
+            string inspectable = GetInspectableDefs().Count > 0 ? "RimWorldAccess.InfoCard.Inspectable".Translate().ToString() : "";
 
             return $"{label}{stateIndicator}{positionSection}{levelSuffix}{inspectable}";
         }
@@ -123,7 +123,7 @@ namespace RimWorldAccess
                 var (pos, total) = treeNav.GetSiblingPosition(firstItem);
                 string position = MenuHelper.FormatPosition(pos - 1, total);
 
-                string inspectable = GetInspectableDefs().Count > 0 ? "RimWorldAccess.Ideology.Tree.InspectableSuffix".Translate().ToString() : "";
+                string inspectable = GetInspectableDefs().Count > 0 ? "RimWorldAccess.InfoCard.Inspectable".Translate().ToString() : "";
                 TolkHelper.Speak($"{firstItem.Label}{stateIndicator}. {position}{inspectable}");
             }
             else
@@ -174,7 +174,7 @@ namespace RimWorldAccess
                 string label = def.label?.CapitalizeFirst() ?? def.defName;
                 options.Add(new FloatMenuOption(label, () => InfoCardState.OpenInfoCardForDef(captured)));
             }
-            TolkHelper.Speak("RimWorldAccess.Ideology.Tree.ChooseItemToInspect".Translate());
+            TolkHelper.Speak("RimWorldAccess.InfoCard.ChooseItemToInspect".Translate());
             WindowlessFloatMenuState.Open(options, false);
             return true;
         }

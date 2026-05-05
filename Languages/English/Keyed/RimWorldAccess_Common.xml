@@ -34,8 +34,15 @@
   <RimWorldAccess.Search.ContextSuffix>, {0} of {1} matches for '{2}'</RimWorldAccess.Search.ContextSuffix>
 
   <!-- Info card (src/Inspection/InfoCardState.cs).
-       Spoken when an 'i'-style info-card action has no eligible target. -->
+       Spoken when an 'i'-style info-card action has no eligible target.
+       Inspectable: suffix appended to a tree item's announcement when
+       pressing Alt+I would open an info card; the leading space is part
+       of the key so it joins onto whatever label precedes it.
+       ChooseItemToInspect: float-menu prompt when the current item has
+       multiple Defs that could be inspected. -->
   <RimWorldAccess.InfoCard.Unavailable>No info card available</RimWorldAccess.InfoCard.Unavailable>
+  <RimWorldAccess.InfoCard.Inspectable> Inspectable.</RimWorldAccess.InfoCard.Inspectable>
+  <RimWorldAccess.InfoCard.ChooseItemToInspect>Choose item to inspect</RimWorldAccess.InfoCard.ChooseItemToInspect>
 
   <!-- Tree expansion state (src/UI/TreeNavigationHelper.cs).
        StateExpanded/StateCollapsed are the bare words, composed into the

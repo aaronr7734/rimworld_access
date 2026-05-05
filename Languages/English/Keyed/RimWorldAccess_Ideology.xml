@@ -13,10 +13,10 @@
     of the vanilla strings: faction-status parentheticals, ritual-sound preview
     hints, tab-closed announcements, and the inspectable / info-card prompts.
 
-    Note: "Inspectable" suffix and "Choose item to inspect" also appear in
-    other modules (Inspection/, Quests/). They are scoped here for the
-    Ideology PR and may be promoted to Common.xml during those modules' Phase
-    D migrations.
+    Note: "Inspectable" suffix and "Choose item to inspect" live in
+    RimWorldAccess_Common.xml as RimWorldAccess.InfoCard.Inspectable and
+    RimWorldAccess.InfoCard.ChooseItemToInspect — every module that needs
+    those phrases delegates to the shared keys.
   -->
 
   <!-- Faction usage suffixes for the list-panel and factions section.
@@ -57,13 +57,9 @@
   <RimWorldAccess.Ideology.Tab.Empty>{0}. {1}.</RimWorldAccess.Ideology.Tab.Empty>
   <RimWorldAccess.Ideology.Tab.ItemCount>{0} {1}</RimWorldAccess.Ideology.Tab.ItemCount>
 
-  <!-- Details-tree inspectable hint. Appended to a tree item's announcement
-       when pressing Alt+I would open an info card for an associated Def. -->
-  <RimWorldAccess.Ideology.Tree.InspectableSuffix> Inspectable.</RimWorldAccess.Ideology.Tree.InspectableSuffix>
-
-  <!-- Prompt before a float menu listing multiple inspectable defs. Lets the
-       user pick which item to open an info card for. -->
-  <RimWorldAccess.Ideology.Tree.ChooseItemToInspect>Choose item to inspect</RimWorldAccess.Ideology.Tree.ChooseItemToInspect>
+  <!-- Inspectable suffix and "Choose item to inspect" prompt are shared
+       across modules; see RimWorldAccess.InfoCard.Inspectable and
+       RimWorldAccess.InfoCard.ChooseItemToInspect in Common.xml. -->
 
   <!-- Fallback announcement when a selected ideology has no tree content
        (e.g. a minimal/custom ideology with no visible sections).

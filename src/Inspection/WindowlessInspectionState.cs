@@ -571,7 +571,7 @@ namespace RimWorldAccess
                     adjustedLevel = Math.Max(0, adjustedLevel - 1);
                 }
                 // Check if this item has a direct info card available
-                string inspectable = HasDirectInfoCard(item) ? " Inspectable." : "";
+                string inspectable = HasDirectInfoCard(item) ? "RimWorldAccess.InfoCard.Inspectable".Translate().ToString() : "";
 
                 // Build full announcement: "{name} {state}. {X} of {Y}. level N"
                 string levelSuffix = MenuHelper.GetLevelSuffix("Inspection", adjustedLevel);

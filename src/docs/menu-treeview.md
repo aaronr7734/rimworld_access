@@ -313,7 +313,7 @@ treeNav.FormatItemAnnouncement = item =>
     // Use the default format as a starting point
     string baseAnnouncement = treeNav.DefaultFormatItemAnnouncement(item);
     // Add custom suffix
-    return baseAnnouncement + (HasInfoCard(item) ? " Inspectable." : "");
+    return baseAnnouncement + (HasInfoCard(item) ? "RimWorldAccess.InfoCard.Inspectable".Translate().ToString() : "");
 };
 ```
 

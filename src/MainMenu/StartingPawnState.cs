@@ -897,7 +897,7 @@ namespace RimWorldAccess
                     if (!string.IsNullOrEmpty(positionPart))
                         announcement += "RimWorldAccess.StartingPawn.PositionParenSuffix".Translate(positionPart);
                     announcement += MenuHelper.GetLevelSuffix("PawnSelection", item.IndentLevel, skipLevelOne: false);
-                    if (HasInfoCard(item)) announcement += "RimWorldAccess.StartingPawn.InspectableSuffix".Translate();
+                    if (HasInfoCard(item)) announcement += "RimWorldAccess.InfoCard.Inspectable".Translate();
                     break;
 
                 case PawnNodeType.Category:
@@ -942,7 +942,7 @@ namespace RimWorldAccess
                     if (!string.IsNullOrEmpty(positionPart))
                         announcement += "RimWorldAccess.StartingPawn.PositionParenSuffix".Translate(positionPart);
                     announcement += MenuHelper.GetLevelSuffix("PawnSelection", item.IndentLevel, skipLevelOne: false);
-                    if (HasInfoCard(item)) announcement += "RimWorldAccess.StartingPawn.InspectableSuffix".Translate();
+                    if (HasInfoCard(item)) announcement += "RimWorldAccess.InfoCard.Inspectable".Translate();
                     break;
             }
 

@@ -803,7 +803,7 @@ namespace RimWorldAccess
 
             // Close current float menu and open item inspection menu
             WindowlessFloatMenuState.Close();
-            TolkHelper.Speak("RimWorldAccess.Quests.Detail.ChooseItemToInspect".Translate());
+            TolkHelper.Speak("RimWorldAccess.InfoCard.ChooseItemToInspect".Translate());
             WindowlessFloatMenuState.Open(options, false);
         }
 
