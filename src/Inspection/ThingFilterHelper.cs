@@ -117,23 +117,27 @@ namespace RimWorldAccess
         public static string FormatCategorySummary(CategorySummary summary)
         {
             if (summary.AllowedCount == 0)
-                return "disallowed";
+                return "RimWorldAccess.Inspection.Storage.Summary.AllDisallowed".Translate();
             if (summary.DisallowedCount == 0)
-                return "allowed";
+                return "RimWorldAccess.Inspection.Storage.Summary.AllAllowed".Translate();
 
             if (summary.AllowedCount <= summary.DisallowedCount)
             {
                 if (summary.AllowedCount <= 10)
-                    return "disallowed, except: " + string.Join(", ", summary.AllowedNames);
+                    return "RimWorldAccess.Inspection.Storage.Summary.DisallowedExceptList".Translate(
+                        string.Join(", ", summary.AllowedNames));
                 else
-                    return $"disallowed, except for {summary.AllowedCount} items";
+                    return "RimWorldAccess.Inspection.Storage.Summary.DisallowedExceptCount".Translate(
+                        summary.AllowedCount);
             }
             else
             {
                 if (summary.DisallowedCount <= 10)
-                    return "allowed, except: " + string.Join(", ", summary.DisallowedNames);
+                    return "RimWorldAccess.Inspection.Storage.Summary.AllowedExceptList".Translate(
+                        string.Join(", ", summary.DisallowedNames));
                 else
-                    return $"allowed, except for {summary.DisallowedCount} items";
+                    return "RimWorldAccess.Inspection.Storage.Summary.AllowedExceptCount".Translate(
+                        summary.DisallowedCount);
             }
         }
 

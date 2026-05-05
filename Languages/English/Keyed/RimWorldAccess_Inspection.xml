@@ -179,6 +179,27 @@
   <RimWorldAccess.Inspection.Storage.ItemAllowed>{0}. allowed</RimWorldAccess.Inspection.Storage.ItemAllowed>
   <RimWorldAccess.Inspection.Storage.ItemDisallowed>{0}. disallowed</RimWorldAccess.Inspection.Storage.ItemDisallowed>
 
+  <!-- Category summary phrases (ThingFilterHelper.FormatCategorySummary).
+       Spoken as the {1} placeholder of CategoryWithSummary above and
+       composed into the search-context announcement. The summary
+       reports from the minority perspective: AllAllowed / AllDisallowed
+       cover the trivial cases; the four except-* forms cover mixed
+       categories where a few items diverge from the majority.
+       AllowedExceptList: {0} = comma-joined names of disallowed items.
+       DisallowedExceptList: {0} = comma-joined names of allowed items.
+       AllowedExceptCount: {0} = count of disallowed items (always > 10
+       in practice). DisallowedExceptCount: {0} = count of allowed items
+       (also always > 10). Each except-* form is one whole-phrase key
+       so the comma + "except: " glue can vary per language and the
+       except-list / except-count distinction does not have to share
+       wording. -->
+  <RimWorldAccess.Inspection.Storage.Summary.AllAllowed>allowed</RimWorldAccess.Inspection.Storage.Summary.AllAllowed>
+  <RimWorldAccess.Inspection.Storage.Summary.AllDisallowed>disallowed</RimWorldAccess.Inspection.Storage.Summary.AllDisallowed>
+  <RimWorldAccess.Inspection.Storage.Summary.AllowedExceptList>allowed, except: {0}</RimWorldAccess.Inspection.Storage.Summary.AllowedExceptList>
+  <RimWorldAccess.Inspection.Storage.Summary.DisallowedExceptList>disallowed, except: {0}</RimWorldAccess.Inspection.Storage.Summary.DisallowedExceptList>
+  <RimWorldAccess.Inspection.Storage.Summary.AllowedExceptCount>allowed, except for {0} items</RimWorldAccess.Inspection.Storage.Summary.AllowedExceptCount>
+  <RimWorldAccess.Inspection.Storage.Summary.DisallowedExceptCount>disallowed, except for {0} items</RimWorldAccess.Inspection.Storage.Summary.DisallowedExceptCount>
+
   <!-- Bulk action results. -->
   <RimWorldAccess.Inspection.Storage.ClearedAllItems>Cleared all items</RimWorldAccess.Inspection.Storage.ClearedAllItems>
   <RimWorldAccess.Inspection.Storage.AllowedAllItems>Allowed all items</RimWorldAccess.Inspection.Storage.AllowedAllItems>
@@ -202,6 +223,29 @@
   <RimWorldAccess.Inspection.Storage.MenuClosed>Closed storage settings menu</RimWorldAccess.Inspection.Storage.MenuClosed>
   <RimWorldAccess.Inspection.Storage.PlantSelectionClosed>Closed plant selection menu</RimWorldAccess.Inspection.Storage.PlantSelectionClosed>
   <RimWorldAccess.Inspection.Storage.PlaySettingsClosed>Closed play settings menu</RimWorldAccess.Inspection.Storage.PlaySettingsClosed>
+
+  <!-- =================================================================
+       ThingFilter tree-navigation state (ThingFilterNavigationState).
+       The newer tree-based filter UI used by ReadingPolicyEditorState
+       (and others wired during D.7 follow-ups) shares the Storage.*
+       keys above for navigation and toggle announcements; only the
+       slider-edit mode is unique. Pressing Enter on a HitPoints or
+       Quality row enters edit mode where Left/Right adjusts the active
+       part (Min or Max) and Up/Down swaps parts.
+
+       SliderPart.Min / SliderPart.Max are the bare part-name nouns,
+       composed into the edit-mode announcement and the per-part value
+       readout. SliderEdit.Announcement: {0} = slider name (vanilla
+       "Quality" or "HitPointsBasic"), {1} = part name, {2} = value.
+       Spoken once on entering edit mode; the keyboard-hint sentence
+       is part of the key so word order can vary per language.
+       SliderEdit.PartWithValue: {0} = part name, {1} = value. Spoken
+       when switching parts via Up/Down.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.ThingFilter.SliderPart.Min>Minimum</RimWorldAccess.Inspection.ThingFilter.SliderPart.Min>
+  <RimWorldAccess.Inspection.ThingFilter.SliderPart.Max>Maximum</RimWorldAccess.Inspection.ThingFilter.SliderPart.Max>
+  <RimWorldAccess.Inspection.ThingFilter.SliderEdit.Announcement>{0} - {1}: {2}. Use Left/Right to adjust, Up/Down to switch Min/Max, Enter to confirm.</RimWorldAccess.Inspection.ThingFilter.SliderEdit.Announcement>
+  <RimWorldAccess.Inspection.ThingFilter.SliderEdit.PartWithValue>{0}: {1}</RimWorldAccess.Inspection.ThingFilter.SliderEdit.PartWithValue>
 
   <!-- Power. PowerStatus: {0} = vanilla "Power", {1} = vanilla "On"/"Off".
        PowerConsumption: {0} = wattage. -->
