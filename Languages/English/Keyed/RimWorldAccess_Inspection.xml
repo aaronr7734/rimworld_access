@@ -1315,4 +1315,33 @@
        prefix is mod-side because the vanilla Skills.xml exposes only
        the long-form "Experience" word and we want a compact row. -->
   <RimWorldAccess.Inspection.Tree.SkillXpProgress>XP: {0} / {1}</RimWorldAccess.Inspection.Tree.SkillXpProgress>
+
+  <!-- =================================================================
+       RangeEditMenuState announcements. Spoken when the user
+       navigates between the min / max sliders and as values change.
+       MinOption / MaxOption: standalone words used as the {0}
+       parameter of the line keys (Hit Points / Quality). Vanilla has
+       no Minimum / Maximum keys so we keep them mod-side.
+       HitPointsLine: {0} = vanilla HitPointsBasic capitalized
+       (placeholder noun), {1} = MinOption / MaxOption, {2} = current
+       value (already P0-formatted), {3} = range minimum (P0),
+       {4} = range maximum (P0).
+       QualityLine: {0} = vanilla Quality, {1} = MinOption /
+       MaxOption, {2} = current value (already game-translated quality
+       label), {3} / {4} = range bounds (also game-translated).
+       The two compositions share the trailing "Range: {min} to {max}"
+       structure so a translator can keep word order consistent
+       between them.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.RangeEdit.MinOption>Minimum</RimWorldAccess.Inspection.RangeEdit.MinOption>
+  <RimWorldAccess.Inspection.RangeEdit.MaxOption>Maximum</RimWorldAccess.Inspection.RangeEdit.MaxOption>
+  <RimWorldAccess.Inspection.RangeEdit.HitPointsLine>{0} {1}: {2}. Range: {3} to {4}</RimWorldAccess.Inspection.RangeEdit.HitPointsLine>
+  <RimWorldAccess.Inspection.RangeEdit.QualityLine>{0} {1}: {2}. Range: {3} to {4}</RimWorldAccess.Inspection.RangeEdit.QualityLine>
+
+  <!-- InventoryHelper category labels (CategoryNode.GetDisplayLabel).
+       UncategorizedFallback is spoken when a thing has no
+       ThingCategoryDef. CategoryWithCount: {0} = capitalized category
+       label, {1} = item type count. -->
+  <RimWorldAccess.Inspection.Inventory.UncategorizedFallback>Uncategorized</RimWorldAccess.Inspection.Inventory.UncategorizedFallback>
+  <RimWorldAccess.Inspection.Inventory.CategoryWithCount>{0} ({1} types)</RimWorldAccess.Inspection.Inventory.CategoryWithCount>
 </LanguageData>

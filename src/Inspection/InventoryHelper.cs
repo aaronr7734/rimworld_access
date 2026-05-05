@@ -121,10 +121,12 @@ namespace RimWorldAccess
 
             public string GetDisplayLabel()
             {
-                if (CategoryDef == null) return "Uncategorized";
+                if (CategoryDef == null)
+                    return "RimWorldAccess.Inspection.Inventory.UncategorizedFallback".Translate();
                 if (Items.Count > 0)
                 {
-                    return $"{CategoryDef.LabelCap} ({Items.Count} types)";
+                    return "RimWorldAccess.Inspection.Inventory.CategoryWithCount".Translate(
+                        CategoryDef.LabelCap, Items.Count);
                 }
                 return CategoryDef.LabelCap;
             }

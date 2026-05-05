@@ -184,19 +184,31 @@ namespace RimWorldAccess
 
         private static void AnnounceCurrentSelection()
         {
+            string optionName = selectedOption == 0
+                ? "RimWorldAccess.Inspection.RangeEdit.MinOption".Translate()
+                : "RimWorldAccess.Inspection.RangeEdit.MaxOption".Translate();
             string announcement;
 
             if (currentRangeType == RangeType.HitPoints)
             {
-                string optionName = selectedOption == 0 ? "Minimum" : "Maximum";
                 float value = selectedOption == 0 ? hitPointsRange.min : hitPointsRange.max;
-                announcement = $"Hit Points {optionName}: {value:P0}. Range: {hitPointsRange.min:P0} to {hitPointsRange.max:P0}";
+                string hitPointsNoun = "HitPointsBasic".Translate().ToString().CapitalizeFirst();
+                announcement = "RimWorldAccess.Inspection.RangeEdit.HitPointsLine".Translate(
+                    hitPointsNoun,
+                    optionName,
+                    value.ToString("P0"),
+                    hitPointsRange.min.ToString("P0"),
+                    hitPointsRange.max.ToString("P0"));
             }
             else
             {
-                string optionName = selectedOption == 0 ? "Minimum" : "Maximum";
                 QualityCategory value = selectedOption == 0 ? qualityRange.min : qualityRange.max;
-                announcement = $"Quality {optionName}: {value}. Range: {qualityRange.min} to {qualityRange.max}";
+                announcement = "RimWorldAccess.Inspection.RangeEdit.QualityLine".Translate(
+                    "Quality".Translate(),
+                    optionName,
+                    value.GetLabel().CapitalizeFirst(),
+                    qualityRange.min.GetLabel().CapitalizeFirst(),
+                    qualityRange.max.GetLabel().CapitalizeFirst());
             }
 
             TolkHelper.Speak(announcement);
