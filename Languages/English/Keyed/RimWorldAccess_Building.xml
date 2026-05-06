@@ -236,4 +236,18 @@
   <RimWorldAccess.Building.Zone.FailedToAddCell>Failed to add cell</RimWorldAccess.Building.Zone.FailedToAddCell>
   <RimWorldAccess.Building.Zone.FallbackName>zone</RimWorldAccess.Building.Zone.FallbackName>
 
+  <!-- Plant selection menu (src/Building/PlantSelectionMenuState.cs).
+       Sets the plant to grow on a zone or planter. Plant labels and the
+       displayText / detailedInfo come from vanilla data; the wrapper keys
+       here own the announcement composition.
+       OpenPrompt: {0} = current crop label.
+       SelectionWithDetail: {0} = displayText, {1} = detailedInfo.
+       NoColonistCanPlant: {0} = plant label, {1} = required Plants skill.
+       CavePlantExposed: {0} = plant LabelCap. -->
+  <RimWorldAccess.Building.PlantSelect.OpenPrompt>Plant selection. Current crop: {0}</RimWorldAccess.Building.PlantSelect.OpenPrompt>
+  <RimWorldAccess.Building.PlantSelect.Selected>Selected: {0}</RimWorldAccess.Building.PlantSelect.Selected>
+  <RimWorldAccess.Building.PlantSelect.SelectionWithDetail>{0}. {1}</RimWorldAccess.Building.PlantSelect.SelectionWithDetail>
+  <RimWorldAccess.Building.PlantSelect.NoColonistCanPlant>WARNING: No colonist can plant {0} (requires Plants skill {1})</RimWorldAccess.Building.PlantSelect.NoColonistCanPlant>
+  <RimWorldAccess.Building.PlantSelect.CavePlantExposed>WARNING: {0} is a cave plant but zone has cells exposed to light</RimWorldAccess.Building.PlantSelect.CavePlantExposed>
+
 </LanguageData>

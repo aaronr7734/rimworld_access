@@ -179,7 +179,7 @@ namespace RimWorldAccess
             }
 
             // Announce menu opening with current crop
-            TolkHelper.Speak($"Plant selection. Current crop: {currentPlantName}");
+            TolkHelper.Speak("RimWorldAccess.Building.PlantSelect.OpenPrompt".Translate(currentPlantName));
 
             // Announce first/current plant
             AnnounceCurrentSelection();
@@ -249,7 +249,7 @@ namespace RimWorldAccess
             // Check for warnings
             CheckAndWarnAboutPlant(plantDef);
 
-            TolkHelper.Speak($"Selected: {selected.displayText}");
+            TolkHelper.Speak("RimWorldAccess.Building.PlantSelect.Selected".Translate(selected.displayText));
             Log.Message($"Set plant to: {plantDef.label}");
 
             Close();
@@ -522,7 +522,7 @@ namespace RimWorldAccess
             if (selectedIndex >= 0 && selectedIndex < availablePlants.Count)
             {
                 PlantOption current = availablePlants[selectedIndex];
-                string announcement = $"{current.displayText}. {current.detailedInfo}";
+                string announcement = "RimWorldAccess.Building.PlantSelect.SelectionWithDetail".Translate(current.displayText, current.detailedInfo);
                 TolkHelper.Speak(announcement);
             }
         }
@@ -607,7 +607,7 @@ namespace RimWorldAccess
 
                     if (!hasMech)
                     {
-                        TolkHelper.Speak($"WARNING: No colonist can plant {plantDef.label} (requires Plants skill {plantDef.plant.sowMinSkill})");
+                        TolkHelper.Speak("RimWorldAccess.Building.PlantSelect.NoColonistCanPlant".Translate(plantDef.label, plantDef.plant.sowMinSkill));
                     }
                 }
             }
@@ -632,7 +632,7 @@ namespace RimWorldAccess
 
                 if (problemCell.IsValid)
                 {
-                    TolkHelper.Speak($"WARNING: {plantDef.LabelCap} is a cave plant but zone has cells exposed to light");
+                    TolkHelper.Speak("RimWorldAccess.Building.PlantSelect.CavePlantExposed".Translate(plantDef.LabelCap));
                 }
             }
         }
