@@ -322,4 +322,59 @@
   <RimWorldAccess.Building.Preview.SizeConfirmed>{0} confirmed</RimWorldAccess.Building.Preview.SizeConfirmed>
   <RimWorldAccess.Building.Preview.ShapeCancelled>Shape cancelled</RimWorldAccess.Building.Preview.ShapeCancelled>
 
+  <!-- Shape placement state (src/Building/ShapePlacementState.cs).
+       Two-corner shape designation flow (Build / Order / Zone designators).
+       Most multi-fragment announcements compose via period-joined parts;
+       each fragment here is a clean phrase without trailing punctuation.
+
+       BuildEnter parts: ModeManual / ModeShape, ShapeNameSelected (label
+       reused from ShapeSelect.ShapeSelected), PlacingDesignator,
+       SizeOneTile / SizeWxH, the four hint variants. The shape-mode parts
+       use designator label as data via {0}.
+
+       Placed/Designated: {0} = count, {1} = pluralized name, {2} = optional
+       resource cost suffix (or empty); the cost suffix carries its own paren
+       formatting via PlacedCostSuffix.
+
+       DesignatorActionMap gerunds (haul/hunt/mine/etc.): keys here cover
+       the standard English designator labels that ship with vanilla. The
+       lookup itself is a substring match against English keywords —
+       non-English players fall through to the translated lowercased label.
+       TODO: replace with Designator_* type-check switch in a follow-up. -->
+  <RimWorldAccess.Building.Place.NoDesignatorActive>No designator active</RimWorldAccess.Building.Place.NoDesignatorActive>
+  <RimWorldAccess.Building.Place.NoCellsSelected>No cells selected</RimWorldAccess.Building.Place.NoCellsSelected>
+  <RimWorldAccess.Building.Place.ZoneDeleted>Zone {0} deleted.</RimWorldAccess.Building.Place.ZoneDeleted>
+  <RimWorldAccess.Building.Place.CancelFromFirstCorner>Shape placement cancelled</RimWorldAccess.Building.Place.CancelFromFirstCorner>
+  <RimWorldAccess.Building.Place.CancelFromSecondCorner>Shape cancelled, back to first point</RimWorldAccess.Building.Place.CancelFromSecondCorner>
+  <RimWorldAccess.Building.Place.CancelFromPreview>Preview cancelled</RimWorldAccess.Building.Place.CancelFromPreview>
+  <RimWorldAccess.Building.Place.SelectionClearedFromPreview>Selection cleared. Press Escape again to exit, or Enter then Equals to add another section.</RimWorldAccess.Building.Place.SelectionClearedFromPreview>
+  <RimWorldAccess.Building.Place.SelectionCancelledToFirstPoint>Selection cancelled, back to first point</RimWorldAccess.Building.Place.SelectionCancelledToFirstPoint>
+  <RimWorldAccess.Building.Place.SecondPointRemoved>Second point removed</RimWorldAccess.Building.Place.SecondPointRemoved>
+  <RimWorldAccess.Building.Place.FirstPointRemoved>First point removed</RimWorldAccess.Building.Place.FirstPointRemoved>
+  <RimWorldAccess.Building.Place.NoPointsToRemove>No points to remove</RimWorldAccess.Building.Place.NoPointsToRemove>
+  <RimWorldAccess.Building.Place.ModeManual>Manual mode</RimWorldAccess.Building.Place.ModeManual>
+  <RimWorldAccess.Building.Place.ModeShape>Shape mode</RimWorldAccess.Building.Place.ModeShape>
+  <RimWorldAccess.Building.Place.PlacingDesignator>Placing {0}</RimWorldAccess.Building.Place.PlacingDesignator>
+  <RimWorldAccess.Building.Place.SizeOneTile>Size: 1 tile</RimWorldAccess.Building.Place.SizeOneTile>
+  <RimWorldAccess.Building.Place.SizeWxH>Size: {0}x{1}</RimWorldAccess.Building.Place.SizeWxH>
+  <RimWorldAccess.Building.Place.HintManualOrder>Move to targets, Space to select, Enter to confirm, Tab for shapes, Escape to cancel</RimWorldAccess.Building.Place.HintManualOrder>
+  <RimWorldAccess.Building.Place.HintManualBuildRotatable>Move to position and press Space to place, R to rotate, Escape to cancel</RimWorldAccess.Building.Place.HintManualBuildRotatable>
+  <RimWorldAccess.Building.Place.HintManualBuildFixed>Move to position and press Space to place, Escape to cancel</RimWorldAccess.Building.Place.HintManualBuildFixed>
+  <RimWorldAccess.Building.Place.HintShape>Move to first point and press Space</RimWorldAccess.Building.Place.HintShape>
+  <RimWorldAccess.Building.Place.PlacedBuild>Placed {0} {1}{2}</RimWorldAccess.Building.Place.PlacedBuild>
+  <RimWorldAccess.Building.Place.PlacedCostSuffix> ({0} {1})</RimWorldAccess.Building.Place.PlacedCostSuffix>
+  <RimWorldAccess.Building.Place.DesignatedFor>Designated {0} for {1}</RimWorldAccess.Building.Place.DesignatedFor>
+  <RimWorldAccess.Building.Place.NoBlueprintsPlaced>No blueprints placed</RimWorldAccess.Building.Place.NoBlueprintsPlaced>
+  <RimWorldAccess.Building.Place.NoDesignationsPlaced>No designations placed</RimWorldAccess.Building.Place.NoDesignationsPlaced>
+  <RimWorldAccess.Building.Place.ObstaclesFound>{0} obstacles found</RimWorldAccess.Building.Place.ObstaclesFound>
+  <RimWorldAccess.Building.Place.MeditationDisableHint>Disable warning toggle on the tree to build here</RimWorldAccess.Building.Place.MeditationDisableHint>
+  <RimWorldAccess.Building.Place.Action.haul>hauling</RimWorldAccess.Building.Place.Action.haul>
+  <RimWorldAccess.Building.Place.Action.hunt>hunting</RimWorldAccess.Building.Place.Action.hunt>
+  <RimWorldAccess.Building.Place.Action.mine>mining</RimWorldAccess.Building.Place.Action.mine>
+  <RimWorldAccess.Building.Place.Action.deconstruct>deconstruction</RimWorldAccess.Building.Place.Action.deconstruct>
+  <RimWorldAccess.Building.Place.Action.cut>cutting</RimWorldAccess.Building.Place.Action.cut>
+  <RimWorldAccess.Building.Place.Action.smooth>smoothing</RimWorldAccess.Building.Place.Action.smooth>
+  <RimWorldAccess.Building.Place.Action.tame>taming</RimWorldAccess.Building.Place.Action.tame>
+  <RimWorldAccess.Building.Place.Action.cancel>cancellation</RimWorldAccess.Building.Place.Action.cancel>
+
 </LanguageData>

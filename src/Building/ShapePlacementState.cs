@@ -108,17 +108,21 @@ namespace RimWorldAccess
         // This ensures the zone selection matches what was announced on entry
         private static IntVec3 entryCursorPosition = IntVec3.Invalid;
 
-        // Mapping of designator name keywords to gerund action phrases
+        // Mapping of designator name keywords (English-only substring match
+        // against the lowercased designator label) to translated gerund
+        // action phrases. The substring matching is itself English; non-English
+        // players fall through to the translated lowercased label.
+        // TODO: replace with Designator_* type-check switch.
         private static readonly Dictionary<string, string> DesignatorActionMap = new Dictionary<string, string>(System.StringComparer.OrdinalIgnoreCase)
         {
-            { "haul", "hauling" },
-            { "hunt", "hunting" },
-            { "mine", "mining" },
-            { "deconstruct", "deconstruction" },
-            { "cut", "cutting" },
-            { "smooth", "smoothing" },
-            { "tame", "taming" },
-            { "cancel", "cancellation" }
+            { "haul",        "RimWorldAccess.Building.Place.Action.haul" },
+            { "hunt",        "RimWorldAccess.Building.Place.Action.hunt" },
+            { "mine",        "RimWorldAccess.Building.Place.Action.mine" },
+            { "deconstruct", "RimWorldAccess.Building.Place.Action.deconstruct" },
+            { "cut",         "RimWorldAccess.Building.Place.Action.cut" },
+            { "smooth",      "RimWorldAccess.Building.Place.Action.smooth" },
+            { "tame",        "RimWorldAccess.Building.Place.Action.tame" },
+            { "cancel",      "RimWorldAccess.Building.Place.Action.cancel" },
         };
 
         #region Properties
@@ -243,21 +247,21 @@ namespace RimWorldAccess
             if (shape == ShapeType.Manual)
             {
                 // Manual mode announcement
-                parts.Add("Manual mode");
+                parts.Add("RimWorldAccess.Building.Place.ModeManual".Translate());
                 if (ShapeHelper.IsOrderDesignator(designator) || ShapeHelper.IsCellsDesignator(designator) || ShapeHelper.IsZoneDesignator(designator))
                 {
                     parts.Add(designatorLabel);
                 }
                 else
                 {
-                    parts.Add($"Placing {designatorLabel}");
+                    parts.Add("RimWorldAccess.Building.Place.PlacingDesignator".Translate(designatorLabel));
                 }
             }
             else
             {
                 // Shape mode announcement with clear separation
-                parts.Add("Shape mode");
-                parts.Add($"{shapeName} selected");
+                parts.Add("RimWorldAccess.Building.Place.ModeShape".Translate());
+                parts.Add("RimWorldAccess.Building.ShapeSelect.ShapeSelected".Translate(shapeName));
                 parts.Add(designatorLabel);
             }
 
@@ -278,11 +282,11 @@ namespace RimWorldAccess
                 // Size info
                 if (size.x == 1 && size.z == 1)
                 {
-                    parts.Add("Size: 1 tile");
+                    parts.Add("RimWorldAccess.Building.Place.SizeOneTile".Translate());
                 }
                 else
                 {
-                    parts.Add($"Size: {size.x}x{size.z}");
+                    parts.Add("RimWorldAccess.Building.Place.SizeWxH".Translate(size.x, size.z));
                 }
 
                 // Rotation info - only include for rotatable buildings
@@ -307,7 +311,7 @@ namespace RimWorldAccess
             {
                 if (ShapeHelper.IsOrderDesignator(designator) || ShapeHelper.IsCellsDesignator(designator))
                 {
-                    parts.Add("Move to targets, Space to select, Enter to confirm, Tab for shapes, Escape to cancel");
+                    parts.Add("RimWorldAccess.Building.Place.HintManualOrder".Translate());
                 }
                 else
                 {
@@ -322,19 +326,14 @@ namespace RimWorldAccess
                         }
                     }
 
-                    if (canRotate)
-                    {
-                        parts.Add("Move to position and press Space to place, R to rotate, Escape to cancel");
-                    }
-                    else
-                    {
-                        parts.Add("Move to position and press Space to place, Escape to cancel");
-                    }
+                    parts.Add(canRotate
+                        ? (string)"RimWorldAccess.Building.Place.HintManualBuildRotatable".Translate()
+                        : (string)"RimWorldAccess.Building.Place.HintManualBuildFixed".Translate());
                 }
             }
             else
             {
-                parts.Add("Move to first point and press Space");
+                parts.Add("RimWorldAccess.Building.Place.HintShape".Translate());
             }
 
             return string.Join(". ", parts) + ".";
@@ -442,13 +441,13 @@ namespace RimWorldAccess
         {
             if (activeDesignator == null)
             {
-                TolkHelper.Speak("No designator active", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Place.NoDesignatorActive".Translate(), SpeechPriority.High);
                 return null;
             }
 
             if (previewHelper.PreviewCells.Count == 0)
             {
-                TolkHelper.Speak("No cells selected", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Place.NoCellsSelected".Translate(), SpeechPriority.High);
                 return null;
             }
 
@@ -830,7 +829,7 @@ namespace RimWorldAccess
 
                 if (!silent)
                 {
-                    TolkHelper.Speak($"Zone {zoneName} deleted.", SpeechPriority.Normal);
+                    TolkHelper.Speak("RimWorldAccess.Building.Place.ZoneDeleted".Translate(zoneName), SpeechPriority.Normal);
                 }
 
                 Log.Message($"[ShapePlacementState] Confirmed deletion of zone {zoneName}");
@@ -857,13 +856,13 @@ namespace RimWorldAccess
             switch (previousPhase)
             {
                 case PlacementPhase.SettingFirstCorner:
-                    TolkHelper.Speak("Shape placement cancelled");
+                    TolkHelper.Speak("RimWorldAccess.Building.Place.CancelFromFirstCorner".Translate());
                     break;
                 case PlacementPhase.SettingSecondCorner:
-                    TolkHelper.Speak("Shape cancelled, back to first point");
+                    TolkHelper.Speak("RimWorldAccess.Building.Place.CancelFromSecondCorner".Translate());
                     break;
                 case PlacementPhase.Previewing:
-                    TolkHelper.Speak("Preview cancelled");
+                    TolkHelper.Speak("RimWorldAccess.Building.Place.CancelFromPreview".Translate());
                     break;
             }
 
@@ -895,11 +894,11 @@ namespace RimWorldAccess
                 if (previousPhase == PlacementPhase.Previewing)
                 {
                     // In Previewing phase, tell user how to proceed
-                    TolkHelper.Speak("Selection cleared. Press Escape again to exit, or Enter then Equals to add another section.");
+                    TolkHelper.Speak("RimWorldAccess.Building.Place.SelectionClearedFromPreview".Translate());
                 }
                 else if (previousPhase == PlacementPhase.SettingSecondCorner)
                 {
-                    TolkHelper.Speak("Selection cancelled, back to first point");
+                    TolkHelper.Speak("RimWorldAccess.Building.Place.SelectionCancelledToFirstPoint".Translate());
                 }
             }
 
@@ -927,7 +926,7 @@ namespace RimWorldAccess
                 // Use silent=true to avoid redundant "First point" announcement
                 previewHelper.SetFirstCorner(firstPointPos, "[ShapePlacementState]", silent: true);
                 currentPhase = PlacementPhase.SettingSecondCorner;
-                TolkHelper.Speak("Second point removed");
+                TolkHelper.Speak("RimWorldAccess.Building.Place.SecondPointRemoved".Translate());
                 Log.Message("[ShapePlacementState] Removed second point, back to SettingSecondCorner phase");
                 return true;
             }
@@ -937,13 +936,13 @@ namespace RimWorldAccess
             {
                 previewHelper.Reset();
                 currentPhase = PlacementPhase.SettingFirstCorner;
-                TolkHelper.Speak("First point removed");
+                TolkHelper.Speak("RimWorldAccess.Building.Place.FirstPointRemoved".Translate());
                 Log.Message("[ShapePlacementState] Removed first point, back to SettingFirstCorner phase");
                 return true;
             }
 
             // No points to remove (in SettingFirstCorner phase with no first point, or unexpected state)
-            TolkHelper.Speak("No points to remove");
+            TolkHelper.Speak("RimWorldAccess.Building.Place.NoPointsToRemove".Translate());
             return false;
         }
 
@@ -1108,37 +1107,30 @@ namespace RimWorldAccess
                         ? Find.ActiveLanguageWorker.Pluralize(designatorName, result.PlacedCount)
                         : designatorName;
 
-                    string costInfo = string.Empty;
-                    if (result.TotalResourceCost > 0 && !string.IsNullOrEmpty(result.ResourceName))
-                    {
-                        costInfo = $" ({result.TotalResourceCost} {result.ResourceName})";
-                    }
-                    parts.Add($"Placed {result.PlacedCount} {name}{costInfo}");
+                    string costInfo = (result.TotalResourceCost > 0 && !string.IsNullOrEmpty(result.ResourceName))
+                        ? (string)"RimWorldAccess.Building.Place.PlacedCostSuffix".Translate(result.TotalResourceCost, result.ResourceName)
+                        : string.Empty;
+                    parts.Add("RimWorldAccess.Building.Place.PlacedBuild".Translate(result.PlacedCount, name, costInfo));
                 }
                 else
                 {
                     // For orders, use "Designated X for [action]" matching RimWorld's terminology
                     string action = GetActionFromDesignatorName(designatorName);
-                    parts.Add($"Designated {result.PlacedCount} for {action}");
+                    parts.Add("RimWorldAccess.Building.Place.DesignatedFor".Translate(result.PlacedCount, action));
                 }
             }
             else
             {
-                if (isBuild)
-                {
-                    parts.Add("No blueprints placed");
-                }
-                else
-                {
-                    parts.Add("No designations placed");
-                }
+                parts.Add(isBuild
+                    ? (string)"RimWorldAccess.Building.Place.NoBlueprintsPlaced".Translate()
+                    : (string)"RimWorldAccess.Building.Place.NoDesignationsPlaced".Translate());
             }
 
             // Obstacle info - only for build designators and zone-add, not for orders or delete/shrink
             bool isDelete = ShapeHelper.IsDeleteDesignator(designator);
             if (!isOrder && !isDelete && result.ObstacleCount > 0)
             {
-                parts.Add($"{result.ObstacleCount} obstacles found");
+                parts.Add("RimWorldAccess.Building.Place.ObstaclesFound".Translate(result.ObstacleCount));
             }
 
             // Meditation protection info
@@ -1147,7 +1139,7 @@ namespace RimWorldAccess
                 string protectionSummary = MeditationProtectionHelper.FormatShapeSummary(
                     result.ProtectedCount, result.ProtectedByLabels);
                 parts.Add(protectionSummary);
-                parts.Add("Disable warning toggle on the tree to build here");
+                parts.Add("RimWorldAccess.Building.Place.MeditationDisableHint".Translate());
             }
 
             return string.Join(". ", parts);
@@ -1166,7 +1158,7 @@ namespace RimWorldAccess
             foreach (var kvp in DesignatorActionMap)
             {
                 if (lowerName.Contains(kvp.Key))
-                    return kvp.Value;
+                    return kvp.Value.Translate();
             }
 
             // For unknown designators, just use the name lowercase
