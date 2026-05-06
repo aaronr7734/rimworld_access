@@ -35,39 +35,61 @@ namespace RimWorldAccess
         private static int selectedActionIndex = 0;
         private static TypeaheadSearchHelper actionsTypeahead = new TypeaheadSearchHelper();
 
-        // Available actions - filtered based on whether an area is selected
-        private static readonly string[] actionsWithArea = new string[]
+        private enum AreaAction
         {
-            "New Area",
-            "Rename Area",
-            "Expand Area",
-            "Shrink Area",
-            "Invert Area",
-            "Copy Area",
-            "Delete Area",
-            "Close"
+            NewArea,
+            RenameArea,
+            ExpandArea,
+            ShrinkArea,
+            InvertArea,
+            CopyArea,
+            DeleteArea,
+            Close,
+        }
+
+        // Dispatch order; localized labels resolve via GetActionLabel.
+        private static readonly AreaAction[] actionsWithArea = new[]
+        {
+            AreaAction.NewArea,
+            AreaAction.RenameArea,
+            AreaAction.ExpandArea,
+            AreaAction.ShrinkArea,
+            AreaAction.InvertArea,
+            AreaAction.CopyArea,
+            AreaAction.DeleteArea,
+            AreaAction.Close,
         };
 
-        private static readonly string[] actionsWithoutArea = new string[]
+        private static readonly AreaAction[] actionsWithoutArea = new[]
         {
-            "New Area",
-            "Close"
+            AreaAction.NewArea,
+            AreaAction.Close,
         };
 
-        /// <summary>
-        /// Gets the available actions based on whether an area is selected.
-        /// </summary>
-        private static string[] GetAvailableActions()
+        private static AreaAction[] GetAvailableActions()
         {
             return (selectedArea != null) ? actionsWithArea : actionsWithoutArea;
         }
 
-        /// <summary>
-        /// Gets the action labels as a list for typeahead search.
-        /// </summary>
+        private static string GetActionLabel(AreaAction action)
+        {
+            switch (action)
+            {
+                case AreaAction.NewArea:    return "RimWorldAccess.Building.AreaMgr.Action.NewArea".Translate();
+                case AreaAction.RenameArea: return "RimWorldAccess.Building.AreaMgr.Action.RenameArea".Translate();
+                case AreaAction.ExpandArea: return "RimWorldAccess.Building.AreaMgr.Action.ExpandArea".Translate();
+                case AreaAction.ShrinkArea: return "RimWorldAccess.Building.AreaMgr.Action.ShrinkArea".Translate();
+                case AreaAction.InvertArea: return "RimWorldAccess.Building.AreaMgr.Action.InvertArea".Translate();
+                case AreaAction.CopyArea:   return "RimWorldAccess.Building.AreaMgr.Action.CopyArea".Translate();
+                case AreaAction.DeleteArea: return "RimWorldAccess.Building.AreaMgr.Action.DeleteArea".Translate();
+                case AreaAction.Close:      return "RimWorldAccess.Building.AreaMgr.Action.Close".Translate();
+                default:                    return string.Empty;
+            }
+        }
+
         private static List<string> GetActionLabels()
         {
-            return GetAvailableActions().ToList();
+            return GetAvailableActions().Select(GetActionLabel).ToList();
         }
 
         public static bool IsActive => isActive;
@@ -117,7 +139,7 @@ namespace RimWorldAccess
             onCloseCallback = null;
             callback?.Invoke();
 
-            TolkHelper.Speak("Area manager closed");
+            TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.Closed".Translate());
         }
 
         /// <summary>
@@ -246,34 +268,18 @@ namespace RimWorldAccess
             if (currentMode == NavigationMode.AreaActions)
             {
                 var actions = GetAvailableActions();
-                string action = actions[selectedActionIndex];
+                AreaAction action = actions[selectedActionIndex];
 
                 switch (action)
                 {
-                    case "New Area":
-                        CreateNewArea();
-                        break;
-                    case "Rename Area":
-                        RenameArea();
-                        break;
-                    case "Expand Area":
-                        ExpandArea();
-                        break;
-                    case "Shrink Area":
-                        ShrinkArea();
-                        break;
-                    case "Invert Area":
-                        InvertArea();
-                        break;
-                    case "Copy Area":
-                        CopyArea();
-                        break;
-                    case "Delete Area":
-                        DeleteArea();
-                        break;
-                    case "Close":
-                        Close();
-                        break;
+                    case AreaAction.NewArea:    CreateNewArea(); break;
+                    case AreaAction.RenameArea: RenameArea();    break;
+                    case AreaAction.ExpandArea: ExpandArea();    break;
+                    case AreaAction.ShrinkArea: ShrinkArea();    break;
+                    case AreaAction.InvertArea: InvertArea();    break;
+                    case AreaAction.CopyArea:   CopyArea();      break;
+                    case AreaAction.DeleteArea: DeleteArea();    break;
+                    case AreaAction.Close:      Close();         break;
                 }
             }
         }
@@ -290,12 +296,12 @@ namespace RimWorldAccess
                     LoadAreas();
                     selectedAreaIndex = allAreas.IndexOf(newArea);
                     selectedArea = newArea;
-                    TolkHelper.Speak($"Created new area: {newArea.Label}");
+                    TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.CreatedNewArea".Translate(newArea.Label));
                     ReturnToAreaList();
                 }
                 else
                 {
-                    TolkHelper.Speak("Cannot create area. Maximum of 10 areas reached.", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.MaxAreasReached".Translate(), SpeechPriority.High);
                 }
             }
         }
@@ -308,7 +314,7 @@ namespace RimWorldAccess
             if (selectedArea != null)
             {
                 Find.WindowStack.Add(new Dialog_RenameArea(selectedArea));
-                TolkHelper.Speak($"Rename area: {selectedArea.Label}. Enter new name and press Enter.");
+                TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.RenamePrompt".Translate(selectedArea.Label));
             }
         }
 
@@ -374,7 +380,7 @@ namespace RimWorldAccess
             if (selectedArea != null)
             {
                 selectedArea.Invert();
-                TolkHelper.Speak($"Inverted area: {selectedArea.Label}. All cells toggled.");
+                TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.Inverted".Translate(selectedArea.Label));
             }
         }
 
@@ -394,11 +400,11 @@ namespace RimWorldAccess
                     LoadAreas();
                     selectedAreaIndex = allAreas.IndexOf(newArea);
                     selectedArea = newArea;
-                    TolkHelper.Speak($"Copied area to: {newArea.Label}");
+                    TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.CopiedTo".Translate(newArea.Label));
                 }
                 else
                 {
-                    TolkHelper.Speak("Cannot copy area. Maximum of 10 areas reached.", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.MaxAreasReachedCopy".Translate(), SpeechPriority.High);
                 }
             }
         }
@@ -427,7 +433,7 @@ namespace RimWorldAccess
                 selectedAreaIndex = 0;
             }
 
-            TolkHelper.Speak($"Deleted area: {deletedName}");
+            TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.Deleted".Translate(deletedName));
         }
 
         /// <summary>
@@ -457,9 +463,11 @@ namespace RimWorldAccess
         private static void AnnounceCurrentAction()
         {
             var actions = GetAvailableActions();
-            string action = actions[selectedActionIndex];
+            string label = GetActionLabel(actions[selectedActionIndex]);
             string position = MenuHelper.FormatPosition(selectedActionIndex, actions.Length);
-            string announcement = string.IsNullOrEmpty(position) ? action : $"{action}, {position}";
+            string announcement = string.IsNullOrEmpty(position)
+                ? label
+                : (string)"RimWorldAccess.Building.AreaMgr.ActionWithPosition".Translate(label, position);
             TolkHelper.Speak(announcement);
         }
 
@@ -471,8 +479,8 @@ namespace RimWorldAccess
             var actions = GetAvailableActions();
             if (selectedActionIndex >= 0 && selectedActionIndex < actions.Length)
             {
-                string action = actions[selectedActionIndex];
-                TolkHelper.Speak(actionsTypeahead.BuildItemAnnouncement(action));
+                string label = GetActionLabel(actions[selectedActionIndex]);
+                TolkHelper.Speak(actionsTypeahead.BuildItemAnnouncement(label));
             }
         }
 
@@ -589,12 +597,14 @@ namespace RimWorldAccess
                 {
                     int cellCount = selectedArea.TrueCount;
                     string position = MenuHelper.FormatPosition(selectedAreaIndex, allAreas.Count);
-                    string positionPart = string.IsNullOrEmpty(position) ? "" : $", {position}";
-                    TolkHelper.Speak($"{selectedArea.Label} ({cellCount} cells){positionPart}. Press right bracket for actions.");
+                    string announcement = string.IsNullOrEmpty(position)
+                        ? (string)"RimWorldAccess.Building.AreaMgr.AreaWithCellsNoPosition".Translate(selectedArea.Label, cellCount)
+                        : (string)"RimWorldAccess.Building.AreaMgr.AreaWithCellsAndPosition".Translate(selectedArea.Label, cellCount, position);
+                    TolkHelper.Speak(announcement);
                 }
                 else
                 {
-                    TolkHelper.Speak("No areas available. Press right bracket to create one.");
+                    TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.NoAreasAvailable".Translate());
                 }
             }
             else if (currentMode == NavigationMode.AreaActions)
