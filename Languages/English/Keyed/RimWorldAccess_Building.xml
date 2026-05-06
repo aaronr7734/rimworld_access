@@ -154,4 +154,31 @@
   <RimWorldAccess.Building.Rename.NameAlreadyUsedByZone>name {0} already used by a zone</RimWorldAccess.Building.Rename.NameAlreadyUsedByZone>
   <RimWorldAccess.Building.Rename.NameAlreadyUsedByGroup>name {0} already used by another storage group</RimWorldAccess.Building.Rename.NameAlreadyUsedByGroup>
 
+  <!-- Area selection menu (src/Building/AreaSelectionMenuState.cs).
+       Replaces the vanilla FloatMenu shown when an area designator is
+       chosen from the architect tree. Delegates "No map" to Common.
+       Open: {0} = the designator's own label (e.g. "Allowed area").
+       AreaWithCells: {0} = area label, {1} = cell count.
+       Position keys come from RimWorldAccess.Menu.Position. -->
+  <RimWorldAccess.Building.AreaSelect.NoAreasAvailable>No areas available. Create an area first using the Manage Areas option.</RimWorldAccess.Building.AreaSelect.NoAreasAvailable>
+  <RimWorldAccess.Building.AreaSelect.OpenPrompt>{0}. Select an area.</RimWorldAccess.Building.AreaSelect.OpenPrompt>
+  <RimWorldAccess.Building.AreaSelect.Selected>Selected: {0}</RimWorldAccess.Building.AreaSelect.Selected>
+  <RimWorldAccess.Building.AreaSelect.Cancelled>Area selection cancelled</RimWorldAccess.Building.AreaSelect.Cancelled>
+  <RimWorldAccess.Building.AreaSelect.ManageAreas>Manage Areas</RimWorldAccess.Building.AreaSelect.ManageAreas>
+  <RimWorldAccess.Building.AreaSelect.AreaWithCells>{0}, {1} cells</RimWorldAccess.Building.AreaSelect.AreaWithCells>
+  <RimWorldAccess.Building.AreaSelect.OpenFallbackName>Area</RimWorldAccess.Building.AreaSelect.OpenFallbackName>
+  <RimWorldAccess.Building.AreaSelect.ItemWithPosition>{0}, {1}</RimWorldAccess.Building.AreaSelect.ItemWithPosition>
+
+  <!-- Shape selection menu (src/Building/ShapeSelectionMenuState.cs).
+       Picks a placement shape (Line / Rectangle / Oval) from the architect
+       flow. Shape names and descriptions are produced by ShapeHelper —
+       those will be wired during ShapeHelper localization.
+       ShapeWithPosition: {0} = shape name, {1} = position, {2} = description.
+       ShapeNoPosition: {0} = shape name, {1} = description. -->
+  <RimWorldAccess.Building.ShapeSelect.MenuOpened>Shape menu</RimWorldAccess.Building.ShapeSelect.MenuOpened>
+  <RimWorldAccess.Building.ShapeSelect.ShapeWithPosition>{0}, {1}. {2}</RimWorldAccess.Building.ShapeSelect.ShapeWithPosition>
+  <RimWorldAccess.Building.ShapeSelect.ShapeNoPosition>{0}. {1}</RimWorldAccess.Building.ShapeSelect.ShapeNoPosition>
+  <RimWorldAccess.Building.ShapeSelect.ShapeSelected>{0} selected</RimWorldAccess.Building.ShapeSelect.ShapeSelected>
+  <RimWorldAccess.Building.ShapeSelect.Cancelled>Shape selection cancelled</RimWorldAccess.Building.ShapeSelect.Cancelled>
+
 </LanguageData>

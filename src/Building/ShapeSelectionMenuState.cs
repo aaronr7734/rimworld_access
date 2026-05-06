@@ -47,7 +47,7 @@ namespace RimWorldAccess
             typeaheadHelper.ClearSearch();
 
             // Announce menu opening (NOT all shapes - just the menu name)
-            TolkHelper.Speak("Shape menu");
+            TolkHelper.Speak("RimWorldAccess.Building.ShapeSelect.MenuOpened".Translate());
 
             // Announce the first shape
             AnnounceCurrentShape();
@@ -106,10 +106,9 @@ namespace RimWorldAccess
             string description = ShapeHelper.GetShapeDescription(currentShape);
             string position = MenuHelper.FormatPosition(selectedIndex, availableShapes.Count);
 
-            // Format: "Shape Name, position. Description"
             string announcement = string.IsNullOrEmpty(position)
-                ? $"{shapeName}. {description}"
-                : $"{shapeName}, {position}. {description}";
+                ? (string)"RimWorldAccess.Building.ShapeSelect.ShapeNoPosition".Translate(shapeName, description)
+                : (string)"RimWorldAccess.Building.ShapeSelect.ShapeWithPosition".Translate(shapeName, position, description);
 
             TolkHelper.Speak(announcement);
         }
@@ -159,7 +158,7 @@ namespace RimWorldAccess
             ShapeType selected = availableShapes[selectedIndex];
             string shapeName = ShapeHelper.GetShapeName(selected);
 
-            TolkHelper.Speak($"{shapeName} selected");
+            TolkHelper.Speak("RimWorldAccess.Building.ShapeSelect.ShapeSelected".Translate(shapeName));
             Log.Message($"Shape selected: {shapeName}");
 
             Close();
@@ -244,7 +243,7 @@ namespace RimWorldAccess
                     return true;
                 }
                 // Close without selecting
-                TolkHelper.Speak("Shape selection cancelled");
+                TolkHelper.Speak("RimWorldAccess.Building.ShapeSelect.Cancelled".Translate());
                 Close();
                 return true;
             }

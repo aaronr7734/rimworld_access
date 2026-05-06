@@ -35,7 +35,7 @@ namespace RimWorldAccess
             Map map = Find.CurrentMap;
             if (map?.areaManager == null)
             {
-                TolkHelper.Speak("No map available");
+                TolkHelper.Speak("RimWorldAccess.Guard.NoMapLoaded".Translate());
                 return;
             }
 
@@ -45,7 +45,7 @@ namespace RimWorldAccess
 
             if (availableAreas.Count == 0)
             {
-                TolkHelper.Speak("No areas available. Create an area first using the Manage Areas option.");
+                TolkHelper.Speak("RimWorldAccess.Building.AreaSelect.NoAreasAvailable".Translate());
             }
 
             isActive = true;
@@ -56,8 +56,8 @@ namespace RimWorldAccess
             // Initialize typeahead helper
             typeaheadHelper = new TypeaheadSearchHelper();
 
-            string designatorLabel = designator.Label ?? "Area";
-            TolkHelper.Speak($"{designatorLabel}. Select an area.");
+            string designatorLabel = designator.Label ?? (string)"RimWorldAccess.Building.AreaSelect.OpenFallbackName".Translate();
+            TolkHelper.Speak("RimWorldAccess.Building.AreaSelect.OpenPrompt".Translate(designatorLabel));
             AnnounceCurrentSelection();
         }
 
@@ -106,7 +106,7 @@ namespace RimWorldAccess
                 Area selected = availableAreas[selectedIndex];
                 var callback = onAreaSelected;
 
-                TolkHelper.Speak($"Selected: {selected.Label}");
+                TolkHelper.Speak("RimWorldAccess.Building.AreaSelect.Selected".Translate(selected.Label));
                 CloseWithoutDeselect();
 
                 callback?.Invoke(selected);
@@ -115,7 +115,7 @@ namespace RimWorldAccess
 
         public static void Cancel()
         {
-            TolkHelper.Speak("Area selection cancelled");
+            TolkHelper.Speak("RimWorldAccess.Building.AreaSelect.Cancelled".Translate());
             Close();
             Find.DesignatorManager.Deselect();
         }
@@ -179,7 +179,7 @@ namespace RimWorldAccess
             }
             if (includeManageOption)
             {
-                labels.Add("Manage Areas");
+                labels.Add("RimWorldAccess.Building.AreaSelect.ManageAreas".Translate());
             }
             return labels;
         }
@@ -188,7 +188,7 @@ namespace RimWorldAccess
         {
             if (selectedIndex == ManageAreasIndex && includeManageOption)
             {
-                TolkHelper.Speak(typeaheadHelper.BuildItemAnnouncement("Manage Areas"));
+                TolkHelper.Speak(typeaheadHelper.BuildItemAnnouncement("RimWorldAccess.Building.AreaSelect.ManageAreas".Translate()));
             }
             else if (selectedIndex >= 0 && selectedIndex < availableAreas.Count)
             {
@@ -219,15 +219,20 @@ namespace RimWorldAccess
 
             if (selectedIndex == ManageAreasIndex && includeManageOption)
             {
-                string announcement = string.IsNullOrEmpty(position) ? "Manage Areas" : $"Manage Areas, {position}";
+                string label = "RimWorldAccess.Building.AreaSelect.ManageAreas".Translate();
+                string announcement = string.IsNullOrEmpty(position)
+                    ? label
+                    : (string)"RimWorldAccess.Building.AreaSelect.ItemWithPosition".Translate(label, position);
                 TolkHelper.Speak(announcement);
             }
             else if (selectedIndex >= 0 && selectedIndex < availableAreas.Count)
             {
                 Area area = availableAreas[selectedIndex];
                 int cellCount = area.TrueCount;
-                string content = $"{area.Label}, {cellCount} cells";
-                string announcement = string.IsNullOrEmpty(position) ? content : $"{content}, {position}";
+                string content = "RimWorldAccess.Building.AreaSelect.AreaWithCells".Translate(area.Label, cellCount);
+                string announcement = string.IsNullOrEmpty(position)
+                    ? content
+                    : (string)"RimWorldAccess.Building.AreaSelect.ItemWithPosition".Translate(content, position);
                 TolkHelper.Speak(announcement);
                 area.MarkForDraw();
             }
