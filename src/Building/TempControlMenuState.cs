@@ -1,4 +1,3 @@
-using System;
 using Verse;
 using RimWorld;
 using UnityEngine;
@@ -17,9 +16,6 @@ namespace RimWorldAccess
 
         public static bool IsActive => isActive;
 
-        /// <summary>
-        /// Opens the temperature control menu for the given building.
-        /// </summary>
         public static void Open(Building targetBuilding)
         {
             if (!GuardHelper.RequireBuilding(targetBuilding)) return;
@@ -27,7 +23,7 @@ namespace RimWorldAccess
             CompTempControl comp = targetBuilding.TryGetComp<CompTempControl>();
             if (comp == null)
             {
-                TolkHelper.Speak("Building does not have temperature control");
+                TolkHelper.Speak("RimWorldAccess.Building.Temp.NoTempComponent".Translate());
                 return;
             }
 
@@ -39,9 +35,6 @@ namespace RimWorldAccess
             AnnounceCurrentSettings();
         }
 
-        /// <summary>
-        /// Closes the temperature control menu.
-        /// </summary>
         public static void Close()
         {
             tempControl = null;
@@ -50,53 +43,30 @@ namespace RimWorldAccess
             MapNavigationState.SuppressMapNavigation = false;
         }
 
-        /// <summary>
-        /// Increases target temperature by 1 degree.
-        /// </summary>
         public static void IncreaseTemperatureSmall()
         {
             if (tempControl == null) return;
-
-            float offset = RoundedToCurrentTempModeOffset(1f);
-            AdjustTemperature(offset);
+            AdjustTemperature(RoundedToCurrentTempModeOffset(1f));
         }
 
-        /// <summary>
-        /// Increases target temperature by 10 degrees.
-        /// </summary>
         public static void IncreaseTemperatureLarge()
         {
             if (tempControl == null) return;
-
-            float offset = RoundedToCurrentTempModeOffset(10f);
-            AdjustTemperature(offset);
+            AdjustTemperature(RoundedToCurrentTempModeOffset(10f));
         }
 
-        /// <summary>
-        /// Decreases target temperature by 1 degree.
-        /// </summary>
         public static void DecreaseTemperatureSmall()
         {
             if (tempControl == null) return;
-
-            float offset = RoundedToCurrentTempModeOffset(-1f);
-            AdjustTemperature(offset);
+            AdjustTemperature(RoundedToCurrentTempModeOffset(-1f));
         }
 
-        /// <summary>
-        /// Decreases target temperature by 10 degrees.
-        /// </summary>
         public static void DecreaseTemperatureLarge()
         {
             if (tempControl == null) return;
-
-            float offset = RoundedToCurrentTempModeOffset(-10f);
-            AdjustTemperature(offset);
+            AdjustTemperature(RoundedToCurrentTempModeOffset(-10f));
         }
 
-        /// <summary>
-        /// Resets target temperature to default (21°C).
-        /// </summary>
         public static void ResetTemperature()
         {
             if (tempControl == null) return;
@@ -121,31 +91,26 @@ namespace RimWorldAccess
 
             string targetTemp = MenuHelper.FormatTemperature(tempControl.TargetTemperature, "F0");
 
-            // Get power mode if available
-            string powerMode = "";
+            string powerSuffix = "";
             if (tempControl.PowerTrader != null)
             {
                 if (tempControl.PowerTrader.Off)
                 {
-                    powerMode = " - Off";
+                    powerSuffix = "RimWorldAccess.Building.Temp.PowerModeOffSuffix".Translate();
                 }
                 else if (tempControl.operatingAtHighPower)
                 {
-                    powerMode = " - High power";
+                    powerSuffix = "RimWorldAccess.Building.Temp.PowerModeHighSuffix".Translate();
                 }
                 else
                 {
-                    powerMode = " - Low power";
+                    powerSuffix = "RimWorldAccess.Building.Temp.PowerModeLowSuffix".Translate();
                 }
             }
 
-            string announcement = $"{building.LabelCap} - Target: {targetTemp}{powerMode}";
-            TolkHelper.Speak(announcement);
+            TolkHelper.Speak("RimWorldAccess.Building.Temp.LabelTarget".Translate(building.LabelCap, targetTemp, powerSuffix));
         }
 
-        /// <summary>
-        /// Helper method to round temperature offset based on current temperature mode (Celsius/Fahrenheit/Kelvin).
-        /// </summary>
         private static float RoundedToCurrentTempModeOffset(float celsiusTemp)
         {
             return GenTemperature.ConvertTemperatureOffset(

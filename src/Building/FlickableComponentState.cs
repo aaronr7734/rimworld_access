@@ -1,7 +1,5 @@
-using System;
 using Verse;
 using RimWorld;
-using Verse.Sound;
 
 namespace RimWorldAccess
 {
@@ -17,9 +15,6 @@ namespace RimWorldAccess
 
         public static bool IsActive => isActive;
 
-        /// <summary>
-        /// Opens the power control menu for the given building.
-        /// </summary>
         public static void Open(Building targetBuilding)
         {
             if (!GuardHelper.RequireBuilding(targetBuilding)) return;
@@ -27,7 +22,7 @@ namespace RimWorldAccess
             CompFlickable comp = targetBuilding.TryGetComp<CompFlickable>();
             if (comp == null)
             {
-                TolkHelper.Speak("Building does not have power control");
+                TolkHelper.Speak("RimWorldAccess.Building.Flickable.NoFlickComponent".Translate());
                 return;
             }
 
@@ -39,9 +34,6 @@ namespace RimWorldAccess
             AnnounceCurrentStatus();
         }
 
-        /// <summary>
-        /// Closes the power control menu.
-        /// </summary>
         public static void Close()
         {
             flickable = null;
@@ -50,24 +42,15 @@ namespace RimWorldAccess
             MapNavigationState.SuppressMapNavigation = false;
         }
 
-        /// <summary>
-        /// Toggles the power switch on/off.
-        /// </summary>
         public static void TogglePower()
         {
             if (flickable == null || building == null)
                 return;
 
-            // Use the same logic as the game's native flick command
             flickable.DoFlick();
-
-            // Announce the new status
             AnnounceCurrentStatus();
         }
 
-        /// <summary>
-        /// Explicitly turns power on.
-        /// </summary>
         public static void TurnOn()
         {
             if (flickable == null || building == null)
@@ -80,13 +63,10 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("Power is already on");
+                TolkHelper.Speak("RimWorldAccess.Building.Flickable.AlreadyOn".Translate());
             }
         }
 
-        /// <summary>
-        /// Explicitly turns power off.
-        /// </summary>
         public static void TurnOff()
         {
             if (flickable == null || building == null)
@@ -99,39 +79,35 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("Power is already off");
+                TolkHelper.Speak("RimWorldAccess.Building.Flickable.AlreadyOff".Translate());
             }
         }
 
-        /// <summary>
-        /// Announces the current power status to the clipboard for screen readers.
-        /// </summary>
         private static void AnnounceCurrentStatus()
         {
             if (flickable == null || building == null)
                 return;
 
-            string status = flickable.SwitchIsOn ? "On" : "Off";
-            string announcement = $"{building.LabelCap} - Power: {status}";
+            string onOff = flickable.SwitchIsOn ? (string)"On".Translate() : (string)"Off".Translate();
+            string announcement = "RimWorldAccess.Building.Flickable.LabelPowerStatus".Translate(building.LabelCap, onOff);
 
-            // Check if connected to power grid
             var powerComp = building.TryGetComp<CompPowerTrader>();
             if (powerComp != null)
             {
                 if (!powerComp.PowerOn && flickable.SwitchIsOn)
                 {
-                    announcement += " (No power available)";
+                    announcement += "RimWorldAccess.Building.Flickable.NoPowerAvailableSuffix".Translate();
                 }
                 else if (powerComp.PowerOn && flickable.SwitchIsOn)
                 {
                     float powerUsage = -powerComp.PowerOutput;
                     if (powerUsage > 0)
                     {
-                        announcement += $" - Consuming: {powerUsage:F0}W";
+                        announcement += "RimWorldAccess.Building.Flickable.ConsumingSuffix".Translate(powerUsage.ToString("F0"));
                     }
                     else if (powerUsage < 0)
                     {
-                        announcement += $" - Producing: {-powerUsage:F0}W";
+                        announcement += "RimWorldAccess.Building.Flickable.ProducingSuffix".Translate((-powerUsage).ToString("F0"));
                     }
                 }
             }
@@ -139,53 +115,54 @@ namespace RimWorldAccess
             TolkHelper.Speak(announcement);
         }
 
-        /// <summary>
-        /// Gets a detailed status report including power consumption/production.
-        /// </summary>
         public static void AnnounceDetailedStatus()
         {
             if (flickable == null || building == null)
                 return;
 
-            string status = flickable.SwitchIsOn ? "On" : "Off";
-            string details = $"{building.LabelCap} - Power switch: {status}";
+            string onOff = flickable.SwitchIsOn ? (string)"On".Translate() : (string)"Off".Translate();
+            var b = new AnnouncementBuilder();
+            b.Add("RimWorldAccess.Building.Flickable.LabelPowerSwitch".Translate(building.LabelCap, onOff));
 
             var powerComp = building.TryGetComp<CompPowerTrader>();
             if (powerComp != null)
             {
-                details += $"\nConnected to power grid";
-
+                string connected = "RimWorldAccess.Building.Flickable.DetailConnected".Translate();
                 if (flickable.SwitchIsOn)
                 {
                     if (powerComp.PowerOn)
                     {
-                        details += " - Active";
+                        connected += "RimWorldAccess.Building.Flickable.DetailActiveSuffix".Translate();
+                        b.Add(connected);
+
                         float powerUsage = -powerComp.PowerOutput;
                         if (powerUsage > 0)
                         {
-                            details += $"\nConsuming: {powerUsage:F0}W";
+                            b.Add("RimWorldAccess.Building.Flickable.DetailConsuming".Translate(powerUsage.ToString("F0")));
                         }
                         else if (powerUsage < 0)
                         {
-                            details += $"\nProducing: {-powerUsage:F0}W";
+                            b.Add("RimWorldAccess.Building.Flickable.DetailProducing".Translate((-powerUsage).ToString("F0")));
                         }
                     }
                     else
                     {
-                        details += " - No power available";
+                        connected += "RimWorldAccess.Building.Flickable.DetailNoPowerSuffix".Translate();
+                        b.Add(connected);
                     }
                 }
                 else
                 {
-                    details += " - Switched off";
+                    connected += "RimWorldAccess.Building.Flickable.DetailSwitchedOffSuffix".Translate();
+                    b.Add(connected);
                 }
             }
             else
             {
-                details += "\nNot connected to power grid";
+                b.Add("RimWorldAccess.Building.Flickable.DetailNotConnected".Translate());
             }
 
-            TolkHelper.Speak(details);
+            TolkHelper.Speak(b.Build());
         }
     }
 }

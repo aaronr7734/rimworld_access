@@ -62,4 +62,52 @@
   <RimWorldAccess.Building.Door.DetailNoPowerSlow>Status: No power - opens slower</RimWorldAccess.Building.Door.DetailNoPowerSlow>
   <RimWorldAccess.Building.Door.DetailManual>Status: Manual door (no power required)</RimWorldAccess.Building.Door.DetailManual>
 
+  <!-- Power switch / flickable controls (src/Building/FlickableComponentState.cs).
+       Toggles CompFlickable. Power consumption suffixes use {0} = wattage.
+       LabelPowerSwitch: {0} = building label, {1} = vanilla "On"/"Off". -->
+  <RimWorldAccess.Building.Flickable.NoFlickComponent>Building does not have power control</RimWorldAccess.Building.Flickable.NoFlickComponent>
+  <RimWorldAccess.Building.Flickable.AlreadyOn>Power is already on</RimWorldAccess.Building.Flickable.AlreadyOn>
+  <RimWorldAccess.Building.Flickable.AlreadyOff>Power is already off</RimWorldAccess.Building.Flickable.AlreadyOff>
+  <RimWorldAccess.Building.Flickable.LabelPowerStatus>{0} - Power: {1}</RimWorldAccess.Building.Flickable.LabelPowerStatus>
+  <RimWorldAccess.Building.Flickable.NoPowerAvailableSuffix> (No power available)</RimWorldAccess.Building.Flickable.NoPowerAvailableSuffix>
+  <RimWorldAccess.Building.Flickable.ConsumingSuffix> - Consuming: {0}W</RimWorldAccess.Building.Flickable.ConsumingSuffix>
+  <RimWorldAccess.Building.Flickable.ProducingSuffix> - Producing: {0}W</RimWorldAccess.Building.Flickable.ProducingSuffix>
+  <RimWorldAccess.Building.Flickable.LabelPowerSwitch>{0} - Power switch: {1}</RimWorldAccess.Building.Flickable.LabelPowerSwitch>
+  <RimWorldAccess.Building.Flickable.DetailConnected>Connected to power grid</RimWorldAccess.Building.Flickable.DetailConnected>
+  <RimWorldAccess.Building.Flickable.DetailActiveSuffix> - Active</RimWorldAccess.Building.Flickable.DetailActiveSuffix>
+  <RimWorldAccess.Building.Flickable.DetailNoPowerSuffix> - No power available</RimWorldAccess.Building.Flickable.DetailNoPowerSuffix>
+  <RimWorldAccess.Building.Flickable.DetailSwitchedOffSuffix> - Switched off</RimWorldAccess.Building.Flickable.DetailSwitchedOffSuffix>
+  <RimWorldAccess.Building.Flickable.DetailNotConnected>Not connected to power grid</RimWorldAccess.Building.Flickable.DetailNotConnected>
+  <RimWorldAccess.Building.Flickable.DetailConsuming>Consuming: {0}W</RimWorldAccess.Building.Flickable.DetailConsuming>
+  <RimWorldAccess.Building.Flickable.DetailProducing>Producing: {0}W</RimWorldAccess.Building.Flickable.DetailProducing>
+
+  <!-- Uninstall designation (src/Building/UninstallControlState.cs).
+       Toggles DesignationDefOf.Uninstall on minifiable buildings. Vanilla
+       "DesignatorUninstall" / "DesignatorUninstallDesc" supply the verb;
+       these keys are the announcement-shaped wrappers. -->
+  <RimWorldAccess.Building.Uninstall.NotMinifiable>Building cannot be uninstalled</RimWorldAccess.Building.Uninstall.NotMinifiable>
+  <RimWorldAccess.Building.Uninstall.DesignationRemoved>{0} - Uninstall designation removed</RimWorldAccess.Building.Uninstall.DesignationRemoved>
+  <RimWorldAccess.Building.Uninstall.InstantlyUninstalled>{0} - Instantly uninstalled</RimWorldAccess.Building.Uninstall.InstantlyUninstalled>
+  <RimWorldAccess.Building.Uninstall.DesignatedForUninstall>{0} - Designated for uninstall</RimWorldAccess.Building.Uninstall.DesignatedForUninstall>
+  <RimWorldAccess.Building.Uninstall.LabelStatusDesignated>{0} - Status: Designated for uninstall</RimWorldAccess.Building.Uninstall.LabelStatusDesignated>
+  <RimWorldAccess.Building.Uninstall.LabelStatusNotDesignated>{0} - Status: Not designated</RimWorldAccess.Building.Uninstall.LabelStatusNotDesignated>
+  <RimWorldAccess.Building.Uninstall.DetailDesignated>Status: Designated for uninstall</RimWorldAccess.Building.Uninstall.DetailDesignated>
+  <RimWorldAccess.Building.Uninstall.DetailDisassemblerTip>A colonist with the Construction skill will disassemble this</RimWorldAccess.Building.Uninstall.DetailDisassemblerTip>
+  <RimWorldAccess.Building.Uninstall.DetailMinifiedTip>The building will be converted to a minified item that can be moved</RimWorldAccess.Building.Uninstall.DetailMinifiedTip>
+  <RimWorldAccess.Building.Uninstall.DetailNotDesignated>Status: Not designated for uninstall</RimWorldAccess.Building.Uninstall.DetailNotDesignated>
+  <RimWorldAccess.Building.Uninstall.DetailCanUninstallTip>This building can be uninstalled to create a portable item</RimWorldAccess.Building.Uninstall.DetailCanUninstallTip>
+  <RimWorldAccess.Building.Uninstall.DetailHotkeyTip>Press Space or Enter to designate for uninstall</RimWorldAccess.Building.Uninstall.DetailHotkeyTip>
+
+  <!-- Temperature control (src/Building/TempControlMenuState.cs).
+       Adjusts CompTempControl.TargetTemperature. Vanilla "PowerConsumptionOff",
+       "PowerConsumptionHigh", "PowerConsumptionLow" supply the power-mode
+       words; the "_X power" / "_off" wording is the announcement suffix.
+       LabelTarget: {0} = building label, {1} = formatted target temperature,
+       {2} = power mode suffix (may be empty). -->
+  <RimWorldAccess.Building.Temp.NoTempComponent>Building does not have temperature control</RimWorldAccess.Building.Temp.NoTempComponent>
+  <RimWorldAccess.Building.Temp.LabelTarget>{0} - Target: {1}{2}</RimWorldAccess.Building.Temp.LabelTarget>
+  <RimWorldAccess.Building.Temp.PowerModeOffSuffix> - Off</RimWorldAccess.Building.Temp.PowerModeOffSuffix>
+  <RimWorldAccess.Building.Temp.PowerModeHighSuffix> - High power</RimWorldAccess.Building.Temp.PowerModeHighSuffix>
+  <RimWorldAccess.Building.Temp.PowerModeLowSuffix> - Low power</RimWorldAccess.Building.Temp.PowerModeLowSuffix>
+
 </LanguageData>
