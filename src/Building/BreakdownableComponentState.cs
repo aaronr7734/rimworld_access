@@ -1,4 +1,3 @@
-using System;
 using Verse;
 using RimWorld;
 
@@ -16,21 +15,14 @@ namespace RimWorldAccess
 
         public static bool IsActive => isActive;
 
-        /// <summary>
-        /// Opens the breakdown status view for the given building.
-        /// </summary>
         public static void Open(Building targetBuilding)
         {
-            if (targetBuilding == null)
-            {
-                TolkHelper.Speak("No building to inspect");
-                return;
-            }
+            if (!GuardHelper.RequireBuilding(targetBuilding)) return;
 
             CompBreakdownable comp = targetBuilding.TryGetComp<CompBreakdownable>();
             if (comp == null)
             {
-                TolkHelper.Speak("Building cannot break down", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Breakdown.NoBreakdownComponent".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -42,9 +34,6 @@ namespace RimWorldAccess
             AnnounceDetailedStatus();
         }
 
-        /// <summary>
-        /// Closes the breakdown status view.
-        /// </summary>
         public static void Close()
         {
             breakdownable = null;
@@ -53,42 +42,36 @@ namespace RimWorldAccess
             MapNavigationState.SuppressMapNavigation = false;
         }
 
-        /// <summary>
-        /// Gets a detailed status report including breakdown information.
-        /// </summary>
         public static void AnnounceDetailedStatus()
         {
             if (breakdownable == null || building == null)
                 return;
 
-            string details = string.Format("{0}\n", building.LabelCap);
+            var b = new AnnouncementBuilder();
+            b.Add(building.LabelCap);
 
             if (breakdownable.BrokenDown)
             {
-                details += "Status: Broken down\n";
-                details += "This building requires repair before it can function.\n";
-                details += "A colonist with the Construction skill can repair it.";
+                b.Add("RimWorldAccess.Building.Breakdown.StatusBrokenDown".Translate());
+                b.Add("RimWorldAccess.Building.Breakdown.NeedsRepair".Translate());
+                b.Add("RimWorldAccess.Building.Breakdown.RepairSkill".Translate());
             }
             else
             {
-                details += "Status: Operational\n";
-                details += "This building is functioning normally.\n";
-                details += "Buildings with breakdown components can break down over time.";
+                b.Add("RimWorldAccess.Building.Breakdown.StatusOperational".Translate());
+                b.Add("RimWorldAccess.Building.Breakdown.OperationalDescription".Translate());
+                b.Add("RimWorldAccess.Building.Breakdown.BreakdownsOverTime".Translate());
 
-                // Check power status if applicable
                 var powerComp = building.TryGetComp<CompPowerTrader>();
                 if (powerComp != null && !powerComp.PowerOn)
                 {
-                    details += "\nNote: Building is not powered. Unpowered buildings do not break down.";
+                    b.Add("RimWorldAccess.Building.Breakdown.UnpoweredImmune".Translate());
                 }
             }
 
-            TolkHelper.Speak(details);
+            TolkHelper.Speak(b.Build());
         }
 
-        /// <summary>
-        /// Refreshes and re-announces the status (useful if status changed externally).
-        /// </summary>
         public static void RefreshStatus()
         {
             if (isActive)

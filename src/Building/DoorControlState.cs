@@ -1,4 +1,3 @@
-using System;
 using Verse;
 using RimWorld;
 using Verse.Sound;
@@ -16,9 +15,6 @@ namespace RimWorldAccess
 
         public static bool IsActive => isActive;
 
-        /// <summary>
-        /// Opens the door control menu for the given door.
-        /// </summary>
         public static void Open(Building targetBuilding)
         {
             if (!GuardHelper.RequireBuilding(targetBuilding)) return;
@@ -26,7 +22,7 @@ namespace RimWorldAccess
             Building_Door doorBuilding = targetBuilding as Building_Door;
             if (doorBuilding == null)
             {
-                TolkHelper.Speak("Building is not a door");
+                TolkHelper.Speak("RimWorldAccess.Building.Door.NotADoor".Translate());
                 return;
             }
 
@@ -37,9 +33,6 @@ namespace RimWorldAccess
             AnnounceCurrentStatus();
         }
 
-        /// <summary>
-        /// Closes the door control menu.
-        /// </summary>
         public static void Close()
         {
             door = null;
@@ -47,15 +40,11 @@ namespace RimWorldAccess
             MapNavigationState.SuppressMapNavigation = false;
         }
 
-        /// <summary>
-        /// Toggles the hold-open setting for the door.
-        /// </summary>
         public static void ToggleHoldOpen()
         {
             if (door == null)
                 return;
 
-            // Access the holdOpenInt field via reflection since it's protected
             var holdOpenField = typeof(Building_Door).GetField("holdOpenInt",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
@@ -69,58 +58,53 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("Error: Could not access door hold-open setting", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Door.HoldOpenAccessError".Translate(), SpeechPriority.High);
             }
         }
 
-        /// <summary>
-        /// Announces the current door status to the clipboard for screen readers.
-        /// </summary>
         private static void AnnounceCurrentStatus()
         {
             if (door == null)
                 return;
 
-            string doorLabel = door.LabelCap;
-            string status = door.HoldOpen ? "Hold open: On" : "Hold open: Off";
-            string openStatus = door.Open ? "(Currently open)" : "(Currently closed)";
+            string holdOpenLabel = (string)"CommandToggleDoorHoldOpen".Translate();
+            string onOff = door.HoldOpen ? (string)"On".Translate() : (string)"Off".Translate();
+            string holdOpen = "RimWorldAccess.Building.Door.HoldOpenWithValue".Translate(holdOpenLabel, onOff);
 
-            string announcement = string.Format("{0} - {1} {2}", doorLabel, status, openStatus);
+            string openness = door.Open
+                ? "RimWorldAccess.Building.Door.CurrentlyOpen".Translate()
+                : "RimWorldAccess.Building.Door.CurrentlyClosed".Translate();
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.Speak("RimWorldAccess.Building.Door.LabelStatusOpenness".Translate(door.LabelCap, holdOpen, openness));
         }
 
-        /// <summary>
-        /// Gets a detailed status report for the door.
-        /// </summary>
         public static void AnnounceDetailedStatus()
         {
             if (door == null)
                 return;
 
-            string details = string.Format("{0}\n", door.LabelCap);
+            string holdOpenLabel = (string)"CommandToggleDoorHoldOpen".Translate();
+            string onOff = door.HoldOpen ? (string)"On".Translate() : (string)"Off".Translate();
 
-            details += string.Format("Hold open: {0}\n", door.HoldOpen ? "On" : "Off");
-            details += string.Format("Currently: {0}\n", door.Open ? "Open" : "Closed");
+            var b = new AnnouncementBuilder();
+            b.Add(door.LabelCap);
+            b.Add("RimWorldAccess.Building.Door.HoldOpenWithValue".Translate(holdOpenLabel, onOff));
+            b.Add(door.Open
+                ? "RimWorldAccess.Building.Door.DetailStateOpen".Translate()
+                : "RimWorldAccess.Building.Door.DetailStateClosed".Translate());
 
-            // Check if door is powered
             if (door.powerComp != null)
             {
-                if (door.powerComp.PowerOn)
-                {
-                    details += "Status: Powered - opens faster";
-                }
-                else
-                {
-                    details += "Status: No power - opens slower";
-                }
+                b.Add(door.powerComp.PowerOn
+                    ? "RimWorldAccess.Building.Door.DetailPoweredFast".Translate()
+                    : "RimWorldAccess.Building.Door.DetailNoPowerSlow".Translate());
             }
             else
             {
-                details += "Status: Manual door (no power required)";
+                b.Add("RimWorldAccess.Building.Door.DetailManual".Translate());
             }
 
-            TolkHelper.Speak(details);
+            TolkHelper.Speak(b.Build());
         }
     }
 }

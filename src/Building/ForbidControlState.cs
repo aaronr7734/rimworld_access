@@ -1,4 +1,3 @@
-using System;
 using Verse;
 using RimWorld;
 using Verse.Sound;
@@ -17,21 +16,14 @@ namespace RimWorldAccess
 
         public static bool IsActive => isActive;
 
-        /// <summary>
-        /// Opens the forbid control menu for the given building/item.
-        /// </summary>
         public static void Open(Building targetBuilding)
         {
-            if (targetBuilding == null)
-            {
-                TolkHelper.Speak("No item to configure");
-                return;
-            }
+            if (!GuardHelper.RequireBuilding(targetBuilding)) return;
 
             CompForbiddable comp = targetBuilding.TryGetComp<CompForbiddable>();
             if (comp == null)
             {
-                TolkHelper.Speak("Item cannot be forbidden", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Forbid.NoForbidComponent".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -43,9 +35,6 @@ namespace RimWorldAccess
             AnnounceCurrentStatus();
         }
 
-        /// <summary>
-        /// Closes the forbid control menu.
-        /// </summary>
         public static void Close()
         {
             forbiddable = null;
@@ -54,9 +43,6 @@ namespace RimWorldAccess
             MapNavigationState.SuppressMapNavigation = false;
         }
 
-        /// <summary>
-        /// Toggles the forbidden status.
-        /// </summary>
         public static void ToggleForbidden()
         {
             if (forbiddable == null || building == null)
@@ -67,45 +53,39 @@ namespace RimWorldAccess
             AnnounceCurrentStatus();
         }
 
-        /// <summary>
-        /// Announces the current forbidden status to the clipboard for screen readers.
-        /// </summary>
         private static void AnnounceCurrentStatus()
         {
             if (forbiddable == null || building == null)
                 return;
 
-            string itemLabel = building.LabelCap;
-            string status = forbiddable.Forbidden ? "Forbidden" : "Allowed";
+            string status = forbiddable.Forbidden
+                ? "RimWorldAccess.Building.Forbid.StatusForbidden".Translate()
+                : "RimWorldAccess.Building.Forbid.StatusAllowed".Translate();
 
-            string announcement = string.Format("{0} - Status: {1}", itemLabel, status);
-
-            TolkHelper.Speak(announcement);
+            TolkHelper.Speak("RimWorldAccess.Building.Forbid.LabelStatus".Translate(building.LabelCap, status));
         }
 
-        /// <summary>
-        /// Gets a detailed status report.
-        /// </summary>
         public static void AnnounceDetailedStatus()
         {
             if (forbiddable == null || building == null)
                 return;
 
-            string details = string.Format("{0}\n", building.LabelCap);
+            var b = new AnnouncementBuilder();
+            b.Add(building.LabelCap);
 
             if (forbiddable.Forbidden)
             {
-                details += "Status: Forbidden\n";
-                details += "Colonists will not interact with this item.\n";
-                details += "They will not haul, use, or equip it.";
+                b.Add("RimWorldAccess.Building.Forbid.DetailStatusForbidden".Translate());
+                b.Add("RimWorldAccess.Building.Forbid.DetailNoInteract".Translate());
+                b.Add("RimWorldAccess.Building.Forbid.DetailNoHaulUseEquip".Translate());
             }
             else
             {
-                details += "Status: Allowed\n";
-                details += "Colonists can interact with this item normally.";
+                b.Add("RimWorldAccess.Building.Forbid.DetailStatusAllowed".Translate());
+                b.Add("RimWorldAccess.Building.Forbid.DetailCanInteract".Translate());
             }
 
-            TolkHelper.Speak(details);
+            TolkHelper.Speak(b.Build());
         }
     }
 }

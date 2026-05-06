@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Building module: construction, zones, areas, building components,
+    storage linking, shape placement. Strings are emitted from src/Building/.
+
+    Placeholders follow string.Format ({0}, {1}, ...). Keys for status
+    announcements compose via AnnouncementBuilder (period-separated by
+    default) so each key is a clean phrase fragment without trailing
+    punctuation or embedded "\n" — the builder owns separators.
+
+    Vanilla key reuse: where vanilla supplies the noun ("Yes"/"No",
+    "On"/"Off", "BrokenDown", "NoPower", "TargetTemperature",
+    "DesignatorUninstall", "CommandToggleDoorHoldOpen",
+    "PowerConsumptionHigh"/"Low"/"Off", "ConfiguredTargetFuelLevel",
+    "FuelLabel" via the def, etc.) we resolve those at speak-time
+    rather than duplicating the noun in this file.
+  -->
+
+  <!-- Breakdown status (src/Building/BreakdownableComponentState.cs).
+       Read-only view describing CompBreakdownable status. Composed via
+       AnnouncementBuilder; vanilla "BrokenDown" supplies the broken-status
+       noun. -->
+  <RimWorldAccess.Building.Breakdown.NoBreakdownComponent>Building cannot break down</RimWorldAccess.Building.Breakdown.NoBreakdownComponent>
+  <RimWorldAccess.Building.Breakdown.StatusBrokenDown>Status: Broken down</RimWorldAccess.Building.Breakdown.StatusBrokenDown>
+  <RimWorldAccess.Building.Breakdown.NeedsRepair>This building requires repair before it can function</RimWorldAccess.Building.Breakdown.NeedsRepair>
+  <RimWorldAccess.Building.Breakdown.RepairSkill>A colonist with the Construction skill can repair it</RimWorldAccess.Building.Breakdown.RepairSkill>
+  <RimWorldAccess.Building.Breakdown.StatusOperational>Status: Operational</RimWorldAccess.Building.Breakdown.StatusOperational>
+  <RimWorldAccess.Building.Breakdown.OperationalDescription>This building is functioning normally</RimWorldAccess.Building.Breakdown.OperationalDescription>
+  <RimWorldAccess.Building.Breakdown.BreakdownsOverTime>Buildings with breakdown components can break down over time</RimWorldAccess.Building.Breakdown.BreakdownsOverTime>
+  <RimWorldAccess.Building.Breakdown.UnpoweredImmune>Note: Building is not powered. Unpowered buildings do not break down</RimWorldAccess.Building.Breakdown.UnpoweredImmune>
+
+  <!-- Forbid/allow controls (src/Building/ForbidControlState.cs).
+       Toggles CompForbiddable. Status-row keys compose with the building
+       label via AnnouncementBuilder.
+       LabelStatus: {0} = building label, {1} = StatusForbidden/StatusAllowed. -->
+  <RimWorldAccess.Building.Forbid.NoForbidComponent>Item cannot be forbidden</RimWorldAccess.Building.Forbid.NoForbidComponent>
+  <RimWorldAccess.Building.Forbid.StatusForbidden>Forbidden</RimWorldAccess.Building.Forbid.StatusForbidden>
+  <RimWorldAccess.Building.Forbid.StatusAllowed>Allowed</RimWorldAccess.Building.Forbid.StatusAllowed>
+  <RimWorldAccess.Building.Forbid.LabelStatus>{0} - Status: {1}</RimWorldAccess.Building.Forbid.LabelStatus>
+  <RimWorldAccess.Building.Forbid.DetailStatusForbidden>Status: Forbidden</RimWorldAccess.Building.Forbid.DetailStatusForbidden>
+  <RimWorldAccess.Building.Forbid.DetailNoInteract>Colonists will not interact with this item</RimWorldAccess.Building.Forbid.DetailNoInteract>
+  <RimWorldAccess.Building.Forbid.DetailNoHaulUseEquip>They will not haul, use, or equip it</RimWorldAccess.Building.Forbid.DetailNoHaulUseEquip>
+  <RimWorldAccess.Building.Forbid.DetailStatusAllowed>Status: Allowed</RimWorldAccess.Building.Forbid.DetailStatusAllowed>
+  <RimWorldAccess.Building.Forbid.DetailCanInteract>Colonists can interact with this item normally</RimWorldAccess.Building.Forbid.DetailCanInteract>
+
+  <!-- Door controls (src/Building/DoorControlState.cs).
+       Toggles Building_Door.holdOpenInt. Vanilla supplies the
+       "Hold open" command label (CommandToggleDoorHoldOpen) and the
+       "On"/"Off" booleans.
+       LabelStatusOpenness: {0} = door label, {1} = HoldOpenWithValue,
+       {2} = CurrentlyOpen/Closed. -->
+  <RimWorldAccess.Building.Door.NotADoor>Building is not a door</RimWorldAccess.Building.Door.NotADoor>
+  <RimWorldAccess.Building.Door.HoldOpenAccessError>Error: Could not access door hold-open setting</RimWorldAccess.Building.Door.HoldOpenAccessError>
+  <RimWorldAccess.Building.Door.HoldOpenWithValue>{0}: {1}</RimWorldAccess.Building.Door.HoldOpenWithValue>
+  <RimWorldAccess.Building.Door.CurrentlyOpen>(Currently open)</RimWorldAccess.Building.Door.CurrentlyOpen>
+  <RimWorldAccess.Building.Door.CurrentlyClosed>(Currently closed)</RimWorldAccess.Building.Door.CurrentlyClosed>
+  <RimWorldAccess.Building.Door.LabelStatusOpenness>{0} - {1} {2}</RimWorldAccess.Building.Door.LabelStatusOpenness>
+  <RimWorldAccess.Building.Door.DetailStateOpen>Currently: Open</RimWorldAccess.Building.Door.DetailStateOpen>
+  <RimWorldAccess.Building.Door.DetailStateClosed>Currently: Closed</RimWorldAccess.Building.Door.DetailStateClosed>
+  <RimWorldAccess.Building.Door.DetailPoweredFast>Status: Powered - opens faster</RimWorldAccess.Building.Door.DetailPoweredFast>
+  <RimWorldAccess.Building.Door.DetailNoPowerSlow>Status: No power - opens slower</RimWorldAccess.Building.Door.DetailNoPowerSlow>
+  <RimWorldAccess.Building.Door.DetailManual>Status: Manual door (no power required)</RimWorldAccess.Building.Door.DetailManual>
+
+</LanguageData>
