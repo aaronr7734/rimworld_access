@@ -279,4 +279,47 @@
   <RimWorldAccess.Building.AreaMgr.Action.DeleteArea>Delete Area</RimWorldAccess.Building.AreaMgr.Action.DeleteArea>
   <RimWorldAccess.Building.AreaMgr.Action.Close>Close</RimWorldAccess.Building.AreaMgr.Action.Close>
 
+  <!-- Shape names + descriptions (src/Building/ShapeHelper.cs).
+       Spoken by every menu that lets the user pick a placement shape
+       (ShapeSelectionMenuState, AreaPaintingState, ShapePreviewHelper).
+       Names are nouns; descriptions are full sentences with terminal
+       punctuation. ShapeFallbackUnknown is for the DrawStyleDef defName
+       case where neither label nor a known shape type is available. -->
+  <RimWorldAccess.Building.Shape.Name.Manual>Manual</RimWorldAccess.Building.Shape.Name.Manual>
+  <RimWorldAccess.Building.Shape.Name.Line>Line</RimWorldAccess.Building.Shape.Name.Line>
+  <RimWorldAccess.Building.Shape.Name.AngledLine>Angled Line</RimWorldAccess.Building.Shape.Name.AngledLine>
+  <RimWorldAccess.Building.Shape.Name.FilledRectangle>Filled Rectangle</RimWorldAccess.Building.Shape.Name.FilledRectangle>
+  <RimWorldAccess.Building.Shape.Name.EmptyRectangle>Empty Rectangle</RimWorldAccess.Building.Shape.Name.EmptyRectangle>
+  <RimWorldAccess.Building.Shape.Name.FilledOval>Filled Oval</RimWorldAccess.Building.Shape.Name.FilledOval>
+  <RimWorldAccess.Building.Shape.Name.EmptyOval>Empty Oval</RimWorldAccess.Building.Shape.Name.EmptyOval>
+  <RimWorldAccess.Building.Shape.Name.Unknown>Unknown</RimWorldAccess.Building.Shape.Name.Unknown>
+  <RimWorldAccess.Building.Shape.Desc.Manual>Places one cell at a time. Press Space to place, then move and place again.</RimWorldAccess.Building.Shape.Desc.Manual>
+  <RimWorldAccess.Building.Shape.Desc.Line>Creates a straight horizontal or vertical line between two points. If your points are diagonal, the game picks whichever axis is longer.</RimWorldAccess.Building.Shape.Desc.Line>
+  <RimWorldAccess.Building.Shape.Desc.AngledLine>Creates a diagonal line at any angle between your two points.</RimWorldAccess.Building.Shape.Desc.AngledLine>
+  <RimWorldAccess.Building.Shape.Desc.FilledRectangle>Fills all cells within a rectangular area defined by two opposite corners.</RimWorldAccess.Building.Shape.Desc.FilledRectangle>
+  <RimWorldAccess.Building.Shape.Desc.EmptyRectangle>Places only the border of a rectangle, leaving the interior empty. Good for walls and fences.</RimWorldAccess.Building.Shape.Desc.EmptyRectangle>
+  <RimWorldAccess.Building.Shape.Desc.FilledOval>Fills an ellipse shape. At small sizes it looks like a rectangle. Rounded corners appear at 6 by 6 or larger.</RimWorldAccess.Building.Shape.Desc.FilledOval>
+  <RimWorldAccess.Building.Shape.Desc.EmptyOval>Places only the border of an ellipse. Creates a ring shape at 3 by 3 or larger. Smaller sizes look filled.</RimWorldAccess.Building.Shape.Desc.EmptyOval>
+
+  <!-- Shape size readouts (src/Building/ShapeHelper.FormatShapeSize).
+       SizeWxH: regular rectangles ("5 by 7"); SizeCount: irregular shapes
+       ("32 cells"). The One/Many split covers the 0-cell and 1-cell
+       boundary cases. -->
+  <RimWorldAccess.Building.Shape.SizeZero>0 cells</RimWorldAccess.Building.Shape.SizeZero>
+  <RimWorldAccess.Building.Shape.SizeOne>1 cell</RimWorldAccess.Building.Shape.SizeOne>
+  <RimWorldAccess.Building.Shape.SizeMany>{0} cells</RimWorldAccess.Building.Shape.SizeMany>
+  <RimWorldAccess.Building.Shape.SizeWxH>{0} by {1}</RimWorldAccess.Building.Shape.SizeWxH>
+
+  <!-- Shape preview helper (src/Building/ShapePreviewHelper.cs).
+       Two-point selection feedback shared by ShapePlacementState,
+       ZoneCreationState, and AreaPaintingState.
+       FirstPoint: {0} = x, {1} = z.
+       SecondPointRegular: {0} = "WxH" string, {1} = cell count.
+       SecondPointIrregular: {0} = "N cells" size text. -->
+  <RimWorldAccess.Building.Preview.FirstPoint>First point, {0}, {1}</RimWorldAccess.Building.Preview.FirstPoint>
+  <RimWorldAccess.Building.Preview.SecondPointRegular>Second point, {0}, {1} cells</RimWorldAccess.Building.Preview.SecondPointRegular>
+  <RimWorldAccess.Building.Preview.SecondPointIrregular>Second point, {0}</RimWorldAccess.Building.Preview.SecondPointIrregular>
+  <RimWorldAccess.Building.Preview.SizeConfirmed>{0} confirmed</RimWorldAccess.Building.Preview.SizeConfirmed>
+  <RimWorldAccess.Building.Preview.ShapeCancelled>Shape cancelled</RimWorldAccess.Building.Preview.ShapeCancelled>
+
 </LanguageData>

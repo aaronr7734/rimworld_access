@@ -44,7 +44,7 @@ namespace RimWorldAccess
             lastDragRealTime = Time.realtimeSinceStartup;
             if (!silent)
             {
-                TolkHelper.Speak($"First point, {cell.x}, {cell.z}");
+                TolkHelper.Speak("RimWorldAccess.Building.Preview.FirstPoint".Translate(cell.x, cell.z));
             }
             if (!string.IsNullOrEmpty(context))
                 Log.Message($"{context}: First point set at {cell}");
@@ -64,8 +64,8 @@ namespace RimWorldAccess
             string sizeText = ShapeHelper.FormatShapeSize(previewCells);
             // For regular rectangles, add cell count; for irregular shapes it's already in the size text
             string announcement = ShapeHelper.IsRegularRectangle(previewCells)
-                ? $"Second point, {sizeText}, {previewCells.Count} cells"
-                : $"Second point, {sizeText}";
+                ? (string)"RimWorldAccess.Building.Preview.SecondPointRegular".Translate(sizeText, previewCells.Count)
+                : (string)"RimWorldAccess.Building.Preview.SecondPointIrregular".Translate(sizeText);
 
             TolkHelper.Speak(announcement);
             if (!string.IsNullOrEmpty(context))
@@ -96,7 +96,7 @@ namespace RimWorldAccess
         {
             if (!IsInPreviewMode)
             {
-                TolkHelper.Speak("No shape to confirm");
+                TolkHelper.Speak("RimWorldAccess.Building.Paint.NoShapeToConfirm".Translate());
                 return new List<IntVec3>();
             }
 
@@ -104,7 +104,7 @@ namespace RimWorldAccess
             // FormatShapeSize returns "W by H" for regular rectangles, "N cells" for irregular shapes
             string sizeText = ShapeHelper.FormatShapeSize(confirmedCells);
 
-            TolkHelper.Speak($"{sizeText} confirmed");
+            TolkHelper.Speak("RimWorldAccess.Building.Preview.SizeConfirmed".Translate(sizeText));
             if (!string.IsNullOrEmpty(context))
                 Log.Message($"{context}: Confirmed {confirmedCells.Count} cells");
 
@@ -119,7 +119,7 @@ namespace RimWorldAccess
             if (!HasFirstCorner) return;
 
             Reset();
-            TolkHelper.Speak("Shape cancelled");
+            TolkHelper.Speak("RimWorldAccess.Building.Preview.ShapeCancelled".Translate());
         }
 
         public void Reset()

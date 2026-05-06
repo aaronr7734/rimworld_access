@@ -406,22 +406,14 @@ namespace RimWorldAccess
         {
             switch (shape)
             {
-                case ShapeType.Manual:
-                    return "Manual";
-                case ShapeType.Line:
-                    return "Line";
-                case ShapeType.AngledLine:
-                    return "Angled Line";
-                case ShapeType.FilledRectangle:
-                    return "Filled Rectangle";
-                case ShapeType.EmptyRectangle:
-                    return "Empty Rectangle";
-                case ShapeType.FilledOval:
-                    return "Filled Oval";
-                case ShapeType.EmptyOval:
-                    return "Empty Oval";
-                default:
-                    return shape.ToString();
+                case ShapeType.Manual:          return "RimWorldAccess.Building.Shape.Name.Manual".Translate();
+                case ShapeType.Line:            return "RimWorldAccess.Building.Shape.Name.Line".Translate();
+                case ShapeType.AngledLine:      return "RimWorldAccess.Building.Shape.Name.AngledLine".Translate();
+                case ShapeType.FilledRectangle: return "RimWorldAccess.Building.Shape.Name.FilledRectangle".Translate();
+                case ShapeType.EmptyRectangle:  return "RimWorldAccess.Building.Shape.Name.EmptyRectangle".Translate();
+                case ShapeType.FilledOval:      return "RimWorldAccess.Building.Shape.Name.FilledOval".Translate();
+                case ShapeType.EmptyOval:       return "RimWorldAccess.Building.Shape.Name.EmptyOval".Translate();
+                default:                        return shape.ToString();
             }
         }
 
@@ -434,22 +426,14 @@ namespace RimWorldAccess
         {
             switch (shape)
             {
-                case ShapeType.Manual:
-                    return "Places one cell at a time. Press Space to place, then move and place again.";
-                case ShapeType.Line:
-                    return "Creates a straight horizontal or vertical line between two points. If your points are diagonal, the game picks whichever axis is longer.";
-                case ShapeType.AngledLine:
-                    return "Creates a diagonal line at any angle between your two points.";
-                case ShapeType.FilledRectangle:
-                    return "Fills all cells within a rectangular area defined by two opposite corners.";
-                case ShapeType.EmptyRectangle:
-                    return "Places only the border of a rectangle, leaving the interior empty. Good for walls and fences.";
-                case ShapeType.FilledOval:
-                    return "Fills an ellipse shape. At small sizes it looks like a rectangle. Rounded corners appear at 6 by 6 or larger.";
-                case ShapeType.EmptyOval:
-                    return "Places only the border of an ellipse. Creates a ring shape at 3 by 3 or larger. Smaller sizes look filled.";
-                default:
-                    return "";
+                case ShapeType.Manual:          return "RimWorldAccess.Building.Shape.Desc.Manual".Translate();
+                case ShapeType.Line:            return "RimWorldAccess.Building.Shape.Desc.Line".Translate();
+                case ShapeType.AngledLine:      return "RimWorldAccess.Building.Shape.Desc.AngledLine".Translate();
+                case ShapeType.FilledRectangle: return "RimWorldAccess.Building.Shape.Desc.FilledRectangle".Translate();
+                case ShapeType.EmptyRectangle:  return "RimWorldAccess.Building.Shape.Desc.EmptyRectangle".Translate();
+                case ShapeType.FilledOval:      return "RimWorldAccess.Building.Shape.Desc.FilledOval".Translate();
+                case ShapeType.EmptyOval:       return "RimWorldAccess.Building.Shape.Desc.EmptyOval".Translate();
+                default:                        return string.Empty;
             }
         }
 
@@ -462,7 +446,7 @@ namespace RimWorldAccess
         public static string GetShapeName(DrawStyleDef styleDef)
         {
             if (styleDef == null)
-                return "Manual";
+                return "RimWorldAccess.Building.Shape.Name.Manual".Translate();
 
             // Use the game's localized label if available
             if (!string.IsNullOrEmpty(styleDef.label))
@@ -475,7 +459,7 @@ namespace RimWorldAccess
                 return GetShapeName(shapeType);
             }
 
-            return styleDef.defName ?? "Unknown";
+            return styleDef.defName ?? (string)"RimWorldAccess.Building.Shape.Name.Unknown".Translate();
         }
 
         /// <summary>
@@ -641,12 +625,12 @@ namespace RimWorldAccess
         public static string FormatShapeSize(IEnumerable<IntVec3> cells)
         {
             if (cells == null || !cells.Any())
-                return "0 cells";
+                return "RimWorldAccess.Building.Shape.SizeZero".Translate();
 
             int count = cells.Count();
 
             if (count == 1)
-                return "1 cell";
+                return "RimWorldAccess.Building.Shape.SizeOne".Translate();
 
             if (IsRegularRectangle(cells))
             {
@@ -658,12 +642,10 @@ namespace RimWorldAccess
                 int width = maxX - minX + 1;
                 int height = maxZ - minZ + 1;
 
-                return $"{width} by {height}";
+                return "RimWorldAccess.Building.Shape.SizeWxH".Translate(width, height);
             }
-            else
-            {
-                return $"{count} cells";
-            }
+
+            return "RimWorldAccess.Building.Shape.SizeMany".Translate(count);
         }
 
         /// <summary>
@@ -673,7 +655,7 @@ namespace RimWorldAccess
         public static string FormatShapeSizeFromCorners(IntVec3 corner1, IntVec3 corner2)
         {
             var (width, height) = GetDimensions(corner1, corner2);
-            return $"{width} by {height}";
+            return "RimWorldAccess.Building.Shape.SizeWxH".Translate(width, height);
         }
 
         /// <summary>
