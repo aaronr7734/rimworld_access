@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Verse;
 using RimWorld;
 using Verse.Sound;
@@ -44,7 +43,7 @@ namespace RimWorldAccess
             CompRefuelable comp = targetBuilding.TryGetComp<CompRefuelable>();
             if (comp == null)
             {
-                TolkHelper.Speak("Building does not have fuel system");
+                TolkHelper.Speak("RimWorldAccess.Building.Refuel.NoFuelComponent".Translate());
                 return;
             }
 
@@ -73,7 +72,7 @@ namespace RimWorldAccess
         private static void BuildOptions()
         {
             options.Clear();
-            options.Add(new Option { Kind = OptionKind.ViewStatus, Label = "View detailed fuel status" });
+            options.Add(new Option { Kind = OptionKind.ViewStatus, Label = "RimWorldAccess.Building.Refuel.OptionViewStatus".Translate() });
 
             if (refuelable.Props.showAllowAutoRefuelToggle)
                 options.Add(new Option { Kind = OptionKind.ToggleAutoRefuel, Label = AutoRefuelLabel() });
@@ -83,10 +82,14 @@ namespace RimWorldAccess
         }
 
         private static string AutoRefuelLabel()
-            => $"Auto-refuel: {(refuelable.allowAutoRefuel ? "on" : "off")}";
+            => refuelable.allowAutoRefuel
+                ? "RimWorldAccess.Building.Refuel.AutoRefuelOn".Translate()
+                : "RimWorldAccess.Building.Refuel.AutoRefuelOff".Translate();
 
         private static string TargetFuelLabel()
-            => $"Target fuel level: {refuelable.TargetFuelLevel.ToStringDecimalIfSmall()} / {refuelable.Props.fuelCapacity.ToStringDecimalIfSmall()}";
+            => "RimWorldAccess.Building.Refuel.TargetFuelLevelLabel".Translate(
+                refuelable.TargetFuelLevel.ToStringDecimalIfSmall(),
+                refuelable.Props.fuelCapacity.ToStringDecimalIfSmall());
 
         public static void SelectNext()
         {
@@ -135,9 +138,9 @@ namespace RimWorldAccess
                     ToggleAutoRefuel();
                     break;
                 case OptionKind.AdjustTargetFuel:
-                    TolkHelper.Speak("Use Left and Right arrows to adjust. Current: "
-                        + refuelable.TargetFuelLevel.ToStringDecimalIfSmall()
-                        + " of " + refuelable.Props.fuelCapacity.ToStringDecimalIfSmall());
+                    TolkHelper.Speak("RimWorldAccess.Building.Refuel.AdjustHint".Translate(
+                        refuelable.TargetFuelLevel.ToStringDecimalIfSmall(),
+                        refuelable.Props.fuelCapacity.ToStringDecimalIfSmall()));
                     break;
             }
         }
@@ -179,7 +182,9 @@ namespace RimWorldAccess
         {
             refuelable.allowAutoRefuel = !refuelable.allowAutoRefuel;
             RefreshSelectedLabel();
-            TolkHelper.Speak(refuelable.allowAutoRefuel ? "on" : "off");
+            TolkHelper.Speak(refuelable.allowAutoRefuel
+                ? "RimWorldAccess.Building.Refuel.ToggleValueOn".Translate()
+                : "RimWorldAccess.Building.Refuel.ToggleValueOff".Translate());
             SoundDefOf.Checkbox_TurnedOn.PlayOneShotOnCamera();
         }
 
@@ -204,57 +209,67 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Top-line fuel status mirroring CompRefuelable.CompInspectStringExtra — what a
-        /// sighted player sees in the inspect panel. Uses ". " separators per project
-        /// convention (no newlines in screen reader announcements).
+        /// sighted player sees in the inspect panel. Composed via AnnouncementBuilder so
+        /// each fragment stays free of trailing punctuation; the builder owns separators.
         /// </summary>
         private static string BuildVanillaFuelStatus()
         {
             if (refuelable.Props.fuelIsMortarBarrel && Find.Storyteller.difficulty.classicMortars)
-                return $"{building.LabelCap}. Classic mortars mode, no barrel wear.";
+            {
+                var classic = new AnnouncementBuilder();
+                classic.Add(building.LabelCap);
+                classic.Add("RimWorldAccess.Building.Refuel.ClassicMortarStatus".Translate());
+                return classic.Build();
+            }
 
-            var sb = new StringBuilder();
-            sb.Append(refuelable.Props.FuelLabel.CapitalizeFirst()).Append(": ");
-            sb.Append(refuelable.Fuel.ToStringDecimalIfSmall()).Append(" / ");
-            sb.Append(refuelable.Props.fuelCapacity.ToStringDecimalIfSmall());
+            var b = new AnnouncementBuilder();
+
+            string fuelLabel = refuelable.Props.FuelLabel.CapitalizeFirst();
+            string fuelLine = "RimWorldAccess.Building.Refuel.FuelStatusLine".Translate(
+                fuelLabel,
+                refuelable.Fuel.ToStringDecimalIfSmall(),
+                refuelable.Props.fuelCapacity.ToStringDecimalIfSmall());
 
             if (!refuelable.Props.consumeFuelOnlyWhenUsed && refuelable.HasFuel)
             {
                 int numTicks = (int)(refuelable.Fuel / refuelable.Props.fuelConsumptionRate * 60000f);
-                sb.Append(" (").Append(numTicks.ToStringTicksToPeriod()).Append(")");
+                fuelLine += "RimWorldAccess.Building.Refuel.RemainingTimeSuffix".Translate(numTicks.ToStringTicksToPeriod());
             }
+
+            b.Add(fuelLine);
 
             if (!refuelable.HasFuel && !refuelable.Props.outOfFuelMessage.NullOrEmpty())
             {
-                sb.Append(". ").Append(refuelable.Props.outOfFuelMessage);
+                b.Add(refuelable.Props.outOfFuelMessage);
             }
 
             if (refuelable.Props.targetFuelLevelConfigurable)
             {
-                sb.Append(". ").Append("ConfiguredTargetFuelLevel".Translate(refuelable.TargetFuelLevel.ToStringDecimalIfSmall()));
+                b.Add("ConfiguredTargetFuelLevel".Translate(refuelable.TargetFuelLevel.ToStringDecimalIfSmall()));
             }
 
-            return sb.ToString();
+            return b.Build();
         }
 
         private static void AnnounceDetailedStatus()
         {
             if (refuelable == null || building == null) return;
 
-            var sb = new StringBuilder();
-            sb.Append(BuildVanillaFuelStatus());
+            var b = new AnnouncementBuilder();
+            b.Add(BuildVanillaFuelStatus());
 
             if (refuelable.Props.fuelFilter != null && refuelable.Props.fuelFilter.AllowedDefCount == 1)
             {
                 var fuelDef = refuelable.Props.fuelFilter.AllowedThingDefs.First();
-                sb.Append(". Fuel type: ").Append(fuelDef.label);
+                b.Add("RimWorldAccess.Building.Refuel.FuelTypeLabel".Translate(fuelDef.label));
             }
 
             if (refuelable.Props.showAllowAutoRefuelToggle)
             {
-                sb.Append(". ").Append(AutoRefuelLabel());
+                b.Add(AutoRefuelLabel());
             }
 
-            TolkHelper.Speak(sb.ToString());
+            TolkHelper.Speak(b.Build());
         }
 
         // Typeahead plumbing

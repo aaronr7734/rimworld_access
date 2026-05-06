@@ -110,4 +110,29 @@
   <RimWorldAccess.Building.Temp.PowerModeHighSuffix> - High power</RimWorldAccess.Building.Temp.PowerModeHighSuffix>
   <RimWorldAccess.Building.Temp.PowerModeLowSuffix> - Low power</RimWorldAccess.Building.Temp.PowerModeLowSuffix>
 
+  <!-- Refuelable component menu (src/Building/RefuelableComponentState.cs).
+       Drives a small menu over CompRefuelable showing current fuel status,
+       optional auto-refuel toggle, optional adjustable target. Vanilla keys
+       used: ConfiguredTargetFuelLevel for the inspect-status line, and the
+       def's FuelLabel/outOfFuelMessage for fuel-type-specific wording.
+
+       AutoRefuel and ToggleValue are split into On/Off whole-phrase variants
+       per the "no glue particles" rule (the colon-separator pattern is
+       English-specific; languages may want to drop it or reorder).
+       FuelStatusLine: {0} = capitalized fuel label, {1} = current fuel,
+       {2} = capacity. RemainingTimeSuffix: {0} = formatted time period.
+       OutOfFuelSuffix: {0} = the def's outOfFuelMessage. -->
+  <RimWorldAccess.Building.Refuel.NoFuelComponent>Building does not have fuel system</RimWorldAccess.Building.Refuel.NoFuelComponent>
+  <RimWorldAccess.Building.Refuel.OptionViewStatus>View detailed fuel status</RimWorldAccess.Building.Refuel.OptionViewStatus>
+  <RimWorldAccess.Building.Refuel.AutoRefuelOn>Auto-refuel: on</RimWorldAccess.Building.Refuel.AutoRefuelOn>
+  <RimWorldAccess.Building.Refuel.AutoRefuelOff>Auto-refuel: off</RimWorldAccess.Building.Refuel.AutoRefuelOff>
+  <RimWorldAccess.Building.Refuel.ToggleValueOn>on</RimWorldAccess.Building.Refuel.ToggleValueOn>
+  <RimWorldAccess.Building.Refuel.ToggleValueOff>off</RimWorldAccess.Building.Refuel.ToggleValueOff>
+  <RimWorldAccess.Building.Refuel.TargetFuelLevelLabel>Target fuel level: {0} / {1}</RimWorldAccess.Building.Refuel.TargetFuelLevelLabel>
+  <RimWorldAccess.Building.Refuel.AdjustHint>Use Left and Right arrows to adjust. Current: {0} of {1}</RimWorldAccess.Building.Refuel.AdjustHint>
+  <RimWorldAccess.Building.Refuel.ClassicMortarStatus>Classic mortars mode, no barrel wear</RimWorldAccess.Building.Refuel.ClassicMortarStatus>
+  <RimWorldAccess.Building.Refuel.FuelStatusLine>{0}: {1} / {2}</RimWorldAccess.Building.Refuel.FuelStatusLine>
+  <RimWorldAccess.Building.Refuel.RemainingTimeSuffix> ({0})</RimWorldAccess.Building.Refuel.RemainingTimeSuffix>
+  <RimWorldAccess.Building.Refuel.FuelTypeLabel>Fuel type: {0}</RimWorldAccess.Building.Refuel.FuelTypeLabel>
+
 </LanguageData>
