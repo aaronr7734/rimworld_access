@@ -377,4 +377,72 @@
   <RimWorldAccess.Building.Place.Action.tame>taming</RimWorldAccess.Building.Place.Action.tame>
   <RimWorldAccess.Building.Place.Action.cancel>cancellation</RimWorldAccess.Building.Place.Action.cancel>
 
+  <!-- Zone creation (src/Building/ZoneCreationState.cs).
+       Drives create / expand / shrink for Stockpile, Dumping, Growing,
+       Allowed-Area, and Home zones via the same shape-pick flow used by
+       AreaPaintingState. Mode-toggle reuses Building.Paint.ModeBox /
+       ModeSingle; "Shape: {0}" reuses Building.Paint.ShapeChanged;
+       "No shape to confirm" reuses Building.Paint.NoShapeToConfirm;
+       "{N} cells added. Total: {M}" reuses Building.Paint.ConfirmShapeIrregular.
+
+       Validation: CellOutOfBounds / CellAlreadyInZone / CannotPlaceZoneHere
+       / MustBeAdjacentToSelection. CellAlreadyInZone "Cell is already in
+       {label}" vs Building.Zone.CellInOtherZone "Cell is in {label}" — the
+       wording differs intentionally (zone-creation context vs zone-edit
+       context).
+
+       Entry instructions / progress: per the no-glue rule, the long
+       Creating/Expanding/Shrinking openers are split into a verb+target
+       fragment plus the shape-mode instructions key.
+
+       GetZoneTypeName covers the 5 zone-type lowercased nouns plus the
+       "zone" fallback (this is a different fallback than
+       Building.Zone.FallbackName, which is for zone.label being null). -->
+  <RimWorldAccess.Building.Create.CannotRemoveDisconnect>Cannot remove, would disconnect selection</RimWorldAccess.Building.Create.CannotRemoveDisconnect>
+  <RimWorldAccess.Building.Create.Deselected>Deselected, {0}, {1}. Total: {2}</RimWorldAccess.Building.Create.Deselected>
+  <RimWorldAccess.Building.Create.SelectedWithTotal>{0}. Total: {1}</RimWorldAccess.Building.Create.SelectedWithTotal>
+  <RimWorldAccess.Building.Create.CellOutOfBounds>Cell is out of bounds</RimWorldAccess.Building.Create.CellOutOfBounds>
+  <RimWorldAccess.Building.Create.CellAlreadyInZone>Cell is already in {0}</RimWorldAccess.Building.Create.CellAlreadyInZone>
+  <RimWorldAccess.Building.Create.CannotPlaceZoneHere>Cannot place zone here</RimWorldAccess.Building.Create.CannotPlaceZoneHere>
+  <RimWorldAccess.Building.Create.MustBeAdjacentToSelection>Cell must be adjacent to selection</RimWorldAccess.Building.Create.MustBeAdjacentToSelection>
+  <RimWorldAccess.Building.Create.ShapeUnavailable>Shape not available for this zone type</RimWorldAccess.Building.Create.ShapeUnavailable>
+  <RimWorldAccess.Building.Create.ShapeInstructions>{0} mode: Space to set corners. Tab to switch modes. Enter to create, Escape to cancel.</RimWorldAccess.Building.Create.ShapeInstructions>
+  <RimWorldAccess.Building.Create.ExpandShrinkInstructions>{0} mode: Press Space to set corners, Enter to confirm, Escape to cancel.</RimWorldAccess.Building.Create.ExpandShrinkInstructions>
+  <RimWorldAccess.Building.Create.OpenCreating>Creating {0}. {1}</RimWorldAccess.Building.Create.OpenCreating>
+  <RimWorldAccess.Building.Create.OpenExpanding>Expanding {0}. {1} cells currently selected. {2}</RimWorldAccess.Building.Create.OpenExpanding>
+  <RimWorldAccess.Building.Create.OpenShrinking>Shrinking {0}. Select cells to remove. {1}</RimWorldAccess.Building.Create.OpenShrinking>
+  <RimWorldAccess.Building.Create.NoZoneProvidedExpand>Cannot expand: no zone provided</RimWorldAccess.Building.Create.NoZoneProvidedExpand>
+  <RimWorldAccess.Building.Create.NoZoneProvidedShrink>Cannot shrink: no zone provided</RimWorldAccess.Building.Create.NoZoneProvidedShrink>
+  <RimWorldAccess.Building.Create.NoCellsZoneNotCreated>No cells selected. Zone not created.</RimWorldAccess.Building.Create.NoCellsZoneNotCreated>
+  <RimWorldAccess.Building.Create.NoCellsZoneUnchanged>No cells selected. Zone unchanged.</RimWorldAccess.Building.Create.NoCellsZoneUnchanged>
+  <RimWorldAccess.Building.Create.MaxAllowedAreasReached>Cannot create more allowed areas. Maximum of 10 reached.</RimWorldAccess.Building.Create.MaxAllowedAreasReached>
+  <RimWorldAccess.Building.Create.HomeAreaNotFound>Error: Home area not found</RimWorldAccess.Building.Create.HomeAreaNotFound>
+  <RimWorldAccess.Building.Create.NoZoneToModify>Error: No zone to modify</RimWorldAccess.Building.Create.NoZoneToModify>
+  <RimWorldAccess.Building.Create.AllCellsRemovedZoneDeleted>All cells removed. Zone deleted.</RimWorldAccess.Building.Create.AllCellsRemovedZoneDeleted>
+  <RimWorldAccess.Building.Create.AllCellsRemovedNamedDeleted>All cells removed. {0} deleted.</RimWorldAccess.Building.Create.AllCellsRemovedNamedDeleted>
+  <RimWorldAccess.Building.Create.ZoneCreated>{0} created with {1} cells.{2}</RimWorldAccess.Building.Create.ZoneCreated>
+  <RimWorldAccess.Building.Create.ObstaclesFoundSuffix> {0} obstacles found.</RimWorldAccess.Building.Create.ObstaclesFoundSuffix>
+  <RimWorldAccess.Building.Create.ObstaclesInNewAreaSuffix>. {0} obstacles in new area.</RimWorldAccess.Building.Create.ObstaclesInNewAreaSuffix>
+  <RimWorldAccess.Building.Create.RemovedCellsFromZone>Removed {0} cells from {1}. {2} cells remaining.</RimWorldAccess.Building.Create.RemovedCellsFromZone>
+  <RimWorldAccess.Building.Create.UpdatePrefix>Updated {0}: </RimWorldAccess.Building.Create.UpdatePrefix>
+  <RimWorldAccess.Building.Create.UpdateAddedAndRemoved>added {0}, removed {1} cells</RimWorldAccess.Building.Create.UpdateAddedAndRemoved>
+  <RimWorldAccess.Building.Create.UpdateAddedOnly>added {0} cells</RimWorldAccess.Building.Create.UpdateAddedOnly>
+  <RimWorldAccess.Building.Create.UpdateRemovedOnly>removed {0} cells</RimWorldAccess.Building.Create.UpdateRemovedOnly>
+  <RimWorldAccess.Building.Create.UpdateNoChanges>no changes</RimWorldAccess.Building.Create.UpdateNoChanges>
+  <RimWorldAccess.Building.Create.AllowedAreaName>Allowed area '{0}'</RimWorldAccess.Building.Create.AllowedAreaName>
+  <RimWorldAccess.Building.Create.ErrorCreatingZone>Error creating zone: {0}</RimWorldAccess.Building.Create.ErrorCreatingZone>
+  <RimWorldAccess.Building.Create.ErrorExpandingZone>Error expanding zone: {0}</RimWorldAccess.Building.Create.ErrorExpandingZone>
+  <RimWorldAccess.Building.Create.ErrorShrinkingZone>Error shrinking zone: {0}</RimWorldAccess.Building.Create.ErrorShrinkingZone>
+  <RimWorldAccess.Building.Create.Cancelled>Zone creation cancelled</RimWorldAccess.Building.Create.Cancelled>
+  <RimWorldAccess.Building.Create.ZoneTypeName.Stockpile>stockpile zone</RimWorldAccess.Building.Create.ZoneTypeName.Stockpile>
+  <RimWorldAccess.Building.Create.ZoneTypeName.DumpingStockpile>dumping stockpile zone</RimWorldAccess.Building.Create.ZoneTypeName.DumpingStockpile>
+  <RimWorldAccess.Building.Create.ZoneTypeName.GrowingZone>growing zone</RimWorldAccess.Building.Create.ZoneTypeName.GrowingZone>
+  <RimWorldAccess.Building.Create.ZoneTypeName.AllowedArea>allowed area</RimWorldAccess.Building.Create.ZoneTypeName.AllowedArea>
+  <RimWorldAccess.Building.Create.ZoneTypeName.HomeZone>home zone</RimWorldAccess.Building.Create.ZoneTypeName.HomeZone>
+  <RimWorldAccess.Building.Create.ZoneTypeName.Default>zone</RimWorldAccess.Building.Create.ZoneTypeName.Default>
+  <RimWorldAccess.Building.Create.ZoneCapped.Stockpile>Stockpile zone</RimWorldAccess.Building.Create.ZoneCapped.Stockpile>
+  <RimWorldAccess.Building.Create.ZoneCapped.DumpingStockpile>Dumping stockpile zone</RimWorldAccess.Building.Create.ZoneCapped.DumpingStockpile>
+  <RimWorldAccess.Building.Create.ZoneCapped.GrowingZone>Growing zone</RimWorldAccess.Building.Create.ZoneCapped.GrowingZone>
+  <RimWorldAccess.Building.Create.ZoneCapped.HomeZone>Home zone</RimWorldAccess.Building.Create.ZoneCapped.HomeZone>
+
 </LanguageData>
