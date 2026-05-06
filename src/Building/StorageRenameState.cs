@@ -46,7 +46,7 @@ namespace RimWorldAccess
                 return AcceptanceReport.WasAccepted; // commit will fail loudly
 
             if (map.zoneManager.AllZones.Any(z => z.label == name))
-                return new AcceptanceReport($"name {name} already used by a zone");
+                return new AcceptanceReport("RimWorldAccess.Building.Rename.NameAlreadyUsedByZone".Translate(name));
 
             StorageGroup currentGroup = currentMember.Group;
             foreach (var building in map.listerBuildings.allBuildingsColonist)
@@ -54,7 +54,7 @@ namespace RimWorldAccess
                 if (building is IStorageGroupMember member && member.Group != null
                     && member.Group.RenamableLabel == name && member.Group != currentGroup)
                 {
-                    return new AcceptanceReport($"name {name} already used by another storage group");
+                    return new AcceptanceReport("RimWorldAccess.Building.Rename.NameAlreadyUsedByGroup".Translate(name));
                 }
             }
             return AcceptanceReport.WasAccepted;
@@ -65,7 +65,7 @@ namespace RimWorldAccess
             Map map = currentMember is Thing thing ? thing.Map : null;
             if (map == null)
             {
-                TolkHelper.Speak("Error: Cannot find map.", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Rename.StorageMapMissing".Translate(), SpeechPriority.High);
                 ClearTarget();
                 return;
             }
@@ -78,17 +78,17 @@ namespace RimWorldAccess
                     newGroup.InitFrom(currentMember);
                     currentMember.SetStorageGroup(newGroup);
                     newGroup.RenamableLabel = newName;
-                    TolkHelper.Speak($"Created storage group {newName}", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Building.Rename.StorageGroupCreated".Translate(newName), SpeechPriority.High);
                 }
                 else
                 {
                     currentMember.Group.RenamableLabel = newName;
-                    TolkHelper.Speak($"Renamed to {newName}", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.UI.Name.Renamed".Translate(newName), SpeechPriority.High);
                 }
             }
             catch (Exception ex)
             {
-                TolkHelper.Speak($"Error: {ex.Message}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Rename.StorageError".Translate(ex.Message), SpeechPriority.High);
                 Log.Error($"Error in storage rename: {ex}");
             }
             finally
@@ -99,7 +99,7 @@ namespace RimWorldAccess
 
         private static void OnCancel()
         {
-            TolkHelper.Speak("Cancelled");
+            TolkHelper.Speak("RimWorldAccess.Building.Rename.StorageCancelled".Translate());
             ClearTarget();
         }
 

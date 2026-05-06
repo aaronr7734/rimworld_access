@@ -135,4 +135,23 @@
   <RimWorldAccess.Building.Refuel.RemainingTimeSuffix> ({0})</RimWorldAccess.Building.Refuel.RemainingTimeSuffix>
   <RimWorldAccess.Building.Refuel.FuelTypeLabel>Fuel type: {0}</RimWorldAccess.Building.Refuel.FuelTypeLabel>
 
+  <!-- Rename modal results (src/Building/{Pen,Zone,Storage}RenameState.cs).
+       The "Renamed to {0}" success key is shared with the rest of the mod
+       via RimWorldAccess.UI.Name.Renamed; only the cancel/error/validation
+       phrasings vary per renamable type, so those live here.
+
+       NameAlreadyUsedByZone / NameAlreadyUsedByGroup are validator messages
+       returned to the text-input layer in an AcceptanceReport — they appear
+       to the user as the rejection reason.
+       {0} = the conflicting name. -->
+  <RimWorldAccess.Building.Rename.Cancelled>Rename cancelled</RimWorldAccess.Building.Rename.Cancelled>
+  <RimWorldAccess.Building.Rename.StorageCancelled>Cancelled</RimWorldAccess.Building.Rename.StorageCancelled>
+  <RimWorldAccess.Building.Rename.PenError>Error renaming pen marker: {0}</RimWorldAccess.Building.Rename.PenError>
+  <RimWorldAccess.Building.Rename.ZoneError>Error renaming zone: {0}</RimWorldAccess.Building.Rename.ZoneError>
+  <RimWorldAccess.Building.Rename.StorageError>Error: {0}</RimWorldAccess.Building.Rename.StorageError>
+  <RimWorldAccess.Building.Rename.StorageMapMissing>Error: Cannot find map.</RimWorldAccess.Building.Rename.StorageMapMissing>
+  <RimWorldAccess.Building.Rename.StorageGroupCreated>Created storage group {0}</RimWorldAccess.Building.Rename.StorageGroupCreated>
+  <RimWorldAccess.Building.Rename.NameAlreadyUsedByZone>name {0} already used by a zone</RimWorldAccess.Building.Rename.NameAlreadyUsedByZone>
+  <RimWorldAccess.Building.Rename.NameAlreadyUsedByGroup>name {0} already used by another storage group</RimWorldAccess.Building.Rename.NameAlreadyUsedByGroup>
+
 </LanguageData>

@@ -33,12 +33,12 @@ namespace RimWorldAccess
             try
             {
                 currentZone.label = newName;
-                TolkHelper.Speak($"Renamed to {newName}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.UI.Name.Renamed".Translate(newName), SpeechPriority.High);
                 Log.Message($"Renamed zone from '{originalName}' to '{newName}'");
             }
             catch (Exception ex)
             {
-                TolkHelper.Speak($"Error renaming zone: {ex.Message}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Rename.ZoneError".Translate(ex.Message), SpeechPriority.High);
                 Log.Error($"Error renaming zone: {ex}");
             }
             finally
@@ -49,7 +49,7 @@ namespace RimWorldAccess
 
         private static void OnCancel()
         {
-            TolkHelper.Speak("Rename cancelled");
+            TolkHelper.Speak("RimWorldAccess.Building.Rename.Cancelled".Translate());
             ClearTarget();
         }
 
