@@ -213,4 +213,27 @@
   <RimWorldAccess.Building.Paint.ConfirmShapeRegular>{0}, {1} cells added. Total: {2}</RimWorldAccess.Building.Paint.ConfirmShapeRegular>
   <RimWorldAccess.Building.Paint.ConfirmShapeIrregular>{0} cells added. Total: {1}</RimWorldAccess.Building.Paint.ConfirmShapeIrregular>
 
+  <!-- Zone editing (src/Building/ZoneEditingHelper.cs + GizmoZoneEditState.cs).
+       Returned in ZoneEditResult.Message and announced when a cell is
+       toggled into or out of a zone. CellRemoved/CellAdded compose the
+       zone label as data via {0}; the bare ZoneFallbackName covers the
+       case where zone.label is null.
+       ZoneDeleted: {0} = zone label or fallback. -->
+  <RimWorldAccess.Building.Zone.NoZoneBeingEdited>No zone being edited</RimWorldAccess.Building.Zone.NoZoneBeingEdited>
+  <RimWorldAccess.Building.Zone.NoZoneSelectedForEditing>No zone selected for editing</RimWorldAccess.Building.Zone.NoZoneSelectedForEditing>
+  <RimWorldAccess.Building.Zone.NoZoneAtLocation>No zone to edit at this location</RimWorldAccess.Building.Zone.NoZoneAtLocation>
+  <RimWorldAccess.Building.Zone.CannotRemoveOriginalCell>Cannot remove original zone cell during expansion</RimWorldAccess.Building.Zone.CannotRemoveOriginalCell>
+  <RimWorldAccess.Building.Zone.WouldDisconnect>Cannot remove cell, would disconnect zone</RimWorldAccess.Building.Zone.WouldDisconnect>
+  <RimWorldAccess.Building.Zone.CellAlreadyInThisZone>Cell already in this zone</RimWorldAccess.Building.Zone.CellAlreadyInThisZone>
+  <RimWorldAccess.Building.Zone.CellInOtherZone>Cell is in {0}</RimWorldAccess.Building.Zone.CellInOtherZone>
+  <RimWorldAccess.Building.Zone.CellNotPartOfOriginal>Cell was not part of the original zone</RimWorldAccess.Building.Zone.CellNotPartOfOriginal>
+  <RimWorldAccess.Building.Zone.CellMustBeAdjacent>Cell must be adjacent to the zone</RimWorldAccess.Building.Zone.CellMustBeAdjacent>
+  <RimWorldAccess.Building.Zone.CannotAddCellHere>Cannot add cell here</RimWorldAccess.Building.Zone.CannotAddCellHere>
+  <RimWorldAccess.Building.Zone.CellRemoved>Cell removed from {0}</RimWorldAccess.Building.Zone.CellRemoved>
+  <RimWorldAccess.Building.Zone.CellAdded>Cell added to {0}</RimWorldAccess.Building.Zone.CellAdded>
+  <RimWorldAccess.Building.Zone.ZoneDeleted>{0} deleted, no cells remaining</RimWorldAccess.Building.Zone.ZoneDeleted>
+  <RimWorldAccess.Building.Zone.FailedToRemoveCell>Failed to remove cell</RimWorldAccess.Building.Zone.FailedToRemoveCell>
+  <RimWorldAccess.Building.Zone.FailedToAddCell>Failed to add cell</RimWorldAccess.Building.Zone.FailedToAddCell>
+  <RimWorldAccess.Building.Zone.FallbackName>zone</RimWorldAccess.Building.Zone.FallbackName>
+
 </LanguageData>

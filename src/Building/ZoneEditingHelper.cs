@@ -36,7 +36,7 @@ namespace RimWorldAccess
             Map map = Find.CurrentMap;
             if (map == null)
             {
-                return new ZoneEditResult(false, "No map available", SpeechPriority.High);
+                return new ZoneEditResult(false, "RimWorldAccess.Guard.NoMapLoaded".Translate(), SpeechPriority.High);
             }
 
             IntVec3 cursorPos = MapNavigationState.CurrentCursorPosition;
@@ -73,19 +73,19 @@ namespace RimWorldAccess
             // Only cells added during this session can be removed
             if (!isDeleteDesignator && originalZoneCells != null && originalZoneCells.Contains(cursorPos))
             {
-                return new ZoneEditResult(false, "Cannot remove original zone cell during expansion", SpeechPriority.Normal);
+                return new ZoneEditResult(false, "RimWorldAccess.Building.Zone.CannotRemoveOriginalCell".Translate(), SpeechPriority.Normal);
             }
 
             // Check if we can safely remove it
             if (WouldDisconnectZone(zoneAtCursor, cursorPos, map))
             {
-                return new ZoneEditResult(false, "Cannot remove cell, would disconnect zone", SpeechPriority.Normal);
+                return new ZoneEditResult(false, "RimWorldAccess.Building.Zone.WouldDisconnect".Translate(), SpeechPriority.Normal);
             }
 
             // Safe to remove
             try
             {
-                string zoneName = zoneAtCursor.label ?? "zone";
+                string zoneName = zoneAtCursor.label ?? (string)"RimWorldAccess.Building.Zone.FallbackName".Translate();
                 zoneAtCursor.RemoveCell(cursorPos);
 
                 // Check if the zone still exists after removal (RimWorld deletes zones with no cells)
@@ -98,7 +98,7 @@ namespace RimWorldAccess
                     {
                         createdZones.Add(zoneAtCursor);
                     }
-                    return new ZoneEditResult(true, $"Cell removed from {zoneName}", SpeechPriority.Normal);
+                    return new ZoneEditResult(true, "RimWorldAccess.Building.Zone.CellRemoved".Translate(zoneName), SpeechPriority.Normal);
                 }
                 else
                 {
@@ -111,13 +111,13 @@ namespace RimWorldAccess
                         targetZone = createdZones.FirstOrDefault();
                     }
 
-                    return new ZoneEditResult(true, $"{zoneName} deleted, no cells remaining", SpeechPriority.Normal, zoneDeleted: true);
+                    return new ZoneEditResult(true, "RimWorldAccess.Building.Zone.ZoneDeleted".Translate(zoneName), SpeechPriority.Normal, zoneDeleted: true);
                 }
             }
             catch (System.Exception ex)
             {
                 Log.Error($"[ZoneEditingHelper] Error removing zone cell: {ex.Message}");
-                return new ZoneEditResult(false, "Failed to remove cell", SpeechPriority.Normal);
+                return new ZoneEditResult(false, "RimWorldAccess.Building.Zone.FailedToRemoveCell".Translate(), SpeechPriority.Normal);
             }
         }
 
@@ -136,7 +136,7 @@ namespace RimWorldAccess
             // Validate we have a target zone to add to
             if (targetZone == null)
             {
-                return new ZoneEditResult(false, "No zone selected for editing", SpeechPriority.Normal);
+                return new ZoneEditResult(false, "RimWorldAccess.Building.Zone.NoZoneSelectedForEditing".Translate(), SpeechPriority.Normal);
             }
 
             // Check if cell is already in a different zone
@@ -144,9 +144,9 @@ namespace RimWorldAccess
             if (existingZone != null)
             {
                 if (existingZone == targetZone)
-                    return new ZoneEditResult(false, "Cell already in this zone", SpeechPriority.Normal);
+                    return new ZoneEditResult(false, "RimWorldAccess.Building.Zone.CellAlreadyInThisZone".Translate(), SpeechPriority.Normal);
                 else
-                    return new ZoneEditResult(false, $"Cell is in {existingZone.label}", SpeechPriority.Normal);
+                    return new ZoneEditResult(false, "RimWorldAccess.Building.Zone.CellInOtherZone".Translate(existingZone.label), SpeechPriority.Normal);
             }
 
             // For shrink mode, only allow re-adding cells that were originally in the zone
@@ -156,7 +156,7 @@ namespace RimWorldAccess
             {
                 if (!originalZoneCells.Contains(cursorPos))
                 {
-                    return new ZoneEditResult(false, "Cell was not part of the original zone", SpeechPriority.Normal);
+                    return new ZoneEditResult(false, "RimWorldAccess.Building.Zone.CellNotPartOfOriginal".Translate(), SpeechPriority.Normal);
                 }
 
                 // Check that the cell is adjacent to the current zone
@@ -173,7 +173,7 @@ namespace RimWorldAccess
                 }
                 if (!isAdjacentForShrink)
                 {
-                    return new ZoneEditResult(false, "Cell must be adjacent to the zone", SpeechPriority.Normal);
+                    return new ZoneEditResult(false, "RimWorldAccess.Building.Zone.CellMustBeAdjacent".Translate(), SpeechPriority.Normal);
                 }
 
                 // All shrink mode checks passed - add the cell directly to targetZone
@@ -187,13 +187,13 @@ namespace RimWorldAccess
                         createdZones.Add(targetZone);
                     }
 
-                    string zoneName = targetZone.label ?? "zone";
-                    return new ZoneEditResult(true, $"Cell added to {zoneName}", SpeechPriority.Normal);
+                    string zoneName = targetZone.label ?? (string)"RimWorldAccess.Building.Zone.FallbackName".Translate();
+                    return new ZoneEditResult(true, "RimWorldAccess.Building.Zone.CellAdded".Translate(zoneName), SpeechPriority.Normal);
                 }
                 catch (System.Exception ex)
                 {
                     Log.Error($"[ZoneEditingHelper] Error adding zone cell in shrink mode: {ex.Message}");
-                    return new ZoneEditResult(false, "Failed to add cell", SpeechPriority.Normal);
+                    return new ZoneEditResult(false, "RimWorldAccess.Building.Zone.FailedToAddCell".Translate(), SpeechPriority.Normal);
                 }
             }
 
@@ -201,14 +201,14 @@ namespace RimWorldAccess
             var zoneDesignator = activeDesignator as Designator_ZoneAdd;
             if (zoneDesignator == null)
             {
-                return new ZoneEditResult(false, "No zone to edit at this location", SpeechPriority.Normal);
+                return new ZoneEditResult(false, "RimWorldAccess.Building.Zone.NoZoneAtLocation".Translate(), SpeechPriority.Normal);
             }
 
             // Check zone-type requirements (soil fertility for growing zones, etc.)
             AcceptanceReport report = zoneDesignator.CanDesignateCell(cursorPos);
             if (!report.Accepted)
             {
-                string reason = !string.IsNullOrEmpty(report.Reason) ? report.Reason : "Cannot add cell here";
+                string reason = !string.IsNullOrEmpty(report.Reason) ? report.Reason : (string)"RimWorldAccess.Building.Zone.CannotAddCellHere".Translate();
                 return new ZoneEditResult(false, reason, SpeechPriority.Normal);
             }
 
@@ -226,7 +226,7 @@ namespace RimWorldAccess
 
             if (!isAdjacent)
             {
-                return new ZoneEditResult(false, "Cell must be adjacent to the zone", SpeechPriority.Normal);
+                return new ZoneEditResult(false, "RimWorldAccess.Building.Zone.CellMustBeAdjacent".Translate(), SpeechPriority.Normal);
             }
 
             try
@@ -240,13 +240,13 @@ namespace RimWorldAccess
                     createdZones.Add(targetZone);
                 }
 
-                string zoneName = targetZone.label ?? "zone";
-                return new ZoneEditResult(true, $"Cell added to {zoneName}", SpeechPriority.Normal);
+                string zoneName = targetZone.label ?? (string)"RimWorldAccess.Building.Zone.FallbackName".Translate();
+                return new ZoneEditResult(true, "RimWorldAccess.Building.Zone.CellAdded".Translate(zoneName), SpeechPriority.Normal);
             }
             catch (System.Exception ex)
             {
                 Log.Error($"[ZoneEditingHelper] Error adding zone cell: {ex.Message}");
-                return new ZoneEditResult(false, "Failed to add cell", SpeechPriority.Normal);
+                return new ZoneEditResult(false, "RimWorldAccess.Building.Zone.FailedToAddCell".Translate(), SpeechPriority.Normal);
             }
         }
 

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using RimWorld;
 using Verse;
 
@@ -118,7 +117,7 @@ namespace RimWorldAccess
         {
             if (!isActive)
             {
-                TolkHelper.Speak("No zone being edited", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Building.Zone.NoZoneBeingEdited".Translate(), SpeechPriority.Normal);
                 return;
             }
 
