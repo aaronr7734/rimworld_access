@@ -181,4 +181,36 @@
   <RimWorldAccess.Building.ShapeSelect.ShapeSelected>{0} selected</RimWorldAccess.Building.ShapeSelect.ShapeSelected>
   <RimWorldAccess.Building.ShapeSelect.Cancelled>Shape selection cancelled</RimWorldAccess.Building.ShapeSelect.Cancelled>
 
+  <!-- Area painting (src/Building/AreaPaintingState.cs).
+       Drives keyboard expand/shrink of an Area with shape selection,
+       per-cell toggling, and stage-then-confirm.
+
+       EnterExpand / EnterShrink: {0} = area label, {1} = shape name.
+       The hint suffix (Tab to switch mode... Enter to confirm) is split
+       out as PromptHint so the verb-prefixed keys stay short.
+
+       Confirmed: {0} = action verb (added to / removed from),
+       {1} = area label, {2} = total cells. Per the no-glue rule,
+       AddedTo / RemovedFrom whole-phrase variants own the verb-and-label
+       phrasing instead of swapping a verb particle.
+
+       ConfirmShape{Regular,Irregular}: {0} = "WxH" string, {1} = added
+       count, {2} = staged total (Regular only adds the dimension info). -->
+  <RimWorldAccess.Building.Paint.ModeBox>Box selection mode</RimWorldAccess.Building.Paint.ModeBox>
+  <RimWorldAccess.Building.Paint.ModeSingle>Single tile selection mode</RimWorldAccess.Building.Paint.ModeSingle>
+  <RimWorldAccess.Building.Paint.ShapeChanged>Shape: {0}</RimWorldAccess.Building.Paint.ShapeChanged>
+  <RimWorldAccess.Building.Paint.ShapeUnavailable>Shape not available for this area type</RimWorldAccess.Building.Paint.ShapeUnavailable>
+  <RimWorldAccess.Building.Paint.PromptHint>Tab to switch mode. Enter to confirm, Escape to cancel</RimWorldAccess.Building.Paint.PromptHint>
+  <RimWorldAccess.Building.Paint.EnterExpand>Expanding area: {0}. {1} mode. {2}</RimWorldAccess.Building.Paint.EnterExpand>
+  <RimWorldAccess.Building.Paint.EnterShrink>Shrinking area: {0}. {1} mode. {2}</RimWorldAccess.Building.Paint.EnterShrink>
+  <RimWorldAccess.Building.Paint.NoShapeToConfirm>No shape to confirm</RimWorldAccess.Building.Paint.NoShapeToConfirm>
+  <RimWorldAccess.Building.Paint.PositionOutOfBounds>Position out of bounds</RimWorldAccess.Building.Paint.PositionOutOfBounds>
+  <RimWorldAccess.Building.Paint.Deselected>Deselected, {0}, {1}</RimWorldAccess.Building.Paint.Deselected>
+  <RimWorldAccess.Building.Paint.NoCellsSelected>No cells selected. Area unchanged.</RimWorldAccess.Building.Paint.NoCellsSelected>
+  <RimWorldAccess.Building.Paint.AddedTo>{0} cells added to {1}. Total cells: {2}</RimWorldAccess.Building.Paint.AddedTo>
+  <RimWorldAccess.Building.Paint.RemovedFrom>{0} cells removed from {1}. Total cells: {2}</RimWorldAccess.Building.Paint.RemovedFrom>
+  <RimWorldAccess.Building.Paint.Cancelled>Area editing cancelled</RimWorldAccess.Building.Paint.Cancelled>
+  <RimWorldAccess.Building.Paint.ConfirmShapeRegular>{0}, {1} cells added. Total: {2}</RimWorldAccess.Building.Paint.ConfirmShapeRegular>
+  <RimWorldAccess.Building.Paint.ConfirmShapeIrregular>{0} cells added. Total: {1}</RimWorldAccess.Building.Paint.ConfirmShapeIrregular>
+
 </LanguageData>
