@@ -445,4 +445,66 @@
   <RimWorldAccess.Building.Create.ZoneCapped.GrowingZone>Growing zone</RimWorldAccess.Building.Create.ZoneCapped.GrowingZone>
   <RimWorldAccess.Building.Create.ZoneCapped.HomeZone>Home zone</RimWorldAccess.Building.Create.ZoneCapped.HomeZone>
 
+  <!-- Viewing mode (src/Building/ViewingModeState.cs).
+       Post-placement preview. Shape-name-and-description data still flows
+       through ViewingModeAnnouncer (~45 internal strings, deferred to a
+       later commit); these keys cover the 19 direct Speak calls in
+       ViewingModeState plus the long Confirm() composition.
+
+       Confirm One/Many splits per the no-glue rule: each subject-verb
+       agreement case gets its own whole-phrase key. The {0}=count,
+       {1}=zoneName lowercase, {2}=zone size string variants.
+
+       Subject grammar for the "{0} smaller zone(s)" suffix: One = "zone",
+       Many = "zones".
+
+       Dialog button labels (Leave / Stay / Confirm Exit) match vanilla's
+       generic dialog buttons; we own these labels because the
+       Dialog_MessageBox call sites supply our keys verbatim. -->
+  <RimWorldAccess.Building.View.ReturnedToPreview>Returned to preview mode</RimWorldAccess.Building.View.ReturnedToPreview>
+  <RimWorldAccess.Building.View.AddAnotherShape>Add another shape</RimWorldAccess.Building.View.AddAnotherShape>
+  <RimWorldAccess.Building.View.NoDesignatorAvailable>No designator available</RimWorldAccess.Building.View.NoDesignatorAvailable>
+  <RimWorldAccess.Building.View.CannotPlaceHere>Cannot place here</RimWorldAccess.Building.View.CannotPlaceHere>
+  <RimWorldAccess.Building.View.PlacedAt>{0} placed at {1}, {2}</RimWorldAccess.Building.View.PlacedAt>
+  <RimWorldAccess.Building.View.BlueprintFallback>Blueprint</RimWorldAccess.Building.View.BlueprintFallback>
+  <RimWorldAccess.Building.View.FailedToAddBlueprint>Failed to add blueprint</RimWorldAccess.Building.View.FailedToAddBlueprint>
+  <RimWorldAccess.Building.View.NoBlueprintHere>No blueprint to cancel here</RimWorldAccess.Building.View.NoBlueprintHere>
+  <RimWorldAccess.Building.View.CancelledBlueprint>Cancelled {0}</RimWorldAccess.Building.View.CancelledBlueprint>
+  <RimWorldAccess.Building.View.ActionRestored>Restored</RimWorldAccess.Building.View.ActionRestored>
+  <RimWorldAccess.Building.View.ActionRemoved>Removed</RimWorldAccess.Building.View.ActionRemoved>
+  <RimWorldAccess.Building.View.SegmentRemovedSomeRemain>{0} {1} ({2}). {3} remaining{4}.</RimWorldAccess.Building.View.SegmentRemovedSomeRemain>
+  <RimWorldAccess.Building.View.SegmentRemovedNoneRemain>{0} {1} ({2}). No segments remaining.</RimWorldAccess.Building.View.SegmentRemovedNoneRemain>
+  <RimWorldAccess.Building.View.RemainingInShapeSuffix> in {0}</RimWorldAccess.Building.View.RemainingInShapeSuffix>
+  <RimWorldAccess.Building.View.RemainingInSegmentsSuffix> in {0} segments</RimWorldAccess.Building.View.RemainingInSegmentsSuffix>
+  <RimWorldAccess.Building.View.RemovedItemsReturning>Removed {0} {1}. Returning to placement.</RimWorldAccess.Building.View.RemovedItemsReturning>
+  <RimWorldAccess.Building.View.ReturningToPlacement>Returning to placement.</RimWorldAccess.Building.View.ReturningToPlacement>
+  <RimWorldAccess.Building.View.RemovedItems>Removed {0} {1}</RimWorldAccess.Building.View.RemovedItems>
+  <RimWorldAccess.Building.View.RemovedAllItems>Removed all {0} {1}</RimWorldAccess.Building.View.RemovedAllItems>
+  <RimWorldAccess.Building.View.ZoneEditingCancelled>Zone editing cancelled.</RimWorldAccess.Building.View.ZoneEditingCancelled>
+  <RimWorldAccess.Building.View.PlacementCancelled>Placement cancelled.</RimWorldAccess.Building.View.PlacementCancelled>
+  <RimWorldAccess.Building.View.ExitWithRemoval>{0} {1} {2}. {3}</RimWorldAccess.Building.View.ExitWithRemoval>
+  <RimWorldAccess.Building.View.ExitWithRemovalAll>{0} all {1} {2}. {3}</RimWorldAccess.Building.View.ExitWithRemovalAll>
+  <RimWorldAccess.Building.View.LeavePreviewBlueprints>Leave preview? All blueprints will be lost.</RimWorldAccess.Building.View.LeavePreviewBlueprints>
+  <RimWorldAccess.Building.View.LeavePreviewZones>Leave preview? All zone changes will be undone.</RimWorldAccess.Building.View.LeavePreviewZones>
+  <RimWorldAccess.Building.View.LeavePreviewDesignations>Leave preview? All designations will be removed.</RimWorldAccess.Building.View.LeavePreviewDesignations>
+  <RimWorldAccess.Building.View.DialogLeave>Leave</RimWorldAccess.Building.View.DialogLeave>
+  <RimWorldAccess.Building.View.DialogStay>Stay</RimWorldAccess.Building.View.DialogStay>
+  <RimWorldAccess.Building.View.DialogConfirmExit>Confirm Exit</RimWorldAccess.Building.View.DialogConfirmExit>
+
+  <!-- ViewingModeState.Confirm() zone-result composition. -->
+  <RimWorldAccess.Building.View.ConfirmZoneCellsRemovedOne>Confirmed. {0} zone cell removed.</RimWorldAccess.Building.View.ConfirmZoneCellsRemovedOne>
+  <RimWorldAccess.Building.View.ConfirmZoneCellsRemovedMany>Confirmed. {0} zone cells removed.</RimWorldAccess.Building.View.ConfirmZoneCellsRemovedMany>
+  <RimWorldAccess.Building.View.ConfirmCellsAddedToZoneOne>Confirmed. {0} cell added to {1} zone.</RimWorldAccess.Building.View.ConfirmCellsAddedToZoneOne>
+  <RimWorldAccess.Building.View.ConfirmCellsAddedToZoneMany>Confirmed. {0} cells added to {1} zone.</RimWorldAccess.Building.View.ConfirmCellsAddedToZoneMany>
+  <RimWorldAccess.Building.View.ConfirmZoneCreatedFromCellsOne>Confirmed. {0} cell {1} zone created.</RimWorldAccess.Building.View.ConfirmZoneCreatedFromCellsOne>
+  <RimWorldAccess.Building.View.ConfirmZoneCreatedFromCellsMany>Confirmed. {0} cells {1} zone created.</RimWorldAccess.Building.View.ConfirmZoneCreatedFromCellsMany>
+  <RimWorldAccess.Building.View.ConfirmZoneExpanded>Confirmed. {0} {1} zone expanded.</RimWorldAccess.Building.View.ConfirmZoneExpanded>
+  <RimWorldAccess.Building.View.ConfirmZoneCreated>Confirmed. {0} {1} zone created.</RimWorldAccess.Building.View.ConfirmZoneCreated>
+  <RimWorldAccess.Building.View.ConfirmMultipleZonesCreatedOne>Confirmed. {0} {1} zone created: {2}.</RimWorldAccess.Building.View.ConfirmMultipleZonesCreatedOne>
+  <RimWorldAccess.Building.View.ConfirmMultipleZonesCreatedMany>Confirmed. {0} {1} zones created: {2}.</RimWorldAccess.Building.View.ConfirmMultipleZonesCreatedMany>
+  <RimWorldAccess.Building.View.SmallerZonesOne>, and {0} smaller zone</RimWorldAccess.Building.View.SmallerZonesOne>
+  <RimWorldAccess.Building.View.SmallerZonesMany>, and {0} smaller zones</RimWorldAccess.Building.View.SmallerZonesMany>
+  <RimWorldAccess.Building.View.OrdersConfirmedBlueprints>Orders confirmed. {0} blueprints placed.</RimWorldAccess.Building.View.OrdersConfirmedBlueprints>
+  <RimWorldAccess.Building.View.OrdersConfirmedDesignations>Orders confirmed. {0} designations placed.</RimWorldAccess.Building.View.OrdersConfirmedDesignations>
+
 </LanguageData>
