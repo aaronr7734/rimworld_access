@@ -23,22 +23,24 @@ namespace RimWorldAccess
         {
             // Build message with group names
             var groupDetails = alreadyLinked
-                .Select(item => $"  - {ShelfLinkingHelper.GetStorageLabel(item)}: " +
-                               $"linked to '{ShelfLinkingHelper.GetGroupName(item)}'")
+                .Select(item => (string)"RimWorldAccess.Building.Shelf.DialogItem".Translate(
+                    ShelfLinkingHelper.GetStorageLabel(item),
+                    ShelfLinkingHelper.GetGroupName(item)))
                 .ToList();
 
-            string itemWord = alreadyLinked.Count == 1 ? "item is" : "items are";
-            string message = $"{alreadyLinked.Count} {itemWord} already in different storage groups:\n\n" +
-                            string.Join("\n", groupDetails) +
-                            "\n\nMove them to this storage group?";
+            string itemWord = alreadyLinked.Count == 1
+                ? (string)"RimWorldAccess.Building.Shelf.DialogItemWordOne".Translate()
+                : (string)"RimWorldAccess.Building.Shelf.DialogItemWordMany".Translate();
+            string message = "RimWorldAccess.Building.Shelf.DialogMessage".Translate(
+                alreadyLinked.Count, itemWord, string.Join("\n", groupDetails));
 
             Find.WindowStack.Add(new Dialog_MessageBox(
                 message,
-                "Yes, Link Anyway",
+                "RimWorldAccess.Building.Shelf.DialogYesLinkAnyway".Translate(),
                 onYes,
-                "Don't Link",
+                "RimWorldAccess.Building.Shelf.DialogDontLink".Translate(),
                 onNo,
-                "Storage Linking",
+                "RimWorldAccess.Building.Shelf.DialogTitle".Translate(),
                 false
             ));
         }

@@ -269,7 +269,7 @@ namespace RimWorldAccess
                     },
                     onNo: () =>
                     {
-                        TolkHelper.Speak("Linking cancelled", SpeechPriority.Normal);
+                        TolkHelper.Speak("RimWorldAccess.Building.Shelf.LinkingCancelledShort".Translate(), SpeechPriority.Normal);
                     });
             }
             else
@@ -290,11 +290,11 @@ namespace RimWorldAccess
 
             if (success)
             {
-                TolkHelper.Speak($"Added {countStr} to group", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Shelf.AddedToGroup".Translate(countStr), SpeechPriority.High);
             }
             else
             {
-                TolkHelper.Speak("Linking failed", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Shelf.LinkingFailed".Translate(), SpeechPriority.High);
             }
         }
 

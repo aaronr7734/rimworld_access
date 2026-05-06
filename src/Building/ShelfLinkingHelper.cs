@@ -104,7 +104,7 @@ namespace RimWorldAccess
         public static string FormatStorageCount(List<IStorageGroupMember> items)
         {
             if (items == null || items.Count == 0)
-                return "no storage";
+                return "RimWorldAccess.Building.Shelf.NoStorage".Translate();
 
             // Group by def name
             var groups = items
@@ -116,22 +116,15 @@ namespace RimWorldAccess
                 .ToList();
 
             if (groups.Count == 0)
-                return $"{items.Count} storage items";
+                return "RimWorldAccess.Building.Shelf.StorageItemsCount".Translate(items.Count);
 
             var parts = new List<string>();
             foreach (var group in groups)
             {
-                // Use the def's label (already lowercase) and pluralize if needed
-                string label = group.Def.label;
-                if (group.Count > 1)
-                {
-                    // Handle common irregular plurals
-                    if (label.EndsWith("shelf"))
-                        label = label.Substring(0, label.Length - 5) + "shelves";
-                    else if (!label.EndsWith("s"))
-                        label += "s";
-                }
-                parts.Add($"{group.Count} {label}");
+                string label = group.Count > 1
+                    ? Find.ActiveLanguageWorker.Pluralize(group.Def.label, group.Count)
+                    : group.Def.label;
+                parts.Add("RimWorldAccess.Building.Shelf.StorageItemEntry".Translate(group.Count, label));
             }
 
             return string.Join(", ", parts);
@@ -195,9 +188,9 @@ namespace RimWorldAccess
         {
             if (storage is Thing thing)
             {
-                return thing.LabelShort ?? thing.def?.label ?? "storage";
+                return thing.LabelShort ?? thing.def?.label ?? (string)"RimWorldAccess.Building.Shelf.StorageFallback".Translate();
             }
-            return "storage";
+            return "RimWorldAccess.Building.Shelf.StorageFallback".Translate();
         }
 
         /// <summary>
@@ -208,8 +201,8 @@ namespace RimWorldAccess
         public static string GetGroupName(IStorageGroupMember storage)
         {
             if (storage?.Group == null)
-                return "no group";
-            return storage.Group.RenamableLabel ?? "unnamed group";
+                return "RimWorldAccess.Building.Shelf.NoGroup".Translate();
+            return storage.Group.RenamableLabel ?? (string)"RimWorldAccess.Building.Shelf.UnnamedGroup".Translate();
         }
 
         /// <summary>

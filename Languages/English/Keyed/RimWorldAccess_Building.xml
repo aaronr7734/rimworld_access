@@ -507,4 +507,56 @@
   <RimWorldAccess.Building.View.OrdersConfirmedBlueprints>Orders confirmed. {0} blueprints placed.</RimWorldAccess.Building.View.OrdersConfirmedBlueprints>
   <RimWorldAccess.Building.View.OrdersConfirmedDesignations>Orders confirmed. {0} designations placed.</RimWorldAccess.Building.View.OrdersConfirmedDesignations>
 
+  <!-- Storage linking (src/Building/ShelfLinking{State,Patch,Helper,ConfirmDialog}.cs).
+       Keyboard-driven manual storage-link mode and the room-based gizmo
+       linking flow. Open prompt and per-cell feedback are spoken; linking
+       confirmation is shown via Dialog_MessageBox (visible text contains
+       newlines for paragraph breaks — those are formatting, not separators).
+
+       OpenPrompt: {0} = source storage label.
+       StorageWithCountSelected/Deselected: {0} = label, {1} = selected count.
+       LinkedCount / AddedToGroupCount: {0} = formatted count phrase
+       (e.g. "3 shelves, 1 bookcase") from FormatStorageCount.
+
+       FormatStorageCount falls back to English pluralization for def
+       labels; the per-def "{count} {label}" composition reuses
+       Find.ActiveLanguageWorker.Pluralize so non-English languages get
+       proper plural forms. The "shelf"/"shelves" English-specific
+       short-circuit is removed — Pluralize handles it. -->
+  <RimWorldAccess.Building.Shelf.NoStorageSelected>No storage selected</RimWorldAccess.Building.Shelf.NoStorageSelected>
+  <RimWorldAccess.Building.Shelf.OpenPrompt>Storage linking mode. {0} selected. Arrow keys to navigate, Space to select compatible storage, Enter to link.</RimWorldAccess.Building.Shelf.OpenPrompt>
+  <RimWorldAccess.Building.Shelf.LinkingCancelled>Storage linking cancelled</RimWorldAccess.Building.Shelf.LinkingCancelled>
+  <RimWorldAccess.Building.Shelf.InvalidPosition>Invalid position</RimWorldAccess.Building.Shelf.InvalidPosition>
+  <RimWorldAccess.Building.Shelf.IncompatibleStorageType>{0} - incompatible storage type</RimWorldAccess.Building.Shelf.IncompatibleStorageType>
+  <RimWorldAccess.Building.Shelf.NoStorageHere>No storage here</RimWorldAccess.Building.Shelf.NoStorageHere>
+  <RimWorldAccess.Building.Shelf.SourceCannotDeselect>Source storage, cannot deselect</RimWorldAccess.Building.Shelf.SourceCannotDeselect>
+  <RimWorldAccess.Building.Shelf.StorageDeselected>{0} deselected. {1} selected</RimWorldAccess.Building.Shelf.StorageDeselected>
+  <RimWorldAccess.Building.Shelf.StorageSelected>{0} selected. {1} selected</RimWorldAccess.Building.Shelf.StorageSelected>
+  <RimWorldAccess.Building.Shelf.SelectAtLeastOneOther>Select at least one other storage to link. Arrow to storage, Space to select.</RimWorldAccess.Building.Shelf.SelectAtLeastOneOther>
+  <RimWorldAccess.Building.Shelf.LinkingCancelledStillSelecting>Linking cancelled. Still in selection mode. Press Escape to exit.</RimWorldAccess.Building.Shelf.LinkingCancelledStillSelecting>
+  <RimWorldAccess.Building.Shelf.LinkedCount>Linked {0}</RimWorldAccess.Building.Shelf.LinkedCount>
+  <RimWorldAccess.Building.Shelf.AddedToGroup>Added {0} to group</RimWorldAccess.Building.Shelf.AddedToGroup>
+  <RimWorldAccess.Building.Shelf.LinkingFailed>Linking failed</RimWorldAccess.Building.Shelf.LinkingFailed>
+  <RimWorldAccess.Building.Shelf.LinkingCancelledShort>Linking cancelled</RimWorldAccess.Building.Shelf.LinkingCancelledShort>
+  <RimWorldAccess.Building.Shelf.NoStorage>no storage</RimWorldAccess.Building.Shelf.NoStorage>
+  <RimWorldAccess.Building.Shelf.StorageItemsCount>{0} storage items</RimWorldAccess.Building.Shelf.StorageItemsCount>
+  <RimWorldAccess.Building.Shelf.StorageItemEntry>{0} {1}</RimWorldAccess.Building.Shelf.StorageItemEntry>
+  <RimWorldAccess.Building.Shelf.StorageFallback>storage</RimWorldAccess.Building.Shelf.StorageFallback>
+  <RimWorldAccess.Building.Shelf.NoGroup>no group</RimWorldAccess.Building.Shelf.NoGroup>
+  <RimWorldAccess.Building.Shelf.UnnamedGroup>unnamed group</RimWorldAccess.Building.Shelf.UnnamedGroup>
+
+  <!-- Confirm dialog. Newlines (\n) in DialogMessage are visual paragraph
+       breaks rendered by Dialog_MessageBox, not screen reader separators.
+       DialogItem and DialogItemWord (One/Many) compose the bullet list
+       and the "is/are" phrasing for the lead sentence.
+       DialogMessage: {0} = count, {1} = "item is" / "items are",
+       {2} = newline-joined list. -->
+  <RimWorldAccess.Building.Shelf.DialogItem>  - {0}: linked to '{1}'</RimWorldAccess.Building.Shelf.DialogItem>
+  <RimWorldAccess.Building.Shelf.DialogItemWordOne>item is</RimWorldAccess.Building.Shelf.DialogItemWordOne>
+  <RimWorldAccess.Building.Shelf.DialogItemWordMany>items are</RimWorldAccess.Building.Shelf.DialogItemWordMany>
+  <RimWorldAccess.Building.Shelf.DialogMessage>{0} {1} already in different storage groups:&#10;&#10;{2}&#10;&#10;Move them to this storage group?</RimWorldAccess.Building.Shelf.DialogMessage>
+  <RimWorldAccess.Building.Shelf.DialogYesLinkAnyway>Yes, Link Anyway</RimWorldAccess.Building.Shelf.DialogYesLinkAnyway>
+  <RimWorldAccess.Building.Shelf.DialogDontLink>Don't Link</RimWorldAccess.Building.Shelf.DialogDontLink>
+  <RimWorldAccess.Building.Shelf.DialogTitle>Storage Linking</RimWorldAccess.Building.Shelf.DialogTitle>
+
 </LanguageData>
