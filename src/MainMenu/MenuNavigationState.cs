@@ -19,6 +19,37 @@ namespace RimWorldAccess
         public static int SelectedIndex => currentColumn == 0 ? selectedIndexColumn0 : selectedIndexColumn1;
         public static TypeaheadSearchHelper Typeahead => typeahead;
 
+        /// <summary>
+        /// True when the main menu is currently being rendered. Set by
+        /// <see cref="MainMenuAccessibilityPatch"/>'s Postfix each frame.
+        /// Used by the layout-aware typeahead dispatcher to gate input.
+        /// </summary>
+        private static int lastRenderedFrame = -1;
+        public static bool IsActive => UnityEngine.Time.frameCount - lastRenderedFrame <= 1;
+        public static void MarkRendered() { lastRenderedFrame = UnityEngine.Time.frameCount; }
+
+        /// <summary>
+        /// Handles typeahead character input from the layout-aware dispatcher.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!IsActive) return;
+
+            var labels = GetCurrentColumnLabels();
+            if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
+            {
+                if (newIndex >= 0)
+                {
+                    SetSelectedIndex(newIndex);
+                    AnnounceWithSearch();
+                }
+            }
+            else
+            {
+                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+            }
+        }
+
         public static void Initialize(List<ListableOption> col0, List<ListableOption> col1)
         {
             column0Options = col0;

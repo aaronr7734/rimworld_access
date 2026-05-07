@@ -187,29 +187,29 @@ namespace RimWorldAccess
                     return true;
 
                 default:
-                    bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
-                    bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
-                    if (isLetter || isNumber)
-                    {
-                        TypeaheadCharacterBuffer.RequestCharacter(c =>
-                        {
-                            var labels = GetEntryLabels();
-                            if (typeaheadHelper.ProcessCharacterInput(c, labels, out int newIdx))
-                            {
-                                if (newIdx >= 0)
-                                {
-                                    selectedIndex = newIdx;
-                                    AnnounceWithSearch();
-                                }
-                            }
-                            else
-                            {
-                                TolkHelper.Speak($"No matches for '{typeaheadHelper.LastFailedSearch}'");
-                            }
-                        });
-                        return true;
-                    }
-                    return true; // Modal window: consume all unhandled keys.
+                    return true; // Modal window: consume all unhandled keys; typeahead routed via TypeaheadDispatcher.
+            }
+        }
+
+        /// <summary>
+        /// Layout-aware typeahead character entry; called by <see cref="TypeaheadDispatcher"/>.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!isActive) return;
+
+            var labels = GetEntryLabels();
+            if (typeaheadHelper.ProcessCharacterInput(c, labels, out int newIdx))
+            {
+                if (newIdx >= 0)
+                {
+                    selectedIndex = newIdx;
+                    AnnounceWithSearch();
+                }
+            }
+            else
+            {
+                TolkHelper.Speak($"No matches for '{typeaheadHelper.LastFailedSearch}'");
             }
         }
 

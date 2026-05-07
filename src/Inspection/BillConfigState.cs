@@ -26,7 +26,7 @@ namespace RimWorldAccess
         private static bool isNumericInputMode = false;
 
         // Text input mode fields (for bill rename)
-        private static bool isTextInputMode = false;
+        private static readonly TextInputController billRenameController = new TextInputController();
 
         private enum MenuItemType
         {
@@ -81,7 +81,7 @@ namespace RimWorldAccess
         public static bool HasNoMatches => typeahead.HasNoMatches;
         public static bool IsEditing => isEditing;
         public static bool IsNumericInputMode => isNumericInputMode;
-        public static bool IsTextInputMode => isTextInputMode;
+        public static bool IsTextInputMode => TextInputManager.Active == billRenameController;
 
         /// <summary>
         /// Opens the bill configuration menu.
@@ -100,7 +100,7 @@ namespace RimWorldAccess
             selectedIndex = 0;
             isActive = true;
             isEditing = false;
-            isTextInputMode = false;
+            if (TextInputManager.Active == billRenameController) TextInputManager.Clear();
             typeahead.ClearSearch();
 
             BuildMenuItems();
@@ -120,9 +120,8 @@ namespace RimWorldAccess
             isActive = false;
             isEditing = false;
             isNumericInputMode = false;
-            isTextInputMode = false;
+            if (TextInputManager.Active == billRenameController) TextInputManager.Clear();
             numericBuffer = "";
-            TextInputHelper.Clear();
             typeahead.ClearSearch();
         }
 
@@ -659,6 +658,19 @@ namespace RimWorldAccess
         public static string GetLastFailedSearch()
         {
             return typeahead.LastFailedSearch;
+        }
+
+        /// <summary>
+        /// Handles typeahead character input from the layout-aware dispatcher.
+        /// Wraps <see cref="ProcessTypeaheadCharacter"/> with the no-match announcement.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!isActive) return;
+            if (!ProcessTypeaheadCharacter(c))
+            {
+                TolkHelper.Speak($"No matches for '{GetLastFailedSearch()}'");
+            }
         }
 
         /// <summary>
@@ -1298,50 +1310,29 @@ namespace RimWorldAccess
 
         #region Text Input Methods (Bill Rename)
 
-        /// <summary>
-        /// Starts text input mode for renaming the bill.
-        /// </summary>
+        // Modal bill rename — controller registers with TextInputManager so the
+        // priority -1.6 dispatch in UnifiedKeyboardPatch handles every key.
+        private static readonly TextFieldSpec billRenameSpec = new TextFieldSpec(
+            labelKey: "RimWorldAccess.TextInput.LabelDefault",
+            maxLength: 28,
+            minLength: 1);
+
         private static void StartTextInput()
         {
-            isTextInputMode = true;
-            TextInputHelper.SetText(bill.RenamableLabel, replaceOnType: true);
-            TolkHelper.Speak($"Type new name. Current: {bill.RenamableLabel}. Enter to confirm, Escape to cancel.");
+            billRenameController.Begin(bill.RenamableLabel, billRenameSpec, OnBillRenameConfirm, OnBillRenameCancel, replaceOnType: true);
         }
 
-        /// <summary>
-        /// Confirms the text input and applies the new bill name.
-        /// </summary>
-        public static void ConfirmTextInput()
+        private static void OnBillRenameConfirm(string newName)
         {
-            if (!isTextInputMode) return;
-
-            string newName = TextInputHelper.CurrentText;
-            if (string.IsNullOrWhiteSpace(newName))
-            {
-                TolkHelper.Speak("Cannot set empty name");
-                return;
-            }
-
-            // Max 28 characters (from Dialog_Rename)
-            if (newName.Length > 28)
-                newName = newName.Substring(0, 28);
-
             bill.RenamableLabel = newName;
-            isTextInputMode = false;
-            TextInputHelper.Clear();
             BuildMenuItems();
             BillsMenuState.RefreshMenuItems();
             TolkHelper.Speak($"Bill renamed to {newName}");
             AnnounceCurrentSelection();
         }
 
-        /// <summary>
-        /// Cancels text input mode without applying changes.
-        /// </summary>
-        public static void CancelTextInput()
+        private static void OnBillRenameCancel()
         {
-            isTextInputMode = false;
-            TextInputHelper.Clear();
             TolkHelper.Speak("Rename cancelled");
         }
 

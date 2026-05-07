@@ -140,6 +140,17 @@ namespace RimWorldAccess
         public static bool HasActiveSearch => treeNav.HasActiveSearch;
 
         /// <summary>
+        /// Public typeahead entry point for the unified <see cref="TypeaheadDispatcher"/>.
+        /// Delegates to the per-tree helper instance. Registered in
+        /// <see cref="TypeaheadConsumerRegistry"/>.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!isActive) return;
+            treeNav.HandleTypeahead(c);
+        }
+
+        /// <summary>
         /// Handles keyboard input for the inventory menu.
         /// Returns true if the input was handled.
         /// </summary>

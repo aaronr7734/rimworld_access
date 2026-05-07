@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Verse;
-using RimWorld;
 
 namespace RimWorldAccess
 {
@@ -16,8 +15,13 @@ namespace RimWorldAccess
         private static List<DialogElement> elements = new List<DialogElement>();
         private static int selectedIndex = 0;
         private static DialogElement editingElement = null;
-        private static bool replaceOnFirstKeystroke = false;
-        private static bool isFirstKeystrokeAfterEdit = false;
+        // Embedded text-field controller used by every TextFieldElement in any
+        // intercepted dialog. Spec is derived from the dialog type (via
+        // RimWorldDialogIntrospector) plus the per-element max length.
+        // Embedded text-field controller used by every TextFieldElement in any
+        // intercepted dialog. Spec is derived from the dialog type (via
+        // RimWorldDialogIntrospector) plus the per-element max length.
+        private static readonly TextInputController dialogController = new TextInputController();
 
         /// <summary>
         /// Tracks the frame number when the dialog was opened.
@@ -150,7 +154,6 @@ namespace RimWorldAccess
             elements.Clear();
             selectedIndex = 0;
             editingElement = null;
-            isFirstKeystrokeAfterEdit = false;
             ShouldForcePause = false;
             openedOnFrame = -1;
             closedOnFrame = UnityEngine.Time.frameCount;
@@ -273,69 +276,15 @@ namespace RimWorldAccess
 
         private static bool HandleTextFieldInput(TextFieldElement textField, Event evt)
         {
-            KeyCode key = evt.keyCode;
-
-            if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+            // Embedded mode (modal: false): controller doesn't register with TextInputManager,
+            // so Up/Down etc. flow back to the dialog's main HandleInput for navigation.
+            // Delete does per-char delete (consistent with every other text field in the mod);
+            // to clear the whole field, use Ctrl+A then Delete.
+            if (dialogController.HandleEvent(evt))
             {
-                // Close editing mode
-                editingElement = null;
-                isFirstKeystrokeAfterEdit = false;
-                TolkHelper.Speak($"Editing complete. Current value: {textField.Value}");
                 evt.Use();
                 return true;
             }
-            else if (key == KeyCode.Escape)
-            {
-                // Cancel editing
-                editingElement = null;
-                isFirstKeystrokeAfterEdit = false;
-                TolkHelper.Speak("Editing cancelled");
-                evt.Use();
-                return true;
-            }
-            else if (key == KeyCode.Backspace)
-            {
-                // Cancel replace mode on backspace
-                replaceOnFirstKeystroke = false;
-                isFirstKeystrokeAfterEdit = false;
-                if (textField.Value.Length > 0)
-                {
-                    textField.Value = textField.Value.Substring(0, textField.Value.Length - 1);
-                    TolkHelper.Speak(textField.Value.Length > 0 ? textField.Value[textField.Value.Length - 1].ToString() : "Empty");
-                }
-                evt.Use();
-                return true;
-            }
-            else if (key == KeyCode.Delete)
-            {
-                // Delete clears the field, so disable "first keystroke clears"
-                isFirstKeystrokeAfterEdit = false;
-                textField.Value = "";
-                TolkHelper.Speak("Cleared");
-                evt.Use();
-                return true;
-            }
-            else if (evt.character != '\0' && evt.character != '\n' && evt.character != '\r')
-            {
-                // First keystroke replaces all existing text
-                // This allows "type to replace" behavior that users expect in rename dialogs
-                if (replaceOnFirstKeystroke || isFirstKeystrokeAfterEdit)
-                {
-                    textField.Value = "";
-                    replaceOnFirstKeystroke = false;
-                    isFirstKeystrokeAfterEdit = false;
-                }
-
-                // Add character to text field
-                if (textField.Value.Length < textField.MaxLength)
-                {
-                    textField.Value += evt.character;
-                    TolkHelper.Speak(evt.character.ToString());
-                }
-                evt.Use();
-                return true;
-            }
-
             return false;
         }
 
@@ -399,12 +348,32 @@ namespace RimWorldAccess
             }
             else if (element is TextFieldElement textField)
             {
-                // Enter editing mode
                 editingElement = textField;
-                replaceOnFirstKeystroke = !string.IsNullOrEmpty(textField.Value);
-                isFirstKeystrokeAfterEdit = !string.IsNullOrEmpty(textField.Value);
-                string replaceHint = replaceOnFirstKeystroke ? " Type to replace." : "";
-                TolkHelper.Speak($"Editing {textField.Label}. Current value: {textField.Value}.{replaceHint} Enter to confirm, Escape to cancel.");
+                // Spec from the underlying RimWorld dialog type (MaxNameLength / FirstCharLimit /
+                // IsValidName via reflection). Fall back to the per-element MaxLength if the
+                // introspector doesn't recognize the dialog type.
+                var spec = TextFieldSpec.ForRimWorldDialog(currentDialog);
+                bool needsTighterMax = spec.MaxLength == null || textField.MaxLength < (spec.MaxLength ?? int.MaxValue);
+                bool needsCharsOverride = textField.AllowedChars != null && spec.AllowedChars == null;
+                if (needsTighterMax || needsCharsOverride)
+                {
+                    spec = new TextFieldSpec(
+                        labelKey: spec.LabelKey,
+                        maxLength: needsTighterMax ? textField.MaxLength : spec.MaxLength,
+                        minLength: spec.MinLength,
+                        allowedChars: textField.AllowedChars ?? spec.AllowedChars,
+                        forbidGrammarSpecials: spec.ForbidGrammarSpecials,
+                        mustBeFilename: spec.MustBeFilename,
+                        customValidator: spec.CustomValidator);
+                }
+                var captured = textField;
+                dialogController.Begin(
+                    textField.Value ?? string.Empty,
+                    spec,
+                    val => { captured.Value = val; editingElement = null; },
+                    () => { editingElement = null; },
+                    replaceOnType: true,
+                    modal: false);
             }
         }
 
@@ -594,6 +563,14 @@ namespace RimWorldAccess
         }
 
         public int MaxLength { get; set; } = 1000;
+
+        /// <summary>
+        /// Optional per-field allowed-characters regex. Set by callers like
+        /// <see cref="NamePawnDialogHelper"/> to enforce vanilla constraints
+        /// (e.g. <c>CharacterCardUtility.ValidNameRegex</c> on pawn names).
+        /// Null = no restriction.
+        /// </summary>
+        public System.Text.RegularExpressions.Regex AllowedChars { get; set; }
 
         public TextFieldElement(string label, string initialValue, Action<string> onValueChanged)
         {

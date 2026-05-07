@@ -780,7 +780,6 @@ namespace RimWorldAccess
 
                 if (isLetter || isNumber)
                 {
-                    TypeaheadCharacterBuffer.RequestCharacter(c => HandleTypeahead(c));
                     return true;
                 }
             }

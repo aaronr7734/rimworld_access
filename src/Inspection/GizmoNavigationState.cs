@@ -1137,22 +1137,6 @@ namespace RimWorldAccess
 
             if (isLetter || isNumber)
             {
-                TypeaheadCharacterBuffer.RequestCharacter(c =>
-                {
-                    var labels = GetGizmoLabels();
-                    if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
-                    {
-                        if (newIndex >= 0)
-                        {
-                            selectedGizmoIndex = newIndex;
-                            AnnounceWithSearch();
-                        }
-                    }
-                    else
-                    {
-                        TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
-                    }
-                });
                 Event.current.Use();
                 return true;
             }

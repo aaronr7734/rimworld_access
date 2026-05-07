@@ -203,31 +203,31 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Typeahead — letters/digits only (modifiers already filtered above).
-            bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
-            bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
-            if (isLetter || isNumber)
-            {
-                TypeaheadCharacterBuffer.RequestCharacter(c =>
-                {
-                    var labels = GetCasteLabels();
-                    if (typeaheadHelper.ProcessCharacterInput(c, labels, out int newIndex))
-                    {
-                        if (newIndex >= 0)
-                        {
-                            selectedIndex = newIndex;
-                            AnnounceWithSearch();
-                        }
-                    }
-                    else
-                    {
-                        TolkHelper.Speak($"No matches for '{typeaheadHelper.LastFailedSearch}'");
-                    }
-                });
-                return true;
-            }
+            // Typeahead character routing now handled by TypeaheadDispatcher upstream.
 
             return true; // modal window: consume everything else
+        }
+
+        /// <summary>
+        /// Layout-aware typeahead character entry; called by <see cref="TypeaheadDispatcher"/>.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!isActive) return;
+
+            var labels = GetCasteLabels();
+            if (typeaheadHelper.ProcessCharacterInput(c, labels, out int newIndex))
+            {
+                if (newIndex >= 0)
+                {
+                    selectedIndex = newIndex;
+                    AnnounceWithSearch();
+                }
+            }
+            else
+            {
+                TolkHelper.Speak($"No matches for '{typeaheadHelper.LastFailedSearch}'");
+            }
         }
 
         private static void AnnounceCurrentSelection()

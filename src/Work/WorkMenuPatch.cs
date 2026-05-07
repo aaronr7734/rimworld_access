@@ -244,7 +244,6 @@ namespace RimWorldAccess
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             if (isLetter && !alt && !shift)
             {
-                TypeaheadCharacterBuffer.RequestCharacter(c => WorkMenuState.ProcessSearchCharacter(c));
                 Event.current.Use();
                 return;
             }
@@ -678,11 +677,12 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Typeahead: letters match pawn names
+            // Typeahead character routing handled by TypeaheadDispatcher upstream
+            // (see TypeaheadConsumerRegistry). Swallow the keycode-only event here
+            // so RimWorld's bindings on KeyCode.A..Z don't fire while the table is open.
             bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
             if (isLetter && !alt && !shift && !ctrl)
             {
-                TypeaheadCharacterBuffer.RequestCharacter(c => WorkTableState.HandleTypeahead(c));
                 Event.current.Use();
                 return;
             }

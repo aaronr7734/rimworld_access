@@ -544,6 +544,30 @@ namespace RimWorldAccess
             return typeahead.ClearSearchAndAnnounce();
         }
 
+        /// <summary>
+        /// Routes the layout-aware character from <see cref="TypeaheadDispatcher"/>
+        /// to either the save-name field or the file-list typeahead, depending on
+        /// which focus zone is active. Modifier-held chars are passed through to
+        /// global shortcuts (Alt+M, Ctrl+S, etc.) by ignoring them here.
+        /// </summary>
+        public static void HandleCharacter(char c)
+        {
+            if (!isActive)
+                return;
+
+            if (KeyboardHelper.IsAltHeld || KeyboardHelper.IsCtrlHeld)
+                return;
+
+            if (IsInTextField)
+            {
+                AppendChar(c);
+            }
+            else
+            {
+                ProcessTypeaheadCharacter(c);
+            }
+        }
+
         public static void ProcessTypeaheadCharacter(char c)
         {
             if (!isActive || saveFiles == null || IsInTextField)

@@ -13,12 +13,18 @@ namespace RimWorldAccess
         private static List<string> existingPresets = new List<string>();
         private static int selectedIndex = 0;
         private static bool isTypingName = true;
+        private static readonly TextInputController nameController = new TextInputController();
+        private static readonly TextFieldSpec nameSpec = new TextFieldSpec(
+            labelKey: "RimWorldAccess.TextInput.LabelFilename",
+            maxLength: 64,
+            minLength: 1,
+            mustBeFilename: true);
 
         public static void Open(PawnFilter filter)
         {
             filterToSave = filter;
-
-            TextInputHelper.SetText("MyPreset");
+            // Embedded controller — Up/Down arrows must reach the surrounding list.
+            nameController.Begin("MyPreset", nameSpec, _ => { }, null, replaceOnType: true, modal: false);
 
             ReloadPresets();
 
@@ -26,7 +32,7 @@ namespace RimWorldAccess
             isTypingName = true;
             IsActive = true;
 
-            TolkHelper.Speak($"Save filter preset. Type name or press Down to select existing preset to overwrite. Current name: {TextInputHelper.CurrentText}");
+            TolkHelper.Speak($"Save filter preset. Type name or press Down to select existing preset to overwrite. Current name: {nameController.CurrentText}");
         }
 
         public static void Close()
@@ -34,7 +40,7 @@ namespace RimWorldAccess
             IsActive = false;
             filterToSave = null;
             existingPresets.Clear();
-            TextInputHelper.Clear();
+            nameController.Cancel();
         }
 
         private static void ReloadPresets()
@@ -48,7 +54,7 @@ namespace RimWorldAccess
         {
             if (selectedIndex == 0)
             {
-                TolkHelper.Speak($"Save as: {TextInputHelper.CurrentText} ({MenuHelper.FormatPosition(0, TotalCount)})");
+                TolkHelper.Speak($"Save as: {nameController.CurrentText} ({MenuHelper.FormatPosition(0, TotalCount)})");
             }
             else if (selectedIndex > 0 && selectedIndex <= existingPresets.Count)
             {
@@ -103,7 +109,7 @@ namespace RimWorldAccess
         {
             if (selectedIndex == 0)
             {
-                string name = TextInputHelper.CurrentText;
+                string name = nameController.CurrentText;
                 if (string.IsNullOrWhiteSpace(name))
                 {
                     TolkHelper.Speak("Name cannot be empty");
@@ -165,6 +171,24 @@ namespace RimWorldAccess
         {
             if (!IsActive) return false;
 
+            // Cursor review: Left/Right (with Shift/Ctrl) let the user audit the preset name
+            // while they're actually typing. When browsing the existing-preset list
+            // (isTypingName == false), arrows aren't used by the state either, so we leave
+            // them untouched rather than steal them for a hidden name cursor move.
+            if (isTypingName && selectedIndex == 0)
+            {
+                if (key == KeyCode.LeftArrow)
+                {
+                    nameController.HandleArrowLeft(shift, ctrl);
+                    return true;
+                }
+                if (key == KeyCode.RightArrow)
+                {
+                    nameController.HandleArrowRight(shift, ctrl);
+                    return true;
+                }
+            }
+
             switch (key)
             {
                 case KeyCode.UpArrow:
@@ -196,7 +220,21 @@ namespace RimWorldAccess
                 case KeyCode.Backspace:
                     if (isTypingName && selectedIndex == 0)
                     {
-                        TextInputHelper.HandleBackspace();
+                        nameController.HandleBackspace();
+                        return true;
+                    }
+                    break;
+                case KeyCode.C:
+                    if (ctrl && isTypingName && selectedIndex == 0)
+                    {
+                        nameController.HandleCopy();
+                        return true;
+                    }
+                    break;
+                case KeyCode.V:
+                    if (ctrl && isTypingName && selectedIndex == 0)
+                    {
+                        nameController.HandlePaste();
                         return true;
                     }
                     break;
@@ -213,7 +251,7 @@ namespace RimWorldAccess
             {
                 if (char.IsLetterOrDigit(character) || character == ' ' || character == '-' || character == '_')
                 {
-                    TextInputHelper.HandleCharacter(character);
+                    nameController.HandleCharacter(character);
                     return true;
                 }
             }

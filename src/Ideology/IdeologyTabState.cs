@@ -264,21 +264,6 @@ namespace RimWorldAccess
 
                 if ((isLetter || isNumber) && !ev.alt && !ev.control)
                 {
-                    TypeaheadCharacterBuffer.RequestCharacter(c =>
-                    {
-                        var labels = GetIdeoLabels();
-                        if (listTypeahead.ProcessCharacterInput(c, labels, out int newIndex))
-                        {
-                            selectedIdeoIndex = newIndex;
-                            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                            AnnounceListWithSearch();
-                        }
-                        else
-                        {
-                            SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                            TolkHelper.Speak($"No matches for '{listTypeahead.LastFailedSearch}'.");
-                        }
-                    });
                     return true;
                 }
             }
@@ -290,6 +275,29 @@ namespace RimWorldAccess
         private static List<string> GetIdeoLabels()
         {
             return ideologies.Select(i => i.name).ToList();
+        }
+
+        /// <summary>
+        /// Handles typeahead character input from the layout-aware dispatcher.
+        /// Only routes to the list panel; the details panel has its own tree typeahead.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!IsActive) return;
+            if (currentPanel != PanelList) return;
+
+            var labels = GetIdeoLabels();
+            if (listTypeahead.ProcessCharacterInput(c, labels, out int newIndex))
+            {
+                selectedIdeoIndex = newIndex;
+                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                AnnounceListWithSearch();
+            }
+            else
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak($"No matches for '{listTypeahead.LastFailedSearch}'.");
+            }
         }
 
         #endregion

@@ -204,27 +204,27 @@ namespace RimWorldAccess
                     return true;
 
                 default:
-                    bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
-                    bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
-                    if ((isLetter || isNumber) && !alt && !ctrl)
-                    {
-                        TypeaheadCharacterBuffer.RequestCharacter(c =>
-                        {
-                            var labels = items.Select(s => s.Label).ToList();
-                            if (typeahead.ProcessCharacterInput(c, labels, out int newIdx) && newIdx >= 0)
-                            {
-                                selectedIndex = newIdx;
-                                AnnounceCurrent();
-                            }
-                            else
-                            {
-                                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
-                            }
-                        });
-                        return true;
-                    }
-                    // Modal: consume all unhandled keys.
+                    // Modal: consume all unhandled keys; typeahead routed via TypeaheadDispatcher.
                     return true;
+            }
+        }
+
+        /// <summary>
+        /// Layout-aware typeahead character entry; called by <see cref="TypeaheadDispatcher"/>.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!isActive) return;
+
+            var labels = items.Select(s => s.Label).ToList();
+            if (typeahead.ProcessCharacterInput(c, labels, out int newIdx) && newIdx >= 0)
+            {
+                selectedIndex = newIdx;
+                AnnounceCurrent();
+            }
+            else
+            {
+                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
             }
         }
 

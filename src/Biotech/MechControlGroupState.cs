@@ -247,28 +247,33 @@ namespace RimWorldAccess
 
             if ((isLetter || isNumber) && !alt)
             {
-                TypeaheadCharacterBuffer.RequestCharacter(c =>
-                {
-                    var typeahead = GetCurrentTypeahead();
-                    var labels = GetCurrentLabels();
-                    if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
-                    {
-                        if (newIndex >= 0)
-                        {
-                            SetCurrentIndex(newIndex);
-                            AnnounceWithSearch();
-                        }
-                    }
-                    else
-                    {
-                        TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
-                    }
-                });
                 Event.current.Use();
                 return true;
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Public entry point for the unified typeahead dispatcher.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!IsActive) return;
+            var typeahead = GetCurrentTypeahead();
+            var labels = GetCurrentLabels();
+            if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
+            {
+                if (newIndex >= 0)
+                {
+                    SetCurrentIndex(newIndex);
+                    AnnounceWithSearch();
+                }
+            }
+            else
+            {
+                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+            }
         }
 
         // ========== Page Switching ==========

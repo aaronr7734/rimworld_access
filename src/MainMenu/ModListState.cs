@@ -153,6 +153,33 @@ namespace RimWorldAccess
             return HandleListInput(key, shift, ctrl, alt);
         }
 
+        /// <summary>
+        /// Handles typeahead character input from the layout-aware dispatcher.
+        /// Only routes to the list view; the detail view doesn't support typeahead.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!isActive || currentPage == null) return;
+            if (detailHelper != null && detailHelper.IsInDetailView) return;
+
+            var labels = GetModLabels();
+            if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
+            {
+                if (newIndex >= 0)
+                {
+                    selectedIndex = newIndex;
+                    SyncSelection();
+                    BuildContentLines();
+                    detailHelper.RefreshButtons();
+                    AnnounceWithSearch();
+                }
+            }
+            else
+            {
+                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+            }
+        }
+
         // ============================================================
         // List-level input
         // ============================================================
@@ -308,25 +335,6 @@ namespace RimWorldAccess
 
             if ((isLetter || isNumber) && !alt && !ctrl)
             {
-                TypeaheadCharacterBuffer.RequestCharacter(c =>
-                {
-                    var labels = GetModLabels();
-                    if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
-                    {
-                        if (newIndex >= 0)
-                        {
-                            selectedIndex = newIndex;
-                            SyncSelection();
-                            BuildContentLines();
-                            detailHelper.RefreshButtons();
-                            AnnounceWithSearch();
-                        }
-                    }
-                    else
-                    {
-                        TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
-                    }
-                });
                 return true;
             }
 

@@ -521,6 +521,19 @@ namespace RimWorldAccess
             return typeahead.LastFailedSearch;
         }
 
+        /// <summary>
+        /// Handles typeahead character input from the layout-aware dispatcher.
+        /// Wraps <see cref="ProcessTypeaheadCharacter"/> with the no-match announcement.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!isActive) return;
+            if (!ProcessTypeaheadCharacter(c))
+            {
+                TolkHelper.Speak($"No matches for '{GetLastFailedSearch()}'");
+            }
+        }
+
         public static void AnnounceWithSearch()
         {
             if (menuItems == null || menuItems.Count == 0)

@@ -450,31 +450,54 @@ namespace RimWorldAccess
                 return false;
             }
 
-            bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
-            bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
-            bool isKeypad = key >= KeyCode.Keypad0 && key <= KeyCode.Keypad9;
+            // Letter/digit character routing now handled by TypeaheadDispatcher upstream
+            // (see HandleTypeahead(char) below). This helper only handles Backspace.
+            return false;
+        }
 
-            if (isLetter || isNumber || isKeypad)
+        /// <summary>
+        /// Layout-aware typeahead character entry; called by <see cref="TypeaheadDispatcher"/>.
+        /// Dispatches to the labels/index appropriate for the current navigation mode.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!isActive) return;
+
+            List<string> labels;
+            int currentIndex;
+            Action<int> setIndex;
+            Action announceAction;
+
+            switch (currentMode)
             {
-                TypeaheadCharacterBuffer.RequestCharacter(c =>
-                {
-                    if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
-                    {
-                        if (newIndex >= 0 && newIndex != currentIndex)
-                        {
-                            setIndex(newIndex);
-                            announceAction?.Invoke();
-                        }
-                    }
-                    else
-                    {
-                        TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
-                    }
-                });
-                return true;
+                case NavigationMode.RoleList:
+                    labels = RoleListLabels();
+                    currentIndex = roleIndex;
+                    setIndex = i => roleIndex = i;
+                    announceAction = AnnounceCurrentRoleOrToggle;
+                    break;
+                case NavigationMode.PawnSelection:
+                    labels = pawnViews.Select(p => p.Pawn.LabelShort).ToList();
+                    currentIndex = pawnIndex;
+                    setIndex = i => pawnIndex = i;
+                    announceAction = AnnounceCurrentPawn;
+                    break;
+                default:
+                    return; // QualityStats mode: no typeahead
             }
 
-            return false;
+            if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
+            {
+                if (newIndex >= 0 && newIndex != currentIndex)
+                {
+                    setIndex(newIndex);
+                    announceAction?.Invoke();
+                }
+            }
+            else
+            {
+                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+            }
         }
 
         // === Mode transitions ===

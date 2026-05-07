@@ -272,14 +272,18 @@ namespace RimWorldAccess
         /// happen to contain the search term don't pollute the name tiers.
         /// Description tier is the fallback for anything that matches somewhere in
         /// the full label but not in the name portion.
+        ///
+        /// Both sides are normalized via <see cref="TextNormalization.RemoveDiacritics"/>
+        /// so a French user typing "cafe" matches "café", a German user typing "strasse"
+        /// matches "Straße", etc. Mirrors OniAccess's accent-insensitive matching.
         /// </summary>
         private MatchType GetMatchType(string search, string label)
         {
             if (string.IsNullOrEmpty(search) || string.IsNullOrEmpty(label))
                 return MatchType.None;
 
-            string searchLower = search.ToLowerInvariant();
-            string labelLower = label.ToLowerInvariant().Trim();
+            string searchLower = TextNormalization.RemoveDiacritics(search.ToLowerInvariant());
+            string labelLower = TextNormalization.RemoveDiacritics(label.ToLowerInvariant().Trim());
 
             int boundary = FindNameBoundary(labelLower);
             string namePortion = boundary >= 0 ? labelLower.Substring(0, boundary) : labelLower;

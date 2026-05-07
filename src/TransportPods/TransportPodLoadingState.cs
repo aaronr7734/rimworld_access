@@ -333,23 +333,6 @@ namespace RimWorldAccess
 
                 if (isLetter || isNumber)
                 {
-                    TypeaheadCharacterBuffer.RequestCharacter(c =>
-                    {
-                        List<TransferableOneWay> transferables = GetCurrentTabTransferables();
-                        var labels = CaravanUIHelper.GetTransferableLabels(transferables);
-                        if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
-                        {
-                            if (newIndex >= 0)
-                            {
-                                selectedIndex = newIndex;
-                                AnnounceWithSearch();
-                            }
-                        }
-                        else
-                        {
-                            TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
-                        }
-                    });
                     return true;
                 }
             }
@@ -680,6 +663,30 @@ namespace RimWorldAccess
         #endregion
 
         #region Dialog Actions
+
+        /// <summary>
+        /// Handles typeahead character input from the layout-aware dispatcher.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!isActive) return;
+            if (showingSummary) return;
+
+            List<TransferableOneWay> transferables = GetCurrentTabTransferables();
+            var labels = CaravanUIHelper.GetTransferableLabels(transferables);
+            if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
+            {
+                if (newIndex >= 0)
+                {
+                    selectedIndex = newIndex;
+                    AnnounceWithSearch();
+                }
+            }
+            else
+            {
+                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+            }
+        }
 
         /// <summary>
         /// Accepts the current loading configuration and starts hauling.

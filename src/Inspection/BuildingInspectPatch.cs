@@ -216,13 +216,6 @@ namespace RimWorldAccess
 
             if ((isLetter || isNumber) && !isExcludedLetter && !KeyboardHelper.IsAltHeld)
             {
-                TypeaheadCharacterBuffer.RequestCharacter(c =>
-                {
-                    if (!BillsMenuState.ProcessTypeaheadCharacter(c))
-                    {
-                        TolkHelper.Speak($"No matches for '{BillsMenuState.GetLastFailedSearch()}'");
-                    }
-                });
                 Event.current.Use();
                 return;
             }
@@ -328,12 +321,8 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Handle text input mode (bill rename)
-            if (BillConfigState.IsTextInputMode)
-            {
-                HandleBillRenameInput();
-                return;
-            }
+            // Bill rename is now driven by TextInputManager via UnifiedKeyboardPatch's
+            // priority -1.6 dispatch. Nothing to do here.
 
             KeyCode key = Event.current.keyCode;
 
@@ -415,13 +404,6 @@ namespace RimWorldAccess
 
             if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
             {
-                TypeaheadCharacterBuffer.RequestCharacter(c =>
-                {
-                    if (!BillConfigState.ProcessTypeaheadCharacter(c))
-                    {
-                        TolkHelper.Speak($"No matches for '{BillConfigState.GetLastFailedSearch()}'");
-                    }
-                });
                 Event.current.Use();
                 return;
             }
@@ -600,62 +582,12 @@ namespace RimWorldAccess
             }
         }
 
-        private static void HandleBillRenameInput()
-        {
-            KeyCode key = Event.current.keyCode;
-
-            if (key == KeyCode.Escape)
-            {
-                BillConfigState.CancelTextInput();
-                Event.current.Use();
-                return;
-            }
-            if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
-            {
-                BillConfigState.ConfirmTextInput();
-                Event.current.Use();
-                return;
-            }
-            if (key == KeyCode.Backspace)
-            {
-                TextInputHelper.HandleBackspace();
-                Event.current.Use();
-                return;
-            }
-            // Handle Ctrl+V paste
-            if (Event.current.control && key == KeyCode.V)
-            {
-                TextInputHelper.HandlePaste();
-                Event.current.Use();
-                return;
-            }
-            // Handle character input
-            char c = Event.current.character;
-            if (c != '\0' && !char.IsControl(c))
-            {
-                TextInputHelper.HandleCharacter(c);
-                Event.current.Use();
-            }
-        }
-
         private static void HandleThingFilterInput()
         {
             // Check if range edit submenu is active
             if (RangeEditMenuState.IsActive)
             {
                 HandleRangeEditInput();
-                return;
-            }
-
-            // Unity IMGUI sends two KeyDown events per keystroke: a KeyCode-only
-            // event, then a keyCode=None event carrying the layout-aware character.
-            // Forward the character event to any pending typeahead callback BEFORE
-            // the switch's default case consumes it, otherwise typeahead never
-            // receives the character (this is what was breaking bills' ingredient
-            // filter typeahead).
-            if (TypeaheadCharacterBuffer.TryForwardCharacterEvent())
-            {
-                Event.current.Use();
                 return;
             }
 
@@ -677,7 +609,6 @@ namespace RimWorldAccess
 
             if ((isLetter || (isNumber && !Event.current.shift)) && !KeyboardHelper.IsAltHeld && !Event.current.control)
             {
-                TypeaheadCharacterBuffer.RequestCharacter(c => ThingFilterMenuState.ProcessTypeaheadCharacter(c));
                 Event.current.Use();
                 return;
             }
@@ -893,7 +824,6 @@ namespace RimWorldAccess
             bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
             if ((isLetter || (isNumber && !Event.current.shift)) && !KeyboardHelper.IsAltHeld && !Event.current.control)
             {
-                TypeaheadCharacterBuffer.RequestCharacter(c => RefuelableComponentState.ProcessTypeaheadCharacter(c));
                 Event.current.Use();
                 return;
             }
@@ -1116,13 +1046,6 @@ namespace RimWorldAccess
 
             if ((isLetter || isNumber) && !KeyboardHelper.IsAltHeld)
             {
-                TypeaheadCharacterBuffer.RequestCharacter(c =>
-                {
-                    if (!FishingZoneMenuState.ProcessTypeaheadCharacter(c))
-                    {
-                        TolkHelper.Speak($"No matches for '{FishingZoneMenuState.GetLastFailedSearch()}'");
-                    }
-                });
                 Event.current.Use();
                 return;
             }

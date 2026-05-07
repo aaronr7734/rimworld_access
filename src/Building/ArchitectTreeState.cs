@@ -84,6 +84,17 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Public typeahead entry point for the unified <see cref="TypeaheadDispatcher"/>.
+        /// Delegates to the per-tree helper instance — fixes typeahead on non-Latin
+        /// keyboard layouts where the legacy KeyCode gate didn't fire.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!isActive) return;
+            treeNav.HandleTypeahead(c);
+        }
+
+        /// <summary>
         /// Gets the currently selected designator, or null if a category is selected.
         /// </summary>
         public static Designator GetSelectedDesignator()

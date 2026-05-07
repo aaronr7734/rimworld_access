@@ -326,6 +326,19 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Handles typeahead character input from the layout-aware dispatcher.
+        /// Wraps <see cref="ProcessTypeaheadCharacter"/> with the no-match announcement.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!isActive) return;
+            if (!ProcessTypeaheadCharacter(c))
+            {
+                TolkHelper.Speak($"No matches for '{GetLastFailedSearch()}'");
+            }
+        }
+
+        /// <summary>
         /// Gets a list of labels for all menu items for typeahead search.
         /// </summary>
         private static List<string> GetItemLabels()

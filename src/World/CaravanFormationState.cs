@@ -302,6 +302,29 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Handles typeahead character input from the layout-aware dispatcher.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!isActive) return;
+            if (showingSummary) return;
+
+            var labels = GetTransferableLabels();
+            if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
+            {
+                if (newIndex >= 0)
+                {
+                    selectedIndex = newIndex;
+                    AnnounceWithSearch();
+                }
+            }
+            else
+            {
+                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+            }
+        }
+
+        /// <summary>
         /// Selects the next item in the current tab.
         /// </summary>
         public static void SelectNext()
@@ -1375,22 +1398,6 @@ namespace RimWorldAccess
 
             if ((isLetter || isNumber) && !alt && !showingSummary)
             {
-                TypeaheadCharacterBuffer.RequestCharacter(c =>
-                {
-                    var labels = GetTransferableLabels();
-                    if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
-                    {
-                        if (newIndex >= 0)
-                        {
-                            selectedIndex = newIndex;
-                            AnnounceWithSearch();
-                        }
-                    }
-                    else
-                    {
-                        TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
-                    }
-                });
                 Event.current.Use();
                 return true;
             }

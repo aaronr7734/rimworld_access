@@ -322,26 +322,33 @@ namespace RimWorldAccess
 
             if (isLetter || isNumber)
             {
-                TypeaheadCharacterBuffer.RequestCharacter(c =>
-                {
-                    var labels = GetShapeLabels();
-                    if (typeaheadHelper.ProcessCharacterInput(c, labels, out int newIndex))
-                    {
-                        if (newIndex >= 0)
-                        {
-                            selectedIndex = newIndex;
-                            AnnounceWithSearch();
-                        }
-                    }
-                    else
-                    {
-                        TolkHelper.Speak($"No matches for '{typeaheadHelper.LastFailedSearch}'");
-                    }
-                });
                 return true;
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Handles typeahead character input from the layout-aware dispatcher.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!IsActive) return;
+            if (typeaheadHelper == null) return;
+
+            var labels = GetShapeLabels();
+            if (typeaheadHelper.ProcessCharacterInput(c, labels, out int newIndex))
+            {
+                if (newIndex >= 0)
+                {
+                    selectedIndex = newIndex;
+                    AnnounceWithSearch();
+                }
+            }
+            else
+            {
+                TolkHelper.Speak($"No matches for '{typeaheadHelper.LastFailedSearch}'");
+            }
         }
 
         /// <summary>

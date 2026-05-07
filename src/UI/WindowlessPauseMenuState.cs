@@ -312,27 +312,34 @@ namespace RimWorldAccess
 
             if (isLetter || isNumber)
             {
-                TypeaheadCharacterBuffer.RequestCharacter(c =>
-                {
-                    var labels = GetItemLabels();
-                    if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
-                    {
-                        if (newIndex >= 0)
-                        {
-                            selectedIndex = newIndex;
-                            AnnounceWithSearch();
-                        }
-                    }
-                    else
-                    {
-                        TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
-                    }
-                });
                 Event.current.Use();
                 return true;
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Public entry point for the unified typeahead dispatcher (registered in
+        /// <see cref="TypeaheadConsumerRegistry"/>). Invoked at priority -1.5 with the
+        /// layout-aware character event, so it works on any keyboard layout.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!IsActive) return;
+            var labels = GetItemLabels();
+            if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
+            {
+                if (newIndex >= 0)
+                {
+                    selectedIndex = newIndex;
+                    AnnounceWithSearch();
+                }
+            }
+            else
+            {
+                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+            }
         }
 
         /// <summary>

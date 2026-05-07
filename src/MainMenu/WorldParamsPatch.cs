@@ -1,6 +1,5 @@
 using HarmonyLib;
 using RimWorld;
-using RimWorld.Planet;
 using UnityEngine;
 using Verse;
 
@@ -59,6 +58,13 @@ namespace RimWorldAccess
             if (InfoCardState.IsActive)
                 return;
 
+            // Modal text-edit has absolute priority. UnifiedKeyboardPatch at priority -1.6
+            // should already have consumed the event, but this is defensive — if the event
+            // somehow reaches us, we must not process it while the seed (or any other)
+            // controller is live.
+            if (TextInputManager.IsActive)
+                return;
+
             KeyCode keyCode = evt.keyCode;
 
             // ===== Tab switching between sections =====
@@ -92,12 +98,9 @@ namespace RimWorldAccess
 
             // ===== World Params section handling below =====
 
-            // Seed editing mode has priority
-            if (WorldParamsNavigationState.IsEditingSeed)
-            {
-                HandleSeedEditing(keyCode, evt);
-                return;
-            }
+            // Seed editing is driven by TextInputController in modal mode. When active,
+            // UnifiedKeyboardPatch at priority -1.6 routes all keys to the controller and
+            // marks the event Used, so HandleKeyInput above never reaches us for those frames.
 
             // Typeahead search handling - when search is active, Up/Down navigate matches
             if (WorldParamsNavigationState.HasActiveSearch)
@@ -201,30 +204,6 @@ namespace RimWorldAccess
             {
                 // Typeahead search
                 WorldParamsNavigationState.HandleTypeahead(evt.character);
-                evt.Use();
-            }
-        }
-
-        private static void HandleSeedEditing(KeyCode keyCode, Event evt)
-        {
-            if (keyCode == KeyCode.Return || keyCode == KeyCode.KeypadEnter)
-            {
-                WorldParamsNavigationState.ConfirmSeedEdit();
-                evt.Use();
-            }
-            else if (keyCode == KeyCode.Escape)
-            {
-                WorldParamsNavigationState.CancelSeedEdit();
-                evt.Use();
-            }
-            else if (keyCode == KeyCode.Backspace)
-            {
-                WorldParamsNavigationState.RemoveCharFromSeedBuffer();
-                evt.Use();
-            }
-            else if (evt.character != '\0' && !char.IsControl(evt.character))
-            {
-                WorldParamsNavigationState.AddCharToSeedBuffer(evt.character);
                 evt.Use();
             }
         }

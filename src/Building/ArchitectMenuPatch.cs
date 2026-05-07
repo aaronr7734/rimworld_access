@@ -5,7 +5,6 @@ using UnityEngine;
 using Verse;
 using Verse.Sound;
 using RimWorld;
-using RimWorld.Planet;
 
 namespace RimWorldAccess
 {
@@ -123,13 +122,9 @@ namespace RimWorldAccess
         /// </summary>
         private static void HandleArchitectTreeInput()
         {
-            // Forward character events to TypeaheadCharacterBuffer (this patch runs before
-            // UnifiedKeyboardPatch, so character events must be dispatched here)
-            if (TypeaheadCharacterBuffer.TryForwardCharacterEvent())
-            {
-                Event.current.Use();
-                return;
-            }
+            // Architect tree typeahead is dispatched at priority -1.5 in
+            // UnifiedKeyboardPatch via TypeaheadDispatcher (registered in
+            // TypeaheadConsumerRegistry). Nothing to forward here.
 
             // Don't handle input if a float menu (like right-click options) is open
             if (WindowlessFloatMenuState.IsActive)
@@ -163,18 +158,16 @@ namespace RimWorldAccess
                 return;
             }
 
-            // HandleInput returned false = Escape with no active search
+            // HandleInput only returns false for KeyCode.Escape (with no active search) and
+            // for KeyCode.None character events (which must flow to UnifiedKeyboardPatch's
+            // TypeaheadDispatcher). Escape is handled here; the None case is left unconsumed.
             if (key == KeyCode.Escape)
             {
                 ArchitectTreeState.Close();
                 ArchitectState.Reset(); // Also reset ArchitectState so Tab works again
                 TolkHelper.Speak("Architect menu closed");
                 Event.current.Use();
-                return;
             }
-
-            // Consume other keys to prevent passthrough
-            Event.current.Use();
         }
 
         /// <summary>

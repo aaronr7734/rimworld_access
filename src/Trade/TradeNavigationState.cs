@@ -2205,6 +2205,23 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// <summary>
+        /// Handles typeahead character input from the layout-aware dispatcher.
+        /// In quantity mode, digits go to numeric input; otherwise they typeahead-search.
+        /// Letters always typeahead-search.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!isActive) return;
+
+            if (isInQuantityMode && char.IsDigit(c))
+            {
+                HandleNumericInput(c);
+                return;
+            }
+            ProcessTypeaheadCharacter(c);
+        }
+
         /// Processes a typeahead character input.
         /// </summary>
         /// <param name="c">The character typed</param>
