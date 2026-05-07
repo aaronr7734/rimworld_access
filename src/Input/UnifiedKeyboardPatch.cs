@@ -1995,6 +1995,31 @@ namespace RimWorldAccess
                 bool handled = false;
                 bool inField = WindowlessSaveMenuState.IsInTextField;
 
+                // Field-only cursor review: Left/Right (with Shift/Ctrl modifiers).
+                // Down/Up stay with the surrounding state for menu navigation
+                // (Down enters the existing-saves list; Up returns to the field).
+                if (inField && key == KeyCode.LeftArrow)
+                {
+                    WindowlessSaveMenuState.HandleArrowLeftInField(Event.current.shift, Event.current.control);
+                    Event.current.Use();
+                    return;
+                }
+                if (inField && key == KeyCode.RightArrow)
+                {
+                    WindowlessSaveMenuState.HandleArrowRightInField(Event.current.shift, Event.current.control);
+                    Event.current.Use();
+                    return;
+                }
+
+                // Field-only clipboard: Ctrl+C / Ctrl+X / Ctrl+V / Ctrl+A.
+                if (inField && Event.current.control && !Event.current.alt)
+                {
+                    if (key == KeyCode.C) { WindowlessSaveMenuState.HandleCopyInField(); Event.current.Use(); return; }
+                    if (key == KeyCode.X) { WindowlessSaveMenuState.HandleCutInField(); Event.current.Use(); return; }
+                    if (key == KeyCode.V) { WindowlessSaveMenuState.HandlePasteInField(); Event.current.Use(); return; }
+                    if (key == KeyCode.A) { WindowlessSaveMenuState.HandleSelectAllInField(); Event.current.Use(); return; }
+                }
+
                 if (key == KeyCode.Home)
                 {
                     WindowlessSaveMenuState.JumpToFirst();

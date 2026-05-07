@@ -36,9 +36,17 @@ namespace RimWorldAccess
         private static bool isActive = false;
         private static SaveLoadMode currentMode = SaveLoadMode.Load;
         private static SaveFocus saveFocus = SaveFocus.TextField;
-        private static string typedSaveName = "";
-        private static bool isFieldDirty = false;
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
+
+        // Embedded text-input session for the save-name field. modal: false means the
+        // surrounding state still owns Up/Down (file-list navigation) and the controller
+        // only sees keys this state explicitly forwards to it.
+        private static readonly TextInputController nameController = new TextInputController();
+        private static readonly TextFieldSpec nameSpec = new TextFieldSpec(
+            labelKey: "RimWorldAccess.TextInput.LabelFilename",
+            maxLength: 64,
+            minLength: 1,
+            mustBeFilename: true);
 
         // When CheckVersionAndLoadGame queues a mod- or version-mismatch dialog, we
         // suspend (rather than close) this menu and wait for the dialog to resolve.
@@ -72,16 +80,15 @@ namespace RimWorldAccess
             if (mode == SaveLoadMode.Save)
             {
                 saveFocus = SaveFocus.TextField;
-                isFieldDirty = false;
-                typedSaveName = Faction.OfPlayer.HasName
+                string prefilled = Faction.OfPlayer.HasName
                     ? Faction.OfPlayer.Name
                     : SaveGameFilesUtility.UnusedDefaultFileName(Faction.OfPlayer.def.LabelCap);
+                nameController.Begin(prefilled, nameSpec, _ => { }, null, replaceOnType: true, modal: false);
             }
             else
             {
                 saveFocus = SaveFocus.List;
-                isFieldDirty = false;
-                typedSaveName = "";
+                nameController.Cancel();
             }
 
             AnnounceCurrentState();
@@ -92,8 +99,7 @@ namespace RimWorldAccess
             saveFiles = null;
             selectedIndex = 0;
             isActive = false;
-            typedSaveName = "";
-            isFieldDirty = false;
+            nameController.Cancel();
             saveFocus = SaveFocus.TextField;
             typeahead.ClearSearch();
             pendingDialog = null;
@@ -150,9 +156,6 @@ namespace RimWorldAccess
             if (currentMode == SaveLoadMode.Save && selectedIndex == 0)
             {
                 saveFocus = SaveFocus.TextField;
-                // Re-entering the field should behave like first entry: the next
-                // keystroke replaces whatever is there (prefilled or previously typed).
-                isFieldDirty = false;
                 AnnounceCurrentState();
                 return;
             }
@@ -228,7 +231,7 @@ namespace RimWorldAccess
 
             if (IsInTextField)
             {
-                saveName = typedSaveName;
+                saveName = nameController.CurrentText;
             }
             else if (saveFiles != null && selectedIndex >= 0 && selectedIndex < saveFiles.Count)
             {
@@ -484,57 +487,64 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Text field input. Inserts a printable character into typedSaveName.
-        /// The first keystroke after Open replaces the prefilled faction name.
+        /// Layout-aware character entry; forwarded by the typeahead dispatcher when
+        /// the field has focus. Controller validates against <see cref="nameSpec"/>
+        /// (filename rules, max length) and arms replaceOnType so the first keystroke
+        /// replaces the prefilled faction name.
         /// </summary>
         public static void AppendChar(char c)
         {
-            if (!IsInTextField)
-                return;
-
-            if (char.IsControl(c))
-                return;
-
-            if (!isFieldDirty)
-            {
-                typedSaveName = "";
-                isFieldDirty = true;
-            }
-
-            typedSaveName += c;
-            TolkHelper.Speak(c.ToString(), SpeechPriority.Low);
+            if (!IsInTextField) return;
+            nameController.HandleCharacter(c);
         }
 
-        /// <summary>
-        /// Backspace inside the text field. Removes the last character.
-        /// If the field still holds the prefilled name, the first backspace
-        /// clears the whole buffer (matching the first-keystroke-replaces behavior).
-        /// </summary>
+        /// <summary>Backspace inside the text field — delegates to the controller.</summary>
         public static void BackspaceInField()
         {
-            if (!IsInTextField)
-                return;
+            if (!IsInTextField) return;
+            nameController.HandleBackspace();
+        }
 
-            if (!isFieldDirty)
-            {
-                typedSaveName = "";
-                isFieldDirty = true;
-                TolkHelper.Speak("Cleared.");
-                return;
-            }
+        /// <summary>Left-arrow cursor review while in the text field.</summary>
+        public static void HandleArrowLeftInField(bool shift, bool ctrl)
+        {
+            if (!IsInTextField) return;
+            nameController.HandleArrowLeft(shift, ctrl);
+        }
 
-            if (typedSaveName.Length > 0)
-            {
-                typedSaveName = typedSaveName.Substring(0, typedSaveName.Length - 1);
-                if (typedSaveName.Length == 0)
-                {
-                    TolkHelper.Speak("Empty");
-                }
-                else
-                {
-                    TolkHelper.Speak(typedSaveName[typedSaveName.Length - 1].ToString() + " deleted", SpeechPriority.Low);
-                }
-            }
+        /// <summary>Right-arrow cursor review while in the text field.</summary>
+        public static void HandleArrowRightInField(bool shift, bool ctrl)
+        {
+            if (!IsInTextField) return;
+            nameController.HandleArrowRight(shift, ctrl);
+        }
+
+        /// <summary>Ctrl+C copy from the field's selection.</summary>
+        public static void HandleCopyInField()
+        {
+            if (!IsInTextField) return;
+            nameController.HandleCopy();
+        }
+
+        /// <summary>Ctrl+X cut from the field's selection.</summary>
+        public static void HandleCutInField()
+        {
+            if (!IsInTextField) return;
+            nameController.HandleCut();
+        }
+
+        /// <summary>Ctrl+V paste at the field's cursor.</summary>
+        public static void HandlePasteInField()
+        {
+            if (!IsInTextField) return;
+            nameController.HandlePaste();
+        }
+
+        /// <summary>Ctrl+A select all in the field.</summary>
+        public static void HandleSelectAllInField()
+        {
+            if (!IsInTextField) return;
+            nameController.HandleSelectAll();
         }
 
         public static bool ClearTypeaheadSearch()
@@ -678,7 +688,7 @@ namespace RimWorldAccess
         {
             if (IsInTextField)
             {
-                return $"{"SaveGameButton".Translate()}: {typedSaveName}. Type a new name, Down arrow for existing saves, Enter to save.";
+                return $"{"SaveGameButton".Translate()}: {nameController.CurrentText}. Type a new name, Down arrow for existing saves, Enter to save.";
             }
 
             if (saveFiles == null || saveFiles.Count == 0)
