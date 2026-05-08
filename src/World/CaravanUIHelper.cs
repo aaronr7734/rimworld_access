@@ -18,6 +18,7 @@ namespace RimWorldAccess
         /// </summary>
         public enum TransferableCategory
         {
+            Vehicles,
             Pawns,
             FoodAndMedicine,  // Also known as TravelSupplies
             Items
@@ -38,11 +39,17 @@ namespace RimWorldAccess
 
             switch (category)
             {
+                case TransferableCategory.Vehicles:
+                    return allTransferables
+                        .Where(t => VehicleFrameworkHelper.IsVehiclePawn(t.AnyThing))
+                        .ToList();
+
                 case TransferableCategory.Pawns:
                     // Filter to pawns and sort by type: Colonists, Slaves, Prisoners, Animals, Others
                     // This matches the visual section order in the game's UI
                     return allTransferables
-                        .Where(t => t.ThingDef.category == ThingCategory.Pawn)
+                        .Where(t => t.ThingDef.category == ThingCategory.Pawn &&
+                                    !VehicleFrameworkHelper.IsVehiclePawn(t.AnyThing))
                         .OrderBy(t => GetPawnSortOrder(t.AnyThing as Pawn))
                         .ToList();
 

@@ -20,12 +20,11 @@ namespace RimWorldAccess
     {
         private enum Tab
         {
+            Vehicles,
             Pawns,
             Items,
             TravelSupplies
         }
-
-        private const int TabCount = 3;
 
         private static bool isActive = false;
         private static Dialog_FormCaravan currentDialog = null;
@@ -193,7 +192,7 @@ namespace RimWorldAccess
 
             isActive = true;
             currentDialog = dialog;
-            currentTab = Tab.Pawns;
+            currentTab = GetInitialTab();
             selectedIndex = 0;
             showingSummary = false;
             isChoosingDestination = false;
@@ -261,6 +260,34 @@ namespace RimWorldAccess
             return CaravanUIHelper.FilterByCategory(allTransferables, GetCategoryForTab(currentTab));
         }
 
+        private static bool HasVehicleTab()
+        {
+            return VehicleFrameworkHelper.HasVehicleTransferables(GetTransferables());
+        }
+
+        private static List<Tab> GetVisibleTabs()
+        {
+            var tabs = new List<Tab>();
+            if (HasVehicleTab())
+                tabs.Add(Tab.Vehicles);
+
+            tabs.Add(Tab.Pawns);
+            tabs.Add(Tab.Items);
+            tabs.Add(Tab.TravelSupplies);
+            return tabs;
+        }
+
+        private static Tab GetInitialTab()
+        {
+            return HasVehicleTab() ? Tab.Vehicles : Tab.Pawns;
+        }
+
+        private static void EnsureCurrentTabVisible()
+        {
+            if (!GetVisibleTabs().Contains(currentTab))
+                currentTab = GetInitialTab();
+        }
+
         /// <summary>
         /// Maps the local Tab enum to CaravanUIHelper.TransferableCategory.
         /// </summary>
@@ -268,6 +295,7 @@ namespace RimWorldAccess
         {
             switch (tab)
             {
+                case Tab.Vehicles: return CaravanUIHelper.TransferableCategory.Vehicles;
                 case Tab.Pawns: return CaravanUIHelper.TransferableCategory.Pawns;
                 case Tab.TravelSupplies: return CaravanUIHelper.TransferableCategory.FoodAndMedicine;
                 case Tab.Items: return CaravanUIHelper.TransferableCategory.Items;
@@ -430,7 +458,12 @@ namespace RimWorldAccess
             // Save current position before switching
             tabPositions[currentTab] = selectedIndex;
 
-            currentTab = (Tab)(((int)currentTab + 1) % TabCount);
+            List<Tab> visibleTabs = GetVisibleTabs();
+            int currentTabIndex = visibleTabs.IndexOf(currentTab);
+            if (currentTabIndex < 0)
+                currentTabIndex = 0;
+
+            currentTab = visibleTabs[(currentTabIndex + 1) % visibleTabs.Count];
 
             // Restore saved position for new tab (default to 0 if not visited yet)
             if (tabPositions.TryGetValue(currentTab, out int savedPos))
@@ -463,7 +496,12 @@ namespace RimWorldAccess
             // Save current position before switching
             tabPositions[currentTab] = selectedIndex;
 
-            currentTab = (Tab)(((int)currentTab + TabCount - 1) % TabCount);
+            List<Tab> visibleTabs = GetVisibleTabs();
+            int currentTabIndex = visibleTabs.IndexOf(currentTab);
+            if (currentTabIndex < 0)
+                currentTabIndex = 0;
+
+            currentTab = visibleTabs[(currentTabIndex + visibleTabs.Count - 1) % visibleTabs.Count];
 
             // Restore saved position for new tab (default to 0 if not visited yet)
             if (tabPositions.TryGetValue(currentTab, out int savedPos))
@@ -495,10 +533,17 @@ namespace RimWorldAccess
 
             try
             {
+                EnsureCurrentTabVisible();
+
                 // Map our Tab enum to game's tab values
                 int gameTabValue;
+                bool vehicleTab = false;
                 switch (currentTab)
                 {
+                    case Tab.Vehicles:
+                        gameTabValue = 0;
+                        vehicleTab = true;
+                        break;
                     case Tab.Pawns:
                         gameTabValue = 0;
                         break;
@@ -518,6 +563,8 @@ namespace RimWorldAccess
                 {
                     tabField.SetValue(currentDialog, gameTabValue);
                 }
+
+                VehicleFrameworkHelper.SyncFormCaravanTab(gameTabValue, vehicleTab);
             }
             catch (Exception ex)
             {
@@ -817,7 +864,7 @@ namespace RimWorldAccess
         /// </summary>
         private static void TogglePawnSelection()
         {
-            if (currentTab != Tab.Pawns)
+            if (currentTab != Tab.Pawns && currentTab != Tab.Vehicles)
                 return;
 
             List<TransferableOneWay> transferables = GetCurrentTabTransferables();
@@ -1282,6 +1329,7 @@ namespace RimWorldAccess
             switch (tab)
             {
                 case Tab.Pawns: return "Pawns";
+                case Tab.Vehicles: return "Vehicles";
                 case Tab.Items: return "Items";
                 case Tab.TravelSupplies: return "Travel Supplies";
                 default: return tab.ToString();
@@ -1418,7 +1466,7 @@ namespace RimWorldAccess
 
                 TransferableOneWay transferable = transferables[selectedIndex];
 
-                if (currentTab == Tab.Pawns)
+                if (currentTab == Tab.Pawns || currentTab == Tab.Vehicles)
                 {
                     TogglePawnSelection();
                 }
@@ -1446,7 +1494,7 @@ namespace RimWorldAccess
             if (!showingSummary)
             {
                 // Check if quantity shortcuts should be enabled for this tab/item
-                bool allowQuantityShortcuts = currentTab != Tab.Pawns;
+                bool allowQuantityShortcuts = currentTab != Tab.Pawns && currentTab != Tab.Vehicles;
 
                 // For Pawns tab, allow quantity shortcuts only for grouped animals (MaxCount > 1)
                 if (!allowQuantityShortcuts)
@@ -1535,7 +1583,7 @@ namespace RimWorldAccess
                         TransferableOneWay transferable = transferables[selectedIndex];
 
                         // Pawns tab: Shift+Enter selects all pawns of this type
-                        if (currentTab == Tab.Pawns)
+                        if (currentTab == Tab.Pawns || currentTab == Tab.Vehicles)
                         {
                             CaravanQuantityHelper.SelectAllPawns(
                                 transferable,
@@ -1578,7 +1626,7 @@ namespace RimWorldAccess
                         TransferableOneWay transferable = transferables[selectedIndex];
 
                         // Pawns tab: Enter toggles pawn selection (same as Space)
-                        if (currentTab == Tab.Pawns)
+                        if (currentTab == Tab.Pawns || currentTab == Tab.Vehicles)
                         {
                             TogglePawnSelection();
                             return true;
@@ -1620,7 +1668,7 @@ namespace RimWorldAccess
                         }
 
                         TransferableOneWay transferable = transferables[selectedIndex];
-                        bool isPawnTab = currentTab == Tab.Pawns;
+                        bool isPawnTab = currentTab == Tab.Pawns || currentTab == Tab.Vehicles;
                         bool isSuppliesLocked = currentTab == Tab.TravelSupplies && autoProvisionEnabled;
 
                         CaravanInputHelper.HandleDeleteKey(

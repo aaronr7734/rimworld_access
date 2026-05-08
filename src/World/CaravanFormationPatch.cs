@@ -273,7 +273,7 @@ namespace RimWorldAccess
             Text.Font = GameFont.Tiny;
             Text.Anchor = TextAnchor.UpperLeft;
 
-            string instructions = "Tabs: Pawns, Items, Travel Supplies | Space/Enter: Toggle/Quantity\n" +
+            string instructions = "Tabs: Vehicles, Pawns, Items, Travel Supplies | Space/Enter: Toggle/Quantity\n" +
                                 "Shift+Enter: Max | Del: Remove | Tab: Summary | Alt+I: Inspect/Breakdown\n" +
                                 "Alt+A: Auto-provision | Alt+D: Destination | Alt+S: Send | Alt+R: Reset";
 
