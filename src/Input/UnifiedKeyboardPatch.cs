@@ -731,7 +731,7 @@ namespace RimWorldAccess
             // ===== PRIORITY 0.22: Handle inspection menu EARLY if opened from caravan/split/inspect/transport pod dialogs =====
             // This ensures Escape in inspection doesn't get caught by other handlers
             // Note: Window.OnCancelKeyPressed is patched in CaravanFormationPatch and TransportPodPatch to block RimWorld's Cancel handling
-            if (WindowlessInspectionState.IsActive && (CaravanFormationState.IsActive || SplitCaravanState.IsActive || CaravanInspectState.IsActive || TransportPodLoadingState.IsActive))
+            if (WindowlessInspectionState.IsActive && (CaravanFormationState.IsActive || SplitCaravanState.IsActive || CaravanInspectState.IsActive || TransportPodLoadingState.IsActive || VehicleCargoLoadingState.IsActive))
             {
                 if (WindowlessInspectionState.HandleInput(Event.current))
                 {
@@ -843,6 +843,20 @@ namespace RimWorldAccess
                 bool alt = KeyboardHelper.IsAltHeld;
 
                 if (TransportPodLoadingState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 0.325: Handle Vehicle Framework cargo loading dialog if active =====
+            if (VehicleCargoLoadingState.IsActive && !WindowlessDialogState.IsActive && !WindowlessInspectionState.IsActive && !QuantityMenuState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = KeyboardHelper.IsAltHeld;
+
+                if (VehicleCargoLoadingState.HandleInput(key, shift, ctrl, alt))
                 {
                     Event.current.Use();
                     return;

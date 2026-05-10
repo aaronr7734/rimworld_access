@@ -1,4 +1,5 @@
 using RimWorld;
+using Verse;
 
 namespace RimWorldAccess
 {
@@ -12,6 +13,11 @@ namespace RimWorldAccess
         public static void RecacheTransferablesPostfix(object __instance)
         {
             VehicleFrameworkHelper.PostprocessVehicleFormationRecache(__instance);
+        }
+
+        public static void LoadCargoPostOpenPostfix(Window __instance)
+        {
+            VehicleCargoLoadingState.Open(__instance);
         }
     }
 }

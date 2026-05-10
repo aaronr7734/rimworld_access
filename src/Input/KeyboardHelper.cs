@@ -270,6 +270,7 @@ namespace RimWorldAccess
                 // input via UnifiedKeyboardPatch priorities
                 || CaravanInspectState.IsActive
                 || (CaravanFormationState.IsActive && !CaravanFormationState.IsChoosingDestination)
+                || VehicleCargoLoadingState.IsActive
                 || LordJobDialogState.IsActive
                 || QuestMenuState.IsActive
                 || NotificationMenuState.IsActive

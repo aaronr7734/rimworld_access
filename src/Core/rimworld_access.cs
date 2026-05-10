@@ -106,6 +106,17 @@ namespace RimWorldAccess
                 harmony.Patch(recacheMethod, postfix: new HarmonyMethod(recachePostfix));
                 Log.Message("[RimWorld Access] Applied Vehicle Framework recache postfix");
             }
+
+            var loadCargoType = AccessTools.TypeByName("Vehicles.Dialog_LoadCargo");
+            var loadCargoPostOpenMethod = AccessTools.Method(loadCargoType, "PostOpen");
+            var loadCargoPostOpenPostfix = AccessTools.Method(
+                typeof(VehicleFrameworkPatches),
+                nameof(VehicleFrameworkPatches.LoadCargoPostOpenPostfix));
+            if (loadCargoPostOpenMethod != null && loadCargoPostOpenPostfix != null)
+            {
+                harmony.Patch(loadCargoPostOpenMethod, postfix: new HarmonyMethod(loadCargoPostOpenPostfix));
+                Log.Message("[RimWorld Access] Applied Vehicle Framework load cargo postfix");
+            }
         }
 
         private static void OnApplicationQuit()
