@@ -1218,12 +1218,37 @@ namespace RimWorldAccess
 
         private static string GetOperatorSummary(Thing vehicle)
         {
-            int required = GetIntProperty(vehicle, "PawnCountToOperate", 0);
-            if (required <= 0)
+            int requiredOperators = GetIntProperty(vehicle, "PawnCountToOperate", 0);
+            int totalSlots = 0;
+            List<string> roleParts = new List<string>();
+            foreach (object handler in GetVehicleHandlers(vehicle))
+            {
+                object role = AccessTools.Field(handler.GetType(), "role")?.GetValue(handler);
+                string label = GetRoleLabel(role);
+                int slots = GetHandlerSlots(handler);
+                int required = GetHandlerSlotsToOperate(handler);
+                totalSlots += slots;
+
+                if (slots <= 0)
+                    continue;
+
+                roleParts.Add(required > 0
+                    ? $"{label}: {required} required of {slots}"
+                    : $"{label}: {slots} optional");
+            }
+
+            if (totalSlots <= 0)
+                return "No operator or passenger seats";
+
+            if (requiredOperators <= 0 && roleParts.Count == 0)
                 return "No operator required";
 
             int assigned = GetAssignedOperatorCount(vehicle);
-            return $"Operators assigned: {assigned} of {required}";
+            string summary = $"Operators assigned: {assigned} of {requiredOperators} required. Seats: {totalSlots} total";
+            if (roleParts.Count > 0)
+                summary += $". {string.Join("; ", roleParts)}";
+
+            return summary;
         }
 
         private static string GetFuelSummary(Thing vehicle)

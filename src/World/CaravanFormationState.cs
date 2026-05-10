@@ -70,6 +70,7 @@ namespace RimWorldAccess
         private static TransferableOneWay seatVehicleTransferable = null;
         private static int seatRoleIndex = 0;
         private static int seatPawnIndex = 0;
+        private static Dictionary<int, int> seatPawnIndexByRole = new Dictionary<int, int>();
 
         /// <summary>
         /// Gets whether caravan formation keyboard navigation is currently active.
@@ -1419,6 +1420,7 @@ namespace RimWorldAccess
             seatVehicleTransferable = vehicleTransferable;
             seatRoleIndex = 0;
             seatPawnIndex = 0;
+            seatPawnIndexByRole.Clear();
 
             TolkHelper.Speak("Vehicle seat assignment. Left and right choose role, up and down choose pawn, Enter assigns, Delete removes last pawn from role, Ctrl+Delete clears all, Escape returns.");
             AnnounceVehicleSeatSelection();
@@ -1440,7 +1442,43 @@ namespace RimWorldAccess
                     pawns.Add(transferable);
                 }
             }
-            return pawns;
+            return SortSeatAssignablePawns(pawns);
+        }
+
+        private static List<TransferableOneWay> SortSeatAssignablePawns(List<TransferableOneWay> pawns)
+        {
+            return pawns
+                .OrderBy(t => GetSeatPawnGroupOrder(t.AnyThing as Pawn))
+                .ThenBy(t => (t.AnyThing as Pawn)?.LabelShortCap.ToString().StripTags() ?? "")
+                .ToList();
+        }
+
+        private static int GetSeatPawnGroupOrder(Pawn pawn)
+        {
+            if (pawn == null)
+                return 3;
+
+            if (pawn.RaceProps?.Humanlike == true)
+                return 0;
+
+            if (pawn.RaceProps?.Animal == true)
+                return 1;
+
+            return 2;
+        }
+
+        private static void SaveSeatPawnIndexForCurrentRole()
+        {
+            seatPawnIndexByRole[seatRoleIndex] = seatPawnIndex;
+        }
+
+        private static void RestoreSeatPawnIndexForCurrentRole(int pawnCount)
+        {
+            if (!seatPawnIndexByRole.TryGetValue(seatRoleIndex, out seatPawnIndex))
+                seatPawnIndex = 0;
+
+            if (seatPawnIndex < 0 || seatPawnIndex >= pawnCount)
+                seatPawnIndex = 0;
         }
 
         private static void AnnounceVehicleSeatSelection()
@@ -1459,8 +1497,7 @@ namespace RimWorldAccess
                 seatRoleIndex = 0;
 
             List<TransferableOneWay> pawns = GetSeatAssignablePawns();
-            if (seatPawnIndex < 0 || seatPawnIndex >= pawns.Count)
-                seatPawnIndex = 0;
+            RestoreSeatPawnIndexForCurrentRole(pawns.Count);
 
             string role = VehicleFrameworkHelper.GetVehicleRoleSummary(seatVehicleTransferable.AnyThing, seatRoleIndex);
             string rolePosition = MenuHelper.FormatPosition(seatRoleIndex, roleCount);
@@ -1482,8 +1519,7 @@ namespace RimWorldAccess
                 return;
 
             List<TransferableOneWay> pawns = GetSeatAssignablePawns();
-            if (seatPawnIndex < 0 || seatPawnIndex >= pawns.Count)
-                seatPawnIndex = 0;
+            RestoreSeatPawnIndexForCurrentRole(pawns.Count);
 
             if (pawns.Count == 0)
             {
@@ -1515,6 +1551,7 @@ namespace RimWorldAccess
                 case KeyCode.LeftArrow:
                     if (!shift && !ctrl && !alt && roleCount > 0)
                     {
+                        SaveSeatPawnIndexForCurrentRole();
                         seatRoleIndex = MenuHelper.SelectPrevious(seatRoleIndex, roleCount);
                         AnnounceVehicleSeatSelection();
                         return true;
@@ -1524,6 +1561,7 @@ namespace RimWorldAccess
                 case KeyCode.RightArrow:
                     if (!shift && !ctrl && !alt && roleCount > 0)
                     {
+                        SaveSeatPawnIndexForCurrentRole();
                         seatRoleIndex = MenuHelper.SelectNext(seatRoleIndex, roleCount);
                         AnnounceVehicleSeatSelection();
                         return true;
@@ -1534,6 +1572,7 @@ namespace RimWorldAccess
                     if (!shift && !ctrl && !alt && pawns.Count > 0)
                     {
                         seatPawnIndex = MenuHelper.SelectPrevious(seatPawnIndex, pawns.Count);
+                        SaveSeatPawnIndexForCurrentRole();
                         AnnounceVehicleSeatPawnOnly();
                         return true;
                     }
@@ -1543,6 +1582,7 @@ namespace RimWorldAccess
                     if (!shift && !ctrl && !alt && pawns.Count > 0)
                     {
                         seatPawnIndex = MenuHelper.SelectNext(seatPawnIndex, pawns.Count);
+                        SaveSeatPawnIndexForCurrentRole();
                         AnnounceVehicleSeatPawnOnly();
                         return true;
                     }
