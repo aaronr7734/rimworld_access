@@ -77,6 +77,10 @@ namespace RimWorldAccess
             if (!disabledReason.NullOrEmpty())
                 sb.Append($". Warning: {disabledReason}");
 
+            string orientation = GetVehicleOrientationSummary(vehicle);
+            if (!orientation.NullOrEmpty())
+                sb.Append($". {orientation}");
+
             float speed = GetVehicleTilesPerDay(vehicle);
             if (speed > 0f)
                 sb.Append($". Speed: {speed:F1} tiles per day");
@@ -179,9 +183,11 @@ namespace RimWorldAccess
 
             string draftMessage;
             bool drafted = TrySetVehicleDrafted(vehicle, true, out draftMessage);
+            string orientation = GetVehicleOrientationSummary(vehicle);
+            string orientationPart = orientation.NullOrEmpty() ? "" : $". {orientation}";
             message = drafted
-                ? $"{vehicle.LabelShort} selected and drafted"
-                : $"{vehicle.LabelShort} selected. {draftMessage}";
+                ? $"{vehicle.LabelShort} selected and drafted{orientationPart}"
+                : $"{vehicle.LabelShort} selected. {draftMessage}{orientationPart}";
             return drafted;
         }
 
@@ -1292,6 +1298,44 @@ namespace RimWorldAccess
             catch { }
 
             return "Fuel";
+        }
+
+        private static string GetVehicleOrientationSummary(Thing vehicle)
+        {
+            object rotation = GetProperty(vehicle, "FullRotation");
+            if (rotation == null)
+                return null;
+
+            string direction = FormatVehicleRotation(rotation.ToString());
+            return direction.NullOrEmpty() ? null : $"Front facing {direction}";
+        }
+
+        private static string FormatVehicleRotation(string rotation)
+        {
+            if (rotation.NullOrEmpty())
+                return null;
+
+            switch (rotation)
+            {
+                case "North":
+                    return "north";
+                case "NorthEast":
+                    return "north-east";
+                case "East":
+                    return "east";
+                case "SouthEast":
+                    return "south-east";
+                case "South":
+                    return "south";
+                case "SouthWest":
+                    return "south-west";
+                case "West":
+                    return "west";
+                case "NorthWest":
+                    return "north-west";
+                default:
+                    return rotation.StripTags();
+            }
         }
 
         private static float GetFuelDays(object fuelComp)
