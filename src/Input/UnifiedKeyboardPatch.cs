@@ -6175,6 +6175,46 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 7.045: Vehicle Framework local vehicle control =====
+            // Alt+O boards selected pawns into the vehicle under the map cursor.
+            // Alt+V selects and drafts the vehicle under the map cursor.
+            // Alt+Shift+V orders the selected vehicle to move to the map cursor.
+            if ((key == KeyCode.V || key == KeyCode.O) && KeyboardHelper.IsAltHeld && !Event.current.control)
+            {
+                if (Current.ProgramState == ProgramState.Playing &&
+                    Find.CurrentMap != null &&
+                    !WorldRendererUtility.WorldSelected &&
+                    !ShapePlacementState.IsActive &&
+                    !(ViewingModeState.IsActive && !ViewingModeState.JustConfirmed) &&
+                    !ZoneCreationState.IsInCreationMode &&
+                    MapNavigationState.IsInitialized &&
+                    !KeyboardHelper.IsAnyAccessibilityMenuActive() &&
+                    (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion))
+                {
+                    Event.current.Use();
+                    IntVec3 cursorPosition = MapNavigationState.CurrentCursorPosition;
+                    string vehicleMessage;
+                    bool ok;
+                    if (key == KeyCode.O)
+                    {
+                        ok = VehicleFrameworkHelper.TryBoardSelectedPawnsIntoVehicleAtCursor(
+                            cursorPosition, Find.CurrentMap, out vehicleMessage);
+                    }
+                    else
+                    {
+                        ok = Event.current.shift
+                            ? VehicleFrameworkHelper.TryOrderSelectedVehicleToCursor(
+                                cursorPosition, Find.CurrentMap, out vehicleMessage)
+                            : VehicleFrameworkHelper.TrySelectAndDraftVehicleAtCursor(
+                                cursorPosition, Find.CurrentMap, out vehicleMessage);
+                    }
+
+                    TolkHelper.Speak(vehicleMessage ?? (ok ? "Vehicle command accepted" : "Vehicle command failed"),
+                        ok ? SpeechPriority.Normal : SpeechPriority.High);
+                    return;
+                }
+            }
+
             // ===== PRIORITY 7.05: Open gizmo navigation with G key (if pawn or building is selected) =====
             if (key == KeyCode.G)
             {

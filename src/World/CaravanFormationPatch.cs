@@ -39,6 +39,11 @@ namespace RimWorldAccess
                     return false; // Skip original method - let our overlay handle the Escape
                 }
 
+                if (__instance is Dialog_FormCaravan && CaravanFormationState.IsAssigningVehicleSeats)
+                {
+                    return false; // Skip original method - let seat assignment mode handle Escape
+                }
+
                 // Block if typeahead search is active (let our handler clear the search first)
                 if (__instance is Dialog_FormCaravan && CaravanFormationState.HasActiveTypeahead)
                 {

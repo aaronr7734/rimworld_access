@@ -133,6 +133,10 @@ namespace RimWorldAccess
             if (transferable.CountToTransfer > 0)
             {
                 transferable.AdjustTo(0);
+                if (VehicleFrameworkHelper.IsVehiclePawn(transferable.AnyThing))
+                {
+                    VehicleFrameworkHelper.ClearVehicleAssignments(transferable.AnyThing);
+                }
                 TolkHelper.Speak($"{transferable.LabelCap.StripTags()} unchecked");
                 nowChecked = false;
             }

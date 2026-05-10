@@ -65,6 +65,12 @@ namespace RimWorldAccess
         // Flag to track if send was attempted (to avoid announcing "cancelled" on successful send)
         private static bool sendAttempted = false;
 
+        // Vehicle Framework seat assignment mode.
+        private static bool assigningVehicleSeats = false;
+        private static TransferableOneWay seatVehicleTransferable = null;
+        private static int seatRoleIndex = 0;
+        private static int seatPawnIndex = 0;
+
         /// <summary>
         /// Gets whether caravan formation keyboard navigation is currently active.
         /// </summary>
@@ -89,6 +95,12 @@ namespace RimWorldAccess
         /// Used by Window.OnCancelKeyPressed patch to block dialog close.
         /// </summary>
         public static bool HasActiveTypeahead => typeahead.HasActiveSearch;
+
+        /// <summary>
+        /// Gets whether the accessible Vehicle Framework seat assignment overlay is active.
+        /// Used by Window.OnCancelKeyPressed patch to block dialog close.
+        /// </summary>
+        public static bool IsAssigningVehicleSeats => assigningVehicleSeats;
 
         /// <summary>
         /// Gets whether we're currently in destination choosing mode.
@@ -222,6 +234,10 @@ namespace RimWorldAccess
             tabPositions.Clear();
             summaryItems.Clear();
             summaryIndex = 0;
+            assigningVehicleSeats = false;
+            seatVehicleTransferable = null;
+            seatRoleIndex = 0;
+            seatPawnIndex = 0;
             typeahead.ClearSearch();
             sendAttempted = false;
             routeChoiceOriginMap = null;
@@ -670,6 +686,11 @@ namespace RimWorldAccess
                     summaryItems.Add(CaravanStatFormatter.FormatVisibility(visibility));
                 }
 
+                foreach (string vehicleItem in VehicleFrameworkHelper.BuildVehicleSummaryItems(currentDialog.transferables))
+                {
+                    summaryItems.Add(vehicleItem);
+                }
+
                 // Destination info
                 FieldInfo destTileField = AccessTools.Field(typeof(Dialog_FormCaravan), "destinationTile");
                 if (destTileField != null)
@@ -1085,6 +1106,7 @@ namespace RimWorldAccess
                 isChoosingDestination = false;
 
                 notifyChoseRouteMethod.Invoke(currentDialog, new object[] { destinationTile });
+                VehicleFrameworkHelper.SyncVehicleRoute(currentDialog, destinationTile);
 
                 string tileInfo = WorldInfoHelper.GetTileSummary(destinationTile);
                 TolkHelper.Speak($"Destination set to {tileInfo}.");
@@ -1180,6 +1202,18 @@ namespace RimWorldAccess
                 if (currentMap != null && currentMap.Tile.Valid)
                 {
                     WorldNavigationState.PendingStartTile = currentMap.Tile;
+                }
+
+                if (VehicleFrameworkHelper.EnsureAssignedPawnsSelected(dialog.transferables))
+                {
+                    NotifyTransferablesChanged();
+                }
+
+                FieldInfo destinationField = AccessTools.Field(typeof(Dialog_FormCaravan), "destinationTile");
+                if (destinationField != null)
+                {
+                    PlanetTile destination = (PlanetTile)destinationField.GetValue(dialog);
+                    VehicleFrameworkHelper.SyncVehicleRoute(dialog, destination);
                 }
 
                 // Use the local reference, not the static field which might get nulled
@@ -1366,6 +1400,214 @@ namespace RimWorldAccess
             TolkHelper.Speak(announcement);
         }
 
+        private static void OpenVehicleSeatAssignment(TransferableOneWay vehicleTransferable)
+        {
+            if (vehicleTransferable == null || !VehicleFrameworkHelper.IsVehiclePawn(vehicleTransferable.AnyThing))
+            {
+                TolkHelper.Speak("No vehicle selected", SpeechPriority.High);
+                return;
+            }
+
+            int roleCount = VehicleFrameworkHelper.GetVehicleRoleCount(vehicleTransferable.AnyThing);
+            if (roleCount <= 0)
+            {
+                TolkHelper.Speak("This vehicle has no assignable seats", SpeechPriority.High);
+                return;
+            }
+
+            assigningVehicleSeats = true;
+            seatVehicleTransferable = vehicleTransferable;
+            seatRoleIndex = 0;
+            seatPawnIndex = 0;
+
+            TolkHelper.Speak("Vehicle seat assignment. Left and right choose role, up and down choose pawn, Enter assigns, Delete removes last pawn from role, Ctrl+Delete clears all, Escape returns.");
+            AnnounceVehicleSeatSelection();
+        }
+
+        private static List<TransferableOneWay> GetSeatAssignablePawns()
+        {
+            List<TransferableOneWay> pawns = new List<TransferableOneWay>();
+            foreach (TransferableOneWay transferable in GetTransferables())
+            {
+                Pawn pawn = transferable?.AnyThing as Pawn;
+                if (pawn != null &&
+                    !VehicleFrameworkHelper.IsVehiclePawn(transferable.AnyThing) &&
+                    VehicleFrameworkHelper.CanShowPawnForVehicleRole(
+                        seatVehicleTransferable?.AnyThing,
+                        seatRoleIndex,
+                        pawn))
+                {
+                    pawns.Add(transferable);
+                }
+            }
+            return pawns;
+        }
+
+        private static void AnnounceVehicleSeatSelection()
+        {
+            if (!assigningVehicleSeats || seatVehicleTransferable == null)
+                return;
+
+            int roleCount = VehicleFrameworkHelper.GetVehicleRoleCount(seatVehicleTransferable.AnyThing);
+            if (roleCount <= 0)
+            {
+                TolkHelper.Speak("No vehicle roles");
+                return;
+            }
+
+            if (seatRoleIndex < 0 || seatRoleIndex >= roleCount)
+                seatRoleIndex = 0;
+
+            List<TransferableOneWay> pawns = GetSeatAssignablePawns();
+            if (seatPawnIndex < 0 || seatPawnIndex >= pawns.Count)
+                seatPawnIndex = 0;
+
+            string role = VehicleFrameworkHelper.GetVehicleRoleSummary(seatVehicleTransferable.AnyThing, seatRoleIndex);
+            string rolePosition = MenuHelper.FormatPosition(seatRoleIndex, roleCount);
+
+            if (pawns.Count == 0)
+            {
+                TolkHelper.Speak($"{role}. Role {rolePosition}. No pawns available.");
+                return;
+            }
+
+            Pawn pawn = pawns[seatPawnIndex].AnyThing as Pawn;
+            string pawnPosition = MenuHelper.FormatPosition(seatPawnIndex, pawns.Count);
+            TolkHelper.Speak($"{role}. Role {rolePosition}. Pawn: {pawn.LabelShortCap}. Pawn {pawnPosition}.");
+        }
+
+        private static void AnnounceVehicleSeatPawnOnly()
+        {
+            if (!assigningVehicleSeats || seatVehicleTransferable == null)
+                return;
+
+            List<TransferableOneWay> pawns = GetSeatAssignablePawns();
+            if (seatPawnIndex < 0 || seatPawnIndex >= pawns.Count)
+                seatPawnIndex = 0;
+
+            if (pawns.Count == 0)
+            {
+                TolkHelper.Speak("No pawns available for this role.");
+                return;
+            }
+
+            Pawn pawn = pawns[seatPawnIndex].AnyThing as Pawn;
+            string pawnPosition = MenuHelper.FormatPosition(seatPawnIndex, pawns.Count);
+            TolkHelper.Speak($"{pawn.LabelShortCap}. Pawn {pawnPosition}.");
+        }
+
+        private static bool HandleVehicleSeatAssignmentInput(KeyCode key, bool shift, bool ctrl, bool alt)
+        {
+            if (!assigningVehicleSeats)
+                return false;
+
+            int roleCount = VehicleFrameworkHelper.GetVehicleRoleCount(seatVehicleTransferable?.AnyThing);
+            List<TransferableOneWay> pawns = GetSeatAssignablePawns();
+
+            switch (key)
+            {
+                case KeyCode.Escape:
+                    assigningVehicleSeats = false;
+                    seatVehicleTransferable = null;
+                    AnnounceCurrentItem();
+                    return true;
+
+                case KeyCode.LeftArrow:
+                    if (!shift && !ctrl && !alt && roleCount > 0)
+                    {
+                        seatRoleIndex = MenuHelper.SelectPrevious(seatRoleIndex, roleCount);
+                        AnnounceVehicleSeatSelection();
+                        return true;
+                    }
+                    break;
+
+                case KeyCode.RightArrow:
+                    if (!shift && !ctrl && !alt && roleCount > 0)
+                    {
+                        seatRoleIndex = MenuHelper.SelectNext(seatRoleIndex, roleCount);
+                        AnnounceVehicleSeatSelection();
+                        return true;
+                    }
+                    break;
+
+                case KeyCode.UpArrow:
+                    if (!shift && !ctrl && !alt && pawns.Count > 0)
+                    {
+                        seatPawnIndex = MenuHelper.SelectPrevious(seatPawnIndex, pawns.Count);
+                        AnnounceVehicleSeatPawnOnly();
+                        return true;
+                    }
+                    break;
+
+                case KeyCode.DownArrow:
+                    if (!shift && !ctrl && !alt && pawns.Count > 0)
+                    {
+                        seatPawnIndex = MenuHelper.SelectNext(seatPawnIndex, pawns.Count);
+                        AnnounceVehicleSeatPawnOnly();
+                        return true;
+                    }
+                    break;
+
+                case KeyCode.Return:
+                case KeyCode.KeypadEnter:
+                    if (!shift && !ctrl && !alt)
+                    {
+                        if (pawns.Count == 0)
+                        {
+                            TolkHelper.Speak("No pawns available");
+                            return true;
+                        }
+
+                        TransferableOneWay pawnTransferable = pawns[seatPawnIndex];
+                        VehicleFrameworkHelper.AssignPawnToVehicleRole(
+                            seatVehicleTransferable,
+                            seatRoleIndex,
+                            pawnTransferable,
+                            GetTransferables(),
+                            out string resultMessage);
+                        NotifyTransferablesChanged();
+                        TolkHelper.Speak(resultMessage);
+                        AnnounceVehicleSeatSelection();
+                        return true;
+                    }
+                    break;
+
+                case KeyCode.Delete:
+                    if (!shift && !alt)
+                    {
+                        string clearMessage;
+                        bool changed = ctrl
+                            ? VehicleFrameworkHelper.ClearVehicleSeatAssignments(
+                                seatVehicleTransferable.AnyThing,
+                                GetTransferables(),
+                                out clearMessage)
+                            : VehicleFrameworkHelper.RemoveLastAssignmentFromVehicleRole(
+                                seatVehicleTransferable.AnyThing,
+                                seatRoleIndex,
+                                GetTransferables(),
+                                out clearMessage);
+
+                        if (changed)
+                            NotifyTransferablesChanged();
+
+                        TolkHelper.Speak(clearMessage);
+                        AnnounceVehicleSeatSelection();
+                        return true;
+                    }
+                    break;
+
+                case KeyCode.Tab:
+                    if (!shift && !ctrl && !alt)
+                    {
+                        AnnounceVehicleSeatSelection();
+                        return true;
+                    }
+                    break;
+            }
+
+            return true;
+        }
+
         /// <summary>
         /// Handles keyboard input for caravan formation.
         /// Returns true if the input was handled.
@@ -1378,6 +1620,9 @@ namespace RimWorldAccess
             // If choosing destination, let world navigation handle the input
             if (isChoosingDestination)
                 return false;
+
+            if (assigningVehicleSeats)
+                return HandleVehicleSeatAssignmentInput(key, shift, ctrl, alt);
 
             // Handle Escape - clear search, or close dialog (especially for reform dialogs)
             if (key == KeyCode.Escape)
@@ -1582,8 +1827,23 @@ namespace RimWorldAccess
 
                         TransferableOneWay transferable = transferables[selectedIndex];
 
+                        // Vehicles tab: Shift+Enter selects the vehicle and auto-assigns only
+                        // required operators. Passengers remain manually controlled.
+                        if (currentTab == Tab.Vehicles)
+                        {
+                            transferable.AdjustTo(transferable.GetMaximumToTransfer());
+                            bool assigned = VehicleFrameworkHelper.AutoAssignVehicleSeats(
+                                transferable,
+                                GetTransferables(),
+                                out string resultMessage);
+                            NotifyTransferablesChanged();
+                            TolkHelper.Speak(resultMessage ?? (assigned ? "Vehicle seats auto-assigned" : "Could not auto-assign vehicle seats"));
+                            AnnounceCurrentItem();
+                            return true;
+                        }
+
                         // Pawns tab: Shift+Enter selects all pawns of this type
-                        if (currentTab == Tab.Pawns || currentTab == Tab.Vehicles)
+                        if (currentTab == Tab.Pawns)
                         {
                             CaravanQuantityHelper.SelectAllPawns(
                                 transferable,
@@ -1625,8 +1885,15 @@ namespace RimWorldAccess
 
                         TransferableOneWay transferable = transferables[selectedIndex];
 
+                        // Vehicles tab: Enter opens accessible manual seat assignment.
+                        if (currentTab == Tab.Vehicles)
+                        {
+                            OpenVehicleSeatAssignment(transferable);
+                            return true;
+                        }
+
                         // Pawns tab: Enter toggles pawn selection (same as Space)
-                        if (currentTab == Tab.Pawns || currentTab == Tab.Vehicles)
+                        if (currentTab == Tab.Pawns)
                         {
                             TogglePawnSelection();
                             return true;

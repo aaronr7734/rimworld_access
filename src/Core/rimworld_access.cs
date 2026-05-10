@@ -40,6 +40,7 @@ namespace RimWorldAccess
             // patch declaratively. The shared prefix returns false while LordJobDialogState is
             // active, blocking accidental Start invocations behind the user's back.
             ApplyLordJobStartPatches(harmony);
+            ApplyVehicleFrameworkPatches(harmony);
 
             // Log which patches were applied
             var patchedMethods = harmony.GetPatchedMethods();
@@ -79,6 +80,31 @@ namespace RimWorldAccess
                 if (startMethod == null) continue;
                 harmony.Patch(startMethod, prefix: new HarmonyMethod(prefix));
                 Log.Message($"[RimWorld Access] Applied {typeName}.Start() prefix");
+            }
+        }
+
+        private static void ApplyVehicleFrameworkPatches(Harmony harmony)
+        {
+            var trySendType = AccessTools.TypeByName("Vehicles.World.CaravanFormation");
+            var trySendMethod = AccessTools.Method(trySendType, "TrySendVehicleCaravan");
+            var trySendPrefix = AccessTools.Method(
+                typeof(VehicleFrameworkPatches),
+                nameof(VehicleFrameworkPatches.TrySendVehicleCaravanPrefix));
+            if (trySendMethod != null && trySendPrefix != null)
+            {
+                harmony.Patch(trySendMethod, prefix: new HarmonyMethod(trySendPrefix));
+                Log.Message("[RimWorld Access] Applied Vehicle Framework caravan send prefix");
+            }
+
+            var formationInfoType = AccessTools.TypeByName("Vehicles.World.FormationInfo");
+            var recacheMethod = AccessTools.Method(formationInfoType, "RecacheTransferables");
+            var recachePostfix = AccessTools.Method(
+                typeof(VehicleFrameworkPatches),
+                nameof(VehicleFrameworkPatches.RecacheTransferablesPostfix));
+            if (recacheMethod != null && recachePostfix != null)
+            {
+                harmony.Patch(recacheMethod, postfix: new HarmonyMethod(recachePostfix));
+                Log.Message("[RimWorld Access] Applied Vehicle Framework recache postfix");
             }
         }
 
