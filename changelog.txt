@@ -1,4 +1,13 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
+05/12/2026
+
+BUG FIXES
+---------
+- Scanner now works when launching a shuttle from a caravan on
+  the world map.
+- Picking a landing cell after a shuttle launch no longer
+  announces "Select pawn to target".
+
 05/03/2026
 
 CHANGES
