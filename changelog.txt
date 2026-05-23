@@ -3,6 +3,10 @@ RimWorld Access - Changelog for Aaron's Unofficial Patch
 
 BUG FIXES
 ---------
+- A pawn's Relations now show family ties correctly from both sides:
+  a parent now lists their child as "Daughter" or "Son" instead of
+  "Friend," and the opinion breakdown lines up. Thanks to BlindGuyNW
+  for the PR.
 - Forming a caravan from a hitching spot now works correctly. I had no idea hitching spots had a form caravan gizmo till recently!
 - The Left and Right arrow keys no longer move the map cursor while
   the F12 menu (Factions and Ideology) is open.
