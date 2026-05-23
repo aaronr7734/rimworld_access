@@ -224,20 +224,35 @@ namespace RimWorldAccess
                     // double-announce. If the count didn't move, the rejection was silent
                     // and we synthesize a fallback so the user isn't left guessing.
                     long messagesBefore = NotificationAccessibilityPatch.MessageEmissionCount;
+                    long messageAttemptsBefore = NotificationAccessibilityPatch.MessageAttemptCount;
                     if (!targetingSource.ValidateTarget(target, showMessages: true))
                     {
                         bool gameSpoke = NotificationAccessibilityPatch.MessageEmissionCount != messagesBefore;
                         if (!gameSpoke)
                         {
                             string fallback = null;
-                            if (AbilityTargetingState.IsActive)
+
+                            // The game may have TRIED to emit a rejection message that RimWorld
+                            // suppressed as a recent duplicate (e.g. casting an ability twice on
+                            // the same invalid target). In that case nothing reached the display
+                            // funnel, but AcceptsMessage still saw the text — recover it so the
+                            // user hears the real reason instead of a generic "Invalid target".
+                            if (NotificationAccessibilityPatch.MessageAttemptCount != messageAttemptsBefore)
                             {
-                                fallback = AbilityTargetingState.DiagnoseRejection(target, cursorPosition);
+                                fallback = NotificationAccessibilityPatch.LastAttemptedMessageText;
                             }
-                            else if (ItemTargetingState.IsActive)
+
+                            if (string.IsNullOrEmpty(fallback))
                             {
-                                string targetLabel = target.HasThing ? target.Thing.LabelShort : "target";
-                                fallback = $"{targetLabel} is not a valid target";
+                                if (AbilityTargetingState.IsActive)
+                                {
+                                    fallback = AbilityTargetingState.DiagnoseRejection(target, cursorPosition);
+                                }
+                                else if (ItemTargetingState.IsActive)
+                                {
+                                    string targetLabel = target.HasThing ? target.Thing.LabelShort : "target";
+                                    fallback = $"{targetLabel} is not a valid target";
+                                }
                             }
                             TolkHelper.Speak(fallback ?? "Invalid target", SpeechPriority.High);
                         }

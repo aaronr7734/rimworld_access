@@ -38,6 +38,7 @@ namespace RimWorldAccess
         private static StorageSettings currentSettings = null;
         private static ThingFilter parentFilter = null;
         private static TreeNode_ThingCategory rootNode = null;
+        private static bool showPriority = true;
         private static TreeNavigationHelper treeNav = new TreeNavigationHelper("StorageSettings");
 
         public static bool IsActive => isActive;
@@ -56,7 +57,7 @@ namespace RimWorldAccess
                 (item.Data as StorageNodeData)?.Type == NodeType.Category;
         }
 
-        public static void Open(StorageSettings settings)
+        public static void Open(StorageSettings settings, bool showPriority = true)
         {
             if (settings == null)
             {
@@ -64,6 +65,7 @@ namespace RimWorldAccess
                 return;
             }
 
+            StorageSettingsMenuState.showPriority = showPriority;
             currentSettings = settings;
             parentFilter = settings.owner?.GetParentStoreSettings()?.filter;
             // Use the parent filter's stable display root when available so expansion
@@ -92,6 +94,7 @@ namespace RimWorldAccess
             currentSettings = null;
             parentFilter = null;
             rootNode = null;
+            showPriority = true;
             treeNav.Reset();
         }
 
@@ -107,16 +110,21 @@ namespace RimWorldAccess
                 IsExpandable = false
             };
 
-            // Priority cycler at the top
-            root.Children.Add(new InspectionTreeItem
+            // Priority cycler at the top. Some storage parents hide the priority
+            // setting in vanilla (e.g. the biosculpter pod's nutrition storage,
+            // ITab_BiosculpterNutritionStorage.IsPrioritySettingVisible => false).
+            if (showPriority)
             {
-                Type = InspectionTreeItem.ItemType.Item,
-                Label = "Priority".Translate(),
-                IndentLevel = 0,
-                IsExpandable = false,
-                Parent = root,
-                Data = new StorageNodeData { Type = NodeType.Priority }
-            });
+                root.Children.Add(new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = "Priority".Translate(),
+                    IndentLevel = 0,
+                    IsExpandable = false,
+                    Parent = root,
+                    Data = new StorageNodeData { Type = NodeType.Priority }
+                });
+            }
 
             // Quick actions
             root.Children.Add(new InspectionTreeItem

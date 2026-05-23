@@ -312,6 +312,7 @@ namespace RimWorldAccess
                 case "ITab_Pawn_Prisoner": return "Prisoner";
                 case "ITab_Bills": return "Bills";
                 case "ITab_Storage": return "Storage";
+                case "ITab_BiosculpterNutritionStorage": return "Nutrition Storage";
                 case "ITab_Shells": return "Shells";
                 case "ITab_PenAnimals": return "Pen Animals";
                 case "ITab_PenAutoCut": return "Pen Auto-Cut";

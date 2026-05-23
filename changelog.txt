@@ -1,4 +1,18 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
+05/23/2026
+
+BUG FIXES
+---------
+- The biosculpter pod's "Nutrition storage" option now opens the
+ correct filter when activated. Previously, pressing Enter on it did
+  nothing.
+- When a targeting action is rejected for the same reason more than
+  once in a row (for example, casting an ability on a pawn with no
+  healable injuries), the screen reader now repeats the specific
+  reason instead of falling back to a generic "Invalid target." The
+  game suppresses duplicate on-screen messages, which previously hid
+  the reason from screen reader users on the second and later tries.
+
 05/12/2026
 
 BUG FIXES

@@ -643,12 +643,20 @@ namespace RimWorldAccess
                     TempControlMenuState.Open(building);
                 }
             }
-            else if (category == "Storage" && building is IStoreSettingsParent storageParent)
+            else if (category == "Storage" || category == "Nutrition Storage")
             {
-                var settings = storageParent.GetStoreSettings();
+                // Resolve the store-settings parent the way vanilla's ITab_Storage does:
+                // the building itself, or one of its comps. The biosculpter pod has no
+                // dedicated Building subclass — its CompBiosculpterPod owns the nutrition
+                // storage settings, so checking only `building is IStoreSettingsParent`
+                // misses it.
+                var storageParent = ResolveStoreSettingsParent(building);
+                var settings = storageParent?.GetStoreSettings();
                 if (settings != null)
                 {
-                    StorageSettingsMenuState.Open(settings);
+                    // The biosculpter pod hides the storage priority in vanilla
+                    // (ITab_BiosculpterNutritionStorage.IsPrioritySettingVisible => false).
+                    StorageSettingsMenuState.Open(settings, showPriority: category != "Nutrition Storage");
                 }
             }
             else if (category == "Shells" && building is Building_TurretGun turretGun)
@@ -722,6 +730,30 @@ namespace RimWorldAccess
                 }
 
             }
+        }
+
+        /// <summary>
+        /// Resolves the <see cref="IStoreSettingsParent"/> for a thing the same way vanilla's
+        /// ITab_Storage.GetThingOrThingCompStoreSettingsParent does: the thing itself, or the
+        /// first comp implementing the interface (e.g. CompBiosculpterPod for a biosculpter
+        /// pod's nutrition storage, which has no dedicated Building subclass).
+        /// </summary>
+        private static IStoreSettingsParent ResolveStoreSettingsParent(Thing t)
+        {
+            if (t is IStoreSettingsParent direct)
+                return direct;
+
+            if (t is ThingWithComps twc)
+            {
+                var comps = twc.AllComps;
+                for (int i = 0; i < comps.Count; i++)
+                {
+                    if (comps[i] is IStoreSettingsParent fromComp)
+                        return fromComp;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
