@@ -3,6 +3,9 @@ RimWorld Access - Changelog for Aaron's Unofficial Patch
 
 BUG FIXES
 ---------
+- Forming a caravan from a hitching spot now works correctly. I had no idea hitching spots had a form caravan gizmo till recently!
+- The Left and Right arrow keys no longer move the map cursor while
+  the F12 menu (Factions and Ideology) is open.
 - The biosculpter pod's "Nutrition storage" option now opens the
  correct filter when activated. Previously, pressing Enter on it did
   nothing.

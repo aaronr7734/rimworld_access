@@ -51,6 +51,11 @@ namespace RimWorldAccess
         // Flag to skip activation when route planner is being opened first
         private static bool pendingRoutePlannerOpen = false;
 
+        // Non-null while the player is choosing a route for a caravan started directly from a
+        // colony building gizmo (e.g. the hitching-spot "Form caravan" command). Holds the colony
+        // map so the view can be restored when the route is confirmed or cancelled.
+        private static Map routeChoiceOriginMap = null;
+
         // Auto-provision toggle state
         private static bool autoProvisionEnabled = false;
         private static Dictionary<TransferableOneWay, int> savedSupplyAmounts = new Dictionary<TransferableOneWay, int>();
@@ -90,6 +95,18 @@ namespace RimWorldAccess
         /// Gets whether we're currently in destination choosing mode.
         /// </summary>
         public static bool IsChoosingDestination => isChoosingDestination;
+
+        /// <summary>
+        /// Gets whether the player is choosing a route for a caravan that was started directly
+        /// from a colony building gizmo (e.g. the hitching-spot "Form caravan" command).
+        /// </summary>
+        public static bool IsColonyRouteChoiceActive => routeChoiceOriginMap != null;
+
+        /// <summary>
+        /// Gets the colony map a colony-originated route choice was started from, or null.
+        /// Read before stopping the route planner, since stopping it resets this state.
+        /// </summary>
+        public static Map RouteChoiceOriginMap => routeChoiceOriginMap;
 
         /// <summary>
         /// Gets whether auto-provision is enabled (supplies tab is read-only).
@@ -169,6 +186,11 @@ namespace RimWorldAccess
                 return;
             }
 
+            // If the player was choosing a route for a colony-originated caravan (e.g. hitching
+            // spot), the dialog is now reopening with a destination chosen - restore the colony
+            // map view before activating the formation tabs.
+            EndColonyOriginatedRouteChoice();
+
             isActive = true;
             currentDialog = dialog;
             currentTab = Tab.Pawns;
@@ -203,6 +225,7 @@ namespace RimWorldAccess
             summaryIndex = 0;
             typeahead.ClearSearch();
             sendAttempted = false;
+            routeChoiceOriginMap = null;
         }
 
         /// <summary>
@@ -858,6 +881,62 @@ namespace RimWorldAccess
             catch (Exception ex)
             {
                 ModLogger.Error($"Failed to disable auto-select travel supplies: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Routes the player into the world route planner for a caravan dialog that was opened
+        /// directly from a colony building gizmo (e.g. the hitching-spot "Form caravan" command).
+        /// The game's PostOpen already started the route planner and removed the dialog from the
+        /// window stack, so this switches keyboard focus to the world map to let the player choose
+        /// a destination first, as vanilla requires. When the route is confirmed the dialog reopens
+        /// and the formation tabs activate (see <see cref="Open"/>); if cancelled, the colony map is
+        /// restored by the route planner's cancel handling.
+        /// </summary>
+        public static void BeginColonyOriginatedRouteChoice(Dialog_FormCaravan dialog)
+        {
+            if (dialog == null)
+                return;
+
+            Map originMap = AccessTools.Field(typeof(Dialog_FormCaravan), "map")?.GetValue(dialog) as Map;
+            routeChoiceOriginMap = originMap ?? Find.CurrentMap;
+
+            // Formation tabs are not active while choosing the route.
+            isActive = false;
+            currentDialog = dialog;
+
+            CameraJumper.TryShowWorld();
+            if (!WorldNavigationState.IsActive)
+            {
+                WorldNavigationState.Open(WorldNavContext.InGame);
+            }
+
+            string addWaypointsPrompt = "RoutePlannerAddOneOrMoreWaypoints".Translate();
+            TolkHelper.Speak($"Choose a destination for the caravan on the world map. {addWaypointsPrompt} Space to add a waypoint, E for travel time, Enter to confirm, Escape to cancel.");
+        }
+
+        /// <summary>
+        /// Restores the colony map view after a colony-originated route choice ends (the dialog is
+        /// reopening with a destination). No-op for caravans formed from the world map (C key).
+        /// </summary>
+        private static void EndColonyOriginatedRouteChoice()
+        {
+            if (routeChoiceOriginMap == null)
+                return;
+
+            Map origin = routeChoiceOriginMap;
+            routeChoiceOriginMap = null;
+
+            if (WorldNavigationState.IsActive)
+            {
+                WorldNavigationState.Close();
+            }
+
+            CameraJumper.TryHideWorld();
+
+            if (origin != null && Find.Maps.Contains(origin))
+            {
+                Current.Game.CurrentMap = origin;
             }
         }
 

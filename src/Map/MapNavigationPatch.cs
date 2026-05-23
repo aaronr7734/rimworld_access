@@ -38,6 +38,7 @@ namespace RimWorldAccess
                 WorldNavigationState.IsActive ||
                 WindowlessDialogState.IsActive ||
                 WindowlessFloatMenuState.IsActive ||
+                ExtraMenusState.IsActive ||
                 ShapeSelectionMenuState.IsActive ||
                 // Note: ViewingModeState is NOT included - it allows arrow navigation for moving around
                 ArchitectTreeState.IsActive ||
