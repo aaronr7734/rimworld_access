@@ -1,4 +1,15 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
+05/24/2026
+
+BUG FIXES
+---------
+- Screen reader speech works again on setups where JAWS (or another
+  reader) had gone silent. A recent version of the underlying Prism
+  speech library began treating NVDA as available even when it wasn't
+  running, so on machines without NVDA active it selected NVDA and
+  spoke nothing. The mod is now pinned to the last known-good Prism
+  version until the upstream fix ships.
+
 05/23/2026
 
 BUG FIXES
