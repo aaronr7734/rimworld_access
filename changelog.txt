@@ -1,4 +1,72 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
+05/25/2026
+
+This is a milestone beta release for me. As of this update, every RimWorld DLC is
+essentially fully accessible with the mod. Anything still rough is
+either a convenience (mostly around gravship building) or a bug, and
+bugs get fixed as they come in. The headline this time is the custom
+ideoligion builder, but it was only possible because of a big overhaul
+to how text boxes work, so let's start there.
+
+CHANGES
+-------
+- Text boxes are now real text boxes, or as close as we can get. There
+  is an actual cursor you can move through your text with the arrow
+  keys, or jump word by word by holding Ctrl. Hold Shift while moving to
+  select text, and Backspace removes the character before the cursor (or
+  whatever you have selected). The mod now also knows the difference
+  between a single-line box, like a name, and a multi-line box, like a
+  description, so in a multi-line box you can press Shift+Enter to start
+  a new line. When you finish editing with Enter, the mod reads back what
+  the field now says. Typeahead should also work on
+  non-English keyboard layouts now, though I have not been able to test
+  that myself.
+
+- The big one: you can now build your own custom ideoligions, just like
+  sighted players do on the ideoligion setup screen. This has been a
+  long time coming. The builder has two tabs, and you switch between them
+  with Tab. The first tab lists every ideoligion in the game; the second
+  tab shows whichever one is selected. Select your own ideoligion and the
+  second tab becomes a full editor; select someone else's and it is a
+  read-only viewer. The editor is one big expandable list. The game crams
+  an enormous amount of information onto this screen, so when you expand
+  an item you can arrow through it line by line and hear all of it at your
+  own pace. Most items can be changed by pressing Enter on them, including
+  your ideoligion's name and descriptions, so when in doubt, press Enter
+  and see what happens. To move on to the next setup screen, press Alt+S.
+  The right bracket key ( ] ) opens a menu of extra options, including
+  saving an ideoligion you have built so you can load it again in future
+  games.
+- Fair warning: building an ideoligion is genuinely complicated, even for
+  sighted players. There are a LOT of moving parts. If you are new to the
+  game, you may want to get comfortable first. But I'm not your mom. Do
+  whatever you want!
+- Fluid ideoligions work the same way in-game. Once yours has earned
+  enough development points to reform, open the ideoligion viewer and
+  press Enter on the item that shows your development points to begin.
+- The focused Work view now reads the selected colonist's name when it
+  opens.
+- The colonist skills table (Alt+P) now tells you how much experience
+  each skill has toward its next level, not just the level. On a paused
+  game you can rest on a skill and hear the numbers change as colonists
+  learn.
+- The starting characters screen now gives each colonist a Relations
+  category, listing who they're tied to in your starting group and how
+  - "Daughter," "Lover," and the like - with each pawn's opinion in the
+  tooltip. Press Enter on a relation to jump straight to that pawn.
+- That same screen now has a Team Skills tab. Press Tab to switch to it
+  for a quick rundown of which starting pawn is best at each skill.
+- The world map scanner now finds rivers, not just roads.
+- Walls (built walls, natural rock, and closed doors) now play their own
+  navigation sound instead of the sound of the ground beneath them.
+  Terrain sounds were also evened out so the volumes are more consistent.
+
+BUG FIXES
+---------
+- Returning to the main menu from inside a game while on the world map no longer leaves the menu
+  unresponsive. The Enter key works again right away, so you can pick a
+  menu option without getting stuck.
+
 05/24/2026
 
 BUG FIXES
