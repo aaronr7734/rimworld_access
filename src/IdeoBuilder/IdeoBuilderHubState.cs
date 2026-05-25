@@ -348,7 +348,7 @@ namespace RimWorldAccess
             if (ritualPreviewSustainer != null && !ritualPreviewSustainer.Ended)
             {
                 StopRitualPreview();
-                TolkHelper.Speak("Stopped");
+                TolkHelper.Speak("RitualAmbienceSound".Translate().Resolve() + ", stopped.");
                 return;
             }
             var sound = currentIdeo?.SoundOngoingRitual;
@@ -357,17 +357,27 @@ namespace RimWorldAccess
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }
+            // Mirror the in-game viewer's working preview: force on-camera playback so the
+            // sustainer is actually audible. MaintainRitualPreview then ducks the game music.
             var info = SoundInfo.OnCamera(MaintenanceType.PerFrame);
+            info.forcedPlayOnCamera = true;
             info.testPlay = true;
             ritualPreviewSustainer = sound.TrySpawnSustainer(info);
-            TolkHelper.Speak("Playing");
+            TolkHelper.Speak("RitualAmbienceSound".Translate().Resolve() + ", playing.");
         }
 
         /// <summary>Keeps the ritual-sound preview alive; called every frame from the hub patch.</summary>
         public static void MaintainRitualPreview()
         {
-            if (ritualPreviewSustainer != null && !ritualPreviewSustainer.Ended)
-                ritualPreviewSustainer.Maintain();
+            if (ritualPreviewSustainer == null) return;
+            if (ritualPreviewSustainer.Ended)
+            {
+                ritualPreviewSustainer = null;
+                return;
+            }
+            ritualPreviewSustainer.Maintain();
+            // Duck the menu music each frame so the ritual ambience can be heard over it.
+            Find.MusicManagerPlay?.ForceSilenceFor(0.1f);
         }
 
         private static void StopRitualPreview()

@@ -16,6 +16,11 @@ namespace RimWorldAccess
     /// </summary>
     public static class IdeoPreceptSelectionHelper
     {
+        // Section titles, also stored as each section node's Data so navigation can identify which
+        // section ("active" vs "not set") an issue belongs to across a rebuild.
+        public const string ActiveSectionTitle = "Active precepts";
+        public const string NotSetSectionTitle = "Not set";
+
         /// <summary>Base (issue-based) precept defs the player can choose between.</summary>
         public static List<PreceptDef> BasePreceptDefs()
         {
@@ -81,8 +86,8 @@ namespace RimWorldAccess
             var active = issues.Where(i => CurrentPreceptsForIssue(ideo, i).Count > 0).ToList();
             var inactive = issues.Where(i => CurrentPreceptsForIssue(ideo, i).Count == 0).ToList();
 
-            AddIssueSection(root, ideo, "Active precepts", active, expanded: true);
-            AddIssueSection(root, ideo, "Not set", inactive, expanded: false);
+            AddIssueSection(root, ideo, ActiveSectionTitle, active, expanded: true);
+            AddIssueSection(root, ideo, NotSetSectionTitle, inactive, expanded: false);
 
             return root;
         }
@@ -98,6 +103,7 @@ namespace RimWorldAccess
                 IsExpandable = true,
                 IsExpanded = expanded,
                 Type = InspectionTreeItem.ItemType.Category,
+                Data = title, // lets navigation identify the section across rebuilds
                 Parent = root,
             };
 
@@ -137,14 +143,19 @@ namespace RimWorldAccess
 
         private static string BuildIssueLabel(IssueDef issue, List<Precept> current)
         {
-            var sb = new StringBuilder();
-            sb.Append(issue.LabelCap.ToString());
-            sb.Append(": ");
+            string issueLabel = issue.LabelCap.ToString();
             if (current.Count == 0)
-                sb.Append("None".Translate().ToString());
-            else
-                sb.Append(string.Join(", ", current.Select(p => (string)p.LabelCap)));
-            return sb.ToString();
+                return issueLabel + ": " + "None".Translate();
+
+            // Use the precept DEF's label — that's the chosen value ("disgusting", "ugly", "don't
+            // mind", "acceptable"). Precept.LabelCap resolves to the generated, issue-derived name
+            // instead, which is why this previously read "Corpses: Corpses" and hid the real value.
+            string value = string.Join(", ", current.Select(p => (string)p.def.LabelCap));
+            // Defensive: if a def's label is the issue name itself, collapse "Issue: Issue" to just
+            // "Issue"; otherwise read "Issue: value" (e.g. "Cannibalism: Acceptable").
+            if (string.Equals(value.Trim(), issueLabel.Trim(), System.StringComparison.OrdinalIgnoreCase))
+                return issueLabel;
+            return issueLabel + ": " + value;
         }
 
         /// <summary>

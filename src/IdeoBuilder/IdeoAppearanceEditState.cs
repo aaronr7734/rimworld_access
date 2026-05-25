@@ -390,12 +390,28 @@ namespace RimWorldAccess
             }
         }
 
-        /// <summary>Called when the player returns from a frequency / gender float menu.</summary>
+        /// <summary>
+        /// Called when the player returns from a frequency / gender float menu. A frequency/gender
+        /// change only affects the leaf style items' labels (the tree structure and the parent
+        /// labels are unchanged), so we refresh those labels in place rather than rebuilding the
+        /// tree — that keeps the player's expansion state and cursor exactly where they were.
+        /// </summary>
         public static void NotifyReturnedFromPicker()
         {
             if (!IsActive) return;
-            RebuildTree();
+            RefreshItemLabels(treeNav.RootItem);
             treeNav.ReannounceCurrentItem();
+        }
+
+        private static void RefreshItemLabels(InspectionTreeItem node)
+        {
+            if (node == null) return;
+            foreach (var child in node.Children)
+            {
+                if (child.Data is StyleItemDef styleItem)
+                    child.Label = StyleItemLabel(styleItem);
+                RefreshItemLabels(child);
+            }
         }
 
         #endregion

@@ -340,7 +340,9 @@ namespace RimWorldAccess
 
             var incompat = GetFirstIncompatibleMemePair(dialog);
             if (incompat != default(Pair<MemeDef, MemeDef>))
-                return "IncompatibleMemes".Translate(incompat.First.LabelCap, incompat.Second.LabelCap).CapitalizeFirst();
+                // Pass the MemeDefs (not their LabelCaps) so the {0_label}/{1_label} placeholders
+                // resolve — matching vanilla's Dialog_ChooseMemes call.
+                return "IncompatibleMemes".Translate(incompat.First, incompat.Second).CapitalizeFirst();
 
             int structCount = GetMemeCount(dialog, MemeCategory.Structure);
             if (structCount < 1 && category == MemeCategory.Structure)
