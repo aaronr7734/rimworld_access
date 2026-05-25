@@ -18,6 +18,7 @@ namespace RimWorldAccess
     public enum PawnCategoryType
     {
         Bio,
+        Relations,
         Traits,
         IncapableOf,
         Skills,
@@ -161,6 +162,25 @@ namespace RimWorldAccess
             };
             BuildBioItems(pawn, pawnIndex, bioNode);
             pawnNode.Children.Add(bioNode);
+
+            // Relations (parity with the vanilla character card's Relations panel)
+            var relationsNode = new InspectionTreeItem
+            {
+                Label = "Relations".Translate(),
+                IndentLevel = 2,
+                Type = InspectionTreeItem.ItemType.Category,
+                IsExpandable = true,
+                Parent = pawnNode,
+                Data = new PawnTreeData
+                {
+                    NodeType = PawnNodeType.Category,
+                    CategoryType = PawnCategoryType.Relations,
+                    PawnIndex = pawnIndex
+                }
+            };
+            BuildRelationsItems(pawn, pawnIndex, relationsNode);
+            CollapseIfEmpty(relationsNode);
+            pawnNode.Children.Add(relationsNode);
 
             // Traits
             var traitsNode = new InspectionTreeItem
@@ -385,6 +405,48 @@ namespace RimWorldAccess
                 ).Resolve();
                 bioNode.Children.Add(MakeLeaf(
                     colorLabel, 3, PawnCategoryType.Bio, pawnIndex, bioNode));
+            }
+        }
+
+        /// <summary>
+        /// Builds the per-pawn Relations items, mirroring the vanilla character card's Relations
+        /// panel. A relation is shown only if the other pawn has been "seen by player"
+        /// (everSeenByPlayer) and neither pawn hides relations — exactly the game's
+        /// SocialCardUtility.ShouldShowPawnRelations rule. During character creation every starting
+        /// and optional pawn is flagged everSeenByPlayer, so this resolves to relations between
+        /// pawns in the current roster. Each leaf stores the related pawn so Enter can jump to it.
+        /// </summary>
+        private static void BuildRelationsItems(Pawn pawn, int pawnIndex, InspectionTreeItem relationsNode)
+        {
+            relationsNode.Children.Clear();
+
+            var relations = SocialTabHelper.GetRelations(pawn)
+                .Where(r => r.OtherPawn?.relations != null
+                            && r.OtherPawn.relations.everSeenByPlayer
+                            && !r.OtherPawn.relations.hidePawnRelations
+                            && !pawn.relations.hidePawnRelations)
+                // Defined family/love relations first, then most-liked first — approximates the
+                // vanilla social card's ordering.
+                .OrderByDescending(r => pawn.GetRelations(r.OtherPawn).Any())
+                .ThenByDescending(r => r.MyOpinion)
+                .ToList();
+
+            if (relations.Count == 0)
+            {
+                relationsNode.Children.Add(MakeLeaf(
+                    "None".Translate(), 3, PawnCategoryType.Relations, pawnIndex, relationsNode));
+                return;
+            }
+
+            foreach (var r in relations)
+            {
+                string label = $"{r.OtherPawnName}, {string.Join(", ", r.Relations)}";
+                // Opinions live in the tooltip so the collapsed category summary stays concise;
+                // they are read aloud when the cursor lands on the relation (faithful parity).
+                string tooltip = $"My opinion {r.MyOpinion:+0;-0;0}, their opinion {r.TheirOpinion:+0;-0;0}";
+                relationsNode.Children.Add(MakeLeaf(
+                    label, 3, PawnCategoryType.Relations, pawnIndex, relationsNode,
+                    tooltip: tooltip, domainData: r.OtherPawn));
             }
         }
 
@@ -952,6 +1014,12 @@ namespace RimWorldAccess
                     }
                     return string.Join(", ", bioParts);
 
+                case PawnCategoryType.Relations:
+                    var relNames = new List<string>();
+                    foreach (var child in categoryNode.Children)
+                        relNames.Add(child.Label);
+                    return string.Join(", ", relNames);
+
                 case PawnCategoryType.Traits:
                     var traitNames = new List<string>();
                     foreach (var child in categoryNode.Children)
@@ -979,6 +1047,77 @@ namespace RimWorldAccess
                 default:
                     return null;
             }
+        }
+
+        /// <summary>
+        /// Builds the Team Skills summary rows shown on the second tab — one row per skill that
+        /// is visible in the pawn-creator summary, naming the best starting pawn for that skill.
+        /// Mirrors StartingPawnUtility.DrawSkillSummaries / FindBestSkillOwner exactly.
+        /// </summary>
+        public static List<string> BuildTeamSkillSummary()
+        {
+            var rows = new List<string>();
+            var gid = Find.GameInitData;
+            if (gid?.startingAndOptionalPawns == null || gid.startingPawnCount <= 0)
+                return rows;
+
+            foreach (var skillDef in DefDatabase<SkillDef>.AllDefsListForReading)
+            {
+                if (!skillDef.pawnCreatorSummaryVisible)
+                    continue;
+
+                Pawn best = FindBestSkillOwner(skillDef);
+                if (best?.skills == null)
+                    continue;
+
+                SkillRecord rec = best.skills.GetSkill(skillDef);
+                string skillLabel = skillDef.skillLabel.CapitalizeFirst();
+                string name = best.Name?.ToStringShort ?? (string)best.LabelShort;
+
+                string row;
+                if (rec.TotallyDisabled)
+                {
+                    row = $"{skillLabel}: {name}, {"DisabledLower".Translate()}";
+                }
+                else
+                {
+                    row = $"{skillLabel}: {name}, {rec.Level}";
+                    string passion = GetPassionLabel(rec.passion);
+                    if (!string.IsNullOrEmpty(passion))
+                        row += $", {passion}";
+                }
+                rows.Add(row);
+            }
+            return rows;
+        }
+
+        /// <summary>
+        /// Returns the starting pawn best at the given skill, mirroring
+        /// StartingPawnUtility.FindBestSkillOwner (highest level, passion breaks ties, skips
+        /// disabled). Considers only the selected starting pawns, not optional/left-behind ones.
+        /// </summary>
+        private static Pawn FindBestSkillOwner(SkillDef skill)
+        {
+            var pawns = Find.GameInitData.startingAndOptionalPawns;
+            int count = Find.GameInitData.startingPawnCount;
+            if (pawns == null || pawns.Count == 0 || count <= 0)
+                return null;
+
+            Pawn best = pawns[0];
+            SkillRecord bestRec = best.skills.GetSkill(skill);
+            for (int i = 1; i < count && i < pawns.Count; i++)
+            {
+                SkillRecord rec = pawns[i].skills.GetSkill(skill);
+                if (!rec.TotallyDisabled
+                    && (bestRec.TotallyDisabled
+                        || rec.Level > bestRec.Level
+                        || (rec.Level == bestRec.Level && (int)rec.passion > (int)bestRec.passion)))
+                {
+                    best = pawns[i];
+                    bestRec = rec;
+                }
+            }
+            return best;
         }
 
         public static Pawn GetPawnAtIndex(int pawnIndex)
