@@ -4,7 +4,6 @@ using HarmonyLib;
 using RimWorld;
 using UnityEngine;
 using Verse;
-using Verse.Sound;
 
 namespace RimWorldAccess
 {
@@ -155,19 +154,10 @@ namespace RimWorldAccess
                 return IdeologyNavigationState.HandleOptionBackspace();
             }
 
-            // Enter — do NOT consume, let game's Accept keybinding handle DoNext.
-            // Exception: if the current option is disabled (e.g. CustomFluid/CustomFixed
-            // which lack accessibility support), consume Enter and announce the reason
-            // so the user isn't dropped into an inaccessible page.
+            // Enter — do NOT consume, let game's Accept keybinding handle DoNext (which
+            // routes to the now-accessible Classic / Custom / Load / Preset flows).
             if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
             {
-                if (IdeologyNavigationState.IsCurrentOptionDisabled)
-                {
-                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    string reason = IdeologyNavigationState.CurrentOptionDisabledReason;
-                    TolkHelper.Speak(string.IsNullOrEmpty(reason) ? "Unavailable" : reason);
-                    return true;
-                }
                 return false;
             }
 
@@ -258,32 +248,7 @@ namespace RimWorldAccess
         }
     }
 
-    // Safety net: block DoNext for CustomFluid (1), CustomFixed (2), and Load (3)
-    // since the pages/dialogs they lead to don't yet have accessibility support.
-    // This catches mouse clicks and any Enter paths that bypass UnifiedKeyboardPatch.
-    [HarmonyPatch(typeof(Page_ChooseIdeoPreset), "DoNext")]
-    public static class IdeologySelectionPatch_DoNextBlock
-    {
-        [HarmonyPrefix]
-        public static bool Prefix(Page_ChooseIdeoPreset __instance)
-        {
-            try
-            {
-                var presetSelectionField = AccessTools.Field(typeof(Page_ChooseIdeoPreset), "presetSelection");
-                int value = Convert.ToInt32(presetSelectionField.GetValue(__instance));
-                // 1 = CustomFluid, 2 = CustomFixed, 3 = Load
-                if (value == 1 || value == 2 || value == 3)
-                {
-                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak("Accessibility coming soon");
-                    return false;
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"[RimWorld Access] Error in IdeologySelectionPatch_DoNextBlock: {ex}");
-            }
-            return true;
-        }
-    }
+    // All ideoligion-creation paths (Classic, Custom Fixed, Custom Fluid, Load, Presets)
+    // are now accessible via the IdeoBuilder, so the former "Accessibility coming soon"
+    // DoNext safety-net block has been removed.
 }

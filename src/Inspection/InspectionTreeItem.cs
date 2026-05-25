@@ -34,6 +34,12 @@ namespace RimWorldAccess
         public int IndentLevel { get; set; }
         public bool IsExpandable { get; set; }
         public bool IsExpanded { get; set; }
+        /// <summary>
+        /// Marks a node as a section heading within a parent's detail lines (e.g. a role's
+        /// "Abilities" / "Requirements" headers). Used by TreeNavigationHelper's Page Up/Down
+        /// to jump between sections. Default false.
+        /// </summary>
+        public bool IsSectionHeader { get; set; }
         public List<InspectionTreeItem> Children { get; set; }
         public InspectionTreeItem Parent { get; set; }  // Reference to parent item for upward navigation
         public object Data { get; set; }  // Associated data (Pawn, Building, SkillRecord, etc.)

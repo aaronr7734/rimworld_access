@@ -89,6 +89,14 @@ namespace RimWorldAccess
         public Func<InspectionTreeItem, bool> ShouldExpandForSearch { get; set; }
 
         /// <summary>
+        /// Predicate marking which visible items act as "section boundaries" for Page Up/Down
+        /// navigation. When set, Page Up/Down jump the cursor to the previous/next matching item
+        /// (e.g. a role's "Abilities" / "Requirements" detail headers). If null, Page Up/Down are
+        /// inert (consumed, no movement).
+        /// </summary>
+        public Func<InspectionTreeItem, bool> IsSectionBoundary { get; set; }
+
+        /// <summary>
         /// Whether to include child counts in expand/collapse announcements.
         /// Default: true ("expanded, 3 items"). Set to false for just "expanded".
         /// </summary>
@@ -378,6 +386,18 @@ namespace RimWorldAccess
                     item => item.IsExpanded,
                     item => item.IsExpandable && item.Children.Count > 0,
                     ev.control, PlayTickAndAnnounce);
+                return true;
+            }
+
+            // Page Up / Page Down — jump between section boundaries (opt-in via IsSectionBoundary)
+            if (key == KeyCode.PageUp)
+            {
+                JumpToAdjacentSection(forward: false);
+                return true;
+            }
+            if (key == KeyCode.PageDown)
+            {
+                JumpToAdjacentSection(forward: true);
                 return true;
             }
 
@@ -673,6 +693,33 @@ namespace RimWorldAccess
                     TolkHelper.Speak($"Expanded {expandedCount} {(expandedCount == 1 ? "item" : "items")}");
                 }
             }
+        }
+
+        /// <summary>
+        /// Moves the cursor to the previous/next item satisfying <see cref="IsSectionBoundary"/>.
+        /// Used by Page Up/Down to skip between detail sections. No-op (reject sound) when no
+        /// boundary predicate is configured, a search is active, or there is no further section.
+        /// </summary>
+        public void JumpToAdjacentSection(bool forward)
+        {
+            if (IsSectionBoundary == null || visibleItems.Count == 0 || typeahead.HasActiveSearch)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                return;
+            }
+
+            int step = forward ? 1 : -1;
+            for (int i = selectedIndex + step; i >= 0 && i < visibleItems.Count; i += step)
+            {
+                if (IsSectionBoundary(visibleItems[i]))
+                {
+                    selectedIndex = i;
+                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                    AnnounceCurrentItem();
+                    return;
+                }
+            }
+            SoundDefOf.ClickReject.PlayOneShotOnCamera();
         }
 
         public void JumpToFirst(bool absolute)

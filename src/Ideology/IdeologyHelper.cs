@@ -351,6 +351,22 @@ namespace RimWorldAccess
 
             string sectionLabel = "CurrentDevelopmentPoints".Translate().CapitalizeFirst();
             var sectionNode = CreateSectionNode(root, sectionLabel, children);
+
+            // When the fluid ideoligion has earned enough development points, expose an
+            // actionable "Reform" node. Activating it opens the accessible reform dialog.
+            if (ideo.development.CanReformNow)
+            {
+                sectionNode.Children.Add(new InspectionTreeItem
+                {
+                    Label = "ReformIdeo".Translate(),
+                    IndentLevel = 1,
+                    IsExpandable = false,
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Data = new IdeoReformState.ReformActionMarker { Ideo = ideo },
+                    Parent = sectionNode,
+                });
+            }
+
             root.Children.Add(sectionNode);
         }
 
@@ -395,7 +411,10 @@ namespace RimWorldAccess
                         IsExpandable = true,
                         IsExpanded = false,
                         Parent = sectionNode,
-                        Type = InspectionTreeItem.ItemType.SubCategory
+                        Type = InspectionTreeItem.ItemType.SubCategory,
+                        // Carry the MemeDef so Alt+I opens its info card (the walker climbs to here
+                        // from the detail-line children too). MemeDef : Def.
+                        Data = meme
                     };
 
                     foreach (string child in childLines)
@@ -406,7 +425,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    AddChildNode(sectionNode, memeHeader.ToString());
+                    AddChildNode(sectionNode, memeHeader.ToString(), meme);
                     memeLabels.Add(memeHeader.ToString());
                 }
             }

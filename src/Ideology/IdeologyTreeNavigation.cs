@@ -161,6 +161,13 @@ namespace RimWorldAccess
                 ToggleRitualSound(soundDef);
                 return true;
             }
+            // Reform action — close the viewer and open the accessible reform dialog.
+            if (item.Data is IdeoReformState.ReformActionMarker reformMarker)
+            {
+                IdeologyTabState.Close();
+                Find.WindowStack.Add(new RimWorld.Dialog_ReformIdeo(reformMarker.Ideo));
+                return true;
+            }
             return false; // Fall back to default expand/collapse toggle
         }
 
