@@ -24,6 +24,7 @@ namespace RimWorldAccess
         private int selectionAnchor;
         private bool modal;
         private bool announceOnCommit;
+        private string displayLabel;
 
         public TextFieldSpec Spec { get; private set; }
         public string CurrentText => currentText;
@@ -42,6 +43,9 @@ namespace RimWorldAccess
         /// keys to <see cref="HandleCharacter"/> / <see cref="HandleEnter"/> / etc. itself.
         /// When <paramref name="replaceOnType"/> is true and initial text is non-empty,
         /// the first character/paste replaces the existing text.
+        /// <paramref name="displayLabel"/> overrides the field caption used in the editing prompt
+        /// and the commit announcement — pass an embedded field's own label (e.g. "First name")
+        /// when the spec carries only a generic label key.
         /// </summary>
         public void Begin(
             string initialText,
@@ -50,7 +54,8 @@ namespace RimWorldAccess
             Action onCancel = null,
             bool replaceOnType = true,
             bool modal = true,
-            bool announceOnCommit = true)
+            bool announceOnCommit = true,
+            string displayLabel = null)
         {
             currentText = initialText ?? string.Empty;
             this.initialText = currentText;
@@ -62,9 +67,10 @@ namespace RimWorldAccess
             this.onCancel = onCancel;
             this.modal = modal;
             this.announceOnCommit = announceOnCommit;
+            this.displayLabel = displayLabel;
             if (modal) TextInputManager.SetActive(this);
 
-            string label = spec?.LabelKey != null ? spec.LabelKey.Translate().ToString() : string.Empty;
+            string label = ResolveLabel();
             string preview = string.IsNullOrEmpty(currentText)
                 ? "RimWorldAccess.TextInput.Empty".Translate().ToString()
                 : currentText;
@@ -411,9 +417,12 @@ namespace RimWorldAccess
             string text = currentText;
 
             // Capture what we need for the dismissal announcement before Close() clears Spec.
-            bool announce = modal && announceOnCommit;
+            // Gated purely on announceOnCommit: embedded fields that route Enter through the
+            // controller (e.g. WindowlessDialogState) announce too; sites that re-announce their
+            // own result handle Enter themselves and never reach here.
+            bool announce = announceOnCommit;
             bool changed = text != initialText;
-            string label = Spec?.LabelKey != null ? Spec.LabelKey.Translate().ToString() : string.Empty;
+            string label = ResolveLabel();
 
             Close();
             cb?.Invoke(text);
@@ -422,6 +431,18 @@ namespace RimWorldAccess
             // confirm handler re-announces something (it interrupts that, avoiding double-speak).
             if (announce)
                 AnnounceCommit(label, text, changed);
+        }
+
+        /// <summary>
+        /// The human label used in the editing prompt and commit announcement. Prefers the explicit
+        /// display label passed to <see cref="Begin"/> (e.g. a dialog field's own caption like
+        /// "First name"); otherwise falls back to the spec's translated label key.
+        /// </summary>
+        private string ResolveLabel()
+        {
+            if (!string.IsNullOrEmpty(displayLabel))
+                return displayLabel;
+            return Spec?.LabelKey != null ? Spec.LabelKey.Translate().ToString() : string.Empty;
         }
 
         /// <summary>
@@ -435,7 +456,10 @@ namespace RimWorldAccess
                 : text;
             if (!changed)
             {
-                TolkHelper.Speak("RimWorldAccess.TextInput.FieldUnchanged".Translate(value), SpeechPriority.High);
+                // Identify the field by name ("First name unchanged"); fall back to the value only
+                // when no label is available, so we never speak a bare " unchanged".
+                string subject = string.IsNullOrEmpty(label) ? value : label;
+                TolkHelper.Speak("RimWorldAccess.TextInput.FieldUnchanged".Translate(subject), SpeechPriority.High);
                 return;
             }
             if (string.IsNullOrEmpty(label))
@@ -570,6 +594,7 @@ namespace RimWorldAccess
             selectionAnchor = 0;
             replaceOnFirstKeystroke = false;
             Spec = null;
+            displayLabel = null;
             onConfirm = null;
             onCancel = null;
             if (TextInputManager.Active == this)

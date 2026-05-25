@@ -373,7 +373,11 @@ namespace RimWorldAccess
                     val => { captured.Value = val; editingElement = null; },
                     () => { editingElement = null; },
                     replaceOnType: true,
-                    modal: false);
+                    modal: false,
+                    // The dialog field's own caption ("First name", etc.); the introspected spec
+                    // only carries a generic label, so pass the per-field label for the prompt and
+                    // the commit announcement.
+                    displayLabel: textField.Label);
             }
         }
 
