@@ -208,9 +208,8 @@ namespace RimWorldAccess
             // Clear pawn selection context flag
             GizmoNavigationState.PawnJustSelected = false;
 
-            // Play terrain audio feedback
-            TerrainDef terrain = targetPos.GetTerrain(map);
-            TerrainAudioHelper.PlayTerrainAudio(terrain, 0.5f);
+            // Play audio feedback for the cell (wall sound over walls, else terrain)
+            TerrainAudioHelper.PlayCellAudio(targetPos, map, 0.5f);
 
             // Announce position with all contextual prefixes (deep ore, "in area", shape dimensions, etc.)
             // This uses the same announcement path as arrow key movement

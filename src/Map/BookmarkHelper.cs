@@ -66,9 +66,8 @@ namespace RimWorldAccess
             Find.CameraDriver.JumpToCurrentMapLoc(bookmarkPos);
             MapNavigationState.CurrentCameraMode = CameraFollowMode.Cursor;
 
-            // Play terrain audio feedback (matches arrow key movement behavior)
-            TerrainDef terrain = bookmarkPos.GetTerrain(map);
-            TerrainAudioHelper.PlayTerrainAudio(terrain, 0.5f);
+            // Play audio feedback for the cell (matches arrow key movement behavior)
+            TerrainAudioHelper.PlayCellAudio(bookmarkPos, map, 0.5f);
 
             // Reset last announced info so AnnouncePosition always speaks
             MapNavigationState.LastAnnouncedInfo = "";

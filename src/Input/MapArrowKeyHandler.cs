@@ -163,9 +163,8 @@ namespace RimWorldAccess
             // Switch to Cursor mode - camera follows cursor, blocks pawn following
             MapNavigationState.CurrentCameraMode = CameraFollowMode.Cursor;
 
-            // Play terrain audio feedback
-            TerrainDef terrain = newPosition.GetTerrain(Find.CurrentMap);
-            TerrainAudioHelper.PlayTerrainAudio(terrain, 0.5f);
+            // Play audio feedback for the cell (wall sound over walls, else terrain)
+            TerrainAudioHelper.PlayCellAudio(newPosition, Find.CurrentMap, 0.5f);
 
             // Announce the position with all contextual info
             AnnouncePosition(newPosition, Find.CurrentMap);
