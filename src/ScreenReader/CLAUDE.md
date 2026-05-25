@@ -15,7 +15,7 @@ Provides cross-platform screen reader integration via the Prism library and cust
 
 ### Audio Feedback (2 files)
 - **EmbeddedAudioHelper.cs** - Loads and plays custom audio files embedded in DLL
-- **TerrainAudioHelper.cs** - Provides terrain-based audio cues for map navigation
+- **TerrainAudioHelper.cs** - Per-cell audio cues for map navigation. `PlayCellAudio(cell, map, volume)` plays a distinct wall sound (`wall.wav`) for any full-fill edifice - built walls, natural rock/mountain, and closed doors - taking precedence over the terrain beneath; otherwise it plays the terrain's own sound. Open doors fall through to terrain. Wall detection uses `GetEdifice` + `Fillage == Full` (excluding open `Building_Door`), never label matching.
 
 ## Key Architecture
 

@@ -538,8 +538,7 @@ namespace RimWorldAccess
                 Find.CameraDriver.JumpToCurrentMapLoc(pos);
             MapNavigationState.CurrentCameraMode = CameraFollowMode.Cursor;
 
-            TerrainDef terrain = pos.GetTerrain(map);
-            TerrainAudioHelper.PlayTerrainAudio(terrain, 0.5f);
+            TerrainAudioHelper.PlayCellAudio(pos, map, 0.5f);
 
             MapNavigationState.LastAnnouncedInfo = "";
             string tileInfo = TileInfoHelper.GetTileSummary(pos, map);

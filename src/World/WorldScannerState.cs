@@ -319,10 +319,10 @@ namespace RimWorldAccess
 
     /// <summary>
     /// Scanner for world map objects with 4-level navigation.
-    /// - Ctrl+PageUp/Down: Categories (Settlements, Quest Sites, Caravans, Biomes, Roads)
-    /// - Shift+PageUp/Down: Subcategories (e.g., Player/Allied/Neutral/Hostile settlements)
+    /// - Ctrl+PageUp/Down: Categories (Settlements, Quest Sites, Caravans, Biomes, Roads and rivers)
+    /// - Shift+PageUp/Down: Subcategories (e.g., Player/Allied/Neutral/Hostile settlements, All/Roads/Rivers)
     /// - PageUp/Down: Item types within subcategory
-    /// - Alt+PageUp/Down: Instances of same type (biome regions, road segments)
+    /// - Alt+PageUp/Down: Instances of same type (biome regions, road/river segments)
     /// </summary>
     public static class WorldScannerState
     {
@@ -333,9 +333,10 @@ namespace RimWorldAccess
         private static int currentInstanceIndex = 0;
         private static bool autoJumpMode = false;
 
-        // Cache for expensive biome/road calculations
+        // Cache for expensive biome/road/river calculations
         private static Dictionary<string, List<BiomeRegion>> cachedBiomeRegions = null;
         private static Dictionary<string, List<RoadSegment>> cachedRoadSegments = null;
+        private static Dictionary<string, List<RoadSegment>> cachedRiverSegments = null;
         private static PlanetTile lastCacheOrigin = PlanetTile.Invalid;
 
         // Cache for full category list (count-based invalidation)
@@ -622,8 +623,8 @@ namespace RimWorldAccess
             var biomesCategory = CreateBiomesCategory(originTile);
             if (!biomesCategory.IsEmpty) categories.Add(biomesCategory);
 
-            // Category 6: Roads
-            var roadsCategory = CreateRoadsCategory(originTile);
+            // Category 6: Roads and rivers
+            var roadsCategory = CreateRoadsAndRiversCategory(originTile);
             if (!roadsCategory.IsEmpty) categories.Add(roadsCategory);
 
             // Note: Space/orbital objects are now included in their proper categories above
@@ -1178,23 +1179,63 @@ namespace RimWorldAccess
             return category;
         }
 
-        private static WorldScannerCategory CreateRoadsCategory(PlanetTile originTile)
+        private static WorldScannerCategory CreateRoadsAndRiversCategory(PlanetTile originTile)
         {
-            var category = new WorldScannerCategory("Roads");
-            var subcat = new WorldScannerSubcategory("All Roads");
+            var category = new WorldScannerCategory("Roads and rivers");
 
-            // Check if we need to rebuild the cache
-            if (cachedRoadSegments == null || !lastCacheOrigin.Valid ||
-                Find.WorldGrid.ApproxDistanceInTiles(lastCacheOrigin, originTile) > 50)
-            {
+            // Check if we need to rebuild the caches (lastCacheOrigin is set by biome collection)
+            bool cacheStale = !lastCacheOrigin.Valid ||
+                Find.WorldGrid.ApproxDistanceInTiles(lastCacheOrigin, originTile) > 50;
+            if (cachedRoadSegments == null || cacheStale)
                 cachedRoadSegments = CollectRoadSegments(originTile);
-                // lastCacheOrigin already set by biome collection
+            if (cachedRiverSegments == null || cacheStale)
+                cachedRiverSegments = CollectRiverSegments(originTile);
+
+            var roadItems = BuildSegmentItems(cachedRoadSegments, originTile);
+            var riverItems = BuildSegmentItems(cachedRiverSegments, originTile);
+
+            // When both kinds are present, lead with a combined "All" list;
+            // with only one kind "All" would just duplicate it. "Roads" and
+            // "Rivers" split them out. Each subcategory is added only if it
+            // has items.
+            if (roadItems.Count > 0 && riverItems.Count > 0)
+            {
+                var allItems = new List<WorldScannerItem>(roadItems.Count + riverItems.Count);
+                allItems.AddRange(roadItems);
+                allItems.AddRange(riverItems);
+                SortItemsByDistance(allItems, originTile);
+                AddSubcategoryIfAny(category, "All", allItems);
             }
 
-            var roadItems = new List<WorldScannerItem>();
-            foreach (var kvp in cachedRoadSegments)
+            AddSubcategoryIfAny(category, "Roads", roadItems);
+            AddSubcategoryIfAny(category, "Rivers", riverItems);
+
+            return category;
+        }
+
+        private static void AddSubcategoryIfAny(
+            WorldScannerCategory category, string name, List<WorldScannerItem> items)
+        {
+            if (items == null || items.Count == 0) return;
+            var subcat = new WorldScannerSubcategory(name);
+            subcat.Items.AddRange(items);
+            category.Subcategories.Add(subcat);
+        }
+
+        /// <summary>
+        /// Builds scanner items (one per feature type) from collected segments,
+        /// updating per-segment distances and sorting both segments and items by
+        /// distance from the origin. Shared by roads and rivers.
+        /// </summary>
+        private static List<WorldScannerItem> BuildSegmentItems(
+            Dictionary<string, List<RoadSegment>> segmentsByType, PlanetTile originTile)
+        {
+            var items = new List<WorldScannerItem>();
+            if (segmentsByType == null) return items;
+
+            foreach (var kvp in segmentsByType)
             {
-                string roadName = kvp.Key;
+                string name = kvp.Key;
                 var segments = kvp.Value;
 
                 if (segments.Count == 0) continue;
@@ -1207,15 +1248,11 @@ namespace RimWorldAccess
 
                 segments.Sort((a, b) => a.Distance.CompareTo(b.Distance));
 
-                var item = new WorldScannerItem(roadName, segments);
-                roadItems.Add(item);
+                items.Add(new WorldScannerItem(name, segments));
             }
 
-            SortItemsByDistance(roadItems, originTile);
-
-            subcat.Items.AddRange(roadItems);
-            category.Subcategories.Add(subcat);
-            return category;
+            SortItemsByDistance(items, originTile);
+            return items;
         }
 
         private static WorldScannerCategory CreateLandmarksCategory(PlanetTile originTile)
@@ -1565,6 +1602,129 @@ namespace RimWorldAccess
             return segment;
         }
 
+        private static Dictionary<string, List<RoadSegment>> CollectRiverSegments(PlanetTile originTile)
+        {
+            var result = new Dictionary<string, List<RoadSegment>>();
+
+            if (Find.WorldGrid == null)
+                return result;
+
+            int maxRange = 200;
+            var visited = new HashSet<int>();
+            var riverTilesByType = new Dictionary<string, HashSet<int>>();
+
+            var queue = new Queue<int>();
+            queue.Enqueue(originTile);
+            visited.Add(originTile);
+
+            while (queue.Count > 0 && visited.Count < 125000)
+            {
+                int currentTileId = queue.Dequeue();
+                PlanetTile currentTile = new PlanetTile(currentTileId, -1);
+
+                if (!currentTile.Valid) continue;
+
+                float dist = Find.WorldGrid.ApproxDistanceInTiles(originTile, currentTile);
+                if (dist > maxRange) continue;
+
+                Tile tileData = currentTile.Tile;
+                if (tileData is SurfaceTile surfaceTile && surfaceTile.Rivers != null)
+                {
+                    foreach (var riverLink in surfaceTile.Rivers)
+                    {
+                        string riverName = riverLink.river.LabelCap;
+                        if (!riverTilesByType.ContainsKey(riverName))
+                            riverTilesByType[riverName] = new HashSet<int>();
+                        riverTilesByType[riverName].Add(currentTileId);
+                    }
+                }
+
+                var neighbors = new List<PlanetTile>();
+                Find.WorldGrid.GetTileNeighbors(currentTile, neighbors);
+                foreach (var neighbor in neighbors)
+                {
+                    if (!visited.Contains(neighbor))
+                    {
+                        visited.Add(neighbor);
+                        queue.Enqueue(neighbor);
+                    }
+                }
+            }
+
+            // Treat each connected stretch of a river type as a "segment"
+            foreach (var kvp in riverTilesByType)
+            {
+                string riverName = kvp.Key;
+                var riverTiles = new HashSet<int>(kvp.Value);
+                var segments = new List<RoadSegment>();
+
+                while (riverTiles.Count > 0)
+                {
+                    int startTile = 0;
+                    foreach (int t in riverTiles) { startTile = t; break; }
+                    var segmentTiles = FloodFillRiverSegment(startTile, riverTiles, riverName);
+
+                    if (segmentTiles.Count > 0)
+                    {
+                        PlanetTile centerTile = FindRegionCenter(segmentTiles);
+                        var segment = new RoadSegment(centerTile, segmentTiles);
+                        segments.Add(segment);
+                    }
+
+                    foreach (int tile in segmentTiles)
+                        riverTiles.Remove(tile);
+                }
+
+                if (segments.Count > 0)
+                    result[riverName] = segments;
+            }
+
+            return result;
+        }
+
+        private static HashSet<int> FloodFillRiverSegment(int startTile, HashSet<int> validTiles, string riverType)
+        {
+            var segment = new HashSet<int>();
+            var queue = new Queue<int>();
+            queue.Enqueue(startTile);
+
+            while (queue.Count > 0)
+            {
+                int current = queue.Dequeue();
+                if (!validTiles.Contains(current) || segment.Contains(current))
+                    continue;
+
+                segment.Add(current);
+
+                var neighbors = new List<PlanetTile>();
+                Find.WorldGrid.GetTileNeighbors(new PlanetTile(current, -1), neighbors);
+                foreach (var neighbor in neighbors)
+                {
+                    if (validTiles.Contains(neighbor) && !segment.Contains(neighbor))
+                    {
+                        // Check if neighbor carries the same river type
+                        Tile neighborData = neighbor.Tile;
+                        if (neighborData is SurfaceTile surfaceTile && surfaceTile.Rivers != null)
+                        {
+                            bool hasRiverType = false;
+                            foreach (var river in surfaceTile.Rivers)
+                            {
+                                if (river.river.LabelCap == riverType)
+                                {
+                                    hasRiverType = true;
+                                    break;
+                                }
+                            }
+                            if (hasRiverType)
+                                queue.Enqueue(neighbor);
+                        }
+                    }
+                }
+            }
+
+            return segment;
+        }
+
         #endregion
 
         #region Navigation
@@ -1601,6 +1761,7 @@ namespace RimWorldAccess
             lastWaypointCount = 0;
             cachedBiomeRegions = null;
             cachedRoadSegments = null;
+            cachedRiverSegments = null;
             lastCacheOrigin = PlanetTile.Invalid;
         }
 

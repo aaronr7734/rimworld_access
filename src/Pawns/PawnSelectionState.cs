@@ -374,7 +374,7 @@ namespace RimWorldAccess
 
             if (map != null)
             {
-                TerrainAudioHelper.PlayTerrainAudio(pos.GetTerrain(map), 0.5f);
+                TerrainAudioHelper.PlayCellAudio(pos, map, 0.5f);
                 MapNavigationState.LastAnnouncedInfo = "";
                 MapArrowKeyHandler.AnnouncePosition(pos, map);
             }

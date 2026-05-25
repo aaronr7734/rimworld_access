@@ -11,6 +11,12 @@ namespace RimWorldAccess
     public static class TerrainAudioHelper
     {
         /// <summary>
+        /// Audio file played when the cursor is over a wall (man-made or natural rock).
+        /// Takes precedence over the terrain beneath the wall.
+        /// </summary>
+        public const string WallAudioFile = "wall.wav";
+
+        /// <summary>
         /// Exact defName-to-audio mapping for all known terrain types.
         /// To add a terrain-specific sound, update the value for that defName.
         /// </summary>
@@ -242,6 +248,54 @@ namespace RimWorldAccess
                 return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Determines whether a cell currently presents a wall for navigation purposes.
+        /// This covers any full-fill edifice - man-made walls, ancient structures, and
+        /// natural rock (mountain) alike. A door counts as a wall only while it is closed;
+        /// an open door is a passable gap and is treated as terrain.
+        /// </summary>
+        /// <param name="cell">The map cell to test</param>
+        /// <param name="map">The map containing the cell</param>
+        /// <returns>True if the cell is currently walled, false otherwise</returns>
+        public static bool IsWall(IntVec3 cell, Map map)
+        {
+            if (map == null)
+                return false;
+
+            Building edifice = cell.GetEdifice(map);
+            if (edifice == null || edifice.def.Fillage != FillCategory.Full)
+                return false;
+
+            // A closed door is effectively a wall; an open door is a passable opening.
+            if (edifice is Building_Door door)
+                return !door.Open;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Plays the audio cue for a map cell. A wall (man-made or natural rock, including a
+        /// closed door) plays the wall sound and takes precedence over the terrain beneath it;
+        /// otherwise the terrain's own sound plays.
+        /// </summary>
+        /// <param name="cell">The map cell the cursor landed on</param>
+        /// <param name="map">The map containing the cell</param>
+        /// <param name="volume">Volume to play at (0.0 to 1.0)</param>
+        /// <returns>True if any audio was played, false otherwise</returns>
+        public static bool PlayCellAudio(IntVec3 cell, Map map, float volume = 0.5f)
+        {
+            if (map == null)
+                return false;
+
+            if (IsWall(cell, map))
+            {
+                EmbeddedAudioHelper.PlayEmbeddedSound(WallAudioFile, volume);
+                return true;
+            }
+
+            return PlayTerrainAudio(cell.GetTerrain(map), volume);
         }
     }
 }
