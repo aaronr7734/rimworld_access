@@ -89,7 +89,7 @@ namespace RimWorldAccess
                 FindFirstPopulatedColumn();
             }
 
-            TolkHelper.Speak("Work, focused view");
+            TolkHelper.Speak($"Work, focused view. {currentPawn.LabelShort}");
             AnnounceCurrentPosition(true);
         }
 
