@@ -169,15 +169,28 @@ namespace RimWorldAccess
             if (parameters == null)
                 return "Select a target";
 
-            if (parameters.canTargetPawns || parameters.canTargetHumans
-                || parameters.canTargetAnimals || parameters.canTargetMechs)
+            // canTargetPawns, canTargetBuildings, and several subtypes all default to TRUE
+            // on a fresh TargetingParameters. CanTarget() only treats a pawn as targetable
+            // when canTargetPawns AND at least one species subtype (humans / animals / mechs /
+            // subhumans) is enabled, so checking canTargetPawns alone is misleading.
+            // Example: TargetingParameters.ForCell() — used for shuttle "land in existing map"
+            // cell selection — leaves canTargetPawns at its default true but disables every
+            // species subtype, so picking a pawn would actually fail. Before this guard, the
+            // announcement said "Select pawn to target" for a cell-only target.
+            bool pawnsActuallyTargetable = parameters.canTargetPawns
+                && (parameters.canTargetHumans || parameters.canTargetAnimals
+                    || parameters.canTargetMechs || parameters.canTargetSubhumans);
+
+            if (pawnsActuallyTargetable)
                 return "Select pawn to target";
-            if (parameters.canTargetBuildings)
+            // Same defaulting trap for buildings: if locations are explicitly enabled, prefer
+            // the location label over a stale canTargetBuildings=true default.
+            if (parameters.canTargetBuildings && !parameters.canTargetLocations)
                 return "Select building to target";
             if (parameters.canTargetItems)
                 return "Select item to target";
             if (parameters.canTargetLocations)
-                return "Select location";
+                return "Select a cell";
 
             return "Select a target";
         }

@@ -181,36 +181,44 @@
     <Message Text="--- Release package created at $(ReleaseFolderPath) ---" Importance="high" />
   </Target>
 
-  <!-- Download latest Prism native libraries from GitHub into shared location -->
+  <!--
+    Download pinned Prism native libraries from GitHub into shared location.
+    PrismVersion is pinned deliberately: pulling "latest" silently ships
+    upstream regressions to players. v0.16.2 broke NVDA backend detection
+    (ethindp/prism#49), causing acquire_best() to select a non-functional NVDA
+    over a running JAWS. Bump this only after verifying the target release.
+  -->
   <Target Name="UpdatePrism">
     <PropertyGroup>
       <PrismDownloadDir>$(ProjectDir)..\shared\native</PrismDownloadDir>
+      <PrismVersion>v0.16.1</PrismVersion>
+      <PrismBaseUrl>https://github.com/ethindp/prism/releases/download/$(PrismVersion)</PrismBaseUrl>
     </PropertyGroup>
-    <Message Text="Downloading latest Prism native libraries to $(PrismDownloadDir)..." Importance="high" />
+    <Message Text="Downloading Prism $(PrismVersion) native libraries to $(PrismDownloadDir)..." Importance="high" />
     <MakeDir Directories="$(PrismDownloadDir)" />
 
     <!-- Windows x64 -->
-    <Exec Command="curl -sL &quot;https://github.com/ethindp/prism/releases/latest/download/prism-windows-x64.zip&quot; -o &quot;$(PrismDownloadDir)/prism-win.zip&quot;" />
+    <Exec Command="curl -sL &quot;$(PrismBaseUrl)/prism-windows-x64.zip&quot; -o &quot;$(PrismDownloadDir)/prism-win.zip&quot;" />
     <Exec Command="unzip -o &quot;$(PrismDownloadDir)/prism-win.zip&quot; -d &quot;$(PrismDownloadDir)/prism-win-tmp&quot;" />
     <Copy SourceFiles="$(PrismDownloadDir)/prism-win-tmp/dynamic/release/bin/prism.dll" DestinationFiles="$(PrismDownloadDir)/prism.dll" />
     <RemoveDir Directories="$(PrismDownloadDir)/prism-win-tmp" />
     <Delete Files="$(PrismDownloadDir)/prism-win.zip" />
 
     <!-- macOS universal -->
-    <Exec Command="curl -sL &quot;https://github.com/ethindp/prism/releases/latest/download/prism-macos-universal.zip&quot; -o &quot;$(PrismDownloadDir)/prism-mac.zip&quot;" />
+    <Exec Command="curl -sL &quot;$(PrismBaseUrl)/prism-macos-universal.zip&quot; -o &quot;$(PrismDownloadDir)/prism-mac.zip&quot;" />
     <Exec Command="unzip -o &quot;$(PrismDownloadDir)/prism-mac.zip&quot; -d &quot;$(PrismDownloadDir)/prism-mac-tmp&quot;" />
     <Copy SourceFiles="$(PrismDownloadDir)/prism-mac-tmp/dynamic/release/lib/libprism.dylib" DestinationFiles="$(PrismDownloadDir)/libprism.dylib" />
     <RemoveDir Directories="$(PrismDownloadDir)/prism-mac-tmp" />
     <Delete Files="$(PrismDownloadDir)/prism-mac.zip" />
 
     <!-- Linux x64 -->
-    <Exec Command="curl -sL &quot;https://github.com/ethindp/prism/releases/latest/download/prism-linux-x64.zip&quot; -o &quot;$(PrismDownloadDir)/prism-linux.zip&quot;" />
+    <Exec Command="curl -sL &quot;$(PrismBaseUrl)/prism-linux-x64.zip&quot; -o &quot;$(PrismDownloadDir)/prism-linux.zip&quot;" />
     <Exec Command="unzip -o &quot;$(PrismDownloadDir)/prism-linux.zip&quot; -d &quot;$(PrismDownloadDir)/prism-linux-tmp&quot;" />
     <Copy SourceFiles="$(PrismDownloadDir)/prism-linux-tmp/dynamic/release/lib/libprism.so" DestinationFiles="$(PrismDownloadDir)/libprism.so" />
     <RemoveDir Directories="$(PrismDownloadDir)/prism-linux-tmp" />
     <Delete Files="$(PrismDownloadDir)/prism-linux.zip" />
 
-    <Message Text="Prism native libraries updated successfully." Importance="high" />
+    <Message Text="Prism $(PrismVersion) native libraries updated successfully." Importance="high" />
   </Target>
 
   <!-- Auto-download Prism on first build when native libraries are missing (skipped in CI) -->

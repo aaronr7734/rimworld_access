@@ -1,3 +1,4 @@
+using System.Reflection;
 using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
@@ -85,6 +86,7 @@ namespace RimWorldAccess
         public static void PostOpen_Postfix(Dialog_FormCaravan __instance)
         {
             // If route planner is pending, skip activation - route planner will activate later
+            // (this is the world-map "Form caravan" / C key flow, which opens it explicitly).
             if (CaravanFormationState.PendingRoutePlannerOpen)
             {
                 // Clear the flag since we're now past the PostOpen stage
@@ -92,7 +94,55 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Non-reform caravan dialogs opened directly from a colony building gizmo (e.g. the
+            // hitching-spot "Form caravan" command) start with no destination. The game's PostOpen
+            // already started the route planner and removed this dialog from the window stack, so
+            // route the player into the route planner to choose a destination first (matching
+            // vanilla). After they confirm, the dialog reopens with a valid destination and the
+            // branch below activates the formation tabs.
+            if (ShouldChooseRouteFirst(__instance))
+            {
+                CaravanFormationState.BeginColonyOriginatedRouteChoice(__instance);
+                return;
+            }
+
             CaravanFormationState.Open(__instance);
+        }
+
+        /// <summary>
+        /// True when a freshly-opened caravan dialog still needs the player to choose a destination
+        /// route before it can be sent (e.g. opened from the hitching-spot gizmo). Excludes reform
+        /// dialogs and the case where a destination has already been chosen (the dialog reopening
+        /// after route confirmation).
+        /// </summary>
+        private static bool ShouldChooseRouteFirst(Dialog_FormCaravan dialog)
+        {
+            // Already choosing a route for this dialog - this is a re-entrant PostOpen.
+            if (CaravanFormationState.IsColonyRouteChoiceActive)
+                return false;
+
+            WorldRoutePlanner planner = Find.WorldRoutePlanner;
+            if (planner == null || !planner.Active || !planner.FormingCaravan)
+                return false; // Route planner isn't driving this dialog.
+
+            if (IsReform(dialog))
+                return false; // Reform caravans run their own (often route-free) flow.
+
+            // A destination already chosen means the dialog is reopening after route confirmation.
+            FieldInfo destField = AccessTools.Field(typeof(Dialog_FormCaravan), "destinationTile");
+            if (destField == null)
+                return false;
+            PlanetTile destination = (PlanetTile)destField.GetValue(dialog);
+            return !destination.Valid;
+        }
+
+        /// <summary>
+        /// Reads the dialog's private reform flag.
+        /// </summary>
+        private static bool IsReform(Dialog_FormCaravan dialog)
+        {
+            FieldInfo reformField = AccessTools.Field(typeof(Dialog_FormCaravan), "reform");
+            return reformField != null && (bool)reformField.GetValue(dialog);
         }
 
         /// <summary>

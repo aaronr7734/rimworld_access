@@ -1,4 +1,45 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
+05/24/2026
+
+BUG FIXES
+---------
+- Screen reader speech works again on setups where JAWS (or another
+  reader) had gone silent. A recent version of the underlying Prism
+  speech library began treating NVDA as available even when it wasn't
+  running, so on machines without NVDA active it selected NVDA and
+  spoke nothing. The mod is now pinned to the last known-good Prism
+  version until the upstream fix ships.
+
+05/23/2026
+
+BUG FIXES
+---------
+- A pawn's Relations now show family ties correctly from both sides:
+  a parent now lists their child as "Daughter" or "Son" instead of
+  "Friend," and the opinion breakdown lines up. Thanks to BlindGuyNW
+  for the PR.
+- Forming a caravan from a hitching spot now works correctly. I had no idea hitching spots had a form caravan gizmo till recently!
+- The Left and Right arrow keys no longer move the map cursor while
+  the F12 menu (Factions and Ideology) is open.
+- The biosculpter pod's "Nutrition storage" option now opens the
+ correct filter when activated. Previously, pressing Enter on it did
+  nothing.
+- When a targeting action is rejected for the same reason more than
+  once in a row (for example, casting an ability on a pawn with no
+  healable injuries), the screen reader now repeats the specific
+  reason instead of falling back to a generic "Invalid target." The
+  game suppresses duplicate on-screen messages, which previously hid
+  the reason from screen reader users on the second and later tries.
+
+05/12/2026
+
+BUG FIXES
+---------
+- Scanner now works when launching a shuttle from a caravan on
+  the world map.
+- Picking a landing cell after a shuttle launch no longer
+  announces "Select pawn to target".
+
 05/03/2026
 
 CHANGES

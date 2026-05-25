@@ -144,8 +144,31 @@ namespace RimWorldAccess
             if (planner == null || !planner.Active)
                 return;
 
+            // Capture before Stop(): stopping the planner fires Notify_NoLongerChoosingRoute, which
+            // resets CaravanFormationState (clearing the colony-origin reference).
+            Map colonyOrigin = CaravanFormationState.RouteChoiceOriginMap;
+
             planner.Stop();
             ResetRouteTracking();
+
+            if (colonyOrigin != null)
+            {
+                // The route choice was started from a colony building gizmo (e.g. hitching spot).
+                // Cancelling returns the player to that colony map rather than stranding them on
+                // the world map.
+                if (WorldNavigationState.IsActive)
+                {
+                    WorldNavigationState.Close();
+                }
+                CameraJumper.TryHideWorld();
+                if (Find.Maps.Contains(colonyOrigin))
+                {
+                    Current.Game.CurrentMap = colonyOrigin;
+                }
+                TolkHelper.Speak("Caravan formation cancelled", SpeechPriority.Normal);
+                return;
+            }
+
             TolkHelper.Speak("Route planner closed", SpeechPriority.Normal);
         }
 
@@ -419,8 +442,11 @@ namespace RimWorldAccess
                         return;
                     }
 
-                    Find.WindowStack.Add(dialog);
+                    // Set the destination BEFORE re-adding the dialog so its reopen PostOpen sees a
+                    // valid destinationTile. CaravanFormationPatch.ShouldChooseRouteFirst relies on
+                    // this to distinguish "reopening with a route" from "first open, needs a route".
                     dialog.Notify_ChoseRoute(destination);
+                    Find.WindowStack.Add(dialog);
                     planner.Stop();
                 }
                 else
