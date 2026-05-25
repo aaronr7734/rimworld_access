@@ -225,7 +225,18 @@ namespace RimWorldAccess
                 return;
             }
 
-            IdeoBuilderSectionActions.Activate(currentIdeo, section.Kind);
+            // Never let an editor-open failure escape: the caller consumes the Enter key only after
+            // this returns, so an exception here would leave Enter unconsumed and fall through to the
+            // page's Next button (DoNext), advancing the player out of the builder.
+            try
+            {
+                IdeoBuilderSectionActions.Activate(currentIdeo, section.Kind);
+            }
+            catch (System.Exception ex)
+            {
+                Log.Error($"[RimWorld Access] Error opening editor for section {section.Kind}: {ex}");
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+            }
         }
 
         #endregion

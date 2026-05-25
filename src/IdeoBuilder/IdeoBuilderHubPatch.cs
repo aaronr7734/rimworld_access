@@ -341,6 +341,22 @@ namespace RimWorldAccess
             finally { explicitDoBack = false; }
         }
 
+        /// <summary>
+        /// Leaves the builder after the player abandoned an unconfigured ideo — e.g. backing out of
+        /// the initial structure picker, which makes vanilla remove the empty ideo while leaving
+        /// page.ideo dangling at it. Clears that dangling reference and returns to the previous page
+        /// (preset selection) without the discard confirmation, since nothing was built to discard.
+        /// </summary>
+        internal static void LeaveBuilderAbandoned(Page_ConfigureIdeo page)
+        {
+            if (page == null) return;
+            EnsureReflectionCached();
+            IdeoBuilderHubState.Close();
+            page.ideo = null;
+            IdeoUIUtility.UnselectCurrent();
+            DoBackConfirmed(page);
+        }
+
         private static void TryRandomizeAll(Page_ConfigureIdeo page)
         {
             if (page.ideo == null) return;

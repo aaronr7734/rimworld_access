@@ -105,8 +105,13 @@ namespace RimWorldAccess
         public static string AppearanceSummary(Ideo ideo)
         {
             if (ideo?.style == null) return "";
-            return ideo.style.NumHairAndBeardStylesAvailable + " " + "HairAndBeards".Translate().ToString().ToLower()
-                 + ", " + ideo.style.NumTattooStylesAvailable + " " + "Tattoos".Translate().ToString().ToLower();
+            // The counts default to -1 until the game caches them, which it skips while the ideo has
+            // no culture (RecacheStyleItemCounts early-returns). Clamp so an uninitialized ideo never
+            // reads "-1 hair and beards" aloud.
+            int hair = System.Math.Max(0, ideo.style.NumHairAndBeardStylesAvailable);
+            int tattoo = System.Math.Max(0, ideo.style.NumTattooStylesAvailable);
+            return hair + " " + "HairAndBeards".Translate().ToString().ToLower()
+                 + ", " + tattoo + " " + "Tattoos".Translate().ToString().ToLower();
         }
 
         public static string GetLocalizedSectionLabel(SectionKind kind)

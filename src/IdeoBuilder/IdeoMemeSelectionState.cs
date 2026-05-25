@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using RimWorld;
 using UnityEngine;
@@ -187,6 +188,7 @@ namespace RimWorldAccess
             var ideo = IdeoMemeSelectionHelper.GetIdeo(currentDialog);
 
             bool isSelected = newMemes.Contains(meme);
+            var displaced = new List<MemeDef>();
 
             if (isSelected)
             {
@@ -211,14 +213,19 @@ namespace RimWorldAccess
             }
             else
             {
+                // Single-select modes silently displace other memes; collect them so the player
+                // hears what was deselected (e.g. picking a new Normal meme during the fluid initial
+                // pick swaps out the previous one).
                 if (meme.category == MemeCategory.Structure)
                 {
                     // Remove all existing structure memes (single-select).
+                    displaced.AddRange(newMemes.Where(m => m.category == MemeCategory.Structure));
                     newMemes.RemoveAll(m => m.category == MemeCategory.Structure);
                 }
                 else if (configuringNewFluid)
                 {
                     // Fluid initial pick allows only one Normal meme; swap.
+                    displaced.AddRange(newMemes.Where(m => m.category == MemeCategory.Normal));
                     newMemes.RemoveAll(m => m.category == MemeCategory.Normal);
                 }
                 else if (reformingFluid)
@@ -231,6 +238,7 @@ namespace RimWorldAccess
                         TolkHelper.Speak("ReformIdeoAddOrRemoveMeme".Translate(), SpeechPriority.High);
                         return;
                     }
+                    displaced.AddRange(newMemes.Where(m => !ideo.memes.Contains(m)));
                     newMemes.RemoveAll(m => !ideo.memes.Contains(m));
                 }
 
@@ -249,6 +257,9 @@ namespace RimWorldAccess
                 bool nowSelected = newMemes.Contains(meme);
                 var sb = new StringBuilder();
                 sb.Append(meme.LabelCap.ToString()).Append(", ").Append(nowSelected ? "Selected" : "Removed");
+                // Name any meme that was silently swapped out so the player isn't surprised.
+                foreach (var d in displaced)
+                    sb.Append(". ").Append(d.LabelCap.ToString()).Append(", ").Append("Removed");
                 string status = IdeoMemeSelectionHelper.BuildStatusLine(currentDialog);
                 if (!string.IsNullOrEmpty(status))
                     sb.Append(". ").Append(status);
@@ -331,11 +342,20 @@ namespace RimWorldAccess
             {
                 // Chain back to structure picker (vanilla behavior).
                 Find.WindowStack.Add(new Dialog_ChooseMemes(ideo, MemeCategory.Structure, initialSelection: true));
+                return;
             }
-            else
-            {
-                Find.WindowStack.WindowOfType<Page_ConfigureIdeo>()?.Notify_ClosedChooseMemesDialog();
-            }
+
+            var page = Find.WindowStack.WindowOfType<Page_ConfigureIdeo>();
+            page?.Notify_ClosedChooseMemesDialog();
+
+            // Notify_ClosedChooseMemesDialog removes the freshly-made empty ideo when no normal
+            // meme was chosen (i.e. the player abandoned the initial structure pick) but leaves
+            // page.ideo dangling at that removed, unconfigured ideo — culture-less, name-less, with
+            // uninitialized style counts. There is nothing to configure, so leave the builder and
+            // return to the previous page (preset selection) rather than stranding the player on a
+            // ghost ideo. A configured ideo (still in the manager) keeps the player on the hub.
+            if (page != null && (page.ideo == null || !Find.IdeoManager.IdeosListForReading.Contains(page.ideo)))
+                IdeoBuilderHubPatch.LeaveBuilderAbandoned(page);
         }
 
         #endregion
