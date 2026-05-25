@@ -52,7 +52,9 @@ namespace RimWorldAccess
                 if (TextInputManager.Active != null)
                     return false;
 
-                // A confirmation / message box owns input while open.
+                // A confirmation / message box owns input while open — let it handle its own keys.
+                // The DoNext / DoBack guards stop the page from advancing on a stray keypress; we
+                // must NOT consume Enter/Escape here or the dialog's own buttons stop working.
                 if (WindowlessDialogState.IsActive || WindowlessConfirmationState.IsActive)
                     return true;
 
@@ -276,8 +278,15 @@ namespace RimWorldAccess
                 return;
             }
 
-            doNextMethod?.Invoke(page, null);
+            explicitDoNext = true;
+            try { doNextMethod?.Invoke(page, null); }
+            finally { explicitDoNext = false; }
         }
+
+        // Set true around our own intentional DoNext (Alt+S) so the Page.DoNext guard lets it
+        // through; any other DoNext (a stray Enter falling through to the page's Next button) is
+        // blocked while a dialog / editor owns the keyboard.
+        internal static bool explicitDoNext;
 
         private static void TryDoBack(Page_ConfigureIdeo page)
         {
@@ -385,6 +394,32 @@ namespace RimWorldAccess
                 return false;
             IdeoBuilderHubPatch.RequestBackConfirm(page);
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Mirror of the DoBack guard for the forward direction. Page.DoBottomButtons fires DoNext on
+    /// the Accept key (Enter), so a stray Enter — confirming/cancelling the discard dialog, or while
+    /// an editor/float-menu owns the keyboard — would otherwise advance the player to the next page
+    /// (character creation). Block DoNext for the configure page unless it's our own Alt+S advance
+    /// (explicitDoNext) or nothing is owning input.
+    /// </summary>
+    [HarmonyPatch(typeof(Page), "DoNext")]
+    public static class IdeoBuilderHubPatch_DoNextGuard
+    {
+        [HarmonyPrefix]
+        static bool Prefix(Page __instance)
+        {
+            if (!(__instance is Page_ConfigureIdeo))
+                return true;
+            if (IdeoBuilderHubPatch.explicitDoNext)
+                return true;
+            if (TextInputManager.Active != null || WindowlessFloatMenuState.IsActive
+                || WindowlessDialogState.IsActive || WindowlessConfirmationState.IsActive
+                || IdeoBuilderOverlays.AnyActive
+                || Find.WindowStack.WindowOfType<Dialog_ChooseMemes>() != null)
+                return false;
+            return true;
         }
     }
 

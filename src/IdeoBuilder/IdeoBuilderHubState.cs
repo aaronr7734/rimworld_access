@@ -366,18 +366,32 @@ namespace RimWorldAccess
             TolkHelper.Speak("RitualAmbienceSound".Translate().Resolve() + ", playing.");
         }
 
-        /// <summary>Keeps the ritual-sound preview alive; called every frame from the hub patch.</summary>
+        /// <summary>
+        /// Keeps the ritual-sound preview alive; called every frame from the hub patch. Wrapped so a
+        /// sound-system failure can never propagate and stall the hub's input handling.
+        /// </summary>
         public static void MaintainRitualPreview()
         {
             if (ritualPreviewSustainer == null) return;
-            if (ritualPreviewSustainer.Ended)
+            try
             {
-                ritualPreviewSustainer = null;
-                return;
+                if (ritualPreviewSustainer.Ended)
+                {
+                    ritualPreviewSustainer = null;
+                    return;
+                }
+                ritualPreviewSustainer.Maintain();
+                // ForceSilenceFor lives only on MusicManagerPlay, and Find.MusicManagerPlay casts
+                // Current.Root to Root_Play — which throws pre-game (the main-menu builder runs in
+                // a Root_Entry). Only duck the music when actually in a running game.
+                if (Current.ProgramState == ProgramState.Playing)
+                    Find.MusicManagerPlay?.ForceSilenceFor(0.1f);
             }
-            ritualPreviewSustainer.Maintain();
-            // Duck the menu music each frame so the ritual ambience can be heard over it.
-            Find.MusicManagerPlay?.ForceSilenceFor(0.1f);
+            catch (System.Exception ex)
+            {
+                Log.Warning($"[RimWorld Access] Ritual sound preview stopped after an error: {ex.Message}");
+                StopRitualPreview();
+            }
         }
 
         private static void StopRitualPreview()
