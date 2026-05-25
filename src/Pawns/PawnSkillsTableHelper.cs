@@ -57,7 +57,9 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Cell value: pawn name for column 0, otherwise a terse skill readout.
-        /// Skill format: "{passion, }{level}, {LevelDescriptor}" or "incapable" for disabled.
+        /// Skill format: "{level}, {LevelDescriptor}[, {passion}] ({xp progress})" or
+        /// "incapable" for disabled. The XP progress is recomputed from the live
+        /// SkillRecord on every navigation, so it reflects current experience.
         /// </summary>
         public static string GetColumnValue(Pawn pawn, int columnIndex)
         {
@@ -76,10 +78,26 @@ namespace RimWorldAccess
             int level = record.GetLevelForUI();
             string descriptor = record.LevelDescriptor;
             string passion = PassionLabel(record.passion);
+            string xpInfo = BuildXpProgress(record);
 
             if (string.IsNullOrEmpty(passion))
-                return $"{level}, {descriptor}";
-            return $"{level}, {descriptor}, {passion}";
+                return $"{level}, {descriptor}{xpInfo}";
+            return $"{level}, {descriptor}, {passion}{xpInfo}";
+        }
+
+        /// <summary>
+        /// Terse localized XP progress suffix, e.g. "(Experience: 1,200 / 24,000)":
+        /// current experience toward the next level over the amount required.
+        /// Uses the game's own one-word "Experience" string (the label vanilla shows
+        /// for maxed skills) to stay translatable without the longer
+        /// "Progress to next learned level" phrasing.
+        /// </summary>
+        private static string BuildXpProgress(SkillRecord record)
+        {
+            string label = "Experience".Translate();
+            string current = record.xpSinceLastLevel.ToString("N0");
+            string required = record.XpRequiredForLevelUp.ToString("N0");
+            return $" ({label}: {current} / {required})";
         }
 
         /// <summary>
