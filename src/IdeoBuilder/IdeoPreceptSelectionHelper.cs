@@ -141,7 +141,7 @@ namespace RimWorldAccess
             root.Children.Add(section);
         }
 
-        private static string BuildIssueLabel(IssueDef issue, List<Precept> current)
+        public static string BuildIssueLabel(IssueDef issue, List<Precept> current)
         {
             string issueLabel = issue.LabelCap.ToString();
             if (current.Count == 0)

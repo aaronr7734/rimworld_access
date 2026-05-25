@@ -11,7 +11,11 @@ Separate from `Ideology/`, which is the read-only in-game **viewer**.
 
 ## Architecture: light hub + dedicated editor states
 
-`Page_ConfigureIdeo` (and its Fluid subclass, via inheritance) is presented as a **flat section menu** (`IdeoBuilderHubState`). Each section row shows a live value pulled from the `Ideo`. Enter dispatches to a dedicated editor through `IdeoBuilderSectionActions.Activate(ideo, kind)`.
+`Page_ConfigureIdeo` (and its Fluid subclass, via inheritance) is presented as a **two-tab screen** mirroring vanilla's left-list / right-details layout (`IdeoBuilderHubState` owns both tabs):
+- **Tab 1 — ideoligion list:** every ideoligion in `Find.IdeoManager.IdeosInViewOrder` (NPC factions' ideoligions exist here because world gen precedes the ideo page). Up/Down/Home/End + typeahead; the one being built is marked "yours".
+- **Tab 2 — detail:** the **flat section editor** when the listed selection is our own ideo (each row shows a live value, Enter dispatches to a dedicated editor via `IdeoBuilderSectionActions.Activate(ideo, kind)`); the **read-only viewer** (the same `IdeologyTreeNavigation` tree as the in-game F12 → Ideology tab) for any other ideoligion.
+
+`Tab`/`Shift+Tab` flip between the two tabs; arrow keys navigate within a tab. You never *leave* the editor by tabbing — you only flip the page. `Escape` is **not** tab navigation: in every tab it does the same thing (clear an active typeahead search, otherwise back out of the builder via the discard confirmation).
 
 Editors are standalone states, reused by both the hub and the reform dialog:
 - **Meme picker** — a real game `Dialog_ChooseMemes` window with its own patch (`IdeoMemeSelectionPatch`).
@@ -25,7 +29,7 @@ The reform dialog (`IdeoReformState` / `IdeoReformPatch`) reuses all of the abov
 | File | Role |
 |------|------|
 | `IdeoBuilderHelper.cs` | `HubSection` model + `SectionKind` enum, section builders, validation summary (mirrors `CanDoNext`), `ImpactOf` |
-| `IdeoBuilderHubState.cs` | Hub state: section list, navigation, typeahead, activation, announcements |
+| `IdeoBuilderHubState.cs` | Hub state: section list, navigation, typeahead, activation, announcements. Also the **two-tab shell** — tab 1 is the list of all ideoligions (`IdeologyHelper.BuildIdeologyList`), tab 2 is the detail: the section editor for our own ideo, the read-only viewer (reused `IdeologyTreeNavigation`) for any other. Tab/Shift+Tab flip tabs; Escape is uniform (leave the builder) in every tab, never navigation |
 | `IdeoBuilderHubPatch.cs` | `Page_ConfigureIdeo` patches: DoWindowContents (input), PostOpen (creates ideo for Custom Fixed), Close |
 | `IdeoBuilderSectionActions.cs` | Shared "section → editor" dispatch (used by hub + reform stage 2) |
 | `IdeoBuilderOverlays.cs` | Shared router for the windowless overlay editors + float-menu return refresh |

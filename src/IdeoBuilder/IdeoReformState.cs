@@ -129,6 +129,7 @@ namespace RimWorldAccess
             public string Label;
             public bool Enabled;
             public string DisabledReason;
+            public string Shortcut;
             public System.Action Activate;
         }
 
@@ -174,15 +175,20 @@ namespace RimWorldAccess
                 list.Add(new Stage1Action
                 {
                     Label = "ReformIdeoResetChanges".Translate(),
+                    Shortcut = "Alt+R",
                     Enabled = true,
-                    Activate = () =>
-                    {
-                        ResetChangesMethod.Invoke(dialog, null);
-                        SoundDefOf.Tick_Low.PlayOneShotOnCamera();
-                        RefreshSections();
-                    },
+                    Activate = ResetChanges,
                 });
             }
+
+            // Explicit "Next" to the free-edit stage, so the Alt+S advance is discoverable.
+            list.Add(new Stage1Action
+            {
+                Label = "Next".Translate(),
+                Shortcut = "Alt+S",
+                Enabled = true,
+                Activate = GoToStage2,
+            });
 
             return list;
         }
@@ -201,7 +207,7 @@ namespace RimWorldAccess
             bool alt = KeyboardHelper.IsAltHeld;
             bool ctrl = ev.control;
 
-            // Alt+S — advance / confirm
+            // Alt+S — advance (stage 1 → stage 2, "Next") or apply the reform (stage 2, "Apply changes").
             if (key == KeyCode.S && alt && !ctrl)
             {
                 if (Stage == IdeoReformStage.MemesAndStyles)
@@ -211,14 +217,22 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Alt+R — randomize (stage 2 only, matches vanilla)
-            if (key == KeyCode.R && alt && !ctrl && Stage == IdeoReformStage.PreceptsNarrativeAndDeities)
+            // Alt+R — stage 1: reset the pending change ("Reset changes" row); stage 2: randomize.
+            if (key == KeyCode.R && alt && !ctrl)
             {
-                RandomizeNewIdeoMethod.Invoke(dialog, null);
-                SoundDefOf.Tick_High.PlayOneShotOnCamera();
-                RebuildForStage();
-                AnnounceCurrent();
-                AnnounceImpactAndWarnings();
+                if (Stage == IdeoReformStage.MemesAndStyles)
+                {
+                    if (AnyChooseOneChanges) ResetChanges();
+                    else SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                }
+                else
+                {
+                    RandomizeNewIdeoMethod.Invoke(dialog, null);
+                    SoundDefOf.Tick_High.PlayOneShotOnCamera();
+                    RebuildForStage();
+                    AnnounceCurrent();
+                    AnnounceImpactAndWarnings();
+                }
                 return true;
             }
 
@@ -230,7 +244,7 @@ namespace RimWorldAccess
                 {
                     Stage = IdeoReformStage.MemesAndStyles;
                     RebuildForStage();
-                    AnnounceStage();
+                    AnnounceStage(includeIntro: false);
                 }
                 else
                 {
@@ -310,6 +324,7 @@ namespace RimWorldAccess
             }
             else
             {
+                if (selectedIndex == sections.Count) { Confirm(); return; }
                 if (selectedIndex < 0 || selectedIndex >= sections.Count) return;
                 IdeoBuilderSectionActions.Activate(newIdeo, sections[selectedIndex].Kind);
             }
@@ -319,7 +334,14 @@ namespace RimWorldAccess
         {
             Stage = IdeoReformStage.PreceptsNarrativeAndDeities;
             RebuildForStage();
-            AnnounceStage();
+            AnnounceStage(includeIntro: false);
+        }
+
+        private static void ResetChanges()
+        {
+            ResetChangesMethod.Invoke(dialog, null);
+            SoundDefOf.Tick_Low.PlayOneShotOnCamera();
+            RefreshSections();
         }
 
         private static void Confirm()
@@ -337,10 +359,14 @@ namespace RimWorldAccess
             var ideoLocal = originalIdeo;
             var newLocal = newIdeo;
             var dlg = dialog;
+            string reformedName = ideoLocal.name;
             IdeoDevelopmentUtility.ConfirmChangesToIdeo(ideoLocal, newLocal, delegate
             {
                 IdeoDevelopmentUtility.ApplyChangesToIdeo(ideoLocal, newLocal);
                 dlg.Close(doCloseSound: false);
+                // The game shows no message on a successful reform, so confirm it ourselves —
+                // otherwise Alt+S just silently closes the dialog.
+                TolkHelper.Speak(reformedName + ", reformed", SpeechPriority.High);
             });
         }
 
@@ -348,44 +374,54 @@ namespace RimWorldAccess
 
         #region Items helpers
 
+        // The free-edit stage appends one synthetic action item after the sections: "Apply changes".
+        private static string ApplyLabel => "Accept".Translate();
+
         private static int ItemCount()
         {
             if (Stage == IdeoReformStage.MemesAndStyles)
                 return BuildStage1Actions().Count;
-            return sections.Count;
+            return sections.Count + 1; // + the "Apply changes" action
         }
 
         private static List<string> ItemLabels()
         {
             if (Stage == IdeoReformStage.MemesAndStyles)
                 return BuildStage1Actions().Select(a => a.Label).ToList();
-            return sections.Select(s => s.Label).ToList();
+            var labels = sections.Select(s => s.Label).ToList();
+            labels.Add(ApplyLabel);
+            return labels;
         }
 
         #endregion
 
         #region Announcements
 
-        private static void AnnounceStage()
+        private static void AnnounceStage(bool includeIntro = true)
         {
-            var sb = new StringBuilder();
-            sb.Append("ReformIdeoligion".Translate());
-            sb.Append(". ").Append("ReformIdeoligionDesc".Translate());
+            var parts = new List<string>();
+            // The title + long description orient the player on first open, but repeating them on
+            // every stage flip is noise — switching stages only needs the stage-specific guidance.
+            if (includeIntro)
+            {
+                parts.Add("ReformIdeoligion".Translate());
+                parts.Add("ReformIdeoligionDesc".Translate());
+            }
             if (Stage == IdeoReformStage.MemesAndStyles)
             {
-                sb.Append(". ").Append("ReformIdeoChooseOneChange".Translate());
+                parts.Add("ReformIdeoChooseOneChange".Translate());
             }
             else
             {
-                sb.Append(". ").Append("ReformIdeoChangeAny".Translate());
+                parts.Add("ReformIdeoChangeAny".Translate());
                 // On arriving at free-edit, state the current overall impact so the player hears
                 // where their meme changes left it (parity with the builder hub).
-                string impact = BuildImpactLine();
-                if (!string.IsNullOrEmpty(impact))
-                    sb.Append(". ").Append(impact);
+                parts.Add(BuildImpactLine());
             }
-            sb.Append(". ").Append(BuildCurrentText());
-            TolkHelper.Speak(sb.ToString(), SpeechPriority.High);
+            parts.Add(BuildCurrentText());
+
+            // Join non-empty parts with ". " so an absent intro/impact never leaves a lone period.
+            TolkHelper.Speak(string.Join(". ", parts.Where(p => !string.IsNullOrEmpty(p))), SpeechPriority.High);
         }
 
         /// <summary>"Impact: N, label" for the working copy's normal memes, or "" if it has none.</summary>
@@ -453,6 +489,13 @@ namespace RimWorldAccess
                 sb.Append(a.Label);
                 if (!a.Enabled)
                     sb.Append(". ").Append("Disabled".Translate().ToString().CapitalizeFirst());
+                else if (!string.IsNullOrEmpty(a.Shortcut))
+                    sb.Append(". ").Append(a.Shortcut);
+            }
+            else if (selectedIndex == sections.Count)
+            {
+                // The synthetic "Apply changes" action, with its Alt+S shortcut announced.
+                sb.Append(ApplyLabel).Append(". ").Append("Alt+S");
             }
             else
             {

@@ -326,13 +326,24 @@ namespace RimWorldAccess
 
         private static void BuildFluidSection(InspectionTreeItem root, Ideo ideo)
         {
-            var children = new List<string>();
-
             string points = ideo.development.Points + " / " + ideo.development.NextReformationDevelopmentPoints;
-            children.Add("CurrentDevelopmentPoints".Translate() + ": " + points);
-            children.Add("FluidIdeoTip".Translate().Resolve().StripTags());
+            bool canReform = ideo.development.CanReformNow;
 
-            // Ways to earn development points
+            // The section title carries the live points (and, when reformable, the action hint) so
+            // landing on the node leads with the actionable info. The explanatory tip and the list
+            // of ways to earn points live in the children — expand (Right) to read them. Enter on
+            // the node reforms directly when possible (no expand-then-arrow); the points are NOT
+            // repeated as a child (that produced a "current points, current points" double).
+            string title = "CurrentDevelopmentPoints".Translate().CapitalizeFirst() + ": " + points;
+            if (canReform)
+                title += ". " + "Press Enter to reform";
+
+            var children = new List<string>
+            {
+                "FluidIdeoTip".Translate().Resolve().StripTags(),
+            };
+
+            // Ways to earn development points.
             var earnMethods = new StringBuilder();
             earnMethods.Append("FluidIdeoTipGetPoints".Translate().Resolve().StripTags() + ": ");
             earnMethods.Append("FluidIdeoTipGetPoinsByConversion".Translate().Resolve().StripTags());
@@ -349,23 +360,13 @@ namespace RimWorldAccess
 
             children.Add(earnMethods.ToString());
 
-            string sectionLabel = "CurrentDevelopmentPoints".Translate().CapitalizeFirst();
-            var sectionNode = CreateSectionNode(root, sectionLabel, children);
+            var sectionNode = CreateSectionNode(root, title, children);
 
-            // When the fluid ideoligion has earned enough development points, expose an
-            // actionable "Reform" node. Activating it opens the accessible reform dialog.
-            if (ideo.development.CanReformNow)
-            {
-                sectionNode.Children.Add(new InspectionTreeItem
-                {
-                    Label = "ReformIdeo".Translate(),
-                    IndentLevel = 1,
-                    IsExpandable = false,
-                    Type = InspectionTreeItem.ItemType.Item,
-                    Data = new IdeoReformState.ReformActionMarker { Ideo = ideo },
-                    Parent = sectionNode,
-                });
-            }
+            // When enough development points are earned, the node itself becomes the Reform action
+            // (Enter activates it via IdeologyTreeNavigation.HandleActivate); Right still expands to
+            // read the tip. Below the threshold it's a plain info node.
+            if (canReform)
+                sectionNode.Data = new IdeoReformState.ReformActionMarker { Ideo = ideo };
 
             root.Children.Add(sectionNode);
         }

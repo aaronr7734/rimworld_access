@@ -18,9 +18,12 @@ namespace RimWorldAccess
     public sealed class TextInputController
     {
         private string currentText = string.Empty;
+        private string initialText = string.Empty;
         private bool replaceOnFirstKeystroke;
         private int cursorPos;
         private int selectionAnchor;
+        private bool modal;
+        private bool announceOnCommit;
 
         public TextFieldSpec Spec { get; private set; }
         public string CurrentText => currentText;
@@ -46,15 +49,19 @@ namespace RimWorldAccess
             Action<string> onConfirm,
             Action onCancel = null,
             bool replaceOnType = true,
-            bool modal = true)
+            bool modal = true,
+            bool announceOnCommit = true)
         {
             currentText = initialText ?? string.Empty;
+            this.initialText = currentText;
             replaceOnFirstKeystroke = replaceOnType && !string.IsNullOrEmpty(currentText);
             cursorPos = currentText.Length;
             selectionAnchor = cursorPos;
             Spec = spec;
             this.onConfirm = onConfirm;
             this.onCancel = onCancel;
+            this.modal = modal;
+            this.announceOnCommit = announceOnCommit;
             if (modal) TextInputManager.SetActive(this);
 
             string label = spec?.LabelKey != null ? spec.LabelKey.Translate().ToString() : string.Empty;
@@ -402,8 +409,39 @@ namespace RimWorldAccess
             }
             var cb = onConfirm;
             string text = currentText;
+
+            // Capture what we need for the dismissal announcement before Close() clears Spec.
+            bool announce = modal && announceOnCommit;
+            bool changed = text != initialText;
+            string label = Spec?.LabelKey != null ? Spec.LabelKey.Translate().ToString() : string.Empty;
+
             Close();
             cb?.Invoke(text);
+
+            // Confirm the dismissal last, so it's the authoritative final word even when the caller's
+            // confirm handler re-announces something (it interrupts that, avoiding double-speak).
+            if (announce)
+                AnnounceCommit(label, text, changed);
+        }
+
+        /// <summary>
+        /// Speaks the field's value on dismissal: "{field} set to {value}" when edited, "{value}
+        /// unchanged" when the user pressed Enter without changing anything. Never truncated.
+        /// </summary>
+        private void AnnounceCommit(string label, string text, bool changed)
+        {
+            string value = string.IsNullOrEmpty(text)
+                ? "RimWorldAccess.TextInput.Empty".Translate().ToString()
+                : text;
+            if (!changed)
+            {
+                TolkHelper.Speak("RimWorldAccess.TextInput.FieldUnchanged".Translate(value), SpeechPriority.High);
+                return;
+            }
+            if (string.IsNullOrEmpty(label))
+                TolkHelper.Speak(value, SpeechPriority.High);
+            else
+                TolkHelper.Speak("RimWorldAccess.TextInput.FieldSet".Translate(label, value), SpeechPriority.High);
         }
 
         public void HandleEscape()

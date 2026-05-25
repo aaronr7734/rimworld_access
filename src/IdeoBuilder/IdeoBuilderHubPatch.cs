@@ -64,6 +64,8 @@ namespace RimWorldAccess
                     return true; // Nothing to do; let the page draw its empty state.
 
                 IdeoBuilderHubState.EnsureOpen(__instance.ideo);
+                // Supply the page-level "continue" action so the on-screen Next row / Alt+N can advance.
+                IdeoBuilderHubState.ContinueAction = () => TryDoNext(__instance);
                 // Keep any ritual-sound preview alive even while a context menu / editor is open.
                 IdeoBuilderHubState.MaintainRitualPreview();
 
@@ -152,9 +154,19 @@ namespace RimWorldAccess
             KeyCode key = Event.current.keyCode;
             bool ctrl = Event.current.control;
             bool alt = KeyboardHelper.IsAltHeld;
-            bool shift = Event.current.shift;
 
-            // Alt+S — continue (DoNext, with validation)
+            // Tab / Shift+Tab — switch between the ideoligion list (tab 1) and the detail panel
+            // (tab 2). The detail is our section editor for our own ideo, the read-only viewer
+            // for any other. This is the two-tab shell; arrow keys navigate within a tab.
+            if (key == KeyCode.Tab && !alt && !ctrl)
+            {
+                IdeoBuilderHubState.TogglePanel();
+                Event.current.Use();
+                return;
+            }
+
+            // Alt+S — continue / Next (DoNext, with validation). Works from any tab; the "Next" row in
+            // the section list does the same. Save has no shortcut — it lives in the ] context menu.
             if (key == KeyCode.S && alt && !ctrl)
             {
                 TryDoNext(page);
@@ -162,6 +174,27 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Tab 1: the ideoligion list.
+            if (IdeoBuilderHubState.InListTab)
+            {
+                HandleListKeyDown(page, key, alt, ctrl);
+                return;
+            }
+
+            // Tab 2, read-only viewer (an ideoligion that isn't ours).
+            if (IdeoBuilderHubState.ViewingOtherIdeo)
+            {
+                HandleViewerKeyDown(page, key, alt, ctrl);
+                return;
+            }
+
+            // Tab 2, editor (our own ideoligion).
+            HandleEditorKeyDown(page, key, alt, ctrl);
+        }
+
+        /// <summary>Editor detail (tab 2 on our own ideoligion): the builder hub's section menu.</summary>
+        private static void HandleEditorKeyDown(Page_ConfigureIdeo page, KeyCode key, bool alt, bool ctrl)
+        {
             // Alt+R — randomize the whole ideoligion (vanilla "Randomize all" button)
             if (key == KeyCode.R && alt && !ctrl)
             {
@@ -171,32 +204,12 @@ namespace RimWorldAccess
             }
 
             // Up / Down / Home / End — section navigation
-            if (key == KeyCode.UpArrow)
-            {
-                IdeoBuilderHubState.NavigateUp();
-                Event.current.Use();
-                return;
-            }
-            if (key == KeyCode.DownArrow)
-            {
-                IdeoBuilderHubState.NavigateDown();
-                Event.current.Use();
-                return;
-            }
-            if (key == KeyCode.Home)
-            {
-                IdeoBuilderHubState.NavigateHome();
-                Event.current.Use();
-                return;
-            }
-            if (key == KeyCode.End)
-            {
-                IdeoBuilderHubState.NavigateEnd();
-                Event.current.Use();
-                return;
-            }
+            if (key == KeyCode.UpArrow) { IdeoBuilderHubState.NavigateUp(); Event.current.Use(); return; }
+            if (key == KeyCode.DownArrow) { IdeoBuilderHubState.NavigateDown(); Event.current.Use(); return; }
+            if (key == KeyCode.Home) { IdeoBuilderHubState.NavigateHome(); Event.current.Use(); return; }
+            if (key == KeyCode.End) { IdeoBuilderHubState.NavigateEnd(); Event.current.Use(); return; }
 
-            // Enter — activate the selected section (opens editor; Phase 1 = placeholder)
+            // Enter — activate the selected section (opens its editor)
             if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
             {
                 IdeoBuilderHubState.ActivateSelected();
@@ -212,10 +225,11 @@ namespace RimWorldAccess
                 return;
             }
 
-            // ] — builder context menu (save ideoligion to file, preview ritual sound)
+            // ] — builder context menu (save to file, randomize all, preview ritual sound). Continue
+            // lives in the section list as its own "Next" row, so it's not duplicated here.
             if (key == KeyCode.RightBracket && !alt && !ctrl)
             {
-                IdeoBuilderHubState.OpenContextMenu();
+                IdeoBuilderHubState.OpenContextMenu(onRandomizeAll: () => TryRandomizeAll(page));
                 Event.current.Use();
                 return;
             }
@@ -237,11 +251,7 @@ namespace RimWorldAccess
             // Backspace — typeahead backspace
             if (key == KeyCode.Backspace)
             {
-                if (IdeoBuilderHubState.HandleBackspace())
-                {
-                    Event.current.Use();
-                    return;
-                }
+                if (IdeoBuilderHubState.HandleBackspace()) { Event.current.Use(); return; }
             }
 
             // Typeahead — letters/digits without modifiers
@@ -255,6 +265,67 @@ namespace RimWorldAccess
                     return;
                 }
             }
+        }
+
+        /// <summary>
+        /// Tab 1: the ideoligion list. Enter opens detail; Tab flips back to the detail page. Escape
+        /// is NOT navigation — it does the same thing it does everywhere in the builder (clear an
+        /// active search, otherwise leave the builder via the discard confirmation).
+        /// </summary>
+        private static void HandleListKeyDown(Page_ConfigureIdeo page, KeyCode key, bool alt, bool ctrl)
+        {
+            if (key == KeyCode.Escape)
+            {
+                if (IdeoBuilderHubState.ListHasActiveSearch) IdeoBuilderHubState.ClearListSearch();
+                else TryDoBack(page);
+                Event.current.Use();
+                return;
+            }
+            if (key == KeyCode.UpArrow) { IdeoBuilderHubState.ListNavigate(-1); Event.current.Use(); return; }
+            if (key == KeyCode.DownArrow) { IdeoBuilderHubState.ListNavigate(1); Event.current.Use(); return; }
+            if (key == KeyCode.Home) { IdeoBuilderHubState.ListHome(); Event.current.Use(); return; }
+            if (key == KeyCode.End) { IdeoBuilderHubState.ListEnd(); Event.current.Use(); return; }
+            if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+            {
+                IdeoBuilderHubState.EnterDetailForSelection();
+                Event.current.Use();
+                return;
+            }
+            if (key == KeyCode.Space && !alt && !ctrl) { IdeoBuilderHubState.ListReannounce(); Event.current.Use(); return; }
+            if (key == KeyCode.Backspace)
+            {
+                if (IdeoBuilderHubState.ListBackspace()) { Event.current.Use(); return; }
+            }
+            if (!alt && !ctrl)
+            {
+                char c = Event.current.character;
+                if (c != '\0' && char.IsLetterOrDigit(c)) { IdeoBuilderHubState.ListTypeaheadChar(c); Event.current.Use(); return; }
+            }
+            Event.current.Use(); // consume everything else while the list owns the keyboard
+        }
+
+        /// <summary>
+        /// Tab 2 on another ideoligion: the read-only viewer tree. Tab flips back to the list.
+        /// Escape is NOT navigation — it leaves the builder, same as everywhere (the tree clears its
+        /// own active search first, then Escape falls through to the discard confirmation).
+        /// </summary>
+        private static void HandleViewerKeyDown(Page_ConfigureIdeo page, KeyCode key, bool alt, bool ctrl)
+        {
+            // Typeahead character first — the tree consumes the letter keyCode to suppress game
+            // hotkeys but relies on a character dispatcher that doesn't run for directly-patched
+            // pre-game screens, so feed the character ourselves.
+            if (!alt && !ctrl)
+            {
+                char c = Event.current.character;
+                if (c != '\0' && char.IsLetterOrDigit(c)) { IdeoBuilderHubState.ViewerTypeaheadChar(c); Event.current.Use(); return; }
+            }
+
+            if (IdeoBuilderHubState.RouteViewerInput(Event.current)) { Event.current.Use(); return; }
+
+            // Tree returned false (Escape with no active search): leave the builder, same as anywhere.
+            if (key == KeyCode.Escape) { TryDoBack(page); Event.current.Use(); return; }
+
+            Event.current.Use();
         }
 
         #region DoNext / DoBack via reflection
@@ -358,6 +429,31 @@ namespace RimWorldAccess
         }
 
         private static void TryRandomizeAll(Page_ConfigureIdeo page)
+        {
+            if (page.ideo == null) return;
+
+            // Randomizing replaces the ENTIRE ideoligion — memes, name, description, precepts, the
+            // lot — and vanilla shows no warning. Always confirm so an accidental Alt+R can't wipe
+            // the player's work. (Skip if a confirmation is already up, to avoid stacking dialogs.)
+            if (WindowlessDialogState.IsActive || WindowlessConfirmationState.IsActive)
+                return;
+
+            if (Event.current != null && Event.current.type == EventType.KeyDown)
+                Event.current.Use();
+            Action confirm = () => DoRandomizeAll(page);
+            Find.WindowStack.Add(new Dialog_MessageBox(
+                "Randomizing will replace the entire ideoligion. Continue?",
+                buttonAText: "Continue",
+                buttonAAction: confirm,
+                buttonBText: "Cancel",
+                buttonBAction: null,
+                title: null,
+                buttonADestructive: true,
+                acceptAction: confirm,
+                cancelAction: delegate { }));
+        }
+
+        private static void DoRandomizeAll(Page_ConfigureIdeo page)
         {
             if (page.ideo == null) return;
             try

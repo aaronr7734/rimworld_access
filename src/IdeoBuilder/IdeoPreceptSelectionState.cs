@@ -140,7 +140,10 @@ namespace RimWorldAccess
         {
             var options = IdeoPreceptSelectionHelper.BuildValuePickerOptions(ideo, issue, () => OnPreceptChanged(issue));
             TolkHelper.Speak(issue.LabelCap);
-            WindowlessFloatMenuState.Open(options, colonistOrders: false);
+            // Suppress the float menu's generic "{full option label} selected" echo — the verbose
+            // option text (value, impact, description) is too much on commit. OnPreceptChanged
+            // speaks a concise "{issue}: {value}, selected" confirmation instead.
+            WindowlessFloatMenuState.Open(options, colonistOrders: false, announceSelection: false);
         }
 
         private static void OnPreceptChanged(IssueDef issue)
@@ -186,6 +189,7 @@ namespace RimWorldAccess
             }
 
             FocusNode(target);
+            AnnouncePreceptSet(issue);
         }
 
         private static InspectionTreeItem FindIssueNode(InspectionTreeItem root, IssueDef issue)
@@ -240,8 +244,26 @@ namespace RimWorldAccess
             treeNav.SetSelectedIndex(idx);
             // We never actually left the section, so don't let the next Up/Down re-announce it.
             treeNav.MarkCurrentParentAsAnnounced();
+            // The cursor is positioned silently; OnPreceptChanged speaks the concise commit
+            // confirmation (the precept that was just set), which is the meaningful feedback.
+        }
+
+        /// <summary>
+        /// Commit feedback: "{issue}: {value}, selected" (or ", removed"), then — when the cursor
+        /// moved on to a different issue — the item now under the cursor, as a single announcement
+        /// so the confirmation is heard first and isn't cut off.
+        /// </summary>
+        private static void AnnouncePreceptSet(IssueDef issue)
+        {
+            var current = IdeoPreceptSelectionHelper.CurrentPreceptsForIssue(ideo, issue);
+            var sb = new StringBuilder(IdeoPreceptSelectionHelper.BuildIssueLabel(issue, current));
+            sb.Append(current.Count > 0 ? ", selected" : ", removed");
+
             var sel = treeNav.SelectedItem;
-            if (sel != null) TolkHelper.Speak(sel.Label);
+            if (sel != null && !ReferenceEquals(sel.Data, issue))
+                sb.Append(". ").Append(FormatItem(sel));
+
+            TolkHelper.Speak(sb.ToString(), SpeechPriority.High);
         }
 
         #endregion
@@ -296,12 +318,23 @@ namespace RimWorldAccess
             if (treeNav.Count > 0)
             {
                 var first = treeNav.VisibleItems[0];
+                // In submenu mode the section header ("Active precepts") is hidden, so announce the
+                // section the cursor starts in up front — before the first precept — instead of
+                // having it pop up redundantly on the first Down arrow.
+                var parent = first.Parent;
+                if (parent != null && parent != treeNav.RootItem)
+                {
+                    string parentLabel = !string.IsNullOrEmpty(parent.ExpandedLabel) ? parent.ExpandedLabel : parent.Label;
+                    sb.Append(". ").Append(parentLabel);
+                }
                 sb.Append(". ").Append(first.Label);
                 if (first.IsExpandable)
                     sb.Append(first.IsExpanded ? ", expanded" : ", collapsed");
             }
 
             TolkHelper.Speak(sb.ToString(), SpeechPriority.High);
+            // Mark the starting section as already announced so the first arrow doesn't repeat it.
+            treeNav.MarkCurrentParentAsAnnounced();
         }
 
         #endregion

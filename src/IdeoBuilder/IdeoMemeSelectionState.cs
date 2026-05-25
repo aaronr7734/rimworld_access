@@ -204,8 +204,12 @@ namespace RimWorldAccess
                 var report = IdeoMemeSelectionHelper.CanRemoveMeme(currentDialog, meme);
                 if (!report.Accepted)
                 {
+                    // Vanilla shows a message only for required memes; the one-change-per-reform rule
+                    // returns a bare false with no message, so we stay silent there too (the reject
+                    // sound conveys "can't") — faithful parity, don't invent a message.
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak(report.Reason, SpeechPriority.High);
+                    if (!string.IsNullOrEmpty(report.Reason))
+                        TolkHelper.Speak(report.Reason, SpeechPriority.High);
                     return;
                 }
                 newMemes.Remove(meme);
@@ -313,6 +317,19 @@ namespace RimWorldAccess
                 newMemes.AddRange(randomized);
                 SoundDefOf.Tick_High.PlayOneShotOnCamera();
                 RebuildTree();
+
+                // Structure is single-select: name the structure meme that was rolled and move the
+                // cursor onto it, so the player knows what they got and can read/keep or re-roll.
+                if (category == MemeCategory.Structure)
+                {
+                    var chosen = newMemes.FirstOrDefault(m => m.category == MemeCategory.Structure);
+                    if (chosen != null)
+                    {
+                        FocusMemeNode(chosen);
+                        TolkHelper.Speak("Randomize".Translate() + ". " + chosen.LabelCap + ", Selected");
+                        return;
+                    }
+                }
                 TolkHelper.Speak("Randomize".Translate() + ". " + IdeoMemeSelectionHelper.BuildStatusLine(currentDialog));
             }
             catch (System.Exception ex)
@@ -325,6 +342,20 @@ namespace RimWorldAccess
         {
             if (currentDialog == null) return;
             IdeoMemeSelectionHelper.InvokeTryAccept(currentDialog);
+        }
+
+        /// <summary>Moves the tree cursor onto the node carrying the given meme, if it's visible.</summary>
+        private static void FocusMemeNode(MemeDef meme)
+        {
+            var items = treeNav.VisibleItems;
+            for (int i = 0; i < items.Count; i++)
+            {
+                if (ReferenceEquals(items[i].Data, meme))
+                {
+                    treeNav.SetSelectedIndex(i);
+                    return;
+                }
+            }
         }
 
         public static void Back()

@@ -21,6 +21,8 @@
   <RimWorldAccess.TextInput.EditingMultiLineField>Editing multi-line field {0}: {1}. Type, Shift+Enter for new line, Up/Down for line navigation, Enter to confirm, Escape to cancel.</RimWorldAccess.TextInput.EditingMultiLineField>
   <RimWorldAccess.TextInput.Empty>empty</RimWorldAccess.TextInput.Empty>
   <RimWorldAccess.TextInput.Deleted>Deleted {0}</RimWorldAccess.TextInput.Deleted>
+  <RimWorldAccess.TextInput.FieldSet>{0} set to {1}</RimWorldAccess.TextInput.FieldSet>
+  <RimWorldAccess.TextInput.FieldUnchanged>{0} unchanged</RimWorldAccess.TextInput.FieldUnchanged>
   <RimWorldAccess.TextInput.NewLine>New line</RimWorldAccess.TextInput.NewLine>
   <RimWorldAccess.TextInput.BlankLine>blank line</RimWorldAccess.TextInput.BlankLine>
 

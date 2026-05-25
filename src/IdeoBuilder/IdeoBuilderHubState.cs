@@ -28,6 +28,21 @@ namespace RimWorldAccess
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
         private static bool hasAnnouncedOpening;
 
+        // --- Two-tab shell: an ideoligion list (tab 1) and a detail panel (tab 2). The detail panel
+        // is the section editor when the selected ideoligion is the one being built, and the
+        // read-only viewer (the same tree the in-game Ideology tab uses) for any other ideoligion.
+        // This mirrors vanilla's left-list / right-details layout. Tab / Shift+Tab switch tabs.
+        public enum BuilderTab { Detail, List }
+        private static BuilderTab currentTab = BuilderTab.Detail;
+        private static List<Ideo> allIdeos = new List<Ideo>();
+        private static int listIndex;
+        private static readonly TypeaheadSearchHelper listTypeahead = new TypeaheadSearchHelper();
+        private static readonly IdeologyTreeNavigation viewer = new IdeologyTreeNavigation();
+        private static bool viewingOther;
+
+        public static bool InListTab => currentTab == BuilderTab.List;
+        public static bool ViewingOtherIdeo => currentTab == BuilderTab.Detail && viewingOther;
+
         public static Ideo CurrentIdeo => currentIdeo;
         public static bool HasAnnouncedOpening => hasAnnouncedOpening;
         public static int SelectedIndex => selectedIndex;
@@ -51,6 +66,7 @@ namespace RimWorldAccess
                 typeahead.ClearSearch();
                 hasAnnouncedOpening = false;
                 RebuildSections();
+                ResetTabState();
             }
             else if (!System.Object.ReferenceEquals(currentIdeo, ideo))
             {
@@ -59,7 +75,18 @@ namespace RimWorldAccess
                 typeahead.ClearSearch();
                 hasAnnouncedOpening = false;
                 RebuildSections();
+                ResetTabState();
             }
+        }
+
+        /// <summary>Resets the two-tab shell to the editor detail of the current ideoligion.</summary>
+        private static void ResetTabState()
+        {
+            currentTab = BuilderTab.Detail;
+            viewingOther = false;
+            viewer.Reset();
+            listTypeahead.ClearSearch();
+            RebuildIdeoList();
         }
 
         public static void Close()
@@ -70,11 +97,28 @@ namespace RimWorldAccess
             selectedIndex = 0;
             typeahead.ClearSearch();
             hasAnnouncedOpening = false;
+            currentTab = BuilderTab.Detail;
+            viewingOther = false;
+            viewer.Reset();
+            listTypeahead.ClearSearch();
+            allIdeos.Clear();
+            listIndex = 0;
         }
+
+        // Set each frame by the host patch so the on-screen "Next" row and Alt+N can advance the page.
+        internal static System.Action ContinueAction;
 
         public static void RebuildSections()
         {
             sections = IdeoBuilderHelper.BuildSections(currentIdeo);
+            // Append an on-screen "Next" (continue) row so advancing is discoverable by navigating the
+            // list — not only via the Alt+N shortcut. Builder-only: reform builds its own item list.
+            sections.Add(new IdeoBuilderHelper.HubSection
+            {
+                Kind = IdeoBuilderHelper.SectionKind.Continue,
+                Label = "Next".Translate(),
+                ValueSummary = "Alt+S",
+            });
             if (selectedIndex >= sections.Count)
                 selectedIndex = System.Math.Max(0, sections.Count - 1);
         }
@@ -86,6 +130,9 @@ namespace RimWorldAccess
 
             var sb = new StringBuilder();
             sb.Append(IdeoBuilderHelper.BuildOpeningAnnouncement(currentIdeo));
+            // Hint the two-tab shell once on open (only when other ideoligions exist to browse).
+            if (allIdeos.Count > 1)
+                sb.Append(". ").Append("Tab for the ideoligion list");
             sb.Append(". ");
             sb.Append(BuildCurrentSectionAnnouncement());
             TolkHelper.Speak(sb.ToString());
@@ -163,6 +210,173 @@ namespace RimWorldAccess
 
         #endregion
 
+        #region Two-tab shell (ideoligion list ↔ detail)
+
+        /// <summary>Rebuilds the ideoligion list, preserving the focused ideoligion across the rebuild.</summary>
+        private static void RebuildIdeoList()
+        {
+            Ideo keep = (allIdeos != null && listIndex >= 0 && listIndex < allIdeos.Count) ? allIdeos[listIndex] : null;
+            allIdeos = IdeologyHelper.BuildIdeologyList();
+            if (allIdeos.Count == 0) { listIndex = 0; return; }
+            int idx = keep != null ? allIdeos.IndexOf(keep) : -1;
+            if (idx < 0 && currentIdeo != null) idx = allIdeos.IndexOf(currentIdeo);
+            listIndex = Mathf.Clamp(idx < 0 ? 0 : idx, 0, allIdeos.Count - 1);
+        }
+
+        /// <summary>Tab / Shift+Tab: toggle between the list and the detail panel.</summary>
+        public static void TogglePanel()
+        {
+            if (currentTab == BuilderTab.List) EnterDetailForSelection();
+            else SwitchToList();
+        }
+
+        /// <summary>Switch to the ideoligion list (tab 1).</summary>
+        public static void SwitchToList()
+        {
+            if (viewingOther) viewer.Reset();
+            viewingOther = false;
+            currentTab = BuilderTab.List;
+            listTypeahead.ClearSearch();
+            RebuildIdeoList();
+            AnnounceCurrentListItem(announceTabContext: true);
+        }
+
+        /// <summary>
+        /// Open the detail panel for the list's current selection: the section editor when it's the
+        /// ideoligion being built, the read-only viewer for any other.
+        /// </summary>
+        public static void EnterDetailForSelection()
+        {
+            listTypeahead.ClearSearch();
+            if (allIdeos.Count == 0 || listIndex < 0 || listIndex >= allIdeos.Count)
+            {
+                GoToEditorDetail();
+                return;
+            }
+            var sel = allIdeos[listIndex];
+            if (ReferenceEquals(sel, currentIdeo))
+            {
+                GoToEditorDetail();
+            }
+            else
+            {
+                viewingOther = true;
+                currentTab = BuilderTab.Detail;
+                viewer.Initialize(sel); // builds the read-only tree and announces its first item
+            }
+        }
+
+        /// <summary>Go to the editor detail of our own ideoligion (selecting ours, or Escape "home").</summary>
+        public static void GoToEditorDetail()
+        {
+            if (viewingOther) viewer.Reset();
+            viewingOther = false;
+            currentTab = BuilderTab.Detail;
+            int idx = currentIdeo != null ? allIdeos.IndexOf(currentIdeo) : -1;
+            if (idx >= 0) listIndex = idx;
+            AnnounceCurrentSection();
+        }
+
+        // --- List navigation ---
+
+        public static bool ListHasActiveSearch => listTypeahead.HasActiveSearch;
+        public static void ClearListSearch() { listTypeahead.ClearSearchAndAnnounce(); AnnounceCurrentListItem(false); }
+
+        public static void ListNavigate(int delta)
+        {
+            if (allIdeos.Count == 0) return;
+            if (listTypeahead.HasActiveSearch && !listTypeahead.HasNoMatches)
+            {
+                int idx = delta > 0 ? listTypeahead.GetNextMatch(listIndex) : listTypeahead.GetPreviousMatch(listIndex);
+                if (idx >= 0)
+                {
+                    listIndex = idx;
+                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                    AnnounceListWithSearch();
+                }
+                return;
+            }
+            int newIndex = delta > 0 ? MenuHelper.SelectNext(listIndex, allIdeos.Count) : MenuHelper.SelectPrevious(listIndex, allIdeos.Count);
+            if (newIndex != listIndex)
+            {
+                listIndex = newIndex;
+                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            }
+            AnnounceCurrentListItem(false);
+        }
+
+        public static void ListHome() { if (allIdeos.Count == 0) return; listTypeahead.ClearSearch(); listIndex = 0; AnnounceCurrentListItem(false); }
+        public static void ListEnd() { if (allIdeos.Count == 0) return; listTypeahead.ClearSearch(); listIndex = allIdeos.Count - 1; AnnounceCurrentListItem(false); }
+        public static void ListReannounce() => AnnounceCurrentListItem(false);
+
+        public static bool ListTypeaheadChar(char c)
+        {
+            if (listTypeahead.ProcessCharacterInput(c, ListLabels(), out int newIndex))
+            {
+                listIndex = newIndex;
+                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                AnnounceListWithSearch();
+            }
+            else
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak($"No matches for '{listTypeahead.LastFailedSearch}'.");
+            }
+            return true;
+        }
+
+        public static bool ListBackspace()
+        {
+            if (!listTypeahead.HasActiveSearch) return false;
+            if (listTypeahead.ProcessBackspace(ListLabels(), out int newIndex))
+            {
+                if (newIndex >= 0) listIndex = newIndex;
+                SoundDefOf.Click.PlayOneShotOnCamera();
+                AnnounceListWithSearch();
+            }
+            return true;
+        }
+
+        // --- Viewer (read-only detail of another ideoligion) ---
+
+        public static bool RouteViewerInput(Event ev) => viewer.HandleInput(ev);
+        public static void ViewerTypeaheadChar(char c) => viewer.HandleTypeaheadCharacter(c);
+
+        // --- List announcements ---
+
+        private static List<string> ListLabels() => allIdeos.Select(i => i.name).ToList();
+
+        private static void AnnounceCurrentListItem(bool announceTabContext)
+        {
+            if (allIdeos.Count == 0)
+            {
+                TolkHelper.Speak(MainButtonDefOf.Ideos.LabelCap + ". " + "NoneLower".Translate());
+                return;
+            }
+            if (listIndex < 0 || listIndex >= allIdeos.Count) listIndex = 0;
+            var ideo = allIdeos[listIndex];
+
+            var sb = new StringBuilder();
+            if (announceTabContext)
+                sb.Append(MainButtonDefOf.Ideos.LabelCap).Append(". ");
+            sb.Append(IdeologyHelper.BuildIdeoListAnnouncement(ideo));
+            if (ReferenceEquals(ideo, currentIdeo))
+                sb.Append(", yours");
+            string position = MenuHelper.FormatPosition(listIndex, allIdeos.Count);
+            if (!string.IsNullOrEmpty(position))
+                sb.Append(". ").Append(position);
+            TolkHelper.Speak(sb.ToString());
+        }
+
+        private static void AnnounceListWithSearch()
+        {
+            if (allIdeos.Count == 0 || listIndex < 0 || listIndex >= allIdeos.Count) return;
+            string name = allIdeos[listIndex].name;
+            TolkHelper.Speak($"{name}, {listTypeahead.CurrentMatchPosition} of {listTypeahead.MatchCount} matches for '{listTypeahead.SearchBuffer}'");
+        }
+
+        #endregion
+
         #region Typeahead
 
         public static bool HasActiveSearch => typeahead.HasActiveSearch;
@@ -222,6 +436,13 @@ namespace RimWorldAccess
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 TolkHelper.Speak(string.IsNullOrEmpty(section.DisabledReason) ? "Unavailable" : section.DisabledReason);
+                return;
+            }
+
+            // The synthetic "Next" row advances the page (same as Alt+N).
+            if (section.Kind == IdeoBuilderHelper.SectionKind.Continue)
+            {
+                ContinueAction?.Invoke();
                 return;
             }
 
@@ -314,15 +535,24 @@ namespace RimWorldAccess
         private static readonly TextInputController saveController = new TextInputController();
         private static Sustainer ritualPreviewSustainer;
 
-        /// <summary>Opens the builder context menu (']' key): save to file, preview ritual sound.</summary>
-        public static void OpenContextMenu()
+        /// <summary>
+        /// Opens the builder context menu (']' key): continue, randomize all, save to file, preview
+        /// ritual sound. Continue/Randomize are otherwise keyboard-only shortcuts — surfacing them
+        /// here with the shortcut in a tooltip (as the character-creation menu does) makes them
+        /// discoverable. The page-level callbacks are supplied by the host patch.
+        /// </summary>
+        public static void OpenContextMenu(System.Action onRandomizeAll = null)
         {
             if (currentIdeo == null) return;
 
             var options = new List<FloatMenuOption>
             {
+                // Save has no keyboard shortcut (Alt+S is "continue") — it lives only in this menu.
                 new FloatMenuOption("Save".Translate() + " " + "Ideoligion".Translate().ToString().ToLower(), SaveIdeoligion),
             };
+
+            if (onRandomizeAll != null)
+                options.Add(WithTip(new FloatMenuOption("RandomizeAll".Translate(), onRandomizeAll), "Alt+R"));
 
             if (currentIdeo.SoundOngoingRitual != null)
             {
@@ -331,10 +561,17 @@ namespace RimWorldAccess
                     (playing ? "Stop" : "Preview") + " ritual sound", ToggleRitualPreview));
             }
 
-            WindowlessFloatMenuState.Open(options, colonistOrders: false);
+            // Each action announces its own result, so suppress the generic "{label} selected" echo.
+            WindowlessFloatMenuState.Open(options, colonistOrders: false, announceSelection: false);
         }
 
-        private static void SaveIdeoligion()
+        private static FloatMenuOption WithTip(FloatMenuOption opt, string tip)
+        {
+            opt.tooltip = new TipSignal(tip);
+            return opt;
+        }
+
+        public static void SaveIdeoligion()
         {
             if (currentIdeo == null) return;
             saveController.Begin(currentIdeo.name ?? "", TextFieldSpec.Unrestricted("Name"),
@@ -351,7 +588,10 @@ namespace RimWorldAccess
                         () => GameDataSaveLoader.SaveIdeo(currentIdeo, absPath),
                         "SavingLongEvent", doAsynchronously: false, null);
                     TolkHelper.Speak("SavedAs".Translate(fileName), SpeechPriority.High);
-                });
+                },
+                // This field is a save filename, not an editable value — it announces "Saved as X"
+                // itself, so suppress the generic "Name set to X" commit announcement.
+                announceOnCommit: false);
         }
 
         private static void ToggleRitualPreview()

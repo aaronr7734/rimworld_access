@@ -41,6 +41,7 @@ namespace RimWorldAccess
             PreferredXenotypes,
             Apparel,
             Appearance,
+            Continue,
         }
 
         public class HubSection
