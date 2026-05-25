@@ -17,12 +17,17 @@ namespace RimWorldAccess
     {
         private static bool memeWasOpen;
         private static bool overlayWasOpen;
+        private static readonly InfoCardFocusReturn infoCardFocus = new InfoCardFocusReturn();
 
         static bool Prefix(Dialog_ReformIdeo __instance)
         {
             try
             {
                 IdeoReformState.EnsureOpen(__instance);
+
+                // Reclaim IMGUI focus when an info card (Alt+I) opened over the dialog closes —
+                // must run in the dialog's own GUI.Window pass to take effect.
+                infoCardFocus.Track(__instance);
 
                 // Modal text input owns all keys.
                 if (TextInputManager.Active != null)

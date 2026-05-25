@@ -5,6 +5,31 @@ using Verse;
 namespace RimWorldAccess
 {
     /// <summary>
+    /// Restores IMGUI keyboard focus to a directly-patched host screen (the ideoligion preset list,
+    /// builder, or reform dialog) after a <see cref="Dialog_InfoCard"/> opened over it closes.
+    ///
+    /// RimWorld draws each window via <c>GUI.Window</c>, so a window only receives KeyDown while it
+    /// holds GUI focus. Reclaiming that focus only takes effect when done inside the host's OWN
+    /// DoWindowContents / GUI.Window pass — doing it from the info card's PostClose (a different GUI
+    /// context) is no better than the WindowStack's own handling and leaves the host dead to input.
+    /// So each host calls <see cref="Track"/> every frame from its DoWindowContents prefix; when an
+    /// info card that was open is now gone, focus is reclaimed on the host.
+    /// </summary>
+    public sealed class InfoCardFocusReturn
+    {
+        private bool wasOpen;
+
+        public void Track(Window host)
+        {
+            if (host == null || Find.WindowStack == null) return;
+            bool open = Find.WindowStack.WindowOfType<Dialog_InfoCard>() != null;
+            if (wasOpen && !open)
+                Find.WindowStack.Notify_ManuallySetFocus(host);
+            wasOpen = open;
+        }
+    }
+
+    /// <summary>
     /// Harmony patches for Dialog_InfoCard to enable keyboard accessibility.
     /// Uses PostOpen/PostClose lifecycle and delegates input handling to UnifiedKeyboardPatch.
     /// </summary>
@@ -75,61 +100,63 @@ namespace RimWorldAccess
             [HarmonyPostfix]
             public static void Postfix(Window __instance)
             {
-                if (__instance is Dialog_InfoCard)
+                if (!(__instance is Dialog_InfoCard))
+                    return;
+
+                // A nested info card may remain underneath this one.
+                Dialog_InfoCard remainingCard = null;
+                if (Find.WindowStack != null)
                 {
-                    // When CloseInfoCard is handling the transition, it manages state itself
-                    if (InfoCardState.IsClosingFromAccessibility)
+                    foreach (var window in Find.WindowStack.Windows)
                     {
-                        // Just update our tracking for DoWindowContents
-                        currentDialog = null;
-                        framesSinceOpen = 0;
-                        hasAnnounced = false;
-                        return;
-                    }
-
-                    // External closure (game closed the dialog, e.g. pawn died)
-                    Dialog_InfoCard remainingCard = null;
-                    if (Find.WindowStack != null)
-                    {
-                        foreach (var window in Find.WindowStack.Windows)
+                        if (window is Dialog_InfoCard card && card != __instance)
                         {
-                            if (window is Dialog_InfoCard card && card != __instance)
-                            {
-                                remainingCard = card;
-                                break;
-                            }
+                            remainingCard = card;
+                            break;
                         }
                     }
+                }
 
-                    if (remainingCard != null)
+                if (InfoCardState.IsClosingFromAccessibility)
+                {
+                    // CloseInfoCard manages its own state; just update our DoWindowContents tracking.
+                    currentDialog = null;
+                    framesSinceOpen = 0;
+                    hasAnnounced = false;
+                }
+                else if (remainingCard != null)
+                {
+                    // Restore outer card from saved state if available, otherwise re-init
+                    currentDialog = remainingCard;
+                    framesSinceOpen = 0;
+                    hasAnnounced = false;
+                    if (InfoCardState.HasSavedState)
                     {
-                        // Restore outer card from saved state if available, otherwise re-init
-                        currentDialog = remainingCard;
-                        framesSinceOpen = 0;
-                        hasAnnounced = false;
-                        if (InfoCardState.HasSavedState)
-                        {
-                            InfoCardState.RestoreFromStack(remainingCard);
-                        }
-                        else
-                        {
-                            InfoCardState.Open(remainingCard, announceOpening: false);
-                        }
+                        InfoCardState.RestoreFromStack(remainingCard);
                     }
                     else
                     {
-                        currentDialog = null;
-                        framesSinceOpen = 0;
-                        hasAnnounced = false;
-                        InfoCardState.ClearStack();
-                        if (InfoCardState.IsActive)
-                        {
-                            InfoCardState.Close();
-                        }
-                        // Return to whatever opened the info card (inspection tree row, etc.)
-                        InspectionReturnHelper.AnnounceParentOrFallback(null);
+                        InfoCardState.Open(remainingCard, announceOpening: false);
                     }
                 }
+                else
+                {
+                    currentDialog = null;
+                    framesSinceOpen = 0;
+                    hasAnnounced = false;
+                    InfoCardState.ClearStack();
+                    if (InfoCardState.IsActive)
+                    {
+                        InfoCardState.Close();
+                    }
+                    // Return to whatever opened the info card (inspection tree row, etc.)
+                    InspectionReturnHelper.AnnounceParentOrFallback(null);
+                }
+
+                // NOTE: focus restoration for directly-patched host screens (ideoligion preset list /
+                // builder / reform) is NOT done here — reclaiming focus during the info card's removal
+                // is the wrong GUI context for GUI.FocusWindow to take effect. Each host reclaims focus
+                // from its own DoWindowContents instead (see InfoCardFocusReturn).
             }
         }
     }

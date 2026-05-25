@@ -11,6 +11,7 @@ namespace RimWorldAccess
     public static class IdeologySelectionPatch
     {
         private static bool hasAnnouncedTitle = false;
+        private static readonly InfoCardFocusReturn infoCardFocus = new InfoCardFocusReturn();
 
         // Cached reflection fields (initialized once)
         private static Type presetSelectionEnumType;
@@ -33,6 +34,10 @@ namespace RimWorldAccess
         {
             try
             {
+                // Reclaim IMGUI focus when an info card opened over this page closes (must run in
+                // the page's own GUI.Window pass to take effect).
+                infoCardFocus.Track(__instance);
+
                 // Skip entire DoWindowContents while float menu is open.
                 // This prevents DoBottomButtons from processing Enter/Escape
                 // in the Page's IMGUI context (separate from UnifiedKeyboardPatch's context).

@@ -33,6 +33,7 @@ namespace RimWorldAccess
         private static MethodInfo canDoBackMethod;
 
         private static bool subEditorWasOpen;
+        private static readonly InfoCardFocusReturn infoCardFocus = new InfoCardFocusReturn();
 
         private static void EnsureReflectionCached()
         {
@@ -47,6 +48,10 @@ namespace RimWorldAccess
         {
             try
             {
+                // Reclaim IMGUI focus when an info card (opened via Alt+I in the read-only viewer)
+                // closes — must be done here, in the page's own GUI.Window pass, to take effect.
+                infoCardFocus.Track(__instance);
+
                 // While the modal text input controller is active, skip — keys are owned by it
                 // and any Page-level Enter/Escape handling would interfere.
                 if (TextInputManager.Active != null)

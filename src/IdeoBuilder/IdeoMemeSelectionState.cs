@@ -330,7 +330,14 @@ namespace RimWorldAccess
                         return;
                     }
                 }
-                TolkHelper.Speak("Randomize".Translate() + ". " + IdeoMemeSelectionHelper.BuildStatusLine(currentDialog));
+                // Normal memes: name the memes that were rolled (not just the impact), then the
+                // impact/validation status.
+                string names = string.Join(", ", newMemes
+                    .Where(m => m.category == MemeCategory.Normal)
+                    .Select(m => (string)m.LabelCap));
+                if (string.IsNullOrEmpty(names)) names = "None".Translate();
+                TolkHelper.Speak("Randomize".Translate() + ". " + names + ", Selected. "
+                    + IdeoMemeSelectionHelper.BuildStatusLine(currentDialog));
             }
             catch (System.Exception ex)
             {
