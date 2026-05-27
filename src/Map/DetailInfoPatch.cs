@@ -6,7 +6,7 @@ namespace RimWorldAccess
 {
     /// <summary>
     /// Harmony patch to add hotkeys for specific tile information categories.
-    // Keys 1-7: 1=Items/Pawns, 2=Flooring, 3=Plants, 4=Brightness/Temp, 5=Room Stats, 6=Power, 7=Areas
+    // Keys 1-7: 1=Items/Pawns, 2=Flooring, 3=Resources (plants/fish/minerals), 4=Brightness/Temp, 5=Room Stats, 6=Power, 7=Areas
     /// </summary>
     [HarmonyPatch(typeof(CameraDriver))]
     [HarmonyPatch("Update")]

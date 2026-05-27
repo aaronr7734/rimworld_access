@@ -1,6 +1,14 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
 05/26/2026
 
+CHANGES
+-------
+- Moved fish population reports from the terrain key (2) to the resource key
+  (3), where plants and (with a deep scanner running) minerals already live.
+  Key 3's "nothing here" message now lists only the resource types relevant to
+  your tile, so it might say "no plants", "no plants or fish", or "no plants or
+  fish or mineral deposits" depending on context.
+
 BUG FIXES
 ---------
 - Removed the "Power Control" item from the building inspection menu. It let

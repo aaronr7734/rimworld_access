@@ -573,66 +573,55 @@ namespace RimWorldAccess
             if (terrain.pathCost > 0)
                 sb.Append($", path cost: {terrain.pathCost}");
 
-            // Add fishing info if Odyssey DLC is active (matches MouseoverReadout display)
-            if (ModsConfig.OdysseyActive && map.waterBodyTracker.TryGetWaterBodyAt(position, out var waterBody) && waterBody.HasFish)
-            {
-                // Fish species list (common + uncommon)
-                var allFish = waterBody.CommonFishIncludingExtras.Concat(waterBody.UncommonFish);
-                string fishList = allFish.Select(f => f.label).ToCommaList().CapitalizeFirst();
-
-                // Population numbers (current/max) - use rounding to match Zone_Fishing.GetInspectString()
-                int population = Mathf.RoundToInt(waterBody.Population);
-                int maxPopulation = Mathf.RoundToInt(waterBody.MaxPopulation);
-
-                sb.Append($", fish: {fishList} ({population}/{maxPopulation})");
-
-                // GillRot condition if active
-                var gillRot = map.gameConditionManager.GetActiveCondition<GameCondition_GillRot>();
-                if (gillRot != null && !gillRot.HiddenByOtherCondition(map))
-                {
-                    sb.Append($" ({gillRot.LabelCap})");
-                }
-            }
-
             return sb.ToString();
         }
 
         /// <summary>
-        /// Gets information about plants at a tile (key 3).
-        /// Shows plant species, growth percentage, and harvestable status.
-        /// When a ground-penetrating scanner is active, also shows deep ore deposit info.
+        /// Gets information about resources at a tile (key 3): plants, fish, and deep
+        /// mineral deposits. Plants show species, growth, and harvestable status. Fish
+        /// (Odyssey) show species and current/max population, matching vanilla's mouseover.
+        /// Deep ore is shown only when a powered ground-penetrating scanner is active.
+        /// When nothing is present, the empty message lists only the resource types that
+        /// are relevant to this tile's context (water adds fish; an active scanner adds
+        /// mineral deposits).
         /// </summary>
         public static string GetPlantsInfo(IntVec3 position, Map map)
         {
             if (map == null || !position.InBounds(map))
                 return "Out of bounds";
 
-            // Get plant info
+            // Plants present at this cell
             List<Thing> things = position.GetThingList(map);
             var plants = things.OfType<Plant>().ToList();
             bool hasPlants = plants.Count > 0;
 
-            // Get deep ore info if scanner is active
+            // Deep ore, only when a powered ground-penetrating scanner is active
             bool scannerActive = map.deepResourceGrid.AnyActiveDeepScannersOnMap();
-            string deepOreInfo = null;
-            if (scannerActive)
-            {
-                deepOreInfo = GetDeepOreInfo(position, map);
-            }
+            string deepOreInfo = scannerActive ? GetDeepOreInfo(position, map) : null;
             bool hasDeepOre = !string.IsNullOrEmpty(deepOreInfo);
 
-            // Build response based on what's present
-            if (!hasPlants && !hasDeepOre)
+            // Fish, only with Odyssey active and on a tracked water body. Reporting matches
+            // vanilla's MouseoverReadout (species list + current/max population, plus GillRot).
+            WaterBody waterBody = null;
+            bool onWaterBody = ModsConfig.OdysseyActive
+                && map.waterBodyTracker.TryGetWaterBodyAt(position, out waterBody)
+                && waterBody != null;
+            bool hasFish = onWaterBody && waterBody.HasFish;
+
+            // Nothing present: list only the resource types relevant to this tile.
+            if (!hasPlants && !hasDeepOre && !hasFish)
             {
+                var missing = new List<string> { "plants" };
+                if (onWaterBody)
+                    missing.Add("fish");
                 if (scannerActive)
-                    return "no plants or mineral deposits";
-                else
-                    return "no plants";
+                    missing.Add("mineral deposits");
+                return "no " + string.Join(" or ", missing);
             }
 
             var sb = new StringBuilder();
 
-            // Add plant info first (if present)
+            // Plants
             if (hasPlants)
             {
                 for (int i = 0; i < plants.Count; i++)
@@ -642,27 +631,41 @@ namespace RimWorldAccess
                     Plant plant = plants[i];
                     sb.Append(plant.LabelShortCap);
 
-                    // Add growth percentage
                     float growthPercent = plant.Growth * 100f;
                     sb.Append($" ({growthPercent:F0}% grown)");
 
-                    // Check if harvestable
                     if (plant.HarvestableNow)
                         sb.Append(", harvestable");
                     else
                         sb.Append(", not harvestable");
 
-                    // Check if dying
                     if (plant.Dying)
                         sb.Append(", dying");
                 }
             }
 
-            // Add deep ore info (if present)
+            // Fish (species, current/max population, and GillRot if active)
+            if (hasFish)
+            {
+                if (sb.Length > 0) sb.Append(". ");
+
+                var allFish = waterBody.CommonFishIncludingExtras.Concat(waterBody.UncommonFish);
+                string fishList = allFish.Select(f => f.label).ToCommaList().CapitalizeFirst();
+
+                int population = Mathf.RoundToInt(waterBody.Population);
+                int maxPopulation = Mathf.RoundToInt(waterBody.MaxPopulation);
+
+                sb.Append($"Fish: {fishList} ({population}/{maxPopulation})");
+
+                var gillRot = map.gameConditionManager.GetActiveCondition<GameCondition_GillRot>();
+                if (gillRot != null && !gillRot.HiddenByOtherCondition(map))
+                    sb.Append($" ({gillRot.LabelCap})");
+            }
+
+            // Deep mineral deposits
             if (hasDeepOre)
             {
-                if (hasPlants)
-                    sb.Append(". ");
+                if (sb.Length > 0) sb.Append(". ");
                 sb.Append("Deep: ");
                 sb.Append(deepOreInfo);
             }
