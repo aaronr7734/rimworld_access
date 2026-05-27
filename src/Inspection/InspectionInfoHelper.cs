@@ -283,20 +283,6 @@ namespace RimWorldAccess
                         });
                     }
 
-                    // Power info
-                    var powerComp = building.TryGetComp<CompPowerTrader>();
-                    if (powerComp != null && !categories.Any(c => c.OriginalCategoryName == "Power"))
-                    {
-                        categories.Add(new TabCategoryInfo
-                        {
-                            Name = "Power",
-                            Tab = null,
-                            Handler = TabHandlerType.BasicInspectString,
-                            IsKnown = true,
-                            OriginalCategoryName = "Power"
-                        });
-                    }
-
                     // Dynamically discovered components
                     var discoveredComponents = BuildingComponentsHelper.GetDiscoverableComponents(building);
                     foreach (var component in discoveredComponents.Where(cmp => !categories.Any(c => c.OriginalCategoryName == cmp.CategoryName)))
@@ -459,11 +445,6 @@ namespace RimWorldAccess
                 // Check for plant grower (hydroponics basin, growing zones, etc.)
                 if (building is IPlantToGrowSettable)
                     categories.Add("Plant Selection");
-
-                // Check for power
-                var powerComp = building.TryGetComp<CompPowerTrader>();
-                if (powerComp != null)
-                    categories.Add("Power");
 
                 // Dynamically discover and add component categories
                 var discoveredComponents = BuildingComponentsHelper.GetDiscoverableComponents(building);
@@ -820,9 +801,6 @@ namespace RimWorldAccess
                 case "Storage":
                     return GetBuildingStorageInfo(building);
 
-                case "Power":
-                    return GetBuildingPowerInfo(building);
-
                 case "Linked Facilities":
                     return FacilityLinkHelper.GetInspectionInfo(building) ?? "No facility linking information.";
 
@@ -949,31 +927,6 @@ namespace RimWorldAccess
             }
 
             return "This building does not have storage settings.";
-        }
-
-        /// <summary>
-        /// Gets power information for a powered building.
-        /// </summary>
-        private static string GetBuildingPowerInfo(Building building)
-        {
-            var powerComp = building.TryGetComp<CompPowerTrader>();
-            if (powerComp != null)
-            {
-                var sb = new StringBuilder();
-
-                sb.AppendLine($"Power: {(powerComp.PowerOn ? "On" : "Off")}");
-                sb.AppendLine($"Consumption: {powerComp.PowerOutput} W");
-
-                if (!powerComp.PowerOn)
-                {
-                    sb.AppendLine();
-                    sb.AppendLine("Power is currently off or unavailable.");
-                }
-
-                return sb.ToString();
-            }
-
-            return "This building does not use power.";
         }
 
         /// <summary>

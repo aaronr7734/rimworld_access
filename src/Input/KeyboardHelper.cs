@@ -240,8 +240,6 @@ namespace RimWorldAccess
                 || TempControlMenuState.IsActive
                 // Building component controls
                 || ForbidControlState.IsActive
-                || FlickableComponentState.IsActive
-                || BreakdownableComponentState.IsActive
                 || DoorControlState.IsActive
                 || RefuelableComponentState.IsActive
                 || UninstallControlState.IsActive

@@ -53,13 +53,6 @@ namespace RimWorldAccess
                 HandleBuildingOwnerAssignmentInput();
                 return;
             }
-            // Handle FlickableComponentState (building component menu)
-            if (FlickableComponentState.IsActive)
-            {
-                HandleFlickableComponentInput();
-                return;
-            }
-
             // Handle RefuelableComponentState (building component menu)
             if (RefuelableComponentState.IsActive)
             {
@@ -67,12 +60,6 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Handle BreakdownableComponentState (building component menu)
-            if (BreakdownableComponentState.IsActive)
-            {
-                HandleBreakdownableComponentInput();
-                return;
-            }
             // Handle DoorControlState (building-specific menu)
             if (DoorControlState.IsActive)
             {
@@ -789,32 +776,6 @@ namespace RimWorldAccess
             }
         }
 
-        private static void HandleFlickableComponentInput()
-        {
-            KeyCode key = Event.current.keyCode;
-
-            switch (key)
-            {
-                case KeyCode.Space:
-                case KeyCode.Return:
-                case KeyCode.KeypadEnter:
-                    FlickableComponentState.TogglePower();
-                    Event.current.Use();
-                    break;
-
-                case KeyCode.D:
-                    FlickableComponentState.AnnounceDetailedStatus();
-                    Event.current.Use();
-                    break;
-
-                case KeyCode.Escape:
-                    FlickableComponentState.Close();
-                    InspectionReturnHelper.AnnounceParentOrFallback("Closed power control menu");
-                    Event.current.Use();
-                    break;
-            }
-        }
-
         private static void HandleRefuelableComponentInput()
         {
             KeyCode key = Event.current.keyCode;
@@ -888,25 +849,6 @@ namespace RimWorldAccess
                         RefuelableComponentState.Close();
                         InspectionReturnHelper.AnnounceParentOrFallback("Closed fuel settings menu");
                     }
-                    Event.current.Use();
-                    break;
-            }
-        }
-
-        private static void HandleBreakdownableComponentInput()
-        {
-            KeyCode key = Event.current.keyCode;
-
-            switch (key)
-            {
-                case KeyCode.R:
-                    BreakdownableComponentState.RefreshStatus();
-                    Event.current.Use();
-                    break;
-
-                case KeyCode.Escape:
-                    BreakdownableComponentState.Close();
-                    InspectionReturnHelper.AnnounceParentOrFallback("Closed breakdown status view");
                     Event.current.Use();
                     break;
             }

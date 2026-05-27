@@ -415,8 +415,7 @@ namespace RimWorldAccess
         {
             // Categories that just show simple text inline
             return category == "Overview" ||
-                   category == "Work Priorities" ||
-                   category == "Power";
+                   category == "Work Priorities";
         }
 
         /// <summary>
@@ -696,26 +695,13 @@ namespace RimWorldAccess
             else
             {
                 // Check if this is a dynamically discovered component category
-                var component = BuildingComponentsHelper.GetComponentByType(building, "CompFlickable");
-                if (component != null && component.CategoryName == category)
-                {
-                    FlickableComponentState.Open(building);
-                    return;
-                }
-
-                component = BuildingComponentsHelper.GetComponentByType(building, "CompRefuelable");
+                var component = BuildingComponentsHelper.GetComponentByType(building, "CompRefuelable");
                 if (component != null && component.CategoryName == category)
                 {
                     RefuelableComponentState.Open(building);
                     return;
                 }
 
-                component = BuildingComponentsHelper.GetComponentByType(building, "CompBreakdownable");
-                if (component != null && component.CategoryName == category)
-                {
-                    BreakdownableComponentState.Open(building);
-                    return;
-                }
                 component = BuildingComponentsHelper.GetComponentByType(building, "Building_Door");
                 if (component != null && component.CategoryName == category)
                 {

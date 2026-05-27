@@ -1,4 +1,17 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
+05/26/2026
+
+BUG FIXES
+---------
+- Removed the "Power Control" item from the building inspection menu. It let
+  you flip a building's power on or off instantly, which you're not actually
+  meant to do; use the toggle power command in the gizmo menu (G) and a
+  colonist will flick the switch as normal.
+- Removed the "Breakdown Status" and "Power" items from the building
+  inspection menu, since both just duplicated what Overview already shows, and
+  the "Power" one was buggy on top of it (negative wattage, a doubled label,
+  no translation).
+
 05/25/2026
 
 This is a milestone beta release for me. As of this update, every RimWorld DLC is

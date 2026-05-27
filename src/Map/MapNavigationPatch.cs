@@ -73,9 +73,7 @@ namespace RimWorldAccess
                 WindowlessInspectionState.IsActive ||
                 WindowlessInventoryState.IsActive ||
                 HealthTabState.IsActive ||
-                FlickableComponentState.IsActive ||
                 RefuelableComponentState.IsActive ||
-                BreakdownableComponentState.IsActive ||
                 DoorControlState.IsActive ||
                 ForbidControlState.IsActive ||
                 AnimalsMenuState.IsActive ||
