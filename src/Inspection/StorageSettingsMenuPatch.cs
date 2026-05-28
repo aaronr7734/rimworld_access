@@ -228,12 +228,19 @@ namespace RimWorldAccess
             switch (key)
             {
                 case KeyCode.UpArrow:
-                    PlantSelectionMenuState.SelectPrevious();
+                    // Navigate matches when a search is active (with matches), else all plants
+                    if (PlantSelectionMenuState.HasActiveSearch && !PlantSelectionMenuState.HasNoMatches)
+                        PlantSelectionMenuState.SelectPreviousMatch();
+                    else
+                        PlantSelectionMenuState.SelectPrevious();
                     Event.current.Use();
                     break;
 
                 case KeyCode.DownArrow:
-                    PlantSelectionMenuState.SelectNext();
+                    if (PlantSelectionMenuState.HasActiveSearch && !PlantSelectionMenuState.HasNoMatches)
+                        PlantSelectionMenuState.SelectNextMatch();
+                    else
+                        PlantSelectionMenuState.SelectNext();
                     Event.current.Use();
                     break;
 

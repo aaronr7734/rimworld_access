@@ -47,11 +47,18 @@ namespace RimWorldAccess
             TypeaheadDispatcher.Register(2.4, () => MechsMenuState.IsActive, c => MechsMenuState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(2.5, () => NotificationMenuState.IsActive, c => NotificationMenuState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(2.6, () => LearningHelperState.IsActive, c => LearningHelperState.HandleTypeahead(c));
-            TypeaheadDispatcher.Register(2.7, () => AssignMenuState.IsActive, c => AssignMenuState.HandleTypeahead(c));
+            // Gated off while a policy editor is open so editor typeahead (apparel/food/reading
+            // filters via ThingFilterNavigationState, drug list below) isn't stolen by the
+            // still-active assign table beneath it.
+            TypeaheadDispatcher.Register(2.7, () => AssignMenuState.IsActive && !PolicyEditorState.IsActive, c => AssignMenuState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(2.8, () => StorageSettingsMenuState.IsActive, c => StorageSettingsMenuState.ProcessTypeaheadCharacter(c));
             TypeaheadDispatcher.Register(2.9, () => PlantSelectionMenuState.IsActive, c => PlantSelectionMenuState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(3.0, () => ThingFilterNavigationState.IsActive, c => ThingFilterNavigationState.ProcessTypeaheadCharacter(c));
             TypeaheadDispatcher.Register(3.1, () => ThingFilterMenuState.IsActive, c => ThingFilterMenuState.ProcessTypeaheadCharacter(c));
+            // Drug policy editor's drug list — typeahead only in DrugList mode (not while editing a
+            // drug's settings). The AssignMenuState consumers above are gated off while any policy
+            // editor is open, so this wins when a drug policy is being edited.
+            TypeaheadDispatcher.Register(2.95, () => DrugPolicyEditorState.IsActive && DrugPolicyEditorState.CurrentMode == DrugPolicyEditorState.NavigationMode.DrugList, c => DrugPolicyEditorState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(3.2, () => RefuelableComponentState.IsActive, c => RefuelableComponentState.ProcessTypeaheadCharacter(c));
             TypeaheadDispatcher.Register(3.3, () => WorkMenuState.IsActive, c => WorkMenuState.ProcessSearchCharacter(c));
 
@@ -67,7 +74,7 @@ namespace RimWorldAccess
             // submenu mode, the submenu handler wins; otherwise the main handler runs.
             TypeaheadDispatcher.Register(2.25, () => AnimalsMenuState.IsActive && AnimalsMenuState.IsInSubmenu, c => AnimalsMenuState.SubmenuHandleTypeahead(c));
             TypeaheadDispatcher.Register(2.45, () => MechsMenuState.IsActive && MechsMenuState.IsInSubmenu, c => MechsMenuState.SubmenuHandleTypeahead(c));
-            TypeaheadDispatcher.Register(2.65, () => AssignMenuState.IsActive && AssignMenuState.IsInSubmenu, c => AssignMenuState.SubmenuHandleTypeahead(c));
+            TypeaheadDispatcher.Register(2.65, () => AssignMenuState.IsActive && AssignMenuState.IsInSubmenu && !PolicyEditorState.IsActive, c => AssignMenuState.SubmenuHandleTypeahead(c));
 
             // WindowlessAreaState's HandleActionsTypeahead is bool-returning, wrap in Action.
             TypeaheadDispatcher.Register(2.85, () => WindowlessAreaState.IsActive, c => WindowlessAreaState.HandleActionsTypeahead(c));

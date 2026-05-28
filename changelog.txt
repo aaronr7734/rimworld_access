@@ -19,6 +19,12 @@ BUG FIXES
   inspection menu, since both just duplicated what Overview already shows, and
   the "Power" one was buggy on top of it (negative wattage, a doubled label,
   no translation).
+- Letter-based shortcuts like Alt+A (Option+A on Mac) and the ] orders key no
+  longer also type their letter into an open search box.
+- Policy editor typeahead now searches the editor's own list, not the assign
+  table beneath it; the drug list now supports typeahead too.
+- In the growing-zone plant picker, up/down now step through your typeahead
+  results instead of the full plant list.
 
 05/25/2026
 

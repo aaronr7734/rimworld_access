@@ -25,6 +25,9 @@ namespace RimWorldAccess
 
         private static System.Action onCloseCallback = null;
 
+        // Typeahead search over the drug list (active only in DrugList mode).
+        private static readonly TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
+
         public static bool IsActive => isActive;
         public static DrugPolicy Policy => policy;
         public static NavigationMode CurrentMode => currentMode;
@@ -55,6 +58,7 @@ namespace RimWorldAccess
             selectedSettingIndex = 0;
             currentMode = NavigationMode.DrugList;
             onCloseCallback = onClose;
+            typeahead.ClearSearch();
 
             AnnounceDrugList();
         }
@@ -67,6 +71,7 @@ namespace RimWorldAccess
             selectedSettingIndex = 0;
             currentMode = NavigationMode.DrugList;
             currentSettings.Clear();
+            typeahead.ClearSearch();
 
             var callback = onCloseCallback;
             onCloseCallback = null;
@@ -101,6 +106,42 @@ namespace RimWorldAccess
             if (policy == null || policy.Count == 0) return;
             selectedDrugIndex = policy.Count - 1;
             AnnounceDrugList();
+        }
+
+        /// <summary>
+        /// Typeahead jump within the drug list (DrugList mode only): type letters to jump to
+        /// the next drug whose name matches. Mirrors the PlantSelectionMenuState pattern.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!isActive || currentMode != NavigationMode.DrugList || policy == null || policy.Count == 0)
+                return;
+
+            var labels = GetDrugLabels();
+            if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
+            {
+                if (newIndex >= 0)
+                {
+                    selectedDrugIndex = newIndex;
+                    AnnounceDrugList();
+                }
+            }
+            else
+            {
+                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+            }
+        }
+
+        private static List<string> GetDrugLabels()
+        {
+            var labels = new List<string>();
+            if (policy == null) return labels;
+            for (int i = 0; i < policy.Count; i++)
+            {
+                ThingDef drug = policy[i].drug;
+                labels.Add(drug != null ? drug.LabelCap.ToString() : "");
+            }
+            return labels;
         }
 
         public static void EnterDrugSettings()

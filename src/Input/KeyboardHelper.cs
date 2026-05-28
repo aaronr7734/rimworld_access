@@ -66,6 +66,14 @@ namespace RimWorldAccess
         // also remap the follow-up character event that Unity sends for the same keypress.
         private static int lastRightBracketFrame = -1;
 
+        /// <summary>
+        /// True if a physical ] (KeyCode.RightBracket) keyDown was already seen earlier in the
+        /// current Unity frame. Lets the character handler discard the follow-up character event
+        /// of a ] press, which on non-US layouts (e.g. Ukrainian) can be a letter that would
+        /// otherwise leak into typeahead. The ] colonist-orders action takes precedence.
+        /// </summary>
+        public static bool WasRightBracketThisFrame => lastRightBracketFrame == Time.frameCount;
+
         // Same frame tracking for KeyCode.KeypadMultiply (asterisk).
         // On US keyboards, numpad * sends keyCode=KeypadMultiply then character='*' in the same frame.
         // On AZERTY keyboards, the dedicated * key sends only character='*' with keyCode=None.

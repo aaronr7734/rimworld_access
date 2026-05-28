@@ -70,21 +70,33 @@ namespace RimWorldAccess
                 char c = Event.current.character;
                 if (!char.IsControl(c))
                 {
+                    // A held action-modifier (Windows Alt / Mac Option, or Ctrl / Mac Cmd) means this
+                    // character is the twin event of a keyboard SHORTCUT (e.g. Alt+A accepts a quest,
+                    // Option+S advances a setup screen) — not text the user is typing. Never route it
+                    // to typeahead or text input, or the shortcut's letter leaks into the active menu's
+                    // search buffer. Checked BEFORE the dispatcher so typeahead consumers are gated too,
+                    // not just the legacy direct-dispatch handlers further down. Unity IMGUI fires this
+                    // follow-up keyCode=None character event for every keypress, including shortcuts.
+                    if (KeyboardHelper.IsAltHeld || KeyboardHelper.IsCtrlHeld)
+                    {
+                        return;
+                    }
+
+                    // Suppress the follow-up character event of a ] (RightBracket) keypress. Unity
+                    // reports the physical key as KeyCode.RightBracket — handled below as the colonist-
+                    // orders action — but on some layouts (e.g. Ukrainian) that same key also produces a
+                    // letter, which would otherwise leak into typeahead. The ] action wins; that letter
+                    // almost never begins a word. No effect on US layouts, where the twin character is
+                    // ']' (not a letter, so typeahead ignores it regardless).
+                    if (KeyboardHelper.WasRightBracketThisFrame)
+                    {
+                        return;
+                    }
+
                     // Layout-aware typeahead: walk the registered consumers.
                     if (TypeaheadDispatcher.TryDispatchChar(c))
                     {
                         Event.current.Use();
-                        return;
-                    }
-
-                    // Suppress legacy direct-dispatch text/typeahead handlers below when a modifier is held.
-                    // Unity IMGUI fires a follow-up keyCode=None character event for every keypress —
-                    // if an Alt/Ctrl shortcut just opened a new state with HandleCharacterInput, the
-                    // bare character would otherwise leak into that state's typeahead/text input.
-                    // (TypeaheadDispatcher above is exempt: TypeaheadActivationPollPatch already
-                    // suppresses dispatch on consumer-activation frames.)
-                    if (KeyboardHelper.IsAltHeld || KeyboardHelper.IsCtrlHeld)
-                    {
                         return;
                     }
 
