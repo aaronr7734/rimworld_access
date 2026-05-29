@@ -17,7 +17,7 @@ namespace RimWorldAccess
     {
         private static bool memeWasOpen;
         private static bool overlayWasOpen;
-        private static readonly InfoCardFocusReturn infoCardFocus = new InfoCardFocusReturn();
+        private static readonly HostFocusReturn infoCardFocus = new HostFocusReturn();
 
         static bool Prefix(Dialog_ReformIdeo __instance)
         {

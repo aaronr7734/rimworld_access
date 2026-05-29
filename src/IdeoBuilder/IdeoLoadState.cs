@@ -21,6 +21,13 @@ namespace RimWorldAccess
     {
         public static bool IsActive { get; private set; }
 
+        /// <summary>
+        /// True when a typeahead search is currently filtering the list. Escape should clear the
+        /// search rather than close the dialog, so IdeoLoadPatch_OnCancel blocks vanilla's cancel
+        /// only in this case and otherwise lets the game close the dialog normally.
+        /// </summary>
+        public static bool HasActiveSearch => typeahead.HasActiveSearch;
+
         private static Dialog_IdeoList_Load dialog;
         private static List<SaveFileInfo> files = new List<SaveFileInfo>();
         private static int selectedIndex;
@@ -35,7 +42,13 @@ namespace RimWorldAccess
 
         public static void EnsureOpen(Dialog_IdeoList_Load d)
         {
-            if (IsActive && System.Object.ReferenceEquals(dialog, d))
+            // Reference equality alone is the right guard. After Close sets
+            // IsActive=false, the window-stack's snapshot iteration still calls
+            // DoWindowContents one more time on the just-removed dialog in the
+            // SAME frame. Keying off IsActive there would re-announce on every
+            // close. Compare the dialog reference (which we deliberately keep
+            // through Close) so the teardown re-render is a no-op.
+            if (System.Object.ReferenceEquals(dialog, d))
                 return;
             dialog = d;
             IsActive = true;
@@ -48,9 +61,11 @@ namespace RimWorldAccess
         public static void Close()
         {
             IsActive = false;
-            dialog = null;
             files.Clear();
             typeahead.ClearSearch();
+            // Keep `dialog` set so EnsureOpen's reference check can detect the
+            // post-close snapshot re-render (see EnsureOpen). The reference is
+            // replaced naturally when a new load dialog opens.
         }
 
         private static void RebuildFromDialog()
@@ -170,11 +185,15 @@ namespace RimWorldAccess
         {
             var sb = new StringBuilder();
             sb.Append("LoadGameButton".Translate());
-            sb.Append(". ").Append(files.Count);
             if (files.Count > 0)
+            {
+                sb.Append(". ").Append(files.Count);
                 sb.Append(". ").Append(BuildCurrentText());
+            }
             else
+            {
                 sb.Append(". ").Append("NoneLower".Translate());
+            }
             TolkHelper.Speak(sb.ToString(), SpeechPriority.High);
         }
 

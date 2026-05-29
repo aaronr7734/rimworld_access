@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using HarmonyLib;
 using UnityEngine;
 using Verse;
@@ -6,26 +8,54 @@ namespace RimWorldAccess
 {
     /// <summary>
     /// Restores IMGUI keyboard focus to a directly-patched host screen (the ideoligion preset list,
-    /// builder, or reform dialog) after a <see cref="Dialog_InfoCard"/> opened over it closes.
+    /// builder, or reform dialog) after a tracked child window opened over it closes. By default it
+    /// tracks <see cref="Dialog_InfoCard"/>; pass additional window types to the constructor to also
+    /// reclaim focus after they close (e.g. the saved-ideoligion load picker).
     ///
     /// RimWorld draws each window via <c>GUI.Window</c>, so a window only receives KeyDown while it
     /// holds GUI focus. Reclaiming that focus only takes effect when done inside the host's OWN
-    /// DoWindowContents / GUI.Window pass — doing it from the info card's PostClose (a different GUI
+    /// DoWindowContents / GUI.Window pass — doing it from the child's PostClose (a different GUI
     /// context) is no better than the WindowStack's own handling and leaves the host dead to input.
-    /// So each host calls <see cref="Track"/> every frame from its DoWindowContents prefix; when an
-    /// info card that was open is now gone, focus is reclaimed on the host.
+    /// So each host calls <see cref="Track"/> every frame from its DoWindowContents prefix; when a
+    /// tracked child that was open is now gone, focus is reclaimed on the host.
     /// </summary>
-    public sealed class InfoCardFocusReturn
+    public sealed class HostFocusReturn
     {
+        private readonly Type[] childTypes;
         private bool wasOpen;
+
+        /// <param name="childTypes">
+        /// Window types whose closing should hand focus back to the host. Defaults to
+        /// <see cref="Dialog_InfoCard"/> when none are supplied.
+        /// </param>
+        public HostFocusReturn(params Type[] childTypes)
+        {
+            this.childTypes = (childTypes != null && childTypes.Length > 0)
+                ? childTypes
+                : new[] { typeof(Dialog_InfoCard) };
+        }
 
         public void Track(Window host)
         {
             if (host == null || Find.WindowStack == null) return;
-            bool open = Find.WindowStack.WindowOfType<Dialog_InfoCard>() != null;
+            bool open = AnyChildOpen();
             if (wasOpen && !open)
                 Find.WindowStack.Notify_ManuallySetFocus(host);
             wasOpen = open;
+        }
+
+        private bool AnyChildOpen()
+        {
+            IList<Window> windows = Find.WindowStack.Windows;
+            for (int i = 0; i < windows.Count; i++)
+            {
+                for (int j = 0; j < childTypes.Length; j++)
+                {
+                    if (childTypes[j].IsInstanceOfType(windows[i]))
+                        return true;
+                }
+            }
+            return false;
         }
     }
 
@@ -156,7 +186,7 @@ namespace RimWorldAccess
                 // NOTE: focus restoration for directly-patched host screens (ideoligion preset list /
                 // builder / reform) is NOT done here — reclaiming focus during the info card's removal
                 // is the wrong GUI context for GUI.FocusWindow to take effect. Each host reclaims focus
-                // from its own DoWindowContents instead (see InfoCardFocusReturn).
+                // from its own DoWindowContents instead (see HostFocusReturn).
             }
         }
     }

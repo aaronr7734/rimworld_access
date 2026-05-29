@@ -50,7 +50,11 @@ namespace RimWorldAccess
         [HarmonyPrefix]
         static bool Prefix(Window __instance)
         {
-            if (__instance is Dialog_IdeoList_Load && IdeoLoadState.IsActive)
+            // Only intercept Escape when there is an active typeahead search to clear; our
+            // HandleInput needs first crack at it in that case. With no search, let vanilla
+            // close the dialog so it is always escapable even if our handler is bypassed
+            // (otherwise an empty list — where Enter cannot load anything — strands the user).
+            if (__instance is Dialog_IdeoList_Load && IdeoLoadState.IsActive && IdeoLoadState.HasActiveSearch)
                 return false;
             return true;
         }

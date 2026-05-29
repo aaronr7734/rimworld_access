@@ -33,7 +33,7 @@ namespace RimWorldAccess
         private static MethodInfo canDoBackMethod;
 
         private static bool subEditorWasOpen;
-        private static readonly InfoCardFocusReturn infoCardFocus = new InfoCardFocusReturn();
+        private static readonly HostFocusReturn infoCardFocus = new HostFocusReturn();
 
         private static void EnsureReflectionCached()
         {
