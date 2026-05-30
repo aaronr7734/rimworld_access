@@ -14,6 +14,10 @@ namespace RimWorldAccess
         private static readonly Regex NewlineDotRegex = new Regex(@"\n[ \t]*([\.,;:])", RegexOptions.Compiled);
         private static readonly Regex MultiNewlineRegex = new Regex(@"\n+", RegexOptions.Compiled);
         private static readonly Regex PeriodSpacePeriodRegex = new Regex(@"\.[ \t]+\.", RegexOptions.Compiled);
+        // Whitespace before sentence punctuation is never correct in English and reads as a stray
+        // "period"/"comma" (e.g. a row built from "{label} . {value}" where the label's own value was
+        // empty). Collapse the space(s) onto the punctuation: "Blindness . Horrible" -> "Blindness. Horrible".
+        private static readonly Regex SpaceBeforePunctuationRegex = new Regex(@"[ \t]+([\.,;:])", RegexOptions.Compiled);
 
         private const string EllipsisPlaceholder = "\x01ELLIPSIS\x01";
 
@@ -67,6 +71,7 @@ namespace RimWorldAccess
 
         private static string FixBadPunctuation(string text)
         {
+            text = SpaceBeforePunctuationRegex.Replace(text, "$1");
             text = text.Replace(":.", ".");
             text = text.Replace(".,", ".");
             text = text.Replace(",.", ".");

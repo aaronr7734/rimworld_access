@@ -18,6 +18,30 @@ namespace RimWorldAccess
     [HarmonyPatch("UIRootOnGUI")]
     public static class UnifiedKeyboardPatch
     {
+        // True when an overlay that owns its own keyboard handling is open over an Archonexus
+        // relocation screen. The EXCLUSIVE block steps out for these so their handling isn't
+        // swallowed by the early return:
+        //  - WindowlessDialogState / WindowlessConfirmationState: confirmation prompts. The
+        //    accept-confirmation Dialog_MessageBox is intercepted by DialogInterceptionPatch into a
+        //    windowless dialog, so there is NO message-box window to detect — only this state flag.
+        //  - WindowlessFloatMenuState: a float-menu picker opened from the reform screen's section
+        //    editor (precept value picker, style / icon / color, deity actions). These are routed by
+        //    the priority-5 float-menu handler below, which the early return would otherwise skip —
+        //    the reform-precept lockup. (The section editor's own overlays are routed by the reform
+        //    DoWindowContents prefix and need no step-out, but the float menu they spawn does.)
+        //  - TextInputManager: the modal text controller (editing the reform ideo's name / adjective
+        //    / description). Routed by the priority -1.6 dispatch below, also past the early return.
+        //  - Dialog_InfoCard: the Alt+I card (handled by the priority -0.25 InfoCardState branch).
+        private static bool ArchonexusOverlayOpen()
+        {
+            if (WindowlessDialogState.IsActive || WindowlessConfirmationState.IsActive
+                || WindowlessFloatMenuState.IsActive || TextInputManager.IsActive)
+                return true;
+            WindowStack ws = Find.WindowStack;
+            if (ws == null) return false;
+            return ws.WindowOfType<Dialog_InfoCard>() != null;
+        }
+
         /// <summary>
         /// Prefix patch that intercepts keyboard input for all accessibility features.
         /// </summary>
@@ -39,6 +63,21 @@ namespace RimWorldAccess
             }
 
             KeyCode key = Event.current.keyCode;
+
+            // ===== EXCLUSIVE: Archonexus relocation dialogs own all input =====
+            // The selection screen and the reform-ideoligion dialog handle their own
+            // keys via their DoWindowContents prefix (which runs LATER in the frame
+            // than this UIRoot prefix). Letting the regular priority chain see keys
+            // first would leak Left/Right etc. into whatever menu state (QuestMenu,
+            // Architect, …) was active when the player accepted the quest. Exception:
+            // when an overlay that owns its own keyboard handling is up (a windowless
+            // confirmation prompt or the Alt+I info card — see ArchonexusOverlayOpen),
+            // step out so that overlay's handler can run instead of being swallowed here.
+            if ((ArchonexusColonyState.IsActive || ArchonexusReformIdeoState.IsActive)
+                && !ArchonexusOverlayOpen())
+            {
+                return;
+            }
 
             // ===== PRIORITY -1.6: Active text-edit session takes ALL keystrokes =====
             // When TextInputManager has an active controller, every key is routed to it
@@ -879,6 +918,23 @@ namespace RimWorldAccess
                 bool alt = KeyboardHelper.IsAltHeld;
 
                 if (GravshipDestinationState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 0.367: Handle Archonexus new-colony tile pick =====
+            // The picker has allowEscape: false, so the user must pick a valid tile.
+            // World navigation comes from WorldNavigationState; this state handles
+            // Enter (confirm via TilePicker callbacks) and Escape (announce it can't cancel).
+            if (NewColonyTilePickState.IsActive && !WindowlessDialogState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = KeyboardHelper.IsAltHeld;
+
+                if (NewColonyTilePickState.HandleInput(key, shift, ctrl, alt))
                 {
                     Event.current.Use();
                     return;

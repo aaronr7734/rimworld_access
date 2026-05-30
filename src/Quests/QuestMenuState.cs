@@ -151,9 +151,11 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Closes the quest menu.
+        /// Closes the quest menu. Pass <paramref name="announce"/> false to close silently when
+        /// another flow is taking over the screen (e.g. the Archonexus relocation chain) and the
+        /// "Quest menu closed" line would just step on that flow's own announcement.
         /// </summary>
-        public static void Close()
+        public static void Close(bool announce = true)
         {
             isActive = false;
             currentQuests.Clear();
@@ -163,7 +165,8 @@ namespace RimWorldAccess
             cachedDetailLines.Clear();
             rewardPrefItems.Clear();
             CleanupRewardMenu();
-            TolkHelper.Speak("Quest menu closed");
+            if (announce)
+                TolkHelper.Speak("Quest menu closed");
         }
 
         // =====================================================================

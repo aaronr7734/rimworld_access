@@ -463,17 +463,8 @@ namespace RimWorldAccess
             if (page.ideo == null) return;
             try
             {
-                if (!TutorSystem.AllowAction("ConfiguringIdeo"))
+                if (!IdeoEditorCommands.RandomizeAll(page.ideo))
                     return;
-                var parms = new IdeoGenerationParms(
-                    IdeoUIUtility.FactionForRandomization(page.ideo),
-                    forceNoExpansionIdeo: false,
-                    null, null, null,
-                    classicExtra: false,
-                    forceNoWeaponPreference: false,
-                    page.ideo.Fluid);
-                page.ideo.foundation.Init(parms);
-                SoundDefOf.Tick_High.PlayOneShotOnCamera();
                 IdeoBuilderHubState.RebuildSections();
                 IdeoBuilderHubState.AnnounceCurrentSection();
                 IdeoBuilderHubState.AnnounceValidationOrImpact();

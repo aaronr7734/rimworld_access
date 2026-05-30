@@ -22,6 +22,7 @@ namespace RimWorldAccess
     public sealed class HostFocusReturn
     {
         private readonly Type[] childTypes;
+        private readonly Action onChildClosed;
         private bool wasOpen;
 
         /// <param name="childTypes">
@@ -29,18 +30,37 @@ namespace RimWorldAccess
         /// <see cref="Dialog_InfoCard"/> when none are supplied.
         /// </param>
         public HostFocusReturn(params Type[] childTypes)
+            : this(null, childTypes)
         {
+        }
+
+        /// <param name="onChildClosed">
+        /// Optional callback invoked (after focus is reclaimed) the frame a tracked child window
+        /// closes — e.g. to rebuild the host's list and re-announce where the cursor landed, so the
+        /// player knows they are back on the host screen. Generalizes the "returned from sub-editor"
+        /// rebuild/re-announce that directly-patched hosts otherwise hand-roll.
+        /// </param>
+        /// <param name="childTypes">See the other constructor.</param>
+        public HostFocusReturn(Action onChildClosed, params Type[] childTypes)
+        {
+            this.onChildClosed = onChildClosed;
             this.childTypes = (childTypes != null && childTypes.Length > 0)
                 ? childTypes
                 : new[] { typeof(Dialog_InfoCard) };
         }
+
+        /// <summary>True while at least one tracked child window is on the stack.</summary>
+        public bool AnyOpen => AnyChildOpen();
 
         public void Track(Window host)
         {
             if (host == null || Find.WindowStack == null) return;
             bool open = AnyChildOpen();
             if (wasOpen && !open)
+            {
                 Find.WindowStack.Notify_ManuallySetFocus(host);
+                onChildClosed?.Invoke();
+            }
             wasOpen = open;
         }
 

@@ -532,127 +532,18 @@ namespace RimWorldAccess
 
         #region Context menu (] key): save, ritual sound preview
 
-        private static readonly TextInputController saveController = new TextInputController();
-        private static Sustainer ritualPreviewSustainer;
+        // Save / randomize / ritual-sound preview live in the shared IdeoEditorCommands so the worldgen
+        // builder and the in-game reform editor behave identically. These are thin pass-throughs on the
+        // hub's current ideo; the hub patch's call sites are unchanged.
 
-        /// <summary>
-        /// Opens the builder context menu (']' key): continue, randomize all, save to file, preview
-        /// ritual sound. Continue/Randomize are otherwise keyboard-only shortcuts — surfacing them
-        /// here with the shortcut in a tooltip (as the character-creation menu does) makes them
-        /// discoverable. The page-level callbacks are supplied by the host patch.
-        /// </summary>
+        /// <summary>Opens the builder context menu (']' key): save, randomize all, preview ritual sound.</summary>
         public static void OpenContextMenu(System.Action onRandomizeAll = null)
-        {
-            if (currentIdeo == null) return;
+            => IdeoEditorCommands.OpenContextMenu(currentIdeo, onRandomizeAll);
 
-            var options = new List<FloatMenuOption>
-            {
-                // Save has no keyboard shortcut (Alt+S is "continue") — it lives only in this menu.
-                new FloatMenuOption("Save".Translate() + " " + "Ideoligion".Translate().ToString().ToLower(), SaveIdeoligion),
-            };
+        public static void SaveIdeoligion() => IdeoEditorCommands.SaveIdeoligion(currentIdeo);
 
-            if (onRandomizeAll != null)
-                options.Add(WithTip(new FloatMenuOption("RandomizeAll".Translate(), onRandomizeAll), "Alt+R"));
-
-            if (currentIdeo.SoundOngoingRitual != null)
-            {
-                bool playing = ritualPreviewSustainer != null && !ritualPreviewSustainer.Ended;
-                options.Add(new FloatMenuOption(
-                    (playing ? "Stop" : "Preview") + " ritual sound", ToggleRitualPreview));
-            }
-
-            // Each action announces its own result, so suppress the generic "{label} selected" echo.
-            WindowlessFloatMenuState.Open(options, colonistOrders: false, announceSelection: false);
-        }
-
-        private static FloatMenuOption WithTip(FloatMenuOption opt, string tip)
-        {
-            opt.tooltip = new TipSignal(tip);
-            return opt;
-        }
-
-        public static void SaveIdeoligion()
-        {
-            if (currentIdeo == null) return;
-            saveController.Begin(currentIdeo.name ?? "", TextFieldSpec.Unrestricted("Name"),
-                text =>
-                {
-                    string fileName = GenFile.SanitizedFileName(text.Trim());
-                    if (string.IsNullOrEmpty(fileName))
-                    {
-                        TolkHelper.Speak("NeedAName".Translate(), SpeechPriority.High);
-                        return;
-                    }
-                    string absPath = GenFilePaths.AbsPathForIdeo(fileName);
-                    LongEventHandler.QueueLongEvent(
-                        () => GameDataSaveLoader.SaveIdeo(currentIdeo, absPath),
-                        "SavingLongEvent", doAsynchronously: false, null);
-                    TolkHelper.Speak("SavedAs".Translate(fileName), SpeechPriority.High);
-                },
-                // This field is a save filename, not an editable value — it announces "Saved as X"
-                // itself, so suppress the generic "Name set to X" commit announcement.
-                announceOnCommit: false);
-        }
-
-        private static void ToggleRitualPreview()
-        {
-            if (ritualPreviewSustainer != null && !ritualPreviewSustainer.Ended)
-            {
-                StopRitualPreview();
-                TolkHelper.Speak("RitualAmbienceSound".Translate().Resolve() + ", stopped.");
-                return;
-            }
-            var sound = currentIdeo?.SoundOngoingRitual;
-            if (sound == null)
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                return;
-            }
-            // Mirror the in-game viewer's working preview: force on-camera playback so the
-            // sustainer is actually audible. MaintainRitualPreview then ducks the game music.
-            var info = SoundInfo.OnCamera(MaintenanceType.PerFrame);
-            info.forcedPlayOnCamera = true;
-            info.testPlay = true;
-            ritualPreviewSustainer = sound.TrySpawnSustainer(info);
-            TolkHelper.Speak("RitualAmbienceSound".Translate().Resolve() + ", playing.");
-        }
-
-        /// <summary>
-        /// Keeps the ritual-sound preview alive; called every frame from the hub patch. Wrapped so a
-        /// sound-system failure can never propagate and stall the hub's input handling.
-        /// </summary>
-        public static void MaintainRitualPreview()
-        {
-            if (ritualPreviewSustainer == null) return;
-            try
-            {
-                if (ritualPreviewSustainer.Ended)
-                {
-                    ritualPreviewSustainer = null;
-                    return;
-                }
-                ritualPreviewSustainer.Maintain();
-                // ForceSilenceFor lives only on MusicManagerPlay, and Find.MusicManagerPlay casts
-                // Current.Root to Root_Play — which throws pre-game (the main-menu builder runs in
-                // a Root_Entry). Only duck the music when actually in a running game.
-                if (Current.ProgramState == ProgramState.Playing)
-                    Find.MusicManagerPlay?.ForceSilenceFor(0.1f);
-            }
-            catch (System.Exception ex)
-            {
-                Log.Warning($"[RimWorld Access] Ritual sound preview stopped after an error: {ex.Message}");
-                StopRitualPreview();
-            }
-        }
-
-        private static void StopRitualPreview()
-        {
-            if (ritualPreviewSustainer != null)
-            {
-                if (!ritualPreviewSustainer.Ended) ritualPreviewSustainer.End();
-                ritualPreviewSustainer = null;
-            }
-        }
+        /// <summary>Keeps the ritual-sound preview alive; called every frame from the hub patch.</summary>
+        public static void MaintainRitualPreview() => IdeoEditorCommands.MaintainRitualPreview();
 
         #endregion
     }

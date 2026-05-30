@@ -278,7 +278,11 @@ namespace RimWorldAccess
         {
             SoundDefOf.Tick_High.PlayOneShotOnCamera();
             // Refresh whichever builder context launched this edit.
-            if (IdeoReformState.IsActive)
+            if (IdeoSectionEditorState.IsActive)
+            {
+                IdeoSectionEditorState.Refresh();
+            }
+            else if (IdeoReformState.IsActive)
             {
                 IdeoReformState.RefreshSections();
             }

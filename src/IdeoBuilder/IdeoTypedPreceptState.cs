@@ -248,15 +248,21 @@ namespace RimWorldAccess
         /// <summary>
         /// Builds the detail lines for a precept from vanilla's own tooltip (GetTip), cleaned of
         /// markup and unresolved grammar tokens, flagging section-title lines so Page Up/Down can
-        /// jump between them. For roles, also appends each granted ability's description (vanilla's
-        /// role tip lists ability names only), so the user learns what "Leader speech", "Work
-        /// drive", "Combat command", etc. actually do.
+        /// jump between them. For precepts that grant abilities (roles, ritual roles), each ability's
+        /// description is injected inline with its tip bullet — vanilla's tip lists ability NAMES only
+        /// ("- Leader speech"), so without this they read as bare names. Reuses the read-only Ideology
+        /// viewer's own `EnhanceWithAbilityDescriptions` so the editor and viewer present abilities
+        /// identically (one "- Leader speech. {what it does}" line per ability, not a separate
+        /// disconnected list).
         /// </summary>
         private static List<DetailLine> BuildPreceptDetailLines(Precept precept)
         {
             var lines = new List<DetailLine>();
 
             string tip = precept.GetTip();
+            if (precept.def != null && !precept.def.grantedAbilities.NullOrEmpty())
+                tip = IdeologyHelper.EnhanceWithAbilityDescriptions(precept.def.grantedAbilities, precept.ideo, tip);
+
             if (!string.IsNullOrEmpty(tip))
             {
                 foreach (var raw in tip.Split('\n'))
@@ -265,16 +271,6 @@ namespace RimWorldAccess
                     string line = IdeoBuilderHelper.CleanGameText(raw);
                     if (!string.IsNullOrEmpty(line))
                         lines.Add(new DetailLine(line, isHeader));
-                }
-            }
-
-            if (precept is Precept_Role role && role.def?.grantedAbilities != null)
-            {
-                foreach (var ability in role.def.grantedAbilities)
-                {
-                    if (ability == null || string.IsNullOrEmpty(ability.description)) continue;
-                    lines.Add(new DetailLine(
-                        ability.LabelCap + ": " + IdeoBuilderHelper.CleanGameText(ability.description), false));
                 }
             }
 

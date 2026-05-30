@@ -1084,7 +1084,13 @@ namespace RimWorldAccess
         /// For ritual abilities, the tip line shows the ritual precept label,
         /// so we map ritual labels to the ability description.
         /// </summary>
-        private static string EnhanceWithAbilityDescriptions(List<AbilityDef> abilities, Ideo ideo, string tip)
+        /// <summary>
+        /// Injects each granted ability's description inline with its bullet line in a role/ritual
+        /// precept tip (the vanilla tip lists ability NAMES only). Shared with the IdeoBuilder typed-
+        /// precept editor (<see cref="IdeoTypedPreceptState"/>) so the editor and the read-only viewer
+        /// present abilities identically. Preserves every non-ability line unchanged.
+        /// </summary>
+        internal static string EnhanceWithAbilityDescriptions(List<AbilityDef> abilities, Ideo ideo, string tip)
         {
             var descriptions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (var abilityDef in abilities)
