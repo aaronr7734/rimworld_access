@@ -1,30 +1,57 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
-05/26/2026
+05/31/2026
 
 CHANGES
 -------
-- Moved fish population reports from the terrain key (2) to the resource key
-  (3), where plants and (with a deep scanner running) minerals already live.
-  Key 3's "nothing here" message now lists only the resource types relevant to
-  your tile, so it might say "no plants", "no plants or fish", or "no plants or
-  fish or mineral deposits" depending on context.
+- The Archonexus relocation endgame is now fully keyboard-accessible:
+  choosing your colonists and items, picking your
+  new colony's world tile, and reforming your ideoligion all work with the mod.
+- During that endgame you can create, load, or fully edit your new colony's
+  ideoligion, just like the builder you use when starting a world.
+
+- Arrow-key navigation now names the roof above you instead of a generic
+  "roofed" or "underground", so a thin rock roof, a solid overhead mountain,
+  and a player-built roof are easy to tell apart.
+- Fish population reports moved from the terrain key (2) to the resource key
+  (3), alongside plants and minerals. Key 3 now lists only the resources
+  relevant to your tile.
+- You can now banish a colonist, and execute a guilty one.
+  Both live on the Social section of a pawn's inspection screen and on the
+  Actions tab of their info card, each with the game's own warning about what
+  will happen.
 
 BUG FIXES
 ---------
-- Removed the "Power Control" item from the building inspection menu. It let
-  you flip a building's power on or off instantly, which you're not actually
-  meant to do; use the toggle power command in the gizmo menu (G) and a
-  colonist will flick the switch as normal.
-- Removed the "Breakdown Status" and "Power" items from the building
-  inspection menu, since both just duplicated what Overview already shows, and
-  the "Power" one was buggy on top of it (negative wattage, a doubled label,
-  no translation).
-- Letter-based shortcuts like Alt+A (Option+A on Mac) and the ] orders key no
-  longer also type their letter into an open search box.
-- Policy editor typeahead now searches the editor's own list, not the assign
-  table beneath it; the drug list now supports typeahead too.
-- In the growing-zone plant picker, up/down now step through your typeahead
-  results instead of the full plant list.
+- Cleaned up the building inspection menu: the "Power Control", "Breakdown
+  Status", and "Power" items are gone. They either duplicated the Overview
+  or let you do things you shouldn't (flip power instantly). Use the toggle
+  power command (G) and a colonist will flick the switch as normal.
+- Number keys, arrow keys, and letter shortcuts no longer "leak" through to
+  whatever is underneath an open menu. With a menu open, pressing a number
+  could announce tile info, and letter shortcuts (like Alt+A or the ] orders key) could fire or
+  type into a search box. This is now theoretically fixed across every menu.
+- Typeahead search now works the same in every menu. While you are searching,
+  Up/Down step through the matches and Home/End jump to the first and last,
+  all without clearing your search, and each tells you where you are (for
+  example "match 2 of 3").
+- Typing no longer jumps to the wrong list when one menu sits on top of
+  another. Float menus opened over a menu (like the bills "add recipe"
+  picker), menus opened over a pawn's inspection screen (Operations, surgery
+  pickers, Health Settings), and the quantity boxes in caravan and pod-loading
+  dialogs now all search the menu you are actually looking at.
+- The pawn and building inspection screens now support typeahead. Start typing
+  to jump through the tree, including weapons, apparel, and inventory items by
+  name. Inspection search also matches what's inside a node, not just its name.
+- In the drug policy editor, Escape now clears an active search before closing,
+  and the drug list reports how many matches your search found. The
+  growing-zone plant picker also steps through search results correctly.
+- The saved-ideoligion load list no longer locks up when it's empty; Escape
+  closes it normally.
+- When editing an ideoligion's base precepts (cannibalism, corpses, drug use,
+  and the like), you can now press Delete to remove a precept you set,
+  following the game's own rules about which can be dropped.
+- Fixed Alt-key shortcuts like Alt+R not working on some non-US keyboard
+  layouts, including AZERTY.
 
 05/25/2026
 
