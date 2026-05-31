@@ -254,10 +254,13 @@ namespace RimWorldAccess
             }
 
             // 5. Roof status (after terrain - both environmental info)
+            // Announce the roof's own label (e.g. "Constructed roof", "Rock roof (thin)",
+            // "Overhead mountain") so users can distinguish thin, thick, and mountain roofs
+            // during navigation rather than a generic "roofed"/"underground".
             RoofDef roof = position.GetRoof(map);
             if (roof != null)
             {
-                string roofText = roof.isNatural ? "underground" : "roofed";
+                string roofText = roof.LabelCap;
                 if (addedSomething)
                     sb.Append(", " + roofText);
                 else
