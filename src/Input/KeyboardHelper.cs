@@ -84,6 +84,13 @@ namespace RimWorldAccess
         // On non-US keyboards, ? may be a direct key sending only character='?' with keyCode=None.
         private static int lastSlashShiftFrame = -1;
 
+        // Frame tracking for real letter/digit keyCodes (A-Z, 0-9). When a physical letter/digit
+        // key produces a real keyCode this frame, we record it so the follow-up character event
+        // for the SAME key (Unity's twin keyCode=None event) is not also remapped to a keyCode —
+        // which would otherwise fire a modifier shortcut twice on layouts that send both events.
+        private static KeyCode lastAlphaNumKeyCode = KeyCode.None;
+        private static int lastAlphaNumFrame = -1;
+
         /// <summary>
         /// Remaps character-only KeyDown events to their equivalent KeyCode.
         /// On non-US keyboards (e.g., German), layout-dependent characters like ] are produced
@@ -127,7 +134,44 @@ namespace RimWorldAccess
             }
 
             if (key != KeyCode.None)
+            {
+                // Record real letter/digit keyCodes so the twin character event isn't double-remapped.
+                if ((key >= KeyCode.A && key <= KeyCode.Z) || (key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9))
+                {
+                    lastAlphaNumKeyCode = key;
+                    lastAlphaNumFrame = Time.frameCount;
+                }
                 return key;
+            }
+
+            // Recover letter/digit SHORTCUTS that arrive as a character-only event (keyCode=None).
+            // On some keyboard layouts (e.g. AZERTY), a modifier+letter combo such as Alt+R is
+            // delivered by Unity with keyCode=None and only Event.current.character set, so every
+            // downstream handler that gates on `key == KeyCode.None` bails before the shortcut runs
+            // (rename pawn, sort mods, etc.). When an action modifier is held, map the ASCII letter
+            // or digit back to its KeyCode so those handlers see the real key. Gated on a held
+            // Alt/Ctrl so ordinary typing (and typeahead) still flows through as character events.
+            // Restricted to ASCII a-z/0-9 so AltGr-produced symbols and accented characters are left
+            // alone. Skipped when the same key already produced a real keyCode this frame, to avoid
+            // firing the shortcut twice on layouts that send both events.
+            if (IsAltHeld || IsCtrlHeld)
+            {
+                char ch = Event.current.character;
+                KeyCode mapped = KeyCode.None;
+                if (ch >= 'a' && ch <= 'z')
+                    mapped = KeyCode.A + (ch - 'a');
+                else if (ch >= 'A' && ch <= 'Z')
+                    mapped = KeyCode.A + (ch - 'A');
+                else if (ch >= '0' && ch <= '9')
+                    mapped = KeyCode.Alpha0 + (ch - '0');
+
+                if (mapped != KeyCode.None &&
+                    !(Time.frameCount == lastAlphaNumFrame && lastAlphaNumKeyCode == mapped))
+                {
+                    WasCharacterRemapped = true;
+                    return mapped;
+                }
+            }
 
             switch (Event.current.character)
             {
