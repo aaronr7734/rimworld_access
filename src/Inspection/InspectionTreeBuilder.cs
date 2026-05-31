@@ -1727,6 +1727,15 @@ namespace RimWorldAccess
             {
                 BuildRomanceMenu(parentItem, pawn);
             }
+
+            // Banish / Execute - the per-pawn commands vanilla draws on the bio/character card.
+            // Surfaced here (after relations, ideology, and romance) so all per-pawn social actions
+            // live together. Each is independently gated by PawnCommandActionHelper and is unrelated
+            // to the Ideology DLC. Read-only inspection (e.g. caravan formation) omits these.
+            if (mode != InspectionMode.ReadOnly)
+            {
+                PawnCommandActionHelper.AddPawnCommandActions(parentItem, pawn, null);
+            }
         }
 
         /// <summary>

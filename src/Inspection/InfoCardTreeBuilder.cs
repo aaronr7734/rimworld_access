@@ -1369,6 +1369,10 @@ namespace RimWorldAccess
             };
 
             AddChild(tabNode, renameItem);
+
+            // Banish / Execute - the per-pawn commands vanilla draws on the character card. Close the
+            // info card before the banish confirmation dialog opens so focus moves cleanly to it.
+            PawnCommandActionHelper.AddPawnCommandActions(tabNode, pawn, InfoCardState.CloseInfoCard);
         }
 
         #endregion
