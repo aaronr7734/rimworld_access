@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using HarmonyLib;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -24,7 +22,7 @@ namespace RimWorldAccess
         private const int TabCount = 2;
 
         private static bool isActive = false;
-        private static Dialog_LoadTransporters currentDialog = null;
+        private static ITransferLoadDialog adapter = null;
         private static Tab currentTab = Tab.Pawns;
         private static int selectedIndex = 0;
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
@@ -46,22 +44,6 @@ namespace RimWorldAccess
         // Summary navigation (up/down arrows to navigate through stats)
         private static List<string> summaryItems = new List<string>();
         private static int summaryIndex = 0;
-
-        // Reflection fields for accessing private Dialog_LoadTransporters members
-        private static readonly FieldInfo tabField = AccessTools.Field(typeof(Dialog_LoadTransporters), "tab");
-        private static readonly FieldInfo transferablesField = AccessTools.Field(typeof(Dialog_LoadTransporters), "transferables");
-        private static readonly FieldInfo transportersField = AccessTools.Field(typeof(Dialog_LoadTransporters), "transporters");
-
-        // Flag to track if reflection fields initialized successfully
-        private static readonly bool reflectionInitialized = tabField != null && transferablesField != null && transportersField != null;
-
-        static TransportPodLoadingState()
-        {
-            if (!reflectionInitialized)
-            {
-                Log.Error("RimWorld Access: TransportPodLoadingState failed to initialize reflection fields. Transport pod loading accessibility may not work correctly.");
-            }
-        }
 
         /// <summary>
         /// Gets whether transport pod loading keyboard navigation is currently active.
@@ -86,7 +68,13 @@ namespace RimWorldAccess
         public static bool AcceptingFromOurCode => acceptingFromOurCode;
 
         /// <summary>
-        /// Opens keyboard navigation for the specified Dialog_LoadTransporters.
+        /// Gets the announcement to speak when the current dialog closes without accepting.
+        /// Captured by the PostClose patches before <see cref="Close"/> clears the adapter.
+        /// </summary>
+        public static string CancelAnnouncement => adapter?.CancelAnnouncement ?? "Loading cancelled";
+
+        /// <summary>
+        /// Opens keyboard navigation for a transport pod / shuttle loading dialog.
         /// </summary>
         public static void Open(Dialog_LoadTransporters dialog)
         {
@@ -96,30 +84,53 @@ namespace RimWorldAccess
                 return;
             }
 
-            if (!reflectionInitialized)
+            if (!LoadTransportersAdapter.ReflectionReady)
             {
                 TolkHelper.Speak("Transport pod loading accessibility unavailable due to game update. Please check for mod updates.", SpeechPriority.High);
                 return;
             }
 
+            Open(new LoadTransportersAdapter(dialog));
+        }
+
+        /// <summary>
+        /// Opens keyboard navigation for a map portal loading dialog (ancient complexes,
+        /// pit gates, insect lairs, pocket-map exits).
+        /// </summary>
+        public static void Open(Dialog_EnterPortal dialog)
+        {
+            if (dialog == null)
+            {
+                TolkHelper.Speak("No portal dialog available", SpeechPriority.High);
+                return;
+            }
+
+            if (!EnterPortalAdapter.ReflectionReady)
+            {
+                TolkHelper.Speak("Portal loading accessibility unavailable due to game update. Please check for mod updates.", SpeechPriority.High);
+                return;
+            }
+
+            Open(new EnterPortalAdapter(dialog));
+        }
+
+        /// <summary>
+        /// Shared open logic for either dialog type.
+        /// </summary>
+        private static void Open(ITransferLoadDialog newAdapter)
+        {
             isActive = true;
-            currentDialog = dialog;
+            adapter = newAdapter;
             currentTab = Tab.Pawns;
             selectedIndex = 0;
             acceptAttempted = false;
             tabPositions.Clear();
             typeahead.ClearSearch();
 
-            // Get pod count and capacity info
-            var transporters = GetTransporters();
-            int podCount = transporters?.Count ?? 0;
-            float capacity = GetMassCapacity();
-
-            string podType = podCount == 1 ? "pod" : "pods";
-            TolkHelper.Speak($"Load transport {podType}. {podCount} {podType}, {capacity:F0} kg capacity. Left/Right for tabs, Enter to adjust.");
-
-            AnnounceCurrentTab();
-            AnnounceCurrentItem();
+            // Speak the open line, tab summary, and current item as one utterance so
+            // SpeechSanitizer cleans the seams between them (separate Speak() calls are each
+            // sanitized in isolation, leaving stray periods at the joins).
+            TolkHelper.Speak($"{adapter.OpenAnnouncement}. {BuildCurrentTabText()}. {BuildCurrentItemText()}");
         }
 
         /// <summary>
@@ -128,7 +139,7 @@ namespace RimWorldAccess
         public static void Close()
         {
             isActive = false;
-            currentDialog = null;
+            adapter = null;
             currentTab = Tab.Pawns;
             selectedIndex = 0;
             acceptAttempted = false;
@@ -145,7 +156,7 @@ namespace RimWorldAccess
         /// </summary>
         public static bool HandleInput(KeyCode key, bool shift, bool ctrl, bool alt)
         {
-            if (!isActive || currentDialog == null)
+            if (!isActive || adapter == null)
                 return false;
 
             // Left arrow - previous tab (not in summary view)
@@ -359,8 +370,7 @@ namespace RimWorldAccess
 
             SyncGameTab();
             typeahead.ClearSearch();
-            AnnounceCurrentTab();
-            AnnounceCurrentItem();
+            AnnounceTabAndItem();
         }
 
         /// <summary>
@@ -378,8 +388,7 @@ namespace RimWorldAccess
 
             SyncGameTab();
             typeahead.ClearSearch();
-            AnnounceCurrentTab();
-            AnnounceCurrentItem();
+            AnnounceTabAndItem();
         }
 
         /// <summary>
@@ -403,18 +412,11 @@ namespace RimWorldAccess
         /// </summary>
         private static void SyncGameTab()
         {
-            if (currentDialog == null || tabField == null)
+            if (adapter == null)
                 return;
 
-            try
-            {
-                // Dialog_LoadTransporters.Tab enum matches our Tab enum (0=Pawns, 1=Items)
-                tabField.SetValue(currentDialog, (int)currentTab);
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"RimWorld Access: Failed to sync tab: {ex.Message}");
-            }
+            // Both dialogs use the same Tab enum layout (0=Pawns, 1=Items).
+            adapter.GameTab = (int)currentTab;
         }
 
         #endregion
@@ -555,6 +557,11 @@ namespace RimWorldAccess
             }
 
             NotifyTransferablesChanged();
+
+            // Clear any active typeahead search so the next keystrokes start a fresh search.
+            // This lets the user type one pawn's name, press Enter/Space to select them, then
+            // immediately begin typing the next pawn's name.
+            typeahead.ClearSearch();
         }
 
         /// <summary>
@@ -585,8 +592,8 @@ namespace RimWorldAccess
 
             TransferableOneWay transferable = transferables[selectedIndex];
 
-            // Calculate remaining capacity
-            float remainingCapacity = GetMassCapacity() - GetMassUsage();
+            // Calculate remaining capacity (unlimited for map portals)
+            float remainingCapacity = adapter.MassCapacity - GetMassUsage();
 
             var result = CaravanQuantityHelper.CalculateMaxToAdd(transferable, remainingCapacity);
 
@@ -693,7 +700,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void Accept()
         {
-            if (currentDialog == null)
+            if (adapter == null)
                 return;
 
             acceptAttempted = true;
@@ -703,7 +710,7 @@ namespace RimWorldAccess
             try
             {
                 // Trigger the game's accept logic
-                currentDialog.OnAcceptKeyPressed();
+                adapter.TriggerAccept();
             }
             finally
             {
@@ -736,26 +743,24 @@ namespace RimWorldAccess
         #region Announcements
 
         /// <summary>
-        /// Announces the current tab.
+        /// Builds the current tab description, e.g. "Pawns tab, 83 items".
         /// </summary>
-        private static void AnnounceCurrentTab()
+        private static string BuildCurrentTabText()
         {
             string tabName = currentTab == Tab.Pawns ? "Pawns" : "Items";
-            List<TransferableOneWay> tabTransferables = GetCurrentTabTransferables();
-            TolkHelper.Speak($"{tabName} tab, {tabTransferables.Count} items");
+            return $"{tabName} tab, {GetCurrentTabTransferables().Count} items";
         }
 
         /// <summary>
-        /// Announces the currently selected item.
+        /// Builds the description of the currently selected item.
         /// </summary>
-        private static void AnnounceCurrentItem()
+        private static string BuildCurrentItemText()
         {
             List<TransferableOneWay> transferables = GetCurrentTabTransferables();
 
             if (transferables.Count == 0)
             {
-                TolkHelper.Speak("No items in this tab");
-                return;
+                return "No items in this tab";
             }
 
             if (selectedIndex < 0 || selectedIndex >= transferables.Count)
@@ -764,9 +769,26 @@ namespace RimWorldAccess
             }
 
             TransferableOneWay transferable = transferables[selectedIndex];
-            string announcement = CaravanAnnouncementHelper.BuildItemAnnouncement(
+            return CaravanAnnouncementHelper.BuildItemAnnouncement(
                 transferable, selectedIndex, transferables.Count);
-            TolkHelper.Speak(announcement);
+        }
+
+        /// <summary>
+        /// Announces the currently selected item.
+        /// </summary>
+        private static void AnnounceCurrentItem()
+        {
+            TolkHelper.Speak(BuildCurrentItemText());
+        }
+
+        /// <summary>
+        /// Announces the current tab and selected item as a single utterance. Combining them into
+        /// one Speak() call lets SpeechSanitizer clean the seam between the two parts; separate
+        /// calls would each be sanitized in isolation, leaving a stray period at the join.
+        /// </summary>
+        private static void AnnounceTabAndItem()
+        {
+            TolkHelper.Speak($"{BuildCurrentTabText()}. {BuildCurrentItemText()}");
         }
 
         /// <summary>
@@ -793,7 +815,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void AnnounceMassSummary()
         {
-            float capacity = GetMassCapacity();
+            float capacity = adapter?.MassCapacity ?? 0f;
             float usage = GetMassUsage();
             float remaining = capacity - usage;
 
@@ -820,19 +842,7 @@ namespace RimWorldAccess
         /// </summary>
         private static List<TransferableOneWay> GetAllTransferables()
         {
-            if (currentDialog == null || transferablesField == null)
-                return new List<TransferableOneWay>();
-
-            try
-            {
-                var transferables = transferablesField.GetValue(currentDialog) as List<TransferableOneWay>;
-                return transferables ?? new List<TransferableOneWay>();
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"RimWorld Access: Failed to get transferables: {ex.Message}");
-                return new List<TransferableOneWay>();
-            }
+            return adapter?.GetAllTransferables() ?? new List<TransferableOneWay>();
         }
 
         /// <summary>
@@ -861,46 +871,6 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets the transporters from the dialog.
-        /// </summary>
-        private static List<CompTransporter> GetTransporters()
-        {
-            if (currentDialog == null || transportersField == null)
-                return new List<CompTransporter>();
-
-            try
-            {
-                var transporters = transportersField.GetValue(currentDialog) as List<CompTransporter>;
-                return transporters ?? new List<CompTransporter>();
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"RimWorld Access: Failed to get transporters: {ex.Message}");
-                return new List<CompTransporter>();
-            }
-        }
-
-        /// <summary>
-        /// Gets the total mass capacity from transporters.
-        /// </summary>
-        private static float GetMassCapacity()
-        {
-            var transporters = GetTransporters();
-            if (transporters == null || transporters.Count == 0)
-                return 0f;
-
-            float total = 0f;
-            foreach (var transporter in transporters)
-            {
-                if (transporter?.Props != null)
-                {
-                    total += transporter.Props.massCapacity;
-                }
-            }
-            return total;
-        }
-
-        /// <summary>
         /// Gets the current mass usage from transferables.
         /// </summary>
         private static float GetMassUsage()
@@ -926,21 +896,7 @@ namespace RimWorldAccess
         /// </summary>
         private static void NotifyTransferablesChanged()
         {
-            if (currentDialog == null)
-                return;
-
-            try
-            {
-                MethodInfo method = AccessTools.Method(typeof(Dialog_LoadTransporters), "CountToTransferChanged");
-                if (method != null)
-                {
-                    method.Invoke(currentDialog, null);
-                }
-            }
-            catch (Exception ex)
-            {
-                ModLogger.Error($"Failed to call CountToTransferChanged: {ex.Message}");
-            }
+            adapter?.NotifyTransferablesChanged();
         }
 
         /// <summary>
@@ -993,6 +949,13 @@ namespace RimWorldAccess
         /// </summary>
         private static void ToggleSummaryView()
         {
+            // Map portals show no stats panel in vanilla, so there is no summary to toggle into.
+            if (!showingSummary && (adapter == null || !adapter.HasSummary))
+            {
+                TolkHelper.Speak("No summary available for this dialog");
+                return;
+            }
+
             if (showingSummary)
             {
                 showingSummary = false;
@@ -1018,10 +981,9 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Builds the summary items list.
-        /// Shows only what the game displays via CaravanUIUtility.DrawCaravanInfo.
-        /// For transport pods: Mass, Speed, Food, Foraging, Visibility
-        /// For shuttles: Mass, Food only (Speed, Foraging, Visibility hidden)
+        /// Builds the summary items list via the active dialog adapter.
+        /// Transport pods/shuttles show caravan-style stats (Mass, Speed, Food, Foraging,
+        /// Visibility - shuttles omit all but Mass and Food); map portals show none.
         /// This matches exactly what a sighted player would see.
         /// </summary>
         private static void BuildSummaryItems()
@@ -1029,79 +991,13 @@ namespace RimWorldAccess
             summaryItems.Clear();
             // Don't reset summaryIndex - preserve position across summary views
 
-            if (currentDialog == null)
+            if (adapter == null)
             {
                 summaryItems.Add("No data available");
                 return;
             }
 
-            try
-            {
-                var transporters = GetTransporters();
-                if (transporters == null || transporters.Count == 0)
-                {
-                    summaryItems.Add("No transporters");
-                    return;
-                }
-
-                // Check if this is a shuttle (Royalty DLC) - shuttles show fewer stats
-                bool isShuttle = TransportPodHelper.IsShuttle(transporters[0]);
-
-                float massUsage = GetMassUsage();
-                float massCapacity = GetMassCapacity();
-                bool isOverloaded = massUsage > massCapacity;
-
-                // 1. Mass - always shown
-                summaryItems.Add(CaravanStatFormatter.FormatMass(massUsage, massCapacity));
-
-                // 2. Speed - only for non-shuttles
-                if (!isShuttle)
-                {
-                    var tilesInfo = HarmonyLib.AccessTools.Property(typeof(Dialog_LoadTransporters), "TilesPerDay");
-                    if (tilesInfo != null)
-                    {
-                        float tilesPerDay = (float)tilesInfo.GetValue(currentDialog);
-                        summaryItems.Add(CaravanStatFormatter.FormatSpeed(tilesPerDay, isOverloaded));
-                    }
-                }
-
-                // 3. Food - always shown
-                var foodInfo = HarmonyLib.AccessTools.Property(typeof(Dialog_LoadTransporters), "DaysWorthOfFood");
-                if (foodInfo != null)
-                {
-                    var foodObj = foodInfo.GetValue(currentDialog);
-                    var food = (ValueTuple<float, float>)foodObj;
-                    summaryItems.Add(CaravanStatFormatter.FormatFood(food.Item1, food.Item2));
-                }
-
-                // 4. Foraging - only for non-shuttles
-                if (!isShuttle)
-                {
-                    var forageInfo = HarmonyLib.AccessTools.Property(typeof(Dialog_LoadTransporters), "ForagedFoodPerDay");
-                    if (forageInfo != null)
-                    {
-                        var forageObj = forageInfo.GetValue(currentDialog);
-                        var forage = (ValueTuple<ThingDef, float>)forageObj;
-                        summaryItems.Add(CaravanStatFormatter.FormatForaging(forage.Item1, forage.Item2));
-                    }
-                }
-
-                // 5. Visibility - only for non-shuttles
-                if (!isShuttle)
-                {
-                    var visInfo = HarmonyLib.AccessTools.Property(typeof(Dialog_LoadTransporters), "Visibility");
-                    if (visInfo != null)
-                    {
-                        float visibility = (float)visInfo.GetValue(currentDialog);
-                        summaryItems.Add(CaravanStatFormatter.FormatVisibility(visibility));
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Warning($"RimWorld Access: Failed to get pod stats: {ex.Message}");
-                summaryItems.Add("Stats unavailable");
-            }
+            adapter.BuildSummaryItems(summaryItems, GetMassUsage());
         }
 
         /// <summary>
@@ -1150,94 +1046,18 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets the explanation text for the currently selected summary stat.
-        /// Uses reflection to access the cached explanation fields from the dialog.
-        /// Detects stat type from the summary item text since order varies (shuttles vs pods).
+        /// Gets the (stat name, breakdown explanation) for the currently selected summary stat,
+        /// delegating to the active dialog adapter. Returns null when no breakdown is available.
         /// </summary>
-        /// <returns>A tuple of (stat name, explanation text) or null if no explanation available.</returns>
         private static (string name, string explanation)? GetCurrentStatExplanation()
         {
-            if (currentDialog == null || summaryItems.Count == 0)
+            if (adapter == null || summaryItems.Count == 0)
                 return null;
 
             if (summaryIndex < 0 || summaryIndex >= summaryItems.Count)
                 return null;
 
-            string currentItem = summaryItems[summaryIndex];
-
-            try
-            {
-                // Detect stat type from the summary item text prefix
-                // IMPORTANT: We must access the property first to trigger recalculation of the cached explanation.
-                string fieldName = null;
-                string propertyName = null;
-                string statName = null;
-
-                if (currentItem.StartsWith("Mass:"))
-                {
-                    fieldName = "cachedCaravanMassCapacityExplanation";
-                    propertyName = "CaravanMassCapacity";
-                    statName = "Mass Capacity";
-                }
-                else if (currentItem.StartsWith("Speed:"))
-                {
-                    fieldName = "cachedTilesPerDayExplanation";
-                    propertyName = "TilesPerDay";
-                    statName = "Speed";
-                }
-                else if (currentItem.StartsWith("Food:"))
-                {
-                    // Food doesn't have a breakdown explanation in the game
-                    // The tooltip is just "DaysWorthOfFoodTooltip" which we already include
-                    return null;
-                }
-                else if (currentItem.StartsWith("Foraging:"))
-                {
-                    fieldName = "cachedForagedFoodPerDayExplanation";
-                    propertyName = "ForagedFoodPerDay";
-                    statName = "Foraging";
-                }
-                else if (currentItem.StartsWith("Visibility:"))
-                {
-                    fieldName = "cachedVisibilityExplanation";
-                    propertyName = "Visibility";
-                    statName = "Visibility";
-                }
-                else
-                {
-                    return null;
-                }
-
-                if (fieldName == null)
-                    return null;
-
-                // Access the property first to trigger recalculation of the cached explanation
-                if (propertyName != null)
-                {
-                    var prop = HarmonyLib.AccessTools.Property(typeof(Dialog_LoadTransporters), propertyName);
-                    if (prop != null)
-                    {
-                        // Just access the property getter - we don't need the value,
-                        // this triggers the game to recalculate the cached explanation
-                        prop.GetValue(currentDialog);
-                    }
-                }
-
-                var field = HarmonyLib.AccessTools.Field(typeof(Dialog_LoadTransporters), fieldName);
-                if (field == null)
-                    return null;
-
-                string explanation = field.GetValue(currentDialog) as string;
-                if (string.IsNullOrEmpty(explanation))
-                    return null;
-
-                return (statName, explanation);
-            }
-            catch (Exception ex)
-            {
-                Log.Warning($"RimWorld Access: Failed to get stat explanation: {ex.Message}");
-                return null;
-            }
+            return adapter.GetStatExplanation(summaryItems[summaryIndex]);
         }
 
         #endregion

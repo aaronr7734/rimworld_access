@@ -20,6 +20,14 @@ CHANGES
   Actions tab of their info card, each with the game's own warning about what
   will happen.
 
+- You can now load colonists and items into a map portal the same way you load
+  a caravan or transport pod. This covers entering an ancient complex, going
+  down an Anomaly pit gate or insect lair, and hauling your loot back out
+  through the exit. The enter and exit commands now open a Pawns and Items
+  screen with full keyboard navigation. Before, that screen opened silently and
+  you could only move pawns in one at a time through the right-bracket menu,
+  with no way to bring items along.
+
 BUG FIXES
 ---------
 - Cleaned up the building inspection menu: the "Power Control", "Breakdown
