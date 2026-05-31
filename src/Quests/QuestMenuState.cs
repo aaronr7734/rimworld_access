@@ -181,7 +181,10 @@ namespace RimWorldAccess
                 return;
             }
 
-            currentIndex = MenuHelper.SelectNext(currentIndex, currentQuests.Count);
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                currentIndex = typeahead.GetNextMatch(currentIndex);
+            else
+                currentIndex = MenuHelper.SelectNext(currentIndex, currentQuests.Count);
             AnnounceCurrentSelection();
         }
 
@@ -193,7 +196,10 @@ namespace RimWorldAccess
                 return;
             }
 
-            currentIndex = MenuHelper.SelectPrevious(currentIndex, currentQuests.Count);
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                currentIndex = typeahead.GetPreviousMatch(currentIndex);
+            else
+                currentIndex = MenuHelper.SelectPrevious(currentIndex, currentQuests.Count);
             AnnounceCurrentSelection();
         }
 
@@ -220,8 +226,15 @@ namespace RimWorldAccess
             if (currentQuests.Count == 0)
                 return;
 
-            currentIndex = MenuHelper.JumpToFirst();
-            typeahead.ClearSearch();
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                currentIndex = typeahead.GetFirstMatch();
+            }
+            else
+            {
+                currentIndex = MenuHelper.JumpToFirst();
+                typeahead.ClearSearch();
+            }
             AnnounceCurrentSelection();
         }
 
@@ -230,8 +243,15 @@ namespace RimWorldAccess
             if (currentQuests.Count == 0)
                 return;
 
-            currentIndex = MenuHelper.JumpToLast(currentQuests.Count);
-            typeahead.ClearSearch();
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                currentIndex = typeahead.GetLastMatch();
+            }
+            else
+            {
+                currentIndex = MenuHelper.JumpToLast(currentQuests.Count);
+                typeahead.ClearSearch();
+            }
             AnnounceCurrentSelection();
         }
 

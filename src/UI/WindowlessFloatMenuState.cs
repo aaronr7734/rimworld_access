@@ -182,6 +182,14 @@ namespace RimWorldAccess
             if (currentOptions == null || currentOptions.Count == 0)
                 return;
 
+            // During an active search, Home goes to the first match and keeps the search.
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                selectedIndex = typeahead.GetFirstMatch();
+                AnnounceCurrentSelection();
+                return;
+            }
+
             selectedIndex = MenuHelper.JumpToFirst();
             typeahead.ClearSearch();
             AnnounceCurrentSelection();
@@ -194,6 +202,13 @@ namespace RimWorldAccess
         {
             if (currentOptions == null || currentOptions.Count == 0)
                 return;
+
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                selectedIndex = typeahead.GetLastMatch();
+                AnnounceCurrentSelection();
+                return;
+            }
 
             selectedIndex = MenuHelper.JumpToLast(currentOptions.Count);
             typeahead.ClearSearch();

@@ -100,8 +100,20 @@ namespace RimWorldAccess
 
             if (key == KeyCode.UpArrow) { Move(-1); return true; }
             if (key == KeyCode.DownArrow) { Move(1); return true; }
-            if (key == KeyCode.Home) { typeahead.ClearSearch(); selectedIndex = 0; AnnounceCurrent(); return true; }
-            if (key == KeyCode.End) { typeahead.ClearSearch(); selectedIndex = files.Count - 1; AnnounceCurrent(); return true; }
+            if (key == KeyCode.Home)
+            {
+                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches) selectedIndex = typeahead.GetFirstMatch();
+                else { typeahead.ClearSearch(); selectedIndex = 0; }
+                AnnounceCurrent();
+                return true;
+            }
+            if (key == KeyCode.End)
+            {
+                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches) selectedIndex = typeahead.GetLastMatch();
+                else { typeahead.ClearSearch(); selectedIndex = files.Count - 1; }
+                AnnounceCurrent();
+                return true;
+            }
 
             if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
             {
@@ -146,9 +158,14 @@ namespace RimWorldAccess
 
         private static void Move(int delta)
         {
-            selectedIndex = delta > 0
-                ? MenuHelper.SelectNext(selectedIndex, files.Count)
-                : MenuHelper.SelectPrevious(selectedIndex, files.Count);
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                selectedIndex = delta > 0
+                    ? typeahead.GetNextMatch(selectedIndex)
+                    : typeahead.GetPreviousMatch(selectedIndex);
+            else
+                selectedIndex = delta > 0
+                    ? MenuHelper.SelectNext(selectedIndex, files.Count)
+                    : MenuHelper.SelectPrevious(selectedIndex, files.Count);
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
             AnnounceCurrent();
         }

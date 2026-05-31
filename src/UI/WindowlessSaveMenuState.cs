@@ -465,6 +465,17 @@ namespace RimWorldAccess
             if (saveFiles.Count == 0)
                 return;
 
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                int first = typeahead.GetFirstMatch();
+                if (first >= 0)
+                {
+                    selectedIndex = first;
+                    AnnounceWithSearch();
+                }
+                return;
+            }
+
             selectedIndex = MenuHelper.JumpToFirst();
             typeahead.ClearSearch();
             AnnounceCurrentState();
@@ -480,6 +491,17 @@ namespace RimWorldAccess
 
             if (saveFiles.Count == 0)
                 return;
+
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                int last = typeahead.GetLastMatch();
+                if (last >= 0)
+                {
+                    selectedIndex = last;
+                    AnnounceWithSearch();
+                }
+                return;
+            }
 
             selectedIndex = MenuHelper.JumpToLast(saveFiles.Count);
             typeahead.ClearSearch();

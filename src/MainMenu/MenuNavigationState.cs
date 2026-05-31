@@ -35,12 +35,15 @@ namespace RimWorldAccess
         {
             if (!IsActive) return;
 
-            var labels = GetCurrentColumnLabels();
+            // Search the whole menu (both columns) as one list — the main menu is a single
+            // logical menu that merely renders in two columns, so a search shouldn't be scoped
+            // to whichever column happens to be active.
+            var labels = GetAllLabels();
             if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
             {
                 if (newIndex >= 0)
                 {
-                    SetSelectedIndex(newIndex);
+                    SetCombinedIndex(newIndex);
                     AnnounceWithSearch();
                 }
             }
@@ -64,6 +67,15 @@ namespace RimWorldAccess
 
         public static void MoveUp()
         {
+            // Typeahead spans the whole menu (both columns) as one list, so stepping a match
+            // can cross from one column to the other — go through the combined index.
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                SetCombinedIndex(typeahead.GetPreviousMatch(GetCombinedIndex()));
+                AnnounceWithSearch();
+                return;
+            }
+
             if (currentColumn == 0)
             {
                 selectedIndexColumn0--;
@@ -82,6 +94,13 @@ namespace RimWorldAccess
 
         public static void MoveDown()
         {
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                SetCombinedIndex(typeahead.GetNextMatch(GetCombinedIndex()));
+                AnnounceWithSearch();
+                return;
+            }
+
             if (currentColumn == 0)
             {
                 selectedIndexColumn0++;
@@ -155,6 +174,14 @@ namespace RimWorldAccess
         /// </summary>
         public static void JumpToFirst()
         {
+            // During an active search, Home goes to the first match (anywhere in the menu)
+            // and keeps the search.
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                SetCombinedIndex(typeahead.GetFirstMatch());
+                AnnounceWithSearch();
+                return;
+            }
             typeahead.ClearSearch();
             if (currentColumn == 0)
             {
@@ -172,6 +199,12 @@ namespace RimWorldAccess
         /// </summary>
         public static void JumpToLast()
         {
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                SetCombinedIndex(typeahead.GetLastMatch());
+                AnnounceWithSearch();
+                return;
+            }
             typeahead.ClearSearch();
             if (currentColumn == 0)
             {
@@ -196,6 +229,50 @@ namespace RimWorldAccess
                 labels.Add(option.label);
             }
             return labels;
+        }
+
+        /// <summary>
+        /// Labels for the whole menu — column 0 followed by column 1 — used by typeahead so a
+        /// search spans both columns as one unified list.
+        /// </summary>
+        private static List<string> GetAllLabels()
+        {
+            var labels = new List<string>();
+            foreach (var option in column0Options)
+                labels.Add(option.label);
+            foreach (var option in column1Options)
+                labels.Add(option.label);
+            return labels;
+        }
+
+        /// <summary>
+        /// The current selection expressed as a single index across both columns
+        /// (column 0 occupies 0..col0-1, column 1 follows). Pairs with <see cref="GetAllLabels"/>.
+        /// </summary>
+        private static int GetCombinedIndex()
+        {
+            return currentColumn == 0
+                ? selectedIndexColumn0
+                : column0Options.Count + selectedIndexColumn1;
+        }
+
+        /// <summary>
+        /// Selects the item at a combined index, switching the active column as needed so a
+        /// typeahead match in either column becomes the current selection.
+        /// </summary>
+        private static void SetCombinedIndex(int combinedIndex)
+        {
+            if (combinedIndex < 0) return;
+            if (combinedIndex < column0Options.Count)
+            {
+                currentColumn = 0;
+                selectedIndexColumn0 = combinedIndex;
+            }
+            else
+            {
+                currentColumn = 1;
+                selectedIndexColumn1 = combinedIndex - column0Options.Count;
+            }
         }
 
         /// <summary>

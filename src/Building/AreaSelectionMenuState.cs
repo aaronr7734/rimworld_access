@@ -200,6 +200,12 @@ namespace RimWorldAccess
         public static void JumpToFirst()
         {
             if (TotalOptions == 0) return;
+            if (typeaheadHelper.HasActiveSearch && !typeaheadHelper.HasNoMatches)
+            {
+                selectedIndex = typeaheadHelper.GetFirstMatch();
+                AnnounceWithSearch();
+                return;
+            }
             selectedIndex = MenuHelper.JumpToFirst();
             typeaheadHelper.ClearSearch();
             AnnounceCurrentSelection();
@@ -208,6 +214,12 @@ namespace RimWorldAccess
         public static void JumpToLast()
         {
             if (TotalOptions == 0) return;
+            if (typeaheadHelper.HasActiveSearch && !typeaheadHelper.HasNoMatches)
+            {
+                selectedIndex = typeaheadHelper.GetLastMatch();
+                AnnounceWithSearch();
+                return;
+            }
             selectedIndex = MenuHelper.JumpToLast(TotalOptions);
             typeaheadHelper.ClearSearch();
             AnnounceCurrentSelection();

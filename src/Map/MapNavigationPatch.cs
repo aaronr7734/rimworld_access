@@ -80,11 +80,22 @@ namespace RimWorldAccess
                 WildlifeMenuState.IsActive ||
                 PawnSkillsTableState.IsActive ||
                 TransportPodLoadingState.IsActive ||
+                // Windowless overlays that navigate with arrow keys for their own lists/trees
+                // (not the map cursor) and are drawn over the live colony map. Without these,
+                // arrow keys pan the camera underneath them. MechsMenuState only sets the cursor
+                // directly on selection (a jump) and spawns its own Info Card window, so it
+                // belongs here too. See MenuOverlayGuard - tile-info/time-speed follow this list.
+                MechsMenuState.IsActive ||
+                AreaSelectionMenuState.IsActive ||
+                PawnAreaMenuState.IsActive ||
+                LearningHelperState.IsActive ||
+                StatBreakdownState.IsActive ||
                 // History tab states
                 HistoryState.IsActive ||
                 HistoryStatisticsState.IsActive ||
                 HistoryMessagesState.IsActive;
-                // Note: TransportPodSelectionState is NOT included - it uses map navigation for cursor movement
+                // Note: TransportPodSelectionState, GizmoZoneEditState, and ShelfLinkingState are
+                // NOT included - they use the map cursor (arrow keys) for cell selection.
         }
 
         /// <summary>

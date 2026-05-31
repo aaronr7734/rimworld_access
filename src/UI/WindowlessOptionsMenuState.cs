@@ -268,6 +268,20 @@ namespace RimWorldAccess
         /// </summary>
         public static void JumpToFirst()
         {
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                int first = typeahead.GetFirstMatch();
+                if (first >= 0)
+                {
+                    if (currentLevel == OptionsMenuLevel.CategoryList)
+                        selectedCategoryIndex = first;
+                    else
+                        selectedSettingIndex = first;
+                    AnnounceWithSearch();
+                }
+                return;
+            }
+
             typeahead.ClearSearch();
             if (currentLevel == OptionsMenuLevel.CategoryList)
             {
@@ -288,6 +302,20 @@ namespace RimWorldAccess
         /// </summary>
         public static void JumpToLast()
         {
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                int last = typeahead.GetLastMatch();
+                if (last >= 0)
+                {
+                    if (currentLevel == OptionsMenuLevel.CategoryList)
+                        selectedCategoryIndex = last;
+                    else
+                        selectedSettingIndex = last;
+                    AnnounceWithSearch();
+                }
+                return;
+            }
+
             typeahead.ClearSearch();
             if (currentLevel == OptionsMenuLevel.CategoryList)
             {

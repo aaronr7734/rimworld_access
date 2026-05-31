@@ -2293,6 +2293,15 @@ namespace RimWorldAccess
                 return;
             }
 
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                int firstMatch = typeahead.GetFirstMatch();
+                if (firstMatch >= 0) currentIndex = firstMatch;
+                AnnounceWithSearch();
+                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                return;
+            }
+
             currentIndex = MenuHelper.JumpToFirst();
             typeahead.ClearSearch();
             AnnounceCurrentSelection();
@@ -2314,6 +2323,15 @@ namespace RimWorldAccess
             if (list.Count == 0)
             {
                 TolkHelper.Speak("No items in this category");
+                return;
+            }
+
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                int lastMatch = typeahead.GetLastMatch();
+                if (lastMatch >= 0) currentIndex = lastMatch;
+                AnnounceWithSearch();
+                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
                 return;
             }
 

@@ -900,6 +900,13 @@ namespace RimWorldAccess
             if (!isActive || availableGizmos.Count == 0)
                 return;
 
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                selectedGizmoIndex = typeahead.GetFirstMatch();
+                AnnounceWithSearch();
+                return;
+            }
+
             selectedGizmoIndex = MenuHelper.JumpToFirst();
             typeahead.ClearSearch();
             AnnounceCurrentGizmo();
@@ -912,6 +919,13 @@ namespace RimWorldAccess
         {
             if (!isActive || availableGizmos.Count == 0)
                 return;
+
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                selectedGizmoIndex = typeahead.GetLastMatch();
+                AnnounceWithSearch();
+                return;
+            }
 
             selectedGizmoIndex = MenuHelper.JumpToLast(availableGizmos.Count);
             typeahead.ClearSearch();

@@ -176,22 +176,34 @@ namespace RimWorldAccess
                     return true;
 
                 case KeyCode.UpArrow:
-                    selectedIndex = MenuHelper.SelectPrevious(selectedIndex, rows.Count);
+                    if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                        selectedIndex = typeahead.GetPreviousMatch(selectedIndex);
+                    else
+                        selectedIndex = MenuHelper.SelectPrevious(selectedIndex, rows.Count);
                     AnnounceCurrent();
                     return true;
 
                 case KeyCode.DownArrow:
-                    selectedIndex = MenuHelper.SelectNext(selectedIndex, rows.Count);
+                    if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                        selectedIndex = typeahead.GetNextMatch(selectedIndex);
+                    else
+                        selectedIndex = MenuHelper.SelectNext(selectedIndex, rows.Count);
                     AnnounceCurrent();
                     return true;
 
                 case KeyCode.Home:
-                    selectedIndex = 0;
+                    if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                        selectedIndex = typeahead.GetFirstMatch();
+                    else
+                        selectedIndex = 0;
                     AnnounceCurrent();
                     return true;
 
                 case KeyCode.End:
-                    selectedIndex = rows.Count - 1;
+                    if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                        selectedIndex = typeahead.GetLastMatch();
+                    else
+                        selectedIndex = rows.Count - 1;
                     AnnounceCurrent();
                     return true;
 

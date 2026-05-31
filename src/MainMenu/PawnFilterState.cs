@@ -171,6 +171,13 @@ namespace RimWorldAccess
             // Home/End without Shift: Navigate to first/last item
             if (key == KeyCode.Home)
             {
+                // During an active search, Home goes to the first match and keeps the search.
+                if (!shift && typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                {
+                    selectedIndex = MapNonHeaderIndexToFull(typeahead.GetFirstMatch());
+                    AnnounceWithSearch();
+                    return true;
+                }
                 typeahead.ClearSearch();
                 if (shift)
                 {
@@ -186,6 +193,12 @@ namespace RimWorldAccess
             }
             if (key == KeyCode.End)
             {
+                if (!shift && typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                {
+                    selectedIndex = MapNonHeaderIndexToFull(typeahead.GetLastMatch());
+                    AnnounceWithSearch();
+                    return true;
+                }
                 typeahead.ClearSearch();
                 if (shift)
                 {
@@ -236,6 +249,17 @@ namespace RimWorldAccess
 
         private static void NavigateUp()
         {
+            // While searching, step the matches. The typeahead searches non-header items only,
+            // so its indices live in "non-header space" — map the current selection into that
+            // space, step, and map back to a full menuItems index.
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                int prevNonHeader = typeahead.GetPreviousMatch(FullToNonHeaderIndex(selectedIndex));
+                selectedIndex = MapNonHeaderIndexToFull(prevNonHeader);
+                AnnounceWithSearch();
+                return;
+            }
+
             int prev = selectedIndex - 1;
             if (prev < 0) prev = menuItems.Count - 1;
 
@@ -252,6 +276,14 @@ namespace RimWorldAccess
 
         private static void NavigateDown()
         {
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                int nextNonHeader = typeahead.GetNextMatch(FullToNonHeaderIndex(selectedIndex));
+                selectedIndex = MapNonHeaderIndexToFull(nextNonHeader);
+                AnnounceWithSearch();
+                return;
+            }
+
             int next = selectedIndex + 1;
             if (next >= menuItems.Count) next = 0;
 
@@ -666,6 +698,22 @@ namespace RimWorldAccess
                 }
             }
             return 0;
+        }
+
+        /// <summary>
+        /// Inverse of <see cref="MapNonHeaderIndexToFull"/>: given a full menuItems index
+        /// (which should point at a non-header item), returns its position among the
+        /// non-header items — the index space the typeahead matches live in.
+        /// </summary>
+        private static int FullToNonHeaderIndex(int fullIndex)
+        {
+            int count = 0;
+            for (int i = 0; i < menuItems.Count && i < fullIndex; i++)
+            {
+                if (!menuItems[i].IsSectionHeader)
+                    count++;
+            }
+            return count;
         }
 
         // ===== ANNOUNCEMENTS =====

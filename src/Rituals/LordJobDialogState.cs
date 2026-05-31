@@ -203,8 +203,13 @@ namespace RimWorldAccess
                 case KeyCode.UpArrow:
                     if (!shift && !ctrl && !alt)
                     {
-                        roleIndex = MenuHelper.SelectPrevious(roleIndex, TotalNavItemCount());
-                        typeahead.ClearSearch();
+                        if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                            roleIndex = typeahead.GetPreviousMatch(roleIndex);
+                        else
+                        {
+                            roleIndex = MenuHelper.SelectPrevious(roleIndex, TotalNavItemCount());
+                            typeahead.ClearSearch();
+                        }
                         AnnounceCurrentRoleOrToggle();
                         return true;
                     }
@@ -213,8 +218,13 @@ namespace RimWorldAccess
                 case KeyCode.DownArrow:
                     if (!shift && !ctrl && !alt)
                     {
-                        roleIndex = MenuHelper.SelectNext(roleIndex, TotalNavItemCount());
-                        typeahead.ClearSearch();
+                        if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                            roleIndex = typeahead.GetNextMatch(roleIndex);
+                        else
+                        {
+                            roleIndex = MenuHelper.SelectNext(roleIndex, TotalNavItemCount());
+                            typeahead.ClearSearch();
+                        }
                         AnnounceCurrentRoleOrToggle();
                         return true;
                     }
@@ -253,8 +263,13 @@ namespace RimWorldAccess
                     {
                         if (TotalNavItemCount() > 0)
                         {
-                            roleIndex = 0;
-                            typeahead.ClearSearch();
+                            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                                roleIndex = typeahead.GetFirstMatch();
+                            else
+                            {
+                                roleIndex = 0;
+                                typeahead.ClearSearch();
+                            }
                             AnnounceCurrentRoleOrToggle();
                         }
                         return true;
@@ -267,8 +282,13 @@ namespace RimWorldAccess
                         int n = TotalNavItemCount();
                         if (n > 0)
                         {
-                            roleIndex = n - 1;
-                            typeahead.ClearSearch();
+                            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                                roleIndex = typeahead.GetLastMatch();
+                            else
+                            {
+                                roleIndex = n - 1;
+                                typeahead.ClearSearch();
+                            }
                             AnnounceCurrentRoleOrToggle();
                         }
                         return true;
@@ -289,8 +309,13 @@ namespace RimWorldAccess
                 case KeyCode.UpArrow:
                     if (!shift && !ctrl && !alt)
                     {
-                        pawnIndex = MenuHelper.SelectPrevious(pawnIndex, pawnViews.Count);
-                        typeahead.ClearSearch();
+                        if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                            pawnIndex = typeahead.GetPreviousMatch(pawnIndex);
+                        else
+                        {
+                            pawnIndex = MenuHelper.SelectPrevious(pawnIndex, pawnViews.Count);
+                            typeahead.ClearSearch();
+                        }
                         AnnounceCurrentPawn();
                         return true;
                     }
@@ -299,8 +324,13 @@ namespace RimWorldAccess
                 case KeyCode.DownArrow:
                     if (!shift && !ctrl && !alt)
                     {
-                        pawnIndex = MenuHelper.SelectNext(pawnIndex, pawnViews.Count);
-                        typeahead.ClearSearch();
+                        if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                            pawnIndex = typeahead.GetNextMatch(pawnIndex);
+                        else
+                        {
+                            pawnIndex = MenuHelper.SelectNext(pawnIndex, pawnViews.Count);
+                            typeahead.ClearSearch();
+                        }
                         AnnounceCurrentPawn();
                         return true;
                     }
@@ -344,8 +374,13 @@ namespace RimWorldAccess
                     {
                         if (pawnViews.Count > 0)
                         {
-                            pawnIndex = 0;
-                            typeahead.ClearSearch();
+                            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                                pawnIndex = typeahead.GetFirstMatch();
+                            else
+                            {
+                                pawnIndex = 0;
+                                typeahead.ClearSearch();
+                            }
                             AnnounceCurrentPawn();
                         }
                         return true;
@@ -357,8 +392,13 @@ namespace RimWorldAccess
                     {
                         if (pawnViews.Count > 0)
                         {
-                            pawnIndex = pawnViews.Count - 1;
-                            typeahead.ClearSearch();
+                            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                                pawnIndex = typeahead.GetLastMatch();
+                            else
+                            {
+                                pawnIndex = pawnViews.Count - 1;
+                                typeahead.ClearSearch();
+                            }
                             AnnounceCurrentPawn();
                         }
                         return true;

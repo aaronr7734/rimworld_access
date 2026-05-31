@@ -389,6 +389,34 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Gets the first match (for Home during an active search), updating the tracked
+        /// match position. Returns the matching list index, or -1 if there are no matches.
+        /// </summary>
+        public int GetFirstMatch()
+        {
+            if (matchingIndices.Count == 0)
+            {
+                return -1;
+            }
+            currentMatchIndex = 0;
+            return matchingIndices[0];
+        }
+
+        /// <summary>
+        /// Gets the last match (for End during an active search), updating the tracked
+        /// match position. Returns the matching list index, or -1 if there are no matches.
+        /// </summary>
+        public int GetLastMatch()
+        {
+            if (matchingIndices.Count == 0)
+            {
+                return -1;
+            }
+            currentMatchIndex = matchingIndices.Count - 1;
+            return matchingIndices[currentMatchIndex];
+        }
+
+        /// <summary>
         /// Strips content inside parentheses from a string.
         /// Example: "Sleeping spot (description here)" -> "Sleeping spot"
         /// </summary>

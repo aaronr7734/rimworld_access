@@ -559,9 +559,12 @@ namespace RimWorldAccess
                     AnnounceNoMatches(typeahead);
                 return true;
             }
-            else if (currentLevel == MenuLevel.OperationsList && queuedOperations.Count > 0)
+            else if (currentLevel == MenuLevel.OperationsList)
             {
+                // The list ends with an "Add bill" row (index == queuedOperations.Count);
+                // include it so typeahead can reach it too, even with no queued operations.
                 var labels = queuedOperations.Select(b => b.LabelCap.StripTags()).ToList();
+                labels.Add("AddBill".Translate().ToString().StripTags());
                 if (operationsTypeahead.ProcessCharacterInput(character, labels, out int newIndex))
                 {
                     if (newIndex >= 0) operationIndex = newIndex;

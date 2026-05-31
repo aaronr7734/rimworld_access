@@ -233,32 +233,52 @@ namespace RimWorldAccess
         private static void NavigateNext()
         {
             if (items.Count == 0) return;
-            typeahead.ClearSearch();
-            selectedIndex = MenuHelper.SelectNext(selectedIndex, items.Count);
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                selectedIndex = typeahead.GetNextMatch(selectedIndex);
+            else
+            {
+                typeahead.ClearSearch();
+                selectedIndex = MenuHelper.SelectNext(selectedIndex, items.Count);
+            }
             AnnounceCurrent();
         }
 
         private static void NavigatePrevious()
         {
             if (items.Count == 0) return;
-            typeahead.ClearSearch();
-            selectedIndex = MenuHelper.SelectPrevious(selectedIndex, items.Count);
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                selectedIndex = typeahead.GetPreviousMatch(selectedIndex);
+            else
+            {
+                typeahead.ClearSearch();
+                selectedIndex = MenuHelper.SelectPrevious(selectedIndex, items.Count);
+            }
             AnnounceCurrent();
         }
 
         private static void NavigateHome()
         {
             if (items.Count == 0) return;
-            typeahead.ClearSearch();
-            selectedIndex = 0;
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                selectedIndex = typeahead.GetFirstMatch();
+            else
+            {
+                typeahead.ClearSearch();
+                selectedIndex = 0;
+            }
             AnnounceCurrent();
         }
 
         private static void NavigateEnd()
         {
             if (items.Count == 0) return;
-            typeahead.ClearSearch();
-            selectedIndex = items.Count - 1;
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                selectedIndex = typeahead.GetLastMatch();
+            else
+            {
+                typeahead.ClearSearch();
+                selectedIndex = items.Count - 1;
+            }
             AnnounceCurrent();
         }
 

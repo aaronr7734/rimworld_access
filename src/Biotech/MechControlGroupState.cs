@@ -357,7 +357,16 @@ namespace RimWorldAccess
             int count = GetCurrentCount();
             if (count == 0) return;
 
-            GetCurrentTypeahead().ClearSearch();
+            var typeahead = GetCurrentTypeahead();
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                int firstMatch = typeahead.GetFirstMatch();
+                if (firstMatch >= 0) SetCurrentIndex(firstMatch);
+                AnnounceWithSearch();
+                return;
+            }
+
+            typeahead.ClearSearch();
             SetCurrentIndex(MenuHelper.JumpToFirst());
             AnnounceCurrentItem();
         }
@@ -367,7 +376,16 @@ namespace RimWorldAccess
             int count = GetCurrentCount();
             if (count == 0) return;
 
-            GetCurrentTypeahead().ClearSearch();
+            var typeahead = GetCurrentTypeahead();
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                int lastMatch = typeahead.GetLastMatch();
+                if (lastMatch >= 0) SetCurrentIndex(lastMatch);
+                AnnounceWithSearch();
+                return;
+            }
+
+            typeahead.ClearSearch();
             SetCurrentIndex(MenuHelper.JumpToLast(count));
             AnnounceCurrentItem();
         }

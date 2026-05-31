@@ -254,6 +254,14 @@ namespace RimWorldAccess
                 return;
             }
 
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                int firstMatch = typeahead.GetFirstMatch();
+                if (firstMatch >= 0) currentIndex = firstMatch;
+                AnnounceWithSearch();
+                return;
+            }
+
             currentIndex = MenuHelper.JumpToFirst();
             AnnounceCurrentSettlement();
         }
@@ -266,6 +274,14 @@ namespace RimWorldAccess
             if (filteredSettlements.Count == 0)
             {
                 TolkHelper.Speak("No settlements available");
+                return;
+            }
+
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                int lastMatch = typeahead.GetLastMatch();
+                if (lastMatch >= 0) currentIndex = lastMatch;
+                AnnounceWithSearch();
                 return;
             }
 

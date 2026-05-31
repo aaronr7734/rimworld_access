@@ -203,15 +203,10 @@ namespace RimWorldAccess
                         }
                     }
 
-                    // HealthTabState typeahead (recipe and body part lists)
-                    if (HealthTabState.IsActive)
-                    {
-                        if (HealthTabState.HandleCharacterInput(c))
-                        {
-                            Event.current.Use();
-                            return;
-                        }
-                    }
+                    // HealthTabState typeahead is now registered with TypeaheadDispatcher
+                    // (priority 4.78, above) so it wins over the still-active inspection
+                    // consumer beneath it. The old inline branch here was dead code: the
+                    // dispatcher at the top of this block consumed the character first.
 
                     // Xenogerm/XenotypeEditor renames flow through TextInputManager
                     // at priority -1.6 above.
@@ -5176,31 +5171,12 @@ namespace RimWorldAccess
                 Find.CurrentMap != null &&
                 (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion))
             {
-                // Don't intercept if any menu is active (keys 1-5 are used for tile info)
-                bool anyMenuActive = WorkMenuState.IsActive ||
-                                    WorkTableState.IsActive ||
-                                    ShapeSelectionMenuState.IsActive ||
-                                    ViewingModeState.IsActive ||
-                                    ShapePlacementState.IsActive ||
-                                    ArchitectState.IsActive ||
-                                    ZoneCreationState.IsInCreationMode ||
-                                    NotificationMenuState.IsActive ||
-                                    QuestMenuState.IsActive ||
-                                    WindowlessFloatMenuState.IsActive ||
-                                    WindowlessPauseMenuState.IsActive ||
-                                    WindowlessSaveMenuState.IsActive ||
-                                    WindowlessOptionsMenuState.IsActive ||
-                                    WindowlessConfirmationState.IsActive ||
-                                    StorageSettingsMenuState.IsActive ||
-                                    PlantSelectionMenuState.IsActive ||
-                                    MechControlGroupState.IsActive ||
-                                    WindowlessScheduleState.IsActive ||
-                                    WindowlessResearchMenuState.IsActive ||
-                                    StorytellerSelectionState.IsActive ||
-                                    PrisonerTabState.IsActive ||
-                                    HealthTabState.IsActive ||
-                                    FactionTabState.IsActive ||
-                                    IdeologyTabState.IsActive;
+                // Don't intercept if any menu is active (keys 1-3 would change time speed).
+                // Shared with map navigation + tile-info via the single MenuOverlayGuard
+                // signal; BlockTimeSpeedKeys adds placement/cursor modes (architect, shape
+                // placement, viewing, zone creation) and full-screen tabs on top, since
+                // time speed should stay blocked even where tile-info keys remain live.
+                bool anyMenuActive = MenuOverlayGuard.BlockTimeSpeedKeys;
 
                 if (!anyMenuActive)
                 {
@@ -7248,7 +7224,11 @@ namespace RimWorldAccess
                 }
                 else if (key == KeyCode.Escape)
                 {
-                    PolicyEditorState.Close();
+                    // First Escape cancels an active search; only the next one closes the editor.
+                    if (DrugPolicyEditorState.HasActiveSearch)
+                        DrugPolicyEditorState.ClearSearch();
+                    else
+                        PolicyEditorState.Close();
                     return true;
                 }
             }

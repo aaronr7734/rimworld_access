@@ -258,8 +258,20 @@ namespace RimWorldAccess
 
             if (key == KeyCode.UpArrow) { Move(-1); return true; }
             if (key == KeyCode.DownArrow) { Move(1); return true; }
-            if (key == KeyCode.Home) { selectedIndex = 0; typeahead.ClearSearch(); AnnounceCurrent(); return true; }
-            if (key == KeyCode.End) { selectedIndex = count - 1; typeahead.ClearSearch(); AnnounceCurrent(); return true; }
+            if (key == KeyCode.Home)
+            {
+                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches) selectedIndex = typeahead.GetFirstMatch();
+                else { selectedIndex = 0; typeahead.ClearSearch(); }
+                AnnounceCurrent();
+                return true;
+            }
+            if (key == KeyCode.End)
+            {
+                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches) selectedIndex = typeahead.GetLastMatch();
+                else { selectedIndex = count - 1; typeahead.ClearSearch(); }
+                AnnounceCurrent();
+                return true;
+            }
 
             if (key == KeyCode.Return || key == KeyCode.KeypadEnter || key == KeyCode.Space)
             {
@@ -300,9 +312,14 @@ namespace RimWorldAccess
         private static void Move(int delta)
         {
             int count = ItemCount();
-            selectedIndex = delta > 0
-                ? MenuHelper.SelectNext(selectedIndex, count)
-                : MenuHelper.SelectPrevious(selectedIndex, count);
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                selectedIndex = delta > 0
+                    ? typeahead.GetNextMatch(selectedIndex)
+                    : typeahead.GetPreviousMatch(selectedIndex);
+            else
+                selectedIndex = delta > 0
+                    ? MenuHelper.SelectNext(selectedIndex, count)
+                    : MenuHelper.SelectPrevious(selectedIndex, count);
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
             AnnounceCurrent();
         }

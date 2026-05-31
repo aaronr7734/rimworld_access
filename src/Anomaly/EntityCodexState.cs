@@ -114,12 +114,26 @@ namespace RimWorldAccess
             switch (key)
             {
                 case KeyCode.Home:
+                    if (typeaheadHelper.HasActiveSearch && !typeaheadHelper.HasNoMatches)
+                    {
+                        int firstMatch = typeaheadHelper.GetFirstMatch();
+                        if (firstMatch >= 0) selectedIndex = firstMatch;
+                        AnnounceWithSearch();
+                        return true;
+                    }
                     typeaheadHelper.ClearSearch();
                     selectedIndex = MenuHelper.JumpToFirst();
                     AnnounceCurrentSelection();
                     return true;
 
                 case KeyCode.End:
+                    if (typeaheadHelper.HasActiveSearch && !typeaheadHelper.HasNoMatches)
+                    {
+                        int lastMatch = typeaheadHelper.GetLastMatch();
+                        if (lastMatch >= 0) selectedIndex = lastMatch;
+                        AnnounceWithSearch();
+                        return true;
+                    }
                     typeaheadHelper.ClearSearch();
                     selectedIndex = MenuHelper.JumpToLast(allEntries.Count);
                     AnnounceCurrentSelection();

@@ -77,41 +77,16 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Checks if any menu state is currently active to avoid key conflicts.
-        /// Note: ArchitectState and ZoneCreationState are NOT included here because
-        /// tile info keys (1-7) should work during placement modes.
+        /// Delegates to <see cref="MenuOverlayGuard.BlockMapInfoKeys"/> — the single
+        /// source of truth shared with map navigation and time-speed handling — instead
+        /// of a hand-maintained list that drifted out of sync (the original cause of the
+        /// number-row leaking through menus like the architect tree and area menu).
+        /// Note: ArchitectState/ShapePlacementState/ViewingModeState are deliberately NOT
+        /// part of that signal, so tile info keys (1-7) still work during placement modes.
         /// </summary>
         private static bool IsAnyMenuActive()
         {
-            return ScannerSearchState.IsActive ||
-                   GoToState.IsActive ||
-                   WindowlessDialogState.IsActive ||
-                   WorkMenuState.IsActive ||
-                   WorkTableState.IsActive ||
-                   BillConfigState.IsActive ||
-                   BillsMenuState.IsActive ||
-                   FishingZoneMenuState.IsActive ||
-                   WindowlessFloatMenuState.IsActive ||
-                   WindowlessPauseMenuState.IsActive ||
-                   WindowlessSaveMenuState.IsActive ||
-                   WindowlessOptionsMenuState.IsActive ||
-                   WindowlessConfirmationState.IsActive ||
-                   WindowlessScheduleState.IsActive ||
-                   StorageSettingsMenuState.IsActive ||
-                   PlantSelectionMenuState.IsActive ||
-                   PrisonerTabState.IsActive ||
-                   WindowlessInventoryState.IsActive ||
-                   WindowlessInspectionState.IsActive ||
-                   WindowlessResearchMenuState.IsActive ||
-                   NotificationMenuState.IsActive ||
-                   QuestMenuState.IsActive ||
-                   GizmoNavigationState.IsActive ||
-                   SettlementBrowserState.IsActive ||
-                   CaravanFormationState.IsActive ||
-                   ModListState.IsActive ||
-                   HealthTabState.IsActive ||
-                   AnimalsMenuState.IsActive ||
-                   WildlifeMenuState.IsActive ||
-                   PawnSkillsTableState.IsActive;
+            return MenuOverlayGuard.BlockMapInfoKeys;
         }
 
         /// <summary>

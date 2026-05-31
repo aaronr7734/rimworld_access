@@ -85,6 +85,14 @@ namespace RimWorldAccess
         public bool SelectNextRow(int itemCount)
         {
             if (itemCount == 0) return false;
+            // While a typeahead search is active, step through the matching rows rather
+            // than the full list, so Down advances "match X of N" instead of leaking to the
+            // row beneath. GetNextMatch wraps and keeps CurrentMatchPosition in sync.
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                currentRowIndex = typeahead.GetNextMatch(currentRowIndex);
+                return true;
+            }
             currentRowIndex = (currentRowIndex + 1) % itemCount;
             return true;
         }
@@ -97,6 +105,11 @@ namespace RimWorldAccess
         public bool SelectPreviousRow(int itemCount)
         {
             if (itemCount == 0) return false;
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                currentRowIndex = typeahead.GetPreviousMatch(currentRowIndex);
+                return true;
+            }
             currentRowIndex = (currentRowIndex - 1 + itemCount) % itemCount;
             return true;
         }
@@ -131,6 +144,13 @@ namespace RimWorldAccess
         public bool JumpToFirst(int itemCount)
         {
             if (itemCount == 0) return false;
+            // During an active search, Home goes to the first match and keeps the search,
+            // rather than clearing it and jumping out to the top of the full list.
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                currentRowIndex = typeahead.GetFirstMatch();
+                return true;
+            }
             currentRowIndex = 0;
             typeahead.ClearSearch();
             return true;
@@ -144,6 +164,11 @@ namespace RimWorldAccess
         public bool JumpToLast(int itemCount)
         {
             if (itemCount == 0) return false;
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                currentRowIndex = typeahead.GetLastMatch();
+                return true;
+            }
             currentRowIndex = itemCount - 1;
             typeahead.ClearSearch();
             return true;

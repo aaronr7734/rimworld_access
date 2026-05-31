@@ -89,6 +89,17 @@ namespace RimWorldAccess
         public Func<InspectionTreeItem, bool> ShouldExpandForSearch { get; set; }
 
         /// <summary>
+        /// Optional override for which visible items typeahead can match, and what text
+        /// it matches against. Return the label to match on, or null/empty to exclude the
+        /// item from results entirely. When set, this fully replaces the default
+        /// label-selection logic (which ties matchability to <see cref="ShouldExpandForSearch"/>),
+        /// letting a consumer index only certain nodes (e.g. high-level inspection items)
+        /// independently of which nodes were auto-expanded for the search. If null, default
+        /// behavior applies. Indexes line up with the visible items list.
+        /// </summary>
+        public Func<InspectionTreeItem, string> SearchableLabelSelector { get; set; }
+
+        /// <summary>
         /// Predicate marking which visible items act as "section boundaries" for Page Up/Down
         /// navigation. When set, Page Up/Down jump the cursor to the previous/next matching item
         /// (e.g. a role's "Abilities" / "Requirements" detail headers). If null, Page Up/Down are
@@ -368,6 +379,19 @@ namespace RimWorldAccess
             if (key == KeyCode.Home)
             {
                 if (visibleItems.Count == 0) return true;
+                // During an active search, Home goes to the first match and keeps the
+                // search, rather than clearing it and jumping out to the top of the tree.
+                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                {
+                    int first = typeahead.GetFirstMatch();
+                    if (first >= 0)
+                    {
+                        selectedIndex = first;
+                        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                        AnnounceWithSearch();
+                    }
+                    return true;
+                }
                 typeahead.ClearSearch();
                 RestorePreSearchExpansion();
                 MenuHelper.HandleTreeHomeKey(visibleItems, ref selectedIndex,
@@ -379,6 +403,17 @@ namespace RimWorldAccess
             if (key == KeyCode.End)
             {
                 if (visibleItems.Count == 0) return true;
+                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                {
+                    int last = typeahead.GetLastMatch();
+                    if (last >= 0)
+                    {
+                        selectedIndex = last;
+                        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                        AnnounceWithSearch();
+                    }
+                    return true;
+                }
                 typeahead.ClearSearch();
                 RestorePreSearchExpansion();
                 MenuHelper.HandleTreeEndKey(visibleItems, ref selectedIndex,
@@ -970,6 +1005,16 @@ namespace RimWorldAccess
         /// </summary>
         private List<string> GetSearchableLabels()
         {
+            // Explicit per-item selector wins: lets a consumer match an arbitrary subset
+            // of nodes against arbitrary text, decoupled from the expand-for-search set.
+            if (SearchableLabelSelector != null)
+            {
+                var selected = new List<string>(visibleItems.Count);
+                foreach (var item in visibleItems)
+                    selected.Add(SearchableLabelSelector(item) ?? "");
+                return selected;
+            }
+
             if (ShouldExpandForSearch == null)
                 return GetVisibleLabels();
 
@@ -1057,6 +1102,49 @@ namespace RimWorldAccess
             {
                 RestorePreSearchExpansion();
             }
+        }
+
+        /// <summary>
+        /// Commits the current search result: clears the search buffer and collapses the
+        /// tree back to its pre-search shape, but keeps the path to the selected item
+        /// expanded so the cursor stays on it. Use when the user picks a search result and
+        /// wants to remain positioned there (rather than expanding it or jumping away).
+        /// No-op if no search/snapshot is active.
+        /// </summary>
+        public void CommitSearchKeepingPath()
+        {
+            if (!typeahead.HasActiveSearch && preSearchExpansion == null)
+                return;
+
+            var target = (selectedIndex >= 0 && selectedIndex < visibleItems.Count)
+                ? visibleItems[selectedIndex] : null;
+
+            typeahead.ClearSearch();
+
+            // Collapse back to the pre-search shape (undo the bulk search expansion)...
+            if (preSearchExpansion != null)
+            {
+                foreach (var kv in preSearchExpansion)
+                    kv.Key.IsExpanded = kv.Value;
+                preSearchExpansion = null;
+            }
+
+            // ...then re-expand only the ancestor chain of the target so it stays visible.
+            var ancestor = target?.Parent;
+            while (ancestor != null)
+            {
+                if (ancestor.IsExpandable)
+                    ancestor.IsExpanded = true;
+                ancestor = ancestor.Parent;
+            }
+
+            RebuildVisibleList();
+
+            int idx = target != null ? visibleItems.IndexOf(target) : -1;
+            if (idx >= 0)
+                selectedIndex = idx;
+            else
+                selectedIndex = Math.Max(0, Math.Min(selectedIndex, visibleItems.Count - 1));
         }
 
         private void HandleEnterKey()

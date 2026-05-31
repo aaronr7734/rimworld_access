@@ -1013,7 +1013,10 @@ namespace RimWorldAccess
                     Data = pawn,
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = true,
-                    IsExpanded = false
+                    IsExpanded = false,
+                    // Auto-expand for typeahead so weapons/apparel/inventory items
+                    // (lazily built below) are matchable by name without drilling in.
+                    AutoExpandForSearch = true
                 };
 
                 gearItem.OnActivate = () => BuildGearItemsChildren(gearItem, pawn, localCat, mode);
@@ -2892,6 +2895,12 @@ namespace RimWorldAccess
                     };
                     // Build children eagerly so collapsed labels include full content immediately
                     BuildBodyPartHediffChildren(bodyPartItem, pawn, part, partHediffs);
+                    // Fold the subtree into the collapsed label (matching capacities/hediff
+                    // groups) so navigating to — or typeahead-matching — a collapsed body
+                    // part speaks its full content. ExpandedLabel stays the short name.
+                    var partChildLabels = bodyPartItem.Children.Select(c => c.Label).ToList();
+                    if (partChildLabels.Count > 0)
+                        bodyPartItem.Label += $": {string.Join(". ", partChildLabels)}";
                     AddChild(parentItem, bodyPartItem);
                 }
             }
@@ -3387,6 +3396,16 @@ namespace RimWorldAccess
 
                 AddChild(categoryItem, detailItem);
             }
+
+            // Fold the detail lines into the collapsed label (matching body parts / capacities)
+            // so navigating to — or typeahead-matching — this category speaks its full content
+            // (e.g. "Linked Facilities: Provides bonuses. Medical tend quality offset: +7%") and
+            // its content is searchable. ExpandedLabel keeps the short name for the expanded view.
+            if (string.IsNullOrEmpty(categoryItem.ExpandedLabel))
+                categoryItem.ExpandedLabel = categoryItem.Label;
+            var detailLabels = categoryItem.Children.Select(c => c.Label).ToList();
+            if (detailLabels.Count > 0)
+                categoryItem.Label += $": {string.Join(". ", detailLabels)}";
         }
 
         /// <summary>

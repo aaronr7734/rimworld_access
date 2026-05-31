@@ -210,6 +210,17 @@ namespace RimWorldAccess
             // Home jumps to first option, End to last.
             if (key == KeyCode.Home)
             {
+                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                {
+                    int first = typeahead.GetFirstMatch();
+                    if (first >= 0)
+                    {
+                        selectedIndex = first;
+                        AnnounceWithSearch();
+                    }
+                    Event.current.Use();
+                    return true;
+                }
                 selectedIndex = MenuHelper.JumpToFirst();
                 typeahead.ClearSearch();
                 AnnounceCurrentOption();
@@ -219,6 +230,17 @@ namespace RimWorldAccess
 
             if (key == KeyCode.End)
             {
+                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                {
+                    int last = typeahead.GetLastMatch();
+                    if (last >= 0)
+                    {
+                        selectedIndex = last;
+                        AnnounceWithSearch();
+                    }
+                    Event.current.Use();
+                    return true;
+                }
                 selectedIndex = MenuHelper.JumpToLast(currentOptions.Count);
                 typeahead.ClearSearch();
                 AnnounceCurrentOption();

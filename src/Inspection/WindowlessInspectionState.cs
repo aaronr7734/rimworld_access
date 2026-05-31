@@ -20,6 +20,17 @@ namespace RimWorldAccess
         private static TreeNavigationHelper treeNav = new TreeNavigationHelper("Inspection");
         public static TypeaheadSearchHelper Typeahead => treeNav.Typeahead;
 
+        /// <summary>
+        /// Typeahead search over the inspection tree. Registered in
+        /// <see cref="TypeaheadConsumerRegistry"/>; delegates to the tree helper, which
+        /// expands the tree for search (see ShouldExpandForSearch) so matches anywhere are found.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!IsActive) return;
+            treeNav.HandleTypeahead(c);
+        }
+
         private static IntVec3 inspectionPosition;
         private static object parentObject = null; // Track parent object for navigation back
         private static List<object> previousSelection = new List<object>();
@@ -32,6 +43,67 @@ namespace RimWorldAccess
             treeNav.OnActivate = HandleActivate;
             treeNav.OnBeforeExpand = HandleBeforeExpand;
             treeNav.OnInfo = HandleInfo;
+            // Typeahead indexes only the high-level nodes — categories (Health, Gear, …),
+            // their direct children (a body part, a need, a skill, a gear sub-category),
+            // and interactable Action items (Operations, Health Settings, …). The deep
+            // stat lines under those (e.g. "Neural heat limit", "Breathing: OK") are NOT
+            // matched individually; they fold into their parent's announcement instead, so
+            // a single "brain" match speaks the whole body-part subtree and the user can
+            // move on or drill in.
+            //
+            // To expose those direct children when their category is collapsed, search
+            // temporarily expands Category/Object nodes (never the items themselves, so
+            // their detail children stay hidden), plus any node explicitly opted in via
+            // AutoExpandForSearch — the gear sub-categories, so weapons and items are
+            // matchable by name. The match set is defined independently by
+            // SearchableLabelSelector below.
+            treeNav.ShouldExpandForSearch = node =>
+                node.Type == InspectionTreeItem.ItemType.Category
+                || node.Type == InspectionTreeItem.ItemType.Object
+                || node.AutoExpandForSearch;
+            // Match against the FULL label (not the short ExpandedLabel) so a node's folded
+            // content is searchable too — the matcher's "description tier" matches words after
+            // the "Name: ..." boundary. This lets "med" find the Linked Facilities node whose
+            // label folds "...Medical tend quality offset", "breathing" find Capacities, etc.,
+            // while the match SET stays high-level (one result per node, not per stat line).
+            treeNav.SearchableLabelSelector = node =>
+                IsSearchableNode(node) ? node.Label : "";
+        }
+
+        /// <summary>
+        /// Decides which tree nodes typeahead can match. High-level only:
+        /// - Interactable <see cref="InspectionTreeItem.ItemType.Action"/> items always match
+        ///   (Operations, Health Settings, food toggles, …) — Enter activates them.
+        /// - Read-only <see cref="InspectionTreeItem.ItemType.DetailText"/> never matches
+        ///   (stat/status lines fold into their parent's announcement).
+        /// - Categories and Objects always match.
+        /// - Other navigable nodes (SubCategory/Item) match only when they are a direct
+        ///   child of a Category or Object — i.e. a body part, capacity group, need, skill,
+        ///   or gear sub-category. Grandchildren and deeper (the actual stat detail) do not.
+        /// </summary>
+        private static bool IsSearchableNode(InspectionTreeItem node)
+        {
+            if (node == null) return false;
+            switch (node.Type)
+            {
+                case InspectionTreeItem.ItemType.Action:
+                    return true;
+                case InspectionTreeItem.ItemType.DetailText:
+                    return false;
+                case InspectionTreeItem.ItemType.Category:
+                case InspectionTreeItem.ItemType.Object:
+                    return true;
+                default:
+                    // Gear/weapon items are matchable by name even though they nest under
+                    // a gear sub-category (Equipment/Apparel/Inventory), to maximize search
+                    // usefulness for finding a specific weapon or item.
+                    if (node.Data is InteractiveGearHelper.GearItem)
+                        return true;
+                    var p = node.Parent;
+                    return p != null
+                        && (p.Type == InspectionTreeItem.ItemType.Category
+                            || p.Type == InspectionTreeItem.ItemType.Object);
+            }
         }
 
         /// <summary>
@@ -700,6 +772,18 @@ namespace RimWorldAccess
                 return;
 
             var item = treeNav.SelectedItem;
+
+            // During an active search, Enter on an informational node just commits the
+            // result and places the cursor on it (keeping its path expanded) so the user
+            // can then expand/collapse or navigate from there — it does NOT auto-expand.
+            // Interactable Action items fall through to activate as normal.
+            if (treeNav.HasActiveSearch && item.Type != InspectionTreeItem.ItemType.Action)
+            {
+                treeNav.CommitSearchKeepingPath();
+                SoundDefOf.Click.PlayOneShotOnCamera();
+                treeNav.ReannounceCurrentItem();
+                return;
+            }
 
             // Try custom activate (which handles all our domain-specific logic)
             if (HandleActivate(item))
