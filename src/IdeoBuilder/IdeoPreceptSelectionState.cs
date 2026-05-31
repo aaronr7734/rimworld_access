@@ -57,6 +57,7 @@ namespace RimWorldAccess
             treeNav.FormatStateChangeAnnouncement = FormatStateChange;
             treeNav.FormatSearchAnnouncement = FormatSearch;
             treeNav.OnActivate = HandleActivate;
+            treeNav.OnDelete = HandleDelete;
         }
 
         public static void RebuildTree()
@@ -130,6 +131,62 @@ namespace RimWorldAccess
                 cur = cur.Parent;
             }
             return null;
+        }
+
+        /// <summary>
+        /// Delete removes the focused issue's current precept, mirroring vanilla's per-precept
+        /// "Remove" option in Precept.DrawPreceptBox: only precepts whose def has canRemoveInUI,
+        /// whose issue has no default precept, and that aren't required by a meme can be removed.
+        /// Keeps Delete consistent with the typed-precept lists (roles, rituals, etc.). After a
+        /// successful removal the issue drops to the "Not set" section; OnPreceptChanged repositions
+        /// the cursor and speaks the "{issue}: None, removed" confirmation.
+        /// </summary>
+        private static bool HandleDelete(InspectionTreeItem item)
+        {
+            var issue = ResolveIssue(item);
+            if (issue == null) return false;
+
+            var current = IdeoPreceptSelectionHelper.CurrentPreceptsForIssue(ideo, issue);
+            if (current.Count == 0)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak(IdeoPreceptSelectionHelper.BuildIssueLabel(issue, current), SpeechPriority.High);
+                return true;
+            }
+
+            var removable = current.Where(CanRemovePrecept).ToList();
+            if (removable.Count == 0)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak(RemovalBlockedReason(current[0]), SpeechPriority.High);
+                return true;
+            }
+
+            foreach (var precept in removable)
+                ideo.RemovePrecept(precept);
+            ideo.anyPreceptEdited = true;
+            SoundDefOf.Tick_Low.PlayOneShotOnCamera();
+
+            // Reuse the post-change refresh/reposition/announce path used by the value picker.
+            OnPreceptChanged(issue);
+            return true;
+        }
+
+        /// <summary>Vanilla's removal guard (Precept.DrawPreceptBox): removable in the UI, the issue
+        /// has no mandatory default precept, and no meme requires the precept.</summary>
+        private static bool CanRemovePrecept(Precept precept)
+        {
+            return precept.def.canRemoveInUI
+                && !precept.def.issue.HasDefaultPrecept
+                && ideo.GetMemeThatRequiresPrecept(precept.def) == null;
+        }
+
+        private static string RemovalBlockedReason(Precept precept)
+        {
+            var requiringMeme = ideo.GetMemeThatRequiresPrecept(precept.def);
+            if (requiringMeme != null)
+                return "CannotRemove".Translate() + ": " + "RequiredByMeme".Translate(requiringMeme.label);
+            return "CannotRemove".Translate() + ": " + IdeoBuilderHelper.PreceptLabel(precept);
         }
 
         #endregion
