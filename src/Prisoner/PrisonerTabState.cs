@@ -842,7 +842,25 @@ namespace RimWorldAccess
 
             currentSection = flatLocations[flatIndex].Key;
             selectedIndex = flatLocations[flatIndex].Value;
-            AnnounceCurrentSelection();
+            AnnounceWithSearch();
+        }
+
+        /// <summary>
+        /// Announces the current row with its search-match position ("X of N matches for '...'"),
+        /// matching the universal typeahead announcement every other menu uses. Falls back to the
+        /// normal per-section announcement when no search is active.
+        /// </summary>
+        private static void AnnounceWithSearch()
+        {
+            if (typeahead.HasActiveSearch)
+            {
+                string label = GetSectionItemLabel(currentSection, selectedIndex);
+                TolkHelper.Speak($"{label}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'");
+            }
+            else
+            {
+                AnnounceCurrentSelection();
+            }
         }
 
         private static void ClearCachedData()
