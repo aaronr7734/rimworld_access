@@ -1279,44 +1279,33 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Yields the 8 cardinal + diagonal neighbors of a cell on the square map grid. The shared
+        /// <see cref="Clump"/> flood-fill gates each neighbor on the valid-position set, so this
+        /// only needs to enumerate candidate offsets.
+        /// </summary>
+        private static IEnumerable<IntVec3> EightWayNeighbors(IntVec3 cell)
+        {
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                for (int dz = -1; dz <= 1; dz++)
+                {
+                    if (dx == 0 && dz == 0) continue;
+                    yield return new IntVec3(cell.x + dx, 0, cell.z + dz);
+                }
+            }
+        }
+
+        /// <summary>
         /// Performs a flood fill to find all contiguous positions starting from a given position.
-        /// Uses 8-way adjacency (cardinal + diagonal).
+        /// Uses 8-way adjacency (cardinal + diagonal). Delegates to the shared coordinate-agnostic
+        /// <see cref="Clump.Fill{TTile}"/> so the local and world scanners share one implementation.
         /// </summary>
         /// <param name="startPos">The starting position for the flood fill</param>
         /// <param name="validPositions">Set of all valid positions to consider (must be of same terrain type)</param>
         /// <returns>Set of all contiguous positions found</returns>
         internal static HashSet<IntVec3> FloodFillTerrainRegion(IntVec3 startPos, HashSet<IntVec3> validPositions)
         {
-            var region = new HashSet<IntVec3>();
-            var queue = new Queue<IntVec3>();
-            queue.Enqueue(startPos);
-
-            while (queue.Count > 0)
-            {
-                var current = queue.Dequeue();
-
-                if (!validPositions.Contains(current) || region.Contains(current))
-                    continue;
-
-                region.Add(current);
-
-                // Check all 8 neighbors (cardinal + diagonal)
-                for (int dx = -1; dx <= 1; dx++)
-                {
-                    for (int dz = -1; dz <= 1; dz++)
-                    {
-                        if (dx == 0 && dz == 0) continue;
-
-                        var neighbor = new IntVec3(current.x + dx, 0, current.z + dz);
-                        if (validPositions.Contains(neighbor) && !region.Contains(neighbor))
-                        {
-                            queue.Enqueue(neighbor);
-                        }
-                    }
-                }
-            }
-
-            return region;
+            return Clump.Fill(startPos, validPositions, EightWayNeighbors);
         }
 
         /// <summary>
@@ -1327,30 +1316,12 @@ namespace RimWorldAccess
         /// <returns>List of TerrainRegion objects sorted by distance from cursor</returns>
         internal static List<TerrainRegion> GroupTerrainByAdjacency(List<IntVec3> positions, IntVec3 cursorPosition)
         {
-            var regions = new List<TerrainRegion>();
-            var remaining = new HashSet<IntVec3>(positions);
-
-            while (remaining.Count > 0)
-            {
-                // Start flood fill from the first remaining position
-                var startPos = remaining.First();
-                var regionPositions = FloodFillTerrainRegion(startPos, remaining);
-
-                if (regionPositions.Count > 0)
-                {
-                    var region = new TerrainRegion(regionPositions.ToList(), cursorPosition);
-                    regions.Add(region);
-
-                    // Remove processed positions
-                    foreach (var pos in regionPositions)
-                        remaining.Remove(pos);
-                }
-            }
-
-            // Sort regions by distance from cursor
-            regions = regions.OrderBy(r => r.Distance).ToList();
-
-            return regions;
+            // Group contiguous tiles via the shared flood-fill, wrap each set into a TerrainRegion
+            // (which computes its center/dimensions/distance), then sort by distance from cursor.
+            return Clump.GroupByAdjacency(positions, EightWayNeighbors)
+                .Select(set => new TerrainRegion(set.ToList(), cursorPosition))
+                .OrderBy(r => r.Distance)
+                .ToList();
         }
 
         /// <summary>

@@ -175,7 +175,7 @@ namespace RimWorldAccess
         /// Used by both arrow key movement and Go To coordinate input.
         /// This includes deep ore info, "in area", shape dimensions, etc.
         /// </summary>
-        public static void AnnouncePosition(IntVec3 position, Map map)
+        public static void AnnouncePosition(IntVec3 position, Map map, string prefix = null)
         {
             // Update shape preview if in shape placement mode
             if (ShapePlacementState.ShouldUpdatePreviewOnMove())
@@ -189,10 +189,17 @@ namespace RimWorldAccess
             // Add context prefixes based on current mode
             tileInfo = AddContextPrefix(tileInfo, position);
 
-            // Only announce if different from last announcement (avoids spam)
-            if (tileInfo != MapNavigationState.LastAnnouncedInfo)
+            // Optional lead-in (e.g. a scanner "Jumped N tiles dir to center" cue), so the move
+            // delta and the tile description are spoken together. A prefixed announcement always
+            // speaks — it is a deliberate jump, not incidental movement — and the spam-dedup
+            // still tracks the plain tile info so subsequent arrow steps dedup normally.
+            string toSpeak = string.IsNullOrEmpty(prefix)
+                ? tileInfo
+                : (string.IsNullOrEmpty(tileInfo) ? prefix : $"{prefix}. {tileInfo}");
+
+            if (!string.IsNullOrEmpty(prefix) || toSpeak != MapNavigationState.LastAnnouncedInfo)
             {
-                TolkHelper.Speak(tileInfo);
+                TolkHelper.Speak(toSpeak);
                 MapNavigationState.LastAnnouncedInfo = tileInfo;
             }
         }

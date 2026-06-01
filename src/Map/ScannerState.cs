@@ -45,6 +45,11 @@ namespace RimWorldAccess
         private static IntVec3 lastScannerCursor = IntVec3.Invalid;
         private static bool scannerDrivenJumpInProgress = false;
 
+        // Distance metric on the square map grid, used by the shared clump-jump logic to pick the
+        // nearest member tile of a patch to the cursor.
+        private static readonly Func<IntVec3, IntVec3, float> CellMetric =
+            (a, b) => (a - b).LengthHorizontal;
+
         /// <summary>
         /// Toggles auto-jump mode on/off (Alt+Home).
         /// When enabled, cursor automatically jumps to items as you navigate.
@@ -285,6 +290,50 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Distance from the cursor to the nearest tile of a region (0 if the cursor is on it,
+        /// MaxValue for an empty region). Same metric used everywhere else for clump proximity.
+        /// </summary>
+        private static float RegionNearestDistance(TerrainRegion region, IntVec3 cursor)
+        {
+            if (region?.AllPositions == null) return float.MaxValue;
+            float best = float.MaxValue;
+            foreach (var cell in region.AllPositions)
+            {
+                if (cell == cursor) return 0f;
+                float d = (cell - cursor).LengthHorizontal;
+                if (d < best) best = d;
+            }
+            return best;
+        }
+
+        /// <summary>
+        /// Live proximity rank (1-based) of a region among the item's sibling regions: how near
+        /// THIS region's closest tile is to the cursor, compared to every other region. The
+        /// nearest region is always rank 1, the second-nearest rank 2, and so on.
+        ///
+        /// Computed on the fly so the underlying region list keeps its stable build-time order
+        /// (bulk navigation and auto-jump rely on that order not shifting under the user), while
+        /// the announced "area N of M" still reflects the player's current position. Equal
+        /// distances are broken by list index so the ranks form a stable, gap-free sequence.
+        /// </summary>
+        private static int ComputeRegionRank(ScannerItem item, int regionIndex, IntVec3 cursor)
+        {
+            if (!item.HasTerrainRegions || regionIndex < 0 || regionIndex >= item.TerrainRegions.Count)
+                return regionIndex + 1;
+
+            float targetDist = RegionNearestDistance(item.TerrainRegions[regionIndex], cursor);
+            int rank = 1;
+            for (int i = 0; i < item.TerrainRegions.Count; i++)
+            {
+                if (i == regionIndex) continue;
+                float d = RegionNearestDistance(item.TerrainRegions[i], cursor);
+                if (d < targetDist || (d == targetDist && i < regionIndex))
+                    rank++;
+            }
+            return rank;
+        }
+
+        /// <summary>
         /// Builds the announcement string for a specific terrain region of an item.
         /// Used by both the primary announcement (with the nearest region) and the bulk
         /// navigation announcement (with the user-selected region) so the format stays
@@ -341,9 +390,16 @@ namespace RimWorldAccess
 
             if (item.RegionCount > 1)
             {
-                int regionPosition = regionIndex + 1;
+                // Live proximity rank, not the static list slot — the nearest patch reads as
+                // "area 1 of N" no matter where it sits in the stable build-time list.
+                int regionPosition = ComputeRegionRank(item, regionIndex, cursorPos);
                 announcement += $", area {regionPosition} of {item.RegionCount}";
             }
+
+            // When the cursor is standing on this patch and the patch has a distinct center,
+            // teach the second Home press that jumps there.
+            if (ClumpNav.OffersCenter(region.AllPositions, region.CenterPosition, cursorPos))
+                announcement += ". Press Home for center";
 
             return announcement;
         }
@@ -445,7 +501,21 @@ namespace RimWorldAccess
             }
 
             foreach (var item in subcat.Items)
+            {
                 item.Distance = ComputeLiveDistance(item, cursor);
+
+                // Re-sort the item's own regions nearest-first too, anchored to the same cursor.
+                // This makes within-item navigation (area 1, area 2, area 3...) and the announced
+                // "area N of M" follow live proximity exactly like the item list itself — and, by
+                // living inside this session-boundary re-sort, it inherits the same anchoring: it
+                // re-sorts on a manual cursor move, never on a scanner-driven jump.
+                if (item.HasTerrainRegions && item.TerrainRegions.Count > 1)
+                {
+                    foreach (var region in item.TerrainRegions)
+                        region.Distance = RegionNearestDistance(region, cursor);
+                    item.TerrainRegions = item.TerrainRegions.OrderBy(r => r.Distance).ToList();
+                }
+            }
 
             // Stable sort (OrderBy) — so tied distances preserve input order.
             subcat.Items = subcat.Items.OrderBy(i => i.Distance).ToList();
@@ -732,6 +802,12 @@ namespace RimWorldAccess
 
             if (autoJumpMode)
             {
+                // Auto-jump skips AnnounceCurrentItem (which picks the nearest region via
+                // FindNearestRegionIndex), so select it here too — otherwise the jump would target
+                // region 0 rather than the patch nearest to the cursor.
+                var itemForJump = GetCurrentItem();
+                if (itemForJump != null && itemForJump.HasTerrainRegions)
+                    currentBulkIndex = FindNearestRegionIndex(itemForJump, MapNavigationState.CurrentCursorPosition);
                 JumpToCurrent();
             }
             else
@@ -953,7 +1029,7 @@ namespace RimWorldAccess
             AnnounceCurrentItem();
         }
 
-        public static void JumpToCurrent()
+        public static void JumpToCurrent(bool manual = false)
         {
             if (WorldNavigationState.IsActive) return;
 
@@ -988,14 +1064,24 @@ namespace RimWorldAccess
                 TolkHelper.Speak("Item no longer exists", SpeechPriority.High);
             }
 
+            IntVec3 cursorBeforeJump = MapNavigationState.CurrentCursorPosition;
+            bool jumpedToCenter = false;
+            TerrainRegion jumpRegion = null;
             IntVec3 targetPosition;
 
             if (currentItem.IsTerrain || currentItem.HasTerrainRegions)
             {
-                // For terrain regions, jump to the region center
+                // Closest-tile / press-Home-for-center. From off the patch, land on the nearest
+                // edge tile; a manual Home from on the patch jumps to the region center. Auto-jump
+                // navigation always lands on the nearest tile (manual == false).
                 if (currentItem.HasTerrainRegions && currentBulkIndex < currentItem.TerrainRegions.Count)
                 {
-                    targetPosition = currentItem.TerrainRegions[currentBulkIndex].CenterPosition;
+                    var region = currentItem.TerrainRegions[currentBulkIndex];
+                    jumpRegion = region;
+                    var plan = ClumpNav.PlanHome(region.AllPositions, region.CenterPosition,
+                        cursorBeforeJump, CellMetric, manual);
+                    targetPosition = plan.Tile;
+                    jumpedToCenter = plan.IsCenter;
                 }
                 // Legacy: bulk terrain positions
                 else if (currentItem.BulkTerrainPositions != null && currentBulkIndex < currentItem.BulkTerrainPositions.Count)
@@ -1051,6 +1137,21 @@ namespace RimWorldAccess
                 targetPosition = targetThing.Position;
             }
 
+            // No-move guard: a Home press that targets the tile we are already standing on
+            // shouldn't replay the terrain sound or re-announce the whole tile. Just confirm
+            // where we are. Distinguish the patch center from any other tile of the patch.
+            if (targetPosition == cursorBeforeJump)
+            {
+                bool atCenter = jumpRegion != null
+                    && jumpRegion.TileCount > 1
+                    && cursorBeforeJump == jumpRegion.CenterPosition;
+                string where = atCenter
+                    ? $"Already at center of {currentItem.Label}"
+                    : $"Already at {currentItem.Label}";
+                TolkHelper.Speak(where, SpeechPriority.Normal);
+                return;
+            }
+
             // Update map cursor position. Guard the write so NotifyCursorWritten does not
             // invalidate the in-progress navigation session — this is a scanner-driven move.
             scannerDrivenJumpInProgress = true;
@@ -1066,24 +1167,22 @@ namespace RimWorldAccess
             // Jump camera to position
             Find.CameraDriver.JumpToCurrentMapLoc(targetPosition);
 
-            // Announce the item being jumped to
-            if (autoJumpMode)
+            // Every jump — auto-jump navigation and manual Home alike — lands on the tile and
+            // announces it exactly like an arrow-key step: terrain/wall sound + tile contents. This
+            // is also what avoids the "right here" bug, where the scanner used to recompute the
+            // distance from the cursor AFTER the cursor had already moved onto the target. A jump to
+            // a patch's center additionally leads with the move delta.
+            MapNavigationState.CurrentCameraMode = CameraFollowMode.Cursor;
+            TerrainAudioHelper.PlayCellAudio(targetPosition, Find.CurrentMap, 0.5f);
+
+            string prefix = null;
+            if (jumpedToCenter)
             {
-                // In auto-jump mode, announce item details
-                if (currentItem.IsBulkGroup)
-                {
-                    AnnounceCurrentBulkItem();
-                }
-                else
-                {
-                    AnnounceCurrentItem();
-                }
+                string dir = ScannerDirectionHelper.GetCompassDirection(cursorBeforeJump, targetPosition);
+                float dist = (targetPosition - cursorBeforeJump).LengthHorizontal;
+                prefix = dir != null ? $"Jumped {dist:F0} tiles {dir} to center" : "Jumped to center";
             }
-            else
-            {
-                // Manual jump (Home key) - just announce the jump
-                TolkHelper.Speak($"Jumped to {currentItem.Label}", SpeechPriority.Normal);
-            }
+            MapArrowKeyHandler.AnnouncePosition(targetPosition, Find.CurrentMap, prefix);
         }
 
         /// <summary>

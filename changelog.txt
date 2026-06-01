@@ -19,6 +19,12 @@ CHANGES
   Both live on the Social section of a pawn's inspection screen and on the
   Actions tab of their info card, each with the game's own warning about what
   will happen.
+- The scanner now points you at the nearest tile of a patch (a biome, a vein
+  of ore, a stretch of soil, a road or river) instead of its center, so you
+  hear how far its closest edge is and whether you are already standing on it.
+  Press Home to jump to that nearest tile; once you are on the patch, press
+  Home again to jump to its center. The colony map and the world map work the
+  same way.
 
 - You can now load colonists and items into a map portal the same way you load
   a caravan or transport pod. This covers entering an ancient complex, going
@@ -30,6 +36,11 @@ CHANGES
 
 BUG FIXES
 ---------
+- In auto-jump mode, the scanner no longer reports every place it takes you as
+  being right on top of you. It used to measure the distance after it had
+  already moved you onto the target, so each jump sounded like it was zero
+  tiles away. It now simply announces what is on each tile as you flip through
+  the scanner.
 - Cleaned up the building inspection menu: the "Power Control", "Breakdown
   Status", and "Power" items are gone. They either duplicated the Overview
   or let you do things you shouldn't (flip power instantly). Use the toggle

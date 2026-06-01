@@ -1078,7 +1078,7 @@ namespace RimWorldAccess
                     if (alt)
                         WorldNavigationState.JumpToHome();
                     else
-                        WorldScannerState.JumpToCurrent();
+                        WorldScannerState.JumpToCurrent(manual: true);
                     handled = true;
                 }
                 // End: Read distance/direction (Alt = nearest caravan, in-game only)
@@ -4186,8 +4186,8 @@ namespace RimWorldAccess
                         }
                         else
                         {
-                            // Home: Jump to current item
-                            ScannerState.JumpToCurrent();
+                            // Home: Jump to current item (manual press → closest-tile / center toggle)
+                            ScannerState.JumpToCurrent(manual: true);
                         }
                         handled = true;
                     }

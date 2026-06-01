@@ -521,7 +521,7 @@ namespace RimWorldAccess
         /// Announces the current tile information.
         /// Includes biome descriptions (both contexts) and faction/settle warnings (WorldGen only).
         /// </summary>
-        public static void AnnounceTile()
+        public static void AnnounceTile(string prefix = null)
         {
             if (!currentSelectedTile.Valid)
                 return;
@@ -587,6 +587,13 @@ namespace RimWorldAccess
             if (!string.IsNullOrEmpty(biomeDesc))
             {
                 tileInfo = AppendSentence(tileInfo, biomeDesc);
+            }
+
+            // Optional lead-in (e.g. a scanner "Jumped N tiles dir to center" cue), so the move
+            // delta and the full tile description are spoken as one utterance.
+            if (!string.IsNullOrEmpty(prefix))
+            {
+                tileInfo = string.IsNullOrEmpty(tileInfo) ? prefix : $"{prefix}. {tileInfo}";
             }
 
             TolkHelper.Speak(tileInfo);

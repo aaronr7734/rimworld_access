@@ -117,7 +117,7 @@ namespace RimWorldAccess
                 if (alt)
                     WorldNavigationState.JumpToHome();
                 else
-                    WorldScannerState.JumpToCurrent();
+                    WorldScannerState.JumpToCurrent(manual: true);
                 Event.current.Use();
                 return;
             }
