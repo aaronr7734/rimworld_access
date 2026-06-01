@@ -4984,6 +4984,11 @@ namespace RimWorldAccess
                     PrisonerTabState.ToggleCheckbox();
                     handled = true;
                 }
+                else if (key == KeyCode.Backspace)
+                {
+                    PrisonerTabState.HandleBackspace();
+                    handled = true;
+                }
                 else if (key == KeyCode.Escape)
                 {
                     if (!PrisonerTabState.HandleEscape())

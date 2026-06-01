@@ -290,6 +290,9 @@ namespace RimWorldAccess
             if (!isActive || currentPawn == null)
                 return;
 
+            // Selecting an item ends the search (matches every other typeahead screen).
+            typeahead.ClearSearch();
+
             switch (currentSection)
             {
                 case TabSection.Information:
@@ -352,6 +355,9 @@ namespace RimWorldAccess
         {
             if (!isActive || currentPawn == null)
                 return;
+
+            // Selecting an item ends the search (matches every other typeahead screen).
+            typeahead.ClearSearch();
 
             if (currentSection == TabSection.NonExclusiveModes)
             {
@@ -806,6 +812,28 @@ namespace RimWorldAccess
             else
             {
                 TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+            }
+        }
+
+        /// <summary>
+        /// Backspace deletes the last character of an active typeahead search and re-navigates to
+        /// the first remaining match (or restores normal navigation if the buffer empties), matching
+        /// every other typeahead screen.
+        /// </summary>
+        public static void HandleBackspace()
+        {
+            if (!isActive || currentPawn == null || !typeahead.HasActiveSearch)
+                return;
+
+            var labels = BuildFlatRows();
+            if (typeahead.ProcessBackspace(labels, out int newIndex))
+            {
+                if (newIndex >= 0 && newIndex < flatLocations.Count)
+                {
+                    currentSection = flatLocations[newIndex].Key;
+                    selectedIndex = flatLocations[newIndex].Value;
+                }
+                AnnounceWithSearch();
             }
         }
 

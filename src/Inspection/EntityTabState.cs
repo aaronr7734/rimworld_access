@@ -180,7 +180,7 @@ namespace RimWorldAccess
                         selectedIndex = typeahead.GetPreviousMatch(selectedIndex);
                     else
                         selectedIndex = MenuHelper.SelectPrevious(selectedIndex, rows.Count);
-                    AnnounceCurrent();
+                    AnnounceCurrentWithSearch();
                     return true;
 
                 case KeyCode.DownArrow:
@@ -188,7 +188,7 @@ namespace RimWorldAccess
                         selectedIndex = typeahead.GetNextMatch(selectedIndex);
                     else
                         selectedIndex = MenuHelper.SelectNext(selectedIndex, rows.Count);
-                    AnnounceCurrent();
+                    AnnounceCurrentWithSearch();
                     return true;
 
                 case KeyCode.Home:
@@ -196,7 +196,7 @@ namespace RimWorldAccess
                         selectedIndex = typeahead.GetFirstMatch();
                     else
                         selectedIndex = 0;
-                    AnnounceCurrent();
+                    AnnounceCurrentWithSearch();
                     return true;
 
                 case KeyCode.End:
@@ -204,7 +204,11 @@ namespace RimWorldAccess
                         selectedIndex = typeahead.GetLastMatch();
                     else
                         selectedIndex = rows.Count - 1;
-                    AnnounceCurrent();
+                    AnnounceCurrentWithSearch();
+                    return true;
+
+                case KeyCode.Backspace:
+                    HandleBackspace();
                     return true;
 
                 case KeyCode.LeftArrow:
@@ -243,11 +247,46 @@ namespace RimWorldAccess
             if (typeahead.ProcessCharacterInput(c, labels, out int newIdx) && newIdx >= 0)
             {
                 selectedIndex = newIdx;
-                AnnounceCurrent();
+                AnnounceCurrentWithSearch();
             }
             else
             {
                 TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+            }
+        }
+
+        /// <summary>
+        /// Backspace deletes the last character of an active typeahead search and re-navigates to the
+        /// first remaining match (or restores normal navigation if the buffer empties).
+        /// </summary>
+        public static void HandleBackspace()
+        {
+            if (!isActive || !typeahead.HasActiveSearch) return;
+
+            var labels = rows.Select(r => GetRowLabel(r)).ToList();
+            if (typeahead.ProcessBackspace(labels, out int newIdx))
+            {
+                if (newIdx >= 0)
+                    selectedIndex = newIdx;
+                AnnounceCurrentWithSearch();
+            }
+        }
+
+        /// <summary>
+        /// Announces the current row with its search-match position ("X of N matches for '...'")
+        /// while a search is active, matching the universal typeahead format; otherwise the normal
+        /// row announcement.
+        /// </summary>
+        private static void AnnounceCurrentWithSearch()
+        {
+            if (typeahead.HasActiveSearch && rows.Count > 0 && selectedIndex >= 0 && selectedIndex < rows.Count)
+            {
+                string label = GetRowLabel(rows[selectedIndex]);
+                TolkHelper.Speak($"{label}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'");
+            }
+            else
+            {
+                AnnounceCurrent();
             }
         }
 
@@ -256,6 +295,10 @@ namespace RimWorldAccess
         private static void ToggleCurrent()
         {
             if (rows.Count == 0 || selectedIndex < 0 || selectedIndex >= rows.Count) return;
+
+            // Selecting an item ends the search (matches every other typeahead screen).
+            typeahead.ClearSearch();
+
             var row = rows[selectedIndex];
             if (!row.Interactive)
             {
