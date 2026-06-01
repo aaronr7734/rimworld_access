@@ -22,8 +22,11 @@ namespace RimWorldAccess
         private static List<PrisonerInteractionModeDef> nonExclusiveModes = new List<PrisonerInteractionModeDef>();
         private static List<SlaveInteractionModeDef> slaveModes = new List<SlaveInteractionModeDef>();
 
-        // Typeahead search across every tabbable section (see HandleTypeahead).
+        // Typeahead search across every tabbable section (see HandleTypeahead). flatLocations maps
+        // each searchable row (in the same order as the labels handed to the helper) back to its
+        // (section, index) so match cycling can switch sections to land on a hit.
         private static readonly TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
+        private static readonly List<KeyValuePair<TabSection, int>> flatLocations = new List<KeyValuePair<TabSection, int>>();
 
         public enum TabSection
         {
@@ -161,6 +164,13 @@ namespace RimWorldAccess
             if (!isActive || currentPawn == null)
                 return;
 
+            // While a typeahead search is active, arrows cycle through matches (universal pattern).
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                MoveToFlatMatch(typeahead.GetNextMatch(CurrentFlatIndex()));
+                return;
+            }
+
             // Special handling for medical care - use up/down to adjust level
             if (currentSection == TabSection.MedicalCare)
             {
@@ -184,6 +194,13 @@ namespace RimWorldAccess
         {
             if (!isActive || currentPawn == null)
                 return;
+
+            // While a typeahead search is active, arrows cycle through matches (universal pattern).
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                MoveToFlatMatch(typeahead.GetPreviousMatch(CurrentFlatIndex()));
+                return;
+            }
 
             // Special handling for medical care - use up/down to adjust level
             if (currentSection == TabSection.MedicalCare)
@@ -210,6 +227,13 @@ namespace RimWorldAccess
             if (!isActive || currentPawn == null)
                 return;
 
+            // While a typeahead search is active, Home jumps to the first match (universal pattern).
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                MoveToFlatMatch(typeahead.GetFirstMatch());
+                return;
+            }
+
             if (currentSection == TabSection.MedicalCare)
                 return;
 
@@ -229,6 +253,13 @@ namespace RimWorldAccess
         {
             if (!isActive || currentPawn == null)
                 return;
+
+            // While a typeahead search is active, End jumps to the last match (universal pattern).
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                MoveToFlatMatch(typeahead.GetLastMatch());
+                return;
+            }
 
             if (currentSection == TabSection.MedicalCare)
                 return;
@@ -283,6 +314,14 @@ namespace RimWorldAccess
         {
             if (!isActive || currentPawn == null)
                 return false;
+
+            // Escape clears an active typeahead search first (universal pattern), before backing out.
+            if (typeahead.HasActiveSearch)
+            {
+                typeahead.ClearSearchAndAnnounce();
+                AnnounceCurrentSelection();
+                return true;
+            }
 
             if (currentSection == TabSection.IdeologySelection)
             {
@@ -749,9 +788,26 @@ namespace RimWorldAccess
             if (!isActive || currentPawn == null)
                 return;
 
-            // Flatten all reachable rows into one searchable list, remembering each row's location.
+            var labels = BuildFlatRows();
+            if (typeahead.ProcessCharacterInput(c, labels, out int newIndex) && newIndex >= 0 && newIndex < flatLocations.Count)
+            {
+                MoveToFlatMatch(newIndex);
+            }
+            else
+            {
+                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+            }
+        }
+
+        /// <summary>
+        /// Rebuilds <see cref="flatLocations"/> — every searchable row across all tabbable sections,
+        /// in section/order — and returns the matching label list to hand to the typeahead helper.
+        /// The two lists are index-aligned so a match index maps straight back to (section, index).
+        /// </summary>
+        private static List<string> BuildFlatRows()
+        {
+            flatLocations.Clear();
             var labels = new List<string>();
-            var locations = new List<KeyValuePair<TabSection, int>>();
             foreach (TabSection section in System.Enum.GetValues(typeof(TabSection)))
             {
                 if (!IsSectionAvailable(section))
@@ -761,20 +817,32 @@ namespace RimWorldAccess
                 for (int i = 0; i <= max; i++)
                 {
                     labels.Add(GetSectionItemLabel(section, i));
-                    locations.Add(new KeyValuePair<TabSection, int>(section, i));
+                    flatLocations.Add(new KeyValuePair<TabSection, int>(section, i));
                 }
             }
+            return labels;
+        }
 
-            if (typeahead.ProcessCharacterInput(c, labels, out int newIndex) && newIndex >= 0 && newIndex < locations.Count)
+        /// <summary>Flat index of the current (section, index) within <see cref="flatLocations"/>.</summary>
+        private static int CurrentFlatIndex()
+        {
+            for (int i = 0; i < flatLocations.Count; i++)
             {
-                currentSection = locations[newIndex].Key;
-                selectedIndex = locations[newIndex].Value;
-                AnnounceCurrentSelection();
+                if (flatLocations[i].Key == currentSection && flatLocations[i].Value == selectedIndex)
+                    return i;
             }
-            else
-            {
-                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
-            }
+            return 0;
+        }
+
+        /// <summary>Moves selection to a flat row (switching section if needed) and announces it.</summary>
+        private static void MoveToFlatMatch(int flatIndex)
+        {
+            if (flatIndex < 0 || flatIndex >= flatLocations.Count)
+                return;
+
+            currentSection = flatLocations[flatIndex].Key;
+            selectedIndex = flatLocations[flatIndex].Value;
+            AnnounceCurrentSelection();
         }
 
         private static void ClearCachedData()
@@ -783,6 +851,7 @@ namespace RimWorldAccess
             exclusiveModes.Clear();
             nonExclusiveModes.Clear();
             slaveModes.Clear();
+            flatLocations.Clear();
         }
 
         #endregion
