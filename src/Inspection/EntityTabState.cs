@@ -208,10 +208,16 @@ namespace RimWorldAccess
                     return true;
 
                 case KeyCode.LeftArrow:
+                    // Inert while a typeahead search has results: the result set spans the whole tab,
+                    // so adjusting the current row's value mid-search is confusing. Still consumed.
+                    if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                        return true;
                     AdjustCurrent(-1);
                     return true;
 
                 case KeyCode.RightArrow:
+                    if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                        return true;
                     AdjustCurrent(1);
                     return true;
 

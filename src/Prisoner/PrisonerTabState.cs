@@ -124,6 +124,11 @@ namespace RimWorldAccess
             if (!isActive || currentPawn == null)
                 return;
 
+            // Left/Right do nothing while a typeahead search has results: matches span every section,
+            // so switching section mid-search is meaningless and confusing.
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                return;
+
             // Skip sections that don't apply
             do
             {
@@ -141,6 +146,11 @@ namespace RimWorldAccess
         public static void PreviousSection()
         {
             if (!isActive || currentPawn == null)
+                return;
+
+            // Left/Right do nothing while a typeahead search has results: matches span every section,
+            // so switching section mid-search is meaningless and confusing.
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
                 return;
 
             // Skip sections that don't apply
