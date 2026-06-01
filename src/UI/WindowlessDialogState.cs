@@ -167,6 +167,16 @@ namespace RimWorldAccess
             {
                 WindowlessSaveMenuState.OnWindowClosed(dialogToClose);
                 WindowlessPauseMenuState.OnWindowClosed(dialogToClose);
+
+                string typeName = dialogToClose.GetType().Name ?? string.Empty;
+                if (AerialVehicleLaunchState.HasPendingVehicleLaunch &&
+                    typeName.StartsWith("Dialog_Confirm"))
+                {
+                    if (!AerialVehicleLaunchState.TryActivatePendingVehicleLaunch())
+                    {
+                        AerialVehicleLaunchState.ClearPendingVehicleLaunch();
+                    }
+                }
             }
         }
 

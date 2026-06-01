@@ -866,9 +866,20 @@ namespace RimWorldAccess
                     {
                         try
                         {
+                            ISelectable owner = null;
+                            gizmoOwners.TryGetValue(selectedGizmo, out owner);
+                            bool vehicleCaravanLaunch = IsVehicleCaravanLaunchGizmo(owner, selectedGizmo);
                             PropagateToGroupedGizmos(selectedGizmo, fakeEvent);
                             selectedGizmo.ProcessInput(fakeEvent);
                             ProcessGroupInput(selectedGizmo, fakeEvent);
+                            if (vehicleCaravanLaunch)
+                            {
+                                AerialVehicleLaunchState.OpenFromVehicleCaravan(owner);
+                            }
+                            else
+                            {
+                                AerialVehicleLaunchState.TryActivatePendingVehicleLaunch();
+                            }
                         }
                         catch (System.Exception ex)
                         {
@@ -890,6 +901,23 @@ namespace RimWorldAccess
                 // Clear flag after gizmo execution completes
                 isExecutingGizmo = false;
             }
+        }
+
+        private static bool IsVehicleCaravanLaunchGizmo(ISelectable owner, Gizmo gizmo)
+        {
+            if (owner == null || gizmo == null)
+                return false;
+
+            if (owner.GetType().FullName != "Vehicles.World.VehicleCaravan")
+                return false;
+
+            string label = GetGizmoLabel(gizmo);
+            if (string.IsNullOrEmpty(label))
+                return false;
+
+            return label == "CommandLaunchGroup".Translate().ToString()
+                || label.IndexOf("Launch", System.StringComparison.OrdinalIgnoreCase) >= 0
+                || label.IndexOf("Запустить", System.StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         /// <summary>
@@ -2587,6 +2615,14 @@ namespace RimWorldAccess
             // Only handle disabled gizmos
             if (!gizmo.Disabled || string.IsNullOrEmpty(gizmo.disabledReason))
                 return null;
+
+            if (owner is Thing ownerThing && VehicleFrameworkHelper.IsVehiclePawn(ownerThing))
+            {
+                string vehicleContext = VehicleFrameworkHelper.GetDisabledGizmoContext(ownerThing, gizmo.disabledReason);
+                if (!string.IsNullOrEmpty(vehicleContext) &&
+                    !string.Equals(vehicleContext, gizmo.disabledReason, System.StringComparison.OrdinalIgnoreCase))
+                    return vehicleContext;
+            }
 
             // Check if this is a Launch gizmo disabled due to mass capacity
             // The game's translation key is "CommandLaunchGroupFailOverMassCapacity"

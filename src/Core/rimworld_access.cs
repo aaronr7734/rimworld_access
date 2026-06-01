@@ -117,6 +117,95 @@ namespace RimWorldAccess
                 harmony.Patch(loadCargoPostOpenMethod, postfix: new HarmonyMethod(loadCargoPostOpenPostfix));
                 Log.Message("[RimWorld Access] Applied Vehicle Framework load cargo postfix");
             }
+
+            var launcherType = AccessTools.TypeByName("Vehicles.CompVehicleLauncher");
+            var startChoosingMethod = AccessTools.Method(launcherType, "StartChoosingDestination");
+            var startChoosingPostfix = AccessTools.Method(
+                typeof(VehicleFrameworkPatches),
+                nameof(VehicleFrameworkPatches.AerialVehicleStartChoosingDestinationPostfix));
+            if (startChoosingMethod != null && startChoosingPostfix != null)
+            {
+                harmony.Patch(startChoosingMethod, postfix: new HarmonyMethod(startChoosingPostfix));
+                Log.Message("[RimWorld Access] Applied Vehicle Framework aerial launch postfix");
+            }
+
+            var aerialVehicleType = AccessTools.TypeByName("Vehicles.World.AerialVehicleInFlight");
+            var aerialStartTargetingMethod = AccessTools.Method(aerialVehicleType, "StartTargeting");
+            var aerialStartTargetingPostfix = AccessTools.Method(
+                typeof(VehicleFrameworkPatches),
+                nameof(VehicleFrameworkPatches.AerialVehicleInFlightStartTargetingPostfix));
+            if (aerialStartTargetingMethod != null && aerialStartTargetingPostfix != null)
+            {
+                harmony.Patch(aerialStartTargetingMethod, postfix: new HarmonyMethod(aerialStartTargetingPostfix));
+                Log.Message("[RimWorld Access] Applied Vehicle Framework in-flight targeting postfix");
+            }
+
+            var vehicleCaravanType = AccessTools.TypeByName("Vehicles.World.VehicleCaravan");
+            var vehicleCaravanLaunchMethod = AccessTools.Method(vehicleCaravanType, "LaunchAerialVehicle");
+            var vehicleCaravanLaunchPrefix = AccessTools.Method(
+                typeof(VehicleFrameworkPatches),
+                nameof(VehicleFrameworkPatches.VehicleCaravanLaunchAerialVehiclePrefix));
+            if (vehicleCaravanLaunchMethod != null && vehicleCaravanLaunchPrefix != null)
+            {
+                harmony.Patch(vehicleCaravanLaunchMethod, prefix: new HarmonyMethod(vehicleCaravanLaunchPrefix));
+                Log.Message("[RimWorld Access] Applied Vehicle Framework vehicle caravan launch prefix");
+            }
+
+            var landingTargeterType = AccessTools.TypeByName("Vehicles.LandingTargeter");
+            var landingBeginTargetingMethod = AccessTools.Method(landingTargeterType, "BeginTargeting");
+            var landingBeginTargetingPostfix = AccessTools.Method(
+                typeof(VehicleFrameworkPatches),
+                nameof(VehicleFrameworkPatches.AerialVehicleLandingBeginTargetingPostfix));
+            if (landingBeginTargetingMethod != null && landingBeginTargetingPostfix != null)
+            {
+                harmony.Patch(landingBeginTargetingMethod, postfix: new HarmonyMethod(landingBeginTargetingPostfix));
+                Log.Message("[RimWorld Access] Applied Vehicle Framework landing targeter postfix");
+            }
+
+            var orientationControllerType = AccessTools.TypeByName("Vehicles.VehicleOrientationController");
+            var orientationStartMethod = AccessTools.Method(orientationControllerType, "OnStart");
+            var orientationStopMethod = AccessTools.Method(orientationControllerType, "StopTargeting");
+            var orientationStartPostfix = AccessTools.Method(
+                typeof(VehicleFrameworkPatches),
+                nameof(VehicleFrameworkPatches.VehicleOrientationControllerStartPostfix));
+            var orientationStopPostfix = AccessTools.Method(
+                typeof(VehicleFrameworkPatches),
+                nameof(VehicleFrameworkPatches.VehicleOrientationControllerStopPostfix));
+            if (orientationStartMethod != null && orientationStartPostfix != null)
+            {
+                harmony.Patch(orientationStartMethod, postfix: new HarmonyMethod(orientationStartPostfix));
+                Log.Message("[RimWorld Access] Applied Vehicle Framework orientation controller start postfix");
+            }
+            if (orientationStopMethod != null && orientationStopPostfix != null)
+            {
+                harmony.Patch(orientationStopMethod, postfix: new HarmonyMethod(orientationStopPostfix));
+                Log.Message("[RimWorld Access] Applied Vehicle Framework orientation controller stop postfix");
+            }
+
+            var arrivalOptionType = AccessTools.TypeByName("Vehicles.World.ArrivalOption");
+            var smashWorldTargeterGeneric = AccessTools.TypeByName("SmashTools.Targeting.WorldTargeter`1");
+            if (arrivalOptionType != null && smashWorldTargeterGeneric != null)
+            {
+                var smashWorldTargeterType = smashWorldTargeterGeneric.MakeGenericType(arrivalOptionType);
+                var smashStartMethod = AccessTools.Method(smashWorldTargeterType, "Start");
+                var smashStopMethod = AccessTools.Method(smashWorldTargeterType, "StopTargeting");
+                var smashStartPostfix = AccessTools.Method(
+                    typeof(VehicleFrameworkPatches),
+                    nameof(VehicleFrameworkPatches.AerialVehicleWorldTargeterStartPostfix));
+                var smashStopPostfix = AccessTools.Method(
+                    typeof(VehicleFrameworkPatches),
+                    nameof(VehicleFrameworkPatches.AerialVehicleWorldTargeterStopPostfix));
+                if (smashStartMethod != null && smashStartPostfix != null)
+                {
+                    harmony.Patch(smashStartMethod, postfix: new HarmonyMethod(smashStartPostfix));
+                    Log.Message("[RimWorld Access] Applied Vehicle Framework aerial world targeter start postfix");
+                }
+                if (smashStopMethod != null && smashStopPostfix != null)
+                {
+                    harmony.Patch(smashStopMethod, postfix: new HarmonyMethod(smashStopPostfix));
+                    Log.Message("[RimWorld Access] Applied Vehicle Framework aerial world targeter stop postfix");
+                }
+            }
         }
 
         private static void OnApplicationQuit()

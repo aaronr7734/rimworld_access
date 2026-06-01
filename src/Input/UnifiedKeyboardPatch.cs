@@ -918,6 +918,57 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 0.361: Late-activate pending Vehicle Framework aerial launch on world map =====
+            if (AerialVehicleLaunchState.HasPendingVehicleLaunch &&
+                !AerialVehicleLaunchState.IsActive &&
+                !WindowlessDialogState.IsActive &&
+                WorldRendererUtility.WorldSelected)
+            {
+                AerialVehicleLaunchState.TryActivatePendingVehicleLaunch();
+            }
+
+            // ===== PRIORITY 0.362: Handle Vehicle Framework aerial world targeting if active =====
+            if (AerialVehicleLaunchState.IsActive && !WindowlessDialogState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = KeyboardHelper.IsAltHeld;
+
+                if (AerialVehicleLaunchState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 0.363: Handle Vehicle Framework landing cell targeting if active =====
+            if (AerialVehicleLandingState.IsActive && !WindowlessDialogState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = KeyboardHelper.IsAltHeld;
+
+                if (AerialVehicleLandingState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 0.364: Handle Vehicle Framework vehicle orientation targeting if active =====
+            if (VehicleOrientationState.IsActive && !WindowlessDialogState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = KeyboardHelper.IsAltHeld;
+
+                if (VehicleOrientationState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 0.365: Handle gravship destination targeting if active =====
             // This handles Enter/Escape/F keys during gravship world map destination selection
             if (GravshipDestinationState.IsActive && !WindowlessDialogState.IsActive)
@@ -6193,6 +6244,7 @@ namespace RimWorldAccess
             // Alt+O boards selected pawns into the vehicle under the map cursor.
             // Alt+V selects and drafts the vehicle under the map cursor.
             // Alt+Shift+V orders the selected vehicle to move to the map cursor.
+            // Alt+Shift+O starts in-place vehicle orientation for the selected vehicle.
             if ((key == KeyCode.V || key == KeyCode.O) && KeyboardHelper.IsAltHeld && !Event.current.control)
             {
                 if (Current.ProgramState == ProgramState.Playing &&
@@ -6209,7 +6261,11 @@ namespace RimWorldAccess
                     IntVec3 cursorPosition = MapNavigationState.CurrentCursorPosition;
                     string vehicleMessage;
                     bool ok;
-                    if (key == KeyCode.O)
+                    if (key == KeyCode.O && Event.current.shift)
+                    {
+                        ok = VehicleFrameworkHelper.TryStartSelectedVehicleOrientation(out vehicleMessage);
+                    }
+                    else if (key == KeyCode.O)
                     {
                         ok = VehicleFrameworkHelper.TryBoardSelectedPawnsIntoVehicleAtCursor(
                             cursorPosition, Find.CurrentMap, out vehicleMessage);

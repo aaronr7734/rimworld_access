@@ -290,6 +290,42 @@ namespace RimWorldAccess
             return false;
         }
 
+        public static bool TryStartSelectedVehicleOrientation(out string message)
+        {
+            message = null;
+            Thing vehicle = GetSelectedVehicle();
+            if (vehicle == null)
+            {
+                message = "No vehicle selected";
+                return false;
+            }
+
+            if (!IsVehiclePawn(vehicle))
+            {
+                message = "Selected object is not a vehicle";
+                return false;
+            }
+
+            if (!(vehicle is Pawn pawn))
+            {
+                message = "Selected vehicle cannot be oriented";
+                return false;
+            }
+
+            if (pawn.Map == null || !pawn.Spawned)
+            {
+                message = "Vehicle must be spawned on the map to rotate";
+                return false;
+            }
+
+            VehicleOrientationState.Open(vehicle);
+            string direction = GetVehicleOrientationSummary(vehicle);
+            message = direction.NullOrEmpty()
+                ? $"{vehicle.LabelShort} orientation mode"
+                : $"{vehicle.LabelShort} orientation mode. {direction}";
+            return true;
+        }
+
         public static void ClearVehicleAssignments(Thing vehicle)
         {
             if (!IsVehiclePawn(vehicle))
@@ -658,6 +694,29 @@ namespace RimWorldAccess
 
         private static string GetVehicleDisabledReason(Thing vehicle)
         {
+            if (vehicle == null || !IsVehiclePawn(vehicle))
+                return null;
+
+            object launcher = GetProperty(vehicle, "CompVehicleLauncher");
+            MethodInfo canLaunch = AccessTools.Method(launcher?.GetType(), "CanLaunchWithCargoCapacity", new[] { typeof(string).MakeByRefType() });
+            if (canLaunch != null)
+            {
+                try
+                {
+                    object[] args = new object[] { null };
+                    object result = canLaunch.Invoke(launcher, args);
+                    if (result is bool canLaunchNow && !canLaunchNow)
+                    {
+                        string disableReason = (args[0] as string)?.StripTags();
+                        string detailedReason = GetDetailedLaunchRestrictionReason(vehicle, launcher, disableReason);
+                        return detailedReason.NullOrEmpty() ? disableReason : detailedReason;
+                    }
+                }
+                catch
+                {
+                }
+            }
+
             bool canMove = GetBoolProperty(vehicle, "CanMove", true);
             if (!canMove)
                 return "cannot move";
@@ -667,6 +726,183 @@ namespace RimWorldAccess
                 return "out of fuel";
 
             return null;
+        }
+
+        public static string GetDisabledGizmoContext(Thing vehicle, string disabledReason)
+        {
+            if (vehicle == null || !IsVehiclePawn(vehicle))
+                return null;
+
+            object launcher = GetProperty(vehicle, "CompVehicleLauncher");
+            return GetDetailedLaunchRestrictionReason(vehicle, launcher, disabledReason);
+        }
+
+        private static string GetDetailedLaunchRestrictionReason(Thing vehicle, object launcher, string currentReason)
+        {
+            string normalizedReason = currentReason?.StripTags();
+            object launchProtocol = GetProperty(launcher, "launchProtocol");
+            if (launchProtocol == null)
+                return normalizedReason;
+
+            if (!string.Equals(normalizedReason, "Unable to launch, conditions are not suitable.", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(normalizedReason, "Unable to launch, conditions are not suitable", StringComparison.OrdinalIgnoreCase))
+            {
+                return normalizedReason;
+            }
+
+            object launchProperties = GetProperty(launchProtocol, "LaunchProperties");
+            object restriction = GetProperty(launchProperties, "restriction");
+            if (restriction == null)
+                return normalizedReason;
+
+            string restrictionType = restriction.GetType().FullName ?? restriction.GetType().Name;
+            if (restrictionType.Contains("LaunchRestriction_Runway"))
+                return BuildRunwayRestrictionReason(vehicle, restriction, normalizedReason);
+
+            if (restrictionType.Contains("LaunchRestriction_ComponentHealth"))
+                return BuildComponentHealthRestrictionReason(vehicle, restriction, normalizedReason);
+
+            return normalizedReason;
+        }
+
+        private static string BuildRunwayRestrictionReason(Thing vehicle, object restriction, string fallbackReason)
+        {
+            Map map = vehicle.Map;
+            IntVec3 position = vehicle.Position;
+            Rot4 rotation = vehicle.Rotation;
+            if (map == null || !position.IsValid)
+                return "Requires a valid runway position on the map";
+
+            MethodInfo runwayRectMethod = AccessTools.Method(restriction.GetType(), "RunwayRect", new[] { typeof(IntVec3), typeof(Rot4) });
+            if (runwayRectMethod == null)
+                return "Requires a clear runway ahead of the aircraft";
+
+            try
+            {
+                CellRect runwayRect = (CellRect)runwayRectMethod.Invoke(restriction, new object[] { position, rotation });
+                List<string> blockers = new List<string>();
+                int blockedCells = 0;
+                int offMapCells = 0;
+                int impassableCells = 0;
+
+                Type gridVehiclesType = AccessTools.TypeByName("Vehicles.GenGridVehicles");
+                MethodInfo walkableMethod = AccessTools.Method(gridVehiclesType, "Walkable", new[] { typeof(IntVec3), vehicle.def.GetType(), typeof(Map) });
+
+                foreach (IntVec3 cell in runwayRect)
+                {
+                    if (!cell.InBounds(map))
+                    {
+                        offMapCells++;
+                        continue;
+                    }
+
+                    bool walkable = true;
+                    try
+                    {
+                        if (walkableMethod != null)
+                        {
+                            object walkableResult = walkableMethod.Invoke(null, new object[] { cell, vehicle.def, map });
+                            if (walkableResult is bool boolResult)
+                                walkable = boolResult;
+                        }
+                    }
+                    catch
+                    {
+                    }
+
+                    if (!walkable)
+                    {
+                        impassableCells++;
+                        blockedCells++;
+                        if (blockers.Count < 3)
+                            blockers.Add($"{cell.x}, {cell.z}: impassable for the aircraft");
+                        continue;
+                    }
+
+                    foreach (Thing thing in map.thingGrid.ThingsListAtFast(cell))
+                    {
+                        if (thing == vehicle || !IsRunwayBlockingThing(restriction, thing))
+                            continue;
+
+                        blockedCells++;
+                        if (blockers.Count < 3)
+                            blockers.Add($"{cell.x}, {cell.z}: {thing.LabelCap.ToString().StripTags()}");
+                        break;
+                    }
+                }
+
+                string facing = GetVehicleOrientationSummary(vehicle);
+                string runwaySummary = $"Requires a clear runway ahead of the aircraft";
+                if (!facing.NullOrEmpty())
+                    runwaySummary += $", {facing.ToLowerInvariant()}";
+
+                if (offMapCells > 0)
+                    return $"{runwaySummary}. Runway extends off the map";
+
+                if (blockedCells == 0 && impassableCells == 0)
+                    return fallbackReason ?? runwaySummary;
+
+                if (blockers.Count > 0)
+                    return $"{runwaySummary}. Blocked cells: {blockedCells}. First blockers: {string.Join("; ", blockers)}";
+
+                return $"{runwaySummary}. Blocked cells: {blockedCells}";
+            }
+            catch
+            {
+                return "Requires a clear runway ahead of the aircraft";
+            }
+        }
+
+        private static bool IsRunwayBlockingThing(object restriction, Thing thing)
+        {
+            try
+            {
+                MethodInfo invalidFor = AccessTools.Method(restriction.GetType(), "InvalidFor", new[] { typeof(Thing) });
+                if (invalidFor == null)
+                    return false;
+
+                object result = invalidFor.Invoke(restriction, new object[] { thing });
+                return result is bool invalid && invalid;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static string BuildComponentHealthRestrictionReason(Thing vehicle, object restriction, string fallbackReason)
+        {
+            FieldInfo componentsField = AccessTools.Field(restriction.GetType(), "components");
+            object thresholdsObject = componentsField?.GetValue(restriction);
+            IEnumerable thresholds = thresholdsObject as IEnumerable;
+            if (thresholds == null)
+                return "Critical aircraft components need repairs before launch";
+
+            List<string> failed = new List<string>();
+            object statHandler = GetProperty(vehicle, "statHandler");
+            MethodInfo getHealthPercent = AccessTools.Method(statHandler?.GetType(), "GetComponentHealthPercent", new[] { typeof(string) });
+
+            if (statHandler == null || getHealthPercent == null)
+                return "Critical aircraft components need repairs before launch";
+
+            foreach (object entry in thresholds)
+            {
+                object key = entry.GetType().GetProperty("Key")?.GetValue(entry, null);
+                object value = entry.GetType().GetProperty("Value")?.GetValue(entry, null);
+                string componentName = key as string;
+                if (componentName == null)
+                    continue;
+
+                float required = ToFloat(value, -1f);
+                float current = ToFloat(getHealthPercent.Invoke(statHandler, new object[] { componentName }), -1f);
+                if (required >= 0f && current >= 0f && current < required)
+                    failed.Add($"{componentName} {current:P0} / {required:P0}");
+            }
+
+            if (failed.Count == 0)
+                return fallbackReason ?? "Critical aircraft components need repairs before launch";
+
+            return $"Critical aircraft components need repairs before launch: {string.Join("; ", failed)}";
         }
 
         private static void ResetAssignmentsForVehicle(Thing vehicle, List<TransferableOneWay> pawnTransferables)
@@ -1300,18 +1536,44 @@ namespace RimWorldAccess
             return "Fuel";
         }
 
-        private static string GetVehicleOrientationSummary(Thing vehicle)
+        public static string GetVehicleOrientationSummary(Thing vehicle)
         {
             object rotation = GetProperty(vehicle, "FullRotation");
             if (rotation == null)
                 return null;
 
-            string direction = FormatVehicleRotation(rotation.ToString());
+            string direction = FormatVehicleRotation(rotation);
             return direction.NullOrEmpty() ? null : $"Front facing {direction}";
         }
 
-        private static string FormatVehicleRotation(string rotation)
+        public static string FormatVehicleRotation(object rotationValue)
         {
+            if (rotationValue == null)
+                return null;
+
+            object asInt = GetProperty(rotationValue, "AsInt");
+            if (asInt != null)
+            {
+                try
+                {
+                    switch (System.Convert.ToInt32(asInt))
+                    {
+                        case 0: return "north";
+                        case 1: return "east";
+                        case 2: return "south";
+                        case 3: return "west";
+                        case 4: return "north-east";
+                        case 5: return "south-east";
+                        case 6: return "south-west";
+                        case 7: return "north-west";
+                    }
+                }
+                catch
+                {
+                }
+            }
+
+            string rotation = rotationValue.ToString();
             if (rotation.NullOrEmpty())
                 return null;
 
@@ -1332,6 +1594,22 @@ namespace RimWorldAccess
                 case "West":
                     return "west";
                 case "NorthWest":
+                    return "north-west";
+                case "0":
+                    return "north";
+                case "1":
+                    return "east";
+                case "2":
+                    return "south";
+                case "3":
+                    return "west";
+                case "4":
+                    return "north-east";
+                case "5":
+                    return "south-east";
+                case "6":
+                    return "south-west";
+                case "7":
                     return "north-west";
                 default:
                     return rotation.StripTags();
@@ -1504,7 +1782,11 @@ namespace RimWorldAccess
                 return null;
 
             PropertyInfo property = AccessTools.Property(instance.GetType(), name);
-            return property?.GetValue(instance, null);
+            if (property != null)
+                return property.GetValue(instance, null);
+
+            FieldInfo field = AccessTools.Field(instance.GetType(), name);
+            return field?.GetValue(instance);
         }
 
         private static bool GetBoolProperty(object instance, string name, bool defaultValue)
