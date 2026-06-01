@@ -469,7 +469,7 @@ namespace RimWorldAccess
             // Check for pawn-specific actionable categories
             if (obj is Pawn pawn)
             {
-                return category == "Prisoner" && (pawn.IsPrisonerOfColony || pawn.IsSlaveOfColony);
+                return (category == "Prisoner" || category == "Slave") && (pawn.IsPrisonerOfColony || pawn.IsSlaveOfColony);
             }
 
             // Check for building-specific actionable categories
@@ -558,7 +558,7 @@ namespace RimWorldAccess
             // Handle pawn-specific actions
             if (obj is Pawn pawn)
             {
-                if (category == "Prisoner" && (pawn.IsPrisonerOfColony || pawn.IsSlaveOfColony))
+                if ((category == "Prisoner" || category == "Slave") && (pawn.IsPrisonerOfColony || pawn.IsSlaveOfColony))
                 {
                     PrisonerTabState.Open(pawn);
                     return;
