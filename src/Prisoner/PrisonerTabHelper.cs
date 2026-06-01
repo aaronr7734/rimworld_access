@@ -166,50 +166,77 @@ namespace RimWorldAccess
                 return $"{pawn.LabelShort}: Not a slave";
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"{pawn.LabelShort} - Slave");
+            sb.AppendLine($"{pawn.LabelShort} - {"TabSlave".Translate()}");
 
-            // Suppression (vanilla "Suppression")
+            // Each row mirrors a row in vanilla ITab_Pawn_Visitor.DoSlaveTab and appends that row's
+            // hover tooltip (flattened to one line) so screen reader users hear the same explanation a
+            // sighted player would see on mouseover.
+
+            // Suppression (vanilla "Suppression", tooltip "SuppressionDesc")
             if (pawn.needs.TryGetNeed(out Need_Suppression suppressionNeed))
             {
-                sb.AppendLine($". {"Suppression".Translate()}: {suppressionNeed.CurLevel.ToStringPercent()}");
+                sb.AppendLine($"{"Suppression".Translate()}: {suppressionNeed.CurLevel.ToStringPercent()}. {FlattenTooltip("SuppressionDesc".Translate())}");
             }
 
-            // Suppression Fall Rate (vanilla "SuppressionFallRate")
+            // Suppression Fall Rate (vanilla "SuppressionFallRate", tooltip "SuppressionFallRateDesc" + stat explanation)
             float fallRate = pawn.GetStatValue(StatDefOf.SlaveSuppressionFallRate);
-            sb.AppendLine($"{"SuppressionFallRate".Translate()}: {StatDefOf.SlaveSuppressionFallRate.ValueToString(fallRate)}");
+            string fallRateTip = "SuppressionFallRateDesc".Translate(
+                0.2f.ToStringPercent(), 0.3f.ToStringPercent(), 0.1f.ToStringPercent(),
+                0.15f.ToStringPercent(), 0.15f.ToStringPercent(), 0.05f.ToStringPercent(), 0.15f.ToStringPercent());
+            string fallRateExplanation = ((StatWorker_SuppressionFallRate)StatDefOf.SlaveSuppressionFallRate.Worker)
+                .GetExplanationForTooltip(StatRequest.For(pawn));
+            sb.AppendLine($"{"SuppressionFallRate".Translate()}: {StatDefOf.SlaveSuppressionFallRate.ValueToString(fallRate)}. {FlattenTooltip(fallRateTip + "\n" + fallRateExplanation)}");
 
-            // Terror (vanilla "Terror")
+            // Terror (vanilla "Terror", tooltip "TerrorDescription" + fall-rate curve + current terror thoughts)
             float terror = pawn.GetStatValue(StatDefOf.Terror);
-            sb.AppendLine($"{"Terror".Translate()}: {terror.ToStringPercent()}");
+            string terrorTip = "TerrorDescription".Translate() + ": " + TerrorUtility.SuppressionFallRateOverTerror.Points
+                .Select(p => string.Format("- {0} {1}: {2}", "Terror".Translate(), (p.x / 100f).ToStringPercent(), (p.y / 100f).ToStringPercent()))
+                .ToLineList();
+            var terrorThoughts = TerrorUtility.GetTerrorThoughts(pawn).OrderByDescending(t => t.intensity).ToList();
+            if (terrorThoughts.Any())
+            {
+                string thoughtsList = terrorThoughts.Select(t => $"{t.LabelCap}: {t.intensity}%").ToLineList("- ", capitalizeItems: true);
+                terrorTip += "\n" + "TerrorCurrentThoughts".Translate() + ": " + thoughtsList;
+            }
+            sb.AppendLine($"{"Terror".Translate()}: {terror.ToStringPercent()}. {FlattenTooltip(terrorTip)}");
 
-            // Slave Rebellion MTB (vanilla "SlaveRebellionMTBDays")
+            // Slave Rebellion MTB (vanilla "SlaveRebellionMTBDays", tooltip "SlaveRebellionMTBDaysDescription")
             string rebellionLabel = "SlaveRebellionMTBDays".Translate();
+            string rebellionValue;
             if (!pawn.Awake())
             {
-                sb.AppendLine($"{rebellionLabel}: {"NotWhileAsleep".Translate()}");
+                rebellionValue = "NotWhileAsleep".Translate();
             }
             else
             {
                 float rebellionMtb = SlaveRebellionUtility.InitiateSlaveRebellionMtbDays(pawn);
-                if (rebellionMtb < 0f)
-                {
-                    sb.AppendLine($"{rebellionLabel}: {"Never".Translate()}");
-                }
-                else
-                {
-                    string period = ((int)(rebellionMtb * 60000f)).ToStringTicksToPeriod();
-                    sb.AppendLine($"{rebellionLabel}: {period}");
-                }
+                rebellionValue = (rebellionMtb < 0f)
+                    ? "Never".Translate().ToString()
+                    : ((int)(rebellionMtb * 60000f)).ToStringTicksToPeriod();
             }
+            sb.AppendLine($"{rebellionLabel}: {rebellionValue}. {FlattenTooltip("SlaveRebellionMTBDaysDescription".Translate())}");
 
-            // Slave Price (vanilla "SlavePrice")
+            // Slave Price (vanilla "SlavePrice", tooltip "SlavePriceDescription")
             float marketValue = pawn.GetStatValue(StatDefOf.MarketValue);
-            sb.AppendLine($"{"SlavePrice".Translate()}: {marketValue.ToStringMoney()}");
+            sb.AppendLine($"{"SlavePrice".Translate()}: {marketValue.ToStringMoney()}. {FlattenTooltip("SlavePriceDescription".Translate())}");
 
-            // Release Potential Relations (vanilla "SlaveReleasePotentialRelationGains")
-            sb.AppendLine($"{"SlaveReleasePotentialRelationGains".Translate()}: {GetSlaveReleaseRelationGainsText(pawn)}");
+            // Release Potential Relations (vanilla "SlaveReleasePotentialRelationGains", tooltip "SlaveReleaseRelationGainsDesc")
+            sb.AppendLine($"{"SlaveReleasePotentialRelationGains".Translate()}: {GetSlaveReleaseRelationGainsText(pawn)}. {FlattenTooltip("SlaveReleaseRelationGainsDesc".Translate())}");
 
             return sb.ToString().TrimEnd();
+        }
+
+        /// <summary>
+        /// Flattens a multi-line game tooltip into a single line so it can be appended to one
+        /// navigable info row. Strips formatting tags and turns line breaks into sentence breaks;
+        /// SpeechSanitizer collapses any resulting redundant punctuation.
+        /// </summary>
+        private static string FlattenTooltip(string tooltip)
+        {
+            if (string.IsNullOrEmpty(tooltip))
+                return "";
+
+            return tooltip.StripTags().Replace("\r", " ").Replace("\n", ". ").Trim();
         }
 
         /// <summary>

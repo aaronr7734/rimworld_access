@@ -22,6 +22,9 @@ namespace RimWorldAccess
         private static List<PrisonerInteractionModeDef> nonExclusiveModes = new List<PrisonerInteractionModeDef>();
         private static List<SlaveInteractionModeDef> slaveModes = new List<SlaveInteractionModeDef>();
 
+        // Typeahead search across every tabbable section (see HandleTypeahead).
+        private static readonly TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
+
         public enum TabSection
         {
             Information,      // Read-only prisoner stats
@@ -68,6 +71,7 @@ namespace RimWorldAccess
             currentSection = TabSection.Information;
             selectedIndex = 0;
             ClearCachedData();
+            typeahead.ClearSearch();
 
             TolkHelper.Speak("Prisoner tab closed");
         }
@@ -390,18 +394,24 @@ namespace RimWorldAccess
                             pawnForClosure.Named("PAWN"),
                             pawnForClosure.SlaveFaction.Named("FACTION"));
 
-                        WindowlessConfirmationState.Open(
+                        // Mirror vanilla DoSlaveTab: pop the game's own Dialog_MessageBox so the
+                        // confirmation uses the standard window (announced and driven by
+                        // MessageBoxAccessibilityPatch) with the game's localized Confirm/Cancel buttons.
+                        var dialog = new Dialog_MessageBox(
                             confirmationMessage,
-                            confirmAction: () =>
+                            "Confirm".Translate(),
+                            () =>
                             {
                                 string desc = PrisonerTabHelper.GetSlaveInteractionModeDescription(pawnForClosure, mode);
-                                TolkHelper.Speak($"Selected: {mode.LabelCap}. {desc}");
+                                TolkHelper.Speak($"{mode.LabelCap}. {desc}");
                             },
-                            cancelAction: () =>
+                            "Cancel".Translate(),
+                            () =>
                             {
                                 pawnForClosure.guest.slaveInteractionMode = revertTo;
-                                TolkHelper.Speak($"Cancelled. {revertTo.LabelCap}");
+                                TolkHelper.Speak(revertTo.LabelCap);
                             });
+                        Find.WindowStack.Add(dialog);
                         return;
                     }
 
@@ -667,7 +677,12 @@ namespace RimWorldAccess
 
         private static int GetMaxIndexForCurrentSection()
         {
-            switch (currentSection)
+            return GetMaxIndexForSection(currentSection);
+        }
+
+        private static int GetMaxIndexForSection(TabSection section)
+        {
+            switch (section)
             {
                 case TabSection.Information:
                     return infoLines.Count - 1;
@@ -690,6 +705,75 @@ namespace RimWorldAccess
 
                 default:
                     return 0;
+            }
+        }
+
+        /// <summary>
+        /// Returns the label shown for a given row, used by typeahead so a search matches the same
+        /// text the user hears. Mirrors the per-section announcements in AnnounceCurrentSelection.
+        /// </summary>
+        private static string GetSectionItemLabel(TabSection section, int index)
+        {
+            switch (section)
+            {
+                case TabSection.Information:
+                    return (index >= 0 && index < infoLines.Count) ? infoLines[index] : "";
+
+                case TabSection.MedicalCare:
+                    return $"{"AllowMedicine".Translate()}: {PrisonerTabHelper.GetMedicalCareLabel(currentPawn.playerSettings.medCare)}";
+
+                case TabSection.ExclusiveModes:
+                    if (currentPawn.IsPrisonerOfColony && index >= 0 && index < exclusiveModes.Count)
+                        return exclusiveModes[index].LabelCap;
+                    if (currentPawn.IsSlaveOfColony && index >= 0 && index < slaveModes.Count)
+                        return slaveModes[index].LabelCap;
+                    return "";
+
+                case TabSection.NonExclusiveModes:
+                    return (index >= 0 && index < nonExclusiveModes.Count) ? nonExclusiveModes[index].LabelCap.ToString() : "";
+
+                default:
+                    return "";
+            }
+        }
+
+        /// <summary>
+        /// Typeahead across every tabbable section (column) of the prisoner/slave tab at once. Typing
+        /// jumps to the first matching row anywhere in the tab — an info stat, medical care, or an
+        /// interaction mode — switching the active section if the match lives elsewhere. Registered
+        /// with the dispatcher ahead of the inspection tree this tab opens over, so the tree no longer
+        /// steals the search.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!isActive || currentPawn == null)
+                return;
+
+            // Flatten all reachable rows into one searchable list, remembering each row's location.
+            var labels = new List<string>();
+            var locations = new List<KeyValuePair<TabSection, int>>();
+            foreach (TabSection section in System.Enum.GetValues(typeof(TabSection)))
+            {
+                if (!IsSectionAvailable(section))
+                    continue;
+
+                int max = GetMaxIndexForSection(section);
+                for (int i = 0; i <= max; i++)
+                {
+                    labels.Add(GetSectionItemLabel(section, i));
+                    locations.Add(new KeyValuePair<TabSection, int>(section, i));
+                }
+            }
+
+            if (typeahead.ProcessCharacterInput(c, labels, out int newIndex) && newIndex >= 0 && newIndex < locations.Count)
+            {
+                currentSection = locations[newIndex].Key;
+                selectedIndex = locations[newIndex].Value;
+                AnnounceCurrentSelection();
+            }
+            else
+            {
+                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
             }
         }
 

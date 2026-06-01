@@ -18,6 +18,9 @@ namespace RimWorldAccess
         // "period"/"comma" (e.g. a row built from "{label} . {value}" where the label's own value was
         // empty). Collapse the space(s) onto the punctuation: "Blindness . Horrible" -> "Blindness. Horrible".
         private static readonly Regex SpaceBeforePunctuationRegex = new Regex(@"[ \t]+([\.,;:])", RegexOptions.Compiled);
+        // Sentence punctuation at the very start of a line has nothing to terminate and reads as a stray
+        // "period"/"comma" (e.g. ". Suppression: 50%" from a row built with a leading separator). Drop it.
+        private static readonly Regex LeadingPunctuationRegex = new Regex(@"^[ \t]*[\.,;:]+[ \t]*", RegexOptions.Compiled);
 
         private const string EllipsisPlaceholder = "\x01ELLIPSIS\x01";
 
@@ -37,6 +40,9 @@ namespace RimWorldAccess
             text = text.Replace("...", EllipsisPlaceholder);
             text = FixBadPunctuation(text);
             text = FixDoublePeriods(text);
+            // Strip leading orphan punctuation while the ellipsis is still masked, so a legitimate
+            // leading "..." is preserved.
+            text = LeadingPunctuationRegex.Replace(text, "");
             text = text.Replace(EllipsisPlaceholder, "...");
 
             text = text.Replace("....", "...");

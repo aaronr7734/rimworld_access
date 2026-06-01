@@ -148,6 +148,9 @@ namespace RimWorldAccess
             TypeaheadDispatcher.Register(0.33, () => LordJobDialogState.IsActive, c => LordJobDialogState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(0.34, () => DryadCasteState.IsActive, c => DryadCasteState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(4.62, () => EntityTabState.IsActive, c => EntityTabState.HandleTypeahead(c));
+            // Prisoner/Slave tab opens OVER the inspection tree (which stays active at 4.806). Register
+            // lower so its cross-section typeahead wins; otherwise the tree beneath steals the search.
+            TypeaheadDispatcher.Register(4.61, () => PrisonerTabState.IsActive, c => PrisonerTabState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(4.63, () => AnomalySettingsDialogState.IsActive, c => AnomalySettingsDialogState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(4.64, () => EntityCodexState.IsActive, c => EntityCodexState.HandleTypeahead(c));
             // bool-returning HandleTypeahead methods — wrapped in a void lambda.
