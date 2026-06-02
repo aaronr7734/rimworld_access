@@ -3,11 +3,7 @@ RimWorld Access - Changelog for Aaron's Unofficial Patch
 
 CHANGES
 -------
-- The Slave tab on a slave's inspection screen now opens with Enter. Previously
-  nothing happened. You can read suppression, terror, rebellion likelihood, and
-  set the slave's interaction mode (suppress, imprison, emancipate, execute),
-  the same as the prisoner tab. Requires the Ideology DLC.
-
+- The slave tab is now properly wired. It was built, but not actually connected to the button!
 05/31/2026
 
 CHANGES
