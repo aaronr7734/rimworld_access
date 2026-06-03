@@ -559,4 +559,169 @@
   <RimWorldAccess.Building.Shelf.DialogDontLink>Don't Link</RimWorldAccess.Building.Shelf.DialogDontLink>
   <RimWorldAccess.Building.Shelf.DialogTitle>Storage Linking</RimWorldAccess.Building.Shelf.DialogTitle>
 
+  <!-- Viewing mode announcer (src/Building/ViewingModeAnnouncer.cs).
+       Pure announcement-composition for ViewingModeState's post-placement preview.
+       ViewingModeState speaks the announcer's return values verbatim (it does NOT
+       re-wrap them), so every fragment the announcer returns is resolved here.
+
+       Composition: the four entry branches (order / zone / area / build) each build
+       a "Viewing mode" prefix + body parts joined by the AnnouncementBuilder, which
+       owns the separators and trailing period. Fragments below therefore carry NO
+       trailing punctuation and NO newline separators. The one exception is
+       SegmentSuffix, which is concatenated INTO a body part (not added as its own
+       part), so it keeps its leading space and parentheses on purpose.
+
+       Placeholder meaning is consistent across keys:
+         {0} count, OR a designator/area/zone label, OR a shape-size string ("7 by 4")
+       Read each value to see the exact order; multi-arg keys note it inline.
+
+       One/Many splits (no-glue rule - whole phrase per agreement case):
+         CellsBlocked(By) cell / cells; Blocked(By) (build) singular/plural;
+         AllCellsBlockedBy cell / cells; ZonesCreatedList zone / zones;
+         EnclosureGapSuffix / EnclosureTotalGapSuffix gap / gaps;
+         TerrainTiles tile / tiles; MoreInGroups / MoreItemsInGroupsSuffix /
+         ItemsInGroups group / groups. The branch in C# picks the key by count==1.
+
+       Vanilla-noun note: shape SIZE strings ("7 by 4", "12 cells") come from the
+       already-localized RimWorldAccess.Building.Shape.Size* keys via
+       ShapeHelper.FormatShapeSize - not duplicated here. Zone-type nouns here are a
+       distinct lowercase-in-sentence form ("stockpile zone created"); the capitalized
+       menu-label forms live under Building.Shape.Name.* / Building.Create.Zone*.
+
+       List joining: ListTwo / ListMany hold the conjunction so "and" never appears as
+       a bare glue particle. CountLabel is the universal "{0} {1}" count+noun fragment.
+
+       Game-data note: the English .Contains() zone/area-label matching in
+       GetZoneTypeName / GetBuiltInAreaName only fires for English game data and falls
+       through to the Generic / game-label path otherwise (TODO-comment pattern). The
+       category-name and stripped game-label fallbacks deliberately surface the game's
+       own text for mod compatibility and are not keyed. -->
+
+  <!-- Prefix and shared composition -->
+  <RimWorldAccess.Building.Announcer.ViewingMode>Viewing mode</RimWorldAccess.Building.Announcer.ViewingMode>
+  <RimWorldAccess.Building.Announcer.SegmentSuffix> ({0})</RimWorldAccess.Building.Announcer.SegmentSuffix>
+  <RimWorldAccess.Building.Announcer.CountLabel>{0} {1}</RimWorldAccess.Building.Announcer.CountLabel>
+  <RimWorldAccess.Building.Announcer.ListTwo>{0} and {1}</RimWorldAccess.Building.Announcer.ListTwo>
+  <RimWorldAccess.Building.Announcer.ListMany>{0}, and {1}</RimWorldAccess.Building.Announcer.ListMany>
+
+  <!-- Control hints (joined with commas by the announcer) -->
+  <RimWorldAccess.Building.Announcer.HintNavigateTargets>Page Up/Down to navigate targets</RimWorldAccess.Building.Announcer.HintNavigateTargets>
+  <RimWorldAccess.Building.Announcer.HintNavigateObstacles>Page Up/Down to navigate obstacles</RimWorldAccess.Building.Announcer.HintNavigateObstacles>
+  <RimWorldAccess.Building.Announcer.HintAddShape>Equals to add another shape</RimWorldAccess.Building.Announcer.HintAddShape>
+  <RimWorldAccess.Building.Announcer.HintUndoLast>Minus to undo last</RimWorldAccess.Building.Announcer.HintUndoLast>
+  <RimWorldAccess.Building.Announcer.HintConfirm>Enter to confirm</RimWorldAccess.Building.Announcer.HintConfirm>
+
+  <!-- Order designator entry. {0}=designator label, then shape size and/or target list -->
+  <RimWorldAccess.Building.Announcer.OrderFallback>Order</RimWorldAccess.Building.Announcer.OrderFallback>
+  <RimWorldAccess.Building.Announcer.OrderOnTargeting>{0} order on {1}, targeting {2}</RimWorldAccess.Building.Announcer.OrderOnTargeting>
+  <RimWorldAccess.Building.Announcer.OrderTargeting>{0} order targeting {1}</RimWorldAccess.Building.Announcer.OrderTargeting>
+  <RimWorldAccess.Building.Announcer.OrderOn>{0} order on {1}</RimWorldAccess.Building.Announcer.OrderOn>
+  <RimWorldAccess.Building.Announcer.OrderDesignations>{0} {1} designations</RimWorldAccess.Building.Announcer.OrderDesignations>
+
+  <!-- Order target list grouping. {0}=item count, {1}=group count -->
+  <RimWorldAccess.Building.Announcer.UnknownTarget>Unknown</RimWorldAccess.Building.Announcer.UnknownTarget>
+  <RimWorldAccess.Building.Announcer.TileFallback>tile</RimWorldAccess.Building.Announcer.TileFallback>
+  <RimWorldAccess.Building.Announcer.MoreItemsInGroupsSuffixOne>, and {0} more items in {1} smaller group</RimWorldAccess.Building.Announcer.MoreItemsInGroupsSuffixOne>
+  <RimWorldAccess.Building.Announcer.MoreItemsInGroupsSuffixMany>, and {0} more items in {1} smaller groups</RimWorldAccess.Building.Announcer.MoreItemsInGroupsSuffixMany>
+  <RimWorldAccess.Building.Announcer.ItemsInGroupsOne>{0} items in {1} group</RimWorldAccess.Building.Announcer.ItemsInGroupsOne>
+  <RimWorldAccess.Building.Announcer.ItemsInGroupsMany>{0} items in {1} groups</RimWorldAccess.Building.Announcer.ItemsInGroupsMany>
+
+  <!-- Zone designator entry. zoneName ({1}/{0}) is a lowercase-in-sentence noun from ZoneType.* -->
+  <RimWorldAccess.Building.Announcer.RemovedFromZone>Removed {0} from zone</RimWorldAccess.Building.Announcer.RemovedFromZone>
+  <RimWorldAccess.Building.Announcer.NoZoneCellsRemoved>No zone cells removed</RimWorldAccess.Building.Announcer.NoZoneCellsRemoved>
+  <RimWorldAccess.Building.Announcer.NoZoneCellsPlaced>No zone cells placed</RimWorldAccess.Building.Announcer.NoZoneCellsPlaced>
+  <RimWorldAccess.Building.Announcer.ZoneCreated>{0} {1} zone created</RimWorldAccess.Building.Announcer.ZoneCreated>
+  <RimWorldAccess.Building.Announcer.ZoneExpandedBy>{0} zone expanded by {1}</RimWorldAccess.Building.Announcer.ZoneExpandedBy>
+  <RimWorldAccess.Building.Announcer.ZonesCreatedListOne>{0} {1} zone created: {2}</RimWorldAccess.Building.Announcer.ZonesCreatedListOne>
+  <RimWorldAccess.Building.Announcer.ZonesCreatedListMany>{0} {1} zones created: {2}</RimWorldAccess.Building.Announcer.ZonesCreatedListMany>
+
+  <!-- "blocked" clauses. {0}=count, {1}=obstacle summary -->
+  <RimWorldAccess.Building.Announcer.CellsBlockedByOne>, {0} cell blocked by {1}</RimWorldAccess.Building.Announcer.CellsBlockedByOne>
+  <RimWorldAccess.Building.Announcer.CellsBlockedByMany>, {0} cells blocked by {1}</RimWorldAccess.Building.Announcer.CellsBlockedByMany>
+  <RimWorldAccess.Building.Announcer.CellsBlockedOne>, {0} cell blocked</RimWorldAccess.Building.Announcer.CellsBlockedOne>
+  <RimWorldAccess.Building.Announcer.CellsBlockedMany>, {0} cells blocked</RimWorldAccess.Building.Announcer.CellsBlockedMany>
+  <RimWorldAccess.Building.Announcer.AllCellsBlockedByOne>All {0} cell blocked by {1}</RimWorldAccess.Building.Announcer.AllCellsBlockedByOne>
+  <RimWorldAccess.Building.Announcer.AllCellsBlockedByMany>All {0} cells blocked by {1}</RimWorldAccess.Building.Announcer.AllCellsBlockedByMany>
+
+  <!-- Zone-type nouns (lowercase-in-sentence) -->
+  <RimWorldAccess.Building.Announcer.ZoneType.Stockpile>stockpile</RimWorldAccess.Building.Announcer.ZoneType.Stockpile>
+  <RimWorldAccess.Building.Announcer.ZoneType.Growing>growing</RimWorldAccess.Building.Announcer.ZoneType.Growing>
+  <RimWorldAccess.Building.Announcer.ZoneType.Dumping>dumping</RimWorldAccess.Building.Announcer.ZoneType.Dumping>
+  <RimWorldAccess.Building.Announcer.ZoneType.Fishing>fishing</RimWorldAccess.Building.Announcer.ZoneType.Fishing>
+  <RimWorldAccess.Building.Announcer.ZoneType.Generic>zone</RimWorldAccess.Building.Announcer.ZoneType.Generic>
+
+  <!-- Zone-blocking obstacle labels (single cell, fed into the counted list) -->
+  <RimWorldAccess.Building.Announcer.UnbuiltSuffix>{0} (unbuilt)</RimWorldAccess.Building.Announcer.UnbuiltSuffix>
+  <RimWorldAccess.Building.Announcer.StructureFallback>structure</RimWorldAccess.Building.Announcer.StructureFallback>
+  <RimWorldAccess.Building.Announcer.ExistingZone>existing {0}</RimWorldAccess.Building.Announcer.ExistingZone>
+  <RimWorldAccess.Building.Announcer.EdgeArea>edge area</RimWorldAccess.Building.Announcer.EdgeArea>
+  <RimWorldAccess.Building.Announcer.FogOfWar>fog of war</RimWorldAccess.Building.Announcer.FogOfWar>
+  <RimWorldAccess.Building.Announcer.TerrainFallback>terrain</RimWorldAccess.Building.Announcer.TerrainFallback>
+  <RimWorldAccess.Building.Announcer.UnknownTerrain>unknown terrain</RimWorldAccess.Building.Announcer.UnknownTerrain>
+  <RimWorldAccess.Building.Announcer.BlockedCell>blocked cell</RimWorldAccess.Building.Announcer.BlockedCell>
+
+  <!-- Area designator entry. {0}=area name, {1}=size (Allowed); {0}=size, {1}=area name (BuiltIn) -->
+  <RimWorldAccess.Building.Announcer.AreaFallback>area</RimWorldAccess.Building.Announcer.AreaFallback>
+  <RimWorldAccess.Building.Announcer.AllowedAreaExpanded>Expanded {0} by {1}</RimWorldAccess.Building.Announcer.AllowedAreaExpanded>
+  <RimWorldAccess.Building.Announcer.AllowedAreaCleared>Cleared {0} by {1}</RimWorldAccess.Building.Announcer.AllowedAreaCleared>
+  <RimWorldAccess.Building.Announcer.BuiltInAreaMarked>Marked {0} for {1}</RimWorldAccess.Building.Announcer.BuiltInAreaMarked>
+  <RimWorldAccess.Building.Announcer.BuiltInAreaUnmarked>Unmarked {0} from {1}</RimWorldAccess.Building.Announcer.BuiltInAreaUnmarked>
+  <RimWorldAccess.Building.Announcer.NoAreaCellsExpanded>No area cells expanded</RimWorldAccess.Building.Announcer.NoAreaCellsExpanded>
+  <RimWorldAccess.Building.Announcer.NoAreaCellsCleared>No area cells cleared</RimWorldAccess.Building.Announcer.NoAreaCellsCleared>
+  <RimWorldAccess.Building.Announcer.NoAreaCellsMarked>No area cells marked</RimWorldAccess.Building.Announcer.NoAreaCellsMarked>
+  <RimWorldAccess.Building.Announcer.NoAreaCellsUnmarked>No area cells unmarked</RimWorldAccess.Building.Announcer.NoAreaCellsUnmarked>
+
+  <!-- Built-in area names (only used when the game's own label is empty) -->
+  <RimWorldAccess.Building.Announcer.BuiltInArea.SnowSand>snow and sand removal</RimWorldAccess.Building.Announcer.BuiltInArea.SnowSand>
+  <RimWorldAccess.Building.Announcer.BuiltInArea.Home>home area</RimWorldAccess.Building.Announcer.BuiltInArea.Home>
+  <RimWorldAccess.Building.Announcer.BuiltInArea.BuildRoof>build roof area</RimWorldAccess.Building.Announcer.BuiltInArea.BuildRoof>
+  <RimWorldAccess.Building.Announcer.BuiltInArea.NoRoof>no roof area</RimWorldAccess.Building.Announcer.BuiltInArea.NoRoof>
+  <RimWorldAccess.Building.Announcer.BuiltInArea.IgnoreRoof>roof areas</RimWorldAccess.Building.Announcer.BuiltInArea.IgnoreRoof>
+  <RimWorldAccess.Building.Announcer.BuiltInArea.PollutionClear>pollution clear area</RimWorldAccess.Building.Announcer.BuiltInArea.PollutionClear>
+
+  <!-- Build designator entry. {0}=placed size, {1}=total intended, {2}=plural label, {3}=cost suffix -->
+  <RimWorldAccess.Building.Announcer.BlueprintsFallback>blueprints</RimWorldAccess.Building.Announcer.BlueprintsFallback>
+  <RimWorldAccess.Building.Announcer.PlacedOfTotal>Placed {0} of {1} {2}{3}</RimWorldAccess.Building.Announcer.PlacedOfTotal>
+  <RimWorldAccess.Building.Announcer.AllBlockedBy>All blocked by {0}</RimWorldAccess.Building.Announcer.AllBlockedBy>
+
+  <!-- Build "blocked" clauses (no "cells" noun - count is of blueprints). {0}=count, {1}=summary -->
+  <RimWorldAccess.Building.Announcer.BlockedByOne>, {0} blocked by {1}</RimWorldAccess.Building.Announcer.BlockedByOne>
+  <RimWorldAccess.Building.Announcer.BlockedByMany>, {0} blocked by {1}</RimWorldAccess.Building.Announcer.BlockedByMany>
+  <RimWorldAccess.Building.Announcer.BlockedOne>, {0} blocked</RimWorldAccess.Building.Announcer.BlockedOne>
+  <RimWorldAccess.Building.Announcer.BlockedMany>, {0} blocked</RimWorldAccess.Building.Announcer.BlockedMany>
+
+  <!-- Build obstacle single-cell labels -->
+  <RimWorldAccess.Building.Announcer.ObstacleFallback>obstacle</RimWorldAccess.Building.Announcer.ObstacleFallback>
+  <RimWorldAccess.Building.Announcer.BlueprintObstacle>blueprint</RimWorldAccess.Building.Announcer.BlueprintObstacle>
+  <RimWorldAccess.Building.Announcer.ItemObstacle>item</RimWorldAccess.Building.Announcer.ItemObstacle>
+
+  <!-- Enclosure clauses. {0}=size, {1}=contents (containing forms); {0}=gap count (suffixes) -->
+  <RimWorldAccess.Building.Announcer.EnclosureFormed>{0} enclosure formed</RimWorldAccess.Building.Announcer.EnclosureFormed>
+  <RimWorldAccess.Building.Announcer.EnclosureFormedContaining>{0} enclosure formed containing {1}</RimWorldAccess.Building.Announcer.EnclosureFormedContaining>
+  <RimWorldAccess.Building.Announcer.EnclosureSizeContaining>{0} containing {1}</RimWorldAccess.Building.Announcer.EnclosureSizeContaining>
+  <RimWorldAccess.Building.Announcer.EnclosureGapSuffixOne>, but has {0} gap</RimWorldAccess.Building.Announcer.EnclosureGapSuffixOne>
+  <RimWorldAccess.Building.Announcer.EnclosureGapSuffixMany>, but has {0} gaps</RimWorldAccess.Building.Announcer.EnclosureGapSuffixMany>
+  <RimWorldAccess.Building.Announcer.EnclosuresFormedList>{0} enclosures formed: {1}</RimWorldAccess.Building.Announcer.EnclosuresFormedList>
+  <RimWorldAccess.Building.Announcer.EnclosureTotalGapSuffixOne>, but {0} gap total</RimWorldAccess.Building.Announcer.EnclosureTotalGapSuffixOne>
+  <RimWorldAccess.Building.Announcer.EnclosureTotalGapSuffixMany>, but {0} gaps total</RimWorldAccess.Building.Announcer.EnclosureTotalGapSuffixMany>
+
+  <!-- Meditation/tree protection hint (the summary itself comes from MeditationProtectionHelper) -->
+
+  <!-- Counted-list formatting (FormatCountedList). {0}=item count, {1}=group count -->
+  <RimWorldAccess.Building.Announcer.TerrainTilesOne>{0} {1} tile</RimWorldAccess.Building.Announcer.TerrainTilesOne>
+  <RimWorldAccess.Building.Announcer.TerrainTilesMany>{0} {1} tiles</RimWorldAccess.Building.Announcer.TerrainTilesMany>
+  <RimWorldAccess.Building.Announcer.MoreInGroupsOne>{0} more in {1} smaller group</RimWorldAccess.Building.Announcer.MoreInGroupsOne>
+  <RimWorldAccess.Building.Announcer.MoreInGroupsMany>{0} more in {1} smaller groups</RimWorldAccess.Building.Announcer.MoreInGroupsMany>
+
+  <!-- Shape display names (lowercase-in-sentence; distinct from the capitalized
+       Building.Shape.Name.* menu labels because these are pluralized and embedded mid-sentence) -->
+  <RimWorldAccess.Building.Announcer.ShapeName.Manual>manual placement</RimWorldAccess.Building.Announcer.ShapeName.Manual>
+  <RimWorldAccess.Building.Announcer.ShapeName.Line>line</RimWorldAccess.Building.Announcer.ShapeName.Line>
+  <RimWorldAccess.Building.Announcer.ShapeName.AngledLine>angled line</RimWorldAccess.Building.Announcer.ShapeName.AngledLine>
+  <RimWorldAccess.Building.Announcer.ShapeName.FilledRectangle>filled rectangle</RimWorldAccess.Building.Announcer.ShapeName.FilledRectangle>
+  <RimWorldAccess.Building.Announcer.ShapeName.EmptyRectangle>empty rectangle</RimWorldAccess.Building.Announcer.ShapeName.EmptyRectangle>
+  <RimWorldAccess.Building.Announcer.ShapeName.FilledOval>filled oval</RimWorldAccess.Building.Announcer.ShapeName.FilledOval>
+  <RimWorldAccess.Building.Announcer.ShapeName.EmptyOval>empty oval</RimWorldAccess.Building.Announcer.ShapeName.EmptyOval>
+  <RimWorldAccess.Building.Announcer.ShapeName.Generic>shape</RimWorldAccess.Building.Announcer.ShapeName.Generic>
+
 </LanguageData>

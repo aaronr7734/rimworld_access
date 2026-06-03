@@ -71,7 +71,9 @@ namespace RimWorldAccess
         {
             // Use shape type counts for multi-segment, empty for single segment
             string shapeInfo = FormatShapeTypeCounts(segmentShapeTypes);
-            string segmentInfo = !string.IsNullOrEmpty(shapeInfo) ? $" ({shapeInfo})" : "";
+            string segmentInfo = !string.IsNullOrEmpty(shapeInfo)
+                ? (string)"RimWorldAccess.Building.Announcer.SegmentSuffix".Translate(shapeInfo)
+                : "";
 
             if (isOrderDesignator)
             {
@@ -79,7 +81,7 @@ namespace RimWorldAccess
                 // Format: "Hunt order in 7 by 4 area, targeting 2 deer, 1 fox"
                 string targetSummary = BuildOrderTargetList(designator, orderTargets, orderTargetCells);
                 int targetCount = orderTargets.Count + orderTargetCells.Count;
-                string designatorLabel = designator?.Label ?? "Order";
+                string designatorLabel = designator?.Label ?? (string)"RimWorldAccess.Building.Announcer.OrderFallback".Translate();
 
                 // Use shape-aware formatting for the cells (dimensions when possible)
                 string shapeSize = "";
@@ -91,37 +93,37 @@ namespace RimWorldAccess
                 var hints = new List<string>();
                 if (targetCount > 0)
                 {
-                    hints.Add("Page Up/Down to navigate targets");
+                    hints.Add("RimWorldAccess.Building.Announcer.HintNavigateTargets".Translate());
                 }
-                hints.Add("Equals to add another shape");
-                hints.Add("Minus to undo last");
-                hints.Add("Enter to confirm");
-                string hintsStr = string.Join(", ", hints);
+                hints.Add("RimWorldAccess.Building.Announcer.HintAddShape".Translate());
+                hints.Add("RimWorldAccess.Building.Announcer.HintUndoLast".Translate());
+                hints.Add("RimWorldAccess.Building.Announcer.HintConfirm".Translate());
+                string hintsStr = JoinHints(hints);
 
                 // Build the announcement with clear structure
                 string mainPart;
                 if (!string.IsNullOrEmpty(shapeSize) && !string.IsNullOrEmpty(targetSummary))
                 {
                     // "Hunt order on 7 by 4, targeting 2 deer and 1 fox"
-                    mainPart = $"{designatorLabel} order on {shapeSize}, targeting {targetSummary}";
+                    mainPart = "RimWorldAccess.Building.Announcer.OrderOnTargeting".Translate(designatorLabel, shapeSize, targetSummary);
                 }
                 else if (!string.IsNullOrEmpty(targetSummary))
                 {
                     // No shape info, just targets: "Hunt order targeting 2 deer and 1 fox"
-                    mainPart = $"{designatorLabel} order targeting {targetSummary}";
+                    mainPart = "RimWorldAccess.Building.Announcer.OrderTargeting".Translate(designatorLabel, targetSummary);
                 }
                 else if (!string.IsNullOrEmpty(shapeSize))
                 {
                     // Shape but no targets: "Hunt order on 7 by 4"
-                    mainPart = $"{designatorLabel} order on {shapeSize}";
+                    mainPart = "RimWorldAccess.Building.Announcer.OrderOn".Translate(designatorLabel, shapeSize);
                 }
                 else
                 {
                     // Fallback
-                    mainPart = $"{totalPlaced} {designatorLabel} designations";
+                    mainPart = "RimWorldAccess.Building.Announcer.OrderDesignations".Translate(totalPlaced, designatorLabel);
                 }
 
-                return $"Viewing mode. {mainPart}{segmentInfo}. {hintsStr}.";
+                return BuildViewingModeAnnouncement(new List<string> { mainPart + segmentInfo, hintsStr });
             }
             else if (isAreaDesignator || isBuiltInAreaDesignator)
             {
@@ -166,7 +168,7 @@ namespace RimWorldAccess
             foreach (Thing thing in orderTargets)
             {
                 // Use LabelShort to exclude condition percentages for proper grouping
-                string label = thing.LabelShort ?? thing.def?.label ?? "Unknown";
+                string label = thing.LabelShort ?? thing.def?.label ?? (string)"RimWorldAccess.Building.Announcer.UnknownTarget".Translate();
                 if (thingCounts.ContainsKey(label))
                     thingCounts[label]++;
                 else
@@ -185,12 +187,12 @@ namespace RimWorldAccess
                     if (edifice != null)
                     {
                         // Use LabelShort to exclude condition percentages for proper grouping
-                        label = edifice.LabelShort ?? edifice.def?.label ?? "Unknown";
+                        label = edifice.LabelShort ?? edifice.def?.label ?? (string)"RimWorldAccess.Building.Announcer.UnknownTarget".Translate();
                     }
                     else
                     {
                         TerrainDef terrain = cell.GetTerrain(map);
-                        label = terrain?.label ?? "tile";
+                        label = terrain?.label ?? (string)"RimWorldAccess.Building.Announcer.TileFallback".Translate();
                     }
 
                     if (thingCounts.ContainsKey(label))
@@ -219,7 +221,7 @@ namespace RimWorldAccess
                     string label = kvp.Value > 1
                         ? ArchitectHelper.PluralizePreservingParentheses(kvp.Key, kvp.Value)
                         : kvp.Key;
-                    significantParts.Add($"{kvp.Value} {label}");
+                    significantParts.Add("RimWorldAccess.Building.Announcer.CountLabel".Translate(kvp.Value, label));
                 }
                 else
                 {
@@ -229,36 +231,22 @@ namespace RimWorldAccess
             }
 
             // Format list with "and" before last item: "3 oak trees, 2 poplar trees, and 1 birch tree"
-            string result;
-            if (significantParts.Count == 0)
-            {
-                result = "";
-            }
-            else if (significantParts.Count == 1)
-            {
-                result = significantParts[0];
-            }
-            else if (significantParts.Count == 2)
-            {
-                result = $"{significantParts[0]} and {significantParts[1]}";
-            }
-            else
-            {
-                result = string.Join(", ", significantParts.Take(significantParts.Count - 1))
-                    + ", and " + significantParts[significantParts.Count - 1];
-            }
+            string result = JoinWithAnd(significantParts);
 
             if (smallGroupCount > 0)
             {
-                string itemWord = smallGroupItems == 1 ? "item" : "items";
-                string groupWord = smallGroupCount == 1 ? "group" : "groups";
                 if (significantParts.Count > 0)
                 {
-                    result += $", and {smallGroupItems} more {itemWord} in {smallGroupCount} smaller {groupWord}";
+                    // ", and N more items in M smaller groups" - One/Many on the group count
+                    result += (smallGroupCount == 1
+                        ? "RimWorldAccess.Building.Announcer.MoreItemsInGroupsSuffixOne"
+                        : "RimWorldAccess.Building.Announcer.MoreItemsInGroupsSuffixMany").Translate(smallGroupItems, smallGroupCount);
                 }
                 else
                 {
-                    result = $"{smallGroupItems} {itemWord} in {smallGroupCount} {groupWord}";
+                    result = (smallGroupCount == 1
+                        ? "RimWorldAccess.Building.Announcer.ItemsInGroupsOne"
+                        : "RimWorldAccess.Building.Announcer.ItemsInGroupsMany").Translate(smallGroupItems, smallGroupCount);
                 }
             }
 
@@ -307,19 +295,19 @@ namespace RimWorldAccess
                         ? lastSegmentCells
                         : placedCells;
                     string sizeString = ShapeHelper.FormatShapeSize(cellsForSize);
-                    parts.Add($"Removed {sizeString} from zone{segmentInfo}");
+                    parts.Add("RimWorldAccess.Building.Announcer.RemovedFromZone".Translate(sizeString) + segmentInfo);
                 }
                 else
                 {
-                    parts.Add($"No zone cells removed{segmentInfo}");
+                    parts.Add((string)"RimWorldAccess.Building.Announcer.NoZoneCellsRemoved".Translate() + segmentInfo);
                 }
 
-                parts.Add("Equals to add another shape, Minus to undo last, Enter to confirm");
-                return $"Viewing mode. {string.Join(". ", parts)}.";
+                parts.Add(DefaultEditHints());
+                return BuildViewingModeAnnouncement(parts);
             }
 
-            // Get zone type label from designator
-            string zoneName = GetZoneTypeName(designator, targetZone, createdZones).ToLower();
+            // Get zone type label from designator (already returns a lowercase-in-sentence noun)
+            string zoneName = GetZoneTypeName(designator, targetZone, createdZones);
 
             // Get blocking obstacle summary using zone-specific detection
             string blockingObstacleSummary = GetZoneBlockingObstacleSummary(obstacleCells);
@@ -338,11 +326,15 @@ namespace RimWorldAccess
             {
                 if (!string.IsNullOrEmpty(blockingObstacleSummary))
                 {
-                    blockedPart = $", {obstacleCells.Count} cells blocked by {blockingObstacleSummary}";
+                    blockedPart = (obstacleCells.Count == 1
+                        ? "RimWorldAccess.Building.Announcer.CellsBlockedByOne"
+                        : "RimWorldAccess.Building.Announcer.CellsBlockedByMany").Translate(obstacleCells.Count, blockingObstacleSummary);
                 }
                 else
                 {
-                    blockedPart = $", {obstacleCells.Count} cells blocked";
+                    blockedPart = (obstacleCells.Count == 1
+                        ? "RimWorldAccess.Building.Announcer.CellsBlockedOne"
+                        : "RimWorldAccess.Building.Announcer.CellsBlockedMany").Translate(obstacleCells.Count);
                 }
             }
 
@@ -359,8 +351,11 @@ namespace RimWorldAccess
                         string sizeStr = ShapeHelper.FormatShapeSize(zoneCells);
                         zoneSizes.Add(sizeStr);
                     }
-                    string zoneWord = actualZoneCount == 1 ? "zone" : "zones";
-                    parts.Add($"{actualZoneCount} {zoneName} {zoneWord} created: {string.Join(", ", zoneSizes)}{blockedPart}{segmentInfo}");
+                    string sizesList = string.Join(", ", zoneSizes);
+                    parts.Add((actualZoneCount == 1
+                        ? "RimWorldAccess.Building.Announcer.ZonesCreatedListOne"
+                        : "RimWorldAccess.Building.Announcer.ZonesCreatedListMany").Translate(actualZoneCount, zoneName, sizesList)
+                        + blockedPart + segmentInfo);
                 }
                 else if (wasZoneExpansion)
                 {
@@ -370,23 +365,27 @@ namespace RimWorldAccess
                         ? lastSegmentCells
                         : placedCells;
                     string sizeString = ShapeHelper.FormatShapeSize(cellsForSize);
-                    parts.Add($"{zoneName} zone expanded by {sizeString}{blockedPart}{segmentInfo}");
+                    parts.Add((string)"RimWorldAccess.Building.Announcer.ZoneExpandedBy".Translate(zoneName, sizeString)
+                        + blockedPart + segmentInfo);
                 }
                 else
                 {
                     // Single zone creation
                     string sizeString = ShapeHelper.FormatShapeSize(placedCells);
-                    parts.Add($"{sizeString} {zoneName} zone created{blockedPart}{segmentInfo}");
+                    parts.Add((string)"RimWorldAccess.Building.Announcer.ZoneCreated".Translate(sizeString, zoneName)
+                        + blockedPart + segmentInfo);
                 }
             }
             else
             {
                 // No cells placed - all blocked
-                parts.Add($"No zone cells placed{segmentInfo}");
+                parts.Add((string)"RimWorldAccess.Building.Announcer.NoZoneCellsPlaced".Translate() + segmentInfo);
 
                 if (obstacleCells.Count > 0 && !string.IsNullOrEmpty(blockingObstacleSummary))
                 {
-                    parts.Add($"All {obstacleCells.Count} cells blocked by {blockingObstacleSummary}");
+                    parts.Add((obstacleCells.Count == 1
+                        ? "RimWorldAccess.Building.Announcer.AllCellsBlockedByOne"
+                        : "RimWorldAccess.Building.Announcer.AllCellsBlockedByMany").Translate(obstacleCells.Count, blockingObstacleSummary));
                 }
             }
 
@@ -394,14 +393,14 @@ namespace RimWorldAccess
             var hints = new List<string>();
             if (obstacleCells.Count > 0)
             {
-                hints.Add("Page Up/Down to navigate obstacles");
+                hints.Add("RimWorldAccess.Building.Announcer.HintNavigateObstacles".Translate());
             }
-            hints.Add("Equals to add another shape");
-            hints.Add("Minus to undo last");
-            hints.Add("Enter to confirm");
-            parts.Add(string.Join(", ", hints));
+            hints.Add("RimWorldAccess.Building.Announcer.HintAddShape".Translate());
+            hints.Add("RimWorldAccess.Building.Announcer.HintUndoLast".Translate());
+            hints.Add("RimWorldAccess.Building.Announcer.HintConfirm".Translate());
+            parts.Add(JoinHints(hints));
 
-            return $"Viewing mode. {string.Join(". ", parts)}.";
+            return BuildViewingModeAnnouncement(parts);
         }
 
         /// <summary>
@@ -413,18 +412,16 @@ namespace RimWorldAccess
         {
             // First, try to get the zone type from the actual target zone
             // This is more reliable for expand/shrink operations where the designator
-            // label is generic (e.g., "Expand zone") but the zone has a specific type
+            // label is generic (e.g., "Expand zone") but the zone has a specific type.
+            // NOTE: substring matches below run against English game labels (zone.label /
+            // designator.Label). They only fire for English game data and fall through to
+            // the generic key otherwise - matching the TODO-pattern used elsewhere in Building.
+            // TODO: detect zone type by class/def identity instead of English label matching.
             if (targetZone != null && !string.IsNullOrEmpty(targetZone.label))
             {
-                string zoneLabel = targetZone.label.ToLower();
-                if (zoneLabel.Contains("stockpile"))
-                    return "Stockpile";
-                if (zoneLabel.Contains("growing"))
-                    return "Growing";
-                if (zoneLabel.Contains("dumping"))
-                    return "Dumping";
-                if (zoneLabel.Contains("fishing"))
-                    return "Fishing";
+                string match = ZoneTypeKeyFromLabel(targetZone.label);
+                if (match != null)
+                    return match;
             }
 
             // Also check createdZones if targetZone isn't set yet
@@ -433,49 +430,57 @@ namespace RimWorldAccess
                 Zone firstZone = createdZones.First();
                 if (firstZone != null && !string.IsNullOrEmpty(firstZone.label))
                 {
-                    string zoneLabel = firstZone.label.ToLower();
-                    if (zoneLabel.Contains("stockpile"))
-                        return "Stockpile";
-                    if (zoneLabel.Contains("growing"))
-                        return "Growing";
-                    if (zoneLabel.Contains("dumping"))
-                        return "Dumping";
-                    if (zoneLabel.Contains("fishing"))
-                        return "Fishing";
+                    string match = ZoneTypeKeyFromLabel(firstZone.label);
+                    if (match != null)
+                        return match;
                 }
             }
 
             // Fall back to designator label for zone creation (not expand/shrink)
             if (designator == null)
-                return "Zone";
+                return "RimWorldAccess.Building.Announcer.ZoneType.Generic".Translate();
 
             string label = designator.Label;
             if (!string.IsNullOrEmpty(label))
             {
                 // Common patterns: "Create stockpile zone", "Create growing zone"
-                // Extract just the zone type
-                string lowerLabel = label.ToLower();
-                if (lowerLabel.Contains("stockpile"))
-                    return "Stockpile";
-                if (lowerLabel.Contains("growing"))
-                    return "Growing";
-                if (lowerLabel.Contains("dumping"))
-                    return "Dumping";
-                if (lowerLabel.Contains("fishing"))
-                    return "Fishing";
+                string typeMatch = ZoneTypeKeyFromLabel(label);
+                if (typeMatch != null)
+                    return typeMatch;
 
                 // For expand/shrink operations, the label is just "Expand zone" or "Shrink zone"
                 // which doesn't have a zone type - so fall through to generic "Zone"
+                string lowerLabel = label.ToLower();
                 if (lowerLabel.Contains("expand") || lowerLabel.Contains("shrink"))
-                    return "Zone";
+                    return "RimWorldAccess.Building.Announcer.ZoneType.Generic".Translate();
 
-                // Fallback to the label with some cleanup (for zone creation)
+                // Fallback to the game's own label with some cleanup (for unknown/modded zones).
+                // Surfacing the game label keeps mod compatibility; no localization possible here.
                 label = label.Replace("Create ", "").Replace(" zone", "");
                 if (!string.IsNullOrEmpty(label))
                     return char.ToUpper(label[0]) + label.Substring(1);
             }
 
-            return "Zone";
+            return "RimWorldAccess.Building.Announcer.ZoneType.Generic".Translate();
+        }
+
+        /// <summary>
+        /// Maps an English game zone label to a localized lowercase-in-sentence zone-type noun,
+        /// or null if the label doesn't match a known zone type.
+        /// English keyword matching only fires for English game data and falls through gracefully.
+        /// </summary>
+        private static string ZoneTypeKeyFromLabel(string gameLabel)
+        {
+            string zoneLabel = gameLabel.ToLower();
+            if (zoneLabel.Contains("stockpile"))
+                return "RimWorldAccess.Building.Announcer.ZoneType.Stockpile".Translate();
+            if (zoneLabel.Contains("growing"))
+                return "RimWorldAccess.Building.Announcer.ZoneType.Growing".Translate();
+            if (zoneLabel.Contains("dumping"))
+                return "RimWorldAccess.Building.Announcer.ZoneType.Dumping".Translate();
+            if (zoneLabel.Contains("fishing"))
+                return "RimWorldAccess.Building.Announcer.ZoneType.Fishing".Translate();
+            return null;
         }
 
         /// <summary>
@@ -521,13 +526,14 @@ namespace RimWorldAccess
                         // For blueprints/frames, try to get the label of what's being built
                         if (thing.def?.entityDefToBuild is ThingDef builtDef)
                         {
-                            label = builtDef.label + " (unbuilt)";
+                            label = "RimWorldAccess.Building.Announcer.UnbuiltSuffix".Translate(builtDef.label);
                         }
                     }
                     if (string.IsNullOrEmpty(label))
                     {
-                        // Use the thing's category as a last resort
-                        label = thing.def?.category.ToString().ToLower() ?? "structure";
+                        // Use the thing's category as a last resort (category name is a game enum, not localizable here)
+                        label = thing.def?.category.ToString().ToLower()
+                            ?? (string)"RimWorldAccess.Building.Announcer.StructureFallback".Translate();
                     }
                     return label;
                 }
@@ -537,37 +543,37 @@ namespace RimWorldAccess
             Zone existingZone = map.zoneManager.ZoneAt(cell);
             if (existingZone != null)
             {
-                return $"existing {existingZone.label}";
+                return "RimWorldAccess.Building.Announcer.ExistingZone".Translate(existingZone.label);
             }
 
             // Check if too close to map edge
             if (cell.InNoZoneEdgeArea(map))
             {
-                return TerrainPrefix + "edge area";
+                return TerrainPrefix + (string)"RimWorldAccess.Building.Announcer.EdgeArea".Translate();
             }
 
             // Check if fogged
             if (cell.Fogged(map))
             {
-                return "fog of war";
+                return "RimWorldAccess.Building.Announcer.FogOfWar".Translate();
             }
 
             // Check terrain for impassable areas
             TerrainDef terrain = cell.GetTerrain(map);
             if (terrain != null && terrain.passability == Traversability.Impassable)
             {
-                return TerrainPrefix + (terrain.label ?? "terrain");
+                return TerrainPrefix + (terrain.label ?? (string)"RimWorldAccess.Building.Announcer.TerrainFallback".Translate());
             }
 
             // If we still can't identify the obstacle, report the terrain
             // This catches cases like low fertility terrain blocking growing zones
             if (terrain != null)
             {
-                return TerrainPrefix + (terrain.label ?? "unknown terrain");
+                return TerrainPrefix + (terrain.label ?? (string)"RimWorldAccess.Building.Announcer.UnknownTerrain".Translate());
             }
 
             // True fallback - should be very rare
-            return "blocked cell";
+            return "RimWorldAccess.Building.Announcer.BlockedCell".Translate();
         }
 
         #endregion
@@ -612,22 +618,13 @@ namespace RimWorldAccess
             }
             else
             {
-                areaName = targetArea?.Label ?? "area";
+                areaName = targetArea?.Label ?? (string)"RimWorldAccess.Building.Announcer.AreaFallback".Translate();
             }
 
-            // Determine the action verb based on designator type
-            string action;
-            if (isBuiltInAreaDesignator)
-            {
-                // For built-in areas: "Marked" for expand, "Unmarked" for clear
-                bool isExpanding = ShapeHelper.IsBuiltInAreaExpanding(designator);
-                action = isExpanding ? "Marked" : "Unmarked";
-            }
-            else
-            {
-                // For allowed areas: "Expanded" or "Cleared"
-                action = designator is Designator_AreaAllowedExpand ? "Expanded" : "Cleared";
-            }
+            // Determine the action (drives whole-phrase dispatch below)
+            bool isExpanding = isBuiltInAreaDesignator
+                ? ShapeHelper.IsBuiltInAreaExpanding(designator)
+                : designator is Designator_AreaAllowedExpand;
 
             if (totalPlaced > 0)
             {
@@ -640,30 +637,44 @@ namespace RimWorldAccess
 
                 if (isBuiltInAreaDesignator)
                 {
-                    // Built-in area format: "Marked 4 by 5 for snow and sand removal" or "Unmarked 4 by 5 from home area"
-                    bool isExpanding = ShapeHelper.IsBuiltInAreaExpanding(designator);
-                    string preposition = isExpanding ? "for" : "from";
-                    parts.Add($"{action} {sizeString} {preposition} {areaName}{segmentInfo}");
+                    // Built-in area: "Marked 4 by 5 for snow and sand removal" / "Unmarked 4 by 5 from home area"
+                    parts.Add((isExpanding
+                        ? "RimWorldAccess.Building.Announcer.BuiltInAreaMarked"
+                        : "RimWorldAccess.Building.Announcer.BuiltInAreaUnmarked").Translate(sizeString, areaName)
+                        + segmentInfo);
                 }
                 else
                 {
-                    // Allowed area format: "Expanded Kitchen by 4 by 5"
-                    parts.Add($"{action} {areaName} by {sizeString}{segmentInfo}");
+                    // Allowed area: "Expanded Kitchen by 4 by 5" / "Cleared Kitchen by 4 by 5"
+                    parts.Add((isExpanding
+                        ? "RimWorldAccess.Building.Announcer.AllowedAreaExpanded"
+                        : "RimWorldAccess.Building.Announcer.AllowedAreaCleared").Translate(areaName, sizeString)
+                        + segmentInfo);
                 }
             }
             else
             {
-                parts.Add($"No area cells {action.ToLower()}{segmentInfo}");
+                // No cells affected. Whole-phrase per action to avoid lowercasing translated verbs.
+                string noneKey;
+                if (isBuiltInAreaDesignator)
+                {
+                    noneKey = isExpanding
+                        ? "RimWorldAccess.Building.Announcer.NoAreaCellsMarked"
+                        : "RimWorldAccess.Building.Announcer.NoAreaCellsUnmarked";
+                }
+                else
+                {
+                    noneKey = isExpanding
+                        ? "RimWorldAccess.Building.Announcer.NoAreaCellsExpanded"
+                        : "RimWorldAccess.Building.Announcer.NoAreaCellsCleared";
+                }
+                parts.Add((string)noneKey.Translate() + segmentInfo);
             }
 
             // Add control hints
-            var hints = new List<string>();
-            hints.Add("Equals to add another shape");
-            hints.Add("Minus to undo last");
-            hints.Add("Enter to confirm");
-            parts.Add(string.Join(", ", hints));
+            parts.Add(DefaultEditHints());
 
-            return $"Viewing mode. {string.Join(". ", parts)}.";
+            return BuildViewingModeAnnouncement(parts);
         }
 
         /// <summary>
@@ -672,10 +683,13 @@ namespace RimWorldAccess
         private static string GetBuiltInAreaName(Designator designator)
         {
             if (designator == null)
-                return "area";
+                return "RimWorldAccess.Building.Announcer.AreaFallback".Translate();
 
             // Use the designator's label if available, which is usually descriptive
-            // e.g., "Expand snow clear area", "Clear home area", "Build roof area"
+            // e.g., "Expand snow clear area", "Clear home area", "Build roof area".
+            // Surfacing the game's own label keeps mod compatibility; the prefix strip
+            // below only affects English game labels and falls through harmlessly otherwise.
+            // TODO: stripping is English-keyword game-data handling, not user-facing copy.
             string label = designator.Label;
             if (!string.IsNullOrEmpty(label))
             {
@@ -689,22 +703,22 @@ namespace RimWorldAccess
                 return label;
             }
 
-            // Fallback based on type name
+            // Fallback based on type name (only hit when the game label is empty)
             string typeName = designator.GetType().Name;
             if (typeName.Contains("SnowClear") || typeName.Contains("SandClear"))
-                return "snow and sand removal";
+                return "RimWorldAccess.Building.Announcer.BuiltInArea.SnowSand".Translate();
             if (typeName.Contains("Home"))
-                return "home area";
+                return "RimWorldAccess.Building.Announcer.BuiltInArea.Home".Translate();
             if (typeName.Contains("BuildRoof"))
-                return "build roof area";
+                return "RimWorldAccess.Building.Announcer.BuiltInArea.BuildRoof".Translate();
             if (typeName.Contains("NoRoof"))
-                return "no roof area";
+                return "RimWorldAccess.Building.Announcer.BuiltInArea.NoRoof".Translate();
             if (typeName.Contains("IgnoreRoof"))
-                return "roof areas";
+                return "RimWorldAccess.Building.Announcer.BuiltInArea.IgnoreRoof".Translate();
             if (typeName.Contains("PollutionClear"))
-                return "pollution clear area";
+                return "RimWorldAccess.Building.Announcer.BuiltInArea.PollutionClear".Translate();
 
-            return "area";
+            return "RimWorldAccess.Building.Announcer.AreaFallback".Translate();
         }
 
         #endregion
@@ -734,8 +748,8 @@ namespace RimWorldAccess
 
             // Get designator label for the announcement
             // Use sanitized label to strip "..." suffix (prevents "wall...s" bug)
-            string designatorLabel = ArchitectHelper.GetSanitizedLabel(designator, "blueprints");
-            string itemType = isBuildDesignator ? "blueprints" : "designations";
+            string designatorLabel = ArchitectHelper.GetSanitizedLabel(designator,
+                (string)"RimWorldAccess.Building.Announcer.BlueprintsFallback".Translate());
 
             // Calculate total intended placements (placed + blocked)
             int totalIntended = totalPlaced + obstacleCells.Count;
@@ -761,13 +775,18 @@ namespace RimWorldAccess
                 string blockedPart;
                 if (!string.IsNullOrEmpty(blockingObstacleSummary))
                 {
-                    blockedPart = $", {obstacleCells.Count} blocked by {blockingObstacleSummary}";
+                    blockedPart = (obstacleCells.Count == 1
+                        ? "RimWorldAccess.Building.Announcer.BlockedByOne"
+                        : "RimWorldAccess.Building.Announcer.BlockedByMany").Translate(obstacleCells.Count, blockingObstacleSummary);
                 }
                 else
                 {
-                    blockedPart = $", {obstacleCells.Count} blocked";
+                    blockedPart = (obstacleCells.Count == 1
+                        ? "RimWorldAccess.Building.Announcer.BlockedOne"
+                        : "RimWorldAccess.Building.Announcer.BlockedMany").Translate(obstacleCells.Count);
                 }
-                parts.Add($"Placed {placedSizeStr} of {totalIntended} {pluralLabel}{costInfo}{blockedPart}{segmentInfo}");
+                parts.Add((string)"RimWorldAccess.Building.Announcer.PlacedOfTotal".Translate(placedSizeStr, totalIntended, pluralLabel, costInfo)
+                    + blockedPart + segmentInfo);
             }
             else if (totalPlaced > 0)
             {
@@ -777,16 +796,20 @@ namespace RimWorldAccess
                     : designatorLabel;
 
                 string costInfo = GetCostInfo(placedBlueprints);
-                parts.Add($"Placed {placedSizeStr} {pluralLabel}{costInfo}{segmentInfo}");
+                parts.Add((string)"RimWorldAccess.Building.Place.PlacedBuild".Translate(placedSizeStr, pluralLabel, costInfo)
+                    + segmentInfo);
             }
             else
             {
                 // No placements at all
-                parts.Add($"No {itemType} placed{segmentInfo}");
+                parts.Add((isBuildDesignator
+                    ? "RimWorldAccess.Building.Place.NoBlueprintsPlaced"
+                    : "RimWorldAccess.Building.Place.NoDesignationsPlaced").Translate()
+                    + segmentInfo);
 
                 if (obstacleCells.Count > 0 && !string.IsNullOrEmpty(blockingObstacleSummary))
                 {
-                    parts.Add($"All blocked by {blockingObstacleSummary}");
+                    parts.Add("RimWorldAccess.Building.Announcer.AllBlockedBy".Translate(blockingObstacleSummary));
                 }
             }
 
@@ -797,23 +820,27 @@ namespace RimWorldAccess
                 {
                     var enc = detectedEnclosures[0];
                     string enclosureSize = ShapeHelper.FormatShapeSize(enc.InteriorCells);
-                    string enclosurePart = $"{enclosureSize} enclosure formed";
+                    string enclosurePart;
 
                     // Add "containing X, Y, Z" if there are interior obstacles
-                    if (enc.ObstacleCount > 0 && enc.Obstacles != null)
+                    string interiorSummary = (enc.ObstacleCount > 0 && enc.Obstacles != null)
+                        ? FormatObstacleList(enc.Obstacles)
+                        : string.Empty;
+                    if (!string.IsNullOrEmpty(interiorSummary))
                     {
-                        string interiorSummary = FormatObstacleList(enc.Obstacles);
-                        if (!string.IsNullOrEmpty(interiorSummary))
-                        {
-                            enclosurePart += $" containing {interiorSummary}";
-                        }
+                        enclosurePart = "RimWorldAccess.Building.Announcer.EnclosureFormedContaining".Translate(enclosureSize, interiorSummary);
+                    }
+                    else
+                    {
+                        enclosurePart = "RimWorldAccess.Building.Announcer.EnclosureFormed".Translate(enclosureSize);
                     }
 
                     // Add gap warning at the end
                     if (enc.HasGaps)
                     {
-                        string gapWord = enc.GapCount == 1 ? "gap" : "gaps";
-                        enclosurePart += $", but has {enc.GapCount} {gapWord}";
+                        enclosurePart += (enc.GapCount == 1
+                            ? "RimWorldAccess.Building.Announcer.EnclosureGapSuffixOne"
+                            : "RimWorldAccess.Building.Announcer.EnclosureGapSuffixMany").Translate(enc.GapCount);
                     }
 
                     parts.Add(enclosurePart);
@@ -827,28 +854,33 @@ namespace RimWorldAccess
                     foreach (var enc in detectedEnclosures)
                     {
                         string size = ShapeHelper.FormatShapeSize(enc.InteriorCells);
-                        string description = size;
+                        string description;
 
                         // Add this enclosure's obstacles if any
-                        if (enc.Obstacles != null && enc.Obstacles.Count > 0)
+                        string contents = (enc.Obstacles != null && enc.Obstacles.Count > 0)
+                            ? FormatObstacleList(enc.Obstacles)
+                            : string.Empty;
+                        if (!string.IsNullOrEmpty(contents))
                         {
-                            string contents = FormatObstacleList(enc.Obstacles);
-                            if (!string.IsNullOrEmpty(contents))
-                            {
-                                description += $" containing {contents}";
-                            }
+                            description = "RimWorldAccess.Building.Announcer.EnclosureSizeContaining".Translate(size, contents);
+                        }
+                        else
+                        {
+                            description = size;
                         }
 
                         enclosureDescriptions.Add(description);
                     }
 
-                    string enclosurePart = $"{detectedEnclosures.Count} enclosures formed: {string.Join(". ", enclosureDescriptions)}";
+                    string enclosurePart = "RimWorldAccess.Building.Announcer.EnclosuresFormedList".Translate(
+                        detectedEnclosures.Count, string.Join(". ", enclosureDescriptions));
 
                     // Add gap warning at the end
                     if (totalGaps > 0)
                     {
-                        string gapWord = totalGaps == 1 ? "gap" : "gaps";
-                        enclosurePart += $", but {totalGaps} {gapWord} total";
+                        enclosurePart += (totalGaps == 1
+                            ? "RimWorldAccess.Building.Announcer.EnclosureTotalGapSuffixOne"
+                            : "RimWorldAccess.Building.Announcer.EnclosureTotalGapSuffixMany").Translate(totalGaps);
                     }
 
                     parts.Add(enclosurePart);
@@ -863,7 +895,7 @@ namespace RimWorldAccess
                 if (!string.IsNullOrEmpty(protectionSummary))
                 {
                     parts.Add(protectionSummary);
-                    parts.Add("Disable warning toggle on the tree to build here");
+                    parts.Add("RimWorldAccess.Building.Place.MeditationDisableHint".Translate());
                 }
             }
 
@@ -874,17 +906,17 @@ namespace RimWorldAccess
             bool hasAnyObstacles = obstacleCells.Count > 0 || (detectedEnclosures != null && detectedEnclosures.Any(e => e.ObstacleCount > 0));
             if (hasAnyObstacles)
             {
-                hints.Add("Page Up/Down to navigate obstacles");
+                hints.Add("RimWorldAccess.Building.Announcer.HintNavigateObstacles".Translate());
             }
 
             // Editing hints
-            hints.Add("Equals to add another shape");
-            hints.Add("Minus to undo last");
-            hints.Add("Enter to confirm");
+            hints.Add("RimWorldAccess.Building.Announcer.HintAddShape".Translate());
+            hints.Add("RimWorldAccess.Building.Announcer.HintUndoLast".Translate());
+            hints.Add("RimWorldAccess.Building.Announcer.HintConfirm".Translate());
 
-            parts.Add(string.Join(", ", hints));
+            parts.Add(JoinHints(hints));
 
-            return $"Viewing mode. {string.Join(". ", parts)}.";
+            return BuildViewingModeAnnouncement(parts);
         }
 
         /// <summary>
@@ -918,19 +950,19 @@ namespace RimWorldAccess
                 // Use LabelShort to exclude condition percentages (e.g., "(61%)") for proper grouping
                 if (thing is Building || thing is Pawn)
                 {
-                    return thing.LabelShort ?? thing.def?.label ?? "obstacle";
+                    return thing.LabelShort ?? thing.def?.label ?? (string)"RimWorldAccess.Building.Announcer.ObstacleFallback".Translate();
                 }
 
                 // Check for blueprints or frames
                 if (thing.def.IsBlueprint || thing.def.IsFrame)
                 {
-                    return thing.LabelShort ?? "blueprint";
+                    return thing.LabelShort ?? (string)"RimWorldAccess.Building.Announcer.BlueprintObstacle".Translate();
                 }
 
                 // Check for items
                 if (thing.def.category == ThingCategory.Item)
                 {
-                    return thing.LabelShort ?? "item";
+                    return thing.LabelShort ?? (string)"RimWorldAccess.Building.Announcer.ItemObstacle".Translate();
                 }
             }
 
@@ -938,10 +970,10 @@ namespace RimWorldAccess
             TerrainDef terrain = cell.GetTerrain(map);
             if (terrain != null && (terrain.passability == Traversability.Impassable || !terrain.affordances?.Contains(TerrainAffordanceDefOf.Light) == true))
             {
-                return TerrainPrefix + (terrain.label ?? "terrain");
+                return TerrainPrefix + (terrain.label ?? (string)"RimWorldAccess.Building.Announcer.TerrainFallback".Translate());
             }
 
-            return "obstacle";
+            return "RimWorldAccess.Building.Announcer.ObstacleFallback".Translate();
         }
 
         /// <summary>
@@ -972,10 +1004,69 @@ namespace RimWorldAccess
 
             if (totalCost > 0 && !string.IsNullOrEmpty(resourceName))
             {
-                return $" ({totalCost} {resourceName})";
+                return "RimWorldAccess.Building.Place.PlacedCostSuffix".Translate(totalCost, resourceName);
             }
 
             return string.Empty;
+        }
+
+        #endregion
+
+        #region Composition Helpers
+
+        /// <summary>
+        /// Wraps a list of body parts with the "Viewing mode" prefix and joins them with
+        /// periods. The AnnouncementBuilder owns the separators/trailing punctuation.
+        /// </summary>
+        private static string BuildViewingModeAnnouncement(List<string> parts)
+        {
+            var builder = new AnnouncementBuilder();
+            builder.Add("RimWorldAccess.Building.Announcer.ViewingMode".Translate());
+            foreach (string part in parts)
+            {
+                builder.Add(part);
+            }
+            return builder.Build();
+        }
+
+        /// <summary>
+        /// Joins control hints into a single comma-separated phrase.
+        /// Hints are short imperative fragments and read naturally as a comma list.
+        /// </summary>
+        private static string JoinHints(List<string> hints)
+        {
+            return string.Join(", ", hints);
+        }
+
+        /// <summary>
+        /// The standard "Equals to add another shape, Minus to undo last, Enter to confirm" hint trio.
+        /// </summary>
+        private static string DefaultEditHints()
+        {
+            return JoinHints(new List<string>
+            {
+                "RimWorldAccess.Building.Announcer.HintAddShape".Translate(),
+                "RimWorldAccess.Building.Announcer.HintUndoLast".Translate(),
+                "RimWorldAccess.Building.Announcer.HintConfirm".Translate(),
+            });
+        }
+
+        /// <summary>
+        /// Joins a list of phrase fragments using the localized list conjunctions:
+        /// one item as-is, two items via the "A and B" key, and three or more via the
+        /// "A, B, and C" key. Per the no-glue rule the conjunction lives in whole-phrase keys.
+        /// </summary>
+        private static string JoinWithAnd(List<string> items)
+        {
+            if (items == null || items.Count == 0)
+                return string.Empty;
+            if (items.Count == 1)
+                return items[0];
+            if (items.Count == 2)
+                return "RimWorldAccess.Building.Announcer.ListTwo".Translate(items[0], items[1]);
+
+            string allButLast = string.Join(", ", items.Take(items.Count - 1));
+            return "RimWorldAccess.Building.Announcer.ListMany".Translate(allButLast, items.Last());
         }
 
         #endregion
@@ -1024,7 +1115,7 @@ namespace RimWorldAccess
                 string label;
                 if (obstacle.Thing != null)
                 {
-                    label = obstacle.Thing.LabelNoParenthesis ?? obstacle.Thing.def?.label ?? "obstacle";
+                    label = obstacle.Thing.LabelNoParenthesis ?? obstacle.Thing.def?.label ?? (string)"RimWorldAccess.Building.Announcer.ObstacleFallback".Translate();
                 }
                 else
                 {
@@ -1085,7 +1176,10 @@ namespace RimWorldAccess
                 if (key.StartsWith(TerrainPrefix))
                 {
                     string terrainName = key.Substring(TerrainPrefix.Length);
-                    label = kvp.Value == 1 ? $"{terrainName} tile" : $"{terrainName} tiles";
+                    // Whole-phrase One/Many: "{0} {terrainName} tile" vs "{0} {terrainName} tiles"
+                    formattedParts.Add((kvp.Value == 1
+                        ? "RimWorldAccess.Building.Announcer.TerrainTilesOne"
+                        : "RimWorldAccess.Building.Announcer.TerrainTilesMany").Translate(kvp.Value, terrainName));
                 }
                 else
                 {
@@ -1093,32 +1187,20 @@ namespace RimWorldAccess
                     label = kvp.Value > 1
                         ? ArchitectHelper.PluralizePreservingParentheses(key, kvp.Value)
                         : key;
+                    formattedParts.Add("RimWorldAccess.Building.Announcer.CountLabel".Translate(kvp.Value, label));
                 }
-                formattedParts.Add($"{kvp.Value} {label}");
             }
 
             // Add truncated summary if any small groups were skipped
             if (smallGroupCount > 0)
             {
-                string groupWord = smallGroupCount == 1 ? "group" : "groups";
-                formattedParts.Add($"{smallGroupItems} more in {smallGroupCount} smaller {groupWord}");
+                formattedParts.Add((smallGroupCount == 1
+                    ? "RimWorldAccess.Building.Announcer.MoreInGroupsOne"
+                    : "RimWorldAccess.Building.Announcer.MoreInGroupsMany").Translate(smallGroupItems, smallGroupCount));
             }
 
             // Join with commas and "and" before the last item
-            if (formattedParts.Count == 1)
-            {
-                return formattedParts[0];
-            }
-            else if (formattedParts.Count == 2)
-            {
-                return $"{formattedParts[0]} and {formattedParts[1]}";
-            }
-            else
-            {
-                // "X thing1, Y thing2, and Z thing3"
-                string allButLast = string.Join(", ", formattedParts.Take(formattedParts.Count - 1));
-                return $"{allButLast}, and {formattedParts.Last()}";
-            }
+            return JoinWithAnd(formattedParts);
         }
 
         /// <summary>
@@ -1141,9 +1223,10 @@ namespace RimWorldAccess
             {
                 string shapeName = GetShapeDisplayName(item.Shape);
                 if (item.Count == 1)
-                    parts.Add($"1 {shapeName}");
+                    parts.Add("RimWorldAccess.Building.Announcer.CountLabel".Translate(1, shapeName));
                 else
-                    parts.Add($"{item.Count} {Find.ActiveLanguageWorker.Pluralize(shapeName, item.Count)}");
+                    parts.Add("RimWorldAccess.Building.Announcer.CountLabel".Translate(
+                        item.Count, Find.ActiveLanguageWorker.Pluralize(shapeName, item.Count)));
             }
 
             return string.Join(", ", parts);
@@ -1156,14 +1239,14 @@ namespace RimWorldAccess
         {
             switch (shape)
             {
-                case ShapeType.Manual: return "manual placement";
-                case ShapeType.Line: return "line";
-                case ShapeType.AngledLine: return "angled line";
-                case ShapeType.FilledRectangle: return "filled rectangle";
-                case ShapeType.EmptyRectangle: return "empty rectangle";
-                case ShapeType.FilledOval: return "filled oval";
-                case ShapeType.EmptyOval: return "empty oval";
-                default: return "shape";
+                case ShapeType.Manual: return "RimWorldAccess.Building.Announcer.ShapeName.Manual".Translate();
+                case ShapeType.Line: return "RimWorldAccess.Building.Announcer.ShapeName.Line".Translate();
+                case ShapeType.AngledLine: return "RimWorldAccess.Building.Announcer.ShapeName.AngledLine".Translate();
+                case ShapeType.FilledRectangle: return "RimWorldAccess.Building.Announcer.ShapeName.FilledRectangle".Translate();
+                case ShapeType.EmptyRectangle: return "RimWorldAccess.Building.Announcer.ShapeName.EmptyRectangle".Translate();
+                case ShapeType.FilledOval: return "RimWorldAccess.Building.Announcer.ShapeName.FilledOval".Translate();
+                case ShapeType.EmptyOval: return "RimWorldAccess.Building.Announcer.ShapeName.EmptyOval".Translate();
+                default: return "RimWorldAccess.Building.Announcer.ShapeName.Generic".Translate();
             }
         }
 

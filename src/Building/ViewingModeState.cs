@@ -520,7 +520,7 @@ namespace RimWorldAccess
                     // Clean up any stale zone references before counting
                     CleanupStaleZoneReferences();
                     int zoneCount = createdZones.Count;
-                    string zoneName = ViewingModeAnnouncer.GetZoneTypeName(activeDesignator, targetZone, createdZones).ToLower();
+                    string zoneName = ViewingModeAnnouncer.GetZoneTypeName(activeDesignator, targetZone, createdZones);
 
                     // Determine if this was an expansion of existing zone
                     bool wasExpansion = ZoneUndoTracker.WasZoneExpansion;
