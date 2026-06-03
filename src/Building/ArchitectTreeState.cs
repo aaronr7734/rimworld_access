@@ -48,14 +48,14 @@ namespace RimWorldAccess
 
             if (root.Children.Count == 0)
             {
-                TolkHelper.Speak("No architect categories available");
+                TolkHelper.Speak("RimWorldAccess.Building.ArchitectTree.NoCategories".Translate());
                 Close();
                 return;
             }
 
             treeNav.Initialize(root);
 
-            TolkHelper.Speak("Architect menu");
+            TolkHelper.Speak("RimWorldAccess.Building.ArchitectTree.MenuOpened".Translate());
             treeNav.ReannounceCurrentItem();
 
             Log.Message($"Opened architect tree menu with {treeNav.Count} items");

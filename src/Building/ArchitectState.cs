@@ -125,7 +125,7 @@ namespace RimWorldAccess
             // Only allow toggling for zone designators
             if (!IsZoneDesignator())
             {
-                TolkHelper.Speak("Selection mode toggle only works for zone designators");
+                TolkHelper.Speak("RimWorldAccess.Building.Architect.SelectionModeZoneOnly".Translate());
                 return;
             }
 
@@ -134,8 +134,8 @@ namespace RimWorldAccess
                 : ArchitectSelectionMode.BoxSelection;
 
             string modeName = (selectionMode == ArchitectSelectionMode.BoxSelection)
-                ? "Box selection mode"
-                : "Single tile selection mode";
+                ? "RimWorldAccess.Building.Paint.ModeBox".Translate()
+                : "RimWorldAccess.Building.Paint.ModeSingle".Translate();
             TolkHelper.Speak(modeName);
             Log.Message($"Architect placement: Switched to {modeName}");
         }
@@ -167,7 +167,7 @@ namespace RimWorldAccess
             selectedMaterial = null;
             selectedCells.Clear();
 
-            TolkHelper.Speak($"{category.LabelCap} category selected. Choose a tool");
+            TolkHelper.Speak("RimWorldAccess.Building.Architect.CategorySelected".Translate(category.LabelCap));
             Log.Message($"Entered tool selection for category: {category.defName}");
         }
 
@@ -182,7 +182,7 @@ namespace RimWorldAccess
             selectedMaterial = null;
             selectedCells.Clear();
 
-            TolkHelper.Speak($"Select material for {buildable.label}");
+            TolkHelper.Speak("RimWorldAccess.Building.Architect.SelectMaterialFor".Translate(buildable.label));
             Log.Message($"Entered material selection for: {buildable.defName}");
         }
 
@@ -263,20 +263,20 @@ namespace RimWorldAccess
         /// </summary>
         internal static string GetRotationAnnouncementForDef(BuildableDef def, Rot4 rotation)
         {
+            string facing = "RimWorldAccess.Building.Architect.Facing".Translate(GetRotationName(rotation));
+
             if (def == null)
-                return $"Facing {GetRotationName(rotation)}";
+                return facing;
 
             IntVec2 size = def.Size;
             string sizeInfo = GetSizeDescription(size, rotation);
-            string rotationName = GetRotationName(rotation);
             string specialRequirements = GetSpecialSpatialRequirements(def, rotation);
 
-            if (!string.IsNullOrEmpty(specialRequirements))
-            {
-                return $"Facing {rotationName}. {sizeInfo}. {specialRequirements}";
-            }
-
-            return $"Facing {rotationName}. {sizeInfo}";
+            return new AnnouncementBuilder()
+                .Add(facing)
+                .Add(sizeInfo)
+                .Add(specialRequirements)
+                .Build();
         }
 
         /// <summary>
@@ -323,12 +323,12 @@ namespace RimWorldAccess
         /// - North/East facing: 9 tiles front, 5 tiles back
         /// - South/West facing: 5 tiles front, 9 tiles back
         /// </summary>
-        private static readonly Dictionary<Rot4, (string front, string back)> WindTurbineDirections = new Dictionary<Rot4, (string, string)>
+        private static readonly Dictionary<Rot4, (int frontTiles, string frontDirKey, int backTiles, string backDirKey)> WindTurbineDirections = new Dictionary<Rot4, (int, string, int, string)>
         {
-            { Rot4.North, ("9 tiles north", "5 tiles south") },
-            { Rot4.East, ("9 tiles east", "5 tiles west") },
-            { Rot4.South, ("5 tiles north", "9 tiles south") },
-            { Rot4.West, ("5 tiles east", "9 tiles west") }
+            { Rot4.North, (9, "RimWorldAccess.Map.Direction.Lower.North", 5, "RimWorldAccess.Map.Direction.Lower.South") },
+            { Rot4.East, (9, "RimWorldAccess.Map.Direction.Lower.East", 5, "RimWorldAccess.Map.Direction.Lower.West") },
+            { Rot4.South, (5, "RimWorldAccess.Map.Direction.Lower.North", 9, "RimWorldAccess.Map.Direction.Lower.South") },
+            { Rot4.West, (5, "RimWorldAccess.Map.Direction.Lower.East", 9, "RimWorldAccess.Map.Direction.Lower.West") }
         };
 
         /// <summary>
@@ -338,9 +338,11 @@ namespace RimWorldAccess
         {
             if (WindTurbineDirections.TryGetValue(rotation, out var directions))
             {
-                return $"Requires clear space: {directions.front}, {directions.back}";
+                string front = "RimWorldAccess.Building.Architect.TilesDirection".Translate(directions.frontTiles, directions.frontDirKey.Translate());
+                string back = "RimWorldAccess.Building.Architect.TilesDirection".Translate(directions.backTiles, directions.backDirKey.Translate());
+                return "RimWorldAccess.Building.Architect.WindTurbineClearSpace".Translate(front, back);
             }
-            return "Requires clear space in front and behind";
+            return "RimWorldAccess.Building.Architect.WindTurbineClearSpaceGeneric".Translate();
         }
 
         // NOTE: Cooler handling moved to BuildingCellHelper.GetCoolerDirectionInfo()
@@ -372,12 +374,12 @@ namespace RimWorldAccess
 
             if (width == 1 && depth == 1)
             {
-                return "Size: 1 tile";
+                return "RimWorldAccess.Building.Place.SizeOneTile".Translate();
             }
 
             // Build relative description
-            List<string> parts = new List<string>();
-            parts.Add($"Size: {width} by {depth}");
+            var builder = new AnnouncementBuilder();
+            builder.Add("RimWorldAccess.Building.Architect.SizeWxH".Translate(width, depth));
 
             // Calculate extends from cursor position to rect bounds
             if (width > 1 || depth > 1)
@@ -391,19 +393,19 @@ namespace RimWorldAccess
                 int westTiles = cursorPosition.x - occupiedRect.minX;
 
                 if (northTiles > 0)
-                    directions.Add($"{northTiles} north");
+                    directions.Add("RimWorldAccess.Building.Architect.ExtendDirection".Translate(northTiles, "RimWorldAccess.Map.Direction.Lower.North".Translate()));
                 if (southTiles > 0)
-                    directions.Add($"{southTiles} south");
+                    directions.Add("RimWorldAccess.Building.Architect.ExtendDirection".Translate(southTiles, "RimWorldAccess.Map.Direction.Lower.South".Translate()));
                 if (eastTiles > 0)
-                    directions.Add($"{eastTiles} east");
+                    directions.Add("RimWorldAccess.Building.Architect.ExtendDirection".Translate(eastTiles, "RimWorldAccess.Map.Direction.Lower.East".Translate()));
                 if (westTiles > 0)
-                    directions.Add($"{westTiles} west");
+                    directions.Add("RimWorldAccess.Building.Architect.ExtendDirection".Translate(westTiles, "RimWorldAccess.Map.Direction.Lower.West".Translate()));
 
                 if (directions.Count > 0)
-                    parts.Add("Extends " + string.Join(", ", directions));
+                    builder.Add("RimWorldAccess.Building.Architect.Extends".Translate(string.Join(", ", directions)));
             }
 
-            return string.Join(". ", parts);
+            return builder.Build();
         }
 
         /// <summary>
@@ -411,10 +413,10 @@ namespace RimWorldAccess
         /// </summary>
         internal static string GetRotationName(Rot4 rotation)
         {
-            if (rotation == Rot4.North) return "North";
-            if (rotation == Rot4.East) return "East";
-            if (rotation == Rot4.South) return "South";
-            if (rotation == Rot4.West) return "West";
+            if (rotation == Rot4.North) return "RimWorldAccess.Map.Direction.North".Translate();
+            if (rotation == Rot4.East) return "RimWorldAccess.Map.Direction.East".Translate();
+            if (rotation == Rot4.South) return "RimWorldAccess.Map.Direction.South".Translate();
+            if (rotation == Rot4.West) return "RimWorldAccess.Map.Direction.West".Translate();
             return rotation.ToString();
         }
 
@@ -436,11 +438,11 @@ namespace RimWorldAccess
                 // Removing - check if it would disconnect the selection (for zones)
                 if (isZone && selectedCells.Count > 1 && WouldDisconnectSelection(cell))
                 {
-                    TolkHelper.Speak("Cannot remove, would disconnect selection");
+                    TolkHelper.Speak("RimWorldAccess.Building.Create.CannotRemoveDisconnect".Translate());
                     return;
                 }
                 selectedCells.Remove(cell);
-                TolkHelper.Speak($"Deselected, {cell.x}, {cell.z}");
+                TolkHelper.Speak("RimWorldAccess.Building.Paint.Deselected".Translate(cell.x, cell.z));
             }
             else if (report.Accepted)
             {
@@ -454,7 +456,7 @@ namespace RimWorldAccess
                         Zone existingZone = map.zoneManager.ZoneAt(cell);
                         if (existingZone != null)
                         {
-                            TolkHelper.Speak($"Cell is already in {existingZone.label}");
+                            TolkHelper.Speak("RimWorldAccess.Building.Create.CellAlreadyInZone".Translate(existingZone.label));
                             return;
                         }
                     }
@@ -462,7 +464,7 @@ namespace RimWorldAccess
                     // Enforce adjacency (except first cell)
                     if (selectedCells.Count > 0 && !IsAdjacentToSelection(cell))
                     {
-                        TolkHelper.Speak("Cell must be adjacent to selection");
+                        TolkHelper.Speak("RimWorldAccess.Building.Create.MustBeAdjacentToSelection".Translate());
                         return;
                     }
                 }
@@ -472,8 +474,8 @@ namespace RimWorldAccess
             else
             {
                 // Cannot designate this cell
-                string reason = report.Reason ?? "Cannot designate here";
-                TolkHelper.Speak($"Invalid: {reason}");
+                string reason = report.Reason ?? "RimWorldAccess.Building.Architect.CannotDesignateHere".Translate();
+                TolkHelper.Speak("RimWorldAccess.Building.Architect.Invalid".Translate(reason));
             }
         }
 
@@ -535,7 +537,7 @@ namespace RimWorldAccess
         {
             if (selectedDesignator == null || selectedCells.Count == 0)
             {
-                TolkHelper.Speak("No cells selected");
+                TolkHelper.Speak("RimWorldAccess.Building.Place.NoCellsSelected".Translate());
                 Cancel();
                 return;
             }
@@ -546,12 +548,12 @@ namespace RimWorldAccess
                 selectedDesignator.DesignateMultiCell(selectedCells);
 
                 string toolName = selectedDesignator.Label;
-                TolkHelper.Speak($"{toolName} placed on {selectedCells.Count} cells");
+                TolkHelper.Speak("RimWorldAccess.Building.Architect.PlacedOnCells".Translate(toolName, selectedCells.Count));
                 Log.Message($"Executed placement: {toolName} on {selectedCells.Count} cells");
             }
             catch (System.Exception ex)
             {
-                TolkHelper.Speak($"Error placing designation: {ex.Message}", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Architect.ErrorPlacing".Translate(ex.Message), SpeechPriority.High);
                 Log.Error($"Error in ExecutePlacement: {ex}");
             }
             finally
@@ -565,7 +567,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void Cancel()
         {
-            TolkHelper.Speak("Architect menu closed");
+            TolkHelper.Speak("RimWorldAccess.Building.Architect.MenuClosed".Translate());
 
             // Always fully close architect mode
             Reset();

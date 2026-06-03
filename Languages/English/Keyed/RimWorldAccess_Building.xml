@@ -724,4 +724,174 @@
   <RimWorldAccess.Building.Announcer.ShapeName.EmptyOval>empty oval</RimWorldAccess.Building.Announcer.ShapeName.EmptyOval>
   <RimWorldAccess.Building.Announcer.ShapeName.Generic>shape</RimWorldAccess.Building.Announcer.ShapeName.Generic>
 
+  <!-- Architect mode state machine (src/Building/ArchitectState.cs).
+       Central category/tool/material/placement flow plus building rotation
+       and size readouts. The rotation/size announcements compose via
+       AnnouncementBuilder (period-separated), so each fragment here is a
+       clean phrase without trailing punctuation.
+
+       Reuse decisions (NOT re-added here):
+       - Mode toggle reuses Building.Paint.ModeBox / ModeSingle.
+       - "Cannot remove, would disconnect selection" reuses
+         Building.Create.CannotRemoveDisconnect.
+       - "Deselected, {x}, {z}" reuses Building.Paint.Deselected.
+       - "Cell is already in {0}" reuses Building.Create.CellAlreadyInZone.
+       - "Cell must be adjacent to selection" reuses
+         Building.Create.MustBeAdjacentToSelection.
+       - "No cells selected" reuses Building.Place.NoCellsSelected.
+       - Rotation nouns (capitalized) reuse Map.Direction.North/East/South/West;
+         the relative-extent and wind-turbine direction nouns (lowercase)
+         reuse Map.Direction.Lower.North/South/East/West. GetRotationName is
+         also consumed by BuildingCellHelper, which lowercases it itself.
+
+       Placeholders:
+       - CategorySelected: {0} = category LabelCap.
+       - SelectMaterialFor: {0} = buildable label.
+       - Facing: {0} = capitalized rotation direction.
+       - SizeWxH: {0} = width, {1} = depth (tiles).
+       - ExtendDirection: {0} = tile count, {1} = lowercase direction noun.
+       - Extends: {0} = comma-joined ExtendDirection fragments.
+       - TilesDirection: {0} = tile count, {1} = lowercase direction noun.
+       - WindTurbineClearSpace: {0} = front clearance, {1} = back clearance.
+       - Invalid: {0} = vanilla AcceptanceReport.Reason (already localized).
+       - PlacedOnCells: {0} = designator label, {1} = cell count.
+       - ErrorPlacing: {0} = exception message.
+
+       English-keyword substring lookups: none in this file — designator
+       action gerunds live in ShapePlacementState. -->
+  <RimWorldAccess.Building.Architect.SelectionModeZoneOnly>Selection mode toggle only works for zone designators</RimWorldAccess.Building.Architect.SelectionModeZoneOnly>
+  <RimWorldAccess.Building.Architect.CategorySelected>{0} category selected. Choose a tool</RimWorldAccess.Building.Architect.CategorySelected>
+  <RimWorldAccess.Building.Architect.SelectMaterialFor>Select material for {0}</RimWorldAccess.Building.Architect.SelectMaterialFor>
+  <RimWorldAccess.Building.Architect.Facing>Facing {0}</RimWorldAccess.Building.Architect.Facing>
+  <RimWorldAccess.Building.Architect.SizeWxH>Size: {0} by {1}</RimWorldAccess.Building.Architect.SizeWxH>
+  <RimWorldAccess.Building.Architect.ExtendDirection>{0} {1}</RimWorldAccess.Building.Architect.ExtendDirection>
+  <RimWorldAccess.Building.Architect.Extends>Extends {0}</RimWorldAccess.Building.Architect.Extends>
+  <RimWorldAccess.Building.Architect.TilesDirection>{0} tiles {1}</RimWorldAccess.Building.Architect.TilesDirection>
+  <RimWorldAccess.Building.Architect.WindTurbineClearSpace>Requires clear space: {0}, {1}</RimWorldAccess.Building.Architect.WindTurbineClearSpace>
+  <RimWorldAccess.Building.Architect.WindTurbineClearSpaceGeneric>Requires clear space in front and behind</RimWorldAccess.Building.Architect.WindTurbineClearSpaceGeneric>
+  <RimWorldAccess.Building.Architect.CannotDesignateHere>Cannot designate here</RimWorldAccess.Building.Architect.CannotDesignateHere>
+  <RimWorldAccess.Building.Architect.Invalid>Invalid: {0}</RimWorldAccess.Building.Architect.Invalid>
+  <RimWorldAccess.Building.Architect.PlacedOnCells>{0} placed on {1} cells</RimWorldAccess.Building.Architect.PlacedOnCells>
+  <RimWorldAccess.Building.Architect.ErrorPlacing>Error placing designation: {0}</RimWorldAccess.Building.Architect.ErrorPlacing>
+  <RimWorldAccess.Building.Architect.MenuClosed>Architect menu closed</RimWorldAccess.Building.Architect.MenuClosed>
+
+  <!-- Architect menu Tab-key entry (src/Building/ArchitectMenuPatch.cs).
+       Harmony patch on UIRoot.UIRootOnGUI that opens/closes the accessible
+       architect treeview and handles per-designator actions (right-click
+       options, info card, material selection). Spoken via TolkHelper.
+
+       These keys are shared with the wider Architect group (ArchitectState /
+       ArchitectPlacementPatch). MenuClosed is announced from two close paths
+       in this file (Tab-toggle and Escape) and is a strong candidate for
+       reuse across the trio; if a sibling file already defines an identical
+       "Architect menu closed" phrase, the merge step should dedupe to one key.
+
+       Placeholders ({0}) follow string.Format:
+         OptionsFor          {0} = designator label (LabelCap)
+         NoMaterialsAvailable {0} = buildable label
+       Single-fragment phrases (no AnnouncementBuilder needed): no trailing
+       punctuation, no embedded newlines. No One/Many splits required here. -->
+  <RimWorldAccess.Building.Architect.NoDesignatorSelected>No designator selected</RimWorldAccess.Building.Architect.NoDesignatorSelected>
+  <RimWorldAccess.Building.Architect.NoAdditionalOptions>No additional options</RimWorldAccess.Building.Architect.NoAdditionalOptions>
+  <RimWorldAccess.Building.Architect.OptionsFor>Options for {0}</RimWorldAccess.Building.Architect.OptionsFor>
+  <RimWorldAccess.Building.Architect.SelectBuildingForInfoCard>Select a building to view its info card</RimWorldAccess.Building.Architect.SelectBuildingForInfoCard>
+  <RimWorldAccess.Building.Architect.NoMaterialsAvailable>No materials available for {0}</RimWorldAccess.Building.Architect.NoMaterialsAvailable>
+
+  <!-- Architect placement input (src/Building/ArchitectPlacementPatch.cs).
+       Biggest single Building file: placement validation, designator
+       entry/exit, rotation, shape-mode prompts, transport-pod / gravship
+       landing, and the entire-zone-deletion confirmation dialog. Strings are
+       emitted from the ArchitectPlacementInputPatch keyboard handler.
+
+       Placeholders follow string.Format ({0}, {1}, ...).
+       GravshipPositioned / LandingConfirmed: {0} = cell x, {1} = cell z.
+       CannotBeRotated: {0} = capitalized building/designator label.
+       GravshipFacing: {0} = direction word (reuses Map.Direction.*).
+       InvalidReason / CannotLandHere / ErrorPlacing / ErrorCreatingZone: {0}
+       = the underlying reason or exception message (game-supplied where it
+       comes from an AcceptanceReport; our fallback noun where it doesn't).
+
+       Reuse decisions (NOT re-added here):
+       - "No points to remove" -> RimWorldAccess.Building.Place.NoPointsToRemove
+       - "No cells selected"    -> RimWorldAccess.Building.Place.NoCellsSelected
+       - "Cancelled {0}"        -> RimWorldAccess.Building.View.CancelledBlueprint
+       - "No blueprint to cancel here" -> RimWorldAccess.Building.View.NoBlueprintHere
+       - "{0} placed at {1}, {2}" -> RimWorldAccess.Building.View.PlacedAt
+       - Gravship facing words  -> RimWorldAccess.Map.Direction.North/East/South/West
+       - Dialog Cancel button   -> vanilla "CancelButton".Translate()
+
+       Whole-phrase / no-glue splits:
+       - Expand vs create: ZoneExpandedWithCells vs ZoneCreatedWithCells are
+         two complete phrases driven by selectionResult.IsExpansion, rather
+         than abstracting the verb ("expanded"/"created") as a particle.
+       - Zone-deletion dialog: the visual dialog text (DeleteZoneDialogText)
+         keeps its &#10;&#10; paragraph break (genuine dialog formatting). The
+         spoken announcement re-uses the same wording as clean fragments
+         (DeleteZoneConfirmHeading + WillDelete + CannotUndo + UseGizmoHint)
+         composed via AnnouncementBuilder, so no newline acts as a separator.
+         DeleteZoneConfirmTitle ("Delete Zone") is the dialog title and is
+         distinct from DeleteZoneConfirmHeading ("Delete Zone confirmation"),
+         which is the spoken lead-in.
+
+       Landing-invalid reasons (LandReason.*) are spoken via CannotLandHere;
+       building.LabelCap (vanilla) is used directly when an edifice blocks the
+       spot, so no key is added for that case. -->
+  <RimWorldAccess.Building.ArchitectPlace.CannotChangeShapeWhilePlacing>Cannot change shape while placing. Press Escape to clear selection first.</RimWorldAccess.Building.ArchitectPlace.CannotChangeShapeWhilePlacing>
+  <RimWorldAccess.Building.ArchitectPlace.NoShapesAvailable>No shapes available.</RimWorldAccess.Building.ArchitectPlace.NoShapesAvailable>
+  <RimWorldAccess.Building.ArchitectPlace.AlreadyInManualMode>Already in manual mode.</RimWorldAccess.Building.ArchitectPlace.AlreadyInManualMode>
+  <RimWorldAccess.Building.ArchitectPlace.RotateFallbackSubject>This</RimWorldAccess.Building.ArchitectPlace.RotateFallbackSubject>
+  <RimWorldAccess.Building.ArchitectPlace.CannotBeRotated>{0} can't be rotated.</RimWorldAccess.Building.ArchitectPlace.CannotBeRotated>
+  <RimWorldAccess.Building.ArchitectPlace.GravshipFacing>Gravship facing {0}.</RimWorldAccess.Building.ArchitectPlace.GravshipFacing>
+  <RimWorldAccess.Building.ArchitectPlace.ErrorPlacing>Error placing: {0}</RimWorldAccess.Building.ArchitectPlace.ErrorPlacing>
+  <RimWorldAccess.Building.ArchitectPlace.InvalidReason>Invalid: {0}</RimWorldAccess.Building.ArchitectPlace.InvalidReason>
+  <RimWorldAccess.Building.ArchitectPlace.GravshipPositioned>Gravship positioned at {0}, {1}. Select landing marker and use gizmos to confirm landing.</RimWorldAccess.Building.ArchitectPlace.GravshipPositioned>
+  <RimWorldAccess.Building.ArchitectPlace.NoZoneCellsTryAgain>No zone cells in selection. Try again.</RimWorldAccess.Building.ArchitectPlace.NoZoneCellsTryAgain>
+  <RimWorldAccess.Building.ArchitectPlace.NoValidCellsTryAgain>No valid cells in selection. Try again.</RimWorldAccess.Building.ArchitectPlace.NoValidCellsTryAgain>
+  <RimWorldAccess.Building.ArchitectPlace.PlacementFailedClearing>Placement failed. Clearing selection.</RimWorldAccess.Building.ArchitectPlace.PlacementFailedClearing>
+  <RimWorldAccess.Building.ArchitectPlace.PlaceFirstPoint>Place first point with Space</RimWorldAccess.Building.ArchitectPlace.PlaceFirstPoint>
+  <RimWorldAccess.Building.ArchitectPlace.PlaceSecondPoint>Place second point with Space</RimWorldAccess.Building.ArchitectPlace.PlaceSecondPoint>
+  <RimWorldAccess.Building.ArchitectPlace.PlacementCompleted>Placement completed</RimWorldAccess.Building.ArchitectPlace.PlacementCompleted>
+  <RimWorldAccess.Building.ArchitectPlace.ZoneEditingCompleted>Zone editing completed</RimWorldAccess.Building.ArchitectPlace.ZoneEditingCompleted>
+  <RimWorldAccess.Building.ArchitectPlace.SelectionCleared>Selection cleared</RimWorldAccess.Building.ArchitectPlace.SelectionCleared>
+  <RimWorldAccess.Building.ArchitectPlace.PlacementCancelled>Placement cancelled</RimWorldAccess.Building.ArchitectPlace.PlacementCancelled>
+  <RimWorldAccess.Building.ArchitectPlace.InvalidTargetPosition>Invalid target position</RimWorldAccess.Building.ArchitectPlace.InvalidTargetPosition>
+  <RimWorldAccess.Building.ArchitectPlace.CannotLandHere>Cannot land here: {0}</RimWorldAccess.Building.ArchitectPlace.CannotLandHere>
+  <RimWorldAccess.Building.ArchitectPlace.LandingConfirmed>Landing confirmed at {0}, {1}</RimWorldAccess.Building.ArchitectPlace.LandingConfirmed>
+  <RimWorldAccess.Building.ArchitectPlace.CouldNotConfirmTarget>Error: Could not confirm target. Please try using the mouse.</RimWorldAccess.Building.ArchitectPlace.CouldNotConfirmTarget>
+  <RimWorldAccess.Building.ArchitectPlace.TargetingCancelled>Targeting cancelled</RimWorldAccess.Building.ArchitectPlace.TargetingCancelled>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.OutOfBounds>Out of bounds</RimWorldAccess.Building.ArchitectPlace.LandReason.OutOfBounds>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.Water>Water</RimWorldAccess.Building.ArchitectPlace.LandReason.Water>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.OverheadMountain>Overhead mountain</RimWorldAccess.Building.ArchitectPlace.LandReason.OverheadMountain>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.Impassable>Impassable terrain</RimWorldAccess.Building.ArchitectPlace.LandReason.Impassable>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.Fogged>Fogged area</RimWorldAccess.Building.ArchitectPlace.LandReason.Fogged>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.AnotherTransportPod>Another transport pod</RimWorldAccess.Building.ArchitectPlace.LandReason.AnotherTransportPod>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.IncomingSkyfaller>Incoming skyfaller</RimWorldAccess.Building.ArchitectPlace.LandReason.IncomingSkyfaller>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.InvalidSpot>Invalid spot</RimWorldAccess.Building.ArchitectPlace.LandReason.InvalidSpot>
+  <RimWorldAccess.Building.ArchitectPlace.DeleteZoneFallbackName>this zone</RimWorldAccess.Building.ArchitectPlace.DeleteZoneFallbackName>
+  <RimWorldAccess.Building.ArchitectPlace.DeleteZoneDialogText>This will delete the entire zone ({0}). This action cannot be undone with Escape in viewing mode.&#10;&#10;To delete zones, you can also use the delete option in the gizmo menu (G).</RimWorldAccess.Building.ArchitectPlace.DeleteZoneDialogText>
+  <RimWorldAccess.Building.ArchitectPlace.DeleteZoneConfirmHeading>Delete Zone confirmation</RimWorldAccess.Building.ArchitectPlace.DeleteZoneConfirmHeading>
+  <RimWorldAccess.Building.ArchitectPlace.DeleteZoneConfirmTitle>Delete Zone</RimWorldAccess.Building.ArchitectPlace.DeleteZoneConfirmTitle>
+  <RimWorldAccess.Building.ArchitectPlace.DeleteZoneWillDelete>This will delete the entire zone ({0})</RimWorldAccess.Building.ArchitectPlace.DeleteZoneWillDelete>
+  <RimWorldAccess.Building.ArchitectPlace.DeleteZoneCannotUndo>This action cannot be undone with Escape in viewing mode</RimWorldAccess.Building.ArchitectPlace.DeleteZoneCannotUndo>
+  <RimWorldAccess.Building.ArchitectPlace.DeleteZoneUseGizmoHint>To delete zones, you can also use the delete option in the gizmo menu (G)</RimWorldAccess.Building.ArchitectPlace.DeleteZoneUseGizmoHint>
+  <RimWorldAccess.Building.ArchitectPlace.DeletionCancelled>Deletion cancelled. Still in shape placement mode.</RimWorldAccess.Building.ArchitectPlace.DeletionCancelled>
+  <RimWorldAccess.Building.ArchitectPlace.ZoneFallbackName>Zone</RimWorldAccess.Building.ArchitectPlace.ZoneFallbackName>
+  <RimWorldAccess.Building.ArchitectPlace.ZoneExpandedWithCells>{0} expanded with {1} cells</RimWorldAccess.Building.ArchitectPlace.ZoneExpandedWithCells>
+  <RimWorldAccess.Building.ArchitectPlace.ZoneCreatedWithCells>{0} created with {1} cells</RimWorldAccess.Building.ArchitectPlace.ZoneCreatedWithCells>
+
+  <!--
+       ArchitectTree group: the treeview-style architect (build) menu with
+       expandable category nodes (Orders, Structure, etc.) and designator
+       leaves (Wall, Door, etc.). Two announcement strings:
+       - MenuOpened   : spoken once when the menu opens, before the current
+                        item is re-announced. Clean phrase fragment, no
+                        trailing punctuation.
+       - NoCategories : spoken when no architect categories are available
+                        (menu immediately closes). No placeholders.
+       Neither string takes arguments. No One/Many splits needed. No existing
+       Building or Common key matched these values, so both are new.
+  -->
+  <RimWorldAccess.Building.ArchitectTree.MenuOpened>Architect menu</RimWorldAccess.Building.ArchitectTree.MenuOpened>
+  <RimWorldAccess.Building.ArchitectTree.NoCategories>No architect categories available</RimWorldAccess.Building.ArchitectTree.NoCategories>
+
 </LanguageData>

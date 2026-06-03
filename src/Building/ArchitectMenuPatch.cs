@@ -103,7 +103,7 @@ namespace RimWorldAccess
             if (ArchitectState.IsActive)
             {
                 ArchitectState.Reset();
-                TolkHelper.Speak("Architect menu closed");
+                TolkHelper.Speak("RimWorldAccess.Building.Architect.MenuClosed".Translate());
                 Event.current.Use();
                 return;
             }
@@ -165,7 +165,7 @@ namespace RimWorldAccess
             {
                 ArchitectTreeState.Close();
                 ArchitectState.Reset(); // Also reset ArchitectState so Tab works again
-                TolkHelper.Speak("Architect menu closed");
+                TolkHelper.Speak("RimWorldAccess.Building.Architect.MenuClosed".Translate());
                 Event.current.Use();
             }
         }
@@ -192,7 +192,7 @@ namespace RimWorldAccess
             Designator designator = ArchitectTreeState.GetSelectedDesignator();
             if (designator == null)
             {
-                TolkHelper.Speak("No designator selected");
+                TolkHelper.Speak("RimWorldAccess.Building.Architect.NoDesignatorSelected".Translate());
                 return;
             }
 
@@ -201,12 +201,12 @@ namespace RimWorldAccess
 
             if (options == null || options.Count == 0)
             {
-                TolkHelper.Speak("No additional options");
+                TolkHelper.Speak("RimWorldAccess.Building.Architect.NoAdditionalOptions".Translate());
                 return;
             }
 
             // Announce and open the options menu
-            TolkHelper.Speak($"Options for {designator.LabelCap}");
+            TolkHelper.Speak("RimWorldAccess.Building.Architect.OptionsFor".Translate(designator.LabelCap));
             WindowlessFloatMenuState.Open(options, false);
 
             Log.Message($"Opened right-click options for designator: {designator.LabelCap}");
@@ -221,7 +221,7 @@ namespace RimWorldAccess
             Designator designator = ArchitectTreeState.GetSelectedDesignator();
             if (designator == null)
             {
-                TolkHelper.Speak("Select a building to view its info card");
+                TolkHelper.Speak("RimWorldAccess.Building.Architect.SelectBuildingForInfoCard".Translate());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }
@@ -272,7 +272,7 @@ namespace RimWorldAccess
 
             if (options.Count == 0)
             {
-                TolkHelper.Speak($"No materials available for {buildable.label}");
+                TolkHelper.Speak("RimWorldAccess.Building.Architect.NoMaterialsAvailable".Translate(buildable.label));
                 ArchitectState.Reset();
                 return;
             }
