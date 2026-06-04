@@ -39,7 +39,7 @@ namespace RimWorldAccess
                 if (HistoryState.IsActive)
                 {
                     HistoryState.Close();
-                    TolkHelper.Speak("History closed");
+                    TolkHelper.Speak("RimWorldAccess.History.Closed".Loc());
                 }
             }
         }

@@ -40,10 +40,10 @@ namespace RimWorldAccess
             /// </summary>
             public string ToAnnouncement()
             {
-                string announcement = $"{Name}: {Value}";
+                string announcement = "RimWorldAccess.History.Statistics.NameValue".Translate(Name, Value);
                 if (!string.IsNullOrEmpty(Tooltip))
                 {
-                    announcement += $". {Tooltip}";
+                    announcement += "RimWorldAccess.History.Statistics.TooltipSuffix".Translate(Tooltip);
                 }
                 return announcement;
             }
@@ -72,11 +72,11 @@ namespace RimWorldAccess
                 // 2. Storyteller
                 if (Find.Storyteller != null)
                 {
-                    string storyteller = Find.Storyteller.def?.LabelCap ?? "Unknown";
+                    string storyteller = Find.Storyteller.def?.LabelCap ?? "RimWorldAccess.History.Unknown".Translate();
                     stats.Add(new StatisticEntry("Storyteller".Translate(), storyteller));
 
                     // 3. Difficulty
-                    string difficultyName = Find.Storyteller.difficultyDef?.LabelCap ?? "Unknown";
+                    string difficultyName = Find.Storyteller.difficultyDef?.LabelCap ?? "RimWorldAccess.History.Unknown".Translate();
                     stats.Add(new StatisticEntry("Difficulty".Translate(), difficultyName));
                 }
 
@@ -88,16 +88,16 @@ namespace RimWorldAccess
                     if (currentMap.wealthWatcher != null)
                     {
                         float totalWealth = currentMap.wealthWatcher.WealthTotal;
-                        stats.Add(new StatisticEntry("ColonyWealthTotal".Translate(), totalWealth.ToString("F0")));
+                        stats.Add(new StatisticEntry("ThisMapColonyWealthTotal".Translate(), totalWealth.ToString("F0")));
 
                         float itemWealth = currentMap.wealthWatcher.WealthItems;
-                        stats.Add(new StatisticEntry("ColonyWealthItems".Translate(), itemWealth.ToString("F0")));
+                        stats.Add(new StatisticEntry("ThisMapColonyWealthItems".Translate(), itemWealth.ToString("F0")));
 
                         float buildingWealth = currentMap.wealthWatcher.WealthBuildings;
-                        stats.Add(new StatisticEntry("ColonyWealthBuildings".Translate(), buildingWealth.ToString("F0")));
+                        stats.Add(new StatisticEntry("ThisMapColonyWealthBuildings".Translate(), buildingWealth.ToString("F0")));
 
                         float pawnWealth = currentMap.wealthWatcher.WealthPawns;
-                        stats.Add(new StatisticEntry("ColonyWealthColonistsAndTameAnimals".Translate(), pawnWealth.ToString("F0")));
+                        stats.Add(new StatisticEntry("ThisMapColonyWealthColonistsAndTameAnimals".Translate(), pawnWealth.ToString("F0")));
                     }
                 }
 
@@ -115,7 +115,7 @@ namespace RimWorldAccess
                 if (currentMap != null && currentMap.damageWatcher != null)
                 {
                     float damage = currentMap.damageWatcher.DamageTakenEver;
-                    stats.Add(new StatisticEntry("DamageTaken".Translate(), damage.ToString("F0")));
+                    stats.Add(new StatisticEntry("ThisMapDamageTaken".Translate(), damage.ToString("F0")));
                 }
 
                 // 11-12. Colonist casualties (global)
@@ -178,7 +178,7 @@ namespace RimWorldAccess
 
             public IArchivable Source => source;
 
-            public string Label => StripTags(source.ArchivedLabel ?? "Unknown");
+            public string Label => StripTags(source.ArchivedLabel ?? "RimWorldAccess.History.Unknown".Translate());
 
             public string Tooltip => StripTags(source.ArchivedTooltip ?? "");
 
@@ -213,14 +213,18 @@ namespace RimWorldAccess
 
             public bool IsMessage => source is Message;
 
-            public string TypeLabel => IsLetter ? "Letter" : IsMessage ? "Message" : "Item";
+            public string TypeLabel => IsLetter
+                ? "RimWorldAccess.History.Type.Letter".Translate()
+                : IsMessage
+                    ? "RimWorldAccess.History.Type.Message".Translate()
+                    : "RimWorldAccess.History.Type.Item".Translate();
 
             public string DateLabel
             {
                 get
                 {
                     if (source.CreatedTicksGame <= 0)
-                        return "Unknown date";
+                        return "RimWorldAccess.History.UnknownDate".Translate();
 
                     try
                     {
@@ -228,7 +232,7 @@ namespace RimWorldAccess
                     }
                     catch
                     {
-                        return "Unknown date";
+                        return "RimWorldAccess.History.UnknownDate".Translate();
                     }
                 }
             }
@@ -281,7 +285,7 @@ namespace RimWorldAccess
             {
                 if (!HasValidTarget)
                 {
-                    TolkHelper.Speak("No location available");
+                    TolkHelper.Speak("RimWorldAccess.History.NoLocation".Loc());
                     return;
                 }
 
@@ -335,7 +339,7 @@ namespace RimWorldAccess
                 catch (Exception ex)
                 {
                     Log.Warning($"RimWorld Access: Failed to jump to location: {ex.Message}");
-                    TolkHelper.Speak("Failed to jump to location");
+                    TolkHelper.Speak("RimWorldAccess.History.FailedToJump".Loc());
                 }
             }
 
@@ -345,7 +349,7 @@ namespace RimWorldAccess
             public string GetTargetDescription()
             {
                 if (!HasValidTarget)
-                    return "unknown location";
+                    return "RimWorldAccess.History.Target.Unknown".Translate();
 
                 var target = PrimaryTarget;
 
@@ -354,20 +358,20 @@ namespace RimWorldAccess
                     Thing thing = target.Thing;
                     if (thing is Pawn pawn)
                         return pawn.LabelShort;
-                    return thing.LabelShort ?? thing.def?.label ?? "thing";
+                    return thing.LabelShort ?? thing.def?.label ?? "RimWorldAccess.History.Target.Thing".Translate();
                 }
 
                 if (target.Cell.IsValid)
                 {
-                    return $"position {target.Cell.x}, {target.Cell.z}";
+                    return "RimWorldAccess.History.Target.Position".Translate(target.Cell.x, target.Cell.z);
                 }
 
                 if (target.HasWorldObject)
                 {
-                    return target.WorldObject.LabelShort ?? "world location";
+                    return target.WorldObject.LabelShort ?? "RimWorldAccess.History.Target.WorldLocation".Translate();
                 }
 
-                return "target location";
+                return "RimWorldAccess.History.Target.Generic".Translate();
             }
 
             /// <summary>
@@ -380,7 +384,7 @@ namespace RimWorldAccess
                 var parts = new List<string>();
 
                 if (IsPinned)
-                    parts.Add("Pinned");
+                    parts.Add("RimWorldAccess.History.Pinned".Translate());
 
                 parts.Add(Label);
                 parts.Add(TypeLabel);

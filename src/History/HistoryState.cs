@@ -54,7 +54,7 @@ namespace RimWorldAccess
             // Open the Statistics sub-state
             HistoryStatisticsState.Open();
 
-            TolkHelper.Speak("History. Tab switches between Statistics and Messages tabs.");
+            TolkHelper.Speak("RimWorldAccess.History.Intro".Loc());
         }
 
         /// <summary>
@@ -145,16 +145,17 @@ namespace RimWorldAccess
         /// </summary>
         private static void AnnounceCurrentTab()
         {
-            string tabName = currentTab == Tab.Statistics ? "Statistics" : "Messages";
-            TolkHelper.Speak($"{tabName} tab");
+            TolkHelper.Speak("RimWorldAccess.History.Tab.Current".Loc(GetTabName()));
         }
 
         /// <summary>
-        /// Gets the tab name for announcements.
+        /// Gets the localized tab name for announcements.
         /// </summary>
         public static string GetTabName()
         {
-            return currentTab == Tab.Statistics ? "Statistics" : "Messages";
+            return currentTab == Tab.Statistics
+                ? "RimWorldAccess.History.Tab.Statistics".Translate()
+                : "RimWorldAccess.History.Tab.Messages".Translate();
         }
 
         /// <summary>

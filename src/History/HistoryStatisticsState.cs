@@ -49,7 +49,7 @@ namespace RimWorldAccess
 
             if (statistics.Count == 0)
             {
-                TolkHelper.Speak("No statistics available");
+                TolkHelper.Speak("RimWorldAccess.History.Statistics.None".Loc());
                 return;
             }
 
@@ -190,7 +190,7 @@ namespace RimWorldAccess
             if (!string.IsNullOrEmpty(position))
                 announcement += $" {position}";
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
@@ -215,7 +215,7 @@ namespace RimWorldAccess
                 announcement += typeahead.BuildSearchContextSuffix();
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>

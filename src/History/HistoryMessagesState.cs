@@ -77,23 +77,23 @@ namespace RimWorldAccess
                     : 0,
                 populateButtons: PopulateButtonsForCurrentItem,
                 getHeaderAnnouncement: () => items != null && selectedIndex >= 0 && selectedIndex < items.Count
-                    ? $"{items[selectedIndex].TypeLabel}: {items[selectedIndex].Label}"
+                    ? "RimWorldAccess.History.Messages.DetailHeader".Translate(items[selectedIndex].TypeLabel, items[selectedIndex].Label).ToString()
                     : "",
                 getContentLineAnnouncement: (idx) => items != null && selectedIndex >= 0 && selectedIndex < items.Count
                     && idx >= 0 && idx < items[selectedIndex].TooltipLines.Length
                     ? items[selectedIndex].TooltipLines[idx]
                     : "",
-                endOfItemMessage: "End of message",
-                startOfItemMessage: "Start of message",
-                openFirstMessage: "Press Enter to open message first"
+                endOfItemMessage: "RimWorldAccess.History.Messages.EndOfMessage".Translate(),
+                startOfItemMessage: "RimWorldAccess.History.Messages.StartOfMessage".Translate(),
+                openFirstMessage: "RimWorldAccess.History.Messages.OpenFirst".Translate()
             );
             detailHelper.RefreshButtons();
 
-            string hotkeyHint = "Alt+L to show or hide letters, Alt+M to show or hide messages";
+            string hotkeyHint = "RimWorldAccess.History.Messages.HotkeyHint".Translate();
 
             if (items.Count == 0)
             {
-                TolkHelper.Speak($"No archived items. {hotkeyHint}.");
+                TolkHelper.Speak("RimWorldAccess.History.Messages.NoneWithHint".Loc(hotkeyHint));
                 return;
             }
 
@@ -112,7 +112,7 @@ namespace RimWorldAccess
 
             var item = items[selectedIndex];
             string announcement = item.BuildListAnnouncement(selectedIndex, items.Count) + suffix;
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
@@ -161,13 +161,27 @@ namespace RimWorldAccess
             detailHelper?.ResetDetailPosition();
             detailHelper?.RefreshButtons();
 
-            string status = showLetters ? "Showing letters" : "Hiding letters";
-            TolkHelper.Speak($"{status}. {items.Count} items.");
+            string status = showLetters
+                ? "RimWorldAccess.History.Messages.ShowingLetters".Translate()
+                : "RimWorldAccess.History.Messages.HidingLetters".Translate();
+            AnnounceFilterStatus(status);
 
             if (items.Count > 0)
             {
                 AnnounceCurrentSelection();
             }
+        }
+
+        /// <summary>
+        /// Announces a filter status change with the resulting item count.
+        /// Uses singular vs. plural key variants for the count.
+        /// </summary>
+        private static void AnnounceFilterStatus(string status)
+        {
+            if (items.Count == 1)
+                TolkHelper.Speak("RimWorldAccess.History.Messages.FilterStatusOne".Loc(status));
+            else
+                TolkHelper.Speak("RimWorldAccess.History.Messages.FilterStatusMany".Loc(status, items.Count));
         }
 
         /// <summary>
@@ -196,8 +210,10 @@ namespace RimWorldAccess
             detailHelper?.ResetDetailPosition();
             detailHelper?.RefreshButtons();
 
-            string status = showMessages ? "Showing messages" : "Hiding messages";
-            TolkHelper.Speak($"{status}. {items.Count} items.");
+            string status = showMessages
+                ? "RimWorldAccess.History.Messages.ShowingMessages".Translate()
+                : "RimWorldAccess.History.Messages.HidingMessages".Translate();
+            AnnounceFilterStatus(status);
 
             if (items.Count > 0)
             {
@@ -428,7 +444,7 @@ namespace RimWorldAccess
                     catch (Exception ex)
                     {
                         Log.Warning($"RimWorld Access: Failed to activate button: {ex.Message}");
-                        TolkHelper.Speak("Failed to activate button");
+                        TolkHelper.Speak("RimWorldAccess.History.FailedToActivateButton".Loc());
                     }
                 }
             }
@@ -448,8 +464,9 @@ namespace RimWorldAccess
             var item = items[selectedIndex];
             item.TogglePin();
 
-            string status = item.IsPinned ? "Pinned" : "Unpinned";
-            TolkHelper.Speak(status);
+            TolkHelper.Speak(item.IsPinned
+                ? "RimWorldAccess.History.Pinned".Loc()
+                : "RimWorldAccess.History.Unpinned".Loc());
 
             // Refresh buttons if in detail view (pin/unpin button label changes)
             if (detailHelper != null && detailHelper.IsInDetailView)
@@ -473,7 +490,7 @@ namespace RimWorldAccess
 
             if (!item.HasValidTarget)
             {
-                TolkHelper.Speak("No location available");
+                TolkHelper.Speak("RimWorldAccess.History.NoLocation".Loc());
                 return;
             }
 
@@ -534,7 +551,7 @@ namespace RimWorldAccess
             // Open button
             buttons.Add(new ButtonInfo
             {
-                Label = "Open",
+                Label = "RimWorldAccess.History.Button.Open".Translate(),
                 Action = () =>
                 {
                     item.Open();
@@ -547,7 +564,7 @@ namespace RimWorldAccess
             {
                 buttons.Add(new ButtonInfo
                 {
-                    Label = "Jump to Location",
+                    Label = "RimWorldAccess.History.Button.JumpToLocation".Translate(),
                     Action = () =>
                     {
                         // Close the History window before jumping
@@ -560,12 +577,16 @@ namespace RimWorldAccess
             // Pin/Unpin button
             buttons.Add(new ButtonInfo
             {
-                Label = item.IsPinned ? "Unpin" : "Pin",
+                Label = item.IsPinned
+                    ? "RimWorldAccess.History.Button.Unpin".Translate()
+                    : "RimWorldAccess.History.Button.Pin".Translate(),
                 Action = () =>
                 {
                     item.TogglePin();
                     detailHelper?.RefreshButtons();
-                    TolkHelper.Speak(item.IsPinned ? "Pinned" : "Unpinned");
+                    TolkHelper.Speak(item.IsPinned
+                        ? "RimWorldAccess.History.Pinned".Loc()
+                        : "RimWorldAccess.History.Unpinned".Loc());
                 }
             });
         }
@@ -589,7 +610,7 @@ namespace RimWorldAccess
 
             var item = items[selectedIndex];
             string announcement = item.BuildListAnnouncement(selectedIndex, items.Count);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
@@ -611,7 +632,7 @@ namespace RimWorldAccess
                 announcement += typeahead.BuildSearchContextSuffix();
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         #endregion
