@@ -483,11 +483,56 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Sends text to the screen reader for speech output.
+        /// Speaks a localized string. This is the preferred entry point: the
+        /// <see cref="Localized"/> type can only be produced via <c>.Loc()</c>
+        /// (which routes through the translation system), so the compiler guarantees
+        /// the text is translatable.
+        /// </summary>
+        /// <param name="text">The localized text to speak (e.g. <c>"MyKey".Loc(args)</c>)</param>
+        /// <param name="priority">Speech priority level (determines interruption behavior)</param>
+        public static void Speak(Localized text, SpeechPriority priority = SpeechPriority.Normal)
+        {
+            SpeakInternal(text.SpokenText, priority);
+        }
+
+        /// <summary>
+        /// Speaks text that is intentionally not a translation key — numbers, proper
+        /// names, or labels already localized by the game (e.g. <c>thing.LabelCap</c>).
+        /// Use sparingly and only for genuine passthrough data; prefer
+        /// <see cref="Speak(Localized, SpeechPriority)"/> for any authored prose.
+        /// </summary>
+        /// <param name="text">The passthrough text to speak</param>
+        /// <param name="priority">Speech priority level (determines interruption behavior)</param>
+        public static void SpeakData(string text, SpeechPriority priority = SpeechPriority.Normal)
+        {
+            SpeakInternal(text, priority);
+        }
+
+        /// <summary>
+        /// Sends raw text to the screen reader for speech output.
+        /// </summary>
+        /// <remarks>
+        /// Deprecated as part of the compile-time localization guarantee (roadmap
+        /// Phase F). Migrate to <see cref="Speak(Localized, SpeechPriority)"/> for
+        /// authored prose (<c>"Key".Loc(...)</c>) or
+        /// <see cref="SpeakData(string, SpeechPriority)"/> for genuine passthrough
+        /// data. The remaining CS0618 warning count is the migration burn-down meter;
+        /// this overload will be deleted once it reaches zero.
+        /// </remarks>
+        /// <param name="text">The text to speak</param>
+        /// <param name="priority">Speech priority level (determines interruption behavior)</param>
+        [Obsolete("Use Speak(\"Key\".Loc(args)) for prose or SpeakData(data) for passthrough text. See refactor roadmap Phase F.", error: false)]
+        public static void Speak(string text, SpeechPriority priority = SpeechPriority.Normal)
+        {
+            SpeakInternal(text, priority);
+        }
+
+        /// <summary>
+        /// Core speech implementation shared by all public Speak overloads.
         /// </summary>
         /// <param name="text">The text to speak</param>
         /// <param name="priority">Speech priority level (determines interruption behavior)</param>
-        public static void Speak(string text, SpeechPriority priority = SpeechPriority.Normal)
+        private static void SpeakInternal(string text, SpeechPriority priority = SpeechPriority.Normal)
         {
             if (string.IsNullOrEmpty(text))
             {
