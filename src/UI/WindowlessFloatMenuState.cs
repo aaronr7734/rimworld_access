@@ -116,7 +116,7 @@ namespace RimWorldAccess
             if (selectedOption.Disabled)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak(selectedOption.Label + " - unavailable");
+                TolkHelper.Speak("RimWorldAccess.UI.FloatMenu.LabelUnavailable".Loc(selectedOption.Label));
                 return;
             }
 

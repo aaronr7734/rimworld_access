@@ -1427,7 +1427,7 @@ namespace RimWorldAccess
                 if (direction < 0)
                 {
                     bill.ingredientSearchRadius = 100f;
-                    TolkHelper.Speak("100");
+                    TolkHelper.SpeakData("100");
                 }
                 else
                 {
@@ -1452,7 +1452,7 @@ namespace RimWorldAccess
                     else
                     {
                         bill.ingredientSearchRadius = 100f;
-                        TolkHelper.Speak("100");
+                        TolkHelper.SpeakData("100");
                     }
                 }
                 else
@@ -1481,7 +1481,7 @@ namespace RimWorldAccess
             if (bill.ingredientSearchRadius >= 100f && direction > 0 && oldValue >= 100f)
             {
                 bill.ingredientSearchRadius = 999f;
-                NumericStepperHelper.SpeakValueAtMaximum("Unlimited");
+                NumericStepperHelper.SpeakValueAtMaximum("Unlimited".Translate());
                 menuItems[selectedIndex].label = GetIngredientRadiusLabel();
                 return;
             }
@@ -1504,7 +1504,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak($"{bill.ingredientSearchRadius:F0}");
+                TolkHelper.SpeakData($"{bill.ingredientSearchRadius:F0}");
             }
 
             menuItems[selectedIndex].label = GetIngredientRadiusLabel();

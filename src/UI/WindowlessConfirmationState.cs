@@ -25,7 +25,7 @@ namespace RimWorldAccess
             onConfirm = confirmAction;
 
             // Announce the confirmation prompt
-            TolkHelper.Speak(message + " - Press Enter to confirm, Escape to cancel");
+            TolkHelper.Speak("RimWorldAccess.UI.Confirm.MessageWithInstructions".Loc(message));
         }
 
         /// <summary>

@@ -85,6 +85,11 @@
   <RimWorldAccess.UI.FloatMenu.Selected>{0} selected</RimWorldAccess.UI.FloatMenu.Selected>
   <!-- Suffix appended to a disabled option label. -->
   <RimWorldAccess.UI.FloatMenu.UnavailableSuffix> (unavailable)</RimWorldAccess.UI.FloatMenu.UnavailableSuffix>
+  <!-- Spoken when activating a disabled float-menu option. {0} = option label. -->
+  <RimWorldAccess.UI.FloatMenu.LabelUnavailable>{0} - unavailable</RimWorldAccess.UI.FloatMenu.LabelUnavailable>
+  <!-- Generic confirmation prompt (WindowlessConfirmationState). {0} = the
+       caller-supplied message; the instruction tail is owned here. -->
+  <RimWorldAccess.UI.Confirm.MessageWithInstructions>{0} - Press Enter to confirm, Escape to cancel</RimWorldAccess.UI.Confirm.MessageWithInstructions>
   <RimWorldAccess.UI.FloatMenu.OptionTooltip>{0}. {1} {2}</RimWorldAccess.UI.FloatMenu.OptionTooltip>
   <!-- Tooltip variant inside an active typeahead search; the search
        buffer suffix is appended by typeahead.BuildSearchContextSuffix(),
