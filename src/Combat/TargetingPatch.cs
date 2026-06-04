@@ -57,7 +57,7 @@ namespace RimWorldAccess
         {
             if (!hasTargetingContext || !contextCasterPos.IsValid)
             {
-                TolkHelper.Speak("RimWorldAccess.Combat.Target.NoRangeInfo".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Combat.Target.NoRangeInfo".Loc(), SpeechPriority.Normal);
                 return;
             }
 
@@ -104,7 +104,7 @@ namespace RimWorldAccess
                 // Validate cursor position
                 if (!cursorPosition.IsValid || !cursorPosition.InBounds(Find.CurrentMap))
                 {
-                    TolkHelper.Speak("RimWorldAccess.Combat.Target.InvalidPosition".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Combat.Target.InvalidPosition".Loc());
                     Event.current.Use();
                     return false;
                 }
@@ -378,7 +378,7 @@ namespace RimWorldAccess
 
                     if (action == null)
                     {
-                        TolkHelper.Speak("RimWorldAccess.Combat.Target.NoActionAvailable".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Combat.Target.NoActionAvailable".Loc());
                         Event.current.Use();
                         return false;
                     }
@@ -404,7 +404,7 @@ namespace RimWorldAccess
 
                     if (validator != null && !validator(target))
                     {
-                        TolkHelper.Speak("RimWorldAccess.Combat.Target.InvalidTarget".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Combat.Target.InvalidTarget".Loc());
                         Event.current.Use();
                         return false;
                     }
@@ -464,16 +464,16 @@ namespace RimWorldAccess
 
                         if (unchanged.Count == 0)
                         {
-                            TolkHelper.Speak("RimWorldAccess.Combat.MultiSelect.EveryoneAttacks".Translate(everyone, targetLabel));
+                            TolkHelper.Speak("RimWorldAccess.Combat.MultiSelect.EveryoneAttacks".Loc(everyone, targetLabel));
                         }
                         else if (succeeded.Count == 0)
                         {
-                            TolkHelper.Speak("RimWorldAccess.Combat.MultiSelect.NoOneCouldAttack".Translate(targetLabel));
+                            TolkHelper.Speak("RimWorldAccess.Combat.MultiSelect.NoOneCouldAttack".Loc(targetLabel));
                         }
                         else if (unchanged.Count <= succeeded.Count)
                         {
                             string names = MenuHelper.FormatNameList(unchanged.Select(p => p.LabelShort).ToList());
-                            TolkHelper.Speak("RimWorldAccess.Combat.MultiSelect.EveryoneExceptAttacks".Translate(everyone, names, targetLabel));
+                            TolkHelper.Speak("RimWorldAccess.Combat.MultiSelect.EveryoneExceptAttacks".Loc(everyone, names, targetLabel));
                         }
                         else
                         {
@@ -481,12 +481,12 @@ namespace RimWorldAccess
                             string onlyKey = succeeded.Count == 1
                                 ? "RimWorldAccess.Combat.MultiSelect.OnlyOneAttacks"
                                 : "RimWorldAccess.Combat.MultiSelect.OnlyManyAttack";
-                            TolkHelper.Speak(onlyKey.Translate(names, targetLabel));
+                            TolkHelper.Speak(onlyKey.Loc(names, targetLabel));
                         }
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Combat.Target.Selected".Translate(targetLabel));
+                        TolkHelper.Speak("RimWorldAccess.Combat.Target.Selected".Loc(targetLabel));
                     }
 
                     // Consume the event

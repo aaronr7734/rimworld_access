@@ -42,7 +42,7 @@ namespace RimWorldAccess
             // Check if battle log exists
             if (Find.BattleLog == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Combat.Log.NoBattleLog".Translate());
+                TolkHelper.Speak("RimWorldAccess.Combat.Log.NoBattleLog".Loc());
                 return;
             }
 
