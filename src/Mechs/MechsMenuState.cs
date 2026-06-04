@@ -36,7 +36,7 @@ namespace RimWorldAccess
 
             if (!ModsConfig.BiotechActive)
             {
-                TolkHelper.Speak("Biotech DLC required");
+                TolkHelper.Speak("RimWorldAccess.Mechs.Menu.BiotechRequired".Loc());
                 return;
             }
 
@@ -49,7 +49,7 @@ namespace RimWorldAccess
 
             if (mechsList.Count == 0)
             {
-                TolkHelper.Speak("No mechs found");
+                TolkHelper.Speak("RimWorldAccess.Mechs.Menu.NoMechsFound".Loc());
                 return;
             }
 
@@ -83,8 +83,7 @@ namespace RimWorldAccess
 
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
 
-            string announcement = $"Mechs menu, {mechsList.Count} mechs";
-            TolkHelper.Speak(announcement);
+            TolkHelper.Speak("RimWorldAccess.Mechs.Menu.OpeningTitle".Loc(mechsList.Count));
             AnnounceCurrentCell(includeMechName: true);
         }
 
@@ -100,7 +99,7 @@ namespace RimWorldAccess
             if (!silent)
             {
                 SoundDefOf.TabClose.PlayOneShotOnCamera();
-                TolkHelper.Speak("Mechs menu closed");
+                TolkHelper.Speak("RimWorldAccess.Mechs.Menu.Closed".Loc());
             }
         }
 
@@ -142,7 +141,7 @@ namespace RimWorldAccess
 
             Pawn currentMech = mechsList[tableHelper.CurrentRowIndex];
             string announcement = tableHelper.BuildCellAnnouncement(currentMech, mechsList.Count, includeMechName);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         public static void OpenInfoCard()
@@ -209,7 +208,7 @@ namespace RimWorldAccess
         {
             if (pawn == null || pawn.Map == null)
             {
-                TolkHelper.Speak("Mech not on map", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Mechs.Menu.NotOnMap".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -227,15 +226,19 @@ namespace RimWorldAccess
         {
             if (!ModsConfig.BiotechActive || !pawn.IsColonyMechPlayerControlled || !pawn.Spawned)
             {
-                TolkHelper.Speak("Cannot draft this mech", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Mechs.Draft.CannotDraftThisMech".Loc(), SpeechPriority.High);
                 return;
             }
 
             AcceptanceReport canDraft = MechanitorUtility.CanDraftMech(pawn);
             if (!canDraft)
             {
-                string reason = canDraft.Reason.NullOrEmpty() ? "Cannot draft" : canDraft.Reason;
-                TolkHelper.Speak(reason, SpeechPriority.High);
+                // canDraft.Reason is a game-supplied (already localized) explanation;
+                // fall back to our own phrase when the game provides none.
+                if (canDraft.Reason.NullOrEmpty())
+                    TolkHelper.Speak("RimWorldAccess.Mechs.Draft.CannotDraft".Loc(), SpeechPriority.High);
+                else
+                    TolkHelper.SpeakData(canDraft.Reason, SpeechPriority.High);
                 return;
             }
 
@@ -255,7 +258,7 @@ namespace RimWorldAccess
             CompMechRepairable comp = pawn.GetComp<CompMechRepairable>();
             if (comp == null)
             {
-                TolkHelper.Speak("No auto-repair component", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Mechs.AutoRepair.NoComponent".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -276,14 +279,14 @@ namespace RimWorldAccess
         {
             if (pawn.IsGestating())
             {
-                TolkHelper.Speak("Gestating".Translate().Resolve(), SpeechPriority.High);
+                TolkHelper.SpeakData("Gestating".Translate().Resolve(), SpeechPriority.High);
                 return;
             }
 
             Pawn overseer = pawn.GetOverseer();
             if (overseer?.mechanitor == null)
             {
-                TolkHelper.Speak("No overseer", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Mechs.Submenu.NoOverseer".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -315,7 +318,7 @@ namespace RimWorldAccess
             MechanitorControlGroup group = pawn.GetMechControlGroup();
             if (group == null)
             {
-                TolkHelper.Speak("No control group", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Mechs.Submenu.NoControlGroup".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -418,7 +421,9 @@ namespace RimWorldAccess
                 Pawn currentMech = mechsList.Count > 0 ? mechsList[tableHelper.CurrentRowIndex] : null;
                 MechanitorControlGroup currentGroup = currentMech?.GetMechControlGroup();
                 string label = group.LabelIndexWithWorkMode;
-                return group == currentGroup ? $"{label} (current)" : label;
+                return group == currentGroup
+                    ? "RimWorldAccess.Mechs.Submenu.CurrentMarker".Translate(label).ToString()
+                    : label;
             }
 
             if (option is MechWorkModeDef mode)
@@ -426,13 +431,15 @@ namespace RimWorldAccess
                 Pawn currentMech = mechsList.Count > 0 ? mechsList[tableHelper.CurrentRowIndex] : null;
                 MechanitorControlGroup currentGroup = currentMech?.GetMechControlGroup();
                 string label = mode.LabelCap.Resolve();
-                return currentGroup?.WorkMode == mode ? $"{label} (current)" : label;
+                return currentGroup?.WorkMode == mode
+                    ? "RimWorldAccess.Mechs.Submenu.CurrentMarker".Translate(label).ToString()
+                    : label;
             }
 
             if (option is Area area)
                 return area.Label;
 
-            return "Unknown";
+            return "RimWorldAccess.Mechs.Value.Unknown".Translate().ToString();
         }
 
         public static void SetSubmenuSelectedIndex(int index)
@@ -480,14 +487,14 @@ namespace RimWorldAccess
             string optionText = GetSubmenuOptionText(selectedOption);
             string position = MenuHelper.FormatPosition(submenuSelectedIndex, submenuOptions.Count);
 
-            string announcement = $"{optionText}. {position}";
+            string announcement = "RimWorldAccess.Mechs.Submenu.Option".Translate(optionText, position).ToString();
 
             if (submenuTypeahead.HasActiveSearch)
             {
                 announcement += submenuTypeahead.BuildSearchContextSuffix();
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         private static void AnnounceSubmenuOption()
@@ -496,14 +503,16 @@ namespace RimWorldAccess
 
             object selectedOption = submenuOptions[submenuSelectedIndex];
             string optionText = GetSubmenuOptionText(selectedOption);
+            string position = MenuHelper.FormatPosition(submenuSelectedIndex, submenuOptions.Count);
 
-            // Add description for work modes
-            string extra = "";
+            // Add description for work modes (mode.description is game-supplied data).
+            string announcement;
             if (selectedOption is MechWorkModeDef mode && !mode.description.NullOrEmpty())
-                extra = $". {mode.description}";
+                announcement = "RimWorldAccess.Mechs.Submenu.OptionWithDesc".Translate(optionText, mode.description, position).ToString();
+            else
+                announcement = "RimWorldAccess.Mechs.Submenu.OptionAnnounce".Translate(optionText, position).ToString();
 
-            string announcement = $"{optionText}{extra} ({MenuHelper.FormatPosition(submenuSelectedIndex, submenuOptions.Count)})";
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         private static void ApplySubmenuSelection()
@@ -521,7 +530,7 @@ namespace RimWorldAccess
                         MechanitorControlGroup currentGroup = currentMech.GetMechControlGroup();
                         if (group == currentGroup)
                         {
-                            TolkHelper.Speak("Already in this group");
+                            TolkHelper.Speak("RimWorldAccess.Mechs.ControlGroup.AlreadyInGroup".Loc());
                             return;
                         }
                         group.Assign(currentMech);
@@ -536,14 +545,14 @@ namespace RimWorldAccess
 
                         if (mechGroup.WorkMode == mode)
                         {
-                            TolkHelper.Speak("Already set to this mode");
+                            TolkHelper.Speak("RimWorldAccess.Mechs.WorkMode.AlreadySet".Loc());
                             return;
                         }
 
                         mechGroup.SetWorkMode(mode);
                         SoundDefOf.Click.PlayOneShotOnCamera();
                         CloseSubmenu();
-                        TolkHelper.Speak($"Work mode set to {mode.LabelCap} for control group {mechGroup.Index}");
+                        TolkHelper.Speak("RimWorldAccess.Mechs.WorkMode.SetForGroup".Loc(mode.LabelCap, mechGroup.Index));
                         AnnounceCurrentCell(includeMechName: false);
                         ResortAfterEdit();
                         return;
@@ -613,9 +622,9 @@ namespace RimWorldAccess
             if (resorted != null)
             {
                 mechsList = resorted.ToList();
-                string announcement = "Now at " + tableHelper.BuildCellAnnouncement(
+                string cellText = tableHelper.BuildCellAnnouncement(
                     mechsList[tableHelper.CurrentRowIndex], mechsList.Count, includeItemName: true);
-                TolkHelper.Speak(announcement);
+                TolkHelper.Speak("RimWorldAccess.Mechs.Sort.NowAt".Loc(cellText));
             }
         }
 
@@ -626,7 +635,7 @@ namespace RimWorldAccess
             if (result == null)
             {
                 string colName = tableHelper.GetCurrentColumnName();
-                TolkHelper.Speak($"{colName} cannot be sorted");
+                TolkHelper.Speak("RimWorldAccess.Mechs.Sort.CannotSort".Loc(colName));
                 return;
             }
 
@@ -635,13 +644,13 @@ namespace RimWorldAccess
             if (sortCleared)
             {
                 SoundDefOf.Tick_Low.PlayOneShotOnCamera();
-                TolkHelper.Speak("Sort cleared, default order");
+                TolkHelper.Speak("RimWorldAccess.Mechs.Sort.Cleared".Loc());
             }
             else
             {
                 string columnName = tableHelper.GetCurrentColumnName();
                 SoundDefOf.Tick_High.PlayOneShotOnCamera();
-                TolkHelper.Speak($"Sorted by {columnName} ({direction})");
+                TolkHelper.Speak("RimWorldAccess.Mechs.Sort.SortedBy".Loc(columnName, direction));
             }
 
             AnnounceCurrentCell(includeMechName: true);
@@ -685,13 +694,13 @@ namespace RimWorldAccess
         {
             if (mechsList.Count == 0)
             {
-                TolkHelper.Speak("No mechs");
+                TolkHelper.Speak("RimWorldAccess.Mechs.Menu.NoMechs".Loc());
                 return;
             }
 
             Pawn currentMech = mechsList[tableHelper.CurrentRowIndex];
             string announcement = tableHelper.BuildCellAnnouncementWithSearch(currentMech, mechsList.Count);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         public static void JumpToFirst()
@@ -757,14 +766,14 @@ namespace RimWorldAccess
 
                 if (targetArea == lastAppliedArea)
                 {
-                    TolkHelper.Speak($"{target.LabelShort}: already set to {areaName}. {position}");
+                    TolkHelper.Speak("RimWorldAccess.Mechs.Paint.Single.AreaAlreadySet".Loc(target.LabelShort, areaName, position));
                 }
                 else
                 {
                     if (target.playerSettings != null)
                         target.playerSettings.AreaRestrictionInPawnCurrentMap = lastAppliedArea;
                     SoundDefOf.Designate_DragStandard_Changed_NoCam.PlayOneShotOnCamera();
-                    TolkHelper.Speak($"{target.LabelShort}: {areaName} applied. {position}");
+                    TolkHelper.Speak("RimWorldAccess.Mechs.Paint.Single.AreaApplied".Loc(target.LabelShort, areaName, position));
                 }
                 return;
             }
@@ -776,7 +785,7 @@ namespace RimWorldAccess
                 if (sourceGroup == null)
                 {
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak("No control group to paint");
+                    TolkHelper.Speak("RimWorldAccess.Mechs.Paint.ControlGroup.NoGroupToPaint".Loc());
                     return;
                 }
 
@@ -790,7 +799,7 @@ namespace RimWorldAccess
 
                 if (target.IsGestating())
                 {
-                    TolkHelper.Speak($"{target.LabelShort}: gestating, cannot assign. {position}");
+                    TolkHelper.Speak("RimWorldAccess.Mechs.Paint.ControlGroup.GestatingCannotAssign".Loc(target.LabelShort, position));
                     return;
                 }
 
@@ -798,20 +807,20 @@ namespace RimWorldAccess
                 if (target.GetOverseer() != sourcePawn.GetOverseer())
                 {
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak($"{target.LabelShort}: different overseer, cannot paint. {position}");
+                    TolkHelper.Speak("RimWorldAccess.Mechs.Paint.ControlGroup.DifferentOverseer".Loc(target.LabelShort, position));
                     return;
                 }
 
                 MechanitorControlGroup targetGroup = target.GetMechControlGroup();
                 if (targetGroup == sourceGroup)
                 {
-                    TolkHelper.Speak($"{target.LabelShort}: already in group {sourceGroup.Index}. {position}");
+                    TolkHelper.Speak("RimWorldAccess.Mechs.Paint.ControlGroup.AlreadyInGroup".Loc(target.LabelShort, sourceGroup.Index, position));
                     return;
                 }
 
                 sourceGroup.Assign(target);
                 SoundDefOf.Click.PlayOneShotOnCamera();
-                TolkHelper.Speak($"{target.LabelShort}: assigned to group {sourceGroup.Index}. {position}");
+                TolkHelper.Speak("RimWorldAccess.Mechs.Paint.ControlGroup.AssignedToGroup".Loc(target.LabelShort, sourceGroup.Index, position));
                 return;
             }
 
@@ -830,7 +839,7 @@ namespace RimWorldAccess
             bool targetValue = MechsMenuHelper.GetPaintableValue(targetPawn, col);
             if (targetValue == brushValue)
             {
-                TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} already {valueLabel}. {pos}");
+                TolkHelper.Speak("RimWorldAccess.Mechs.Paint.Single.CellAlready".Loc(targetPawn.LabelShort, colName, valueLabel, pos));
                 return;
             }
 
@@ -841,9 +850,9 @@ namespace RimWorldAccess
             sound.PlayOneShotOnCamera();
 
             if (applied)
-                TolkHelper.Speak($"{targetPawn.LabelShort}: {colName} {valueLabel}. {pos}");
+                TolkHelper.Speak("RimWorldAccess.Mechs.Paint.Single.CellApplied".Loc(targetPawn.LabelShort, colName, valueLabel, pos));
             else
-                TolkHelper.Speak($"{targetPawn.LabelShort}: cannot apply {colName}. {pos}");
+                TolkHelper.Speak("RimWorldAccess.Mechs.Paint.Single.CannotApply".Loc(targetPawn.LabelShort, colName, pos));
         }
 
         public static void PaintToLast()
@@ -916,10 +925,10 @@ namespace RimWorldAccess
                 tableHelper.CurrentRowIndex = towardFirst ? startRow : endRow;
                 BulkSoundQueue.Queue(changedNames.Count, SoundDefOf.Designate_DragStandard_Changed_NoCam);
 
-                string announcement = changedNames.Count > 0
-                    ? $"Painted {colName} {areaName} for {string.Join(", ", changedNames)}"
-                    : $"All already set to {areaName}";
-                TolkHelper.Speak(announcement);
+                if (changedNames.Count > 0)
+                    TolkHelper.Speak("RimWorldAccess.Mechs.Paint.Bulk.AreaApplied".Loc(colName, areaName, MenuHelper.FormatNameList(changedNames)));
+                else
+                    TolkHelper.Speak("RimWorldAccess.Mechs.Paint.Bulk.AreaAlreadyAll".Loc(areaName));
                 return;
             }
 
@@ -931,7 +940,7 @@ namespace RimWorldAccess
                 if (sourceGroup == null)
                 {
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak("No control group to paint");
+                    TolkHelper.Speak("RimWorldAccess.Mechs.Paint.ControlGroup.NoGroupToPaint".Loc());
                     return;
                 }
                 Pawn sourceOverseer = source.GetOverseer();
@@ -950,10 +959,10 @@ namespace RimWorldAccess
                 tableHelper.CurrentRowIndex = towardFirst ? startRow : endRow;
                 BulkSoundQueue.Queue(changedNames.Count, SoundDefOf.Click);
 
-                string announcement = changedNames.Count > 0
-                    ? $"Painted {colName} group {sourceGroup.Index} for {string.Join(", ", changedNames)}"
-                    : $"All already in group {sourceGroup.Index} (or different overseer)";
-                TolkHelper.Speak(announcement);
+                if (changedNames.Count > 0)
+                    TolkHelper.Speak("RimWorldAccess.Mechs.Paint.Bulk.GroupApplied".Loc(colName, sourceGroup.Index, MenuHelper.FormatNameList(changedNames)));
+                else
+                    TolkHelper.Speak("RimWorldAccess.Mechs.Paint.Bulk.GroupAlreadyAll".Loc(sourceGroup.Index));
                 return;
             }
 
@@ -978,10 +987,10 @@ namespace RimWorldAccess
             SoundDef bulkSound = MechsMenuHelper.GetPaintSound(col, brushValue);
             BulkSoundQueue.Queue(changed.Count, bulkSound);
 
-            string bulkAnnouncement = changed.Count > 0
-                ? $"Painted {colName} {valueLabel} for {string.Join(", ", changed)}"
-                : $"All already {valueLabel}";
-            TolkHelper.Speak(bulkAnnouncement);
+            if (changed.Count > 0)
+                TolkHelper.Speak("RimWorldAccess.Mechs.Paint.Bulk.CellApplied".Loc(colName, valueLabel, MenuHelper.FormatNameList(changed)));
+            else
+                TolkHelper.Speak("RimWorldAccess.Mechs.Paint.Bulk.CellAlreadyAll".Loc(colName, valueLabel));
         }
 
         #endregion

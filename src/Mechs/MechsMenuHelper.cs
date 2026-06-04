@@ -72,7 +72,7 @@ namespace RimWorldAccess
         public static string GetColumnName(int columnIndex)
         {
             if (columnIndex < 0 || columnIndex >= TotalColumns)
-                return "Unknown";
+                return "RimWorldAccess.Mechs.Value.Unknown".Translate().ToString();
 
             ColumnType type = (ColumnType)columnIndex;
             switch (type)
@@ -94,7 +94,7 @@ namespace RimWorldAccess
         public static string GetColumnValue(Pawn pawn, int columnIndex)
         {
             if (columnIndex < 0 || columnIndex >= TotalColumns)
-                return "Unknown";
+                return "RimWorldAccess.Mechs.Value.Unknown".Translate().ToString();
 
             switch ((ColumnType)columnIndex)
             {
@@ -115,7 +115,7 @@ namespace RimWorldAccess
                 case ColumnType.AllowedArea:
                     return GetAllowedAreaValue(pawn);
                 default:
-                    return "Unknown";
+                    return "RimWorldAccess.Mechs.Value.Unknown".Translate().ToString();
             }
         }
 
@@ -246,7 +246,9 @@ namespace RimWorldAccess
                 case ColumnType.AutoRepair:
                     return value ? "On".Translate().Resolve() : "Off".Translate().Resolve();
                 default:
-                    return value ? "checked" : "unchecked";
+                    return value
+                        ? "RimWorldAccess.Mechs.Paint.Checked".Translate().ToString()
+                        : "RimWorldAccess.Mechs.Paint.Unchecked".Translate().ToString();
             }
         }
 
@@ -268,7 +270,7 @@ namespace RimWorldAccess
                 return "Gestating".Translate().Resolve();
 
             if (pawn.needs?.energy == null)
-                return "N/A";
+                return "RimWorldAccess.Mechs.Value.NotApplicable".Translate().ToString();
 
             return $"{Mathf.RoundToInt(pawn.needs.energy.CurLevel)} / {Mathf.RoundToInt(pawn.needs.energy.MaxLevel)}";
         }
@@ -276,7 +278,7 @@ namespace RimWorldAccess
         private static string GetDraftStatus(Pawn pawn)
         {
             if (!ModsConfig.BiotechActive || !pawn.IsColonyMechPlayerControlled || !pawn.Spawned)
-                return "N/A";
+                return "RimWorldAccess.Mechs.Value.NotApplicable".Translate().ToString();
 
             AcceptanceReport canDraft = MechanitorUtility.CanDraftMech(pawn);
             if (!canDraft && !canDraft.Reason.NullOrEmpty())
@@ -291,7 +293,7 @@ namespace RimWorldAccess
         {
             CompMechRepairable comp = pawn.GetComp<CompMechRepairable>();
             if (comp == null)
-                return "N/A";
+                return "RimWorldAccess.Mechs.Value.NotApplicable".Translate().ToString();
             return comp.autoRepair ? "On".Translate().Resolve() : "Off".Translate().Resolve();
         }
 
@@ -317,7 +319,7 @@ namespace RimWorldAccess
         {
             MechanitorControlGroup group = pawn.GetMechControlGroup();
             if (group == null)
-                return "N/A";
+                return "RimWorldAccess.Mechs.Value.NotApplicable".Translate().ToString();
 
             return group.WorkMode.LabelCap.Resolve();
         }
@@ -325,7 +327,7 @@ namespace RimWorldAccess
         private static string GetAllowedAreaValue(Pawn pawn)
         {
             if (pawn.playerSettings == null)
-                return "N/A";
+                return "RimWorldAccess.Mechs.Value.NotApplicable".Translate().ToString();
 
             Area area = pawn.playerSettings.AreaRestrictionInPawnCurrentMap;
             return area?.Label ?? "Unrestricted".Translate().Resolve();
