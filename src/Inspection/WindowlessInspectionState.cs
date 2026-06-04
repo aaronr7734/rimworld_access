@@ -48,7 +48,7 @@ namespace RimWorldAccess
 
                 if (objects.Count == 0)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Panel.NoItems".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Panel.NoItems".Loc());
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
                     return;
                 }
@@ -123,7 +123,7 @@ namespace RimWorldAccess
             {
                 if (obj == null)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Panel.NoObject".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Panel.NoObject".Loc());
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
                     return;
                 }
@@ -210,7 +210,7 @@ namespace RimWorldAccess
             {
                 if (obj == null)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Panel.NoObject".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Panel.NoObject".Loc());
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
                     return;
                 }
@@ -429,7 +429,7 @@ namespace RimWorldAccess
             {
                 Close();
                 SoundDefOf.Click.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.Inspection.Panel.PanelClosed".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Panel.PanelClosed".Loc());
             }
         }
 
@@ -674,7 +674,7 @@ namespace RimWorldAccess
 
             // Otherwise, nothing to do
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            TolkHelper.Speak("RimWorldAccess.Inspection.Panel.NoAction".Translate());
+            TolkHelper.Speak("RimWorldAccess.Inspection.Panel.NoAction".Loc());
             return true;
         }
 
@@ -738,7 +738,7 @@ namespace RimWorldAccess
             if (!item.IsExpandable)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.Inspection.Panel.CannotExpand".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Inspection.Panel.CannotExpand".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -758,7 +758,7 @@ namespace RimWorldAccess
             if (item.Children.Count == 0)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.Inspection.Panel.NoItemsToShow".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Panel.NoItemsToShow".Loc());
                 return;
             }
 

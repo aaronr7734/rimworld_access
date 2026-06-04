@@ -150,7 +150,7 @@ namespace RimWorldAccess
 
             if (!InitializeReflection())
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.NotAvailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.NotAvailable".Loc());
                 return;
             }
 
@@ -616,7 +616,7 @@ namespace RimWorldAccess
 
             if (!item.isEditable)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.NotAdjustable".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.NotAdjustable".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -654,11 +654,11 @@ namespace RimWorldAccess
                     }
                     else if (direction > 0 && fishSpeciesExpanded)
                     {
-                        TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.AlreadyExpanded".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.AlreadyExpanded".Loc());
                     }
                     else if (direction < 0 && !fishSpeciesExpanded)
                     {
-                        TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.AlreadyCollapsed".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.AlreadyCollapsed".Loc());
                     }
                     break;
 
@@ -670,12 +670,12 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.PressAltIToViewFishInfo".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.PressAltIToViewFishInfo".Loc());
                     }
                     break;
 
                 default:
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.UseEnterToActivate".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.UseEnterToActivate".Loc());
                     break;
             }
         }
@@ -689,7 +689,7 @@ namespace RimWorldAccess
             string countKey = speciesCount == 1
                 ? "RimWorldAccess.Inspection.Fishing.Action.ExpandedFishSpeciesOne"
                 : "RimWorldAccess.Inspection.Fishing.Action.ExpandedFishSpeciesMany";
-            TolkHelper.Speak(countKey.Translate(speciesCount));
+            TolkHelper.Speak(countKey.Loc(speciesCount));
             AnnounceCurrentSelection();
         }
 
@@ -703,7 +703,7 @@ namespace RimWorldAccess
             {
                 selectedIndex = fishSpeciesIndex;
             }
-            TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.Collapsed".Translate());
+            TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.Collapsed".Loc());
             AnnounceCurrentSelection();
         }
 
@@ -986,7 +986,7 @@ namespace RimWorldAccess
                     break;
 
                 default:
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.FieldNotAdjustable".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.FieldNotAdjustable".Loc());
                     break;
             }
         }
@@ -1002,7 +1002,7 @@ namespace RimWorldAccess
             {
                 case MenuItemType.RepeatCount:
                 case MenuItemType.TargetCount:
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.NoMaximumLimit".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.NoMaximumLimit".Loc());
                     break;
 
                 case MenuItemType.UnpauseAt:
@@ -1040,7 +1040,7 @@ namespace RimWorldAccess
                     break;
 
                 default:
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.FieldNotAdjustable".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.FieldNotAdjustable".Loc());
                     break;
             }
         }
@@ -1068,7 +1068,7 @@ namespace RimWorldAccess
 
                 case MenuItemType.FishSpecies:
                     // Treeview pattern: Use Right to expand, Left to collapse
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.UseRightLeftToExpand".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.UseRightLeftToExpand".Loc());
                     break;
 
                 case MenuItemType.FishSpeciesItem:
@@ -1077,7 +1077,7 @@ namespace RimWorldAccess
                     break;
 
                 default:
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.UseLeftRightToAdjust".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.UseLeftRightToAdjust".Loc());
                     break;
             }
         }
@@ -1093,7 +1093,7 @@ namespace RimWorldAccess
             string toggleKey = !current
                 ? "RimWorldAccess.Inspection.Fishing.Action.FishingAllowed"
                 : "RimWorldAccess.Inspection.Fishing.Action.FishingForbidden";
-            TolkHelper.Speak(toggleKey.Translate());
+            TolkHelper.Speak(toggleKey.Loc());
             AnnounceCurrentSelection();
         }
 
@@ -1120,7 +1120,7 @@ namespace RimWorldAccess
             string pauseKey = !current
                 ? "RimWorldAccess.Inspection.Fishing.Action.PauseEnabled"
                 : "RimWorldAccess.Inspection.Fishing.Action.PauseDisabled";
-            TolkHelper.Speak(pauseKey.Translate());
+            TolkHelper.Speak(pauseKey.Loc());
             AnnounceCurrentSelection();
         }
 
@@ -1135,7 +1135,7 @@ namespace RimWorldAccess
             MenuItem item = menuItems[selectedIndex];
             if (item.type != MenuItemType.FishSpeciesItem || item.data == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.SelectFishSpeciesFirst".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.SelectFishSpeciesFirst".Loc());
                 return;
             }
 
@@ -1143,7 +1143,7 @@ namespace RimWorldAccess
             if (fishDef != null)
             {
                 Find.WindowStack.Add(new Dialog_InfoCard(fishDef));
-                TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.OpeningInfoCard".Translate(fishDef.LabelCap));
+                TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Action.OpeningInfoCard".Loc(fishDef.LabelCap));
             }
         }
 
@@ -1170,7 +1170,7 @@ namespace RimWorldAccess
 
             numericBuffer = "";
             isNumericInputMode = true;
-            TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Numeric.Prompt".Translate());
+            TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Numeric.Prompt".Loc());
         }
 
         public static void HandleNumericDigit(char digit)
@@ -1192,7 +1192,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Numeric.Empty".Translate(), SpeechPriority.Low);
+                TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Numeric.Empty".Loc(), SpeechPriority.Low);
             }
         }
 
@@ -1206,7 +1206,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Numeric.InvalidNumber".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Numeric.InvalidNumber".Loc());
             }
 
             isNumericInputMode = false;
@@ -1217,7 +1217,7 @@ namespace RimWorldAccess
         {
             isNumericInputMode = false;
             numericBuffer = "";
-            TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Numeric.Cancelled".Translate());
+            TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Numeric.Cancelled".Loc());
         }
 
         private static void ApplyNumericValue(int value)
@@ -1274,7 +1274,7 @@ namespace RimWorldAccess
                     break;
 
                 default:
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Numeric.NotApplicable".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Fishing.Numeric.NotApplicable".Loc());
                     break;
             }
         }

@@ -53,7 +53,7 @@ namespace RimWorldAccess
 
             if (notifications.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Notifications.Menu.None".Translate());
+                TolkHelper.Speak("RimWorldAccess.Notifications.Menu.None".Loc());
                 return;
             }
 
@@ -195,7 +195,7 @@ namespace RimWorldAccess
                 if (notifications.Count == 0)
                 {
                     Close();
-                    TolkHelper.Speak("RimWorldAccess.Notifications.Action.ActivatedNoneRemaining".Translate(buttonLabel));
+                    TolkHelper.Speak("RimWorldAccess.Notifications.Action.ActivatedNoneRemaining".Loc(buttonLabel));
                     return;
                 }
 
@@ -217,14 +217,14 @@ namespace RimWorldAccess
                     // For other actions, go back to list view and announce
                     detailHelper.GoBackToList();
                     detailHelper.RefreshButtons();
-                    TolkHelper.Speak("RimWorldAccess.Notifications.Action.ActivatedBackToList".Translate(buttonLabel));
+                    TolkHelper.Speak("RimWorldAccess.Notifications.Action.ActivatedBackToList".Loc(buttonLabel));
                     AnnounceCurrentSelection();
                 }
             }
             catch (Exception ex)
             {
                 Log.Warning($"RimWorld Access: Failed to activate button: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Notifications.Menu.FailedToActivateButton".Translate());
+                TolkHelper.Speak("RimWorldAccess.Notifications.Menu.FailedToActivateButton".Loc());
             }
         }
 
@@ -234,7 +234,7 @@ namespace RimWorldAccess
         public static void CloseMenu()
         {
             Close();
-            TolkHelper.Speak("RimWorldAccess.Notifications.Menu.Closed".Translate());
+            TolkHelper.Speak("RimWorldAccess.Notifications.Menu.Closed".Loc());
         }
 
         /// <summary>
@@ -339,7 +339,7 @@ namespace RimWorldAccess
             // Only letters can be deleted
             if (item.Type != NotificationType.Letter)
             {
-                TolkHelper.Speak("RimWorldAccess.Notifications.Menu.OnlyLettersDeletable".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Notifications.Menu.OnlyLettersDeletable".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -347,7 +347,7 @@ namespace RimWorldAccess
             Letter letter = item.GetSourceLetter();
             if (letter == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Notifications.Menu.CannotDeleteLetter".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Notifications.Menu.CannotDeleteLetter".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -363,7 +363,7 @@ namespace RimWorldAccess
             if (notifications.Count == 0)
             {
                 Close();
-                TolkHelper.Speak("RimWorldAccess.Notifications.Action.DeletedNoneRemaining".Translate(deletedLabel));
+                TolkHelper.Speak("RimWorldAccess.Notifications.Action.DeletedNoneRemaining".Loc(deletedLabel));
                 return;
             }
 
@@ -381,7 +381,7 @@ namespace RimWorldAccess
             NotificationItem newItem = notifications[currentIndex];
             string typeLabel = GetTypeLabel(newItem.Type);
             string position = MenuHelper.FormatPosition(currentIndex, notifications.Count);
-            TolkHelper.Speak("RimWorldAccess.Notifications.Action.DeletedNextItem".Translate(
+            TolkHelper.Speak("RimWorldAccess.Notifications.Action.DeletedNextItem".Loc(
                 deletedLabel, typeLabel, newItem.Label, position));
         }
 
@@ -687,7 +687,7 @@ namespace RimWorldAccess
                                 try
                                 {
                                     onClickMethod.Invoke(alert, null);
-                                    TolkHelper.Speak("RimWorldAccess.Notifications.Action.AlertActivated".Translate());
+                                    TolkHelper.Speak("RimWorldAccess.Notifications.Action.AlertActivated".Loc());
                                 }
                                 catch (Exception ex)
                                 {
@@ -820,7 +820,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Notifications.Menu.TargetNotValid".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Notifications.Menu.TargetNotValid".Loc());
                     }
                 };
             }
@@ -848,7 +848,7 @@ namespace RimWorldAccess
             if (option.hyperlink.def != null)
             {
                 return () => {
-                    TolkHelper.Speak("RimWorldAccess.Notifications.Action.OpeningInfoCard".Translate(option.hyperlink.Label));
+                    TolkHelper.Speak("RimWorldAccess.Notifications.Action.OpeningInfoCard".Loc(option.hyperlink.Label));
                     option.action?.Invoke();
                 };
             }
@@ -925,7 +925,7 @@ namespace RimWorldAccess
         {
             if (!item.HasValidTarget)
             {
-                TolkHelper.Speak("RimWorldAccess.Notifications.Menu.NoTargetLocation".Translate());
+                TolkHelper.Speak("RimWorldAccess.Notifications.Menu.NoTargetLocation".Loc());
                 return;
             }
 
@@ -963,13 +963,13 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.Notifications.Menu.TargetNotValid".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Notifications.Menu.TargetNotValid".Loc());
                 }
             }
             catch (Exception ex)
             {
                 Log.Warning($"RimWorld Access: Failed to jump to target: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Notifications.Menu.FailedToJump".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Notifications.Menu.FailedToJump".Loc(), SpeechPriority.High);
             }
         }
 

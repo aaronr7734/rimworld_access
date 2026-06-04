@@ -202,7 +202,7 @@ namespace RimWorldAccess
                 {
                     announcedMainMenu = true;
                     lastAnnouncedState = ProgramState.Entry;
-                    TolkHelper.Speak("GameOverMainMenu".Translate(), SpeechPriority.Normal);
+                    TolkHelper.Speak("GameOverMainMenu".Loc(), SpeechPriority.Normal);
                 }
                 else if (Current.ProgramState == ProgramState.Playing)
                 {

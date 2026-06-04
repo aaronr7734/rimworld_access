@@ -283,7 +283,7 @@ namespace RimWorldAccess
         {
             if (availableTabs.Count <= 1)
             {
-                TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.OnlyOneTab".Translate());
+                TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.OnlyOneTab".Loc());
                 return;
             }
 
@@ -437,7 +437,7 @@ namespace RimWorldAccess
 
             if (isArchiveView)
             {
-                TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.ArchiveReadOnly".Translate());
+                TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.ArchiveReadOnly".Loc());
                 return;
             }
 
@@ -459,7 +459,7 @@ namespace RimWorldAccess
                 // Radio button mode: select this one, deselect any other
                 selectedPassions.Clear();
                 selectedPassions.Add(item.Skill);
-                TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.PassionSelectedFeedback".Translate(
+                TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.PassionSelectedFeedback".Loc(
                     item.Label, selectedPassions.Count, letter.passionGainsCount));
             }
             else
@@ -468,18 +468,18 @@ namespace RimWorldAccess
                 if (selectedPassions.Contains(item.Skill))
                 {
                     selectedPassions.Remove(item.Skill);
-                    TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.PassionDeselectedFeedback".Translate(
+                    TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.PassionDeselectedFeedback".Loc(
                         item.Label, selectedPassions.Count, letter.passionGainsCount));
                 }
                 else
                 {
                     if (selectedPassions.Count >= letter.passionGainsCount)
                     {
-                        TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.PassionLimitReached".Translate(letter.passionGainsCount));
+                        TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.PassionLimitReached".Loc(letter.passionGainsCount));
                         return;
                     }
                     selectedPassions.Add(item.Skill);
-                    TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.PassionSelectedFeedback".Translate(
+                    TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.PassionSelectedFeedback".Loc(
                         item.Label, selectedPassions.Count, letter.passionGainsCount));
                 }
             }
@@ -495,12 +495,12 @@ namespace RimWorldAccess
             if (item.IsNoTrait)
             {
                 selectedTrait = ChoiceLetter_GrowthMoment.NoTrait;
-                TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.NoTraitSelected".Translate());
+                TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.NoTraitSelected".Loc());
             }
             else
             {
                 selectedTrait = item.TraitOption;
-                TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.TraitSelected".Translate(item.Label));
+                TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.TraitSelected".Loc(item.Label));
             }
         }
 
@@ -515,16 +515,16 @@ namespace RimWorldAccess
             if (!letter.passionChoices.NullOrEmpty() && selectedPassions.Count != letter.passionGainsCount)
             {
                 if (letter.passionGainsCount == 1)
-                    TolkHelper.Speak("SelectPassionSingular".Translate(), SpeechPriority.High);
+                    TolkHelper.Speak("SelectPassionSingular".Loc(), SpeechPriority.High);
                 else
-                    TolkHelper.Speak("SelectPassionsPlural".Translate(letter.passionGainsCount), SpeechPriority.High);
+                    TolkHelper.Speak("SelectPassionsPlural".Loc(letter.passionGainsCount), SpeechPriority.High);
                 return;
             }
 
             // Validate traits
             if (!letter.traitChoices.NullOrEmpty() && selectedTrait == null)
             {
-                TolkHelper.Speak("SelectATrait".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("SelectATrait".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -545,7 +545,7 @@ namespace RimWorldAccess
                 Find.WindowStack.TryRemove(dialogRef, doCloseSound: false);
             Find.LetterStack.RemoveLetter(letterRef);
 
-            TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.Confirmed".Translate(pawnName));
+            TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.Confirmed".Loc(pawnName));
         }
 
         private static void PostponeChoices()
@@ -558,7 +558,7 @@ namespace RimWorldAccess
 
             if (letter.ShouldAutomaticallyOpenLetter)
             {
-                TolkHelper.Speak("MessageCannotPostponeGrowthMoment".Translate(letter.pawn.Named("PAWN")), SpeechPriority.High);
+                TolkHelper.Speak("MessageCannotPostponeGrowthMoment".Loc(letter.pawn.Named("PAWN")), SpeechPriority.High);
                 return;
             }
 
@@ -575,7 +575,7 @@ namespace RimWorldAccess
             if (dialogRef != null)
                 Find.WindowStack.TryRemove(dialogRef, doCloseSound: false);
 
-            TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.Postponed".Translate());
+            TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.Postponed".Loc());
         }
 
         // ========== Announcements ==========
@@ -647,7 +647,7 @@ namespace RimWorldAccess
         {
             if (infoLines == null || infoLines.Length == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.NoInformation".Translate());
+                TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.NoInformation".Loc());
                 return;
             }
 
@@ -665,7 +665,7 @@ namespace RimWorldAccess
         {
             if (passionItems.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.NoPassions".Translate());
+                TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.NoPassions".Loc());
                 return;
             }
 
@@ -690,7 +690,7 @@ namespace RimWorldAccess
         {
             if (traitItems.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.NoTraits".Translate());
+                TolkHelper.Speak("RimWorldAccess.Biotech.GrowthMoment.NoTraits".Loc());
                 return;
             }
 

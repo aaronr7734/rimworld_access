@@ -37,7 +37,7 @@ namespace RimWorldAccess
             isActive = true;
             var root = BuildCategoryTree();
             treeNav.Initialize(root);
-            TolkHelper.Speak("RimWorldAccess.Research.Menu.Title".Translate());
+            TolkHelper.Speak("RimWorldAccess.Research.Menu.Title".Loc());
             treeNav.ReannounceCurrentItem();
         }
 
@@ -48,7 +48,7 @@ namespace RimWorldAccess
         {
             isActive = false;
             treeNav.Reset();
-            TolkHelper.Speak("RimWorldAccess.Research.Menu.Closed".Translate());
+            TolkHelper.Speak("RimWorldAccess.Research.Menu.Closed".Loc());
         }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace RimWorldAccess
         {
             if (project == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Research.Menu.ProjectNotAvailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.Research.Menu.ProjectNotAvailable".Loc());
                 return;
             }
 
@@ -85,12 +85,12 @@ namespace RimWorldAccess
             if (foundIndex >= 0)
             {
                 treeNav.SetSelectedIndex(foundIndex);
-                TolkHelper.Speak("RimWorldAccess.Research.Menu.Title".Translate());
+                TolkHelper.Speak("RimWorldAccess.Research.Menu.Title".Loc());
                 treeNav.ReannounceCurrentItem();
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Research.Menu.ProjectNotFound".Translate(project.LabelCap));
+                TolkHelper.Speak("RimWorldAccess.Research.Menu.ProjectNotFound".Loc(project.LabelCap));
             }
         }
 

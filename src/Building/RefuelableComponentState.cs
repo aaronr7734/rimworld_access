@@ -43,7 +43,7 @@ namespace RimWorldAccess
             CompRefuelable comp = targetBuilding.TryGetComp<CompRefuelable>();
             if (comp == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Refuel.NoFuelComponent".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Refuel.NoFuelComponent".Loc());
                 return;
             }
 
@@ -138,7 +138,7 @@ namespace RimWorldAccess
                     ToggleAutoRefuel();
                     break;
                 case OptionKind.AdjustTargetFuel:
-                    TolkHelper.Speak("RimWorldAccess.Building.Refuel.AdjustHint".Translate(
+                    TolkHelper.Speak("RimWorldAccess.Building.Refuel.AdjustHint".Loc(
                         refuelable.TargetFuelLevel.ToStringDecimalIfSmall(),
                         refuelable.Props.fuelCapacity.ToStringDecimalIfSmall()));
                     break;

@@ -1187,7 +1187,7 @@ namespace RimWorldAccess
                 // Close world view and restore cursor to last known position
                 CameraJumper.TryHideWorld();
                 MapNavigationState.RestoreCursorForCurrentMap();
-                TolkHelper.Speak("RimWorldAccess.Input.Close.ReturnedToMap".Translate());
+                TolkHelper.Speak("RimWorldAccess.Input.Close.ReturnedToMap".Loc());
                 Event.current.Use();
                 return;
             }
@@ -2033,7 +2033,7 @@ namespace RimWorldAccess
                 if (key == KeyCode.Escape)
                 {
                     WindowlessPauseMenuState.Close();
-                    TolkHelper.Speak("RimWorldAccess.Input.Close.MenuClosed".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Input.Close.MenuClosed".Loc());
                     Event.current.Use();
                     return;
                 }
@@ -2052,7 +2052,7 @@ namespace RimWorldAccess
                 if (key == KeyCode.Escape)
                 {
                     ExtraMenusState.Close();
-                    TolkHelper.Speak("RimWorldAccess.Input.Close.MenuClosed".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Input.Close.MenuClosed".Loc());
                     Event.current.Use();
                     return;
                 }
@@ -4761,7 +4761,7 @@ namespace RimWorldAccess
                 if (key == KeyCode.Escape)
                 {
                     GizmoNavigationState.Close();
-                    TolkHelper.Speak("RimWorldAccess.Input.Close.GizmoMenuClosed".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Input.Close.GizmoMenuClosed".Loc());
                     Event.current.Use();
                     return;
                 }
@@ -4909,7 +4909,7 @@ namespace RimWorldAccess
                         }
                         else
                         {
-                            TolkHelper.Speak("RimWorldAccess.Input.Close.MenuClosed".Translate());
+                            TolkHelper.Speak("RimWorldAccess.Input.Close.MenuClosed".Loc());
                         }
                         handled = true;
                     }
@@ -5136,16 +5136,16 @@ namespace RimWorldAccess
                                 : "RimWorldAccess.Input.Drafting.StatusUndrafted".Translate().ToString();
 
                             if (notInDesiredState.Count == 0)
-                                TolkHelper.Speak("RimWorldAccess.Input.Drafting.EveryoneStatus".Translate(everyone, status));
+                                TolkHelper.Speak("RimWorldAccess.Input.Drafting.EveryoneStatus".Loc(everyone, status));
                             else if (notInDesiredState.Count <= inDesiredState.Count)
                             {
                                 string exceptNames = MenuHelper.FormatNameList(notInDesiredState);
-                                TolkHelper.Speak("RimWorldAccess.Input.Drafting.EveryoneExceptStatus".Translate(everyone, exceptNames, status));
+                                TolkHelper.Speak("RimWorldAccess.Input.Drafting.EveryoneExceptStatus".Loc(everyone, exceptNames, status));
                             }
                             else
                             {
                                 string onlyNames = MenuHelper.FormatNameList(inDesiredState);
-                                TolkHelper.Speak("RimWorldAccess.Input.Drafting.OnlyStatus".Translate(onlyNames, status));
+                                TolkHelper.Speak("RimWorldAccess.Input.Drafting.OnlyStatus".Loc(onlyNames, status));
                             }
 
                             Event.current.Use();
@@ -5173,7 +5173,7 @@ namespace RimWorldAccess
                             string status = selectedPawn.drafter.Drafted
                                 ? "RimWorldAccess.Input.Drafting.StatusDraftedTitle".Translate().ToString()
                                 : "RimWorldAccess.Input.Drafting.StatusUndraftedTitle".Translate().ToString();
-                            TolkHelper.Speak("RimWorldAccess.Input.Drafting.SinglePawnStatus".Translate(selectedPawn.LabelShort, status));
+                            TolkHelper.Speak("RimWorldAccess.Input.Drafting.SinglePawnStatus".Loc(selectedPawn.LabelShort, status));
 
                             Event.current.Use();
                             return;
@@ -5239,7 +5239,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Input.MultiSelect.NoColonistsOnMap".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Input.MultiSelect.NoColonistsOnMap".Loc());
                     }
                     Event.current.Use();
                     return;
@@ -5257,7 +5257,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Input.MultiSelect.CannotSaveGroups".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Input.MultiSelect.CannotSaveGroups".Loc());
                     }
                     Event.current.Use();
                     return;
@@ -5274,7 +5274,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Input.MultiSelect.CannotRecallGroups".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Input.MultiSelect.CannotRecallGroups".Loc());
                     }
                     Event.current.Use();
                     return;
@@ -5352,7 +5352,7 @@ namespace RimWorldAccess
                 {
                     if (MultiSelectState.IsMultiSelectActive)
                     {
-                        TolkHelper.Speak("RimWorldAccess.Input.MultiSelect.CannotReorderDuringMultiSelect".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Input.MultiSelect.CannotReorderDuringMultiSelect".Loc());
                         Event.current.Use();
                         return;
                     }
@@ -5364,7 +5364,7 @@ namespace RimWorldAccess
                 {
                     if (MultiSelectState.IsMultiSelectActive)
                     {
-                        TolkHelper.Speak("RimWorldAccess.Input.MultiSelect.CannotReorderDuringMultiSelect".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Input.MultiSelect.CannotReorderDuringMultiSelect".Loc());
                         Event.current.Use();
                         return;
                     }
@@ -5378,7 +5378,7 @@ namespace RimWorldAccess
                 {
                     if (MultiSelectState.IsMultiSelectActive)
                     {
-                        TolkHelper.Speak("RimWorldAccess.Input.MultiSelect.CannotReorderDuringMultiSelect".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Input.MultiSelect.CannotReorderDuringMultiSelect".Loc());
                         Event.current.Use();
                         return;
                     }
@@ -5390,7 +5390,7 @@ namespace RimWorldAccess
                 {
                     if (MultiSelectState.IsMultiSelectActive)
                     {
-                        TolkHelper.Speak("RimWorldAccess.Input.MultiSelect.CannotReorderDuringMultiSelect".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Input.MultiSelect.CannotReorderDuringMultiSelect".Loc());
                         Event.current.Use();
                         return;
                     }
@@ -5448,7 +5448,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Guard.NoPawnSelected".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Guard.NoPawnSelected".Loc());
                     }
                     Event.current.Use();
                     return;
@@ -5464,7 +5464,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Guard.NoPawnSelected".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Guard.NoPawnSelected".Loc());
                     }
                     Event.current.Use();
                     return;
@@ -5692,7 +5692,7 @@ namespace RimWorldAccess
 
                     if (pawn == null)
                     {
-                        TolkHelper.Speak("RimWorldAccess.Input.Cursor.NoPawnAtCursor".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Input.Cursor.NoPawnAtCursor".Loc());
                         Event.current.Use();
                         return;
                     }
@@ -5700,7 +5700,7 @@ namespace RimWorldAccess
                     // Check if pawn can be renamed
                     if (!CanPawnBeRenamed(pawn))
                     {
-                        TolkHelper.Speak("RimWorldAccess.Input.Cursor.PawnCannotBeRenamed".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Input.Cursor.PawnCannotBeRenamed".Loc());
                         Event.current.Use();
                         return;
                     }
@@ -5758,7 +5758,7 @@ namespace RimWorldAccess
                 // Give feedback if on world map
                 else if (Current.ProgramState == ProgramState.Playing && WorldNavigationState.IsActive)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Input.Caravan.ReformOnlyOnTemporaryMaps".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Input.Caravan.ReformOnlyOnTemporaryMaps".Loc());
                     Event.current.Use();
                     return;
                 }
@@ -5865,7 +5865,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Input.WorkMenu.NoColonistsAvailable".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Input.WorkMenu.NoColonistsAvailable".Loc());
                     }
 
                     return;
@@ -5915,7 +5915,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Input.AnimalsMenu.NoAnimalsOrMechs".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Input.AnimalsMenu.NoAnimalsOrMechs".Loc());
                     }
 
                     return;
@@ -5996,7 +5996,7 @@ namespace RimWorldAccess
                 // where G key event processes before the Enter key's state changes take effect
                 if (ShapePlacementState.IsActive || (ViewingModeState.IsActive && !ViewingModeState.JustConfirmed))
                 {
-                    TolkHelper.Speak("RimWorldAccess.Input.Gizmo.UnavailableDuringPlacement".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Input.Gizmo.UnavailableDuringPlacement".Loc());
                     Event.current.Use();
                     return;
                 }
@@ -6344,7 +6344,7 @@ namespace RimWorldAccess
                 // Validate cursor position
                 if (!cursorPosition.IsValid || !cursorPosition.InBounds(Find.CurrentMap))
                 {
-                    TolkHelper.Speak("RimWorldAccess.Input.Cursor.InvalidPosition".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Input.Cursor.InvalidPosition".Loc());
                     Event.current.Use();
                     return;
                 }
@@ -6376,14 +6376,14 @@ namespace RimWorldAccess
                 Map lbMap = Find.CurrentMap;
                 if (!lbCursor.IsValid || !lbCursor.InBounds(lbMap))
                 {
-                    TolkHelper.Speak("RimWorldAccess.Input.Cursor.InvalidPosition".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Input.Cursor.InvalidPosition".Loc());
                     Event.current.Use();
                     return;
                 }
 
                 if (Find.Selector == null || !Find.Selector.SelectedPawns.Any())
                 {
-                    TolkHelper.Speak("RimWorldAccess.Guard.NoPawnSelected".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Guard.NoPawnSelected".Loc());
                     Event.current.Use();
                     return;
                 }
@@ -6398,7 +6398,7 @@ namespace RimWorldAccess
 
                 if (lbOptions == null || lbOptions.Count == 0)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Input.Cursor.NoAvailableActions".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Input.Cursor.NoAvailableActions".Loc());
                     Event.current.Use();
                     return;
                 }
@@ -6418,7 +6418,7 @@ namespace RimWorldAccess
                 {
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
                     string singlePrefix = lbPawns.Count == 1 ? lbPawns[0].LabelShort + ": " : "";
-                    TolkHelper.Speak("RimWorldAccess.Input.Order.TopOptionUnavailable".Translate(singlePrefix, top.Label));
+                    TolkHelper.Speak("RimWorldAccess.Input.Order.TopOptionUnavailable".Loc(singlePrefix, top.Label));
                     Event.current.Use();
                     return;
                 }
@@ -6445,7 +6445,7 @@ namespace RimWorldAccess
                     if (queueing)
                         TolkHelper.Speak("RimWorldAccess.Input.Order.QueuedAction".Translate(prefix, top.Label, "Queued".Translate()));
                     else
-                        TolkHelper.Speak("RimWorldAccess.Input.Order.Action".Translate(prefix, top.Label));
+                        TolkHelper.Speak("RimWorldAccess.Input.Order.Action".Loc(prefix, top.Label));
                 }
 
                 Event.current.Use();
@@ -6478,7 +6478,7 @@ namespace RimWorldAccess
                 // Validate cursor position
                 if (!cursorPosition.IsValid || !cursorPosition.InBounds(map))
                 {
-                    TolkHelper.Speak("RimWorldAccess.Input.Cursor.InvalidPosition".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Input.Cursor.InvalidPosition".Loc());
                     Event.current.Use();
                     return;
                 }
@@ -6486,7 +6486,7 @@ namespace RimWorldAccess
                 // Check for pawns to give orders to
                 if (Find.Selector == null || !Find.Selector.SelectedPawns.Any())
                 {
-                    TolkHelper.Speak("RimWorldAccess.Guard.NoPawnSelected".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Guard.NoPawnSelected".Loc());
                     Event.current.Use();
                     return;
                 }
@@ -6533,7 +6533,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.Input.Cursor.NoAvailableActions".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Input.Cursor.NoAvailableActions".Loc());
                 }
 
                 // Consume the event
@@ -6713,16 +6713,16 @@ namespace RimWorldAccess
             // Announce result to user
             if (unforbiddenCount == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Input.Unforbid.NoForbiddenItems".Translate());
+                TolkHelper.Speak("RimWorldAccess.Input.Unforbid.NoForbiddenItems".Loc());
             }
             else if (unforbiddenCount == 1)
             {
-                TolkHelper.Speak("RimWorldAccess.Input.Unforbid.CountOne".Translate());
+                TolkHelper.Speak("RimWorldAccess.Input.Unforbid.CountOne".Loc());
                 SoundDefOf.Checkbox_TurnedOn.PlayOneShotOnCamera();
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Input.Unforbid.CountMany".Translate(unforbiddenCount));
+                TolkHelper.Speak("RimWorldAccess.Input.Unforbid.CountMany".Loc(unforbiddenCount));
                 SoundDefOf.Checkbox_TurnedOn.PlayOneShotOnCamera();
             }
 
@@ -6738,7 +6738,7 @@ namespace RimWorldAccess
 
             if (!pos.IsValid || !pos.InBounds(map))
             {
-                TolkHelper.Speak("RimWorldAccess.Input.Cursor.NothingToInspect".Translate());
+                TolkHelper.Speak("RimWorldAccess.Input.Cursor.NothingToInspect".Loc());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }
@@ -6767,7 +6767,7 @@ namespace RimWorldAccess
                 else
                 {
                     // Nothing at all
-                    TolkHelper.Speak("RimWorldAccess.Input.Cursor.NothingToInspect".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Input.Cursor.NothingToInspect".Loc());
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 }
             }
@@ -6832,7 +6832,7 @@ namespace RimWorldAccess
 
             if (forbiddableItems.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Input.Forbid.NothingToForbid".Translate());
+                TolkHelper.Speak("RimWorldAccess.Input.Forbid.NothingToForbid".Loc());
                 return;
             }
 
@@ -7106,7 +7106,7 @@ namespace RimWorldAccess
                     bool targeterNowActive = Find.Targeter?.IsTargeting ?? false;
                     if (!targeterWasActive && targeterNowActive)
                     {
-                        TolkHelper.Speak("RimWorldAccess.Input.MultiSelectOrder.EveryoneDoes".Translate(everyone, optLabel), SpeechPriority.Low);
+                        TolkHelper.Speak("RimWorldAccess.Input.MultiSelectOrder.EveryoneDoes".Loc(everyone, optLabel), SpeechPriority.Low);
                         return;
                     }
 
@@ -7123,11 +7123,11 @@ namespace RimWorldAccess
 
                     if (unchanged.Count == 0)
                     {
-                        TolkHelper.Speak("RimWorldAccess.Input.MultiSelectOrder.EveryoneDoes".Translate(everyone, optLabel), SpeechPriority.Low);
+                        TolkHelper.Speak("RimWorldAccess.Input.MultiSelectOrder.EveryoneDoes".Loc(everyone, optLabel), SpeechPriority.Low);
                     }
                     else if (succeeded.Count == 0)
                     {
-                        TolkHelper.Speak("RimWorldAccess.Input.MultiSelectOrder.NoOneCould".Translate(optLabel), SpeechPriority.Low);
+                        TolkHelper.Speak("RimWorldAccess.Input.MultiSelectOrder.NoOneCould".Loc(optLabel), SpeechPriority.Low);
                     }
                     else if (unchanged.Count <= succeeded.Count)
                     {

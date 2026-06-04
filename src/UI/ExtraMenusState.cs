@@ -23,7 +23,7 @@ namespace RimWorldAccess
 
             if (options.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.UI.Extra.None".Translate());
+                TolkHelper.Speak("RimWorldAccess.UI.Extra.None".Loc());
                 return;
             }
 
@@ -86,7 +86,7 @@ namespace RimWorldAccess
         {
             if (selectedIndex >= 0 && selectedIndex < currentOptions.Count)
             {
-                TolkHelper.Speak("RimWorldAccess.UI.Item.WithPosition".Translate(
+                TolkHelper.Speak("RimWorldAccess.UI.Item.WithPosition".Loc(
                     currentOptions[selectedIndex].Label,
                     MenuHelper.FormatPosition(selectedIndex, currentOptions.Count)));
             }
@@ -273,7 +273,7 @@ namespace RimWorldAccess
             {
                 if (typeahead.HasNoMatches)
                 {
-                    TolkHelper.Speak("RimWorldAccess.UI.Item.WithPositionNoMatches".Translate(
+                    TolkHelper.Speak("RimWorldAccess.UI.Item.WithPositionNoMatches".Loc(
                         label,
                         MenuHelper.FormatPosition(selectedIndex, currentOptions.Count),
                         typeahead.LastFailedSearch));

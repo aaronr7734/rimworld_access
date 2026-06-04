@@ -74,7 +74,7 @@ namespace RimWorldAccess
             PlanetTile tile = WorldNavigationState.CurrentSelectedTile;
             if (!tile.Valid)
             {
-                TolkHelper.Speak("RimWorldAccess.StartingSite.NoTileSelected".Translate());
+                TolkHelper.Speak("RimWorldAccess.StartingSite.NoTileSelected".Loc());
                 return;
             }
 
@@ -88,11 +88,11 @@ namespace RimWorldAccess
                 {
                     string menuTitle = "RimWorldAccess.StartingSite.MenuTitle".Translate(availableMenuItems.Count);
                     string firstItem = GetMenuItemName(availableMenuItems[0]);
-                    TolkHelper.Speak("RimWorldAccess.StartingSite.MenuOpened".Translate(menuTitle, firstItem));
+                    TolkHelper.Speak("RimWorldAccess.StartingSite.MenuOpened".Loc(menuTitle, firstItem));
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.StartingSite.NoAdditionalInfo".Translate());
+                    TolkHelper.Speak("RimWorldAccess.StartingSite.NoAdditionalInfo".Loc());
                     isMenuOpen = false;
                 }
             }
@@ -137,7 +137,7 @@ namespace RimWorldAccess
             if (isMenuOpen)
             {
                 isMenuOpen = false;
-                TolkHelper.Speak("RimWorldAccess.StartingSite.MenuClosed".Translate());
+                TolkHelper.Speak("RimWorldAccess.StartingSite.MenuClosed".Loc());
             }
         }
 
@@ -157,7 +157,7 @@ namespace RimWorldAccess
             PlanetTile randomTile = TileFinder.RandomStartingTile();
             if (!randomTile.Valid)
             {
-                TolkHelper.Speak("RimWorldAccess.StartingSite.RandomSiteFailed".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.StartingSite.RandomSiteFailed".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -184,7 +184,7 @@ namespace RimWorldAccess
                 tileInfo += $". {biomeDesc}";
             }
 
-            TolkHelper.Speak("RimWorldAccess.StartingSite.RandomSiteSelected".Translate(tileInfo));
+            TolkHelper.Speak("RimWorldAccess.StartingSite.RandomSiteSelected".Loc(tileInfo));
         }
 
         // =============================================
@@ -207,7 +207,7 @@ namespace RimWorldAccess
             BiomeDef currentBiome = currentTile.Tile?.PrimaryBiome;
             if (currentBiome == null)
             {
-                TolkHelper.Speak("RimWorldAccess.StartingSite.CannotDetermineBiome".Translate());
+                TolkHelper.Speak("RimWorldAccess.StartingSite.CannotDetermineBiome".Loc());
                 return;
             }
             isMenuOpen = false;
@@ -281,7 +281,7 @@ namespace RimWorldAccess
                 iterations++;
             }
 
-            TolkHelper.Speak("RimWorldAccess.StartingSite.NoDifferentBiomeFound".Translate(iterations));
+            TolkHelper.Speak("RimWorldAccess.StartingSite.NoDifferentBiomeFound".Loc(iterations));
         }
 
         // =============================================

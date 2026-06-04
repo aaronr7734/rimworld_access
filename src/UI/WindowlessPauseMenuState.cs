@@ -95,7 +95,7 @@ namespace RimWorldAccess
         {
             if (selectedIndex >= 0 && selectedIndex < currentOptions.Count)
             {
-                TolkHelper.Speak("RimWorldAccess.UI.Item.WithPosition".Translate(
+                TolkHelper.Speak("RimWorldAccess.UI.Item.WithPosition".Loc(
                     currentOptions[selectedIndex].Label,
                     MenuHelper.FormatPosition(selectedIndex, currentOptions.Count)));
             }
@@ -282,7 +282,7 @@ namespace RimWorldAccess
             {
                 if (typeahead.HasNoMatches)
                 {
-                    TolkHelper.Speak("RimWorldAccess.UI.Item.WithPositionNoMatches".Translate(
+                    TolkHelper.Speak("RimWorldAccess.UI.Item.WithPositionNoMatches".Loc(
                         label,
                         MenuHelper.FormatPosition(selectedIndex, currentOptions.Count),
                         typeahead.LastFailedSearch));
@@ -383,7 +383,7 @@ namespace RimWorldAccess
                             if (GameDataSaveLoader.CurrentGameStateIsValuable)
                             {
                                 // Show confirmation
-                                TolkHelper.Speak("RimWorldAccess.UI.Pause.QuitMainMenuPrompt".Translate());
+                                TolkHelper.Speak("RimWorldAccess.UI.Pause.QuitMainMenuPrompt".Loc());
                                 WindowlessConfirmationState.Open(
                                     "ConfirmQuit".Translate(),
                                     GenScene.GoToMainMenu
@@ -402,7 +402,7 @@ namespace RimWorldAccess
                             if (GameDataSaveLoader.CurrentGameStateIsValuable)
                             {
                                 // Show confirmation
-                                TolkHelper.Speak("RimWorldAccess.UI.Pause.QuitDesktopPrompt".Translate());
+                                TolkHelper.Speak("RimWorldAccess.UI.Pause.QuitDesktopPrompt".Loc());
                                 WindowlessConfirmationState.Open(
                                     "ConfirmQuit".Translate(),
                                     Root.Shutdown
@@ -421,7 +421,7 @@ namespace RimWorldAccess
                     "ResumeGame".Translate(),
                     () => {
                         // Just close the menu
-                        TolkHelper.Speak("RimWorldAccess.UI.Pause.ResumedGame".Translate());
+                        TolkHelper.Speak("RimWorldAccess.UI.Pause.ResumedGame".Loc());
                     }
                 ));
             }

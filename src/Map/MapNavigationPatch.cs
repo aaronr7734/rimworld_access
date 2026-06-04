@@ -198,7 +198,7 @@ namespace RimWorldAccess
 
             if (mapCount <= 1)
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Switch.OnlyOne".Translate());
+                TolkHelper.Speak("RimWorldAccess.Map.Switch.OnlyOne".Loc());
                 hasAnnouncedThisFrame = true;
                 return;
             }
@@ -211,7 +211,7 @@ namespace RimWorldAccess
             // Check if map switch actually happened (mapName will be set if successful)
             if (string.IsNullOrEmpty(mapName))
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Switch.Failed".Translate());
+                TolkHelper.Speak("RimWorldAccess.Map.Switch.Failed".Loc());
                 hasAnnouncedThisFrame = true;
                 return;
             }
@@ -308,7 +308,7 @@ namespace RimWorldAccess
                 selectedPawn = ColonistBarState.SelectNextMech();
                 if (selectedPawn == null)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Map.Pawn.NoMechs".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Map.Pawn.NoMechs".Loc());
                     return false;
                 }
             }
@@ -317,7 +317,7 @@ namespace RimWorldAccess
                 selectedPawn = PawnSelectionState.SelectNextColonist();
                 if (selectedPawn == null)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Map.Pawn.NoColonists".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Map.Pawn.NoColonists".Loc());
                     return false;
                 }
             }
@@ -398,7 +398,7 @@ namespace RimWorldAccess
                 selectedPawn = ColonistBarState.SelectPreviousMech();
                 if (selectedPawn == null)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Map.Pawn.NoMechs".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Map.Pawn.NoMechs".Loc());
                     return false;
                 }
             }
@@ -407,7 +407,7 @@ namespace RimWorldAccess
                 selectedPawn = PawnSelectionState.SelectPreviousColonist();
                 if (selectedPawn == null)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Map.Pawn.NoColonists".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Map.Pawn.NoColonists".Loc());
                     return false;
                 }
             }

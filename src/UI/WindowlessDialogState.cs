@@ -519,11 +519,11 @@ namespace RimWorldAccess
         {
             if (Disabled)
             {
-                TolkHelper.Speak("RimWorldAccess.UI.Dialog.ButtonCannotActivate".Translate(DisabledReason));
+                TolkHelper.Speak("RimWorldAccess.UI.Dialog.ButtonCannotActivate".Loc(DisabledReason));
                 return;
             }
 
-            TolkHelper.Speak("RimWorldAccess.UI.Dialog.ButtonExecuted".Translate(Label));
+            TolkHelper.Speak("RimWorldAccess.UI.Dialog.ButtonExecuted".Loc(Label));
             Action?.Invoke();
         }
     }

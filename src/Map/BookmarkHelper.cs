@@ -38,7 +38,7 @@ namespace RimWorldAccess
             component.SetBookmark(slot, position);
 
             string tileSummary = TileInfoHelper.GetTileSummary(position, map);
-            TolkHelper.Speak("RimWorldAccess.Map.Bookmark.Set".Translate(slot, tileSummary));
+            TolkHelper.Speak("RimWorldAccess.Map.Bookmark.Set".Loc(slot, tileSummary));
         }
 
         public static void JumpToBookmark(int slot, bool announceJumped = false)
@@ -49,7 +49,7 @@ namespace RimWorldAccess
 
             if (!component.IsBookmarkSet(slot))
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Bookmark.NotSet".Translate(slot));
+                TolkHelper.Speak("RimWorldAccess.Map.Bookmark.NotSet".Loc(slot));
                 return;
             }
 
@@ -58,7 +58,7 @@ namespace RimWorldAccess
 
             if (!bookmarkPos.InBounds(map))
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Bookmark.Invalid".Translate(slot));
+                TolkHelper.Speak("RimWorldAccess.Map.Bookmark.Invalid".Loc(slot));
                 return;
             }
 
@@ -76,7 +76,7 @@ namespace RimWorldAccess
             if (announceJumped)
             {
                 string tileInfo = TileInfoHelper.GetTileSummary(bookmarkPos, map);
-                TolkHelper.Speak("RimWorldAccess.Map.Bookmark.Jumped".Translate(tileInfo));
+                TolkHelper.Speak("RimWorldAccess.Map.Bookmark.Jumped".Loc(tileInfo));
                 MapNavigationState.LastAnnouncedInfo = tileInfo;
             }
             else
@@ -93,7 +93,7 @@ namespace RimWorldAccess
 
             if (!component.IsBookmarkSet(slot))
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Bookmark.NotSet".Translate(slot));
+                TolkHelper.Speak("RimWorldAccess.Map.Bookmark.NotSet".Loc(slot));
                 return;
             }
 
@@ -102,7 +102,7 @@ namespace RimWorldAccess
 
             if (!bookmarkPos.InBounds(map))
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Bookmark.Invalid".Translate(slot));
+                TolkHelper.Speak("RimWorldAccess.Map.Bookmark.Invalid".Loc(slot));
                 return;
             }
 
@@ -115,12 +115,12 @@ namespace RimWorldAccess
             float distance = (bookmarkPos - cursorPos).LengthHorizontal;
             if (distance < 0.5f)
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Bookmark.PeekHere".Translate(tileSummary));
+                TolkHelper.Speak("RimWorldAccess.Map.Bookmark.PeekHere".Loc(tileSummary));
             }
             else
             {
                 string direction = GetDirection(cursorPos, bookmarkPos);
-                TolkHelper.Speak("RimWorldAccess.Map.Bookmark.PeekDirection".Translate(tileSummary, distance.ToString("F0"), direction));
+                TolkHelper.Speak("RimWorldAccess.Map.Bookmark.PeekDirection".Loc(tileSummary, distance.ToString("F0"), direction));
             }
         }
 

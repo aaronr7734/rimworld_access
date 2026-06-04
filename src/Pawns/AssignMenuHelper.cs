@@ -539,7 +539,7 @@ namespace RimWorldAccess
                             {
                                 pawn.outfits.forcedHandler.Reset();
                                 refreshCallback?.Invoke();
-                                TolkHelper.Speak("ClearForcedApparel".Translate());
+                                TolkHelper.Speak("ClearForcedApparel".Loc());
                             })
                         };
                     }
@@ -618,7 +618,7 @@ namespace RimWorldAccess
             {
                 var newPolicy = createNew();
                 refreshCallback?.Invoke();
-                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PolicyCreated".Translate(newPolicy.label));
+                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PolicyCreated".Loc(newPolicy.label));
             }));
 
             if (currentPolicy != null)
@@ -637,7 +637,7 @@ namespace RimWorldAccess
                         var newPolicy = createNew();
                         newPolicy.CopyFrom(currentPolicy);
                         refreshCallback?.Invoke();
-                        TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PolicyDuplicated".Translate(newPolicy.label));
+                        TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PolicyDuplicated".Loc(newPolicy.label));
                     }));
 
                 // Delete
@@ -650,7 +650,7 @@ namespace RimWorldAccess
                         else
                         {
                             refreshCallback?.Invoke();
-                            TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PolicyDeleted".Translate());
+                            TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PolicyDeleted".Loc());
                         }
                     }));
 
@@ -661,7 +661,7 @@ namespace RimWorldAccess
                         $"{"Default".Translate()}: {currentPolicy.label}", () =>
                         {
                             setDefault(currentPolicy);
-                            TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PolicySetAsDefault".Translate(currentPolicy.label));
+                            TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PolicySetAsDefault".Loc(currentPolicy.label));
                         }));
                 }
             }
@@ -749,7 +749,7 @@ namespace RimWorldAccess
                 case PolicyAction.New:
                     var newPolicy = createNew();
                     refreshCallback?.Invoke();
-                    TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PolicyCreated".Translate(newPolicy.label));
+                    TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PolicyCreated".Loc(newPolicy.label));
                     return true;
 
                 case PolicyAction.Rename:
@@ -762,7 +762,7 @@ namespace RimWorldAccess
                     var copied = createNew();
                     copied.CopyFrom(policy);
                     refreshCallback?.Invoke();
-                    TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PolicyDuplicated".Translate(copied.label));
+                    TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PolicyDuplicated".Loc(copied.label));
                     return true;
 
                 case PolicyAction.Delete:
@@ -773,7 +773,7 @@ namespace RimWorldAccess
                     else
                     {
                         refreshCallback?.Invoke();
-                        TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PolicyDeleted".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PolicyDeleted".Loc());
                     }
                     return true;
 

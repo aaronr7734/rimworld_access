@@ -161,7 +161,7 @@ namespace RimWorldAccess
                 return false;
 
             ClearSearch();
-            TolkHelper.Speak("RimWorldAccess.Search.Cleared".Translate());
+            TolkHelper.Speak("RimWorldAccess.Search.Cleared".Loc());
             return true;
         }
 
@@ -175,7 +175,7 @@ namespace RimWorldAccess
         /// </summary>
         public void SpeakNoMatches(SpeechPriority priority = SpeechPriority.Normal)
         {
-            TolkHelper.Speak("RimWorldAccess.Search.NoMatches".Translate(lastFailedSearch), priority);
+            TolkHelper.Speak("RimWorldAccess.Search.NoMatches".Loc(lastFailedSearch), priority);
         }
 
         /// <summary>

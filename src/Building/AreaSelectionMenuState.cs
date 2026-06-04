@@ -35,7 +35,7 @@ namespace RimWorldAccess
             Map map = Find.CurrentMap;
             if (map?.areaManager == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Guard.NoMapLoaded".Translate());
+                TolkHelper.Speak("RimWorldAccess.Guard.NoMapLoaded".Loc());
                 return;
             }
 
@@ -45,7 +45,7 @@ namespace RimWorldAccess
 
             if (availableAreas.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.AreaSelect.NoAreasAvailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.AreaSelect.NoAreasAvailable".Loc());
             }
 
             isActive = true;
@@ -57,7 +57,7 @@ namespace RimWorldAccess
             typeaheadHelper = new TypeaheadSearchHelper();
 
             string designatorLabel = designator.Label ?? (string)"RimWorldAccess.Building.AreaSelect.OpenFallbackName".Translate();
-            TolkHelper.Speak("RimWorldAccess.Building.AreaSelect.OpenPrompt".Translate(designatorLabel));
+            TolkHelper.Speak("RimWorldAccess.Building.AreaSelect.OpenPrompt".Loc(designatorLabel));
             AnnounceCurrentSelection();
         }
 
@@ -106,7 +106,7 @@ namespace RimWorldAccess
                 Area selected = availableAreas[selectedIndex];
                 var callback = onAreaSelected;
 
-                TolkHelper.Speak("RimWorldAccess.Building.AreaSelect.Selected".Translate(selected.Label));
+                TolkHelper.Speak("RimWorldAccess.Building.AreaSelect.Selected".Loc(selected.Label));
                 CloseWithoutDeselect();
 
                 callback?.Invoke(selected);
@@ -115,7 +115,7 @@ namespace RimWorldAccess
 
         public static void Cancel()
         {
-            TolkHelper.Speak("RimWorldAccess.Building.AreaSelect.Cancelled".Translate());
+            TolkHelper.Speak("RimWorldAccess.Building.AreaSelect.Cancelled".Loc());
             Close();
             Find.DesignatorManager.Deselect();
         }

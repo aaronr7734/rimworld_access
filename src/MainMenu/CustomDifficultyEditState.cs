@@ -63,7 +63,7 @@ namespace RimWorldAccess
             settingTypeahead.ClearSearch();
             IsActive = true;
 
-            TolkHelper.Speak("DifficultyCustomSectionLabel".Translate());
+            TolkHelper.Speak("DifficultyCustomSectionLabel".Loc());
             AnnounceSection();
         }
 
@@ -86,7 +86,7 @@ namespace RimWorldAccess
             {
                 currentLevel = Level.SectionList;
                 settingTypeahead.ClearSearch();
-                TolkHelper.Speak("RimWorldAccess.CustomDifficulty.SectionList".Translate());
+                TolkHelper.Speak("RimWorldAccess.CustomDifficulty.SectionList".Loc());
                 AnnounceSection();
                 return true;
             }
@@ -99,7 +99,7 @@ namespace RimWorldAccess
         {
             if (targetDifficulty == null) return;
             targetDifficulty.CopyFrom(def);
-            TolkHelper.Speak("RimWorldAccess.CustomDifficulty.AllSettingsSetTo".Translate(def.LabelCap));
+            TolkHelper.Speak("RimWorldAccess.CustomDifficulty.AllSettingsSetTo".Loc(def.LabelCap));
 
             // Rebuild sections to reflect new values
             sections = DifficultySettingsHelper.BuildSections(
@@ -208,14 +208,14 @@ namespace RimWorldAccess
                 {
                     var enabledSettings = GetEnabledSettings();
                     int settingCount = enabledSettings.Count;
-                    TolkHelper.Speak("RimWorldAccess.CustomDifficulty.SectionWithCount".Translate(section.Name, settingCount, section.ItemsLabel));
+                    TolkHelper.Speak("RimWorldAccess.CustomDifficulty.SectionWithCount".Loc(section.Name, settingCount, section.ItemsLabel));
                     if (settingCount > 0)
                     {
                         AnnounceSetting();
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Storyteller.NoSettingsInSection".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Storyteller.NoSettingsInSection".Loc());
                     }
                 }
             }
@@ -432,7 +432,7 @@ namespace RimWorldAccess
             if (section != null)
             {
                 var enabledSettings = GetEnabledSettings();
-                TolkHelper.Speak("RimWorldAccess.CustomDifficulty.SectionWithCount".Translate(section.Name, enabledSettings.Count, section.ItemsLabel));
+                TolkHelper.Speak("RimWorldAccess.CustomDifficulty.SectionWithCount".Loc(section.Name, enabledSettings.Count, section.ItemsLabel));
                 if (enabledSettings.Count > 0)
                 {
                     AnnounceSetting();
@@ -448,7 +448,7 @@ namespace RimWorldAccess
             currentLevel = Level.SectionList;
             sectionIndex = 0;
             settingTypeahead.ClearSearch();
-            TolkHelper.Speak("RimWorldAccess.CustomDifficulty.SectionList".Translate());
+            TolkHelper.Speak("RimWorldAccess.CustomDifficulty.SectionList".Loc());
             AnnounceSection();
         }
 
@@ -513,7 +513,7 @@ namespace RimWorldAccess
             var setting = GetCurrentSetting();
             if (setting == null)
             {
-                TolkHelper.Speak("RimWorldAccess.CustomDifficulty.NoSettingSelected".Translate());
+                TolkHelper.Speak("RimWorldAccess.CustomDifficulty.NoSettingSelected".Loc());
                 return;
             }
 

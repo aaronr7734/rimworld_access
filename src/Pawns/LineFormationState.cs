@@ -41,7 +41,7 @@ namespace RimWorldAccess
             pawnsToMove = pawns.Where(p => p != null && !p.Destroyed && p.Spawned).ToList();
             if (pawnsToMove.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.NoValidPawns".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.NoValidPawns".Loc());
                 return;
             }
 
@@ -49,7 +49,7 @@ namespace RimWorldAccess
             firstPoint = IntVec3.Invalid;
             secondPoint = IntVec3.Invalid;
 
-            TolkHelper.Speak("RimWorldAccess.Pawns.Formation.Activated".Translate(pawnsToMove.Count));
+            TolkHelper.Speak("RimWorldAccess.Pawns.Formation.Activated".Loc(pawnsToMove.Count));
         }
 
         /// <summary>
@@ -64,19 +64,19 @@ namespace RimWorldAccess
             IntVec3 cursorPos = MapNavigationState.CurrentCursorPosition;
             if (!cursorPos.IsValid || !cursorPos.InBounds(Find.CurrentMap))
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.InvalidPosition".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.InvalidPosition".Loc());
                 return;
             }
 
             if (!HasFirstPoint)
             {
                 firstPoint = cursorPos;
-                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.FirstPlaced".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.FirstPlaced".Loc());
             }
             else if (!HasBothPoints)
             {
                 secondPoint = cursorPos;
-                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.SecondPlaced".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.SecondPlaced".Loc());
             }
         }
 
@@ -129,23 +129,23 @@ namespace RimWorldAccess
             string everyone = ((string)"ConfirmAbandonHomeNegativeThoughts_Everyone".Translate()).TrimEnd(':', ' ');
             if (unchanged.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.AllMoving".Translate(everyone));
+                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.AllMoving".Loc(everyone));
             }
             else if (succeeded.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.NoneMoving".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.NoneMoving".Loc());
             }
             else if (unchanged.Count <= succeeded.Count)
             {
                 string names = MenuHelper.FormatNameList(
                     unchanged.Select(p => p.LabelShort).ToList());
-                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.AllExcept".Translate(everyone, names));
+                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.AllExcept".Loc(everyone, names));
             }
             else
             {
                 string names = MenuHelper.FormatNameList(
                     succeeded.Select(p => p.LabelShort).ToList());
-                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.OnlySome".Translate(names));
+                TolkHelper.Speak("RimWorldAccess.Pawns.Formation.OnlySome".Loc(names));
             }
 
             Close();
@@ -156,7 +156,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void Cancel()
         {
-            TolkHelper.Speak("RimWorldAccess.Pawns.Formation.Cancelled".Translate());
+            TolkHelper.Speak("RimWorldAccess.Pawns.Formation.Cancelled".Loc());
             Close();
         }
 

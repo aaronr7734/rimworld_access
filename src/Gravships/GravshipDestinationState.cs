@@ -58,12 +58,12 @@ namespace RimWorldAccess
 
             if (launching)
             {
-                TolkHelper.Speak("RimWorldAccess.Gravships.Destination.OpenLaunching".Translate(
+                TolkHelper.Speak("RimWorldAccess.Gravships.Destination.OpenLaunching".Loc(
                     cachedTotalFuel.ToString("F0"), cachedMaxRange));
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Gravships.Destination.OpenViewRange".Translate(
+                TolkHelper.Speak("RimWorldAccess.Gravships.Destination.OpenViewRange".Loc(
                     cachedTotalFuel.ToString("F0"), cachedMaxRange));
             }
         }
@@ -187,7 +187,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.Guard.NoValidTileSelected".Translate(), SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Guard.NoValidTileSelected".Loc(), SpeechPriority.High);
                     return;
                 }
             }
@@ -205,7 +205,7 @@ namespace RimWorldAccess
 
                 if (validator == null || tileChosen == null)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Gravships.Destination.CannotAccessCallbacks".Translate(), SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Gravships.Destination.CannotAccessCallbacks".Loc(), SpeechPriority.High);
                     return;
                 }
 
@@ -226,7 +226,7 @@ namespace RimWorldAccess
             catch (Exception ex)
             {
                 Log.Warning($"[GravshipDestinationState] Error confirming destination: {ex}");
-                TolkHelper.Speak("RimWorldAccess.Gravships.Destination.ErrorSelecting".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Gravships.Destination.ErrorSelecting".Loc(), SpeechPriority.High);
             }
         }
 
@@ -241,7 +241,7 @@ namespace RimWorldAccess
             }
 
             Close();
-            TolkHelper.Speak("RimWorldAccess.Gravships.Destination.Cancelled".Translate(), SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.Gravships.Destination.Cancelled".Loc(), SpeechPriority.Normal);
 
             // Return to map view
             if (returnTarget != null)

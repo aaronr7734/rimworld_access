@@ -75,7 +75,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Factions.Tab.OpeningNoFactions".Translate());
+                TolkHelper.Speak("RimWorldAccess.Factions.Tab.OpeningNoFactions".Loc());
             }
         }
 
@@ -89,7 +89,7 @@ namespace RimWorldAccess
             if (faction == null)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.Factions.Tab.NoFactionSelected".Translate());
+                TolkHelper.Speak("RimWorldAccess.Factions.Tab.NoFactionSelected".Loc());
                 return true;
             }
             Find.WindowStack.Add(new Dialog_InfoCard(faction));

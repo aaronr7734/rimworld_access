@@ -1237,7 +1237,7 @@ namespace RimWorldAccess
                                     if (!capturedDef.AvailableForPawn(capturedPawn, capturedFaction))
                                     {
                                         SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                                        TolkHelper.Speak("RimWorldAccess.Inspection.InfoCardTree.PermitNoLongerAvailable".Translate(), SpeechPriority.High);
+                                        TolkHelper.Speak("RimWorldAccess.Inspection.InfoCardTree.PermitNoLongerAvailable".Loc(), SpeechPriority.High);
                                         return;
                                     }
 

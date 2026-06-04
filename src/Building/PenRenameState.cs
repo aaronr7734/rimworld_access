@@ -34,12 +34,12 @@ namespace RimWorldAccess
             try
             {
                 currentMarker.RenamableLabel = newName;
-                TolkHelper.Speak("RimWorldAccess.UI.Name.Renamed".Translate(newName), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.UI.Name.Renamed".Loc(newName), SpeechPriority.High);
                 Log.Message($"Renamed pen marker from '{originalName}' to '{newName}'");
             }
             catch (Exception ex)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Rename.PenError".Translate(ex.Message), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Rename.PenError".Loc(ex.Message), SpeechPriority.High);
                 Log.Error($"Error renaming pen marker: {ex}");
             }
             finally
@@ -50,7 +50,7 @@ namespace RimWorldAccess
 
         private static void OnCancel()
         {
-            TolkHelper.Speak("RimWorldAccess.Building.Rename.Cancelled".Translate());
+            TolkHelper.Speak("RimWorldAccess.Building.Rename.Cancelled".Loc());
             ClearTarget();
         }
 

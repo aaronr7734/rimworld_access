@@ -325,7 +325,7 @@ namespace RimWorldAccess
             // Don't open detail panel for Scenario Builder entry
             if (IsScenarioBuilderSelected && !DetailPanelActive)
             {
-                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.NoDetailsForBuilder".Translate());
+                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.NoDetailsForBuilder".Loc());
                 return;
             }
 
@@ -346,13 +346,13 @@ namespace RimWorldAccess
                 }
 
                 detailTreeNav.Initialize(root);
-                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.DetailsLabel".Translate());
+                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.DetailsLabel".Loc());
                 detailTreeNav.ReannounceCurrentItem();
             }
             else
             {
                 detailTreeNav.Reset();
-                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.ScenarioListLabel".Translate());
+                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.ScenarioListLabel".Loc());
                 CopySelectedToClipboard();
             }
         }
@@ -993,7 +993,7 @@ namespace RimWorldAccess
             Scenario selected = SelectedScenario;
             if (selected == null || selected.Category != ScenarioCategory.CustomLocal)
             {
-                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.CannotDelete".Translate());
+                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.CannotDelete".Loc());
                 return;
             }
 
@@ -1034,7 +1034,7 @@ namespace RimWorldAccess
                         AccessTools.Field(typeof(Page_SelectScenario), "curScen").SetValue(page, newSelection);
                     }
 
-                    TolkHelper.Speak("RimWorldAccess.ScenarioSelect.Deleted".Translate(scenarioName));
+                    TolkHelper.Speak("RimWorldAccess.ScenarioSelect.Deleted".Loc(scenarioName));
 
                     // Announce the new selection
                     if (newSelection != null)
@@ -1060,7 +1060,7 @@ namespace RimWorldAccess
             Scenario selected = SelectedScenario;
             if (selected == null || selected.Category != ScenarioCategory.SteamWorkshop)
             {
-                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.CannotUnsubscribe".Translate());
+                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.CannotUnsubscribe".Loc());
                 return;
             }
 
@@ -1112,7 +1112,7 @@ namespace RimWorldAccess
                         AccessTools.Field(typeof(Page_SelectScenario), "curScen").SetValue(page, newSelection);
                     }
 
-                    TolkHelper.Speak("RimWorldAccess.ScenarioSelect.UnsubscribedFrom".Translate(scenarioName));
+                    TolkHelper.Speak("RimWorldAccess.ScenarioSelect.UnsubscribedFrom".Loc(scenarioName));
 
                     // Announce the new selection
                     if (newSelection != null)

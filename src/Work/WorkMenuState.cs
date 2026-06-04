@@ -101,7 +101,7 @@ namespace RimWorldAccess
                 FindFirstPopulatedColumn();
             }
 
-            TolkHelper.Speak("RimWorldAccess.Work.OpeningTitle".Translate());
+            TolkHelper.Speak("RimWorldAccess.Work.OpeningTitle".Loc());
             AnnounceCurrentPosition(true);
         }
 
@@ -222,7 +222,7 @@ namespace RimWorldAccess
             }
 
             CleanupState();
-            TolkHelper.Speak("RimWorldAccess.Work.Cancelled".Translate());
+            TolkHelper.Speak("RimWorldAccess.Work.Cancelled".Loc());
         }
 
         /// <summary>
@@ -244,7 +244,7 @@ namespace RimWorldAccess
             RefreshAllPawnsWorkGivers();
 
             CleanupState();
-            TolkHelper.Speak("RimWorldAccess.Work.Saved".Translate());
+            TolkHelper.Speak("RimWorldAccess.Work.Saved".Loc());
         }
 
         /// <summary>
@@ -309,7 +309,7 @@ namespace RimWorldAccess
             string briefAnnouncement = BuildPawnSwitchAnnouncement();
             if (hadChanges)
             {
-                TolkHelper.Speak("RimWorldAccess.Work.PawnSwitch.SavedPrefix".Translate(previousPawnName, briefAnnouncement));
+                TolkHelper.Speak("RimWorldAccess.Work.PawnSwitch.SavedPrefix".Loc(previousPawnName, briefAnnouncement));
             }
             else
             {
@@ -355,7 +355,7 @@ namespace RimWorldAccess
         {
             if (!IsManualMode)
             {
-                TolkHelper.Speak("RimWorldAccess.Work.UpDownOnlyManual".Translate());
+                TolkHelper.Speak("RimWorldAccess.Work.UpDownOnlyManual".Loc());
                 return;
             }
 
@@ -380,7 +380,7 @@ namespace RimWorldAccess
         {
             if (!IsManualMode)
             {
-                TolkHelper.Speak("RimWorldAccess.Work.UpDownOnlyManual".Translate());
+                TolkHelper.Speak("RimWorldAccess.Work.UpDownOnlyManual".Loc());
                 return;
             }
 
@@ -407,7 +407,7 @@ namespace RimWorldAccess
                 var col = columns[currentColumn];
                 if (col.Count == 0)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Work.ColumnEmpty".Translate(GetColumnName(currentColumn)));
+                    TolkHelper.Speak("RimWorldAccess.Work.ColumnEmpty".Loc(GetColumnName(currentColumn)));
                     return;
                 }
 
@@ -445,7 +445,7 @@ namespace RimWorldAccess
                 var col = columns[currentColumn];
                 if (col.Count == 0)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Work.ColumnEmpty".Translate(GetColumnName(currentColumn)));
+                    TolkHelper.Speak("RimWorldAccess.Work.ColumnEmpty".Loc(GetColumnName(currentColumn)));
                     return;
                 }
 
@@ -484,7 +484,7 @@ namespace RimWorldAccess
                 var col = columns[currentColumn];
                 if (col.Count == 0)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Work.ColumnEmpty".Translate(GetColumnName(currentColumn)));
+                    TolkHelper.Speak("RimWorldAccess.Work.ColumnEmpty".Loc(GetColumnName(currentColumn)));
                     return;
                 }
 
@@ -526,7 +526,7 @@ namespace RimWorldAccess
                 var col = columns[currentColumn];
                 if (col.Count == 0)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Work.ColumnEmpty".Translate(GetColumnName(currentColumn)));
+                    TolkHelper.Speak("RimWorldAccess.Work.ColumnEmpty".Loc(GetColumnName(currentColumn)));
                     return;
                 }
 
@@ -627,7 +627,7 @@ namespace RimWorldAccess
                 if (newColumnIndex == currentColumn)
                 {
                     // Already in this column
-                    TolkHelper.Speak("RimWorldAccess.Work.SetPriority.AlreadyAtPriority".Translate(entry.WorkType.labelShort, PriorityWord(newColumnIndex)));
+                    TolkHelper.Speak("RimWorldAccess.Work.SetPriority.AlreadyAtPriority".Loc(entry.WorkType.labelShort, PriorityWord(newColumnIndex)));
                     return;
                 }
 
@@ -651,7 +651,7 @@ namespace RimWorldAccess
                 // Announce the move with placement context (except for disabled)
                 if (newColumnIndex == 4) // Disabled
                 {
-                    TolkHelper.Speak("RimWorldAccess.Work.SetPriority.MovedToDisabled".Translate(entry.WorkType.labelShort));
+                    TolkHelper.Speak("RimWorldAccess.Work.SetPriority.MovedToDisabled".Loc(entry.WorkType.labelShort));
                 }
                 else
                 {
@@ -659,17 +659,17 @@ namespace RimWorldAccess
                     string trimmed = StripPlacedPrefix(placementContext);
                     if (string.IsNullOrEmpty(trimmed))
                     {
-                        TolkHelper.Speak("RimWorldAccess.Work.SetPriority.MovedToPriority".Translate(entry.WorkType.labelShort, PriorityWord(newColumnIndex)));
+                        TolkHelper.Speak("RimWorldAccess.Work.SetPriority.MovedToPriority".Loc(entry.WorkType.labelShort, PriorityWord(newColumnIndex)));
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Work.SetPriority.MovedToPriorityWithContext".Translate(entry.WorkType.labelShort, PriorityWord(newColumnIndex), trimmed));
+                        TolkHelper.Speak("RimWorldAccess.Work.SetPriority.MovedToPriorityWithContext".Loc(entry.WorkType.labelShort, PriorityWord(newColumnIndex), trimmed));
                     }
                 }
 
                 if (oldColumn.Count == 0)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Work.CursorNowEmpty".Translate(GetColumnName(currentColumn)));
+                    TolkHelper.Speak("RimWorldAccess.Work.CursorNowEmpty".Loc(GetColumnName(currentColumn)));
                 }
                 else
                 {
@@ -758,7 +758,7 @@ namespace RimWorldAccess
             WorkTypeEntry entry = GetCurrentEntry();
             if (entry == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Work.NoWorkTypeSelected".Translate());
+                TolkHelper.Speak("RimWorldAccess.Work.NoWorkTypeSelected".Loc());
                 return;
             }
 
@@ -853,7 +853,7 @@ namespace RimWorldAccess
                 var oldColumn = columns[currentColumn];
                 if (oldColumn.Count == 0)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Work.CursorNowEmpty".Translate(GetColumnName(currentColumn)));
+                    TolkHelper.Speak("RimWorldAccess.Work.CursorNowEmpty".Loc(GetColumnName(currentColumn)));
                 }
                 else
                 {
@@ -956,12 +956,12 @@ namespace RimWorldAccess
             {
                 // Find column containing the previously selected entry
                 FindFirstPopulatedColumn();
-                TolkHelper.Speak("RimWorldAccess.Work.Mode.Manual".Translate());
+                TolkHelper.Speak("RimWorldAccess.Work.Mode.Manual".Loc());
             }
             else
             {
                 basicModeIndex = 0;
-                TolkHelper.Speak("RimWorldAccess.Work.Mode.Basic".Translate());
+                TolkHelper.Speak("RimWorldAccess.Work.Mode.Basic".Loc());
             }
 
             AnnounceCurrentPosition(true);
@@ -994,7 +994,7 @@ namespace RimWorldAccess
                     string colName = GetColumnName(col);
                     string taskAnnouncement = BuildTaskAnnouncement(entry, false);
 
-                    TolkHelper.Speak("RimWorldAccess.Work.Search.JumpPrompt".Translate(taskAnnouncement, colName, typeahead.CurrentMatchPosition, typeahead.MatchCount));
+                    TolkHelper.Speak("RimWorldAccess.Work.Search.JumpPrompt".Loc(taskAnnouncement, colName, typeahead.CurrentMatchPosition, typeahead.MatchCount));
                 }
                 return true;
             }
@@ -1028,7 +1028,7 @@ namespace RimWorldAccess
                 string colName = GetColumnName(col);
                 string taskAnnouncement = BuildTaskAnnouncement(entry, false);
 
-                TolkHelper.Speak("RimWorldAccess.Work.Search.JumpPrompt".Translate(taskAnnouncement, colName, typeahead.CurrentMatchPosition, typeahead.MatchCount));
+                TolkHelper.Speak("RimWorldAccess.Work.Search.JumpPrompt".Loc(taskAnnouncement, colName, typeahead.CurrentMatchPosition, typeahead.MatchCount));
             }
         }
 
@@ -1054,7 +1054,7 @@ namespace RimWorldAccess
                 string colName = GetColumnName(col);
                 string taskAnnouncement = BuildTaskAnnouncement(entry, false);
 
-                TolkHelper.Speak("RimWorldAccess.Work.Search.JumpPrompt".Translate(taskAnnouncement, colName, typeahead.CurrentMatchPosition, typeahead.MatchCount));
+                TolkHelper.Speak("RimWorldAccess.Work.Search.JumpPrompt".Loc(taskAnnouncement, colName, typeahead.CurrentMatchPosition, typeahead.MatchCount));
             }
         }
 
@@ -1104,7 +1104,7 @@ namespace RimWorldAccess
                     string colName = GetColumnName(col);
                     string taskAnnouncement = BuildTaskAnnouncement(entry, false);
 
-                    TolkHelper.Speak("RimWorldAccess.Work.Search.JumpPrompt".Translate(taskAnnouncement, colName, typeahead.CurrentMatchPosition, typeahead.MatchCount));
+                    TolkHelper.Speak("RimWorldAccess.Work.Search.JumpPrompt".Loc(taskAnnouncement, colName, typeahead.CurrentMatchPosition, typeahead.MatchCount));
                 }
                 else if (!typeahead.HasActiveSearch)
                 {
@@ -1209,7 +1209,7 @@ namespace RimWorldAccess
                 var col = columns[currentColumn];
                 string taskAnnouncement = BuildTaskAnnouncement(entry, true);
                 string position = MenuHelper.FormatPosition(currentRow, col.Count);
-                TolkHelper.Speak("RimWorldAccess.Work.Position.WithoutColumn".Translate(taskAnnouncement, position));
+                TolkHelper.Speak("RimWorldAccess.Work.Position.WithoutColumn".Loc(taskAnnouncement, position));
             }
             else
             {
@@ -1218,7 +1218,7 @@ namespace RimWorldAccess
                 string status = entry.CurrentPriority > 0
                     ? "RimWorldAccess.Work.Status.Enabled".Translate().ToString()
                     : "RimWorldAccess.Work.Status.Disabled".Translate().ToString();
-                TolkHelper.Speak("RimWorldAccess.Work.Position.BasicModeItem".Translate(taskAnnouncement, status, position));
+                TolkHelper.Speak("RimWorldAccess.Work.Position.BasicModeItem".Loc(taskAnnouncement, status, position));
             }
         }
 
@@ -1235,7 +1235,7 @@ namespace RimWorldAccess
                 var col = columns[currentColumn];
                 if (col.Count == 0)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Work.ColumnEmpty".Translate(GetColumnName(currentColumn)));
+                    TolkHelper.Speak("RimWorldAccess.Work.ColumnEmpty".Loc(GetColumnName(currentColumn)));
                     return;
                 }
 
@@ -1244,11 +1244,11 @@ namespace RimWorldAccess
 
                 if (includeColumnName)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Work.Position.WithColumn".Translate(GetColumnName(currentColumn), taskAnnouncement, position));
+                    TolkHelper.Speak("RimWorldAccess.Work.Position.WithColumn".Loc(GetColumnName(currentColumn), taskAnnouncement, position));
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.Work.Position.WithoutColumn".Translate(taskAnnouncement, position));
+                    TolkHelper.Speak("RimWorldAccess.Work.Position.WithoutColumn".Loc(taskAnnouncement, position));
                 }
             }
             else
@@ -1256,7 +1256,7 @@ namespace RimWorldAccess
                 // Basic mode
                 if (allEntries.Count == 0)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Work.NoWorkTypesAvailable".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Work.NoWorkTypesAvailable".Loc());
                     return;
                 }
 
@@ -1266,7 +1266,7 @@ namespace RimWorldAccess
                     ? "RimWorldAccess.Work.Status.Enabled".Translate().ToString()
                     : "RimWorldAccess.Work.Status.Disabled".Translate().ToString();
 
-                TolkHelper.Speak("RimWorldAccess.Work.Position.BasicModeItem".Translate(taskAnnouncement, status, position));
+                TolkHelper.Speak("RimWorldAccess.Work.Position.BasicModeItem".Loc(taskAnnouncement, status, position));
             }
         }
 
@@ -1388,7 +1388,7 @@ namespace RimWorldAccess
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
             var reasons = currentPawn.GetReasonsForDisabledWorkType(entry.WorkType);
             string reasonText = string.Join(", ", reasons.Select(r => r.ToString()));
-            TolkHelper.Speak("RimWorldAccess.Work.CannotEnable".Translate(reasonText), SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.Work.CannotEnable".Loc(reasonText), SpeechPriority.High);
         }
 
         private static string GetColumnName(int columnIndex)

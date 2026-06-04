@@ -22,7 +22,7 @@ namespace RimWorldAccess
             CompFlickable comp = targetBuilding.TryGetComp<CompFlickable>();
             if (comp == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Flickable.NoFlickComponent".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Flickable.NoFlickComponent".Loc());
                 return;
             }
 
@@ -63,7 +63,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Flickable.AlreadyOn".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Flickable.AlreadyOn".Loc());
             }
         }
 
@@ -79,7 +79,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Flickable.AlreadyOff".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Flickable.AlreadyOff".Loc());
             }
         }
 

@@ -166,7 +166,7 @@ namespace RimWorldAccess
                 if (shiftHeld && givesColonistOrders)
                     TolkHelper.Speak("RimWorldAccess.UI.FloatMenu.SelectedQueued".Translate(selectedOption.Label, "Queued".Translate()));
                 else
-                    TolkHelper.Speak("RimWorldAccess.UI.FloatMenu.Selected".Translate(selectedOption.Label));
+                    TolkHelper.Speak("RimWorldAccess.UI.FloatMenu.Selected".Loc(selectedOption.Label));
             }
         }
 
@@ -450,11 +450,11 @@ namespace RimWorldAccess
             // Build announcement - don't add period before tooltip since tooltips usually have their own
             if (!string.IsNullOrEmpty(tooltipText))
             {
-                TolkHelper.Speak("RimWorldAccess.UI.FloatMenu.OptionTooltip".Translate(optionText, tooltipText, position));
+                TolkHelper.Speak("RimWorldAccess.UI.FloatMenu.OptionTooltip".Loc(optionText, tooltipText, position));
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.UI.Item.WithPosition".Translate(optionText, position));
+                TolkHelper.Speak("RimWorldAccess.UI.Item.WithPosition".Loc(optionText, position));
             }
         }
 
@@ -574,11 +574,11 @@ namespace RimWorldAccess
                 string position = MenuHelper.FormatPosition(selectedIndex, currentOptions.Count);
                 if (!string.IsNullOrEmpty(tooltipText))
                 {
-                    TolkHelper.Speak("RimWorldAccess.UI.FloatMenu.OptionTooltip".Translate(optionText, tooltipText, position));
+                    TolkHelper.Speak("RimWorldAccess.UI.FloatMenu.OptionTooltip".Loc(optionText, tooltipText, position));
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.UI.Item.WithPosition".Translate(optionText, position));
+                    TolkHelper.Speak("RimWorldAccess.UI.Item.WithPosition".Loc(optionText, position));
                 }
             }
         }

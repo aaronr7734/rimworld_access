@@ -48,7 +48,7 @@ namespace RimWorldAccess
     /// <summary>
     /// Extension methods that turn a translation key into a speakable
     /// <see cref="Localized"/> value. These are the drop-in replacement for
-    /// <c>.Translate(...)</c> at <see cref="TolkHelper.Speak(Localized, SpeechPriority)"/>
+    /// <c>.Loc(...)</c> at <see cref="TolkHelper.Speak(Localized, SpeechPriority)"/>
     /// call sites.
     /// </summary>
     public static class LocalizationExtensions

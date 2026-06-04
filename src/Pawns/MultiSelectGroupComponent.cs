@@ -95,12 +95,12 @@ namespace RimWorldAccess
 
             if (unavailableCount > 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Group.RecalledPartial".Translate(
+                TolkHelper.Speak("RimWorldAccess.Pawns.Group.RecalledPartial".Loc(
                     slot + 1, names, unavailableCount, validPawns.Count));
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Group.Recalled".Translate(
+                TolkHelper.Speak("RimWorldAccess.Pawns.Group.Recalled".Loc(
                     slot + 1, names, validPawns.Count));
             }
         }

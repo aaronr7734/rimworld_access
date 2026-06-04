@@ -261,7 +261,7 @@ namespace RimWorldAccess
                 () =>
                 {
                     // Discard changes and navigate back to scenario list
-                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.ChangesDiscarded".Translate());
+                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.ChangesDiscarded".Loc());
                     ScenarioBuilderState.ResetDirty();
                     ScenarioBuilderState.Close();
                     // Navigate back to previous page (scenario list) instead of just closing
@@ -279,7 +279,7 @@ namespace RimWorldAccess
             dialog.buttonCText = "RimWorldAccess.ScenarioBuilder.UnsavedCancel".Translate();
             dialog.buttonCAction = () =>
             {
-                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.ContinuingToEdit".Translate());
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.ContinuingToEdit".Loc());
             };
             dialog.buttonCClose = true;
 

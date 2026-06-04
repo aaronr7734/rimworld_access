@@ -540,7 +540,7 @@ namespace RimWorldAccess
                         string reason = reasonProp?.GetValue(result, null) as string;
                         if (string.IsNullOrEmpty(reason))
                         {
-                            TolkHelper.Speak("RimWorldAccess.UI.Name.Invalid".Translate(), SpeechPriority.High);
+                            TolkHelper.Speak("RimWorldAccess.UI.Name.Invalid".Loc(), SpeechPriority.High);
                         }
                         else
                         {
@@ -574,7 +574,7 @@ namespace RimWorldAccess
                 onRenamedMethod.Invoke(dialog, new object[] { name });
             }
 
-            TolkHelper.Speak("RimWorldAccess.UI.Name.Renamed".Translate(name), SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.UI.Name.Renamed".Loc(name), SpeechPriority.High);
 
             // Close the windowless dialog
             WindowlessDialogState.Close();
@@ -666,11 +666,11 @@ namespace RimWorldAccess
                     namedSecondMethod.Invoke(dialog, new object[] { secondName });
                 }
 
-                TolkHelper.Speak("RimWorldAccess.UI.Name.NamedBoth".Translate(name, secondName), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.UI.Name.NamedBoth".Loc(name, secondName), SpeechPriority.High);
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.UI.Name.NamedSingle".Translate(name), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.UI.Name.NamedSingle".Loc(name), SpeechPriority.High);
             }
 
             // Close the windowless dialog

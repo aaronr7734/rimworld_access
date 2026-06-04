@@ -330,7 +330,7 @@ namespace RimWorldAccess
 
                 case MenuItemType.HitPointsRange:
                 case MenuItemType.QualityRange:
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.PressEnterEditRange".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.PressEnterEditRange".Loc());
                     break;
 
                 case MenuItemType.ClearAll:
@@ -381,7 +381,7 @@ namespace RimWorldAccess
 
                 case MenuItemType.HitPointsRange:
                 case MenuItemType.QualityRange:
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.PressEnterEditRange".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.PressEnterEditRange".Loc());
                     break;
             }
         }
@@ -422,7 +422,7 @@ namespace RimWorldAccess
                 string countKey = expandedCount == 1
                     ? "RimWorldAccess.Tree.ExpandedCountOne"
                     : "RimWorldAccess.Tree.ExpandedCountMany";
-                TolkHelper.Speak(countKey.Translate(expandedCount));
+                TolkHelper.Speak(countKey.Loc(expandedCount));
             }
             else
             {
@@ -438,9 +438,9 @@ namespace RimWorldAccess
                 }
 
                 if (hasAnySiblingCategories)
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.AllAlreadyExpanded".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.AllAlreadyExpanded".Loc());
                 else
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.NoneToExpand".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.NoneToExpand".Loc());
             }
         }
 
@@ -535,7 +535,7 @@ namespace RimWorldAccess
             string stateKey = actualState == ThingFilterHelper.CategoryAllowanceState.NoneAllowed
                 ? "RimWorldAccess.Inspection.Storage.ToggleResultDisallowed"
                 : "RimWorldAccess.Inspection.Storage.ToggleResultAllowed";
-            TolkHelper.Speak(stateKey.Translate(item.label));
+            TolkHelper.Speak(stateKey.Loc(item.label));
         }
 
         private static void ToggleItem(MenuItem item, bool allow)
@@ -564,21 +564,21 @@ namespace RimWorldAccess
             string stateKey = item.isAllowed
                 ? "RimWorldAccess.Inspection.Storage.ToggleResultAllowed"
                 : "RimWorldAccess.Inspection.Storage.ToggleResultDisallowed";
-            TolkHelper.Speak(stateKey.Translate(item.label));
+            TolkHelper.Speak(stateKey.Loc(item.label));
         }
 
         private static void ClearAllItems()
         {
             currentFilter.SetDisallowAll();
             RebuildMenu();
-            TolkHelper.Speak("ClearAll".Translate());
+            TolkHelper.Speak("ClearAll".Loc());
         }
 
         private static void AllowAllItems()
         {
             currentFilter.SetAllowAll(parentFilter);
             RebuildMenu();
-            TolkHelper.Speak("AllowAll".Translate());
+            TolkHelper.Speak("AllowAll".Loc());
         }
 
         private static void RebuildMenu()

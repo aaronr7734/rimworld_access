@@ -117,7 +117,7 @@ namespace RimWorldAccess
         {
             if (!isActive)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Zone.NoZoneBeingEdited".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Building.Zone.NoZoneBeingEdited".Loc(), SpeechPriority.Normal);
                 return;
             }
 

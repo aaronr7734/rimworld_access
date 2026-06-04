@@ -42,7 +42,7 @@ namespace RimWorldAccess
 
             if (animalsList.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.Menu.NoColonyAnimals".Translate());
+                TolkHelper.Speak("RimWorldAccess.Animals.Menu.NoColonyAnimals".Loc());
                 return;
             }
 
@@ -88,7 +88,7 @@ namespace RimWorldAccess
             if (!silent)
             {
                 SoundDefOf.TabClose.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.Animals.Menu.Closed".Translate());
+                TolkHelper.Speak("RimWorldAccess.Animals.Menu.Closed".Loc());
             }
         }
 
@@ -246,7 +246,7 @@ namespace RimWorldAccess
         {
             if (pawn == null || pawn.Map == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.Menu.NotOnMap".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Animals.Menu.NotOnMap".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -288,7 +288,7 @@ namespace RimWorldAccess
 
                 if (isBonded)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Animals.Cell.BondedSlaughterWarning".Translate(pawn.Name.ToStringShort));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Cell.BondedSlaughterWarning".Loc(pawn.Name.ToStringShort));
                 }
 
                 // Add slaughter designation
@@ -308,7 +308,7 @@ namespace RimWorldAccess
             AcceptanceReport canTrain = pawn.training.CanAssignToTrain(trainable);
             if (!canTrain.Accepted)
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.Cell.CannotTrainInSkill".Translate(pawn.Name.ToStringShort, trainable.LabelCap), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Animals.Cell.CannotTrainInSkill".Loc(pawn.Name.ToStringShort, trainable.LabelCap), SpeechPriority.High);
                 return;
             }
 
@@ -335,7 +335,7 @@ namespace RimWorldAccess
             // Check if animal has learned Obedience (Guard)
             if (pawn.training?.HasLearned(TrainableDefOf.Obedience) != true)
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.Cell.RequiresTraining".Translate(pawn.LabelShort, TrainableDefOf.Obedience.LabelCap), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Animals.Cell.RequiresTraining".Loc(pawn.LabelShort, TrainableDefOf.Obedience.LabelCap), SpeechPriority.High);
                 return;
             }
 
@@ -361,7 +361,7 @@ namespace RimWorldAccess
             // Check if animal has learned Obedience (Guard)
             if (pawn.training?.HasLearned(TrainableDefOf.Obedience) != true)
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.Cell.RequiresTraining".Translate(pawn.LabelShort, TrainableDefOf.Obedience.LabelCap), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Animals.Cell.RequiresTraining".Loc(pawn.LabelShort, TrainableDefOf.Obedience.LabelCap), SpeechPriority.High);
                 return;
             }
 
@@ -387,7 +387,7 @@ namespace RimWorldAccess
             // Check if animal has learned Dig
             if (pawn.training?.HasLearned(TrainableDefOf.Dig) != true)
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.Cell.HasNotLearned".Translate(pawn.LabelShort, TrainableDefOf.Dig.LabelCap), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Animals.Cell.HasNotLearned".Loc(pawn.LabelShort, TrainableDefOf.Dig.LabelCap), SpeechPriority.High);
                 return;
             }
 
@@ -413,7 +413,7 @@ namespace RimWorldAccess
             // Check if animal has learned Forage
             if (pawn.training?.HasLearned(TrainableDefOf.Forage) != true)
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.Cell.HasNotLearned".Translate(pawn.LabelShort, TrainableDefOf.Forage.LabelCap), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Animals.Cell.HasNotLearned".Loc(pawn.LabelShort, TrainableDefOf.Forage.LabelCap), SpeechPriority.High);
                 return;
             }
 
@@ -437,7 +437,7 @@ namespace RimWorldAccess
             var specialTrainables = AnimalsMenuHelper.GetSpecialTrainables(pawn);
             if (specialTrainables.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.Cell.NoSpecialAbilities".Translate(pawn.LabelShort), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Animals.Cell.NoSpecialAbilities".Loc(pawn.LabelShort), SpeechPriority.High);
                 return;
             }
 
@@ -500,7 +500,7 @@ namespace RimWorldAccess
             // Can't toggle if already sterilized
             if (AnimalsMenuHelper.IsAnimalSterilized(pawn))
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.Cell.AlreadySterilized".Translate(pawn.LabelShort), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Animals.Cell.AlreadySterilized".Loc(pawn.LabelShort), SpeechPriority.High);
                 return;
             }
 
@@ -523,7 +523,7 @@ namespace RimWorldAccess
                 if (pawn.HomeFaction != Faction.OfPlayer && pawn.HomeFaction != null)
                 {
                     // Vanilla shows a confirmation dialog for faction animals - we'll just warn and proceed
-                    TolkHelper.Speak("RimWorldAccess.Animals.Cell.FactionSterilizeWarning".Translate(pawn.LabelShort, pawn.HomeFaction.Name));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Cell.FactionSterilizeWarning".Loc(pawn.LabelShort, pawn.HomeFaction.Name));
                 }
 
                 // Schedule sterilization
@@ -542,7 +542,7 @@ namespace RimWorldAccess
             // Check if animal has learned Obedience (Guard)
             if (pawn.training?.HasLearned(TrainableDefOf.Obedience) != true)
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.Cell.RequiresTrainingForMaster".Translate(pawn.LabelShort, TrainableDefOf.Obedience.LabelCap), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Animals.Cell.RequiresTrainingForMaster".Loc(pawn.LabelShort, TrainableDefOf.Obedience.LabelCap), SpeechPriority.High);
                 return;
             }
 
@@ -898,7 +898,7 @@ namespace RimWorldAccess
             if (result == null)
             {
                 string colName = tableHelper.GetCurrentColumnName();
-                TolkHelper.Speak("RimWorldAccess.Animals.Sort.CannotSort".Translate(colName));
+                TolkHelper.Speak("RimWorldAccess.Animals.Sort.CannotSort".Loc(colName));
                 return;
             }
 
@@ -907,13 +907,13 @@ namespace RimWorldAccess
             if (sortCleared)
             {
                 SoundDefOf.Tick_Low.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.Animals.Sort.Cleared".Translate());
+                TolkHelper.Speak("RimWorldAccess.Animals.Sort.Cleared".Loc());
             }
             else
             {
                 string columnName = tableHelper.GetCurrentColumnName();
                 SoundDefOf.Tick_High.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.Animals.Sort.SortedBy".Translate(columnName, direction));
+                TolkHelper.Speak("RimWorldAccess.Animals.Sort.SortedBy".Loc(columnName, direction));
             }
 
             AnnounceCurrentCell(includeAnimalName: true);
@@ -974,7 +974,7 @@ namespace RimWorldAccess
         {
             if (animalsList.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.Menu.NoAnimals".Translate());
+                TolkHelper.Speak("RimWorldAccess.Animals.Menu.NoAnimals".Loc());
                 return;
             }
 
@@ -1047,7 +1047,7 @@ namespace RimWorldAccess
 
             string areaName = lastAppliedArea?.Label ?? "Unrestricted".Translate().Resolve();
             string position = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, animalsList.Count);
-            TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.AreaApplied".Translate(animal.LabelShort, areaName, position));
+            TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.AreaApplied".Loc(animal.LabelShort, areaName, position));
         }
 
         /// <summary>
@@ -1074,7 +1074,7 @@ namespace RimWorldAccess
 
             string areaName = lastAppliedArea?.Label ?? "Unrestricted".Translate().Resolve();
             string position = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, animalsList.Count);
-            TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.AreaApplied".Translate(animal.LabelShort, areaName, position));
+            TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.AreaApplied".Loc(animal.LabelShort, areaName, position));
         }
 
         #endregion
@@ -1109,14 +1109,14 @@ namespace RimWorldAccess
                 Area targetArea = target.playerSettings?.AreaRestrictionInPawnCurrentMap;
                 if (targetArea == lastAppliedArea)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.AreaAlreadySet".Translate(target.LabelShort, areaName, position));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.AreaAlreadySet".Loc(target.LabelShort, areaName, position));
                 }
                 else
                 {
                     if (target.playerSettings != null)
                         target.playerSettings.AreaRestrictionInPawnCurrentMap = lastAppliedArea;
                     SoundDefOf.Designate_DragStandard_Changed_NoCam.PlayOneShotOnCamera();
-                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.AreaApplied".Translate(target.LabelShort, areaName, position));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.AreaApplied".Loc(target.LabelShort, areaName, position));
                 }
                 return;
             }
@@ -1131,17 +1131,17 @@ namespace RimWorldAccess
                 if (target.playerSettings == null || target.training?.HasLearned(TrainableDefOf.Obedience) != true)
                 {
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.RequiresObedience".Translate(target.LabelShort, TrainableDefOf.Obedience.LabelCap, position));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.RequiresObedience".Loc(target.LabelShort, TrainableDefOf.Obedience.LabelCap, position));
                 }
                 else if (target.playerSettings.Master == sourceMaster)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.MasterAlready".Translate(target.LabelShort, masterName, position));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.MasterAlready".Loc(target.LabelShort, masterName, position));
                 }
                 else
                 {
                     target.playerSettings.Master = sourceMaster;
                     SoundDefOf.Click.PlayOneShotOnCamera();
-                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.MasterApplied".Translate(target.LabelShort, masterName, position));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.MasterApplied".Loc(target.LabelShort, masterName, position));
                 }
                 return;
             }
@@ -1156,17 +1156,17 @@ namespace RimWorldAccess
                 if (target.playerSettings == null)
                 {
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CannotSetMedicalCare".Translate(target.LabelShort, position));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CannotSetMedicalCare".Loc(target.LabelShort, position));
                 }
                 else if (target.playerSettings.medCare == sourceCare)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.MedicalCareAlready".Translate(target.LabelShort, careLabel, position));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.MedicalCareAlready".Loc(target.LabelShort, careLabel, position));
                 }
                 else
                 {
                     target.playerSettings.medCare = sourceCare;
                     SoundDefOf.Tick_High.PlayOneShotOnCamera();
-                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.MedicalCareApplied".Translate(target.LabelShort, careLabel, position));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.MedicalCareApplied".Loc(target.LabelShort, careLabel, position));
                 }
                 return;
             }
@@ -1182,7 +1182,7 @@ namespace RimWorldAccess
             bool targetValue = AnimalsMenuHelper.GetPaintableValue(targetPawn, col);
             if (targetValue == brushValue)
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CellAlready".Translate(targetPawn.LabelShort, colName, valueLabel, pos));
+                TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CellAlready".Loc(targetPawn.LabelShort, colName, valueLabel, pos));
                 return;
             }
 
@@ -1192,7 +1192,7 @@ namespace RimWorldAccess
                 : SoundDefOf.ClickReject;
             sound.PlayOneShotOnCamera();
 
-            TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CellApplied".Translate(targetPawn.LabelShort, colName, valueLabel, pos));
+            TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CellApplied".Loc(targetPawn.LabelShort, colName, valueLabel, pos));
         }
 
         /// <summary>
@@ -1223,14 +1223,14 @@ namespace RimWorldAccess
                 Area targetArea = target.playerSettings?.AreaRestrictionInPawnCurrentMap;
                 if (targetArea == lastAppliedArea)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.AreaAlreadySet".Translate(target.LabelShort, areaName, position));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.AreaAlreadySet".Loc(target.LabelShort, areaName, position));
                 }
                 else
                 {
                     if (target.playerSettings != null)
                         target.playerSettings.AreaRestrictionInPawnCurrentMap = lastAppliedArea;
                     SoundDefOf.Designate_DragStandard_Changed_NoCam.PlayOneShotOnCamera();
-                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.AreaApplied".Translate(target.LabelShort, areaName, position));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.AreaApplied".Loc(target.LabelShort, areaName, position));
                 }
                 return;
             }
@@ -1245,17 +1245,17 @@ namespace RimWorldAccess
                 if (target.playerSettings == null || target.training?.HasLearned(TrainableDefOf.Obedience) != true)
                 {
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.RequiresObedience".Translate(target.LabelShort, TrainableDefOf.Obedience.LabelCap, position));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.RequiresObedience".Loc(target.LabelShort, TrainableDefOf.Obedience.LabelCap, position));
                 }
                 else if (target.playerSettings.Master == sourceMaster)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.MasterAlready".Translate(target.LabelShort, masterName, position));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.MasterAlready".Loc(target.LabelShort, masterName, position));
                 }
                 else
                 {
                     target.playerSettings.Master = sourceMaster;
                     SoundDefOf.Click.PlayOneShotOnCamera();
-                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.MasterApplied".Translate(target.LabelShort, masterName, position));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.MasterApplied".Loc(target.LabelShort, masterName, position));
                 }
                 return;
             }
@@ -1270,17 +1270,17 @@ namespace RimWorldAccess
                 if (target.playerSettings == null)
                 {
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CannotSetMedicalCare".Translate(target.LabelShort, position));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CannotSetMedicalCare".Loc(target.LabelShort, position));
                 }
                 else if (target.playerSettings.medCare == sourceCare)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.MedicalCareAlready".Translate(target.LabelShort, careLabel, position));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.MedicalCareAlready".Loc(target.LabelShort, careLabel, position));
                 }
                 else
                 {
                     target.playerSettings.medCare = sourceCare;
                     SoundDefOf.Tick_High.PlayOneShotOnCamera();
-                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.MedicalCareApplied".Translate(target.LabelShort, careLabel, position));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.MedicalCareApplied".Loc(target.LabelShort, careLabel, position));
                 }
                 return;
             }
@@ -1296,7 +1296,7 @@ namespace RimWorldAccess
             bool targetValue = AnimalsMenuHelper.GetPaintableValue(targetPawn, col);
             if (targetValue == brushValue)
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CellAlready".Translate(targetPawn.LabelShort, colName, valueLabel, pos));
+                TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CellAlready".Loc(targetPawn.LabelShort, colName, valueLabel, pos));
                 return;
             }
 
@@ -1306,7 +1306,7 @@ namespace RimWorldAccess
                 : SoundDefOf.ClickReject;
             sound.PlayOneShotOnCamera();
 
-            TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CellApplied".Translate(targetPawn.LabelShort, colName, valueLabel, pos));
+            TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CellApplied".Loc(targetPawn.LabelShort, colName, valueLabel, pos));
         }
 
         /// <summary>
@@ -1391,11 +1391,11 @@ namespace RimWorldAccess
                 if (changedNames.Count > 0)
                 {
                     BulkSoundQueue.Queue(changedNames.Count, SoundDefOf.Designate_DragStandard_Changed_NoCam);
-                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Bulk.AreaApplied".Translate(areaName, MenuHelper.FormatNameList(changedNames)));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Bulk.AreaApplied".Loc(areaName, MenuHelper.FormatNameList(changedNames)));
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Bulk.AreaAlreadyAll".Translate(areaName));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Bulk.AreaAlreadyAll".Loc(areaName));
                 }
                 return;
             }
@@ -1425,11 +1425,11 @@ namespace RimWorldAccess
                 if (changedNames.Count > 0)
                 {
                     BulkSoundQueue.Queue(changedNames.Count, SoundDefOf.Click);
-                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Bulk.MasterApplied".Translate(masterName, MenuHelper.FormatNameList(changedNames)));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Bulk.MasterApplied".Loc(masterName, MenuHelper.FormatNameList(changedNames)));
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Bulk.MasterAlreadyAll".Translate(masterName));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Bulk.MasterAlreadyAll".Loc(masterName));
                 }
                 return;
             }
@@ -1458,11 +1458,11 @@ namespace RimWorldAccess
                 if (changedNames.Count > 0)
                 {
                     BulkSoundQueue.Queue(changedNames.Count, SoundDefOf.Tick_High);
-                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Bulk.MedicalCareApplied".Translate(careLabel, MenuHelper.FormatNameList(changedNames)));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Bulk.MedicalCareApplied".Loc(careLabel, MenuHelper.FormatNameList(changedNames)));
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Bulk.MedicalCareAlreadyAll".Translate(careLabel));
+                    TolkHelper.Speak("RimWorldAccess.Animals.Paint.Bulk.MedicalCareAlreadyAll".Loc(careLabel));
                 }
                 return;
             }
@@ -1490,11 +1490,11 @@ namespace RimWorldAccess
             if (changed.Count > 0)
             {
                 BulkSoundQueue.Queue(changed.Count, paintSound);
-                TolkHelper.Speak("RimWorldAccess.Animals.Paint.Bulk.CellApplied".Translate(colName, valueLabel, MenuHelper.FormatNameList(changed)));
+                TolkHelper.Speak("RimWorldAccess.Animals.Paint.Bulk.CellApplied".Loc(colName, valueLabel, MenuHelper.FormatNameList(changed)));
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.Paint.Bulk.CellAlreadyAll".Translate(colName, valueLabel));
+                TolkHelper.Speak("RimWorldAccess.Animals.Paint.Bulk.CellAlreadyAll".Loc(colName, valueLabel));
             }
         }
 

@@ -66,7 +66,7 @@ namespace RimWorldAccess
             selectedIdeoIndex = 0;
             navigation.Reset();
             listTypeahead.ClearSearch();
-            TolkHelper.Speak("RimWorldAccess.Ideology.Tab.Closed".Translate(MainButtonDefOf.Ideos.LabelCap));
+            TolkHelper.Speak("RimWorldAccess.Ideology.Tab.Closed".Loc(MainButtonDefOf.Ideos.LabelCap));
         }
 
         /// <summary>

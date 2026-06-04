@@ -402,7 +402,7 @@ namespace RimWorldAccess
         private static void OnRenameCancel()
         {
             SoundDefOf.Click.PlayOneShotOnCamera();
-            TolkHelper.Speak("RimWorldAccess.Biotech.XenotypeEditor.RenameCancelled".Translate());
+            TolkHelper.Speak("RimWorldAccess.Biotech.XenotypeEditor.RenameCancelled".Loc());
         }
 
         private static void OnRenameConfirm(string newName)
@@ -413,7 +413,7 @@ namespace RimWorldAccess
             fi_xenotypeNameLocked.SetValue(dialog, true);
             BuildControlItems();
             SoundDefOf.Tick_High.PlayOneShotOnCamera();
-            TolkHelper.Speak("RimWorldAccess.Biotech.XenotypeEditor.Renamed".Translate(newName));
+            TolkHelper.Speak("RimWorldAccess.Biotech.XenotypeEditor.Renamed".Loc(newName));
         }
 
         // ===== Lazy Loading =====
@@ -609,7 +609,7 @@ namespace RimWorldAccess
             if (GenFilePaths.AllCustomXenotypeFiles.EnumerableCount() >= 200)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.Biotech.XenotypeEditor.TooManySaved".Translate());
+                TolkHelper.Speak("RimWorldAccess.Biotech.XenotypeEditor.TooManySaved".Loc());
                 return;
             }
 
@@ -663,7 +663,7 @@ namespace RimWorldAccess
             if (files.Count == 0)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.Biotech.XenotypeEditor.NoCustom".Translate());
+                TolkHelper.Speak("RimWorldAccess.Biotech.XenotypeEditor.NoCustom".Loc());
                 return;
             }
 
@@ -682,7 +682,7 @@ namespace RimWorldAccess
                     else
                     {
                         SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                        TolkHelper.Speak("RimWorldAccess.Biotech.XenotypeEditor.FailedToLoad".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Biotech.XenotypeEditor.FailedToLoad".Loc());
                     }
                 }));
             }
@@ -733,7 +733,7 @@ namespace RimWorldAccess
             if (xenotypes.Count == 0)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.Biotech.XenotypeEditor.NoPremade".Translate());
+                TolkHelper.Speak("RimWorldAccess.Biotech.XenotypeEditor.NoPremade".Loc());
                 return;
             }
 
@@ -1013,14 +1013,14 @@ namespace RimWorldAccess
                                     fi_ignoreRestrictions.SetValue(dialog, true);
                                     RebuildAllTrees();
                                     BuildControlItems();
-                                    TolkHelper.Speak("RimWorldAccess.Biotech.XenotypeEditor.NameWithValue".Translate(
+                                    TolkHelper.Speak("RimWorldAccess.Biotech.XenotypeEditor.NameWithValue".Loc(
                                         ((string)"IgnoreRestrictions".Translate()).StripTags(),
                                         "RimWorldAccess.Biotech.XenotypeEditor.YesValue".Translate()));
                                 },
                                 (string)"No".Translate(),
                                 () =>
                                 {
-                                    TolkHelper.Speak("RimWorldAccess.Biotech.XenotypeEditor.NameWithValue".Translate(
+                                    TolkHelper.Speak("RimWorldAccess.Biotech.XenotypeEditor.NameWithValue".Loc(
                                         ((string)"IgnoreRestrictions".Translate()).StripTags(),
                                         "RimWorldAccess.Biotech.XenotypeEditor.NoValue".Translate()));
                                 }));
@@ -1031,7 +1031,7 @@ namespace RimWorldAccess
                         RebuildAllTrees();
                         BuildControlItems();
                         SoundDefOf.Click.PlayOneShotOnCamera();
-                        TolkHelper.Speak("RimWorldAccess.Biotech.XenotypeEditor.NameWithValue".Translate(
+                        TolkHelper.Speak("RimWorldAccess.Biotech.XenotypeEditor.NameWithValue".Loc(
                             ((string)"IgnoreRestrictions".Translate()).StripTags(),
                             "RimWorldAccess.Biotech.XenotypeEditor.YesValue".Translate()));
                     }
@@ -1093,7 +1093,7 @@ namespace RimWorldAccess
         private static void AnnounceOpening()
         {
             string header = ((string)"CreateXenotype".Translate()).CapitalizeFirst().StripTags();
-            TolkHelper.Speak("RimWorldAccess.Biotech.XenotypeEditor.OpeningSummary".Translate(
+            TolkHelper.Speak("RimWorldAccess.Biotech.XenotypeEditor.OpeningSummary".Loc(
                 header, GetTabAnnouncement()));
         }
 

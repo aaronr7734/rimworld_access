@@ -126,14 +126,14 @@ namespace RimWorldAccess
             if (transferable.CountToTransfer > 0)
             {
                 transferable.AdjustTo(0);
-                TolkHelper.Speak("RimWorldAccess.Caravan.UI.TransferableUnchecked".Translate(transferable.LabelCap.StripTags()));
+                TolkHelper.Speak("RimWorldAccess.Caravan.UI.TransferableUnchecked".Loc(transferable.LabelCap.StripTags()));
                 nowChecked = false;
             }
             else
             {
                 int max = transferable.MaxCount;
                 transferable.AdjustTo(max);
-                TolkHelper.Speak("RimWorldAccess.Caravan.UI.TransferableChecked".Translate(transferable.LabelCap.StripTags()));
+                TolkHelper.Speak("RimWorldAccess.Caravan.UI.TransferableChecked".Loc(transferable.LabelCap.StripTags()));
                 nowChecked = true;
             }
 

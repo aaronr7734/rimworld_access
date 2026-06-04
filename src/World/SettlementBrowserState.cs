@@ -44,7 +44,7 @@ namespace RimWorldAccess
         {
             if (Find.WorldObjects == null)
             {
-                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.WorldObjectsUnavailable".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.WorldObjectsUnavailable".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -58,7 +58,7 @@ namespace RimWorldAccess
 
             if (filteredSettlements.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsFound".Translate());
+                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsFound".Loc());
                 return;
             }
 
@@ -75,7 +75,7 @@ namespace RimWorldAccess
             currentIndex = 0;
             originTile = PlanetTile.Invalid;
             typeahead.ClearSearch();
-            TolkHelper.Speak("RimWorldAccess.SettlementBrowser.Closed".Translate());
+            TolkHelper.Speak("RimWorldAccess.SettlementBrowser.Closed".Loc());
         }
 
         /// <summary>
@@ -160,7 +160,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsMatchFilter".Translate());
+                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsMatchFilter".Loc());
             }
         }
 
@@ -181,7 +181,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsMatchFilter".Translate());
+                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsMatchFilter".Loc());
             }
         }
 
@@ -192,7 +192,7 @@ namespace RimWorldAccess
         {
             if (filteredSettlements.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsAvailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsAvailable".Loc());
                 return;
             }
 
@@ -221,7 +221,7 @@ namespace RimWorldAccess
         {
             if (filteredSettlements.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsAvailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsAvailable".Loc());
                 return;
             }
 
@@ -250,7 +250,7 @@ namespace RimWorldAccess
         {
             if (filteredSettlements.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsAvailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsAvailable".Loc());
                 return;
             }
 
@@ -265,7 +265,7 @@ namespace RimWorldAccess
         {
             if (filteredSettlements.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsAvailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsAvailable".Loc());
                 return;
             }
 
@@ -280,7 +280,7 @@ namespace RimWorldAccess
         {
             if (filteredSettlements.Count == 0 || currentIndex < 0 || currentIndex >= filteredSettlements.Count)
             {
-                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementSelected".Translate());
+                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementSelected".Loc());
                 return;
             }
 
@@ -346,7 +346,7 @@ namespace RimWorldAccess
                     break;
             }
 
-            TolkHelper.Speak("RimWorldAccess.SettlementBrowser.FilterCount".Translate(filterName, filteredSettlements.Count));
+            TolkHelper.Speak("RimWorldAccess.SettlementBrowser.FilterCount".Loc(filterName, filteredSettlements.Count));
         }
 
         /// <summary>
@@ -356,7 +356,7 @@ namespace RimWorldAccess
         {
             if (filteredSettlements.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsAvailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsAvailable".Loc());
                 return;
             }
 
@@ -410,7 +410,7 @@ namespace RimWorldAccess
         {
             if (filteredSettlements.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsAvailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.SettlementBrowser.NoSettlementsAvailable".Loc());
                 return;
             }
 

@@ -84,7 +84,7 @@ namespace RimWorldAccess
 
             if (allStoredItems.Count == 0 && pawnCarriedThings.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.OpenedEmpty".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.OpenedEmpty".Loc());
                 var emptyRoot = new InspectionTreeItem
                 {
                     Label = "Root",
@@ -114,7 +114,7 @@ namespace RimWorldAccess
             string summaryKey = distinctItemCount == 1
                 ? "RimWorldAccess.Inspection.Inventory.OpenedSummaryOne"
                 : "RimWorldAccess.Inspection.Inventory.OpenedSummaryMany";
-            TolkHelper.Speak(summaryKey.Translate(distinctItemCount, root.Children.Count));
+            TolkHelper.Speak(summaryKey.Loc(distinctItemCount, root.Children.Count));
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
 
             // Announce first selection
@@ -132,7 +132,7 @@ namespace RimWorldAccess
             isActive = false;
             treeNav.Reset();
 
-            TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Closed".Translate());
+            TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Closed".Loc());
             SoundDefOf.TabClose.PlayOneShotOnCamera();
         }
 
@@ -711,7 +711,7 @@ namespace RimWorldAccess
         {
             if (treeNav.RootItem == null || treeNav.RootItem.Children.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Expand.NoneToExpand".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Expand.NoneToExpand".Loc());
                 return;
             }
 
@@ -724,11 +724,11 @@ namespace RimWorldAccess
                 string countKey = expandedCount == 1
                     ? "RimWorldAccess.Tree.ExpandedCountOne"
                     : "RimWorldAccess.Tree.ExpandedCountMany";
-                TolkHelper.Speak(countKey.Translate(expandedCount));
+                TolkHelper.Speak(countKey.Loc(expandedCount));
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Expand.AllAlreadyExpanded".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Expand.AllAlreadyExpanded".Loc());
             }
         }
 
@@ -792,7 +792,7 @@ namespace RimWorldAccess
             var data = item.Data as InventoryNodeData;
             if (data == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.SelectCarriedItem".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.SelectCarriedItem".Loc());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return true;
             }
@@ -805,7 +805,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.NotCarriedStack".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.NotCarriedStack".Loc());
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 }
                 return true;
@@ -816,19 +816,19 @@ namespace RimWorldAccess
                 string key = data.ItemData.HasCarriedStacks
                     ? "RimWorldAccess.Inspection.Inventory.Drop.ExpandToSelectStack"
                     : "RimWorldAccess.Inspection.Inventory.Drop.NotCarriedStack";
-                TolkHelper.Speak(key.Translate());
+                TolkHelper.Speak(key.Loc());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return true;
             }
 
             if (data.Type == NodeType.DefGroup || data.Type == NodeType.MaterialGroup)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.ExpandGroupToSelectStack".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.ExpandGroupToSelectStack".Loc());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return true;
             }
 
-            TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.SelectCarriedItem".Translate());
+            TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.SelectCarriedItem".Loc());
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
             return true;
         }
@@ -887,7 +887,7 @@ namespace RimWorldAccess
             var item = treeNav.SelectedItem;
             if (item == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Context.NoMenuAvailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Context.NoMenuAvailable".Loc());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }
@@ -895,7 +895,7 @@ namespace RimWorldAccess
             var data = item.Data as InventoryNodeData;
             if (data == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Context.NoMenuAvailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Context.NoMenuAvailable".Loc());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }
@@ -912,7 +912,7 @@ namespace RimWorldAccess
                 return;
             }
 
-            TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Context.NoMenuAvailable".Translate());
+            TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Context.NoMenuAvailable".Loc());
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
         }
 
@@ -954,7 +954,7 @@ namespace RimWorldAccess
 
             if (options.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Context.NoActionsAvailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Context.NoActionsAvailable".Loc());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }
@@ -999,7 +999,7 @@ namespace RimWorldAccess
             var item = treeNav.SelectedItem;
             if (item == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Jump.SelectItem".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Jump.SelectItem".Loc());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }
@@ -1025,7 +1025,7 @@ namespace RimWorldAccess
                 }
             }
 
-            TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Jump.SelectItem".Translate());
+            TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Jump.SelectItem".Loc());
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
         }
 
@@ -1040,7 +1040,7 @@ namespace RimWorldAccess
         {
             if (stack == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Jump.NoLocation".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Jump.NoLocation".Loc());
                 return;
             }
 
@@ -1052,7 +1052,7 @@ namespace RimWorldAccess
                 Pawn carrier = stack.CarrierPawn;
                 if (carrier == null || carrier.Destroyed || carrier.Dead)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.CarrierUnavailable".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.CarrierUnavailable".Loc());
                     return;
                 }
                 location = carrier.Position;
@@ -1087,7 +1087,7 @@ namespace RimWorldAccess
         {
             if (stack == null || stack.Thing == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.NoItem".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.NoItem".Loc());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }
@@ -1095,14 +1095,14 @@ namespace RimWorldAccess
             Pawn carrier = stack.CarrierPawn;
             if (carrier == null || carrier.Destroyed || carrier.Dead)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.CarrierUnavailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.CarrierUnavailable".Loc());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }
 
             if (carrier.inventory?.innerContainer == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.CannotAccessInventory".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.CannotAccessInventory".Loc());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }
@@ -1115,12 +1115,12 @@ namespace RimWorldAccess
 
                 RefreshInventory();
 
-                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.Dropped".Translate(quantity, carrierName));
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.Dropped".Loc(quantity, carrierName));
                 SoundDefOf.Click.PlayOneShotOnCamera();
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.Failed".Translate(stack.Thing.LabelCap));
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Drop.Failed".Loc(stack.Thing.LabelCap));
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
             }
         }
@@ -1132,7 +1132,7 @@ namespace RimWorldAccess
         {
             if (!stack.IsMinifiedThing || stack.Thing == null || stack.Thing.Destroyed)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Install.NoItem".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Inventory.Install.NoItem".Loc());
                 return;
             }
 

@@ -252,7 +252,7 @@ namespace RimWorldAccess
             {
                 if (!CanDropItem(item, pawn))
                 {
-                    TolkHelper.Speak("RimWorldAccess.Pawns.Gear.CannotDrop".Translate(item.Label), SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Gear.CannotDrop".Loc(item.Label), SpeechPriority.High);
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
                     return false;
                 }
@@ -264,7 +264,7 @@ namespace RimWorldAccess
                 {
                     Job job = JobMaker.MakeJob(JobDefOf.RemoveApparel, apparel);
                     pawn.jobs.TryTakeOrderedJob(job, JobTag.Misc);
-                    TolkHelper.Speak("RimWorldAccess.Pawns.Gear.Removing".Translate(item.Label));
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Gear.Removing".Loc(item.Label));
                     SoundDefOf.Tick_High.PlayOneShotOnCamera();
                     return true;
                 }
@@ -275,7 +275,7 @@ namespace RimWorldAccess
                 {
                     Job job = JobMaker.MakeJob(JobDefOf.DropEquipment, equipment);
                     pawn.jobs.TryTakeOrderedJob(job, JobTag.Misc);
-                    TolkHelper.Speak("RimWorldAccess.Pawns.Gear.Dropping".Translate(item.Label));
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Gear.Dropping".Loc(item.Label));
                     SoundDefOf.Tick_High.PlayOneShotOnCamera();
                     return true;
                 }
@@ -286,26 +286,26 @@ namespace RimWorldAccess
                     Thing droppedThing;
                     if (pawn.inventory.innerContainer.TryDrop(thing, pawn.Position, pawn.Map, ThingPlaceMode.Near, out droppedThing))
                     {
-                        TolkHelper.Speak("RimWorldAccess.Pawns.Gear.Dropped".Translate(item.Label));
+                        TolkHelper.Speak("RimWorldAccess.Pawns.Gear.Dropped".Loc(item.Label));
                         SoundDefOf.Tick_High.PlayOneShotOnCamera();
                         return true;
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Pawns.Gear.FailedToDrop".Translate(item.Label), SpeechPriority.High);
+                        TolkHelper.Speak("RimWorldAccess.Pawns.Gear.FailedToDrop".Loc(item.Label), SpeechPriority.High);
                         SoundDefOf.ClickReject.PlayOneShotOnCamera();
                         return false;
                     }
                 }
 
-                TolkHelper.Speak("RimWorldAccess.Pawns.Gear.CannotDrop".Translate(item.Label), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Gear.CannotDrop".Loc(item.Label), SpeechPriority.High);
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return false;
             }
             catch (Exception ex)
             {
                 Log.Error($"[RimWorldAccess] Error dropping item: {ex}");
-                TolkHelper.Speak("RimWorldAccess.Pawns.Gear.ErrorDropping".Translate(item.Label), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Gear.ErrorDropping".Loc(item.Label), SpeechPriority.High);
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return false;
             }
@@ -320,7 +320,7 @@ namespace RimWorldAccess
             {
                 if (!CanConsumeItem(item, pawn))
                 {
-                    TolkHelper.Speak("RimWorldAccess.Pawns.Gear.CannotConsume".Translate(item.Label), SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Gear.CannotConsume".Loc(item.Label), SpeechPriority.High);
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
                     return false;
                 }
@@ -329,14 +329,14 @@ namespace RimWorldAccess
 
                 // Use RimWorld's built-in consume logic
                 FoodUtility.IngestFromInventoryNow(pawn, thing);
-                TolkHelper.Speak("RimWorldAccess.Pawns.Gear.Consuming".Translate(item.Label));
+                TolkHelper.Speak("RimWorldAccess.Pawns.Gear.Consuming".Loc(item.Label));
                 SoundDefOf.Tick_High.PlayOneShotOnCamera();
                 return true;
             }
             catch (Exception ex)
             {
                 Log.Error($"[RimWorldAccess] Error consuming item: {ex}");
-                TolkHelper.Speak("RimWorldAccess.Pawns.Gear.ErrorConsuming".Translate(item.Label), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Gear.ErrorConsuming".Loc(item.Label), SpeechPriority.High);
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return false;
             }
@@ -349,7 +349,7 @@ namespace RimWorldAccess
         {
             if (item == null || item.Thing == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Gear.NoItemInfo".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Gear.NoItemInfo".Loc());
                 return;
             }
 

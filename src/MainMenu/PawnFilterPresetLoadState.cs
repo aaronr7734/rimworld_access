@@ -24,7 +24,7 @@ namespace RimWorldAccess
 
             if (presetNames.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.NoSavedPresets".Translate());
+                TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.NoSavedPresets".Loc());
                 onPresetLoaded?.Invoke(null);
                 return;
             }
@@ -32,7 +32,7 @@ namespace RimWorldAccess
             selectedIndex = 0;
             IsActive = true;
 
-            TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.OpenInstructions".Translate(presetNames.Count));
+            TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.OpenInstructions".Loc(presetNames.Count));
             AnnounceCurrentPreset();
         }
 
@@ -53,7 +53,7 @@ namespace RimWorldAccess
         {
             if (presetNames.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.NoPresetsAvailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.NoPresetsAvailable".Loc());
                 return;
             }
 
@@ -197,7 +197,7 @@ namespace RimWorldAccess
         {
             if (presetNames.Count == 0 || selectedIndex >= presetNames.Count)
             {
-                TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.NoPresetSelected".Translate());
+                TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.NoPresetSelected".Loc());
                 return;
             }
 
@@ -210,19 +210,19 @@ namespace RimWorldAccess
                 Close();
                 if (loadedFilter != null)
                 {
-                    TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.Loaded".Translate(name));
+                    TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.Loaded".Loc(name));
                     callback?.Invoke(loadedFilter);
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.ErrorLoading".Translate());
+                    TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.ErrorLoading".Loc());
                     callback?.Invoke(null);
                 }
             }
             catch (Exception ex)
             {
                 Log.Error($"[RimWorld Access] Error loading preset: {ex}");
-                TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.ErrorLoadingDetail".Translate(ex.Message));
+                TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.ErrorLoadingDetail".Loc(ex.Message));
             }
         }
 
@@ -233,7 +233,7 @@ namespace RimWorldAccess
 
             string name = presetNames[selectedIndex];
 
-            TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.DeleteConfirm".Translate(name));
+            TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.DeleteConfirm".Loc(name));
             PawnFilterPresetDeleteConfirmState.Open(selectedIndex, name, () =>
             {
                 ReloadPresets();
@@ -245,7 +245,7 @@ namespace RimWorldAccess
 
                 if (presetNames.Count == 0)
                 {
-                    TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.NoneRemaining".Translate());
+                    TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.NoneRemaining".Loc());
                     var callback = onPresetLoaded;
                     Close();
                     callback?.Invoke(null);
@@ -309,7 +309,7 @@ namespace RimWorldAccess
                     {
                         var callback = onPresetLoaded;
                         Close();
-                        TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Translate());
+                        TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Loc());
                         callback?.Invoke(null);
                     }
                     return true;
@@ -364,12 +364,12 @@ namespace RimWorldAccess
             try
             {
                 PawnFilterPresetSerializer.DeletePreset(indexToDelete);
-                TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.Deleted".Translate(nameToDelete));
+                TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.Deleted".Loc(nameToDelete));
             }
             catch (Exception ex)
             {
                 Log.Error($"[RimWorld Access] Error deleting preset: {ex}");
-                TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.ErrorDeleting".Translate(ex.Message));
+                TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.ErrorDeleting".Loc(ex.Message));
             }
 
             Close();
@@ -380,7 +380,7 @@ namespace RimWorldAccess
         {
             if (!IsActive) return;
 
-            TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.DeleteCancelled".Translate());
+            TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetLoad.DeleteCancelled".Loc());
             Close();
             onComplete?.Invoke();
         }

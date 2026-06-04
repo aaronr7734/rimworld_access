@@ -44,7 +44,7 @@ namespace RimWorldAccess
             lastDragRealTime = Time.realtimeSinceStartup;
             if (!silent)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Preview.FirstPoint".Translate(cell.x, cell.z));
+                TolkHelper.Speak("RimWorldAccess.Building.Preview.FirstPoint".Loc(cell.x, cell.z));
             }
             if (!string.IsNullOrEmpty(context))
                 Log.Message($"{context}: First point set at {cell}");
@@ -96,7 +96,7 @@ namespace RimWorldAccess
         {
             if (!IsInPreviewMode)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Paint.NoShapeToConfirm".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Paint.NoShapeToConfirm".Loc());
                 return new List<IntVec3>();
             }
 
@@ -104,7 +104,7 @@ namespace RimWorldAccess
             // FormatShapeSize returns "W by H" for regular rectangles, "N cells" for irregular shapes
             string sizeText = ShapeHelper.FormatShapeSize(confirmedCells);
 
-            TolkHelper.Speak("RimWorldAccess.Building.Preview.SizeConfirmed".Translate(sizeText));
+            TolkHelper.Speak("RimWorldAccess.Building.Preview.SizeConfirmed".Loc(sizeText));
             if (!string.IsNullOrEmpty(context))
                 Log.Message($"{context}: Confirmed {confirmedCells.Count} cells");
 
@@ -119,7 +119,7 @@ namespace RimWorldAccess
             if (!HasFirstCorner) return;
 
             Reset();
-            TolkHelper.Speak("RimWorldAccess.Building.Preview.ShapeCancelled".Translate());
+            TolkHelper.Speak("RimWorldAccess.Building.Preview.ShapeCancelled".Loc());
         }
 
         public void Reset()

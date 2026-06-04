@@ -709,7 +709,7 @@ namespace RimWorldAccess
                     if (RangeEditMenuState.ApplyAndClose(out var hitPoints, out var quality))
                     {
                         ThingFilterMenuState.ApplyRangeChanges(hitPoints, quality);
-                        TolkHelper.Speak("RimWorldAccess.Inspection.Patch.AppliedRangeChanges".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Inspection.Patch.AppliedRangeChanges".Loc());
                     }
                     Event.current.Use();
                     break;

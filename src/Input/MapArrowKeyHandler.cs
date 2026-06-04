@@ -208,7 +208,7 @@ namespace RimWorldAccess
             if (isJump && MapNavigationState.CurrentJumpMode == JumpMode.AdjacentToWall)
                 return;
 
-            TolkHelper.Speak("RimWorldAccess.Input.Map.Boundary".Translate());
+            TolkHelper.Speak("RimWorldAccess.Input.Map.Boundary".Loc());
         }
 
         /// <summary>

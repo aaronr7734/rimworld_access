@@ -47,7 +47,7 @@ namespace RimWorldAccess
 
             if (!pawn.IsPrisonerOfColony && !pawn.IsSlaveOfColony)
             {
-                TolkHelper.Speak("RimWorldAccess.Prisoner.Guest.NotPrisonerOrSlave".Translate(pawn.LabelShort));
+                TolkHelper.Speak("RimWorldAccess.Prisoner.Guest.NotPrisonerOrSlave".Loc(pawn.LabelShort));
                 return;
             }
 
@@ -70,7 +70,7 @@ namespace RimWorldAccess
             selectedIndex = 0;
             ClearCachedData();
 
-            TolkHelper.Speak("RimWorldAccess.Prisoner.Tab.Closed".Translate());
+            TolkHelper.Speak("RimWorldAccess.Prisoner.Tab.Closed".Loc());
         }
 
         /// <summary>
@@ -261,7 +261,7 @@ namespace RimWorldAccess
             currentPawn.playerSettings.medCare = newCare;
 
             string label = PrisonerTabHelper.GetMedicalCareLabel(newCare);
-            TolkHelper.Speak("RimWorldAccess.Prisoner.MedicalCare.Announce".Translate(label));
+            TolkHelper.Speak("RimWorldAccess.Prisoner.MedicalCare.Announce".Loc(label));
         }
 
         private static void SelectExclusiveMode()
@@ -292,7 +292,7 @@ namespace RimWorldAccess
                     }
 
                     string description = PrisonerTabHelper.GetInteractionModeDescription(currentPawn, mode);
-                    TolkHelper.Speak("RimWorldAccess.Prisoner.Action.Selected".Translate(mode.LabelCap, description));
+                    TolkHelper.Speak("RimWorldAccess.Prisoner.Action.Selected".Loc(mode.LabelCap, description));
                 }
             }
             else if (currentPawn.IsSlaveOfColony)
@@ -305,14 +305,14 @@ namespace RimWorldAccess
                     if (mode == SlaveInteractionModeDefOf.Execute && currentPawn.SlaveFaction != null && !currentPawn.SlaveFaction.HostileTo(Faction.OfPlayer))
                     {
                         // Warn about neutral faction
-                        TolkHelper.Speak("RimWorldAccess.Prisoner.Action.ExecuteNeutralWarning".Translate(currentPawn.SlaveFaction.Name));
+                        TolkHelper.Speak("RimWorldAccess.Prisoner.Action.ExecuteNeutralWarning".Loc(currentPawn.SlaveFaction.Name));
                         // For now, just set it - confirmation dialogs would require more complex handling
                     }
 
                     currentPawn.guest.slaveInteractionMode = mode;
 
                     string description = PrisonerTabHelper.GetSlaveInteractionModeDescription(currentPawn, mode);
-                    TolkHelper.Speak("RimWorldAccess.Prisoner.Action.Selected".Translate(mode.LabelCap, description));
+                    TolkHelper.Speak("RimWorldAccess.Prisoner.Action.Selected".Loc(mode.LabelCap, description));
                 }
             }
         }
@@ -347,7 +347,7 @@ namespace RimWorldAccess
                 string state = newState
                     ? "RimWorldAccess.Prisoner.Action.ToggleEnabled".Translate().ToString()
                     : "RimWorldAccess.Prisoner.Action.ToggleDisabled".Translate().ToString();
-                TolkHelper.Speak("RimWorldAccess.Prisoner.Action.ToggleMode".Translate(mode.LabelCap, state));
+                TolkHelper.Speak("RimWorldAccess.Prisoner.Action.ToggleMode".Loc(mode.LabelCap, state));
             }
         }
 
@@ -378,7 +378,7 @@ namespace RimWorldAccess
                     }
                 }
 
-                TolkHelper.Speak("RimWorldAccess.Prisoner.Action.ConversionTarget".Translate(selected.name, warning));
+                TolkHelper.Speak("RimWorldAccess.Prisoner.Action.ConversionTarget".Loc(selected.name, warning));
 
                 // Return to exclusive modes section
                 currentSection = TabSection.ExclusiveModes;
@@ -426,31 +426,31 @@ namespace RimWorldAccess
             switch (currentSection)
             {
                 case TabSection.Information:
-                    TolkHelper.Speak("RimWorldAccess.Prisoner.Section.Information".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Prisoner.Section.Information".Loc());
                     break;
 
                 case TabSection.MedicalCare:
                     string careLevel = PrisonerTabHelper.GetMedicalCareLabel(currentPawn.playerSettings.medCare);
-                    TolkHelper.Speak("RimWorldAccess.Prisoner.MedicalCare.AnnounceWithHint".Translate(careLevel));
+                    TolkHelper.Speak("RimWorldAccess.Prisoner.MedicalCare.AnnounceWithHint".Loc(careLevel));
                     break;
 
                 case TabSection.ExclusiveModes:
                     if (currentPawn.IsPrisonerOfColony)
                     {
-                        TolkHelper.Speak("RimWorldAccess.Prisoner.Section.ExclusiveModes".Translate(exclusiveModes.Count, currentPawn.guest.ExclusiveInteractionMode.LabelCap));
+                        TolkHelper.Speak("RimWorldAccess.Prisoner.Section.ExclusiveModes".Loc(exclusiveModes.Count, currentPawn.guest.ExclusiveInteractionMode.LabelCap));
                     }
                     else if (currentPawn.IsSlaveOfColony)
                     {
-                        TolkHelper.Speak("RimWorldAccess.Prisoner.Section.SlaveModes".Translate(slaveModes.Count, currentPawn.guest.slaveInteractionMode.LabelCap));
+                        TolkHelper.Speak("RimWorldAccess.Prisoner.Section.SlaveModes".Loc(slaveModes.Count, currentPawn.guest.slaveInteractionMode.LabelCap));
                     }
                     break;
 
                 case TabSection.NonExclusiveModes:
-                    TolkHelper.Speak("RimWorldAccess.Prisoner.Section.NonExclusiveModes".Translate(nonExclusiveModes.Count));
+                    TolkHelper.Speak("RimWorldAccess.Prisoner.Section.NonExclusiveModes".Loc(nonExclusiveModes.Count));
                     break;
 
                 case TabSection.IdeologySelection:
-                    TolkHelper.Speak("RimWorldAccess.Prisoner.Section.IdeologySelection".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Prisoner.Section.IdeologySelection".Loc());
                     break;
             }
 
@@ -477,7 +477,7 @@ namespace RimWorldAccess
 
                 case TabSection.MedicalCare:
                     string careLevel = PrisonerTabHelper.GetMedicalCareLabel(currentPawn.playerSettings.medCare);
-                    TolkHelper.Speak("RimWorldAccess.Prisoner.MedicalCare.Announce".Translate(careLevel));
+                    TolkHelper.Speak("RimWorldAccess.Prisoner.MedicalCare.Announce".Loc(careLevel));
                     break;
 
                 case TabSection.ExclusiveModes:
@@ -487,7 +487,7 @@ namespace RimWorldAccess
                         bool isSelected = currentPawn.guest.ExclusiveInteractionMode == mode;
                         string marker = isSelected ? "RimWorldAccess.Prisoner.Item.MarkerActive".Translate().ToString() : "";
                         string description = PrisonerTabHelper.GetInteractionModeDescription(currentPawn, mode);
-                        TolkHelper.Speak("RimWorldAccess.Prisoner.Item.ModeWithDescription".Translate(marker, mode.LabelCap, description));
+                        TolkHelper.Speak("RimWorldAccess.Prisoner.Item.ModeWithDescription".Loc(marker, mode.LabelCap, description));
                     }
                     else if (currentPawn.IsSlaveOfColony && selectedIndex >= 0 && selectedIndex < slaveModes.Count)
                     {
@@ -495,7 +495,7 @@ namespace RimWorldAccess
                         bool isSelected = currentPawn.guest.slaveInteractionMode == mode;
                         string marker = isSelected ? "RimWorldAccess.Prisoner.Item.MarkerActive".Translate().ToString() : "";
                         string description = PrisonerTabHelper.GetSlaveInteractionModeDescription(currentPawn, mode);
-                        TolkHelper.Speak("RimWorldAccess.Prisoner.Item.ModeWithDescription".Translate(marker, mode.LabelCap, description));
+                        TolkHelper.Speak("RimWorldAccess.Prisoner.Item.ModeWithDescription".Loc(marker, mode.LabelCap, description));
                     }
                     break;
 
@@ -507,7 +507,7 @@ namespace RimWorldAccess
                         string state = isEnabled
                             ? "RimWorldAccess.Prisoner.Item.StateOn".Translate().ToString()
                             : "RimWorldAccess.Prisoner.Item.StateOff".Translate().ToString();
-                        TolkHelper.Speak("RimWorldAccess.Prisoner.Item.NonExclusiveMode".Translate(state, mode.LabelCap, mode.description));
+                        TolkHelper.Speak("RimWorldAccess.Prisoner.Item.NonExclusiveMode".Loc(state, mode.LabelCap, mode.description));
                     }
                     break;
 
@@ -518,7 +518,7 @@ namespace RimWorldAccess
                         Ideo ideo = ideologies[selectedIndex];
                         bool isCurrent = currentPawn.guest.ideoForConversion == ideo;
                         string marker = isCurrent ? "RimWorldAccess.Prisoner.Item.MarkerCurrent".Translate().ToString() : "";
-                        TolkHelper.Speak("RimWorldAccess.Prisoner.Item.Ideo".Translate(marker, ideo.name));
+                        TolkHelper.Speak("RimWorldAccess.Prisoner.Item.Ideo".Loc(marker, ideo.name));
                     }
                     break;
             }

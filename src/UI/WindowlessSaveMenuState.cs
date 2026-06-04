@@ -138,7 +138,7 @@ namespace RimWorldAccess
             // In save mode, index 0 is "Create New Save" which can't be deleted
             if (currentMode == SaveLoadMode.Save && selectedIndex == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.UI.Save.CannotDeleteCreateNew".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.UI.Save.CannotDeleteCreateNew".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -152,7 +152,7 @@ namespace RimWorldAccess
             string fileName = Path.GetFileNameWithoutExtension(selectedFile.FileName);
 
             // Open confirmation
-            TolkHelper.Speak("RimWorldAccess.UI.Save.DeleteConfirmPrompt".Translate(fileName));
+            TolkHelper.Speak("RimWorldAccess.UI.Save.DeleteConfirmPrompt".Loc(fileName));
             WindowlessDeleteConfirmationState.Open(selectedFile.FileInfo, () => {
                 // After deletion, reload and reopen this menu
                 ReloadFiles();
@@ -190,13 +190,13 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.UI.Save.InvalidSelection".Translate());
+                TolkHelper.Speak("RimWorldAccess.UI.Save.InvalidSelection".Loc());
                 return;
             }
 
             if (string.IsNullOrEmpty(saveName))
             {
-                TolkHelper.Speak("RimWorldAccess.UI.Save.NeedName".Translate());
+                TolkHelper.Speak("RimWorldAccess.UI.Save.NeedName".Loc());
                 return;
             }
 
@@ -214,14 +214,14 @@ namespace RimWorldAccess
             Messages.Message("SavedAs".Translate(saveName), MessageTypeDefOf.SilentInput, historical: false);
             PlayerKnowledgeDatabase.Save();
 
-            TolkHelper.Speak("RimWorldAccess.UI.Save.SavedAs".Translate(saveName));
+            TolkHelper.Speak("RimWorldAccess.UI.Save.SavedAs".Loc(saveName));
         }
 
         private static void ExecuteLoad()
         {
             if (saveFiles == null || saveFiles.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.UI.Save.NoFiles".Translate());
+                TolkHelper.Speak("RimWorldAccess.UI.Save.NoFiles".Loc());
                 return;
             }
 
@@ -243,7 +243,7 @@ namespace RimWorldAccess
                 GameDataSaveLoader.LoadGame(fileName);
             }, "LoadingLongEvent", doAsynchronously: false, GameAndMapInitExceptionHandlers.ErrorWhileLoadingGame);
 
-            TolkHelper.Speak("RimWorldAccess.UI.Save.Loading".Translate(fileName));
+            TolkHelper.Speak("RimWorldAccess.UI.Save.Loading".Loc(fileName));
         }
 
         private static void ReloadFiles()
@@ -532,7 +532,7 @@ namespace RimWorldAccess
 
             string fileName = fileToDelete.Name;
             fileToDelete.Delete();
-            TolkHelper.Speak("RimWorldAccess.UI.Save.Deleted".Translate(fileName));
+            TolkHelper.Speak("RimWorldAccess.UI.Save.Deleted".Loc(fileName));
 
             Action callback = onDeleteComplete;
             Close();
@@ -544,7 +544,7 @@ namespace RimWorldAccess
             if (!isActive)
                 return;
 
-            TolkHelper.Speak("RimWorldAccess.UI.Save.DeleteCancelled".Translate());
+            TolkHelper.Speak("RimWorldAccess.UI.Save.DeleteCancelled".Loc());
 
             Action callback = onDeleteComplete;
             Close();

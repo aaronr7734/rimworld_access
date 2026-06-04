@@ -67,7 +67,7 @@ namespace RimWorldAccess
             {
                 var previousProject = navigationStack.Pop();
                 Open(previousProject);
-                TolkHelper.Speak("RimWorldAccess.Research.Detail.BackTo".Translate(previousProject.LabelCap));
+                TolkHelper.Speak("RimWorldAccess.Research.Detail.BackTo".Loc(previousProject.LabelCap));
             }
             else
             {
@@ -75,7 +75,7 @@ namespace RimWorldAccess
                 currentProject = null;
                 treeNav.Reset();
                 navigationStack.Clear();
-                TolkHelper.Speak("RimWorldAccess.Research.Detail.ReturnedToMenu".Translate());
+                TolkHelper.Speak("RimWorldAccess.Research.Detail.ReturnedToMenu".Loc());
             }
         }
 
@@ -863,7 +863,7 @@ namespace RimWorldAccess
 
                 case DetailNodeType.Category:
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak("RimWorldAccess.Research.Detail.NoInfoCardForSection".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Research.Detail.NoInfoCardForSection".Loc());
                     return true;
             }
 
@@ -885,7 +885,7 @@ namespace RimWorldAccess
             if (Find.ResearchManager.IsCurrentProject(currentProject))
             {
                 Find.ResearchManager.StopProject(currentProject);
-                TolkHelper.Speak("RimWorldAccess.Research.Action.Stopped".Translate(currentProject.LabelCap));
+                TolkHelper.Speak("RimWorldAccess.Research.Action.Stopped".Loc(currentProject.LabelCap));
                 RefreshTree();
                 return;
             }
@@ -893,7 +893,7 @@ namespace RimWorldAccess
             // Check if already completed
             if (currentProject.IsFinished)
             {
-                TolkHelper.Speak("RimWorldAccess.Research.Action.AlreadyCompleted".Translate(currentProject.LabelCap));
+                TolkHelper.Speak("RimWorldAccess.Research.Action.AlreadyCompleted".Loc(currentProject.LabelCap));
                 return;
             }
 
@@ -901,7 +901,7 @@ namespace RimWorldAccess
             if (!currentProject.PrerequisitesCompleted)
             {
                 var missingPrereqs = GetMissingPrerequisites();
-                TolkHelper.Speak("RimWorldAccess.Research.Action.MissingPrereqs".Translate(missingPrereqs), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Research.Action.MissingPrereqs".Loc(missingPrereqs), SpeechPriority.High);
                 return;
             }
 
@@ -909,7 +909,7 @@ namespace RimWorldAccess
             if (currentProject.TechprintCount > 0 && !currentProject.TechprintRequirementMet)
             {
                 int applied = Find.ResearchManager.GetTechprints(currentProject);
-                TolkHelper.Speak("RimWorldAccess.Research.Action.NeedTechprints".Translate(currentProject.TechprintCount, applied), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Research.Action.NeedTechprints".Loc(currentProject.TechprintCount, applied), SpeechPriority.High);
                 return;
             }
 
@@ -918,7 +918,7 @@ namespace RimWorldAccess
             {
                 if (!currentProject.AnalyzedThingsRequirementsMet)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Research.Action.StudyFirst".Translate(), SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Research.Action.StudyFirst".Loc(), SpeechPriority.High);
                     return;
                 }
             }
@@ -933,12 +933,12 @@ namespace RimWorldAccess
             if (previousProject != null && previousProject != currentProject)
             {
                 float previousProgress = previousProject.ProgressPercent * 100f;
-                TolkHelper.Speak("RimWorldAccess.Research.Action.StartedReplacing".Translate(
+                TolkHelper.Speak("RimWorldAccess.Research.Action.StartedReplacing".Loc(
                     currentProject.LabelCap, previousProject.LabelCap, previousProgress.ToString("F0")));
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Research.Action.Started".Translate(currentProject.LabelCap));
+                TolkHelper.Speak("RimWorldAccess.Research.Action.Started".Loc(currentProject.LabelCap));
             }
             RefreshTree();
         }

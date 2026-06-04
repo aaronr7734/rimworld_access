@@ -396,7 +396,7 @@ namespace RimWorldAccess
 
             if (!item.isEnabled)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.OptionNotAvailable".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.OptionNotAvailable".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -429,7 +429,7 @@ namespace RimWorldAccess
             if (item.type == MenuItemType.ExistingBill && item.data is Bill bill)
             {
                 billGiver.BillStack.Delete(bill);
-                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.Deleted".Translate(bill.LabelCap));
+                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.Deleted".Loc(bill.LabelCap));
 
                 // Clear search and rebuild menu
                 typeahead.ClearSearch();
@@ -445,7 +445,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.CannotDelete".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.CannotDelete".Loc(), SpeechPriority.High);
             }
         }
 
@@ -461,7 +461,7 @@ namespace RimWorldAccess
 
             if (item.type != MenuItemType.ExistingBill || !(item.data is Bill bill))
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.CannotReorder".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.CannotReorder".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -503,7 +503,7 @@ namespace RimWorldAccess
 
             if (item.type != MenuItemType.ExistingBill || !(item.data is Bill bill))
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.CannotReorder".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.CannotReorder".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -546,7 +546,7 @@ namespace RimWorldAccess
             if (item.type == MenuItemType.ExistingBill && item.data is Bill bill)
             {
                 BillUtility.Clipboard = bill;
-                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.CopiedToClipboard".Translate(bill.LabelCap));
+                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.CopiedToClipboard".Loc(bill.LabelCap));
 
                 // Clear search and rebuild to show paste option
                 typeahead.ClearSearch();
@@ -555,7 +555,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.CannotCopy".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.CannotCopy".Loc(), SpeechPriority.High);
             }
         }
 
@@ -567,7 +567,7 @@ namespace RimWorldAccess
             Building_WorkTable workTable = billGiver as Building_WorkTable;
             if (workTable == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.CannotAddBills".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.CannotAddBills".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -600,7 +600,7 @@ namespace RimWorldAccess
 
             if (options.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.NoRecipes".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.NoRecipes".Loc());
                 return;
             }
 
@@ -632,13 +632,13 @@ namespace RimWorldAccess
                 if (ModsConfig.BiotechActive && recipe.mechanitorOnlyRecipe &&
                     !workTable.Map.mapPawns.FreeColonists.Any(MechanitorUtility.IsMechanitor))
                 {
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Bills.RecipeRequiresMechanitor".Translate(recipe.LabelCap));
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Bills.RecipeRequiresMechanitor".Loc(recipe.LabelCap));
                     return;
                 }
 
                 if (!workTable.Map.mapPawns.FreeColonists.Any((Pawn col) => recipe.PawnSatisfiesSkillRequirements(col)))
                 {
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Bills.RecipeRequiresSkills".Translate(recipe.LabelCap));
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Bills.RecipeRequiresSkills".Loc(recipe.LabelCap));
                     return;
                 }
 
@@ -646,7 +646,7 @@ namespace RimWorldAccess
                 Bill bill = recipe.MakeNewBill(precept);
                 billGiver.BillStack.AddBill(bill);
 
-                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.AddedBill".Translate(bill.LabelCap));
+                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.AddedBill".Loc(bill.LabelCap));
 
                 // Clear search and rebuild menu
                 typeahead.ClearSearch();
@@ -678,7 +678,7 @@ namespace RimWorldAccess
         {
             if (BillUtility.Clipboard == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.ClipboardEmpty".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.ClipboardEmpty".Loc());
                 return;
             }
 
@@ -686,7 +686,7 @@ namespace RimWorldAccess
             bill.InitializeAfterClone();
             billGiver.BillStack.AddBill(bill);
 
-            TolkHelper.Speak("RimWorldAccess.Inspection.Bills.PastedBill".Translate(bill.LabelCap));
+            TolkHelper.Speak("RimWorldAccess.Inspection.Bills.PastedBill".Loc(bill.LabelCap));
 
             // Clear search, rebuild menu and select the new bill
             typeahead.ClearSearch();
@@ -706,7 +706,7 @@ namespace RimWorldAccess
         {
             if (bill == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.NoBillSelected".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.NoBillSelected".Loc());
                 return;
             }
 
@@ -716,7 +716,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.UnsupportedType".Translate(bill.GetType().Name));
+                TolkHelper.Speak("RimWorldAccess.Inspection.Bills.UnsupportedType".Loc(bill.GetType().Name));
             }
         }
 

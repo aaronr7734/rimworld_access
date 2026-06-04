@@ -513,7 +513,7 @@ namespace RimWorldAccess
                         "ResetAndRestartConfirmationDialog".Translate(),
                         RestoreToDefaultSettings,
                         destructive: true));
-                    TolkHelper.Speak("RimWorldAccess.UI.Options.OpeningResetDialog".Translate());
+                    TolkHelper.Speak("RimWorldAccess.UI.Options.OpeningResetDialog".Loc());
                 }));
 
             categories.Add(general);
@@ -553,7 +553,7 @@ namespace RimWorldAccess
                         }
                         else
                         {
-                            TolkHelper.Speak("RimWorldAccess.UI.Options.CannotChangeStoryteller".Translate(), SpeechPriority.High);
+                            TolkHelper.Speak("RimWorldAccess.UI.Options.CannotChangeStoryteller".Loc(), SpeechPriority.High);
                         }
                     }));
             }
@@ -663,7 +663,7 @@ namespace RimWorldAccess
                         () => "RimWorldAccess.UI.Options.PressEnterToOpen".Translate(),
                         () => {
                             Find.WindowStack.Add(new Dialog_ModSettings(localMod));
-                            TolkHelper.Speak("RimWorldAccess.UI.Options.OpeningModSettings".Translate(localMod.SettingsCategory()));
+                            TolkHelper.Speak("RimWorldAccess.UI.Options.OpeningModSettings".Loc(localMod.SettingsCategory()));
                         }));
                 }
             }

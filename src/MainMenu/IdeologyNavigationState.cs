@@ -242,7 +242,7 @@ namespace RimWorldAccess
             if (currentTab == TabOptions)
             {
                 string tabName = "RimWorldAccess.Ideology.OptionsTab".Translate();
-                TolkHelper.Speak("RimWorldAccess.Ideology.TabPrefix".Translate(tabName, BuildOptionAnnouncement()));
+                TolkHelper.Speak("RimWorldAccess.Ideology.TabPrefix".Loc(tabName, BuildOptionAnnouncement()));
             }
             else
             {

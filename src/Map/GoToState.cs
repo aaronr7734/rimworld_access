@@ -38,7 +38,7 @@ namespace RimWorldAccess
 
             // Announce with current position for context
             IntVec3 current = MapNavigationState.CurrentCursorPosition;
-            TolkHelper.Speak("RimWorldAccess.Map.GoTo.Open".Translate(current.x, current.z), SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.Map.GoTo.Open".Loc(current.x, current.z), SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace RimWorldAccess
             if (!isInZField)
             {
                 isInZField = true;
-                TolkHelper.Speak("RimWorldAccess.Map.GoTo.FieldZ".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.GoTo.FieldZ".Loc(), SpeechPriority.Normal);
             }
             // If already in Z field, ignore
         }
@@ -125,13 +125,13 @@ namespace RimWorldAccess
                 {
                     // Z buffer empty, go back to X field
                     isInZField = false;
-                    TolkHelper.Speak("RimWorldAccess.Map.GoTo.FieldX".Translate(), SpeechPriority.Normal);
+                    TolkHelper.Speak("RimWorldAccess.Map.GoTo.FieldX".Loc(), SpeechPriority.Normal);
                 }
                 else
                 {
                     char deleted = zBuffer[zBuffer.Length - 1];
                     zBuffer = zBuffer.Substring(0, zBuffer.Length - 1);
-                    TolkHelper.Speak("RimWorldAccess.Map.Input.Deleted".Translate(deleted), SpeechPriority.Low);
+                    TolkHelper.Speak("RimWorldAccess.Map.Input.Deleted".Loc(deleted), SpeechPriority.Low);
                 }
             }
             else
@@ -145,7 +145,7 @@ namespace RimWorldAccess
                 {
                     char deleted = xBuffer[xBuffer.Length - 1];
                     xBuffer = xBuffer.Substring(0, xBuffer.Length - 1);
-                    TolkHelper.Speak("RimWorldAccess.Map.Input.Deleted".Translate(deleted), SpeechPriority.Low);
+                    TolkHelper.Speak("RimWorldAccess.Map.Input.Deleted".Loc(deleted), SpeechPriority.Low);
                 }
             }
         }
@@ -169,14 +169,14 @@ namespace RimWorldAccess
             // Parse X coordinate
             if (!ParseCoordinate(xBuffer, current.x, out int targetX))
             {
-                TolkHelper.Speak("RimWorldAccess.Map.GoTo.InvalidX".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.GoTo.InvalidX".Loc(), SpeechPriority.Normal);
                 return; // Don't close - let user fix it
             }
 
             // Parse Z coordinate
             if (!ParseCoordinate(zBuffer, current.z, out int targetZ))
             {
-                TolkHelper.Speak("RimWorldAccess.Map.GoTo.InvalidZ".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.GoTo.InvalidZ".Loc(), SpeechPriority.Normal);
                 return;
             }
 
@@ -226,7 +226,7 @@ namespace RimWorldAccess
         public static void Cancel()
         {
             Close();
-            TolkHelper.Speak("RimWorldAccess.Map.GoTo.Cancelled".Translate(), SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.Map.GoTo.Cancelled".Loc(), SpeechPriority.Normal);
         }
 
         /// <summary>

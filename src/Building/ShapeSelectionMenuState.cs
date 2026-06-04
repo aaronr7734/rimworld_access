@@ -47,7 +47,7 @@ namespace RimWorldAccess
             typeaheadHelper.ClearSearch();
 
             // Announce menu opening (NOT all shapes - just the menu name)
-            TolkHelper.Speak("RimWorldAccess.Building.ShapeSelect.MenuOpened".Translate());
+            TolkHelper.Speak("RimWorldAccess.Building.ShapeSelect.MenuOpened".Loc());
 
             // Announce the first shape
             AnnounceCurrentShape();
@@ -158,7 +158,7 @@ namespace RimWorldAccess
             ShapeType selected = availableShapes[selectedIndex];
             string shapeName = ShapeHelper.GetShapeName(selected);
 
-            TolkHelper.Speak("RimWorldAccess.Building.ShapeSelect.ShapeSelected".Translate(shapeName));
+            TolkHelper.Speak("RimWorldAccess.Building.ShapeSelect.ShapeSelected".Loc(shapeName));
             Log.Message($"Shape selected: {shapeName}");
 
             Close();
@@ -243,7 +243,7 @@ namespace RimWorldAccess
                     return true;
                 }
                 // Close without selecting
-                TolkHelper.Speak("RimWorldAccess.Building.ShapeSelect.Cancelled".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.ShapeSelect.Cancelled".Loc());
                 Close();
                 return true;
             }

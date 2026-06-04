@@ -125,7 +125,7 @@ namespace RimWorldAccess
             // Only allow toggling for zone designators
             if (!IsZoneDesignator())
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Architect.SelectionModeZoneOnly".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Architect.SelectionModeZoneOnly".Loc());
                 return;
             }
 
@@ -167,7 +167,7 @@ namespace RimWorldAccess
             selectedMaterial = null;
             selectedCells.Clear();
 
-            TolkHelper.Speak("RimWorldAccess.Building.Architect.CategorySelected".Translate(category.LabelCap));
+            TolkHelper.Speak("RimWorldAccess.Building.Architect.CategorySelected".Loc(category.LabelCap));
             Log.Message($"Entered tool selection for category: {category.defName}");
         }
 
@@ -182,7 +182,7 @@ namespace RimWorldAccess
             selectedMaterial = null;
             selectedCells.Clear();
 
-            TolkHelper.Speak("RimWorldAccess.Building.Architect.SelectMaterialFor".Translate(buildable.label));
+            TolkHelper.Speak("RimWorldAccess.Building.Architect.SelectMaterialFor".Loc(buildable.label));
             Log.Message($"Entered material selection for: {buildable.defName}");
         }
 
@@ -438,11 +438,11 @@ namespace RimWorldAccess
                 // Removing - check if it would disconnect the selection (for zones)
                 if (isZone && selectedCells.Count > 1 && WouldDisconnectSelection(cell))
                 {
-                    TolkHelper.Speak("RimWorldAccess.Building.Create.CannotRemoveDisconnect".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Building.Create.CannotRemoveDisconnect".Loc());
                     return;
                 }
                 selectedCells.Remove(cell);
-                TolkHelper.Speak("RimWorldAccess.Building.Paint.Deselected".Translate(cell.x, cell.z));
+                TolkHelper.Speak("RimWorldAccess.Building.Paint.Deselected".Loc(cell.x, cell.z));
             }
             else if (report.Accepted)
             {
@@ -456,7 +456,7 @@ namespace RimWorldAccess
                         Zone existingZone = map.zoneManager.ZoneAt(cell);
                         if (existingZone != null)
                         {
-                            TolkHelper.Speak("RimWorldAccess.Building.Create.CellAlreadyInZone".Translate(existingZone.label));
+                            TolkHelper.Speak("RimWorldAccess.Building.Create.CellAlreadyInZone".Loc(existingZone.label));
                             return;
                         }
                     }
@@ -464,7 +464,7 @@ namespace RimWorldAccess
                     // Enforce adjacency (except first cell)
                     if (selectedCells.Count > 0 && !IsAdjacentToSelection(cell))
                     {
-                        TolkHelper.Speak("RimWorldAccess.Building.Create.MustBeAdjacentToSelection".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Building.Create.MustBeAdjacentToSelection".Loc());
                         return;
                     }
                 }
@@ -475,7 +475,7 @@ namespace RimWorldAccess
             {
                 // Cannot designate this cell
                 string reason = report.Reason ?? "RimWorldAccess.Building.Architect.CannotDesignateHere".Translate();
-                TolkHelper.Speak("RimWorldAccess.Building.Architect.Invalid".Translate(reason));
+                TolkHelper.Speak("RimWorldAccess.Building.Architect.Invalid".Loc(reason));
             }
         }
 
@@ -537,7 +537,7 @@ namespace RimWorldAccess
         {
             if (selectedDesignator == null || selectedCells.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Place.NoCellsSelected".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Place.NoCellsSelected".Loc());
                 Cancel();
                 return;
             }
@@ -548,12 +548,12 @@ namespace RimWorldAccess
                 selectedDesignator.DesignateMultiCell(selectedCells);
 
                 string toolName = selectedDesignator.Label;
-                TolkHelper.Speak("RimWorldAccess.Building.Architect.PlacedOnCells".Translate(toolName, selectedCells.Count));
+                TolkHelper.Speak("RimWorldAccess.Building.Architect.PlacedOnCells".Loc(toolName, selectedCells.Count));
                 Log.Message($"Executed placement: {toolName} on {selectedCells.Count} cells");
             }
             catch (System.Exception ex)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Architect.ErrorPlacing".Translate(ex.Message), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Architect.ErrorPlacing".Loc(ex.Message), SpeechPriority.High);
                 Log.Error($"Error in ExecutePlacement: {ex}");
             }
             finally
@@ -567,7 +567,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void Cancel()
         {
-            TolkHelper.Speak("RimWorldAccess.Building.Architect.MenuClosed".Translate());
+            TolkHelper.Speak("RimWorldAccess.Building.Architect.MenuClosed".Loc());
 
             // Always fully close architect mode
             Reset();

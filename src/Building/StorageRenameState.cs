@@ -65,7 +65,7 @@ namespace RimWorldAccess
             Map map = currentMember is Thing thing ? thing.Map : null;
             if (map == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Rename.StorageMapMissing".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Rename.StorageMapMissing".Loc(), SpeechPriority.High);
                 ClearTarget();
                 return;
             }
@@ -78,17 +78,17 @@ namespace RimWorldAccess
                     newGroup.InitFrom(currentMember);
                     currentMember.SetStorageGroup(newGroup);
                     newGroup.RenamableLabel = newName;
-                    TolkHelper.Speak("RimWorldAccess.Building.Rename.StorageGroupCreated".Translate(newName), SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Building.Rename.StorageGroupCreated".Loc(newName), SpeechPriority.High);
                 }
                 else
                 {
                     currentMember.Group.RenamableLabel = newName;
-                    TolkHelper.Speak("RimWorldAccess.UI.Name.Renamed".Translate(newName), SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.UI.Name.Renamed".Loc(newName), SpeechPriority.High);
                 }
             }
             catch (Exception ex)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Rename.StorageError".Translate(ex.Message), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Rename.StorageError".Loc(ex.Message), SpeechPriority.High);
                 Log.Error($"Error in storage rename: {ex}");
             }
             finally
@@ -99,7 +99,7 @@ namespace RimWorldAccess
 
         private static void OnCancel()
         {
-            TolkHelper.Speak("RimWorldAccess.Building.Rename.StorageCancelled".Translate());
+            TolkHelper.Speak("RimWorldAccess.Building.Rename.StorageCancelled".Loc());
             ClearTarget();
         }
 

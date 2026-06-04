@@ -290,7 +290,7 @@ namespace RimWorldAccess
         {
             if (policy == null || policy.Count == 0)
             {
-                TolkHelper.Speak("NoDrugs".Translate());
+                TolkHelper.Speak("NoDrugs".Loc());
                 return;
             }
 
@@ -298,7 +298,7 @@ namespace RimWorldAccess
             string drugName = entry.drug.LabelCap;
             string status = GetDrugStatusSummary(entry);
             string position = MenuHelper.FormatPosition(selectedDrugIndex, policy.Count);
-            TolkHelper.Speak("RimWorldAccess.Pawns.DrugPolicy.DrugLine".Translate(drugName, status, position));
+            TolkHelper.Speak("RimWorldAccess.Pawns.DrugPolicy.DrugLine".Loc(drugName, status, position));
         }
 
         private static void AnnounceDrugSetting()
@@ -312,18 +312,18 @@ namespace RimWorldAccess
             string position = MenuHelper.FormatPosition(selectedSettingIndex, currentSettings.Count);
             if (setting.Tooltip != null)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.DrugPolicy.SettingWithTooltip".Translate(setting.Label, value, setting.Tooltip, position));
+                TolkHelper.Speak("RimWorldAccess.Pawns.DrugPolicy.SettingWithTooltip".Loc(setting.Label, value, setting.Tooltip, position));
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.DrugPolicy.SettingNoTooltip".Translate(setting.Label, value, position));
+                TolkHelper.Speak("RimWorldAccess.Pawns.DrugPolicy.SettingNoTooltip".Loc(setting.Label, value, position));
             }
         }
 
         private static void AnnounceSettingValue(DrugPolicyEntry entry, DrugSetting setting)
         {
             string value = GetSettingValueString(entry, setting);
-            TolkHelper.Speak("RimWorldAccess.Pawns.DrugPolicy.SettingChange".Translate(setting.Label, value));
+            TolkHelper.Speak("RimWorldAccess.Pawns.DrugPolicy.SettingChange".Loc(setting.Label, value));
         }
 
         private static string GetSettingValueString(DrugPolicyEntry entry, DrugSetting setting)

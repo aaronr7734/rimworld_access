@@ -166,11 +166,11 @@ namespace RimWorldAccess
                             var landingMarkerField = AccessTools.Field(typeof(WorldComponent_GravshipController), "landingMarker");
                             landingMarkerField?.SetValue(ctrl, null);
                             SoundDefOf.Gravship_Land.PlayOneShotOnCamera();
-                            TolkHelper.Speak("ConfirmLandGravship".Translate());
+                            TolkHelper.Speak("ConfirmLandGravship".Loc());
                         }
                         else if (Find.DesignatorManager.SelectedDesignator == designator)
                         {
-                            TolkHelper.Speak("GravshipLandingMarkerNotPlaced".Translate());
+                            TolkHelper.Speak("GravshipLandingMarkerNotPlaced".Loc());
                         }
                     }
                 };

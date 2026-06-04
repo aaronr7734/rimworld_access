@@ -52,7 +52,7 @@ namespace RimWorldAccess
                 return;
 
             Close();
-            TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Translate());
+            TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Loc());
 
             // Only reopen pause menu if in-game
             if (Current.ProgramState == ProgramState.Playing)

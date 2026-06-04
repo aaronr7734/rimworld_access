@@ -37,7 +37,7 @@ namespace RimWorldAccess
         {
             IsActive = false;
             navigation.Reset();
-            TolkHelper.Speak("RimWorldAccess.Factions.Tab.Closed".Translate());
+            TolkHelper.Speak("RimWorldAccess.Factions.Tab.Closed".Loc());
         }
 
         /// <summary>

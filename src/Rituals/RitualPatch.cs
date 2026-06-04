@@ -58,7 +58,7 @@ namespace RimWorldAccess
                     if (RitualState.IsActive)
                     {
                         RitualState.Close();
-                        TolkHelper.Speak("RimWorldAccess.Rituals.Dialog.Closed".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Rituals.Dialog.Closed".Loc());
                     }
                 }
                 catch (Exception ex)

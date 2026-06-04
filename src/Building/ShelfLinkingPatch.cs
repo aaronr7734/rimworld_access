@@ -269,7 +269,7 @@ namespace RimWorldAccess
                     },
                     onNo: () =>
                     {
-                        TolkHelper.Speak("RimWorldAccess.Building.Shelf.LinkingCancelledShort".Translate(), SpeechPriority.Normal);
+                        TolkHelper.Speak("RimWorldAccess.Building.Shelf.LinkingCancelledShort".Loc(), SpeechPriority.Normal);
                     });
             }
             else
@@ -290,11 +290,11 @@ namespace RimWorldAccess
 
             if (success)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Shelf.AddedToGroup".Translate(countStr), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Shelf.AddedToGroup".Loc(countStr), SpeechPriority.High);
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Shelf.LinkingFailed".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Shelf.LinkingFailed".Loc(), SpeechPriority.High);
             }
         }
 

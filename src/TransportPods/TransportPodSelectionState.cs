@@ -43,7 +43,7 @@ namespace RimWorldAccess
 
             if (sourceTransporter == null)
             {
-                TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.NoPodSelected".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.NoPodSelected".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -73,7 +73,7 @@ namespace RimWorldAccess
             IsActive = true;
 
             int totalGroupable = groupablePods.Count;
-            TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.EnterMode".Translate(totalGroupable), SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.EnterMode".Loc(totalGroupable), SpeechPriority.High);
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace RimWorldAccess
                 }
             }
 
-            TolkHelper.Speak("RimWorldAccess.TransportPods.Gizmo.LoadCommandMissing".Translate(), SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.TransportPods.Gizmo.LoadCommandMissing".Loc(), SpeechPriority.High);
             Find.Selector.ClearSelection();
         }
 
@@ -115,7 +115,7 @@ namespace RimWorldAccess
             // Clear the game's selection
             Find.Selector.ClearSelection();
 
-            TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.Cancelled".Translate(), SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.Cancelled".Loc(), SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -170,7 +170,7 @@ namespace RimWorldAccess
 
             if (!cursorPos.InBounds(currentMap))
             {
-                TolkHelper.Speak("RimWorldAccess.Input.Cursor.InvalidPosition".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Input.Cursor.InvalidPosition".Loc(), SpeechPriority.Normal);
                 return;
             }
 
@@ -179,7 +179,7 @@ namespace RimWorldAccess
 
             if (pods.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.NoPodHere".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.NoPodHere".Loc(), SpeechPriority.Normal);
                 return;
             }
 
@@ -194,27 +194,27 @@ namespace RimWorldAccess
             {
                 Find.Selector.Deselect(podThing);
                 int selectedCount = GetSelectedPodCount();
-                TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.PodDeselected".Translate(selectedCount), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.PodDeselected".Loc(selectedCount), SpeechPriority.Normal);
             }
             else
             {
                 // Check if pod is in the groupable set (connected via adjacent launchers)
                 if (groupablePods == null || !groupablePods.Contains(pod))
                 {
-                    TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.NotAdjacent".Translate(), SpeechPriority.Normal);
+                    TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.NotAdjacent".Loc(), SpeechPriority.Normal);
                     return;
                 }
 
                 // Check if pod is available (not already loading)
                 if (pod.LoadingInProgressOrReadyToLaunch)
                 {
-                    TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.AlreadyLoading".Translate(), SpeechPriority.Normal);
+                    TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.AlreadyLoading".Loc(), SpeechPriority.Normal);
                     return;
                 }
 
                 Find.Selector.Select(podThing);
                 int selectedCount = GetSelectedPodCount();
-                TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.PodSelected".Translate(selectedCount), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.PodSelected".Loc(selectedCount), SpeechPriority.Normal);
             }
         }
 
@@ -241,7 +241,7 @@ namespace RimWorldAccess
 
             if (selectedCount == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.NoPodsSelected".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.NoPodsSelected".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -262,7 +262,7 @@ namespace RimWorldAccess
 
             if (firstTransporter == null)
             {
-                TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.PodsUnavailable".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.PodsUnavailable".Loc(), SpeechPriority.High);
                 Close();
                 return;
             }
@@ -283,7 +283,7 @@ namespace RimWorldAccess
 
             if (loadCommand == null)
             {
-                TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.LoadCommandMissingMayBeLoading".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Selection.LoadCommandMissingMayBeLoading".Loc(), SpeechPriority.High);
                 Find.Selector.ClearSelection();
                 return;
             }

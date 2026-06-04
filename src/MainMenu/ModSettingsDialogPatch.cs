@@ -49,11 +49,11 @@ namespace RimWorldAccess
                     {
                         modName = mod.Content?.Name ?? "RimWorldAccess.ModSettings.UnknownMod".Translate().ToString();
                     }
-                    TolkHelper.Speak("RimWorldAccess.ModSettings.OpenedFor".Translate(modName));
+                    TolkHelper.Speak("RimWorldAccess.ModSettings.OpenedFor".Loc(modName));
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.ModSettings.OpenedGeneric".Translate());
+                    TolkHelper.Speak("RimWorldAccess.ModSettings.OpenedGeneric".Loc());
                 }
             }
         }
@@ -69,7 +69,7 @@ namespace RimWorldAccess
             {
                 int instanceId = __instance.GetHashCode();
                 announcedDialogs.Remove(instanceId);
-                TolkHelper.Speak("RimWorldAccess.ModSettings.Closed".Translate());
+                TolkHelper.Speak("RimWorldAccess.ModSettings.Closed".Loc());
             }
         }
     }

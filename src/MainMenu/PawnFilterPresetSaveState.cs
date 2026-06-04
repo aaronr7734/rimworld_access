@@ -32,7 +32,7 @@ namespace RimWorldAccess
             isTypingName = true;
             IsActive = true;
 
-            TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.OpenInstructions".Translate(nameController.CurrentText));
+            TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.OpenInstructions".Loc(nameController.CurrentText));
         }
 
         public static void Close()
@@ -54,12 +54,12 @@ namespace RimWorldAccess
         {
             if (selectedIndex == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.SaveAs".Translate(nameController.CurrentText, MenuHelper.FormatPosition(0, TotalCount)));
+                TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.SaveAs".Loc(nameController.CurrentText, MenuHelper.FormatPosition(0, TotalCount)));
             }
             else if (selectedIndex > 0 && selectedIndex <= existingPresets.Count)
             {
                 string presetName = existingPresets[selectedIndex - 1];
-                TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.Overwrite".Translate(presetName, MenuHelper.FormatPosition(selectedIndex, TotalCount)));
+                TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.Overwrite".Loc(presetName, MenuHelper.FormatPosition(selectedIndex, TotalCount)));
             }
         }
 
@@ -112,7 +112,7 @@ namespace RimWorldAccess
                 string name = nameController.CurrentText;
                 if (string.IsNullOrWhiteSpace(name))
                 {
-                    TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.NameEmpty".Translate());
+                    TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.NameEmpty".Loc());
                     return;
                 }
 
@@ -125,19 +125,19 @@ namespace RimWorldAccess
                     {
                         PawnFilterPresetSerializer.OverwritePreset(filterToSave, name, existingIndex);
                         Close();
-                        TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.PresetOverwritten".Translate(name));
+                        TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.PresetOverwritten".Loc(name));
                     }
                     else
                     {
                         PawnFilterPresetSerializer.SavePreset(filterToSave, name);
                         Close();
-                        TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.PresetSavedAs".Translate(name));
+                        TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.PresetSavedAs".Loc(name));
                     }
                 }
                 catch (Exception ex)
                 {
                     Log.Error($"[RimWorld Access] Error saving preset: {ex}");
-                    TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.ErrorSaving".Translate(ex.Message));
+                    TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.ErrorSaving".Loc(ex.Message));
                 }
             }
             else if (selectedIndex > 0 && selectedIndex <= existingPresets.Count)
@@ -149,17 +149,17 @@ namespace RimWorldAccess
                 {
                     PawnFilterPresetSerializer.OverwritePreset(filterToSave, name, presetIndex);
                     Close();
-                    TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.PresetOverwritten".Translate(name));
+                    TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.PresetOverwritten".Loc(name));
                 }
                 catch (Exception ex)
                 {
                     Log.Error($"[RimWorld Access] Error saving preset: {ex}");
-                    TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.ErrorSaving".Translate(ex.Message));
+                    TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.ErrorSaving".Loc(ex.Message));
                 }
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.InvalidSelection".Translate());
+                TolkHelper.Speak("RimWorldAccess.PawnFilter.PresetSave.InvalidSelection".Loc());
             }
         }
 
@@ -214,7 +214,7 @@ namespace RimWorldAccess
 
                 case KeyCode.Escape:
                     Close();
-                    TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Translate());
+                    TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Loc());
                     return true;
 
                 case KeyCode.Backspace:

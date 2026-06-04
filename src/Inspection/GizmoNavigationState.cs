@@ -136,7 +136,7 @@ namespace RimWorldAccess
 
             if (availableGizmos.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NoCommandsAvailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NoCommandsAvailable".Loc());
                 return;
             }
 
@@ -160,7 +160,7 @@ namespace RimWorldAccess
             // Validate cursor position
             if (!cursorPosition.IsValid || !cursorPosition.InBounds(map))
             {
-                TolkHelper.Speak("RimWorldAccess.Guard.InvalidCursorPosition".Translate());
+                TolkHelper.Speak("RimWorldAccess.Guard.InvalidCursorPosition".Loc());
                 return;
             }
 
@@ -246,7 +246,7 @@ namespace RimWorldAccess
 
             if (availableGizmos.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NoCommandsAtCursor".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NoCommandsAtCursor".Loc());
                 return;
             }
 
@@ -292,7 +292,7 @@ namespace RimWorldAccess
 
             if (objectsToUse.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NoWorldObject".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NoWorldObject".Loc());
                 return;
             }
 
@@ -387,7 +387,7 @@ namespace RimWorldAccess
             {
                 string objName = objectsToUse.FirstOrDefault()?.LabelCap
                     ?? "RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName".Translate().ToString();
-                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NoCommandsForObject".Translate(objName));
+                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NoCommandsForObject".Loc(objName));
                 return;
             }
 
@@ -612,13 +612,13 @@ namespace RimWorldAccess
                         }
                         else
                         {
-                            TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.ErrorActivationFailed".Translate(gizmoLabel), SpeechPriority.High);
+                            TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.ErrorActivationFailed".Loc(gizmoLabel), SpeechPriority.High);
                         }
                     }
                     catch (System.Exception ex)
                     {
                         ModLogger.Error($"Exception in Designator execution: {ex.Message}");
-                        TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.ErrorExecuting".Translate(gizmoLabel, ex.Message), SpeechPriority.High);
+                        TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.ErrorExecuting".Loc(gizmoLabel, ex.Message), SpeechPriority.High);
                     }
 
                     // Close the gizmo menu AFTER announcing (only reached on error)
@@ -698,7 +698,7 @@ namespace RimWorldAccess
                     string stateStr = (newState
                         ? "RimWorldAccess.Inspection.Gizmo.LimiterStateOn"
                         : "RimWorldAccess.Inspection.Gizmo.LimiterStateOff").Translate();
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NeuralHeatLimiter".Translate(stateStr));
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NeuralHeatLimiter".Loc(stateStr));
                     return;
                 }
 
@@ -720,12 +720,12 @@ namespace RimWorldAccess
                             ? "RimWorldAccess.Inspection.Gizmo.LimiterStateOn"
                             : "RimWorldAccess.Inspection.Gizmo.LimiterStateOff").Translate();
                         string label = GetGizmoLabel(toggle);
-                        TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.LabelWithState".Translate(label, state));
+                        TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.LabelWithState".Loc(label, state));
                     }
                     catch (System.Exception ex)
                     {
                         ModLogger.Error($"Exception in Command_Toggle execution: {ex.Message}");
-                        TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.ErrorExecuting".Translate(gizmoLabel, ex.Message), SpeechPriority.High);
+                        TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.ErrorExecuting".Loc(gizmoLabel, ex.Message), SpeechPriority.High);
                     }
                 }
                 else
@@ -744,12 +744,12 @@ namespace RimWorldAccess
 
                             string weaponName = verbTarget.ownerThing?.LabelCap ?? "weapon";
                             string verbLabel = verbTarget.verb?.ReportLabel ?? "attack";
-                            TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.WeaponVerbTargeting".Translate(weaponName, verbLabel));
+                            TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.WeaponVerbTargeting".Loc(weaponName, verbLabel));
                         }
                         catch (System.Exception ex)
                         {
                             ModLogger.Error($"Exception in Command_VerbTarget execution: {ex.Message}");
-                            TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.ErrorExecuting".Translate(gizmoLabel, ex.Message), SpeechPriority.High);
+                            TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.ErrorExecuting".Loc(gizmoLabel, ex.Message), SpeechPriority.High);
                         }
                     }
                     // 6. Command_Target - announce targeting mode
@@ -781,23 +781,23 @@ namespace RimWorldAccess
                                 {
                                     float range = Pawn_TrainingTracker.AttackTargetRange;
                                     TargetingPatch.SetTargetingContext(master.Position, range);
-                                    TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.AnimalTargetingWithRange".Translate(
+                                    TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.AnimalTargetingWithRange".Loc(
                                         gizmoLabel, range.ToString("F0")));
                                 }
                                 else
                                 {
-                                    TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.UseMapNavigationToTarget".Translate(gizmoLabel));
+                                    TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.UseMapNavigationToTarget".Loc(gizmoLabel));
                                 }
                             }
                             else
                             {
-                                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.UseMapNavigationToTarget".Translate(gizmoLabel));
+                                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.UseMapNavigationToTarget".Loc(gizmoLabel));
                             }
                         }
                         catch (System.Exception ex)
                         {
                             ModLogger.Error($"Exception in Command_Target execution: {ex.Message}");
-                            TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.ErrorExecuting".Translate(gizmoLabel, ex.Message), SpeechPriority.High);
+                            TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.ErrorExecuting".Loc(gizmoLabel, ex.Message), SpeechPriority.High);
                         }
                     }
                     // 7. Command_Ability (psycasts, abilities) - announce casting or targeting
@@ -813,7 +813,7 @@ namespace RimWorldAccess
                             // so no AbilityTargetingPatch fires. Announce immediately.
                             if (!cmdAbility.Ability.def.targetRequired)
                             {
-                                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.CastingAbility".Translate(
+                                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.CastingAbility".Loc(
                                     cmdAbility.Ability.def.LabelCap));
                             }
                             // Targeted abilities will be announced by AbilityTargetingPatch
@@ -821,7 +821,7 @@ namespace RimWorldAccess
                         catch (System.Exception ex)
                         {
                             ModLogger.Error($"Exception in Command_Ability execution: {ex.Message}");
-                            TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.ErrorExecuting".Translate(gizmoLabel, ex.Message), SpeechPriority.High);
+                            TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.ErrorExecuting".Loc(gizmoLabel, ex.Message), SpeechPriority.High);
                         }
                     }
                     // 8. Generic Command
@@ -836,7 +836,7 @@ namespace RimWorldAccess
                         catch (System.Exception ex)
                         {
                             ModLogger.Error($"Exception in generic Command execution: {ex.Message}");
-                            TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.ErrorExecuting".Translate(gizmoLabel, ex.Message), SpeechPriority.High);
+                            TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.ErrorExecuting".Loc(gizmoLabel, ex.Message), SpeechPriority.High);
                         }
                     }
                 }
@@ -1085,7 +1085,7 @@ namespace RimWorldAccess
                 else if (IsAdjustableSlider(rbGizmo))
                     EnterSliderAdjustMode(rbGizmo);
                 else
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions".Loc());
                 Event.current.Use();
                 return true;
             }
@@ -2362,12 +2362,12 @@ namespace RimWorldAccess
 
             if (options.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NoMaterialsForBuildable".Translate(buildable.label));
+                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NoMaterialsForBuildable".Loc(buildable.label));
                 return;
             }
 
             // Announce and open material selection menu
-            TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.SelectMaterialFor".Translate(buildable.label));
+            TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.SelectMaterialFor".Loc(buildable.label));
             WindowlessFloatMenuState.Open(options, false);
 
             // Close gizmo navigation - material selection will handle the rest
@@ -2390,12 +2390,12 @@ namespace RimWorldAccess
                 // DesignatorManagerPatch will automatically route to accessible placement
                 Find.DesignatorManager.Select(designator);
 
-                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.MaterialSelected".Translate(material.LabelCap));
+                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.MaterialSelected".Loc(material.LabelCap));
             }
             catch (System.Exception ex)
             {
                 ModLogger.Error($"Exception in gizmo material selection: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.ErrorWithMessage".Translate(ex.Message), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.ErrorWithMessage".Loc(ex.Message), SpeechPriority.High);
             }
         }
 
@@ -2526,14 +2526,14 @@ namespace RimWorldAccess
                 string reason = gizmo.disabledReason;
                 if (string.IsNullOrEmpty(reason))
                     reason = "RimWorldAccess.Inspection.Gizmo.DisabledExecuteFallback".Translate();
-                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.DisabledSuffix".Translate(reason));
+                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.DisabledSuffix".Loc(reason));
                 return;
             }
 
             var options = CollectRightClickOptions(gizmo);
             if (options.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions".Loc());
                 return;
             }
 
@@ -2564,7 +2564,7 @@ namespace RimWorldAccess
                     var incrementsProp = gizmo.GetType().GetProperty("Increments", flags);
                     var titleProp = gizmo.GetType().GetProperty("Title", flags);
 
-                    if (targetProp == null) { TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.CouldNotReadSliderValue".Translate()); return; }
+                    if (targetProp == null) { TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.CouldNotReadSliderValue".Loc()); return; }
 
                     sliderValue = (float)targetProp.GetValue(gizmo);
 
@@ -2598,7 +2598,7 @@ namespace RimWorldAccess
                     if (typeName == "PsychicEntropyGizmo")
                     {
                         var targetField = gizmo.GetType().GetField("targetValue", flags);
-                        if (targetField == null) { TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.CouldNotReadPsyfocusValue".Translate()); return; }
+                        if (targetField == null) { TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.CouldNotReadPsyfocusValue".Loc()); return; }
 
                         sliderValue = (float)targetField.GetValue(gizmo);
                         sliderMin = 0f;
@@ -2609,12 +2609,12 @@ namespace RimWorldAccess
                     else if (typeName == "Gizmo_PruningConfig")
                     {
                         var connectionField = gizmo.GetType().GetField("connection", flags);
-                        if (connectionField == null) { TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.CouldNotReadPruningValue".Translate()); return; }
+                        if (connectionField == null) { TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.CouldNotReadPruningValue".Loc()); return; }
                         var connection = connectionField.GetValue(gizmo);
-                        if (connection == null) { TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.CouldNotReadPruningValue".Translate()); return; }
+                        if (connection == null) { TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.CouldNotReadPruningValue".Loc()); return; }
 
                         var desiredProp = connection.GetType().GetProperty("DesiredConnectionStrength", flags);
-                        if (desiredProp == null) { TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.CouldNotReadPruningValue".Translate()); return; }
+                        if (desiredProp == null) { TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.CouldNotReadPruningValue".Loc()); return; }
 
                         sliderValue = (float)desiredProp.GetValue(connection);
                         sliderMin = 0f;
@@ -2625,7 +2625,7 @@ namespace RimWorldAccess
                     else if (typeName == "MechCarrierGizmo")
                     {
                         var targetField = gizmo.GetType().GetField("targetValue", flags);
-                        if (targetField == null) { TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.CouldNotReadCarrierValue".Translate()); return; }
+                        if (targetField == null) { TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.CouldNotReadCarrierValue".Loc()); return; }
 
                         sliderValue = (float)targetField.GetValue(gizmo);
                         sliderMin = 0f;
@@ -2635,7 +2635,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.CouldNotAdjustControl".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.CouldNotAdjustControl".Loc());
                         return;
                     }
                 }
@@ -2643,13 +2643,13 @@ namespace RimWorldAccess
             catch (System.Exception ex)
             {
                 ModLogger.Error($"Exception entering slider mode: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.CouldNotAdjustControl".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.CouldNotAdjustControl".Loc());
                 return;
             }
 
             isAdjustingSlider = true;
             string valueStr = $"{sliderValue * 100:F0}%";
-            TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.SliderEnterPrompt".Translate(title, valueStr));
+            TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.SliderEnterPrompt".Loc(title, valueStr));
         }
 
         /// <summary>

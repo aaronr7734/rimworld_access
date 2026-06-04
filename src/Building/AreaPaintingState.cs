@@ -135,11 +135,11 @@ namespace RimWorldAccess
                 currentShape = shape;
                 previewHelper.SetCurrentShape(shape);
                 string shapeName = ShapeHelper.GetShapeName(shape);
-                TolkHelper.Speak("RimWorldAccess.Building.Paint.ShapeChanged".Translate(shapeName));
+                TolkHelper.Speak("RimWorldAccess.Building.Paint.ShapeChanged".Loc(shapeName));
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Paint.ShapeUnavailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Paint.ShapeUnavailable".Loc());
             }
         }
 
@@ -185,7 +185,7 @@ namespace RimWorldAccess
 
             string shapeName = ShapeHelper.GetShapeName(currentShape);
             string hint = "RimWorldAccess.Building.Paint.PromptHint".Translate();
-            TolkHelper.Speak("RimWorldAccess.Building.Paint.EnterExpand".Translate(area.Label, shapeName, hint));
+            TolkHelper.Speak("RimWorldAccess.Building.Paint.EnterExpand".Loc(area.Label, shapeName, hint));
         }
 
         /// <summary>
@@ -215,7 +215,7 @@ namespace RimWorldAccess
 
             string shapeName = ShapeHelper.GetShapeName(currentShape);
             string hint = "RimWorldAccess.Building.Paint.PromptHint".Translate();
-            TolkHelper.Speak("RimWorldAccess.Building.Paint.EnterShrink".Translate(area.Label, shapeName, hint));
+            TolkHelper.Speak("RimWorldAccess.Building.Paint.EnterShrink".Loc(area.Label, shapeName, hint));
         }
 
         /// <summary>
@@ -261,7 +261,7 @@ namespace RimWorldAccess
         {
             if (!IsInPreviewMode)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Paint.NoShapeToConfirm".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Paint.NoShapeToConfirm".Loc());
                 return;
             }
 
@@ -331,7 +331,7 @@ namespace RimWorldAccess
 
             if (!currentPos.InBounds(targetArea.Map))
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Paint.PositionOutOfBounds".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Paint.PositionOutOfBounds".Loc());
                 return;
             }
 
@@ -339,7 +339,7 @@ namespace RimWorldAccess
             if (stagedCells.Contains(currentPos))
             {
                 stagedCells.Remove(currentPos);
-                TolkHelper.Speak("RimWorldAccess.Building.Paint.Deselected".Translate(currentPos.x, currentPos.z));
+                TolkHelper.Speak("RimWorldAccess.Building.Paint.Deselected".Loc(currentPos.x, currentPos.z));
             }
             else
             {
@@ -360,7 +360,7 @@ namespace RimWorldAccess
 
             if (stagedCells.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Paint.NoCellsSelected".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Paint.NoCellsSelected".Loc());
                 Log.Message("RimWorld Access: No selected cells");
                 Exit();
                 return;
@@ -385,7 +385,7 @@ namespace RimWorldAccess
             string key = isExpanding
                 ? "RimWorldAccess.Building.Paint.AddedTo"
                 : "RimWorldAccess.Building.Paint.RemovedFrom";
-            TolkHelper.Speak(key.Translate(stagedCells.Count, targetArea.Label, targetArea.TrueCount));
+            TolkHelper.Speak(key.Loc(stagedCells.Count, targetArea.Label, targetArea.TrueCount));
 
             isActive = false;
             targetArea = null;
@@ -402,7 +402,7 @@ namespace RimWorldAccess
         {
             if (targetArea != null)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Paint.Cancelled".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Paint.Cancelled".Loc());
             }
 
             isActive = false;

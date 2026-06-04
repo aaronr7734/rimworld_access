@@ -547,7 +547,7 @@ namespace RimWorldAccess
 
             if (isEditing)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.FinishEditingFirst".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.FinishEditingFirst".Loc());
                 return;
             }
 
@@ -562,7 +562,7 @@ namespace RimWorldAccess
 
             if (isEditing)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.FinishEditingFirst".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.FinishEditingFirst".Loc());
                 return;
             }
 
@@ -752,7 +752,7 @@ namespace RimWorldAccess
 
             if (!item.isEditable)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.NotAdjustable".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.NotAdjustable".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -787,7 +787,7 @@ namespace RimWorldAccess
                     break;
 
                 default:
-                    TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.UseEnterToOpenSubmenu".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.UseEnterToOpenSubmenu".Loc());
                     break;
             }
         }
@@ -878,7 +878,7 @@ namespace RimWorldAccess
                     break;
 
                 default:
-                    TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.UseLeftRightToAdjust".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.UseLeftRightToAdjust".Loc());
                     break;
             }
         }
@@ -1101,7 +1101,7 @@ namespace RimWorldAccess
                     break;
 
                 default:
-                    TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.FieldNotAdjustable".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.FieldNotAdjustable".Loc());
                     return;
             }
 
@@ -1121,7 +1121,7 @@ namespace RimWorldAccess
             switch (item.type)
             {
                 case MenuItemType.RepeatCount:
-                    TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.NoMaximumLimit".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.NoMaximumLimit".Loc());
                     return;
 
                 case MenuItemType.TargetCount:
@@ -1176,7 +1176,7 @@ namespace RimWorldAccess
                     break;
 
                 default:
-                    TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.FieldNotAdjustable".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.FieldNotAdjustable".Loc());
                     return;
             }
 
@@ -1212,7 +1212,7 @@ namespace RimWorldAccess
 
             numericBuffer = "";
             isNumericInputMode = true;
-            TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Numeric.Prompt".Translate());
+            TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Numeric.Prompt".Loc());
         }
 
         /// <summary>
@@ -1240,7 +1240,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Numeric.Empty".Translate(), SpeechPriority.Low);
+                TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Numeric.Empty".Loc(), SpeechPriority.Low);
             }
         }
 
@@ -1257,7 +1257,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Numeric.InvalidNumber".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Numeric.InvalidNumber".Loc());
             }
 
             isNumericInputMode = false;
@@ -1271,7 +1271,7 @@ namespace RimWorldAccess
         {
             isNumericInputMode = false;
             numericBuffer = "";
-            TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Numeric.Cancelled".Translate());
+            TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Numeric.Cancelled".Loc());
         }
 
         private static void ApplyNumericValue(int value)
@@ -1320,7 +1320,7 @@ namespace RimWorldAccess
                     if (value > 100)
                     {
                         bill.ingredientSearchRadius = 999f;
-                        TolkHelper.Speak("Unlimited".Translate());
+                        TolkHelper.Speak("Unlimited".Loc());
                     }
                     else
                     {
@@ -1345,7 +1345,7 @@ namespace RimWorldAccess
                     break;
 
                 default:
-                    TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Numeric.NotApplicable".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Numeric.NotApplicable".Loc());
                     break;
             }
         }
@@ -1371,13 +1371,13 @@ namespace RimWorldAccess
             bill.RenamableLabel = newName;
             BuildMenuItems();
             BillsMenuState.RefreshMenuItems();
-            TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.RenamedTo".Translate(newName));
+            TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.RenamedTo".Loc(newName));
             AnnounceCurrentSelection();
         }
 
         private static void OnBillRenameCancel()
         {
-            TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.RenameCancelled".Translate());
+            TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.RenameCancelled".Loc());
         }
 
         #endregion
@@ -1401,13 +1401,13 @@ namespace RimWorldAccess
                 bill.hpRange = new FloatRange(
                     Mathf.Round(bill.hpRange.min * 100f) / 100f,
                     Mathf.Round(bill.hpRange.max * 100f) / 100f);
-                TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.HitPointsApplied".Translate(
+                TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.HitPointsApplied".Loc(
                     bill.hpRange.min.ToStringPercent(), bill.hpRange.max.ToStringPercent()));
             }
             else if (item.type == MenuItemType.QualityRange)
             {
                 bill.qualityRange = quality;
-                TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.QualityApplied".Translate(
+                TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.QualityApplied".Loc(
                     bill.qualityRange.min.GetLabel(), bill.qualityRange.max.GetLabel()));
             }
 
@@ -1803,7 +1803,7 @@ namespace RimWorldAccess
         {
             string billLabel = bill.LabelCap;
             bill.billStack.Delete(bill);
-            TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.DeletedBill".Translate(billLabel));
+            TolkHelper.Speak("RimWorldAccess.Inspection.BillConfig.Action.DeletedBill".Loc(billLabel));
             Close();
 
             // Go back to bills menu

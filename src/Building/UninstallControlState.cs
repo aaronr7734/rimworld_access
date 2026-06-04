@@ -21,7 +21,7 @@ namespace RimWorldAccess
 
             if (!targetBuilding.def.Minifiable)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Uninstall.NotMinifiable".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Uninstall.NotMinifiable".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -49,7 +49,7 @@ namespace RimWorldAccess
             if (designation != null)
             {
                 building.Map.designationManager.RemoveDesignation(designation);
-                TolkHelper.Speak("RimWorldAccess.Building.Uninstall.DesignationRemoved".Translate(building.LabelCap));
+                TolkHelper.Speak("RimWorldAccess.Building.Uninstall.DesignationRemoved".Loc(building.LabelCap));
             }
             else
             {
@@ -58,13 +58,13 @@ namespace RimWorldAccess
                 if (instantUninstall)
                 {
                     building.Uninstall();
-                    TolkHelper.Speak("RimWorldAccess.Building.Uninstall.InstantlyUninstalled".Translate(building.LabelCap));
+                    TolkHelper.Speak("RimWorldAccess.Building.Uninstall.InstantlyUninstalled".Loc(building.LabelCap));
                 }
                 else
                 {
                     building.Map.designationManager.AddDesignation(new Designation(building, DesignationDefOf.Uninstall));
                     SoundDefOf.Click.PlayOneShotOnCamera();
-                    TolkHelper.Speak("RimWorldAccess.Building.Uninstall.DesignatedForUninstall".Translate(building.LabelCap));
+                    TolkHelper.Speak("RimWorldAccess.Building.Uninstall.DesignatedForUninstall".Loc(building.LabelCap));
                 }
             }
         }
@@ -79,7 +79,7 @@ namespace RimWorldAccess
                 ? "RimWorldAccess.Building.Uninstall.LabelStatusDesignated"
                 : "RimWorldAccess.Building.Uninstall.LabelStatusNotDesignated";
 
-            TolkHelper.Speak(key.Translate(building.LabelCap));
+            TolkHelper.Speak(key.Loc(building.LabelCap));
         }
 
         public static void AnnounceDetailedStatus()

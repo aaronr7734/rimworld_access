@@ -89,7 +89,7 @@ namespace RimWorldAccess
         {
             if (dialog == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Caravan.Split.NoDialog".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Split.NoDialog".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -115,7 +115,7 @@ namespace RimWorldAccess
                 ModLogger.Error($"Failed to get caravan from dialog: {ex.Message}");
             }
 
-            TolkHelper.Speak("RimWorldAccess.Caravan.Split.OpenInstructions".Translate());
+            TolkHelper.Speak("RimWorldAccess.Caravan.Split.OpenInstructions".Loc());
             AnnounceCurrentTab();
             AnnounceCurrentItem();
         }
@@ -205,7 +205,7 @@ namespace RimWorldAccess
         {
             string tabName = GetTabName(currentTab);
             List<TransferableOneWay> tabTransferables = GetCurrentTabTransferables();
-            TolkHelper.Speak("RimWorldAccess.Caravan.Split.TabHeader".Translate(tabName, tabTransferables.Count));
+            TolkHelper.Speak("RimWorldAccess.Caravan.Split.TabHeader".Loc(tabName, tabTransferables.Count));
         }
 
         /// <summary>
@@ -287,7 +287,7 @@ namespace RimWorldAccess
 
             if (transferables.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Caravan.Split.NoItemsInTab".Translate());
+                TolkHelper.Speak("RimWorldAccess.Caravan.Split.NoItemsInTab".Loc());
                 return;
             }
 
@@ -332,7 +332,7 @@ namespace RimWorldAccess
 
             if (transferables.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Caravan.Split.NoItemsInTab".Translate());
+                TolkHelper.Speak("RimWorldAccess.Caravan.Split.NoItemsInTab".Loc());
                 return;
             }
 
@@ -474,7 +474,7 @@ namespace RimWorldAccess
                 SoundDefOf.Click.PlayOneShotOnCamera();
 
                 string tabName = GetTabName(currentTab);
-                TolkHelper.Speak("RimWorldAccess.Caravan.Split.ReturnedToTab".Translate(tabName));
+                TolkHelper.Speak("RimWorldAccess.Caravan.Split.ReturnedToTab".Loc(tabName));
                 AnnounceCurrentItem();
             }
             else
@@ -489,12 +489,12 @@ namespace RimWorldAccess
                 // Only announce full instructions the first time per session
                 if (!summaryInstructionsShown)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Caravan.Split.SummaryViewWithHint".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Caravan.Split.SummaryViewWithHint".Loc());
                     summaryInstructionsShown = true;
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.Caravan.Split.SummaryView".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Caravan.Split.SummaryView".Loc());
                 }
                 AnnounceSummaryWithCaravan();
             }
@@ -508,14 +508,14 @@ namespace RimWorldAccess
         {
             if (currentDialog == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Caravan.Split.NoCaravanData".Translate());
+                TolkHelper.Speak("RimWorldAccess.Caravan.Split.NoCaravanData".Loc());
                 return;
             }
 
             string statValue = GetCurrentStatValue();
             int statPosition = (int)currentSummaryStat + 1;
 
-            TolkHelper.Speak("RimWorldAccess.Caravan.Split.StatPosition".Translate(statValue, statPosition, SummaryStatCount));
+            TolkHelper.Speak("RimWorldAccess.Caravan.Split.StatPosition".Loc(statValue, statPosition, SummaryStatCount));
         }
 
         /// <summary>
@@ -525,7 +525,7 @@ namespace RimWorldAccess
         {
             if (currentDialog == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Caravan.Split.NoCaravanData".Translate());
+                TolkHelper.Speak("RimWorldAccess.Caravan.Split.NoCaravanData".Loc());
                 return;
             }
 
@@ -535,7 +535,7 @@ namespace RimWorldAccess
             string statValue = GetCurrentStatValue();
             int statPosition = (int)currentSummaryStat + 1;
 
-            TolkHelper.Speak("RimWorldAccess.Caravan.Split.StatCaravanPosition".Translate(statValue, caravanName, statPosition, SummaryStatCount));
+            TolkHelper.Speak("RimWorldAccess.Caravan.Split.StatCaravanPosition".Loc(statValue, caravanName, statPosition, SummaryStatCount));
         }
 
         /// <summary>
@@ -843,7 +843,7 @@ namespace RimWorldAccess
         {
             if (currentDialog == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Caravan.Split.NoDialogAvailable".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Split.NoDialogAvailable".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -859,7 +859,7 @@ namespace RimWorldAccess
                     {
                         SoundDefOf.Tick_High.PlayOneShotOnCamera();
                         currentDialog.Close(doCloseSound: false);
-                        TolkHelper.Speak("RimWorldAccess.Caravan.Split.SplitSuccessfully".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Caravan.Split.SplitSuccessfully".Loc());
                     }
                     else
                     {
@@ -871,7 +871,7 @@ namespace RimWorldAccess
             catch (Exception ex)
             {
                 splitAttempted = false;
-                TolkHelper.Speak("RimWorldAccess.Caravan.Split.FailedToSplit".Translate(ex.Message), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Split.FailedToSplit".Loc(ex.Message), SpeechPriority.High);
                 Log.Error($"RimWorld Access: Failed to split caravan: {ex.Message}");
             }
         }
@@ -883,7 +883,7 @@ namespace RimWorldAccess
         {
             if (currentDialog == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Caravan.Split.NoDialogAvailable".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Split.NoDialogAvailable".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -894,13 +894,13 @@ namespace RimWorldAccess
                 {
                     method.Invoke(currentDialog, null);
                     selectedIndex = 0;
-                    TolkHelper.Speak("RimWorldAccess.Caravan.Split.SelectionsReset".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Caravan.Split.SelectionsReset".Loc());
                     AnnounceCurrentItem();
                 }
             }
             catch (Exception ex)
             {
-                TolkHelper.Speak("RimWorldAccess.Caravan.Split.FailedReset".Translate(ex.Message), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Split.FailedReset".Loc(ex.Message), SpeechPriority.High);
                 Log.Error($"RimWorld Access: Failed to reset split caravan: {ex.Message}");
             }
         }
@@ -1230,7 +1230,7 @@ namespace RimWorldAccess
                             }
                             else
                             {
-                                TolkHelper.Speak("RimWorldAccess.Caravan.Split.NoBreakdownForStat".Translate());
+                                TolkHelper.Speak("RimWorldAccess.Caravan.Split.NoBreakdownForStat".Loc());
                             }
                         }
                         else

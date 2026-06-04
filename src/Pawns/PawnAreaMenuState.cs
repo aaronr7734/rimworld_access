@@ -34,14 +34,14 @@ namespace RimWorldAccess
 
             if (pawn.playerSettings == null || !pawn.playerSettings.SupportsAllowedAreas)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Area.NoSupport".Translate(pawn.LabelShort));
+                TolkHelper.Speak("RimWorldAccess.Pawns.Area.NoSupport".Loc(pawn.LabelShort));
                 return;
             }
 
             Map map = Find.CurrentMap;
             if (map?.areaManager == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Area.NoMap".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Area.NoMap".Loc());
                 return;
             }
 
@@ -75,7 +75,7 @@ namespace RimWorldAccess
             typeaheadHelper = new TypeaheadSearchHelper();
 
             string currentAreaName = currentArea?.Label ?? "RimWorldAccess.Pawns.Area.Unrestricted".Translate().ToString();
-            TolkHelper.Speak("RimWorldAccess.Pawns.Area.OpenAnnouncement".Translate(pawn.LabelShort, currentAreaName));
+            TolkHelper.Speak("RimWorldAccess.Pawns.Area.OpenAnnouncement".Loc(pawn.LabelShort, currentAreaName));
             AnnounceCurrentSelection();
         }
 
@@ -154,7 +154,7 @@ namespace RimWorldAccess
         {
             if (targetPawn == null || targetPawn.playerSettings == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Area.PawnGone".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Area.PawnGone".Loc());
                 Close();
                 return;
             }
@@ -173,14 +173,14 @@ namespace RimWorldAccess
                 targetPawn.playerSettings.AreaRestrictionInPawnCurrentMap = area;
 
                 string areaName = area?.Label ?? "RimWorldAccess.Pawns.Area.Unrestricted".Translate().ToString();
-                TolkHelper.Speak("RimWorldAccess.Pawns.Area.Applied".Translate(targetPawn.LabelShort, areaName));
+                TolkHelper.Speak("RimWorldAccess.Pawns.Area.Applied".Loc(targetPawn.LabelShort, areaName));
                 Close();
             }
         }
 
         public static void Cancel()
         {
-            TolkHelper.Speak("RimWorldAccess.Pawns.Area.Cancelled".Translate());
+            TolkHelper.Speak("RimWorldAccess.Pawns.Area.Cancelled".Loc());
             Close();
         }
 

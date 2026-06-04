@@ -113,7 +113,7 @@ namespace RimWorldAccess
                     if (firstScenario != null)
                     {
                         string categorySuffix = GetCategorySuffixString(firstScenario.Category);
-                        TolkHelper.Speak("RimWorldAccess.ScenarioSelect.OpenInstructions".Translate(pageTitle, firstScenario.name, firstScenario.summary, categorySuffix));
+                        TolkHelper.Speak("RimWorldAccess.ScenarioSelect.OpenInstructions".Loc(pageTitle, firstScenario.name, firstScenario.summary, categorySuffix));
                     }
                     else
                     {
@@ -236,7 +236,7 @@ namespace RimWorldAccess
                         {
                             if (ScenarioNavigationState.IsScenarioBuilderSelected)
                             {
-                                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.CannotEditBuilderEntry".Translate());
+                                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.CannotEditBuilderEntry".Loc());
                             }
                             else
                             {
@@ -316,7 +316,7 @@ namespace RimWorldAccess
                             // Delete key: delete custom scenarios or unsubscribe from workshop scenarios
                             if (ScenarioNavigationState.IsScenarioBuilderSelected)
                             {
-                                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.CannotDeleteBuilderEntry".Translate());
+                                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.CannotDeleteBuilderEntry".Loc());
                             }
                             else if (ScenarioNavigationState.CanDeleteSelectedScenario())
                             {
@@ -328,7 +328,7 @@ namespace RimWorldAccess
                             }
                             else
                             {
-                                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.CannotDeleteBuiltIn".Translate());
+                                TolkHelper.Speak("RimWorldAccess.ScenarioSelect.CannotDeleteBuiltIn".Loc());
                             }
                             Event.current.Use();
                             patchActive = true;

@@ -246,14 +246,14 @@ namespace RimWorldAccess
                     // User must press Escape to clear selection first
                     if (ShapePlacementState.IsPlacementInProgress)
                     {
-                        TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.CannotChangeShapeWhilePlacing".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.CannotChangeShapeWhilePlacing".Loc());
                         return true;
                     }
 
                     // Check if only Manual shape is available - nothing to cycle through
                     if (availableShapes.Count == 1 && availableShapes[0] == ShapeType.Manual)
                     {
-                        TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.NoShapesAvailable".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.NoShapesAvailable".Loc());
                         return true;
                     }
 
@@ -283,14 +283,14 @@ namespace RimWorldAccess
                 // User must press Escape to clear selection first
                 if (ShapePlacementState.IsPlacementInProgress)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.CannotChangeShapeWhilePlacing".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.CannotChangeShapeWhilePlacing".Loc());
                     return true;
                 }
 
                 // Check if already in manual mode
                 if (ShapePlacementState.IsActive && ShapePlacementState.CurrentShape == ShapeType.Manual)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.AlreadyInManualMode".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.AlreadyInManualMode".Loc());
                     return true;
                 }
 
@@ -345,7 +345,7 @@ namespace RimWorldAccess
                 {
                     name = char.ToUpper(name[0]) + name.Substring(1);
                 }
-                TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.CannotBeRotated".Translate(name));
+                TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.CannotBeRotated".Loc(name));
                 return true;
             }
 
@@ -374,7 +374,7 @@ namespace RimWorldAccess
                                              currentRot == Rot4.East ? "RimWorldAccess.Map.Direction.East".Translate().ToString() :
                                              currentRot == Rot4.South ? "RimWorldAccess.Map.Direction.South".Translate().ToString() :
                                              "RimWorldAccess.Map.Direction.West".Translate().ToString();
-                            TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.GravshipFacing".Translate(dirName));
+                            TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.GravshipFacing".Loc(dirName));
                         }
                     }
                 }
@@ -416,7 +416,7 @@ namespace RimWorldAccess
                      ShapePlacementState.CurrentShape != ShapeType.Manual &&
                      !ShapePlacementState.HasFirstPoint)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Place.NoPointsToRemove".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Place.NoPointsToRemove".Loc());
                 return true;
             }
             // Otherwise, cancel blueprint at cursor position (existing behavior)
@@ -485,7 +485,7 @@ namespace RimWorldAccess
                             activeDesignator.Finalize(true);
 
                             string label = activeDesignator.Label;
-                            TolkHelper.Speak("RimWorldAccess.Building.View.PlacedAt".Translate(
+                            TolkHelper.Speak("RimWorldAccess.Building.View.PlacedAt".Loc(
                                 label, currentPosition.x, currentPosition.z));
 
                             // Clear selected cells for next placement (both architect and gizmo modes)
@@ -499,7 +499,7 @@ namespace RimWorldAccess
                         }
                         catch (System.Exception ex)
                         {
-                            TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.ErrorPlacing".Translate(ex.Message), SpeechPriority.High);
+                            TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.ErrorPlacing".Loc(ex.Message), SpeechPriority.High);
                             Log.Error($"Error in single cell designation: {ex}");
                         }
                     }
@@ -508,7 +508,7 @@ namespace RimWorldAccess
                         string reason = report.Reason.NullOrEmpty()
                             ? "RimWorldAccess.Building.View.CannotPlaceHere".Translate().ToString()
                             : report.Reason;
-                        TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.InvalidReason".Translate(reason));
+                        TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.InvalidReason".Loc(reason));
                     }
                 }
                 // For zone designators
@@ -571,7 +571,7 @@ namespace RimWorldAccess
                     if (report.Accepted)
                     {
                         activeDesignator.DesignateSingleCell(placementPos);
-                        TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.GravshipPositioned".Translate(
+                        TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.GravshipPositioned".Loc(
                             currentPosition.x, currentPosition.z));
                         // DesignateSingleCell auto-deselects the designator
                     }
@@ -580,7 +580,7 @@ namespace RimWorldAccess
                         string reason = report.Reason.NullOrEmpty()
                             ? "RimWorldAccess.Building.View.CannotPlaceHere".Translate().ToString()
                             : report.Reason;
-                        TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.InvalidReason".Translate(reason));
+                        TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.InvalidReason".Loc(reason));
                     }
                 }
             }
@@ -626,11 +626,11 @@ namespace RimWorldAccess
                         bool isDeleteDesignator = ShapeHelper.IsDeleteDesignator(activeDesignator);
                         if (isDeleteDesignator)
                         {
-                            TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.NoZoneCellsTryAgain".Translate());
+                            TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.NoZoneCellsTryAgain".Loc());
                         }
                         else
                         {
-                            TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.NoValidCellsTryAgain".Translate());
+                            TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.NoValidCellsTryAgain".Loc());
                         }
                         // Clear selection but stay in placement mode (don't exit entirely)
                         ShapePlacementState.ClearSelectionAndStay(silent: true);
@@ -639,7 +639,7 @@ namespace RimWorldAccess
                 catch (System.Exception ex)
                 {
                     Log.Error($"[ArchitectPlacementPatch] Exception during placement: {ex}");
-                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.PlacementFailedClearing".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.PlacementFailedClearing".Loc());
                     ShapePlacementState.Reset();
                 }
                 return true;
@@ -649,11 +649,11 @@ namespace RimWorldAccess
             {
                 if (ShapePlacementState.CurrentPhase == PlacementPhase.SettingFirstCorner)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.PlaceFirstPoint".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.PlaceFirstPoint".Loc());
                 }
                 else if (ShapePlacementState.CurrentPhase == PlacementPhase.SettingSecondCorner)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.PlaceSecondPoint".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.PlaceSecondPoint".Loc());
                 }
                 return true;
             }
@@ -661,7 +661,7 @@ namespace RimWorldAccess
             else if (isPlaceDesignator)
             {
                 // Normal exit - placement completed
-                TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.PlacementCompleted".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.PlacementCompleted".Loc());
                 if (ShapePlacementState.IsActive)
                 {
                     ShapePlacementState.Reset();
@@ -689,7 +689,7 @@ namespace RimWorldAccess
             {
                 // In gizmo mode, changes are applied immediately via GizmoZoneEditState
                 // Enter just confirms and exits editing mode
-                TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.ZoneEditingCompleted".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.ZoneEditingCompleted".Loc());
 
                 // Reset states
                 if (ShapePlacementState.IsActive)
@@ -730,7 +730,7 @@ namespace RimWorldAccess
                     // This resets to SettingFirstCorner phase
                     // Use silent=true so we control the announcement here
                     ShapePlacementState.ClearSelectionAndStay(silent: true);
-                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.SelectionCleared".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.SelectionCleared".Loc());
                 }
                 // Case 2: No points set, but we came from viewing mode - return to it
                 else if (ShapePlacementState.HasViewingModeOnStack)
@@ -742,7 +742,7 @@ namespace RimWorldAccess
                 // Case 3: No points set, no viewing mode on stack - exit architect entirely
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.PlacementCancelled".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.PlacementCancelled".Loc());
                     ShapePlacementState.Reset();
 
                     // Check if we need to return to a parent menu (Schedule/Animals → Manage Areas)
@@ -762,7 +762,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.PlacementCancelled".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.PlacementCancelled".Loc());
 
                 // Check if we need to return to a parent menu (Schedule/Animals → Manage Areas)
                 if (WindowlessAreaState.HasPendingReturn)
@@ -804,7 +804,7 @@ namespace RimWorldAccess
                 {
                     string thingLabel = thing.LabelShort;
                     thing.Destroy(DestroyMode.Cancel);
-                    TolkHelper.Speak("RimWorldAccess.Building.View.CancelledBlueprint".Translate(thingLabel));
+                    TolkHelper.Speak("RimWorldAccess.Building.View.CancelledBlueprint".Loc(thingLabel));
                     SoundDefOf.Designate_Cancel.PlayOneShotOnCamera();
                     foundAndCanceled = true;
                     break; // Only cancel one blueprint per keypress
@@ -813,7 +813,7 @@ namespace RimWorldAccess
 
             if (!foundAndCanceled)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.View.NoBlueprintHere".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.View.NoBlueprintHere".Loc());
             }
         }
 
@@ -834,7 +834,7 @@ namespace RimWorldAccess
 
                 if (map == null || !targetCell.InBounds(map))
                 {
-                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.InvalidTargetPosition".Translate(), SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.InvalidTargetPosition".Loc(), SpeechPriority.High);
                     return true;
                 }
 
@@ -842,7 +842,7 @@ namespace RimWorldAccess
                 if (!DropCellFinder.IsGoodDropSpot(targetCell, map, allowFogged: false, canRoofPunch: true))
                 {
                     string reason = GetLandingInvalidReason(targetCell, map);
-                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.CannotLandHere".Translate(reason), SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.CannotLandHere".Loc(reason), SpeechPriority.High);
                     return true;
                 }
 
@@ -863,14 +863,14 @@ namespace RimWorldAccess
                     // Stop targeting and invoke the action
                     Find.Targeter.StopTargeting();
                     action.Invoke(target);
-                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.LandingConfirmed".Translate(
+                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.LandingConfirmed".Loc(
                         targetCell.x, targetCell.z), SpeechPriority.Normal);
                 }
                 else
                 {
                     // No action available - stop targeting but report the error
                     Find.Targeter.StopTargeting();
-                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.CouldNotConfirmTarget".Translate(), SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.CouldNotConfirmTarget".Loc(), SpeechPriority.High);
                 }
 
                 return true;
@@ -880,7 +880,7 @@ namespace RimWorldAccess
             if (key == KeyCode.Escape)
             {
                 Find.Targeter.StopTargeting();
-                TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.TargetingCancelled".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.TargetingCancelled".Loc(), SpeechPriority.Normal);
                 return true;
             }
 
@@ -973,7 +973,7 @@ namespace RimWorldAccess
                 {
                     // User confirmed deletion
                     var result = ShapePlacementState.ExecuteConfirmedZoneDeletion(pendingResult, silent: true);
-                    TolkHelper.Speak("RimWorldAccess.Building.Place.ZoneDeleted".Translate(zoneName));
+                    TolkHelper.Speak("RimWorldAccess.Building.Place.ZoneDeleted".Loc(zoneName));
 
                     // Exit the entire build/zone interface - deletion cannot be undone
                     ShapePlacementState.Reset();
@@ -984,7 +984,7 @@ namespace RimWorldAccess
                 () =>
                 {
                     // User cancelled - stay in shape placement mode
-                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.DeletionCancelled".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.DeletionCancelled".Loc());
                 },
                 null,  // title
                 true   // buttonADestructive
@@ -1000,7 +1000,7 @@ namespace RimWorldAccess
         {
             if (ArchitectState.SelectedCells.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Place.NoCellsSelected".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Place.NoCellsSelected".Loc());
                 ArchitectState.Reset();
                 return;
             }
@@ -1028,7 +1028,7 @@ namespace RimWorldAccess
             }
             catch (System.Exception ex)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Create.ErrorCreatingZone".Translate(ex.Message), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Create.ErrorCreatingZone".Loc(ex.Message), SpeechPriority.High);
                 Log.Error($"ExecuteZonePlacement error: {ex}");
             }
             finally

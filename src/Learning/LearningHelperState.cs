@@ -74,7 +74,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("LearningHelper".Translate());
+                TolkHelper.Speak("LearningHelper".Loc());
                 AnnounceCurrentSelection();
             }
         }
@@ -141,11 +141,11 @@ namespace RimWorldAccess
             }
             else if (showAllMode)
             {
-                TolkHelper.Speak("RimWorldAccess.Learning.NoLessonsAvailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.Learning.NoLessonsAvailable".Loc());
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Learning.NoActive".Translate());
+                TolkHelper.Speak("RimWorldAccess.Learning.NoActive".Loc());
             }
         }
 
@@ -256,7 +256,7 @@ namespace RimWorldAccess
             catch (Exception ex)
             {
                 Log.Warning($"[RimWorld Access] Failed to activate learning helper button: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Learning.ButtonActivationFailed".Translate());
+                TolkHelper.Speak("RimWorldAccess.Learning.ButtonActivationFailed".Loc());
             }
         }
 

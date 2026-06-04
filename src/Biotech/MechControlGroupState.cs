@@ -103,7 +103,7 @@ namespace RimWorldAccess
             BuildMembersList();
 
             string groupLabel = "ControlGroup".Translate() + " " + controlGroup.Index;
-            TolkHelper.Speak("RimWorldAccess.Biotech.Mech.GroupSettingsHeader".Translate(groupLabel));
+            TolkHelper.Speak("RimWorldAccess.Biotech.Mech.GroupSettingsHeader".Loc(groupLabel));
             AnnounceCurrentItem();
         }
 
@@ -185,7 +185,7 @@ namespace RimWorldAccess
                     return true;
                 }
                 Close();
-                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.GroupClosed".Translate());
+                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.GroupClosed".Loc());
                 Event.current.Use();
                 return true;
             }
@@ -293,12 +293,12 @@ namespace RimWorldAccess
                     TolkHelper.Speak("RimWorldAccess.Biotech.Mech.Members".Translate() + ". " + "NoMechs".Translate());
                     return;
                 }
-                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.Members".Translate());
+                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.Members".Loc());
             }
             else
             {
                 BuildSettingsItems();
-                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.Settings".Translate());
+                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.Settings".Loc());
             }
 
             AnnounceCurrentItem();
@@ -430,7 +430,7 @@ namespace RimWorldAccess
             var options = MechanitorControlGroupGizmo.GetWorkModeOptions(controlGroup).ToList();
             if (options.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.NoWorkModes".Translate());
+                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.NoWorkModes".Loc());
                 return;
             }
 
@@ -447,7 +447,7 @@ namespace RimWorldAccess
                     if (isActive)
                     {
                         BuildSettingsItems();
-                        TolkHelper.Speak("RimWorldAccess.Biotech.Mech.WorkModeSet".Translate(controlGroup.WorkMode.LabelCap));
+                        TolkHelper.Speak("RimWorldAccess.Biotech.Mech.WorkModeSet".Loc(controlGroup.WorkMode.LabelCap));
                     }
                 }, opt.iconThing, opt.iconColor)
                 {
@@ -476,12 +476,12 @@ namespace RimWorldAccess
             {
                 controlGroup.mechRechargeThresholds = editingRange;
                 BuildSettingsItems();
-                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.RangeSaved".Translate(
+                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.RangeSaved".Loc(
                     FormatPercent(editingRange.min), FormatPercent(editingRange.max)));
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.RangeCancelled".Translate());
+                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.RangeCancelled".Loc());
             }
 
             isEditingRange = false;
@@ -561,7 +561,7 @@ namespace RimWorldAccess
                 ? "RimWorldAccess.Biotech.Mech.RangeMinimum".Translate().ToString()
                 : "RimWorldAccess.Biotech.Mech.RangeMaximum".Translate().ToString();
             float value = rangeSelectedOption == 0 ? editingRange.min : editingRange.max;
-            TolkHelper.Speak("RimWorldAccess.Biotech.Mech.RangeSelection".Translate(
+            TolkHelper.Speak("RimWorldAccess.Biotech.Mech.RangeSelection".Loc(
                 optionName, FormatPercent(value), FormatPercent(editingRange.min), FormatPercent(editingRange.max)));
         }
 
@@ -572,7 +572,7 @@ namespace RimWorldAccess
             var mechs = controlGroup.MechsForReading;
             if (mechs.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.NoMechsInGroup".Translate());
+                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.NoMechsInGroup".Loc());
                 return;
             }
 
@@ -609,7 +609,7 @@ namespace RimWorldAccess
 
             if (allGroups.Count <= 1)
             {
-                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.NoOtherGroups".Translate());
+                TolkHelper.Speak("RimWorldAccess.Biotech.Mech.NoOtherGroups".Loc());
                 return;
             }
 

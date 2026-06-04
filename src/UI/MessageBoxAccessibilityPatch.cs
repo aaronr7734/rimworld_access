@@ -116,7 +116,7 @@ namespace RimWorldAccess
                 }
                 else if (__instance.cancelAction != null)
                 {
-                    TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Translate());
+                    TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Loc());
                     __instance.cancelAction();
                     __instance.Close();
                     Event.current.Use();

@@ -48,7 +48,7 @@ namespace RimWorldAccess
                 if (!hasAnnouncedTitle)
                 {
                     string pageTitle = "SelectStartingSite".Translate();
-                    TolkHelper.Speak("RimWorldAccess.StartingSite.OpenInstructions".Translate(pageTitle));
+                    TolkHelper.Speak("RimWorldAccess.StartingSite.OpenInstructions".Loc(pageTitle));
                     hasAnnouncedTitle = true;
                 }
 
@@ -295,7 +295,7 @@ namespace RimWorldAccess
             PlanetTile tile = WorldNavigationState.CurrentSelectedTile;
             if (!tile.Valid)
             {
-                TolkHelper.Speak("RimWorldAccess.StartingSite.NoTileSelected".Translate());
+                TolkHelper.Speak("RimWorldAccess.StartingSite.NoTileSelected".Loc());
                 return false;
             }
 
@@ -314,7 +314,7 @@ namespace RimWorldAccess
             WorldNavigationState.SyncSelectionWithGame();
 
             // Announce confirmation before advancing
-            TolkHelper.Speak("RimWorldAccess.StartingSite.Selected".Translate());
+            TolkHelper.Speak("RimWorldAccess.StartingSite.Selected".Loc());
 
             // Save tile so we can restore it if the user comes back from chargen
             savedTileForReturn = WorldNavigationState.CurrentSelectedTile;

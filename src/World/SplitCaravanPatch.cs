@@ -42,7 +42,7 @@ namespace RimWorldAccess
                 // (successful split announces itself in SplitCaravanState.Split())
                 if (!wasSplitAttempted)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Caravan.Split.SplitCancelled".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Caravan.Split.SplitCancelled".Loc());
                 }
             }
         }

@@ -84,13 +84,13 @@ namespace RimWorldAccess
             if (factions.Count > 0)
             {
                 // Announce section name, then current faction, then Alt+A hint
-                TolkHelper.Speak("RimWorldAccess.Factions.Title".Translate());
+                TolkHelper.Speak("RimWorldAccess.Factions.Title".Loc());
                 AnnounceCurrentFaction();
-                TolkHelper.Speak("RimWorldAccess.Factions.PressAddHint".Translate(), SpeechPriority.Low);
+                TolkHelper.Speak("RimWorldAccess.Factions.PressAddHint".Loc(), SpeechPriority.Low);
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Factions.NoFactionsInList".Translate());
+                TolkHelper.Speak("RimWorldAccess.Factions.NoFactionsInList".Loc());
             }
 
             // Announce warnings if any
@@ -159,7 +159,7 @@ namespace RimWorldAccess
 
             if (visibleFactions.Count == 0 || selectedIndex < 0 || selectedIndex >= visibleFactions.Count)
             {
-                TolkHelper.Speak("RimWorldAccess.Factions.NoFactionSelected".Translate());
+                TolkHelper.Speak("RimWorldAccess.Factions.NoFactionSelected".Loc());
                 return;
             }
 
@@ -168,14 +168,14 @@ namespace RimWorldAccess
             // Check if locked by scenario
             if (IsFactionLocked(selectedFaction))
             {
-                TolkHelper.Speak("RimWorldAccess.Factions.CannotRemoveLocked".Translate(selectedFaction.LabelCap));
+                TolkHelper.Speak("RimWorldAccess.Factions.CannotRemoveLocked".Loc(selectedFaction.LabelCap));
                 return;
             }
 
             // Check tutorial
             if (!TutorSystem.AllowAction("ConfiguringWorldFactions"))
             {
-                TolkHelper.Speak("RimWorldAccess.Factions.CannotModifyTutorial".Translate());
+                TolkHelper.Speak("RimWorldAccess.Factions.CannotModifyTutorial".Loc());
                 return;
             }
 
@@ -192,7 +192,7 @@ namespace RimWorldAccess
                     selectedIndex = Math.Max(0, visibleFactions.Count - 1);
                 }
 
-                TolkHelper.Speak("RimWorldAccess.Factions.RemovedRemaining".Translate(selectedFaction.LabelCap, visibleFactions.Count));
+                TolkHelper.Speak("RimWorldAccess.Factions.RemovedRemaining".Loc(selectedFaction.LabelCap, visibleFactions.Count));
 
                 if (visibleFactions.Count > 0)
                 {
@@ -200,7 +200,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.Factions.NoneRemaining".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Factions.NoneRemaining".Loc());
                 }
 
                 // Check for warnings after removal
@@ -215,7 +215,7 @@ namespace RimWorldAccess
             // Check tutorial
             if (!TutorSystem.AllowAction("ConfiguringWorldFactions"))
             {
-                TolkHelper.Speak("RimWorldAccess.Factions.CannotModifyTutorial".Translate());
+                TolkHelper.Speak("RimWorldAccess.Factions.CannotModifyTutorial".Loc());
                 return;
             }
 
@@ -223,7 +223,7 @@ namespace RimWorldAccess
 
             if (addMenuOptions.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Factions.NoneAvailableToAdd".Translate());
+                TolkHelper.Speak("RimWorldAccess.Factions.NoneAvailableToAdd".Loc());
                 return;
             }
 
@@ -231,7 +231,7 @@ namespace RimWorldAccess
             addMenuIndex = 0;
             addMenuTypeahead.ClearSearch();
 
-            TolkHelper.Speak("RimWorldAccess.Factions.AddMenuOpened".Translate());
+            TolkHelper.Speak("RimWorldAccess.Factions.AddMenuOpened".Loc());
             AnnounceAddMenuOption();
         }
 
@@ -239,7 +239,7 @@ namespace RimWorldAccess
         {
             IsAddMenuOpen = false;
             addMenuTypeahead.ClearSearch();
-            TolkHelper.Speak("RimWorldAccess.Factions.AddMenuClosed".Translate());
+            TolkHelper.Speak("RimWorldAccess.Factions.AddMenuClosed".Loc());
 
             // Re-announce current faction
             var visibleFactions = GetVisibleFactions();
@@ -289,7 +289,7 @@ namespace RimWorldAccess
         {
             if (addMenuOptions.Count == 0 || addMenuIndex < 0 || addMenuIndex >= addMenuOptions.Count)
             {
-                TolkHelper.Speak("RimWorldAccess.Factions.NoFactionSelected".Translate());
+                TolkHelper.Speak("RimWorldAccess.Factions.NoFactionSelected".Loc());
                 return;
             }
 
@@ -297,7 +297,7 @@ namespace RimWorldAccess
 
             if (option.IsDisabled)
             {
-                TolkHelper.Speak("RimWorldAccess.Factions.CannotAddReason".Translate(option.Faction.LabelCap, option.DisabledReason));
+                TolkHelper.Speak("RimWorldAccess.Factions.CannotAddReason".Loc(option.Faction.LabelCap, option.DisabledReason));
                 return;
             }
 
@@ -306,7 +306,7 @@ namespace RimWorldAccess
             factions.Add(option.Faction);
 
             int newCount = factions.Count(f => f == option.Faction);
-            TolkHelper.Speak("RimWorldAccess.Factions.AddedNowInList".Translate(option.Faction.LabelCap, newCount));
+            TolkHelper.Speak("RimWorldAccess.Factions.AddedNowInList".Loc(option.Faction.LabelCap, newCount));
 
             // Refresh the menu options (counts may have changed, some may now be disabled)
             RefreshAddMenuOptions();

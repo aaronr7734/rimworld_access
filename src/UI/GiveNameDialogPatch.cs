@@ -128,7 +128,7 @@ namespace RimWorldAccess
                             {
                                 string newName = generator();
                                 curNameField.SetValue(dialog, newName);
-                                TolkHelper.Speak("RimWorldAccess.UI.Name.Randomized".Translate(newName));
+                                TolkHelper.Speak("RimWorldAccess.UI.Name.Randomized".Loc(newName));
                                 Log.Message($"Randomized name to: {newName}");
                             }
                         }
@@ -161,7 +161,7 @@ namespace RimWorldAccess
                         {
                             string newName = generator1();
                             curNameField.SetValue(dialog, newName);
-                            TolkHelper.Speak("RimWorldAccess.UI.Name.RandomizedFirst".Translate(newName));
+                            TolkHelper.Speak("RimWorldAccess.UI.Name.RandomizedFirst".Loc(newName));
                             Log.Message($"Randomized first name to: {newName}");
                         }
                         break;
@@ -172,7 +172,7 @@ namespace RimWorldAccess
                         {
                             string newName = generator2();
                             curSecondNameField.SetValue(dialog, newName);
-                            TolkHelper.Speak("RimWorldAccess.UI.Name.RandomizedSecond".Translate(newName));
+                            TolkHelper.Speak("RimWorldAccess.UI.Name.RandomizedSecond".Loc(newName));
                             Log.Message($"Randomized second name to: {newName}");
                         }
                         break;
@@ -213,14 +213,14 @@ namespace RimWorldAccess
                     namedSecondMethod.Invoke(dialog, new object[] { text2 });
                     string gainedNameMessageKey = (string)gainedNameMessageKeyField.GetValue(dialog);
                     Messages.Message(gainedNameMessageKey.Translate(text, text2), MessageTypeDefOf.TaskCompletion, historical: false);
-                    TolkHelper.Speak("RimWorldAccess.UI.Name.AcceptedBoth".Translate(text, text2));
+                    TolkHelper.Speak("RimWorldAccess.UI.Name.AcceptedBoth".Loc(text, text2));
                 }
                 else
                 {
                     namedMethod.Invoke(dialog, new object[] { text });
                     string gainedNameMessageKey = (string)gainedNameMessageKeyField.GetValue(dialog);
                     Messages.Message(gainedNameMessageKey.Translate(text), MessageTypeDefOf.TaskCompletion, historical: false);
-                    TolkHelper.Speak("RimWorldAccess.UI.Name.Accepted".Translate(text));
+                    TolkHelper.Speak("RimWorldAccess.UI.Name.Accepted".Loc(text));
                 }
 
                 Find.WindowStack.TryRemove(dialog);
@@ -230,7 +230,7 @@ namespace RimWorldAccess
             {
                 string invalidNameMessageKey = (string)invalidNameMessageKeyField.GetValue(dialog);
                 Messages.Message(invalidNameMessageKey.Translate(), MessageTypeDefOf.RejectInput, historical: false);
-                TolkHelper.Speak("RimWorldAccess.UI.Name.Invalid".Translate());
+                TolkHelper.Speak("RimWorldAccess.UI.Name.Invalid".Loc());
                 Log.Message("Dialog submission rejected: invalid name");
             }
         }

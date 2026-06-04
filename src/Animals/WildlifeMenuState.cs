@@ -34,7 +34,7 @@ namespace RimWorldAccess
 
             if (wildlifeList.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.Wildlife.Menu.NoWildlife".Translate());
+                TolkHelper.Speak("RimWorldAccess.Animals.Wildlife.Menu.NoWildlife".Loc());
                 return;
             }
 
@@ -76,7 +76,7 @@ namespace RimWorldAccess
             wildlifeList.Clear();
             tableHelper?.ClearSearch();
             SoundDefOf.TabClose.PlayOneShotOnCamera();
-            TolkHelper.Speak("RimWorldAccess.Animals.Wildlife.Menu.Closed".Translate());
+            TolkHelper.Speak("RimWorldAccess.Animals.Wildlife.Menu.Closed".Loc());
         }
 
         public static void SelectNextAnimal()
@@ -194,7 +194,7 @@ namespace RimWorldAccess
             {
                 // Cannot tame this animal
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.Animals.Wildlife.Menu.CannotTame".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Animals.Wildlife.Menu.CannotTame".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -232,7 +232,7 @@ namespace RimWorldAccess
         {
             if (pawn == null || pawn.Map == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.Wildlife.Menu.NotOnMap".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Animals.Wildlife.Menu.NotOnMap".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -255,7 +255,7 @@ namespace RimWorldAccess
             {
                 // Column not sortable
                 string colName = tableHelper.GetCurrentColumnName();
-                TolkHelper.Speak("RimWorldAccess.Animals.Sort.CannotSort".Translate(colName));
+                TolkHelper.Speak("RimWorldAccess.Animals.Sort.CannotSort".Loc(colName));
                 return;
             }
 
@@ -264,13 +264,13 @@ namespace RimWorldAccess
             if (sortCleared)
             {
                 SoundDefOf.Tick_Low.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.Animals.Sort.Cleared".Translate());
+                TolkHelper.Speak("RimWorldAccess.Animals.Sort.Cleared".Loc());
             }
             else
             {
                 string columnName = tableHelper.GetCurrentColumnName();
                 SoundDefOf.Tick_High.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.Animals.Sort.SortedBy".Translate(columnName, direction));
+                TolkHelper.Speak("RimWorldAccess.Animals.Sort.SortedBy".Loc(columnName, direction));
             }
 
             AnnounceCurrentCell(includeAnimalName: true);
@@ -331,7 +331,7 @@ namespace RimWorldAccess
         {
             if (wildlifeList.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.Wildlife.Menu.None".Translate());
+                TolkHelper.Speak("RimWorldAccess.Animals.Wildlife.Menu.None".Loc());
                 return;
             }
 
@@ -397,7 +397,7 @@ namespace RimWorldAccess
             bool targetValue = WildlifeMenuHelper.GetPaintableValue(targetPawn, col);
             if (targetValue == brushValue)
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CellAlready".Translate(targetPawn.LabelShort, colName, valueLabel, pos));
+                TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CellAlready".Loc(targetPawn.LabelShort, colName, valueLabel, pos));
                 return;
             }
 
@@ -407,7 +407,7 @@ namespace RimWorldAccess
                 : SoundDefOf.ClickReject;
             sound.PlayOneShotOnCamera();
 
-            TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CellApplied".Translate(targetPawn.LabelShort, colName, valueLabel, pos));
+            TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CellApplied".Loc(targetPawn.LabelShort, colName, valueLabel, pos));
         }
 
         /// <summary>
@@ -437,7 +437,7 @@ namespace RimWorldAccess
             bool targetValue = WildlifeMenuHelper.GetPaintableValue(targetPawn, col);
             if (targetValue == brushValue)
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CellAlready".Translate(targetPawn.LabelShort, colName, valueLabel, pos));
+                TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CellAlready".Loc(targetPawn.LabelShort, colName, valueLabel, pos));
                 return;
             }
 
@@ -447,7 +447,7 @@ namespace RimWorldAccess
                 : SoundDefOf.ClickReject;
             sound.PlayOneShotOnCamera();
 
-            TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CellApplied".Translate(targetPawn.LabelShort, colName, valueLabel, pos));
+            TolkHelper.Speak("RimWorldAccess.Animals.Paint.Single.CellApplied".Loc(targetPawn.LabelShort, colName, valueLabel, pos));
         }
 
         /// <summary>
@@ -527,11 +527,11 @@ namespace RimWorldAccess
             if (changed.Count > 0)
             {
                 BulkSoundQueue.Queue(changed.Count, paintSound);
-                TolkHelper.Speak("RimWorldAccess.Animals.Paint.Bulk.CellApplied".Translate(colName, valueLabel, MenuHelper.FormatNameList(changed)));
+                TolkHelper.Speak("RimWorldAccess.Animals.Paint.Bulk.CellApplied".Loc(colName, valueLabel, MenuHelper.FormatNameList(changed)));
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.Wildlife.Paint.Bulk.CellAlreadyAll".Translate(colName, valueLabel));
+                TolkHelper.Speak("RimWorldAccess.Animals.Wildlife.Paint.Bulk.CellAlreadyAll".Loc(colName, valueLabel));
             }
         }
 

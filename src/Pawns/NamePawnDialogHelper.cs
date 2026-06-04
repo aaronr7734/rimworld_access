@@ -145,7 +145,7 @@ namespace RimWorldAccess
             Pawn pawn = pawnField?.GetValue(dialog) as Pawn;
             if (pawn == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.NoPawn".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.NoPawn".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -153,14 +153,14 @@ namespace RimWorldAccess
             MethodInfo buildNameMethod = dialogType.GetMethod("BuildName", BindingFlags.NonPublic | BindingFlags.Instance);
             if (buildNameMethod == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.MethodNotFound".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.MethodNotFound".Loc(), SpeechPriority.High);
                 return;
             }
 
             Name name = buildNameMethod.Invoke(dialog, null) as Name;
             if (name == null || !name.IsValid)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.Invalid".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.Invalid".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -175,7 +175,7 @@ namespace RimWorldAccess
             else if (name is NameSingle single)
                 displayName = single.Name;
 
-            TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.Named".Translate(displayName), SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.Named".Loc(displayName), SpeechPriority.High);
 
             // Close the windowless dialog
             WindowlessDialogState.Close();
@@ -201,7 +201,7 @@ namespace RimWorldAccess
                 Pawn pawn = pawnField?.GetValue(dialog) as Pawn;
                 if (pawn == null)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.RandomCannotFindPawn".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.RandomCannotFindPawn".Loc());
                     return;
                 }
 
@@ -210,7 +210,7 @@ namespace RimWorldAccess
                 var namesList = namesField?.GetValue(dialog) as System.Collections.IList;
                 if (namesList == null || fieldIndex < 0 || fieldIndex >= namesList.Count)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.RandomInvalidIndex".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.RandomInvalidIndex".Loc());
                     return;
                 }
 
@@ -222,7 +222,7 @@ namespace RimWorldAccess
 
                 if (tripleIndex < 0)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.RandomCannotRandomize".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.RandomCannotRandomize".Loc());
                     return;
                 }
 
@@ -243,17 +243,17 @@ namespace RimWorldAccess
                 {
                     textField.Value = newValue;
                     SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                    TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.RandomizedTo".Translate(newValue));
+                    TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.RandomizedTo".Loc(newValue));
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.RandomCouldNotGenerate".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.RandomCouldNotGenerate".Loc());
                 }
             }
             catch (Exception ex)
             {
                 Log.Warning($"[NamePawnDialogHelper] Error randomizing: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.RandomFailed".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.NameDialog.RandomFailed".Loc());
             }
         }
     }

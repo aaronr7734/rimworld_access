@@ -136,7 +136,7 @@ namespace RimWorldAccess
                     if (tips != null && currentIndex >= 0 && currentIndex < tips.Count)
                     {
                         string tip = tips[currentIndex];
-                        TolkHelper.Speak("RimWorldAccess.Loading.Tip".Translate(tip), SpeechPriority.Normal);
+                        TolkHelper.Speak("RimWorldAccess.Loading.Tip".Loc(tip), SpeechPriority.Normal);
                     }
                 }
             }

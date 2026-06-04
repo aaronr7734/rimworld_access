@@ -414,7 +414,7 @@ namespace RimWorldAccess
             string value = GetCurrentPartValue();
             if (sliderName == null || value == null) return;
 
-            TolkHelper.Speak("RimWorldAccess.Inspection.ThingFilter.SliderEdit.Announcement".Translate(
+            TolkHelper.Speak("RimWorldAccess.Inspection.ThingFilter.SliderEdit.Announcement".Loc(
                 sliderName, partName, value));
         }
 
@@ -429,7 +429,7 @@ namespace RimWorldAccess
 
             if (includePartName)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.ThingFilter.SliderEdit.PartWithValue".Translate(
+                TolkHelper.Speak("RimWorldAccess.Inspection.ThingFilter.SliderEdit.PartWithValue".Loc(
                     GetCurrentPartName(), value));
             }
             else
@@ -487,7 +487,7 @@ namespace RimWorldAccess
             string key = allowed
                 ? "RimWorldAccess.Inspection.Storage.ToggleResultAllowed"
                 : "RimWorldAccess.Inspection.Storage.ToggleResultDisallowed";
-            TolkHelper.Speak(key.Translate(label));
+            TolkHelper.Speak(key.Loc(label));
         }
 
         /// <summary>
@@ -599,7 +599,7 @@ namespace RimWorldAccess
             if (data == null || data.Type != NodeType.Category)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.Inspection.Panel.CannotExpand".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Panel.CannotExpand".Loc());
                 return;
             }
 
@@ -623,7 +623,7 @@ namespace RimWorldAccess
             {
                 // Expanded but empty
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.Inspection.Panel.CannotExpand".Translate());
+                TolkHelper.Speak("RimWorldAccess.Inspection.Panel.CannotExpand".Loc());
             }
         }
 
@@ -698,7 +698,7 @@ namespace RimWorldAccess
                 string countKey = expandedCount == 1
                     ? "RimWorldAccess.Tree.ExpandedCountOne"
                     : "RimWorldAccess.Tree.ExpandedCountMany";
-                TolkHelper.Speak(countKey.Translate(expandedCount));
+                TolkHelper.Speak(countKey.Loc(expandedCount));
             }
             else
             {
@@ -712,7 +712,7 @@ namespace RimWorldAccess
                 string emptyKey = hasAnySiblingCategories
                     ? "RimWorldAccess.Inspection.Storage.AllAlreadyExpanded"
                     : "RimWorldAccess.Inspection.Storage.NoneToExpand";
-                TolkHelper.Speak(emptyKey.Translate());
+                TolkHelper.Speak(emptyKey.Loc());
             }
         }
 
@@ -818,7 +818,7 @@ namespace RimWorldAccess
             {
                 currentFilter.SetAllowAll(parentFilter);
                 RebuildTree();
-                TolkHelper.Speak("AllowAll".Translate());
+                TolkHelper.Speak("AllowAll".Loc());
             }
         }
 
@@ -831,7 +831,7 @@ namespace RimWorldAccess
             {
                 currentFilter.SetDisallowAll();
                 RebuildTree();
-                TolkHelper.Speak("ClearAll".Translate());
+                TolkHelper.Speak("ClearAll".Loc());
             }
         }
 

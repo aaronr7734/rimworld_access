@@ -86,7 +86,7 @@ namespace RimWorldAccess
         {
             if (caravan == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Caravan.Inspect.NoCaravanSpecified".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Inspect.NoCaravanSpecified".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -152,7 +152,7 @@ namespace RimWorldAccess
             isActive = false;
             currentCaravan = null;
             treeNav.Reset();
-            TolkHelper.Speak("RimWorldAccess.Caravan.Inspect.Closed".Translate());
+            TolkHelper.Speak("RimWorldAccess.Caravan.Inspect.Closed".Loc());
         }
 
         /// <summary>
@@ -930,7 +930,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Caravan.Inspect.CannotAbandon".Translate());
+                TolkHelper.Speak("RimWorldAccess.Caravan.Inspect.CannotAbandon".Loc());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
             }
         }
@@ -948,7 +948,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Caravan.Inspect.NoMoodForItem".Translate());
+                TolkHelper.Speak("RimWorldAccess.Caravan.Inspect.NoMoodForItem".Loc());
             }
         }
 
@@ -965,7 +965,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Caravan.Inspect.NoNeedsForItem".Translate());
+                TolkHelper.Speak("RimWorldAccess.Caravan.Inspect.NoNeedsForItem".Loc());
             }
         }
 
@@ -982,7 +982,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Caravan.Inspect.NoHealthForItem".Translate());
+                TolkHelper.Speak("RimWorldAccess.Caravan.Inspect.NoHealthForItem".Loc());
             }
         }
 
@@ -999,7 +999,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Caravan.Inspect.NoGearForItem".Translate());
+                TolkHelper.Speak("RimWorldAccess.Caravan.Inspect.NoGearForItem".Loc());
             }
         }
 
@@ -1016,7 +1016,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Caravan.Inspect.NoSkillsForItem".Translate());
+                TolkHelper.Speak("RimWorldAccess.Caravan.Inspect.NoSkillsForItem".Loc());
             }
         }
 
@@ -1083,7 +1083,7 @@ namespace RimWorldAccess
             if (item.OnActivate == null)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.Caravan.Inspect.NoActionAvailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.Caravan.Inspect.NoActionAvailable".Loc());
                 return true;
             }
 
@@ -1096,7 +1096,7 @@ namespace RimWorldAccess
             if (item.OnDelete != null)
                 return false; // Let TreeNavigationHelper call it
 
-            TolkHelper.Speak("RimWorldAccess.Caravan.Inspect.CannotAbandon".Translate());
+            TolkHelper.Speak("RimWorldAccess.Caravan.Inspect.CannotAbandon".Loc());
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
             return true;
         }
@@ -1129,7 +1129,7 @@ namespace RimWorldAccess
                 return true;
             }
 
-            TolkHelper.Speak("RimWorldAccess.Caravan.Inspect.NoBreakdown".Translate());
+            TolkHelper.Speak("RimWorldAccess.Caravan.Inspect.NoBreakdown".Loc());
             return true;
         }
 

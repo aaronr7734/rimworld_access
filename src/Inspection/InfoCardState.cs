@@ -484,7 +484,7 @@ namespace RimWorldAccess
                     SoundDefOf.FloatMenu_Cancel.PlayOneShotOnCamera();
                     WindowlessFloatMenuState.Close();
                     ownsFloatMenu = false;
-                    TolkHelper.Speak("RimWorldAccess.Inspection.InfoCard.MenuClosed".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.InfoCard.MenuClosed".Loc());
                     return true;
                 }
 
@@ -672,7 +672,7 @@ namespace RimWorldAccess
                 if (item.IsExpanded)
                 {
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak("RimWorldAccess.Inspection.InfoCard.AlreadyExpanded".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.InfoCard.AlreadyExpanded".Loc());
                     return true;
                 }
                 // Collapsed: expand with lazy-load empty correction (same as Right arrow)
@@ -690,7 +690,7 @@ namespace RimWorldAccess
 
             // Otherwise, nothing to do
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            TolkHelper.Speak("RimWorldAccess.Inspection.InfoCard.NoAction".Translate());
+            TolkHelper.Speak("RimWorldAccess.Inspection.InfoCard.NoAction".Loc());
             return true;
         }
 
@@ -723,7 +723,7 @@ namespace RimWorldAccess
             if (!item.IsExpandable)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.Inspection.InfoCard.CannotExpand".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Inspection.InfoCard.CannotExpand".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -788,7 +788,7 @@ namespace RimWorldAccess
                     string label = def.label?.CapitalizeFirst() ?? def.defName;
                     options.Add(new FloatMenuOption(label, () => PushStateAndOpenDef(capturedDef)));
                 }
-                TolkHelper.Speak("RimWorldAccess.InfoCard.ChooseItemToInspect".Translate());
+                TolkHelper.Speak("RimWorldAccess.InfoCard.ChooseItemToInspect".Loc());
                 ownsFloatMenu = true;
                 WindowlessFloatMenuState.Open(options, false);
             }

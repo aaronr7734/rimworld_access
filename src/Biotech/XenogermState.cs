@@ -388,7 +388,7 @@ namespace RimWorldAccess
         private static void OnRenameCancel()
         {
             SoundDefOf.Click.PlayOneShotOnCamera();
-            TolkHelper.Speak("RimWorldAccess.Biotech.Xenogerm.RenameCancelled".Translate());
+            TolkHelper.Speak("RimWorldAccess.Biotech.Xenogerm.RenameCancelled".Loc());
         }
 
         private static void OnRenameConfirm(string newName)
@@ -400,7 +400,7 @@ namespace RimWorldAccess
             BuildControlItems();
 
             SoundDefOf.Tick_High.PlayOneShotOnCamera();
-            TolkHelper.Speak("RimWorldAccess.Biotech.Xenogerm.Renamed".Translate(newName));
+            TolkHelper.Speak("RimWorldAccess.Biotech.Xenogerm.Renamed".Loc(newName));
         }
 
         // ===== Lazy Loading =====
@@ -659,7 +659,7 @@ namespace RimWorldAccess
             if (templates == null || templates.Count == 0)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.Biotech.Xenogerm.NoSavedTemplates".Translate());
+                TolkHelper.Speak("RimWorldAccess.Biotech.Xenogerm.NoSavedTemplates".Loc());
                 return;
             }
 
@@ -949,7 +949,7 @@ namespace RimWorldAccess
             string header = ((string)"AssembleGenes".Translate()).StripTags();
             string complexity = ((string)"Complexity".Translate()).CapitalizeFirst();
 
-            TolkHelper.Speak("RimWorldAccess.Biotech.Xenogerm.OpeningSummary".Translate(
+            TolkHelper.Speak("RimWorldAccess.Biotech.Xenogerm.OpeningSummary".Loc(
                 header, complexity, maxGCX, GetTabAnnouncement()));
         }
 

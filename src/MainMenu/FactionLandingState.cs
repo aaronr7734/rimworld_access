@@ -98,7 +98,7 @@ namespace RimWorldAccess
                 Find.WindowStack.TryRemove(currentDialog, doCloseSound: false);
             }
             Close();
-            TolkHelper.Speak("RimWorldAccess.Factions.LandingClosed".Translate());
+            TolkHelper.Speak("RimWorldAccess.Factions.LandingClosed".Loc());
         }
 
         #endregion

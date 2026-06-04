@@ -261,7 +261,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Pawns.Bar.StartOfBar".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Pawns.Bar.StartOfBar".Loc());
                         return;
                     }
                 }
@@ -322,7 +322,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Pawns.Bar.LastPage".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Pawns.Bar.LastPage".Loc());
                     }
                 }
                 else
@@ -338,7 +338,7 @@ namespace RimWorldAccess
                 var mechs = GetMechs();
                 if (mechs.Count == 0)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NoMechsHere".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NoMechsHere".Loc());
                     return;
                 }
 
@@ -348,7 +348,7 @@ namespace RimWorldAccess
 
                 if (targetPosition / PageSize == CurrentPage)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Pawns.Bar.LastPage".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Bar.LastPage".Loc());
                 }
                 else
                 {
@@ -392,7 +392,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Pawns.Bar.FirstPage".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Pawns.Bar.FirstPage".Loc());
                     }
                 }
             }
@@ -408,7 +408,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.Pawns.Bar.FirstPage".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Bar.FirstPage".Loc());
                 }
             }
         }
@@ -454,7 +454,7 @@ namespace RimWorldAccess
 
             if (onMechSection)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.CannotReorderMechs".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.CannotReorderMechs".Loc());
                 return;
             }
 
@@ -500,7 +500,7 @@ namespace RimWorldAccess
 
             if (onMechSection)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.CannotReorderMechs".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.CannotReorderMechs".Loc());
                 return;
             }
 
@@ -547,7 +547,7 @@ namespace RimWorldAccess
 
             if (onMechSection)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.CannotReorderMechs".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.CannotReorderMechs".Loc());
                 return;
             }
 
@@ -562,7 +562,7 @@ namespace RimWorldAccess
 
             if (targetBarPosition / PageSize == barPosition / PageSize)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.AlreadyOnLastPage".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.AlreadyOnLastPage".Loc());
                 return;
             }
 
@@ -596,7 +596,7 @@ namespace RimWorldAccess
 
             if (onMechSection)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.CannotReorderMechs".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.CannotReorderMechs".Loc());
                 return;
             }
 
@@ -611,7 +611,7 @@ namespace RimWorldAccess
 
             if (targetBarPosition / PageSize == barPosition / PageSize)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.AlreadyOnFirstPage".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.AlreadyOnFirstPage".Loc());
                 return;
             }
 
@@ -853,14 +853,14 @@ namespace RimWorldAccess
             Map map = Find.CurrentMap;
             if (map == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NotOnBar".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NotOnBar".Loc());
                 return;
             }
 
             IntVec3 cursor = MapNavigationState.CurrentCursorPosition;
             if (!cursor.IsValid || !cursor.InBounds(map))
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NotOnBar".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NotOnBar".Loc());
                 return;
             }
 
@@ -870,7 +870,7 @@ namespace RimWorldAccess
 
             if (pawn == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NotOnBar".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NotOnBar".Loc());
                 return;
             }
 
@@ -881,7 +881,7 @@ namespace RimWorldAccess
             bool inMechs = !inColonists && mechs.Contains(pawn);
             if (!inColonists && !inMechs)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NotOnBar".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NotOnBar".Loc());
                 return;
             }
 

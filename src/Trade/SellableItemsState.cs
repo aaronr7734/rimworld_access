@@ -54,7 +54,7 @@ namespace RimWorldAccess
         {
             if (dialog == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Sellable.Open.NoDialog".Translate());
+                TolkHelper.Speak("RimWorldAccess.Sellable.Open.NoDialog".Loc());
                 return;
             }
 
@@ -98,7 +98,7 @@ namespace RimWorldAccess
                 Find.WindowStack.TryRemove(dialogToClose, doCloseSound: false);
             }
 
-            TolkHelper.Speak("RimWorldAccess.Sellable.Open.Closed".Translate());
+            TolkHelper.Speak("RimWorldAccess.Sellable.Open.Closed".Loc());
             SoundDefOf.Click.PlayOneShotOnCamera();
         }
 
@@ -311,7 +311,7 @@ namespace RimWorldAccess
             if (items == null || items.Count == 0)
             {
                 typeahead.ClearSearch();
-                TolkHelper.Speak("RimWorldAccess.Search.Cleared".Translate());
+                TolkHelper.Speak("RimWorldAccess.Search.Cleared".Loc());
                 return true;
             }
 
@@ -335,7 +335,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.Search.Cleared".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Search.Cleared".Loc());
                 }
             }
             return true;
@@ -347,7 +347,7 @@ namespace RimWorldAccess
         public static void ClearTypeaheadSearch()
         {
             typeahead.ClearSearch();
-            TolkHelper.Speak("RimWorldAccess.Search.Cleared".Translate());
+            TolkHelper.Speak("RimWorldAccess.Search.Cleared".Loc());
         }
 
         // ===== Private Methods =====
@@ -503,7 +503,7 @@ namespace RimWorldAccess
             var items = GetCurrentItems();
             if (items == null || items.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Sellable.Tab.NoItems".Translate());
+                TolkHelper.Speak("RimWorldAccess.Sellable.Tab.NoItems".Loc());
                 return;
             }
 

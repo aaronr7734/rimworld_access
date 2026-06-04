@@ -86,14 +86,14 @@ namespace RimWorldAccess
         {
             if (!isActive || casterPawn == null || casterMap == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Abilities.State.NoJumpTargeting".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Abilities.State.NoJumpTargeting".Loc(), SpeechPriority.Normal);
                 return;
             }
 
             IntVec3 cursorPos = MapNavigationState.CurrentCursorPosition;
             if (!cursorPos.IsValid)
             {
-                TolkHelper.Speak("RimWorldAccess.Guard.InvalidCursorPosition".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Guard.InvalidCursorPosition".Loc(), SpeechPriority.Normal);
                 return;
             }
 

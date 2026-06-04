@@ -47,7 +47,7 @@ namespace RimWorldAccess
         {
             if (bed == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.NoBed".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.NoBed".Loc());
                 return;
             }
 
@@ -245,7 +245,7 @@ namespace RimWorldAccess
                     break;
                 case MainMenuAction.CloseMenu:
                     Close();
-                    TolkHelper.Speak("RimWorldAccess.Pawns.Bed.MenuClosed".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Bed.MenuClosed".Loc());
                     break;
             }
         }
@@ -259,7 +259,7 @@ namespace RimWorldAccess
             CompAssignableToPawn_Bed comp = selectedBed.CompAssignableToPawn as CompAssignableToPawn_Bed;
             if (comp == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.CannotAssign".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.CannotAssign".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -268,7 +268,7 @@ namespace RimWorldAccess
 
             if (candidatePawns.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.NoCandidates".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.NoCandidates".Loc());
                 return;
             }
 
@@ -303,7 +303,7 @@ namespace RimWorldAccess
             selectedIndex = 0;
 
             // Announce first option
-            TolkHelper.Speak("RimWorldAccess.Pawns.Bed.AssignFirstOption".Translate(menuOptions[0]));
+            TolkHelper.Speak("RimWorldAccess.Pawns.Bed.AssignFirstOption".Loc(menuOptions[0]));
         }
 
         private static void ExecuteAssignMenuOption()
@@ -316,20 +316,20 @@ namespace RimWorldAccess
 
             if (comp == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.CannotAssignSingle".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.CannotAssignSingle".Loc(), SpeechPriority.High);
                 return;
             }
 
             // Check if pawn can be assigned
             if (!comp.CanAssignTo(selectedPawn))
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.CannotAssignToBed".Translate(selectedPawn.LabelShort), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.CannotAssignToBed".Loc(selectedPawn.LabelShort), SpeechPriority.High);
                 return;
             }
 
             if (comp.IdeoligionForbids(selectedPawn))
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.IdeologyForbidsBed".Translate(selectedPawn.LabelShort));
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.IdeologyForbidsBed".Loc(selectedPawn.LabelShort));
                 return;
             }
 
@@ -339,11 +339,11 @@ namespace RimWorldAccess
             // Check if assignment succeeded
             if (comp.AssignedPawnsForReading.Contains(selectedPawn))
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.AssignedSuccess".Translate(selectedPawn.LabelShort, selectedBed.LabelCap));
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.AssignedSuccess".Loc(selectedPawn.LabelShort, selectedBed.LabelCap));
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.AssignFailed".Translate(selectedPawn.LabelShort), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.AssignFailed".Loc(selectedPawn.LabelShort), SpeechPriority.High);
             }
 
             // Go back to main menu
@@ -361,7 +361,7 @@ namespace RimWorldAccess
             CompAssignableToPawn_Bed comp = selectedBed.CompAssignableToPawn as CompAssignableToPawn_Bed;
             if (comp == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.CannotUnassign".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.CannotUnassign".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -370,7 +370,7 @@ namespace RimWorldAccess
 
             if (assignedPawns.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.NoneAssigned".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.NoneAssigned".Loc());
                 return;
             }
 
@@ -385,7 +385,7 @@ namespace RimWorldAccess
             selectedIndex = 0;
 
             // Announce first option
-            TolkHelper.Speak("RimWorldAccess.Pawns.Bed.UnassignFirstOption".Translate(menuOptions[0]));
+            TolkHelper.Speak("RimWorldAccess.Pawns.Bed.UnassignFirstOption".Loc(menuOptions[0]));
         }
 
         private static void ExecuteUnassignMenuOption()
@@ -398,7 +398,7 @@ namespace RimWorldAccess
 
             if (comp == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.CannotUnassignSingle".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.CannotUnassignSingle".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -408,11 +408,11 @@ namespace RimWorldAccess
             // Check if unassignment succeeded
             if (!comp.AssignedPawnsForReading.Contains(selectedPawn))
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.UnassignedSuccess".Translate(selectedPawn.LabelShort, selectedBed.LabelCap));
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.UnassignedSuccess".Loc(selectedPawn.LabelShort, selectedBed.LabelCap));
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.UnassignFailed".Translate(selectedPawn.LabelShort), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bed.UnassignFailed".Loc(selectedPawn.LabelShort), SpeechPriority.High);
             }
 
             // Go back to main menu
@@ -444,7 +444,7 @@ namespace RimWorldAccess
                 selectedIndex = 0;
 
             // Announce current selection
-            TolkHelper.Speak("RimWorldAccess.Pawns.Bed.ChangeTypeOption".Translate(menuOptions[selectedIndex]));
+            TolkHelper.Speak("RimWorldAccess.Pawns.Bed.ChangeTypeOption".Loc(menuOptions[selectedIndex]));
         }
 
         private static void ExecuteBedTypeMenuOption()
@@ -473,7 +473,7 @@ namespace RimWorldAccess
                 Room room = selectedBed.GetRoom();
                 if (room == null || !Building_Bed.RoomCanBePrisonCell(room))
                 {
-                    TolkHelper.Speak("RimWorldAccess.Pawns.Bed.NeedEnclosed".Translate(), SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Bed.NeedEnclosed".Loc(), SpeechPriority.High);
                     return;
                 }
             }
@@ -505,7 +505,7 @@ namespace RimWorldAccess
                 }
             }
 
-            TolkHelper.Speak("RimWorldAccess.Pawns.Bed.TypeChanged".Translate(menuOptions[selectedIndex]));
+            TolkHelper.Speak("RimWorldAccess.Pawns.Bed.TypeChanged".Loc(menuOptions[selectedIndex]));
 
             // Go back to main menu
             currentMenuLevel = MenuLevel.MainMenu;
@@ -528,7 +528,7 @@ namespace RimWorldAccess
             string status = (selectedBed.Medical
                 ? "RimWorldAccess.Pawns.Bed.MedicalState.Medical"
                 : "RimWorldAccess.Pawns.Bed.MedicalState.NotMedical").Translate();
-            TolkHelper.Speak("RimWorldAccess.Pawns.Bed.MedicalStatus".Translate(status));
+            TolkHelper.Speak("RimWorldAccess.Pawns.Bed.MedicalStatus".Loc(status));
 
             // Rebuild main menu to reflect changes
             BuildMainMenu();
@@ -560,7 +560,7 @@ namespace RimWorldAccess
                     break;
             }
 
-            TolkHelper.Speak("RimWorldAccess.Pawns.Bed.PrefixedOption".Translate(prefix, menuOptions[selectedIndex]));
+            TolkHelper.Speak("RimWorldAccess.Pawns.Bed.PrefixedOption".Loc(prefix, menuOptions[selectedIndex]));
         }
 
         #endregion

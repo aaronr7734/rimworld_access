@@ -952,7 +952,7 @@ namespace RimWorldAccess
                         {
                             // Cancel the queued job
                             jobQueue.Extract(jobToCancel);
-                            TolkHelper.Speak("RimWorldAccess.Inspection.Tree.JobCancelled".Translate(jobLabel), SpeechPriority.High);
+                            TolkHelper.Speak("RimWorldAccess.Inspection.Tree.JobCancelled".Loc(jobLabel), SpeechPriority.High);
 
                             // Rebuild the parent to reflect the change
                             parentItem.Children.Clear();
@@ -3349,7 +3349,7 @@ namespace RimWorldAccess
                             {
                                 penMarker.RemoveForceDisplayedAnimal(capturedDef);
                                 string removedName = capturedDef.label?.CapitalizeFirst() ?? unknownAnimal;
-                                TolkHelper.Speak("RimWorldAccess.Inspection.Tree.PenRemovedExample".Translate(removedName));
+                                TolkHelper.Speak("RimWorldAccess.Inspection.Tree.PenRemovedExample".Loc(removedName));
                                 rebuildExampleSections();
                             };
                             AddChild(examplesCategory, exampleItem);
@@ -3402,7 +3402,7 @@ namespace RimWorldAccess
                             animalChoice.OnActivate = () =>
                             {
                                 penMarker.AddForceDisplayedAnimal(capturedAnimal);
-                                TolkHelper.Speak("RimWorldAccess.Inspection.Tree.PenAddedExample".Translate(animalName));
+                                TolkHelper.Speak("RimWorldAccess.Inspection.Tree.PenAddedExample".Loc(animalName));
                                 rebuildExampleSections();
                             };
                             AddChild(addExampleCategory, animalChoice);
@@ -3508,7 +3508,7 @@ namespace RimWorldAccess
                 penMarker.autoCut = !penMarker.autoCut;
                 string stateWord = PenStateWord(penMarker.autoCut);
                 toggleItem.Label = PenAutoCutLabel(penMarker.autoCut, penMarker.PenState.Enclosed);
-                TolkHelper.Speak("RimWorldAccess.Inspection.Tree.PenAutoCutToggleAnnouncement".Translate(stateWord));
+                TolkHelper.Speak("RimWorldAccess.Inspection.Tree.PenAutoCutToggleAnnouncement".Loc(stateWord));
             };
             AddChild(parentItem, toggleItem);
 
@@ -3527,11 +3527,11 @@ namespace RimWorldAccess
                 if (penMarker.PenState.Enclosed)
                 {
                     penMarker.DesignatePlantsToCut();
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Tree.PenDesignatedPlantsForCutting".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Tree.PenDesignatedPlantsForCutting".Loc());
                 }
                 else
                 {
-                    TolkHelper.Speak("AutocutUnenclosedPen".Translate());
+                    TolkHelper.Speak("AutocutUnenclosedPen".Loc());
                 }
             };
             AddChild(parentItem, cutNowItem);
@@ -4077,7 +4077,7 @@ namespace RimWorldAccess
                         if (dropped?.TryGetComp<CompForbiddable>() is CompForbiddable forbiddable)
                             forbiddable.Forbidden = true;
 
-                        TolkHelper.Speak("RimWorldAccess.Inspection.Tree.BookEjected".Translate(
+                        TolkHelper.Speak("RimWorldAccess.Inspection.Tree.BookEjected".Loc(
                             "EjectBookTooltip".Translate(), localBook.LabelCap));
                         SoundDefOf.Click.PlayOneShotOnCamera();
 
@@ -4145,7 +4145,7 @@ namespace RimWorldAccess
                 cutNowItem.OnActivate = () =>
                 {
                     autoCut.DesignatePlantsToCut();
-                    TolkHelper.Speak("AutoCutNow".Translate());
+                    TolkHelper.Speak("AutoCutNow".Loc());
                     SoundDefOf.Designate_PlanAdd.PlayOneShotOnCamera();
                 };
                 AddChild(parentItem, cutNowItem);

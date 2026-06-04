@@ -23,7 +23,7 @@ namespace RimWorldAccess
             // Check if there's a tick manager
             if (Find.TickManager == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Time.Unavailable".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Map.Time.Unavailable".Loc(), SpeechPriority.High);
                 return;
             }
 

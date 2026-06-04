@@ -35,7 +35,7 @@ namespace RimWorldAccess
         {
             base.PostOpen();
             // Announce the dialog to the user
-            TolkHelper.Speak("RimWorldAccess.UI.NameArea.OpenPrompt".Translate());
+            TolkHelper.Speak("RimWorldAccess.UI.NameArea.OpenPrompt".Loc());
         }
 
         public override void DoWindowContents(Rect inRect)

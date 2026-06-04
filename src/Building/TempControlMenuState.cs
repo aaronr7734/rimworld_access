@@ -23,7 +23,7 @@ namespace RimWorldAccess
             CompTempControl comp = targetBuilding.TryGetComp<CompTempControl>();
             if (comp == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Temp.NoTempComponent".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Temp.NoTempComponent".Loc());
                 return;
             }
 
@@ -108,7 +108,7 @@ namespace RimWorldAccess
                 }
             }
 
-            TolkHelper.Speak("RimWorldAccess.Building.Temp.LabelTarget".Translate(building.LabelCap, targetTemp, powerSuffix));
+            TolkHelper.Speak("RimWorldAccess.Building.Temp.LabelTarget".Loc(building.LabelCap, targetTemp, powerSuffix));
         }
 
         private static float RoundedToCurrentTempModeOffset(float celsiusTemp)

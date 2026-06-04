@@ -42,7 +42,7 @@ namespace RimWorldAccess
                         string position = MenuHelper.FormatPosition(0, StorytellerNavigationState.StorytellerCount);
                         string description = storyteller.description.TrimEnd('.');
                         string positionPart = string.IsNullOrEmpty(position) ? "" : (string)"RimWorldAccess.Storyteller.OpenPositionSuffix".Translate(position);
-                        TolkHelper.Speak("RimWorldAccess.Storyteller.OpenInstructions".Translate(pageTitle, storyteller.label, description, positionPart));
+                        TolkHelper.Speak("RimWorldAccess.Storyteller.OpenInstructions".Loc(pageTitle, storyteller.label, description, positionPart));
                     }
                     else
                     {
@@ -179,7 +179,7 @@ namespace RimWorldAccess
                 else if (!CustomDifficultyEditState.GoBack())
                 {
                     CustomDifficultyEditState.Close();
-                    TolkHelper.Speak("Difficulty".Translate());
+                    TolkHelper.Speak("Difficulty".Loc());
                     StorytellerNavigationState.AnnounceDifficulty();
                 }
                 // (Difficulty title comes from vanilla)
@@ -271,7 +271,7 @@ namespace RimWorldAccess
         {
             StorytellerNavigationState.EnsureStorytellerSelected();
             UpdatePageStoryteller(instance);
-            TolkHelper.Speak("ChooseAIStoryteller".Translate());
+            TolkHelper.Speak("ChooseAIStoryteller".Loc());
             StorytellerNavigationState.AnnounceStoryteller();
         }
 
@@ -279,14 +279,14 @@ namespace RimWorldAccess
         {
             StorytellerNavigationState.EnsureDifficultySelected();
             UpdatePageDifficulty(instance);
-            TolkHelper.Speak("Difficulty".Translate());
+            TolkHelper.Speak("Difficulty".Loc());
             StorytellerNavigationState.AnnounceDifficulty();
         }
 
         private static void AnnouncePermadeathMode()
         {
             StorytellerNavigationState.EnsurePermadeathSelected();
-            TolkHelper.Speak("RimWorldAccess.Storyteller.SaveMode".Translate());
+            TolkHelper.Speak("RimWorldAccess.Storyteller.SaveMode".Loc());
             StorytellerNavigationState.AnnouncePermadeath();
         }
 

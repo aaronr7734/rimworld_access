@@ -49,7 +49,7 @@ namespace RimWorldAccess
             isTypingFilename = true;
             IsActive = true;
 
-            TolkHelper.Speak("RimWorldAccess.ScenarioSave.OpenInstructions".Translate(filenameController.CurrentText));
+            TolkHelper.Speak("RimWorldAccess.ScenarioSave.OpenInstructions".Loc(filenameController.CurrentText));
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ namespace RimWorldAccess
             if (selectedIndex == 0)
             {
                 // Create new with typed name
-                TolkHelper.Speak("RimWorldAccess.ScenarioSave.SaveAs".Translate(filenameController.CurrentText, MenuHelper.FormatPosition(0, TotalCount)));
+                TolkHelper.Speak("RimWorldAccess.ScenarioSave.SaveAs".Loc(filenameController.CurrentText, MenuHelper.FormatPosition(0, TotalCount)));
             }
             else if (selectedIndex > 0 && selectedIndex <= existingFiles.Count)
             {
@@ -111,7 +111,7 @@ namespace RimWorldAccess
                 var file = existingFiles[selectedIndex - 1];
                 string fileName = Path.GetFileNameWithoutExtension(file.FileName);
                 string dateStr = FormatDateTime(file.LastWriteTime);
-                TolkHelper.Speak("RimWorldAccess.ScenarioSave.Overwrite".Translate(fileName, dateStr, MenuHelper.FormatPosition(selectedIndex, TotalCount)));
+                TolkHelper.Speak("RimWorldAccess.ScenarioSave.Overwrite".Loc(fileName, dateStr, MenuHelper.FormatPosition(selectedIndex, TotalCount)));
             }
         }
 
@@ -196,13 +196,13 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.ScenarioSave.InvalidSelection".Translate());
+                TolkHelper.Speak("RimWorldAccess.ScenarioSave.InvalidSelection".Loc());
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(fileName))
             {
-                TolkHelper.Speak("RimWorldAccess.ScenarioSave.FilenameEmpty".Translate());
+                TolkHelper.Speak("RimWorldAccess.ScenarioSave.FilenameEmpty".Loc());
                 return;
             }
 
@@ -215,7 +215,7 @@ namespace RimWorldAccess
             if (fileExists && selectedIndex == 0)
             {
                 // Trying to create new but file exists - confirm overwrite
-                TolkHelper.Speak("RimWorldAccess.ScenarioSave.FileExists".Translate(fileName));
+                TolkHelper.Speak("RimWorldAccess.ScenarioSave.FileExists".Loc(fileName));
                 // For simplicity, just save anyway on next Enter
             }
 
@@ -228,13 +228,13 @@ namespace RimWorldAccess
                 ScenarioBuilderState.ResetDirty();
 
                 Close();
-                TolkHelper.Speak("RimWorldAccess.ScenarioSave.SavedAs".Translate(fileName));
+                TolkHelper.Speak("RimWorldAccess.ScenarioSave.SavedAs".Loc(fileName));
                 onSaveComplete?.Invoke();
             }
             catch (Exception ex)
             {
                 Log.Error($"[RimWorld Access] Error saving scenario: {ex}");
-                TolkHelper.Speak("RimWorldAccess.ScenarioSave.ErrorSaving".Translate(ex.Message));
+                TolkHelper.Speak("RimWorldAccess.ScenarioSave.ErrorSaving".Loc(ex.Message));
             }
         }
 
@@ -293,7 +293,7 @@ namespace RimWorldAccess
 
                 case KeyCode.Escape:
                     Close();
-                    TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Translate());
+                    TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Loc());
                     return true;
 
                 case KeyCode.Backspace:

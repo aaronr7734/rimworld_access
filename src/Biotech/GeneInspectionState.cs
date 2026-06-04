@@ -53,7 +53,7 @@ namespace RimWorldAccess
 
                 if (pregnancy == null || pregnancy.geneSet == null)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Biotech.GeneInspection.NoPregnancy".Translate(), SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Biotech.GeneInspection.NoPregnancy".Loc(), SpeechPriority.High);
                     return;
                 }
 
@@ -276,7 +276,7 @@ namespace RimWorldAccess
 
             Close();
             SoundDefOf.Click.PlayOneShotOnCamera();
-            TolkHelper.Speak("RimWorldAccess.Biotech.GeneInspection.Closed".Translate());
+            TolkHelper.Speak("RimWorldAccess.Biotech.GeneInspection.Closed".Loc());
         }
 
         /// <summary>
@@ -451,7 +451,7 @@ namespace RimWorldAccess
                 if (item.IsExpanded)
                 {
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak("RimWorldAccess.Biotech.GeneInspection.AlreadyExpanded".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Biotech.GeneInspection.AlreadyExpanded".Loc());
                     return true;
                 }
                 // Collapsed: let treeNav expand it via ExpandOrDrillDown
@@ -469,7 +469,7 @@ namespace RimWorldAccess
 
             // Otherwise, nothing to do
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            TolkHelper.Speak("RimWorldAccess.Biotech.GeneInspection.NoAction".Translate());
+            TolkHelper.Speak("RimWorldAccess.Biotech.GeneInspection.NoAction".Loc());
             return true;
         }
 

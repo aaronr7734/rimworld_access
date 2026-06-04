@@ -36,14 +36,14 @@ namespace RimWorldAccess
 
             if (availableParts.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.AddPart.NothingToAdd".Translate());
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.AddPart.NothingToAdd".Loc());
                 return;
             }
 
             selectedIndex = 0;
             IsActive = true;
 
-            TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.AddPart.OpenInstructions".Translate(availableParts.Count));
+            TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.AddPart.OpenInstructions".Loc(availableParts.Count));
             AnnounceCurrentPart();
         }
 
@@ -93,7 +93,7 @@ namespace RimWorldAccess
         {
             if (availableParts.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.AddPart.NoneAvailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.AddPart.NoneAvailable".Loc());
                 return;
             }
 
@@ -286,7 +286,7 @@ namespace RimWorldAccess
                     else
                     {
                         Close(selectPart: false);
-                        TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Translate());
+                        TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Loc());
                     }
                     return true;
 

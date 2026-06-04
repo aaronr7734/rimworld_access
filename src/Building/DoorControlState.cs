@@ -22,7 +22,7 @@ namespace RimWorldAccess
             Building_Door doorBuilding = targetBuilding as Building_Door;
             if (doorBuilding == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Door.NotADoor".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Door.NotADoor".Loc());
                 return;
             }
 
@@ -58,7 +58,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Door.HoldOpenAccessError".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Door.HoldOpenAccessError".Loc(), SpeechPriority.High);
             }
         }
 
@@ -75,7 +75,7 @@ namespace RimWorldAccess
                 ? "RimWorldAccess.Building.Door.CurrentlyOpen".Translate()
                 : "RimWorldAccess.Building.Door.CurrentlyClosed".Translate();
 
-            TolkHelper.Speak("RimWorldAccess.Building.Door.LabelStatusOpenness".Translate(door.LabelCap, holdOpen, openness));
+            TolkHelper.Speak("RimWorldAccess.Building.Door.LabelStatusOpenness".Loc(door.LabelCap, holdOpen, openness));
         }
 
         public static void AnnounceDetailedStatus()

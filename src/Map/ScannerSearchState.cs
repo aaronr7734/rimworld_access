@@ -90,7 +90,7 @@ namespace RimWorldAccess
                 }
             }
 
-            TolkHelper.Speak("RimWorldAccess.Map.Search.Activated".Translate(), SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.Map.Search.Activated".Loc(), SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -114,7 +114,7 @@ namespace RimWorldAccess
 
             char deleted = searchBuffer[searchBuffer.Length - 1];
             searchBuffer = searchBuffer.Substring(0, searchBuffer.Length - 1);
-            TolkHelper.Speak("RimWorldAccess.Map.Input.Deleted".Translate(deleted), SpeechPriority.Low);
+            TolkHelper.Speak("RimWorldAccess.Map.Input.Deleted".Loc(deleted), SpeechPriority.Low);
 
             if (string.IsNullOrEmpty(searchBuffer))
             {
@@ -149,7 +149,7 @@ namespace RimWorldAccess
                 savedFilterQuery = "";
                 savedFilterIsWorldMap = false;
 
-                TolkHelper.Speak("RimWorldAccess.Map.Search.NowFiltering".Translate(activeFilterQuery), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Search.NowFiltering".Loc(activeFilterQuery), SpeechPriority.Normal);
             }
             else
             {
@@ -203,7 +203,7 @@ namespace RimWorldAccess
                     }
                 }
 
-                TolkHelper.Speak("RimWorldAccess.Map.Search.RestoredFilter".Translate(savedFilterQuery), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Search.RestoredFilter".Loc(savedFilterQuery), SpeechPriority.Normal);
             }
             else
             {
@@ -217,7 +217,7 @@ namespace RimWorldAccess
                 {
                     ScannerState.RestoreFocus();
                 }
-                TolkHelper.Speak("RimWorldAccess.Map.Search.Cancelled".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Search.Cancelled".Loc(), SpeechPriority.Normal);
             }
 
             // Clear saved state
@@ -256,7 +256,7 @@ namespace RimWorldAccess
             savedFilterQuery = "";
             savedFilterIsWorldMap = false;
 
-            TolkHelper.Speak("RimWorldAccess.Map.Search.FilterCleared".Translate(), SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.Map.Search.FilterCleared".Loc(), SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -371,7 +371,7 @@ namespace RimWorldAccess
             var map = Find.CurrentMap;
             if (map == null || !MapNavigationState.IsInitialized)
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Search.NoMap".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Map.Search.NoMap".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -389,7 +389,7 @@ namespace RimWorldAccess
             if (matching.Count == 0)
             {
                 // No matches - announce and clear buffer so user can type again
-                TolkHelper.Speak("RimWorldAccess.Search.NoMatches".Translate(searchBuffer), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Search.NoMatches".Loc(searchBuffer), SpeechPriority.Normal);
                 searchBuffer = "";
                 return;
             }
@@ -409,7 +409,7 @@ namespace RimWorldAccess
         {
             if (!WorldNavigationState.IsActive || !WorldNavigationState.IsInitialized)
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Search.WorldNavInactive".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Map.Search.WorldNavInactive".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -426,7 +426,7 @@ namespace RimWorldAccess
             if (matching.Count == 0)
             {
                 // No matches - announce and clear buffer so user can type again
-                TolkHelper.Speak("RimWorldAccess.Search.NoMatches".Translate(searchBuffer), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Search.NoMatches".Loc(searchBuffer), SpeechPriority.Normal);
                 searchBuffer = "";
                 return;
             }
@@ -504,7 +504,7 @@ namespace RimWorldAccess
         {
             if (results.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Search.NoResults".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Search.NoResults".Loc(), SpeechPriority.Normal);
                 return;
             }
 
@@ -513,11 +513,11 @@ namespace RimWorldAccess
 
             if (count == 1)
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Search.Result.One".Translate(firstResult), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Search.Result.One".Loc(firstResult), SpeechPriority.Normal);
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Search.Result.Many".Translate(firstResult, count), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Search.Result.Many".Loc(firstResult, count), SpeechPriority.Normal);
             }
         }
 
@@ -528,7 +528,7 @@ namespace RimWorldAccess
         {
             if (results.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Search.NoResults".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Search.NoResults".Loc(), SpeechPriority.Normal);
                 return;
             }
 
@@ -537,11 +537,11 @@ namespace RimWorldAccess
 
             if (count == 1)
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Search.Result.One".Translate(firstResult), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Search.Result.One".Loc(firstResult), SpeechPriority.Normal);
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Search.Result.Many".Translate(firstResult, count), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Search.Result.Many".Loc(firstResult, count), SpeechPriority.Normal);
             }
         }
 

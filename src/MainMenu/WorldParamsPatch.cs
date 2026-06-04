@@ -36,7 +36,7 @@ namespace RimWorldAccess
                 if (!hasAnnouncedTitle)
                 {
                     string help = "RimWorldAccess.WorldParams.OpenHelp".Translate();
-                    TolkHelper.Speak("RimWorldAccess.WorldParams.OpenInstructions".Translate(help));
+                    TolkHelper.Speak("RimWorldAccess.WorldParams.OpenInstructions".Loc(help));
                     hasAnnouncedTitle = true;
                 }
 
@@ -82,7 +82,7 @@ namespace RimWorldAccess
                     // Switch to World Params
                     currentSection = CreateWorldSection.WorldParams;
                     FactionsNavigationState.Deactivate();
-                    TolkHelper.Speak("RimWorldAccess.WorldParams.Title".Translate());
+                    TolkHelper.Speak("RimWorldAccess.WorldParams.Title".Loc());
                     WorldParamsNavigationState.AnnounceCurrentField();
                 }
                 evt.Use();

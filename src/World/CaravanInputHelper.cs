@@ -34,7 +34,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Caravan.Input.NoPawnSelected".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Caravan.Input.NoPawnSelected".Loc());
                     }
                     return true;
 
@@ -45,7 +45,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Caravan.Input.NoPawnSelected".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Caravan.Input.NoPawnSelected".Loc());
                     }
                     return true;
 
@@ -56,7 +56,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Caravan.Input.NoPawnSelected".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Caravan.Input.NoPawnSelected".Loc());
                     }
                     return true;
 
@@ -67,7 +67,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Caravan.Input.NoPawnSelected".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Caravan.Input.NoPawnSelected".Loc());
                     }
                     return true;
 
@@ -78,7 +78,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Caravan.Input.NoPawnSelected".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Caravan.Input.NoPawnSelected".Loc());
                     }
                     return true;
 
@@ -131,7 +131,7 @@ namespace RimWorldAccess
                 // For items
                 if (isSuppliesTabLocked)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Caravan.Form.SuppliesTabLocked".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Caravan.Form.SuppliesTabLocked".Loc());
                     return true;
                 }
 

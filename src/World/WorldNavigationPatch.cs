@@ -229,7 +229,7 @@ namespace RimWorldAccess
                 else if (WorldObjectSelectionState.IsActive)
                 {
                     WorldObjectSelectionState.Close();
-                    TolkHelper.Speak("RimWorldAccess.WorldObject.SelectionClosed".Translate());
+                    TolkHelper.Speak("RimWorldAccess.WorldObject.SelectionClosed".Loc());
                     Event.current.Use();
                     return;
                 }

@@ -66,14 +66,14 @@ namespace RimWorldAccess
         {
             if (!WorldNavigationState.IsActive || !WorldNavigationState.IsInitialized)
             {
-                TolkHelper.Speak("RimWorldAccess.Route.WorldNavMustBeActive".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Route.WorldNavMustBeActive".Loc(), SpeechPriority.High);
                 return;
             }
 
             WorldRoutePlanner planner = Find.WorldRoutePlanner;
             if (planner == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Route.PlannerNotAvailable".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Route.PlannerNotAvailable".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -96,7 +96,7 @@ namespace RimWorldAccess
 
             // Use game's localized string for instructions
             // "RoutePlannerPressRMBToAddAndRemoveWaypoints" is visual-specific, so we provide our own
-            TolkHelper.Speak("RimWorldAccess.Route.StandaloneInstructions".Translate(), SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.Route.StandaloneInstructions".Loc(), SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -107,14 +107,14 @@ namespace RimWorldAccess
         {
             if (formCaravanDialog == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Route.NoCaravanDialog".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Route.NoCaravanDialog".Loc(), SpeechPriority.High);
                 return;
             }
 
             WorldRoutePlanner planner = Find.WorldRoutePlanner;
             if (planner == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Route.PlannerNotAvailable".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Route.PlannerNotAvailable".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -127,7 +127,7 @@ namespace RimWorldAccess
 
             // Use localized string where appropriate
             string addWaypointsPrompt = "RoutePlannerAddOneOrMoreWaypoints".Translate();
-            TolkHelper.Speak("RimWorldAccess.Route.ChoosingPrompt".Translate(addWaypointsPrompt), SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.Route.ChoosingPrompt".Loc(addWaypointsPrompt), SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -141,7 +141,7 @@ namespace RimWorldAccess
 
             planner.Stop();
             ResetRouteTracking();
-            TolkHelper.Speak("RimWorldAccess.Route.Closed".Translate(), SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.Route.Closed".Loc(), SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -152,13 +152,13 @@ namespace RimWorldAccess
             WorldRoutePlanner planner = Find.WorldRoutePlanner;
             if (planner == null || !planner.Active)
             {
-                TolkHelper.Speak("RimWorldAccess.Route.PlannerNotActive".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Route.PlannerNotActive".Loc(), SpeechPriority.High);
                 return;
             }
 
             if (!WorldNavigationState.IsActive || !WorldNavigationState.IsInitialized)
             {
-                TolkHelper.Speak("RimWorldAccess.Route.WorldNavNotActive".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Route.WorldNavNotActive".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -188,12 +188,12 @@ namespace RimWorldAccess
                     int ticksToWaypoint = planner.GetTicksToWaypoint(countAfter - 1);
                     string timeString = ticksToWaypoint.ToStringTicksToDays("0.#");
                     string speedSource = GetSpeedSourceDescription();
-                    TolkHelper.Speak("RimWorldAccess.Route.WaypointAddedWithEta".Translate(countAfter, timeString, speedSource.ToLower()), SpeechPriority.Normal);
+                    TolkHelper.Speak("RimWorldAccess.Route.WaypointAddedWithEta".Loc(countAfter, timeString, speedSource.ToLower()), SpeechPriority.Normal);
                 }
                 else
                 {
                     // First waypoint (starting point)
-                    TolkHelper.Speak("RimWorldAccess.Route.WaypointAddedStarting".Translate(countAfter), SpeechPriority.Normal);
+                    TolkHelper.Speak("RimWorldAccess.Route.WaypointAddedStarting".Loc(countAfter), SpeechPriority.Normal);
                 }
             }
             // If count didn't change, TryAddWaypoint already showed an error message
@@ -207,13 +207,13 @@ namespace RimWorldAccess
             WorldRoutePlanner planner = Find.WorldRoutePlanner;
             if (planner == null || !planner.Active)
             {
-                TolkHelper.Speak("RimWorldAccess.Route.PlannerNotActive".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Route.PlannerNotActive".Loc(), SpeechPriority.High);
                 return;
             }
 
             if (!WorldNavigationState.IsActive || !WorldNavigationState.IsInitialized)
             {
-                TolkHelper.Speak("RimWorldAccess.Route.WorldNavNotActive".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Route.WorldNavNotActive".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -235,7 +235,7 @@ namespace RimWorldAccess
 
             if (waypointAtCursor == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Route.NoWaypointToRemove".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Route.NoWaypointToRemove".Loc(), SpeechPriority.Normal);
                 return;
             }
 
@@ -273,7 +273,7 @@ namespace RimWorldAccess
             WorldRoutePlanner planner = Find.WorldRoutePlanner;
             if (planner == null || !planner.Active)
             {
-                TolkHelper.Speak("RimWorldAccess.Route.PlannerNotActive".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Route.PlannerNotActive".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -302,7 +302,7 @@ namespace RimWorldAccess
             string speedSource = GetSpeedSourceDescription();
 
             // Include speed source so user knows basis for estimate
-            TolkHelper.Speak("RimWorldAccess.Route.EtaWithSource".Translate(timeString, speedSource.ToLower()), SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.Route.EtaWithSource".Loc(timeString, speedSource.ToLower()), SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -313,21 +313,21 @@ namespace RimWorldAccess
             WorldRoutePlanner planner = Find.WorldRoutePlanner;
             if (planner == null || !planner.Active)
             {
-                TolkHelper.Speak("RimWorldAccess.Route.PlannerNotActive".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Route.PlannerNotActive".Loc(), SpeechPriority.High);
                 return;
             }
 
             int count = planner.waypoints.Count;
             if (count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Route.NoWaypointsSet".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Route.NoWaypointsSet".Loc(), SpeechPriority.Normal);
                 return;
             }
 
             if (count == 1)
             {
                 string tileName = WorldInfoHelper.GetTileSummary(planner.waypoints[0].Tile);
-                TolkHelper.Speak("RimWorldAccess.Route.StartingPoint".Translate(tileName), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Route.StartingPoint".Loc(tileName), SpeechPriority.Normal);
                 return;
             }
 
@@ -338,7 +338,7 @@ namespace RimWorldAccess
 
             // Use game's localized string
             string totalEta = "RoutePlannerEstTimeToFinalDest".Translate(timeString);
-            TolkHelper.Speak("RimWorldAccess.Route.WaypointSummary".Translate(count, totalEta, speedSource.ToLower()), SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.Route.WaypointSummary".Loc(count, totalEta, speedSource.ToLower()), SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -349,7 +349,7 @@ namespace RimWorldAccess
             WorldRoutePlanner planner = Find.WorldRoutePlanner;
             if (planner == null || !planner.Active)
             {
-                TolkHelper.Speak("RimWorldAccess.Route.PlannerNotActive".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Route.PlannerNotActive".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -380,7 +380,7 @@ namespace RimWorldAccess
 
             // The route planner will handle returning to the dialog when Stop() is called
             // if currentFormCaravanDialog is set
-            TolkHelper.Speak("RimWorldAccess.Route.RouteConfirmed".Translate(destName), SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.Route.RouteConfirmed".Loc(destName), SpeechPriority.Normal);
 
             // Trigger the accept action - this will close route planner and return to dialog
             // We use reflection to access currentFormCaravanDialog and call Notify_ChoseRoute
@@ -403,7 +403,7 @@ namespace RimWorldAccess
                     {
                         // Map no longer exists - caravan was already reformed/sent
                         // Just stop the route planner, don't try to reopen the stale dialog
-                        TolkHelper.Speak("RimWorldAccess.Route.AlreadySent".Translate(), SpeechPriority.Normal);
+                        TolkHelper.Speak("RimWorldAccess.Route.AlreadySent".Loc(), SpeechPriority.Normal);
                         planner.Stop();
                         ResetRouteTracking();
                         return;

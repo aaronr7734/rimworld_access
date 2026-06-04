@@ -129,7 +129,7 @@ namespace RimWorldAccess
 
             // Announce the new quantity
             string itemName = GetTransferableLabel(transferable);
-            TolkHelper.Speak("RimWorldAccess.UI.Transferable.QuantitySpoken".Translate(newQty, itemName));
+            TolkHelper.Speak("RimWorldAccess.UI.Transferable.QuantitySpoken".Loc(newQty, itemName));
         }
 
         /// <summary>
@@ -159,7 +159,7 @@ namespace RimWorldAccess
             string massStr = totalMass > 0
                 ? "RimWorldAccess.UI.Transferable.MassSuffix".Translate(totalMass.ToString("F1")).ToString()
                 : "";
-            TolkHelper.Speak("RimWorldAccess.UI.Transferable.MaxLine".Translate(maxQty, itemName, massStr));
+            TolkHelper.Speak("RimWorldAccess.UI.Transferable.MaxLine".Loc(maxQty, itemName, massStr));
         }
 
         /// <summary>
@@ -181,7 +181,7 @@ namespace RimWorldAccess
             onChanged?.Invoke();
 
             string itemName = GetTransferableLabel(transferable);
-            TolkHelper.Speak("RimWorldAccess.UI.Transferable.QuantitySpoken".Translate(0, itemName));
+            TolkHelper.Speak("RimWorldAccess.UI.Transferable.QuantitySpoken".Loc(0, itemName));
         }
     }
 }

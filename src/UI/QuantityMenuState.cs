@@ -80,7 +80,7 @@ namespace RimWorldAccess
             SoundDefOf.Click.PlayOneShotOnCamera();
 
             string itemName = transferable.LabelCap.StripTags();
-            TolkHelper.Speak("RimWorldAccess.UI.Quantity.OpenInstructions".Translate(itemName));
+            TolkHelper.Speak("RimWorldAccess.UI.Quantity.OpenInstructions".Loc(itemName));
             AnnounceCurrentQuantity();
         }
 
@@ -108,7 +108,7 @@ namespace RimWorldAccess
             var callback = onConfirm;
 
             string itemName = currentTransferable.LabelCap.StripTags();
-            TolkHelper.Speak("RimWorldAccess.UI.Quantity.Selected".Translate(finalQuantity, itemName));
+            TolkHelper.Speak("RimWorldAccess.UI.Quantity.Selected".Loc(finalQuantity, itemName));
 
             Close();
 
@@ -122,7 +122,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void Cancel()
         {
-            TolkHelper.Speak("RimWorldAccess.UI.Quantity.Cancelled".Translate());
+            TolkHelper.Speak("RimWorldAccess.UI.Quantity.Cancelled".Loc());
             Close();
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
         }
@@ -160,7 +160,7 @@ namespace RimWorldAccess
             else
             {
                 // Already at max
-                TolkHelper.Speak("RimWorldAccess.UI.Quantity.Maximum".Translate());
+                TolkHelper.Speak("RimWorldAccess.UI.Quantity.Maximum".Loc());
             }
         }
 
@@ -197,7 +197,7 @@ namespace RimWorldAccess
             else
             {
                 // Already at min
-                TolkHelper.Speak("RimWorldAccess.UI.Quantity.Minimum".Translate());
+                TolkHelper.Speak("RimWorldAccess.UI.Quantity.Minimum".Loc());
             }
         }
 
@@ -267,7 +267,7 @@ namespace RimWorldAccess
             else
             {
                 // Invalid number - shouldn't happen since we only accept digit chars
-                TolkHelper.Speak("RimWorldAccess.UI.Quantity.InvalidNumber".Translate(numericBuffer));
+                TolkHelper.Speak("RimWorldAccess.UI.Quantity.InvalidNumber".Loc(numericBuffer));
                 numericBuffer = "";
             }
         }

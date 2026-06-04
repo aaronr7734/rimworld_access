@@ -104,7 +104,7 @@ namespace RimWorldAccess
                 case EdgeDirection.Zero: key = "RimWorldAccess.Edge.Zero"; break;
                 default: key = "RimWorldAccess.Edge.Generic"; break;
             }
-            TolkHelper.Speak(key.Translate(), priority);
+            TolkHelper.Speak(key.Loc(), priority);
         }
 
         // ===== PAINT REJECT =====
@@ -117,7 +117,7 @@ namespace RimWorldAccess
         public static void SpeakCannotPaintColumn(SpeechPriority priority = SpeechPriority.Normal)
         {
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            TolkHelper.Speak("RimWorldAccess.Menu.CannotPaintColumn".Translate(), priority);
+            TolkHelper.Speak("RimWorldAccess.Menu.CannotPaintColumn".Loc(), priority);
         }
 
         // ===== NAVIGATION =====

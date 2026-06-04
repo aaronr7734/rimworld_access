@@ -23,7 +23,7 @@ namespace RimWorldAccess
             CompForbiddable comp = targetBuilding.TryGetComp<CompForbiddable>();
             if (comp == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Forbid.NoForbidComponent".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Forbid.NoForbidComponent".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -62,7 +62,7 @@ namespace RimWorldAccess
                 ? "RimWorldAccess.Building.Forbid.StatusForbidden".Translate()
                 : "RimWorldAccess.Building.Forbid.StatusAllowed".Translate();
 
-            TolkHelper.Speak("RimWorldAccess.Building.Forbid.LabelStatus".Translate(building.LabelCap, status));
+            TolkHelper.Speak("RimWorldAccess.Building.Forbid.LabelStatus".Loc(building.LabelCap, status));
         }
 
         public static void AnnounceDetailedStatus()

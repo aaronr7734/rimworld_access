@@ -561,7 +561,7 @@ namespace RimWorldAccess
                         }
                         else if (newIndex < 0 && !typeahead.HasActiveSearch)
                         {
-                            TolkHelper.Speak("RimWorldAccess.Search.Cleared".Translate());
+                            TolkHelper.Speak("RimWorldAccess.Search.Cleared".Loc());
                         }
                         return true;
                     }
@@ -660,14 +660,14 @@ namespace RimWorldAccess
             string stateWord = newValue
                 ? "RimWorldAccess.Rituals.Checkbox.Checked".Translate().ToString()
                 : "RimWorldAccess.Rituals.Checkbox.Unchecked".Translate().ToString();
-            TolkHelper.Speak("RimWorldAccess.Rituals.Checkbox.Toggled".Translate(item.Label, stateWord));
+            TolkHelper.Speak("RimWorldAccess.Rituals.Checkbox.Toggled".Loc(item.Label, stateWord));
         }
 
         private static void EnterPawnSelection()
         {
             if (roleItems.Count == 0 || roleIndex < 0 || roleIndex >= roleItems.Count)
             {
-                TolkHelper.Speak("RimWorldAccess.Rituals.PawnSelection.NoRoleSelected".Translate());
+                TolkHelper.Speak("RimWorldAccess.Rituals.PawnSelection.NoRoleSelected".Loc());
                 return;
             }
 
@@ -682,7 +682,7 @@ namespace RimWorldAccess
 
             if (role.IsLocked)
             {
-                TolkHelper.Speak("RimWorldAccess.Rituals.PawnSelection.RoleLocked".Translate());
+                TolkHelper.Speak("RimWorldAccess.Rituals.PawnSelection.RoleLocked".Loc());
                 return;
             }
 
@@ -694,7 +694,7 @@ namespace RimWorldAccess
 
             if (pawnItems.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Rituals.PawnSelection.NoEligiblePawns".Translate());
+                TolkHelper.Speak("RimWorldAccess.Rituals.PawnSelection.NoEligiblePawns".Loc());
                 selectedRole = null;
                 return;
             }
@@ -706,7 +706,7 @@ namespace RimWorldAccess
             string candidateClause = pawnItems.Count == 1
                 ? "RimWorldAccess.Rituals.PawnSelection.CandidateCountOne".Translate(pawnItems.Count).ToString()
                 : "RimWorldAccess.Rituals.PawnSelection.CandidateCountMany".Translate(pawnItems.Count).ToString();
-            TolkHelper.Speak("RimWorldAccess.Rituals.PawnSelection.EnterInstructions".Translate(role.Label, candidateClause));
+            TolkHelper.Speak("RimWorldAccess.Rituals.PawnSelection.EnterInstructions".Loc(role.Label, candidateClause));
             AnnounceCurrentPawn();
         }
 
@@ -723,11 +723,11 @@ namespace RimWorldAccess
 
             if (cancelled)
             {
-                TolkHelper.Speak("RimWorldAccess.Rituals.PawnSelection.Cancelled".Translate());
+                TolkHelper.Speak("RimWorldAccess.Rituals.PawnSelection.Cancelled".Loc());
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Rituals.PawnSelection.Confirmed".Translate());
+                TolkHelper.Speak("RimWorldAccess.Rituals.PawnSelection.Confirmed".Loc());
             }
 
             AnnounceCurrentRole();
@@ -742,14 +742,14 @@ namespace RimWorldAccess
                 if (savedMode == NavigationMode.RoleList)
                 {
                     roleIndex = savedIndex;
-                    TolkHelper.Speak("RimWorldAccess.Rituals.QualityStats.ReturnedToRoleList".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Rituals.QualityStats.ReturnedToRoleList".Loc());
                     AnnounceCurrentRole();
                 }
                 else if (savedMode == NavigationMode.PawnSelection)
                 {
                     pawnIndex = savedIndex;
                     string roleLabel = selectedRole?.Label ?? "RimWorldAccess.Rituals.Fallback.Role".Translate().ToString();
-                    TolkHelper.Speak("RimWorldAccess.Rituals.QualityStats.ReturnedToPawnSelection".Translate(roleLabel));
+                    TolkHelper.Speak("RimWorldAccess.Rituals.QualityStats.ReturnedToPawnSelection".Loc(roleLabel));
                     AnnounceCurrentPawn();
                 }
             }
@@ -805,13 +805,13 @@ namespace RimWorldAccess
 
             if (pawnItem.IsForced)
             {
-                TolkHelper.Speak("RimWorldAccess.Rituals.Pawn.IsForced".Translate(pawn.LabelShort));
+                TolkHelper.Speak("RimWorldAccess.Rituals.Pawn.IsForced".Loc(pawn.LabelShort));
                 return;
             }
 
             if (pawnItem.DisabledReason != null && !pawnItem.IsAssigned)
             {
-                TolkHelper.Speak("RimWorldAccess.Rituals.Pawn.CannotAssignWithReason".Translate(pawn.LabelShort, pawnItem.DisabledReason));
+                TolkHelper.Speak("RimWorldAccess.Rituals.Pawn.CannotAssignWithReason".Loc(pawn.LabelShort, pawnItem.DisabledReason));
                 return;
             }
 
@@ -823,12 +823,12 @@ namespace RimWorldAccess
                     if (selectedRole.Type == RitualRoleListItem.ItemType.Role)
                     {
                         currentAssignments.TryUnassignAnyRole(pawn);
-                        TolkHelper.Speak("RimWorldAccess.Rituals.Pawn.DeselectedName".Translate(pawn.LabelShort));
+                        TolkHelper.Speak("RimWorldAccess.Rituals.Pawn.DeselectedName".Loc(pawn.LabelShort));
                     }
                     else if (selectedRole.Type == RitualRoleListItem.ItemType.Spectators)
                     {
                         currentAssignments.RemoveParticipant(pawn);
-                        TolkHelper.Speak("RimWorldAccess.Rituals.Pawn.DeselectedName".Translate(pawn.LabelShort));
+                        TolkHelper.Speak("RimWorldAccess.Rituals.Pawn.DeselectedName".Loc(pawn.LabelShort));
                     }
                 }
                 else
@@ -839,22 +839,22 @@ namespace RimWorldAccess
                         var firstRole = selectedRole.Roles[0];
                         if (currentAssignments.TryAssign(pawn, firstRole, out _))
                         {
-                            TolkHelper.Speak("RimWorldAccess.Rituals.Pawn.SelectedName".Translate(pawn.LabelShort));
+                            TolkHelper.Speak("RimWorldAccess.Rituals.Pawn.SelectedName".Loc(pawn.LabelShort));
                         }
                         else
                         {
-                            TolkHelper.Speak("RimWorldAccess.Rituals.Pawn.CannotAssign".Translate(pawn.LabelShort));
+                            TolkHelper.Speak("RimWorldAccess.Rituals.Pawn.CannotAssign".Loc(pawn.LabelShort));
                         }
                     }
                     else if (selectedRole.Type == RitualRoleListItem.ItemType.Spectators)
                     {
                         if (currentAssignments.TryAssignSpectate(pawn))
                         {
-                            TolkHelper.Speak("RimWorldAccess.Rituals.Pawn.SelectedName".Translate(pawn.LabelShort));
+                            TolkHelper.Speak("RimWorldAccess.Rituals.Pawn.SelectedName".Loc(pawn.LabelShort));
                         }
                         else
                         {
-                            TolkHelper.Speak("RimWorldAccess.Rituals.Pawn.CannotAssign".Translate(pawn.LabelShort));
+                            TolkHelper.Speak("RimWorldAccess.Rituals.Pawn.CannotAssign".Loc(pawn.LabelShort));
                         }
                     }
                 }
@@ -873,7 +873,7 @@ namespace RimWorldAccess
                 if (pawnItems.Count > 0 && pawnIndex >= 0 && pawnIndex < pawnItems.Count)
                 {
                     var currentPawn = pawnItems[pawnIndex];
-                    TolkHelper.Speak("RimWorldAccess.Rituals.Pawn.NowAt".Translate(currentPawn.Pawn.LabelShort));
+                    TolkHelper.Speak("RimWorldAccess.Rituals.Pawn.NowAt".Loc(currentPawn.Pawn.LabelShort));
                 }
 
                 // Notify dialog that assignments changed (for quality recalculation)
@@ -976,11 +976,11 @@ namespace RimWorldAccess
             else if (!string.IsNullOrEmpty(item.Tooltip))
             {
                 // Use tooltip as simple breakdown
-                TolkHelper.Speak("RimWorldAccess.Rituals.QualityStats.BreakdownWithTooltip".Translate(item.Label, item.Tooltip));
+                TolkHelper.Speak("RimWorldAccess.Rituals.QualityStats.BreakdownWithTooltip".Loc(item.Label, item.Tooltip));
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Rituals.QualityStats.NoBreakdown".Translate());
+                TolkHelper.Speak("RimWorldAccess.Rituals.QualityStats.NoBreakdown".Loc());
             }
         }
 
@@ -988,7 +988,7 @@ namespace RimWorldAccess
         {
             if (currentDialog == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Rituals.Start.NoDialog".Translate());
+                TolkHelper.Speak("RimWorldAccess.Rituals.Start.NoDialog".Loc());
                 return;
             }
 
@@ -1002,7 +1002,7 @@ namespace RimWorldAccess
                     if (issues != null && issues.Any())
                     {
                         var issueList = issues.ToList();
-                        TolkHelper.Speak("RimWorldAccess.Rituals.Start.CannotStart".Translate(string.Join(". ", issueList)));
+                        TolkHelper.Speak("RimWorldAccess.Rituals.Start.CannotStart".Loc(string.Join(". ", issueList)));
                         return;
                     }
                 }
@@ -1052,7 +1052,7 @@ namespace RimWorldAccess
         {
             if (roleItems.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Rituals.Empty.NoRoles".Translate());
+                TolkHelper.Speak("RimWorldAccess.Rituals.Empty.NoRoles".Loc());
                 return;
             }
 
@@ -1087,7 +1087,7 @@ namespace RimWorldAccess
         {
             if (pawnItems.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Rituals.Empty.NoPawns".Translate());
+                TolkHelper.Speak("RimWorldAccess.Rituals.Empty.NoPawns".Loc());
                 return;
             }
 
@@ -1112,7 +1112,7 @@ namespace RimWorldAccess
         {
             if (qualityItems.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Rituals.Empty.NoQualityFactorsAvailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.Rituals.Empty.NoQualityFactorsAvailable".Loc());
                 return;
             }
 

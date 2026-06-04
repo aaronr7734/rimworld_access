@@ -123,7 +123,7 @@ namespace RimWorldAccess
 
             if (loadCommand == null)
             {
-                TolkHelper.Speak("RimWorldAccess.TransportPods.Gizmo.LoadCommandMissing".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Gizmo.LoadCommandMissing".Loc(), SpeechPriority.High);
                 Find.Selector.ClearSelection();
                 return;
             }
@@ -144,7 +144,7 @@ namespace RimWorldAccess
                 }
             }
 
-            TolkHelper.Speak("RimWorldAccess.TransportPods.Gizmo.GroupingForLoading".Translate(totalSelected));
+            TolkHelper.Speak("RimWorldAccess.TransportPods.Gizmo.GroupingForLoading".Loc(totalSelected));
 
             // Open the loading dialog
             loadCommand.ProcessInput(null);
@@ -189,7 +189,7 @@ namespace RimWorldAccess
                 // (game announces successful loading initiation)
                 if (!wasAccepted)
                 {
-                    TolkHelper.Speak("RimWorldAccess.TransportPods.Loading.Cancelled".Translate(), SpeechPriority.Normal);
+                    TolkHelper.Speak("RimWorldAccess.TransportPods.Loading.Cancelled".Loc(), SpeechPriority.Normal);
                 }
             }
         }
@@ -381,7 +381,7 @@ namespace RimWorldAccess
                 // Only announce for drop pod landing targeting
                 if (mouseAttachment == CompLaunchable.TargeterMouseAttachment)
                 {
-                    TolkHelper.Speak("RimWorldAccess.TransportPods.Landing.SelectLandingSpot".Translate(), SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.TransportPods.Landing.SelectLandingSpot".Loc(), SpeechPriority.High);
                 }
             }
         }

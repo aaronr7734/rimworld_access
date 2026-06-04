@@ -176,14 +176,14 @@ namespace RimWorldAccess
         {
             if (Find.Selector == null || Find.Selector.NumSelected == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Info.NoPawnSelected".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Info.NoPawnSelected".Loc());
                 return null;
             }
 
             Pawn selectedPawn = Find.Selector.FirstSelectedObject as Pawn;
             if (selectedPawn == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Info.NotAPawn".Translate());
+                TolkHelper.Speak("RimWorldAccess.Pawns.Info.NotAPawn".Loc());
                 return null;
             }
 

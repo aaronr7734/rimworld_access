@@ -513,14 +513,14 @@ namespace RimWorldAccess
         {
             if (!MapNavigationState.IsInitialized)
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Scanner.NotInitialized".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Map.Scanner.NotInitialized".Loc(), SpeechPriority.High);
                 return;
             }
 
             var map = Find.CurrentMap;
             if (map == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Scanner.NoActiveMap".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Map.Scanner.NoActiveMap".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -608,7 +608,7 @@ namespace RimWorldAccess
 
                     if (categories.Count == 0)
                     {
-                        TolkHelper.Speak("RimWorldAccess.Map.Scanner.NoItems".Translate(), SpeechPriority.High);
+                        TolkHelper.Speak("RimWorldAccess.Map.Scanner.NoItems".Loc(), SpeechPriority.High);
                         return;
                     }
 
@@ -640,7 +640,7 @@ namespace RimWorldAccess
 
             if (categories.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Scanner.NoItems".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Map.Scanner.NoItems".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -954,7 +954,7 @@ namespace RimWorldAccess
 
             if (removedStale)
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Scanner.ItemGone".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Map.Scanner.ItemGone".Loc(), SpeechPriority.High);
             }
 
             IntVec3 targetPosition;
@@ -1008,7 +1008,7 @@ namespace RimWorldAccess
                 }
                 if (targetThing == null || targetThing.Destroyed || !targetThing.Spawned)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Map.Scanner.ItemGone".Translate(), SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Map.Scanner.ItemGone".Loc(), SpeechPriority.High);
                     return;
                 }
                 targetPosition = targetThing.Position;
@@ -1096,7 +1096,7 @@ namespace RimWorldAccess
 
             if (removedStale)
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Scanner.ItemGone".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Map.Scanner.ItemGone".Loc(), SpeechPriority.High);
             }
 
             // Re-sort unconditionally, preserving position by reference. currentItem stays
@@ -1143,11 +1143,11 @@ namespace RimWorldAccess
 
             if (direction != null)
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Scanner.DistanceDirection".Translate(distance.ToString("F1"), direction), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Scanner.DistanceDirection".Loc(distance.ToString("F1"), direction), SpeechPriority.Normal);
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Scanner.Here".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Scanner.Here".Loc(), SpeechPriority.Normal);
             }
         }
 
@@ -1314,9 +1314,9 @@ namespace RimWorldAccess
                 if (item == null)
                 {
                     if (removedStale)
-                        TolkHelper.Speak("RimWorldAccess.Map.Scanner.ItemGone".Translate(), SpeechPriority.High);
+                        TolkHelper.Speak("RimWorldAccess.Map.Scanner.ItemGone".Loc(), SpeechPriority.High);
                     else
-                        TolkHelper.Speak("RimWorldAccess.Map.Scanner.EmptyCategory".Translate(), SpeechPriority.Normal);
+                        TolkHelper.Speak("RimWorldAccess.Map.Scanner.EmptyCategory".Loc(), SpeechPriority.Normal);
                     return;
                 }
 
@@ -1329,7 +1329,7 @@ namespace RimWorldAccess
 
             if (removedStale)
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Scanner.ItemGone".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Map.Scanner.ItemGone".Loc(), SpeechPriority.High);
             }
 
             // Special handling for terrain with regions.
@@ -1424,7 +1424,7 @@ namespace RimWorldAccess
                 if (item == null || !item.IsBulkGroup)
                 {
                     if (removedStale)
-                        TolkHelper.Speak("RimWorldAccess.Map.Scanner.ItemGone".Translate(), SpeechPriority.High);
+                        TolkHelper.Speak("RimWorldAccess.Map.Scanner.ItemGone".Loc(), SpeechPriority.High);
                     return;
                 }
 
@@ -1437,7 +1437,7 @@ namespace RimWorldAccess
 
             if (removedStale)
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Scanner.ItemGone".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Map.Scanner.ItemGone".Loc(), SpeechPriority.High);
             }
 
             if (currentBulkIndex < 0 || currentBulkIndex >= item.BulkCount)
@@ -1457,7 +1457,7 @@ namespace RimWorldAccess
             if (item.IsTerrain && item.BulkTerrainPositions != null)
             {
                 var terrainPosition = currentBulkIndex + 1;
-                TolkHelper.Speak("RimWorldAccess.Map.Scanner.Item.TerrainBulk".Translate(item.Label, terrainPosition, item.BulkCount), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Scanner.Item.TerrainBulk".Loc(item.Label, terrainPosition, item.BulkCount), SpeechPriority.Normal);
                 return;
             }
 
@@ -1487,11 +1487,11 @@ namespace RimWorldAccess
 
                 if (desDirection != null)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Map.Scanner.Item.WithDirectionBulk".Translate(designationLabel, desDistance.ToString("F1"), desDirection, desPosition, item.BulkCount), SpeechPriority.Normal);
+                    TolkHelper.Speak("RimWorldAccess.Map.Scanner.Item.WithDirectionBulk".Loc(designationLabel, desDistance.ToString("F1"), desDirection, desPosition, item.BulkCount), SpeechPriority.Normal);
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.Map.Scanner.Item.HereBulk".Translate(designationLabel, desPosition, item.BulkCount), SpeechPriority.Normal);
+                    TolkHelper.Speak("RimWorldAccess.Map.Scanner.Item.HereBulk".Loc(designationLabel, desPosition, item.BulkCount), SpeechPriority.Normal);
                 }
                 return;
             }
@@ -1514,11 +1514,11 @@ namespace RimWorldAccess
 
             if (thingDirection != null)
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Scanner.Item.WithDirectionBulk".Translate(thingLabel, distance.ToString("F1"), thingDirection, position, item.BulkCount), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Scanner.Item.WithDirectionBulk".Loc(thingLabel, distance.ToString("F1"), thingDirection, position, item.BulkCount), SpeechPriority.Normal);
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Scanner.Item.HereBulk".Translate(thingLabel, position, item.BulkCount), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Map.Scanner.Item.HereBulk".Loc(thingLabel, position, item.BulkCount), SpeechPriority.Normal);
             }
         }
 

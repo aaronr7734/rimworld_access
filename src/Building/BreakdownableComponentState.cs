@@ -22,7 +22,7 @@ namespace RimWorldAccess
             CompBreakdownable comp = targetBuilding.TryGetComp<CompBreakdownable>();
             if (comp == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Breakdown.NoBreakdownComponent".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Breakdown.NoBreakdownComponent".Loc(), SpeechPriority.High);
                 return;
             }
 

@@ -749,12 +749,12 @@ namespace RimWorldAccess
                     remainingSizeString = $"{remainingCount} {itemType}";
                 }
 
-                TolkHelper.Speak("RimWorldAccess.Building.View.SegmentRemovedSomeRemain".Translate(action, sizeString, removedShapeName, remainingSizeString, remainingInfo), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Building.View.SegmentRemovedSomeRemain".Loc(action, sizeString, removedShapeName, remainingSizeString, remainingInfo), SpeechPriority.Normal);
             }
             else
             {
                 // No segments left - stay in viewing mode, user presses = to add more
-                TolkHelper.Speak("RimWorldAccess.Building.View.SegmentRemovedNoneRemain".Translate(action, sizeString, removedShapeName), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Building.View.SegmentRemovedNoneRemain".Loc(action, sizeString, removedShapeName), SpeechPriority.Normal);
             }
 
             Log.Message($"[ViewingModeState] Removed last segment ({removedCount} items), {remainingSegments} segments remaining");
@@ -778,7 +778,7 @@ namespace RimWorldAccess
             isActive = true;
             isAddingMore = false;
 
-            TolkHelper.Speak("RimWorldAccess.Building.View.ReturnedToPreview".Translate(), SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.Building.View.ReturnedToPreview".Loc(), SpeechPriority.Normal);
 
             Log.Message($"[ViewingModeState] Reactivated with {segCount} segments");
         }
@@ -801,7 +801,7 @@ namespace RimWorldAccess
             // Exit viewing mode but keep segments intact
             isActive = false;
 
-            TolkHelper.Speak("RimWorldAccess.Building.View.AddAnotherShape".Translate(), SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.Building.View.AddAnotherShape".Loc(), SpeechPriority.Normal);
 
             // Enter shape placement mode with viewing mode on stack (so Escape can return here)
             if (savedDesignator != null && savedShape != ShapeType.Manual)
@@ -840,11 +840,11 @@ namespace RimWorldAccess
                     cellSegments.RemoveAt(cellSegments.Count - 1);
 
                 string itemType = ViewingModeSegmentManager.GetItemTypeForCount(removedCount, isBuildDesignator, isZoneDesignator);
-                TolkHelper.Speak("RimWorldAccess.Building.View.RemovedItemsReturning".Translate(removedCount, itemType), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Building.View.RemovedItemsReturning".Loc(removedCount, itemType), SpeechPriority.Normal);
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Building.View.ReturningToPlacement".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Building.View.ReturningToPlacement".Loc(), SpeechPriority.Normal);
             }
 
             // Save designator and shape before leaving
@@ -928,11 +928,11 @@ namespace RimWorldAccess
                 // Use appropriate message based on designator type
                 if (isZoneDesignator)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Building.View.ZoneEditingCancelled".Translate(), SpeechPriority.Normal);
+                    TolkHelper.Speak("RimWorldAccess.Building.View.ZoneEditingCancelled".Loc(), SpeechPriority.Normal);
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.Building.View.PlacementCancelled".Translate(), SpeechPriority.Normal);
+                    TolkHelper.Speak("RimWorldAccess.Building.View.PlacementCancelled".Loc(), SpeechPriority.Normal);
                 }
 
                 Reset();
@@ -997,7 +997,7 @@ namespace RimWorldAccess
                     string exitKey = removedCount == 1
                         ? "RimWorldAccess.Building.View.ExitWithRemoval"
                         : "RimWorldAccess.Building.View.ExitWithRemovalAll";
-                    TolkHelper.Speak(exitKey.Translate(action, removedCount, itemType, exitMessage), SpeechPriority.Normal);
+                    TolkHelper.Speak(exitKey.Loc(action, removedCount, itemType, exitMessage), SpeechPriority.Normal);
 
                     // Exit completely (don't restore cursor - keep it where user left it)
                     Reset();
@@ -1085,7 +1085,7 @@ namespace RimWorldAccess
 
             if (activeDesignator == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.View.NoDesignatorAvailable".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.View.NoDesignatorAvailable".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -1141,13 +1141,13 @@ namespace RimWorldAccess
 
                 // Announce like manual placement: "{label} placed at x, z"
                 string label = activeDesignator.Label ?? (string)"RimWorldAccess.Building.View.BlueprintFallback".Translate();
-                TolkHelper.Speak("RimWorldAccess.Building.View.PlacedAt".Translate(label, cursorPos.x, cursorPos.z), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Building.View.PlacedAt".Loc(label, cursorPos.x, cursorPos.z), SpeechPriority.Normal);
                 Log.Message($"[ViewingModeState] Added blueprint at {cursorPos}");
             }
             catch (System.Exception ex)
             {
                 Log.Error($"[ViewingModeState] Error adding blueprint: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Building.View.FailedToAddBlueprint".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.View.FailedToAddBlueprint".Loc(), SpeechPriority.High);
             }
         }
 
@@ -1179,7 +1179,7 @@ namespace RimWorldAccess
 
             if (blueprintToRemove == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.View.NoBlueprintHere".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Building.View.NoBlueprintHere".Loc(), SpeechPriority.Normal);
                 return;
             }
 
@@ -1196,7 +1196,7 @@ namespace RimWorldAccess
 
             // Play cancel sound and announce like manual placement
             SoundDefOf.Designate_Cancel.PlayOneShotOnCamera();
-            TolkHelper.Speak("RimWorldAccess.Building.View.CancelledBlueprint".Translate(thingLabel), SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.Building.View.CancelledBlueprint".Loc(thingLabel), SpeechPriority.Normal);
             Log.Message($"[ViewingModeState] Removed blueprint at {cursorPos}");
         }
 

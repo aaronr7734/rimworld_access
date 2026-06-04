@@ -179,7 +179,7 @@ namespace RimWorldAccess
             }
 
             // Announce menu opening with current crop
-            TolkHelper.Speak("RimWorldAccess.Building.PlantSelect.OpenPrompt".Translate(currentPlantName));
+            TolkHelper.Speak("RimWorldAccess.Building.PlantSelect.OpenPrompt".Loc(currentPlantName));
 
             // Announce first/current plant
             AnnounceCurrentSelection();
@@ -249,7 +249,7 @@ namespace RimWorldAccess
             // Check for warnings
             CheckAndWarnAboutPlant(plantDef);
 
-            TolkHelper.Speak("RimWorldAccess.Building.PlantSelect.Selected".Translate(selected.displayText));
+            TolkHelper.Speak("RimWorldAccess.Building.PlantSelect.Selected".Loc(selected.displayText));
             Log.Message($"Set plant to: {plantDef.label}");
 
             Close();
@@ -607,7 +607,7 @@ namespace RimWorldAccess
 
                     if (!hasMech)
                     {
-                        TolkHelper.Speak("RimWorldAccess.Building.PlantSelect.NoColonistCanPlant".Translate(plantDef.label, plantDef.plant.sowMinSkill));
+                        TolkHelper.Speak("RimWorldAccess.Building.PlantSelect.NoColonistCanPlant".Loc(plantDef.label, plantDef.plant.sowMinSkill));
                     }
                 }
             }
@@ -632,7 +632,7 @@ namespace RimWorldAccess
 
                 if (problemCell.IsValid)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Building.PlantSelect.CavePlantExposed".Translate(plantDef.LabelCap));
+                    TolkHelper.Speak("RimWorldAccess.Building.PlantSelect.CavePlantExposed".Loc(plantDef.LabelCap));
                 }
             }
         }

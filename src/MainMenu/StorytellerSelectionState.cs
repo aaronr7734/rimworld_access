@@ -242,7 +242,7 @@ namespace RimWorldAccess
                         currentLevel = StorytellerSelectionLevel.CustomSectionList;
                         selectedSectionIndex = 0;
                         typeahead.ClearSearch();
-                        TolkHelper.Speak("RimWorldAccess.Storyteller.CustomDifficultyOpenInstructions".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Storyteller.CustomDifficultyOpenInstructions".Loc());
                         AnnounceCurrentState();
                     }
                     else
@@ -266,7 +266,7 @@ namespace RimWorldAccess
                         }
                         else
                         {
-                            TolkHelper.Speak("RimWorldAccess.Storyteller.NoSettingsInSection".Translate());
+                            TolkHelper.Speak("RimWorldAccess.Storyteller.NoSettingsInSection".Loc());
                         }
                     }
                     break;
@@ -364,7 +364,7 @@ namespace RimWorldAccess
                     options.Add(new FloatMenuOption(def.LabelCap, () =>
                     {
                         Current.Game.storyteller.difficulty.CopyFrom(localDef);
-                        TolkHelper.Speak("RimWorldAccess.Storyteller.AllSettingsResetTo".Translate(localDef.LabelCap));
+                        TolkHelper.Speak("RimWorldAccess.Storyteller.AllSettingsResetTo".Loc(localDef.LabelCap));
                         // Rebuild sections to reflect new values
                         BuildCustomDifficultySections();
                         AnnounceCurrentState();
@@ -374,7 +374,7 @@ namespace RimWorldAccess
 
             // Use accessible WindowlessFloatMenuState instead of native FloatMenu
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
-            TolkHelper.Speak("RimWorldAccess.Storyteller.ResetSelectPreset".Translate());
+            TolkHelper.Speak("RimWorldAccess.Storyteller.ResetSelectPreset".Loc());
         }
 
         /// <summary>
@@ -606,7 +606,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void Confirm()
         {
-            TolkHelper.Speak("RimWorldAccess.Storyteller.Confirmed".Translate());
+            TolkHelper.Speak("RimWorldAccess.Storyteller.Confirmed".Loc());
             Close();
             Find.WindowStack.TryRemove(typeof(Page_SelectStorytellerInGame));
         }
@@ -653,7 +653,7 @@ namespace RimWorldAccess
                 onReset: (DifficultyDef def) =>
                 {
                     storyteller.difficulty.CopyFrom(def);
-                    TolkHelper.Speak("RimWorldAccess.Storyteller.AllSettingsResetTo".Translate(def.LabelCap));
+                    TolkHelper.Speak("RimWorldAccess.Storyteller.AllSettingsResetTo".Loc(def.LabelCap));
                     // Rebuild sections to reflect new values
                     BuildCustomDifficultySections();
                     // Navigate back to section list

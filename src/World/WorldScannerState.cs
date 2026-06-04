@@ -458,7 +458,7 @@ namespace RimWorldAccess
         {
             if (!WorldNavigationState.IsActive || !WorldNavigationState.IsInitialized)
             {
-                TolkHelper.Speak("RimWorldAccess.WorldScanner.NavNotActive".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.WorldScanner.NavNotActive".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -532,7 +532,7 @@ namespace RimWorldAccess
 
             if (categories.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoWorldObjects".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoWorldObjects".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -1598,7 +1598,7 @@ namespace RimWorldAccess
             var category = GetCurrentCategory();
             if (category == null || category.Subcategories.Count <= 1)
             {
-                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoSubcategories".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoSubcategories".Loc(), SpeechPriority.Normal);
                 return;
             }
 
@@ -1635,7 +1635,7 @@ namespace RimWorldAccess
             var category = GetCurrentCategory();
             if (category == null || category.Subcategories.Count <= 1)
             {
-                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoSubcategories".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoSubcategories".Loc(), SpeechPriority.Normal);
                 return;
             }
 
@@ -1673,7 +1673,7 @@ namespace RimWorldAccess
             var subcat = GetCurrentSubcategory();
             if (subcat == null || subcat.Items.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoItemsInCategory".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoItemsInCategory".Loc(), SpeechPriority.Normal);
                 return;
             }
 
@@ -1706,7 +1706,7 @@ namespace RimWorldAccess
             var subcat = GetCurrentSubcategory();
             if (subcat == null || subcat.Items.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoItemsInCategory".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoItemsInCategory".Loc(), SpeechPriority.Normal);
                 return;
             }
 
@@ -1738,7 +1738,7 @@ namespace RimWorldAccess
             var item = GetCurrentItem();
             if (item == null || !item.HasInstances)
             {
-                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoInstancesToNavigate".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoInstancesToNavigate".Loc(), SpeechPriority.Normal);
                 return;
             }
 
@@ -1768,7 +1768,7 @@ namespace RimWorldAccess
             var item = GetCurrentItem();
             if (item == null || !item.HasInstances)
             {
-                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoInstancesToNavigate".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoInstancesToNavigate".Loc(), SpeechPriority.Normal);
                 return;
             }
 
@@ -1804,7 +1804,7 @@ namespace RimWorldAccess
             if (targetTile.Valid && targetTile.Layer != PlanetLayer.Selected)
             {
                 PlanetLayer.Selected = targetTile.Layer;
-                TolkHelper.Speak("RimWorldAccess.WorldScanner.SwitchedToLayer".Translate(targetTile.LayerDef.LabelCap));
+                TolkHelper.Speak("RimWorldAccess.WorldScanner.SwitchedToLayer".Loc(targetTile.LayerDef.LabelCap));
             }
 
             WorldNavigationState.CurrentSelectedTile = targetTile;
@@ -1846,7 +1846,7 @@ namespace RimWorldAccess
             float distance = item.GetDistance(originTile, currentInstanceIndex);
             string direction = item.GetDirectionFrom(originTile, currentInstanceIndex);
 
-            TolkHelper.Speak("RimWorldAccess.WorldScanner.DirectionDistance".Translate(direction, distance.ToString("F0")), SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.WorldScanner.DirectionDistance".Loc(direction, distance.ToString("F0")), SpeechPriority.Normal);
         }
 
         #endregion
@@ -1861,7 +1861,7 @@ namespace RimWorldAccess
             int catPos = currentCategoryIndex + 1;
             int catTotal = categories.Count;
 
-            TolkHelper.Speak("RimWorldAccess.WorldScanner.CategoryAnnouncement".Translate(category.Name, category.TotalItemCount, catPos, catTotal), SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.WorldScanner.CategoryAnnouncement".Loc(category.Name, category.TotalItemCount, catPos, catTotal), SpeechPriority.Normal);
         }
 
         private static void AnnounceCurrentSubcategory()
@@ -1873,7 +1873,7 @@ namespace RimWorldAccess
             int subPos = currentSubcategoryIndex + 1;
             int subTotal = category.Subcategories.Count;
 
-            TolkHelper.Speak("RimWorldAccess.WorldScanner.SubcategoryAnnouncement".Translate(subcat.Name, subcat.Items.Count, subPos, subTotal), SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.WorldScanner.SubcategoryAnnouncement".Loc(subcat.Name, subcat.Items.Count, subPos, subTotal), SpeechPriority.Normal);
         }
 
         private static void AnnounceCurrentItem()
@@ -1881,7 +1881,7 @@ namespace RimWorldAccess
             var item = GetCurrentItem();
             if (item == null)
             {
-                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoItemsInCategory".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.WorldScanner.NoItemsInCategory".Loc(), SpeechPriority.Normal);
                 return;
             }
 

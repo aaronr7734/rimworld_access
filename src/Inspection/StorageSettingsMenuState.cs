@@ -567,7 +567,7 @@ namespace RimWorldAccess
             string toggleKey = item.isAllowed
                 ? "RimWorldAccess.Inspection.Storage.ToggleResultAllowed"
                 : "RimWorldAccess.Inspection.Storage.ToggleResultDisallowed";
-            TolkHelper.Speak(toggleKey.Translate(item.label));
+            TolkHelper.Speak(toggleKey.Loc(item.label));
         }
 
         private static void ToggleItem(MenuItem item, bool allow)
@@ -596,7 +596,7 @@ namespace RimWorldAccess
             string itemToggleKey = item.isAllowed
                 ? "RimWorldAccess.Inspection.Storage.ToggleResultAllowed"
                 : "RimWorldAccess.Inspection.Storage.ToggleResultDisallowed";
-            TolkHelper.Speak(itemToggleKey.Translate(item.label));
+            TolkHelper.Speak(itemToggleKey.Loc(item.label));
         }
 
         /// <summary>
@@ -618,14 +618,14 @@ namespace RimWorldAccess
         {
             currentSettings.filter.SetDisallowAll();
             RebuildMenu();
-            TolkHelper.Speak("RimWorldAccess.Inspection.Storage.ClearedAllItems".Translate());
+            TolkHelper.Speak("RimWorldAccess.Inspection.Storage.ClearedAllItems".Loc());
         }
 
         private static void AllowAllItems()
         {
             currentSettings.filter.SetAllowAll(parentFilter);
             RebuildMenu();
-            TolkHelper.Speak("RimWorldAccess.Inspection.Storage.AllowedAllItems".Translate());
+            TolkHelper.Speak("RimWorldAccess.Inspection.Storage.AllowedAllItems".Loc());
         }
 
         private static void AdjustHitPointsRange(bool increase)
@@ -892,16 +892,16 @@ namespace RimWorldAccess
                 string countKey = expandedCount == 1
                     ? "RimWorldAccess.Tree.ExpandedCountOne"
                     : "RimWorldAccess.Tree.ExpandedCountMany";
-                TolkHelper.Speak(countKey.Translate(expandedCount));
+                TolkHelper.Speak(countKey.Loc(expandedCount));
             }
             else
             {
                 // Check if there are any sibling categories at all
                 bool hasAnySiblingCategories = menuItems.Any(m => m.parent == parent && m.type == MenuItemType.Category);
                 if (hasAnySiblingCategories)
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.AllAlreadyExpanded".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.AllAlreadyExpanded".Loc());
                 else
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.NoneToExpand".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.NoneToExpand".Loc());
             }
         }
 

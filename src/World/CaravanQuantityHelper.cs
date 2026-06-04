@@ -164,7 +164,7 @@ namespace RimWorldAccess
         {
             if (result.NoCapacity)
             {
-                TolkHelper.Speak("RimWorldAccess.Caravan.Quantity.NotEnoughCapacity".Translate());
+                TolkHelper.Speak("RimWorldAccess.Caravan.Quantity.NotEnoughCapacity".Loc());
             }
             else if (result.AlreadyAtMax)
             {

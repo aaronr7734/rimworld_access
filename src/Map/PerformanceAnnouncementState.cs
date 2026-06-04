@@ -18,7 +18,7 @@ namespace RimWorldAccess
             TickManager tm = Find.TickManager;
             if (tm == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Performance.Unavailable".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Map.Performance.Unavailable".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -28,7 +28,7 @@ namespace RimWorldAccess
             // Paused: no meaningful performance data (multiplier is 0, would divide by zero).
             if (speed == TimeSpeed.Paused || multiplier <= 0f)
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Game.Paused".Translate());
+                TolkHelper.Speak("RimWorldAccess.Map.Game.Paused".Loc());
                 return;
             }
 
@@ -36,7 +36,7 @@ namespace RimWorldAccess
             // Guard against divide-by-zero immediately after load, before any ticks run.
             if (meanTickTime <= 0.0001f)
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Performance.Unavailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.Map.Performance.Unavailable".Loc());
                 return;
             }
 

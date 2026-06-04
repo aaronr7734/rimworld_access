@@ -57,7 +57,7 @@ namespace RimWorldAccess
                 var options = field.Data as List<(string label, object value)>;
                 if (options == null || options.Count == 0)
                 {
-                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.NoOptionsForField".Translate());
+                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.NoOptionsForField".Loc());
                     onCompleteCallback?.Invoke(); // Call callback so parent state refreshes
                     return;
                 }
@@ -172,7 +172,7 @@ namespace RimWorldAccess
                 field.SetValue?.Invoke(newValue);
                 ScenarioBuilderState.SetDirty();
 
-                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.CheckboxToggled".Translate(field.Name, newValue
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.CheckboxToggled".Loc(field.Name, newValue
                     ? (string)"RimWorldAccess.ScenarioBuilder.PartEdit.Checked".Translate()
                     : (string)"RimWorldAccess.ScenarioBuilder.PartEdit.Unchecked".Translate()));
                 onCompleteCallback?.Invoke();
@@ -180,7 +180,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.UnsupportedFieldType".Translate());
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.UnsupportedFieldType".Loc());
                 onCompleteCallback?.Invoke();
             }
         }
@@ -454,7 +454,7 @@ namespace RimWorldAccess
                 value = quantityValue.ToString();
             }
 
-            TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.QuantityHint".Translate(
+            TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.QuantityHint".Loc(
                 currentField?.Name ?? (string)"RimWorldAccess.ScenarioBuilder.PartEdit.QuantityFallback".Translate(),
                 value));
         }
@@ -475,7 +475,7 @@ namespace RimWorldAccess
             else
                 summary = text;
 
-            TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.TextHint".Translate(
+            TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.TextHint".Loc(
                 currentField?.Name ?? (string)"RimWorldAccess.ScenarioBuilder.PartEdit.TextFallback".Translate(),
                 summary));
         }
@@ -612,11 +612,11 @@ namespace RimWorldAccess
                 case KeyCode.KeypadEnter:
                     string selectedLabel = dropdownOptions[selectedOptionIndex].label;
                     Close(applyChanges: true);
-                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.SelectedLabel".Translate(selectedLabel));
+                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.SelectedLabel".Loc(selectedLabel));
                     return true;
                 case KeyCode.Escape:
                     Close(applyChanges: false);
-                    TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Translate());
+                    TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Loc());
                     return true;
                 case KeyCode.Backspace:
                     if (dropdownTypeahead.HasActiveSearch)
@@ -676,11 +676,11 @@ namespace RimWorldAccess
                         finalValue = FormatFloatValue(floatQuantityValue);
                     else
                         finalValue = quantityValue.ToString();
-                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.SetTo".Translate(finalValue));
+                    TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.SetTo".Loc(finalValue));
                     return true;
                 case KeyCode.Escape:
                     Close(applyChanges: false);
-                    TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Translate());
+                    TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Loc());
                     return true;
                 case KeyCode.Backspace:
                     // Handle backspace for typed number input
@@ -724,12 +724,12 @@ namespace RimWorldAccess
                     {
                         // Enter confirms the edit
                         Close(applyChanges: true);
-                        TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.TextSaved".Translate());
+                        TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.TextSaved".Loc());
                         return true;
                     }
                 case KeyCode.Escape:
                     Close(applyChanges: false);
-                    TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Translate());
+                    TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Loc());
                     return true;
                 case KeyCode.Backspace:
                     textController.HandleBackspace();
@@ -816,7 +816,7 @@ namespace RimWorldAccess
             // Don't allow multiple decimal points
             if (quantityTypedBuffer.Contains("."))
             {
-                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.AlreadyHasDecimal".Translate());
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.AlreadyHasDecimal".Loc());
                 return true;
             }
 
@@ -824,12 +824,12 @@ namespace RimWorldAccess
             if (string.IsNullOrEmpty(quantityTypedBuffer))
             {
                 quantityTypedBuffer = "0.";
-                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.ZeroPoint".Translate());
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.ZeroPoint".Loc());
             }
             else
             {
                 quantityTypedBuffer += ".";
-                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.NumberPoint".Translate(quantityTypedBuffer.TrimEnd('.')));
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.NumberPoint".Loc(quantityTypedBuffer.TrimEnd('.')));
             }
 
             return true;
@@ -859,7 +859,7 @@ namespace RimWorldAccess
                         string limitType = typedFloat > floatQuantityMax
                             ? (string)"RimWorldAccess.ScenarioBuilder.PartEdit.LimitMaximum".Translate()
                             : (string)"RimWorldAccess.ScenarioBuilder.PartEdit.LimitMinimum".Translate();
-                        TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.ValueWithLimit".Translate(clampedFloat.ToString("F1"), limitType));
+                        TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.ValueWithLimit".Loc(clampedFloat.ToString("F1"), limitType));
                     }
                     else
                     {
@@ -891,11 +891,11 @@ namespace RimWorldAccess
                             string limitType = typedValue > maxPercent
                                 ? (string)"RimWorldAccess.ScenarioBuilder.PartEdit.LimitMaximum".Translate()
                                 : (string)"RimWorldAccess.ScenarioBuilder.PartEdit.LimitMinimum".Translate();
-                            TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.PercentWithLimit".Translate(clampedPercent, limitType));
+                            TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.PercentWithLimit".Loc(clampedPercent, limitType));
                         }
                         else
                         {
-                            TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.PercentBare".Translate(typedValue));
+                            TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.PercentBare".Loc(typedValue));
                         }
                     }
                     else
@@ -911,7 +911,7 @@ namespace RimWorldAccess
                             string limitType = typedValue > floatQuantityMax
                                 ? (string)"RimWorldAccess.ScenarioBuilder.PartEdit.LimitMaximum".Translate()
                                 : (string)"RimWorldAccess.ScenarioBuilder.PartEdit.LimitMinimum".Translate();
-                            TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.ValueWithLimit".Translate(FormatFloatValue(clampedFloat), limitType));
+                            TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.ValueWithLimit".Loc(FormatFloatValue(clampedFloat), limitType));
                         }
                         else
                         {
@@ -930,7 +930,7 @@ namespace RimWorldAccess
                         string limitType = typedValue > quantityMax
                             ? (string)"RimWorldAccess.ScenarioBuilder.PartEdit.LimitMaximum".Translate()
                             : (string)"RimWorldAccess.ScenarioBuilder.PartEdit.LimitMinimum".Translate();
-                        TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.ValueWithLimit".Translate(quantityValue, limitType));
+                        TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.ValueWithLimit".Loc(quantityValue, limitType));
                     }
                     else
                     {
@@ -957,7 +957,7 @@ namespace RimWorldAccess
 
             if (string.IsNullOrEmpty(quantityTypedBuffer))
             {
-                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.Cleared".Translate());
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.Cleared".Loc());
                 // Reset to min value
                 if (isFloatQuantity)
                     floatQuantityValue = floatQuantityMin;
@@ -968,7 +968,7 @@ namespace RimWorldAccess
             {
                 // Buffer ends with decimal point - just announce what's before it
                 string beforeDecimal = quantityTypedBuffer.TrimEnd('.');
-                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.NumberPoint".Translate(beforeDecimal));
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.NumberPoint".Loc(beforeDecimal));
             }
             else if (quantityTypedBuffer.Contains(".") && float.TryParse(quantityTypedBuffer,
                 System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float typedFloat))
@@ -985,7 +985,7 @@ namespace RimWorldAccess
                     {
                         // Convert typed percentage to stored value and clamp to actual range
                         floatQuantityValue = Mathf.Clamp(typedValue / 100f, floatQuantityMin, floatQuantityMax);
-                        TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.PercentBare".Translate(typedValue));
+                        TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.PartEdit.PercentBare".Loc(typedValue));
                     }
                     else
                     {

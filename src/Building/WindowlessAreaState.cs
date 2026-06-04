@@ -139,7 +139,7 @@ namespace RimWorldAccess
             onCloseCallback = null;
             callback?.Invoke();
 
-            TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.Closed".Translate());
+            TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.Closed".Loc());
         }
 
         /// <summary>
@@ -296,12 +296,12 @@ namespace RimWorldAccess
                     LoadAreas();
                     selectedAreaIndex = allAreas.IndexOf(newArea);
                     selectedArea = newArea;
-                    TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.CreatedNewArea".Translate(newArea.Label));
+                    TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.CreatedNewArea".Loc(newArea.Label));
                     ReturnToAreaList();
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.MaxAreasReached".Translate(), SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.MaxAreasReached".Loc(), SpeechPriority.High);
                 }
             }
         }
@@ -314,7 +314,7 @@ namespace RimWorldAccess
             if (selectedArea != null)
             {
                 Find.WindowStack.Add(new Dialog_RenameArea(selectedArea));
-                TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.RenamePrompt".Translate(selectedArea.Label));
+                TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.RenamePrompt".Loc(selectedArea.Label));
             }
         }
 
@@ -380,7 +380,7 @@ namespace RimWorldAccess
             if (selectedArea != null)
             {
                 selectedArea.Invert();
-                TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.Inverted".Translate(selectedArea.Label));
+                TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.Inverted".Loc(selectedArea.Label));
             }
         }
 
@@ -400,11 +400,11 @@ namespace RimWorldAccess
                     LoadAreas();
                     selectedAreaIndex = allAreas.IndexOf(newArea);
                     selectedArea = newArea;
-                    TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.CopiedTo".Translate(newArea.Label));
+                    TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.CopiedTo".Loc(newArea.Label));
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.MaxAreasReachedCopy".Translate(), SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.MaxAreasReachedCopy".Loc(), SpeechPriority.High);
                 }
             }
         }
@@ -433,7 +433,7 @@ namespace RimWorldAccess
                 selectedAreaIndex = 0;
             }
 
-            TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.Deleted".Translate(deletedName));
+            TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.Deleted".Loc(deletedName));
         }
 
         /// <summary>
@@ -604,7 +604,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.NoAreasAvailable".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Building.AreaMgr.NoAreasAvailable".Loc());
                 }
             }
             else if (currentMode == NavigationMode.AreaActions)

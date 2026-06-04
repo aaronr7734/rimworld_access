@@ -48,7 +48,7 @@ namespace RimWorldAccess
 
             if (source == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Shelf.NoStorageSelected".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Shelf.NoStorageSelected".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -70,7 +70,7 @@ namespace RimWorldAccess
             IsActive = true;
 
             string sourceLabel = ShelfLinkingHelper.GetStorageLabel(source);
-            TolkHelper.Speak("RimWorldAccess.Building.Shelf.OpenPrompt".Translate(sourceLabel), SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.Building.Shelf.OpenPrompt".Loc(sourceLabel), SpeechPriority.High);
         }
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace RimWorldAccess
 
             Find.Selector.ClearSelection();
 
-            TolkHelper.Speak("RimWorldAccess.Building.Shelf.LinkingCancelled".Translate(), SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.Building.Shelf.LinkingCancelled".Loc(), SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -138,7 +138,7 @@ namespace RimWorldAccess
 
             if (!cursorPos.InBounds(currentMap))
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Shelf.InvalidPosition".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Building.Shelf.InvalidPosition".Loc(), SpeechPriority.Normal);
                 return;
             }
 
@@ -152,11 +152,11 @@ namespace RimWorldAccess
                 if (anyStorage.Count > 0)
                 {
                     string label = ShelfLinkingHelper.GetStorageLabel(anyStorage[0]);
-                    TolkHelper.Speak("RimWorldAccess.Building.Shelf.IncompatibleStorageType".Translate(label), SpeechPriority.Normal);
+                    TolkHelper.Speak("RimWorldAccess.Building.Shelf.IncompatibleStorageType".Loc(label), SpeechPriority.Normal);
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.Building.Shelf.NoStorageHere".Translate(), SpeechPriority.Normal);
+                    TolkHelper.Speak("RimWorldAccess.Building.Shelf.NoStorageHere".Loc(), SpeechPriority.Normal);
                 }
                 return;
             }
@@ -164,7 +164,7 @@ namespace RimWorldAccess
             // Don't allow deselecting the source
             if (storage == sourceStorage)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Shelf.SourceCannotDeselect".Translate(), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Building.Shelf.SourceCannotDeselect".Loc(), SpeechPriority.Normal);
                 return;
             }
 
@@ -178,7 +178,7 @@ namespace RimWorldAccess
                 {
                     Find.Selector.Deselect(thing);
                 }
-                TolkHelper.Speak("RimWorldAccess.Building.Shelf.StorageDeselected".Translate(storageLabel, selectedStorage.Count), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Building.Shelf.StorageDeselected".Loc(storageLabel, selectedStorage.Count), SpeechPriority.Normal);
             }
             else
             {
@@ -188,7 +188,7 @@ namespace RimWorldAccess
                 {
                     Find.Selector.Select(thing, playSound: false, forceDesignatorDeselect: false);
                 }
-                TolkHelper.Speak("RimWorldAccess.Building.Shelf.StorageSelected".Translate(storageLabel, selectedStorage.Count), SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Building.Shelf.StorageSelected".Loc(storageLabel, selectedStorage.Count), SpeechPriority.Normal);
             }
         }
 
@@ -199,7 +199,7 @@ namespace RimWorldAccess
         {
             if (selectedStorage.Count <= 1)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Shelf.SelectAtLeastOneOther".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Shelf.SelectAtLeastOneOther".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -215,7 +215,7 @@ namespace RimWorldAccess
                     onYes: () => PerformLinking(),
                     onNo: () =>
                     {
-                        TolkHelper.Speak("RimWorldAccess.Building.Shelf.LinkingCancelledStillSelecting".Translate(), SpeechPriority.Normal);
+                        TolkHelper.Speak("RimWorldAccess.Building.Shelf.LinkingCancelledStillSelecting".Loc(), SpeechPriority.Normal);
                     });
             }
             else
@@ -248,11 +248,11 @@ namespace RimWorldAccess
 
             if (success)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Shelf.LinkedCount".Translate(countStr), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Shelf.LinkedCount".Loc(countStr), SpeechPriority.High);
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Shelf.LinkingFailed".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Shelf.LinkingFailed".Loc(), SpeechPriority.High);
             }
         }
 

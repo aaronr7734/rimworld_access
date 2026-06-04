@@ -174,7 +174,7 @@ namespace RimWorldAccess
                 string label = def.label?.CapitalizeFirst() ?? def.defName;
                 options.Add(new FloatMenuOption(label, () => InfoCardState.OpenInfoCardForDef(captured)));
             }
-            TolkHelper.Speak("RimWorldAccess.InfoCard.ChooseItemToInspect".Translate());
+            TolkHelper.Speak("RimWorldAccess.InfoCard.ChooseItemToInspect".Loc());
             WindowlessFloatMenuState.Open(options, false);
             return true;
         }

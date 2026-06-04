@@ -208,14 +208,14 @@ namespace RimWorldAccess
                     if (RangeEditMenuState.ApplyAndClose(out var hitPoints, out var quality))
                     {
                         StorageSettingsMenuState.ApplyRangeChanges(hitPoints, quality);
-                        TolkHelper.Speak("RimWorldAccess.Inspection.Storage.RangeApplied".Translate());
+                        TolkHelper.Speak("RimWorldAccess.Inspection.Storage.RangeApplied".Loc());
                     }
                     Event.current.Use();
                     break;
 
                 case KeyCode.Escape:
                     RangeEditMenuState.Close();
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.RangeCancelled".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.RangeCancelled".Loc());
                     Event.current.Use();
                     break;
             }
@@ -295,7 +295,7 @@ namespace RimWorldAccess
 
                 case KeyCode.Escape:
                     PlaySettingsMenuState.Close();
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.PlaySettingsClosed".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.PlaySettingsClosed".Loc());
                     Event.current.Use();
                     break;
             }

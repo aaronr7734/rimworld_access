@@ -165,11 +165,11 @@ namespace RimWorldAccess
                 // Removing - check if it would disconnect the selection
                 if (selectedCells.Count > 1 && WouldDisconnectSelection(cell))
                 {
-                    TolkHelper.Speak("RimWorldAccess.Building.Create.CannotRemoveDisconnect".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Building.Create.CannotRemoveDisconnect".Loc());
                     return;
                 }
                 selectedCells.Remove(cell);
-                TolkHelper.Speak("RimWorldAccess.Building.Create.Deselected".Translate(cell.x, cell.z, selectedCells.Count));
+                TolkHelper.Speak("RimWorldAccess.Building.Create.Deselected".Loc(cell.x, cell.z, selectedCells.Count));
             }
             else
             {
@@ -182,7 +182,7 @@ namespace RimWorldAccess
                 }
 
                 selectedCells.Add(cell);
-                TolkHelper.Speak("RimWorldAccess.Building.Create.SelectedWithTotal".Translate(MapNavigationState.FormatSelectedCell(cell), selectedCells.Count));
+                TolkHelper.Speak("RimWorldAccess.Building.Create.SelectedWithTotal".Loc(MapNavigationState.FormatSelectedCell(cell), selectedCells.Count));
             }
         }
 
@@ -311,7 +311,7 @@ namespace RimWorldAccess
             string shapeName = ShapeHelper.GetShapeName(currentShape);
             string instructions = "RimWorldAccess.Building.Create.ShapeInstructions".Translate(shapeName);
 
-            TolkHelper.Speak("RimWorldAccess.Building.Create.OpenCreating".Translate(zoneName, instructions));
+            TolkHelper.Speak("RimWorldAccess.Building.Create.OpenCreating".Loc(zoneName, instructions));
             Log.Message($"Entered zone creation mode: {zoneName} with shape {currentShape}");
         }
 
@@ -329,12 +329,12 @@ namespace RimWorldAccess
                 currentShape = shape;
                 previewHelper.SetCurrentShape(shape);
                 string shapeName = ShapeHelper.GetShapeName(shape);
-                TolkHelper.Speak("RimWorldAccess.Building.Paint.ShapeChanged".Translate(shapeName));
+                TolkHelper.Speak("RimWorldAccess.Building.Paint.ShapeChanged".Loc(shapeName));
                 Log.Message($"ZoneCreationState: Set shape to {shape}");
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Create.ShapeUnavailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Create.ShapeUnavailable".Loc());
                 Log.Message($"ZoneCreationState: Shape {shape} not allowed. Available: {string.Join(", ", allowed)}");
             }
         }
@@ -385,7 +385,7 @@ namespace RimWorldAccess
         {
             if (!IsInPreviewMode)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Paint.NoShapeToConfirm".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Paint.NoShapeToConfirm".Loc());
                 return;
             }
 
@@ -403,7 +403,7 @@ namespace RimWorldAccess
                 }
             }
 
-            TolkHelper.Speak("RimWorldAccess.Building.Paint.ConfirmShapeIrregular".Translate(addedCount, selectedCells.Count));
+            TolkHelper.Speak("RimWorldAccess.Building.Paint.ConfirmShapeIrregular".Loc(addedCount, selectedCells.Count));
         }
 
         /// <summary>
@@ -450,7 +450,7 @@ namespace RimWorldAccess
         {
             if (zone == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Create.NoZoneProvidedExpand".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Create.NoZoneProvidedExpand".Loc(), SpeechPriority.High);
                 Log.Error("EnterExpansionMode called with null zone");
                 return;
             }
@@ -485,7 +485,7 @@ namespace RimWorldAccess
 
             string shapeName = ShapeHelper.GetShapeName(currentShape);
             string instructions = "RimWorldAccess.Building.Create.ExpandShrinkInstructions".Translate(shapeName);
-            TolkHelper.Speak("RimWorldAccess.Building.Create.OpenExpanding".Translate(zone.label, selectedCells.Count, instructions));
+            TolkHelper.Speak("RimWorldAccess.Building.Create.OpenExpanding".Loc(zone.label, selectedCells.Count, instructions));
             Log.Message($"Entered expansion mode for zone: {zone.label}. Pre-selected {selectedCells.Count} existing cells with shape {currentShape}");
         }
 
@@ -499,7 +499,7 @@ namespace RimWorldAccess
         {
             if (zone == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Create.NoZoneProvidedShrink".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Create.NoZoneProvidedShrink".Loc(), SpeechPriority.High);
                 Log.Error("EnterShrinkMode called with null zone");
                 return;
             }
@@ -510,7 +510,7 @@ namespace RimWorldAccess
 
             string shapeName = ShapeHelper.GetShapeName(currentShape);
             string instructions = "RimWorldAccess.Building.Create.ExpandShrinkInstructions".Translate(shapeName);
-            TolkHelper.Speak("RimWorldAccess.Building.Create.OpenShrinking".Translate(zone.label, instructions));
+            TolkHelper.Speak("RimWorldAccess.Building.Create.OpenShrinking".Loc(zone.label, instructions));
             Log.Message($"Entered shrink mode for zone: {zone.label} with shape {currentShape}");
         }
 
@@ -531,7 +531,7 @@ namespace RimWorldAccess
             // Normal zone/area creation
             if (selectedCells.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Create.NoCellsZoneNotCreated".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Create.NoCellsZoneNotCreated".Loc());
                 Cancel();
                 return;
             }
@@ -562,7 +562,7 @@ namespace RimWorldAccess
                             Area_Allowed allowedArea = CreateAllowedArea(map, selectedCells);
                             if (allowedArea == null)
                             {
-                                TolkHelper.Speak("RimWorldAccess.Building.Create.MaxAllowedAreasReached".Translate(), SpeechPriority.High);
+                                TolkHelper.Speak("RimWorldAccess.Building.Create.MaxAllowedAreasReached".Loc(), SpeechPriority.High);
                                 Log.Warning("Failed to create allowed area: max limit reached");
                                 Reset();
                                 return;
@@ -574,7 +574,7 @@ namespace RimWorldAccess
                     case ZoneType.HomeZone:
                         if (!ExpandHomeZone(map, selectedCells))
                         {
-                            TolkHelper.Speak("RimWorldAccess.Building.Create.HomeAreaNotFound".Translate(), SpeechPriority.High);
+                            TolkHelper.Speak("RimWorldAccess.Building.Create.HomeAreaNotFound".Loc(), SpeechPriority.High);
                             Log.Error("Home area not found in area manager");
                             Reset();
                             return;
@@ -597,12 +597,12 @@ namespace RimWorldAccess
                     ObstacleDetector.AddToScanner(obstacles, "Zone Obstacles");
                 }
 
-                TolkHelper.Speak("RimWorldAccess.Building.Create.ZoneCreated".Translate(zoneName, selectedCells.Count, obstacleInfo));
+                TolkHelper.Speak("RimWorldAccess.Building.Create.ZoneCreated".Loc(zoneName, selectedCells.Count, obstacleInfo));
                 Log.Message($"Created {zoneName} with {selectedCells.Count} cells, {obstacles.Count} obstacles");
             }
             catch (System.Exception ex)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Create.ErrorCreatingZone".Translate(ex.Message), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Create.ErrorCreatingZone".Loc(ex.Message), SpeechPriority.High);
                 Log.Error($"Error creating zone: {ex}");
             }
             finally
@@ -620,7 +620,7 @@ namespace RimWorldAccess
         {
             if (targetZone == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Create.NoZoneToModify".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Create.NoZoneToModify".Loc(), SpeechPriority.High);
                 Log.Error("ExpandZone called but targetZone is null");
                 Reset();
                 return;
@@ -636,7 +636,7 @@ namespace RimWorldAccess
             // Expand mode - zone is updated to match selection
             if (selectedCells.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Create.AllCellsRemovedZoneDeleted".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Create.AllCellsRemovedZoneDeleted".Loc());
                 targetZone.Delete();
                 Reset();
                 return;
@@ -719,7 +719,7 @@ namespace RimWorldAccess
             }
             catch (System.Exception ex)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Create.ErrorExpandingZone".Translate(ex.Message), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Create.ErrorExpandingZone".Loc(ex.Message), SpeechPriority.High);
                 Log.Error($"Error expanding zone: {ex}");
             }
             finally
@@ -735,7 +735,7 @@ namespace RimWorldAccess
         {
             if (selectedCells.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Create.NoCellsZoneUnchanged".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Create.NoCellsZoneUnchanged".Loc());
                 Reset();
                 return;
             }
@@ -757,21 +757,21 @@ namespace RimWorldAccess
                 // Check if zone is now empty
                 if (targetZone.Cells.Count() == 0)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Building.Create.AllCellsRemovedNamedDeleted".Translate(targetZone.label));
+                    TolkHelper.Speak("RimWorldAccess.Building.Create.AllCellsRemovedNamedDeleted".Loc(targetZone.label));
                     targetZone.Delete();
                 }
                 else
                 {
                     // Check for disconnected fragments
                     targetZone.CheckContiguous();
-                    TolkHelper.Speak("RimWorldAccess.Building.Create.RemovedCellsFromZone".Translate(removedCount, targetZone.label, targetZone.Cells.Count()));
+                    TolkHelper.Speak("RimWorldAccess.Building.Create.RemovedCellsFromZone".Loc(removedCount, targetZone.label, targetZone.Cells.Count()));
                 }
 
                 Log.Message($"Shrunk zone {targetZone?.label}: removed {removedCount} cells");
             }
             catch (System.Exception ex)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Create.ErrorShrinkingZone".Translate(ex.Message), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Create.ErrorShrinkingZone".Loc(ex.Message), SpeechPriority.High);
                 Log.Error($"Error shrinking zone: {ex}");
             }
             finally
@@ -785,7 +785,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void Cancel()
         {
-            TolkHelper.Speak("RimWorldAccess.Building.Create.Cancelled".Translate());
+            TolkHelper.Speak("RimWorldAccess.Building.Create.Cancelled".Loc());
             Log.Message("Zone creation cancelled");
             Reset();
         }

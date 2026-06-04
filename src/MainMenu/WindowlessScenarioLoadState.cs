@@ -33,7 +33,7 @@ namespace RimWorldAccess
 
             if (scenarioFiles.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.ScenarioLoad.NoSavedScenarios".Translate());
+                TolkHelper.Speak("RimWorldAccess.ScenarioLoad.NoSavedScenarios".Loc());
                 onScenarioLoaded?.Invoke(null);
                 return;
             }
@@ -41,7 +41,7 @@ namespace RimWorldAccess
             selectedIndex = 0;
             IsActive = true;
 
-            TolkHelper.Speak("RimWorldAccess.ScenarioLoad.OpenInstructions".Translate(scenarioFiles.Count));
+            TolkHelper.Speak("RimWorldAccess.ScenarioLoad.OpenInstructions".Loc(scenarioFiles.Count));
             AnnounceCurrentFile();
         }
 
@@ -88,7 +88,7 @@ namespace RimWorldAccess
         {
             if (scenarioFiles.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.ScenarioLoad.NoScenariosAvailable".Translate());
+                TolkHelper.Speak("RimWorldAccess.ScenarioLoad.NoScenariosAvailable".Loc());
                 return;
             }
 
@@ -250,7 +250,7 @@ namespace RimWorldAccess
         {
             if (scenarioFiles.Count == 0 || selectedIndex >= scenarioFiles.Count)
             {
-                TolkHelper.Speak("RimWorldAccess.ScenarioLoad.NoScenarioSelected".Translate());
+                TolkHelper.Speak("RimWorldAccess.ScenarioLoad.NoScenarioSelected".Loc());
                 return;
             }
 
@@ -268,14 +268,14 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.ScenarioLoad.FailedToLoad".Translate(fileName));
+                        TolkHelper.Speak("RimWorldAccess.ScenarioLoad.FailedToLoad".Loc(fileName));
                     }
                 });
             }
             catch (Exception ex)
             {
                 Log.Error($"[RimWorld Access] Error loading scenario: {ex}");
-                TolkHelper.Speak("RimWorldAccess.ScenarioLoad.ErrorLoading".Translate(ex.Message));
+                TolkHelper.Speak("RimWorldAccess.ScenarioLoad.ErrorLoading".Loc(ex.Message));
             }
         }
 
@@ -289,7 +289,7 @@ namespace RimWorldAccess
             var file = scenarioFiles[selectedIndex];
             string fileName = Path.GetFileNameWithoutExtension(file.FileName);
 
-            TolkHelper.Speak("RimWorldAccess.ScenarioLoad.DeleteConfirm".Translate(fileName));
+            TolkHelper.Speak("RimWorldAccess.ScenarioLoad.DeleteConfirm".Loc(fileName));
             WindowlessScenarioDeleteConfirmState.Open(file.FileInfo, () =>
             {
                 ReloadFiles();
@@ -357,7 +357,7 @@ namespace RimWorldAccess
                     else
                     {
                         Close();
-                        TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Translate());
+                        TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Loc());
                         onScenarioLoaded?.Invoke(null);
                     }
                     return true;
@@ -415,7 +415,7 @@ namespace RimWorldAccess
 
             string fileName = fileToDelete.Name;
             fileToDelete.Delete();
-            TolkHelper.Speak("RimWorldAccess.ScenarioLoad.Deleted".Translate(fileName));
+            TolkHelper.Speak("RimWorldAccess.ScenarioLoad.Deleted".Loc(fileName));
 
             Close();
             onComplete?.Invoke();
@@ -425,7 +425,7 @@ namespace RimWorldAccess
         {
             if (!IsActive) return;
 
-            TolkHelper.Speak("RimWorldAccess.ScenarioLoad.DeleteCancelled".Translate());
+            TolkHelper.Speak("RimWorldAccess.ScenarioLoad.DeleteCancelled".Loc());
             Close();
             onComplete?.Invoke();
         }

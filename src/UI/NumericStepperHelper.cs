@@ -24,7 +24,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void SpeakAtMinimumBoundary(SpeechPriority priority = SpeechPriority.Normal)
         {
-            TolkHelper.Speak("RimWorldAccess.Stepper.Minimum".Translate(), priority);
+            TolkHelper.Speak("RimWorldAccess.Stepper.Minimum".Loc(), priority);
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void SpeakAtMaximumBoundary(SpeechPriority priority = SpeechPriority.Normal)
         {
-            TolkHelper.Speak("RimWorldAccess.Stepper.Maximum".Translate(), priority);
+            TolkHelper.Speak("RimWorldAccess.Stepper.Maximum".Loc(), priority);
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace RimWorldAccess
             string key = direction > 0
                 ? "RimWorldAccess.Stepper.Maximum"
                 : "RimWorldAccess.Stepper.Minimum";
-            TolkHelper.Speak(key.Translate(), priority);
+            TolkHelper.Speak(key.Loc(), priority);
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void SpeakValueAtMinimum(string valueLabel, SpeechPriority priority = SpeechPriority.Normal)
         {
-            TolkHelper.Speak("RimWorldAccess.Stepper.ValueAtMinimum".Translate(valueLabel), priority);
+            TolkHelper.Speak("RimWorldAccess.Stepper.ValueAtMinimum".Loc(valueLabel), priority);
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void SpeakValueAtMaximum(string valueLabel, SpeechPriority priority = SpeechPriority.Normal)
         {
-            TolkHelper.Speak("RimWorldAccess.Stepper.ValueAtMaximum".Translate(valueLabel), priority);
+            TolkHelper.Speak("RimWorldAccess.Stepper.ValueAtMaximum".Loc(valueLabel), priority);
         }
     }
 }

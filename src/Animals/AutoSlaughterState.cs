@@ -86,7 +86,7 @@ namespace RimWorldAccess
 
             if (configs.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Menu.NoAnimals".Translate());
+                TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Menu.NoAnimals".Loc());
                 return;
             }
 
@@ -98,7 +98,7 @@ namespace RimWorldAccess
             IsActive = true;
 
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
-            TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Menu.OpeningTitle".Translate(configs.Count));
+            TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Menu.OpeningTitle".Loc(configs.Count));
             AnnounceCurrentCell(includeAnimalName: true);
         }
 
@@ -116,9 +116,9 @@ namespace RimWorldAccess
             numericBuffer = "";
 
             if (!string.IsNullOrEmpty(slaughterSummary))
-                TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Menu.ClosedWithSummary".Translate(slaughterSummary));
+                TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Menu.ClosedWithSummary".Loc(slaughterSummary));
             else
-                TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Menu.Closed".Translate());
+                TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Menu.Closed".Loc());
         }
 
         /// <summary>
@@ -589,7 +589,7 @@ namespace RimWorldAccess
 
             numericBuffer = "";
             isNumericInputMode = true;
-            TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Numeric.Prompt".Translate());
+            TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Numeric.Prompt".Loc());
         }
 
         private static void HandleNumericDigit(char digit)
@@ -608,7 +608,7 @@ namespace RimWorldAccess
             if (numericBuffer.Length > 0)
                 TolkHelper.Speak(numericBuffer, SpeechPriority.Low);
             else
-                TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Numeric.Empty".Translate(), SpeechPriority.Low);
+                TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Numeric.Empty".Loc(), SpeechPriority.Low);
         }
 
         private static void ConfirmNumericInput()
@@ -625,7 +625,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Numeric.Invalid".Translate());
+                TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Numeric.Invalid".Loc());
             }
 
             isNumericInputMode = false;
@@ -637,7 +637,7 @@ namespace RimWorldAccess
         {
             isNumericInputMode = false;
             numericBuffer = "";
-            TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Numeric.Cancelled".Translate());
+            TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Numeric.Cancelled".Loc());
         }
 
         #endregion
@@ -691,7 +691,7 @@ namespace RimWorldAccess
         {
             if (configs.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Menu.NoAnimalsShort".Translate());
+                TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Menu.NoAnimalsShort".Loc());
                 return;
             }
 
@@ -749,7 +749,7 @@ namespace RimWorldAccess
                 if ((key == KeyCode.Minus || key == KeyCode.KeypadMinus) && numericBuffer.Length == 0)
                 {
                     numericBuffer = "-";
-                    TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Numeric.Minus".Translate(), SpeechPriority.Low);
+                    TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Numeric.Minus".Loc(), SpeechPriority.Low);
                     return true;
                 }
                 if (key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9)
@@ -796,7 +796,7 @@ namespace RimWorldAccess
 
                     // If slaughtering, announce with summary
                     if (hasSlaughter)
-                        TolkHelper.Speak("RimWorldAccess.Animals.Menu.ClosedWithSummary".Translate(slaughterSummary));
+                        TolkHelper.Speak("RimWorldAccess.Animals.Menu.ClosedWithSummary".Loc(slaughterSummary));
                 }
                 return true;
             }
@@ -946,7 +946,7 @@ namespace RimWorldAccess
                 if (!string.IsNullOrEmpty(slaughterSummary))
                     TolkHelper.Speak(slaughterSummary);
                 else
-                    TolkHelper.Speak("RimWorldAccess.Animals.Menu.ReturnTitle".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Animals.Menu.ReturnTitle".Loc());
 
                 return true;
             }

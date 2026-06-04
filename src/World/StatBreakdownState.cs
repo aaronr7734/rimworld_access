@@ -38,7 +38,7 @@ namespace RimWorldAccess
         {
             if (string.IsNullOrEmpty(explanation))
             {
-                TolkHelper.Speak("RimWorldAccess.StatBreakdown.NoBreakdownFor".Translate(name));
+                TolkHelper.Speak("RimWorldAccess.StatBreakdown.NoBreakdownFor".Loc(name));
                 return;
             }
 
@@ -49,7 +49,7 @@ namespace RimWorldAccess
 
             if (root.Children.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.StatBreakdown.NoFactorsFor".Translate(name));
+                TolkHelper.Speak("RimWorldAccess.StatBreakdown.NoFactorsFor".Loc(name));
                 Close();
                 return;
             }
@@ -59,7 +59,7 @@ namespace RimWorldAccess
             // Only say "treeview" if there are expandable nodes
             bool hasExpandableNodes = root.Children.Exists(item => item.IsExpandable);
             string suffix = hasExpandableNodes ? (string)"RimWorldAccess.StatBreakdown.TreeviewSuffix".Translate() : "";
-            TolkHelper.Speak("RimWorldAccess.StatBreakdown.HeaderWithSuffix".Translate(name, root.Children.Count, suffix));
+            TolkHelper.Speak("RimWorldAccess.StatBreakdown.HeaderWithSuffix".Loc(name, root.Children.Count, suffix));
             treeNav.ReannounceCurrentItem();
         }
 
@@ -71,7 +71,7 @@ namespace RimWorldAccess
             isActive = false;
             statName = "";
             treeNav.Reset();
-            TolkHelper.Speak("RimWorldAccess.StatBreakdown.Closed".Translate());
+            TolkHelper.Speak("RimWorldAccess.StatBreakdown.Closed".Loc());
         }
 
         /// <summary>
@@ -377,7 +377,7 @@ namespace RimWorldAccess
             var item = treeNav.SelectedItem;
             if (!item.IsExpandable)
             {
-                TolkHelper.Speak("RimWorldAccess.StatBreakdown.NotExpandable".Translate());
+                TolkHelper.Speak("RimWorldAccess.StatBreakdown.NotExpandable".Loc());
                 return;
             }
 
@@ -390,7 +390,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.StatBreakdown.AlreadyExpanded".Translate());
+                    TolkHelper.Speak("RimWorldAccess.StatBreakdown.AlreadyExpanded".Loc());
                 }
                 return;
             }

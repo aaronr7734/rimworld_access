@@ -732,7 +732,7 @@ namespace RimWorldAccess
                 int pawnIdx = GetCurrentPawnIndex();
                 if (pawnIdx < 0)
                 {
-                    TolkHelper.Speak("RimWorldAccess.StartingPawn.NoPawnSelected".Translate());
+                    TolkHelper.Speak("RimWorldAccess.StartingPawn.NoPawnSelected".Loc());
                     return;
                 }
 
@@ -824,7 +824,7 @@ namespace RimWorldAccess
             if (pawns.Count >= 6)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.StartingPawn.MaximumPawns".Translate(6));
+                TolkHelper.Speak("RimWorldAccess.StartingPawn.MaximumPawns".Loc(6));
                 return;
             }
 
@@ -843,7 +843,7 @@ namespace RimWorldAccess
             }
 
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            TolkHelper.Speak("RimWorldAccess.StartingPawn.PawnAdded".Translate());
+            TolkHelper.Speak("RimWorldAccess.StartingPawn.PawnAdded".Loc());
             treeNav.ReannounceCurrentItem();
         }
 
@@ -856,7 +856,7 @@ namespace RimWorldAccess
             if (pawns.Count <= 1)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.StartingPawn.MinimumPawns".Translate(1));
+                TolkHelper.Speak("RimWorldAccess.StartingPawn.MinimumPawns".Loc(1));
                 return;
             }
 
@@ -869,7 +869,7 @@ namespace RimWorldAccess
                 treeNav.SetSelectedIndex(Math.Max(0, treeNav.Count - 1));
 
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            TolkHelper.Speak("RimWorldAccess.StartingPawn.PawnRemoved".Translate(removedName));
+            TolkHelper.Speak("RimWorldAccess.StartingPawn.PawnRemoved".Loc(removedName));
             treeNav.ReannounceCurrentItem();
         }
 

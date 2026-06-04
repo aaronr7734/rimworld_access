@@ -441,13 +441,13 @@ namespace RimWorldAccess
         {
             if (activeDesignator == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Place.NoDesignatorActive".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Place.NoDesignatorActive".Loc(), SpeechPriority.High);
                 return null;
             }
 
             if (previewHelper.PreviewCells.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.Place.NoCellsSelected".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Building.Place.NoCellsSelected".Loc(), SpeechPriority.High);
                 return null;
             }
 
@@ -829,7 +829,7 @@ namespace RimWorldAccess
 
                 if (!silent)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Building.Place.ZoneDeleted".Translate(zoneName), SpeechPriority.Normal);
+                    TolkHelper.Speak("RimWorldAccess.Building.Place.ZoneDeleted".Loc(zoneName), SpeechPriority.Normal);
                 }
 
                 Log.Message($"[ShapePlacementState] Confirmed deletion of zone {zoneName}");
@@ -856,13 +856,13 @@ namespace RimWorldAccess
             switch (previousPhase)
             {
                 case PlacementPhase.SettingFirstCorner:
-                    TolkHelper.Speak("RimWorldAccess.Building.Place.CancelFromFirstCorner".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Building.Place.CancelFromFirstCorner".Loc());
                     break;
                 case PlacementPhase.SettingSecondCorner:
-                    TolkHelper.Speak("RimWorldAccess.Building.Place.CancelFromSecondCorner".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Building.Place.CancelFromSecondCorner".Loc());
                     break;
                 case PlacementPhase.Previewing:
-                    TolkHelper.Speak("RimWorldAccess.Building.Place.CancelFromPreview".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Building.Place.CancelFromPreview".Loc());
                     break;
             }
 
@@ -894,11 +894,11 @@ namespace RimWorldAccess
                 if (previousPhase == PlacementPhase.Previewing)
                 {
                     // In Previewing phase, tell user how to proceed
-                    TolkHelper.Speak("RimWorldAccess.Building.Place.SelectionClearedFromPreview".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Building.Place.SelectionClearedFromPreview".Loc());
                 }
                 else if (previousPhase == PlacementPhase.SettingSecondCorner)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Building.Place.SelectionCancelledToFirstPoint".Translate());
+                    TolkHelper.Speak("RimWorldAccess.Building.Place.SelectionCancelledToFirstPoint".Loc());
                 }
             }
 
@@ -926,7 +926,7 @@ namespace RimWorldAccess
                 // Use silent=true to avoid redundant "First point" announcement
                 previewHelper.SetFirstCorner(firstPointPos, "[ShapePlacementState]", silent: true);
                 currentPhase = PlacementPhase.SettingSecondCorner;
-                TolkHelper.Speak("RimWorldAccess.Building.Place.SecondPointRemoved".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Place.SecondPointRemoved".Loc());
                 Log.Message("[ShapePlacementState] Removed second point, back to SettingSecondCorner phase");
                 return true;
             }
@@ -936,13 +936,13 @@ namespace RimWorldAccess
             {
                 previewHelper.Reset();
                 currentPhase = PlacementPhase.SettingFirstCorner;
-                TolkHelper.Speak("RimWorldAccess.Building.Place.FirstPointRemoved".Translate());
+                TolkHelper.Speak("RimWorldAccess.Building.Place.FirstPointRemoved".Loc());
                 Log.Message("[ShapePlacementState] Removed first point, back to SettingFirstCorner phase");
                 return true;
             }
 
             // No points to remove (in SettingFirstCorner phase with no first point, or unexpected state)
-            TolkHelper.Speak("RimWorldAccess.Building.Place.NoPointsToRemove".Translate());
+            TolkHelper.Speak("RimWorldAccess.Building.Place.NoPointsToRemove".Loc());
             return false;
         }
 

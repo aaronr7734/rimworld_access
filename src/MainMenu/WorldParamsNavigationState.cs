@@ -300,7 +300,7 @@ namespace RimWorldAccess
             switch (field)
             {
                 case WorldParamField.Seed:
-                    TolkHelper.Speak("RimWorldAccess.WorldParams.SeedInstructions".Translate());
+                    TolkHelper.Speak("RimWorldAccess.WorldParams.SeedInstructions".Loc());
                     break;
 
                 case WorldParamField.PlanetCoverage:
@@ -419,17 +419,17 @@ namespace RimWorldAccess
                     if (!string.IsNullOrEmpty(seed))
                     {
                         AccessTools.Field(typeof(Page_CreateWorldParams), "seedString").SetValue(currentInstance, seed);
-                        TolkHelper.Speak("RimWorldAccess.WorldParams.SeedConfirmed".Translate(seed));
+                        TolkHelper.Speak("RimWorldAccess.WorldParams.SeedConfirmed".Loc(seed));
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.WorldParams.SeedEmptyCancelled".Translate());
+                        TolkHelper.Speak("RimWorldAccess.WorldParams.SeedEmptyCancelled".Loc());
                     }
                 },
                 onCancel: () =>
                 {
                     isEditingSeed = false;
-                    TolkHelper.Speak("RimWorldAccess.WorldParams.SeedEditCancelled".Translate());
+                    TolkHelper.Speak("RimWorldAccess.WorldParams.SeedEditCancelled".Loc());
                 },
                 replaceOnType: false,
                 modal: true);
@@ -440,7 +440,7 @@ namespace RimWorldAccess
             if (currentInstance == null) return;
             string newSeed = GenText.RandomSeedString();
             AccessTools.Field(typeof(Page_CreateWorldParams), "seedString").SetValue(currentInstance, newSeed);
-            TolkHelper.Speak("RimWorldAccess.WorldParams.SeedRandomized".Translate(newSeed));
+            TolkHelper.Speak("RimWorldAccess.WorldParams.SeedRandomized".Loc(newSeed));
         }
 
         // ===== TYPEAHEAD SEARCH =====
@@ -541,7 +541,7 @@ namespace RimWorldAccess
             string fieldName = GetFieldLabel(field, includeAdvancedSuffix: false);
             string value = GetFieldValueString(field);
             string warning = GetFieldWarning(field);
-            TolkHelper.Speak("RimWorldAccess.WorldParams.FieldColonValue".Translate(fieldName, value, warning));
+            TolkHelper.Speak("RimWorldAccess.WorldParams.FieldColonValue".Loc(fieldName, value, warning));
         }
 
         private static string GetFieldWarning(WorldParamField field)
