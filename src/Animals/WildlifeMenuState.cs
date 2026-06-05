@@ -66,7 +66,7 @@ namespace RimWorldAccess
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
 
             string announcement = "RimWorldAccess.Animals.Wildlife.Menu.OpeningTitle".Translate(wildlifeList.Count).ToString();
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
             AnnounceCurrentCell(includeAnimalName: true);
         }
 
@@ -115,7 +115,7 @@ namespace RimWorldAccess
 
             Pawn currentAnimal = wildlifeList[tableHelper.CurrentRowIndex];
             string announcement = tableHelper.BuildCellAnnouncement(currentAnimal, wildlifeList.Count, includeAnimalName);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         public static void InteractWithCurrentCell()
@@ -224,7 +224,7 @@ namespace RimWorldAccess
                 string cellText = tableHelper.BuildCellAnnouncement(
                     wildlifeList[tableHelper.CurrentRowIndex], wildlifeList.Count, includeItemName: true);
                 string announcement = "RimWorldAccess.Animals.Sort.NowAt".Translate(cellText).ToString();
-                TolkHelper.Speak(announcement);
+                TolkHelper.SpeakData(announcement);
             }
         }
 
@@ -337,7 +337,7 @@ namespace RimWorldAccess
 
             Pawn currentAnimal = wildlifeList[tableHelper.CurrentRowIndex];
             string announcement = tableHelper.BuildCellAnnouncementWithSearch(currentAnimal, wildlifeList.Count);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>

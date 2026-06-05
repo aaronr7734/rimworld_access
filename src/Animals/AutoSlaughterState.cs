@@ -522,7 +522,7 @@ namespace RimWorldAccess
                 announcement = "RimWorldAccess.Animals.AutoSlaughter.Cell.WithoutName".Translate(columnName, value).ToString();
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         private static string GetColumnValueString(AutoSlaughterConfig config, Column column)
@@ -597,7 +597,7 @@ namespace RimWorldAccess
             if (!isNumericInputMode) return;
 
             numericBuffer += digit;
-            TolkHelper.Speak(numericBuffer, SpeechPriority.Low);
+            TolkHelper.SpeakData(numericBuffer, SpeechPriority.Low);
         }
 
         private static void HandleNumericBackspace()
@@ -606,7 +606,7 @@ namespace RimWorldAccess
 
             numericBuffer = numericBuffer.Substring(0, numericBuffer.Length - 1);
             if (numericBuffer.Length > 0)
-                TolkHelper.Speak(numericBuffer, SpeechPriority.Low);
+                TolkHelper.SpeakData(numericBuffer, SpeechPriority.Low);
             else
                 TolkHelper.Speak("RimWorldAccess.Animals.AutoSlaughter.Numeric.Empty".Loc(), SpeechPriority.Low);
         }
@@ -708,7 +708,7 @@ namespace RimWorldAccess
                 announcement += typeahead.BuildSearchContextSuffix();
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         #endregion
@@ -944,7 +944,7 @@ namespace RimWorldAccess
 
                 // Announce slaughter summary if any, otherwise just the menu name
                 if (!string.IsNullOrEmpty(slaughterSummary))
-                    TolkHelper.Speak(slaughterSummary);
+                    TolkHelper.SpeakData(slaughterSummary);
                 else
                     TolkHelper.Speak("RimWorldAccess.Animals.Menu.ReturnTitle".Loc());
 

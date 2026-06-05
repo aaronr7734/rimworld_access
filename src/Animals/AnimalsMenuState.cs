@@ -71,7 +71,7 @@ namespace RimWorldAccess
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
 
             string announcement = "RimWorldAccess.Animals.Menu.OpeningTitle".Translate(animalsList.Count).ToString();
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
             AnnounceCurrentCell(includeAnimalName: true);
         }
 
@@ -128,7 +128,7 @@ namespace RimWorldAccess
 
             Pawn currentAnimal = animalsList[tableHelper.CurrentRowIndex];
             string announcement = tableHelper.BuildCellAnnouncement(currentAnimal, animalsList.Count, includeAnimalName);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
@@ -771,7 +771,7 @@ namespace RimWorldAccess
                 announcement += submenuTypeahead.BuildSearchContextSuffix();
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         private static void AnnounceSubmenuOption()
@@ -782,7 +782,7 @@ namespace RimWorldAccess
             string optionText = GetSubmenuOptionText(selectedOption);
 
             string announcement = "RimWorldAccess.Animals.Submenu.OptionAnnounce".Translate(optionText, MenuHelper.FormatPosition(submenuSelectedIndex, submenuOptions.Count)).ToString();
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         private static void ApplySubmenuSelection()
@@ -887,7 +887,7 @@ namespace RimWorldAccess
                 string cellText = tableHelper.BuildCellAnnouncement(
                     animalsList[tableHelper.CurrentRowIndex], animalsList.Count, includeItemName: true);
                 string announcement = "RimWorldAccess.Animals.Sort.NowAt".Translate(cellText).ToString();
-                TolkHelper.Speak(announcement);
+                TolkHelper.SpeakData(announcement);
             }
         }
 
@@ -980,7 +980,7 @@ namespace RimWorldAccess
 
             Pawn currentAnimal = animalsList[tableHelper.CurrentRowIndex];
             string announcement = tableHelper.BuildCellAnnouncementWithSearch(currentAnimal, animalsList.Count);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
