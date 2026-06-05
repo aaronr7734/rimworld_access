@@ -434,7 +434,7 @@ namespace RimWorldAccess
             {
                 TolkHelper.Speak((onMechSection
                     ? "RimWorldAccess.Pawns.Bar.NoMechAtPosition"
-                    : "RimWorldAccess.Pawns.Bar.NoColonistAtPosition").Translate(positionOnPage + 1));
+                    : "RimWorldAccess.Pawns.Bar.NoColonistAtPosition").Loc(positionOnPage + 1));
                 return;
             }
 
@@ -773,7 +773,7 @@ namespace RimWorldAccess
             if (!string.IsNullOrEmpty(positionPart))
                 announcement = "RimWorldAccess.Pawns.Bar.WithPosition".Translate(announcement, positionPart);
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
@@ -783,7 +783,7 @@ namespace RimWorldAccess
         {
             TolkHelper.Speak((onMechSection
                 ? "RimWorldAccess.Pawns.Bar.MechsPage"
-                : "RimWorldAccess.Pawns.Bar.Page").Translate(CurrentPage + 1));
+                : "RimWorldAccess.Pawns.Bar.Page").Loc(CurrentPage + 1));
         }
 
         /// <summary>
@@ -793,7 +793,7 @@ namespace RimWorldAccess
         {
             TolkHelper.Speak((onMechSection
                 ? "RimWorldAccess.Pawns.Bar.SectionMechs"
-                : "RimWorldAccess.Pawns.Bar.SectionColonists").Translate());
+                : "RimWorldAccess.Pawns.Bar.SectionColonists").Loc());
         }
 
         /// <summary>
@@ -821,7 +821,7 @@ namespace RimWorldAccess
             else
                 context = "RimWorldAccess.Pawns.Bar.Between".Translate(colonists[newIndex - 1].LabelShort, colonists[newIndex + 1].LabelShort);
 
-            TolkHelper.Speak("RimWorldAccess.Pawns.Bar.ReorderResult".Translate(pawn.LabelShort, newIndex + 1, context));
+            TolkHelper.Speak("RimWorldAccess.Pawns.Bar.ReorderResult".Loc(pawn.LabelShort, newIndex + 1, context));
         }
 
         /// <summary>
@@ -831,7 +831,7 @@ namespace RimWorldAccess
         {
             TolkHelper.Speak((onMechSection
                 ? "RimWorldAccess.Pawns.Bar.NoMechsHere"
-                : "RimWorldAccess.Pawns.Bar.NoColonistsHere").Translate());
+                : "RimWorldAccess.Pawns.Bar.NoColonistsHere").Loc());
         }
 
         // ===== FOCUS-ONLY NAVIGATION (for multi-select mode) =====
@@ -1013,7 +1013,7 @@ namespace RimWorldAccess
             {
                 TolkHelper.Speak((onMechSection
                     ? "RimWorldAccess.Pawns.Bar.NoMechAtPosition"
-                    : "RimWorldAccess.Pawns.Bar.NoColonistAtPosition").Translate(positionOnPage + 1));
+                    : "RimWorldAccess.Pawns.Bar.NoColonistAtPosition").Loc(positionOnPage + 1));
                 return null;
             }
 

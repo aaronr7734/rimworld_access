@@ -448,7 +448,7 @@ namespace RimWorldAccess
                 ? "RimWorldAccess.Pawns.MultiSelect.PawnSummaryWithPos".Translate(pawn.LabelShort, selectedStatus, task, positionPart).ToString()
                 : "RimWorldAccess.Pawns.MultiSelect.PawnSummary".Translate(pawn.LabelShort, selectedStatus, task).ToString();
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
     }
 }

@@ -686,7 +686,7 @@ namespace RimWorldAccess
                         availableFoodRestrictions = HealthTabHelper.GetAvailableFoodRestrictions();
                         if (availableFoodRestrictions.Count == 0)
                         {
-                            TolkHelper.Speak("NoneLower".Translate().ToString());
+                            TolkHelper.Speak("NoneLower".Loc());
                             SoundDefOf.ClickReject.PlayOneShotOnCamera();
                             return;
                         }
@@ -709,15 +709,15 @@ namespace RimWorldAccess
                             {
                                 // Pawn can never do Doctor work — revert like vanilla does
                                 currentPawn.playerSettings.selfTend = false;
-                                TolkHelper.Speak("MessageCannotSelfTendEver".Translate(
-                                    currentPawn.LabelShort, currentPawn).ToString(), SpeechPriority.High);
+                                TolkHelper.Speak("MessageCannotSelfTendEver".Loc(
+                                    currentPawn.LabelShort, currentPawn), SpeechPriority.High);
                             }
                             else if (currentPawn.workSettings != null
                                 && !currentPawn.workSettings.WorkIsActive(WorkTypeDefOf.Doctor))
                             {
                                 // Doctor work not assigned — warn but allow (vanilla behavior)
-                                TolkHelper.Speak("MessageSelfTendUnsatisfied".Translate(
-                                    currentPawn.LabelShort, currentPawn).ToString(), SpeechPriority.High);
+                                TolkHelper.Speak("MessageSelfTendUnsatisfied".Loc(
+                                    currentPawn.LabelShort, currentPawn), SpeechPriority.High);
                             }
                         }
                         AnnounceCurrentSelection();
@@ -762,7 +762,7 @@ namespace RimWorldAccess
                         availableRecipes = HealthTabHelper.GetAvailableRecipes(currentPawn);
                         if (availableRecipes.Count == 0)
                         {
-                            TolkHelper.Speak("NoneLower".Translate().ToString());
+                            TolkHelper.Speak("NoneLower".Loc());
                             SoundDefOf.ClickReject.PlayOneShotOnCamera();
                             return;
                         }
@@ -812,7 +812,7 @@ namespace RimWorldAccess
                                     detailSb.Append($". {"Replaces".Translate()}: {replacedParts.ToCommaList().CapitalizeFirst()}");
                             }
 
-                            TolkHelper.Speak(detailSb.ToString());
+                            TolkHelper.SpeakData(detailSb.ToString());
                             SoundDefOf.Click.PlayOneShotOnCamera();
                         }
                     }
@@ -861,7 +861,7 @@ namespace RimWorldAccess
                             else
                             {
                                 string reason = report.Reason.NullOrEmpty() ? "" : report.Reason;
-                                TolkHelper.Speak("CannotUseReason".Translate(reason).ToString(), SpeechPriority.High);
+                                TolkHelper.Speak("CannotUseReason".Loc(reason), SpeechPriority.High);
                                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                             }
                         }
@@ -904,7 +904,7 @@ namespace RimWorldAccess
                         {
                             AcceptanceReport partReport = selectedRecipe.Worker.AvailableReport(currentPawn);
                             string partReason = partReport.Reason.NullOrEmpty() ? "" : partReport.Reason;
-                            TolkHelper.Speak("CannotUseReason".Translate(partReason).ToString(), SpeechPriority.High);
+                            TolkHelper.Speak("CannotUseReason".Loc(partReason), SpeechPriority.High);
                             SoundDefOf.ClickReject.PlayOneShotOnCamera();
                         }
                     }
@@ -1127,7 +1127,7 @@ namespace RimWorldAccess
                     break;
             }
 
-            TolkHelper.Speak(sb.ToString());
+            TolkHelper.SpeakData(sb.ToString());
         }
 
         private static void AnnounceWithSearch()
@@ -1169,7 +1169,7 @@ namespace RimWorldAccess
 
             if (activeTypeahead != null && itemLabel != null)
             {
-                TolkHelper.Speak(activeTypeahead.BuildItemAnnouncement(itemLabel));
+                TolkHelper.SpeakData(activeTypeahead.BuildItemAnnouncement(itemLabel));
             }
             else
             {

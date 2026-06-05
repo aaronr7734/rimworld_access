@@ -402,7 +402,7 @@ namespace RimWorldAccess
                 sb.AppendLine(thing.def.description);
             }
 
-            TolkHelper.Speak(sb.ToString());
+            TolkHelper.SpeakData(sb.ToString());
             SoundDefOf.Click.PlayOneShotOnCamera();
         }
 

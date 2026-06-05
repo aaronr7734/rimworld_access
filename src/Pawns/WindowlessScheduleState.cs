@@ -201,7 +201,7 @@ namespace RimWorldAccess
             // Column switch hint
             parts.Add("RimWorldAccess.Pawns.Schedule.Brush.TabForArea".Translate("AllowedArea".Translate()));
 
-            TolkHelper.Speak(string.Join(" ", parts));
+            TolkHelper.SpeakData(string.Join(" ", parts));
         }
 
         /// <summary>
@@ -235,7 +235,7 @@ namespace RimWorldAccess
 
         private static void AnnounceCurrentCell()
         {
-            TolkHelper.Speak(BuildCellAnnouncement());
+            TolkHelper.SpeakData(BuildCellAnnouncement());
         }
 
         private static void AnnouncePaint(Pawn pawn, int hour, TimeAssignmentDef assignment)
@@ -260,7 +260,7 @@ namespace RimWorldAccess
             selectedAssignment = availableAssignments[index];
             TimeAssignmentSelector.selectedAssignment = selectedAssignment;
             SoundDefOf.Tick_High.PlayOneShotOnCamera();
-            TolkHelper.Speak(selectedAssignment.LabelCap);
+            TolkHelper.SpeakData(selectedAssignment.LabelCap);
         }
 
         // ===== Apply Brush =====
@@ -654,7 +654,7 @@ namespace RimWorldAccess
                 copiedSchedule.Add(pawn.timetable.GetAssignment(hour));
             }
 
-            TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.CopyPasteAnnouncement".Translate("Copy".Translate(), pawn.LabelShort));
+            TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.CopyPasteAnnouncement".Loc("Copy".Translate(), pawn.LabelShort));
         }
 
         /// <summary>
@@ -679,7 +679,7 @@ namespace RimWorldAccess
                 pawn.timetable.SetAssignment(hour, copiedSchedule[hour]);
             }
 
-            TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.CopyPasteAnnouncement".Translate("Paste".Translate(), pawn.LabelShort));
+            TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.CopyPasteAnnouncement".Loc("Paste".Translate(), pawn.LabelShort));
         }
 
         // ===== Typeahead Search =====
@@ -758,13 +758,13 @@ namespace RimWorldAccess
                 if (selectedAssignment != null)
                     parts.Add("RimWorldAccess.Pawns.Schedule.Brush.Selected".Translate(selectedAssignment.LabelCap));
                 parts.Add(BuildCellAnnouncement());
-                TolkHelper.Speak(string.Join(" ", parts));
+                TolkHelper.SpeakData(string.Join(" ", parts));
             }
             else
             {
                 if (pawns.Count == 0 || tableHelper.CurrentRowIndex < 0 || tableHelper.CurrentRowIndex >= pawns.Count)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.AreaSwitchEmpty".Translate("AllowedArea".Translate()));
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.AreaSwitchEmpty".Loc("AllowedArea".Translate()));
                     return;
                 }
 
@@ -773,7 +773,7 @@ namespace RimWorldAccess
                 string pawnPos = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, pawns.Count);
                 string areaPos = MenuHelper.FormatPosition(selectedAreaIndex, availableAreas.Count);
                 string summary = "RimWorldAccess.Pawns.Schedule.AreaCellSummary".Translate(pawn.LabelShort, areaName, pawnPos, areaPos);
-                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.AreaSwitchHeader".Translate("AllowedArea".Translate(), summary));
+                TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.AreaSwitchHeader".Loc("AllowedArea".Translate(), summary));
             }
         }
 

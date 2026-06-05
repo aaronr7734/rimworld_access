@@ -127,7 +127,7 @@ namespace RimWorldAccess
             // Apparel global filter: matches vanilla Dialog_ManageApparelPolicies
             TreeNode_ThingCategory rootNode = ApparelGlobalFilter.DisplayRootCategory;
 
-            TolkHelper.Speak("RimWorldAccess.Pawns.Policy.EditAnnouncement".Translate("AssignTabEdit".Translate(), policy.label));
+            TolkHelper.Speak("RimWorldAccess.Pawns.Policy.EditAnnouncement".Loc("AssignTabEdit".Translate(), policy.label));
             ThingFilterNavigationState.Activate(policy.filter, ApparelGlobalFilter, rootNode, showQuality: true, showHitPoints: true);
         }
 
@@ -136,19 +136,19 @@ namespace RimWorldAccess
             // Food global filter: matches vanilla Dialog_ManageFoodPolicies
             TreeNode_ThingCategory rootNode = ThingCategoryDefOf.Foods.treeNode;
 
-            TolkHelper.Speak("RimWorldAccess.Pawns.Policy.EditAnnouncement".Translate("AssignTabEdit".Translate(), policy.label));
+            TolkHelper.Speak("RimWorldAccess.Pawns.Policy.EditAnnouncement".Loc("AssignTabEdit".Translate(), policy.label));
             ThingFilterNavigationState.Activate(policy.filter, FoodGlobalFilter, rootNode, showQuality: false, showHitPoints: false);
         }
 
         private static void OpenDrugEditor(DrugPolicy policy)
         {
-            TolkHelper.Speak("RimWorldAccess.Pawns.Policy.EditAnnouncement".Translate("AssignTabEdit".Translate(), policy.label));
+            TolkHelper.Speak("RimWorldAccess.Pawns.Policy.EditAnnouncement".Loc("AssignTabEdit".Translate(), policy.label));
             DrugPolicyEditorState.Open(policy, null);
         }
 
         private static void OpenReadingEditor(ReadingPolicy policy)
         {
-            TolkHelper.Speak("RimWorldAccess.Pawns.Policy.EditAnnouncement".Translate("AssignTabEdit".Translate(), policy.label));
+            TolkHelper.Speak("RimWorldAccess.Pawns.Policy.EditAnnouncement".Loc("AssignTabEdit".Translate(), policy.label));
             ReadingPolicyEditorState.Open(policy, null);
         }
     }

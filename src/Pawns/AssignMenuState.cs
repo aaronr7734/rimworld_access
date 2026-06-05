@@ -392,7 +392,7 @@ namespace RimWorldAccess
                 announcement += submenuTypeahead.BuildSearchContextSuffix();
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         public static List<string> GetSubmenuOptionLabels()
@@ -873,7 +873,7 @@ namespace RimWorldAccess
 
             Pawn currentPawn = pawnsList[tableHelper.CurrentRowIndex];
             string announcement = tableHelper.BuildCellAnnouncement(currentPawn, pawnsList.Count, includeItemName);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         public static void AnnounceWithSearch()
@@ -886,7 +886,7 @@ namespace RimWorldAccess
 
             Pawn currentPawn = pawnsList[tableHelper.CurrentRowIndex];
             string announcement = tableHelper.BuildCellAnnouncementWithSearch(currentPawn, pawnsList.Count);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
     }
 }

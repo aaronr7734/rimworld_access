@@ -52,7 +52,7 @@ namespace RimWorldAccess
 
             string names = MenuHelper.FormatNameList(
                 groupList.Select(p => p.LabelShort).ToList());
-            TolkHelper.Speak("RimWorldAccess.Pawns.Group.Saved".Translate(slot + 1, names));
+            TolkHelper.Speak("RimWorldAccess.Pawns.Group.Saved".Loc(slot + 1, names));
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace RimWorldAccess
 
             if (groupList.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Group.SlotEmpty".Translate(slot + 1));
+                TolkHelper.Speak("RimWorldAccess.Pawns.Group.SlotEmpty".Loc(slot + 1));
                 return;
             }
 
@@ -83,7 +83,7 @@ namespace RimWorldAccess
 
             if (validPawns.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Group.NoPawnsAvailable".Translate(slot + 1));
+                TolkHelper.Speak("RimWorldAccess.Pawns.Group.NoPawnsAvailable".Loc(slot + 1));
                 return;
             }
 

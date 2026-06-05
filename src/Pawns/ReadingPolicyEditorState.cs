@@ -53,7 +53,7 @@ namespace RimWorldAccess
             savedBookEffectsIndex = 0;
 
             // Announce panel name before ThingFilter announces first item
-            TolkHelper.Speak(GetCurrentPanelName());
+            TolkHelper.SpeakData(GetCurrentPanelName());
             ActivateCurrentPanel(0);
         }
 
@@ -84,13 +84,13 @@ namespace RimWorldAccess
             if (currentPanel == Panel.BookTypes)
             {
                 currentPanel = Panel.BookEffects;
-                TolkHelper.Speak(GetCurrentPanelName());
+                TolkHelper.SpeakData(GetCurrentPanelName());
                 ActivateCurrentPanel(savedBookEffectsIndex);
             }
             else
             {
                 currentPanel = Panel.BookTypes;
-                TolkHelper.Speak(GetCurrentPanelName());
+                TolkHelper.SpeakData(GetCurrentPanelName());
                 ActivateCurrentPanel(savedBookTypesIndex);
             }
         }

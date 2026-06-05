@@ -166,7 +166,7 @@ namespace RimWorldAccess
                     break;
             }
 
-            TolkHelper.Speak(info);
+            TolkHelper.SpeakData(info);
         }
 
         /// <summary>

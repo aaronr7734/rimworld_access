@@ -221,7 +221,7 @@ namespace RimWorldAccess
                 announcement += "RimWorldAccess.Pawns.Bed.OptionSuffix".Translate(menuOptions[selectedIndex]);
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         private static void ExecuteMainMenuOption()

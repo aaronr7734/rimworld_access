@@ -646,7 +646,7 @@ namespace RimWorldAccess
                     {
                         AcceptanceReport result = tryDelete(currentPolicy);
                         if (!result.Accepted)
-                            TolkHelper.Speak(result.Reason);
+                            TolkHelper.SpeakData(result.Reason);
                         else
                         {
                             refreshCallback?.Invoke();
@@ -769,7 +769,7 @@ namespace RimWorldAccess
                     if (policy == null) return false;
                     AcceptanceReport result = tryDelete(policy);
                     if (!result.Accepted)
-                        TolkHelper.Speak(result.Reason);
+                        TolkHelper.SpeakData(result.Reason);
                     else
                     {
                         refreshCallback?.Invoke();

@@ -176,9 +176,9 @@ namespace RimWorldAccess
                 PlayerKnowledgeDatabase.KnowledgeDemonstrated(
                     ConceptDefOf.AnimalTraining, KnowledgeAmount.Total);
 
-                string status = newWanted
-                    ? "RimWorldAccess.Pawns.Training.Wanted".Translate().ToString()
-                    : "RimWorldAccess.Pawns.Training.NotWanted".Translate().ToString();
+                Localized status = newWanted
+                    ? "RimWorldAccess.Pawns.Training.Wanted".Loc()
+                    : "RimWorldAccess.Pawns.Training.NotWanted".Loc();
                 TolkHelper.Speak(status);
                 SoundDefOf.Click.PlayOneShotOnCamera();
                 return true;
@@ -205,7 +205,7 @@ namespace RimWorldAccess
                 string masterName = master != null
                     ? master.LabelShort
                     : "(" + "NoneLower".Translate().Resolve() + ")";
-                TolkHelper.Speak(masterName);
+                TolkHelper.SpeakData(masterName);
                 SoundDefOf.Click.PlayOneShotOnCamera();
                 return true;
             }
@@ -228,8 +228,8 @@ namespace RimWorldAccess
                 if (pawn?.playerSettings == null)
                     return false;
                 pawn.playerSettings.followDrafted = !pawn.playerSettings.followDrafted;
-                string state = pawn.playerSettings.followDrafted
-                    ? "Yes".Translate().Resolve() : "No".Translate().Resolve();
+                Localized state = pawn.playerSettings.followDrafted
+                    ? "Yes".Loc() : "No".Loc();
                 TolkHelper.Speak(state);
                 SoundDefOf.Click.PlayOneShotOnCamera();
                 return true;
@@ -253,8 +253,8 @@ namespace RimWorldAccess
                 if (pawn?.playerSettings == null)
                     return false;
                 pawn.playerSettings.followFieldwork = !pawn.playerSettings.followFieldwork;
-                string state = pawn.playerSettings.followFieldwork
-                    ? "Yes".Translate().Resolve() : "No".Translate().Resolve();
+                Localized state = pawn.playerSettings.followFieldwork
+                    ? "Yes".Loc() : "No".Loc();
                 TolkHelper.Speak(state);
                 SoundDefOf.Click.PlayOneShotOnCamera();
                 return true;
@@ -278,8 +278,8 @@ namespace RimWorldAccess
                 if (pawn?.playerSettings == null)
                     return false;
                 pawn.playerSettings.animalForage = !pawn.playerSettings.animalForage;
-                string state = pawn.playerSettings.animalForage
-                    ? "Yes".Translate().Resolve() : "No".Translate().Resolve();
+                Localized state = pawn.playerSettings.animalForage
+                    ? "Yes".Loc() : "No".Loc();
                 TolkHelper.Speak(state);
                 SoundDefOf.Click.PlayOneShotOnCamera();
                 return true;
@@ -303,8 +303,8 @@ namespace RimWorldAccess
                 if (pawn?.playerSettings == null)
                     return false;
                 pawn.playerSettings.animalDig = !pawn.playerSettings.animalDig;
-                string state = pawn.playerSettings.animalDig
-                    ? "Yes".Translate().Resolve() : "No".Translate().Resolve();
+                Localized state = pawn.playerSettings.animalDig
+                    ? "Yes".Loc() : "No".Loc();
                 TolkHelper.Speak(state);
                 SoundDefOf.Click.PlayOneShotOnCamera();
                 return true;

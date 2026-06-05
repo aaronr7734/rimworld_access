@@ -37,7 +37,7 @@ namespace RimWorldAccess
             Pawn pawnAtCursor = TryResolvePawnAtCursor(map);
             if (pawnAtCursor != null)
             {
-                TolkHelper.Speak(extractor(pawnAtCursor));
+                TolkHelper.SpeakData(extractor(pawnAtCursor));
                 return;
             }
 
@@ -50,7 +50,7 @@ namespace RimWorldAccess
                     string info = extractor(pawn);
                     string label = "RimWorldAccess.Pawns.QuickInfo.PickerRow".Translate(pawn.LabelShort, info);
                     var p = pawn;
-                    options.Add(new FloatMenuOption(label, () => TolkHelper.Speak(extractor(p))));
+                    options.Add(new FloatMenuOption(label, () => TolkHelper.SpeakData(extractor(p))));
                 }
                 WindowlessFloatMenuState.Open(options, false);
                 return;
@@ -59,7 +59,7 @@ namespace RimWorldAccess
             Pawn selectedPawn = Find.Selector?.FirstSelectedObject as Pawn;
             if (!GuardHelper.RequirePawn(selectedPawn)) return;
 
-            TolkHelper.Speak(extractor(selectedPawn));
+            TolkHelper.SpeakData(extractor(selectedPawn));
         }
 
         private static Pawn TryResolvePawnAtCursor(Map map)

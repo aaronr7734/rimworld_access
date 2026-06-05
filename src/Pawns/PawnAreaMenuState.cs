@@ -252,7 +252,7 @@ namespace RimWorldAccess
                 string announcement = string.IsNullOrEmpty(position)
                     ? "RimWorldAccess.Pawns.Area.ManageAreas".Translate().ToString()
                     : "RimWorldAccess.Pawns.Area.ManageAreasWithPosition".Translate(position).ToString();
-                TolkHelper.Speak(announcement);
+                TolkHelper.SpeakData(announcement);
             }
             else
             {
@@ -283,7 +283,7 @@ namespace RimWorldAccess
                 string announcement = string.IsNullOrEmpty(position)
                     ? content
                     : "RimWorldAccess.Pawns.Area.WithPosition".Translate(content, position).ToString();
-                TolkHelper.Speak(announcement);
+                TolkHelper.SpeakData(announcement);
             }
         }
 
@@ -296,13 +296,13 @@ namespace RimWorldAccess
 
             if (focused == ManageAreasSentinel)
             {
-                TolkHelper.Speak(typeaheadHelper.BuildItemAnnouncement("RimWorldAccess.Pawns.Area.ManageAreas".Translate()));
+                TolkHelper.SpeakData(typeaheadHelper.BuildItemAnnouncement("RimWorldAccess.Pawns.Area.ManageAreas".Translate()));
             }
             else
             {
                 Area area = focused as Area;
                 string areaName = area?.Label ?? "RimWorldAccess.Pawns.Area.Unrestricted".Translate().ToString();
-                TolkHelper.Speak(typeaheadHelper.BuildItemAnnouncement(areaName));
+                TolkHelper.SpeakData(typeaheadHelper.BuildItemAnnouncement(areaName));
             }
         }
 
