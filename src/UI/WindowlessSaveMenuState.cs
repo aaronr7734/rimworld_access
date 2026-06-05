@@ -268,7 +268,7 @@ namespace RimWorldAccess
 
         private static void AnnounceCurrentState()
         {
-            TolkHelper.Speak(GetCurrentItemDescription());
+            TolkHelper.SpeakData(GetCurrentItemDescription());
         }
 
         /// <summary>
@@ -452,11 +452,11 @@ namespace RimWorldAccess
 
             if (typeahead.HasActiveSearch)
             {
-                TolkHelper.Speak(typeahead.BuildItemAnnouncement(baseMessage));
+                TolkHelper.SpeakData(typeahead.BuildItemAnnouncement(baseMessage));
             }
             else
             {
-                TolkHelper.Speak(baseMessage);
+                TolkHelper.SpeakData(baseMessage);
             }
         }
 

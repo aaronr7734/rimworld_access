@@ -164,7 +164,7 @@ namespace RimWorldAccess
             if (!ArchitectState.IsInPlacementMode && announceOnExecute)
             {
                 if (shiftHeld && givesColonistOrders)
-                    TolkHelper.Speak("RimWorldAccess.UI.FloatMenu.SelectedQueued".Translate(selectedOption.Label, "Queued".Translate()));
+                    TolkHelper.Speak("RimWorldAccess.UI.FloatMenu.SelectedQueued".Loc(selectedOption.Label, "Queued".Translate()));
                 else
                     TolkHelper.Speak("RimWorldAccess.UI.FloatMenu.Selected".Loc(selectedOption.Label));
             }
@@ -560,13 +560,13 @@ namespace RimWorldAccess
             {
                 if (!string.IsNullOrEmpty(tooltipText))
                 {
-                    TolkHelper.Speak(
+                    TolkHelper.SpeakData(
                         "RimWorldAccess.UI.FloatMenu.OptionTooltipSearch".Translate(optionText, tooltipText)
                         + typeahead.BuildSearchContextSuffix());
                 }
                 else
                 {
-                    TolkHelper.Speak(typeahead.BuildItemAnnouncement(optionText));
+                    TolkHelper.SpeakData(typeahead.BuildItemAnnouncement(optionText));
                 }
             }
             else

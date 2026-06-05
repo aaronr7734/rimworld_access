@@ -664,7 +664,7 @@ namespace RimWorldAccess
                     TolkHelper.Speak(
                         (expandedCount == 1
                             ? "RimWorldAccess.Tree.ExpandedCountOne"
-                            : "RimWorldAccess.Tree.ExpandedCountMany").Translate(expandedCount));
+                            : "RimWorldAccess.Tree.ExpandedCountMany").Loc(expandedCount));
                     AnnounceCurrentItem();
                 }
                 else
@@ -676,7 +676,7 @@ namespace RimWorldAccess
                     TolkHelper.Speak(
                         (expandedCount == 1
                             ? "RimWorldAccess.Tree.ExpandedCountOne"
-                            : "RimWorldAccess.Tree.ExpandedCountMany").Translate(expandedCount));
+                            : "RimWorldAccess.Tree.ExpandedCountMany").Loc(expandedCount));
                 }
             }
         }
@@ -783,7 +783,7 @@ namespace RimWorldAccess
                 ? FormatItemAnnouncement(item)
                 : DefaultFormatItemAnnouncement(item);
             announcement = GetSubmenuParentPrefix(item) + announcement;
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         private void AnnounceStateChange()
@@ -795,7 +795,7 @@ namespace RimWorldAccess
 
             if (FormatStateChangeAnnouncement != null)
             {
-                TolkHelper.Speak(FormatStateChangeAnnouncement(item));
+                TolkHelper.SpeakData(FormatStateChangeAnnouncement(item));
                 return;
             }
 
@@ -803,7 +803,7 @@ namespace RimWorldAccess
             // so the user doesn't hear the full summary on every expand/collapse
             if (!string.IsNullOrEmpty(item.ExpandedLabel))
             {
-                TolkHelper.Speak(item.ExpandedLabel + FormatExpansionSuffix(item, AnnounceChildCounts));
+                TolkHelper.SpeakData(item.ExpandedLabel + FormatExpansionSuffix(item, AnnounceChildCounts));
                 return;
             }
 
@@ -821,7 +821,7 @@ namespace RimWorldAccess
                 ? FormatSearchAnnouncement(item, typeahead)
                 : DefaultFormatSearchAnnouncement(item);
             announcement = GetSubmenuParentPrefix(item) + announcement;
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         #endregion

@@ -94,6 +94,7 @@
   <RimWorldAccess.ModList.ModWithActionAndNext>{0} {1}.{2}</RimWorldAccess.ModList.ModWithActionAndNext>
   <RimWorldAccess.ModList.CanOnlyReorderActiveMods>Can only reorder active mods</RimWorldAccess.ModList.CanOnlyReorderActiveMods>
   <RimWorldAccess.ModList.MovedToPosition>{0} moved to position {1}</RimWorldAccess.ModList.MovedToPosition>
+  <RimWorldAccess.ModList.OpenDetailsFirst>Press Enter to open mod details first</RimWorldAccess.ModList.OpenDetailsFirst>
   <RimWorldAccess.ModList.CannotReorder>Cannot reorder: {0}</RimWorldAccess.ModList.CannotReorder>
   <RimWorldAccess.ModList.ChangesSaved>Mod changes saved</RimWorldAccess.ModList.ChangesSaved>
   <RimWorldAccess.ModList.AutoSorted>Mods automatically sorted</RimWorldAccess.ModList.AutoSorted>

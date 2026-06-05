@@ -43,7 +43,7 @@ namespace RimWorldAccess
             if (!GiveNameDialogState.HasAnnounced())
             {
                 string firstPrompt = nameMessageKey.Translate(suggestingPawn.LabelShort, suggestingPawn).CapitalizeFirst();
-                string announcement = "Name dialog. " + firstPrompt;
+                string announcement = "RimWorldAccess.UI.GiveName.DialogIntro".Translate(firstPrompt);
 
                 if (useSecondName)
                 {
@@ -51,8 +51,8 @@ namespace RimWorldAccess
                     announcement += ". " + secondPrompt;
                 }
 
-                announcement += ". Use Tab to navigate between fields. Press Enter to confirm.";
-                TolkHelper.Speak(announcement);
+                announcement += ". " + "RimWorldAccess.UI.GiveName.NavHint".Translate();
+                TolkHelper.SpeakData(announcement);
                 GiveNameDialogState.MarkAsAnnounced();
                 Log.Message($"Dialog announced: {announcement.Substring(0, Mathf.Min(100, announcement.Length))}...");
             }
@@ -258,13 +258,13 @@ namespace RimWorldAccess
                 {
                     case 0:
                         string prompt = nameMessageKey.Translate(suggestingPawn.LabelShort, suggestingPawn).CapitalizeFirst();
-                        announcement = $"Text field: {prompt}. Current value: {curName}";
+                        announcement = "RimWorldAccess.UI.GiveName.TextField".Translate(prompt, curName);
                         break;
                     case 1:
-                        announcement = hasNameGenerator ? "Randomize button" : "OK button";
+                        announcement = hasNameGenerator ? (string)"RimWorldAccess.UI.GiveName.RandomizeButton".Translate() : (string)"RimWorldAccess.UI.GiveName.OkButton".Translate();
                         break;
                     case 2:
-                        announcement = "OK button";
+                        announcement = "RimWorldAccess.UI.GiveName.OkButton".Translate();
                         break;
                 }
             }
@@ -275,25 +275,25 @@ namespace RimWorldAccess
                 {
                     case 0:
                         string prompt1 = nameMessageKey.Translate(suggestingPawn.LabelShort, suggestingPawn).CapitalizeFirst();
-                        announcement = $"First text field: {prompt1}. Current value: {curName}";
+                        announcement = "RimWorldAccess.UI.GiveName.FirstTextField".Translate(prompt1, curName);
                         break;
                     case 1:
-                        announcement = "Randomize first name button";
+                        announcement = "RimWorldAccess.UI.GiveName.RandomizeFirstButton".Translate();
                         break;
                     case 2:
                         string prompt2 = secondNameMessageKey.Translate(suggestingPawn.LabelShort, suggestingPawn);
-                        announcement = $"Second text field: {prompt2}. Current value: {curSecondName}";
+                        announcement = "RimWorldAccess.UI.GiveName.SecondTextField".Translate(prompt2, curSecondName);
                         break;
                     case 3:
-                        announcement = "Randomize second name button";
+                        announcement = "RimWorldAccess.UI.GiveName.RandomizeSecondButton".Translate();
                         break;
                     case 4:
-                        announcement = "OK button";
+                        announcement = "RimWorldAccess.UI.GiveName.OkButton".Translate();
                         break;
                 }
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
             Log.Message($"Focus changed to: {announcement}");
         }
 

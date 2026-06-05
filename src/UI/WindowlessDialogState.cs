@@ -103,7 +103,7 @@ namespace RimWorldAccess
 
             // Announce dialog opened with full description
             string announcement = BuildDialogAnnouncement(title, message);
-            TolkHelper.Speak(announcement, SpeechPriority.High);
+            TolkHelper.SpeakData(announcement, SpeechPriority.High);
 
             // Announce the focused element (first action, not the description)
             if (elements.Count > 1)
@@ -300,7 +300,7 @@ namespace RimWorldAccess
             if (element is DialogDescriptionElement descElement)
             {
                 // Re-read the description
-                TolkHelper.Speak(descElement.GetAnnouncement());
+                TolkHelper.SpeakData(descElement.GetAnnouncement());
             }
             else if (element is ButtonElement button)
             {
@@ -390,7 +390,7 @@ namespace RimWorldAccess
 
             // Announce the new dialog state
             string announcement = BuildDialogAnnouncement(title, message);
-            TolkHelper.Speak(announcement, SpeechPriority.High);
+            TolkHelper.SpeakData(announcement, SpeechPriority.High);
 
             // Announce the focused element
             if (elements.Count > 1)
@@ -409,7 +409,7 @@ namespace RimWorldAccess
             // Description element doesn't show position
             if (element is DialogDescriptionElement)
             {
-                TolkHelper.Speak(element.GetAnnouncement());
+                TolkHelper.SpeakData(element.GetAnnouncement());
                 return;
             }
 
@@ -424,7 +424,7 @@ namespace RimWorldAccess
             string announcement = string.IsNullOrEmpty(position)
                 ? element.GetAnnouncement()
                 : $"{baseAnnouncement}. {position}";
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         private static string BuildDescriptionText(string title, string message)

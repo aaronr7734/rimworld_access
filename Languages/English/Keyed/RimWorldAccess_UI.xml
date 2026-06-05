@@ -167,6 +167,19 @@
   <RimWorldAccess.UI.Name.NamedSingle>Named {0}</RimWorldAccess.UI.Name.NamedSingle>
   <RimWorldAccess.UI.Name.NamedBoth>Named {0} {1}</RimWorldAccess.UI.Name.NamedBoth>
 
+  <!-- Dialog_GiveName keyboard announcements (GiveNameDialogPatch).
+       DialogIntro {0} = first prompt; the text-field keys take {0} = prompt,
+       {1} = current value. -->
+  <RimWorldAccess.UI.GiveName.DialogIntro>Name dialog. {0}</RimWorldAccess.UI.GiveName.DialogIntro>
+  <RimWorldAccess.UI.GiveName.NavHint>Use Tab to navigate between fields. Press Enter to confirm.</RimWorldAccess.UI.GiveName.NavHint>
+  <RimWorldAccess.UI.GiveName.TextField>Text field: {0}. Current value: {1}</RimWorldAccess.UI.GiveName.TextField>
+  <RimWorldAccess.UI.GiveName.FirstTextField>First text field: {0}. Current value: {1}</RimWorldAccess.UI.GiveName.FirstTextField>
+  <RimWorldAccess.UI.GiveName.SecondTextField>Second text field: {0}. Current value: {1}</RimWorldAccess.UI.GiveName.SecondTextField>
+  <RimWorldAccess.UI.GiveName.RandomizeButton>Randomize button</RimWorldAccess.UI.GiveName.RandomizeButton>
+  <RimWorldAccess.UI.GiveName.RandomizeFirstButton>Randomize first name button</RimWorldAccess.UI.GiveName.RandomizeFirstButton>
+  <RimWorldAccess.UI.GiveName.RandomizeSecondButton>Randomize second name button</RimWorldAccess.UI.GiveName.RandomizeSecondButton>
+  <RimWorldAccess.UI.GiveName.OkButton>OK button</RimWorldAccess.UI.GiveName.OkButton>
+
   <!-- Dialog_NameAllowedArea opening prompt. -->
   <RimWorldAccess.UI.NameArea.OpenPrompt>Name this allowed area. Enter a name and press OK or Enter to continue.</RimWorldAccess.UI.NameArea.OpenPrompt>
 
@@ -186,5 +199,15 @@
        Cancelled is shared (used by all three). -->
   <RimWorldAccess.UI.Cancelled>Cancelled</RimWorldAccess.UI.Cancelled>
   <RimWorldAccess.UI.Extra.None>No extra menus available</RimWorldAccess.UI.Extra.None>
+
+  <!-- MessageBox button prompts. {0} = accept button label, {1} = cancel button label. -->
+  <RimWorldAccess.UI.MessageBox.TwoButtons>Press Enter for {0}, Escape for {1}.</RimWorldAccess.UI.MessageBox.TwoButtons>
+  <RimWorldAccess.UI.MessageBox.OneButton>Press Enter for {0}.</RimWorldAccess.UI.MessageBox.OneButton>
+
+  <!-- TwoLevelMenuHelper fallback messages, used when a caller does not supply
+       its own context-specific text. -->
+  <RimWorldAccess.TwoLevel.OpenFirstDefault>Press Enter to open this item first</RimWorldAccess.TwoLevel.OpenFirstDefault>
+  <RimWorldAccess.TwoLevel.NavigateDownDefault>Navigate down to buttons first</RimWorldAccess.TwoLevel.NavigateDownDefault>
+  <RimWorldAccess.TwoLevel.NoButtonsDefault>No buttons available</RimWorldAccess.TwoLevel.NoButtonsDefault>
 
 </LanguageData>

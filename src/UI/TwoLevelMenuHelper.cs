@@ -103,9 +103,9 @@ namespace RimWorldAccess
         /// <param name="getContentLineAnnouncement">Returns the content line at the given index</param>
         /// <param name="endOfItemMessage">Message to speak when at the last position (default: "End of letter")</param>
         /// <param name="startOfItemMessage">Message to speak when at the first position (default: "Start of letter")</param>
-        /// <param name="openFirstMessage">Message when attempting button nav before entering detail view (default: "Press Enter to open letter first")</param>
-        /// <param name="navigateDownMessage">Message when attempting button nav outside the button section (default: "Navigate down to buttons first")</param>
-        /// <param name="noButtonsMessage">Message when the current item has no buttons (default: "No buttons available")</param>
+        /// <param name="openFirstMessage">Message when attempting button nav before entering detail view (null = localized TwoLevel.OpenFirstDefault)</param>
+        /// <param name="navigateDownMessage">Message when attempting button nav outside the button section (null = localized TwoLevel.NavigateDownDefault)</param>
+        /// <param name="noButtonsMessage">Message when the current item has no buttons (null = localized TwoLevel.NoButtonsDefault)</param>
         public TwoLevelMenuHelper(
             Func<int> getContentLineCount,
             Action<List<ButtonInfo>> populateButtons,
@@ -113,9 +113,9 @@ namespace RimWorldAccess
             Func<int, string> getContentLineAnnouncement,
             string endOfItemMessage = "End of letter",
             string startOfItemMessage = "Start of letter",
-            string openFirstMessage = "Press Enter to open letter first",
-            string navigateDownMessage = "Navigate down to buttons first",
-            string noButtonsMessage = "No buttons available")
+            string openFirstMessage = null,
+            string navigateDownMessage = null,
+            string noButtonsMessage = null)
         {
             this.getContentLineCount = getContentLineCount ?? throw new ArgumentNullException(nameof(getContentLineCount));
             this.populateButtons = populateButtons ?? throw new ArgumentNullException(nameof(populateButtons));
@@ -123,9 +123,9 @@ namespace RimWorldAccess
             this.getContentLineAnnouncement = getContentLineAnnouncement ?? throw new ArgumentNullException(nameof(getContentLineAnnouncement));
             this.endOfItemMessage = endOfItemMessage;
             this.startOfItemMessage = startOfItemMessage;
-            this.openFirstMessage = openFirstMessage;
-            this.navigateDownMessage = navigateDownMessage;
-            this.noButtonsMessage = noButtonsMessage;
+            this.openFirstMessage = openFirstMessage ?? (string)"RimWorldAccess.TwoLevel.OpenFirstDefault".Translate();
+            this.navigateDownMessage = navigateDownMessage ?? (string)"RimWorldAccess.TwoLevel.NavigateDownDefault".Translate();
+            this.noButtonsMessage = noButtonsMessage ?? (string)"RimWorldAccess.TwoLevel.NoButtonsDefault".Translate();
         }
 
         // === Public Methods ===
@@ -306,7 +306,7 @@ namespace RimWorldAccess
                 string disabledMsg = string.IsNullOrEmpty(button.DisabledReason)
                     ? "RimWorldAccess.TwoLevel.ButtonDisabled".Translate(button.Label).ToString()
                     : "RimWorldAccess.TwoLevel.ButtonDisabledReason".Translate(button.Label, button.DisabledReason).ToString();
-                TolkHelper.Speak(disabledMsg);
+                TolkHelper.SpeakData(disabledMsg);
                 return false;
             }
 
@@ -335,7 +335,7 @@ namespace RimWorldAccess
         {
             if (!isInDetailView)
             {
-                TolkHelper.Speak(openFirstMessage);
+                TolkHelper.SpeakData(openFirstMessage);
                 return;
             }
 
@@ -351,7 +351,7 @@ namespace RimWorldAccess
         {
             if (!isInDetailView)
             {
-                TolkHelper.Speak(openFirstMessage);
+                TolkHelper.SpeakData(openFirstMessage);
                 return;
             }
 
@@ -381,7 +381,7 @@ namespace RimWorldAccess
             string phrase = string.IsNullOrEmpty(suffix)
                 ? "RimWorldAccess.TwoLevel.BackToList".Translate().ToString()
                 : "RimWorldAccess.TwoLevel.BackToListWithSuffix".Translate(suffix).ToString();
-            TolkHelper.Speak(phrase);
+            TolkHelper.SpeakData(phrase);
         }
 
         /// <summary>
@@ -416,7 +416,7 @@ namespace RimWorldAccess
             {
                 // Header position
                 string header = getHeaderAnnouncement();
-                TolkHelper.Speak(header);
+                TolkHelper.SpeakData(header);
             }
             else if (detailPosition <= lineCount)
             {
@@ -425,7 +425,7 @@ namespace RimWorldAccess
                 string line = getContentLineAnnouncement(lineIndex);
                 if (!string.IsNullOrEmpty(line))
                 {
-                    TolkHelper.Speak(line);
+                    TolkHelper.SpeakData(line);
                 }
             }
             else if (IsPositionInButtonsSection())
@@ -471,19 +471,19 @@ namespace RimWorldAccess
         {
             if (!isInDetailView)
             {
-                TolkHelper.Speak(openFirstMessage);
+                TolkHelper.SpeakData(openFirstMessage);
                 return false;
             }
 
             if (!IsPositionInButtonsSection())
             {
-                TolkHelper.Speak(navigateDownMessage);
+                TolkHelper.SpeakData(navigateDownMessage);
                 return false;
             }
 
             if (currentButtons == null || currentButtons.Count == 0)
             {
-                TolkHelper.Speak(noButtonsMessage);
+                TolkHelper.SpeakData(noButtonsMessage);
                 return false;
             }
 
@@ -508,7 +508,7 @@ namespace RimWorldAccess
                 ? "RimWorldAccess.TwoLevel.ButtonAnnouncementDisabled"
                 : "RimWorldAccess.TwoLevel.ButtonAnnouncement").Translate(button.Label, position).ToString();
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
     }
 }

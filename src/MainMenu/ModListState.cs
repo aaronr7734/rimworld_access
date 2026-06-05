@@ -102,7 +102,7 @@ namespace RimWorldAccess
                     idx >= 0 && idx < contentLines.Count ? contentLines[idx] : "",
                 endOfItemMessage: "End of mod details",
                 startOfItemMessage: "Start of mod details",
-                openFirstMessage: "Press Enter to open mod details first"
+                openFirstMessage: "RimWorldAccess.ModList.OpenDetailsFirst".Translate()
             );
 
             // Sync with the page's selection

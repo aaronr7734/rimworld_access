@@ -372,12 +372,12 @@ namespace RimWorldAccess
                 if (currentLevel == OptionsMenuLevel.CategoryList)
                 {
                     itemName = categories[selectedCategoryIndex].Name;
-                    TolkHelper.Speak(typeahead.BuildItemAnnouncement(itemName));
+                    TolkHelper.SpeakData(typeahead.BuildItemAnnouncement(itemName));
                 }
                 else
                 {
                     var setting = categories[selectedCategoryIndex].Settings[selectedSettingIndex];
-                    TolkHelper.Speak(typeahead.BuildItemAnnouncement(setting.GetAnnouncement()));
+                    TolkHelper.SpeakData(typeahead.BuildItemAnnouncement(setting.GetAnnouncement()));
                 }
             }
             else
@@ -395,7 +395,7 @@ namespace RimWorldAccess
                 string announcement = string.IsNullOrEmpty(positionPart)
                     ? $"{categoryName}."
                     : $"{categoryName}. {positionPart}";
-                TolkHelper.Speak(announcement);
+                TolkHelper.SpeakData(announcement);
             }
             else // SettingsList
             {
@@ -405,7 +405,7 @@ namespace RimWorldAccess
                 string announcement = string.IsNullOrEmpty(positionPart)
                     ? $"{setting.GetAnnouncement()}."
                     : $"{setting.GetAnnouncement()}. {positionPart}";
-                TolkHelper.Speak(announcement);
+                TolkHelper.SpeakData(announcement);
             }
         }
 
@@ -865,7 +865,7 @@ namespace RimWorldAccess
             {
                 // Buttons don't respond to left/right arrows - only Enter
                 // Just re-announce the current state
-                TolkHelper.Speak(GetAnnouncement());
+                TolkHelper.SpeakData(GetAnnouncement());
             }
         }
 
@@ -893,7 +893,7 @@ namespace RimWorldAccess
                 {
                     return AppendTooltip($"{Name}: {choiceLabels[index]}");
                 }
-                return AppendTooltip($"{Name}: Unknown");
+                return AppendTooltip($"{Name}: {"Unknown".Translate().CapitalizeFirst()}");
             }
 
             public override void Toggle()

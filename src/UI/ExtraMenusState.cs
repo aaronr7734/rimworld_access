@@ -29,7 +29,7 @@ namespace RimWorldAccess
 
             if (options.Count == 1)
             {
-                TolkHelper.Speak(options[0].Label);
+                TolkHelper.SpeakData(options[0].Label);
                 options[0].Action?.Invoke();
                 return;
             }
@@ -280,7 +280,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak(typeahead.BuildItemAnnouncement(label));
+                    TolkHelper.SpeakData(typeahead.BuildItemAnnouncement(label));
                 }
             }
             else

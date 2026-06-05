@@ -379,7 +379,7 @@ namespace RimWorldAccess
                 return;
 
             string announcement = BuildQuantityAnnouncement(selectedQuantity);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
@@ -398,7 +398,7 @@ namespace RimWorldAccess
                 sb.Append($" Typing: {typeahead.SearchBuffer}");
             }
 
-            TolkHelper.Speak(sb.ToString());
+            TolkHelper.SpeakData(sb.ToString());
         }
 
         /// <summary>
@@ -433,7 +433,7 @@ namespace RimWorldAccess
                 sb.Append($". Typing: {numericBuffer}");
             }
 
-            TolkHelper.Speak(sb.ToString());
+            TolkHelper.SpeakData(sb.ToString());
         }
 
         /// <summary>

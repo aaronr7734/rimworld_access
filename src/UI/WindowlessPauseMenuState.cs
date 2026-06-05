@@ -289,7 +289,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak(typeahead.BuildItemAnnouncement(label));
+                    TolkHelper.SpeakData(typeahead.BuildItemAnnouncement(label));
                 }
             }
             else
@@ -335,7 +335,7 @@ namespace RimWorldAccess
                     "ReviewScenario".Translate(),
                     () => {
                         string scenarioText = Find.Scenario.name + ": " + Find.Scenario.GetFullInformationText();
-                        TolkHelper.Speak(scenarioText);
+                        TolkHelper.SpeakData(scenarioText);
                     }
                 ));
 

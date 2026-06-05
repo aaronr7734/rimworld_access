@@ -211,7 +211,7 @@ namespace RimWorldAccess
                 SpeakNoMatches(priority);
                 return;
             }
-            TolkHelper.Speak(BuildItemAnnouncement(itemLabel), priority);
+            TolkHelper.SpeakData(BuildItemAnnouncement(itemLabel), priority);
         }
 
         /// <summary>

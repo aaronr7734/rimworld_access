@@ -544,7 +544,7 @@ namespace RimWorldAccess
                         }
                         else
                         {
-                            TolkHelper.Speak(reason, SpeechPriority.High);
+                            TolkHelper.SpeakData(reason, SpeechPriority.High);
                         }
                         return;
                     }
@@ -619,7 +619,7 @@ namespace RimWorldAccess
                             invalidMessage = key.Translate();
                         }
                     }
-                    TolkHelper.Speak(invalidMessage, SpeechPriority.High);
+                    TolkHelper.SpeakData(invalidMessage, SpeechPriority.High);
                     return;
                 }
             }
@@ -644,7 +644,7 @@ namespace RimWorldAccess
                                 invalidMessage = key.Translate();
                             }
                         }
-                        TolkHelper.Speak(invalidMessage, SpeechPriority.High);
+                        TolkHelper.SpeakData(invalidMessage, SpeechPriority.High);
                         return;
                     }
                 }

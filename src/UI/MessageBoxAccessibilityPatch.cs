@@ -52,15 +52,15 @@ namespace RimWorldAccess
 
                 if (!buttonAText.NullOrEmpty() && !buttonBText.NullOrEmpty())
                 {
-                    announcement += $"{separator}Press Enter for {buttonAText}, Escape for {buttonBText}.";
+                    announcement += separator + "RimWorldAccess.UI.MessageBox.TwoButtons".Translate(buttonAText, buttonBText);
                 }
                 else if (!buttonAText.NullOrEmpty())
                 {
-                    announcement += $"{separator}Press Enter for {buttonAText}.";
+                    announcement += separator + "RimWorldAccess.UI.MessageBox.OneButton".Translate(buttonAText);
                 }
 
                 // Announce with high priority to interrupt navigation
-                TolkHelper.Speak(announcement, SpeechPriority.High);
+                TolkHelper.SpeakData(announcement, SpeechPriority.High);
             }
             catch (System.Exception ex)
             {
@@ -93,7 +93,7 @@ namespace RimWorldAccess
                 {
                     // Announce confirmation
                     string buttonText = __instance.buttonAText ?? "Confirm".Translate();
-                    TolkHelper.Speak(buttonText);
+                    TolkHelper.SpeakData(buttonText);
 
                     __instance.buttonAAction();
                     __instance.Close();
@@ -108,7 +108,7 @@ namespace RimWorldAccess
                 {
                     // Announce cancellation
                     string buttonText = __instance.buttonBText ?? "Cancel".Translate();
-                    TolkHelper.Speak(buttonText);
+                    TolkHelper.SpeakData(buttonText);
 
                     __instance.buttonBAction();
                     __instance.Close();
