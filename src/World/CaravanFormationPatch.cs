@@ -208,7 +208,7 @@ namespace RimWorldAccess
             // Draw text
             Text.Font = GameFont.Tiny;
             Text.Anchor = TextAnchor.MiddleCenter;
-            Widgets.Label(indicatorRect, "Keyboard Mode Active");
+            Widgets.Label(indicatorRect, (string)"RimWorldAccess.Caravan.Form.KeyboardModeActive".Translate());
 
             // Reset text settings
             Text.Anchor = TextAnchor.UpperLeft;
@@ -223,9 +223,7 @@ namespace RimWorldAccess
             Text.Font = GameFont.Tiny;
             Text.Anchor = TextAnchor.UpperLeft;
 
-            string instructions = "Tabs: Pawns, Items, Travel Supplies | Space/Enter: Toggle/Quantity\n" +
-                                "Shift+Enter: Max | Del: Remove | Tab: Summary | Alt+I: Inspect/Breakdown\n" +
-                                "Alt+A: Auto-provision | Alt+D: Destination | Alt+S: Send | Alt+R: Reset";
+            string instructions = "RimWorldAccess.Caravan.Form.KeyboardInstructions".Translate();
 
             Widgets.Label(instructionsRect, instructions);
 

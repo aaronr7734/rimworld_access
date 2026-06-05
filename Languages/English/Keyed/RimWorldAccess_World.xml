@@ -154,6 +154,10 @@
   <RimWorldAccess.Caravan.Form.SuppliesTabLocked>Supplies tab locked. Press Alt+A to disable auto-provision.</RimWorldAccess.Caravan.Form.SuppliesTabLocked>
   <RimWorldAccess.Caravan.Form.NoBreakdownForItem>No breakdown available for this item</RimWorldAccess.Caravan.Form.NoBreakdownForItem>
   <RimWorldAccess.Caravan.Form.FormationCancelled>Caravan formation cancelled</RimWorldAccess.Caravan.Form.FormationCancelled>
+  <!-- On-screen visual aids drawn over the dialog for sighted observers
+       (not spoken). The instructions string uses \n line breaks. -->
+  <RimWorldAccess.Caravan.Form.KeyboardModeActive>Keyboard Mode Active</RimWorldAccess.Caravan.Form.KeyboardModeActive>
+  <RimWorldAccess.Caravan.Form.KeyboardInstructions>Tabs: Pawns, Items, Travel Supplies | Space/Enter: Toggle/Quantity\nShift+Enter: Max | Del: Remove | Tab: Summary | Alt+I: Inspect/Breakdown\nAlt+A: Auto-provision | Alt+D: Destination | Alt+S: Send | Alt+R: Reset</RimWorldAccess.Caravan.Form.KeyboardInstructions>
 
   <!-- =================================================================
        Split caravan dialog (SplitCaravanState).
