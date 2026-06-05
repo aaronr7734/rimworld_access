@@ -389,7 +389,7 @@ namespace RimWorldAccess
                 dialog.Close(doCloseSound: false);
             }
             Close();
-            TolkHelper.Speak((string)"Close".Translate());
+            TolkHelper.Speak("Close".Loc());
         }
 
         // ===== Rename Input =====
@@ -546,8 +546,8 @@ namespace RimWorldAccess
             // Announce feedback
             string biostats = FormatCurrentBiostats();
             TolkHelper.Speak(adding
-                ? "RimWorldAccess.Biotech.XenotypeEditor.GeneAdded".Translate(gene.LabelCap, biostats)
-                : "RimWorldAccess.Biotech.XenotypeEditor.GeneRemoved".Translate(gene.LabelCap, biostats));
+                ? "RimWorldAccess.Biotech.XenotypeEditor.GeneAdded".Loc(gene.LabelCap, biostats)
+                : "RimWorldAccess.Biotech.XenotypeEditor.GeneRemoved".Loc(gene.LabelCap, biostats));
         }
 
         private static GeneDef GetCurrentGeneDef()
@@ -593,7 +593,7 @@ namespace RimWorldAccess
             if (selectedList == null || selectedList.Count == 0)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak(((string)"MessageNoSelectedGenes".Translate()).StripTags());
+                TolkHelper.Speak("MessageNoSelectedGenes".Loc());
                 return;
             }
 
@@ -601,7 +601,7 @@ namespace RimWorldAccess
             if (string.IsNullOrEmpty(name?.Trim()))
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak(((string)"XenotypeNameCannotBeEmpty".Translate()).StripTags());
+                TolkHelper.Speak("XenotypeNameCannotBeEmpty".Loc());
                 return;
             }
 
@@ -621,7 +621,7 @@ namespace RimWorldAccess
                 if (leftChosenGroups != null && leftChosenGroups.Count > 0)
                 {
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak(((string)"MessageConflictingGenesPresent".Translate()).StripTags());
+                    TolkHelper.Speak("MessageConflictingGenesPresent".Loc());
                     return;
                 }
 
@@ -631,7 +631,7 @@ namespace RimWorldAccess
                     if (gene.prerequisite != null && !selectedList.Contains(gene.prerequisite))
                     {
                         SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                        TolkHelper.Speak(((string)"MessageGeneMissingPrerequisite".Translate(gene.label)).CapitalizeFirst().StripTags()
+                        TolkHelper.SpeakData("MessageGeneMissingPrerequisite".Translate(gene.label).CapitalizeFirst()
                             + ": " + gene.prerequisite.LabelCap);
                         return;
                     }
@@ -718,8 +718,8 @@ namespace RimWorldAccess
 
             SoundDefOf.Tick_High.PlayOneShotOnCamera();
             TolkHelper.Speak(selectedList.Count == 1
-                ? "RimWorldAccess.Biotech.XenotypeEditor.LoadedSummaryOne".Translate(xenotype.name, FormatCurrentBiostats())
-                : "RimWorldAccess.Biotech.XenotypeEditor.LoadedSummaryMany".Translate(xenotype.name, selectedList.Count, FormatCurrentBiostats()));
+                ? "RimWorldAccess.Biotech.XenotypeEditor.LoadedSummaryOne".Loc(xenotype.name, FormatCurrentBiostats())
+                : "RimWorldAccess.Biotech.XenotypeEditor.LoadedSummaryMany".Loc(xenotype.name, selectedList.Count, FormatCurrentBiostats()));
         }
 
         private static void LoadPremade()
@@ -777,8 +777,8 @@ namespace RimWorldAccess
 
             SoundDefOf.Tick_High.PlayOneShotOnCamera();
             TolkHelper.Speak(selectedList.Count == 1
-                ? "RimWorldAccess.Biotech.XenotypeEditor.LoadedSummaryOne".Translate(xenotype.LabelCap, FormatCurrentBiostats())
-                : "RimWorldAccess.Biotech.XenotypeEditor.LoadedSummaryMany".Translate(xenotype.LabelCap, selectedList.Count, FormatCurrentBiostats()));
+                ? "RimWorldAccess.Biotech.XenotypeEditor.LoadedSummaryOne".Loc(xenotype.LabelCap, FormatCurrentBiostats())
+                : "RimWorldAccess.Biotech.XenotypeEditor.LoadedSummaryMany".Loc(xenotype.LabelCap, selectedList.Count, FormatCurrentBiostats()));
         }
 
         // ===== InfoCard =====
@@ -913,7 +913,7 @@ namespace RimWorldAccess
                 Label = FormatCurrentBiostats(),
                 OnActivate = () =>
                 {
-                    TolkHelper.Speak(FormatCurrentBiostats());
+                    TolkHelper.SpeakData(FormatCurrentBiostats());
                 }
             });
 
@@ -943,7 +943,7 @@ namespace RimWorldAccess
                     string desc = !locked
                         ? ((string)"LockNameOn".Translate()).StripTags()
                         : ((string)"LockNameOff".Translate()).StripTags();
-                    TolkHelper.Speak(desc);
+                    TolkHelper.SpeakData(desc);
                     controlItems[controlIdx].Label = FormatNameLock();
                     controlItems[controlIdx].Tooltip = FormatNameLockTooltip();
                 }
@@ -960,13 +960,13 @@ namespace RimWorldAccess
                     if (genes == null || genes.Count == 0)
                     {
                         SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                        TolkHelper.Speak(((string)"SelectAGeneToRandomizeName".Translate()).StripTags());
+                        TolkHelper.Speak("SelectAGeneToRandomizeName".Loc());
                         return;
                     }
                     string newName = GeneUtility.GenerateXenotypeNameFromGenes(genes);
                     fi_xenotypeName.SetValue(dialog, newName);
                     SoundDefOf.Tick_High.PlayOneShotOnCamera();
-                    TolkHelper.Speak($"{((string)"XenotypeName".Translate()).CapitalizeFirst()}: {newName}");
+                    TolkHelper.SpeakData($"{((string)"XenotypeName".Translate()).CapitalizeFirst()}: {newName}");
                     BuildControlItems();
                 }
             });
@@ -982,7 +982,7 @@ namespace RimWorldAccess
                     bool inheritable = (bool)fi_inheritable.GetValue(dialog);
                     fi_inheritable.SetValue(dialog, !inheritable);
                     SoundDefOf.Click.PlayOneShotOnCamera();
-                    TolkHelper.Speak(FormatInheritable());
+                    TolkHelper.SpeakData(FormatInheritable());
                     controlItems[controlIdx].Label = FormatInheritable();
                 }
             });
@@ -1052,7 +1052,7 @@ namespace RimWorldAccess
                             msg += (removed == 1
                                 ? "RimWorldAccess.Biotech.XenotypeEditor.AchiteRemovedOne".Translate()
                                 : "RimWorldAccess.Biotech.XenotypeEditor.AchiteRemovedMany".Translate(removed));
-                        TolkHelper.Speak(msg);
+                        TolkHelper.SpeakData(msg);
                     }
 
                     controlItems[controlIdx].Label = FormatIgnoreRestrictions();
@@ -1099,7 +1099,7 @@ namespace RimWorldAccess
 
         private static void AnnounceTabSwitch()
         {
-            TolkHelper.Speak(GetTabAnnouncement());
+            TolkHelper.SpeakData(GetTabAnnouncement());
         }
 
         private static string GetTabAnnouncement()
@@ -1199,7 +1199,7 @@ namespace RimWorldAccess
             }
 
             sb.Append(".");
-            TolkHelper.Speak(sb.ToString());
+            TolkHelper.SpeakData(sb.ToString());
         }
 
         // ===== Formatting =====

@@ -380,7 +380,7 @@ namespace RimWorldAccess
                 dialog.Close(doCloseSound: false);
             }
             Close();
-            TolkHelper.Speak((string)"Close".Translate());
+            TolkHelper.Speak("Close".Loc());
         }
 
         // Rename input flows through TextInputManager (priority -1.6 in UnifiedKeyboardPatch).
@@ -496,7 +496,7 @@ namespace RimWorldAccess
                 if (unpowered != null && unpowered.Contains(genepack))
                 {
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak(((string)"GenepackUnusableGenebankUnpowered".Translate()).StripTags());
+                    TolkHelper.Speak("GenepackUnusableGenebankUnpowered".Loc());
                     return;
                 }
 
@@ -545,8 +545,8 @@ namespace RimWorldAccess
             string packLabel = genepack.LabelNoCount;
             string biostats = FormatCurrentBiostats();
             TolkHelper.Speak(adding
-                ? "RimWorldAccess.Biotech.Xenogerm.PackAdded".Translate(packLabel, biostats)
-                : "RimWorldAccess.Biotech.Xenogerm.PackRemoved".Translate(packLabel, biostats));
+                ? "RimWorldAccess.Biotech.Xenogerm.PackAdded".Loc(packLabel, biostats)
+                : "RimWorldAccess.Biotech.Xenogerm.PackRemoved".Loc(packLabel, biostats));
         }
 
         private static void RestoreCursor(Genepack cursorPack)
@@ -584,7 +584,7 @@ namespace RimWorldAccess
             if (selectedList == null || selectedList.Count == 0)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak(((string)"MessageNoSelectedGenepacks".Translate()).StripTags());
+                TolkHelper.Speak("MessageNoSelectedGenepacks".Loc());
                 return;
             }
 
@@ -592,7 +592,7 @@ namespace RimWorldAccess
             if (arc > 0 && !ResearchProjectDefOf.Archogenetics.IsFinished)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak(((string)"AssemblingRequiresResearch".Translate(ResearchProjectDefOf.Archogenetics)).StripTags());
+                TolkHelper.Speak("AssemblingRequiresResearch".Loc(ResearchProjectDefOf.Archogenetics));
                 return;
             }
 
@@ -601,7 +601,7 @@ namespace RimWorldAccess
             if (gcx > maxGCX)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak(((string)"ComplexityTooHighToCreateXenogerm".Translate(gcx.Named("AMOUNT"), maxGCX.Named("MAX"))).StripTags());
+                TolkHelper.Speak("ComplexityTooHighToCreateXenogerm".Loc(gcx.Named("AMOUNT"), maxGCX.Named("MAX")));
                 return;
             }
 
@@ -609,7 +609,7 @@ namespace RimWorldAccess
             if (string.IsNullOrEmpty(name?.Trim()))
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak(((string)"XenotypeNameCannotBeEmpty".Translate()).StripTags());
+                TolkHelper.Speak("XenotypeNameCannotBeEmpty".Loc());
                 return;
             }
 
@@ -642,12 +642,12 @@ namespace RimWorldAccess
             if (result.Accepted)
             {
                 SoundDefOf.Tick_High.PlayOneShotOnCamera();
-                TolkHelper.Speak(((string)"XenogermTemplateSaved".Translate(name.Named("NAME"))).StripTags());
+                TolkHelper.Speak("XenogermTemplateSaved".Loc(name.Named("NAME")));
             }
             else
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak(result.Reason.StripTags());
+                TolkHelper.SpeakData(result.Reason.StripTags());
             }
         }
 
@@ -734,7 +734,7 @@ namespace RimWorldAccess
             sb.Append($" {FormatCurrentBiostats()}");
 
             SoundDefOf.Tick_High.PlayOneShotOnCamera();
-            TolkHelper.Speak(sb.ToString());
+            TolkHelper.SpeakData(sb.ToString());
         }
 
         // ===== InfoCard =====
@@ -855,7 +855,7 @@ namespace RimWorldAccess
                 Label = FormatCurrentBiostats(),
                 OnActivate = () =>
                 {
-                    TolkHelper.Speak(FormatCurrentBiostats());
+                    TolkHelper.SpeakData(FormatCurrentBiostats());
                 }
             });
 
@@ -884,7 +884,7 @@ namespace RimWorldAccess
                     string desc = !locked
                         ? ((string)"LockNameOn".Translate()).StripTags()
                         : ((string)"LockNameOff".Translate()).StripTags();
-                    TolkHelper.Speak(desc);
+                    TolkHelper.SpeakData(desc);
                     controlItems[controlIdx].Label = FormatNameLock();
                 }
             });
@@ -900,13 +900,13 @@ namespace RimWorldAccess
                     if (genes == null || genes.Count == 0)
                     {
                         SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                        TolkHelper.Speak(((string)"SelectAGeneToRandomizeName".Translate()).StripTags());
+                        TolkHelper.Speak("SelectAGeneToRandomizeName".Loc());
                         return;
                     }
                     string newName = GeneUtility.GenerateXenotypeNameFromGenes(genes);
                     fi_xenotypeName.SetValue(dialog, newName);
                     SoundDefOf.Tick_High.PlayOneShotOnCamera();
-                    TolkHelper.Speak($"{((string)"XenotypeName".Translate()).CapitalizeFirst()}: {newName}");
+                    TolkHelper.SpeakData($"{((string)"XenotypeName".Translate()).CapitalizeFirst()}: {newName}");
                     BuildControlItems();
                 }
             });
@@ -955,7 +955,7 @@ namespace RimWorldAccess
 
         private static void AnnounceTabSwitch()
         {
-            TolkHelper.Speak(GetTabAnnouncement());
+            TolkHelper.SpeakData(GetTabAnnouncement());
         }
 
         private static string GetTabAnnouncement()
@@ -1029,7 +1029,7 @@ namespace RimWorldAccess
                 ? $"{label}."
                 : $"{label}. {positionPart}.";
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         // ===== Formatting =====

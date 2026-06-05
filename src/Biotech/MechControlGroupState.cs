@@ -290,7 +290,7 @@ namespace RimWorldAccess
                 BuildMembersList();
                 if (memberMechs.Count == 0)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Biotech.Mech.Members".Translate() + ". " + "NoMechs".Translate());
+                    TolkHelper.SpeakData("RimWorldAccess.Biotech.Mech.Members".Translate() + ". " + "NoMechs".Translate());
                     return;
                 }
                 TolkHelper.Speak("RimWorldAccess.Biotech.Mech.Members".Loc());
@@ -592,8 +592,8 @@ namespace RimWorldAccess
             }
 
             TolkHelper.Speak(mechs.Count == 1
-                ? "RimWorldAccess.Biotech.Mech.SelectedMechOne".Translate(mechs.Count)
-                : "RimWorldAccess.Biotech.Mech.SelectedMechMany".Translate(mechs.Count));
+                ? "RimWorldAccess.Biotech.Mech.SelectedMechOne".Loc(mechs.Count)
+                : "RimWorldAccess.Biotech.Mech.SelectedMechMany".Loc(mechs.Count));
         }
 
         // ========== Reassignment ==========
@@ -641,7 +641,7 @@ namespace RimWorldAccess
                         {
                             announcement += ". " + "NoMechs".Translate();
                         }
-                        TolkHelper.Speak(announcement);
+                        TolkHelper.SpeakData(announcement);
 
                         if (memberMechs.Count > 0)
                             AnnounceCurrentItem();
@@ -718,7 +718,7 @@ namespace RimWorldAccess
             if (!string.IsNullOrEmpty(position))
                 announcement += ". " + position;
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         private static void AnnounceWithSearch()
@@ -734,7 +734,7 @@ namespace RimWorldAccess
 
             if (typeahead.HasActiveSearch)
             {
-                TolkHelper.Speak(typeahead.BuildItemAnnouncement(label));
+                TolkHelper.SpeakData(typeahead.BuildItemAnnouncement(label));
             }
             else
             {

@@ -379,7 +379,7 @@ namespace RimWorldAccess
             }
 
             sb.Append("RimWorldAccess.Biotech.GeneInspection.NavHint".Translate());
-            TolkHelper.Speak(sb.ToString());
+            TolkHelper.SpeakData(sb.ToString());
         }
 
         #endregion
