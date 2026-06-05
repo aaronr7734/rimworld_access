@@ -434,7 +434,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak(value);
+                TolkHelper.SpeakData(value);
             }
         }
 
@@ -806,7 +806,7 @@ namespace RimWorldAccess
         {
             string labeled = GetSliderLabeledRange(item);
             if (!string.IsNullOrEmpty(labeled))
-                TolkHelper.Speak(labeled);
+                TolkHelper.SpeakData(labeled);
         }
 
         /// <summary>
@@ -1085,7 +1085,7 @@ namespace RimWorldAccess
 
             if (treeNav.HasActiveSearch)
             {
-                TolkHelper.Speak(FormatSearchAnnouncement(item, treeNav.Typeahead));
+                TolkHelper.SpeakData(FormatSearchAnnouncement(item, treeNav.Typeahead));
             }
             else
             {

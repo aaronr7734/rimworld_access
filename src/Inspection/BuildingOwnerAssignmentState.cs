@@ -189,7 +189,7 @@ namespace RimWorldAccess
                     selectedBuilding.LabelCap, currentOption);
             }
 
-            TolkHelper.Speak(info);
+            TolkHelper.SpeakData(info);
         }
 
         private static void ExecuteMainMenuOption()
@@ -284,7 +284,7 @@ namespace RimWorldAccess
                 string message = !string.IsNullOrEmpty(reason)
                     ? "RimWorldAccess.Inspection.OwnerAssignment.CannotAssignPawnWithReason".Translate(selectedPawn.LabelShort, reason.StripTags()).ToString()
                     : "RimWorldAccess.Inspection.OwnerAssignment.CannotAssignPawn".Translate(selectedPawn.LabelShort).ToString();
-                TolkHelper.Speak(message, SpeechPriority.High);
+                TolkHelper.SpeakData(message, SpeechPriority.High);
                 return;
             }
 

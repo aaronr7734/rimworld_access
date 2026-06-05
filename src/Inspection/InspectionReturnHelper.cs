@@ -18,7 +18,7 @@ namespace RimWorldAccess
                 return;
             }
             if (!string.IsNullOrEmpty(fallback))
-                TolkHelper.Speak(fallback);
+                TolkHelper.SpeakData(fallback);
         }
     }
 }

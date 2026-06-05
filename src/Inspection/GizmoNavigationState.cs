@@ -513,7 +513,7 @@ namespace RimWorldAccess
                 if (!string.IsNullOrEmpty(context))
                     announcement += $". {context}";
 
-                TolkHelper.Speak(announcement);
+                TolkHelper.SpeakData(announcement);
                 return;
             }
 
@@ -1212,7 +1212,7 @@ namespace RimWorldAccess
                         announcement += $". {context}";
                 }
 
-                TolkHelper.Speak(announcement);
+                TolkHelper.SpeakData(announcement);
             }
             else
             {
@@ -1343,7 +1343,7 @@ namespace RimWorldAccess
                 }
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
@@ -2689,7 +2689,7 @@ namespace RimWorldAccess
 
             // Announce the new value
             string announcement = GetSliderAnnouncement(sliderGizmo, sliderValue);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>

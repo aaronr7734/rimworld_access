@@ -437,7 +437,7 @@ namespace RimWorldAccess
         {
             string announcement = fallbackAnnouncement
                 ?? "RimWorldAccess.InfoCard.Unavailable".Translate().ToString();
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
         }
 
@@ -581,7 +581,7 @@ namespace RimWorldAccess
                 announcement = key.Translate(rootLabel, itemCount);
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         #region Announcement Formatters

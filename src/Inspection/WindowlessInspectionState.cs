@@ -79,7 +79,7 @@ namespace RimWorldAccess
                     if (singleItem.IsExpandable)
                     {
                         // Announce just the item name (no expand/collapse status)
-                        TolkHelper.Speak(singleItem.Label.StripTags());
+                        TolkHelper.SpeakData(singleItem.Label.StripTags());
 
                         // Trigger lazy loading if needed
                         if (singleItem.OnActivate != null && singleItem.Children.Count == 0)
@@ -167,7 +167,7 @@ namespace RimWorldAccess
                     var singleItem = treeNav.VisibleItems[0];
                     if (singleItem.IsExpandable)
                     {
-                        TolkHelper.Speak(singleItem.Label.StripTags());
+                        TolkHelper.SpeakData(singleItem.Label.StripTags());
 
                         if (singleItem.OnActivate != null && singleItem.Children.Count == 0)
                         {
@@ -243,7 +243,7 @@ namespace RimWorldAccess
                     if (singleItem.IsExpandable)
                     {
                         // Announce just the item name (no expand/collapse status)
-                        TolkHelper.Speak(singleItem.Label.StripTags());
+                        TolkHelper.SpeakData(singleItem.Label.StripTags());
 
                         // Trigger lazy loading if needed
                         if (singleItem.OnActivate != null && singleItem.Children.Count == 0)

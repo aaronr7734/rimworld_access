@@ -381,7 +381,7 @@ namespace RimWorldAccess
                 announcement += $". {MenuHelper.FormatPosition(selectedIndex, menuItems.Count)}";
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
@@ -488,7 +488,7 @@ namespace RimWorldAccess
                 }
             }
 
-            TolkHelper.Speak("RimWorldAccess.Inspection.Bills.MovedUp".Translate(bill.LabelCap, billGiver.BillStack.IndexOf(bill) + 1));
+            TolkHelper.Speak("RimWorldAccess.Inspection.Bills.MovedUp".Loc(bill.LabelCap, billGiver.BillStack.IndexOf(bill) + 1));
         }
 
         /// <summary>
@@ -530,7 +530,7 @@ namespace RimWorldAccess
                 }
             }
 
-            TolkHelper.Speak("RimWorldAccess.Inspection.Bills.MovedDown".Translate(bill.LabelCap, billGiver.BillStack.IndexOf(bill) + 1));
+            TolkHelper.Speak("RimWorldAccess.Inspection.Bills.MovedDown".Loc(bill.LabelCap, billGiver.BillStack.IndexOf(bill) + 1));
         }
 
         /// <summary>
@@ -750,7 +750,7 @@ namespace RimWorldAccess
 
                 announcement += $". {MenuHelper.FormatPosition(selectedIndex, menuItems.Count)}";
 
-                TolkHelper.Speak(announcement);
+                TolkHelper.SpeakData(announcement);
             }
         }
 

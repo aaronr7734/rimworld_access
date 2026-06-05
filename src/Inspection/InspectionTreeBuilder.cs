@@ -1574,8 +1574,7 @@ namespace RimWorldAccess
                         {
                             if (SocialTabHelper.InitiateRomance(pawn, capturedTarget.Target))
                             {
-                                TolkHelper.Speak("RimWorldAccess.Pawns.Social.Romance.WillTry"
-                                    .Translate(pawn.LabelShort, capturedTarget.TargetName));
+                                TolkHelper.Speak("RimWorldAccess.Pawns.Social.Romance.WillTry".Loc(pawn.LabelShort, capturedTarget.TargetName));
                             }
                             else
                             {
@@ -3886,7 +3885,7 @@ namespace RimWorldAccess
                         baby.foodRestriction.SetBabyFoodAllowed(localFood, !current);
                         string newState = !current ? allowedStr : notAllowedStr;
                         foodItem.Label = $"{localFood.LabelCap}: {newState}";
-                        TolkHelper.Speak(newState);
+                        TolkHelper.SpeakData(newState);
                         SoundDefOf.Click.PlayOneShotOnCamera();
                     };
                 }
@@ -4126,7 +4125,7 @@ namespace RimWorldAccess
                     autoCut.autoCut = !autoCut.autoCut;
                     string newState = autoCut.autoCut ? "On".Translate().ToString() : "Off".Translate().ToString();
                     toggleItem.Label = $"{toggleLabel}: {newState}";
-                    TolkHelper.Speak(newState);
+                    TolkHelper.SpeakData(newState);
                     SoundDefOf.Click.PlayOneShotOnCamera();
                 };
             }
@@ -4304,7 +4303,7 @@ namespace RimWorldAccess
                                 GenDrop.TryDropSpawn(localThing.SplitOff(localThing.stackCount),
                                     building.Position, building.Map, ThingPlaceMode.Near, out _);
                                 transporter.Notify_ThingRemoved(localThing);
-                                TolkHelper.Speak(itemLabel);
+                                TolkHelper.SpeakData(itemLabel);
                                 SoundDefOf.Click.PlayOneShotOnCamera();
 
                                 // Rebuild

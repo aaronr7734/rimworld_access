@@ -1075,7 +1075,7 @@ namespace RimWorldAccess
                 MapNavigationState.CurrentCursorPosition = location;
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
             SoundDefOf.Click.PlayOneShotOnCamera();
             Close();
         }
@@ -1182,7 +1182,7 @@ namespace RimWorldAccess
             }
 
             string announcement = string.Join(". ", details);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
             SoundDefOf.Click.PlayOneShotOnCamera();
         }
 

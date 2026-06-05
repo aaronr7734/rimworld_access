@@ -600,7 +600,7 @@ namespace RimWorldAccess
                 announcement += $". {MenuHelper.FormatPosition(selectedIndex, menuItems.Count)}";
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         #endregion
@@ -763,7 +763,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak(newValue.ToString());
+                TolkHelper.SpeakData(newValue.ToString());
             }
 
             menuItems[selectedIndex].label = GetRepeatCountLabel();
@@ -806,7 +806,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak(newValue.ToString());
+                TolkHelper.SpeakData(newValue.ToString());
             }
 
             menuItems[selectedIndex].label = GetTargetCountLabel();
@@ -841,7 +841,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak(newValue.ToString());
+                TolkHelper.SpeakData(newValue.ToString());
             }
 
             menuItems[selectedIndex].label = GetUnpauseAtLabel();
@@ -891,7 +891,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak(valueLabel);
+                TolkHelper.SpeakData(valueLabel);
             }
 
             menuItems[selectedIndex].label = GetMinPopulationLabel();
@@ -1178,7 +1178,7 @@ namespace RimWorldAccess
             if (!isNumericInputMode) return;
 
             numericBuffer += digit;
-            TolkHelper.Speak(numericBuffer, SpeechPriority.Low);
+            TolkHelper.SpeakData(numericBuffer, SpeechPriority.Low);
         }
 
         public static void HandleNumericBackspace()
@@ -1188,7 +1188,7 @@ namespace RimWorldAccess
             numericBuffer = numericBuffer.Substring(0, numericBuffer.Length - 1);
             if (numericBuffer.Length > 0)
             {
-                TolkHelper.Speak(numericBuffer, SpeechPriority.Low);
+                TolkHelper.SpeakData(numericBuffer, SpeechPriority.Low);
             }
             else
             {
@@ -1235,7 +1235,7 @@ namespace RimWorldAccess
                         int newValue = Mathf.Max(1, value);
                         repeatCountField.SetValue(fishingZone, newValue);
                         menuItems[selectedIndex].label = GetRepeatCountLabel();
-                        TolkHelper.Speak(newValue.ToString());
+                        TolkHelper.SpeakData(newValue.ToString());
                     }
                     break;
 
@@ -1258,7 +1258,7 @@ namespace RimWorldAccess
                             }
                         }
                         menuItems[selectedIndex].label = GetTargetCountLabel();
-                        TolkHelper.Speak(newValue.ToString());
+                        TolkHelper.SpeakData(newValue.ToString());
                     }
                     break;
 
@@ -1269,7 +1269,7 @@ namespace RimWorldAccess
                         int newValue = Mathf.Clamp(value, 0, targetCount - 1);
                         unpauseAtCountField.SetValue(fishingZone, newValue);
                         menuItems[selectedIndex].label = GetUnpauseAtLabel();
-                        TolkHelper.Speak(menuItems[selectedIndex].label);
+                        TolkHelper.SpeakData(menuItems[selectedIndex].label);
                     }
                     break;
 
@@ -1308,7 +1308,7 @@ namespace RimWorldAccess
                 // Add level suffix (only announced when level changes)
                 announcement += MenuHelper.GetLevelSuffix(MenuKey, item.indentLevel);
 
-                TolkHelper.Speak(announcement);
+                TolkHelper.SpeakData(announcement);
             }
         }
 

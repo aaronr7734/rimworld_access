@@ -1079,7 +1079,7 @@ namespace RimWorldAccess
                         {
                             SoundDefOf.ClickReject.PlayOneShotOnCamera();
                             TolkHelper.Speak(
-                                "NoPermitsToReturn".Translate(capturedPawn.Named("PAWN")).Resolve(),
+                                "NoPermitsToReturn".Loc(capturedPawn.Named("PAWN")),
                                 SpeechPriority.High);
                             return;
                         }
@@ -1090,12 +1090,12 @@ namespace RimWorldAccess
                         {
                             SoundDefOf.ClickReject.PlayOneShotOnCamera();
                             TolkHelper.Speak(
-                                "NotEnoughFavor".Translate(
+                                "NotEnoughFavor".Loc(
                                     cost.Named("FAVORCOST"),
                                     capturedFaction.def.royalFavorLabel.Named("FAVOR"),
                                     capturedPawn.Named("PAWN"),
                                     currentFavor.Named("CURFAVOR")
-                                ).Resolve(),
+                                ),
                                 SpeechPriority.High);
                             return;
                         }
@@ -1113,7 +1113,7 @@ namespace RimWorldAccess
                             capturedPawn.royalty.RefundPermits(baseCost, capturedFaction);
                             SoundDefOf.Quest_Accepted.PlayOneShotOnCamera();
                             TolkHelper.Speak(
-                                "RimWorldAccess.Inspection.InfoCardTree.PermitReturnAllResult".Translate(
+                                "RimWorldAccess.Inspection.InfoCardTree.PermitReturnAllResult".Loc(
                                     "ReturnAllPermits".Translate(),
                                     "UnusedPermits".Translate(),
                                     capturedPawn.royalty.GetPermitPoints(capturedFaction)),
@@ -1246,7 +1246,7 @@ namespace RimWorldAccess
 
                                     int remainingPoints = capturedPawn.royalty.GetPermitPoints(capturedFaction);
                                     TolkHelper.Speak(
-                                        "RimWorldAccess.Inspection.InfoCardTree.PermitGranted".Translate(
+                                        "RimWorldAccess.Inspection.InfoCardTree.PermitGranted".Loc(
                                             capturedDef.LabelCap,
                                             "UnusedPermits".Translate(),
                                             remainingPoints),

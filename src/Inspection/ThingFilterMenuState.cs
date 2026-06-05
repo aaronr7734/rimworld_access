@@ -498,7 +498,7 @@ namespace RimWorldAccess
                 item.label = "RimWorldAccess.Inspection.Storage.RangeLabel.HitPoints".Translate(
                     hitPoints.min.ToStringPercent(), hitPoints.max.ToStringPercent());
                 item.data = hitPoints;
-                TolkHelper.Speak(item.label);
+                TolkHelper.SpeakData(item.label);
             }
             else if (item.type == MenuItemType.QualityRange)
             {
@@ -506,7 +506,7 @@ namespace RimWorldAccess
                 item.label = "RimWorldAccess.Inspection.Storage.RangeLabel.Quality".Translate(
                     quality.min.GetLabel(), quality.max.GetLabel());
                 item.data = quality;
-                TolkHelper.Speak(item.label);
+                TolkHelper.SpeakData(item.label);
             }
         }
 
@@ -649,7 +649,7 @@ namespace RimWorldAccess
                 // Add level suffix at the end (only announced when level changes)
                 announcement += MenuHelper.GetLevelSuffix("ThingFilterMenu", item.indentLevel);
 
-                TolkHelper.Speak(announcement);
+                TolkHelper.SpeakData(announcement);
             }
         }
 
@@ -885,7 +885,7 @@ namespace RimWorldAccess
 
             if (typeahead.HasActiveSearch)
             {
-                TolkHelper.Speak(typeahead.BuildItemAnnouncement(label));
+                TolkHelper.SpeakData(typeahead.BuildItemAnnouncement(label));
             }
             else
             {

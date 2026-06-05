@@ -211,7 +211,7 @@ namespace RimWorldAccess
                     qualityRange.max.GetLabel().CapitalizeFirst());
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
     }
 }

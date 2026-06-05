@@ -500,14 +500,14 @@ namespace RimWorldAccess
                 currentSettings.filter.AllowedHitPointsPercents = hitPoints;
                 item.label = FormatHitPointsLabel(hitPoints);
                 item.data = hitPoints;
-                TolkHelper.Speak(item.label);
+                TolkHelper.SpeakData(item.label);
             }
             else if (item.type == MenuItemType.QualityRange)
             {
                 currentSettings.filter.AllowedQualityLevels = quality;
                 item.label = FormatQualityLabel(quality);
                 item.data = quality;
-                TolkHelper.Speak(item.label);
+                TolkHelper.SpeakData(item.label);
             }
         }
 
@@ -539,7 +539,7 @@ namespace RimWorldAccess
             menuItems[selectedIndex].label = GetPriorityLabel();
             menuItems[selectedIndex].data = currentSettings.Priority;
 
-            TolkHelper.Speak(GetPriorityLabel());
+            TolkHelper.SpeakData(GetPriorityLabel());
         }
 
         private static void ToggleCategory(MenuItem item)
@@ -666,7 +666,7 @@ namespace RimWorldAccess
             menuItems[selectedIndex].label = FormatHitPointsLabel(current);
             menuItems[selectedIndex].data = current;
 
-            TolkHelper.Speak(menuItems[selectedIndex].label);
+            TolkHelper.SpeakData(menuItems[selectedIndex].label);
         }
 
         private static void AdjustQualityRange(bool increase)
@@ -710,7 +710,7 @@ namespace RimWorldAccess
             menuItems[selectedIndex].label = FormatQualityLabel(current);
             menuItems[selectedIndex].data = current;
 
-            TolkHelper.Speak(menuItems[selectedIndex].label);
+            TolkHelper.SpeakData(menuItems[selectedIndex].label);
         }
 
         private static void RebuildMenu()
@@ -852,7 +852,7 @@ namespace RimWorldAccess
                 // Add level suffix at the end (only announced when level changes)
                 announcement += MenuHelper.GetLevelSuffix("StorageSettings", item.indentLevel);
 
-                TolkHelper.Speak(announcement);
+                TolkHelper.SpeakData(announcement);
             }
         }
 
@@ -1074,7 +1074,7 @@ namespace RimWorldAccess
 
             if (typeahead.HasActiveSearch)
             {
-                TolkHelper.Speak(typeahead.BuildItemAnnouncement(label));
+                TolkHelper.SpeakData(typeahead.BuildItemAnnouncement(label));
             }
             else
             {
