@@ -40,6 +40,10 @@ namespace RimWorldAccess
 
         // Summary navigation (up/down arrows to navigate through stats)
         private static List<string> summaryItems = new List<string>();
+        // Language-independent kind tag for each summaryItems entry, kept in
+        // lockstep with summaryItems. Used to detect the stat type for Alt+I
+        // breakdowns without matching the localized display string.
+        private static List<string> summaryKinds = new List<string>();
         private static int summaryIndex = 0;
 
         // Flag to track if summary instructions have been shown this session (not reset on Close)
@@ -194,6 +198,7 @@ namespace RimWorldAccess
             savedSupplyAmounts.Clear();
             tabPositions.Clear();
             summaryItems.Clear();
+            summaryKinds.Clear();
             summaryIndex = 0;
             typeahead.ClearSearch();
             sendAttempted = false;
@@ -544,11 +549,13 @@ namespace RimWorldAccess
         private static void BuildSummaryItems()
         {
             summaryItems.Clear();
+            summaryKinds.Clear();
             // Don't reset summaryIndex here - preserve position across summary views
 
             if (currentDialog == null)
             {
                 summaryItems.Add("RimWorldAccess.Caravan.Form.SummaryNoCaravanData".Translate());
+                summaryKinds.Add(null);
                 return;
             }
 
@@ -559,6 +566,7 @@ namespace RimWorldAccess
                 float massCapacity = currentDialog.MassCapacity;
                 bool isOverloaded = massUsage > massCapacity;
                 summaryItems.Add(CaravanStatFormatter.FormatMass(massUsage, massCapacity));
+                summaryKinds.Add("Mass");
 
                 // 2. Speed (TilesPerDay is private)
                 PropertyInfo tilesInfo = AccessTools.Property(typeof(Dialog_FormCaravan), "TilesPerDay");
@@ -566,6 +574,7 @@ namespace RimWorldAccess
                 {
                     float tilesPerDay = (float)tilesInfo.GetValue(currentDialog);
                     summaryItems.Add(CaravanStatFormatter.FormatSpeed(tilesPerDay, isOverloaded));
+                    summaryKinds.Add("Speed");
                 }
 
                 // 3. Food (DaysWorthOfFood is private)
@@ -575,6 +584,7 @@ namespace RimWorldAccess
                     var foodObj = foodInfo.GetValue(currentDialog);
                     var food = (ValueTuple<float, float>)foodObj;
                     summaryItems.Add(CaravanStatFormatter.FormatFood(food.Item1, food.Item2));
+                    summaryKinds.Add("Food");
                 }
 
                 // 4. Foraging (ForagedFoodPerDay is private)
@@ -584,6 +594,7 @@ namespace RimWorldAccess
                     var forageObj = forageInfo.GetValue(currentDialog);
                     var forage = (ValueTuple<ThingDef, float>)forageObj;
                     summaryItems.Add(CaravanStatFormatter.FormatForaging(forage.Item1, forage.Item2));
+                    summaryKinds.Add("Foraging");
                 }
 
                 // 5. Visibility (private)
@@ -592,6 +603,7 @@ namespace RimWorldAccess
                 {
                     float visibility = (float)visInfo.GetValue(currentDialog);
                     summaryItems.Add(CaravanStatFormatter.FormatVisibility(visibility));
+                    summaryKinds.Add("Visibility");
                 }
 
                 // Destination info
@@ -619,10 +631,12 @@ namespace RimWorldAccess
                             catch { }
                         }
                         summaryItems.Add(destItem);
+                        summaryKinds.Add("Destination");
                     }
                     else
                     {
                         summaryItems.Add("RimWorldAccess.Caravan.Form.SummaryDestinationNotSet".Translate());
+                        summaryKinds.Add("Destination");
                     }
                 }
             }
@@ -630,6 +644,7 @@ namespace RimWorldAccess
             {
                 Log.Warning($"RimWorld Access: Failed to get caravan stats: {ex.Message}");
                 summaryItems.Add("RimWorldAccess.Caravan.Form.SummaryStatsUnavailable".Translate());
+                summaryKinds.Add(null);
             }
         }
 
@@ -693,7 +708,8 @@ namespace RimWorldAccess
         /// <summary>
         /// Gets the explanation text for the currently selected summary stat.
         /// Uses reflection to access the cached explanation fields from the dialog.
-        /// Detects stat type from the summary item text since order includes Foraging now.
+        /// Detects stat type from the language-independent summaryKinds tag (not the
+        /// localized display string), so breakdowns work in every language.
         /// </summary>
         /// <returns>A tuple of (stat name, explanation text) or null if no explanation available.</returns>
         private static (string name, string explanation)? GetCurrentStatExplanation()
@@ -704,50 +720,41 @@ namespace RimWorldAccess
             if (summaryIndex < 0 || summaryIndex >= summaryItems.Count)
                 return null;
 
-            string currentItem = summaryItems[summaryIndex];
-
             try
             {
-                // Detect stat type from the summary item text prefix
+                // Detect stat type from the language-independent kind tag, NOT the
+                // localized display string (which differs per language).
                 // IMPORTANT: We must access the property first to trigger recalculation of the cached explanation.
+                string kind = summaryIndex < summaryKinds.Count ? summaryKinds[summaryIndex] : null;
                 string fieldName = null;
                 string propertyName = null;
                 string statName = null;
 
-                if (currentItem.StartsWith("Mass:"))
+                switch (kind)
                 {
-                    fieldName = "cachedMassCapacityExplanation";
-                    propertyName = "MassCapacity";
-                    statName = "Mass Capacity";
-                }
-                else if (currentItem.StartsWith("Speed:"))
-                {
-                    fieldName = "cachedTilesPerDayExplanation";
-                    propertyName = "TilesPerDay";
-                    statName = "Speed";
-                }
-                else if (currentItem.StartsWith("Food:"))
-                {
-                    // Food doesn't have a breakdown explanation in the game
-                    // The tooltip is just "DaysWorthOfFoodTooltip" which we already include
-                    return null;
-                }
-                else if (currentItem.StartsWith("Foraging:"))
-                {
-                    fieldName = "cachedForagedFoodPerDayExplanation";
-                    propertyName = "ForagedFoodPerDay";
-                    statName = "Foraging";
-                }
-                else if (currentItem.StartsWith("Visibility:"))
-                {
-                    fieldName = "cachedVisibilityExplanation";
-                    propertyName = "Visibility";
-                    statName = "Visibility";
-                }
-                else
-                {
-                    // Destination or other items have no breakdown
-                    return null;
+                    case "Mass":
+                        fieldName = "cachedMassCapacityExplanation";
+                        propertyName = "MassCapacity";
+                        statName = "RimWorldAccess.Caravan.Inspect.StatMass".Translate();
+                        break;
+                    case "Speed":
+                        fieldName = "cachedTilesPerDayExplanation";
+                        propertyName = "TilesPerDay";
+                        statName = "RimWorldAccess.Caravan.Inspect.StatSpeed".Translate();
+                        break;
+                    case "Foraging":
+                        fieldName = "cachedForagedFoodPerDayExplanation";
+                        propertyName = "ForagedFoodPerDay";
+                        statName = "RimWorldAccess.Caravan.Inspect.StatForaging".Translate();
+                        break;
+                    case "Visibility":
+                        fieldName = "cachedVisibilityExplanation";
+                        propertyName = "Visibility";
+                        statName = "RimWorldAccess.Caravan.Inspect.StatVisibility".Translate();
+                        break;
+                    default:
+                        // Food (no breakdown in-game), Destination, and other items have none
+                        return null;
                 }
 
                 if (fieldName == null)
