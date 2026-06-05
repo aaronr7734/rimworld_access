@@ -70,7 +70,7 @@ namespace RimWorldAccess
 
             // Build opening announcement
             string announcement = BuildOpeningAnnouncement();
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
 
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
 
@@ -490,7 +490,7 @@ namespace RimWorldAccess
             string sentence = count == 1
                 ? "RimWorldAccess.Sellable.Tab.SwitchOne".Translate(tabName).ToString()
                 : "RimWorldAccess.Sellable.Tab.SwitchMany".Translate(tabName, count).ToString();
-            TolkHelper.Speak(sentence);
+            TolkHelper.SpeakData(sentence);
 
             if (count > 0)
             {
@@ -524,7 +524,7 @@ namespace RimWorldAccess
                 announcement = key.Translate(typeahead.SearchBuffer, announcement);
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         private static string BuildItemAnnouncement(ThingDef item, int totalCount)

@@ -1165,7 +1165,7 @@ namespace RimWorldAccess
 
             if (targetQty == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Trade.Numeric.NoTradeBody".Translate(label) + suffix);
+                TolkHelper.SpeakData("RimWorldAccess.Trade.Numeric.NoTradeBody".Translate(label) + suffix);
                 return;
             }
 
@@ -1187,7 +1187,7 @@ namespace RimWorldAccess
                 float totalCost = Math.Abs(tradeable.CurTotalCurrencyCostForDestination);
                 body = "RimWorldAccess.Trade.Numeric.BuyingSellingBody".Translate(action, count, label, FormatPrice(totalCost));
             }
-            TolkHelper.Speak(body + suffix);
+            TolkHelper.SpeakData(body + suffix);
         }
 
         /// <summary>
@@ -1217,7 +1217,7 @@ namespace RimWorldAccess
                 string message = string.IsNullOrEmpty(numericBuffer)
                     ? "RimWorldAccess.Trade.Numeric.Cleared".Translate().ToString()
                     : "RimWorldAccess.Trade.Numeric.Typing".Translate(numericBuffer).ToString();
-                TolkHelper.Speak(
+                TolkHelper.SpeakData(
                     "RimWorldAccess.Trade.Numeric.NoTradeBody".Translate(GetCleanLabel(tradeable))
                     + ". " + message);
                 return;
@@ -1552,7 +1552,7 @@ namespace RimWorldAccess
                 }
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
 
             if (list.Count > 0)
             {
@@ -1582,7 +1582,7 @@ namespace RimWorldAccess
             }
 
             string announcement = BuildTradeableAnnouncement(tradeable);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
@@ -1635,7 +1635,7 @@ namespace RimWorldAccess
             string balanceText = string.IsNullOrEmpty(posStr)
                 ? body
                 : "RimWorldAccess.Trade.Balance.WithPosition".Translate(body, posStr).ToString();
-            TolkHelper.Speak(balanceText);
+            TolkHelper.SpeakData(balanceText);
         }
 
         /// <summary>
@@ -1908,7 +1908,7 @@ namespace RimWorldAccess
             if (!GuardHelper.RequireItem(tradeable)) return;
 
             string announcement = BuildDetailedAnnouncement(tradeable);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
@@ -2389,11 +2389,11 @@ namespace RimWorldAccess
 
             if (typeahead.HasActiveSearch)
             {
-                TolkHelper.Speak(baseAnnouncement + typeahead.BuildSearchContextSuffix());
+                TolkHelper.SpeakData(baseAnnouncement + typeahead.BuildSearchContextSuffix());
             }
             else
             {
-                TolkHelper.Speak(baseAnnouncement);
+                TolkHelper.SpeakData(baseAnnouncement);
             }
         }
 
