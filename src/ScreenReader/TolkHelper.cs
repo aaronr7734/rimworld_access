@@ -509,25 +509,6 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Sends raw text to the screen reader for speech output.
-        /// </summary>
-        /// <remarks>
-        /// Deprecated as part of the compile-time localization guarantee (roadmap
-        /// Phase F). Migrate to <see cref="Speak(Localized, SpeechPriority)"/> for
-        /// authored prose (<c>"Key".Loc(...)</c>) or
-        /// <see cref="SpeakData(string, SpeechPriority)"/> for genuine passthrough
-        /// data. The remaining CS0618 warning count is the migration burn-down meter;
-        /// this overload will be deleted once it reaches zero.
-        /// </remarks>
-        /// <param name="text">The text to speak</param>
-        /// <param name="priority">Speech priority level (determines interruption behavior)</param>
-        [Obsolete("Use Speak(\"Key\".Loc(args)) for prose or SpeakData(data) for passthrough text. See refactor roadmap Phase F.", error: false)]
-        public static void Speak(string text, SpeechPriority priority = SpeechPriority.Normal)
-        {
-            SpeakInternal(text, priority);
-        }
-
-        /// <summary>
         /// Core speech implementation shared by all public Speak overloads.
         /// </summary>
         /// <param name="text">The text to speak</param>
