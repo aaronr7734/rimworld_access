@@ -66,5 +66,3 @@
        {0} = vanilla "LearningHelper" title, {1} = the concept's LabelCap. -->
   <RimWorldAccess.Learning.NewLessonAnnouncement>{0}: {1}</RimWorldAccess.Learning.NewLessonAnnouncement>
 </LanguageData>
-</content>
-</invoke>
