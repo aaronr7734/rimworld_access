@@ -129,7 +129,7 @@ namespace RimWorldAccess
                 originalZoneCells,
                 isDeleteDesignator);
 
-            TolkHelper.Speak(result.Message, result.Priority);
+            TolkHelper.SpeakData(result.Message, result.Priority);
 
             if (result.Success)
             {

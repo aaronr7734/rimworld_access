@@ -67,7 +67,7 @@ namespace RimWorldAccess
                 ? (string)"RimWorldAccess.Building.Preview.SecondPointRegular".Translate(sizeText, previewCells.Count)
                 : (string)"RimWorldAccess.Building.Preview.SecondPointIrregular".Translate(sizeText);
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
             if (!string.IsNullOrEmpty(context))
                 Log.Message($"{context}: Second point at {cell}. {previewCells.Count} cells");
         }
@@ -88,7 +88,7 @@ namespace RimWorldAccess
 
                 // During drag we use corners since we don't know actual cells yet
                 string sizeText = ShapeHelper.FormatShapeSizeFromCorners(firstCorner.Value, cursor);
-                TolkHelper.Speak(sizeText, SpeechPriority.Low);
+                TolkHelper.SpeakData(sizeText, SpeechPriority.Low);
             }
         }
 

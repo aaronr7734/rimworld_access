@@ -55,7 +55,7 @@ namespace RimWorldAccess
             typeahead.ClearSearch();
 
             BuildOptions();
-            TolkHelper.Speak(BuildVanillaFuelStatus());
+            TolkHelper.SpeakData(BuildVanillaFuelStatus());
         }
 
         public static void Close()
@@ -160,7 +160,7 @@ namespace RimWorldAccess
             float increment = refuelable.Props.fuelCapacity * 0.1f;
             refuelable.TargetFuelLevel += increment;
             RefreshSelectedLabel();
-            TolkHelper.Speak(options[selectedIndex].Label);
+            TolkHelper.SpeakData(options[selectedIndex].Label);
         }
 
         public static void DecreaseTargetFuel()
@@ -175,7 +175,7 @@ namespace RimWorldAccess
             float decrement = refuelable.Props.fuelCapacity * 0.1f;
             refuelable.TargetFuelLevel -= decrement;
             RefreshSelectedLabel();
-            TolkHelper.Speak(options[selectedIndex].Label);
+            TolkHelper.SpeakData(options[selectedIndex].Label);
         }
 
         private static void ToggleAutoRefuel()
@@ -183,8 +183,8 @@ namespace RimWorldAccess
             refuelable.allowAutoRefuel = !refuelable.allowAutoRefuel;
             RefreshSelectedLabel();
             TolkHelper.Speak(refuelable.allowAutoRefuel
-                ? "RimWorldAccess.Building.Refuel.ToggleValueOn".Translate()
-                : "RimWorldAccess.Building.Refuel.ToggleValueOff".Translate());
+                ? "RimWorldAccess.Building.Refuel.ToggleValueOn".Loc()
+                : "RimWorldAccess.Building.Refuel.ToggleValueOff".Loc());
             SoundDefOf.Checkbox_TurnedOn.PlayOneShotOnCamera();
         }
 
@@ -204,7 +204,7 @@ namespace RimWorldAccess
             if (options.Count == 0) return;
             string label = options[selectedIndex].Label;
             string position = MenuHelper.FormatPosition(selectedIndex, options.Count);
-            TolkHelper.Speak(string.IsNullOrEmpty(position) ? label : $"{label}. {position}");
+            TolkHelper.SpeakData(string.IsNullOrEmpty(position) ? label : $"{label}. {position}");
         }
 
         /// <summary>
@@ -269,7 +269,7 @@ namespace RimWorldAccess
                 b.Add(AutoRefuelLabel());
             }
 
-            TolkHelper.Speak(b.Build());
+            TolkHelper.SpeakData(b.Build());
         }
 
         // Typeahead plumbing
@@ -327,7 +327,7 @@ namespace RimWorldAccess
             if (options.Count == 0 || selectedIndex < 0 || selectedIndex >= options.Count) return;
             string label = options[selectedIndex].Label;
             if (typeahead.HasActiveSearch)
-                TolkHelper.Speak(typeahead.BuildItemAnnouncement(label));
+                TolkHelper.SpeakData(typeahead.BuildItemAnnouncement(label));
             else
                 AnnounceCurrentOption();
         }

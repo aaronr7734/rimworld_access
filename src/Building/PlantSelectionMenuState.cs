@@ -509,7 +509,7 @@ namespace RimWorldAccess
 
             if (typeahead.HasActiveSearch)
             {
-                TolkHelper.Speak(typeahead.BuildItemAnnouncement(current.displayText));
+                TolkHelper.SpeakData(typeahead.BuildItemAnnouncement(current.displayText));
             }
             else
             {
@@ -523,7 +523,7 @@ namespace RimWorldAccess
             {
                 PlantOption current = availablePlants[selectedIndex];
                 string announcement = "RimWorldAccess.Building.PlantSelect.SelectionWithDetail".Translate(current.displayText, current.detailedInfo);
-                TolkHelper.Speak(announcement);
+                TolkHelper.SpeakData(announcement);
             }
         }
 

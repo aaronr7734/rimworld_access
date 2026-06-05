@@ -136,7 +136,7 @@ namespace RimWorldAccess
             string modeName = (selectionMode == ArchitectSelectionMode.BoxSelection)
                 ? "RimWorldAccess.Building.Paint.ModeBox".Translate()
                 : "RimWorldAccess.Building.Paint.ModeSingle".Translate();
-            TolkHelper.Speak(modeName);
+            TolkHelper.SpeakData(modeName);
             Log.Message($"Architect placement: Switched to {modeName}");
         }
 
@@ -253,7 +253,7 @@ namespace RimWorldAccess
 
             // Announce new rotation and spatial info
             string announcement = GetRotationAnnouncementForDef(placeDesignator.PlacingDef, currentRotation);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
             Log.Message($"Rotated building to: {currentRotation}");
         }
 
@@ -469,7 +469,7 @@ namespace RimWorldAccess
                     }
                 }
                 selectedCells.Add(cell);
-                TolkHelper.Speak(MapNavigationState.FormatSelectedCell(cell));
+                TolkHelper.SpeakData(MapNavigationState.FormatSelectedCell(cell));
             }
             else
             {

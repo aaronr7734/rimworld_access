@@ -104,7 +104,7 @@ namespace RimWorldAccess
                 b.Add("RimWorldAccess.Building.Uninstall.DetailHotkeyTip".Translate());
             }
 
-            TolkHelper.Speak(b.Build());
+            TolkHelper.SpeakData(b.Build());
         }
     }
 }

@@ -85,7 +85,7 @@ namespace RimWorldAccess
                 b.Add("RimWorldAccess.Building.Forbid.DetailCanInteract".Translate());
             }
 
-            TolkHelper.Speak(b.Build());
+            TolkHelper.SpeakData(b.Build());
         }
     }
 }

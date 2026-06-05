@@ -188,12 +188,12 @@ namespace RimWorldAccess
         {
             if (selectedIndex == ManageAreasIndex && includeManageOption)
             {
-                TolkHelper.Speak(typeaheadHelper.BuildItemAnnouncement("RimWorldAccess.Building.AreaSelect.ManageAreas".Translate()));
+                TolkHelper.SpeakData(typeaheadHelper.BuildItemAnnouncement("RimWorldAccess.Building.AreaSelect.ManageAreas".Translate()));
             }
             else if (selectedIndex >= 0 && selectedIndex < availableAreas.Count)
             {
                 Area area = availableAreas[selectedIndex];
-                TolkHelper.Speak(typeaheadHelper.BuildItemAnnouncement(area.Label));
+                TolkHelper.SpeakData(typeaheadHelper.BuildItemAnnouncement(area.Label));
             }
         }
 
@@ -223,7 +223,7 @@ namespace RimWorldAccess
                 string announcement = string.IsNullOrEmpty(position)
                     ? label
                     : (string)"RimWorldAccess.Building.AreaSelect.ItemWithPosition".Translate(label, position);
-                TolkHelper.Speak(announcement);
+                TolkHelper.SpeakData(announcement);
             }
             else if (selectedIndex >= 0 && selectedIndex < availableAreas.Count)
             {
@@ -233,7 +233,7 @@ namespace RimWorldAccess
                 string announcement = string.IsNullOrEmpty(position)
                     ? content
                     : (string)"RimWorldAccess.Building.AreaSelect.ItemWithPosition".Translate(content, position);
-                TolkHelper.Speak(announcement);
+                TolkHelper.SpeakData(announcement);
                 area.MarkForDraw();
             }
         }

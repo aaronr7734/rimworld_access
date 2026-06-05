@@ -391,7 +391,7 @@ namespace RimWorldAccess
 
                     // Build a proper announcement with direction and special info
                     string announcement = GetDesignatorRotationAnnouncement(designatorPlace, currentRot);
-                    TolkHelper.Speak(announcement);
+                    TolkHelper.SpeakData(announcement);
                 }
             }
             return true;
@@ -474,7 +474,7 @@ namespace RimWorldAccess
                             {
                                 string message =
                                     MeditationProtectionHelper.FormatManualBlockMessage(protection);
-                                TolkHelper.Speak(message);
+                                TolkHelper.SpeakData(message);
                                 return true;
                             }
                         }
@@ -964,7 +964,7 @@ namespace RimWorldAccess
                 .Add("RimWorldAccess.Building.ArchitectPlace.DeleteZoneCannotUndo".Translate())
                 .Add("RimWorldAccess.Building.ArchitectPlace.DeleteZoneUseGizmoHint".Translate())
                 .Build();
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
 
             Dialog_MessageBox dialog = new Dialog_MessageBox(
                 message,
@@ -1023,7 +1023,7 @@ namespace RimWorldAccess
                 string announcement = selectionResult.IsExpansion
                     ? "RimWorldAccess.Building.ArchitectPlace.ZoneExpandedWithCells".Translate(zoneName, cellCount)
                     : "RimWorldAccess.Building.ArchitectPlace.ZoneCreatedWithCells".Translate(zoneName, cellCount);
-                TolkHelper.Speak(announcement);
+                TolkHelper.SpeakData(announcement);
                 Log.Message($"Zone placement executed: {zoneName} {(selectionResult.IsExpansion ? "expanded" : "created")} with {cellCount} cells");
             }
             catch (System.Exception ex)

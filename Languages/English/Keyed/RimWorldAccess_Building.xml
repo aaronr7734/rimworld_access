@@ -368,6 +368,8 @@
   <RimWorldAccess.Building.Place.NoDesignationsPlaced>No designations placed</RimWorldAccess.Building.Place.NoDesignationsPlaced>
   <RimWorldAccess.Building.Place.ObstaclesFound>{0} obstacles found</RimWorldAccess.Building.Place.ObstaclesFound>
   <RimWorldAccess.Building.Place.MeditationDisableHint>Disable warning toggle on the tree to build here</RimWorldAccess.Building.Place.MeditationDisableHint>
+  <!-- {0} = comma-joined protecting thing labels, {1} = MeditationDisableHint. -->
+  <RimWorldAccess.Building.Place.MeditationProtectedBy>Protected by {0}. {1}.</RimWorldAccess.Building.Place.MeditationProtectedBy>
   <RimWorldAccess.Building.Place.Action.haul>hauling</RimWorldAccess.Building.Place.Action.haul>
   <RimWorldAccess.Building.Place.Action.hunt>hunting</RimWorldAccess.Building.Place.Action.hunt>
   <RimWorldAccess.Building.Place.Action.mine>mining</RimWorldAccess.Building.Place.Action.mine>
@@ -845,6 +847,8 @@
   <RimWorldAccess.Building.ArchitectPlace.ErrorPlacing>Error placing: {0}</RimWorldAccess.Building.ArchitectPlace.ErrorPlacing>
   <RimWorldAccess.Building.ArchitectPlace.InvalidReason>Invalid: {0}</RimWorldAccess.Building.ArchitectPlace.InvalidReason>
   <RimWorldAccess.Building.ArchitectPlace.GravshipPositioned>Gravship positioned at {0}, {1}. Select landing marker and use gizmos to confirm landing.</RimWorldAccess.Building.ArchitectPlace.GravshipPositioned>
+  <!-- {0} = footprint width, {1} = footprint height (cells). -->
+  <RimWorldAccess.Building.ArchitectPlace.GravshipLandingPrompt>Position gravship landing zone. Footprint: {0} by {1} cells. Arrow keys to move, R to rotate, Space to place.</RimWorldAccess.Building.ArchitectPlace.GravshipLandingPrompt>
   <RimWorldAccess.Building.ArchitectPlace.NoZoneCellsTryAgain>No zone cells in selection. Try again.</RimWorldAccess.Building.ArchitectPlace.NoZoneCellsTryAgain>
   <RimWorldAccess.Building.ArchitectPlace.NoValidCellsTryAgain>No valid cells in selection. Try again.</RimWorldAccess.Building.ArchitectPlace.NoValidCellsTryAgain>
   <RimWorldAccess.Building.ArchitectPlace.PlacementFailedClearing>Placement failed. Clearing selection.</RimWorldAccess.Building.ArchitectPlace.PlacementFailedClearing>

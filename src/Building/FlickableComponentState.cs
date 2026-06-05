@@ -112,7 +112,7 @@ namespace RimWorldAccess
                 }
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         public static void AnnounceDetailedStatus()
@@ -162,7 +162,7 @@ namespace RimWorldAccess
                 b.Add("RimWorldAccess.Building.Flickable.DetailNotConnected".Translate());
             }
 
-            TolkHelper.Speak(b.Build());
+            TolkHelper.SpeakData(b.Build());
         }
     }
 }

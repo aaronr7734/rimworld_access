@@ -168,9 +168,7 @@ namespace RimWorldAccess
                             if (boundsField != null)
                             {
                                 var bounds = (CellRect)boundsField.GetValue(gravship);
-                                TolkHelper.Speak(
-                                    $"Position gravship landing zone. Footprint: {bounds.Width} by {bounds.Height} cells. " +
-                                    "Arrow keys to move, R to rotate, Space to place.");
+                                TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.GravshipLandingPrompt".Loc(bounds.Width, bounds.Height));
                             }
                         }
                     }

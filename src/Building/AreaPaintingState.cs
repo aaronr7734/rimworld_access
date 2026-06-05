@@ -118,7 +118,7 @@ namespace RimWorldAccess
             string modeName = (selectionMode == AreaSelectionMode.BoxSelection)
                 ? "RimWorldAccess.Building.Paint.ModeBox".Translate()
                 : "RimWorldAccess.Building.Paint.ModeSingle".Translate();
-            TolkHelper.Speak(modeName);
+            TolkHelper.SpeakData(modeName);
         }
 
         /// <summary>
@@ -285,7 +285,7 @@ namespace RimWorldAccess
                 ? (string)"RimWorldAccess.Building.Paint.ConfirmShapeRegular".Translate(shapeSize, addedCount, stagedCells.Count)
                 : (string)"RimWorldAccess.Building.Paint.ConfirmShapeIrregular".Translate(addedCount, stagedCells.Count);
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
@@ -344,7 +344,7 @@ namespace RimWorldAccess
             else
             {
                 stagedCells.Add(currentPos);
-                TolkHelper.Speak(MapNavigationState.FormatSelectedCell(currentPos));
+                TolkHelper.SpeakData(MapNavigationState.FormatSelectedCell(currentPos));
             }
         }
 

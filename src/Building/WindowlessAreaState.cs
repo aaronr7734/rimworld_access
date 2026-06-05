@@ -468,7 +468,7 @@ namespace RimWorldAccess
             string announcement = string.IsNullOrEmpty(position)
                 ? label
                 : (string)"RimWorldAccess.Building.AreaMgr.ActionWithPosition".Translate(label, position);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
@@ -480,7 +480,7 @@ namespace RimWorldAccess
             if (selectedActionIndex >= 0 && selectedActionIndex < actions.Length)
             {
                 string label = GetActionLabel(actions[selectedActionIndex]);
-                TolkHelper.Speak(actionsTypeahead.BuildItemAnnouncement(label));
+                TolkHelper.SpeakData(actionsTypeahead.BuildItemAnnouncement(label));
             }
         }
 
@@ -600,7 +600,7 @@ namespace RimWorldAccess
                     string announcement = string.IsNullOrEmpty(position)
                         ? (string)"RimWorldAccess.Building.AreaMgr.AreaWithCellsNoPosition".Translate(selectedArea.Label, cellCount)
                         : (string)"RimWorldAccess.Building.AreaMgr.AreaWithCellsAndPosition".Translate(selectedArea.Label, cellCount, position);
-                    TolkHelper.Speak(announcement);
+                    TolkHelper.SpeakData(announcement);
                 }
                 else
                 {

@@ -69,7 +69,7 @@ namespace RimWorldAccess
                 }
             }
 
-            TolkHelper.Speak(b.Build());
+            TolkHelper.SpeakData(b.Build());
         }
 
         public static void RefreshStatus()

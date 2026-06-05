@@ -229,7 +229,7 @@ namespace RimWorldAccess
 
             // Build a comprehensive announcement with size, rotation, and key hints
             string announcement = BuildEnterAnnouncement(designator, designatorLabel, shape, shapeName);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
 
             Log.Message($"[ShapePlacementState] Entered with shape {shape} for designator {designatorLabel}, viewingModeOnStack={fromViewingMode}");
         }
@@ -785,7 +785,7 @@ namespace RimWorldAccess
                 // Use sanitized label to strip "..." suffix (prevents "wall...s" bug)
                 string designatorName = ArchitectHelper.GetSanitizedLabel(activeDesignator);
                 string announcement = BuildPlacementAnnouncement(result, designatorName, activeDesignator);
-                TolkHelper.Speak(announcement);
+                TolkHelper.SpeakData(announcement);
             }
 
             Log.Message($"[ShapePlacementState] Placed {result.PlacedCount} designations, {result.ObstacleCount} obstacles");

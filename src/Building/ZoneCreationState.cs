@@ -146,7 +146,7 @@ namespace RimWorldAccess
             string modeName = (selectionMode == ZoneSelectionMode.BoxSelection)
                 ? "RimWorldAccess.Building.Paint.ModeBox".Translate()
                 : "RimWorldAccess.Building.Paint.ModeSingle".Translate();
-            TolkHelper.Speak(modeName);
+            TolkHelper.SpeakData(modeName);
             Log.Message($"Zone creation: Switched to {modeName}");
         }
 
@@ -177,7 +177,7 @@ namespace RimWorldAccess
                 string error = ValidateCellForCreation(cell, map);
                 if (error != null)
                 {
-                    TolkHelper.Speak(error);
+                    TolkHelper.SpeakData(error);
                     return;
                 }
 
@@ -714,7 +714,7 @@ namespace RimWorldAccess
                     }
                 }
 
-                TolkHelper.Speak(message);
+                TolkHelper.SpeakData(message);
                 Log.Message($"Expanded zone {targetZone.label}: added {addedCount}, removed {removedCount} cells");
             }
             catch (System.Exception ex)

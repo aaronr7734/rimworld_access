@@ -110,7 +110,7 @@ namespace RimWorldAccess
                 ? (string)"RimWorldAccess.Building.ShapeSelect.ShapeNoPosition".Translate(shapeName, description)
                 : (string)"RimWorldAccess.Building.ShapeSelect.ShapeWithPosition".Translate(shapeName, position, description);
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
@@ -128,7 +128,7 @@ namespace RimWorldAccess
 
             if (typeaheadHelper.HasActiveSearch)
             {
-                TolkHelper.Speak(typeaheadHelper.BuildItemAnnouncement(shapeName));
+                TolkHelper.SpeakData(typeaheadHelper.BuildItemAnnouncement(shapeName));
             }
             else
             {

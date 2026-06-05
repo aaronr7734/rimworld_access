@@ -104,7 +104,7 @@ namespace RimWorldAccess
                 b.Add("RimWorldAccess.Building.Door.DetailManual".Translate());
             }
 
-            TolkHelper.Speak(b.Build());
+            TolkHelper.SpeakData(b.Build());
         }
     }
 }

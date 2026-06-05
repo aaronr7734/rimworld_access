@@ -420,7 +420,7 @@ namespace RimWorldAccess
                 isBuiltInAreaDesignator,
                 protectedCount,
                 protectedByLabels);
-            TolkHelper.Speak(announcement, SpeechPriority.Normal);
+            TolkHelper.SpeakData(announcement, SpeechPriority.Normal);
 
             int totalPlaced = PlacedCount;
             int segCount = SegmentCount;
@@ -631,7 +631,7 @@ namespace RimWorldAccess
                 announcement = "RimWorldAccess.Building.View.OrdersConfirmedDesignations".Translate(totalPlaced);
             }
 
-            TolkHelper.Speak(announcement, SpeechPriority.Normal);
+            TolkHelper.SpeakData(announcement, SpeechPriority.Normal);
 
             // Clear zone undo tracker data since changes are confirmed
             if (isZoneDesignator)
@@ -893,7 +893,7 @@ namespace RimWorldAccess
             string itemType = ViewingModeSegmentManager.GetItemTypeForCount(removedCount, isBuildDesignator, isZoneDesignator);
             TolkHelper.Speak((removedCount == 1
                 ? "RimWorldAccess.Building.View.RemovedItems"
-                : "RimWorldAccess.Building.View.RemovedAllItems").Translate(removedCount, itemType), SpeechPriority.Normal);
+                : "RimWorldAccess.Building.View.RemovedAllItems").Loc(removedCount, itemType), SpeechPriority.Normal);
 
             // Note: We do NOT restore cursor position - keep it where the user left it
 
@@ -1100,7 +1100,7 @@ namespace RimWorldAccess
                 string reason = !string.IsNullOrEmpty(report.Reason)
                     ? report.Reason
                     : (string)"RimWorldAccess.Building.View.CannotPlaceHere".Translate();
-                TolkHelper.Speak(reason, SpeechPriority.Normal);
+                TolkHelper.SpeakData(reason, SpeechPriority.Normal);
                 return;
             }
 
@@ -1216,7 +1216,7 @@ namespace RimWorldAccess
                 originalZoneCells,
                 isDeleteDesignator);
 
-            TolkHelper.Speak(result.Message, result.Priority);
+            TolkHelper.SpeakData(result.Message, result.Priority);
 
             if (result.Success)
             {

@@ -94,7 +94,7 @@ namespace RimWorldAccess
                 return string.Empty;
 
             string thingList = string.Join(", ", result.AffectedThingLabels);
-            return $"Protected by {thingList}. Disable warning toggle on the tree to build here.";
+            return "RimWorldAccess.Building.Place.MeditationProtectedBy".Translate(thingList, "RimWorldAccess.Building.Place.MeditationDisableHint".Translate());
         }
 
         public static string FormatShapeSummary(int protectedCount, HashSet<string> allAffectedLabels)
