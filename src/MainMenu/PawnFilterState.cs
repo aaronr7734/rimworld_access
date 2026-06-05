@@ -303,7 +303,7 @@ namespace RimWorldAccess
 
             // Announce section name then current item
             string sectionName = menuItems[headerIndices[targetSection]].Label;
-            TolkHelper.Speak(sectionName);
+            TolkHelper.SpeakData(sectionName);
             AnnounceCurrentItem();
         }
 
@@ -693,14 +693,14 @@ namespace RimWorldAccess
             if (!string.IsNullOrEmpty(positionPart))
                 announcement += "RimWorldAccess.StartingPawn.PositionParenSuffix".Translate(positionPart);
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         private static void AnnounceWithSearch()
         {
             if (!typeahead.HasActiveSearch) { AnnounceCurrentItem(); return; }
             var item = menuItems[selectedIndex];
-            TolkHelper.Speak(typeahead.BuildItemAnnouncement(item.Label));
+            TolkHelper.SpeakData(typeahead.BuildItemAnnouncement(item.Label));
         }
     }
 }

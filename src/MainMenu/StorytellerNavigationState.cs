@@ -416,7 +416,7 @@ namespace RimWorldAccess
             {
                 text += "RimWorldAccess.Storyteller.WithPositionSuffix".Translate(position);
             }
-            TolkHelper.Speak(text);
+            TolkHelper.SpeakData(text);
         }
 
         private static void AnnounceStorytellerWithSearch()
@@ -426,7 +426,7 @@ namespace RimWorldAccess
 
             if (storytellerTypeahead.HasActiveSearch)
             {
-                TolkHelper.Speak(storytellerTypeahead.BuildItemAnnouncement(storyteller.label));
+                TolkHelper.SpeakData(storytellerTypeahead.BuildItemAnnouncement(storyteller.label));
             }
             else
             {
@@ -453,7 +453,7 @@ namespace RimWorldAccess
                 text += "RimWorldAccess.Storyteller.WithPositionSuffix".Translate(position);
             }
 
-            TolkHelper.Speak(text);
+            TolkHelper.SpeakData(text);
         }
 
         private static void AnnounceAndApplyDifficulty()
@@ -468,7 +468,7 @@ namespace RimWorldAccess
 
             if (difficultyTypeahead.HasActiveSearch)
             {
-                TolkHelper.Speak(difficultyTypeahead.BuildItemAnnouncement(difficulty.LabelCap));
+                TolkHelper.SpeakData(difficultyTypeahead.BuildItemAnnouncement(difficulty.LabelCap));
             }
             else
             {
@@ -489,7 +489,7 @@ namespace RimWorldAccess
             {
                 text += "RimWorldAccess.Storyteller.WithPositionSuffix".Translate(position);
             }
-            TolkHelper.Speak(text);
+            TolkHelper.SpeakData(text);
         }
 
         // ===== GAME DATA SYNC =====

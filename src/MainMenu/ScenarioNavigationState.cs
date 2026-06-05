@@ -228,7 +228,7 @@ namespace RimWorldAccess
 
             if (listTypeaheadHelper.HasActiveSearch)
             {
-                TolkHelper.Speak(listTypeaheadHelper.BuildItemAnnouncement(selected.name + categorySuffix));
+                TolkHelper.SpeakData(listTypeaheadHelper.BuildItemAnnouncement(selected.name + categorySuffix));
             }
             else
             {
@@ -264,7 +264,7 @@ namespace RimWorldAccess
                 text += "RimWorldAccess.ScenarioSelect.WithPositionSuffix".Translate(positionPart);
             }
 
-            TolkHelper.Speak(text);
+            TolkHelper.SpeakData(text);
         }
 
         private static void AnnounceCurrentScenario()
@@ -289,7 +289,7 @@ namespace RimWorldAccess
                 text += "RimWorldAccess.ScenarioSelect.WithPositionSuffix".Translate(positionPart);
             }
 
-            TolkHelper.Speak(text);
+            TolkHelper.SpeakData(text);
         }
 
         // Legacy method name for compatibility
@@ -894,7 +894,7 @@ namespace RimWorldAccess
 
             if (detailTreeNav.HasActiveSearch)
             {
-                TolkHelper.Speak(detailTreeNav.Typeahead.BuildItemAnnouncement(item.Label));
+                TolkHelper.SpeakData(detailTreeNav.Typeahead.BuildItemAnnouncement(item.Label));
             }
             else
             {

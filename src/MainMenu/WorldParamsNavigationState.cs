@@ -532,7 +532,7 @@ namespace RimWorldAccess
                 text += $" ({position})";
             }
 
-            TolkHelper.Speak(text);
+            TolkHelper.SpeakData(text);
         }
 
         private static void AnnounceFieldValue(WorldParamField field)
@@ -576,7 +576,7 @@ namespace RimWorldAccess
 
             if (fieldTypeahead.HasActiveSearch)
             {
-                TolkHelper.Speak(fieldTypeahead.BuildItemAnnouncement("RimWorldAccess.WorldParams.FieldColonValueNoWarning".Translate(fieldName, value)));
+                TolkHelper.SpeakData(fieldTypeahead.BuildItemAnnouncement("RimWorldAccess.WorldParams.FieldColonValueNoWarning".Translate(fieldName, value)));
             }
             else
             {

@@ -118,7 +118,7 @@ namespace RimWorldAccess
                 text += "RimWorldAccess.ScenarioBuilder.AddPart.WithPositionSuffix".Translate(positionPart);
             }
 
-            TolkHelper.Speak(text);
+            TolkHelper.SpeakData(text);
         }
 
         #region Navigation

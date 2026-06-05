@@ -255,10 +255,10 @@ namespace RimWorldAccess
                         hasShownPresetsHint = true;
                         hint = "RimWorldAccess.Ideology.PresetsHint".Translate();
                     }
-                    TolkHelper.Speak("RimWorldAccess.Ideology.TabPrefix".Translate(tabName, BuildTreeItemAnnouncement() + hint));
+                    TolkHelper.Speak("RimWorldAccess.Ideology.TabPrefix".Loc(tabName, BuildTreeItemAnnouncement() + hint));
                 }
                 else
-                    TolkHelper.Speak("RimWorldAccess.Ideology.TabNoneSuffix".Translate(tabName, "NoneLower".Translate()));
+                    TolkHelper.Speak("RimWorldAccess.Ideology.TabNoneSuffix".Loc(tabName, "NoneLower".Translate()));
             }
         }
 
@@ -288,7 +288,7 @@ namespace RimWorldAccess
                 optionsIndex = newIndex;
                 SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
             }
-            TolkHelper.Speak(BuildOptionAnnouncement());
+            TolkHelper.SpeakData(BuildOptionAnnouncement());
         }
 
         public static void NavigateOptionDown()
@@ -313,7 +313,7 @@ namespace RimWorldAccess
                 optionsIndex = newIndex;
                 SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
             }
-            TolkHelper.Speak(BuildOptionAnnouncement());
+            TolkHelper.SpeakData(BuildOptionAnnouncement());
         }
 
         public static void NavigateOptionHome()
@@ -321,7 +321,7 @@ namespace RimWorldAccess
             if (options.Count == 0) return;
             optionsTypeahead.ClearSearch();
             optionsIndex = 0;
-            TolkHelper.Speak(BuildOptionAnnouncement());
+            TolkHelper.SpeakData(BuildOptionAnnouncement());
         }
 
         public static void NavigateOptionEnd()
@@ -329,7 +329,7 @@ namespace RimWorldAccess
             if (options.Count == 0) return;
             optionsTypeahead.ClearSearch();
             optionsIndex = options.Count - 1;
-            TolkHelper.Speak(BuildOptionAnnouncement());
+            TolkHelper.SpeakData(BuildOptionAnnouncement());
         }
 
         public static bool HandleOptionTypeahead(char c)
@@ -371,7 +371,7 @@ namespace RimWorldAccess
         public static void ClearOptionsSearch()
         {
             optionsTypeahead.ClearSearchAndAnnounce();
-            TolkHelper.Speak(BuildOptionAnnouncement());
+            TolkHelper.SpeakData(BuildOptionAnnouncement());
         }
 
         private static string BuildOptionAnnouncement()
@@ -397,12 +397,12 @@ namespace RimWorldAccess
                 return;
 
             string name = options[optionsIndex].Label;
-            TolkHelper.Speak(optionsTypeahead.BuildItemAnnouncement(name));
+            TolkHelper.SpeakData(optionsTypeahead.BuildItemAnnouncement(name));
         }
 
         public static void AnnounceCurrentOption()
         {
-            TolkHelper.Speak(BuildOptionAnnouncement());
+            TolkHelper.SpeakData(BuildOptionAnnouncement());
         }
 
         #endregion
@@ -433,7 +433,7 @@ namespace RimWorldAccess
                         item.IsExpanded = !item.IsExpanded;
                         presetsTreeNav.RebuildVisibleList();
                         SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                        TolkHelper.Speak(FormatPresetsStateChangeAnnouncement(item));
+                        TolkHelper.SpeakData(FormatPresetsStateChangeAnnouncement(item));
                     }
                     return true;
                 }
@@ -555,7 +555,7 @@ namespace RimWorldAccess
                 {
                     HarmonyLib.AccessTools.Field(typeof(Page_ChooseIdeoPreset), "selectedStructure")
                         .SetValue(page, null);
-                    TolkHelper.Speak("RimWorldAccess.Ideology.StructureRandomTip".Translate("Structure".Translate(), "Random".Translate(), "RandomStructureTip".Translate()));
+                    TolkHelper.Speak("RimWorldAccess.Ideology.StructureRandomTip".Loc("Structure".Translate(), "Random".Translate(), "RandomStructureTip".Translate()));
                 }));
             }
 
@@ -574,7 +574,7 @@ namespace RimWorldAccess
                 {
                     HarmonyLib.AccessTools.Field(typeof(Page_ChooseIdeoPreset), "selectedStructure")
                         .SetValue(page, captured);
-                    TolkHelper.Speak("RimWorldAccess.Ideology.StructureColon".Translate("Structure".Translate(), captured.LabelCap));
+                    TolkHelper.Speak("RimWorldAccess.Ideology.StructureColon".Loc("Structure".Translate(), captured.LabelCap));
                 }));
             }
 
@@ -636,7 +636,7 @@ namespace RimWorldAccess
                     else
                         styles[slotIndex] = null;
                     RecacheStyles(page);
-                    TolkHelper.Speak(AnnounceStyleChange(page));
+                    TolkHelper.SpeakData(AnnounceStyleChange(page));
                 }));
             }
 
@@ -652,7 +652,7 @@ namespace RimWorldAccess
                     else
                         styles[slotIndex] = captured;
                     RecacheStyles(page);
-                    TolkHelper.Speak(AnnounceStyleChange(page));
+                    TolkHelper.SpeakData(AnnounceStyleChange(page));
                 }));
             }
 
@@ -663,7 +663,7 @@ namespace RimWorldAccess
                 {
                     styles.RemoveAt(slotIndex);
                     RecacheStyles(page);
-                    TolkHelper.Speak(AnnounceStyleChange(page));
+                    TolkHelper.SpeakData(AnnounceStyleChange(page));
                 }));
             }
 

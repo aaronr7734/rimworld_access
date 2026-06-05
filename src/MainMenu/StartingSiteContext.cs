@@ -115,7 +115,7 @@ namespace RimWorldAccess
                 selectedMenuIndex = 0;
 
             string itemName = GetMenuItemName(availableMenuItems[selectedMenuIndex]);
-            TolkHelper.Speak("RimWorldAccess.StartingSite.MenuItemPosition".Translate(itemName, selectedMenuIndex + 1, availableMenuItems.Count));
+            TolkHelper.Speak("RimWorldAccess.StartingSite.MenuItemPosition".Loc(itemName, selectedMenuIndex + 1, availableMenuItems.Count));
         }
 
         public static void ReadSelectedMenuItem()
@@ -129,7 +129,7 @@ namespace RimWorldAccess
 
             AdditionalInfoCategory category = availableMenuItems[selectedMenuIndex];
             string info = GetDetailedInfoForCategory(tile, category);
-            TolkHelper.Speak(info);
+            TolkHelper.SpeakData(info);
         }
 
         public static void CloseMenu()

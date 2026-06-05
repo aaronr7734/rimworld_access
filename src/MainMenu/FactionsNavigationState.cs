@@ -621,7 +621,7 @@ namespace RimWorldAccess
                 text += "RimWorldAccess.Factions.LockedSuffix".Translate();
             }
 
-            TolkHelper.Speak(text);
+            TolkHelper.SpeakData(text);
         }
 
         private static void AnnounceFactionWithSearch()
@@ -633,7 +633,7 @@ namespace RimWorldAccess
 
             if (factionTypeahead.HasActiveSearch)
             {
-                TolkHelper.Speak(factionTypeahead.BuildItemAnnouncement(faction.LabelCap));
+                TolkHelper.SpeakData(factionTypeahead.BuildItemAnnouncement(faction.LabelCap));
             }
             else
             {
@@ -666,7 +666,7 @@ namespace RimWorldAccess
                 text += "RimWorldAccess.Factions.DisabledSuffix".Translate();
             }
 
-            TolkHelper.Speak(text);
+            TolkHelper.SpeakData(text);
         }
 
         private static void AnnounceAddMenuWithSearch()
@@ -678,7 +678,7 @@ namespace RimWorldAccess
             if (addMenuTypeahead.HasActiveSearch)
             {
                 string status = option.IsDisabled ? (string)"RimWorldAccess.Factions.DisabledSuffix".Translate() : "";
-                TolkHelper.Speak(addMenuTypeahead.BuildItemAnnouncement(option.Faction.LabelCap + status));
+                TolkHelper.SpeakData(addMenuTypeahead.BuildItemAnnouncement(option.Faction.LabelCap + status));
             }
             else
             {
@@ -693,7 +693,7 @@ namespace RimWorldAccess
             {
                 // Announce first warning with a slight delay to not overlap with faction announcement
                 string warningText = string.Join(" ", warnings);
-                TolkHelper.Speak(warningText, SpeechPriority.Low);
+                TolkHelper.SpeakData(warningText, SpeechPriority.Low);
             }
         }
     }

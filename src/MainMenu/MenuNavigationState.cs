@@ -138,7 +138,7 @@ namespace RimWorldAccess
                 string announcement = string.IsNullOrEmpty(positionPart)
                     ? $"{selected.label}."
                     : $"{selected.label}. {positionPart}";
-                TolkHelper.Speak(announcement);
+                TolkHelper.SpeakData(announcement);
             }
         }
 
@@ -231,11 +231,11 @@ namespace RimWorldAccess
                     : $"{selected.label}. {positionPart}";
                 if (typeahead.HasActiveSearch)
                 {
-                    TolkHelper.Speak(baseAnnouncement + typeahead.BuildSearchContextSuffix());
+                    TolkHelper.SpeakData(baseAnnouncement + typeahead.BuildSearchContextSuffix());
                 }
                 else
                 {
-                    TolkHelper.Speak(baseAnnouncement);
+                    TolkHelper.SpeakData(baseAnnouncement);
                 }
             }
         }

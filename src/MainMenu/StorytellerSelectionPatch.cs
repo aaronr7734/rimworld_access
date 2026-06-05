@@ -46,7 +46,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak(pageTitle);
+                        TolkHelper.Speak("ChooseAIStoryteller".Loc());
                     }
                     hasAnnouncedTitle = true;
                 }

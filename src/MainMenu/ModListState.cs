@@ -787,7 +787,7 @@ namespace RimWorldAccess
                 SyncSelection();
                 BuildContentLines();
                 detailHelper.RefreshButtons();
-                TolkHelper.Speak("RimWorldAccess.ModList.MovedToPosition".Translate(mod.Name, selectedIndex + 1));
+                TolkHelper.Speak("RimWorldAccess.ModList.MovedToPosition".Loc(mod.Name, selectedIndex + 1));
             }
             else if (!string.IsNullOrEmpty(errorMessage))
             {
@@ -823,7 +823,7 @@ namespace RimWorldAccess
                 SyncSelection();
                 BuildContentLines();
                 detailHelper.RefreshButtons();
-                TolkHelper.Speak("RimWorldAccess.ModList.MovedToPosition".Translate(mod.Name, selectedIndex + 1));
+                TolkHelper.Speak("RimWorldAccess.ModList.MovedToPosition".Loc(mod.Name, selectedIndex + 1));
             }
             else if (!string.IsNullOrEmpty(errorMessage))
             {
@@ -1052,7 +1052,7 @@ namespace RimWorldAccess
                 announcement = "RimWorldAccess.ModList.OpeningWithMod".Translate(announcement, GetModListAnnouncement(mod));
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         private static void AnnounceColumnSwitch()
@@ -1071,14 +1071,14 @@ namespace RimWorldAccess
                 announcement += GetModListAnnouncement(mod);
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         private static void AnnounceCurrentMod()
         {
             var mod = GetSelectedMod();
             if (mod == null) return;
-            TolkHelper.Speak(GetModListAnnouncement(mod));
+            TolkHelper.SpeakData(GetModListAnnouncement(mod));
         }
 
         /// <summary>
@@ -1128,11 +1128,11 @@ namespace RimWorldAccess
 
             if (typeahead.HasActiveSearch)
             {
-                TolkHelper.Speak("RimWorldAccess.ModList.SearchPosition".Translate(mod.Name, position, total) + typeahead.BuildSearchContextSuffix());
+                TolkHelper.SpeakData("RimWorldAccess.ModList.SearchPosition".Translate(mod.Name, position, total) + typeahead.BuildSearchContextSuffix());
             }
             else
             {
-                TolkHelper.Speak(GetModListAnnouncement(mod));
+                TolkHelper.SpeakData(GetModListAnnouncement(mod));
             }
         }
     }

@@ -108,7 +108,7 @@ namespace RimWorldAccess
                 text += "RimWorldAccess.ScenarioLoad.WithPositionSuffix".Translate(positionPart);
             }
 
-            TolkHelper.Speak(text);
+            TolkHelper.SpeakData(text);
         }
 
         /// <summary>

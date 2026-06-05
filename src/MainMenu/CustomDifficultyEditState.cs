@@ -230,7 +230,7 @@ namespace RimWorldAccess
                     // (reset settings change level back to SectionList and handle their own announcements)
                     if (currentLevel == Level.SettingsList)
                     {
-                        TolkHelper.Speak(setting.GetAdjustmentAnnouncement());
+                        TolkHelper.SpeakData(setting.GetAdjustmentAnnouncement());
                     }
                 }
             }
@@ -247,7 +247,7 @@ namespace RimWorldAccess
             if (setting != null)
             {
                 setting.Adjust(-1);
-                TolkHelper.Speak(setting.GetAdjustmentAnnouncement());
+                TolkHelper.SpeakData(setting.GetAdjustmentAnnouncement());
             }
         }
 
@@ -262,7 +262,7 @@ namespace RimWorldAccess
             if (setting != null)
             {
                 setting.Adjust(1);
-                TolkHelper.Speak(setting.GetAdjustmentAnnouncement());
+                TolkHelper.SpeakData(setting.GetAdjustmentAnnouncement());
             }
         }
 
@@ -490,7 +490,7 @@ namespace RimWorldAccess
             {
                 text += "RimWorldAccess.Storyteller.WithPositionSuffix".Translate(position);
             }
-            TolkHelper.Speak(text);
+            TolkHelper.SpeakData(text);
         }
 
         private static void AnnounceSectionWithSearch()
@@ -500,7 +500,7 @@ namespace RimWorldAccess
 
             if (sectionTypeahead.HasActiveSearch)
             {
-                TolkHelper.Speak(sectionTypeahead.BuildItemAnnouncement(section.Name));
+                TolkHelper.SpeakData(sectionTypeahead.BuildItemAnnouncement(section.Name));
             }
             else
             {
@@ -524,7 +524,7 @@ namespace RimWorldAccess
             {
                 text += "RimWorldAccess.Storyteller.WithPositionSuffix".Translate(position);
             }
-            TolkHelper.Speak(text);
+            TolkHelper.SpeakData(text);
         }
 
         private static void AnnounceSettingWithSearch()
@@ -534,7 +534,7 @@ namespace RimWorldAccess
 
             if (settingTypeahead.HasActiveSearch)
             {
-                TolkHelper.Speak(settingTypeahead.BuildItemAnnouncement(setting.Label));
+                TolkHelper.SpeakData(settingTypeahead.BuildItemAnnouncement(setting.Label));
             }
             else
             {

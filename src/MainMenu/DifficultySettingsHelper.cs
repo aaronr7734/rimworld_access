@@ -260,10 +260,10 @@ namespace RimWorldAccess
         public override string GetAnnouncement()
         {
             if (!IsEnabled)
-                return $"{Label}: Disabled";
+                return $"{Label}: {(string)"Disabled".Translate()}";
 
             bool displayValue = invert ? !getter() : getter();
-            string valueStr = displayValue ? "On" : "Off";
+            string valueStr = displayValue ? (string)"On".Translate() : (string)"Off".Translate();
             return $"{Label}. {valueStr}. {Tooltip}";
         }
 
@@ -341,7 +341,7 @@ namespace RimWorldAccess
         public override string GetAnnouncement()
         {
             if (!IsEnabled)
-                return $"{Label}: Disabled";
+                return $"{Label}: {(string)"Disabled".Translate()}";
 
             float value = getter();
             if (reciprocate)
@@ -492,14 +492,14 @@ namespace RimWorldAccess
         {
             var current = getter();
             string description = current?.description?.StripTags() ?? "";
-            return $"{Label}. {current?.LabelCap ?? "None"}. {description}";
+            return $"{Label}. {current?.LabelCap ?? (string)"None".Translate()}. {description}";
         }
 
         public override string GetAdjustmentAnnouncement()
         {
             var current = getter();
             string description = current?.description?.StripTags() ?? "";
-            return $"{current?.LabelCap ?? "None"}. {description}";
+            return $"{current?.LabelCap ?? (string)"None".Translate()}. {description}";
         }
 
         public override void Toggle()

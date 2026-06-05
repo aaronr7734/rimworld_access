@@ -2706,20 +2706,20 @@ namespace RimWorldAccess
 
             string fieldName;
             string fieldValue;
-            string hint = IsEditingText ? "" : " Press Enter to edit.";
+            string hint = IsEditingText ? "" : " " + (string)"RimWorldAccess.ScenarioBuilder.PressEnterToEditHint".Translate();
 
             switch (metadataIndex)
             {
                 case 0:
-                    fieldName = "Title";
+                    fieldName = "Title".Translate();
                     fieldValue = currentScenario.name ?? "";
                     break;
                 case 1:
-                    fieldName = "Summary";
+                    fieldName = "Summary".Translate();
                     fieldValue = currentScenario.summary ?? "";
                     break;
                 case 2:
-                    fieldName = "Description";
+                    fieldName = "Description".Translate();
                     fieldValue = currentScenario.description ?? "";
                     break;
                 default:
@@ -2727,14 +2727,14 @@ namespace RimWorldAccess
             }
 
             string positionPart = MenuHelper.FormatPosition(metadataIndex, MetadataFieldCount);
-            string text = $"{fieldName}: {(string.IsNullOrEmpty(fieldValue) ? "(empty)" : fieldValue)}{hint}";
+            string text = $"{fieldName}: {(string.IsNullOrEmpty(fieldValue) ? (string)"RimWorldAccess.ScenarioBuilder.FieldEmptyValue".Translate() : fieldValue)}{hint}";
 
             if (!string.IsNullOrEmpty(positionPart))
             {
                 text += $" ({positionPart})";
             }
 
-            TolkHelper.Speak(text);
+            TolkHelper.SpeakData(text);
         }
 
         /// <summary>
@@ -2798,7 +2798,7 @@ namespace RimWorldAccess
                 case 2: currentScenario.description = newValue; break;
             }
             isDirty = true;
-            TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.FieldSetTo".Translate(editingFieldName, string.IsNullOrEmpty(newValue) ? (string)"RimWorldAccess.ScenarioBuilder.FieldEmptyValue".Translate() : newValue));
+            TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.FieldSetTo".Loc(editingFieldName, string.IsNullOrEmpty(newValue) ? (string)"RimWorldAccess.ScenarioBuilder.FieldEmptyValue".Translate() : newValue));
         }
 
         private static void OnMetadataCancel()
@@ -3185,7 +3185,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak(fullText);
+                        TolkHelper.SpeakData(fullText);
                     }
                     return;
                 }
@@ -3555,7 +3555,7 @@ namespace RimWorldAccess
             {
                 var data = GetItemData(selected);
                 string label = (data != null && data.IsPart) ? data.AsPart.Label : selected.Label;
-                TolkHelper.Speak(partsTreeNav.Typeahead.BuildItemAnnouncement(label));
+                TolkHelper.SpeakData(partsTreeNav.Typeahead.BuildItemAnnouncement(label));
             }
             else
             {
@@ -3670,7 +3670,7 @@ namespace RimWorldAccess
                 RebuildPartsInspectionTree();
                 partsTreeNav.SetSelectedIndex(0);
 
-                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.RandomizedNew".Translate(currentScenario?.name ?? (string)"RimWorldAccess.ScenarioBuilder.NewScenarioFallback".Translate()));
+                TolkHelper.Speak("RimWorldAccess.ScenarioBuilder.RandomizedNew".Loc(currentScenario?.name ?? (string)"RimWorldAccess.ScenarioBuilder.NewScenarioFallback".Translate()));
             }
         }
 

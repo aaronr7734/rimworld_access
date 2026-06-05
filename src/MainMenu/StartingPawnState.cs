@@ -56,9 +56,9 @@ namespace RimWorldAccess
                         break;
                     }
                 }
-                string title = context == PawnEditorContext.Wanderer
-                    ? (string)"RimWorldAccess.StartingPawn.WandererTitle".Translate("ChooseNewWanderers".Translate())
-                    : (string)"CreateCharacters".Translate();
+                Localized title = context == PawnEditorContext.Wanderer
+                    ? "RimWorldAccess.StartingPawn.WandererTitle".Loc("ChooseNewWanderers".Translate())
+                    : "CreateCharacters".Loc();
                 TolkHelper.Speak(title);
                 treeNav.ReannounceCurrentItem();
             }
@@ -555,7 +555,7 @@ namespace RimWorldAccess
                 if (!string.IsNullOrEmpty(summary))
                     randomizeAnnouncement = "RimWorldAccess.StartingPawn.RandomizeWithSummary".Translate(randomizeAnnouncement, summary);
             }
-            TolkHelper.Speak(randomizeAnnouncement);
+            TolkHelper.SpeakData(randomizeAnnouncement);
             treeNav.ReannounceCurrentItem();
         }
 
@@ -583,7 +583,7 @@ namespace RimWorldAccess
                     announcement = "RimWorldAccess.StartingPawn.RandomizeWithSummary".Translate(announcement, summary);
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
             treeNav.ReannounceCurrentItem();
         }
 
@@ -721,7 +721,7 @@ namespace RimWorldAccess
             else if (nextName != null)
                 announceParts.Add("RimWorldAccess.StartingPawn.NeighborBefore".Translate(nextName));
 
-            TolkHelper.Speak(string.Join(", ", announceParts));
+            TolkHelper.SpeakData(string.Join(", ", announceParts));
             treeNav.ReannounceCurrentItem();
         }
 

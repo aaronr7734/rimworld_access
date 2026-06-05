@@ -319,12 +319,10 @@ namespace RimWorldAccess
                 text += $" ({positionPart})";
             }
 
-            if (dropdownTypeahead.HasActiveSearch)
-            {
-                text += $", {dropdownTypeahead.CurrentMatchPosition} of {dropdownTypeahead.MatchCount} matches";
-            }
+            text += dropdownTypeahead.BuildSearchContextSuffix();
 
-            TolkHelper.Speak(text);
+            // Game-supplied def label and description; the search suffix is already localized.
+            TolkHelper.SpeakData(text);
         }
 
         private static void DropdownNext()
@@ -495,12 +493,12 @@ namespace RimWorldAccess
                     // Raw float - increment by 1 (or amount)
                     floatQuantityValue = Mathf.Clamp(floatQuantityValue + amount, floatQuantityMin, floatQuantityMax);
                 }
-                TolkHelper.Speak(FormatFloatValue(floatQuantityValue));
+                TolkHelper.SpeakData(FormatFloatValue(floatQuantityValue));
             }
             else
             {
                 quantityValue = Mathf.Clamp(quantityValue + amount, quantityMin, quantityMax);
-                TolkHelper.Speak(quantityValue.ToString());
+                TolkHelper.SpeakData(quantityValue.ToString());
             }
         }
 
@@ -519,12 +517,12 @@ namespace RimWorldAccess
                     // Raw float - decrement by 1 (or amount)
                     floatQuantityValue = Mathf.Clamp(floatQuantityValue - amount, floatQuantityMin, floatQuantityMax);
                 }
-                TolkHelper.Speak(FormatFloatValue(floatQuantityValue));
+                TolkHelper.SpeakData(FormatFloatValue(floatQuantityValue));
             }
             else
             {
                 quantityValue = Mathf.Clamp(quantityValue - amount, quantityMin, quantityMax);
-                TolkHelper.Speak(quantityValue.ToString());
+                TolkHelper.SpeakData(quantityValue.ToString());
             }
         }
 
@@ -534,12 +532,12 @@ namespace RimWorldAccess
             if (isFloatQuantity)
             {
                 floatQuantityValue = floatQuantityMin;
-                TolkHelper.Speak(FormatFloatValue(floatQuantityValue));
+                TolkHelper.SpeakData(FormatFloatValue(floatQuantityValue));
             }
             else
             {
                 quantityValue = quantityMin;
-                TolkHelper.Speak(quantityValue.ToString());
+                TolkHelper.SpeakData(quantityValue.ToString());
             }
         }
 
@@ -549,12 +547,12 @@ namespace RimWorldAccess
             if (isFloatQuantity)
             {
                 floatQuantityValue = floatQuantityMax;
-                TolkHelper.Speak(FormatFloatValue(floatQuantityValue));
+                TolkHelper.SpeakData(FormatFloatValue(floatQuantityValue));
             }
             else
             {
                 quantityValue = quantityMax;
-                TolkHelper.Speak(quantityValue.ToString());
+                TolkHelper.SpeakData(quantityValue.ToString());
             }
         }
 
@@ -863,7 +861,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak(typedFloat.ToString("F1"));
+                        TolkHelper.SpeakData(typedFloat.ToString("F1"));
                     }
                 }
                 return true;
@@ -915,7 +913,7 @@ namespace RimWorldAccess
                         }
                         else
                         {
-                            TolkHelper.Speak(FormatFloatValue(floatQuantityValue));
+                            TolkHelper.SpeakData(FormatFloatValue(floatQuantityValue));
                         }
                     }
                 }
@@ -934,7 +932,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak(quantityValue.ToString());
+                        TolkHelper.SpeakData(quantityValue.ToString());
                     }
                 }
             }
@@ -975,7 +973,7 @@ namespace RimWorldAccess
             {
                 // Buffer has decimal - parse as float
                 floatQuantityValue = Mathf.Clamp(typedFloat, floatQuantityMin, floatQuantityMax);
-                TolkHelper.Speak(typedFloat.ToString("F1"));
+                TolkHelper.SpeakData(typedFloat.ToString("F1"));
             }
             else if (int.TryParse(quantityTypedBuffer, out int typedValue))
             {
@@ -990,13 +988,13 @@ namespace RimWorldAccess
                     else
                     {
                         floatQuantityValue = Mathf.Clamp(typedValue, floatQuantityMin, floatQuantityMax);
-                        TolkHelper.Speak(FormatFloatValue(floatQuantityValue));
+                        TolkHelper.SpeakData(FormatFloatValue(floatQuantityValue));
                     }
                 }
                 else
                 {
                     quantityValue = Mathf.Clamp(typedValue, quantityMin, quantityMax);
-                    TolkHelper.Speak(quantityValue.ToString());
+                    TolkHelper.SpeakData(quantityValue.ToString());
                 }
             }
 

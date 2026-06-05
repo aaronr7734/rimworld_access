@@ -74,7 +74,7 @@ namespace RimWorldAccess
                 text += "RimWorldAccess.PawnFilter.PresetLoad.WithPositionSuffix".Translate(positionPart);
             }
 
-            TolkHelper.Speak(text);
+            TolkHelper.SpeakData(text);
         }
 
         #region Navigation

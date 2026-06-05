@@ -305,7 +305,7 @@ namespace RimWorldAccess
 
             if (!isValid)
             {
-                string errorMessage = "RimWorldAccess.StartingSite.CannotSettleHere".Translate(reason.ToString());
+                Localized errorMessage = "RimWorldAccess.StartingSite.CannotSettleHere".Loc(reason.ToString());
                 TolkHelper.Speak(errorMessage, SpeechPriority.High);
                 return false;
             }

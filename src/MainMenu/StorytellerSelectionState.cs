@@ -322,7 +322,7 @@ namespace RimWorldAccess
             var setting = settings[selectedSettingIndex];
             setting.Adjust(direction);
             // Use adjustment announcement (may be shorter than full announcement for some settings)
-            TolkHelper.Speak(setting.GetAdjustmentAnnouncement());
+            TolkHelper.SpeakData(setting.GetAdjustmentAnnouncement());
         }
 
         /// <summary>
@@ -457,13 +457,13 @@ namespace RimWorldAccess
             if (setting is DifficultySliderSetting sliderSetting)
             {
                 sliderSetting.AdjustByPercentOfPositions(percent);
-                TolkHelper.Speak(setting.GetAdjustmentAnnouncement());
+                TolkHelper.SpeakData(setting.GetAdjustmentAnnouncement());
             }
             else
             {
                 // For checkboxes, just toggle
                 setting.Toggle();
-                TolkHelper.Speak(setting.GetAdjustmentAnnouncement());
+                TolkHelper.SpeakData(setting.GetAdjustmentAnnouncement());
             }
         }
 
@@ -486,7 +486,7 @@ namespace RimWorldAccess
             if (setting is DifficultySliderSetting sliderSetting)
             {
                 sliderSetting.SetToMax();
-                TolkHelper.Speak(setting.GetAdjustmentAnnouncement());
+                TolkHelper.SpeakData(setting.GetAdjustmentAnnouncement());
             }
         }
 
@@ -509,7 +509,7 @@ namespace RimWorldAccess
             if (setting is DifficultySliderSetting sliderSetting)
             {
                 sliderSetting.SetToMin();
-                TolkHelper.Speak(setting.GetAdjustmentAnnouncement());
+                TolkHelper.SpeakData(setting.GetAdjustmentAnnouncement());
             }
         }
 
@@ -738,7 +738,7 @@ namespace RimWorldAccess
             if (typeahead.HasActiveSearch)
             {
                 string itemName = GetCurrentItemAnnouncement();
-                TolkHelper.Speak(typeahead.BuildItemAnnouncement(itemName));
+                TolkHelper.SpeakData(typeahead.BuildItemAnnouncement(itemName));
             }
             else
             {
@@ -826,7 +826,7 @@ namespace RimWorldAccess
                     break;
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
     }

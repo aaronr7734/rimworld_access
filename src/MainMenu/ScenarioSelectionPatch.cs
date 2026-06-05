@@ -54,18 +54,18 @@ namespace RimWorldAccess
                                 || selected.CanToUploadToWorkshop();
 
             Scenario scenarioToEdit;
-            string actionDescription;
+            Localized actionDescription;
 
             if (canEditDirectly)
             {
                 scenarioToEdit = selected;
-                actionDescription = "RimWorldAccess.ScenarioSelect.EditingScenario".Translate(selected.name);
+                actionDescription = "RimWorldAccess.ScenarioSelect.EditingScenario".Loc(selected.name);
             }
             else
             {
                 // Create an editable copy for built-in or others' workshop scenarios
                 scenarioToEdit = selected.CopyForEditing();
-                actionDescription = "RimWorldAccess.ScenarioSelect.EditingCopyOf".Translate(selected.name);
+                actionDescription = "RimWorldAccess.ScenarioSelect.EditingCopyOf".Loc(selected.name);
             }
 
             Page_ScenarioEditor editor = new Page_ScenarioEditor(scenarioToEdit);
@@ -117,7 +117,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak(pageTitle);
+                        TolkHelper.Speak("ChooseScenario".Loc());
                     }
                     hasAnnouncedTitle = true;
                 }

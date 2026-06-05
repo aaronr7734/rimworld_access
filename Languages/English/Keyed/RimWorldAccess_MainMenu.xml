@@ -211,6 +211,7 @@
   <RimWorldAccess.ScenarioBuilder.MetadataSection>Metadata section</RimWorldAccess.ScenarioBuilder.MetadataSection>
   <RimWorldAccess.ScenarioBuilder.FieldSetTo>{0} set to: {1}</RimWorldAccess.ScenarioBuilder.FieldSetTo>
   <RimWorldAccess.ScenarioBuilder.FieldEmptyValue>empty</RimWorldAccess.ScenarioBuilder.FieldEmptyValue>
+  <RimWorldAccess.ScenarioBuilder.PressEnterToEditHint>Press Enter to edit.</RimWorldAccess.ScenarioBuilder.PressEnterToEditHint>
   <RimWorldAccess.ScenarioBuilder.FieldEditCancelled>Cancelled. {0} unchanged.</RimWorldAccess.ScenarioBuilder.FieldEditCancelled>
   <RimWorldAccess.ScenarioBuilder.NoParts>No scenario parts. Press Alt+A to add a part.</RimWorldAccess.ScenarioBuilder.NoParts>
   <RimWorldAccess.ScenarioBuilder.PartHasNoFields>This part has no editable fields. Press Delete to remove it.</RimWorldAccess.ScenarioBuilder.PartHasNoFields>

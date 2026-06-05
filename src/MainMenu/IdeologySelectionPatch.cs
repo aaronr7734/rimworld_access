@@ -47,7 +47,7 @@ namespace RimWorldAccess
                 if (!hasAnnouncedTitle)
                 {
                     hasAnnouncedTitle = true;
-                    TolkHelper.Speak(IdeologyNavigationState.BuildOpeningAnnouncement());
+                    TolkHelper.SpeakData(IdeologyNavigationState.BuildOpeningAnnouncement());
                 }
 
                 // Handle keyboard input

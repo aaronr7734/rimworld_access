@@ -56,7 +56,7 @@ namespace RimWorldAccess
             if (!newText.NullOrEmpty() && newText != lastAnnouncedText)
             {
                 lastAnnouncedText = newText;
-                TolkHelper.Speak(newText, SpeechPriority.Normal);
+                TolkHelper.SpeakData(newText, SpeechPriority.Normal);
             }
         }
 
@@ -89,7 +89,7 @@ namespace RimWorldAccess
                     if (threshold > lastAnnouncedThreshold)
                     {
                         lastAnnouncedThreshold = threshold;
-                        string message = "RimWorldAccess.Loading.AssetsPercent".Translate("LoadingAssets".Translate(), threshold);
+                        Localized message = "RimWorldAccess.Loading.AssetsPercent".Loc("LoadingAssets".Translate(), threshold);
                         TolkHelper.Speak(message, SpeechPriority.Normal);
                     }
                 }
@@ -100,7 +100,7 @@ namespace RimWorldAccess
                     if (!eventText.NullOrEmpty() && eventText != lastAnnouncedText)
                     {
                         lastAnnouncedText = eventText;
-                        TolkHelper.Speak(eventText, SpeechPriority.Normal);
+                        TolkHelper.SpeakData(eventText, SpeechPriority.Normal);
                     }
                 }
             }
