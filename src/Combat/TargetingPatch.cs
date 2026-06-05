@@ -71,7 +71,7 @@ namespace RimWorldAccess
                 ? "RimWorldAccess.Combat.Target.DistanceInRange".Translate(distanceStr).ToString()
                 : "RimWorldAccess.Combat.Target.DistanceOutOfRange".Translate(distanceStr, contextRange.ToString("F0")).ToString();
 
-            TolkHelper.Speak(announcement, SpeechPriority.Normal);
+            TolkHelper.SpeakData(announcement, SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -137,7 +137,7 @@ namespace RimWorldAccess
                         string jumpError = JumpTargetingState.ValidateAndGetError(cursorPosition);
                         if (jumpError != null)
                         {
-                            TolkHelper.Speak(jumpError, SpeechPriority.High);
+                            TolkHelper.SpeakData(jumpError, SpeechPriority.High);
                             Event.current.Use();
                             return false;
                         }
@@ -150,7 +150,7 @@ namespace RimWorldAccess
                         string immunityMessage = AbilityTargetingState.GetImmunityMessage(target);
                         if (immunityMessage != null)
                         {
-                            TolkHelper.Speak(immunityMessage, SpeechPriority.High);
+                            TolkHelper.SpeakData(immunityMessage, SpeechPriority.High);
                             Event.current.Use();
                             return false;
                         }
@@ -160,7 +160,7 @@ namespace RimWorldAccess
                         string targetError = AbilityTargetingState.ValidateTargetPresent(target, cursorPosition);
                         if (targetError != null)
                         {
-                            TolkHelper.Speak(targetError, SpeechPriority.High);
+                            TolkHelper.SpeakData(targetError, SpeechPriority.High);
                             Event.current.Use();
                             return false;
                         }
@@ -169,7 +169,7 @@ namespace RimWorldAccess
                         string rangeError = AbilityTargetingState.ValidateRange(cursorPosition);
                         if (rangeError != null)
                         {
-                            TolkHelper.Speak(rangeError, SpeechPriority.High);
+                            TolkHelper.SpeakData(rangeError, SpeechPriority.High);
                             Event.current.Use();
                             return false;
                         }
@@ -178,7 +178,7 @@ namespace RimWorldAccess
                         string losError = AbilityTargetingState.ValidateLineOfSight(cursorPosition);
                         if (losError != null)
                         {
-                            TolkHelper.Speak(losError, SpeechPriority.High);
+                            TolkHelper.SpeakData(losError, SpeechPriority.High);
                             Event.current.Use();
                             return false;
                         }
@@ -189,7 +189,7 @@ namespace RimWorldAccess
                     // doesn't produce a message for the "nothing here" case. Provide explicit feedback.
                     if (ItemTargetingState.IsActive && !target.HasThing)
                     {
-                        TolkHelper.Speak(ItemTargetingState.GetNoTargetErrorMessage(), SpeechPriority.High);
+                        TolkHelper.SpeakData(ItemTargetingState.GetNoTargetErrorMessage(), SpeechPriority.High);
                         Event.current.Use();
                         return false;
                     }
@@ -212,7 +212,7 @@ namespace RimWorldAccess
                             if (distance > rangeClamped)
                             {
                                 TolkHelper.Speak(
-                                    "RimWorldAccess.Combat.Target.OutOfRange".Translate(distance.ToString("F0"), rangeClamped.ToString("F0")),
+                                    "RimWorldAccess.Combat.Target.OutOfRange".Loc(distance.ToString("F0"), rangeClamped.ToString("F0")),
                                     SpeechPriority.High);
                                 Event.current.Use();
                                 return false;
@@ -233,7 +233,7 @@ namespace RimWorldAccess
                                 ? target.Thing.LabelShort
                                 : "RimWorldAccess.Combat.Target.GenericTargetLabel".Translate().ToString();
                             TolkHelper.Speak(
-                                "RimWorldAccess.Combat.Target.NotValidTarget".Translate(targetLabel),
+                                "RimWorldAccess.Combat.Target.NotValidTarget".Loc(targetLabel),
                                 SpeechPriority.High);
                         }
                         // User must press Escape to exit targeting
@@ -278,7 +278,7 @@ namespace RimWorldAccess
                     {
                         ModLogger.Error($"Exception in OrderForceTarget: {ex.Message}");
                         TolkHelper.Speak(
-                            "RimWorldAccess.Combat.Target.ErrorUsing".Translate(ex.Message),
+                            "RimWorldAccess.Combat.Target.ErrorUsing".Loc(ex.Message),
                             SpeechPriority.High);
                         Event.current.Use();
                         return false;
@@ -353,13 +353,13 @@ namespace RimWorldAccess
                                 destInfo = "RimWorldAccess.Combat.Target.SelectDestinationInRange".Translate(props.range.ToString("F0"));
                             }
                         }
-                        TolkHelper.Speak($"{successMessage}. {destInfo}");
+                        TolkHelper.SpeakData($"{successMessage}. {destInfo}");
                     }
                     else
                     {
                         // No second phase - stop targeting mode
                         __instance.StopTargeting();
-                        TolkHelper.Speak(successMessage);
+                        TolkHelper.SpeakData(successMessage);
                     }
 
                     // Consume the event
@@ -418,7 +418,7 @@ namespace RimWorldAccess
                         if (distance > contextRange)
                         {
                             TolkHelper.Speak(
-                                "RimWorldAccess.Combat.Target.OutOfRange".Translate(distance.ToString("F0"), contextRange.ToString("F0")),
+                                "RimWorldAccess.Combat.Target.OutOfRange".Loc(distance.ToString("F0"), contextRange.ToString("F0")),
                                 SpeechPriority.High);
                             Event.current.Use();
                             return false; // Stay in targeting mode for retry

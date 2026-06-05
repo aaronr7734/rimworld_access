@@ -58,7 +58,7 @@ namespace RimWorldAccess
                 ? "RimWorldAccess.Combat.Shell.Landed".Translate(source, pos.x, pos.z).ToString()
                 : "RimWorldAccess.Combat.Shell.Hit".Translate(source, target, pos.x, pos.z).ToString();
 
-            TolkHelper.Speak(announcement, SpeechPriority.High);
+            TolkHelper.SpeakData(announcement, SpeechPriority.High);
         }
     }
 }

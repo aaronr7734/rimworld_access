@@ -117,7 +117,7 @@ namespace RimWorldAccess
                 }
             }
 
-            TolkHelper.Speak(sb.ToString().TrimEnd());
+            TolkHelper.SpeakData(sb.ToString().TrimEnd());
         }
     }
 }
