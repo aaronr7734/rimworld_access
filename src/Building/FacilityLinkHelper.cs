@@ -39,8 +39,8 @@ namespace RimWorldAccess
             if (facilityProps != null)
             {
                 string distInfo = facilityProps.mustBePlacedAdjacent
-                    ? "adjacent"
-                    : $"within {facilityProps.maxDistance:F0} tiles";
+                    ? (string)"RimWorldAccess.Building.Facility.Adjacent".Translate()
+                    : (string)"RimWorldAccess.Building.Facility.WithinTiles".Translate(facilityProps.maxDistance.ToString("F0"));
 
                 var statNames = facilityProps.statOffsets?
                     .Select(s => s.stat.LabelCap.ToString())
@@ -48,16 +48,16 @@ namespace RimWorldAccess
 
                 if (statNames != null && statNames.Count > 0)
                 {
-                    parts.Add($"Facility: boosts {string.Join(", ", statNames)}, {distInfo}");
+                    parts.Add((string)"RimWorldAccess.Building.Facility.BoostsStats".Translate(string.Join(", ", statNames), distInfo));
                 }
                 else
                 {
-                    parts.Add($"Facility: links to buildings {distInfo}");
+                    parts.Add((string)"RimWorldAccess.Building.Facility.LinksToBuildings".Translate(distInfo));
                 }
 
                 if (facilityProps.maxSimultaneous > 1)
                 {
-                    parts.Add($"max {facilityProps.maxSimultaneous} per building");
+                    parts.Add((string)"RimWorldAccess.Building.Facility.MaxPerBuilding".Translate(facilityProps.maxSimultaneous));
                 }
             }
 
@@ -74,8 +74,8 @@ namespace RimWorldAccess
                 {
                     string facilityList = facilityNames.Count <= 3
                         ? string.Join(", ", facilityNames)
-                        : $"{string.Join(", ", facilityNames.Take(3))} and {facilityNames.Count - 3} more";
-                    parts.Add($"Accepts facilities: {facilityList}");
+                        : (string)"RimWorldAccess.Building.Facility.AndNMore".Translate(string.Join(", ", facilityNames.Take(3)), facilityNames.Count - 3);
+                    parts.Add((string)"RimWorldAccess.Building.Facility.AcceptsFacilities".Translate(facilityList));
                 }
             }
 
@@ -137,10 +137,10 @@ namespace RimWorldAccess
             // Stat offsets
             if (props.statOffsets != null && props.statOffsets.Count > 0)
             {
-                sb.AppendLine("Provides bonuses:");
+                sb.AppendLine("RimWorldAccess.Building.Facility.ProvidesBonuses".Translate());
                 foreach (var statMod in props.statOffsets)
                 {
-                    sb.AppendLine($"  {statMod.stat.LabelCap}: {statMod.ValueToStringAsOffset}");
+                    sb.AppendLine("  " + (string)"RimWorldAccess.Building.Facility.StatOffset".Translate((string)statMod.stat.LabelCap, statMod.ValueToStringAsOffset));
                 }
             }
 
@@ -148,23 +148,24 @@ namespace RimWorldAccess
             var linked = facility.LinkedBuildings;
             if (linked != null && linked.Count > 0)
             {
-                string buildingWord = linked.Count == 1 ? "building" : "buildings";
-                sb.AppendLine($"Linked to {linked.Count} {buildingWord}:");
+                sb.AppendLine(linked.Count == 1
+                    ? (string)"RimWorldAccess.Building.Facility.LinkedToOne".Translate(linked.Count)
+                    : (string)"RimWorldAccess.Building.Facility.LinkedToMany".Translate(linked.Count));
                 foreach (var linkedBuilding in linked)
                 {
                     bool isActive = linkedBuilding.TryGetComp<CompAffectedByFacilities>()?.IsFacilityActive(facility.parent) ?? true;
-                    string status = isActive ? "" : " (inactive)";
-                    sb.AppendLine($"  {linkedBuilding.LabelCap}{status}");
+                    string status = isActive ? "" : " (" + (string)"RimWorldAccess.Building.Facility.Inactive".Translate() + ")";
+                    sb.AppendLine("  " + (string)linkedBuilding.LabelCap + status);
                 }
             }
             else
             {
-                sb.AppendLine("Not linked to any buildings.");
+                sb.AppendLine("RimWorldAccess.Building.Facility.NotLinkedToBuildings".Translate());
             }
 
             if (props.showMaxSimultaneous && props.maxSimultaneous > 0)
             {
-                sb.AppendLine($"Max connections per building: {props.maxSimultaneous}");
+                sb.AppendLine("RimWorldAccess.Building.Facility.MaxConnectionsPerBuilding".Translate(props.maxSimultaneous));
             }
         }
 
@@ -174,18 +175,21 @@ namespace RimWorldAccess
 
             if (linked != null && linked.Count > 0)
             {
-                string facilityWord = linked.Count == 1 ? "facility" : "facilities";
-                sb.AppendLine($"Boosted by {linked.Count} {facilityWord}:");
+                sb.AppendLine(linked.Count == 1
+                    ? (string)"RimWorldAccess.Building.Facility.BoostedByOne".Translate(linked.Count)
+                    : (string)"RimWorldAccess.Building.Facility.BoostedByMany".Translate(linked.Count));
                 foreach (var linkedFacility in linked)
                 {
                     bool isActive = affected.IsFacilityActive(linkedFacility);
-                    string status = isActive ? "active" : "inactive";
-                    sb.AppendLine($"  {linkedFacility.LabelCap} ({status})");
+                    string status = isActive
+                        ? (string)"RimWorldAccess.Building.Facility.Active".Translate()
+                        : (string)"RimWorldAccess.Building.Facility.Inactive".Translate();
+                    sb.AppendLine("  " + (string)linkedFacility.LabelCap + " (" + status + ")");
                 }
             }
             else
             {
-                sb.AppendLine("No facilities linked.");
+                sb.AppendLine("RimWorldAccess.Building.Facility.NoFacilitiesLinked".Translate());
             }
 
             // Show compatible facility types
@@ -196,7 +200,7 @@ namespace RimWorldAccess
                     .Select(f => f.LabelCap.ToString())
                     .Distinct()
                     .ToList();
-                sb.AppendLine($"Compatible facilities: {string.Join(", ", facilityNames)}");
+                sb.AppendLine("RimWorldAccess.Building.Facility.CompatibleFacilities".Translate(string.Join(", ", facilityNames)));
             }
         }
 
@@ -209,14 +213,14 @@ namespace RimWorldAccess
             {
                 entries.Add(new FacilityInfoEntry
                 {
-                    Label = "Provides bonuses:",
+                    Label = "RimWorldAccess.Building.Facility.ProvidesBonuses".Translate(),
                     IsHeader = true
                 });
                 foreach (var statMod in props.statOffsets)
                 {
                     entries.Add(new FacilityInfoEntry
                     {
-                        Label = $"{statMod.stat.LabelCap}: {statMod.ValueToStringAsOffset}"
+                        Label = (string)"RimWorldAccess.Building.Facility.StatOffset".Translate((string)statMod.stat.LabelCap, statMod.ValueToStringAsOffset)
                     });
                 }
             }
@@ -225,19 +229,20 @@ namespace RimWorldAccess
             var linked = facility.LinkedBuildings;
             if (linked != null && linked.Count > 0)
             {
-                string buildingWord = linked.Count == 1 ? "building" : "buildings";
                 entries.Add(new FacilityInfoEntry
                 {
-                    Label = $"Linked to {linked.Count} {buildingWord}:",
+                    Label = linked.Count == 1
+                        ? (string)"RimWorldAccess.Building.Facility.LinkedToOne".Translate(linked.Count)
+                        : (string)"RimWorldAccess.Building.Facility.LinkedToMany".Translate(linked.Count),
                     IsHeader = true
                 });
                 foreach (var linkedBuilding in linked)
                 {
                     bool isActive = linkedBuilding.TryGetComp<CompAffectedByFacilities>()?.IsFacilityActive(facility.parent) ?? true;
-                    string status = isActive ? "" : " (inactive)";
+                    string status = isActive ? "" : " (" + (string)"RimWorldAccess.Building.Facility.Inactive".Translate() + ")";
                     entries.Add(new FacilityInfoEntry
                     {
-                        Label = $"{linkedBuilding.LabelCap}{status}"
+                        Label = (string)linkedBuilding.LabelCap + status
                     });
                 }
             }
@@ -245,7 +250,7 @@ namespace RimWorldAccess
             {
                 entries.Add(new FacilityInfoEntry
                 {
-                    Label = "Not linked to any buildings."
+                    Label = "RimWorldAccess.Building.Facility.NotLinkedToBuildings".Translate()
                 });
             }
 
@@ -253,7 +258,7 @@ namespace RimWorldAccess
             {
                 entries.Add(new FacilityInfoEntry
                 {
-                    Label = $"Max connections per building: {props.maxSimultaneous}"
+                    Label = (string)"RimWorldAccess.Building.Facility.MaxConnectionsPerBuilding".Translate(props.maxSimultaneous)
                 });
             }
         }
@@ -264,19 +269,22 @@ namespace RimWorldAccess
 
             if (linked != null && linked.Count > 0)
             {
-                string facilityWord = linked.Count == 1 ? "facility" : "facilities";
                 entries.Add(new FacilityInfoEntry
                 {
-                    Label = $"Boosted by {linked.Count} {facilityWord}:",
+                    Label = linked.Count == 1
+                        ? (string)"RimWorldAccess.Building.Facility.BoostedByOne".Translate(linked.Count)
+                        : (string)"RimWorldAccess.Building.Facility.BoostedByMany".Translate(linked.Count),
                     IsHeader = true
                 });
                 foreach (var linkedFacility in linked)
                 {
                     bool isActive = affected.IsFacilityActive(linkedFacility);
-                    string status = isActive ? "active" : "inactive";
+                    string status = isActive
+                        ? (string)"RimWorldAccess.Building.Facility.Active".Translate()
+                        : (string)"RimWorldAccess.Building.Facility.Inactive".Translate();
                     entries.Add(new FacilityInfoEntry
                     {
-                        Label = $"{linkedFacility.LabelCap} ({status})"
+                        Label = (string)linkedFacility.LabelCap + " (" + status + ")"
                     });
                 }
             }
@@ -284,7 +292,7 @@ namespace RimWorldAccess
             {
                 entries.Add(new FacilityInfoEntry
                 {
-                    Label = "No facilities linked."
+                    Label = "RimWorldAccess.Building.Facility.NoFacilitiesLinked".Translate()
                 });
             }
 
@@ -298,7 +306,7 @@ namespace RimWorldAccess
                     .ToList();
                 entries.Add(new FacilityInfoEntry
                 {
-                    Label = $"Compatible facilities: {string.Join(", ", facilityNames)}"
+                    Label = (string)"RimWorldAccess.Building.Facility.CompatibleFacilities".Translate(string.Join(", ", facilityNames))
                 });
             }
         }

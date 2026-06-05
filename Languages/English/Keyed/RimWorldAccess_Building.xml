@@ -898,4 +898,32 @@
   <RimWorldAccess.Building.ArchitectTree.MenuOpened>Architect menu</RimWorldAccess.Building.ArchitectTree.MenuOpened>
   <RimWorldAccess.Building.ArchitectTree.NoCategories>No architect categories available</RimWorldAccess.Building.ArchitectTree.NoCategories>
 
+  <!-- =================================================================
+       Facility link info (FacilityLinkHelper). Spoken on placement of
+       facility-linked buildings and in the building inspection tree's
+       "Linked Facilities" category. {N} are counts; lists are game-data
+       labels joined with commas. One/Many splits for building/facility
+       noun agreement. Status words active/inactive used for both the
+       inline "(inactive)" suffix and the " (active)/(inactive)" form.
+       ================================================================= -->
+  <RimWorldAccess.Building.Facility.Adjacent>adjacent</RimWorldAccess.Building.Facility.Adjacent>
+  <RimWorldAccess.Building.Facility.WithinTiles>within {0} tiles</RimWorldAccess.Building.Facility.WithinTiles>
+  <RimWorldAccess.Building.Facility.BoostsStats>Facility: boosts {0}, {1}</RimWorldAccess.Building.Facility.BoostsStats>
+  <RimWorldAccess.Building.Facility.LinksToBuildings>Facility: links to buildings {0}</RimWorldAccess.Building.Facility.LinksToBuildings>
+  <RimWorldAccess.Building.Facility.MaxPerBuilding>max {0} per building</RimWorldAccess.Building.Facility.MaxPerBuilding>
+  <RimWorldAccess.Building.Facility.AndNMore>{0} and {1} more</RimWorldAccess.Building.Facility.AndNMore>
+  <RimWorldAccess.Building.Facility.AcceptsFacilities>Accepts facilities: {0}</RimWorldAccess.Building.Facility.AcceptsFacilities>
+  <RimWorldAccess.Building.Facility.ProvidesBonuses>Provides bonuses:</RimWorldAccess.Building.Facility.ProvidesBonuses>
+  <RimWorldAccess.Building.Facility.StatOffset>{0}: {1}</RimWorldAccess.Building.Facility.StatOffset>
+  <RimWorldAccess.Building.Facility.LinkedToOne>Linked to {0} building:</RimWorldAccess.Building.Facility.LinkedToOne>
+  <RimWorldAccess.Building.Facility.LinkedToMany>Linked to {0} buildings:</RimWorldAccess.Building.Facility.LinkedToMany>
+  <RimWorldAccess.Building.Facility.NotLinkedToBuildings>Not linked to any buildings.</RimWorldAccess.Building.Facility.NotLinkedToBuildings>
+  <RimWorldAccess.Building.Facility.MaxConnectionsPerBuilding>Max connections per building: {0}</RimWorldAccess.Building.Facility.MaxConnectionsPerBuilding>
+  <RimWorldAccess.Building.Facility.BoostedByOne>Boosted by {0} facility:</RimWorldAccess.Building.Facility.BoostedByOne>
+  <RimWorldAccess.Building.Facility.BoostedByMany>Boosted by {0} facilities:</RimWorldAccess.Building.Facility.BoostedByMany>
+  <RimWorldAccess.Building.Facility.NoFacilitiesLinked>No facilities linked.</RimWorldAccess.Building.Facility.NoFacilitiesLinked>
+  <RimWorldAccess.Building.Facility.CompatibleFacilities>Compatible facilities: {0}</RimWorldAccess.Building.Facility.CompatibleFacilities>
+  <RimWorldAccess.Building.Facility.Active>active</RimWorldAccess.Building.Facility.Active>
+  <RimWorldAccess.Building.Facility.Inactive>inactive</RimWorldAccess.Building.Facility.Inactive>
+
 </LanguageData>
