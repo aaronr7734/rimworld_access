@@ -194,7 +194,7 @@ namespace RimWorldAccess
             // Only announce if different from last announcement (avoids spam)
             if (tileInfo != MapNavigationState.LastAnnouncedInfo)
             {
-                TolkHelper.Speak(tileInfo);
+                TolkHelper.SpeakData(tileInfo);
                 MapNavigationState.LastAnnouncedInfo = tileInfo;
             }
         }

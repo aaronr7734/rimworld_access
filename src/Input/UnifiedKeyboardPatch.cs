@@ -6443,7 +6443,7 @@ namespace RimWorldAccess
                 {
                     string prefix = lbPawns[0].LabelShort;
                     if (queueing)
-                        TolkHelper.Speak("RimWorldAccess.Input.Order.QueuedAction".Translate(prefix, top.Label, "Queued".Translate()));
+                        TolkHelper.Speak("RimWorldAccess.Input.Order.QueuedAction".Loc(prefix, top.Label, "Queued".Translate()));
                     else
                         TolkHelper.Speak("RimWorldAccess.Input.Order.Action".Loc(prefix, top.Label));
                 }
@@ -6865,7 +6865,7 @@ namespace RimWorldAccess
                     : "RimWorldAccess.Input.Forbid.ManyUnforbidden".Translate(toggledCount).ToString();
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         #endregion
@@ -7134,7 +7134,7 @@ namespace RimWorldAccess
                         string names = MenuHelper.FormatNameList(
                             unchanged.Select(p => p.LabelShort).ToList());
                         TolkHelper.Speak(
-                            "RimWorldAccess.Input.MultiSelectOrder.EveryoneExcept".Translate(everyone, names, optLabel),
+                            "RimWorldAccess.Input.MultiSelectOrder.EveryoneExcept".Loc(everyone, names, optLabel),
                             SpeechPriority.Low);
                     }
                     else
@@ -7142,7 +7142,7 @@ namespace RimWorldAccess
                         string names = MenuHelper.FormatNameList(
                             succeeded.Select(p => p.LabelShort).ToList());
                         TolkHelper.Speak(
-                            "RimWorldAccess.Input.MultiSelectOrder.OnlyDoes".Translate(names, optLabel),
+                            "RimWorldAccess.Input.MultiSelectOrder.OnlyDoes".Loc(names, optLabel),
                             SpeechPriority.Low);
                     }
                 };
