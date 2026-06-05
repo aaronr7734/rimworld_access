@@ -45,7 +45,7 @@ namespace RimWorldAccess
             autoJumpMode = !autoJumpMode;
             TolkHelper.Speak((autoJumpMode
                 ? "RimWorldAccess.Map.Scanner.AutoJumpEnabled"
-                : "RimWorldAccess.Map.Scanner.AutoJumpDisabled").Translate(), SpeechPriority.High);
+                : "RimWorldAccess.Map.Scanner.AutoJumpDisabled").Loc(), SpeechPriority.High);
         }
 
         /// <summary>
@@ -941,7 +941,7 @@ namespace RimWorldAccess
                 {
                     TolkHelper.Speak((removedStale
                         ? "RimWorldAccess.Map.Scanner.ItemGone"
-                        : "RimWorldAccess.Map.Scanner.NoItemSelected").Translate(), SpeechPriority.High);
+                        : "RimWorldAccess.Map.Scanner.NoItemSelected").Loc(), SpeechPriority.High);
                     return;
                 }
 
@@ -1083,7 +1083,7 @@ namespace RimWorldAccess
                 {
                     TolkHelper.Speak((removedStale
                         ? "RimWorldAccess.Map.Scanner.ItemGone"
-                        : "RimWorldAccess.Map.Scanner.NoItemSelected").Translate(), SpeechPriority.High);
+                        : "RimWorldAccess.Map.Scanner.NoItemSelected").Loc(), SpeechPriority.High);
                     return;
                 }
 
@@ -1287,7 +1287,7 @@ namespace RimWorldAccess
 
             TolkHelper.Speak((category.TotalItemCount == 1
                 ? "RimWorldAccess.Map.Scanner.CategoryAnnouncementOne"
-                : "RimWorldAccess.Map.Scanner.CategoryAnnouncementMany").Translate(
+                : "RimWorldAccess.Map.Scanner.CategoryAnnouncementMany").Loc(
                     ScannerNameLocalizer.LocalizeCategoryName(category.Name),
                     category.TotalItemCount), SpeechPriority.Normal);
         }
@@ -1299,7 +1299,7 @@ namespace RimWorldAccess
 
             TolkHelper.Speak((subcat.Items.Count == 1
                 ? "RimWorldAccess.Map.Scanner.CategoryAnnouncementOne"
-                : "RimWorldAccess.Map.Scanner.CategoryAnnouncementMany").Translate(
+                : "RimWorldAccess.Map.Scanner.CategoryAnnouncementMany").Loc(
                     ScannerNameLocalizer.LocalizeSubcategoryName(subcat.Name),
                     subcat.Items.Count), SpeechPriority.Normal);
         }
@@ -1342,7 +1342,7 @@ namespace RimWorldAccess
                 // Pick the region the cursor is inside, or the one with the nearest cell.
                 // Update currentBulkIndex so subsequent Alt+PgDn navigates from that region.
                 currentBulkIndex = FindNearestRegionIndex(item, MapNavigationState.CurrentCursorPosition);
-                TolkHelper.Speak(BuildRegionAnnouncement(item, currentBulkIndex), SpeechPriority.Normal);
+                TolkHelper.SpeakData(BuildRegionAnnouncement(item, currentBulkIndex), SpeechPriority.Normal);
                 return;
             }
 
@@ -1411,7 +1411,7 @@ namespace RimWorldAccess
                 basicAnnouncement += "RimWorldAccess.Map.Scanner.Item.BulkSuffix".Translate(position, item.BulkCount);
             }
 
-            TolkHelper.Speak(basicAnnouncement, SpeechPriority.Normal);
+            TolkHelper.SpeakData(basicAnnouncement, SpeechPriority.Normal);
         }
 
         private static void AnnounceCurrentBulkItem()
@@ -1449,7 +1449,7 @@ namespace RimWorldAccess
             {
                 if (currentBulkIndex >= item.TerrainRegions.Count)
                     return;
-                TolkHelper.Speak(BuildRegionAnnouncement(item, currentBulkIndex), SpeechPriority.Normal);
+                TolkHelper.SpeakData(BuildRegionAnnouncement(item, currentBulkIndex), SpeechPriority.Normal);
                 return;
             }
 

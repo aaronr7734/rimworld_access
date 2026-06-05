@@ -38,7 +38,7 @@ namespace RimWorldAccess
             if (__instance.CurTimeSpeed != lastAnnouncedSpeed)
             {
                 string announcement = GetTimeSpeedAnnouncement(__instance.CurTimeSpeed);
-                TolkHelper.Speak(announcement);
+                TolkHelper.SpeakData(announcement);
                 lastAnnouncedSpeed = __instance.CurTimeSpeed;
             }
         }
@@ -61,7 +61,7 @@ namespace RimWorldAccess
             if (__instance.CurTimeSpeed != lastAnnouncedSpeed)
             {
                 string announcement = GetTimeSpeedAnnouncement(__instance.CurTimeSpeed);
-                TolkHelper.Speak(announcement);
+                TolkHelper.SpeakData(announcement);
                 lastAnnouncedSpeed = __instance.CurTimeSpeed;
             }
         }

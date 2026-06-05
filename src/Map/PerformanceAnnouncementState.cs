@@ -63,7 +63,7 @@ namespace RimWorldAccess
             string announcement =
                 announcementKey.Translate(speedName, actualTpsInt, targetTpsInt, percent);
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
             SoundDefOf.Click.PlayOneShotOnCamera();
         }
     }

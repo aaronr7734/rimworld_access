@@ -96,7 +96,7 @@ namespace RimWorldAccess
                 xBuffer += c;
             }
 
-            TolkHelper.Speak(c.ToString(), SpeechPriority.Low);
+            TolkHelper.SpeakData(c.ToString(), SpeechPriority.Low);
         }
 
         /// <summary>

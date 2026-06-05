@@ -138,7 +138,7 @@ namespace RimWorldAccess
 
                 // Announce starting position
                 string initialInfo = TileInfoHelper.GetTileSummary(MapNavigationState.CurrentCursorPosition, Find.CurrentMap);
-                TolkHelper.Speak(initialInfo);
+                TolkHelper.SpeakData(initialInfo);
                 MapNavigationState.LastAnnouncedInfo = initialInfo;
                 hasAnnouncedThisFrame = true;
                 return true;
@@ -238,7 +238,7 @@ namespace RimWorldAccess
             {
                 fullAnnouncement = "RimWorldAccess.Map.Switch.WithInfo".Translate(mapName, presenceInfo);
             }
-            TolkHelper.Speak(fullAnnouncement);
+            TolkHelper.SpeakData(fullAnnouncement);
             MapNavigationState.LastAnnouncedInfo = fullAnnouncement;
             hasAnnouncedThisFrame = true;
         }
@@ -363,7 +363,7 @@ namespace RimWorldAccess
             {
                 announcement = "RimWorldAccess.Map.Pawn.Selection".Translate(selectedPawn.LabelShort, currentTask);
             }
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
 
             return false; // Block original method
         }
@@ -453,7 +453,7 @@ namespace RimWorldAccess
             {
                 announcement = "RimWorldAccess.Map.Pawn.Selection".Translate(selectedPawn.LabelShort, currentTask);
             }
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
 
             return false; // Block original method
         }

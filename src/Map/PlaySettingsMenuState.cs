@@ -85,7 +85,7 @@ namespace RimWorldAccess
         {
             if (selectedIndex >= 0 && selectedIndex < currentOptions.Count)
             {
-                TolkHelper.Speak(currentOptions[selectedIndex].Label);
+                TolkHelper.SpeakData(currentOptions[selectedIndex].Label);
             }
         }
 
@@ -105,7 +105,7 @@ namespace RimWorldAccess
                     Find.PlaySettings.autoRebuild = !Find.PlaySettings.autoRebuild;
                     TolkHelper.Speak((Find.PlaySettings.autoRebuild
                         ? "RimWorldAccess.Map.PlaySettings.AutoRebuild.Enabled"
-                        : "RimWorldAccess.Map.PlaySettings.AutoRebuild.Disabled").Translate());
+                        : "RimWorldAccess.Map.PlaySettings.AutoRebuild.Disabled").Loc());
                     BuildMenuOptions(); // Refresh to update labels
                     AnnounceCurrentOption(); // Re-announce with new state
                 }
@@ -120,7 +120,7 @@ namespace RimWorldAccess
                     Find.PlaySettings.autoHomeArea = !Find.PlaySettings.autoHomeArea;
                     TolkHelper.Speak((Find.PlaySettings.autoHomeArea
                         ? "RimWorldAccess.Map.PlaySettings.AutoHomeArea.Enabled"
-                        : "RimWorldAccess.Map.PlaySettings.AutoHomeArea.Disabled").Translate());
+                        : "RimWorldAccess.Map.PlaySettings.AutoHomeArea.Disabled").Loc());
                     BuildMenuOptions(); // Refresh
                     AnnounceCurrentOption();
                 }

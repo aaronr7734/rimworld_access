@@ -100,7 +100,7 @@ namespace RimWorldAccess
         public static void HandleCharacter(char c)
         {
             searchBuffer += c;
-            TolkHelper.Speak(c.ToString(), SpeechPriority.Low);
+            TolkHelper.SpeakData(c.ToString(), SpeechPriority.Low);
             UpdateSearchResults();
         }
 

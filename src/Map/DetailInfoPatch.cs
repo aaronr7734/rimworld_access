@@ -80,7 +80,7 @@ namespace RimWorldAccess
                 string info = GetInfoForKey(pressedKey.Value, currentPosition, Find.CurrentMap);
 
                 // Copy to clipboard for screen reader
-                TolkHelper.Speak(info);
+                TolkHelper.SpeakData(info);
 
                 // Log to console for debugging
                 Log.Message($"Tile info ({pressedKey.Value}) requested for {currentPosition}");

@@ -278,7 +278,7 @@ namespace RimWorldAccess
             {
                 modeText = "RimWorldAccess.Map.Jump.Mode.Unknown".Translate();
             }
-            TolkHelper.Speak(modeText);
+            TolkHelper.SpeakData(modeText);
         }
 
         /// <summary>
@@ -933,7 +933,7 @@ namespace RimWorldAccess
             string phrase = string.IsNullOrEmpty(targetLabel)
                 ? "RimWorldAccess.Map.JumpedToTarget".Translate().ToString()
                 : "RimWorldAccess.Map.JumpedTo".Translate(targetLabel).ToString();
-            TolkHelper.Speak(phrase, priority);
+            TolkHelper.SpeakData(phrase, priority);
         }
 
         /// <summary>

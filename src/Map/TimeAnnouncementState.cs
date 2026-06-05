@@ -131,7 +131,7 @@ namespace RimWorldAccess
             sb.Append("RimWorldAccess.Map.Time.DaysPassedAppend".Translate(daysPhrase));
 
             // Copy to clipboard for screen reader
-            TolkHelper.Speak(sb.ToString());
+            TolkHelper.SpeakData(sb.ToString());
 
             // Play audio feedback
             SoundDefOf.Click.PlayOneShotOnCamera();
