@@ -60,7 +60,7 @@ namespace RimWorldAccess
             }
 
             sb.Append("RimWorldAccess.Abilities.World.SelectDestination".Translate());
-            TolkHelper.Speak(sb.ToString(), SpeechPriority.Normal);
+            TolkHelper.SpeakData(sb.ToString(), SpeechPriority.Normal);
         }
 
         /// <summary>

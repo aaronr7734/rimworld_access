@@ -330,7 +330,7 @@ namespace RimWorldAccess
 
             if (ideologies.Count == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Ideology.Tab.Empty".Translate(tabLabel, "NoneLower".Translate()));
+                TolkHelper.Speak("RimWorldAccess.Ideology.Tab.Empty".Loc(tabLabel, "NoneLower".Translate()));
                 return;
             }
 
@@ -344,7 +344,7 @@ namespace RimWorldAccess
             if (!string.IsNullOrEmpty(position))
                 IdeologyHelper.AppendSentence(sb, position);
 
-            TolkHelper.Speak(sb.ToString());
+            TolkHelper.SpeakData(sb.ToString());
         }
 
         private static void AnnounceCurrentListItem()
@@ -356,7 +356,7 @@ namespace RimWorldAccess
             string position = MenuHelper.FormatPosition(selectedIdeoIndex, ideologies.Count);
             string positionSection = string.IsNullOrEmpty(position) ? "" : ". " + position;
 
-            TolkHelper.Speak(announcement + positionSection);
+            TolkHelper.SpeakData(announcement + positionSection);
         }
 
         private static void AnnounceListWithSearch()
@@ -365,7 +365,7 @@ namespace RimWorldAccess
                 return;
 
             string name = ideologies[selectedIdeoIndex].name;
-            TolkHelper.Speak(listTypeahead.BuildItemAnnouncement(name));
+            TolkHelper.SpeakData(listTypeahead.BuildItemAnnouncement(name));
         }
 
         #endregion

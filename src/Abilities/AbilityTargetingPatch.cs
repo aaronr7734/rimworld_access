@@ -75,7 +75,7 @@ namespace RimWorldAccess
                     string permitLabel = permitWorker.def?.LabelCap
                         ?? "RimWorldAccess.Abilities.Label.Permit".Translate().ToString();
                     TolkHelper.Speak(
-                        "RimWorldAccess.Abilities.Permit.Start".Translate(permitLabel),
+                        "RimWorldAccess.Abilities.Permit.Start".Loc(permitLabel),
                         SpeechPriority.Normal);
                 }
                 else

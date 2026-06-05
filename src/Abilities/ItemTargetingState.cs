@@ -41,7 +41,7 @@ namespace RimWorldAccess
             string mouseLabel = GetMouseLabel(source);
 
             TolkHelper.Speak(
-                "RimWorldAccess.Abilities.Item.StartWithInstruction".Translate(itemLabel, mouseLabel),
+                "RimWorldAccess.Abilities.Item.StartWithInstruction".Loc(itemLabel, mouseLabel),
                 SpeechPriority.Normal);
         }
 
@@ -57,7 +57,7 @@ namespace RimWorldAccess
             itemLabel = !string.IsNullOrEmpty(label) ? label : InferLabelFromParameters(parameters);
 
             TolkHelper.Speak(
-                "RimWorldAccess.Abilities.Item.StartCallback".Translate(itemLabel),
+                "RimWorldAccess.Abilities.Item.StartCallback".Loc(itemLabel),
                 SpeechPriority.Normal);
         }
 

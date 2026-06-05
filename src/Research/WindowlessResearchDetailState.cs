@@ -278,7 +278,7 @@ namespace RimWorldAccess
 
             if (treeNav.HasActiveSearch)
             {
-                TolkHelper.Speak(treeNav.Typeahead.BuildItemAnnouncement(item.Label));
+                TolkHelper.SpeakData(treeNav.Typeahead.BuildItemAnnouncement(item.Label));
             }
             else
             {
@@ -816,7 +816,7 @@ namespace RimWorldAccess
 
                 case DetailNodeType.UnlockedItem:
                     // Re-read the label (which contains the description inline)
-                    TolkHelper.Speak(item.Label);
+                    TolkHelper.SpeakData(item.Label);
                     return true;
 
                 case DetailNodeType.Action:
@@ -827,7 +827,7 @@ namespace RimWorldAccess
                     // Read the content
                     if (!string.IsNullOrEmpty(item.Description))
                     {
-                        TolkHelper.Speak(item.Description);
+                        TolkHelper.SpeakData(item.Description);
                         return true;
                     }
                     return false;

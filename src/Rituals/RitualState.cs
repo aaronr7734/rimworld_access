@@ -169,7 +169,7 @@ namespace RimWorldAccess
                 sb.Append(" ");
                 sb.Append("RimWorldAccess.Rituals.Open.Instructions".Translate());
 
-                TolkHelper.Speak(sb.ToString());
+                TolkHelper.SpeakData(sb.ToString());
 
                 // Announce first role
                 if (roleItems.Count > 0)
@@ -771,7 +771,7 @@ namespace RimWorldAccess
                     string instructions = qualityItems.Count == 1
                         ? "RimWorldAccess.Rituals.QualityStats.InstructionsOne".Translate(qualityItems.Count).ToString()
                         : "RimWorldAccess.Rituals.QualityStats.InstructionsMany".Translate(qualityItems.Count).ToString();
-                    TolkHelper.Speak(instructions);
+                    TolkHelper.SpeakData(instructions);
                     qualityInstructionsShown = true;
                 }
                 else
@@ -779,7 +779,7 @@ namespace RimWorldAccess
                     string header = qualityItems.Count == 1
                         ? "RimWorldAccess.Rituals.QualityStats.HeaderOne".Translate(qualityItems.Count).ToString()
                         : "RimWorldAccess.Rituals.QualityStats.HeaderMany".Translate(qualityItems.Count).ToString();
-                    TolkHelper.Speak(header);
+                    TolkHelper.SpeakData(header);
                 }
 
                 if (qualityItems.Count > 0)
@@ -911,7 +911,7 @@ namespace RimWorldAccess
             if (pawn != null)
             {
                 string healthInfo = PawnInfoHelper.GetHealthInfo(pawn);
-                TolkHelper.Speak(healthInfo);
+                TolkHelper.SpeakData(healthInfo);
             }
         }
 
@@ -926,7 +926,7 @@ namespace RimWorldAccess
             if (pawn != null)
             {
                 string moodInfo = PawnInfoHelper.GetMoodInfo(pawn);
-                TolkHelper.Speak(moodInfo);
+                TolkHelper.SpeakData(moodInfo);
             }
         }
 
@@ -941,7 +941,7 @@ namespace RimWorldAccess
             if (pawn != null)
             {
                 string needsInfo = PawnInfoHelper.GetNeedsInfo(pawn);
-                TolkHelper.Speak(needsInfo);
+                TolkHelper.SpeakData(needsInfo);
             }
         }
 
@@ -956,7 +956,7 @@ namespace RimWorldAccess
             if (pawn != null)
             {
                 string gearInfo = PawnInfoHelper.GetGearInfo(pawn);
-                TolkHelper.Speak(gearInfo);
+                TolkHelper.SpeakData(gearInfo);
             }
         }
 
@@ -1080,7 +1080,7 @@ namespace RimWorldAccess
                 announcement += $" {position}";
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         private static void AnnounceCurrentPawn()
@@ -1105,7 +1105,7 @@ namespace RimWorldAccess
                 announcement += $" {position}";
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         private static void AnnounceCurrentQualityStat()
@@ -1130,7 +1130,7 @@ namespace RimWorldAccess
                 announcement += $" {position}";
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         #endregion

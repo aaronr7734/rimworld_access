@@ -297,7 +297,7 @@ namespace RimWorldAccess
 
             if (treeNav.HasActiveSearch)
             {
-                TolkHelper.Speak(treeNav.Typeahead.BuildItemAnnouncement(item.Label));
+                TolkHelper.SpeakData(treeNav.Typeahead.BuildItemAnnouncement(item.Label));
             }
             else
             {

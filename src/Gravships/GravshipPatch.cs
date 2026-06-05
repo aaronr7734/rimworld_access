@@ -193,7 +193,7 @@ namespace RimWorldAccess
                 LongEventHandler.ExecuteWhenFinished(delegate
                 {
                     TolkHelper.Speak(
-                        "RimWorldAccess.Gravships.Landing.MarkerPlacedGuidance".Translate(),
+                        "RimWorldAccess.Gravships.Landing.MarkerPlacedGuidance".Loc(),
                         SpeechPriority.High);
                 });
             }

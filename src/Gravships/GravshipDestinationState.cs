@@ -258,7 +258,7 @@ namespace RimWorldAccess
             cachedTotalFuel = currentEngine.TotalFuel;
 
             TolkHelper.Speak(
-                "RimWorldAccess.Gravships.Destination.FuelStatus".Translate(
+                "RimWorldAccess.Gravships.Destination.FuelStatus".Loc(
                     cachedTotalFuel.ToString("F0"),
                     currentEngine.MaxFuel.ToString("F0"),
                     cachedMaxRange,

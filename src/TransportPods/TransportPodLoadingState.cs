@@ -596,11 +596,11 @@ namespace RimWorldAccess
             {
                 transferable.AdjustTo(result.NewCount);
                 NotifyTransferablesChanged();
-                TolkHelper.Speak(result.Announcement);
+                TolkHelper.SpeakData(result.Announcement);
             }
             else
             {
-                TolkHelper.Speak(result.Announcement);
+                TolkHelper.SpeakData(result.Announcement);
             }
         }
 
@@ -776,7 +776,7 @@ namespace RimWorldAccess
             TransferableOneWay transferable = transferables[selectedIndex];
             string announcement = CaravanAnnouncementHelper.BuildItemAnnouncement(
                 transferable, selectedIndex, transferables.Count);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
@@ -795,7 +795,7 @@ namespace RimWorldAccess
             TransferableOneWay transferable = transferables[selectedIndex];
             string announcement = CaravanAnnouncementHelper.BuildSearchAnnouncement(
                 transferable, typeahead.SearchBuffer, typeahead.CurrentMatchPosition, typeahead.MatchCount);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>

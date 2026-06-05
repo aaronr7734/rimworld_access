@@ -44,7 +44,7 @@ namespace RimWorldAccess
             isActive = true;
 
             string announcement = BuildStartAnnouncement();
-            TolkHelper.Speak(announcement, SpeechPriority.Normal);
+            TolkHelper.SpeakData(announcement, SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace RimWorldAccess
                 sb.Append("RimWorldAccess.Abilities.Jump.ValidSuffix".Translate());
             }
 
-            TolkHelper.Speak(sb.ToString(), SpeechPriority.Normal);
+            TolkHelper.SpeakData(sb.ToString(), SpeechPriority.Normal);
         }
 
         /// <summary>

@@ -399,7 +399,7 @@ namespace RimWorldAccess
             sb.AppendLine("RimWorldAccess.Prisoner.MedicalCare.Announce".Translate(PrisonerTabHelper.GetMedicalCareLabel(currentPawn.playerSettings.medCare)).ToString());
             sb.AppendLine("RimWorldAccess.Prisoner.Tab.NavigationHint".Translate().ToString());
 
-            TolkHelper.Speak(sb.ToString().TrimEnd());
+            TolkHelper.SpeakData(sb.ToString().TrimEnd());
         }
 
         private static void AnnounceSlaveOpened()
@@ -415,7 +415,7 @@ namespace RimWorldAccess
 
             sb.AppendLine("RimWorldAccess.Prisoner.Tab.NavigationHint".Translate().ToString());
 
-            TolkHelper.Speak(sb.ToString().TrimEnd());
+            TolkHelper.SpeakData(sb.ToString().TrimEnd());
         }
 
         private static void AnnounceCurrentSection()
@@ -471,7 +471,7 @@ namespace RimWorldAccess
                 case TabSection.Information:
                     if (selectedIndex >= 0 && selectedIndex < infoLines.Count)
                     {
-                        TolkHelper.Speak(infoLines[selectedIndex]);
+                        TolkHelper.SpeakData(infoLines[selectedIndex]);
                     }
                     break;
 

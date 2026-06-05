@@ -50,7 +50,7 @@ namespace RimWorldAccess
 
             // Announce targeting start
             string announcement = AbilityTargetingHelper.BuildTargetingStartAnnouncement(ability);
-            TolkHelper.Speak(announcement, SpeechPriority.Normal);
+            TolkHelper.SpeakData(announcement, SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace RimWorldAccess
                 announcement = AbilityTargetingHelper.BuildRangeInfoAnnouncement(
                     currentAbility, casterPosition, cursorPos, casterMap);
             }
-            TolkHelper.Speak(announcement, SpeechPriority.Normal);
+            TolkHelper.SpeakData(announcement, SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -141,7 +141,7 @@ namespace RimWorldAccess
 
             string announcement = AbilityTargetingHelper.BuildAffectedTargetsAnnouncement(
                 currentAbility, cursorPos, casterMap);
-            TolkHelper.Speak(announcement, SpeechPriority.Normal);
+            TolkHelper.SpeakData(announcement, SpeechPriority.Normal);
         }
 
         /// <summary>

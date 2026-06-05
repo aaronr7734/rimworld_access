@@ -124,11 +124,11 @@ namespace RimWorldAccess
                 string position = MenuHelper.FormatPosition(pos - 1, total);
 
                 string inspectable = GetInspectableDefs().Count > 0 ? "RimWorldAccess.InfoCard.Inspectable".Translate().ToString() : "";
-                TolkHelper.Speak($"{firstItem.Label}{stateIndicator}. {position}{inspectable}");
+                TolkHelper.SpeakData($"{firstItem.Label}{stateIndicator}. {position}{inspectable}");
             }
             else
             {
-                TolkHelper.Speak("RimWorldAccess.Ideology.Tree.Empty".Translate(ideo.name, "NoneLower".Translate()));
+                TolkHelper.Speak("RimWorldAccess.Ideology.Tree.Empty".Loc(ideo.name, "NoneLower".Translate()));
             }
         }
 
@@ -208,7 +208,7 @@ namespace RimWorldAccess
             {
                 ritualSoundPreview.End();
                 ritualSoundPreview = null;
-                TolkHelper.Speak("RimWorldAccess.Ideology.RitualSound.Stopped".Translate("RitualAmbienceSound".Translate().Resolve()));
+                TolkHelper.Speak("RimWorldAccess.Ideology.RitualSound.Stopped".Loc("RitualAmbienceSound".Translate().Resolve()));
             }
             else
             {
@@ -216,7 +216,7 @@ namespace RimWorldAccess
                 info.forcedPlayOnCamera = true;
                 info.testPlay = true;
                 ritualSoundPreview = soundDef.TrySpawnSustainer(info);
-                TolkHelper.Speak("RimWorldAccess.Ideology.RitualSound.Playing".Translate("RitualAmbienceSound".Translate().Resolve()));
+                TolkHelper.Speak("RimWorldAccess.Ideology.RitualSound.Playing".Loc("RitualAmbienceSound".Translate().Resolve()));
             }
         }
 

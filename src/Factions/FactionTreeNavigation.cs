@@ -71,7 +71,7 @@ namespace RimWorldAccess
                 if (!string.IsNullOrEmpty(position))
                     FactionHelper.AppendSentence(sb, position);
 
-                TolkHelper.Speak(sb.ToString());
+                TolkHelper.SpeakData(sb.ToString());
             }
             else
             {

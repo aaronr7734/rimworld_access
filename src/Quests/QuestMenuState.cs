@@ -94,7 +94,7 @@ namespace RimWorldAccess
             {
                 openMessage += " " + "RimWorldAccess.Quests.Tab.NoQuests".Translate(GetTabName());
             }
-            TolkHelper.Speak(openMessage);
+            TolkHelper.SpeakData(openMessage);
         }
 
         /// <summary>
@@ -917,7 +917,7 @@ namespace RimWorldAccess
                 announcement += typeahead.BuildSearchContextSuffix();
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         public static void HandleBackspace()
@@ -1269,7 +1269,7 @@ namespace RimWorldAccess
                 : currentQuests.Count == 1
                     ? "RimWorldAccess.Quests.Tab.WithCountOne".Translate(tabName).ToString()
                     : "RimWorldAccess.Quests.Tab.WithCountMany".Translate(tabName, currentQuests.Count).ToString();
-            TolkHelper.Speak(sentence);
+            TolkHelper.SpeakData(sentence);
 
             if (currentQuests.Count > 0)
             {
@@ -1287,7 +1287,7 @@ namespace RimWorldAccess
 
             Quest quest = currentQuests[currentIndex];
             string announcement = BuildQuestAnnouncement(quest);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         private static string BuildQuestAnnouncement(Quest quest)

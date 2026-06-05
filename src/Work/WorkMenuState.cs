@@ -313,7 +313,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak(briefAnnouncement);
+                TolkHelper.SpeakData(briefAnnouncement);
             }
         }
 
@@ -845,7 +845,7 @@ namespace RimWorldAccess
 
             // Speak bulk announcement first
             string announcement = BuildBulkSetAnnouncement(jobName, priority, changedNames, alreadySetNames, incapableNames);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
 
             // Then handle cursor position (stays in original column, same as single-pawn SetPriority)
             if (currentPawnChanged)

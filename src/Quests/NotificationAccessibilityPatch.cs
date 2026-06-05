@@ -29,7 +29,7 @@ namespace RimWorldAccess
                 // Strip rich text tags like (*Name)...(/Name) and Unity tags
                 string cleanText = msg.text.StripTags();
                 string announcement = "RimWorldAccess.Notification.LiveMessage".Translate(cleanText).ToString();
-                TolkHelper.Speak(announcement);
+                TolkHelper.SpeakData(announcement);
                 Log.Message($"[Notification] {announcement}");
             }
         }
@@ -49,7 +49,7 @@ namespace RimWorldAccess
                 // Label is TaggedString, so resolve it to string first
                 string cleanLabel = let.Label.Resolve().StripTags();
                 string announcement = "RimWorldAccess.Notification.LiveLetter".Translate(cleanLabel).ToString();
-                TolkHelper.Speak(announcement);
+                TolkHelper.SpeakData(announcement);
                 Log.Message($"[Notification] {announcement}");
             }
         }
@@ -85,7 +85,7 @@ namespace RimWorldAccess
                         if (!announcedAlerts.Contains(label))
                         {
                             string announcement = "RimWorldAccess.Notification.LiveAlert".Translate(label).ToString();
-                            TolkHelper.Speak(announcement);
+                            TolkHelper.SpeakData(announcement);
                             Log.Message($"[Notification] {announcement}");
                         }
                     }

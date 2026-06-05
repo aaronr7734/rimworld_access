@@ -22,7 +22,7 @@ namespace RimWorldAccess
         {
             if (__result)
             {
-                TolkHelper.Speak("RimWorldAccess.Learning.NewLessonAnnouncement".Translate("LearningHelper".Translate(), conc.LabelCap));
+                TolkHelper.Speak("RimWorldAccess.Learning.NewLessonAnnouncement".Loc("LearningHelper".Translate(), conc.LabelCap));
             }
         }
     }

@@ -500,7 +500,7 @@ namespace RimWorldAccess
                 item.Label,
                 MenuHelper.FormatPosition(currentIndex, notifications.Count));
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
@@ -1080,7 +1080,7 @@ namespace RimWorldAccess
                 announcement += typeahead.BuildSearchContextSuffix();
             }
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
