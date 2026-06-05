@@ -45,6 +45,10 @@ namespace RimWorldAccess
 
         // Summary navigation (up/down arrows to navigate through stats)
         private static List<string> summaryItems = new List<string>();
+        // Language-independent kind tag for each summaryItems entry, kept in
+        // lockstep with summaryItems. Used to detect the stat type for Alt+I
+        // breakdowns without matching the localized display string.
+        private static List<string> summaryKinds = new List<string>();
         private static int summaryIndex = 0;
 
         // Reflection fields for accessing private Dialog_LoadTransporters members
@@ -138,6 +142,7 @@ namespace RimWorldAccess
             typeahead.ClearSearch();
             showingSummary = false;
             summaryItems.Clear();
+            summaryKinds.Clear();
             summaryIndex = 0;
         }
 
@@ -1037,11 +1042,13 @@ namespace RimWorldAccess
         private static void BuildSummaryItems()
         {
             summaryItems.Clear();
+            summaryKinds.Clear();
             // Don't reset summaryIndex - preserve position across summary views
 
             if (currentDialog == null)
             {
                 summaryItems.Add((string)"RimWorldAccess.TransportPods.Loading.SummaryNoData".Translate());
+                summaryKinds.Add(null);
                 return;
             }
 
@@ -1051,6 +1058,7 @@ namespace RimWorldAccess
                 if (transporters == null || transporters.Count == 0)
                 {
                     summaryItems.Add((string)"RimWorldAccess.TransportPods.Loading.SummaryNoTransporters".Translate());
+                    summaryKinds.Add(null);
                     return;
                 }
 
@@ -1063,6 +1071,7 @@ namespace RimWorldAccess
 
                 // 1. Mass - always shown
                 summaryItems.Add(CaravanStatFormatter.FormatMass(massUsage, massCapacity));
+                summaryKinds.Add("Mass");
 
                 // 2. Speed - only for non-shuttles
                 if (!isShuttle)
@@ -1072,6 +1081,7 @@ namespace RimWorldAccess
                     {
                         float tilesPerDay = (float)tilesInfo.GetValue(currentDialog);
                         summaryItems.Add(CaravanStatFormatter.FormatSpeed(tilesPerDay, isOverloaded));
+                        summaryKinds.Add("Speed");
                     }
                 }
 
@@ -1082,6 +1092,7 @@ namespace RimWorldAccess
                     var foodObj = foodInfo.GetValue(currentDialog);
                     var food = (ValueTuple<float, float>)foodObj;
                     summaryItems.Add(CaravanStatFormatter.FormatFood(food.Item1, food.Item2));
+                    summaryKinds.Add("Food");
                 }
 
                 // 4. Foraging - only for non-shuttles
@@ -1093,6 +1104,7 @@ namespace RimWorldAccess
                         var forageObj = forageInfo.GetValue(currentDialog);
                         var forage = (ValueTuple<ThingDef, float>)forageObj;
                         summaryItems.Add(CaravanStatFormatter.FormatForaging(forage.Item1, forage.Item2));
+                        summaryKinds.Add("Foraging");
                     }
                 }
 
@@ -1104,6 +1116,7 @@ namespace RimWorldAccess
                     {
                         float visibility = (float)visInfo.GetValue(currentDialog);
                         summaryItems.Add(CaravanStatFormatter.FormatVisibility(visibility));
+                        summaryKinds.Add("Visibility");
                     }
                 }
             }
@@ -1111,6 +1124,7 @@ namespace RimWorldAccess
             {
                 Log.Warning($"RimWorld Access: Failed to get pod stats: {ex.Message}");
                 summaryItems.Add((string)"RimWorldAccess.TransportPods.Loading.SummaryStatsUnavailable".Translate());
+                summaryKinds.Add(null);
             }
         }
 
@@ -1162,7 +1176,8 @@ namespace RimWorldAccess
         /// <summary>
         /// Gets the explanation text for the currently selected summary stat.
         /// Uses reflection to access the cached explanation fields from the dialog.
-        /// Detects stat type from the summary item text since order varies (shuttles vs pods).
+        /// Detects stat type from the language-independent summaryKinds tag (not the
+        /// localized display string), so breakdowns work in every language.
         /// </summary>
         /// <returns>A tuple of (stat name, explanation text) or null if no explanation available.</returns>
         private static (string name, string explanation)? GetCurrentStatExplanation()
@@ -1173,49 +1188,41 @@ namespace RimWorldAccess
             if (summaryIndex < 0 || summaryIndex >= summaryItems.Count)
                 return null;
 
-            string currentItem = summaryItems[summaryIndex];
-
             try
             {
-                // Detect stat type from the summary item text prefix
+                // Detect stat type from the language-independent kind tag, NOT the
+                // localized display string (which differs per language).
                 // IMPORTANT: We must access the property first to trigger recalculation of the cached explanation.
+                string kind = summaryIndex < summaryKinds.Count ? summaryKinds[summaryIndex] : null;
                 string fieldName = null;
                 string propertyName = null;
                 string statName = null;
 
-                if (currentItem.StartsWith("Mass:"))
+                switch (kind)
                 {
-                    fieldName = "cachedCaravanMassCapacityExplanation";
-                    propertyName = "CaravanMassCapacity";
-                    statName = (string)"RimWorldAccess.TransportPods.Loading.StatMassCapacity".Translate();
-                }
-                else if (currentItem.StartsWith("Speed:"))
-                {
-                    fieldName = "cachedTilesPerDayExplanation";
-                    propertyName = "TilesPerDay";
-                    statName = (string)"RimWorldAccess.TransportPods.Loading.StatSpeed".Translate();
-                }
-                else if (currentItem.StartsWith("Food:"))
-                {
-                    // Food doesn't have a breakdown explanation in the game
-                    // The tooltip is just "DaysWorthOfFoodTooltip" which we already include
-                    return null;
-                }
-                else if (currentItem.StartsWith("Foraging:"))
-                {
-                    fieldName = "cachedForagedFoodPerDayExplanation";
-                    propertyName = "ForagedFoodPerDay";
-                    statName = (string)"RimWorldAccess.TransportPods.Loading.StatForaging".Translate();
-                }
-                else if (currentItem.StartsWith("Visibility:"))
-                {
-                    fieldName = "cachedVisibilityExplanation";
-                    propertyName = "Visibility";
-                    statName = (string)"RimWorldAccess.TransportPods.Loading.StatVisibility".Translate();
-                }
-                else
-                {
-                    return null;
+                    case "Mass":
+                        fieldName = "cachedCaravanMassCapacityExplanation";
+                        propertyName = "CaravanMassCapacity";
+                        statName = (string)"RimWorldAccess.TransportPods.Loading.StatMassCapacity".Translate();
+                        break;
+                    case "Speed":
+                        fieldName = "cachedTilesPerDayExplanation";
+                        propertyName = "TilesPerDay";
+                        statName = (string)"RimWorldAccess.TransportPods.Loading.StatSpeed".Translate();
+                        break;
+                    case "Foraging":
+                        fieldName = "cachedForagedFoodPerDayExplanation";
+                        propertyName = "ForagedFoodPerDay";
+                        statName = (string)"RimWorldAccess.TransportPods.Loading.StatForaging".Translate();
+                        break;
+                    case "Visibility":
+                        fieldName = "cachedVisibilityExplanation";
+                        propertyName = "Visibility";
+                        statName = (string)"RimWorldAccess.TransportPods.Loading.StatVisibility".Translate();
+                        break;
+                    default:
+                        // Food (no breakdown in-game) and other items have none
+                        return null;
                 }
 
                 if (fieldName == null)
