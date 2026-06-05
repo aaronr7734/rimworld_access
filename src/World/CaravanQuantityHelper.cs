@@ -172,7 +172,7 @@ namespace RimWorldAccess
             }
             else if (!string.IsNullOrEmpty(result.Announcement))
             {
-                TolkHelper.Speak(result.Announcement);
+                TolkHelper.SpeakData(result.Announcement);
             }
 
             if (result.ToAdd > 0)

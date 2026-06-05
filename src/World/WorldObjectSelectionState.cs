@@ -73,7 +73,7 @@ namespace RimWorldAccess
 
             // Announce opening
             string announcement = "RimWorldAccess.WorldObject.ObjectsAtTile".Translate(worldObjects.Count);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
             treeNav.ReannounceCurrentItem();
         }
 
@@ -411,7 +411,7 @@ namespace RimWorldAccess
                     FactionRelationKind relation = otherSettlement.Faction.RelationKindWith(Faction.OfPlayer);
                     info += $" {relation}.";
                 }
-                TolkHelper.Speak(info);
+                TolkHelper.SpeakData(info);
             }
             else
             {
@@ -421,7 +421,7 @@ namespace RimWorldAccess
                 {
                     info += ". " + obj.GetDescription().StripTags();
                 }
-                TolkHelper.Speak(info);
+                TolkHelper.SpeakData(info);
             }
         }
 
@@ -454,7 +454,7 @@ namespace RimWorldAccess
             // For detail text or stat items, just read again
             if (item.Type == InspectionTreeItem.ItemType.DetailText)
             {
-                TolkHelper.Speak(item.Label);
+                TolkHelper.SpeakData(item.Label);
                 return true;
             }
 

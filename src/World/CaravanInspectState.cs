@@ -99,7 +99,7 @@ namespace RimWorldAccess
             UpdateTrackedCounts();
 
             // Simple announcement - just the caravan name
-            TolkHelper.Speak(caravan.Name);
+            TolkHelper.SpeakData(caravan.Name);
 
             if (treeNav.Count > 0)
             {
@@ -944,7 +944,7 @@ namespace RimWorldAccess
             if (item?.Data is Pawn pawn && pawn.needs?.mood != null)
             {
                 string moodInfo = PawnInfoHelper.GetMoodInfo(pawn);
-                TolkHelper.Speak(moodInfo);
+                TolkHelper.SpeakData(moodInfo);
             }
             else
             {
@@ -961,7 +961,7 @@ namespace RimWorldAccess
             if (item?.Data is Pawn pawn && pawn.needs != null)
             {
                 string needsInfo = PawnInfoHelper.GetNeedsInfo(pawn);
-                TolkHelper.Speak(needsInfo);
+                TolkHelper.SpeakData(needsInfo);
             }
             else
             {
@@ -978,7 +978,7 @@ namespace RimWorldAccess
             if (item?.Data is Pawn pawn && pawn.health != null)
             {
                 string healthInfo = PawnInfoHelper.GetHealthInfo(pawn);
-                TolkHelper.Speak(healthInfo);
+                TolkHelper.SpeakData(healthInfo);
             }
             else
             {
@@ -995,7 +995,7 @@ namespace RimWorldAccess
             if (item?.Data is Pawn pawn)
             {
                 string gearInfo = PawnInfoHelper.GetGearInfo(pawn);
-                TolkHelper.Speak(gearInfo);
+                TolkHelper.SpeakData(gearInfo);
             }
             else
             {
@@ -1012,7 +1012,7 @@ namespace RimWorldAccess
             if (item?.Data is Pawn pawn)
             {
                 string skillsInfo = PawnInfoHelper.GetTopSkillsInfo(pawn);
-                TolkHelper.Speak(skillsInfo);
+                TolkHelper.SpeakData(skillsInfo);
             }
             else
             {
@@ -1071,7 +1071,7 @@ namespace RimWorldAccess
             // For stat items with no OnActivate, just re-read the label
             if (item.Data is StatNodeData)
             {
-                TolkHelper.Speak(item.Label);
+                TolkHelper.SpeakData(item.Label);
                 return true;
             }
 

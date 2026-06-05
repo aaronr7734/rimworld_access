@@ -509,8 +509,8 @@ namespace RimWorldAccess
             string layerName = nextLayer.Def.LabelCap;
             bool isSpace = nextLayer.Def.isSpace;
             TolkHelper.Speak(isSpace
-                ? "RimWorldAccess.World.SwitchedToLayerSpace".Translate(layerName)
-                : "RimWorldAccess.World.SwitchedToLayer".Translate(layerName));
+                ? "RimWorldAccess.World.SwitchedToLayerSpace".Loc(layerName)
+                : "RimWorldAccess.World.SwitchedToLayer".Loc(layerName));
             AnnounceTile();
         }
 
@@ -586,7 +586,7 @@ namespace RimWorldAccess
                 tileInfo = AppendSentence(tileInfo, biomeDesc);
             }
 
-            TolkHelper.Speak(tileInfo);
+            TolkHelper.SpeakData(tileInfo);
 
         }
 
@@ -774,7 +774,7 @@ namespace RimWorldAccess
                 return;
 
             string detailedInfo = WorldInfoHelper.GetDetailedTileInfo(currentSelectedTile);
-            TolkHelper.Speak(detailedInfo);
+            TolkHelper.SpeakData(detailedInfo);
         }
 
         /// <summary>
@@ -812,7 +812,7 @@ namespace RimWorldAccess
                     return;
             }
 
-            TolkHelper.Speak(info);
+            TolkHelper.SpeakData(info);
         }
 
         /// <summary>
@@ -988,7 +988,7 @@ namespace RimWorldAccess
             string announcement = isMultiSelected
                 ? "RimWorldAccess.World.CycleCaravanSelected".Translate(selectedCaravan.Label, caravanStatus, nextIndex + 1, playerCaravans.Count)
                 : "RimWorldAccess.World.CycleCaravanNotSelected".Translate(selectedCaravan.Label, caravanStatus, nextIndex + 1, playerCaravans.Count);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
@@ -1043,7 +1043,7 @@ namespace RimWorldAccess
             string announcement = isMultiSelected
                 ? "RimWorldAccess.World.CycleCaravanSelected".Translate(selectedCaravan.Label, caravanStatus, prevIndex + 1, playerCaravans.Count)
                 : "RimWorldAccess.World.CycleCaravanNotSelected".Translate(selectedCaravan.Label, caravanStatus, prevIndex + 1, playerCaravans.Count);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>

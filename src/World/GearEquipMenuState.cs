@@ -628,7 +628,7 @@ namespace RimWorldAccess
 
             if (typeahead.HasActiveSearch)
             {
-                TolkHelper.Speak(typeahead.BuildItemAnnouncement(label));
+                TolkHelper.SpeakData(typeahead.BuildItemAnnouncement(label));
             }
             else
             {

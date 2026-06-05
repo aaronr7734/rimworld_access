@@ -362,8 +362,8 @@ namespace RimWorldAccess
         {
             autoJumpMode = !autoJumpMode;
             TolkHelper.Speak(autoJumpMode
-                ? "RimWorldAccess.WorldScanner.AutoJumpEnabled".Translate()
-                : "RimWorldAccess.WorldScanner.AutoJumpDisabled".Translate(), SpeechPriority.High);
+                ? "RimWorldAccess.WorldScanner.AutoJumpEnabled".Loc()
+                : "RimWorldAccess.WorldScanner.AutoJumpDisabled".Loc(), SpeechPriority.High);
         }
 
         /// <summary>
@@ -2018,7 +2018,7 @@ namespace RimWorldAccess
             int total = subcat?.Items.Count ?? 0;
             parts.Add($"{pos} of {total}");
 
-            TolkHelper.Speak(string.Join(". ", parts), SpeechPriority.Normal);
+            TolkHelper.SpeakData(string.Join(". ", parts), SpeechPriority.Normal);
         }
 
         private static void AnnounceCurrentInstance()
@@ -2088,7 +2088,7 @@ namespace RimWorldAccess
             int total = item.InstanceCount;
             parts.Add($"Region {pos} of {total}");
 
-            TolkHelper.Speak(string.Join(". ", parts), SpeechPriority.Normal);
+            TolkHelper.SpeakData(string.Join(". ", parts), SpeechPriority.Normal);
         }
 
         #endregion

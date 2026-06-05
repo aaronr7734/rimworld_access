@@ -235,7 +235,7 @@ namespace RimWorldAccess
             TransferableOneWay transferable = transferables[selectedIndex];
             string announcement = CaravanAnnouncementHelper.BuildItemAnnouncement(
                 transferable, selectedIndex, transferables.Count);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
@@ -274,7 +274,7 @@ namespace RimWorldAccess
                 if (nextStat >= SummaryStatCount)
                 {
                     // At bottom, announce current position
-                    TolkHelper.Speak("RimWorldAccess.Caravan.Split.BottomEdge".Translate(GetCurrentStatValue(), (int)currentSummaryStat + 1, SummaryStatCount));
+                    TolkHelper.Speak("RimWorldAccess.Caravan.Split.BottomEdge".Loc(GetCurrentStatValue(), (int)currentSummaryStat + 1, SummaryStatCount));
                     return;
                 }
                 currentSummaryStat = (SummaryStat)nextStat;
@@ -319,7 +319,7 @@ namespace RimWorldAccess
                 if (prevStat < 0)
                 {
                     // At top, announce current position
-                    TolkHelper.Speak("RimWorldAccess.Caravan.Split.TopEdge".Translate(GetCurrentStatValue(), (int)currentSummaryStat + 1, SummaryStatCount));
+                    TolkHelper.Speak("RimWorldAccess.Caravan.Split.TopEdge".Loc(GetCurrentStatValue(), (int)currentSummaryStat + 1, SummaryStatCount));
                     return;
                 }
                 currentSummaryStat = (SummaryStat)prevStat;
@@ -946,7 +946,7 @@ namespace RimWorldAccess
                 typeahead.SearchBuffer,
                 typeahead.CurrentMatchPosition,
                 typeahead.MatchCount);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>

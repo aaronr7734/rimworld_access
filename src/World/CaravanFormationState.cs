@@ -283,7 +283,7 @@ namespace RimWorldAccess
             TransferableOneWay transferable = transferables[selectedIndex];
             string announcement = CaravanAnnouncementHelper.BuildItemAnnouncement(
                 transferable, selectedIndex, transferables.Count);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
@@ -1230,7 +1230,7 @@ namespace RimWorldAccess
                 typeahead.SearchBuffer,
                 typeahead.CurrentMatchPosition,
                 typeahead.MatchCount);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>

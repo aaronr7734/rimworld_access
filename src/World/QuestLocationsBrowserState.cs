@@ -259,7 +259,7 @@ namespace RimWorldAccess
                 questName, locationDesc, entry.DistanceFromOrigin.ToString("F1"),
                 tileSummary, MenuHelper.FormatPosition(currentIndex, questLocations.Count));
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>

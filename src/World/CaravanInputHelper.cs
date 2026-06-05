@@ -30,7 +30,7 @@ namespace RimWorldAccess
                 case KeyCode.H:
                     if (selectedPawn != null)
                     {
-                        TolkHelper.Speak(PawnInfoHelper.GetHealthInfo(selectedPawn));
+                        TolkHelper.SpeakData(PawnInfoHelper.GetHealthInfo(selectedPawn));
                     }
                     else
                     {
@@ -41,7 +41,7 @@ namespace RimWorldAccess
                 case KeyCode.M:
                     if (selectedPawn != null)
                     {
-                        TolkHelper.Speak(PawnInfoHelper.GetMoodInfo(selectedPawn));
+                        TolkHelper.SpeakData(PawnInfoHelper.GetMoodInfo(selectedPawn));
                     }
                     else
                     {
@@ -52,7 +52,7 @@ namespace RimWorldAccess
                 case KeyCode.N:
                     if (selectedPawn != null)
                     {
-                        TolkHelper.Speak(PawnInfoHelper.GetNeedsInfo(selectedPawn));
+                        TolkHelper.SpeakData(PawnInfoHelper.GetNeedsInfo(selectedPawn));
                     }
                     else
                     {
@@ -63,7 +63,7 @@ namespace RimWorldAccess
                 case KeyCode.G:
                     if (selectedPawn != null)
                     {
-                        TolkHelper.Speak(PawnInfoHelper.GetGearInfo(selectedPawn));
+                        TolkHelper.SpeakData(PawnInfoHelper.GetGearInfo(selectedPawn));
                     }
                     else
                     {
@@ -74,7 +74,7 @@ namespace RimWorldAccess
                 case KeyCode.K:
                     if (selectedPawn != null)
                     {
-                        TolkHelper.Speak(PawnInfoHelper.GetTopSkillsInfo(selectedPawn));
+                        TolkHelper.SpeakData(PawnInfoHelper.GetTopSkillsInfo(selectedPawn));
                     }
                     else
                     {
@@ -117,7 +117,7 @@ namespace RimWorldAccess
                     string msg = currentCount == 1
                         ? (string)"RimWorldAccess.Caravan.Input.RemovedSingle".Translate(itemName)
                         : (string)"RimWorldAccess.Caravan.Input.RemovedAllOf".Translate(currentCount, itemName);
-                    TolkHelper.Speak(msg);
+                    TolkHelper.SpeakData(msg);
                     return true;
                 }
                 else
@@ -142,7 +142,7 @@ namespace RimWorldAccess
                     string msg = currentCount == 1
                         ? (string)"RimWorldAccess.Caravan.Input.RemovedSingle".Translate(itemName)
                         : (string)"RimWorldAccess.Caravan.Input.RemovedAllOf".Translate(currentCount, itemName);
-                    TolkHelper.Speak(msg);
+                    TolkHelper.SpeakData(msg);
                     return true;
                 }
                 else

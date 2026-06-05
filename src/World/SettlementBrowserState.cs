@@ -392,7 +392,7 @@ namespace RimWorldAccess
                 settlement.Label, settlement.Faction.Name, relationship,
                 distance.ToString("F1"), MenuHelper.FormatPosition(currentIndex, filteredSettlements.Count));
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
@@ -446,7 +446,7 @@ namespace RimWorldAccess
             string announcement = "RimWorldAccess.SettlementBrowser.SearchAnnouncement".Translate(
                 searchInfo, settlement.Label, settlement.Faction.Name, relationship, distance.ToString("F1"));
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>

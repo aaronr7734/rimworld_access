@@ -170,7 +170,7 @@ namespace RimWorldAccess
             {
                 // Use game's localized message
                 string limitMessage = "MessageCantAddWaypointBecauseLimit".Translate(25);
-                TolkHelper.Speak(limitMessage, SpeechPriority.High);
+                TolkHelper.SpeakData(limitMessage, SpeechPriority.High);
                 return;
             }
 
@@ -260,7 +260,7 @@ namespace RimWorldAccess
                     message = "RimWorldAccess.Route.WaypointRemoved".Translate(waypointIndex + 1, countAfter);
                 }
 
-                TolkHelper.Speak(message, SpeechPriority.Normal);
+                TolkHelper.SpeakData(message, SpeechPriority.Normal);
             }
             // If count didn't change, TryRemoveWaypoint already showed an error message (e.g., can't remove first waypoint)
         }
@@ -281,7 +281,7 @@ namespace RimWorldAccess
             {
                 // Use game's localized string
                 string needMore = "RoutePlannerAddTwoOrMoreWaypoints".Translate();
-                TolkHelper.Speak(needMore, SpeechPriority.Normal);
+                TolkHelper.SpeakData(needMore, SpeechPriority.Normal);
                 return;
             }
 
@@ -363,7 +363,7 @@ namespace RimWorldAccess
             if (planner.waypoints.Count < 2)
             {
                 string needMore = "RoutePlannerAddOneOrMoreWaypoints".Translate();
-                TolkHelper.Speak(needMore, SpeechPriority.High);
+                TolkHelper.SpeakData(needMore, SpeechPriority.High);
                 return;
             }
 
