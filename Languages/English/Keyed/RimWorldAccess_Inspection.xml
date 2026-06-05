@@ -1344,4 +1344,43 @@
        label, {1} = item type count. -->
   <RimWorldAccess.Inspection.Inventory.UncategorizedFallback>Uncategorized</RimWorldAccess.Inspection.Inventory.UncategorizedFallback>
   <RimWorldAccess.Inspection.Inventory.CategoryWithCount>{0} ({1} types)</RimWorldAccess.Inspection.Inventory.CategoryWithCount>
+
+  <!-- =================================================================
+       Power status (PowerInfoHelper). Spoken via the tile readout for
+       batteries, generators, power traders, transmitters, and the power
+       network summary. Composed as a comma-separated status string; the
+       ", " separators live in code. Reason words (BrokenDown, OutOfFuel,
+       SwitchedOff, StunnedByEmp) are reused for both the ", X" and the
+       " (X)" parenthetical forms. W = watts, Wd = watt-days.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Power.Charged>{0}% charged</RimWorldAccess.Inspection.Power.Charged>
+  <RimWorldAccess.Inspection.Power.StoredDetail>({0} / {1} Wd)</RimWorldAccess.Inspection.Power.StoredDetail>
+  <RimWorldAccess.Inspection.Power.Efficiency>{0}% efficiency</RimWorldAccess.Inspection.Power.Efficiency>
+  <RimWorldAccess.Inspection.Power.StunnedByEmp>Stunned by EMP</RimWorldAccess.Inspection.Power.StunnedByEmp>
+  <RimWorldAccess.Inspection.Power.NotConnected>Not connected to power network</RimWorldAccess.Inspection.Power.NotConnected>
+  <RimWorldAccess.Inspection.Power.Connected>Connected to power</RimWorldAccess.Inspection.Power.Connected>
+  <RimWorldAccess.Inspection.Power.Generating>Generating {0}W</RimWorldAccess.Inspection.Power.Generating>
+  <RimWorldAccess.Inspection.Power.NotGenerating>Not generating</RimWorldAccess.Inspection.Power.NotGenerating>
+  <RimWorldAccess.Inspection.Power.BrokenDown>Broken down</RimWorldAccess.Inspection.Power.BrokenDown>
+  <RimWorldAccess.Inspection.Power.OutOfFuel>Out of fuel</RimWorldAccess.Inspection.Power.OutOfFuel>
+  <RimWorldAccess.Inspection.Power.SwitchedOff>Switched off</RimWorldAccess.Inspection.Power.SwitchedOff>
+  <RimWorldAccess.Inspection.Power.Consuming>Consuming {0}W</RimWorldAccess.Inspection.Power.Consuming>
+  <RimWorldAccess.Inspection.Power.Requires>Requires {0}W</RimWorldAccess.Inspection.Power.Requires>
+  <RimWorldAccess.Inspection.Power.Producing>Producing {0}W</RimWorldAccess.Inspection.Power.Producing>
+  <RimWorldAccess.Inspection.Power.PoweredOn>Powered on</RimWorldAccess.Inspection.Power.PoweredOn>
+  <RimWorldAccess.Inspection.Power.PoweredOff>Powered off</RimWorldAccess.Inspection.Power.PoweredOff>
+  <RimWorldAccess.Inspection.Power.NoPowerUsage>No power usage</RimWorldAccess.Inspection.Power.NoPowerUsage>
+  <RimWorldAccess.Inspection.Power.Transmitting>Transmitting power</RimWorldAccess.Inspection.Power.Transmitting>
+  <RimWorldAccess.Inspection.Power.NotTransmitting>Not transmitting power</RimWorldAccess.Inspection.Power.NotTransmitting>
+  <RimWorldAccess.Inspection.Power.NetworkSurplus>Network: +{0}W surplus</RimWorldAccess.Inspection.Power.NetworkSurplus>
+  <RimWorldAccess.Inspection.Power.NetworkDeficit>Network: {0}W deficit</RimWorldAccess.Inspection.Power.NetworkDeficit>
+  <RimWorldAccess.Inspection.Power.NetworkBalanced>Network: Balanced</RimWorldAccess.Inspection.Power.NetworkBalanced>
+  <RimWorldAccess.Inspection.Power.Stored>{0}Wd stored</RimWorldAccess.Inspection.Power.Stored>
+  <RimWorldAccess.Inspection.Power.GeneratorsOne>1 generator producing {0}W</RimWorldAccess.Inspection.Power.GeneratorsOne>
+  <RimWorldAccess.Inspection.Power.GeneratorsMany>{0} generators producing {1}W</RimWorldAccess.Inspection.Power.GeneratorsMany>
+  <RimWorldAccess.Inspection.Power.ConsumersOne>1 consumer using {0}W</RimWorldAccess.Inspection.Power.ConsumersOne>
+  <RimWorldAccess.Inspection.Power.ConsumersMany>{0} consumers using {1}W</RimWorldAccess.Inspection.Power.ConsumersMany>
+  <RimWorldAccess.Inspection.Power.BatteriesOne>1 battery</RimWorldAccess.Inspection.Power.BatteriesOne>
+  <RimWorldAccess.Inspection.Power.BatteriesMany>{0} batteries</RimWorldAccess.Inspection.Power.BatteriesMany>
+  <RimWorldAccess.Inspection.Power.ConnectedLabel>Connected: {0}</RimWorldAccess.Inspection.Power.ConnectedLabel>
 </LanguageData>

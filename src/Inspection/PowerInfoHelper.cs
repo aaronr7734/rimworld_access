@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Verse;
 using RimWorld;
@@ -73,22 +72,22 @@ namespace RimWorldAccess
         {
             // Battery charge status
             float chargePercent = battery.StoredEnergyPct * 100f;
-            sb.Append($"{chargePercent:F0}% charged");
+            sb.Append((string)"RimWorldAccess.Inspection.Power.Charged".Translate(chargePercent.ToString("F0")));
 
             // Stored energy details
-            sb.Append($" ({battery.StoredEnergy:F0} / {battery.Props.storedEnergyMax:F0} Wd)");
+            sb.Append(" " + (string)"RimWorldAccess.Inspection.Power.StoredDetail".Translate(battery.StoredEnergy.ToString("F0"), battery.Props.storedEnergyMax.ToString("F0")));
 
             // EMP status
             CompStunnable stunnable = battery.parent.TryGetComp<CompStunnable>();
             if (stunnable != null && stunnable.StunHandler.Stunned && stunnable.StunHandler.StunFromEMP)
             {
-                sb.Append(", Stunned by EMP");
+                sb.Append(", " + (string)"RimWorldAccess.Inspection.Power.StunnedByEmp".Translate());
             }
 
             // Efficiency
             if (battery.Props.efficiency < 1f)
             {
-                sb.Append($", {battery.Props.efficiency * 100f:F0}% efficiency");
+                sb.Append(", " + (string)"RimWorldAccess.Inspection.Power.Efficiency".Translate((battery.Props.efficiency * 100f).ToString("F0")));
             }
 
             // Network status
@@ -100,7 +99,7 @@ namespace RimWorldAccess
             }
             else
             {
-                sb.Append(", Not connected to power network");
+                sb.Append(", " + (string)"RimWorldAccess.Inspection.Power.NotConnected".Translate());
             }
         }
 
@@ -122,42 +121,42 @@ namespace RimWorldAccess
             {
                 // Generating power
                 float output = plant.PowerOutput; // Generators have positive PowerOutput
-                sb.Append($"Generating {output:F0}W");
+                sb.Append((string)"RimWorldAccess.Inspection.Power.Generating".Translate(output.ToString("F0")));
 
                 // Check for issues that might stop generation
                 if (breakdownComp != null && breakdownComp.BrokenDown)
                 {
-                    sb.Append(", Broken down");
+                    sb.Append(", " + (string)"RimWorldAccess.Inspection.Power.BrokenDown".Translate());
                 }
                 else if (refuelComp != null && !refuelComp.HasFuel)
                 {
-                    sb.Append(", Out of fuel");
+                    sb.Append(", " + (string)"RimWorldAccess.Inspection.Power.OutOfFuel".Translate());
                 }
                 else if (flickComp != null && !flickComp.SwitchIsOn)
                 {
-                    sb.Append(", Switched off");
+                    sb.Append(", " + (string)"RimWorldAccess.Inspection.Power.SwitchedOff".Translate());
                 }
             }
             else
             {
-                sb.Append("Not generating");
+                sb.Append((string)"RimWorldAccess.Inspection.Power.NotGenerating".Translate());
 
                 // Explain why
                 if (breakdownComp != null && breakdownComp.BrokenDown)
                 {
-                    sb.Append(" (Broken down)");
+                    sb.Append(" (" + (string)"RimWorldAccess.Inspection.Power.BrokenDown".Translate() + ")");
                 }
                 else if (refuelComp != null && !refuelComp.HasFuel)
                 {
-                    sb.Append(" (Out of fuel)");
+                    sb.Append(" (" + (string)"RimWorldAccess.Inspection.Power.OutOfFuel".Translate() + ")");
                 }
                 else if (flickComp != null && !flickComp.SwitchIsOn)
                 {
-                    sb.Append(" (Switched off)");
+                    sb.Append(" (" + (string)"RimWorldAccess.Inspection.Power.SwitchedOff".Translate() + ")");
                 }
                 else if (stunnableComp != null && stunnableComp.StunHandler.Stunned && stunnableComp.StunHandler.StunFromEMP)
                 {
-                    sb.Append(" (Stunned by EMP)");
+                    sb.Append(" (" + (string)"RimWorldAccess.Inspection.Power.StunnedByEmp".Translate() + ")");
                 }
             }
 
@@ -170,7 +169,7 @@ namespace RimWorldAccess
             }
             else
             {
-                sb.Append(", Not connected to power network");
+                sb.Append(", " + (string)"RimWorldAccess.Inspection.Power.NotConnected".Translate());
             }
         }
 
@@ -192,33 +191,35 @@ namespace RimWorldAccess
 
                 if (trader.PowerOn)
                 {
-                    sb.Append($"Consuming {consumption:F0}W, Powered on");
+                    sb.Append((string)"RimWorldAccess.Inspection.Power.Consuming".Translate(consumption.ToString("F0")));
+                    sb.Append(", " + (string)"RimWorldAccess.Inspection.Power.PoweredOn".Translate());
                 }
                 else
                 {
-                    sb.Append($"Requires {consumption:F0}W, Powered off");
+                    sb.Append((string)"RimWorldAccess.Inspection.Power.Requires".Translate(consumption.ToString("F0")));
+                    sb.Append(", " + (string)"RimWorldAccess.Inspection.Power.PoweredOff".Translate());
                 }
             }
             else if (trader.PowerOutput > 0)
             {
                 // This is a producer (non-plant)
-                sb.Append($"Producing {trader.PowerOutput:F0}W");
+                sb.Append((string)"RimWorldAccess.Inspection.Power.Producing".Translate(trader.PowerOutput.ToString("F0")));
 
                 if (!trader.PowerOn)
                 {
-                    sb.Append(", Powered off");
+                    sb.Append(", " + (string)"RimWorldAccess.Inspection.Power.PoweredOff".Translate());
                 }
             }
             else
             {
                 // No power usage
-                sb.Append("No power usage");
+                sb.Append((string)"RimWorldAccess.Inspection.Power.NoPowerUsage".Translate());
             }
 
             // EMP status
             if (stunnableComp != null && stunnableComp.StunHandler.Stunned && stunnableComp.StunHandler.StunFromEMP)
             {
-                sb.Append(", Stunned by EMP");
+                sb.Append(", " + (string)"RimWorldAccess.Inspection.Power.StunnedByEmp".Translate());
             }
 
             // Flick switch status
@@ -236,7 +237,7 @@ namespace RimWorldAccess
             }
             else
             {
-                sb.Append(", Not connected to power network");
+                sb.Append(", " + (string)"RimWorldAccess.Inspection.Power.NotConnected".Translate());
             }
         }
 
@@ -247,11 +248,11 @@ namespace RimWorldAccess
         {
             if (transmitter.TransmitsPowerNow)
             {
-                sb.Append("Transmitting power");
+                sb.Append((string)"RimWorldAccess.Inspection.Power.Transmitting".Translate());
             }
             else
             {
-                sb.Append("Not transmitting power");
+                sb.Append((string)"RimWorldAccess.Inspection.Power.NotTransmitting".Translate());
             }
 
             // Network status
@@ -263,7 +264,7 @@ namespace RimWorldAccess
             }
             else
             {
-                sb.Append(", Not connected to power network");
+                sb.Append(", " + (string)"RimWorldAccess.Inspection.Power.NotConnected".Translate());
             }
         }
 
@@ -274,13 +275,13 @@ namespace RimWorldAccess
         {
             if (power.PowerNet != null)
             {
-                sb.Append("Connected to power");
+                sb.Append((string)"RimWorldAccess.Inspection.Power.Connected".Translate());
                 sb.Append(", ");
                 AppendNetworkSummary(sb, power.PowerNet);
             }
             else
             {
-                sb.Append("Not connected to power network");
+                sb.Append((string)"RimWorldAccess.Inspection.Power.NotConnected".Translate());
             }
         }
 
@@ -297,22 +298,22 @@ namespace RimWorldAccess
 
             if (netPower > 0.1f)
             {
-                sb.Append($"Network: +{netPower:F0}W surplus");
+                sb.Append((string)"RimWorldAccess.Inspection.Power.NetworkSurplus".Translate(netPower.ToString("F0")));
             }
             else if (netPower < -0.1f)
             {
-                sb.Append($"Network: {netPower:F0}W deficit");
+                sb.Append((string)"RimWorldAccess.Inspection.Power.NetworkDeficit".Translate(netPower.ToString("F0")));
             }
             else
             {
-                sb.Append("Network: Balanced");
+                sb.Append((string)"RimWorldAccess.Inspection.Power.NetworkBalanced".Translate());
             }
 
             // Add stored energy if batteries exist
             if (net.batteryComps.Count > 0)
             {
                 float storedEnergy = net.CurrentStoredEnergy();
-                sb.Append($", {storedEnergy:F0}Wd stored");
+                sb.Append(", " + (string)"RimWorldAccess.Inspection.Power.Stored".Translate(storedEnergy.ToString("F0")));
             }
 
             // Add connected buildings summary
@@ -361,31 +362,30 @@ namespace RimWorldAccess
             if (generatorCount > 0)
             {
                 string genText = generatorCount == 1
-                    ? $"1 generator producing {totalGeneration:F0}W"
-                    : $"{generatorCount} generators producing {totalGeneration:F0}W";
+                    ? (string)"RimWorldAccess.Inspection.Power.GeneratorsOne".Translate(totalGeneration.ToString("F0"))
+                    : (string)"RimWorldAccess.Inspection.Power.GeneratorsMany".Translate(generatorCount, totalGeneration.ToString("F0"));
                 parts.Add(genText);
             }
 
             if (consumerCount > 0)
             {
                 string conText = consumerCount == 1
-                    ? $"1 consumer using {totalConsumption:F0}W"
-                    : $"{consumerCount} consumers using {totalConsumption:F0}W";
+                    ? (string)"RimWorldAccess.Inspection.Power.ConsumersOne".Translate(totalConsumption.ToString("F0"))
+                    : (string)"RimWorldAccess.Inspection.Power.ConsumersMany".Translate(consumerCount, totalConsumption.ToString("F0"));
                 parts.Add(conText);
             }
 
             if (net.batteryComps.Count > 0)
             {
                 string batText = net.batteryComps.Count == 1
-                    ? "1 battery"
-                    : $"{net.batteryComps.Count} batteries";
+                    ? (string)"RimWorldAccess.Inspection.Power.BatteriesOne".Translate()
+                    : (string)"RimWorldAccess.Inspection.Power.BatteriesMany".Translate(net.batteryComps.Count);
                 parts.Add(batText);
             }
 
             if (parts.Count > 0)
             {
-                sb.Append(", Connected: ");
-                sb.Append(string.Join(", ", parts));
+                sb.Append(", " + (string)"RimWorldAccess.Inspection.Power.ConnectedLabel".Translate(string.Join(", ", parts)));
             }
         }
     }
