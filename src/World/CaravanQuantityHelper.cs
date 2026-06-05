@@ -97,7 +97,7 @@ namespace RimWorldAccess
             // Calculate total mass of items being taken
             float totalMass = newCount * itemMass;
             result.TotalMass = totalMass;
-            string massStr = totalMass > 0 ? $", {totalMass:F1} kg" : "";
+            string massStr = totalMass > 0 ? (string)"RimWorldAccess.Caravan.Quantity.MassSuffix".Translate(totalMass.ToString("F1")) : "";
 
             // Build announcement based on context
             bool tookAll = newCount == maxAvailable;
@@ -108,15 +108,17 @@ namespace RimWorldAccess
                 if (tookAll)
                 {
                     // "Taking all X, Y kg" but just "Taking 1, Y kg" if only one
-                    result.Announcement = newCount == 1 ? $"Taking 1{massStr}" : $"Taking all {newCount}{massStr}";
+                    result.Announcement = newCount == 1
+                        ? (string)"RimWorldAccess.Caravan.Quantity.TakingOne".Translate(massStr)
+                        : (string)"RimWorldAccess.Caravan.Quantity.TakingAll".Translate(newCount, massStr);
                 }
                 else if (hitCapacityLimit)
                 {
-                    result.Announcement = $"Taking {newCount} of {maxAvailable}{massStr}, capacity limit";
+                    result.Announcement = (string)"RimWorldAccess.Caravan.Quantity.TakingXofYLimit".Translate(newCount, maxAvailable, massStr);
                 }
                 else
                 {
-                    result.Announcement = $"Taking {newCount} of {maxAvailable}{massStr}";
+                    result.Announcement = (string)"RimWorldAccess.Caravan.Quantity.TakingXofY".Translate(newCount, maxAvailable, massStr);
                 }
             }
             else
@@ -127,24 +129,24 @@ namespace RimWorldAccess
                     // "Added X, now taking all Y, Z kg" but simpler if only one added or total is one
                     if (newCount == 1)
                     {
-                        result.Announcement = $"Added 1{massStr}";
+                        result.Announcement = (string)"RimWorldAccess.Caravan.Quantity.AddedOne".Translate(massStr);
                     }
                     else if (toAdd == 1)
                     {
-                        result.Announcement = $"Added 1, now taking all {newCount}{massStr}";
+                        result.Announcement = (string)"RimWorldAccess.Caravan.Quantity.AddedOneNowAll".Translate(newCount, massStr);
                     }
                     else
                     {
-                        result.Announcement = $"Added {toAdd}, now taking all {newCount}{massStr}";
+                        result.Announcement = (string)"RimWorldAccess.Caravan.Quantity.AddedNowAll".Translate(toAdd, newCount, massStr);
                     }
                 }
                 else if (hitCapacityLimit)
                 {
-                    result.Announcement = $"Added {toAdd}, now {newCount} of {maxAvailable}{massStr}, capacity limit";
+                    result.Announcement = (string)"RimWorldAccess.Caravan.Quantity.AddedNowXofYLimit".Translate(toAdd, newCount, maxAvailable, massStr);
                 }
                 else
                 {
-                    result.Announcement = $"Added {toAdd}, now {newCount} of {maxAvailable}{massStr}";
+                    result.Announcement = (string)"RimWorldAccess.Caravan.Quantity.AddedNowXofY".Translate(toAdd, newCount, maxAvailable, massStr);
                 }
             }
 

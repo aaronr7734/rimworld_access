@@ -305,7 +305,7 @@ namespace RimWorldAccess
             var statusNode = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.Category,
-                Label = "Caravan Status",
+                Label = "RimWorldAccess.Caravan.Inspect.CategoryCaravanStatus".Translate(),
                 IndentLevel = parent.IndentLevel + 1,
                 IsExpandable = true,
                 IsExpanded = false,
@@ -313,36 +313,40 @@ namespace RimWorldAccess
             };
 
             // Add stats as children with tooltips from the game's built-in explanation properties
-            AddStatNode(statusNode, "Location", GetLocationString());
+            AddStatNode(statusNode, (string)"RimWorldAccess.Caravan.Inspect.StatLocation".Translate(), GetLocationString());
 
             // Mass with game's tooltip explanation
             string massTooltip = GetMassTooltip();
-            AddStatNode(statusNode, "Mass", GetMassString(), massTooltip);
+            AddStatNode(statusNode, (string)"RimWorldAccess.Caravan.Inspect.StatMass".Translate(), GetMassString(), massTooltip);
 
             // Status with detailed explanation
             string statusTooltip = GetStatusTooltip();
-            AddStatNode(statusNode, "Status", GetMovementStatus(), statusTooltip);
+            AddStatNode(statusNode, (string)"RimWorldAccess.Caravan.Inspect.StatStatus".Translate(), GetMovementStatus(), statusTooltip);
 
             // Speed with game's tooltip (uses same method as Gizmo_CaravanInfo)
             // Game shows "Immobile" when overloaded, otherwise shows tiles/day
             // Game's description: "CaravanMovementSpeedTip".Translate()
             string speedDescription = "CaravanMovementSpeedTip".Translate();
+            string speedLabel = "RimWorldAccess.Caravan.Inspect.StatSpeed".Translate();
             if (currentCaravan.MassUsage > currentCaravan.MassCapacity)
             {
                 // Matches game's GetMovementSpeedLabel when immobile
-                AddStatNode(statusNode, "Speed", $"Immobile. {speedDescription}");
+                string immobile = "RimWorldAccess.Caravan.Inspect.Immobile".Translate();
+                AddStatNode(statusNode, speedLabel, $"{immobile}. {speedDescription}");
             }
             else
             {
                 var speedExplanation = new StringBuilder();
                 float tilesPerDay = TilesPerDayCalculator.ApproxTilesPerDay(currentCaravan, speedExplanation);
-                // Game format: {tilesPerDay:0.#} tiles/day + description
-                AddStatNode(statusNode, "Speed", $"{tilesPerDay:0.#} tiles/day. {speedDescription}", speedExplanation.ToString());
+                // Game format: {tilesPerDay:0.#} tiles/day + description (vanilla "TilesPerDay" unit)
+                string tilesPerDayUnit = "TilesPerDay".Translate();
+                AddStatNode(statusNode, speedLabel, $"{tilesPerDay:0.#} {tilesPerDayUnit}. {speedDescription}", speedExplanation.ToString());
             }
 
             // Food with tooltip - matches game's CaravanUIUtility.GetDaysWorthOfFoodLabel behavior
             // Game's description: "DaysWorthOfFoodTooltip".Translate()
             string foodDescription = "DaysWorthOfFoodTooltip".Translate();
+            string foodStatLabel = "RimWorldAccess.Caravan.Inspect.StatFood".Translate();
             try
             {
                 var foodInfo = currentCaravan.DaysWorthOfFood;
@@ -350,25 +354,25 @@ namespace RimWorldAccess
 
                 if (foodInfo.days >= 600f)
                 {
-                    foodValue = "Infinite";
+                    foodValue = "Infinite".Translate();
                 }
                 else
                 {
-                    // Game format: {days:0.#} (shows "3" not "3.0")
-                    foodValue = $"{foodInfo.days:0.#} days";
+                    // Game format: {days:0.#} (shows "3" not "3.0"); vanilla "PeriodDays" unit
+                    foodValue = "PeriodDays".Translate(foodInfo.days.ToString("0.#"));
 
                     // Show rot only if food is perishable AND will rot before running out
                     // This matches the game's exact logic in CaravanUIUtility.GetDaysWorthOfFoodLabel
                     if (foodInfo.tillRot < 600f && foodInfo.tillRot < foodInfo.days)
                     {
-                        foodValue += $" ({foodInfo.tillRot:0.#} days until rot)";
+                        foodValue += " " + (string)"RimWorldAccess.Caravan.Inspect.DaysUntilRot".Translate(foodInfo.tillRot.ToString("0.#"));
                     }
                 }
 
                 // Check for food warnings
                 if (currentCaravan.needs.AnyPawnOutOfFood(out string malnutritionInfo))
                 {
-                    foodValue += " - OUT OF FOOD";
+                    foodValue += " - " + (string)"RimWorldAccess.Caravan.Inspect.OutOfFood".Translate();
                     if (!string.IsNullOrEmpty(malnutritionInfo))
                     {
                         foodValue += $" ({malnutritionInfo})";
@@ -376,12 +380,12 @@ namespace RimWorldAccess
                 }
 
                 // Add description after value
-                foodValue += $". {foodDescription}";
-                AddStatNode(statusNode, "Food", foodValue);
+                foodValue += ". " + foodDescription;
+                AddStatNode(statusNode, foodStatLabel, foodValue);
             }
             catch
             {
-                AddStatNode(statusNode, "Food", "Unknown");
+                AddStatNode(statusNode, foodStatLabel, (string)"RimWorldAccess.Caravan.Inspect.Unknown".Translate());
             }
 
             // Foraging info if applicable
@@ -394,8 +398,9 @@ namespace RimWorldAccess
                 {
                     string forageTooltip = currentCaravan.forage.ForagedFoodPerDayExplanation;
                     string forageDescription = "ForagedFoodPerDayTip".Translate();
-                    string foodLabel = forageInfo.food?.label ?? "food";
-                    AddStatNode(statusNode, "Foraging", $"{forageInfo.perDay:0.#} ({foodLabel})/day. {forageDescription}", forageTooltip);
+                    string foragedFoodLabel = forageInfo.food?.label ?? (string)"RimWorldAccess.Caravan.Inspect.FoodFallback".Translate();
+                    string foragingValue = (string)"RimWorldAccess.Caravan.Inspect.ForagingPerDay".Translate(forageInfo.perDay.ToString("0.#"), foragedFoodLabel);
+                    AddStatNode(statusNode, (string)"RimWorldAccess.Caravan.Inspect.StatForaging".Translate(), foragingValue + ". " + forageDescription, forageTooltip);
                 }
             }
             catch { }
@@ -403,22 +408,24 @@ namespace RimWorldAccess
             // Destination and ETA
             if (currentCaravan.pather?.Moving == true && currentCaravan.pather.Destination.Valid)
             {
-                AddStatNode(statusNode, "Destination", GetDestinationString());
-                AddStatNode(statusNode, "ETA", GetETAString());
+                AddStatNode(statusNode, (string)"RimWorldAccess.Caravan.Inspect.StatDestination".Translate(), GetDestinationString());
+                AddStatNode(statusNode, (string)"RimWorldAccess.Caravan.Inspect.StatETA".Translate(), GetETAString());
             }
 
             // Visibility with game's tooltip
             // Game's description: "CaravanVisibilityTip".Translate()
             string visDescription = "CaravanVisibilityTip".Translate();
             string visTooltip = currentCaravan.VisibilityExplanation;
-            AddStatNode(statusNode, "Visibility", $"{currentCaravan.Visibility:P0}. {visDescription}", visTooltip);
+            AddStatNode(statusNode, (string)"RimWorldAccess.Caravan.Inspect.StatVisibility".Translate(), $"{currentCaravan.Visibility:P0}. {visDescription}", visTooltip);
 
             // Beds info when resting
             if (!currentCaravan.pather?.MovingNow == true && currentCaravan.beds != null)
             {
                 int bedCount = currentCaravan.beds.GetUsedBedCount();
-                string bedLabel = bedCount > 0 ? $"{bedCount} bedroll(s) in use" : "No bedrolls";
-                AddStatNode(statusNode, "Beds", bedLabel);
+                string bedLabel = bedCount > 0
+                    ? (string)"RimWorldAccess.Caravan.Inspect.BedrollsInUse".Translate(bedCount)
+                    : (string)"RimWorldAccess.Caravan.Inspect.NoBedrolls".Translate();
+                AddStatNode(statusNode, (string)"RimWorldAccess.Caravan.Inspect.StatBeds".Translate(), bedLabel);
             }
 
             parent.Children.Add(statusNode);
@@ -433,24 +440,24 @@ namespace RimWorldAccess
             string gameExplanation = currentCaravan.MassCapacityExplanation;
 
             var sb = new StringBuilder();
-            sb.AppendLine($"Mass carried: {currentCaravan.MassUsage:F1} kg");
-            sb.AppendLine($"Mass capacity: {currentCaravan.MassCapacity:F1} kg");
+            sb.AppendLine("RimWorldAccess.Caravan.Inspect.TooltipMassCarried".Translate(currentCaravan.MassUsage.ToString("F1")));
+            sb.AppendLine("RimWorldAccess.Caravan.Inspect.TooltipMassCapacity".Translate(currentCaravan.MassCapacity.ToString("F1")));
 
             if (currentCaravan.MassUsage > currentCaravan.MassCapacity)
             {
-                sb.AppendLine("OVERLOADED - Caravan cannot move until mass is reduced.");
+                sb.AppendLine("RimWorldAccess.Caravan.Inspect.TooltipOverloaded".Translate());
             }
             else
             {
                 float remaining = currentCaravan.MassCapacity - currentCaravan.MassUsage;
-                sb.AppendLine($"Remaining capacity: {remaining:F1} kg");
+                sb.AppendLine("RimWorldAccess.Caravan.Inspect.TooltipRemainingCapacity".Translate(remaining.ToString("F1")));
             }
 
             // Append the game's detailed breakdown
             if (!string.IsNullOrEmpty(gameExplanation))
             {
                 sb.AppendLine();
-                sb.AppendLine("Capacity breakdown:");
+                sb.AppendLine("RimWorldAccess.Caravan.Inspect.TooltipCapacityBreakdown".Translate());
                 sb.Append(gameExplanation);
             }
 
@@ -466,33 +473,33 @@ namespace RimWorldAccess
 
             if (currentCaravan.CantMove)
             {
-                sb.AppendLine("Caravan cannot move because:");
+                sb.AppendLine("RimWorldAccess.Caravan.Inspect.StatusCannotMoveBecause".Translate());
                 if (currentCaravan.AllOwnersDowned)
-                    sb.AppendLine("- All caravan members are downed");
+                    sb.AppendLine("- " + (string)"RimWorldAccess.Caravan.Inspect.StatusAllDowned".Translate());
                 if (currentCaravan.AllOwnersHaveMentalBreak)
-                    sb.AppendLine("- All caravan members are having mental breaks");
+                    sb.AppendLine("- " + (string)"RimWorldAccess.Caravan.Inspect.StatusAllMentalBreak".Translate());
                 if (currentCaravan.ImmobilizedByMass)
-                    sb.AppendLine("- Caravan is overloaded beyond capacity");
+                    sb.AppendLine("- " + (string)"RimWorldAccess.Caravan.Inspect.StatusOverloaded".Translate());
             }
             else if (currentCaravan.NightResting)
             {
-                sb.AppendLine("Caravan is resting during nighttime hours.");
+                sb.AppendLine("RimWorldAccess.Caravan.Inspect.StatusNightResting".Translate());
                 int bedCount = currentCaravan.beds?.GetUsedBedCount() ?? 0;
                 if (bedCount > 0)
-                    sb.AppendLine($"Using {bedCount} bedroll(s) for better rest.");
+                    sb.AppendLine("RimWorldAccess.Caravan.Inspect.StatusUsingBedrolls".Translate(bedCount));
                 else
-                    sb.AppendLine("No bedrolls - pawns are sleeping on the ground.");
+                    sb.AppendLine("RimWorldAccess.Caravan.Inspect.StatusNoBedrollsGround".Translate());
             }
             else if (currentCaravan.pather?.Moving == true)
             {
                 if (currentCaravan.pather.Paused)
-                    sb.AppendLine("Caravan movement is paused.");
+                    sb.AppendLine("RimWorldAccess.Caravan.Inspect.StatusPaused".Translate());
                 else
-                    sb.AppendLine("Caravan is traveling toward destination.");
+                    sb.AppendLine("RimWorldAccess.Caravan.Inspect.StatusTraveling".Translate());
             }
             else
             {
-                sb.AppendLine("Caravan is stopped and waiting for orders.");
+                sb.AppendLine("RimWorldAccess.Caravan.Inspect.StatusStopped".Translate());
             }
 
             return sb.ToString();
@@ -503,7 +510,7 @@ namespace RimWorldAccess
             var node = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.Item,
-                Label = $"{label}: {value}",
+                Label = (string)"RimWorldAccess.Caravan.Inspect.StatLabelValue".Translate(label, value),
                 Tooltip = tooltip,  // Store tooltip for StatBreakdownState (Alt+I)
                 IndentLevel = parent.IndentLevel + 1,
                 Parent = parent,
@@ -529,9 +536,10 @@ namespace RimWorldAccess
             if (currentCaravan.Tile.Valid && Find.WorldGrid != null)
             {
                 Vector2 coords = Find.WorldGrid.LongLatOf(currentCaravan.Tile);
-                return $"Tile {currentCaravan.Tile}, {coords.y:F1}N {coords.x:F1}E";
+                return (string)"RimWorldAccess.Caravan.Inspect.LocationCoords".Translate(
+                    currentCaravan.Tile.ToString(), coords.y.ToString("F1"), coords.x.ToString("F1"));
             }
-            return "Unknown";
+            return (string)"RimWorldAccess.Caravan.Inspect.Unknown".Translate();
         }
 
         private static string GetMassString()
@@ -539,7 +547,8 @@ namespace RimWorldAccess
             // Matches game's CaravanUIUtility format: {massUsage:F0} / {massCapacity:F0} kg
             float massUsage = currentCaravan.MassUsage;
             float massCapacity = currentCaravan.MassCapacity;
-            return $"{massUsage:F0} / {massCapacity:F0} kg";
+            return (string)"RimWorldAccess.Caravan.Inspect.MassUsageCapacity".Translate(
+                massUsage.ToString("F0"), massCapacity.ToString("F0"));
         }
 
         private static string GetMovementStatus()
@@ -557,19 +566,19 @@ namespace RimWorldAccess
         private static string GetDestinationString()
         {
             if (currentCaravan.pather?.Destination.Valid != true)
-                return "None";
+                return (string)"None".Translate();
 
             PlanetTile destTile = currentCaravan.pather.Destination;
             Settlement destSettlement = Find.WorldObjects?.SettlementAt(destTile);
             if (destSettlement != null)
                 return destSettlement.Label;
-            return $"Tile {destTile}";
+            return (string)"RimWorldAccess.Caravan.Inspect.TileNumber".Translate(destTile.ToString());
         }
 
         private static string GetETAString()
         {
             if (currentCaravan.pather?.Destination.Valid != true)
-                return "N/A";
+                return (string)"RimWorldAccess.Caravan.Inspect.NotAvailable".Translate();
 
             float ticksToArrive = CaravanArrivalTimeEstimator.EstimatedTicksToArrive(
                 currentCaravan.Tile, currentCaravan.pather.Destination, currentCaravan);
@@ -577,9 +586,11 @@ namespace RimWorldAccess
             {
                 float hoursToArrive = ticksToArrive / 2500f;
                 float daysToArrive = hoursToArrive / 24f;
-                return daysToArrive >= 1f ? $"{daysToArrive:F1} days" : $"{hoursToArrive:F1} hours";
+                return daysToArrive >= 1f
+                    ? (string)"PeriodDays".Translate(daysToArrive.ToString("F1"))
+                    : (string)"PeriodHours".Translate(hoursToArrive.ToString("F1"));
             }
-            return "Unknown";
+            return (string)"RimWorldAccess.Caravan.Inspect.Unknown".Translate();
         }
 
         /// <summary>
@@ -597,7 +608,7 @@ namespace RimWorldAccess
             var pawnsNode = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.Category,
-                Label = $"Pawns ({totalPawns})",
+                Label = (string)"RimWorldAccess.Caravan.Inspect.CategoryPawns".Translate(totalPawns),
                 IndentLevel = parent.IndentLevel + 1,
                 IsExpandable = true,
                 IsExpanded = false,
@@ -613,7 +624,7 @@ namespace RimWorldAccess
                 var colonistsNode = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.SubCategory,
-                    Label = $"Colonists ({colonists.Count})",
+                    Label = (string)"RimWorldAccess.Caravan.Inspect.CategoryColonists".Translate(colonists.Count),
                     IndentLevel = pawnsNode.IndentLevel + 1,
                     IsExpandable = true,
                     IsExpanded = false,
@@ -626,7 +637,7 @@ namespace RimWorldAccess
                     if (pawn.story?.TitleCap != null && !pawn.story.TitleCap.NullOrEmpty())
                         label += $", {pawn.story.TitleCap}";
                     if (pawn == negotiator)
-                        label += ", negotiator";
+                        label += ", " + (string)"RimWorldAccess.Caravan.Inspect.Negotiator".Translate();
 
                     var pawnNode = new InspectionTreeItem
                     {
@@ -650,7 +661,7 @@ namespace RimWorldAccess
                 var prisonersNode = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.SubCategory,
-                    Label = $"Prisoners ({prisoners.Count})",
+                    Label = (string)"RimWorldAccess.Caravan.Inspect.CategoryPrisoners".Translate(prisoners.Count),
                     IndentLevel = pawnsNode.IndentLevel + 1,
                     IsExpandable = true,
                     IsExpanded = false,
@@ -681,7 +692,7 @@ namespace RimWorldAccess
                 var animalsNode = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.SubCategory,
-                    Label = $"Animals ({animals.Count})",
+                    Label = (string)"RimWorldAccess.Caravan.Inspect.CategoryAnimals".Translate(animals.Count),
                     IndentLevel = pawnsNode.IndentLevel + 1,
                     IsExpandable = true,
                     IsExpanded = false,
@@ -726,7 +737,7 @@ namespace RimWorldAccess
             var gearNode = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.Category,
-                Label = $"Gear ({totalGear} items)",
+                Label = (string)"RimWorldAccess.Caravan.Inspect.CategoryGear".Translate(totalGear),
                 IndentLevel = parent.IndentLevel + 1,
                 IsExpandable = true,
                 IsExpanded = false,
@@ -759,7 +770,7 @@ namespace RimWorldAccess
                     pawnGearNode.Children.Add(new InspectionTreeItem
                     {
                         Type = InspectionTreeItem.ItemType.Item,
-                        Label = $"{pawn.LabelShortCap}'s {weapon.LabelCap}",
+                        Label = (string)"RimWorldAccess.Caravan.Inspect.PawnPossession".Translate((string)pawn.LabelShortCap, (string)weapon.LabelCap),
                         IndentLevel = pawnGearNode.IndentLevel + 1,
                         Parent = pawnGearNode,
                         Data = weapon,
@@ -776,7 +787,7 @@ namespace RimWorldAccess
                         pawnGearNode.Children.Add(new InspectionTreeItem
                         {
                             Type = InspectionTreeItem.ItemType.Item,
-                            Label = $"{pawn.LabelShortCap}'s {apparel.LabelCap}",
+                            Label = (string)"RimWorldAccess.Caravan.Inspect.PawnPossession".Translate((string)pawn.LabelShortCap, (string)apparel.LabelCap),
                             IndentLevel = pawnGearNode.IndentLevel + 1,
                             Parent = pawnGearNode,
                             Data = apparel,
@@ -804,7 +815,7 @@ namespace RimWorldAccess
                 var emptyNode = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Category,
-                    Label = "Items (empty)",
+                    Label = "RimWorldAccess.Caravan.Inspect.CategoryItemsEmpty".Translate(),
                     IndentLevel = parent.IndentLevel + 1,
                     IsExpandable = false,
                     Parent = parent
@@ -822,7 +833,7 @@ namespace RimWorldAccess
             var itemsNode = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.Category,
-                Label = $"Items ({totalCount})",
+                Label = (string)"RimWorldAccess.Caravan.Inspect.CategoryItems".Translate(totalCount),
                 IndentLevel = parent.IndentLevel + 1,
                 IsExpandable = true,
                 IsExpanded = false,

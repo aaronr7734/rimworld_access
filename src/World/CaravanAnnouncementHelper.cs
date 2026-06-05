@@ -25,7 +25,7 @@ namespace RimWorldAccess
             bool includePosition = true)
         {
             if (transferable == null)
-                return "No item selected";
+                return (string)"RimWorldAccess.Caravan.Announce.NoItemSelected".Translate();
 
             StringBuilder announcement = new StringBuilder();
 
@@ -43,11 +43,11 @@ namespace RimWorldAccess
 
                     if (toTransfer > 0)
                     {
-                        announcement.Append($". Taking {toTransfer} of {maxCount}");
+                        announcement.Append(". " + (string)"RimWorldAccess.Caravan.Announce.TakingXofY".Translate(toTransfer, maxCount));
                     }
                     else
                     {
-                        announcement.Append($". {maxCount} available");
+                        announcement.Append(". " + (string)"RimWorldAccess.Caravan.Announce.XAvailable".Translate(maxCount));
                     }
                 }
                 else
@@ -63,13 +63,13 @@ namespace RimWorldAccess
                     // Add equipped weapon if any
                     if (pawn.equipment?.Primary != null)
                     {
-                        announcement.Append($" (wielding {pawn.equipment.Primary.LabelCap})");
+                        announcement.Append(" " + (string)"RimWorldAccess.Caravan.Announce.Wielding".Translate((string)pawn.equipment.Primary.LabelCap));
                     }
 
                     // Only say "checked" if they're going, nothing if staying
                     if (toTransfer > 0)
                     {
-                        announcement.Append(" - checked");
+                        announcement.Append(" - " + (string)"RimWorldAccess.Caravan.Announce.Checked".Translate());
                     }
                 }
             }
@@ -83,13 +83,13 @@ namespace RimWorldAccess
                 // Only say "Taking X of Y" if taking some, otherwise just say how many available
                 if (toTransfer > 0)
                 {
-                    announcement.Append($". Taking {toTransfer} of {max}");
+                    announcement.Append(". " + (string)"RimWorldAccess.Caravan.Announce.TakingXofY".Translate(toTransfer, max));
 
                     // Add mass information
                     float totalMass = transferable.AnyThing.GetStatValue(StatDefOf.Mass) * toTransfer;
                     if (totalMass >= 0.1f)
                     {
-                        announcement.Append($". Mass: {totalMass:F1} kg");
+                        announcement.Append(". " + (string)"RimWorldAccess.Caravan.Announce.MassKg".Translate(totalMass.ToString("F1")));
                     }
                 }
                 else
@@ -121,7 +121,7 @@ namespace RimWorldAccess
             int matchCount)
         {
             if (transferable == null)
-                return "No item selected";
+                return (string)"RimWorldAccess.Caravan.Announce.NoItemSelected".Translate();
 
             StringBuilder announcement = new StringBuilder();
 
@@ -138,11 +138,11 @@ namespace RimWorldAccess
 
                     if (toTransfer > 0)
                     {
-                        announcement.Append($". Taking {toTransfer} of {maxCount}");
+                        announcement.Append(". " + (string)"RimWorldAccess.Caravan.Announce.TakingXofY".Translate(toTransfer, maxCount));
                     }
                     else
                     {
-                        announcement.Append($". {maxCount} available");
+                        announcement.Append(". " + (string)"RimWorldAccess.Caravan.Announce.XAvailable".Translate(maxCount));
                     }
                 }
                 else
@@ -151,7 +151,7 @@ namespace RimWorldAccess
                     // Only say "checked" if they're going
                     if (toTransfer > 0)
                     {
-                        announcement.Append(" - checked");
+                        announcement.Append(" - " + (string)"RimWorldAccess.Caravan.Announce.Checked".Translate());
                     }
                 }
             }
@@ -163,15 +163,15 @@ namespace RimWorldAccess
                 // Only say "Taking X of Y" if taking some
                 if (toTransfer > 0)
                 {
-                    announcement.Append($". Taking {toTransfer} of {max}");
+                    announcement.Append(". " + (string)"RimWorldAccess.Caravan.Announce.TakingXofY".Translate(toTransfer, max));
                 }
                 else
                 {
-                    announcement.Append($". {max} available");
+                    announcement.Append(". " + (string)"RimWorldAccess.Caravan.Announce.XAvailable".Translate(max));
                 }
             }
 
-            announcement.Append($". '{searchBuffer}' match {matchPosition} of {matchCount}");
+            announcement.Append(". " + (string)"RimWorldAccess.Caravan.Announce.SearchMatch".Translate((string)searchBuffer, matchPosition, matchCount));
             return announcement.ToString();
         }
 

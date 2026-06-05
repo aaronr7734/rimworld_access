@@ -201,6 +201,61 @@
   <RimWorldAccess.Caravan.Inspect.NoActionAvailable>No action available</RimWorldAccess.Caravan.Inspect.NoActionAvailable>
   <RimWorldAccess.Caravan.Inspect.NoBreakdown>No breakdown available</RimWorldAccess.Caravan.Inspect.NoBreakdown>
 
+  <!-- Caravan inspect treeview (CaravanInspectState): category labels, stat
+       labels, stat values, and Alt+I stat-breakdown tooltips. Spoken while
+       navigating the tree. Units reuse vanilla keys where available
+       (PeriodDays, PeriodHours, Infinite, None, TilesPerDay).
+       In the tooltip strings, a leading "- " marks a sub-item and a trailing
+       ":" marks a section header for the breakdown parser; preserve them. -->
+  <RimWorldAccess.Caravan.Inspect.StatLabelValue>{0}: {1}</RimWorldAccess.Caravan.Inspect.StatLabelValue>
+  <RimWorldAccess.Caravan.Inspect.Unknown>Unknown</RimWorldAccess.Caravan.Inspect.Unknown>
+  <RimWorldAccess.Caravan.Inspect.NotAvailable>N/A</RimWorldAccess.Caravan.Inspect.NotAvailable>
+  <RimWorldAccess.Caravan.Inspect.CategoryCaravanStatus>Caravan Status</RimWorldAccess.Caravan.Inspect.CategoryCaravanStatus>
+  <RimWorldAccess.Caravan.Inspect.CategoryPawns>Pawns ({0})</RimWorldAccess.Caravan.Inspect.CategoryPawns>
+  <RimWorldAccess.Caravan.Inspect.CategoryColonists>Colonists ({0})</RimWorldAccess.Caravan.Inspect.CategoryColonists>
+  <RimWorldAccess.Caravan.Inspect.CategoryPrisoners>Prisoners ({0})</RimWorldAccess.Caravan.Inspect.CategoryPrisoners>
+  <RimWorldAccess.Caravan.Inspect.CategoryAnimals>Animals ({0})</RimWorldAccess.Caravan.Inspect.CategoryAnimals>
+  <RimWorldAccess.Caravan.Inspect.CategoryGear>Gear ({0} items)</RimWorldAccess.Caravan.Inspect.CategoryGear>
+  <RimWorldAccess.Caravan.Inspect.CategoryItems>Items ({0})</RimWorldAccess.Caravan.Inspect.CategoryItems>
+  <RimWorldAccess.Caravan.Inspect.CategoryItemsEmpty>Items (empty)</RimWorldAccess.Caravan.Inspect.CategoryItemsEmpty>
+  <RimWorldAccess.Caravan.Inspect.Negotiator>negotiator</RimWorldAccess.Caravan.Inspect.Negotiator>
+  <RimWorldAccess.Caravan.Inspect.PawnPossession>{0}'s {1}</RimWorldAccess.Caravan.Inspect.PawnPossession>
+  <RimWorldAccess.Caravan.Inspect.StatLocation>Location</RimWorldAccess.Caravan.Inspect.StatLocation>
+  <RimWorldAccess.Caravan.Inspect.StatMass>Mass</RimWorldAccess.Caravan.Inspect.StatMass>
+  <RimWorldAccess.Caravan.Inspect.StatStatus>Status</RimWorldAccess.Caravan.Inspect.StatStatus>
+  <RimWorldAccess.Caravan.Inspect.StatSpeed>Speed</RimWorldAccess.Caravan.Inspect.StatSpeed>
+  <RimWorldAccess.Caravan.Inspect.StatFood>Food</RimWorldAccess.Caravan.Inspect.StatFood>
+  <RimWorldAccess.Caravan.Inspect.StatForaging>Foraging</RimWorldAccess.Caravan.Inspect.StatForaging>
+  <RimWorldAccess.Caravan.Inspect.StatDestination>Destination</RimWorldAccess.Caravan.Inspect.StatDestination>
+  <RimWorldAccess.Caravan.Inspect.StatETA>ETA</RimWorldAccess.Caravan.Inspect.StatETA>
+  <RimWorldAccess.Caravan.Inspect.StatVisibility>Visibility</RimWorldAccess.Caravan.Inspect.StatVisibility>
+  <RimWorldAccess.Caravan.Inspect.StatBeds>Beds</RimWorldAccess.Caravan.Inspect.StatBeds>
+  <RimWorldAccess.Caravan.Inspect.Immobile>Immobile</RimWorldAccess.Caravan.Inspect.Immobile>
+  <RimWorldAccess.Caravan.Inspect.DaysUntilRot>({0} days until rot)</RimWorldAccess.Caravan.Inspect.DaysUntilRot>
+  <RimWorldAccess.Caravan.Inspect.OutOfFood>OUT OF FOOD</RimWorldAccess.Caravan.Inspect.OutOfFood>
+  <RimWorldAccess.Caravan.Inspect.FoodFallback>food</RimWorldAccess.Caravan.Inspect.FoodFallback>
+  <RimWorldAccess.Caravan.Inspect.ForagingPerDay>{0} ({1})/day</RimWorldAccess.Caravan.Inspect.ForagingPerDay>
+  <RimWorldAccess.Caravan.Inspect.BedrollsInUse>{0} bedroll(s) in use</RimWorldAccess.Caravan.Inspect.BedrollsInUse>
+  <RimWorldAccess.Caravan.Inspect.NoBedrolls>No bedrolls</RimWorldAccess.Caravan.Inspect.NoBedrolls>
+  <RimWorldAccess.Caravan.Inspect.LocationCoords>Tile {0}, {1}N {2}E</RimWorldAccess.Caravan.Inspect.LocationCoords>
+  <RimWorldAccess.Caravan.Inspect.MassUsageCapacity>{0} / {1} kg</RimWorldAccess.Caravan.Inspect.MassUsageCapacity>
+  <RimWorldAccess.Caravan.Inspect.TileNumber>Tile {0}</RimWorldAccess.Caravan.Inspect.TileNumber>
+  <RimWorldAccess.Caravan.Inspect.TooltipMassCarried>Mass carried: {0} kg</RimWorldAccess.Caravan.Inspect.TooltipMassCarried>
+  <RimWorldAccess.Caravan.Inspect.TooltipMassCapacity>Mass capacity: {0} kg</RimWorldAccess.Caravan.Inspect.TooltipMassCapacity>
+  <RimWorldAccess.Caravan.Inspect.TooltipOverloaded>OVERLOADED - Caravan cannot move until mass is reduced.</RimWorldAccess.Caravan.Inspect.TooltipOverloaded>
+  <RimWorldAccess.Caravan.Inspect.TooltipRemainingCapacity>Remaining capacity: {0} kg</RimWorldAccess.Caravan.Inspect.TooltipRemainingCapacity>
+  <RimWorldAccess.Caravan.Inspect.TooltipCapacityBreakdown>Capacity breakdown:</RimWorldAccess.Caravan.Inspect.TooltipCapacityBreakdown>
+  <RimWorldAccess.Caravan.Inspect.StatusCannotMoveBecause>Caravan cannot move because:</RimWorldAccess.Caravan.Inspect.StatusCannotMoveBecause>
+  <RimWorldAccess.Caravan.Inspect.StatusAllDowned>All caravan members are downed</RimWorldAccess.Caravan.Inspect.StatusAllDowned>
+  <RimWorldAccess.Caravan.Inspect.StatusAllMentalBreak>All caravan members are having mental breaks</RimWorldAccess.Caravan.Inspect.StatusAllMentalBreak>
+  <RimWorldAccess.Caravan.Inspect.StatusOverloaded>Caravan is overloaded beyond capacity</RimWorldAccess.Caravan.Inspect.StatusOverloaded>
+  <RimWorldAccess.Caravan.Inspect.StatusNightResting>Caravan is resting during nighttime hours.</RimWorldAccess.Caravan.Inspect.StatusNightResting>
+  <RimWorldAccess.Caravan.Inspect.StatusUsingBedrolls>Using {0} bedroll(s) for better rest.</RimWorldAccess.Caravan.Inspect.StatusUsingBedrolls>
+  <RimWorldAccess.Caravan.Inspect.StatusNoBedrollsGround>No bedrolls - pawns are sleeping on the ground.</RimWorldAccess.Caravan.Inspect.StatusNoBedrollsGround>
+  <RimWorldAccess.Caravan.Inspect.StatusPaused>Caravan movement is paused.</RimWorldAccess.Caravan.Inspect.StatusPaused>
+  <RimWorldAccess.Caravan.Inspect.StatusTraveling>Caravan is traveling toward destination.</RimWorldAccess.Caravan.Inspect.StatusTraveling>
+  <RimWorldAccess.Caravan.Inspect.StatusStopped>Caravan is stopped and waiting for orders.</RimWorldAccess.Caravan.Inspect.StatusStopped>
+
   <!-- =================================================================
        Caravan input helper (CaravanInputHelper).
        Alt+H/M/N/G/K dispatch from inside the caravan dialog tabs.
@@ -222,12 +277,33 @@
        Boundary feedback when adjusting per-item quantities.
        ================================================================= -->
   <RimWorldAccess.Caravan.Quantity.NotEnoughCapacity>Not enough capacity for more</RimWorldAccess.Caravan.Quantity.NotEnoughCapacity>
+  <!-- Shift+Enter "add maximum" feedback. {N} are counts; the trailing
+       insert is the localized MassSuffix (", X kg") or empty. -->
+  <RimWorldAccess.Caravan.Quantity.MassSuffix>, {0} kg</RimWorldAccess.Caravan.Quantity.MassSuffix>
+  <RimWorldAccess.Caravan.Quantity.TakingOne>Taking 1{0}</RimWorldAccess.Caravan.Quantity.TakingOne>
+  <RimWorldAccess.Caravan.Quantity.TakingAll>Taking all {0}{1}</RimWorldAccess.Caravan.Quantity.TakingAll>
+  <RimWorldAccess.Caravan.Quantity.TakingXofY>Taking {0} of {1}{2}</RimWorldAccess.Caravan.Quantity.TakingXofY>
+  <RimWorldAccess.Caravan.Quantity.TakingXofYLimit>Taking {0} of {1}{2}, capacity limit</RimWorldAccess.Caravan.Quantity.TakingXofYLimit>
+  <RimWorldAccess.Caravan.Quantity.AddedOne>Added 1{0}</RimWorldAccess.Caravan.Quantity.AddedOne>
+  <RimWorldAccess.Caravan.Quantity.AddedOneNowAll>Added 1, now taking all {0}{1}</RimWorldAccess.Caravan.Quantity.AddedOneNowAll>
+  <RimWorldAccess.Caravan.Quantity.AddedNowAll>Added {0}, now taking all {1}{2}</RimWorldAccess.Caravan.Quantity.AddedNowAll>
+  <RimWorldAccess.Caravan.Quantity.AddedNowXofY>Added {0}, now {1} of {2}{3}</RimWorldAccess.Caravan.Quantity.AddedNowXofY>
+  <RimWorldAccess.Caravan.Quantity.AddedNowXofYLimit>Added {0}, now {1} of {2}{3}, capacity limit</RimWorldAccess.Caravan.Quantity.AddedNowXofYLimit>
 
   <!-- =================================================================
        Caravan announcement helper (CaravanAnnouncementHelper).
        Shared per-tab "no items" announcement.
        ================================================================= -->
   <RimWorldAccess.Caravan.Announce.NoItemsInTab>No items in this tab</RimWorldAccess.Caravan.Announce.NoItemsInTab>
+  <!-- Per-item announcement fragments for the formation/split tab lists.
+       Appended after the item label with a leading separator in code. -->
+  <RimWorldAccess.Caravan.Announce.NoItemSelected>No item selected</RimWorldAccess.Caravan.Announce.NoItemSelected>
+  <RimWorldAccess.Caravan.Announce.TakingXofY>Taking {0} of {1}</RimWorldAccess.Caravan.Announce.TakingXofY>
+  <RimWorldAccess.Caravan.Announce.XAvailable>{0} available</RimWorldAccess.Caravan.Announce.XAvailable>
+  <RimWorldAccess.Caravan.Announce.Wielding>(wielding {0})</RimWorldAccess.Caravan.Announce.Wielding>
+  <RimWorldAccess.Caravan.Announce.Checked>checked</RimWorldAccess.Caravan.Announce.Checked>
+  <RimWorldAccess.Caravan.Announce.MassKg>Mass: {0} kg</RimWorldAccess.Caravan.Announce.MassKg>
+  <RimWorldAccess.Caravan.Announce.SearchMatch>'{0}' match {1} of {2}</RimWorldAccess.Caravan.Announce.SearchMatch>
 
   <!-- =================================================================
        Gear-equip menu (GearEquipMenuState).
