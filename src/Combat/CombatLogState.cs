@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using RimWorld;
 using Verse;
 
 namespace RimWorldAccess
@@ -46,30 +45,24 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Build combat log information
-            // First, collect all entries with their timestamps and battle names
-            var allEntries = new List<(int ageTicks, string battleName, string entryText)>();
+            // Collect references to relevant entries without rendering them.
+            // ToGameStringFromPOV is expensive (grammar interpolation), so we
+            // defer it until after we've picked the 10 we'll actually display.
+            var allEntries = new List<(int ageTicks, string battleName, LogEntry entry)>();
 
-            // Iterate through all battles to collect entries
             foreach (Battle battle in Find.BattleLog.Battles)
             {
-                // Skip battles that don't involve this pawn
                 if (!battle.Concerns(pawn))
                     continue;
 
-                // Get battle name for grouping
                 string battleName = battle.GetName().StripTags();
 
-                // Iterate through entries in this battle
                 foreach (LogEntry entry in battle.Entries)
                 {
-                    // Skip entries that don't involve this pawn
                     if (!entry.Concerns(pawn))
                         continue;
 
-                    // Get the entry text from this pawn's point of view and strip color tags
-                    string entryText = entry.ToGameStringFromPOV(pawn).StripTags();
-                    allEntries.Add((entry.Age, battleName, entryText));
+                    allEntries.Add((entry.Age, battleName, entry));
                 }
             }
 
@@ -82,22 +75,22 @@ namespace RimWorldAccess
             }
             else
             {
-                // Sort by age ascending (lowest age = most recent) and take first 10
+                // Sort by age ascending (lowest age = most recent) and take first 10,
+                // then render only those 10.
                 var recentEntries = allEntries
                     .OrderBy(e => e.ageTicks)
                     .Take(10)
+                    .Select(e => (e.battleName, entryText: e.entry.ToGameStringFromPOV(pawn).StripTags()))
                     .ToList();
 
                 string currentBattleName = null;
 
-                // Build output for the last 10 entries
-                foreach (var (ageTicks, battleName, entryText) in recentEntries)
+                foreach (var (battleName, entryText) in recentEntries)
                 {
-                    // Add battle header if it changed
                     if (battleName != currentBattleName)
                     {
                         if (currentBattleName != null)
-                            sb.AppendLine(); // Add spacing between battles
+                            sb.AppendLine();
 
                         sb.AppendLine($"-- {battleName} --");
                         currentBattleName = battleName;

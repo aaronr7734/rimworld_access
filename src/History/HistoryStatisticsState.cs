@@ -99,6 +99,13 @@ namespace RimWorldAccess
             if (statistics == null || statistics.Count == 0)
                 return;
 
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                selectedIndex = typeahead.GetFirstMatch();
+                AnnounceWithSearch();
+                return;
+            }
+
             selectedIndex = MenuHelper.JumpToFirst();
             typeahead.ClearSearch();
             AnnounceCurrentSelection();
@@ -111,6 +118,13 @@ namespace RimWorldAccess
         {
             if (statistics == null || statistics.Count == 0)
                 return;
+
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                selectedIndex = typeahead.GetLastMatch();
+                AnnounceWithSearch();
+                return;
+            }
 
             selectedIndex = MenuHelper.JumpToLast(statistics.Count);
             typeahead.ClearSearch();

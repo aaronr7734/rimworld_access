@@ -84,8 +84,15 @@ namespace RimWorldAccess
             if (!ModsConfig.BiotechActive || Find.CurrentMap == null)
                 return new List<Pawn>();
 
+            // Mirrors vanilla PawnTable_Mechs.LabelSortFunction (overseer → control
+            // group → kind → label) so the bar and the Mechs menu agree. The final
+            // tiebreaker uses NaturalStringComparer so "Lifter 10" sorts after
+            // "Lifter 2" instead of between "Lifter 1" and "Lifter 2".
             return Find.CurrentMap.mapPawns.SpawnedColonyMechs
-                .OrderBy(p => p.LabelShort)
+                .OrderBy(p => p.GetOverseer()?.thingIDNumber ?? int.MaxValue)
+                .ThenBy(p => p.GetMechControlGroup()?.Index ?? int.MaxValue)
+                .ThenBy(p => p.KindLabel)
+                .ThenBy(p => p.Label, NaturalStringComparer.Instance)
                 .ToList();
         }
 
@@ -442,6 +449,105 @@ namespace RimWorldAccess
             SelectAndAnnounce();
         }
 
+        // Double-tap tracking for Alt+number: a second press of the same position
+        // within the threshold forces a full camera jump, overriding multi-select focus mode.
+        private static int lastAltNumberPosition = -1;
+        private static float lastAltNumberTime = -1f;
+        private const float AltNumberDoubleTapThreshold = 0.5f;
+
+        /// <summary>
+        /// Handle Alt+number press with double-tap support.
+        /// First press: current behavior (select + camera snap in normal mode, focus-only in multi-select).
+        /// Second press of the same position within 0.5s: full jump — move cursor to pawn,
+        /// snap camera, select pawn, and announce "Jumped to {pawn}" (distinct from single-press).
+        /// </summary>
+        public static void HandleAltNumberPress(int positionOnPage)
+        {
+            float now = UnityEngine.Time.realtimeSinceStartup;
+            bool isDoubleTap = lastAltNumberPosition == positionOnPage &&
+                               now - lastAltNumberTime <= AltNumberDoubleTapThreshold;
+
+            if (isDoubleTap)
+            {
+                lastAltNumberPosition = -1;
+                lastAltNumberTime = -1f;
+                JumpCursorAndCameraToPosition(positionOnPage);
+                return;
+            }
+
+            lastAltNumberPosition = positionOnPage;
+            lastAltNumberTime = now;
+
+            if (MultiSelectState.IsMultiSelectMode)
+            {
+                var pawn = JumpFocusToPosition(positionOnPage);
+                if (pawn != null)
+                {
+                    MultiSelectState.SetFocusedPawn(pawn);
+                    MultiSelectState.AnnounceFocusedPawn(pawn);
+                }
+            }
+            else
+            {
+                JumpToPosition(positionOnPage);
+            }
+        }
+
+        /// <summary>
+        /// Full jump — acts like the cursor was moved to the pawn's tile: selects the pawn,
+        /// moves the map cursor there, snaps the camera, plays terrain audio, and announces
+        /// "Jumped to {pawn}. {tile info}". Mirrors BookmarkHelper.JumpToBookmark semantics.
+        /// </summary>
+        private static void JumpCursorAndCameraToPosition(int positionOnPage)
+        {
+            CheckMapChange();
+            var list = GetCurrentList();
+
+            if (list.Count == 0)
+            {
+                AnnounceEmpty();
+                return;
+            }
+
+            int targetIndex = CurrentPage * PageSize + positionOnPage;
+
+            if (targetIndex >= list.Count)
+            {
+                TolkHelper.Speak($"No {(onMechSection ? "mech" : "colonist")} at position {positionOnPage + 1}");
+                return;
+            }
+
+            barPosition = targetIndex;
+            Pawn pawn = list[targetIndex];
+            var map = Find.CurrentMap;
+            var pos = pawn.Position;
+
+            // If the game's Targeter is active, calling Find.Selector.Select on a
+            // different pawn would deselect the caster and trigger vanilla
+            // Targeter.ConfirmStillValid → StopTargeting. Redirect to cursor instead.
+            if (PawnSelectionState.TryRedirectForActiveTargeting(pawn))
+                return;
+
+            if (Find.Selector != null)
+            {
+                Find.Selector.ClearSelection();
+                Find.Selector.Select(pawn, playSound: false, forceDesignatorDeselect: !ShapePlacementState.IsActive);
+            }
+            PawnSelectionState.SyncFromBarNavigation(pawn);
+
+            MapNavigationState.CurrentCursorPosition = pos;
+            if (Find.CameraDriver != null)
+                Find.CameraDriver.JumpToCurrentMapLoc(pos);
+            MapNavigationState.CurrentCameraMode = CameraFollowMode.Cursor;
+
+            TerrainAudioHelper.PlayCellAudio(pos, map, 0.5f);
+
+            MapNavigationState.LastAnnouncedInfo = "";
+            string tileInfo = TileInfoHelper.GetTileSummary(pos, map);
+            TolkHelper.Speak($"Jumped to {pawn.LabelShort}. {tileInfo}");
+            MapNavigationState.LastAnnouncedInfo = tileInfo;
+        }
+
         // ===== REORDERING =====
 
         /// <summary>
@@ -733,6 +839,11 @@ namespace RimWorldAccess
             if (pawn == null)
                 return;
 
+            // If the game's Targeter is active, redirect to cursor jump so the targeting
+            // session stays alive (see PawnSelectionState.TryRedirectForActiveTargeting).
+            if (PawnSelectionState.TryRedirectForActiveTargeting(pawn))
+                return;
+
             if (Find.Selector != null)
             {
                 Find.Selector.ClearSelection();
@@ -765,9 +876,21 @@ namespace RimWorldAccess
                 ? CoverHelper.GetCoverInfo(pawn)
                 : null;
 
-            string announcement = !string.IsNullOrEmpty(coverInfo)
-                ? "RimWorldAccess.Pawns.Bar.PawnTaskWithCover".Translate(pawn.LabelShort, coverInfo, task).ToString()
-                : "RimWorldAccess.Pawns.Bar.PawnTask".Translate(pawn.LabelShort, task).ToString();
+            if (pawn.Spawned && pawn.Map != null)
+            {
+                string location = TileInfoHelper.GetLocationContextPlain(pawn.Position, pawn.Map);
+                if (!string.IsNullOrEmpty(location))
+                    announcement += $", {location}";
+            }
+
+            if (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
+            {
+                string coverInfo = CoverHelper.GetCoverInfo(pawn);
+                if (!string.IsNullOrEmpty(coverInfo))
+                    announcement += $", {coverInfo}";
+            }
+
+            announcement += $" - {task}";
 
             string positionPart = MenuHelper.FormatPosition(barPosition, totalInSection);
             if (!string.IsNullOrEmpty(positionPart))
@@ -842,6 +965,32 @@ namespace RimWorldAccess
         public static List<Pawn> GetColonistsPublic()
         {
             return GetColonists();
+        }
+
+        /// <summary>
+        /// Returns a monotonic bar index for a pawn that is comparable across
+        /// the colonist and mech sections (colonists come first, then mechs).
+        /// Returns -1 if the pawn is not on the current map's bar.
+        /// </summary>
+        public static int GetGlobalBarIndex(Pawn pawn)
+        {
+            if (pawn == null)
+                return -1;
+
+            var colonists = GetColonists();
+            int colIdx = colonists.IndexOf(pawn);
+            if (colIdx >= 0)
+                return colIdx;
+
+            if (pawn.IsColonyMech)
+            {
+                var mechs = GetMechs();
+                int mechIdx = mechs.IndexOf(pawn);
+                if (mechIdx >= 0)
+                    return colonists.Count + mechIdx;
+            }
+
+            return -1;
         }
 
         /// <summary>

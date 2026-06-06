@@ -34,6 +34,20 @@ namespace RimWorldAccess
         public int IndentLevel { get; set; }
         public bool IsExpandable { get; set; }
         public bool IsExpanded { get; set; }
+        /// <summary>
+        /// Marks a node that typeahead search should auto-expand (in addition to the
+        /// default category/object shells) so its lazily-built children become matchable
+        /// without the user drilling in first. Set on the gear sub-categories
+        /// (Equipment/Apparel/Inventory) so weapons and items can be searched by name.
+        /// Default false.
+        /// </summary>
+        public bool AutoExpandForSearch { get; set; }
+        /// <summary>
+        /// Marks a node as a section heading within a parent's detail lines (e.g. a role's
+        /// "Abilities" / "Requirements" headers). Used by TreeNavigationHelper's Page Up/Down
+        /// to jump between sections. Default false.
+        /// </summary>
+        public bool IsSectionHeader { get; set; }
         public List<InspectionTreeItem> Children { get; set; }
         public InspectionTreeItem Parent { get; set; }  // Reference to parent item for upward navigation
         public object Data { get; set; }  // Associated data (Pawn, Building, SkillRecord, etc.)

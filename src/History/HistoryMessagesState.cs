@@ -271,6 +271,14 @@ namespace RimWorldAccess
             if (items == null || items.Count == 0)
                 return;
 
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                selectedIndex = typeahead.GetFirstMatch();
+                detailHelper?.RefreshButtons();
+                AnnounceWithSearch();
+                return;
+            }
+
             bool wasInDetailView = detailHelper?.IsInDetailView ?? false;
             detailHelper?.GoBackToList();
             selectedIndex = MenuHelper.JumpToFirst();
@@ -290,6 +298,14 @@ namespace RimWorldAccess
         {
             if (items == null || items.Count == 0)
                 return;
+
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                selectedIndex = typeahead.GetLastMatch();
+                detailHelper?.RefreshButtons();
+                AnnounceWithSearch();
+                return;
+            }
 
             bool wasInDetailView = detailHelper?.IsInDetailView ?? false;
             detailHelper?.GoBackToList();

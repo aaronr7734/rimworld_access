@@ -102,12 +102,19 @@ namespace RimWorldAccess
                 builder.Add(terrainLabel);
             }
 
+            // 5. Roof status (after terrain - both environmental info)
+            // Announce the roof's own label (e.g. "Constructed roof", "Rock roof (thin)",
+            // "Overhead mountain") so users can distinguish thin, thick, and mountain roofs
+            // during navigation rather than a generic "roofed"/"underground".
             RoofDef roof = position.GetRoof(map);
             if (roof != null)
             {
-                builder.Add((roof.isNatural
-                    ? "RimWorldAccess.Map.Tile.Roof.Underground"
-                    : "RimWorldAccess.Map.Tile.Roof.Roofed").Translate());
+                string roofText = roof.LabelCap;
+                if (addedSomething)
+                    sb.Append(", " + roofText);
+                else
+                    sb.Append(roofText);
+                addedSomething = true;
             }
 
             if (!hasBuildings)
@@ -311,78 +318,103 @@ namespace RimWorldAccess
             if (terrain.pathCost > 0)
                 builder.Add("RimWorldAccess.Map.Tile.Flooring.PathCost".Translate(terrain.pathCost));
 
-            if (ModsConfig.OdysseyActive && map.waterBodyTracker.TryGetWaterBodyAt(position, out var waterBody) && waterBody.HasFish)
-            {
-                var allFish = waterBody.CommonFishIncludingExtras.Concat(waterBody.UncommonFish);
-                string fishList = allFish.Select(f => f.label).ToCommaList().CapitalizeFirst();
-
-                int population = Mathf.RoundToInt(waterBody.Population);
-                int maxPopulation = Mathf.RoundToInt(waterBody.MaxPopulation);
-
-                builder.Add("RimWorldAccess.Map.Tile.Flooring.Fish".Translate(fishList, population, maxPopulation));
-
-                var gillRot = map.gameConditionManager.GetActiveCondition<GameCondition_GillRot>();
-                if (gillRot != null && !gillRot.HiddenByOtherCondition(map))
-                    builder.Add(gillRot.LabelCap);
-            }
-
-            return builder.Build();
+            return sb.ToString();
         }
 
         /// <summary>
-        /// Gets information about plants at a tile (key 3).
-        /// Shows plant species, growth percentage, and harvestable status.
-        /// When a ground-penetrating scanner is active, also shows deep ore deposit info.
+        /// Gets information about resources at a tile (key 3): plants, fish, and deep
+        /// mineral deposits. Plants show species, growth, and harvestable status. Fish
+        /// (Odyssey) show species and current/max population, matching vanilla's mouseover.
+        /// Deep ore is shown only when a powered ground-penetrating scanner is active.
+        /// When nothing is present, the empty message lists only the resource types that
+        /// are relevant to this tile's context (water adds fish; an active scanner adds
+        /// mineral deposits).
         /// </summary>
         public static string GetPlantsInfo(IntVec3 position, Map map)
         {
             if (map == null || !position.InBounds(map))
                 return "RimWorldAccess.Map.Tile.OutOfBounds".Translate();
 
-            // Get plant info
+            // Plants present at this cell
             List<Thing> things = position.GetThingList(map);
             var plants = things.OfType<Plant>().ToList();
             bool hasPlants = plants.Count > 0;
 
-            // Get deep ore info if scanner is active
+            // Deep ore, only when a powered ground-penetrating scanner is active
             bool scannerActive = map.deepResourceGrid.AnyActiveDeepScannersOnMap();
-            string deepOreInfo = null;
-            if (scannerActive)
-            {
-                deepOreInfo = GetDeepOreInfo(position, map);
-            }
+            string deepOreInfo = scannerActive ? GetDeepOreInfo(position, map) : null;
             bool hasDeepOre = !string.IsNullOrEmpty(deepOreInfo);
 
-            // Build response based on what's present
-            if (!hasPlants && !hasDeepOre)
+            // Fish, only with Odyssey active and on a tracked water body. Reporting matches
+            // vanilla's MouseoverReadout (species list + current/max population, plus GillRot).
+            WaterBody waterBody = null;
+            bool onWaterBody = ModsConfig.OdysseyActive
+                && map.waterBodyTracker.TryGetWaterBodyAt(position, out waterBody)
+                && waterBody != null;
+            bool hasFish = onWaterBody && waterBody.HasFish;
+
+            // Nothing present: list only the resource types relevant to this tile.
+            if (!hasPlants && !hasDeepOre && !hasFish)
             {
+                var missing = new List<string> { "plants" };
+                if (onWaterBody)
+                    missing.Add("fish");
                 if (scannerActive)
-                    return "RimWorldAccess.Map.Tile.Plants.NoneNoMinerals".Translate();
-                else
-                    return "RimWorldAccess.Map.Tile.Plants.None".Translate();
+                    missing.Add("mineral deposits");
+                return "no " + string.Join(" or ", missing);
             }
 
             var builder = new AnnouncementBuilder().DefaultSep(Separator.Comma);
 
+            // Plants
             if (hasPlants)
             {
                 foreach (var plant in plants)
                 {
+                    if (i > 0) sb.Append(", ");
+
+                    Plant plant = plants[i];
+                    sb.Append(plant.LabelShortCap);
+
                     float growthPercent = plant.Growth * 100f;
                     builder.Add("RimWorldAccess.Map.Tile.Plants.LabelWithGrowth".Translate(
                         plant.LabelShortCap, growthPercent.ToString("F0")));
 
-                    builder.Add(plant.HarvestableNow
-                        ? "RimWorldAccess.Map.Tile.Plants.Harvestable".Translate()
-                        : "RimWorldAccess.Map.Tile.Plants.NotHarvestable".Translate());
+                    if (plant.HarvestableNow)
+                        sb.Append(", harvestable");
+                    else
+                        sb.Append(", not harvestable");
 
                     if (plant.Dying)
                         builder.Add("RimWorldAccess.Map.Tile.Plants.Dying".Translate());
                 }
             }
 
+            // Fish (species, current/max population, and GillRot if active)
+            if (hasFish)
+            {
+                if (sb.Length > 0) sb.Append(". ");
+
+                var allFish = waterBody.CommonFishIncludingExtras.Concat(waterBody.UncommonFish);
+                string fishList = allFish.Select(f => f.label).ToCommaList().CapitalizeFirst();
+
+                int population = Mathf.RoundToInt(waterBody.Population);
+                int maxPopulation = Mathf.RoundToInt(waterBody.MaxPopulation);
+
+                sb.Append($"Fish: {fishList} ({population}/{maxPopulation})");
+
+                var gillRot = map.gameConditionManager.GetActiveCondition<GameCondition_GillRot>();
+                if (gillRot != null && !gillRot.HiddenByOtherCondition(map))
+                    sb.Append($" ({gillRot.LabelCap})");
+            }
+
+            // Deep mineral deposits
             if (hasDeepOre)
-                builder.Add("RimWorldAccess.Map.Tile.Plants.DeepHeader".Translate(deepOreInfo), Separator.Period);
+            {
+                if (sb.Length > 0) sb.Append(". ");
+                sb.Append("Deep: ");
+                sb.Append(deepOreInfo);
+            }
 
             return builder.Build();
         }
@@ -522,16 +554,47 @@ namespace RimWorldAccess
             foreach (var statName in statOrder)
             {
                 var statDef = visibleStats.FirstOrDefault(s => s.defName == statName);
-                if (statDef != null) AppendStat(statDef);
+                if (statDef == null) continue;
+
+                AppendRoomStat(sb, room, statDef);
             }
 
             foreach (RoomStatDef statDef in visibleStats)
             {
-                if (!statOrder.Contains(statDef.defName))
-                    AppendStat(statDef);
+                if (statOrder.Contains(statDef.defName)) continue;
+
+                AppendRoomStat(sb, room, statDef);
             }
 
             return builder.Build();
+        }
+
+        // Vanilla draws a "*" before stats that are relevant to the room's role
+        // (with a "* StatRelatesToCurrentRoom" footnote). For screen reader users
+        // we surface the same information with the translated phrase as a suffix
+        // on relevant stats — no leading asterisks for the screen reader to read
+        // out as "star, star, star".
+        private static void AppendRoomStat(StringBuilder sb, Room room, RoomStatDef statDef)
+        {
+            float value = room.GetStat(statDef);
+            RoomStatScoreStage stage = statDef.GetScoreStage(value);
+            string stageLabel = stage?.label?.CapitalizeFirst() ?? "";
+
+            if (!string.IsNullOrEmpty(stageLabel))
+            {
+                sb.Append($", {statDef.LabelCap}: {stageLabel} ({statDef.ScoreToString(value)})");
+            }
+            else
+            {
+                sb.Append($", {statDef.LabelCap}: {statDef.ScoreToString(value)}");
+            }
+
+            if (room.Role != null && room.Role.IsStatRelated(statDef))
+            {
+                sb.Append(" (");
+                sb.Append("StatRelatesToCurrentRoom".Translate());
+                sb.Append(")");
+            }
         }
 
         /// <summary>
@@ -803,6 +866,21 @@ namespace RimWorldAccess
 
             // No meaningful location context
             return null;
+        }
+
+        /// <summary>
+        /// Plain form of GetLocationContext (no surrounding parentheses) for use in
+        /// direct pawn announcements like "Bob, in kitchen, cooking meals". Returns
+        /// null if the pawn is outdoors or in a room with no meaningful role.
+        /// </summary>
+        public static string GetLocationContextPlain(IntVec3 position, Map map)
+        {
+            string ctx = GetLocationContext(position, map);
+            if (string.IsNullOrEmpty(ctx))
+                return null;
+            if (ctx.Length >= 2 && ctx[0] == '(' && ctx[ctx.Length - 1] == ')')
+                return ctx.Substring(1, ctx.Length - 2);
+            return ctx;
         }
 
         /// <summary>

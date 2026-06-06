@@ -6,15 +6,12 @@ namespace RimWorldAccess
 {
     /// <summary>
     /// Harmony patch to add hotkeys for specific tile information categories.
-    // Keys 1-7: 1=Items/Pawns, 2=Flooring, 3=Plants, 4=Brightness/Temp, 5=Room Stats, 6=Power, 7=Areas
+    // Keys 1-7: 1=Items/Pawns, 2=Flooring, 3=Resources (plants/fish/minerals), 4=Brightness/Temp, 5=Room Stats, 6=Power, 7=Areas
     /// </summary>
     [HarmonyPatch(typeof(CameraDriver))]
     [HarmonyPatch("Update")]
     public static class DetailInfoPatch
     {
-        private static float lastDetailRequestTime = 0f;
-        private const float DetailRequestCooldown = 0.3f; // Prevent spam
-
         /// <summary>
         /// Postfix patch to check for tile info hotkeys after normal camera updates.
         /// </summary>
@@ -69,58 +66,28 @@ namespace RimWorldAccess
 
             if (pressedKey.HasValue)
             {
-                // Cooldown to prevent accidental double-presses from causing spam
-                if (Time.time - lastDetailRequestTime < DetailRequestCooldown)
-                    return;
-
-                lastDetailRequestTime = Time.time;
-
-                // Get appropriate information based on key pressed
                 IntVec3 currentPosition = MapNavigationState.CurrentCursorPosition;
                 string info = GetInfoForKey(pressedKey.Value, currentPosition, Find.CurrentMap);
 
                 // Copy to clipboard for screen reader
                 TolkHelper.SpeakData(info);
 
-                // Log to console for debugging
                 Log.Message($"Tile info ({pressedKey.Value}) requested for {currentPosition}");
             }
         }
 
         /// <summary>
         /// Checks if any menu state is currently active to avoid key conflicts.
-        /// Note: ArchitectState and ZoneCreationState are NOT included here because
-        /// tile info keys (1-7) should work during placement modes.
+        /// Delegates to <see cref="MenuOverlayGuard.BlockMapInfoKeys"/> — the single
+        /// source of truth shared with map navigation and time-speed handling — instead
+        /// of a hand-maintained list that drifted out of sync (the original cause of the
+        /// number-row leaking through menus like the architect tree and area menu).
+        /// Note: ArchitectState/ShapePlacementState/ViewingModeState are deliberately NOT
+        /// part of that signal, so tile info keys (1-7) still work during placement modes.
         /// </summary>
         private static bool IsAnyMenuActive()
         {
-            return ScannerSearchState.IsActive ||
-                   GoToState.IsActive ||
-                   WorkMenuState.IsActive ||
-                   BillConfigState.IsActive ||
-                   BillsMenuState.IsActive ||
-                   FishingZoneMenuState.IsActive ||
-                   WindowlessFloatMenuState.IsActive ||
-                   WindowlessPauseMenuState.IsActive ||
-                   WindowlessSaveMenuState.IsActive ||
-                   WindowlessOptionsMenuState.IsActive ||
-                   WindowlessConfirmationState.IsActive ||
-                   WindowlessScheduleState.IsActive ||
-                   StorageSettingsMenuState.IsActive ||
-                   PlantSelectionMenuState.IsActive ||
-                   PrisonerTabState.IsActive ||
-                   WindowlessInventoryState.IsActive ||
-                   WindowlessInspectionState.IsActive ||
-                   WindowlessResearchMenuState.IsActive ||
-                   NotificationMenuState.IsActive ||
-                   QuestMenuState.IsActive ||
-                   GizmoNavigationState.IsActive ||
-                   SettlementBrowserState.IsActive ||
-                   CaravanFormationState.IsActive ||
-                   ModListState.IsActive ||
-                   HealthTabState.IsActive ||
-                   AnimalsMenuState.IsActive ||
-                   WildlifeMenuState.IsActive;
+            return MenuOverlayGuard.BlockMapInfoKeys;
         }
 
         /// <summary>
@@ -128,6 +95,12 @@ namespace RimWorldAccess
         /// </summary>
         private static string GetInfoForKey(KeyCode key, IntVec3 position, Map map)
         {
+            // Fogged tiles surface no information beyond "Undiscovered" — matches vanilla's
+            // MouseoverReadout, which short-circuits to "Undiscovered".Translate() and shows
+            // nothing else (no terrain, no things, no roof, no zone).
+            if (position.Fogged(map))
+                return "Undiscovered".Translate();
+
             switch (key)
             {
                 case KeyCode.Alpha1:

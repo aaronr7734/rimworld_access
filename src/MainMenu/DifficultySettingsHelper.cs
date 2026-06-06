@@ -19,11 +19,18 @@ namespace RimWorldAccess
         /// <param name="difficulty">The Difficulty object to read/write values from</param>
         /// <param name="onReset">Optional callback when a reset preset is selected</param>
         /// <param name="onAnomalyPlaystyleChanged">Optional callback when anomaly playstyle changes</param>
+        /// <param name="isCharGen">True when called from chargen UI, false when called from the
+        /// in-game storyteller change UI. Vanilla only exposes the Anomaly playstyle picker
+        /// (and its override-fraction slider) at chargen — see StorytellerUI.cs:117 where the
+        /// "AnomalySettings..." button is gated on ProgramState.Entry. When false, the playstyle
+        /// row and the override slider are omitted to match vanilla behavior; the
+        /// inactive/active/study sliders remain editable mid-game.</param>
         /// <returns>List of difficulty sections</returns>
         public static List<DifficultySection> BuildSections(
             Difficulty difficulty,
             Action<DifficultyDef> onReset = null,
-            Action onAnomalyPlaystyleChanged = null)
+            Action onAnomalyPlaystyleChanged = null,
+            bool isCharGen = true)
         {
             var sections = new List<DifficultySection>();
 
@@ -75,53 +82,39 @@ namespace RimWorldAccess
             {
                 var anomaly = new DifficultySection("DifficultyAnomalySection".Translate());
 
-                // Playstyle selector
-                anomaly.Settings.Add(new AnomalyPlaystyleSetting(
-                    () => difficulty.AnomalyPlaystyleDef,
-                    v => difficulty.AnomalyPlaystyleDef = v,
-                    difficulty,
-                    onAnomalyPlaystyleChanged));
+                if (isCharGen)
+                {
+                    // Playstyle selector — chargen-only to match vanilla. A cycle-style row
+                    // (Left/Right adjusts). Shared with AnomalySettingsDialogState.
+                    anomaly.Settings.Add(new AnomalyPlaystyleSetting(
+                        getter: () => difficulty.AnomalyPlaystyleDef,
+                        setter: v => difficulty.AnomalyPlaystyleDef = v,
+                        onTransitionToOverride: () =>
+                        {
+                            if (!difficulty.overrideAnomalyThreatsFraction.HasValue)
+                                difficulty.overrideAnomalyThreatsFraction = 0.15f;
+                        },
+                        onChanged: onAnomalyPlaystyleChanged));
+                }
 
-                // Override threat fraction slider
-                anomaly.Settings.Add(new DifficultySliderSetting(
-                    "Difficulty_AnomalyThreats_Label".Translate(),
-                    "Difficulty_AnomalyThreats_Info".Translate(),
-                    () => difficulty.overrideAnomalyThreatsFraction ?? 0.15f,
-                    v => difficulty.overrideAnomalyThreatsFraction = v,
-                    0f, 1f, 0.01f, ToStringStyle.PercentZero,
-                    enabledCondition: () => difficulty.AnomalyPlaystyleDef?.overrideThreatFraction == true));
+                // Conditional anomaly sliders. The override-fraction slider is only meaningful
+                // for override-style playstyles (e.g., AmbientHorror), which can only be picked
+                // at chargen — so omit it in-game.
+                anomaly.Settings.AddRange(BuildAnomalySliders(
+                    playstyleGetter: () => difficulty.AnomalyPlaystyleDef,
+                    overrideGetter: () => difficulty.overrideAnomalyThreatsFraction ?? 0.15f,
+                    overrideSetter: v => difficulty.overrideAnomalyThreatsFraction = v,
+                    inactiveGetter: () => difficulty.anomalyThreatsInactiveFraction,
+                    inactiveSetter: v => difficulty.anomalyThreatsInactiveFraction = v,
+                    activeGetter: () => difficulty.anomalyThreatsActiveFraction,
+                    activeSetter: v => difficulty.anomalyThreatsActiveFraction = v,
+                    studyGetter: () => difficulty.studyEfficiencyFactor,
+                    studySetter: v => difficulty.studyEfficiencyFactor = v,
+                    useEnabledConditions: true,
+                    includeOverride: isCharGen));
 
-                // Separate threat fraction sliders
-                anomaly.Settings.Add(new DifficultySliderSetting(
-                    "Difficulty_AnomalyThreatsInactive_Label".Translate(),
-                    "Difficulty_AnomalyThreatsInactive_Info".Translate(),
-                    () => difficulty.anomalyThreatsInactiveFraction,
-                    v => difficulty.anomalyThreatsInactiveFraction = v,
-                    0f, 1f, 0.01f, ToStringStyle.PercentZero,
-                    enabledCondition: () => difficulty.AnomalyPlaystyleDef?.displayThreatFractionSliders == true &&
-                                           difficulty.AnomalyPlaystyleDef?.overrideThreatFraction != true));
-
-                anomaly.Settings.Add(new DifficultySliderSetting(
-                    "Difficulty_AnomalyThreatsActive_Label".Translate(),
-                    "Difficulty_AnomalyThreatsActive_Info".Translate(
-                        Mathf.Clamp01(difficulty.anomalyThreatsActiveFraction).ToStringPercent(),
-                        Mathf.Clamp01(difficulty.anomalyThreatsActiveFraction * 1.5f).ToStringPercent()),
-                    () => difficulty.anomalyThreatsActiveFraction,
-                    v => difficulty.anomalyThreatsActiveFraction = v,
-                    0.1f, 1f, 0.01f, ToStringStyle.PercentZero,
-                    enabledCondition: () => difficulty.AnomalyPlaystyleDef?.displayThreatFractionSliders == true &&
-                                           difficulty.AnomalyPlaystyleDef?.overrideThreatFraction != true));
-
-                // Study efficiency slider
-                anomaly.Settings.Add(new DifficultySliderSetting(
-                    "Difficulty_StudyEfficiency_Label".Translate(),
-                    "Difficulty_StudyEfficiency_Info".Translate(),
-                    () => difficulty.studyEfficiencyFactor,
-                    v => difficulty.studyEfficiencyFactor = v,
-                    0f, 5f, 0.01f, ToStringStyle.PercentZero,
-                    enabledCondition: () => difficulty.AnomalyPlaystyleDef?.displayStudyFactorSlider == true));
-
-                sections.Add(anomaly);
+                if (anomaly.Settings.Count > 0)
+                    sections.Add(anomaly);
             }
 
             // Children Section (Biotech DLC)
@@ -198,6 +191,94 @@ namespace RimWorldAccess
             }
 
             return sections;
+        }
+
+        /// <summary>
+        /// Builds the 4 conditional anomaly sliders (override / inactive / active / study)
+        /// that appear identically in:
+        ///   - the Custom Difficulty Anomaly section (this helper, via BuildSections)
+        ///   - the Dialog_AnomalySettings popup (AnomalySettingsDialogState)
+        ///
+        /// Both call sites previously duplicated label/info keys, min/max ranges, and the
+        /// conditional visibility logic. Now they share a single source of truth.
+        ///
+        /// Caller wires getter/setter delegates so the same builder can drive either:
+        ///   - direct writes to a Difficulty (custom-difficulty path), or
+        ///   - writes to local copies committed atomically on Accept (popup path).
+        ///
+        /// When useEnabledConditions is true, sliders are always returned but disable
+        /// themselves when their condition fails (used by the custom-difficulty section,
+        /// which displays the section as one continuous list). When false, only the
+        /// currently-relevant sliders are returned (used by the popup, which rebuilds
+        /// its slider list whenever the playstyle changes).
+        /// </summary>
+        public static List<DifficultySetting> BuildAnomalySliders(
+            Func<AnomalyPlaystyleDef> playstyleGetter,
+            Func<float> overrideGetter, Action<float> overrideSetter,
+            Func<float> inactiveGetter, Action<float> inactiveSetter,
+            Func<float> activeGetter, Action<float> activeSetter,
+            Func<float> studyGetter, Action<float> studySetter,
+            bool useEnabledConditions,
+            bool includeOverride = true)
+        {
+            var result = new List<DifficultySetting>();
+
+            bool overrideVisible() => playstyleGetter()?.overrideThreatFraction == true;
+            bool fractionSlidersVisible() => playstyleGetter()?.displayThreatFractionSliders == true
+                                             && playstyleGetter()?.overrideThreatFraction != true;
+            bool studyVisible() => playstyleGetter()?.displayStudyFactorSlider == true;
+
+            void AddSlider(DifficultySliderSetting s, Func<bool> visibility)
+            {
+                if (useEnabledConditions || visibility())
+                    result.Add(s);
+            }
+
+            // Override threat fraction slider — only relevant when an override-style playstyle
+            // is selected (e.g., AmbientHorror). Skip entirely in-game where those playstyles
+            // can't be picked.
+            if (includeOverride)
+            {
+                AddSlider(new DifficultySliderSetting(
+                    "Difficulty_AnomalyThreats_Label".Translate(),
+                    "Difficulty_AnomalyThreats_Info".Translate(),
+                    overrideGetter, overrideSetter,
+                    0f, 1f, 0.01f, ToStringStyle.PercentZero,
+                    enabledCondition: useEnabledConditions ? overrideVisible : (Func<bool>)null),
+                    overrideVisible);
+            }
+
+            // Separate inactive/active threat fraction sliders.
+            AddSlider(new DifficultySliderSetting(
+                "Difficulty_AnomalyThreatsInactive_Label".Translate(),
+                "Difficulty_AnomalyThreatsInactive_Info".Translate(),
+                inactiveGetter, inactiveSetter,
+                0f, 1f, 0.01f, ToStringStyle.PercentZero,
+                enabledCondition: useEnabledConditions ? fractionSlidersVisible : (Func<bool>)null),
+                fractionSlidersVisible);
+
+            // Active threats: vanilla embeds the current and 1.5× values into the tooltip
+            // text, so the tooltip must be re-evaluated each announcement.
+            AddSlider(new DifficultySliderSetting(
+                "Difficulty_AnomalyThreatsActive_Label".Translate(),
+                tooltipFunc: () => "Difficulty_AnomalyThreatsActive_Info".Translate(
+                    Mathf.Clamp01(activeGetter()).ToStringPercent(),
+                    Mathf.Clamp01(activeGetter() * 1.5f).ToStringPercent()),
+                activeGetter, activeSetter,
+                0.1f, 1f, 0.01f, ToStringStyle.PercentZero,
+                enabledCondition: useEnabledConditions ? fractionSlidersVisible : (Func<bool>)null),
+                fractionSlidersVisible);
+
+            // Study efficiency slider.
+            AddSlider(new DifficultySliderSetting(
+                "Difficulty_StudyEfficiency_Label".Translate(),
+                "Difficulty_StudyEfficiency_Info".Translate(),
+                studyGetter, studySetter,
+                0f, 5f, 0.01f, ToStringStyle.PercentZero,
+                enabledCondition: useEnabledConditions ? studyVisible : (Func<bool>)null),
+                studyVisible);
+
+            return result;
         }
     }
 
@@ -293,6 +374,10 @@ namespace RimWorldAccess
         private readonly ToStringNumberSense numberSense;
         private readonly bool reciprocate;
         private readonly float reciprocalCutoff;
+        // Optional dynamic tooltip — re-evaluated each call so it reflects the current
+        // slider value (vanilla parity: e.g. AnomalyThreats_Active info embeds the
+        // current and 1.5× values into its translated text).
+        private readonly Func<string> tooltipFunc;
 
         public DifficultySliderSetting(string optionName, Func<float> getter, Action<float> setter,
             float min, float max, float step, ToStringStyle style,
@@ -338,6 +423,28 @@ namespace RimWorldAccess
             Tooltip = tooltip;
         }
 
+        public DifficultySliderSetting(string label, Func<string> tooltipFunc, Func<float> getter, Action<float> setter,
+            float min, float max, float step, ToStringStyle style,
+            ToStringNumberSense numberSense = ToStringNumberSense.Absolute,
+            bool reciprocate = false, float reciprocalCutoff = 1000f,
+            Func<bool> enabledCondition = null)
+        {
+            this.getter = getter;
+            this.setter = setter;
+            this.min = min;
+            this.max = max;
+            this.step = step;
+            this.style = style;
+            this.numberSense = numberSense;
+            this.reciprocate = reciprocate;
+            this.reciprocalCutoff = reciprocalCutoff;
+            this.enabledCondition = enabledCondition;
+            this.tooltipFunc = tooltipFunc;
+
+            Label = label;
+            Tooltip = tooltipFunc?.Invoke() ?? "";
+        }
+
         public override string GetAnnouncement()
         {
             if (!IsEnabled)
@@ -347,7 +454,8 @@ namespace RimWorldAccess
             if (reciprocate)
                 value = Reciprocal(value, reciprocalCutoff);
             string valueStr = value.ToStringByStyle(style, numberSense);
-            return $"{Label}. {valueStr}. {Tooltip}";
+            string tooltipStr = tooltipFunc != null ? tooltipFunc() : Tooltip;
+            return $"{Label}. {valueStr}. {tooltipStr}";
         }
 
         public override void Toggle()
@@ -474,14 +582,17 @@ namespace RimWorldAccess
         private readonly Action<AnomalyPlaystyleDef> setter;
         private readonly List<AnomalyPlaystyleDef> options;
         private readonly Action onChanged;
-        private readonly Difficulty difficulty;
+        private readonly Action onTransitionToOverride;
 
-        public AnomalyPlaystyleSetting(Func<AnomalyPlaystyleDef> getter, Action<AnomalyPlaystyleDef> setter,
-            Difficulty difficulty, Action onChanged = null)
+        public AnomalyPlaystyleSetting(
+            Func<AnomalyPlaystyleDef> getter,
+            Action<AnomalyPlaystyleDef> setter,
+            Action onTransitionToOverride = null,
+            Action onChanged = null)
         {
             this.getter = getter;
             this.setter = setter;
-            this.difficulty = difficulty;
+            this.onTransitionToOverride = onTransitionToOverride;
             this.onChanged = onChanged;
             Label = "ChooseAnomalyPlaystyle".Translate();
             Tooltip = "Select an anomaly playstyle";
@@ -502,10 +613,7 @@ namespace RimWorldAccess
             return $"{current?.LabelCap ?? (string)"None".Translate()}. {description}";
         }
 
-        public override void Toggle()
-        {
-            Adjust(1);
-        }
+        public override void Toggle() => Adjust(1);
 
         public override void Adjust(int direction)
         {
@@ -518,13 +626,9 @@ namespace RimWorldAccess
             int newIndex = (currentIndex + direction + options.Count) % options.Count;
             var newValue = options[newIndex];
 
-            // Handle special case when switching to overrideThreatFraction mode
             if (current != null && !current.overrideThreatFraction && newValue.overrideThreatFraction)
             {
-                if (!difficulty.overrideAnomalyThreatsFraction.HasValue)
-                {
-                    difficulty.overrideAnomalyThreatsFraction = 0.15f;
-                }
+                onTransitionToOverride?.Invoke();
             }
 
             setter(newValue);

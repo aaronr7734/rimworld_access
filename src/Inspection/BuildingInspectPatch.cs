@@ -53,13 +53,6 @@ namespace RimWorldAccess
                 HandleBuildingOwnerAssignmentInput();
                 return;
             }
-            // Handle FlickableComponentState (building component menu)
-            if (FlickableComponentState.IsActive)
-            {
-                HandleFlickableComponentInput();
-                return;
-            }
-
             // Handle RefuelableComponentState (building component menu)
             if (RefuelableComponentState.IsActive)
             {
@@ -67,12 +60,6 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Handle BreakdownableComponentState (building component menu)
-            if (BreakdownableComponentState.IsActive)
-            {
-                HandleBreakdownableComponentInput();
-                return;
-            }
             // Handle DoorControlState (building-specific menu)
             if (DoorControlState.IsActive)
             {
@@ -112,6 +99,14 @@ namespace RimWorldAccess
             if (BillsMenuState.IsActive)
             {
                 HandleBillsMenuInput();
+                return;
+            }
+
+            // Handle EntityTabState (Anomaly DLC entity menu)
+            if (EntityTabState.IsActive)
+            {
+                if (EntityTabState.HandleInput(Event.current))
+                    Event.current.Use();
                 return;
             }
         }
@@ -653,6 +648,7 @@ namespace RimWorldAccess
 
                 case KeyCode.Return:
                 case KeyCode.KeypadEnter:
+                case KeyCode.Space:
                     ThingFilterMenuState.ToggleCurrent();
                     Event.current.Use();
                     break;
@@ -780,32 +776,6 @@ namespace RimWorldAccess
             }
         }
 
-        private static void HandleFlickableComponentInput()
-        {
-            KeyCode key = Event.current.keyCode;
-
-            switch (key)
-            {
-                case KeyCode.Space:
-                case KeyCode.Return:
-                case KeyCode.KeypadEnter:
-                    FlickableComponentState.TogglePower();
-                    Event.current.Use();
-                    break;
-
-                case KeyCode.D:
-                    FlickableComponentState.AnnounceDetailedStatus();
-                    Event.current.Use();
-                    break;
-
-                case KeyCode.Escape:
-                    FlickableComponentState.Close();
-                    InspectionReturnHelper.AnnounceParentOrFallback("RimWorldAccess.Inspection.Patch.ClosedPowerControl".Translate());
-                    Event.current.Use();
-                    break;
-            }
-        }
-
         private static void HandleRefuelableComponentInput()
         {
             KeyCode key = Event.current.keyCode;
@@ -879,25 +849,6 @@ namespace RimWorldAccess
                         RefuelableComponentState.Close();
                         InspectionReturnHelper.AnnounceParentOrFallback("RimWorldAccess.Inspection.Patch.ClosedFuelSettings".Translate());
                     }
-                    Event.current.Use();
-                    break;
-            }
-        }
-
-        private static void HandleBreakdownableComponentInput()
-        {
-            KeyCode key = Event.current.keyCode;
-
-            switch (key)
-            {
-                case KeyCode.R:
-                    BreakdownableComponentState.RefreshStatus();
-                    Event.current.Use();
-                    break;
-
-                case KeyCode.Escape:
-                    BreakdownableComponentState.Close();
-                    InspectionReturnHelper.AnnounceParentOrFallback("RimWorldAccess.Inspection.Patch.ClosedBreakdownStatus".Translate());
                     Event.current.Use();
                     break;
             }

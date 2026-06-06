@@ -224,6 +224,40 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Moves selection to the next plant among the current typeahead matches.
+        /// Only meaningful while a search is active with matches.
+        /// </summary>
+        public static void SelectNextMatch()
+        {
+            if (availablePlants == null || availablePlants.Count == 0)
+                return;
+
+            int nextIndex = typeahead.GetNextMatch(selectedIndex);
+            if (nextIndex >= 0)
+            {
+                selectedIndex = nextIndex;
+                AnnounceWithSearch();
+            }
+        }
+
+        /// <summary>
+        /// Moves selection to the previous plant among the current typeahead matches.
+        /// Only meaningful while a search is active with matches.
+        /// </summary>
+        public static void SelectPreviousMatch()
+        {
+            if (availablePlants == null || availablePlants.Count == 0)
+                return;
+
+            int prevIndex = typeahead.GetPreviousMatch(selectedIndex);
+            if (prevIndex >= 0)
+            {
+                selectedIndex = prevIndex;
+                AnnounceWithSearch();
+            }
+        }
+
+        /// <summary>
         /// Selects the currently highlighted plant.
         /// </summary>
         public static void ConfirmSelection()
@@ -263,6 +297,13 @@ namespace RimWorldAccess
             if (availablePlants == null || availablePlants.Count == 0)
                 return;
 
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                selectedIndex = typeahead.GetFirstMatch();
+                AnnounceWithSearch();
+                return;
+            }
+
             selectedIndex = MenuHelper.JumpToFirst();
             typeahead.ClearSearch();
             AnnounceCurrentSelection();
@@ -275,6 +316,13 @@ namespace RimWorldAccess
         {
             if (availablePlants == null || availablePlants.Count == 0)
                 return;
+
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                selectedIndex = typeahead.GetLastMatch();
+                AnnounceWithSearch();
+                return;
+            }
 
             selectedIndex = MenuHelper.JumpToLast(availablePlants.Count);
             typeahead.ClearSearch();
@@ -346,6 +394,8 @@ namespace RimWorldAccess
         /// </summary>
         public static bool HasActiveSearch => typeahead.HasActiveSearch;
 
+        public static bool HasNoMatches => typeahead.HasNoMatches;
+
         /// <summary>
         /// Handles keyboard input for the plant selection menu, including typeahead search.
         /// </summary>
@@ -404,46 +454,24 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Handle Up arrow - navigate with search awareness
+            // Handle Up arrow - navigate matches when searching, else normal navigation
             if (key == KeyCode.UpArrow)
             {
-                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
-                {
-                    // Navigate through matches only when there ARE matches
-                    int prevIndex = typeahead.GetPreviousMatch(selectedIndex);
-                    if (prevIndex >= 0)
-                    {
-                        selectedIndex = prevIndex;
-                        AnnounceWithSearch();
-                    }
-                }
+                if (HasActiveSearch && !HasNoMatches)
+                    SelectPreviousMatch();
                 else
-                {
-                    // Navigate normally (either no search active, OR search with no matches)
                     SelectPrevious();
-                }
                 Event.current.Use();
                 return true;
             }
 
-            // Handle Down arrow - navigate with search awareness
+            // Handle Down arrow - navigate matches when searching, else normal navigation
             if (key == KeyCode.DownArrow)
             {
-                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
-                {
-                    // Navigate through matches only when there ARE matches
-                    int nextIndex = typeahead.GetNextMatch(selectedIndex);
-                    if (nextIndex >= 0)
-                    {
-                        selectedIndex = nextIndex;
-                        AnnounceWithSearch();
-                    }
-                }
+                if (HasActiveSearch && !HasNoMatches)
+                    SelectNextMatch();
                 else
-                {
-                    // Navigate normally (either no search active, OR search with no matches)
                     SelectNext();
-                }
                 Event.current.Use();
                 return true;
             }

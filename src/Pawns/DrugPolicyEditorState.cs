@@ -25,9 +25,25 @@ namespace RimWorldAccess
 
         private static System.Action onCloseCallback = null;
 
+        // Typeahead search over the drug list (active only in DrugList mode).
+        private static readonly TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
+
         public static bool IsActive => isActive;
         public static DrugPolicy Policy => policy;
         public static NavigationMode CurrentMode => currentMode;
+
+        /// <summary>True when a typeahead search is active in the drug list.</summary>
+        public static bool HasActiveSearch => typeahead.HasActiveSearch;
+
+        /// <summary>
+        /// Clears the active typeahead search and re-announces the current drug. Used by Escape
+        /// so the first Escape cancels the search rather than closing the editor.
+        /// </summary>
+        public static void ClearSearch()
+        {
+            typeahead.ClearSearch();
+            AnnounceDrugList();
+        }
 
         private enum SettingType
         {
@@ -55,6 +71,7 @@ namespace RimWorldAccess
             selectedSettingIndex = 0;
             currentMode = NavigationMode.DrugList;
             onCloseCallback = onClose;
+            typeahead.ClearSearch();
 
             AnnounceDrugList();
         }
@@ -67,6 +84,7 @@ namespace RimWorldAccess
             selectedSettingIndex = 0;
             currentMode = NavigationMode.DrugList;
             currentSettings.Clear();
+            typeahead.ClearSearch();
 
             var callback = onCloseCallback;
             onCloseCallback = null;
@@ -78,29 +96,77 @@ namespace RimWorldAccess
         public static void SelectNextDrug()
         {
             if (policy == null || policy.Count == 0) return;
-            selectedDrugIndex = MenuHelper.SelectNext(selectedDrugIndex, policy.Count);
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                selectedDrugIndex = typeahead.GetNextMatch(selectedDrugIndex);
+            else
+                selectedDrugIndex = MenuHelper.SelectNext(selectedDrugIndex, policy.Count);
             AnnounceDrugList();
         }
 
         public static void SelectPreviousDrug()
         {
             if (policy == null || policy.Count == 0) return;
-            selectedDrugIndex = MenuHelper.SelectPrevious(selectedDrugIndex, policy.Count);
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                selectedDrugIndex = typeahead.GetPreviousMatch(selectedDrugIndex);
+            else
+                selectedDrugIndex = MenuHelper.SelectPrevious(selectedDrugIndex, policy.Count);
             AnnounceDrugList();
         }
 
         public static void JumpToFirstDrug()
         {
             if (policy == null || policy.Count == 0) return;
-            selectedDrugIndex = 0;
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                selectedDrugIndex = typeahead.GetFirstMatch();
+            else
+                selectedDrugIndex = 0;
             AnnounceDrugList();
         }
 
         public static void JumpToLastDrug()
         {
             if (policy == null || policy.Count == 0) return;
-            selectedDrugIndex = policy.Count - 1;
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                selectedDrugIndex = typeahead.GetLastMatch();
+            else
+                selectedDrugIndex = policy.Count - 1;
             AnnounceDrugList();
+        }
+
+        /// <summary>
+        /// Typeahead jump within the drug list (DrugList mode only): type letters to jump to
+        /// the next drug whose name matches. Mirrors the PlantSelectionMenuState pattern.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!isActive || currentMode != NavigationMode.DrugList || policy == null || policy.Count == 0)
+                return;
+
+            var labels = GetDrugLabels();
+            if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
+            {
+                if (newIndex >= 0)
+                {
+                    selectedDrugIndex = newIndex;
+                    AnnounceDrugList();
+                }
+            }
+            else
+            {
+                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+            }
+        }
+
+        private static List<string> GetDrugLabels()
+        {
+            var labels = new List<string>();
+            if (policy == null) return labels;
+            for (int i = 0; i < policy.Count; i++)
+            {
+                ThingDef drug = policy[i].drug;
+                labels.Add(drug != null ? drug.LabelCap.ToString() : "");
+            }
+            return labels;
         }
 
         public static void EnterDrugSettings()
@@ -297,8 +363,15 @@ namespace RimWorldAccess
             DrugPolicyEntry entry = policy[selectedDrugIndex];
             string drugName = entry.drug.LabelCap;
             string status = GetDrugStatusSummary(entry);
-            string position = MenuHelper.FormatPosition(selectedDrugIndex, policy.Count);
-            TolkHelper.Speak("RimWorldAccess.Pawns.DrugPolicy.DrugLine".Loc(drugName, status, position));
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                TolkHelper.Speak($"{drugName}. {status}. match {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} for '{typeahead.SearchBuffer}'");
+            }
+            else
+            {
+                string position = MenuHelper.FormatPosition(selectedDrugIndex, policy.Count);
+                TolkHelper.Speak($"{drugName}. {status}. {position}");
+            }
         }
 
         private static void AnnounceDrugSetting()

@@ -164,7 +164,10 @@ namespace RimWorldAccess
             }
             else
             {
-                currentIndex = MenuHelper.SelectNext(currentIndex, concepts.Count);
+                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                    currentIndex = typeahead.GetNextMatch(currentIndex);
+                else
+                    currentIndex = MenuHelper.SelectNext(currentIndex, concepts.Count);
                 detailHelper.ResetDetailPosition();
                 detailHelper.RefreshButtons();
                 AnnounceCurrentSelection();
@@ -186,7 +189,10 @@ namespace RimWorldAccess
             }
             else
             {
-                currentIndex = MenuHelper.SelectPrevious(currentIndex, concepts.Count);
+                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                    currentIndex = typeahead.GetPreviousMatch(currentIndex);
+                else
+                    currentIndex = MenuHelper.SelectPrevious(currentIndex, concepts.Count);
                 detailHelper.ResetDetailPosition();
                 detailHelper.RefreshButtons();
                 AnnounceCurrentSelection();
@@ -362,9 +368,16 @@ namespace RimWorldAccess
                 ResetReadingProgress();
             }
             detailHelper.GoBackToList();
-            currentIndex = MenuHelper.JumpToFirst();
+            if (!wasInDetailView && typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                currentIndex = typeahead.GetFirstMatch();
+            }
+            else
+            {
+                currentIndex = MenuHelper.JumpToFirst();
+                typeahead.ClearSearch();
+            }
             detailHelper.ResetDetailPosition();
-            typeahead.ClearSearch();
             detailHelper.RefreshButtons();
 
             if (wasInDetailView)
@@ -389,9 +402,16 @@ namespace RimWorldAccess
                 ResetReadingProgress();
             }
             detailHelper.GoBackToList();
-            currentIndex = MenuHelper.JumpToLast(concepts.Count);
+            if (!wasInDetailView && typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                currentIndex = typeahead.GetLastMatch();
+            }
+            else
+            {
+                currentIndex = MenuHelper.JumpToLast(concepts.Count);
+                typeahead.ClearSearch();
+            }
             detailHelper.ResetDetailPosition();
-            typeahead.ClearSearch();
             detailHelper.RefreshButtons();
 
             if (wasInDetailView)

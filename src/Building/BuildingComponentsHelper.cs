@@ -27,9 +27,7 @@ namespace RimWorldAccess
         // Whitelist of component types that are safe to expose
         private static readonly HashSet<Type> SupportedComponentTypes = new HashSet<Type>
         {
-            typeof(CompFlickable),
-            typeof(CompRefuelable),
-            typeof(CompBreakdownable)
+            typeof(CompRefuelable)
         };
 
         /// <summary>
@@ -41,20 +39,6 @@ namespace RimWorldAccess
                 return new List<DiscoveredComponent>();
 
             var discovered = new List<DiscoveredComponent>();
-
-            // Check for CompFlickable (power switch)
-            var flickable = building.TryGetComp<CompFlickable>();
-            if (flickable != null)
-            {
-                discovered.Add(new DiscoveredComponent
-                {
-                    ComponentType = "CompFlickable",
-                    DisplayName = "Power Control",
-                    CategoryName = "Power Control",
-                    Component = flickable,
-                    IsReadOnly = false
-                });
-            }
 
             // Check for CompRefuelable (fuel management)
             var refuelable = building.TryGetComp<CompRefuelable>();
@@ -71,19 +55,6 @@ namespace RimWorldAccess
                 });
             }
 
-            // Check for CompBreakdownable (breakdown status - read only)
-            var breakdownable = building.TryGetComp<CompBreakdownable>();
-            if (breakdownable != null)
-            {
-                discovered.Add(new DiscoveredComponent
-                {
-                    ComponentType = "CompBreakdownable",
-                    DisplayName = "Breakdown Status",
-                    CategoryName = "Breakdown Status",
-                    Component = breakdownable,
-                    IsReadOnly = true
-                });
-            }
             // Check for Building_Door (hold open toggle)
             if (building is Building_Door door)
             {
@@ -174,17 +145,6 @@ namespace RimWorldAccess
         {
             return GetDiscoverableComponents(building)
                 .FirstOrDefault(c => c.ComponentType == componentType);
-        }
-
-        /// <summary>
-        /// Gets readable status text for CompFlickable.
-        /// </summary>
-        public static string GetFlickableStatus(CompFlickable flickable)
-        {
-            if (flickable == null)
-                return "No power control";
-
-            return flickable.SwitchIsOn ? "Power: On" : "Power: Off";
         }
 
         /// <summary>

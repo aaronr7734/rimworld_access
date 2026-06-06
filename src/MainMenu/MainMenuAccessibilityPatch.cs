@@ -183,6 +183,22 @@ namespace RimWorldAccess
             // MenuNavigationState.IsActive (frame-recency check) stays true while drawn.
             MenuNavigationState.MarkRendered();
 
+            // Returning to the main menu tears down the world, but the in-game
+            // world map's navigation/scanner state isn't reset by its usual hook
+            // (WorldInterface.HandleLowPriorityInput stops running). Clear it here,
+            // otherwise its keyboard handlers (e.g. Enter at priority 0.5 in
+            // UnifiedKeyboardPatch) keep consuming input meant for the main menu,
+            // leaving the user unable to activate any option. DoMainMenuControls
+            // also runs in-game (Playing) for the Escape overlay, so this is gated
+            // on Entry and the InGame context to avoid disrupting a live world map.
+            if (Current.ProgramState == ProgramState.Entry &&
+                WorldNavigationState.IsActive &&
+                WorldNavigationState.Context == WorldNavContext.InGame)
+            {
+                WorldNavigationState.Close();
+                WorldScannerState.Reset();
+            }
+
             // Initialize menu navigation state with our rebuilt lists
             if (cachedColumn0.Count > 0 && cachedColumn1.Count > 0)
             {

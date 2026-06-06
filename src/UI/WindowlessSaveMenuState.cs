@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using HarmonyLib;
 using Verse;
 using RimWorld;
 using UnityEngine;
@@ -19,20 +21,50 @@ namespace RimWorldAccess
 
     /// <summary>
     /// Manages a windowless save/load file browser.
-    /// Provides keyboard navigation through save files without rendering UI.
+    /// Save mode has two focus zones: a text field for the new save name, and a
+    /// list of existing saves available for overwriting. Load mode is list-only.
+    /// Matches vanilla's Dialog_SaveFileList_Save visual layout: field at the bottom,
+    /// list above it. Down arrow from the field enters the list; Up from list index 0
+    /// returns to the field.
     /// </summary>
     public static class WindowlessSaveMenuState
     {
+        private enum SaveFocus { TextField, List }
+
         private static List<SaveFileInfo> saveFiles = null;
         private static int selectedIndex = 0;
         private static bool isActive = false;
         private static SaveLoadMode currentMode = SaveLoadMode.Load;
-        private static string typedSaveName = "";
+        private static SaveFocus saveFocus = SaveFocus.TextField;
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
 
+        // Embedded text-input session for the save-name field. modal: false means the
+        // surrounding state still owns Up/Down (file-list navigation) and the controller
+        // only sees keys this state explicitly forwards to it.
+        private static readonly TextInputController nameController = new TextInputController();
+        private static readonly TextFieldSpec nameSpec = new TextFieldSpec(
+            labelKey: "RimWorldAccess.TextInput.LabelFilename",
+            maxLength: 64,
+            minLength: 1,
+            mustBeFilename: true);
+
+        // When CheckVersionAndLoadGame queues a mod- or version-mismatch dialog, we
+        // suspend (rather than close) this menu and wait for the dialog to resolve.
+        // LoadDialogWatcherPatch notifies us via OnWindowClosed when any Window closes,
+        // and we reactivate ourselves if the load didn't actually fire.
+        private static System.WeakReference<Window> pendingDialog = null;
+
         public static bool IsActive => isActive;
-        public static bool HasActiveSearch => typeahead.HasActiveSearch;
-        public static bool HasNoMatches => typeahead.HasNoMatches;
+
+        /// <summary>
+        /// True when the user is typing into the save-name field. While true, the input
+        /// router sends printable characters and Backspace straight to the field
+        /// (bypassing typeahead) and treats Down as "enter the overwrite list".
+        /// </summary>
+        public static bool IsInTextField => isActive && currentMode == SaveLoadMode.Save && saveFocus == SaveFocus.TextField;
+
+        public static bool HasActiveSearch => !IsInTextField && typeahead.HasActiveSearch;
+        public static bool HasNoMatches => !IsInTextField && typeahead.HasNoMatches;
 
         /// <summary>
         /// Opens the save/load menu.
@@ -45,148 +77,166 @@ namespace RimWorldAccess
             isActive = true;
             typeahead.ClearSearch();
 
-            // For save mode, initialize with default name
             if (mode == SaveLoadMode.Save)
             {
-                if (Faction.OfPlayer.HasName)
-                {
-                    typedSaveName = Faction.OfPlayer.Name;
-                }
-                else
-                {
-                    typedSaveName = SaveGameFilesUtility.UnusedDefaultFileName(Faction.OfPlayer.def.LabelCap);
-                }
+                saveFocus = SaveFocus.TextField;
+                string prefilled = Faction.OfPlayer.HasName
+                    ? Faction.OfPlayer.Name
+                    : SaveGameFilesUtility.UnusedDefaultFileName(Faction.OfPlayer.def.LabelCap);
+                nameController.Begin(prefilled, nameSpec, _ => { }, null, replaceOnType: true, modal: false);
+            }
+            else
+            {
+                saveFocus = SaveFocus.List;
+                nameController.Cancel();
             }
 
-            // Announce first file or save mode
             AnnounceCurrentState();
         }
 
-        /// <summary>
-        /// Closes the save/load menu.
-        /// </summary>
         public static void Close()
         {
             saveFiles = null;
             selectedIndex = 0;
             isActive = false;
-            typedSaveName = "";
+            nameController.Cancel();
+            saveFocus = SaveFocus.TextField;
             typeahead.ClearSearch();
+            pendingDialog = null;
         }
 
         /// <summary>
-        /// Moves selection to next file.
+        /// Down arrow. In save-mode text field: enters the overwrite list. In the list:
+        /// moves to next item (wrap-aware).
         /// </summary>
         public static void SelectNext()
         {
-            if (saveFiles == null)
+            if (!isActive || saveFiles == null)
                 return;
 
-            // In save mode, we have "Create New Save" at index 0, then existing files at indices 1+
-            // In load mode, we only have existing files starting at index 0
-            int maxIndex = currentMode == SaveLoadMode.Save ? saveFiles.Count : saveFiles.Count - 1;
+            if (IsInTextField)
+            {
+                if (saveFiles.Count == 0)
+                {
+                    TolkHelper.Speak("No existing saves to overwrite.");
+                    return;
+                }
+                saveFocus = SaveFocus.List;
+                selectedIndex = 0;
+                AnnounceCurrentState();
+                return;
+            }
 
-            if (maxIndex < 0)
+            if (saveFiles.Count == 0)
                 return;
 
-            selectedIndex = MenuHelper.SelectNext(selectedIndex, maxIndex + 1);
+            selectedIndex = MenuHelper.SelectNext(selectedIndex, saveFiles.Count);
             AnnounceCurrentState();
         }
 
         /// <summary>
-        /// Moves selection to previous file.
+        /// Up arrow. In the list at index 0 (save mode): returns to the text field.
+        /// Otherwise: moves to previous item (wrap-aware in load mode; no wrap across
+        /// the field boundary in save mode).
         /// </summary>
         public static void SelectPrevious()
         {
-            if (saveFiles == null)
+            if (!isActive || saveFiles == null)
                 return;
 
-            // In save mode, we have "Create New Save" at index 0, then existing files at indices 1+
-            // In load mode, we only have existing files starting at index 0
-            int maxIndex = currentMode == SaveLoadMode.Save ? saveFiles.Count : saveFiles.Count - 1;
+            if (IsInTextField)
+            {
+                // Already at the top of the save-mode layout. Inert.
+                return;
+            }
 
-            if (maxIndex < 0)
+            if (saveFiles.Count == 0)
                 return;
 
-            selectedIndex = MenuHelper.SelectPrevious(selectedIndex, maxIndex + 1);
+            if (currentMode == SaveLoadMode.Save && selectedIndex == 0)
+            {
+                saveFocus = SaveFocus.TextField;
+                AnnounceCurrentState();
+                return;
+            }
+
+            selectedIndex = MenuHelper.SelectPrevious(selectedIndex, saveFiles.Count);
             AnnounceCurrentState();
         }
 
-        /// <summary>
-        /// Executes save or load on the selected file.
-        /// </summary>
         public static void ExecuteSelected()
         {
+            if (!isActive)
+                return;
+
             if (currentMode == SaveLoadMode.Save)
-            {
                 ExecuteSave();
-            }
             else
-            {
                 ExecuteLoad();
-            }
         }
 
         /// <summary>
-        /// Deletes the currently selected save file.
+        /// Delete key. Routes through a standard Dialog_MessageBox confirmation so the
+        /// user gets the same dialog-box UX as other confirmations (mod mismatch,
+        /// version warning). WindowlessDialogState handles it, and the shared
+        /// OnWindowClosed path below reactivates the save menu when the user is done.
+        /// Inert when focused on the text field (there's no file selected).
         /// </summary>
         public static void DeleteSelected()
         {
-            if (saveFiles == null || saveFiles.Count == 0)
+            if (!isActive || saveFiles == null || saveFiles.Count == 0)
                 return;
 
-            // In save mode, index 0 is "Create New Save" which can't be deleted
-            if (currentMode == SaveLoadMode.Save && selectedIndex == 0)
-            {
-                TolkHelper.Speak("RimWorldAccess.UI.Save.CannotDeleteCreateNew".Loc(), SpeechPriority.High);
-                return;
-            }
-
-            // Adjust index for save mode (where index 0 is "Create New Save")
-            int fileIndex = currentMode == SaveLoadMode.Save ? selectedIndex - 1 : selectedIndex;
-
-            if (fileIndex < 0 || fileIndex >= saveFiles.Count)
+            if (IsInTextField)
                 return;
 
-            SaveFileInfo selectedFile = saveFiles[fileIndex];
+            if (selectedIndex < 0 || selectedIndex >= saveFiles.Count)
+                return;
+
+            SaveFileInfo selectedFile = saveFiles[selectedIndex];
+            FileInfo fileInfo = selectedFile.FileInfo;
             string fileName = Path.GetFileNameWithoutExtension(selectedFile.FileName);
 
-            // Open confirmation
-            TolkHelper.Speak("RimWorldAccess.UI.Save.DeleteConfirmPrompt".Loc(fileName));
-            WindowlessDeleteConfirmationState.Open(selectedFile.FileInfo, () => {
-                // After deletion, reload and reopen this menu
+            Action confirmedAct = () =>
+            {
+                fileInfo.Delete();
                 ReloadFiles();
-
-                // Adjust selected index after deletion
-                int maxIndex = currentMode == SaveLoadMode.Save ? saveFiles.Count : saveFiles.Count - 1;
-                if (selectedIndex > maxIndex)
+                if (saveFiles.Count == 0)
                 {
-                    selectedIndex = Math.Max(0, maxIndex);
+                    if (currentMode == SaveLoadMode.Save)
+                    {
+                        saveFocus = SaveFocus.TextField;
+                    }
+                    selectedIndex = 0;
                 }
+                else if (selectedIndex >= saveFiles.Count)
+                {
+                    selectedIndex = saveFiles.Count - 1;
+                }
+            };
 
-                isActive = true; // Reactivate this menu
-                AnnounceCurrentState();
-            });
+            var msgBox = Dialog_MessageBox.CreateConfirmation(
+                "ConfirmDelete".Translate(fileName),
+                confirmedAct,
+                destructive: true);
 
-            // Temporarily deactivate while confirmation is active
             isActive = false;
+            pendingDialog = new System.WeakReference<Window>(msgBox);
+            Find.WindowStack.Add(msgBox);
         }
 
         private static void ExecuteSave()
         {
             string saveName;
 
-            // Check if we're on "Create New Save" option (index 0) or an existing save file
-            if (selectedIndex == 0)
+            if (IsInTextField)
             {
-                // Create new save with typed name
-                saveName = typedSaveName;
+                saveName = nameController.CurrentText;
             }
-            else if (saveFiles != null && selectedIndex > 0 && selectedIndex <= saveFiles.Count)
+            else if (saveFiles != null && selectedIndex >= 0 && selectedIndex < saveFiles.Count)
             {
-                // Overwrite existing save file
-                SaveFileInfo selectedFile = saveFiles[selectedIndex - 1]; // Adjust for "Create New Save" at index 0
-                saveName = Path.GetFileNameWithoutExtension(selectedFile.FileName);
+                // Overwrite: use the existing file's name.
+                saveName = Path.GetFileNameWithoutExtension(saveFiles[selectedIndex].FileName);
             }
             else
             {
@@ -196,16 +246,14 @@ namespace RimWorldAccess
 
             if (string.IsNullOrEmpty(saveName))
             {
-                TolkHelper.Speak("RimWorldAccess.UI.Save.NeedName".Loc());
+                TolkHelper.Speak("NeedAName".Translate());
                 return;
             }
 
             saveName = GenFile.SanitizedFileName(saveName);
 
-            // Close menu before saving
             Close();
 
-            // Perform the save
             LongEventHandler.QueueLongEvent(delegate
             {
                 GameDataSaveLoader.SaveGame(saveName);
@@ -213,8 +261,8 @@ namespace RimWorldAccess
 
             Messages.Message("SavedAs".Translate(saveName), MessageTypeDefOf.SilentInput, historical: false);
             PlayerKnowledgeDatabase.Save();
-
-            TolkHelper.Speak("RimWorldAccess.UI.Save.SavedAs".Loc(saveName));
+            // Messages.Message is announced by the mod's general message handler, so
+            // no extra TolkHelper.Speak here — that would double-announce the save.
         }
 
         private static void ExecuteLoad()
@@ -231,19 +279,115 @@ namespace RimWorldAccess
             SaveFileInfo selectedFile = saveFiles[selectedIndex];
             string fileName = Path.GetFileNameWithoutExtension(selectedFile.FileName);
 
-            // Close menu before loading
-            Close();
+            // Suspend — don't Close — so we can reactivate if the user dismisses
+            // a compatibility dialog without loading. Snapshot the window stack so
+            // we can identify any dialog CheckVersionAndLoadGame adds.
+            var beforeWindows = new HashSet<Window>(Find.WindowStack.Windows);
+            isActive = false;
+            pendingDialog = null;
 
-            // Use synchronous loading for in-game reload. Async loading causes an
-            // intermittent DXGI deadlock: the main thread's rendering pipeline blocks
-            // inside DirectX while the background loading thread does heavy memory
-            // operations. Sync loading avoids this by not rendering during the load.
-            LongEventHandler.QueueLongEvent(delegate
+            GameDataSaveLoader.CheckVersionAndLoadGame(fileName);
+
+            Window added = null;
+            foreach (Window w in Find.WindowStack.Windows)
             {
-                GameDataSaveLoader.LoadGame(fileName);
-            }, "LoadingLongEvent", doAsynchronously: false, GameAndMapInitExceptionHandlers.ErrorWhileLoadingGame);
+                if (!beforeWindows.Contains(w) && (w is Dialog_ModMismatch || w is Dialog_MessageBox))
+                {
+                    added = w;
+                    break;
+                }
+            }
 
-            TolkHelper.Speak("RimWorldAccess.UI.Save.Loading".Loc(fileName));
+            // Swap Dialog_ModMismatch for a Dialog_MessageBox so it flows through our
+            // existing MessageBoxAccessibilityPatch — which gives the user a real
+            // dialog-box UX (title + message + Enter/Escape announcements confirming
+            // the button taken) instead of a one-shot announcement plus a silent
+            // vanilla window they can't see. Version-mismatch Dialog_MessageBox
+            // instances are already handled natively by that patch.
+            if (added is Dialog_ModMismatch modMismatch)
+            {
+                added = ReplaceModMismatchDialog(modMismatch);
+            }
+
+            if (added != null)
+            {
+                pendingDialog = new System.WeakReference<Window>(added);
+            }
+            else
+            {
+                // No compat dialog queued — load is in flight. Clean up fully.
+                Close();
+            }
+        }
+
+        private static Window ReplaceModMismatchDialog(Dialog_ModMismatch original)
+        {
+            Action loadAction = AccessTools.Field(typeof(Dialog_ModMismatch), "loadAction").GetValue(original) as Action;
+            var addedMods = AccessTools.Field(typeof(Dialog_ModMismatch), "addedModsList").GetValue(original) as List<string>;
+            var missingMods = AccessTools.Field(typeof(Dialog_ModMismatch), "missingModsList").GetValue(original) as List<string>;
+
+            bool anyAdded = addedMods != null && addedMods.Count > 0;
+            bool anyMissing = missingMods != null && missingMods.Count > 0;
+
+            var parts = new List<string> { "ModsMismatchWarningText".Translate().ToString() };
+            if (!anyAdded && !anyMissing)
+            {
+                parts.Add("ModsMismatchOrderChanged".Translate().ToString());
+            }
+            else
+            {
+                if (anyAdded)
+                {
+                    parts.Add($"{"AddedModsList".Translate()}: {string.Join(", ", addedMods)}.");
+                }
+                if (anyMissing)
+                {
+                    parts.Add($"{"MissingModsList".Translate()}: {string.Join(", ", missingMods)}.");
+                }
+            }
+            string message = string.Join(" ", parts);
+
+            Find.WindowStack.TryRemove(original, doCloseSound: false);
+
+            var msgBox = Dialog_MessageBox.CreateConfirmation(
+                message,
+                loadAction,
+                destructive: false,
+                title: "ModsMismatchWarningTitle".Translate());
+            msgBox.buttonAText = "LoadAnyway".Translate();
+
+            Find.WindowStack.Add(msgBox);
+            return msgBox;
+        }
+
+        /// <summary>
+        /// Called from LoadDialogWatcherPatch whenever a Window closes. If it matches
+        /// the compat dialog we were waiting on, either reactivate the menu (user
+        /// dismissed without loading) or fully close (load was actually queued).
+        /// </summary>
+        internal static void OnWindowClosed(Window closedWindow)
+        {
+            if (pendingDialog == null || closedWindow == null)
+                return;
+
+            if (!pendingDialog.TryGetTarget(out Window tracked) || tracked != closedWindow)
+                return;
+
+            pendingDialog = null;
+
+            if (LongEventHandler.AnyEventNowOrWaiting)
+            {
+                // Load was queued (user accepted the compat warning). Let the loading
+                // screen take over — don't re-announce our menu.
+                Close();
+                return;
+            }
+
+            // User backed out without loading. Resume the menu where we left off.
+            // High priority so the announcement reliably interrupts any queued speech
+            // from the dialog that just closed.
+            isActive = true;
+            TolkHelper.Speak(GetCurrentItemDescription(), SpeechPriority.High);
         }
 
         private static void ReloadFiles()
@@ -262,74 +406,203 @@ namespace RimWorldAccess
                 }
             }
 
-            // Sort by last write time, most recent first
             saveFiles = saveFiles.OrderByDescending(f => f.LastWriteTime).ToList();
+
+            // Mirror vanilla: populate version metadata on a background task so the
+            // menu doesn't block while reading save headers. SaveFileInfo.GameVersion
+            // reports "LoadingVersionInfo" until the per-file lock releases.
+            var snapshot = saveFiles;
+            Task.Run(() =>
+            {
+                Parallel.ForEach(snapshot, file =>
+                {
+                    try
+                    {
+                        file.LoadData();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error($"Exception loading save header for {file.FileName}: {ex}");
+                    }
+                });
+            });
         }
 
         private static void AnnounceCurrentState()
         {
-            TolkHelper.SpeakData(GetCurrentItemDescription());
+            TolkHelper.Speak(GetCurrentItemDescription());
         }
 
-        /// <summary>
-        /// Goes back to the pause menu.
-        /// </summary>
         public static void GoBack()
         {
             Close();
 
-            // Only return to pause menu if in-game
             if (Current.ProgramState == ProgramState.Playing)
             {
                 WindowlessPauseMenuState.Open();
             }
+            else
+            {
+                // Returning to the main menu. Re-announce the menu item that brought
+                // us here so the user knows where the cursor is — otherwise Escape
+                // lands in silence on a screen with no visual change.
+                var selected = MenuNavigationState.GetCurrentSelection();
+                if (selected != null)
+                {
+                    TolkHelper.Speak(selected.label);
+                }
+            }
         }
 
-        /// <summary>
-        /// Jumps to the first item in the list.
-        /// </summary>
         public static void JumpToFirst()
         {
-            if (saveFiles == null)
+            if (!isActive || saveFiles == null)
                 return;
+
+            if (IsInTextField)
+                return;
+
+            if (saveFiles.Count == 0)
+                return;
+
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                int first = typeahead.GetFirstMatch();
+                if (first >= 0)
+                {
+                    selectedIndex = first;
+                    AnnounceWithSearch();
+                }
+                return;
+            }
 
             selectedIndex = MenuHelper.JumpToFirst();
             typeahead.ClearSearch();
             AnnounceCurrentState();
         }
 
-        /// <summary>
-        /// Jumps to the last item in the list.
-        /// </summary>
         public static void JumpToLast()
         {
-            if (saveFiles == null)
+            if (!isActive || saveFiles == null)
                 return;
 
-            int maxIndex = currentMode == SaveLoadMode.Save ? saveFiles.Count : saveFiles.Count - 1;
-            if (maxIndex < 0)
+            if (IsInTextField)
                 return;
 
-            selectedIndex = MenuHelper.JumpToLast(maxIndex + 1);
+            if (saveFiles.Count == 0)
+                return;
+
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                int last = typeahead.GetLastMatch();
+                if (last >= 0)
+                {
+                    selectedIndex = last;
+                    AnnounceWithSearch();
+                }
+                return;
+            }
+
+            selectedIndex = MenuHelper.JumpToLast(saveFiles.Count);
             typeahead.ClearSearch();
             AnnounceCurrentState();
         }
 
         /// <summary>
-        /// Clears the typeahead search and announces.
-        /// Returns true if there was an active search to clear.
+        /// Layout-aware character entry; forwarded by the typeahead dispatcher when
+        /// the field has focus. Controller validates against <see cref="nameSpec"/>
+        /// (filename rules, max length) and arms replaceOnType so the first keystroke
+        /// replaces the prefilled faction name.
         /// </summary>
+        public static void AppendChar(char c)
+        {
+            if (!IsInTextField) return;
+            nameController.HandleCharacter(c);
+        }
+
+        /// <summary>Backspace inside the text field — delegates to the controller.</summary>
+        public static void BackspaceInField()
+        {
+            if (!IsInTextField) return;
+            nameController.HandleBackspace();
+        }
+
+        /// <summary>Left-arrow cursor review while in the text field.</summary>
+        public static void HandleArrowLeftInField(bool shift, bool ctrl)
+        {
+            if (!IsInTextField) return;
+            nameController.HandleArrowLeft(shift, ctrl);
+        }
+
+        /// <summary>Right-arrow cursor review while in the text field.</summary>
+        public static void HandleArrowRightInField(bool shift, bool ctrl)
+        {
+            if (!IsInTextField) return;
+            nameController.HandleArrowRight(shift, ctrl);
+        }
+
+        /// <summary>Ctrl+C copy from the field's selection.</summary>
+        public static void HandleCopyInField()
+        {
+            if (!IsInTextField) return;
+            nameController.HandleCopy();
+        }
+
+        /// <summary>Ctrl+X cut from the field's selection.</summary>
+        public static void HandleCutInField()
+        {
+            if (!IsInTextField) return;
+            nameController.HandleCut();
+        }
+
+        /// <summary>Ctrl+V paste at the field's cursor.</summary>
+        public static void HandlePasteInField()
+        {
+            if (!IsInTextField) return;
+            nameController.HandlePaste();
+        }
+
+        /// <summary>Ctrl+A select all in the field.</summary>
+        public static void HandleSelectAllInField()
+        {
+            if (!IsInTextField) return;
+            nameController.HandleSelectAll();
+        }
+
         public static bool ClearTypeaheadSearch()
         {
+            if (IsInTextField)
+                return false;
             return typeahead.ClearSearchAndAnnounce();
         }
 
         /// <summary>
-        /// Processes a typeahead character input.
+        /// Routes the layout-aware character from <see cref="TypeaheadDispatcher"/>
+        /// to either the save-name field or the file-list typeahead, depending on
+        /// which focus zone is active. Modifier-held chars are passed through to
+        /// global shortcuts (Alt+M, Ctrl+S, etc.) by ignoring them here.
         /// </summary>
+        public static void HandleCharacter(char c)
+        {
+            if (!isActive)
+                return;
+
+            if (KeyboardHelper.IsAltHeld || KeyboardHelper.IsCtrlHeld)
+                return;
+
+            if (IsInTextField)
+            {
+                AppendChar(c);
+            }
+            else
+            {
+                ProcessTypeaheadCharacter(c);
+            }
+        }
+
         public static void ProcessTypeaheadCharacter(char c)
         {
-            if (!isActive || saveFiles == null)
+            if (!isActive || saveFiles == null || IsInTextField)
                 return;
 
             var labels = GetItemLabels();
@@ -337,8 +610,6 @@ namespace RimWorldAccess
             {
                 if (newIndex >= 0)
                 {
-                    // In save mode, newIndex is already correct (0 = Create New Save, 1+ = files)
-                    // In load mode, newIndex maps directly to save files
                     selectedIndex = newIndex;
                     AnnounceWithSearch();
                 }
@@ -349,12 +620,9 @@ namespace RimWorldAccess
             }
         }
 
-        /// <summary>
-        /// Processes backspace for typeahead search.
-        /// </summary>
         public static void ProcessBackspace()
         {
-            if (!isActive || saveFiles == null || !typeahead.HasActiveSearch)
+            if (!isActive || saveFiles == null || IsInTextField || !typeahead.HasActiveSearch)
                 return;
 
             var labels = GetItemLabels();
@@ -368,15 +636,12 @@ namespace RimWorldAccess
             }
         }
 
-        /// <summary>
-        /// Navigates to the next match in typeahead search, or next item if no search.
-        /// </summary>
         public static void SelectNextMatch()
         {
-            if (saveFiles == null)
+            if (!isActive || saveFiles == null)
                 return;
 
-            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            if (!IsInTextField && typeahead.HasActiveSearch && !typeahead.HasNoMatches)
             {
                 int nextIndex = typeahead.GetNextMatch(selectedIndex);
                 if (nextIndex >= 0)
@@ -391,15 +656,12 @@ namespace RimWorldAccess
             }
         }
 
-        /// <summary>
-        /// Navigates to the previous match in typeahead search, or previous item if no search.
-        /// </summary>
         public static void SelectPreviousMatch()
         {
-            if (saveFiles == null)
+            if (!isActive || saveFiles == null)
                 return;
 
-            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            if (!IsInTextField && typeahead.HasActiveSearch && !typeahead.HasNoMatches)
             {
                 int prevIndex = typeahead.GetPreviousMatch(selectedIndex);
                 if (prevIndex >= 0)
@@ -414,35 +676,19 @@ namespace RimWorldAccess
             }
         }
 
-        /// <summary>
-        /// Gets the list of labels for typeahead matching.
-        /// In save mode, index 0 is "Create New Save", indices 1+ are file names.
-        /// In load mode, all indices are file names.
-        /// </summary>
         private static List<string> GetItemLabels()
         {
             var labels = new List<string>();
             if (saveFiles == null)
                 return labels;
 
-            if (currentMode == SaveLoadMode.Save)
-            {
-                // Add "Create New Save" as the first entry
-                labels.Add(typedSaveName);
-            }
-
             foreach (var file in saveFiles)
             {
-                string fileName = Path.GetFileNameWithoutExtension(file.FileName);
-                labels.Add(fileName ?? "");
+                labels.Add(Path.GetFileNameWithoutExtension(file.FileName) ?? "");
             }
-
             return labels;
         }
 
-        /// <summary>
-        /// Announces the current selection with search context if applicable.
-        /// </summary>
         private static void AnnounceWithSearch()
         {
             if (saveFiles == null)
@@ -460,102 +706,57 @@ namespace RimWorldAccess
             }
         }
 
-        /// <summary>
-        /// Gets a description of the currently selected item.
-        /// </summary>
         private static string GetCurrentItemDescription()
         {
-            if (currentMode == SaveLoadMode.Save)
+            if (IsInTextField)
             {
-                int totalCount = saveFiles != null ? saveFiles.Count + 1 : 1;
-                string position = MenuHelper.FormatPosition(selectedIndex, totalCount);
-
-                if (selectedIndex > 0 && saveFiles != null && selectedIndex <= saveFiles.Count)
-                {
-                    SaveFileInfo file = saveFiles[selectedIndex - 1];
-                    string fileName = Path.GetFileNameWithoutExtension(file.FileName);
-                    return "RimWorldAccess.UI.Save.OverwriteRow".Translate(fileName, FormatDateTime(file.LastWriteTime), position);
-                }
-                // Index 0 (Create New Save) and out-of-range fall through to Create New
-                return "RimWorldAccess.UI.Save.CreateNewRow".Translate(typedSaveName, position);
+                return $"{"SaveGameButton".Translate()}: {nameController.CurrentText}. Type a new name, Down arrow for existing saves, Enter to save.";
             }
 
-            // Load mode
-            if (saveFiles != null && saveFiles.Count > 0 && selectedIndex >= 0 && selectedIndex < saveFiles.Count)
+            if (saveFiles == null || saveFiles.Count == 0)
             {
-                SaveFileInfo file = saveFiles[selectedIndex];
-                string fileName = Path.GetFileNameWithoutExtension(file.FileName);
-                string position = MenuHelper.FormatPosition(selectedIndex, saveFiles.Count);
-                return "RimWorldAccess.UI.Save.LoadRow".Translate(fileName, FormatDateTime(file.LastWriteTime), position);
+                return "No save files available";
             }
-            return "RimWorldAccess.UI.Save.NoFiles".Translate();
+
+            if (selectedIndex < 0 || selectedIndex >= saveFiles.Count)
+            {
+                return "No save files available";
+            }
+
+            SaveFileInfo file = saveFiles[selectedIndex];
+            string fileName = Path.GetFileNameWithoutExtension(file.FileName);
+            string prefix = currentMode == SaveLoadMode.Save
+                ? "OverwriteButton".Translate().ToString()
+                : "LoadGameButton".Translate().ToString();
+
+            var parts = new List<string> { $"{prefix}: {fileName}" };
+
+            if (SaveGameFilesUtility.IsAutoSave(fileName))
+            {
+                parts.Add("autosave");
+            }
+
+            parts.Add(FormatDateTime(file.LastWriteTime));
+
+            string version = file.GameVersion;
+            if (!string.IsNullOrEmpty(version) && version != "???" && version != "LoadingVersionInfo".Translate().ToString())
+            {
+                parts.Add($"version {version}");
+            }
+
+            parts.Add(MenuHelper.FormatPosition(selectedIndex, saveFiles.Count));
+
+            return string.Join(" - ", parts.Where(p => !string.IsNullOrEmpty(p)));
         }
 
-        /// <summary>
-        /// Formats a DateTime for display, respecting the user's 12/24 hour clock preference.
-        /// </summary>
         private static string FormatDateTime(DateTime dateTime)
         {
             if (Prefs.TwelveHourClockMode)
             {
                 return dateTime.ToString("yyyy-MM-dd h:mm tt");
             }
-            else
-            {
-                return dateTime.ToString("yyyy-MM-dd HH:mm");
-            }
+            return dateTime.ToString("yyyy-MM-dd HH:mm");
         }
     }
 
-    /// <summary>
-    /// Handles confirmation for deleting save files.
-    /// </summary>
-    public static class WindowlessDeleteConfirmationState
-    {
-        private static bool isActive = false;
-        private static FileInfo fileToDelete = null;
-        private static Action onDeleteComplete = null;
-
-        public static bool IsActive => isActive;
-
-        public static void Open(FileInfo file, Action onComplete)
-        {
-            isActive = true;
-            fileToDelete = file;
-            onDeleteComplete = onComplete;
-        }
-
-        public static void Confirm()
-        {
-            if (!isActive || fileToDelete == null)
-                return;
-
-            string fileName = fileToDelete.Name;
-            fileToDelete.Delete();
-            TolkHelper.Speak("RimWorldAccess.UI.Save.Deleted".Loc(fileName));
-
-            Action callback = onDeleteComplete;
-            Close();
-            callback?.Invoke();
-        }
-
-        public static void Cancel()
-        {
-            if (!isActive)
-                return;
-
-            TolkHelper.Speak("RimWorldAccess.UI.Save.DeleteCancelled".Loc());
-
-            Action callback = onDeleteComplete;
-            Close();
-            callback?.Invoke();
-        }
-
-        private static void Close()
-        {
-            isActive = false;
-            fileToDelete = null;
-            onDeleteComplete = null;
-        }
-    }
 }

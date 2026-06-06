@@ -143,53 +143,41 @@ namespace RimWorldAccess
                         }
                     }
 
-                    // For ability targeting, provide more specific feedback before standard validation
-                    if (AbilityTargetingState.IsActive)
+                    // No predictive ability pre-checks here. We trust each ITargetingSource's
+                    // own ValidateTarget below; if it stays silent (no Messages.Message
+                    // emitted), the catch-all silent-rejection branch below synthesizes a
+                    // fallback. This avoids guessing which verbs/comps/mods speak.
+
+                    // Generic verb-range pre-check (mech weapons, turret-pack apparel, modded
+                    // sources routed through GenericTargetingState). Vanilla's Verb.OrderForceTarget
+                    // only rejects below-min-range when the target is adjacent, so non-adjacent
+                    // below-min targets are accepted and then silently stall at the aim stance
+                    // (e.g. Diabolus Hellsphere cannon with minRange 5.9 targeting a 3-tile cell).
+                    // Sighted players see the ring and avoid it — announce it to screen readers
+                    // and keep targeting open so the user can adjust and retry.
+                    if (GenericTargetingState.IsActive)
                     {
-                        // Check for psycast immunity first (clearer message than game's default)
-                        string immunityMessage = AbilityTargetingState.GetImmunityMessage(target);
-                        if (immunityMessage != null)
+                        string genericRangeError = GenericTargetingState.ValidateRangeError(cursorPosition);
+                        if (genericRangeError != null)
                         {
-                            TolkHelper.SpeakData(immunityMessage, SpeechPriority.High);
-                            Event.current.Use();
-                            return false;
-                        }
-
-                        // Check if there's no valid target at cursor when ability requires one
-                        // This provides clearer feedback than the game's "out of range" message
-                        string targetError = AbilityTargetingState.ValidateTargetPresent(target, cursorPosition);
-                        if (targetError != null)
-                        {
-                            TolkHelper.SpeakData(targetError, SpeechPriority.High);
-                            Event.current.Use();
-                            return false;
-                        }
-
-                        // Check range before game's validation for clearer accessible error message
-                        string rangeError = AbilityTargetingState.ValidateRange(cursorPosition);
-                        if (rangeError != null)
-                        {
-                            TolkHelper.SpeakData(rangeError, SpeechPriority.High);
-                            Event.current.Use();
-                            return false;
-                        }
-
-                        // Check line of sight before game's validation
-                        string losError = AbilityTargetingState.ValidateLineOfSight(cursorPosition);
-                        if (losError != null)
-                        {
-                            TolkHelper.SpeakData(losError, SpeechPriority.High);
+                            TolkHelper.Speak(genericRangeError, SpeechPriority.High);
                             Event.current.Use();
                             return false;
                         }
                     }
 
-                    // For item targeting (CompTargetable), check if there's a valid thing at cursor.
-                    // CompTargetable.ValidateTarget returns false for non-Thing targets but
-                    // doesn't produce a message for the "nothing here" case. Provide explicit feedback.
-                    if (ItemTargetingState.IsActive && !target.HasThing)
+                    // Cell-fallback rejection: only block "no thing at cursor" when the params
+                    // legitimately don't accept locations. Verbs that DO accept cells (turret
+                    // packs, mortars, ranged mech abilities) MUST be allowed to fire on empty
+                    // tiles. Previously this branch keyed off ItemTargetingState.IsActive,
+                    // which fired for every non-ability source and broke cell-targeting verbs.
+                    if (!target.HasThing && !TargetingParametersDescriber.AcceptsLocations(targetingSource.targetParams))
                     {
-                        TolkHelper.SpeakData(ItemTargetingState.GetNoTargetErrorMessage(), SpeechPriority.High);
+                        string typeDesc = TargetingParametersDescriber.Describe(targetingSource.targetParams);
+                        string msg = string.IsNullOrEmpty(typeDesc)
+                            ? "No valid target at cursor"
+                            : $"No valid target at cursor. {typeDesc}";
+                        TolkHelper.Speak(msg, SpeechPriority.High);
                         Event.current.Use();
                         return false;
                     }
@@ -220,21 +208,44 @@ namespace RimWorldAccess
                         }
                     }
 
-                    // Validate the target can be attacked/used
+                    // Validate the target can be attacked/used. Sample the message-emission
+                    // counter before/after so we can detect silent rejections: if the
+                    // ability/comp announced the failure via Messages.Message, our existing
+                    // NotificationAccessibilityPatch already spoke it and we don't want to
+                    // double-announce. If the count didn't move, the rejection was silent
+                    // and we synthesize a fallback so the user isn't left guessing.
+                    long messagesBefore = NotificationAccessibilityPatch.MessageEmissionCount;
+                    long messageAttemptsBefore = NotificationAccessibilityPatch.MessageAttemptCount;
                     if (!targetingSource.ValidateTarget(target, showMessages: true))
                     {
-                        // Invalid target - stay in targeting mode, let user try another position
-                        // For item targeting, CompTargetable.ValidateTarget may reject silently
-                        // (e.g., wrong pawn type, hediff conflict). Provide feedback so the user
-                        // knows the target was rejected rather than hearing nothing.
-                        if (ItemTargetingState.IsActive)
+                        bool gameSpoke = NotificationAccessibilityPatch.MessageEmissionCount != messagesBefore;
+                        if (!gameSpoke)
                         {
-                            string targetLabel = target.HasThing
-                                ? target.Thing.LabelShort
-                                : "RimWorldAccess.Combat.Target.GenericTargetLabel".Translate().ToString();
-                            TolkHelper.Speak(
-                                "RimWorldAccess.Combat.Target.NotValidTarget".Loc(targetLabel),
-                                SpeechPriority.High);
+                            string fallback = null;
+
+                            // The game may have TRIED to emit a rejection message that RimWorld
+                            // suppressed as a recent duplicate (e.g. casting an ability twice on
+                            // the same invalid target). In that case nothing reached the display
+                            // funnel, but AcceptsMessage still saw the text — recover it so the
+                            // user hears the real reason instead of a generic "Invalid target".
+                            if (NotificationAccessibilityPatch.MessageAttemptCount != messageAttemptsBefore)
+                            {
+                                fallback = NotificationAccessibilityPatch.LastAttemptedMessageText;
+                            }
+
+                            if (string.IsNullOrEmpty(fallback))
+                            {
+                                if (AbilityTargetingState.IsActive)
+                                {
+                                    fallback = AbilityTargetingState.DiagnoseRejection(target, cursorPosition);
+                                }
+                                else if (ItemTargetingState.IsActive)
+                                {
+                                    string targetLabel = target.HasThing ? target.Thing.LabelShort : "target";
+                                    fallback = $"{targetLabel} is not a valid target";
+                                }
+                            }
+                            TolkHelper.Speak(fallback ?? "Invalid target", SpeechPriority.High);
                         }
                         // User must press Escape to exit targeting
                         Event.current.Use();
@@ -315,6 +326,10 @@ namespace RimWorldAccess
                     {
                         successMessage = ItemTargetingState.BuildSuccessAnnouncement(target);
                     }
+                    else if (GenericTargetingState.IsActive)
+                    {
+                        successMessage = GenericTargetingState.BuildSuccessAnnouncement(target);
+                    }
                     else
                     {
                         // Non-ability targeting (weapons, turrets)
@@ -337,7 +352,7 @@ namespace RimWorldAccess
                         // Pass the first target position so range is measured from the selected target.
                         if (AbilityTargetingState.IsActive && targetingSource.DestinationSelector is CompAbilityEffect_WithDest destCompForContext)
                         {
-                            AbilityTargetingState.EnterDestinationPhase(target.Cell, destCompForContext.Props.range);
+                            AbilityTargetingState.EnterDestinationPhase(target.Cell, destCompForContext);
                         }
 
                         // Start second targeting phase for destination selection
@@ -405,6 +420,29 @@ namespace RimWorldAccess
                     if (validator != null && !validator(target))
                     {
                         TolkHelper.Speak("RimWorldAccess.Combat.Target.InvalidTarget".Loc());
+                        Event.current.Use();
+                        return false;
+                    }
+
+                    // Validate against the targeting parameters (which honor any validator
+                    // predicate, e.g. ForForceWear's filter that narrows to humanlike colonists
+                    // / outfit stands). Vanilla's GenUI.TargetsAtMouse pre-filtering would have
+                    // produced an Invalid LocalTargetInfo on a sighted mouse-click in the same
+                    // case; our cursor-based path falls back to a cell target so we have to
+                    // gate it ourselves. Use the describer for consistency with the rest of
+                    // the targeting modes — the boolean flags reflect the targets the params
+                    // genuinely accept (e.g. force-wear truly does accept buildings, since
+                    // outfit stands are a valid target). The validator may narrow further,
+                    // but describing the params is more accurate than misleading silence.
+                    if (targetParams != null
+                        && Find.CurrentMap != null
+                        && !targetParams.CanTarget(target.ToTargetInfo(Find.CurrentMap)))
+                    {
+                        string typeDesc = TargetingParametersDescriber.Describe(targetParams);
+                        string msg = string.IsNullOrEmpty(typeDesc)
+                            ? "No valid target at cursor"
+                            : $"No valid target at cursor. {typeDesc}";
+                        TolkHelper.Speak(msg, SpeechPriority.High);
                         Event.current.Use();
                         return false;
                     }

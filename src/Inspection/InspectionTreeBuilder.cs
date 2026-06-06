@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using RimWorld;
+using RimWorld.Planet;
 using Verse;
 using Verse.AI;
 using Verse.Sound;
@@ -414,8 +415,7 @@ namespace RimWorldAccess
         {
             // Categories that just show simple text inline
             return category == "Overview" ||
-                   category == "Work Priorities" ||
-                   category == "Power";
+                   category == "Work Priorities";
         }
 
         /// <summary>
@@ -469,7 +469,7 @@ namespace RimWorldAccess
             // Check for pawn-specific actionable categories
             if (obj is Pawn pawn)
             {
-                return category == "Prisoner" && (pawn.IsPrisonerOfColony || pawn.IsSlaveOfColony);
+                return (category == "Prisoner" || category == "Slave") && (pawn.IsPrisonerOfColony || pawn.IsSlaveOfColony);
             }
 
             // Check for building-specific actionable categories
@@ -558,11 +558,23 @@ namespace RimWorldAccess
             // Handle pawn-specific actions
             if (obj is Pawn pawn)
             {
-                if (category == "Prisoner" && (pawn.IsPrisonerOfColony || pawn.IsSlaveOfColony))
+                if ((category == "Prisoner" || category == "Slave") && (pawn.IsPrisonerOfColony || pawn.IsSlaveOfColony))
                 {
                     PrisonerTabState.Open(pawn);
                     return;
                 }
+                if (category == "Entity" && pawn.IsOnHoldingPlatform)
+                {
+                    EntityTabState.Open(pawn);
+                    return;
+                }
+            }
+
+            // Held-entity tab is also reachable when the inspected target is the holding platform itself.
+            if (category == "Entity" && obj is Thing entityHolder)
+            {
+                EntityTabState.Open(entityHolder);
+                return;
             }
 
             // Handle zone-specific actions
@@ -630,12 +642,20 @@ namespace RimWorldAccess
                     TempControlMenuState.Open(building);
                 }
             }
-            else if (category == "Storage" && building is IStoreSettingsParent storageParent)
+            else if (category == "Storage" || category == "Nutrition Storage")
             {
-                var settings = storageParent.GetStoreSettings();
+                // Resolve the store-settings parent the way vanilla's ITab_Storage does:
+                // the building itself, or one of its comps. The biosculpter pod has no
+                // dedicated Building subclass — its CompBiosculpterPod owns the nutrition
+                // storage settings, so checking only `building is IStoreSettingsParent`
+                // misses it.
+                var storageParent = ResolveStoreSettingsParent(building);
+                var settings = storageParent?.GetStoreSettings();
                 if (settings != null)
                 {
-                    StorageSettingsMenuState.Open(settings);
+                    // The biosculpter pod hides the storage priority in vanilla
+                    // (ITab_BiosculpterNutritionStorage.IsPrioritySettingVisible => false).
+                    StorageSettingsMenuState.Open(settings, showPriority: category != "Nutrition Storage");
                 }
             }
             else if (category == "Shells" && building is Building_TurretGun turretGun)
@@ -675,26 +695,13 @@ namespace RimWorldAccess
             else
             {
                 // Check if this is a dynamically discovered component category
-                var component = BuildingComponentsHelper.GetComponentByType(building, "CompFlickable");
-                if (component != null && component.CategoryName == category)
-                {
-                    FlickableComponentState.Open(building);
-                    return;
-                }
-
-                component = BuildingComponentsHelper.GetComponentByType(building, "CompRefuelable");
+                var component = BuildingComponentsHelper.GetComponentByType(building, "CompRefuelable");
                 if (component != null && component.CategoryName == category)
                 {
                     RefuelableComponentState.Open(building);
                     return;
                 }
 
-                component = BuildingComponentsHelper.GetComponentByType(building, "CompBreakdownable");
-                if (component != null && component.CategoryName == category)
-                {
-                    BreakdownableComponentState.Open(building);
-                    return;
-                }
                 component = BuildingComponentsHelper.GetComponentByType(building, "Building_Door");
                 if (component != null && component.CategoryName == category)
                 {
@@ -709,6 +716,30 @@ namespace RimWorldAccess
                 }
 
             }
+        }
+
+        /// <summary>
+        /// Resolves the <see cref="IStoreSettingsParent"/> for a thing the same way vanilla's
+        /// ITab_Storage.GetThingOrThingCompStoreSettingsParent does: the thing itself, or the
+        /// first comp implementing the interface (e.g. CompBiosculpterPod for a biosculpter
+        /// pod's nutrition storage, which has no dedicated Building subclass).
+        /// </summary>
+        private static IStoreSettingsParent ResolveStoreSettingsParent(Thing t)
+        {
+            if (t is IStoreSettingsParent direct)
+                return direct;
+
+            if (t is ThingWithComps twc)
+            {
+                var comps = twc.AllComps;
+                for (int i = 0; i < comps.Count; i++)
+                {
+                    if (comps[i] is IStoreSettingsParent fromComp)
+                        return fromComp;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -984,7 +1015,10 @@ namespace RimWorldAccess
                     Data = pawn,
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = true,
-                    IsExpanded = false
+                    IsExpanded = false,
+                    // Auto-expand for typeahead so weapons/apparel/inventory items
+                    // (lazily built below) are matchable by name without drilling in.
+                    AutoExpandForSearch = true
                 };
 
                 gearItem.OnActivate = () => BuildGearItemsChildren(gearItem, pawn, localCat, mode);
@@ -1107,8 +1141,9 @@ namespace RimWorldAccess
         /// </summary>
         /// <summary>
         /// Builds children for the Needs category.
-        /// Lists all visible needs sorted by urgency, with learning desires shown
-        /// immediately after the Learning need (Biotech children only).
+        /// Each need is an expandable item with description, origin, and need-specific
+        /// sub-nodes (Joy tolerances, mood break thresholds, learning desires) mirroring
+        /// what vanilla exposes via Need.GetTipString.
         /// </summary>
         private static void BuildNeedsChildren(InspectionTreeItem parentItem, Pawn pawn)
         {
@@ -1142,40 +1177,416 @@ namespace RimWorldAccess
             foreach (var need in sortedNeeds)
             {
                 float percentage = need.CurLevelPercentage * 100f;
-                string label = $"{need.LabelCap}: {percentage:F0}%";
+                string needName = need.LabelCap;
 
-                string needDescription = need.def.description;
-                if (!string.IsNullOrEmpty(needDescription))
+                var needItem = new InspectionTreeItem
                 {
-                    string cleanDesc = needDescription.StripTags().Trim();
-                    cleanDesc = System.Text.RegularExpressions.Regex.Replace(cleanDesc, @"\s+", " ");
-                    label += $". {cleanDesc}";
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = $"{needName}: {percentage:F0}%",
+                    ExpandedLabel = needName,
+                    Data = need,
+                    IndentLevel = indent,
+                    IsExpandable = true,
+                    IsExpanded = false
+                };
+
+                BuildNeedDetailChildren(needItem, pawn, need);
+
+                // Aggregate child labels into the collapsed summary (comma/period separated
+                // so the screen reader pauses naturally). Newlines only exist in expanded
+                // navigation where each line is its own child the user arrows through.
+                var summaryParts = needItem.Children
+                    .Select(c => c.Label)
+                    .Where(l => !string.IsNullOrWhiteSpace(l))
+                    .ToList();
+                if (summaryParts.Count > 0)
+                {
+                    needItem.Label += $". {string.Join(". ", summaryParts)}";
+                }
+                else
+                {
+                    needItem.IsExpandable = false;
                 }
 
-                AddChild(parentItem, new InspectionTreeItem
+                AddChild(parentItem, needItem);
+            }
+        }
+
+        /// <summary>
+        /// Builds detail children for a need: raw values, mood state, description,
+        /// origin (trait/gene/ideo/hediff), and need-type-specific sub-nodes.
+        /// Mirrors Need.GetTipString / Need_Joy.GetTipString / Need_Mood.GetTipString.
+        /// </summary>
+        private static void BuildNeedDetailChildren(InspectionTreeItem needItem, Pawn pawn, Need need)
+        {
+            if (needItem.Children.Count > 0)
+                return;
+
+            int childIndent = needItem.IndentLevel + 1;
+
+            // Food: show raw nutrition values only when they add info beyond the
+            // percentage (MaxLevel > 1 for large races like Thrumbos; for humans
+            // MaxLevel == 1 so the raw numbers would just duplicate the percentage).
+            if (need is Need_Food food && food.MaxLevel > 1.01f)
+            {
+                AddChild(needItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = label,
-                    Data = need,
+                    Label = $"{food.CurLevel.ToString("0.##")} / {food.MaxLevel.ToString("0.##")}",
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                });
+            }
+
+            // Mood: qualitative state string (Stressed / Content / About to break / ...)
+            if (need is Need_Mood mood)
+            {
+                string moodState = mood.MoodString;
+                if (!string.IsNullOrEmpty(moodState))
+                {
+                    AddChild(needItem, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = moodState,
+                        IndentLevel = childIndent,
+                        IsExpandable = false
+                    });
+                }
+            }
+
+            // Description (formatted for Learning to inject activity list, then flattened)
+            string description = need.def.description;
+            if (!string.IsNullOrEmpty(description))
+            {
+                if (need is Need_Learning)
+                {
+                    string activitiesLineList = DefDatabase<LearningDesireDef>.AllDefsListForReading
+                        .Select(d => d.label)
+                        .ToList()
+                        .ToLineList("  - ", capitalizeItems: true);
+                    description = description
+                        .Formatted(activitiesLineList.Named("ACTIVITIES"), pawn.Named("PAWN"))
+                        .Resolve();
+                }
+
+                string cleanDesc = description.StripTags().Trim();
+                cleanDesc = System.Text.RegularExpressions.Regex.Replace(cleanDesc, @"\s+", " ");
+                AddChild(needItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = cleanDesc,
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                });
+            }
+
+            // Origin line (Comes from Trait/Gene/Ideo/Hediff) mirrors Need.GetTipString
+            string originLine = GetNeedOriginLine(pawn, need);
+            if (!string.IsNullOrEmpty(originLine))
+            {
+                AddChild(needItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = originLine,
+                    IndentLevel = childIndent,
+                    IsExpandable = false
+                });
+            }
+
+            // Need-type-specific sub-nodes
+            if (need is Need_Joy joy)
+            {
+                BuildJoyTolerancesSubNode(needItem, joy);
+                BuildJoyExpectationChildren(needItem, pawn);
+            }
+            else if (need is Need_Mood && pawn.mindState?.mentalBreaker != null
+                     && pawn.mindState.mentalBreaker.CanDoRandomMentalBreaks)
+            {
+                BuildMoodBreakThresholdsSubNode(needItem, pawn);
+            }
+            else if (need is Need_Learning
+                     && pawn.learning?.ActiveLearningDesires != null
+                     && pawn.learning.ActiveLearningDesires.Count > 0)
+            {
+                BuildActiveLearningDesiresSubNode(needItem, pawn);
+            }
+        }
+
+        /// <summary>
+        /// Returns a "Comes from Trait/Gene/Ideo/Hediff: X" line if the need is enabled
+        /// by one of those sources, else null. Mirrors Need.GetTipString (Need.cs:137).
+        /// </summary>
+        private static string GetNeedOriginLine(Pawn pawn, Need need)
+        {
+            if (pawn.story?.traits != null
+                && pawn.story.traits.TryGetNeedEnablingTrait(need.def, out var trait))
+            {
+                return $"{"ComesFromTrait".Translate()}: {trait.LabelCap}";
+            }
+            if (pawn.genes != null
+                && pawn.genes.TryGetNeedEnablingGene(need.def, out var gene))
+            {
+                return $"{"ComesFromGene".Translate()}: {gene.LabelCap}";
+            }
+            if (pawn.Ideo != null && pawn.Ideo.EnablesNeed(need.def))
+            {
+                return $"{"ComesFromIdeo".Translate()}: {pawn.Ideo.name.CapitalizeFirst()}";
+            }
+            if (pawn.health != null
+                && pawn.health.hediffSet.TryGetNeedEnablingHediff(need.def, out var hediff))
+            {
+                return $"{"ComesFromHediff".Translate()}: {hediff.LabelCap}";
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Builds a Joy Tolerances sub-node listing each JoyKindDef with its current
+        /// tolerance percentage, tagged "(bored)" when the pawn is bored of that kind.
+        /// Mirrors JoyToleranceSet.TolerancesString (JoyToleranceSet.cs:65).
+        /// </summary>
+        private static void BuildJoyTolerancesSubNode(InspectionTreeItem needItem, Need_Joy joy)
+        {
+            var entries = new List<(string label, float pct, bool bored)>();
+            foreach (var kind in DefDatabase<JoyKindDef>.AllDefsListForReading)
+            {
+                float tol = joy.tolerances[kind];
+                if (tol > 0.01f)
+                {
+                    entries.Add((kind.LabelCap, tol, joy.tolerances.BoredOf(kind)));
+                }
+            }
+
+            if (entries.Count == 0)
+                return;
+
+            int childIndent = needItem.IndentLevel + 1;
+            string header = "JoyTolerances".Translate();
+            var tolerancesItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = header,
+                ExpandedLabel = header,
+                IndentLevel = childIndent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+
+            int grandChildIndent = tolerancesItem.IndentLevel + 1;
+            var entryLabels = new List<string>();
+            foreach (var (label, pct, bored) in entries)
+            {
+                string line = $"{label}: {pct.ToStringPercent()}";
+                if (bored)
+                {
+                    line += $" ({"bored".Translate()})";
+                }
+                entryLabels.Add(line);
+                AddChild(tolerancesItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = line,
+                    IndentLevel = grandChildIndent,
+                    IsExpandable = false
+                });
+            }
+
+            tolerancesItem.Label += $": {string.Join(". ", entryLabels)}";
+            AddChild(needItem, tolerancesItem);
+        }
+
+        /// <summary>
+        /// Adds the current expectation line and (if on a map) the list of joy kinds
+        /// available. Mirrors Need_Joy.GetTipString caravan/map branches.
+        /// </summary>
+        private static void BuildJoyExpectationChildren(InspectionTreeItem needItem, Pawn pawn)
+        {
+            int childIndent = needItem.IndentLevel + 1;
+
+            if (pawn.MapHeld != null)
+            {
+                ExpectationDef expectation = ExpectationsUtility.CurrentExpectationFor(pawn);
+                if (expectation != null)
+                {
+                    string expLine = "CurrentExpectationsAndRecreation".Translate(
+                        expectation.label,
+                        expectation.joyToleranceDropPerDay.ToStringPercent(),
+                        expectation.joyKindsNeeded);
+                    AppendFlattenedLines(needItem, expLine, childIndent);
+                }
+
+                BuildJoyKindsOnMapSubNode(needItem, pawn.MapHeld);
+                return;
+            }
+
+            Caravan caravan = pawn.GetCaravan();
+            if (caravan != null)
+            {
+                float perHour = caravan.needs.GetCurrentJoyGainPerTick(pawn) * 2500f;
+                if (perHour > 0f)
+                {
+                    string line = "GainingJoyBecauseCaravanNotMoving".Translate()
+                        + ": +" + perHour.ToStringPercent()
+                        + "/" + "LetterHour".Translate();
+                    AddChild(needItem, new InspectionTreeItem
+                    {
+                        Type = InspectionTreeItem.ItemType.DetailText,
+                        Label = line,
+                        IndentLevel = childIndent,
+                        IsExpandable = false
+                    });
+                }
+            }
+        }
+
+        /// <summary>
+        /// Adds a sub-node listing recreation kinds that are available on the pawn's
+        /// map. Entries without parentheses are joy kinds that need no object
+        /// (social, solitary relaxation, meditation). Entries with parentheses name
+        /// the specific thing on the map that enables that kind (e.g. "Dexterity
+        /// play (hoopstone ring)"). Joy kinds with no source available on the map
+        /// are omitted entirely. Mirrors JoyUtility.JoyKindsOnMapString.
+        /// </summary>
+        private static void BuildJoyKindsOnMapSubNode(InspectionTreeItem needItem, Verse.Map map)
+        {
+            string raw = JoyUtility.JoyKindsOnMapString(map);
+            if (string.IsNullOrWhiteSpace(raw))
+                return;
+
+            var lines = raw.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            var cleaned = new List<string>();
+            foreach (var line in lines)
+            {
+                string trimmed = line.StripTags().Trim();
+                // Vanilla prefixes each line with "  - "; strip so the bullet doesn't
+                // get read aloud by the screen reader.
+                if (trimmed.StartsWith("- "))
+                    trimmed = trimmed.Substring(2).Trim();
+                if (!string.IsNullOrEmpty(trimmed))
+                    cleaned.Add(trimmed);
+            }
+            if (cleaned.Count == 0)
+                return;
+
+            int childIndent = needItem.IndentLevel + 1;
+            const string header = "Recreation sources on map";
+            var kindsItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = header,
+                ExpandedLabel = header,
+                IndentLevel = childIndent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+
+            int grandChildIndent = kindsItem.IndentLevel + 1;
+            foreach (var line in cleaned)
+            {
+                AddChild(kindsItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = line,
+                    IndentLevel = grandChildIndent,
+                    IsExpandable = false
+                });
+            }
+
+            kindsItem.Label += $": {string.Join(". ", cleaned)}";
+            AddChild(needItem, kindsItem);
+        }
+
+        /// <summary>
+        /// Adds a "Break Thresholds" sub-node to the mood need mirroring the existing
+        /// Mood category's break-threshold structure (Minor / Major / Extreme).
+        /// </summary>
+        private static void BuildMoodBreakThresholdsSubNode(InspectionTreeItem needItem, Pawn pawn)
+        {
+            int childIndent = needItem.IndentLevel + 1;
+            const string header = "Break Thresholds";
+            var thresholdsItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = header,
+                ExpandedLabel = header,
+                Data = pawn,
+                IndentLevel = childIndent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+
+            BuildBreakThresholdsChildren(thresholdsItem, pawn);
+
+            var childLabels = thresholdsItem.Children.Select(c => c.Label).ToList();
+            if (childLabels.Count > 0)
+            {
+                thresholdsItem.Label += $": {string.Join(". ", childLabels)}";
+            }
+
+            AddChild(needItem, thresholdsItem);
+        }
+
+        /// <summary>
+        /// Adds an "Active Learning Desires" sub-node listing each desire with its
+        /// description (Biotech children).
+        /// </summary>
+        private static void BuildActiveLearningDesiresSubNode(InspectionTreeItem needItem, Pawn pawn)
+        {
+            int childIndent = needItem.IndentLevel + 1;
+            const string header = "Active Learning Desires";
+            var desiresItem = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.SubCategory,
+                Label = header,
+                ExpandedLabel = header,
+                IndentLevel = childIndent,
+                IsExpandable = true,
+                IsExpanded = false
+            };
+
+            int grandChildIndent = desiresItem.IndentLevel + 1;
+            var desireLabels = new List<string>();
+            foreach (var desire in pawn.learning.ActiveLearningDesires)
+            {
+                string desireDesc = desire.description ?? "";
+                string line = $"{desire.LabelCap}. {desireDesc}".TrimEnd();
+                desireLabels.Add(line);
+                AddChild(desiresItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = line,
+                    IndentLevel = grandChildIndent,
+                    IsExpandable = false
+                });
+            }
+
+            desiresItem.Label += $": {string.Join(". ", desireLabels)}";
+            AddChild(needItem, desiresItem);
+        }
+
+        /// <summary>
+        /// Splits a multi-line string on \n / \r, adds each non-empty line as a
+        /// DetailText child. Keeps expanded-view navigation per-line while
+        /// letting the parent's summary aggregator flatten them with ". ".
+        /// </summary>
+        private static void AppendFlattenedLines(InspectionTreeItem parent, string text, int indent)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return;
+
+            var lines = text.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var raw in lines)
+            {
+                string line = raw.StripTags().Trim();
+                if (string.IsNullOrEmpty(line))
+                    continue;
+                AddChild(parent, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.DetailText,
+                    Label = line,
                     IndentLevel = indent,
                     IsExpandable = false
                 });
-
-                // After the Learning need, add learning desires with label and description
-                if (need.def == NeedDefOf.Learning && pawn.learning?.ActiveLearningDesires != null)
-                {
-                    foreach (var desire in pawn.learning.ActiveLearningDesires)
-                    {
-                        string desireDesc = desire.description ?? "";
-                        AddChild(parentItem, new InspectionTreeItem
-                        {
-                            Type = InspectionTreeItem.ItemType.DetailText,
-                            Label = $"{desire.LabelCap}. {desireDesc}".TrimEnd(),
-                            IndentLevel = indent + 1,
-                            IsExpandable = false
-                        });
-                    }
-                }
             }
         }
 
@@ -1320,6 +1731,15 @@ namespace RimWorldAccess
             if (mode != InspectionMode.ReadOnly && SocialTabHelper.CanTryRomance(pawn))
             {
                 BuildRomanceMenu(parentItem, pawn);
+            }
+
+            // Banish / Execute - the per-pawn commands vanilla draws on the bio/character card.
+            // Surfaced here (after relations, ideology, and romance) so all per-pawn social actions
+            // live together. Each is independently gated by PawnCommandActionHelper and is unrelated
+            // to the Ideology DLC. Read-only inspection (e.g. caravan formation) omits these.
+            if (mode != InspectionMode.ReadOnly)
+            {
+                PawnCommandActionHelper.AddPawnCommandActions(parentItem, pawn, null);
             }
         }
 
@@ -2503,6 +2923,12 @@ namespace RimWorldAccess
                     };
                     // Build children eagerly so collapsed labels include full content immediately
                     BuildBodyPartHediffChildren(bodyPartItem, pawn, part, partHediffs);
+                    // Fold the subtree into the collapsed label (matching capacities/hediff
+                    // groups) so navigating to — or typeahead-matching — a collapsed body
+                    // part speaks its full content. ExpandedLabel stays the short name.
+                    var partChildLabels = bodyPartItem.Children.Select(c => c.Label).ToList();
+                    if (partChildLabels.Count > 0)
+                        bodyPartItem.Label += $": {string.Join(". ", partChildLabels)}";
                     AddChild(parentItem, bodyPartItem);
                 }
             }
@@ -3003,6 +3429,16 @@ namespace RimWorldAccess
 
                 AddChild(categoryItem, detailItem);
             }
+
+            // Fold the detail lines into the collapsed label (matching body parts / capacities)
+            // so navigating to — or typeahead-matching — this category speaks its full content
+            // (e.g. "Linked Facilities: Provides bonuses. Medical tend quality offset: +7%") and
+            // its content is searchable. ExpandedLabel keeps the short name for the expanded view.
+            if (string.IsNullOrEmpty(categoryItem.ExpandedLabel))
+                categoryItem.ExpandedLabel = categoryItem.Label;
+            var detailLabels = categoryItem.Children.Select(c => c.Label).ToList();
+            if (detailLabels.Count > 0)
+                categoryItem.Label += $": {string.Join(". ", detailLabels)}";
         }
 
         /// <summary>

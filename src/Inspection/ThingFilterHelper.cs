@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Verse;
-using RimWorld;
 
 namespace RimWorldAccess
 {
@@ -177,13 +176,54 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Checks if a special filter is visible given a parent filter.
+        /// Checks if a special filter is visible given a parent filter, matching
+        /// vanilla's Listing_TreeThingFilter.CalculateHiddenSpecialFilters: a
+        /// special filter is hidden when no descendant ThingDef allowed by the
+        /// parent filter can ever be matched by its Worker (e.g. "Allow rotten"
+        /// on the bionic-eye recipe — there's nothing rottable to apply it to).
         /// </summary>
-        public static bool IsVisibleSpecialFilter(SpecialThingFilterDef f, ThingFilter parentFilter)
+        /// <summary>
+        /// Vanilla-matching visibility check for a special filter against a
+        /// containing category and a parent filter, mirroring
+        /// `Listing_TreeThingFilter.Visible(SpecialThingFilterDef, TreeNode_ThingCategory)`
+        /// + `CalculateHiddenSpecialFilters`. The current filter is also passed
+        /// because vanilla short-circuits to "visible" when
+        /// `filter.OnlySpecialFilters` is true.
+        /// </summary>
+        public static bool IsVisibleSpecialFilter(SpecialThingFilterDef f, TreeNode_ThingCategory node,
+            ThingFilter currentFilter, ThingFilter parentFilter)
         {
             if (parentFilter != null && !parentFilter.Allows(f))
                 return false;
-            return true;
+            if (currentFilter != null && currentFilter.OnlySpecialFilters)
+                return true;
+            if (parentFilter != null && parentFilter.hiddenSpecialFilters != null
+                && parentFilter.hiddenSpecialFilters.Contains(f))
+                return false;
+            if (f.Worker == null || node == null)
+                return true;
+
+            // For each descendant ThingDef of the current category, ask the
+            // worker if it could ever match. Restrict to defs the parent
+            // filter actually allows — same scoping vanilla uses.
+            foreach (ThingDef td in node.catDef.DescendantThingDefs)
+            {
+                if (parentFilter != null && !parentFilter.Allows(td))
+                    continue;
+                if (f.Worker.CanEverMatch(td))
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Backwards-compatible overload. Resolves the category to the parent
+        /// filter's DisplayRootCategory (or null when no parent filter).
+        /// </summary>
+        public static bool IsVisibleSpecialFilter(SpecialThingFilterDef f, ThingFilter parentFilter)
+        {
+            var node = parentFilter?.DisplayRootCategory;
+            return IsVisibleSpecialFilter(f, node, currentFilter: null, parentFilter);
         }
     }
 }

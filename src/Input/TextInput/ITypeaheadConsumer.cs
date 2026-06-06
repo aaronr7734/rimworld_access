@@ -18,12 +18,23 @@ namespace RimWorldAccess
         public Action<char> HandleChar { get; }
         public Action HandleBackspace { get; }
 
-        public TypeaheadConsumer(double priority, Func<bool> isActive, Action<char> handleChar, Action handleBackspace = null)
+        /// <summary>
+        /// When false, digit characters (0-9) are not routed to this consumer. Used by menus
+        /// where the number row is an action shortcut rather than search text — e.g. the work
+        /// menu (0-4 set priority), the schedule menu (1-9/0 pick a brush), and the assign
+        /// table (whose rows are pawn names, never digits). Without this, Unity's follow-up
+        /// character event for the digit keypress would land in the menu's typeahead buffer
+        /// even as the digit's KeyCode event performs its action. Letters still pass through.
+        /// </summary>
+        public bool AcceptsDigits { get; }
+
+        public TypeaheadConsumer(double priority, Func<bool> isActive, Action<char> handleChar, Action handleBackspace = null, bool acceptsDigits = true)
         {
             Priority = priority;
             IsActive = isActive ?? throw new ArgumentNullException(nameof(isActive));
             HandleChar = handleChar ?? throw new ArgumentNullException(nameof(handleChar));
             HandleBackspace = handleBackspace;
+            AcceptsDigits = acceptsDigits;
         }
     }
 
@@ -51,9 +62,9 @@ namespace RimWorldAccess
             Consumers.Sort((a, b) => a.Priority.CompareTo(b.Priority));
         }
 
-        public static TypeaheadConsumer Register(double priority, Func<bool> isActive, Action<char> handleChar, Action handleBackspace = null)
+        public static TypeaheadConsumer Register(double priority, Func<bool> isActive, Action<char> handleChar, Action handleBackspace = null, bool acceptsDigits = true)
         {
-            var c = new TypeaheadConsumer(priority, isActive, handleChar, handleBackspace);
+            var c = new TypeaheadConsumer(priority, isActive, handleChar, handleBackspace, acceptsDigits);
             Register(c);
             return c;
         }
@@ -110,14 +121,22 @@ namespace RimWorldAccess
         {
             PollActivations();
             if (Time.frameCount == suppressedFrame) return false;
-            if (!char.IsLetter(c) && !char.IsDigit(c)) return false;
+            bool isDigit = char.IsDigit(c);
+            if (!char.IsLetter(c) && !isDigit) return false;
             for (int i = 0; i < Consumers.Count; i++)
             {
-                if (Consumers[i].IsActive())
-                {
-                    Consumers[i].HandleChar(c);
-                    return true;
-                }
+                if (!Consumers[i].IsActive()) continue;
+
+                // The first active consumer is the one that owns input (menus are modal, so
+                // IsActive is mutually exclusive in practice). If it doesn't accept digits,
+                // swallow the digit here rather than letting it fall through to a lower-priority
+                // consumer — the active menu has claimed this keypress for its own number-key
+                // action and never wants it as search text.
+                if (isDigit && !Consumers[i].AcceptsDigits)
+                    return false;
+
+                Consumers[i].HandleChar(c);
+                return true;
             }
             return false;
         }

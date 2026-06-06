@@ -139,9 +139,32 @@ namespace RimWorldAccess
             if (planner == null || !planner.Active)
                 return;
 
+            // Capture before Stop(): stopping the planner fires Notify_NoLongerChoosingRoute, which
+            // resets CaravanFormationState (clearing the colony-origin reference).
+            Map colonyOrigin = CaravanFormationState.RouteChoiceOriginMap;
+
             planner.Stop();
             ResetRouteTracking();
-            TolkHelper.Speak("RimWorldAccess.Route.Closed".Loc(), SpeechPriority.Normal);
+
+            if (colonyOrigin != null)
+            {
+                // The route choice was started from a colony building gizmo (e.g. hitching spot).
+                // Cancelling returns the player to that colony map rather than stranding them on
+                // the world map.
+                if (WorldNavigationState.IsActive)
+                {
+                    WorldNavigationState.Close();
+                }
+                CameraJumper.TryHideWorld();
+                if (Find.Maps.Contains(colonyOrigin))
+                {
+                    Current.Game.CurrentMap = colonyOrigin;
+                }
+                TolkHelper.Speak("Caravan formation cancelled", SpeechPriority.Normal);
+                return;
+            }
+
+            TolkHelper.Speak("Route planner closed", SpeechPriority.Normal);
         }
 
         /// <summary>
@@ -393,7 +416,7 @@ namespace RimWorldAccess
                 {
                     // SAFETY CHECK: Verify the dialog's map still exists before trying to reopen
                     // This prevents soft locks when:
-                    // 1. User reformed a caravan (Shift+C) - map was removed after TryReformCaravan
+                    // 1. User reformed a caravan (C) - map was removed after TryReformCaravan
                     // 2. Route planner wasn't properly stopped (game bug - PostOpen starts it for ALL dialogs)
                     // 3. User presses Enter on world map, we try to reopen a stale dialog
                     var mapField = HarmonyLib.AccessTools.Field(typeof(Dialog_FormCaravan), "map");
@@ -409,8 +432,11 @@ namespace RimWorldAccess
                         return;
                     }
 
-                    Find.WindowStack.Add(dialog);
+                    // Set the destination BEFORE re-adding the dialog so its reopen PostOpen sees a
+                    // valid destinationTile. CaravanFormationPatch.ShouldChooseRouteFirst relies on
+                    // this to distinguish "reopening with a route" from "first open, needs a route".
                     dialog.Notify_ChoseRoute(destination);
+                    Find.WindowStack.Add(dialog);
                     planner.Stop();
                 }
                 else

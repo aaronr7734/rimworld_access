@@ -220,6 +220,13 @@ namespace RimWorldAccess
             if (menuItems == null || menuItems.Count == 0)
                 return;
 
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                selectedIndex = typeahead.GetFirstMatch();
+                AnnounceWithSearch();
+                return;
+            }
+
             selectedIndex = MenuHelper.JumpToFirst();
             typeahead.ClearSearch();
             AnnounceCurrentSelection();
@@ -232,6 +239,13 @@ namespace RimWorldAccess
         {
             if (menuItems == null || menuItems.Count == 0)
                 return;
+
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                selectedIndex = typeahead.GetLastMatch();
+                AnnounceWithSearch();
+                return;
+            }
 
             selectedIndex = MenuHelper.JumpToLast(menuItems.Count);
             typeahead.ClearSearch();
@@ -834,10 +848,29 @@ namespace RimWorldAccess
                 descriptions.Add(recipe.workSkill.LabelCap.ToString());
             }
 
+            // Append the produced thing's full description so screen reader users
+            // hear the same flavor text and stat write-up sighted players get from
+            // the tooltip / info card.
+            string productDescription = GetProductFullDescription(recipe);
+            if (!string.IsNullOrEmpty(productDescription))
+                descriptions.Add(productDescription);
+
             if (descriptions.Count == 0)
                 return "";
 
             return string.Join(", ", descriptions);
+        }
+
+        /// <summary>
+        /// Resolves the "produced thing" of a recipe and returns its
+        /// DescriptionDetailed (covers stat offsets, layer/cover info, etc.).
+        /// </summary>
+        private static string GetProductFullDescription(RecipeDef recipe)
+        {
+            ThingDef produced = recipe?.ProducedThingDef;
+            if (produced == null && recipe?.products != null && recipe.products.Count > 0)
+                produced = recipe.products[0].thingDef;
+            return produced?.DescriptionDetailed?.Trim();
         }
 
         /// <summary>
@@ -919,6 +952,11 @@ namespace RimWorldAccess
             {
                 descriptions.Add(bill.recipe.workSkill.LabelCap.ToString());
             }
+
+            // Same product description appended to bill rows as to recipe rows.
+            string productDescription = GetProductFullDescription(bill.recipe);
+            if (!string.IsNullOrEmpty(productDescription))
+                descriptions.Add(productDescription);
 
             if (descriptions.Count == 0)
                 return "";

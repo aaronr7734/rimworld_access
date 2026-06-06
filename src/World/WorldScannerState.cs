@@ -199,12 +199,51 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Calculates distance from origin tile to this item (or a specific instance).
+        /// Gets all member tile ids for a region/segment instance, or null for single-tile items
+        /// (settlements, caravans, landmarks). Backs the shared closest-tile logic.
+        /// </summary>
+        internal int[] GetMemberTileIdsAtInstance(int instanceIndex)
+        {
+            if (BiomeRegions != null && instanceIndex >= 0 && instanceIndex < BiomeRegions.Count)
+                return BiomeRegions[instanceIndex].TileIds;
+            if (RoadSegments != null && instanceIndex >= 0 && instanceIndex < RoadSegments.Count)
+                return RoadSegments[instanceIndex].TileIds;
+            return null;
+        }
+
+        /// <summary>
+        /// Approximate tile distance from <paramref name="from"/> to the nearest of a set of tile
+        /// ids (0 when <paramref name="from"/> is itself in the set). Returns
+        /// <see cref="float.MaxValue"/> for an empty/null set.
+        /// </summary>
+        internal static float NearestTileDistance(int[] tileIds, PlanetTile from)
+        {
+            if (tileIds == null || tileIds.Length == 0 || !from.Valid || Find.WorldGrid == null)
+                return float.MaxValue;
+
+            float min = float.MaxValue;
+            foreach (int t in tileIds)
+            {
+                if (t == from.tileId) return 0f;
+                float d = Find.WorldGrid.ApproxDistanceInTiles(from, new PlanetTile(t, -1));
+                if (d < min) min = d;
+            }
+            return min;
+        }
+
+        /// <summary>
+        /// Distance from <paramref name="fromTile"/> to a specific instance: for a region/segment
+        /// it is the distance to that instance's nearest tile (so a patch reports how far its
+        /// closest edge is); for a single-tile item it is the distance to that tile.
         /// </summary>
         public float GetDistance(PlanetTile fromTile, int instanceIndex = 0)
         {
             if (!fromTile.Valid || Find.WorldGrid == null)
                 return 0f;
+
+            int[] members = GetMemberTileIdsAtInstance(instanceIndex);
+            if (members != null && members.Length > 0)
+                return NearestTileDistance(members, fromTile);
 
             PlanetTile targetTile = GetTileAtInstance(instanceIndex);
             if (!targetTile.Valid)
@@ -214,11 +253,89 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// The item's distance from <paramref name="from"/>: the nearest tile across ALL of its
+        /// regions/segments (or its single tile). Used to order items so a biome you are standing
+        /// on sorts ahead of a distant patch whose center merely happens to be closer.
+        /// </summary>
+        public float NearestDistance(PlanetTile from)
+        {
+            if (!from.Valid || Find.WorldGrid == null)
+                return 0f;
+
+            if (BiomeRegions != null || RoadSegments != null)
+            {
+                float best = float.MaxValue;
+                int count = InstanceCount;
+                for (int i = 0; i < count; i++)
+                {
+                    float d = NearestTileDistance(GetMemberTileIdsAtInstance(i), from);
+                    if (d < best) best = d;
+                }
+                return best == float.MaxValue ? 0f : best;
+            }
+
+            PlanetTile tile = GetTileAtInstance(0);
+            return tile.Valid ? Find.WorldGrid.ApproxDistanceInTiles(from, tile) : 0f;
+        }
+
+        /// <summary>
+        /// Live proximity rank (1-based) of an instance among this item's regions/segments: how near
+        /// THIS instance's closest tile is to <paramref name="from"/>, compared to every sibling
+        /// instance. The nearest instance is always rank 1, the second-nearest rank 2, and so on.
+        ///
+        /// Computed on the fly so the underlying instance list keeps its stable build-time order
+        /// (navigation relies on it not shifting under the user), while the announced "Region N of M"
+        /// still reflects the player's current position. Equal distances are broken by instance index
+        /// so the ranks form a stable, gap-free sequence.
+        /// </summary>
+        public int InstanceRank(PlanetTile from, int instanceIndex)
+        {
+            int count = InstanceCount;
+            if (count <= 1 || instanceIndex < 0 || instanceIndex >= count || !from.Valid)
+                return instanceIndex + 1;
+
+            float targetDist = NearestTileDistance(GetMemberTileIdsAtInstance(instanceIndex), from);
+            int rank = 1;
+            for (int i = 0; i < count; i++)
+            {
+                if (i == instanceIndex) continue;
+                float d = NearestTileDistance(GetMemberTileIdsAtInstance(i), from);
+                if (d < targetDist || (d == targetDist && i < instanceIndex))
+                    rank++;
+            }
+            return rank;
+        }
+
+        /// <summary>
+        /// Re-orders this item's instances (biome regions or road/river segments) nearest-first by
+        /// each instance's closest tile to <paramref name="from"/>. Keeps within-item navigation
+        /// ("Region 1, 2, 3...") and the announced "Region N of M" aligned with live proximity,
+        /// matching the item list's own distance sort. No-op for single-instance items.
+        /// </summary>
+        public void SortInstancesByDistance(PlanetTile from)
+        {
+            if (!from.Valid) return;
+            if (BiomeRegions != null && BiomeRegions.Count > 1)
+                BiomeRegions = BiomeRegions.OrderBy(r => NearestTileDistance(r.TileIds, from)).ToList();
+            else if (RoadSegments != null && RoadSegments.Count > 1)
+                RoadSegments = RoadSegments.OrderBy(s => NearestTileDistance(s.TileIds, from)).ToList();
+        }
+
+        /// <summary>
         /// Gets the compass direction from the origin tile to this item.
         /// </summary>
         public string GetDirectionFrom(PlanetTile fromTile, int instanceIndex = 0)
         {
-            PlanetTile targetTile = GetTileAtInstance(instanceIndex);
+            return GetDirectionFromTile(fromTile, GetTileAtInstance(instanceIndex));
+        }
+
+        /// <summary>
+        /// Compass (or pole-relative) direction from <paramref name="fromTile"/> to an explicit
+        /// <paramref name="targetTile"/>. Shared by the instance-based <see cref="GetDirectionFrom"/>
+        /// and the closest-tile announcements that point at a region's nearest edge tile.
+        /// </summary>
+        public string GetDirectionFromTile(PlanetTile fromTile, PlanetTile targetTile)
+        {
             if (!fromTile.Valid || !targetTile.Valid || Find.WorldGrid == null)
                 return "";
 
@@ -319,10 +436,10 @@ namespace RimWorldAccess
 
     /// <summary>
     /// Scanner for world map objects with 4-level navigation.
-    /// - Ctrl+PageUp/Down: Categories (Settlements, Quest Sites, Caravans, Biomes, Roads)
-    /// - Shift+PageUp/Down: Subcategories (e.g., Player/Allied/Neutral/Hostile settlements)
+    /// - Ctrl+PageUp/Down: Categories (Settlements, Quest Sites, Caravans, Biomes, Roads and rivers)
+    /// - Shift+PageUp/Down: Subcategories (e.g., Player/Allied/Neutral/Hostile settlements, All/Roads/Rivers)
     /// - PageUp/Down: Item types within subcategory
-    /// - Alt+PageUp/Down: Instances of same type (biome regions, road segments)
+    /// - Alt+PageUp/Down: Instances of same type (biome regions, road/river segments)
     /// </summary>
     public static class WorldScannerState
     {
@@ -333,9 +450,10 @@ namespace RimWorldAccess
         private static int currentInstanceIndex = 0;
         private static bool autoJumpMode = false;
 
-        // Cache for expensive biome/road calculations
+        // Cache for expensive biome/road/river calculations
         private static Dictionary<string, List<BiomeRegion>> cachedBiomeRegions = null;
         private static Dictionary<string, List<RoadSegment>> cachedRoadSegments = null;
+        private static Dictionary<string, List<RoadSegment>> cachedRiverSegments = null;
         private static PlanetTile lastCacheOrigin = PlanetTile.Invalid;
 
         // Cache for full category list (count-based invalidation)
@@ -355,6 +473,73 @@ namespace RimWorldAccess
         // Temporary category tracking
         private static WorldScannerCategory temporaryCategory = null;
 
+        // Navigation session: within a Page Up/Down sequence the sort order and announce
+        // distance cache are frozen. A session ends when the origin tile is written by
+        // something other than our own auto-jump, when the category/subcategory changes,
+        // when map state changes (cache miss), or when the scanner closes.
+        private static bool navSessionActive = false;
+        private static PlanetTile lastScannerOriginTile = PlanetTile.Invalid;
+        private static bool scannerDrivenJumpInProgress = false;
+
+        // Traversal-distance memo keyed by (origin tile id, target tile id). Flushed whenever
+        // the navigation session is invalidated. Values are capped (see ANNOUNCE_TRAVERSAL_CAP).
+        private const int ANNOUNCE_TRAVERSAL_CAP = 100;
+        private static readonly Dictionary<long, float> traversalDistanceMemo = new Dictionary<long, float>();
+
+        // Cheap geometric metric used by the shared closest-tile logic to pick a region's nearest
+        // member tile to the cursor. The announced *traversal* distance still uses the capped /
+        // memoized pathfind; this only ranks candidate member tiles.
+        private static readonly Func<int, int, float> WorldTileMetric =
+            (a, b) => Find.WorldGrid.ApproxDistanceInTiles(new PlanetTile(a, -1), new PlanetTile(b, -1));
+
+        // Guards against the two world keyboard routes (UnifiedKeyboardPatch + WorldNavigationPatch)
+        // both delivering a manual Home in the same frame. Was harmless before the closest-tile
+        // feature (center+center is idempotent); now a double fire would read as nearest-then-center.
+        private static int lastManualJumpFrame = -1;
+
+        private static bool InLaunchMode =>
+            TransportPodLaunchState.IsActive || GravshipDestinationState.IsActive;
+
+        /// <summary>
+        /// The member tiles the closest-tile feature may target for a region instance. Outside
+        /// launch mode that is every tile of the region. During launch targeting it is only the
+        /// tiles actually reachable from the launch origin, so Home and the announced distance /
+        /// fuel never point at a tile you cannot launch to. Returns an empty array when no member
+        /// is reachable (callers then fall back to the reachable center tile FilterToReachableItems
+        /// guarantees), and null for single-tile items (settlements, caravans, landmarks).
+        /// </summary>
+        private static int[] FeatureMemberTiles(WorldScannerItem item, int instanceIndex)
+        {
+            int[] members = item.GetMemberTileIdsAtInstance(instanceIndex);
+            if (members == null || members.Length == 0 || !InLaunchMode)
+                return members;
+
+            bool podLaunch = TransportPodLaunchState.IsActive;
+            return members.Where(t => IsTileReachable(new PlanetTile(t, -1), podLaunch)).ToArray();
+        }
+
+        /// <summary>
+        /// The instance (region/segment) whose nearest tile is closest to <paramref name="origin"/>
+        /// — the world equivalent of the local scanner's FindNearestRegionIndex. This is the region
+        /// the item-level announcement describes, so standing on a large patch reports that patch
+        /// (distance 0) rather than a distant region whose center merely sits closer. Uses the
+        /// reachable tiles during a launch.
+        /// </summary>
+        private static int NearestInstanceIndex(WorldScannerItem item, PlanetTile origin)
+        {
+            if (item == null || !item.HasInstances) return 0;
+
+            int best = 0;
+            float bestDist = float.MaxValue;
+            int count = item.InstanceCount;
+            for (int i = 0; i < count; i++)
+            {
+                float d = WorldScannerItem.NearestTileDistance(FeatureMemberTiles(item, i), origin);
+                if (d < bestDist) { bestDist = d; best = i; }
+            }
+            return best;
+        }
+
         /// <summary>
         /// Toggles auto-jump mode on/off.
         /// </summary>
@@ -364,6 +549,84 @@ namespace RimWorldAccess
             TolkHelper.Speak(autoJumpMode
                 ? "RimWorldAccess.WorldScanner.AutoJumpEnabled".Loc()
                 : "RimWorldAccess.WorldScanner.AutoJumpDisabled".Loc(), SpeechPriority.High);
+        }
+
+        /// <summary>
+        /// Ends the current navigation session. The traversal-distance memo is flushed so
+        /// subsequent announcements recompute against the new origin.
+        /// </summary>
+        public static void InvalidateNavigationSession()
+        {
+            navSessionActive = false;
+            lastScannerOriginTile = PlanetTile.Invalid;
+            traversalDistanceMemo.Clear();
+        }
+
+        /// <summary>
+        /// Called by WorldNavigationState.CurrentSelectedTile setter on every origin write.
+        /// Scanner-driven writes (JumpToCurrent) set scannerDrivenJumpInProgress, so external
+        /// writes (arrow keys, bookmark jumps, settlement browser, quest notification, etc.)
+        /// are what actually invalidate the session.
+        /// </summary>
+        public static void NotifyOriginWritten()
+        {
+            if (!scannerDrivenJumpInProgress)
+                InvalidateNavigationSession();
+        }
+
+        /// <summary>
+        /// Starts a fresh navigation session anchored to the current origin tile. Called
+        /// implicitly on the first Page Up/Down of a sequence.
+        /// </summary>
+        private static void BeginNavigationSession()
+        {
+            navSessionActive = true;
+            lastScannerOriginTile = WorldNavigationState.CurrentSelectedTile;
+            traversalDistanceMemo.Clear();
+        }
+
+        /// <summary>
+        /// Returns the traversal distance used for the announced distance. Capped at
+        /// ANNOUNCE_TRAVERSAL_CAP (currently 100) so the pathfind terminates quickly even
+        /// for far targets; memoized per (origin, target) within a session so rapid Page
+        /// Up/Down over the same items does not repeatedly pathfind.
+        ///
+        /// `wasCapped` is true when the pathfind hit the cap, meaning the target is farther
+        /// than the cap in traversal terms. Callers announce "over N tiles" in that case.
+        /// Fuel and launch-range calculations are untouched by this cap — TransportPods and
+        /// gravships do their own unbounded traversal against the target tile directly.
+        /// </summary>
+        private static float GetAnnouncementTraversalDistance(PlanetTile origin, PlanetTile target, out bool wasCapped)
+        {
+            wasCapped = false;
+            if (!origin.Valid || !target.Valid)
+                return 0f;
+
+            long key = ((long)origin.tileId << 32) ^ (uint)target.tileId;
+            if (traversalDistanceMemo.TryGetValue(key, out float cached))
+            {
+                wasCapped = cached >= ANNOUNCE_TRAVERSAL_CAP;
+                return cached;
+            }
+
+            // maxDist is a float in RimWorld's API. Values >= ANNOUNCE_TRAVERSAL_CAP indicate
+            // the pathfind hit the cap, which we treat as "over cap".
+            float result = Find.WorldGrid.TraversalDistanceBetween(
+                origin, target,
+                passImpassable: true,
+                maxDist: ANNOUNCE_TRAVERSAL_CAP,
+                canTraverseLayers: true);
+
+            // Some RimWorld paths return float.MaxValue on "unreachable within cap" — normalize
+            // to the cap so the caller always gets a sane number to compare/announce.
+            if (result >= ANNOUNCE_TRAVERSAL_CAP || float.IsInfinity(result) || float.IsNaN(result))
+            {
+                result = ANNOUNCE_TRAVERSAL_CAP;
+                wasCapped = true;
+            }
+
+            traversalDistanceMemo[key] = result;
+            return result;
         }
 
         /// <summary>
@@ -427,6 +690,9 @@ namespace RimWorldAccess
             currentSubcategoryIndex = 0;
             currentItemIndex = 0;
             currentInstanceIndex = 0;
+
+            // Search results are a different subcategory context — end any in-progress session.
+            InvalidateNavigationSession();
         }
 
         /// <summary>
@@ -439,6 +705,7 @@ namespace RimWorldAccess
             {
                 categories.Remove(temporaryCategory);
                 temporaryCategory = null;
+                InvalidateNavigationSession();
             }
         }
 
@@ -450,6 +717,26 @@ namespace RimWorldAccess
             return temporaryCategory != null && currentCategoryIndex >= 0 && currentCategoryIndex < categories.Count &&
                    categories[currentCategoryIndex] == temporaryCategory;
         }
+
+        /// <summary>
+        /// Ordered registry of world scanner category builders, in display order. Each builder
+        /// takes the current origin tile and returns a (possibly empty) category. RefreshItems
+        /// iterates this list and drops empties, so adding or reordering a category is a one-line
+        /// change here — the world analog of the local scanner's ScannerCategorySchemas, and the
+        /// hook future custom / reorderable categories will plug into.
+        /// </summary>
+        private static readonly List<Func<PlanetTile, WorldScannerCategory>> CategoryBuilders =
+            new List<Func<PlanetTile, WorldScannerCategory>>
+            {
+                CreateWaypointsCategory,
+                CreateSettlementsCategory,
+                CreateQuestSitesCategory,
+                CreateCaravansCategory,
+                CreateOtherSitesCategory,
+                CreateLandmarksCategory,
+                CreateBiomesCategory,
+                CreateRoadsAndRiversCategory,
+            };
 
         /// <summary>
         /// Refreshes the world scanner categories and items.
@@ -486,6 +773,10 @@ namespace RimWorldAccess
                 categories = inLaunchMode
                     ? DeepCopyCategories(cachedCategories)
                     : new List<WorldScannerCategory>(cachedCategories);
+                // The cached list does not include the active search / temporary category —
+                // re-attach it so Page Up/Down still finds search results after a refresh.
+                if (temporaryCategory != null && !categories.Contains(temporaryCategory))
+                    categories.Add(temporaryCategory);
                 FilterToReachableItems(originTile);
                 ValidateIndices();
                 return;
@@ -493,42 +784,17 @@ namespace RimWorldAccess
 
             categories.Clear();
 
-            // Category 0: Route Waypoints (only when route planner is active)
-            if (Find.WorldRoutePlanner != null && Find.WorldRoutePlanner.Active && Find.WorldRoutePlanner.waypoints.Count > 0)
+            // Build every category from the ordered registry. Each builder returns its category
+            // (empty when it has no items on this origin — e.g. Route Waypoints when no route is
+            // planned, Landmarks without the Odyssey DLC); empty categories are dropped so they
+            // never appear in the Ctrl+PageUp/Down cycle. Adding/reordering a category is a one-
+            // line change in CategoryBuilders. Space/orbital objects fold into the categories above.
+            foreach (var build in CategoryBuilders)
             {
-                var waypointsCategory = CreateWaypointsCategory(originTile);
-                if (!waypointsCategory.IsEmpty) categories.Add(waypointsCategory);
+                var category = build(originTile);
+                if (category != null && !category.IsEmpty)
+                    categories.Add(category);
             }
-
-            // Category 1: Settlements (with faction subcategories)
-            var settlementsCategory = CreateSettlementsCategory(originTile);
-            if (!settlementsCategory.IsEmpty) categories.Add(settlementsCategory);
-
-            // Category 2: Quest Sites
-            var questSitesCategory = CreateQuestSitesCategory(originTile);
-            if (!questSitesCategory.IsEmpty) categories.Add(questSitesCategory);
-
-            // Category 3: Caravans
-            var caravansCategory = CreateCaravansCategory(originTile);
-            if (!caravansCategory.IsEmpty) categories.Add(caravansCategory);
-
-            // Category 4: Other Sites
-            var otherSitesCategory = CreateOtherSitesCategory(originTile);
-            if (!otherSitesCategory.IsEmpty) categories.Add(otherSitesCategory);
-
-            // Category 5: Landmarks (Odyssey DLC)
-            var landmarksCategory = CreateLandmarksCategory(originTile);
-            if (!landmarksCategory.IsEmpty) categories.Add(landmarksCategory);
-
-            // Category 6: Biomes (lazy-loaded when accessed)
-            var biomesCategory = CreateBiomesCategory(originTile);
-            if (!biomesCategory.IsEmpty) categories.Add(biomesCategory);
-
-            // Category 6: Roads
-            var roadsCategory = CreateRoadsCategory(originTile);
-            if (!roadsCategory.IsEmpty) categories.Add(roadsCategory);
-
-            // Note: Space/orbital objects are now included in their proper categories above
 
             if (categories.Count == 0)
             {
@@ -546,6 +812,15 @@ namespace RimWorldAccess
                 lastQuestCount = currentQuests;
                 lastWaypointCount = currentWaypoints;
             }
+
+            // Re-attach the active search / temporary category after the rebuild. We cleared
+            // `categories` at the top of this path, so the temp would otherwise be lost.
+            if (temporaryCategory != null && !categories.Contains(temporaryCategory))
+                categories.Add(temporaryCategory);
+
+            // Map state changed (cache miss) — any in-progress navigation snapshot is stale.
+            // Caravan dissolved, quest expired, trader arrived, etc.
+            InvalidateNavigationSession();
 
             // Apply range filter for launch mode (after caching full data)
             // Deep-copy first so filtering doesn't corrupt the cache
@@ -736,6 +1011,11 @@ namespace RimWorldAccess
         /// <summary>
         /// Collects all world scanner items from all categories into a flat list.
         /// Used by ScannerSearchState for Z search to match against biomes, roads, settlements, etc.
+        /// Deduplicates by underlying identity rather than item reference. Some categories share
+        /// references between "All" and specialized subcategories (Settlements), which ref-dedup
+        /// could handle — but Landmarks create distinct WorldScannerItem instances with different
+        /// labels ("name, type" in All vs. just "name" in the type subcategory), so a ref-based
+        /// dedup would miss those and every landmark would appear twice in search.
         /// </summary>
         public static List<WorldScannerItem> CollectAllItemsFlat()
         {
@@ -745,6 +1025,13 @@ namespace RimWorldAccess
 
             var source = cachedCategories ?? categories;
             var allItems = new List<WorldScannerItem>();
+
+            var seenWorldObjects = new HashSet<WorldObject>();
+            var seenTiles = new HashSet<PlanetTile>();
+            var seenBiomes = new HashSet<string>();
+            var seenRoads = new HashSet<string>();
+            var seenRefs = new HashSet<WorldScannerItem>();
+
             foreach (var category in source)
             {
                 // Skip temporary search category to avoid including old search results
@@ -753,10 +1040,40 @@ namespace RimWorldAccess
 
                 foreach (var subcat in category.Subcategories)
                 {
-                    allItems.AddRange(subcat.Items);
+                    foreach (var item in subcat.Items)
+                    {
+                        if (IsDuplicateWorldItem(item, seenWorldObjects, seenTiles, seenBiomes, seenRoads, seenRefs))
+                            continue;
+                        allItems.Add(item);
+                    }
                 }
             }
             return allItems;
+        }
+
+        /// <summary>
+        /// Returns true when this item's underlying identity has already been seen.
+        /// Identity precedence: WorldObject &gt; biome label &gt; road label &gt; tile &gt; item ref.
+        /// Landmark items have no WorldObject and are keyed by Tile, which correctly matches
+        /// a landmark's "name, type" All-subcategory copy against its "name"-only type-subcategory copy.
+        /// </summary>
+        private static bool IsDuplicateWorldItem(
+            WorldScannerItem item,
+            HashSet<WorldObject> seenWorldObjects,
+            HashSet<PlanetTile> seenTiles,
+            HashSet<string> seenBiomes,
+            HashSet<string> seenRoads,
+            HashSet<WorldScannerItem> seenRefs)
+        {
+            if (item.WorldObject != null)
+                return !seenWorldObjects.Add(item.WorldObject);
+            if (item.BiomeRegions != null)
+                return !seenBiomes.Add(item.Label ?? "");
+            if (item.RoadSegments != null)
+                return !seenRoads.Add(item.Label ?? "");
+            if (item.Tile.Valid)
+                return !seenTiles.Add(item.Tile);
+            return !seenRefs.Add(item);
         }
 
         #region Category Creators
@@ -1029,23 +1346,63 @@ namespace RimWorldAccess
             return category;
         }
 
-        private static WorldScannerCategory CreateRoadsCategory(PlanetTile originTile)
+        private static WorldScannerCategory CreateRoadsAndRiversCategory(PlanetTile originTile)
         {
-            var category = new WorldScannerCategory("RimWorldAccess.WorldScanner.Cat.Roads".Translate());
-            var subcat = new WorldScannerSubcategory("RimWorldAccess.WorldScanner.Sub.AllRoads".Translate());
+            var category = new WorldScannerCategory("Roads and rivers");
 
-            // Check if we need to rebuild the cache
-            if (cachedRoadSegments == null || !lastCacheOrigin.Valid ||
-                Find.WorldGrid.ApproxDistanceInTiles(lastCacheOrigin, originTile) > 50)
-            {
+            // Check if we need to rebuild the caches (lastCacheOrigin is set by biome collection)
+            bool cacheStale = !lastCacheOrigin.Valid ||
+                Find.WorldGrid.ApproxDistanceInTiles(lastCacheOrigin, originTile) > 50;
+            if (cachedRoadSegments == null || cacheStale)
                 cachedRoadSegments = CollectRoadSegments(originTile);
-                // lastCacheOrigin already set by biome collection
+            if (cachedRiverSegments == null || cacheStale)
+                cachedRiverSegments = CollectRiverSegments(originTile);
+
+            var roadItems = BuildSegmentItems(cachedRoadSegments, originTile);
+            var riverItems = BuildSegmentItems(cachedRiverSegments, originTile);
+
+            // When both kinds are present, lead with a combined "All" list;
+            // with only one kind "All" would just duplicate it. "Roads" and
+            // "Rivers" split them out. Each subcategory is added only if it
+            // has items.
+            if (roadItems.Count > 0 && riverItems.Count > 0)
+            {
+                var allItems = new List<WorldScannerItem>(roadItems.Count + riverItems.Count);
+                allItems.AddRange(roadItems);
+                allItems.AddRange(riverItems);
+                SortItemsByDistance(allItems, originTile);
+                AddSubcategoryIfAny(category, "All", allItems);
             }
 
-            var roadItems = new List<WorldScannerItem>();
-            foreach (var kvp in cachedRoadSegments)
+            AddSubcategoryIfAny(category, "Roads", roadItems);
+            AddSubcategoryIfAny(category, "Rivers", riverItems);
+
+            return category;
+        }
+
+        private static void AddSubcategoryIfAny(
+            WorldScannerCategory category, string name, List<WorldScannerItem> items)
+        {
+            if (items == null || items.Count == 0) return;
+            var subcat = new WorldScannerSubcategory(name);
+            subcat.Items.AddRange(items);
+            category.Subcategories.Add(subcat);
+        }
+
+        /// <summary>
+        /// Builds scanner items (one per feature type) from collected segments,
+        /// updating per-segment distances and sorting both segments and items by
+        /// distance from the origin. Shared by roads and rivers.
+        /// </summary>
+        private static List<WorldScannerItem> BuildSegmentItems(
+            Dictionary<string, List<RoadSegment>> segmentsByType, PlanetTile originTile)
+        {
+            var items = new List<WorldScannerItem>();
+            if (segmentsByType == null) return items;
+
+            foreach (var kvp in segmentsByType)
             {
-                string roadName = kvp.Key;
+                string name = kvp.Key;
                 var segments = kvp.Value;
 
                 if (segments.Count == 0) continue;
@@ -1058,15 +1415,11 @@ namespace RimWorldAccess
 
                 segments.Sort((a, b) => a.Distance.CompareTo(b.Distance));
 
-                var item = new WorldScannerItem(roadName, segments);
-                roadItems.Add(item);
+                items.Add(new WorldScannerItem(name, segments));
             }
 
-            SortItemsByDistance(roadItems, originTile);
-
-            subcat.Items.AddRange(roadItems);
-            category.Subcategories.Add(subcat);
-            return category;
+            SortItemsByDistance(items, originTile);
+            return items;
         }
 
         private static WorldScannerCategory CreateLandmarksCategory(PlanetTile originTile)
@@ -1211,7 +1564,7 @@ namespace RimWorldAccess
                 {
                     int startTile = 0;
                     foreach (int t in biomeTiles) { startTile = t; break; }
-                    var regionTiles = FloodFillRegion(startTile, biomeTiles);
+                    var regionTiles = Clump.Fill(startTile, biomeTiles, WorldTileNeighbors);
 
                     if (regionTiles.Count > 0)
                     {
@@ -1234,30 +1587,21 @@ namespace RimWorldAccess
             return result;
         }
 
-        private static HashSet<int> FloodFillRegion(int startTile, HashSet<int> validTiles)
+        /// <summary>
+        /// Yields the planet-grid neighbors of a tile as int tile ids. The shared
+        /// <see cref="Clump"/> flood-fill gates each neighbor on the valid-tile set, so this only
+        /// enumerates the grid adjacency. Shared by biome, road, and river collection — the
+        /// road/river "same type" constraint is encoded by the valid-tile set (built from exactly
+        /// the tiles carrying that road/river), not by an extra per-neighbor check.
+        /// </summary>
+        private static IEnumerable<int> WorldTileNeighbors(int tileId)
         {
-            var region = new HashSet<int>();
-            var queue = new Queue<int>();
-            queue.Enqueue(startTile);
-
-            while (queue.Count > 0)
-            {
-                int current = queue.Dequeue();
-                if (!validTiles.Contains(current) || region.Contains(current))
-                    continue;
-
-                region.Add(current);
-
-                var neighbors = new List<PlanetTile>();
-                Find.WorldGrid.GetTileNeighbors(new PlanetTile(current, -1), neighbors);
-                foreach (var neighbor in neighbors)
-                {
-                    if (validTiles.Contains(neighbor) && !region.Contains(neighbor))
-                        queue.Enqueue(neighbor);
-                }
-            }
-
-            return region;
+            if (Find.WorldGrid == null)
+                yield break;
+            var neighbors = new List<PlanetTile>();
+            Find.WorldGrid.GetTileNeighbors(new PlanetTile(tileId, -1), neighbors);
+            foreach (var neighbor in neighbors)
+                yield return neighbor.tileId;
         }
 
         private static PlanetTile FindRegionCenter(HashSet<int> regionTiles)
@@ -1352,7 +1696,7 @@ namespace RimWorldAccess
                 {
                     int startTile = 0;
                     foreach (int t in roadTiles) { startTile = t; break; }
-                    var segmentTiles = FloodFillRoadSegment(startTile, roadTiles, roadName);
+                    var segmentTiles = Clump.Fill(startTile, roadTiles, WorldTileNeighbors);
 
                     if (segmentTiles.Count > 0)
                     {
@@ -1373,47 +1717,84 @@ namespace RimWorldAccess
             return result;
         }
 
-        private static HashSet<int> FloodFillRoadSegment(int startTile, HashSet<int> validTiles, string roadType)
+        private static Dictionary<string, List<RoadSegment>> CollectRiverSegments(PlanetTile originTile)
         {
-            var segment = new HashSet<int>();
+            var result = new Dictionary<string, List<RoadSegment>>();
+
+            if (Find.WorldGrid == null)
+                return result;
+
+            int maxRange = 200;
+            var visited = new HashSet<int>();
+            var riverTilesByType = new Dictionary<string, HashSet<int>>();
+
             var queue = new Queue<int>();
-            queue.Enqueue(startTile);
+            queue.Enqueue(originTile);
+            visited.Add(originTile);
 
-            while (queue.Count > 0)
+            while (queue.Count > 0 && visited.Count < 125000)
             {
-                int current = queue.Dequeue();
-                if (!validTiles.Contains(current) || segment.Contains(current))
-                    continue;
+                int currentTileId = queue.Dequeue();
+                PlanetTile currentTile = new PlanetTile(currentTileId, -1);
 
-                segment.Add(current);
+                if (!currentTile.Valid) continue;
+
+                float dist = Find.WorldGrid.ApproxDistanceInTiles(originTile, currentTile);
+                if (dist > maxRange) continue;
+
+                Tile tileData = currentTile.Tile;
+                if (tileData is SurfaceTile surfaceTile && surfaceTile.Rivers != null)
+                {
+                    foreach (var riverLink in surfaceTile.Rivers)
+                    {
+                        string riverName = riverLink.river.LabelCap;
+                        if (!riverTilesByType.ContainsKey(riverName))
+                            riverTilesByType[riverName] = new HashSet<int>();
+                        riverTilesByType[riverName].Add(currentTileId);
+                    }
+                }
 
                 var neighbors = new List<PlanetTile>();
-                Find.WorldGrid.GetTileNeighbors(new PlanetTile(current, -1), neighbors);
+                Find.WorldGrid.GetTileNeighbors(currentTile, neighbors);
                 foreach (var neighbor in neighbors)
                 {
-                    if (validTiles.Contains(neighbor) && !segment.Contains(neighbor))
+                    if (!visited.Contains(neighbor))
                     {
-                        // Check if neighbor has the same road type
-                        Tile neighborData = neighbor.Tile;
-                        if (neighborData is SurfaceTile surfaceTile && surfaceTile.Roads != null)
-                        {
-                            bool hasRoadType = false;
-                            foreach (var road in surfaceTile.Roads)
-                            {
-                                if (road.road.LabelCap == roadType)
-                                {
-                                    hasRoadType = true;
-                                    break;
-                                }
-                            }
-                            if (hasRoadType)
-                                queue.Enqueue(neighbor);
-                        }
+                        visited.Add(neighbor);
+                        queue.Enqueue(neighbor);
                     }
                 }
             }
 
-            return segment;
+            // Treat each connected stretch of a river type as a "segment"
+            foreach (var kvp in riverTilesByType)
+            {
+                string riverName = kvp.Key;
+                var riverTiles = new HashSet<int>(kvp.Value);
+                var segments = new List<RoadSegment>();
+
+                while (riverTiles.Count > 0)
+                {
+                    int startTile = 0;
+                    foreach (int t in riverTiles) { startTile = t; break; }
+                    var segmentTiles = Clump.Fill(startTile, riverTiles, WorldTileNeighbors);
+
+                    if (segmentTiles.Count > 0)
+                    {
+                        PlanetTile centerTile = FindRegionCenter(segmentTiles);
+                        var segment = new RoadSegment(centerTile, segmentTiles);
+                        segments.Add(segment);
+                    }
+
+                    foreach (int tile in segmentTiles)
+                        riverTiles.Remove(tile);
+                }
+
+                if (segments.Count > 0)
+                    result[riverName] = segments;
+            }
+
+            return result;
         }
 
         #endregion
@@ -1422,7 +1803,18 @@ namespace RimWorldAccess
 
         private static void SortItemsByDistance(List<WorldScannerItem> items, PlanetTile originTile)
         {
-            items.Sort((a, b) => a.GetDistance(originTile, 0).CompareTo(b.GetDistance(originTile, 0)));
+            // Order by each item's nearest tile (across all its regions for a biome/road), not its
+            // center, so a patch you are standing on sorts to the front. OrderBy is a stable sort,
+            // so items at equal distance keep their input order (no ping-pong on ties).
+            var sorted = items.OrderBy(i => i.NearestDistance(originTile)).ToList();
+            items.Clear();
+            items.AddRange(sorted);
+
+            // Re-sort each item's own instances (biome regions / road-river segments) nearest-first
+            // too, anchored to the same origin — so within-item navigation and the announced
+            // "Region N of M" follow live proximity exactly like the item list itself.
+            foreach (var item in items)
+                item.SortInstancesByDistance(originTile);
         }
 
         /// <summary>
@@ -1452,6 +1844,7 @@ namespace RimWorldAccess
             lastWaypointCount = 0;
             cachedBiomeRegions = null;
             cachedRoadSegments = null;
+            cachedRiverSegments = null;
             lastCacheOrigin = PlanetTile.Invalid;
         }
 
@@ -1544,6 +1937,9 @@ namespace RimWorldAccess
             RefreshItems();
             if (categories.Count == 0) return;
 
+            // Changing category ends the current navigation session.
+            InvalidateNavigationSession();
+
             currentCategoryIndex++;
             if (currentCategoryIndex >= categories.Count)
                 currentCategoryIndex = 0;
@@ -1567,6 +1963,9 @@ namespace RimWorldAccess
 
             RefreshItems();
             if (categories.Count == 0) return;
+
+            // Changing category ends the current navigation session.
+            InvalidateNavigationSession();
 
             currentCategoryIndex--;
             if (currentCategoryIndex < 0)
@@ -1601,6 +2000,9 @@ namespace RimWorldAccess
                 TolkHelper.Speak("RimWorldAccess.WorldScanner.NoSubcategories".Loc(), SpeechPriority.Normal);
                 return;
             }
+
+            // Changing subcategory ends the current navigation session.
+            InvalidateNavigationSession();
 
             int startIndex = currentSubcategoryIndex;
             do
@@ -1639,6 +2041,9 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Changing subcategory ends the current navigation session.
+            InvalidateNavigationSession();
+
             int startIndex = currentSubcategoryIndex;
             do
             {
@@ -1663,12 +2068,13 @@ namespace RimWorldAccess
         {
             if (!WorldNavigationState.IsActive) return;
 
-            if (categories.Count == 0)
-            {
-                RefreshItems();
-                if (categories.Count == 0) return;
-                AnnounceCurrentCategory();
-            }
+            // Always refresh: catches world object changes (caravan dissolves, quest expires,
+            // new trader arrives, etc.). RefreshItems is cheap on a cache hit and invalidates
+            // the nav session on a miss so the next press re-sorts against the fresh data.
+            bool wasEmpty = categories.Count == 0;
+            RefreshItems();
+            if (categories.Count == 0) return;
+            if (wasEmpty) AnnounceCurrentCategory();
 
             var subcat = GetCurrentSubcategory();
             if (subcat == null || subcat.Items.Count == 0)
@@ -1677,16 +2083,7 @@ namespace RimWorldAccess
                 return;
             }
 
-            currentItemIndex++;
-            if (currentItemIndex >= subcat.Items.Count)
-                currentItemIndex = 0;
-
-            currentInstanceIndex = 0;
-
-            if (autoJumpMode)
-                JumpToCurrent();
-            else
-                AnnounceCurrentItem();
+            AdvanceInSession(forward: true, subcat);
         }
 
         /// <summary>
@@ -1696,12 +2093,10 @@ namespace RimWorldAccess
         {
             if (!WorldNavigationState.IsActive) return;
 
-            if (categories.Count == 0)
-            {
-                RefreshItems();
-                if (categories.Count == 0) return;
-                AnnounceCurrentCategory();
-            }
+            bool wasEmpty = categories.Count == 0;
+            RefreshItems();
+            if (categories.Count == 0) return;
+            if (wasEmpty) AnnounceCurrentCategory();
 
             var subcat = GetCurrentSubcategory();
             if (subcat == null || subcat.Items.Count == 0)
@@ -1710,16 +2105,57 @@ namespace RimWorldAccess
                 return;
             }
 
-            currentItemIndex--;
-            if (currentItemIndex < 0)
-                currentItemIndex = subcat.Items.Count - 1;
+            AdvanceInSession(forward: false, subcat);
+        }
+
+        /// <summary>
+        /// Shared navigation step for NextItem / PreviousItem. Starts a session on the first
+        /// press and advances the index through the frozen sort order on subsequent presses.
+        /// Has a drift safety net: if the origin tile is not where the last scanner jump left
+        /// it, invalidates before proceeding so a fresh session begins.
+        /// </summary>
+        private static void AdvanceInSession(bool forward, WorldScannerSubcategory subcat)
+        {
+            if (navSessionActive
+                && lastScannerOriginTile.Valid
+                && WorldNavigationState.CurrentSelectedTile != lastScannerOriginTile)
+            {
+                InvalidateNavigationSession();
+            }
+
+            if (!navSessionActive)
+            {
+                BeginNavigationSession();
+            }
+
+            if (forward)
+            {
+                currentItemIndex++;
+                if (currentItemIndex >= subcat.Items.Count)
+                    currentItemIndex = 0;
+            }
+            else
+            {
+                currentItemIndex--;
+                if (currentItemIndex < 0)
+                    currentItemIndex = subcat.Items.Count - 1;
+            }
 
             currentInstanceIndex = 0;
 
             if (autoJumpMode)
+            {
+                // Auto-jump skips AnnounceCurrentItem (which picks the nearest region), so select it
+                // here too — otherwise the jump would target region 0 rather than the nearest one.
+                currentInstanceIndex = NearestInstanceIndex(GetCurrentItem(), WorldNavigationState.CurrentSelectedTile);
                 JumpToCurrent();
+            }
             else
+            {
                 AnnounceCurrentItem();
+            }
+
+            lastScannerOriginTile = WorldNavigationState.CurrentSelectedTile;
         }
 
         /// <summary>
@@ -1785,9 +2221,17 @@ namespace RimWorldAccess
         /// <summary>
         /// Jumps the camera to the current item/instance (Home key).
         /// </summary>
-        public static void JumpToCurrent()
+        public static void JumpToCurrent(bool manual = false)
         {
             if (!WorldNavigationState.IsActive) return;
+
+            // Collapse a same-frame double manual Home arriving from both world keyboard routes.
+            if (manual)
+            {
+                int frame = Time.frameCount;
+                if (frame == lastManualJumpFrame) return;
+                lastManualJumpFrame = frame;
+            }
 
             if (categories.Count == 0)
             {
@@ -1798,7 +2242,44 @@ namespace RimWorldAccess
             var item = GetCurrentItem();
             if (!GuardHelper.RequireItem(item, SpeechPriority.High)) return;
 
-            PlanetTile targetTile = item.GetTileAtInstance(currentInstanceIndex);
+            PlanetTile originTile = WorldNavigationState.CurrentSelectedTile;
+            bool jumpedToCenter = false;
+
+            // Closest-tile / press-Home-for-center for region clumps (biomes, roads, rivers). From
+            // off the clump a jump lands on the nearest edge tile; a manual Home from on the clump
+            // jumps to the center; auto-jump always lands on the nearest tile. During launch
+            // targeting the candidate tiles are restricted to reachable ones, so the landing tile
+            // is always somewhere you can actually launch to.
+            PlanetTile targetTile;
+            PlanetTile clumpCenter = PlanetTile.Invalid;
+            int[] members = FeatureMemberTiles(item, currentInstanceIndex);
+            if (members != null && members.Length > 0)
+            {
+                PlanetTile centerTile = item.GetTileAtInstance(currentInstanceIndex);
+                clumpCenter = centerTile;
+                var plan = ClumpNav.PlanHome(members, centerTile.tileId, originTile.tileId, WorldTileMetric, manual);
+                targetTile = new PlanetTile(plan.Tile, -1);
+                jumpedToCenter = plan.IsCenter;
+            }
+            else
+            {
+                targetTile = item.GetTileAtInstance(currentInstanceIndex);
+            }
+
+            // No-move guard: a Home press that targets the tile we already occupy shouldn't
+            // re-announce the whole tile — just confirm where we are, naming the patch center
+            // distinctly from any other tile of the patch. (World has no terrain sound to skip,
+            // but the redundant full re-announcement is the same nuisance.)
+            if (targetTile.Valid && targetTile == originTile)
+            {
+                bool atCenter = members != null && members.Length > 1
+                    && clumpCenter.Valid && originTile == clumpCenter;
+                string where = atCenter
+                    ? $"Already at center of {item.Label}"
+                    : $"Already at {item.Label}";
+                TolkHelper.Speak(where, SpeechPriority.Normal);
+                return;
+            }
 
             // Auto-switch layer if jumping to an item on a different layer
             if (targetTile.Valid && targetTile.Layer != PlanetLayer.Selected)
@@ -1807,7 +2288,17 @@ namespace RimWorldAccess
                 TolkHelper.Speak("RimWorldAccess.WorldScanner.SwitchedToLayer".Loc(targetTile.LayerDef.LabelCap));
             }
 
-            WorldNavigationState.CurrentSelectedTile = targetTile;
+            // Guard the origin write so NotifyOriginWritten does not invalidate the in-progress
+            // navigation session — this is a scanner-driven move, not an external cursor change.
+            scannerDrivenJumpInProgress = true;
+            try
+            {
+                WorldNavigationState.CurrentSelectedTile = targetTile;
+            }
+            finally
+            {
+                scannerDrivenJumpInProgress = false;
+            }
 
             // Sync with game selection (WorldSelector + WorldInterface/GameInitData for world gen)
             WorldNavigationState.SyncSelectionWithGame();
@@ -1821,9 +2312,24 @@ namespace RimWorldAccess
                 Find.WorldCameraDriver.RotateSoNorthIsUp();
             }
 
-            // Announce full tile info as if the user arrowed to this tile,
-            // which also updates BiomeDescriptionTracker for the new location
-            WorldNavigationState.AnnounceTile();
+            if (jumpedToCenter)
+            {
+                // Lead with the move delta to the patch center (origin captured before the jump),
+                // then announce the destination tile in the same utterance — the world has no
+                // terrain sound, so the spoken tile is what confirms you arrived.
+                float dist = Find.WorldGrid.ApproxDistanceInTiles(originTile, targetTile);
+                string dir = item.GetDirectionFromTile(originTile, targetTile);
+                string prefix = !string.IsNullOrEmpty(dir)
+                    ? $"Jumped {dist:F0} tiles {dir} to center"
+                    : "Jumped to center";
+                WorldNavigationState.AnnounceTile(prefix);
+            }
+            else
+            {
+                // Announce the destination as if the user had arrowed onto it — full tile info,
+                // which also updates BiomeDescriptionTracker for the new location.
+                WorldNavigationState.AnnounceTile();
+            }
         }
 
         /// <summary>
@@ -1843,8 +2349,15 @@ namespace RimWorldAccess
             if (!GuardHelper.RequireItem(item, SpeechPriority.High)) return;
 
             PlanetTile originTile = WorldNavigationState.CurrentSelectedTile;
+
+            // Point both distance and direction at this instance's nearest (reachable) tile.
+            PlanetTile target = item.GetTileAtInstance(currentInstanceIndex);
+            int[] members = FeatureMemberTiles(item, currentInstanceIndex);
+            if (members != null && members.Length > 0 && originTile.Valid)
+                target = new PlanetTile(ClumpNav.NearestMember(members, originTile.tileId, WorldTileMetric, out _), -1);
+
             float distance = item.GetDistance(originTile, currentInstanceIndex);
-            string direction = item.GetDirectionFrom(originTile, currentInstanceIndex);
+            string direction = item.GetDirectionFromTile(originTile, target);
 
             TolkHelper.Speak("RimWorldAccess.WorldScanner.DirectionDistance".Loc(direction, distance.ToString("F0")), SpeechPriority.Normal);
         }
@@ -1894,8 +2407,17 @@ namespace RimWorldAccess
             var parts = new List<string>();
 
             PlanetTile originTile = WorldNavigationState.CurrentSelectedTile;
+
+            // Describe the region nearest to the origin (by nearest tile), mirroring the local
+            // scanner, and anchor instance navigation there. Single-tile items have one instance (0).
+            currentInstanceIndex = NearestInstanceIndex(item, originTile);
+
             float distance = 0f;
             string direction = "";
+            bool distanceCapped = false;
+            // The tile distance, direction, and fuel cost all point at. Defaults to the selected
+            // instance's center; for a same-layer region it becomes the nearest (reachable) edge tile.
+            PlanetTile announceTile = item.GetTileAtInstance(currentInstanceIndex);
 
             if (onDifferentLayer)
             {
@@ -1913,23 +2435,36 @@ namespace RimWorldAccess
             }
             else
             {
-                direction = item.GetDirectionFrom(originTile, 0);
+                // Point distance/direction at the region's nearest edge tile to the origin instead
+                // of its center, so a patch reports how far its nearest tile is (and reads as the
+                // current location once the cursor is standing on it). Single-tile items have no
+                // members; during a launch the candidates are the reachable tiles only.
+                PlanetTile centerTile = item.GetTileAtInstance(currentInstanceIndex);
+                int[] members = FeatureMemberTiles(item, currentInstanceIndex);
+                if (members != null && members.Length > 0 && originTile.Valid)
+                {
+                    int nearestId = ClumpNav.NearestMember(members, originTile.tileId, WorldTileMetric, out _);
+                    announceTile = new PlanetTile(nearestId, -1);
+                }
 
-                // Use TraversalDistanceBetween for displayed distance — this is what the game
-                // uses for range validation and fuel cost (CompLaunchable.cs:473, :591)
-                PlanetTile targetTile = item.GetTileAtInstance(0);
-                if (originTile.Valid && targetTile.Valid)
-                    distance = Find.WorldGrid.TraversalDistanceBetween(originTile, targetTile,
-                        passImpassable: true, int.MaxValue, canTraverseLayers: true);
+                direction = item.GetDirectionFromTile(originTile, announceTile);
 
-                // Check reachability from last waypoint if route planner has waypoints
-                if (targetTile.Valid && Find.WorldRoutePlanner != null && Find.WorldRoutePlanner.Active &&
+                // Use a capped + memoized traversal distance for the announcement so rapid
+                // Page Up/Down stays responsive on big worlds. Fuel / launch range are
+                // validated separately below against the instance tile directly, so the cap
+                // does not affect range or fuel correctness.
+                if (originTile.Valid && announceTile.Valid)
+                    distance = GetAnnouncementTraversalDistance(originTile, announceTile, out distanceCapped);
+
+                // Check reachability from last waypoint if route planner has waypoints (against the
+                // center/instance tile — unchanged).
+                if (centerTile.Valid && Find.WorldRoutePlanner != null && Find.WorldRoutePlanner.Active &&
                     Find.WorldRoutePlanner.waypoints.Count > 0 && Find.WorldReachability != null)
                 {
                     var lastWaypoint = Find.WorldRoutePlanner.waypoints[Find.WorldRoutePlanner.waypoints.Count - 1];
                     if (lastWaypoint != null && lastWaypoint.Tile.Valid)
                     {
-                        if (!Find.WorldReachability.CanReach(lastWaypoint.Tile, targetTile))
+                        if (!Find.WorldReachability.CanReach(lastWaypoint.Tile, centerTile))
                         {
                             parts.Add("RimWorldAccess.WorldScanner.Unreachable".Translate());
                         }
@@ -1961,20 +2496,25 @@ namespace RimWorldAccess
 
             }
 
-            // For biomes/roads, show instance count
+            // For biomes/roads, describe the nearest region (chosen above) and its position
             if (item.HasInstances)
             {
                 if (item.BiomeRegions != null)
-                    parts.Add($"{item.BiomeRegions[0].SizeDescription}");
+                    parts.Add($"{item.BiomeRegions[currentInstanceIndex].SizeDescription}");
                 else if (item.RoadSegments != null)
-                    parts.Add($"{item.RoadSegments[0].SizeDescription}");
+                    parts.Add($"{item.RoadSegments[currentInstanceIndex].SizeDescription}");
 
-                parts.Add("RimWorldAccess.WorldScanner.RegionOf".Translate(1, item.InstanceCount));
+                // Live proximity rank, not the static list slot — the nearest patch reads as
+                // "Region 1 of N" no matter where it sits in the stable build-time list.
+                parts.Add($"Region {item.InstanceRank(originTile, currentInstanceIndex)} of {item.InstanceCount}");
             }
 
             if (!string.IsNullOrEmpty(direction) && distance > 0.1f)
             {
-                parts.Add("RimWorldAccess.WorldScanner.DirectionDistance".Translate(direction, distance.ToString("F0")));
+                if (distanceCapped)
+                    parts.Add($"{direction}, over {ANNOUNCE_TRAVERSAL_CAP:F0} tiles");
+                else
+                    parts.Add($"{direction}, {distance:F0} tiles");
             }
             else if (distance <= 0.1f && !onDifferentLayer)
             {
@@ -1992,27 +2532,35 @@ namespace RimWorldAccess
                 }
             }
 
-            // Add fuel cost if transport pod or gravship launch targeting is active
+            // Add fuel cost if transport pod or gravship launch targeting is active. Quoted for the
+            // same tile the distance points at (the nearest reachable tile of a region), so the
+            // fuel number and the distance always describe the same landing tile.
             if (TransportPodLaunchState.ShouldAnnounceFuelCosts() && distance > 0.1f)
             {
                 // Use tile-based method for accurate traversal distance (matches game's range check)
-                PlanetTile itemTile = item.GetTileAtInstance(0);
-                string fuelInfo = itemTile.Valid
-                    ? TransportPodLaunchState.GetFuelCostAnnouncementForTile(itemTile)
+                string fuelInfo = announceTile.Valid
+                    ? TransportPodLaunchState.GetFuelCostAnnouncementForTile(announceTile)
                     : TransportPodLaunchState.GetFuelCostAnnouncement(distance);
                 if (!string.IsNullOrEmpty(fuelInfo))
                     parts.Add(fuelInfo);
             }
             else if (GravshipDestinationState.ShouldAnnounceFuelCosts())
             {
-                PlanetTile itemTile = item.GetTileAtInstance(0);
-                if (itemTile.Valid)
+                if (announceTile.Valid)
                 {
-                    string fuelInfo = GravshipDestinationState.GetFuelCostAnnouncement(itemTile);
+                    string fuelInfo = GravshipDestinationState.GetFuelCostAnnouncement(announceTile);
                     if (!string.IsNullOrEmpty(fuelInfo))
                         parts.Add(fuelInfo);
                 }
             }
+
+            // When the cursor is standing on a multi-tile patch whose center is a distinct tile,
+            // teach the second Home press that jumps there. During a launch the members are the
+            // reachable ones, so the offered center is also somewhere you can launch to.
+            int[] hintMembers = FeatureMemberTiles(item, currentInstanceIndex);
+            if (hintMembers != null &&
+                ClumpNav.OffersCenter(hintMembers, item.GetTileAtInstance(currentInstanceIndex).tileId, originTile.tileId))
+                parts.Add("Press Home for center");
 
             int pos = currentItemIndex + 1;
             int total = subcat?.Items.Count ?? 0;
@@ -2027,25 +2575,37 @@ namespace RimWorldAccess
             if (item == null || !item.HasInstances) return;
 
             PlanetTile originTile = WorldNavigationState.CurrentSelectedTile;
-            string direction = item.GetDirectionFrom(originTile, currentInstanceIndex);
 
-            // Use TraversalDistanceBetween for displayed distance (matches game's distance)
-            PlanetTile targetTile = item.GetTileAtInstance(currentInstanceIndex);
-            float distance = (originTile.Valid && targetTile.Valid)
-                ? Find.WorldGrid.TraversalDistanceBetween(originTile, targetTile,
-                    passImpassable: true, int.MaxValue, canTraverseLayers: true)
+            // Point distance/direction at this instance's nearest edge tile to the origin (not its
+            // center); during a launch the candidates are the reachable tiles only.
+            PlanetTile centerTile = item.GetTileAtInstance(currentInstanceIndex);
+            PlanetTile announceTile = centerTile;
+            int[] members = FeatureMemberTiles(item, currentInstanceIndex);
+            if (members != null && members.Length > 0 && originTile.Valid)
+            {
+                int nearestId = ClumpNav.NearestMember(members, originTile.tileId, WorldTileMetric, out _);
+                announceTile = new PlanetTile(nearestId, -1);
+            }
+
+            string direction = item.GetDirectionFromTile(originTile, announceTile);
+
+            // Capped + memoized traversal distance for responsive instance navigation.
+            bool distanceCapped = false;
+            float distance = (originTile.Valid && announceTile.Valid)
+                ? GetAnnouncementTraversalDistance(originTile, announceTile, out distanceCapped)
                 : 0f;
 
             var parts = new List<string>();
 
-            // Check reachability from last waypoint if route planner has waypoints
-            if (targetTile.Valid && Find.WorldRoutePlanner != null && Find.WorldRoutePlanner.Active &&
+            // Check reachability from last waypoint if route planner has waypoints (against the
+            // center/instance tile — unchanged).
+            if (centerTile.Valid && Find.WorldRoutePlanner != null && Find.WorldRoutePlanner.Active &&
                 Find.WorldRoutePlanner.waypoints.Count > 0 && Find.WorldReachability != null)
             {
                 var lastWaypoint = Find.WorldRoutePlanner.waypoints[Find.WorldRoutePlanner.waypoints.Count - 1];
                 if (lastWaypoint != null && lastWaypoint.Tile.Valid)
                 {
-                    if (!Find.WorldReachability.CanReach(lastWaypoint.Tile, targetTile))
+                    if (!Find.WorldReachability.CanReach(lastWaypoint.Tile, centerTile))
                     {
                         parts.Add("RimWorldAccess.WorldScanner.Unreachable".Translate());
                     }
@@ -2066,7 +2626,12 @@ namespace RimWorldAccess
             }
 
             if (!string.IsNullOrEmpty(direction) && distance > 0.1f)
-                parts.Add("RimWorldAccess.WorldScanner.DirectionDistance".Translate(direction, distance.ToString("F0")));
+            {
+                if (distanceCapped)
+                    parts.Add($"{direction}, over {ANNOUNCE_TRAVERSAL_CAP:F0} tiles");
+                else
+                    parts.Add($"{direction}, {distance:F0} tiles");
+            }
             else if (distance <= 0.1f)
                 parts.Add("RimWorldAccess.WorldScanner.CurrentLocation".Translate());
 
@@ -2077,14 +2642,22 @@ namespace RimWorldAccess
                 if (!string.IsNullOrEmpty(fuelInfo))
                     parts.Add(fuelInfo);
             }
-            else if (GravshipDestinationState.ShouldAnnounceFuelCosts() && targetTile.Valid)
+            else if (GravshipDestinationState.ShouldAnnounceFuelCosts() && announceTile.Valid)
             {
-                string fuelInfo = GravshipDestinationState.GetFuelCostAnnouncement(targetTile);
+                string fuelInfo = GravshipDestinationState.GetFuelCostAnnouncement(announceTile);
                 if (!string.IsNullOrEmpty(fuelInfo))
                     parts.Add(fuelInfo);
             }
 
-            int pos = currentInstanceIndex + 1;
+            // When the cursor is standing on this instance's patch and its center is a distinct
+            // tile, teach the second Home press that jumps there (reachable members during a launch).
+            if (members != null &&
+                ClumpNav.OffersCenter(members, centerTile.tileId, originTile.tileId))
+                parts.Add("Press Home for center");
+
+            // Live proximity rank, not the static list slot — consistent with the primary
+            // item announcement and the local scanner.
+            int pos = item.InstanceRank(originTile, currentInstanceIndex);
             int total = item.InstanceCount;
             parts.Add("RimWorldAccess.WorldScanner.RegionOf".Translate(pos, total));
 
@@ -2109,6 +2682,9 @@ namespace RimWorldAccess
             savedSubcategoryIndex = -1;
             savedItemIndex = -1;
             savedInstanceIndex = -1;
+
+            // End any in-progress navigation session.
+            InvalidateNavigationSession();
 
             // Clear any active search
             ScannerSearchState.ClearSearchSilent();

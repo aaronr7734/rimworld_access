@@ -17,6 +17,8 @@ namespace RimWorldAccess
         [HarmonyPostfix]
         public static void Postfix()
         {
+            MultiSelectState.Reset();
+
             LongEventHandler.ExecuteWhenFinished(() =>
             {
                 if (Find.CurrentMap != null)

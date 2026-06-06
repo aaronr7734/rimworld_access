@@ -268,6 +268,20 @@ namespace RimWorldAccess
         /// </summary>
         public static void JumpToFirst()
         {
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                int first = typeahead.GetFirstMatch();
+                if (first >= 0)
+                {
+                    if (currentLevel == OptionsMenuLevel.CategoryList)
+                        selectedCategoryIndex = first;
+                    else
+                        selectedSettingIndex = first;
+                    AnnounceWithSearch();
+                }
+                return;
+            }
+
             typeahead.ClearSearch();
             if (currentLevel == OptionsMenuLevel.CategoryList)
             {
@@ -288,6 +302,20 @@ namespace RimWorldAccess
         /// </summary>
         public static void JumpToLast()
         {
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                int last = typeahead.GetLastMatch();
+                if (last >= 0)
+                {
+                    if (currentLevel == OptionsMenuLevel.CategoryList)
+                        selectedCategoryIndex = last;
+                    else
+                        selectedSettingIndex = last;
+                    AnnounceWithSearch();
+                }
+                return;
+            }
+
             typeahead.ClearSearch();
             if (currentLevel == OptionsMenuLevel.CategoryList)
             {
@@ -649,6 +677,16 @@ namespace RimWorldAccess
                 () => RimWorldAccessMod_Settings.Settings?.SubmenuTreeNavigation ?? false,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.SubmenuTreeNavigation = v; },
                 "RimWorldAccess.Core.Settings.SubmenuTreeNavigation.Tooltip".Translate()));
+            accessSettings.Settings.Add(new EnumSetting<WorkMenuView>("Default Work Menu View (F1)",
+                () => RimWorldAccessMod_Settings.Settings?.DefaultWorkMenuView ?? WorkMenuView.Focused,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.DefaultWorkMenuView = v; },
+                v => v == WorkMenuView.Focused
+                    ? "Priority-grouped per-pawn view."
+                    : "Pawn rows by work-type columns; mirrors vanilla and supports sorting and painting."));
+            accessSettings.Settings.Add(new CheckboxSetting("Announce Forced Slowdowns From Threats",
+                () => RimWorldAccessMod_Settings.Settings?.AnnounceForcedSlowdowns ?? false,
+                v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.AnnounceForcedSlowdowns = v; },
+                "When on, announces when the game forces Normal speed because of a nearby threat, and when the slowdown lifts. Only fires if your chosen speed is faster than Normal."));
             categories.Add(accessSettings);
 
             // Mod Settings Category - list all mods that have settings
@@ -806,6 +844,7 @@ namespace RimWorldAccess
         {
             private readonly Func<T> getter;
             private readonly Action<T> setter;
+            private readonly Func<T, string> valueTooltip;
             private readonly T[] values;
 
             public EnumSetting(string name, Func<T> getter, Action<T> setter, string tooltip = null)
@@ -816,10 +855,25 @@ namespace RimWorldAccess
                 this.values = (T[])Enum.GetValues(typeof(T));
             }
 
+            public EnumSetting(string name, Func<T> getter, Action<T> setter, Func<T, string> valueTooltip)
+                : base(name, null)
+            {
+                this.getter = getter;
+                this.setter = setter;
+                this.valueTooltip = valueTooltip;
+                this.values = (T[])Enum.GetValues(typeof(T));
+            }
+
             public override string GetAnnouncement()
             {
                 T current = getter();
-                return AppendTooltip($"{Name}: {current}");
+                string announcement = $"{Name}: {current}";
+                if (valueTooltip != null)
+                {
+                    string vt = valueTooltip(current);
+                    return string.IsNullOrEmpty(vt) ? announcement : $"{announcement}. {vt}";
+                }
+                return AppendTooltip(announcement);
             }
 
             public override void Toggle()

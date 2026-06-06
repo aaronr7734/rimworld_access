@@ -1,0 +1,2413 @@
+RimWorld Access - Changelog for Aaron's Unofficial Patch
+06/01/2026
+
+CHANGES
+-------
+- The slave tab is now properly wired. It was built, but not actually connected to the button!
+05/31/2026
+
+CHANGES
+-------
+- The Archonexus relocation endgame is now fully keyboard-accessible:
+  choosing your colonists and items, picking your
+  new colony's world tile, and reforming your ideoligion all work with the mod.
+- During that endgame you can create, load, or fully edit your new colony's
+  ideoligion, just like the builder you use when starting a world.
+
+- Arrow-key navigation now names the roof above you instead of a generic
+  "roofed" or "underground", so a thin rock roof, a solid overhead mountain,
+  and a player-built roof are easy to tell apart.
+- Fish population reports moved from the terrain key (2) to the resource key
+  (3), alongside plants and minerals. Key 3 now lists only the resources
+  relevant to your tile.
+- You can now banish a colonist, and execute a guilty one.
+  Both live on the Social section of a pawn's inspection screen and on the
+  Actions tab of their info card, each with the game's own warning about what
+  will happen.
+- The scanner now points you at the nearest tile of a patch (a biome, a vein
+  of ore, a stretch of soil, a road or river) instead of its center, so you
+  hear how far its closest edge is and whether you are already standing on it.
+  Press Home to jump to that nearest tile; once you are on the patch, press
+  Home again to jump to its center. The colony map and the world map work the
+  same way.
+
+- You can now load colonists and items into a map portal the same way you load
+  a caravan or transport pod. This covers entering an ancient complex, going
+  down an Anomaly pit gate or insect lair, and hauling your loot back out
+  through the exit. The enter and exit commands now open a Pawns and Items
+  screen with full keyboard navigation. Before, that screen opened silently and
+  you could only move pawns in one at a time through the right-bracket menu,
+  with no way to bring items along.
+
+BUG FIXES
+---------
+- In auto-jump mode, the scanner no longer reports every place it takes you as
+  being right on top of you. It used to measure the distance after it had
+  already moved you onto the target, so each jump sounded like it was zero
+  tiles away. It now simply announces what is on each tile as you flip through
+  the scanner.
+- Cleaned up the building inspection menu: the "Power Control", "Breakdown
+  Status", and "Power" items are gone. They either duplicated the Overview
+  or let you do things you shouldn't (flip power instantly). Use the toggle
+  power command (G) and a colonist will flick the switch as normal.
+- Number keys, arrow keys, and letter shortcuts no longer "leak" through to
+  whatever is underneath an open menu. With a menu open, pressing a number
+  could announce tile info, and letter shortcuts (like Alt+A or the ] orders key) could fire or
+  type into a search box. This is now theoretically fixed across every menu.
+- Typeahead search now works the same in every menu. While you are searching,
+  Up/Down step through the matches and Home/End jump to the first and last,
+  all without clearing your search, and each tells you where you are (for
+  example "match 2 of 3").
+- Typing no longer jumps to the wrong list when one menu sits on top of
+  another. Float menus opened over a menu (like the bills "add recipe"
+  picker), menus opened over a pawn's inspection screen (Operations, surgery
+  pickers, Health Settings), and the quantity boxes in caravan and pod-loading
+  dialogs now all search the menu you are actually looking at.
+- The pawn and building inspection screens now support typeahead. Start typing
+  to jump through the tree, including weapons, apparel, and inventory items by
+  name. Inspection search also matches what's inside a node, not just its name.
+- In the drug policy editor, Escape now clears an active search before closing,
+  and the drug list reports how many matches your search found. The
+  growing-zone plant picker also steps through search results correctly.
+- The saved-ideoligion load list no longer locks up when it's empty; Escape
+  closes it normally.
+- When editing an ideoligion's base precepts (cannibalism, corpses, drug use,
+  and the like), you can now press Delete to remove a precept you set,
+  following the game's own rules about which can be dropped.
+- Fixed Alt-key shortcuts like Alt+R not working on some non-US keyboard
+  layouts, including AZERTY.
+
+05/25/2026
+
+This is a milestone beta release for me. As of this update, every RimWorld DLC is
+essentially fully accessible with the mod. Anything still rough is
+either a convenience (mostly around gravship building) or a bug, and
+bugs get fixed as they come in. The headline this time is the custom
+ideoligion builder, but it was only possible because of a big overhaul
+to how text boxes work, so let's start there.
+
+CHANGES
+-------
+- Text boxes are now real text boxes, or as close as we can get. There
+  is an actual cursor you can move through your text with the arrow
+  keys, or jump word by word by holding Ctrl. Hold Shift while moving to
+  select text, and Backspace removes the character before the cursor (or
+  whatever you have selected). The mod now also knows the difference
+  between a single-line box, like a name, and a multi-line box, like a
+  description, so in a multi-line box you can press Shift+Enter to start
+  a new line. When you finish editing with Enter, the mod reads back what
+  the field now says. Typeahead should also work on
+  non-English keyboard layouts now, though I have not been able to test
+  that myself.
+
+- The big one: you can now build your own custom ideoligions, just like
+  sighted players do on the ideoligion setup screen. This has been a
+  long time coming. The builder has two tabs, and you switch between them
+  with Tab. The first tab lists every ideoligion in the game; the second
+  tab shows whichever one is selected. Select your own ideoligion and the
+  second tab becomes a full editor; select someone else's and it is a
+  read-only viewer. The editor is one big expandable list. The game crams
+  an enormous amount of information onto this screen, so when you expand
+  an item you can arrow through it line by line and hear all of it at your
+  own pace. Most items can be changed by pressing Enter on them, including
+  your ideoligion's name and descriptions, so when in doubt, press Enter
+  and see what happens. To move on to the next setup screen, press Alt+S.
+  The right bracket key ( ] ) opens a menu of extra options, including
+  saving an ideoligion you have built so you can load it again in future
+  games.
+- Fair warning: building an ideoligion is genuinely complicated, even for
+  sighted players. There are a LOT of moving parts. If you are new to the
+  game, you may want to get comfortable first. But I'm not your mom. Do
+  whatever you want!
+- Fluid ideoligions work the same way in-game. Once yours has earned
+  enough development points to reform, open the ideoligion viewer and
+  press Enter on the item that shows your development points to begin.
+- The focused Work view now reads the selected colonist's name when it
+  opens.
+- The colonist skills table (Alt+P) now tells you how much experience
+  each skill has toward its next level, not just the level. On a paused
+  game you can rest on a skill and hear the numbers change as colonists
+  learn.
+- The starting characters screen now gives each colonist a Relations
+  category, listing who they're tied to in your starting group and how
+  - "Daughter," "Lover," and the like - with each pawn's opinion in the
+  tooltip. Press Enter on a relation to jump straight to that pawn.
+- That same screen now has a Team Skills tab. Press Tab to switch to it
+  for a quick rundown of which starting pawn is best at each skill.
+- The world map scanner now finds rivers, not just roads.
+- Walls (built walls, natural rock, and closed doors) now play their own
+  navigation sound instead of the sound of the ground beneath them.
+  Terrain sounds were also evened out so the volumes are more consistent.
+
+BUG FIXES
+---------
+- Returning to the main menu from inside a game while on the world map no longer leaves the menu
+  unresponsive. The Enter key works again right away, so you can pick a
+  menu option without getting stuck.
+
+05/24/2026
+
+BUG FIXES
+---------
+- Screen reader speech works again on setups where JAWS (or another
+  reader) had gone silent. A recent version of the underlying Prism
+  speech library began treating NVDA as available even when it wasn't
+  running, so on machines without NVDA active it selected NVDA and
+  spoke nothing. The mod is now pinned to the last known-good Prism
+  version until the upstream fix ships.
+
+05/23/2026
+
+BUG FIXES
+---------
+- A pawn's Relations now show family ties correctly from both sides:
+  a parent now lists their child as "Daughter" or "Son" instead of
+  "Friend," and the opinion breakdown lines up. Thanks to BlindGuyNW
+  for the PR.
+- Forming a caravan from a hitching spot now works correctly. I had no idea hitching spots had a form caravan gizmo till recently!
+- The Left and Right arrow keys no longer move the map cursor while
+  the F12 menu (Factions and Ideology) is open.
+- The biosculpter pod's "Nutrition storage" option now opens the
+ correct filter when activated. Previously, pressing Enter on it did
+  nothing.
+- When a targeting action is rejected for the same reason more than
+  once in a row (for example, casting an ability on a pawn with no
+  healable injuries), the screen reader now repeats the specific
+  reason instead of falling back to a generic "Invalid target." The
+  game suppresses duplicate on-screen messages, which previously hid
+  the reason from screen reader users on the second and later tries.
+
+05/12/2026
+
+BUG FIXES
+---------
+- Scanner now works when launching a shuttle from a caravan on
+  the world map.
+- Picking a landing cell after a shuttle launch no longer
+  announces "Select pawn to target".
+
+05/03/2026
+
+CHANGES
+-------
+- Sanguophage accessibility pass:
+  - Deathrest Capacity gizmo now reads its progress, bound
+    building count, description, and the names of bound
+    deathrest buildings.
+  - Hemogen bar now reads its full tooltip (drain rates,
+    consumption threshold, description).
+  - On the Hemogen bar, Enter toggles "Allow hemogen packs";
+    right bracket sets the target value.
+- Bloodfeed and other ability targeting now announce cursor-
+  side warnings like "Will kill" or "Will cause serious blood
+  loss" before you confirm the action.
+
+04/30/2026
+
+CHANGES
+-------
+- Ctrl+A in shape placement now steps through scopes. The first
+  press still selects the current enclosure (room or blueprint
+  flood); a second press expands to the entire map. Ctrl+Shift+A
+  steps back to the previous scope. Any manual point change clears
+  the step history.
+
+BUG FIXES
+---------
+- The resurrector mech serum (and other dual-target psicasts like
+  Skip) now works correctly when picking a destination tile.
+- During targeting, picking a different pawn from the colonist bar
+  (comma/period, Alt+1..n, Alt+Left/Right) used to interrupt the
+  cast. Those hotkeys now move the cursor to that pawn instead, so
+  you can press Enter to target them.
+
+NOTE
+----
+The targeting system received deeper rework today. If you hit any
+new oddities mid-cast, please report them.
+
+04/29/2026
+
+CHANGES
+-------
+- Bills now read the produced item's full description (e.g. "Make
+  duster... Makes 1 Duster, Work amount: 167, Crafting. {full
+  description}") in both the recipe picker and the active bill row.
+
+BUG FIXES
+---------
+- Health conditions in character creation no longer announce a
+  stray "newline-period" between mechanical effects and the
+  description.
+- Escape with an active typeahead in character creation now clears
+  the search instead of opening the "discard starting colonists"
+  dialog.
+- The pause menu cursor resets between game sessions, so reloading
+  after "Quit to main menu" no longer lands the cursor on "Quit
+  to main menu".
+- The schedule menu (F2) no longer says a trailing "." when the
+  Announce Position setting is off.
+- The 5-key room info no longer reads role-relevant stats as
+  "star, star, star..."; instead, those stats are suffixed with
+  "Important for this type of room."
+- The storage settings screen now uses the modern treeview
+  (matching sounds, Rashad Hates Treeviews submenu mode, search
+  auto-expansion). Priority lives as a node at the top.
+- The bills' ingredient filter and the apparel/food/reading-policy
+  filters also use the modern treeview, with the standard expand
+  sound (replacing the old click sound).
+- Typeahead in filter screens now announces the full label and
+  description (not just the bare label) plus the match position.
+- Pressing Enter or Space on a filter row clears the typeahead
+  buffer, so the next Down arrow walks the full list.
+- "Allow rotten" / "Allow fresh" are now hidden in the bills'
+  ingredient filter when no allowed ingredient could ever match —
+  matching vanilla (e.g. minigun, bionic eye recipes).
+- Space and Enter now behave identically across all filter
+  screens.
+
+
+04/28/2026
+
+CHANGES
+-------
+- Starting-pawn selection now folds each pawn's quick stats
+  into the collapsed treeview label instead of announcing
+  them only on Alt+R. Arrowing onto a collapsed pawn reads
+  name, title, age, gender, traits, and top five skills with
+  passions; expanding the pawn collapses the label back to
+  just the name and title so the screen reader does not
+  re-read the long form on every category visit. Alt+R no
+  longer appends an extra summary — the rebuilt tree
+  re-announces the new pawn automatically.
+
+BUG FIXES
+---------
+- Pressing Home on a captured Anomaly entity in the scanner
+  (e.g. a sightstealer on a holding platform) now jumps the
+  cursor to the platform instead of saying "Item no longer
+  exists". Distance and direction announcements for held
+  entities are also now reported relative to the platform.
+
+
+04/26/2026
+
+BUG FIXES
+---------
+- Gizmos for minified items at the cursor (e.g. an unloaded
+  bedroll on a quest map) now announce "Install" the first time
+  you open the gizmo menu, instead of incorrectly saying
+  "Reinstall at...". The same fix applies to the Shift+letter
+  hotkey collector, typeahead search, and the multi-match
+  disambiguation menu, so any vanilla command whose label
+  depends on the live selection (Designator_Install and
+  similar) now resolves correctly in every announcement path.
+
+- Alt+Space when only one pawn is selected now starts
+  multi-select with that pawn as the first item, instead of
+  silently re-selecting them and announcing "deselected,
+  selection cleared". Multi-select is now a sticky mode you
+  enter and leave deliberately: pressing Alt+Space on the last
+  remaining pawn in the multi-select list exits the mode, as does pressing control alt space. More specifically, control alt space will toggle between selecting all and selecting none.
+
+
+04/24/2026
+
+The headline change: you can finally name your saves. The pause
+menu and the save/load screens also got a thorough polish pass.
+
+
+NEW FEATURES
+------------
+- You can now type a custom save name. The save menu drops you
+  in a text field pre-filled with your faction name -- type to
+  replace it, or press Down arrow to pick an existing save to
+  overwrite.
+
+- Save and load menus now announce each save's game version and
+  flag autosaves, matching what sighted players see. Loading a
+  save from a different version (or with a different mod list)
+  now goes through RimWorld's compatibility warning dialog, and
+  pressing Escape on that dialog returns you to the save list
+  instead of dropping you out to the main menu.
+
+- Anomaly research projects announce their tier (basic or
+  advanced) while you browse the research menu, so you know
+  which kind of entity you'll need to study to advance them.
+
+
+PAUSE MENU POLISH
+-----------------
+- Cursor position is preserved when you Escape out of a sub-menu
+  (Save, Load, Options, Play Settings, Review Scenario), so you
+  land back on the item you just used. Closing the pause menu
+  with Escape resets the cursor for next time.
+
+- Quit to Main Menu and Quit to Desktop now use proper
+  confirmation dialogs (matching the rest of the mod), and
+  cancelling either one returns you to the pause menu where you
+  left off.
+
+- Play Settings now returns you to the pause menu on Escape
+  instead of kicking you out entirely.
+
+- Home and End jump to the first and last items in the pause
+  menu.
+
+
+More BUG FIXES
+---------
+- Starting an Anomaly research project no longer falsely claims
+  your regular research project was paused -- Anomaly and
+  regular research run on separate tracks, and the mod now only
+  mentions a previous project when one was genuinely replaced.
+
+- Several save/load labels that were hardcoded English
+  (Overwrite, Load, Save, "please enter a name", delete
+  confirmation) now use RimWorld's translation keys, so
+  non-English players hear them in their own language.
+
+
+===========================================================================
+
+
+RimWorld Access - Changelog for Aaron's Unofficial Patch
+04/23/2026
+
+The big one: broad Anomaly DLC support. Psychic rituals,
+turret packs, the Entity Codex, and the monolith dialogs all
+now work with Rimworld Access. The scanner grew an Entities
+category and an Unexplored category for fog-of-war areas.
+Alongside that, reverse designators like Cancel Orders finally
+respect their keyboard shortcuts, the mech bar is ordered like
+the mechs menu, tile-info hotkeys repeat without lag, and both
+the local and world map scanners are faster. Huge thanks to
+OlegTheSnowman for the Entity Codex and the unexplored-areas
+scanner contributions.
+
+
+NEW FEATURES
+------------
+- Anomaly DLC support: a big accessibility pass across the DLC. Most of the DLC's content should be accessible now, but please reach out if something doesn't work.
+  Psychic rituals (and Ideology rituals) now announce their
+  expected duration and outcome description when the dialog
+  opens, with cleaner per-pawn readouts. Turret packs and any
+  other ranged targeting source (including modded ones) are
+  caught by a generic targeting handler that announces label,
+  target type, range, and offers R for distance/line-of-sight.
+  Invisible entities are now actually invisible to the scanner
+  and cursor, matching what sighted players see. The held-entity
+  tab gained a full keyboard menu covering every
+  vanilla row -- Containment Strength, Escape MTB, Study
+  Interval, Knowledge Gain, Allow Medicine, Containment Mode,
+  Extract Bioferrite -- with the vanilla mouseover tooltips read out as well.
+
+- Entity Codex (Anomaly DLC): keyboard-navigable with Up/Down,
+  Home/End, and typeahead on entry name. Discovered entries
+  announce category, description, and linked things; undiscovered
+  entries use the vanilla "undiscovered" wording. Alt+I on a
+  selected entry opens a picker over linked things (info card)
+  and discovered research projects (jumps straight to the project
+  in the research menu). Thanks to OlegTheSnowman for the PR.
+
+- Anomaly Settings dialog at character creation: When the DLC is enabled, you can access its settings by tabbing past the save mode setting during story teller / difficulty selection.
+
+- Scanner "Entities" category (Anomaly DLC): Has subcategories for captured entities, as well as hostile ones.
+
+- Scanner "Unexplored" category: fog-of-war regions are
+  groupable scanner targets now ("unexplored area: 42 tiles,
+  15.2 tiles northeast, area 2 of 7"). Regions refresh as your
+  pawns explore, and they are excluded from the scanner search
+  (so typing a room name doesn't get drowned in fog results).
+  Thanks to OlegTheSnowman for the PR.
+
+- Targeting announces min range and explosion radius: when a
+  verb has a minimum range or an AoE radius, those are spoken
+  alongside the normal range readout, so you know up front
+  whether you're inside your own blast radius or too close to
+  fire.
+
+- The Diabolus's health sphere cannon is now correctly supported by the mod.
+
+BUG FIXES
+---------
+- Reverse designator shortcuts work now: gizmos like "Cancel",
+  "Uninstall", and other reverse designators for the selected
+  thing were silently ignoring their keyboard shortcuts. They
+  now fire on their hotkey like every other gizmo.
+
+- Ideology convert on prisoners: selecting "Convert" on a
+  prisoner was supposed to switch the interaction mode to
+  Convert and confirm the target ideology -- instead the choice
+  was ignored. It now applies the mode and
+  confirms the ideology as expected.
+
+- Mech bar ordering: the mech bar was listing mechs in a
+  different order than the mechs menu, and two-digit counts
+  sorted wrong (mech 10 before mech 2). Now the bar matches the
+  mechs menu order, and numeric labels sort numerically... or at least in the same order the mech menu sorts them.
+
+- Tile-info hotkey repeat: hitting 1 (or any tile-info
+  number) twice in quick succession used to drop the second
+  press for ~300 ms. That rate limit is gone; the key repeats
+  the readout immediately every time you press it.
+
+- Inspection screen and quest labels localized: the top-level
+  category headers and quest labels on the inspection tab were
+  hardcoded English. They now use RimWorld's translation keys,
+  so non-English players hear their own language again.
+
+- Fog of war no longer leaks info: pressing tile-info hotkeys
+  on a fogged tile used to announce terrain, temperature, and
+  contents that sighted players couldn't see. Fogged tiles are
+  now suppressed to match vanilla -- no more peeking through
+  the fog with a screen reader.
+
+- Scanner performance (local and world map): The scanner should be more responsive on busier maps. Auto jump mode should work once more.
+
+- Global shortcuts during rename dialogs and the Work table:
+  typing a letter in a rename field or the Work table used to
+  sometimes fire a global hotkey (e.g. hitting tab would open the architect menu). Global
+  shortcuts are now blocked while those inputs have focus.
+
+- Alt/Ctrl character suppression: holding Alt or Ctrl and
+  hitting a letter used to dispatch both the modifier combo
+  and the bare character, so Alt+F could trigger F's
+  unmodified action as well. The bare character is now
+  suppressed when a modifier is held.
+
+- Multi-select survives save/load: loading a save while
+  multiple pawns were selected sometimes left a stale ghost
+  selection. The multi-select is now cleared on load.
+
+- Outfit stands groupable: The mod now supports grouping outfit stands, and it works identically to grouping shelves. Have fun grouping!
+
+
+===========================================================================
+
+
+RimWorld Access - Changelog for Aaron's Unofficial Patch
+04/19/2026
+
+A short round of fixes: C now forms caravans properly on the world
+map, the Work tab stays tidy when a colonist is lost mid-session,
+geyser overviews don't claim negative health, and Alt+B on veteran
+pawns is much snappier.
+
+
+BUG FIXES
+---------
+- World-map caravan formation (C): the shortcut was announcing
+  "Reform caravan only works on temporary maps" and then doing
+  nothing else. It now falls through to the real world-map behavior,
+  so pressing C at a selected settlement forms a caravan like it
+  always should have. On actual temporary maps, C still reforms the
+  caravan.
+
+- Work tab ghost rows: when a colonist was captured, killed, or
+  otherwise left the player's faction while the Work tab was open,
+  their slot stuck around -- tabbing onto them landed silently or
+  broke the announcement. Both the focused and table views now
+  refresh the colonist list on the fly, so lost colonists drop out
+  immediately and the cursor stays on whichever pawn should be next.
+
+- Geyser health line: inspecting a geyser (or any other
+  indestructible object) was displaying "Health: -1 % (-1 / 100)",
+  because those things don't track hit points. Indestructible
+  objects no longer get a health line at all, matching vanilla.
+
+- Alt+B combat log, much snappier: on pawns with long combat
+  histories the log used to take half a second to render. The mod
+  was formatting every past entry just to throw away all but the 10
+  most recent. It now only formats the 10 it actually shows -- a
+  roughly 50x reduction of wasted work for veteran colonists.
+
+
+===========================================================================
+
+
+RimWorld Access - Changelog for Aaron's Unofficial Patch
+04/18/2026
+
+Two new table views (Work and Skills), Ideology's Gauranlen tree
+change-caste dialog is now keyboard-navigable, a handful of cursor
+tricks, and a healthy stack of fixes. Oleg is back with dryad caste
+accessibility -- thank you, Oleg.
+
+
+NEW FEATURES
+------------
+- Dryad caste dialog (Ideology DLC): the Gauranlen tree change-caste
+  dialog is now keyboard-navigable. Up/Down through the castes,
+  Home/End to jump, Enter to select,
+  and typeahead search on caste name. Each caste announces its details.
+  Full vanilla translations
+ throughout, including game-provided descriptions like "dryads
+  produce X every Y." Big thanks to OlegTheSnowman for the PR.
+
+- Work table view (Ctrl+Tab (Option+Tab on Mac OS) to swap): a full 2D view of
+  every colonist against every work type, alongside the existing
+  focused view. This table view is exactly how sighted people would see this screen. Sort by Alt+S, paint priorities down a column with
+  Shift+Up/Down or Shift+Home/End, and set a priority for everyone
+  with Shift+0-4. Ctrl+Tab (Option+Tab on Mac) swaps between focused
+  and table views anywhere in the Work tab. The default view is
+  saved in Options > RimWorld Access, so whichever you prefer can be
+  your home.
+
+- Pawn skills table (Alt+P): a read-only 2D table of your colonists
+  against all their skills. Columns are skills in vanilla order,
+  cells announce level, passion, and descriptor ("medical: 15,
+  burning passion, excellent"). Alt+S sorts by the current column
+  (passion breaks ties, disabled pawns sink to the bottom).
+  Typeahead on pawn name. At long last, a way to answer "who's
+  actually good at medicine" without pressing enter on every colonist.
+
+- Need tooltips in the Needs tree: each need under the pawn Needs
+  category is now expandable and announces what sighted players see
+  on hover. Descriptions (with tags stripped), where the need comes
+  from (trait, gene, ideo, hediff), joy recreation tolerances and
+  on-map joy sources, caravan joy gain, mood break thresholds, food
+  level in raw units where that's meaningful (e.g. Thrumbos),
+  learning activities -- all now in the tree.
+
+- Shift+<letter> finds gizmos without selection: gizmo hotkeys used
+  to only fire while the owning thing was selected, which meant
+  cursor-navigating over a bed and hitting Shift+<letter> silently
+  did nothing. Now Shift+<letter> checks both your selection and
+  whatever is under the cursor. One match fires directly; multiple
+  matches open a float menu with each option labelled by gizmo,
+  owner, hotkey, and description. (Reform Caravan moved off Shift+C
+  to plain C so Shift+C is free for any gizmo bound to C.)
+
+- Ctrl+A in shape placement: fills both corners of the current shape
+  for you. Inside an enclosed room, it matches the room extents.
+  Inside an area ringed by walls or blueprints, a flood-fill finds
+  the interior. Otherwise it takes the whole map. Great for a single
+  Chop Wood order across the entire map. (This doesn't work with line shapes for obvious reasons!)
+
+- K on the local map announces the current cursor coordinates.
+
+- Alt+1-0 double-tapped jumps to that colonist: first tap still selects
+  them on the bar; a second tap within half a second moves the cursor,
+  snaps the camera, plays terrain audio, and announces "Jumped to
+  {pawn}. {tile info}". Works in multi-select mode too, so you can jump to a specific pawn without having to pick them in the menu.
+
+- Pawn location now rides along with job announcements: Alt+1-0 and
+  comma/period now include the room, zone, or stockpile a colonist
+  is standing in (e.g. "Bob, in kitchen, cooking meals").
+
+- Active-quest deadlines: the quests list shows "Expires in X" for
+  accepted quests with a bad-outcome deadline (taking priority over
+  "Accepted X ago"), and the detail view now pulls in every activity
+  and expiry block vanilla shows on hover. Not-yet-accepted quests
+  get the localized expiry string too.
+
+- Threat slowdown announcements are now opt-in: Options > RimWorld
+  Access > Announce Forced Slowdowns (default off). If you liked
+  hearing "slowed by threat" every raid, turn it on; otherwise,
+  peace.
+
+
+BUG FIXES
+---------
+- Ideology preset chooser: Create Fluid, Create Fixed, and Load Saved
+  are announced as "Accessibility coming soon" and blocked rather
+  than silently dropping you into an inaccessible page. The one
+  working option, Simple ideoligion, still works as before.
+
+- Prisoner tab: arrow keys, Enter, and Escape no longer leak into the
+  inspection tree underneath. Hardcoded English labels swapped for
+  vanilla translation keys, royalty recruitment offset surfaced,
+  Anomaly study/knowledge info included, medical care section hidden
+  for slaves (vanilla only shows it for prisoners), and executing a
+  slave from a neutral faction asks for confirmation first.
+
+- Scanner search deduped: a single fence could show up three times
+  in search results (once per subcategory it belonged to). Map
+  search now reads from a single canonical list. World search also
+  collapses landmarks whose labels differ slightly across the "All"
+  and type subcategories down to one entry.
+
+- Typeahead ranking: the shortest-name tiebreaker used to treat a
+  whole item label ("Butcher table: 75 wood. A heavy table for
+  cutting...") as the "name," so typing "table" ranked anything
+  whose description mentioned a table alongside items actually
+  called table-something. Labels are now split at the first ": " /
+  ". " boundary -- the name tiers only look at the actual name, and
+  cost annotations and descriptions fall through to the Description
+  tier. "Wall" still ranks before "Wall lamp."
+
+- Plants no longer claim a Growth Info tab. Vanilla doesn't have
+  one. Growth %, conditions, blight, ready-to-harvest, and
+  dying-reason details are already in the Overview category via the
+  game's own inspect string. The invented tab was also displaying
+  plant age as raw ticks ("1164000 / 90.4 days").
+
+- Full-map shape placement lag: rect/oval placement over large areas
+  (a Chop Wood across the whole map, ~65k cells) used to freeze the
+  game for a second or two. This was a mod bug, and has been fixed.
+
+- Work tab polish:
+  - Pressing numbers while in basic view no longer secretly adjusts priorities in manual mode.
+  - Quite a few tool tips were missing, the mod now reads them out.
+  - Manual-mode disabled labels use "Priority 0" / "0" (vanilla's
+    scale) instead of "off" / "Disabled".
+
+
+- 2D tables announce only the axis that actually changed: moving
+  up/down in Animals, Wildlife, Mechs, Assign, Work table, Pawn
+  Skills, Schedule, or AutoSlaughter no longer repeats the column
+  name on every row change, and moving left/right no longer repeats
+  the pawn name. Initial entry, post-sort, restore, and typeahead
+  jumps still get the full context, since those are re-orientation
+  moments.
+
+===========================================================================
+
+
+RimWorld Access - Changelog for Aaron's Unofficial Patch
+04/14/2026
+
+Bug fixes, typeahead and navigation improvements, character creation
+polish, and a couple of new keyboard shortcuts. The spatial audio
+footstep system introduced on 04/10 has been removed.
+
+
+A NOTE ON FOOTSTEPS
+-------------------
+The positional footstep system from the 04/10 patch has been removed in
+this release.
+
+After living with it for a few days, I couldn't get footsteps to the
+quality bar I wanted to put my name on. RimWorld's sound stage fights
+the integration: footstep positions don't track with a pawn's other
+sounds (so a cooking pawn who starts walking sounds out of place relative to its cooking sound), and reverb behavior was inconsistent in ways I couldn't tame.
+I had hoped the feature would be most useful in combat, but even after
+a lot of time tuning per-category volume sliders, footsteps either
+drowned out game audio, shattering immersion, or were too
+quiet to carry information. There was no middle ground I was happy to
+ship.
+
+Huge thanks to OlegTheSnowman, who did the original contribution this
+system was built on. Oleg is of course free to continue this work in
+their own mod, as they were doing before. I may return to positional
+audio later, but for now I'd rather focus on the systems and DLC
+coverage already in the mod, documentation, and the long tail of bugs.
+
+
+
+BUG FIXES
+---------
+- Prison beds: marking a bed for prisoners through the accessibility
+  menu now updates the room's cached "prison cell" flag immediately.
+  Previously the game didn't recognize the cell until you reloaded the
+  save, which made "capture" and "arrest" jobs report "no available
+  prison cells" even when you'd just set one up.
+
+- Mortar shells filter: the Shells tab wasn't opening when pressing
+  Enter because of an internal name mismatch. Filtering which shells
+  mortars will load works again.
+
+- Scanner category counts: each category's announced total was double-
+  counting (sometimes more) because items appear in both their
+  specialized subcategory and the "All" bucket. Counts now match what
+  Page Up/Page Down can actually reach. Same fix applied on the world
+  scanner.
+
+- Health capacity breakdown: expanding a capacity node (e.g. Moving,
+  Manipulation) on the health tree now correctly announces what's
+  affecting it -- the "Affected by" list of hediffs, injured body
+  parts, and pain. An early-return bug had been silently dropping it.
+
+- Float-menu targeters accessible: second-stage targeting started from
+  a float menu option (most visibly "Force target to wear/equip
+  [apparel]") used to open silently with no screen reader feedback.
+  Now announced and routable through the standard item targeting
+  state. Generalizes to modded options that use the same pattern.
+
+- Submenus no longer close the inspection tree: opening a submenu
+  (Bills, Range Edit, ThingFilter, Flickable, Refuelable,
+  Breakdownable, Door Control, Forbid Control, Fishing Zone, Storage,
+  Plant Selection, Bed Assignment, Owner Assignment, Prisoner tab,
+  Info Card, etc.) used to dump you back to the map on Escape. You now
+  return to the inspection row you launched from.
+
+- Refuelable buildings use the game's real fuel label: mortars show
+  "Barrel durability", uranium slug turrets show "Uranium slugs", foam
+  turrets show "Foam", deathrest caskets show "Hemogen", etc., instead
+  of a generic "Fuel Settings".
+
+- Inapplicable ThingFilter options hidden: filters like "Allow rotten"
+  and "Allow fresh" are hidden when no allowed item in the filter can
+  ever rot. The mortar shells filter in particular now hides hit-point
+  and quality options that don't apply to ammunition.
+
+
+CHARACTER CREATION
+------------------
+- Escape on the starting-pawns screen now asks for confirmation before
+  discarding your rolled colonists.
+
+- Pawns and hediffs in char gen are no longer marked inspectable --
+  the tree already surfaces every stat inline, so the extra info-card
+  step was redundant. Hediffs now announce their full description
+  directly. Items and xenotypes are still inspectable.
+
+- ] context menu in char gen now routes reroll and rename through the
+  same code path as Alt+R / Alt+N, so filter-aware announcements and
+pawn filters now work correctly.
+
+- Reroll no longer loses your tree position when filters are active
+  and the first attempt matches, and no longer loses position in
+  "Rashad Hates Treeviews" submenu mode.
+
+- "Selected" and "Left behind" section headers now announce as
+  info-card-style section boundaries only when you cross between
+  sections, instead of taking up a navigable row each.
+
+
+WORK, SCHEDULE, ASSIGN
+----------------------
+- Work menu now plays the same audio cues as vanilla. E.g. when you prioritize a job for which a pawn is ill suited.
+- Work, Schedule, and Assign all order pawns by their colonist-bar
+  position now.
+- Assign also pulls in off-map colonists (caravans, travelling
+  transporters) to match the vanilla Assign tab.
+
+
+TYPEAHEAD SEARCH
+----------------
+- Shorter names now rank first within each match tier across all menus
+  that use typeahead. Typing "wall" lands on "Wall" before "Wall
+  lamp".
+- Architect tree (Tab) and colony inventory (I) now auto-expand
+  structural nodes on the first typed character so search reaches the
+  whole tree without pressing '*' first. The original tree shape is
+  restored on Escape, Home/End, or deleting back to an empty query.
+  Committing to a result (Enter, Left/Right, '*') keeps the expansion.
+
+
+NEW KEYBOARD SHORTCUTS
+----------------------
+- / (slash): focus the colonist/mech bar on whichever pawn is under
+  the map cursor. Selects them, jumps the camera, and syncs the bar
+  position so subsequent comma/period/Alt+arrow navigation picks up
+  from the cursor. Announces "Not on colonist bar" if the cursor
+  isn't on a bar pawn.
+
+- [ (left bracket): execute the TOP option of the  context menu ]
+  builds. Shift+[ queues the order (same as shift-click queueing in
+  vanilla). Announces "PawnName: action" on single selection, and the
+  familiar "Everyone X" / "Only A X" wrapping on multi-select.
+
+- Terrain announcements on cursor movement can now be toggled off
+  under RimWorld Access (default on). When off, terrain
+  names are suppressed from tile summaries during arrow-key movement,
+  scanner Home jumps, bookmark jumps, and Go To. Terrain sound
+  effects are unaffected.
+
+
+GIZMO HOTKEYS NOW REQUIRE SHIFT
+-------------------------------
+Bare-letter gizmo hotkeys no longer fire -- you must hold Shift (e.g.
+Shift+K to build a wall). This frees up bare letters for other
+accessibility shortcuts and prevents accidental gizmo activation
+during navigation.
+
+- Draft (default R) is exempt. R still drafts/undrafts without Shift,
+  since players rely on that muscle memory and no other gizmo shares R
+  on a draftable pawn.
+- The hotkey is now announced immediately after the gizmo title,
+  before the description and any cost/range/cooldown info, so you
+  don't have to wait through a long description to hear the key.
+- Shift+T previously announced performance stats. Performance stats
+  have moved to Alt+T so Shift+T can reach gizmos bound to T.
+
+===========================================================================
+
+
+RimWorld Access - Changelog for Aaron's Unofficial Patch
+04/10/2026
+
+Spatial audio footsteps, a major scanner rework, new inspection tabs,
+health overhaul, Mechs tab, gizmo slider/right-click support, mods
+menu redesign, and numerous fixes.
+
+This patch has a lot of changes under the hood, so it may be a bit less stable than some of the others. I will release hot fix patches as needed throughout the weekend to ensure people can play comfortably!
+
+SPATIAL AUDIO (FOOTSTEPS)
+-------------------------
+A new positional audio system lets you hear pawns moving around your
+colony. Based on original work by OlegTheSnowman.
+
+- Terrain-aware footsteps: dirt, stone, wood, metal, carpet, bridge,
+  water, snow — over 100 terrain types mapped via defName
+- Animal footsteps: light and heavy categories based on body size
+- Mechanoid footsteps
+- Stereo panning based on screen position relative to camera
+- Distance-based volume with near/mid/far field zones
+- Wall occlusion: sounds muffled through walls via low-pass filter,
+  open doors partially restore clarity
+- Room reverb using RimWorld's room/region system
+- Interaural time delay for spatial precision
+- Zoom-level volume scaling
+- Per-category volume sliders (human, animal, mechanoid)
+- Performance mode with priority-based throttling (18/tick cap),
+  prioritizing selected, drafted, and hostile pawns
+- Master "Enable Sound Effects" toggle
+- Cursor terrain sounds now share the same .ogg pool as pawn footsteps
+  with room-aware reverb
+- All settings accessible via the keyboard-navigable options menu
+
+SCANNER REWORK
+--------------
+Major rework of the map scanner with better categorization, live
+updates, and smarter navigation:
+
+- New "All" top-level category listing every item closest-first
+- Each category also gets an "All" subcategory — Ctrl+PgDn lands on
+  the All view, Shift+PgDn drills into specialized buckets
+- Pawns now split by faction: Colonists, Prisoners, Slaves, Guests,
+  Hostile, Player Mechs, Hostile Mechs — raids during friendly visits
+  no longer mix raiders and visitors
+- Many more natural terrain types show up (mud, moss, riverbank, lava,
+  volcanic rock, etc.) — terrain detection uses fertility and pathCost
+  instead of hardcoded English defNames, so DLC and modded terrain
+  are caught automatically
+- Dead pawns and destroyed items detected mid-navigation with an
+  "Item no longer exists" notice
+- Standing on a zone, stockpile, or terrain patch now reads "here"
+  instead of pointing to the geometric center
+- Multi-region terrain shows specific area info ("10x10, here, area 1
+  of 63") instead of misleading totals
+- Page Up/Down preserves your position when the list re-sorts
+- Stable sort tie-breaking: items at equal distance no longer bounce
+  between each other on every press
+- Harvestable subcategories now require plants to be fully mature
+- Minified items (uninstalled beds, tables, monument markers) now
+  show their real names instead of "minified thing"
+- Ctrl+Shift+Left/Right adjusts preset jump distance by 10 tiles
+
+
+HEALTH INSPECTION OVERHAUL
+---------------------------
+The health section of the inspection tree has been modernized to match
+vanilla's structure:
+
+- Conditions grouped by body part instead of a flat "Conditions" list
+- Pain and bleeding (including time-to-death) shown upfront
+- Capacities use vanilla's pawn-type-specific labels and filtering
+- Collapsed summaries show full content without needing to expand
+
+Operations menu improvements:
+- Typeahead search across all menu levels
+- Ctrl+Up/Down to reorder operations
+- Richer operation details: skill requirements, ingredients, replaced
+  parts
+- Self-tend validation matching vanilla behavior
+
+Alt+H quick health:
+- Now a focused combat triage readout: only sight, manipulation, and
+  moving capacities are shown when not at 100% (the three that matter most for combat decisions)
+- Only damaged body parts (with HP) and bleeding with time-to-death
+- Bionics and chronic conditions filtered out
+
+Localization improved throughout with vanilla translation keys.
+
+
+NEW INSPECTION TABS
+-------------------
+Seven inspect tabs upgraded from generic text to full treeview content:
+
+- Feeding tab (Biotech babies): auto-breastfeed section with per-feeder
+  mode selection (Never/Childcare/Urgent) and baby food toggles
+- Art tab: title and generated description
+- Book tab: benefits, dangers, and flavor text
+- Bookcase contents: list of books with Delete key to eject
+- Wind turbine auto-cut: toggle and Cut Now action
+- Guest tab: medical care selection via float menu
+- Transporter contents: items-to-load and contained-items with Delete
+  to drop
+
+Training tab (tamed animals):
+- Master assignment and follow toggles
+- Odyssey DLC behavior toggles
+- Trainable skill management
+
+MECHS TAB (Biotech DLC)
+------------------------
+The Mechs tab is now fully accessible — the last main game tab to
+get screen reader support.
+
+Press F4 to open. If you have only animals, it opens Animals. If you
+have only mechs, it opens Mechs. If you have both, a chooser menu
+lets you pick.
+
+8 columns matching vanilla: Name, Energy, Draft, Auto Repair,
+Overseer, Control Group, Work Mode, and Allowed Area.
+
+Interactive columns:
+- Draft and Auto Repair: toggle with Enter
+- Control Group: submenu to reassign between overseer's groups
+- Work Mode: submenu to change control group work mode
+- Allowed Area: submenu with Manage Areas support
+
+Sorting via Alt+S. Full painting support via Shift+Up/Down and
+Shift/Ctrl+Shift+Home/End for Draft, Auto Repair, Control Group,
+and Allowed Area columns.
+
+
+GIZMO IMPROVEMENTS
+-------------------
+Right-click options:
+- Right bracket on gizmos with right-click options opens them in
+  a float menu (covers "Designate All", Command_Hide subclasses,
+  and mechanitor control group gizmos)
+
+Slider adjustment:
+- Enter on slider gizmos (fuel, hemogen, pruning, mech carrier)
+  enters adjustment mode
+- Left/Right arrows step one increment, Shift for 5x
+- Heat/Psyfocus gizmo uses right bracket instead (Enter toggles
+  the neural heat limiter)
+- Plays vanilla's DragSlider sound on each step
+
+Also includes discoverability hints and psyfocus target value in
+announcements.
+
+
+MODS MENU REDESIGN
+-------------------
+The mods menu has been rebuilt as a navigable two-level interface:
+
+List level:
+- Up/Down to navigate, Left/Right to switch columns
+- Space to quick toggle enable/disable
+- Enter to open detail view
+
+Detail level:
+- Navigable content lines: author, ID, versions, warnings, errors,
+  requirements, and description
+- Action buttons: Enable/Disable, Mod Options, Website, Workshop,
+  Open Folder, Unsubscribe
+- Open Folder now works on macOS and Linux (not just Windows)
+- Fixed Space quick toggle showing stale "Now on/off" announcements
+
+
+TABLE SORTING FIX
+-----------------
+Sorting in the Animals, Wildlife, and Assign tabs now uses the game's
+own PawnColumnWorker.Compare() method instead of custom string-based
+sorting. This fixes broken sorting for non-English players and ensures
+correct ordering (e.g., training progress by level, not alphabetically).
+
+Also adds 3-state sort cycle matching vanilla: descending → ascending
+→ clear (return to default order).
+
+
+OTHER IMPROVEMENTS
+------------------
+- Shift+T announces game performance: current time speed, actual vs
+  target ticks per second, percent of requested speed. When a combat
+  threat forces normal speed, the announcement says "slowed by threat"
+- Time control labels now use vanilla translation keys (ClockTime,
+  ClockDate, Weather, AM, PM, etc.) for non-English players
+- History messages tab: content announced first (then type, then date)
+  so you can stop listening sooner. Alt+L/Alt+M filter hints announced
+  on tab entry
+- Schedule - Allowed areas column: Shift+Home/End bulk paints allowed area to
+  all pawns above/below, Ctrl+Shift+Home/End paints to all pawns
+- Bookmarks: double-tapping Ctrl+number now announces "Jumped" so you
+  know you were moved
+- Pawn group shortcuts changed: save groups now Ctrl+Shift+F1-F4,
+  recall groups now Ctrl+F1-F4 (avoids Alt+F4 closing the game on
+  Windows and Cmd+F5 toggling VoiceOver on macOS)
+- Double-tap Ctrl+number to jump to bookmark as alternative to
+  Ctrl+Shift+number (avoids keyboard layout switching conflicts)
+
+
+SCREEN READER FIXES
+-------------------
+- Optional Tolk fallback for Windows: players can place Tolk.dll at %APPDATA%\..\LocalLow\Ludeon Studios\RimWorld by Ludeon Studios to use Tolk instead of Prism for screen readers
+  not yet supported by Prism
+- Fixed Prism config struct size for v0.11+ API (was causing
+  initialization failure on all platforms)
+- Angle brackets in speech text no longer trigger SSML parsing on
+  macOS, fixing silent or broken speech output
+- On macOS without VoiceOver, key presses now interrupt queued
+  AVSpeechSynthesizer speech
+
+
+BUG FIXES
+---------
+- Fixed terrain sounds not playing in non-English languages (was
+  matching against translated labels instead of defNames)
+- Fixed non-Latin keyboard typeahead: Cyrillic and other non-Latin
+  keyboard users can now search in menus (typeahead uses layout-aware
+  character events instead of physical key codes)
+- Fixed maps with only mechs or animals being excluded from
+  Shift+comma/period map switching. Map switch announcement now
+  describes what's on each map (e.g. "3 colonists, 2 mechs")
+- Fixed input stealing during overlay/placement: float menus opened
+  over placement mode now receive keyboard input correctly
+- Fixed designator loss when selecting a pawn during shape placement
+- Fixed "Unrestricted" area label not being localized in Animals tab
+
+There's probably a lot more, honestly. It's hard to remember everything.
+
+=============================
+03/27/2026
+
+Cross-platform support (macOS and in theory Linux), Rashad Hates Treeviews
+fixes, and info card announcement improvements.
+
+
+CROSS-PLATFORM SUPPORT
+-----------------------
+RimWorld Access now works on macOS in addition to Windows. Linux is
+also supported in theory but has not been tested. The same mod
+package works across all three platforms — no separate downloads
+needed.
+
+The mod has been migrated from the Windows-only Tolk library to Prism,
+a modern cross-platform screen reader abstraction layer. Prism
+auto-detects and uses the best available screen reader or TTS engine
+on your system:
+
+- Windows: NVDA, JAWS, SAPI, ZDSR, possibly others.
+- macOS: VoiceOver
+- Linux: Orca (untested)
+
+macOS keyboard shortcuts:
+All keyboard shortcuts work identically to Windows with two
+substitutions:
+- Ctrl → Cmd (Command key)
+- Alt → Option key
+Everything else is the same.
+
+macOS installation:
+Place the RimWorldAccess mod folder at:
+~/Library/Application Support/steam/steamapps/common/RimWorld/RimWorldMac.app/Mods
+
+Known issues on macOS:
+- VoiceOver interruptions: incoming alerts and notifications will cut
+  off whatever VoiceOver is currently reading. If you're in the middle
+  of listening to something and an alert arrives, VoiceOver switches
+  to the alert and you'll need to re-read the original content.
+
+
+Rashad Hates Treeviews fixes
+--------------------------------------------
+Several fixes to the submenu-style navigation mode:
+
+- When opening inspection via Ctrl+Alt+Enter, the cursor now
+  correctly lands on the first child item instead of the second
+- Section boundary announcements are now spoken before the item
+  instead of after (e.g., "Gear. Steel sword" instead of
+  "Steel sword. Gear"), giving you context first
+- Section names now use the short form instead of the full collapsed
+  label, which could be very long for some categories
+- Expanding a node or opening inspection no longer redundantly
+  announces the section or parent name — you just chose to go there,
+  so you already know where you are. Section announcements now only
+  fire when navigating up/down across section boundaries.
+- These fixes apply to both the inspect panel and the info card
+
+
+=============================
+03/26/2026
+=============================
+
+Treeview overhaul with unified navigation and audio feedback,
+a new submenu-style navigation mode, smart labels, multi-select,
+launch destination filtering, world map landmarks, and info card
+improvements.
+
+
+MULTI-SELECT
+------------
+A complete multi-select system that lets you select multiple pawns
+and issue group commands, eliminating the need to individually select
+and command each pawn one at a time.
+
+Selection:
+- Alt+Shift+Left/Right: extend selection to adjacent pawns
+- Alt+Space: toggle individual pawns in/out of selection
+- Alt+Ctrl+Space: select all colonists / clear all selection
+
+Persistent groups (3 slots):
+- Ctrl+Alt+F1 through Ctrl+Alt+F3: save current selection to a group
+- Alt+F1 through Alt+F3: recall a saved group
+Groups persist across save/load. Pawns on other maps are filtered
+out on recall and announced as unavailable.
+
+Navigation in multi-select mode:
+- Comma/Period, Alt+Left/Right, Alt+1-0, Alt+Up/Down all move focus
+  without changing the selection
+- Camera does not follow focus movement
+- Focused pawn announces selected/not-selected status and current job
+
+Group commands:
+- R: draft/undraft (toggles pawns matching the first pawn's state)
+- G: show gizmos for selected pawns (grouped like vanilla)
+- Right bracket (]): context menu for selected group
+- "Go here (formation)": line formation movement with two-point
+  placement (Space to set points, Enter to confirm, Escape to cancel)
+
+After issuing commands, you get smart feedback:
+- "Everyone drafted" / "Everyone except Bob, Sarah drafted" /
+  "Only Carol, Dave drafted"
+
+Pawn info shortcuts (Alt+H/M/N/K/G/B) use the cursor pawn first,
+then show a pawn picker menu if multiple are selected. Alt+C opens
+a pawn picker for camera jump. All pickers support typeahead search.
+
+
+TREEVIEW OVERHAUL
+-----------------
+All treeviews across the mod now share a single unified navigation
+system. This means every tree in the game — architect menu, inspect
+panel, info card, ideology viewer, character creation, research menu,
+and more — behaves consistently with the same keyboard shortcuts and
+the same navigation rules.
+
+Expanding and collapsing nodes now plays distinct sounds so you
+always know what just happened without needing speech. Especially
+useful for the new Rashad Hates Treeviews mode. Bulk-expanding
+with * plays a reverb version of the expand sound to signal that
+multiple nodes opened at once.
+
+
+Rashad Hates Treeviews Mode  (Optional Setting)
+--------------------------------------------
+A new setting (off by default) transforms every treeview in the mod
+into submenu-style navigation for players who prefer an arguably
+better, but potentially more confusing, experience. When enabled:
+
+- Right Arrow or Enter on a category opens it like a submenu — the
+  category disappears and you land on its first child
+- Left Arrow goes back to the parent, which reappears with the cursor
+  on it
+- The tree remembers where you were in each category, so re-entering
+  puts you right back where you left off
+- Crossing between expanded categories announces the new parent's name
+  as a boundary cue
+- All other navigation (Home, End, typeahead search, etc.) works as
+  usual
+
+This is dedicated to Rashad, whose passionate hatred of treeviews
+inspired me to bring this back! Enable it in the mod settings under
+"Rashad Hates Treeviews."
+
+
+SMART LABELS
+------------
+Data heavy Treeview nodes now show context-aware labels. When a node
+is collapsed, it shows a full summary of its contents. When expanded,
+it shows just the title — since you can already see the children.
+Expanding or collapsing always announces the short form so you're not
+overwhelmed with repeated information.
+
+A new "Announce Levels" setting lets you toggle depth level
+announcements in treeviews (e.g., "level 2"). Turn it off if you
+find the level callouts distracting; turn it on if you want to stay
+oriented in deeply nested trees.
+
+
+LAUNCH DESTINATION FILTERING
+-----------------------------
+When launching gravships, transport pods, or shuttles, the world map
+scanner now only shows destinations that are actually in range of the
+launch point. Previously the scanner listed every settlement, site,
+and tile on the map regardless of whether you could reach it — now
+unreachable destinations are filtered out automatically.
+
+As before, fuel cost to each destination is announced as part of the
+tile summary, so you can factor costs into your decision-making.
+
+
+LANDMARKS (Odyssey DLC)
+-----------------------
+A new "Landmarks" category has been added to the world map scanner.
+This feature requires the Odyssey DLC — if you don't have Odyssey
+enabled, you won't see the Landmarks category in the scanner.
+
+Landmarks are notable world features like mountain ranges, lakes,
+and volcanic fields. Each landmark's name is also included in the
+tile summary when you're standing on a tile that belongs to one.
+You can press 5 to learn more about the landmark.
+
+
+INFO CARD IMPROVEMENTS
+----------------------
+The info card now uses section-based navigation instead of showing
+category headers as separate items you have to arrow past. Sections
+like Basics, Combat, and Apparel are announced when you cross from
+one section into another (e.g., "Combat section. Armor — Sharp:
+50%"). This reduces clutter and makes browsing stats faster.
+
+Stat entries that duplicate their category name no longer show
+redundant text.
+
+
+BUG FIXES AND SMALLER CHANGES
+------------------------------
+- Pressing Escape in the character creation pawn filter now saves
+  your filters instead of discarding them
+- World map layer cycling changed from L to Tab/Shift+Tab for better
+  consistency with other navigation patterns
+- Orbit (space) tiles no longer announce meaningless temperature and
+  hilliness values
+- Pressing Enter on a gravship ritual role now changes the role
+  assignment instead of accidentally launching the gravship
+- New pawns during character creation now announce their age, traits,
+  and top 3 skills when rolled
+- Fixed duplicate skill announcements in ritual pawn selection
+- Fixed stale architect menu state persisting after switching to the
+  world map
+
+
+=============================
+03/23/2026
+=============================
+
+Map bookmarks, a fully accessible Learning Helper, and
+keyboard input fixes for AZERTY layouts, auto slaughter typeahead,
+and health tab operations.
+
+
+MAP BOOKMARKS
+-------------
+You can now save and jump to up to 10 bookmarked positions on each
+map. Bookmarks are saved per-map and persist across save/load.
+
+- Ctrl+Alt+1 through Ctrl+Alt+0: Set a bookmark at your current
+  cursor position. You'll hear a confirmation with the tile summary
+  (e.g., "Bookmark 3 set: Steel wall, Home zone").
+- Ctrl+1 through Ctrl+0: Announce a bookmark's info without moving.
+  Reports the tile contents, distance, and direction from your
+  current position (e.g., "grav engine, Gravship substructure, 189, 231, 13 tiles Southwest").
+  If the bookmark isn't set, you'll hear "Bookmark 3 not set".
+- Ctrl+Shift+1 through Ctrl+Shift+0: Jump your cursor directly to
+  the bookmarked tile. 
+
+Bookmarks are stored independently per map, so your colony map
+bookmarks won't interfere with bookmarks on other maps. They
+persist when you save and reload your game.
+
+
+LEARNING HELPER 
+---------------------------------
+RimWorld's Learning Helper — the contextual tutorial that teaches
+game mechanics as you play — is now fully accessible via keyboard.
+When adaptive training is enabled (the default), new lessons are
+announced automatically through your screen reader as they activate
+during gameplay.
+
+Press ? (question mark) to open the Learning Helper menu at any
+time while in-game.
+
+The menu has two modes, toggled with Tab:
+- Active Lessons (default): Shows only currently active or unlearned
+  concepts — the ones the game thinks are relevant to what you're
+  doing right now.
+- All Lessons: Shows every tutorial concept in the game, with
+  typeahead search so you can quickly find specific topics.
+
+Navigation:
+- Up/Down arrows: Move through the lesson list
+- Enter: Open a lesson's detail view to read its content
+- Tab: Switch between Active Lessons and All Lessons modes
+- Home/End: Jump to first or last lesson
+- Type letters: Typeahead search (in All Lessons mode)
+- Backspace: Delete search character
+- Escape: Clear search, or close the menu
+
+Inside a lesson's detail view:
+- Up/Down: Navigate through the lesson header, help text lines,
+  and action buttons
+- Enter: Activate the current button (e.g., "Mark as learned")
+- Escape: Return to the lesson list
+
+Each lesson shows its knowledge percentage (how much the game
+considers you've learned it). Arrowing through a lesson's detail view
+counts as interaction and increases your knowledge. You can also
+press Enter on "Mark as learned" to immediately complete a lesson.
+
+Note: The Learning Helper requires adaptive training to be enabled
+in your settings. If adaptive training is off, the ?
+key will do nothing.
+
+
+BUG FIXES
+---------
+- Fixed auto slaughter typeahead not working: typing letters on the
+  auto slaughter screen was navigating the animals menu instead.
+  Typeahead now correctly searches animal rows on the auto slaughter
+  screen.
+- Fixed AZERTY keyboard support: the left ALT key should now work for all
+  ALT shortcuts (Alt+N, Alt+H, Alt+M, Alt+B, etc.). Previously,
+  only the right ALT key worked on AZERTY and similar non-US
+  keyboard layouts.
+- Fixed keyboard input leaking from the health tab operations menu:
+  typing letters for typeahead search (e.g., 'R' or 'T') was
+  accidentally triggering game shortcuts (drafting pawns, announcing
+  time). Letters are now properly consumed by the menu.
+- Added Enter-to-confirm-search behavior across tabular menus: in
+  the auto slaughter, animals, and wildlife menus, pressing Enter
+  while a typeahead search is active now confirms the search result
+  and announces your current position, instead of triggering the
+  cell action. Press Enter again (after search is cleared) to
+  interact with the cell normally.
+- Fixed IMGUI focus on character creation pages after closing the
+  faction relations dialog
+
+
+=============================
+03/16/2026
+=============================
+
+Massive character creation overhaul, full Ideology DLC browsing,
+Odyssey gravship support, Royalty jump pack targeting, localization
+of 70+ hardcoded strings, and a new pawn filter system with
+RandomPlus compatibility.
+
+Important Note: Creating custom ideoligions is not yet accessible. Do not select those options in the ideology screen or you will get stuck and have to restart the game. Support for this will come in a few days to a week.
+
+CHARACTER CREATION — REDESIGNED
+--------------------------------
+The character creation screen has been completely rebuilt as a treeview.
+Pawns are grouped under "Selected" and "Left behind" headers, with
+expandable categories (Bio, Traits, Skills, Health, Possessions) and
+full keyboard navigation.
+
+- Page Up/Down preserves your tree position when switching between pawns
+- Ctrl+Up/Down reorders pawns within the selected group
+- Alt+R randomizes the current pawn
+- Alt+N renames with a Title field
+- Right bracket (]) opens a context menu with Biotech dev stage and
+  xenotype submenus
+- Typeahead search to find pawns by name
+- Start-game confirmation now lists pawn names
+
+Xenotype editor (Biotech DLC):
+The gene editing screen during character creation is now fully
+accessible. Tabbed treeview with Selected Genes, Gene Library (organized
+by category), and Controls (biostats, name, name lock, inheritable,
+ignore restrictions, load/save). Toggle individual genes with Enter,
+rename with a text input flow, and browse gene details with front-loaded
+biostats and descriptions.
+
+Pawn filter system (RandomPlus Mod implementation) (Alt+F or context menu):
+A full pawn filter editor lets you set criteria for auto-rerolling pawns.
+Filters include per-skill level and passion requirements, total passion
+range, total skill points range, traits (required/excluded), age range,
+gender, health conditions, and work incapabilities. When randomizing,
+pawns are rerolled automatically until a match is found or the
+configurable limit is reached, with progress announcements for long
+searches.
+
+RandomPlus feature parity:
+The filter system now matches the full RandomPlus mod feature set —
+gene-affected hediff exemptions, optional trait pools, skill counting
+options (highest attack only, passion skills only), and reroll limits
+up to 50,000. Filter presets save and load in the exact same format
+and location as RandomPlus, so blind and sighted players can share
+presets seamlessly.
+
+
+WANDERER DIALOG
+---------------
+The post-colony-death settler creation screen (Dialog_ChooseNewWanderers)
+is now fully accessible, reusing the same chargen tree navigation and
+RandomPlus filter system. Alt+A to add pawns (up to 6), Delete to remove
+(minimum 1), Enter to confirm, Escape to close. The pawn filter and
+reroll work mid-game just like during initial character creation.
+
+
+LOCALIZATION
+------------
+Over 70 hardcoded English strings across the main menu, options menu,
+storyteller selection, scenario selection, and custom difficulty screens
+have been replaced with RimWorld's own translation keys. Tooltip
+announcements have been added for 14 settings that have game-provided
+tooltips (volumes, compression, camera, etc.).
+
+The language selection menu and soundtrack submenu now route through
+the accessible float menu system instead of opening vanilla's
+inaccessible FloatMenu. Language names display in their native script
+(e.g., "Deutsch" instead of "German").
+
+On/Off checkbox values, day labels, permadeath mode labels, and option
+category names are all localized.
+
+
+BUG FIXES
+---------
+- Map cursor now initializes at the camera position instead of (0,0)
+  when loading a save
+- Fixed a crash when the game's rendering code called
+  TransportersInGroup() during gizmo announcement, causing a
+  collection-modified exception
+- Fixed incompatible trait degrees (e.g., Psychically Hypersensitive
+  and Psychically Deaf) being selectable together in the pawn filter
+- Fixed float menu input conflicts with IMGUI context on chargen pages
+- Fixed favorite color translation crash due to missing named arguments
+- Ideology tree expand/collapse actions now announce just the section
+  name and state (e.g., "Memes, expanded, 3 items") instead of reading
+  the full content
+
+
+=============================
+  DLC FEATURES
+=============================
+
+
+IDEOLOGY DLC
+-------------
+Ideology tab (F12 > Ideology):
+The in-game Ideology tab is now fully browsable with keyboard navigation.
+A two-panel interface shows the ideology list on one side and a details
+tree view on the other.
+
+The details tree includes all sections matching what sighted players see:
+- Overview with leader title, worship room, adjective, member name
+- Style categories with buildable/styled item lists and override tracking
+- Memes as expandable nodes showing unlocked roles, rituals, traits,
+  research, and conflicting precepts
+- Precepts, roles, rituals, buildings, relics, weapons, animals, apparel
+- Role required apparel with descriptions and Alt+I info cards
+- Deities with name, type, gender, and related meme
+- Fluid ideology development points
+Note: Reforming fluid ideoligions is not accessible yet, nor is creating custom fluid or fixed ideoligions. This is coming soon.
+- Appearance section with browsable hair, beard, and tattoo styles
+- Ritual ambience sound preview via Enter key
+
+Ideology preset selection during world gen:
+The ideology selection screen during world generation is now accessible.
+Two-tab interface with Options (Classic, Custom Fluid/Fixed, Load) and
+Presets (organized by Mild/Strong/Intense categories with expandable
+descriptions). Alt+S and Alt+Y open structure and style selection menus.
+
+Favorite color:
+Pawn favorite colors now appear in both the info card Bio tab and the
+inspect treeview Character section.
+
+
+ROYALTY DLC
+-----------
+Jump pack targeting:
+Jump Packs and Locust Armor jump abilities are now fully accessible.
+When entering jump targeting mode, you hear the ability name, range, and
+remaining charges. Each tile shows validity as you navigate, R provides
+detailed range info, and Enter gives specific error messages for invalid
+targets. This required special handling because Verb_Jump extends Verb
+directly rather than going through the ability system.
+
+
+ODYSSEY DLC
+-----------
+Gravship support:
+Gravships (Odyssey DLC flying transports) are now fully accessible,
+including destination selection, landing placement with coordinate
+correction, layer cycling on the world map, and disconnected
+substructure detection with scanner integration.
+
+The process of launching and landing gravships is heavily gizmo driven. Check gizmos (g key) for every gravship related object to learn how the system works. 
+- Fixed gravship checkboxes being incorrectly counted in ritual role
+  assignments
+
+
+=============================
+
+02/28/2026
+
+Permits are now fully usable from the keyboard, the scanner splits
+mechanoids into friendly and hostile, thing filter navigation gets
+several fixes, and a soft-lock with child growth moments is resolved.
+
+
+PERMITS
+-------
+Permits can now be accepted and returned directly from the Info Card's
+Permits tab. Each permit node shows its full details — title
+requirement, prerequisites, cooldown, favor cost, and description.
+Use Enter to accept an available permit, and "Return all permits" is
+available per faction with a confirmation prompt.
+
+Permit targeting has also been fixed. Previously, using a permit that
+targets a map cell (e.g., calling a shuttle or an airstrike) was
+completely broken because the item targeting system was incorrectly
+intercepting permit workers. The permit name is now announced when
+targeting starts, and range validation accounts for weather
+conditions correctly — clear weather no longer blocks targeting due
+to a negative range cap.
+
+
+SCANNER
+-------
+- The Mechanoids scanner subcategory is now split into "Player
+  mechanoids" and "Hostile mechanoids" so you can cycle through your
+  own mechs without stopping on every hostile cluster
+
+
+FILTER NAVIGATION (used with ingredient filters, stockpile zone filters, etc.)
+------------------------
+- Pressing * (Shift+8 or numpad multiply) now expands all siblings
+  at the current level, matching the standard tree view pattern used
+  elsewhere in the mod
+- Typeahead search now works in the policy editor's ThingFilter
+  (outfit, drug, and food restriction editors)
+- Fixed typeahead keys leaking through to game shortcuts — for
+  example, pressing T to search would also trigger the time
+  announcement
+
+
+BUG FIXES
+---------
+- Fixed a soft-lock in the growth moment dialog when a child turning
+  3 had no passion or trait choices available — the dialog would open
+  but couldn't be dismissed
+
+
+02/26/2026
+
+Minor hotfix patch.
+
+- Fixed ingredient filters (e.g., crematorium bills) not showing inherited
+  special filters like "Allow rotten" and "Allow fresh"
+- Colonist bar no longer announces "Start of bar" / "End of bar" when
+  reaching boundaries — instead re-announces the current pawn
+
+
+02/25/2026
+
+Another big patch! The schedule menu assign menu have all been redesigned from scratch, column painting now works across every supported table in the mod, and there are a ton of bug fixes and quality-of-life improvements throughout.
+
+
+MAP AND TILE INFORMATION
+------------------------
+The way items on a map tile are reported has been completely overhauled.
+Previously, items were broken into separate categories (pawns, buildings,
+items, plants) with arbitrary caps — for example, only the first 2
+buildings and 3-5 pawns would be announced, and plants were hidden
+whenever any other object was present.
+
+Now, everything on a tile is announced with no truncation, sorted by the
+game's own AltitudeLayer priority system — the same system the game uses
+for visual rendering and click selection. Higher-priority things are
+announced first:
+
+  1. Blueprints (planned construction)
+  2. Pawns (colonists, animals, NPCs)
+  3. Items (resources, equipment)
+  4. Buildings (structures, furniture, doors)
+  5. Plants (trees, crops, wild plants)
+  6. Conduits (hidden infrastructure)
+
+Player-placed orders (chop, mine, haul, etc.) are now announced
+alongside the thing they apply to — for example, "bamboo tree (chop wood)" — instead of appearing as a disconnected list at the
+end. Cell-targeted orders like mine or smooth floor are announced at
+the beginning since they apply to the tile as a whole.
+
+This same ordering is now used consistently across tile info, Alt+I info
+cards, and the gizmo bar, so all three systems present things in the
+same order.
+
+Other tile info changes:
+- Polluted terrain now includes "Polluted" in the label, matching
+  vanilla's display
+- Alt+I can now inspect non-selectable things like filth and wild plants
+
+
+SCHEDULE MENU (F2) — REDESIGNED
+-------------------------------
+The schedule menu has been completely redesigned. It now uses a brush-
+based painting system that lets you assign jobs across hours quickly
+using keyboard shortcuts.
+
+How it works:
+The schedule is a grid where each row is a pawn and each column is an
+hour of the day (0–23). Each cell can be set to a job type like
+Anything, Work, Sleep, Recreation, or Meditate (if you have the Royalty DLC).
+
+Selecting a brush:
+Press number keys 1 through 4 (or 5 with Royalty) to select a brush.
+The brushes correspond to the available job types:
+  1 = Anything
+  2 = Work (if available)
+  3 = Sleep
+  4 = Recreation
+  5 = Meditate (Royalty DLC)
+The selected brush is announced when you pick it.
+
+Applying the brush:
+- Space or Enter: Apply the brush to the current cell
+- Shift+Left/Right: Move to the next/previous hour AND apply the brush
+  as you go — this is "painting." Hold Shift and arrow across hours to
+  quickly set a range.
+- Shift+Home/End: Paint from the current cell to the first/last hour
+  of the row
+- Ctrl+Shift+Home/End: Paint every row at the selected column with the active brush.
+
+For example: Let's say you have three pawns, Bob, Alice and John:
+
+It's currently 11:43 in the game, and they're all having a really difficulty day, so you want to allow them to have recreation time the next two hours. You'd press f2, hit the right arrow key once (to navigate to hour 12 then press 3 to select the recreation brush.
+
+From here, you could do a few different things:
+
+1. You could press space on hour 12 to paint that single tile with your recreation brush.
+2. You could tap shift right arrow, to select both hours 12 and 1 with your recreation brush (for your first pawn.)
+3. Or, you could press control shift end. This would paint hour 12 with your recreation brush for all three of your pawns. Then you'd just have to hit the right arrow key to select hour 13 and use control shift home to paint all three pawns with recreation for hour 13.
+
+If you'd rather just use] space to set individual cells, that's perfectly fine too. You can also still use control c and control v to copy and paste schedules between pawns. 
+
+If this proves to be confusing for folks (I'm assuming it will) I can make a video about it if Liam doesn't! I also will be updating the README to describe this screen in more detail.
+
+Feedback is always welcome!
+
+Navigation:
+- Up/Down arrows move between pawns
+- Left/Right arrows move between hours
+- Tab/Shift+Tab switches between Schedule and Allowed Areas columns
+- Home/End jump to the first/last hour
+- Typeahead search to find pawns by name
+
+ASSIGN MENU (F3) — REDESIGNED
+------------------------------
+The assign menu has been completely rebuilt to match the game's actual
+table layout — the same column-based design used by the Animals and
+Wildlife menus. Each row is a pawn and each column is an assignment
+category (Outfit, Drug Policy, Food Restriction, Hostility Response,
+Medical Care, Allowed Area, etc.).
+
+- Left/Right arrows move between columns
+- Up/Down arrows move between pawns
+- Enter or Space opens a submenu for the current column (e.g., a list
+  of available outfit policies to choose from)
+- Right bracket (]) opens a context menu with actions for the current
+  cell
+- Typeahead search to find pawns by name
+
+Painting is fully supported (see Column Painting below). You can also
+jump directly into the policy editor for outfits, food, and drugs from
+within the assign menu, and when you close the editor, you're returned
+to where you left off.
+
+
+COLUMN PAINTING (Animals, Wildlife, Assign, Schedule)
+-----------------------------------------------------
+"Painting" is a new way to apply the same value across multiple rows in
+a column without having to change each cell individually. Think of it
+like drag-to-fill in a spreadsheet. This feature previously existed only
+when setting allowed areas. It now
+works across every supported column in the Animals, Wildlife, and Assign
+tabs as well.
+
+How painting works:
+1. Navigate to the cell whose value you want to copy
+2. Hold Shift and press Down or Up to paint that value to the next or
+   previous row
+3. Keep holding Shift and arrowing to keep painting
+
+Bulk painting shortcuts:
+Since only the schedule tab lets you paint in the horizontal direction, all other tables will happily let you bulk paint whether you use shift home and shift end, or control shift home and control shift end. 
+
+Paintable columns by tab:
+
+Animals (F4):
+- Training columns (Obedience, Release, Rescue, Haul, etc.)
+- Checkbox columns (Slaughter, Sterile, Follow Drafted, Follow
+  Fieldwork, Release to Wild, plus Odyssey columns like Animal Dig
+  and Animal Forage)
+- Master assignment
+- Medical Care level
+- Allowed Area
+
+Wildlife (F5):
+- Hunt and Tame checkboxes
+
+Assign (F3):
+- Outfit, Drug Policy, Food Restriction, Hostility Response, Medical
+  Care, and other assignment columns
+
+Schedule (F2):
+- All hour cells (using the brush system described above)
+
+Animals and cells that can't accept the value (e.g., an animal that
+can't learn a training skill) are automatically skipped. Each column
+type plays appropriate sound effects matching vanilla's behavior.
+
+
+WORK MENU IMPROVEMENTS
+-----------------------
+- Shift+0 through Shift+4: Set the selected work type's priority for
+  ALL compatible pawns at once. The announcement adapts based on how
+  many were changed vs. how many are incapable of that work type.
+- Tab/Shift+Tab now preserves your work type column when moving between
+  pawns, so you can quickly compare the same job across all colonists
+  (e.g., Tab through every pawn's Cooking priority without losing your
+  column position).
+
+
+INVENTORY IMPROVEMENTS
+----------------------
+Consolidated item groups:
+All instances of the same item type (same material and quality) are now
+grouped under a single expandable parent node showing the total count
+and how many are being carried. Expand the group to see individual
+stacks with their storage locations (stockpile zone, shelf, building)
+or carrier pawn, plus forbidden and tainted indicators.
+
+Material variant grouping:
+Items with multiple material or quality variants (apparel, weapons,
+furniture) are further grouped by their base type. For example, all
+parkas are grouped together under "Parka" regardless of material, with
+a summary showing total count and materials. Meal variants sharing the
+same tier (fine, lavish) are grouped by quality.
+
+Context menus:
+Press right bracket (]) on any item to open a context menu with actions
+like Jump To, Drop, Install, and Show Info, with keyboard shortcut
+hints shown alongside each action.
+
+
+BILL CONFIGURATION FIXES
+-------------------------
+- Store In dropdown: Previously only showed stockpile zones, completely
+  missing shelves and shelf groups. Selecting a shelf showed "(No
+  stockpile)". Now correctly lists all storage locations including shelf
+  groups, sorted to match vanilla's ordering. Compatible locations are
+  listed first, with incompatible ones marked.
+- Look In dropdown (ingredient source): Previously showed every storage
+  location as a flat list without grouping shelves that share a storage
+  group. Now properly collapses linked shelves into single group entries.
+- Auto-pause: Bills paused by the "pause when satisfied" feature now
+  show "(Paused)" in the bill list, and the bill config menu gains an
+  "Unpause" option that appears only when a bill is auto-paused.
+- Approximately 40 previously hardcoded English strings have been
+  replaced with the game's own translation keys, improving support for
+  non-English players. Please let me know if the experience was actually made worse for you!
+
+
+POLICY EDITORS (Outfit, Food, Drug)
+------------------------------------
+The three policy editors now share unified keyboard shortcuts that work
+from both the table view and the dropdown selector:
+
+- Alt+N: New policy
+- Alt+R: Rename policy
+- Alt+C: Copy policy
+- Alt+E: Edit policy (opens filter)
+- Delete: Delete policy
+
+Context menu labels now show these shortcut hints.
+
+Item filter improvements across all policy editors, storage filters, and
+bill ingredient filters:
+- Categories now use tri-state toggling matching vanilla behavior. When
+  a category is partially allowed (some items on, some off), toggling it
+  turns everything ON instead of OFF.
+- Smart category summaries now show exception counts and names instead
+  of a misleading "allowed" or "disallowed" label. For example,
+  "disallowed, except for: cloth, human leather."
+- Navigation in subcategories should no longer get stuck when drilling into
+  and out of nested filter trees.
+- Asterisk prefixes on special filter labels are stripped for cleaner
+  screen reader output.
+
+Other policy editor fixes:
+- Forced apparel is now listed in the outfit column values on the assign
+  tab
+- Closing a policy editor properly returns to the assign menu and
+  re-announces your position
+
+
+GIZMO BAR AND ORDERS
+---------------------
+Reverse designator gizmos:
+Orders like Mine Vein, Strip Corpse, and other reverse designators are
+now accessible in the gizmo menu (G key) when you have a valid target
+selected. Mine Vein, for example, lets you place a mine
+order on an entire connected body of mineable tiles — select any tile
+in the vein, press G to open gizmos, and activate Mine Vein to mark
+the whole thing.
+
+Ability cooldowns:
+Ability gizmos now announce their cooldown remaining when on cooldown,
+so you can tell when an ability will be available again.
+
+Queued orders:
+When you give an order with Shift+Enter (to queue it rather than
+replace the current order), the announcement now confirms that the
+order was queued.
+
+
+INFO CARDS AND INSPECTION
+--------------------------
+- Ctrl+Alt+I: New shortcut to open the info card for the currently
+  selected colonist bar pawn, matching the existing Ctrl+Alt+Enter
+  pattern for the inspection tree.
+- Incapable Of section: The info card's "Incapable Of" section now
+  shows WHY each work type is disabled (which backstory, trait, or gene
+  causes it) and expands to list affected work types with descriptions,
+  matching what sighted players see on the character card.
+
+
+KEYBOARD AND INPUT FIXES
+-------------------------
+- Shift+Home/End on sliders: The direction of Shift+Home and Shift+End
+  has been corrected across all quantity sliders (caravans, trading,
+  bills, auto-slaughter, difficulty, fishing zones, quantity menu).
+  Home now goes to minimum and End goes to maximum, matching standard
+  keyboard conventions.
+- Building mode no longer steals Escape when an overlay screen
+  (inventory, gizmo navigation, inspection) is open on top of it.
+  Previously, pressing Escape while viewing inventory during placement
+  mode could discard your blueprint instead of closing the inventory.
+
+
+AUTO-SLAUGHTER UX IMPROVEMENTS
+-------------------------------
+- Tab/Shift+Tab now cycles between the Animals menu and Auto Slaughter
+  screen, with Escape closing both screens entirely.
+- Typing -1 in numeric input now sets the value to unlimited.
+
+=============================
+  DLC FEATURES
+=============================
+
+
+BIOTECH DLC
+-----------
+Gene inspection for items:
+Embryos, genepacks, and xenogerms now have full gene inspection support.
+Previously, inspecting these items showed "Category not found." Now you
+can browse their gene lists in the inspection tree and see skin color
+shade descriptions (very light, light, fair, medium, etc.) in both
+overview and info card views.
+
+Soft-lock fix:
+Fixed a soft-lock that occurred when baby naming or growth moment
+dialogs were force-opened by the game's timer (when the associated
+letter times out). Keyboard navigation would partially work but
+Enter and Escape failed, trapping blind players. Both dialog types
+now initialize correctly regardless of how they're opened.
+
+
+=============================
+
+02/20/2026
+
+There's a lot of stuff in here, and it's not as organized as I would like, but just about every change should be documented!
+
+COLONIST BAR NAVIGATION
+------------------------
+Full keyboard navigation for the colonist bar, giving you quick access to
+any pawn without having to hit comma and period a million times.
+
+- Alt+Left/Right navigates the bar linearly across page boundaries
+- Alt+Up/Down moves between pages of 10 (colonist pages, then mechs)
+- Alt+1-0 jumps to positions on the current page
+- Ctrl+Alt+Left/Right reorders colonists within a page
+- Ctrl+Alt+Up/Down moves colonists between pages
+- Reorder announcements include neighbor context (e.g., "between X and Y")
+- Ctrl+Alt+Enter opens the inspection tree for the selected colonist
+- Comma/Period cycles through mechs when on the mech section. (Repositioning mechs on mech bar is coming soon, but it will take more time, because in Vanilla Rimworld, there is no such thing as a mech bar.)
+
+COVER INFO
+----------
+Drafted and hostile pawns now announce their cover status across the map
+cursor, scanner, and colonist bar (Comma/Period, Alt+number). Shows the
+best adjacent cover object and its base block chance percentage, e.g.,
+"behind sandbags (blocks 55%)".
+
+Note: reported percentages reflect the object's base block chance and may
+not match actual combat effectiveness, which varies based on shooter
+angle, distance, and diagonal positioning.
+
+QUEST SYSTEM
+------------
+The quest list now announces full quest info (name, difficulty, time limit,
+description, and rewards) when arrowing through entries, and you can press enter to drill into and arrow through details.
+
+- Alt+A on multi-choice reward quests opens a menu for selecting between
+  reward options
+- Alt+I within that menu opens a nested item inspection sub-menu and Enter opens info cards for individual items
+- Escape navigates back through each level
+- Accept buttons in detail view now show reward descriptions
+- Opening hint explains Alt+A, Alt+D, and Enter navigation on first open
+- You can now choose which pawn will accept a quest for quests which require a specific pawn to accept them.
+- When in the quest menu, you can press tab to configure desired goodwill / honor quest rewards per faction for future quests. 
+
+FACTIONS TAB (F12)
+------------------
+The in-game Factions tab is now accessible. Press F12 to open it (also
+works for the Ideology tab if that DLC is active). Though the ideology tab is not accessible just yet!
+
+Each faction is a collapsible treeview node. Expanding reveals individual
+sections: type, leader, relations, goodwill with ongoing/recent event
+breakdown, ideology, enemies, and description. The description itself is
+expandable into individual lines for easier parsing.
+
+- Typeahead search to find factions by name
+- Alt+I for info cards on factions
+- Standard WCAG treeview keyboard shortcuts (Right/Left expand/collapse,
+  Home/End siblings, Ctrl+Home/End absolute, * expand all siblings)
+- The pre-game faction landing page (F key during starting site selection)
+  uses the same treeview navigation
+
+This is a bit of an experiment. All the information is shown as you arrow through each faction, but you can optionally hit the right arrow key (since this is a tree view,) and arrow through the information if you want to receive the information in chunks. Annoyingly, when you do hit the right arrow key to expand the item, it will read the full text of the item again, so hit the down arrow key immediately after expanding. If people like this, I will add this functionality to other tree views throughout the mod, and I'll make it not announce long menu items when expanding / collapsing them.
+
+BILL CONFIGURATION OVERHAUL
+----------------------------
+The bill configuration screen now has full feature parity with the vanilla
+Dialog_BillConfig, adding a bunch of previously missing options:
+
+- Rename bills
+- Include equipped / include tainted toggles
+- Currently-have count display
+- HP range and quality range filters
+- Limit to allowed stuff
+- Include from source stockpile selection
+- Independent skill range min/max controls
+- Ingredient search radius editing
+- Recipe descriptions shown in bill config info
+- Skill requirements now show actual minimums instead of learn factor
+- Work amounts use the game's native formatting
+- Home/End keys for bill config navigation
+- DLC-specific options: slave/mech/non-mech workers (Biotech/Ideology),
+  style selection (Ideology), wearable-by info (Biotech)
+
+
+AUTO-SLAUGHTER OVERHAUL
+-----------------------
+The auto-slaughter settings screen has been completely rewritten with a
+clearer, more accessible interface.
+
+New features:
+- Inline quantity shortcuts: Shift+Up/Down (±10), Ctrl+Up/Down (±100)
+- Direct number typing: Enter to activate, type digits, Enter to confirm
+- Natural language announcements with descriptive column names
+  (e.g., "Maximum allowed males: 5. Current population: 3")
+- Slaughter preview per column ("3 will be slaughtered")
+- Slaughter summary on close listing all animals marked across species
+- Smart unlimited-to-limit transition: pressing + sets to current
+  count + 1, pressing - sets to current count - 1
+- Shift+Home sets column to unlimited, Shift+End sets to 0
+
+Bug fixes from the original implementation:
+- Counting logic now matches vanilla exactly: bonded animals excluded from
+  category counts when bonded slaughter is disabled; pregnant females
+  excluded from female/total counts when pregnant slaughter is disabled
+- Pressing + at unlimited no longer incorrectly sets limit to 0
+
+
+PEN MARKER / ANIMAL PENS
+-------------------------
+Pen marker accessibility has been aligned with the vanilla implementation:
+
+- Pen animal filter now correctly shows only roamer animals instead of
+  every animal in the game (same fix applied to storage and bill
+  ingredient filters)
+- Auto-Cut expanded from a single action to a menu with toggle, Cut Now
+  button, and plant filter
+- Pen Food now shows unenclosed check, pen size, stockpile duration, and
+  example animals with live add/remove
+- Pen markers can be renamed
+Note: I meant to add pens to the scanner with their names, but I forgot. They'll be included in either my next test patch or my PR, whichever comes first.
+
+BUILDING AND PLACEMENT
+----------------------
+- Shift+R rotates buildings counter-clockwise during placement (R still
+  rotates clockwise)
+- In-progress buildings, unfinished crafted items, fermenting barrels, and
+  gene assemblers now announce work remaining
+- Buildings with multiple interaction cells (e.g., school desks with
+  student/teacher spots) are now announced during placement and cursor
+  navigation
+- Facility linking is now accessible: placement announcements show facility
+  bonuses and distance constraints, and a new "Linked Facilities" category
+  in the inspection tree shows linked buildings, active/inactive status,
+  compatible facilities, and stat bonuses. Applies to blackboards, tool
+  cabinets, end tables, dressers, vitals monitors, and similar buildings
+- Generic building owner assignment now works for any assignable building
+  (meditation spots, thrones, graves, etc.), not just beds
+- Meditation focus info tree node shows nearby focus objects with type,
+  strength, distance, and line-of-sight info
+- Building placement is blocked in meditation focus protection zones when
+  the warning toggle gizmo is enabled, with announcements guiding you to
+  disable it if needed
+
+
+AREA ASSIGNMENT (Alt+A)
+-----------------------
+Press Alt+A on the colony map to quickly assign an allowed area to the
+pawn at cursor or selected pawn. Includes Manage Areas integration and
+typeahead search. This is the only way to set assigned areas for friendly mechs.
+
+
+SCANNER
+-------
+- Press Ctrl+Z to clear the scanner search filter
+
+
+SOUND EFFECTS
+-------------
+The windowless float menu (right-click context menus) now plays the
+correct game sounds: FloatMenu_Open when opening, ColonistOrdered when
+executing an order, ClickReject for disabled options, and FloatMenu_Cancel
+when dismissing.
+
+
+SPEECH AND KEYBOARD
+-------------------
+- All screen reader output now passes through a centralized sanitization
+  pipeline that automatically strips XML/color tags, fixes double periods
+  and bad punctuation, and collapses extra whitespace
+- AZERTY keyboard support: the asterisk key (* for expand all siblings in
+  treeviews) now works on AZERTY and other non-US layouts where Unity
+  reports the key differently
+
+
+BUG FIXES
+---------
+- Designators (e.g., mine orders) are now announced on fog-of-war tiles
+  instead of being silently skipped
+- Fixed keyboard input being consumed by world navigation when a dialog
+  box appeared during starting site selection (e.g., pollution warnings)
+- Fixed starting site selection state sync issues on initial Enter press
+- Fixed site selection re-announcing the tile instead of confirming your
+  choice
+- Suppressed redundant site selection announcement when advancing to the
+  next page
+- Fixed IMGUI focus loss after opening the faction relations dialog during
+  character creation, which caused complete keyboard unresponsiveness on
+  subsequent pages
+- Escape now properly navigates back from the pawn selection screen
+- Fixed Alt+number keys conflicting with tile info and time control
+  hotkeys (Alt+number now always targets the colonist bar)
+
+
+=============================
+  DLC FEATURES
+=============================
+
+
+BIOTECH DLC
+-----------
+Xenogerm creation (gene processor):
+- Full keyboard accessibility for the gene assembler dialog
+- Tabbed treeview: Library, Selected Genepacks, and Controls
+- tree view navigation for genepacks with expandable gene details
+- Enter to add/remove genepacks, biostats updated live
+- Controls tab: biostats, rename, name lock, randomize, save template,
+  load template, start combining, close
+- Save/Load xenotype templates
+
+Growth moments (ages 7, 10, 13):
+- Full keyboard accessibility for the child growth moment dialog
+- Tabbed navigation for info, passions, and traits
+- Growth tier gizmo now announces points, learning rate, next growth
+  moment age, and tier reward details
+
+Learning desires:
+- Active learning desires for children are now shown beneath the Learning
+  need in both the Alt+N quick needs readout and the inspect treeview
+
+Mechanitor control groups:
+- Two-page interface for mech control groups
+- Settings page: work mode, recharge range, select all
+- Members page: energy levels, reassignment between groups
+- Rich gizmo labels and status in the gizmo bar
+
+
+ROYALTY DLC
+-----------
+Meditation focus:
+- Building inspection now includes a meditation focus tree node showing
+  nearby focus objects with type, strength, distance, and line-of-sight
+- Building placement respects meditation focus protection zones when the
+  warning toggle is enabled
+
+
+=============================
+
+02/09/2026
+
+GAME SETUP OVERHAUL
+-------------------
+Parts of the character creation process have been cleaned up and modernized a little. This process is not yet complete!
+
+- Difficulty selection screen now properly supports home / end, typeahead, etc. Additionally, commitment mode is now a list with two items, rather than a weird checkbox.
+- Custom difficulty settings can be browsed and edited directly
+- World generation screen redesigned for keyboard navigation, with the same
+  controls now used for both world gen and in-game world map views
+- Faction configuration screen (where you choose which factions appear in your
+  game) is now keyboard accessible. Press tab while configuring world generation settings to access.
+- Faction landing page (the screen shown while selecting your landing site) is
+  now accessible by pressing 'f'.
+- You can now view faction relations during starting site selection
+- The scenario selection screen now announces helpful hints when it opens
+  (Tab to switch panels, Alt+E to edit)
+- The world generation settings screen now supports all of the settings available to sighted players, and the sliders mirror the range a sighted player would have. Previously, each slider only had 3 possible states. Now, most have 7.
+
+OPERATIONS LIST
+---------------
+The operations list (health tab, Operations) has been
+rebuilt with typeahead search and filtering.
+Start typing to filter the list by name. Additionally, available operations now match those which the game shows a sighted player, rather than all in existence.
+
+
+ITEM TARGETING
+--------------
+Items with "use on target" abilities (like sentience catalysts, and
+similar targetable items) now work with the accessibility cursor. When you
+activate one, it enters targeting mode just like abilities do.
+
+
+SCANNER
+-------
+- Scanner performance has been significantly improved, so
+  PageUp/PageDown navigation should feel snappier on maps with lots of objects
+
+
+BUG FIXES
+---------
+- Fixed a long-standing crash/freeze that could happen when reloading a save while in-game
+- Fixed world map showing fragmented biome regions instead of clean boundaries if you owned the Odyssey DLC
+- Right bracket key should now work on non-US keyboard layouts (e.g., German)
+- Scanner now correctly jumps to bulk groups with or without auto jump mode being enabled.
+- Scanner bulk group jump no longer gets stuck or blocked by placement mode
+- Tile announcements with designators no longer repeat the thing name (e.g.,
+  "wooden wall, deconstruct" instead of "wooden wall, wooden wall, deconstruct")
+
+
+=============================
+
+02/07/2026
+
+INFO CARDS EVERYWHERE (Alt+I)
+-----------------------------
+The biggest addition in this patch for Vanilla Rimworld: you can now press Alt+I in nearly any
+menu or screen to open the info card for whatever you have selected. Info
+cards are the detailed stat sheets that sighted players access by clicking
+the (i) button -- and until now, screen reader users had few ways to reach
+them. They're now available in 15 different contexts:
+
+- Map cursor (when hovering over buildings, items, terrain, or pawns)
+- Architect menu (get stats on a building before you place it)
+- Plant selection menu
+- Storage settings (check details on any item in the filter list)
+- Bills menu and bill configuration
+- Gizmo bar (abilities, build commands, and more)
+- Colony inventory
+- Research menu and research detail view (inspect unlocked items and recipes)
+- Colony animals menu
+- Wildlife menu
+- Float menus (right-click context menus)
+- Pawn inspection: gear, health conditions, and genes all support Alt+I
+- Inside info cards themselves -- follow hyperlinks to drill into related entries
+
+Some items (especially within info cards) that have an info card available will say "Inspectable" when you
+navigate to them, so you always know when Alt+I will work. I want to extend this across the entire mod, but right now, things that are very clearly items / buildings / plants don't say this since it should be assumed that you can press alt i.
+
+Nested info card navigation:
+- When an info card mentions another item (like a material or a
+  research project), you can press Alt+I again to open that item's info card
+- Press Escape to go back to the previous card -- your cursor position is
+  remembered
+- When a stat entry links to multiple items, a selection menu appears so you
+  can choose which one to inspect
+
+Stat entries that can be expanded now correctly detect whether they actually
+have explanation text, so you won't see "No items to show" on entries that
+have nothing to expand.
+
+
+PAWN SKILLS SHORTCUT (Alt+K)
+-----------------------------
+Press Alt+K while a pawn is selected to hear their top 3 skills along with
+passion levels. A quick way to check what a pawn is good at without opening
+the full character sheet.
+
+
+ABILITIES AND TARGETING
+-----------------------
+Full keyboard-accessible targeting for abilities. This covers all ability
+types automatically, possibly including modded ones.
+
+Targeting mode:
+- Announces ability name, range, and effect radius
+- Press R to check distance to cursor and line of sight status
+- Press T to hear which pawns are in the area of effect (AOE abilities)
+- Clear error messages for out of range, blocked line of sight, and missing
+  targets
+- Supports two-phase abilities like Skip (select target, then destination)
+- Self-cast abilities announce "Casting [name]" for confirmation
+- Touch-range abilities correctly announce "Touch range"
+
+Ability gizmo announcements:
+- Gizmos now announce their description, range, and effect radius when
+  browsing
+
+
+WILDLIFE MENU OVERHAUL
+----------------------
+The wildlife menu has been redesigned to match what sighted players see:
+
+- Predators are now clearly marked and sorted to the top of the list
+- Columns now match the vanilla game: Manhunter on Damage and Manhunter on
+  Tame Fail replace the old mod-added columns (Age, BodySize, Health,
+  Pregnant)
+- Column tooltips are announced when you move left/right between columns
+  (but not when scrolling up/down through animals, so they don't get
+  repetitive)
+- Hunt and Tame columns now say "Yes" or "No" instead of showing blank text
+- Press Enter on an animal's name to jump the map cursor directly to it
+
+
+TOGGLE GIZMO DESCRIPTIONS
+--------------------------
+Toggle buttons on the gizmo bar (like "Animals attack: ON") now include
+their tooltip description, giving you the same context that sighted players
+get on hover. For example: "Animals attack: OFF. While this is on, mastered
+animals are sent forth to attack distant targets. While it is off, they
+remain near and guard the master."
+
+
+PAWN INFORMATION IMPROVEMENTS
+------------------------------
+- Health capacity tooltips now show what's actually affecting the capacity
+  (which hediffs, body parts, or genes are involved) instead of a generic
+  description
+- Skill passion indicators now say "Minor passion" and "Major passion"
+  instead of * and **
+
+
+TERRAIN AND MAP INFO
+--------------------
+- Terrain fertility is now included in the tile info announcement (key 2),
+  shown right after the terrain name. Example: "Rich soil (140% fertility)"
+- Light info (key 4) now shows the light level as a percentage, matching
+  what sighted players see
+
+
+MAP AND SCANNER
+---------------
+- Doors now announce whether they're open or closed
+  - Example: "wooden door (open)" or "autodoor (closed)"
+
+- Scanner (PageUp/PageDown) now shows pawn activity
+  - Example: "cooking four lavish meals" or "sleeping"
+  - Uses your existing ShowPawnActivityOnMap setting
+
+
+COMMS CONSOLE
+-------------
+- Dialog navigation now works correctly when using the comms console.
+  Selecting options that lead to sub-menus (like choosing a trader type)
+  takes you to the sub-menu instead of closing the dialog.
+
+
+BUG FIXES
+---------
+- Fixed double periods appearing in some gizmo announcements
+- Fixed rich text tags appearing in letter and message announcements (no
+  more "(*Name)Bob(/Name)" -- now just shows "Bob")
+- Zone rename no longer breaks in non-English translations
+- Drafting/undrafting with R now plays the same sound as the UI button
+- Targeting now correctly uses the accessibility cursor position instead of
+  the mouse position
+
+
+=============================
+  DLC FEATURES
+=============================
+
+
+ROYALTY DLC
+-----------
+Psycast targeting:
+- Announces psyfocus cost and neural heat when targeting psycasts
+- Clear messages for psychic immunity
+- Works on the world map for abilities like Farskip
+
+Psycast gizmo announcements:
+- Psycast gizmos announce their costs when browsing. Example: "Vertigo
+  pulse. Costs 2% psyfocus, requires 50%. Neural heat: 30. [description].
+  Range: 25. (M)"
+
+Neural heat gizmo:
+- Shows limiter state: "Neural heat: 0/80, Psyfocus: 39%, Limiter: ON"
+- Press Enter on the gizmo to toggle the neural heat limiter
+
+Permits overhaul:
+- The permits screen now shows all available permits for each faction,
+  matching what sighted players see
+- Each permit shows its actual status: Granted, Granted (on cooldown),
+  Available (with how many points you have), or Locked (with what title or
+  prerequisite you need)
+- Your current title, unused permit points, and royal favor are shown per
+  faction
+- Expand a permit to see its required title
+
+
+IDEOLOGY DLC
+-------------
+Role management on the Social tab:
+- The Ideology & Role section now lets you browse all available roles for
+  your ideo
+- Each role shows its current holder (or "No role assigned")
+- Expand a role to see its description, requirements, and effects
+- Assign or unassign roles directly from the inspection tree -- if a pawn
+  isn't eligible, it tells you why
+
+Certainty is now displayed with properly translated labels.
+
+**Important NOTE**: Ideology is still not fully accessible! Mainly, you can't make your own ideoligion until I've finished revamping the set up screen. If you want to test these changes, do not save your game after enabling ideology. You will end up with a random ideoligion which can have really... interesting, sometimes disastrous consequences for the relationships of your pawns. 
+
+BIOTECH DLC
+-----------
+Pregnancy approach:
+- The Social tab's inspection tree now supports the pregnancy approach
+  system. When viewing a romantic partner's details, you'll find a
+  "Pregnancy approach" menu right after the Relationship line. Expand it to
+  choose between the available options (Normal, Avoid Pregnancy, Try for
+  Baby). If pregnancy isn't possible between the two pawns, it tells you
+  why.
+
+Romance target selection:
+- The Social tab now includes a "Try Romance" option. Navigate the list of
+  viable romance targets, hear their success chance percentages, and press
+  Enter to initiate. If the relationship would cause complications, you'll
+  get a warning dialog before anything happens.
+
+Genes tab:
+- The Genes tab in pawn inspection is now accessible. Browse a pawn's gene
+  list with full keyboard navigation, and press Alt+I to open info cards for
+  individual genes.
+
+Skin color descriptions:
+- Skin color genes now use descriptive shade names based on actual color
+  (very light, light, fair, medium, tan, brown, dark brown) instead of the
+  generic "Skin color" label. This applies in both the info card gene list
+  and the unborn baby gene inspection.
+
+
+ODYSSEY DLC
+-----------
+Fishing zones:
+- Fishing zone menu is now fully accessible
+  - Navigate repeat mode, target count, minimum population, and fish species
+  - Includes tooltips for population and minimum values
+
+Terrain info:
+- Terrain info (key 2) now includes fish species and population when
+  standing on fishable water
+
+Animal attack targeting:
+- Announces range from master when entering targeting mode
+- Press R to check distance and range status
+- Clear error if out of range, and targeting stays open so you can reposition
+- Animal attack range is shown in the gizmo description

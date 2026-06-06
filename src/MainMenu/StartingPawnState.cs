@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HarmonyLib;
 using RimWorld;
 using UnityEngine;
@@ -23,8 +22,29 @@ namespace RimWorldAccess
         private static bool awaitingRenameRebuild = false;
         private static string lastAnnouncedSection = null;
 
+        // Two-tab shell (parity with the vanilla character screen's Team Skills panel):
+        // tab 1 is the pawn tree, tab 2 is a read-only team skill summary. Tab toggles.
+        private enum PawnTab { Pawns, TeamSkills }
+        private static PawnTab currentTab = PawnTab.Pawns;
+        private static List<string> teamSkillRows = new List<string>();
+        private static int teamSkillIndex = 0;
+        private static readonly TypeaheadSearchHelper teamSkillTypeahead = new TypeaheadSearchHelper();
+
         public static bool IsActive => isActive;
         public static bool HasActiveSearch => treeNav.HasActiveSearch;
+
+        /// <summary>
+        /// Clears any active typeahead search and re-announces the current item.
+        /// Called from StartingPawnDoBackBlockPatch as a fallback when Escape would
+        /// otherwise show the discard-confirm dialog while the user only meant to
+        /// cancel their typeahead search.
+        /// </summary>
+        public static void ClearActiveSearch()
+        {
+            if (!treeNav.HasActiveSearch) return;
+            treeNav.Typeahead.ClearSearchAndAnnounce();
+            treeNav.ReannounceCurrentItem();
+        }
         public static PawnEditorContext Context { get; private set; } = PawnEditorContext.GameStart;
 
         static StartingPawnState()
@@ -40,6 +60,8 @@ namespace RimWorldAccess
             isActive = true;
             openedOnFrame = Time.frameCount;
             lastAnnouncedSection = null;
+            currentTab = PawnTab.Pawns;
+            teamSkillTypeahead.ClearSearch();
 
             RebuildTree();
 
@@ -69,6 +91,8 @@ namespace RimWorldAccess
             isActive = false;
             awaitingRenameRebuild = false;
             lastAnnouncedSection = null;
+            currentTab = PawnTab.Pawns;
+            teamSkillTypeahead.ClearSearch();
             treeNav.Reset();
         }
 
@@ -164,6 +188,18 @@ namespace RimWorldAccess
             KeyCode key = ev.keyCode;
             bool ctrl = ev.control;
 
+            // Tab / Shift+Tab: flip between the Characters tree and the Team Skills summary.
+            // Team Skills is a multi-pawn concept, so it only exists at game start.
+            if (key == KeyCode.Tab && Context == PawnEditorContext.GameStart && !ctrl && !KeyboardHelper.IsAltHeld)
+            {
+                ToggleTab();
+                return true;
+            }
+
+            // The Team Skills tab is a read-only summary with its own flat navigation.
+            if (currentTab == PawnTab.TeamSkills)
+                return HandleTeamSkillsInput(ev);
+
             // --- Pre-intercept custom keys before delegating to treeNav ---
 
             // Alt+F: Open filter editor
@@ -244,6 +280,9 @@ namespace RimWorldAccess
             {
                 if (Time.frameCount <= openedOnFrame + 1)
                     return true; // Consume but ignore — key repeat from prior screen
+                // On a relation row, Enter jumps to that pawn instead of confirming.
+                if (TryJumpToRelatedPawn())
+                    return true;
                 if (Context == PawnEditorContext.Wanderer)
                     ConfirmWanderers();
                 else
@@ -506,6 +545,180 @@ namespace RimWorldAccess
             }
         }
 
+        // ===== TAB SWITCHING + RELATIONS JUMP =====
+
+        private static void ToggleTab()
+        {
+            if (Context != PawnEditorContext.GameStart)
+                return;
+
+            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+
+            if (currentTab == PawnTab.Pawns)
+            {
+                currentTab = PawnTab.TeamSkills;
+                teamSkillRows = StartingPawnHelper.BuildTeamSkillSummary();
+                teamSkillIndex = 0;
+                teamSkillTypeahead.ClearSearch();
+                TolkHelper.Speak("TeamSkills".Translate());
+                AnnounceTeamSkillRow();
+            }
+            else
+            {
+                currentTab = PawnTab.Pawns;
+                teamSkillTypeahead.ClearSearch();
+                lastAnnouncedSection = null; // re-announce the section for context on return
+                TolkHelper.Speak("CreateCharacters".Translate());
+                treeNav.ReannounceCurrentItem();
+            }
+        }
+
+        private static bool HandleTeamSkillsInput(Event ev)
+        {
+            KeyCode key = ev.keyCode;
+            int count = teamSkillRows?.Count ?? 0;
+
+            if (key == KeyCode.UpArrow)
+            {
+                if (count > 0) { teamSkillIndex = MenuHelper.SelectPrevious(teamSkillIndex, count); AnnounceTeamSkillRow(); }
+                return true;
+            }
+            if (key == KeyCode.DownArrow)
+            {
+                if (count > 0) { teamSkillIndex = MenuHelper.SelectNext(teamSkillIndex, count); AnnounceTeamSkillRow(); }
+                return true;
+            }
+            if (key == KeyCode.Home)
+            {
+                if (count > 0) { teamSkillIndex = 0; AnnounceTeamSkillRow(); }
+                return true;
+            }
+            if (key == KeyCode.End)
+            {
+                if (count > 0) { teamSkillIndex = count - 1; AnnounceTeamSkillRow(); }
+                return true;
+            }
+            if (key == KeyCode.Escape)
+            {
+                if (teamSkillTypeahead.HasActiveSearch)
+                {
+                    teamSkillTypeahead.ClearSearch();
+                    AnnounceTeamSkillRow();
+                    return true;
+                }
+                // Escape always leaves the screen (back-confirm) — consistent across both tabs.
+                return false;
+            }
+            if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+            {
+                if (Time.frameCount <= openedOnFrame + 1)
+                    return true;
+                ConfirmStartGame();
+                return true;
+            }
+
+            // Typeahead by skill name.
+            if (!ev.control && !KeyboardHelper.IsAltHeld)
+            {
+                char c = ev.character;
+                if (c != '\0' && char.IsLetterOrDigit(c) && count > 0)
+                {
+                    if (teamSkillTypeahead.ProcessCharacterInput(c, teamSkillRows, out int newIndex) && newIndex >= 0)
+                    {
+                        teamSkillIndex = newIndex;
+                        AnnounceTeamSkillRow();
+                    }
+                    else
+                    {
+                        SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                    }
+                    return true;
+                }
+            }
+
+            return true; // read-only tab: consume all other keys
+        }
+
+        private static void AnnounceTeamSkillRow()
+        {
+            if (teamSkillRows == null || teamSkillRows.Count == 0)
+            {
+                TolkHelper.Speak("None".Translate());
+                return;
+            }
+            if (teamSkillIndex < 0 || teamSkillIndex >= teamSkillRows.Count)
+                teamSkillIndex = 0;
+
+            string ann = teamSkillRows[teamSkillIndex];
+            string pos = MenuHelper.FormatPosition(teamSkillIndex, teamSkillRows.Count);
+            if (!string.IsNullOrEmpty(pos))
+                ann += $" ({pos})";
+            TolkHelper.Speak(ann);
+        }
+
+        /// <summary>
+        /// If the cursor is on a relation leaf, jump to the related pawn's top-level node
+        /// (collapsed) and read its full summary — the same as arrowing to that pawn.
+        /// Returns true if the keystroke was handled as a jump.
+        /// </summary>
+        private static bool TryJumpToRelatedPawn()
+        {
+            var item = treeNav.SelectedItem;
+            var ptd = StartingPawnHelper.GetPawnData(item);
+            if (ptd == null || ptd.NodeType != PawnNodeType.Leaf || ptd.CategoryType != PawnCategoryType.Relations)
+                return false;
+            if (!(ptd.DomainData is Pawn target))
+                return false;
+
+            var pawns = Find.GameInitData?.startingAndOptionalPawns;
+            int targetIdx = pawns?.IndexOf(target) ?? -1;
+            if (targetIdx < 0)
+            {
+                // Defensive: the everSeenByPlayer filter normally guarantees a roster pawn.
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                return true;
+            }
+
+            JumpToPawnNode(targetIdx);
+            return true;
+        }
+
+        private static void JumpToPawnNode(int targetPawnIdx)
+        {
+            treeNav.Typeahead.ClearSearch();
+
+            // Collapse the pawn we're leaving so we land in a clean top-level list.
+            int sourcePawnIdx = GetCurrentPawnIndex();
+            if (sourcePawnIdx >= 0 && sourcePawnIdx != targetPawnIdx)
+            {
+                var sourceNode = FindPawnNode(sourcePawnIdx);
+                CollapsePawnNode(sourceNode);
+            }
+
+            var targetNode = FindPawnNode(targetPawnIdx);
+            if (targetNode == null)
+                return;
+
+            // Land on the collapsed top-level node so its full collapsed summary is read.
+            CollapsePawnNode(targetNode);
+            treeNav.RebuildVisibleList();
+
+            int idx = FindVisibleIndex(targetNode);
+            if (idx >= 0)
+                treeNav.SetSelectedIndex(idx);
+
+            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            treeNav.ReannounceCurrentItem();
+        }
+
+        private static void CollapsePawnNode(InspectionTreeItem pawnNode)
+        {
+            if (pawnNode == null) return;
+            pawnNode.IsExpanded = false;
+            foreach (var category in pawnNode.Children)
+                category.IsExpanded = false;
+        }
+
         // ===== ACTIONS =====
 
         private static int rerollPawnIdx = -1;
@@ -547,21 +760,14 @@ namespace RimWorldAccess
                     randomizeAnnouncement = "RimWorldAccess.StartingPawn.RandomizeNoMatch".Translate(randomizeAnnouncement, PawnFilterData.LastRerollAttempts);
             }
 
-            // Append pawn summary (age, traits, top skills)
-            var pawn = StartingPawnHelper.GetPawnAtIndex(pawnIdx);
-            if (pawn != null)
-            {
-                string summary = StartingPawnHelper.GetPawnRollSummary(pawn);
-                if (!string.IsNullOrEmpty(summary))
-                    randomizeAnnouncement = "RimWorldAccess.StartingPawn.RandomizeWithSummary".Translate(randomizeAnnouncement, summary);
-            }
             TolkHelper.SpeakData(randomizeAnnouncement);
+            // Tree rebuild + cursor restore re-announces the pawn's collapsed label,
+            // which now carries age, gender, traits, and top skills inline.
             treeNav.ReannounceCurrentItem();
         }
 
         public static void OnRerollComplete(bool success, int attempts, bool cancelled)
         {
-            int savedPawnIdx = rerollPawnIdx;
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
             RebuildTree();
             RestoreRerollPosition();
@@ -574,16 +780,9 @@ namespace RimWorldAccess
             else
                 announcement = "RimWorldAccess.StartingPawn.RerollNoMatch".Translate(attempts);
 
-            // Append pawn summary (age, traits, top skills)
-            var pawn = StartingPawnHelper.GetPawnAtIndex(savedPawnIdx);
-            if (pawn != null)
-            {
-                string summary = StartingPawnHelper.GetPawnRollSummary(pawn);
-                if (!string.IsNullOrEmpty(summary))
-                    announcement = "RimWorldAccess.StartingPawn.RandomizeWithSummary".Translate(announcement, summary);
-            }
-
             TolkHelper.SpeakData(announcement);
+            // Tree rebuild + cursor restore re-announces the pawn's collapsed label,
+            // which now carries age, gender, traits, and top skills inline.
             treeNav.ReannounceCurrentItem();
         }
 

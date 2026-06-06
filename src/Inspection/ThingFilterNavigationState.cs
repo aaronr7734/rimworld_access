@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using Verse;
 using Verse.Sound;
@@ -39,9 +38,6 @@ namespace RimWorldAccess
         private static TreeNode_ThingCategory rootNode = null;
         private static TreeNavigationHelper treeNav = new TreeNavigationHelper("ThingFilter");
 
-        // Track expanded categories by defName (default is collapsed, matching vanilla)
-        private static HashSet<string> expandedCategories = new HashSet<string>();
-
         // Slider states
         private enum SliderMode { None, Quality, HitPoints }
         private enum SliderPart { Min, Max }
@@ -62,6 +58,11 @@ namespace RimWorldAccess
             treeNav.FormatSearchAnnouncement = FormatSearchAnnouncement;
             treeNav.OnActivate = HandleActivate;
             treeNav.AnnounceChildCounts = false;
+            // Auto-expand category nodes during typeahead so matches inside
+            // collapsed branches become reachable; original expansion state
+            // is restored when the search ends.
+            treeNav.ShouldExpandForSearch = item =>
+                (item.Data as FilterNodeData)?.Type == NodeType.Category;
         }
 
         /// <summary>
@@ -97,7 +98,6 @@ namespace RimWorldAccess
             currentSliderMode = SliderMode.None;
             currentSliderPart = SliderPart.Min;
             isEditingSlider = false;
-            expandedCategories.Clear();
 
             var treeRoot = BuildTree();
             treeNav.Initialize(treeRoot, initialIndex);
@@ -113,7 +113,6 @@ namespace RimWorldAccess
             currentFilter = null;
             parentFilter = null;
             rootNode = null;
-            expandedCategories.Clear();
             treeNav.Reset();
         }
 
@@ -186,7 +185,7 @@ namespace RimWorldAccess
             {
                 foreach (var specialFilter in node.catDef.ParentsSpecialThingFilterDefs)
                 {
-                    if (specialFilter.configurable && ThingFilterHelper.IsVisibleSpecialFilter(specialFilter, parentFilter))
+                    if (specialFilter.configurable && ThingFilterHelper.IsVisibleSpecialFilter(specialFilter, node, currentFilter, parentFilter))
                     {
                         var sfNode = new InspectionTreeItem
                         {
@@ -211,7 +210,7 @@ namespace RimWorldAccess
             // Add special filters
             foreach (var specialFilter in node.catDef.childSpecialFilters)
             {
-                if (specialFilter.configurable && ThingFilterHelper.IsVisibleSpecialFilter(specialFilter, parentFilter))
+                if (specialFilter.configurable && ThingFilterHelper.IsVisibleSpecialFilter(specialFilter, node, currentFilter, parentFilter))
                 {
                     var sfNode = new InspectionTreeItem
                     {
@@ -243,9 +242,6 @@ namespace RimWorldAccess
                     childCategory.catDef, currentFilter, td => ThingFilterHelper.IsVisible(td, parentFilter));
                 bool isChecked = (allowanceState != ThingFilterHelper.CategoryAllowanceState.NoneAllowed);
 
-                string categoryKey = childCategory.catDef.defName;
-                bool isExpanded = expandedCategories.Contains(categoryKey);
-
                 var catNode = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Category,
@@ -253,7 +249,9 @@ namespace RimWorldAccess
                     Description = childCategory.catDef.description,
                     IndentLevel = indentLevel,
                     IsExpandable = true,
-                    IsExpanded = isExpanded,
+                    // Default collapsed (matches vanilla). Full subtree is built up
+                    // front so TreeNavigationHelper drives expand/collapse natively.
+                    IsExpanded = false,
                     Parent = parent,
                     Data = new FilterNodeData
                     {
@@ -264,11 +262,7 @@ namespace RimWorldAccess
                 };
                 parent.Children.Add(catNode);
 
-                // Recursively add children if expanded
-                if (isExpanded)
-                {
-                    AddCategoryChildren(childCategory, catNode, indentLevel + 1);
-                }
+                AddCategoryChildren(childCategory, catNode, indentLevel + 1);
             }
 
             // Add thing defs (with full vanilla visibility check)
@@ -298,34 +292,45 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Rebuilds the tree, preserving selection by data reference.
+        /// Walks the existing tree and refreshes IsChecked on every leaf and
+        /// category node from the underlying filter. Used after any filter
+        /// change so the cursor stays put — no structural rebuild.
         /// </summary>
-        private static void RebuildTree()
+        private static void RefreshAllowanceStates()
         {
-            var oldItem = treeNav.SelectedItem;
-            FilterNodeData oldData = oldItem?.Data as FilterNodeData;
-            int oldIndex = treeNav.SelectedIndex;
+            if (treeNav.RootItem == null) return;
+            RefreshAllowanceStatesRecursive(treeNav.RootItem);
+        }
 
-            var treeRoot = BuildTree();
-            treeNav.Initialize(treeRoot);
-
-            // Try to restore selection by data reference
-            if (oldData != null)
+        private static void RefreshAllowanceStatesRecursive(InspectionTreeItem node)
+        {
+            var data = node.Data as FilterNodeData;
+            if (data != null)
             {
-                for (int i = 0; i < treeNav.Count; i++)
+                switch (data.Type)
                 {
-                    var itemData = treeNav.VisibleItems[i].Data as FilterNodeData;
-                    if (itemData != null && itemData.Type == oldData.Type && Equals(itemData.Reference, oldData.Reference))
-                    {
-                        treeNav.SetSelectedIndex(i);
-                        return;
-                    }
+                    case NodeType.SpecialFilter:
+                        if (data.Reference is SpecialThingFilterDef sf)
+                            data.IsChecked = currentFilter.Allows(sf);
+                        break;
+                    case NodeType.ThingDef:
+                        if (data.Reference is ThingDef td)
+                            data.IsChecked = currentFilter.Allows(td);
+                        break;
+                    case NodeType.Category:
+                        if (data.Reference is TreeNode_ThingCategory cat)
+                        {
+                            var state = ThingFilterHelper.GetAllowanceState(
+                                cat.catDef, currentFilter,
+                                t => ThingFilterHelper.IsVisible(t, parentFilter));
+                            data.IsChecked = state != ThingFilterHelper.CategoryAllowanceState.NoneAllowed;
+                        }
+                        break;
                 }
             }
 
-            // Fall back to old index
-            if (oldIndex >= 0 && oldIndex < treeNav.Count)
-                treeNav.SetSelectedIndex(oldIndex);
+            foreach (var child in node.Children)
+                RefreshAllowanceStatesRecursive(child);
         }
 
         /// <summary>
@@ -529,6 +534,11 @@ namespace RimWorldAccess
             var data = item.Data as FilterNodeData;
             if (data == null) return;
 
+            // Commit on activation: clear any active typeahead and restore the
+            // pre-search expansion. Matches expand/collapse behavior so a
+            // subsequent Down arrow walks the full list rather than only matches.
+            treeNav.CommitAndClearSearch();
+
             string cleanLabel = item.Label;
 
             switch (data.Type)
@@ -554,9 +564,8 @@ namespace RimWorldAccess
                             category.catDef, currentFilter, td => ThingFilterHelper.IsVisible(td, parentFilter));
                         bool desiredCat = (state != ThingFilterHelper.CategoryAllowanceState.AllAllowed);
                         currentFilter.SetAllow(category.catDef, desiredCat);
-                        // Rebuild re-reads all states from the game
-                        RebuildTree();
-                        // Re-read actual state for announcement
+                        // Re-read all states from the game without disturbing the tree structure.
+                        RefreshAllowanceStates();
                         var actualState = ThingFilterHelper.GetAllowanceState(
                             category.catDef, currentFilter, td => ThingFilterHelper.IsVisible(td, parentFilter));
                         SpeakToggleResult(cleanLabel,
@@ -585,17 +594,14 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Expands the current category node (Right arrow - WCAG tree navigation).
-        /// Delegates to TreeNavigationHelper with custom expand callback to sync expandedCategories.
+        /// Delegates to TreeNavigationHelper so the standard expand sound plays
+        /// and submenu mode lands the cursor on the first child correctly.
         /// </summary>
         public static void Expand()
         {
-            if (treeNav.SelectedItem == null)
-                return;
+            if (treeNav.SelectedItem == null) return;
 
-            var item = treeNav.SelectedItem;
-            var data = item.Data as FilterNodeData;
-
-            // Non-expandable items - reject
+            var data = treeNav.SelectedItem.Data as FilterNodeData;
             if (data == null || data.Type != NodeType.Category)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
@@ -603,28 +609,7 @@ namespace RimWorldAccess
                 return;
             }
 
-            if (!item.IsExpanded)
-            {
-                // Need to rebuild tree since children are lazy-loaded based on expandedCategories
-                if (data.Reference is TreeNode_ThingCategory catNode)
-                {
-                    expandedCategories.Add(catNode.catDef.defName);
-                }
-                RebuildTree();
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                AnnounceCurrentNode();
-            }
-            else if (item.Children.Count > 0)
-            {
-                // Already expanded - drill down to first child
-                treeNav.ExpandOrDrillDown();
-            }
-            else
-            {
-                // Expanded but empty
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.Inspection.Panel.CannotExpand".Loc());
-            }
+            treeNav.ExpandOrDrillDown();
         }
 
         /// <summary>
@@ -632,88 +617,16 @@ namespace RimWorldAccess
         /// </summary>
         public static void Collapse()
         {
-            if (treeNav.SelectedItem == null)
-                return;
-
-            var item = treeNav.SelectedItem;
-            var data = item.Data as FilterNodeData;
-
-            // Case 1: Expanded category - collapse it
-            if (data != null && data.Type == NodeType.Category && item.IsExpanded)
-            {
-                if (data.Reference is TreeNode_ThingCategory catNode)
-                {
-                    expandedCategories.Remove(catNode.catDef.defName);
-                }
-                RebuildTree();
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                AnnounceCurrentNode();
-                return;
-            }
-
-            // Case 2: Collapsed/end node - drill up to parent
-            if (item.Parent != null && item.Parent != treeNav.RootItem)
-            {
-                treeNav.CollapseOrDrillUp();
-                return;
-            }
-
-            // Case 3: At root level - reject
-            SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.TopLevel);
+            if (treeNav.SelectedItem == null) return;
+            treeNav.CollapseOrDrillUp();
         }
 
         /// <summary>
         /// Expands all sibling categories at the same level as the current item.
-        /// WCAG tree view pattern: * key expands all siblings.
         /// </summary>
         public static void ExpandAllSiblings()
         {
-            if (treeNav.SelectedItem == null)
-                return;
-
-            var currentItem = treeNav.SelectedItem;
-            var siblings = (currentItem.Parent == null || currentItem.Parent == treeNav.RootItem)
-                ? treeNav.RootItem.Children
-                : currentItem.Parent.Children;
-
-            int expandedCount = 0;
-            foreach (var sibling in siblings)
-            {
-                var sibData = sibling.Data as FilterNodeData;
-                if (sibData != null && sibData.Type == NodeType.Category && !sibling.IsExpanded)
-                {
-                    if (sibData.Reference is TreeNode_ThingCategory catNode)
-                    {
-                        expandedCategories.Add(catNode.catDef.defName);
-                        expandedCount++;
-                    }
-                }
-            }
-
-            if (expandedCount > 0)
-            {
-                RebuildTree();
-                EmbeddedAudioHelper.PlaySoundDefWithReverb(SoundDefOf.FloatMenu_Open);
-                string countKey = expandedCount == 1
-                    ? "RimWorldAccess.Tree.ExpandedCountOne"
-                    : "RimWorldAccess.Tree.ExpandedCountMany";
-                TolkHelper.Speak(countKey.Loc(expandedCount));
-            }
-            else
-            {
-                // Check if there are any sibling categories at all
-                bool hasAnySiblingCategories = siblings.Any(s =>
-                {
-                    var sd = s.Data as FilterNodeData;
-                    return sd != null && sd.Type == NodeType.Category;
-                });
-
-                string emptyKey = hasAnySiblingCategories
-                    ? "RimWorldAccess.Inspection.Storage.AllAlreadyExpanded"
-                    : "RimWorldAccess.Inspection.Storage.NoneToExpand";
-                TolkHelper.Speak(emptyKey.Loc());
-            }
+            treeNav.ExpandAllSiblings();
         }
 
         /// <summary>
@@ -817,8 +730,8 @@ namespace RimWorldAccess
             if (currentFilter != null)
             {
                 currentFilter.SetAllowAll(parentFilter);
-                RebuildTree();
-                TolkHelper.Speak("AllowAll".Loc());
+                RefreshAllowanceStates();
+                TolkHelper.Speak("AllowAll".Translate());
             }
         }
 
@@ -830,8 +743,8 @@ namespace RimWorldAccess
             if (currentFilter != null)
             {
                 currentFilter.SetDisallowAll();
-                RebuildTree();
-                TolkHelper.Speak("ClearAll".Loc());
+                RefreshAllowanceStates();
+                TolkHelper.Speak("ClearAll".Translate());
             }
         }
 
@@ -872,51 +785,16 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Custom search announcement formatter.
+        /// Custom search announcement formatter. Reuses the regular announcement
+        /// (full label, state, description, level, position) and appends the match
+        /// position — so the user still hears item context while searching.
         /// </summary>
         private static string FormatSearchAnnouncement(InspectionTreeItem item, TypeaheadSearchHelper typeahead)
         {
-            var data = item.Data as FilterNodeData;
-            if (data == null)
-                return item.Label;
-
-            if (typeahead.HasActiveSearch)
-            {
-                return typeahead.BuildItemAnnouncement(BuildLabelWithState(item, data));
-            }
-            return FormatItemAnnouncement(item);
-        }
-
-        /// <summary>
-        /// Returns the localized "{label}. {state}" composition used by both
-        /// FormatItemAnnouncement and FormatSearchAnnouncement. Sliders use
-        /// the labeled-range form ("Quality: Awful - Legendary"); ThingDef
-        /// and SpecialFilter rows use Storage.ItemAllowed / ItemDisallowed;
-        /// Category rows use Storage.CategoryWithSummary.
-        /// </summary>
-        private static string BuildLabelWithState(InspectionTreeItem item, FilterNodeData data)
-        {
-            string label = item.Label;
-            switch (data.Type)
-            {
-                case NodeType.Slider:
-                    return GetSliderLabeledRange(item);
-
-                case NodeType.SpecialFilter:
-                case NodeType.ThingDef:
-                    return (data.IsChecked
-                        ? "RimWorldAccess.Inspection.Storage.ItemAllowed"
-                        : "RimWorldAccess.Inspection.Storage.ItemDisallowed").Translate(label);
-
-                case NodeType.Category:
-                    string categorySummary = ResolveCategorySummary(data);
-                    string categoryExpanded = TreeNavigationHelper.GetExpansionStateWord(item);
-                    return "RimWorldAccess.Inspection.Storage.CategoryWithSummary".Translate(
-                        label, categorySummary, categoryExpanded);
-
-                default:
-                    return label;
-            }
+            string baseAnnouncement = FormatItemAnnouncement(item);
+            if (!typeahead.HasActiveSearch)
+                return baseAnnouncement;
+            return $"{baseAnnouncement} {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
         }
 
         /// <summary>
@@ -981,22 +859,8 @@ namespace RimWorldAccess
         /// </summary>
         public static void ProcessTypeaheadCharacter(char c)
         {
-            if (!isActive || treeNav.Count == 0)
-                return;
-
-            var labels = treeNav.VisibleItems.Select(item => item.Label).ToList();
-            if (treeNav.Typeahead.ProcessCharacterInput(c, labels, out int newIndex))
-            {
-                if (newIndex >= 0)
-                {
-                    treeNav.SetSelectedIndex(newIndex);
-                    AnnounceWithSearch();
-                }
-            }
-            else
-            {
-                treeNav.Typeahead.SpeakNoMatches();
-            }
+            if (!isActive || treeNav.Count == 0) return;
+            treeNav.HandleTypeaheadCharacter(c);
         }
 
         /// <summary>
@@ -1004,21 +868,8 @@ namespace RimWorldAccess
         /// </summary>
         public static void ProcessBackspace()
         {
-            if (!isActive || treeNav.Count == 0)
-                return;
-
-            if (!treeNav.HasActiveSearch)
-                return;
-
-            var labels = treeNav.VisibleItems.Select(item => item.Label).ToList();
-            if (treeNav.Typeahead.ProcessBackspace(labels, out int newIndex))
-            {
-                if (newIndex >= 0)
-                {
-                    treeNav.SetSelectedIndex(newIndex);
-                }
-                AnnounceWithSearch();
-            }
+            if (!isActive || treeNav.Count == 0) return;
+            treeNav.HandleTypeaheadBackspace();
         }
 
         /// <summary>

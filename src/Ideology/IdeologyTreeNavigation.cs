@@ -60,6 +60,13 @@ namespace RimWorldAccess
         // Expose for callers that need it
         public void AnnounceCurrentItem() => treeNav.ReannounceCurrentItem();
 
+        /// <summary>
+        /// Feeds a typeahead character to the tree directly. Needed by directly-patched hosts (e.g.
+        /// the builder's read-only ideo browser) where UnifiedKeyboardPatch's character dispatcher
+        /// never runs, so the tree would otherwise be deaf to typeahead.
+        /// </summary>
+        public void HandleTypeaheadCharacter(char c) => treeNav.HandleTypeaheadCharacter(c);
+
         #region Announcement Formatters
 
         private string FormatItemAnnouncement(InspectionTreeItem item)
@@ -142,6 +149,13 @@ namespace RimWorldAccess
             if (item.Data is SoundDef soundDef)
             {
                 ToggleRitualSound(soundDef);
+                return true;
+            }
+            // Reform action — close the viewer and open the accessible reform dialog.
+            if (item.Data is IdeoReformState.ReformActionMarker reformMarker)
+            {
+                IdeologyTabState.Close();
+                Find.WindowStack.Add(new RimWorld.Dialog_ReformIdeo(reformMarker.Ideo));
                 return true;
             }
             return false; // Fall back to default expand/collapse toggle

@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   build:
-    if: github.repository == 'AccessMods/rimworld_access'
+    if: github.repository == 'aaronr7734/rimworld_access'
     runs-on: windows-2022
     permissions:
       contents: write
@@ -27,28 +27,36 @@ jobs:
 
       - name: Download Prism native libraries
         shell: bash
+        env:
+          # Pinned deliberately. Pulling "latest" silently ships upstream Prism
+          # regressions to players: v0.16.2 broke NVDA backend detection
+          # (ethindp/prism#49), causing acquire_best() to select a
+          # non-functional NVDA over a running JAWS. Bump only after verifying
+          # the target release on Windows.
+          PRISM_VERSION: v0.16.1
         run: |
           mkdir -p native
+          base="https://github.com/ethindp/prism/releases/download/${PRISM_VERSION}"
 
           # Download Windows x64
-          curl -sL "https://github.com/ethindp/prism/releases/latest/download/prism-windows-x64.zip" -o prism-win.zip
+          curl -sL "${base}/prism-windows-x64.zip" -o prism-win.zip
           unzip -o prism-win.zip -d prism-win-tmp
           cp prism-win-tmp/dynamic/release/bin/prism.dll native/prism.dll
           rm -rf prism-win.zip prism-win-tmp
 
           # Download macOS universal
-          curl -sL "https://github.com/ethindp/prism/releases/latest/download/prism-macos-universal.zip" -o prism-mac.zip
+          curl -sL "${base}/prism-macos-universal.zip" -o prism-mac.zip
           unzip -o prism-mac.zip -d prism-mac-tmp
           cp prism-mac-tmp/dynamic/release/lib/libprism.dylib native/libprism.dylib
           rm -rf prism-mac.zip prism-mac-tmp
 
           # Download Linux x64
-          curl -sL "https://github.com/ethindp/prism/releases/latest/download/prism-linux-x64.zip" -o prism-linux.zip
+          curl -sL "${base}/prism-linux-x64.zip" -o prism-linux.zip
           unzip -o prism-linux.zip -d prism-linux-tmp
           cp prism-linux-tmp/dynamic/release/lib/libprism.so native/libprism.so
           rm -rf prism-linux.zip prism-linux-tmp
 
-          echo "Native libraries downloaded:"
+          echo "Native libraries downloaded (Prism ${PRISM_VERSION}):"
           ls -la native/
 
       - name: Cache NuGet packages
@@ -63,7 +71,7 @@ jobs:
         run: dotnet restore
 
       - name: Build Release
-        run: dotnet build -c Release --no-restore
+        run: dotnet build -c Release --no-restore -p:NativeDir=native
         env:
           CI: true
 
@@ -74,7 +82,8 @@ jobs:
             "release/RimWorldAccess/About/About.xml",
             "release/RimWorldAccess/prism.dll",
             "release/RimWorldAccess/libprism.dylib",
-            "release/RimWorldAccess/libprism.so"
+            "release/RimWorldAccess/libprism.so",
+            "release/changelog.txt"
           )
           foreach ($file in $expected) {
             if (-not (Test-Path $file)) {
@@ -85,7 +94,13 @@ jobs:
           Write-Host "All expected files present"
 
       - name: Create ZIP
-        run: Compress-Archive -Path release/RimWorldAccess/* -DestinationPath RimWorldAccess-dev.zip
+        run: Compress-Archive -Path release/changelog.txt, release/RimWorldAccess -DestinationPath RimWorldAccess-dev.zip
+
+      - name: Delete previous dev release
+        shell: bash
+        run: gh release delete dev --yes --cleanup-tag || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update Dev Release
         uses: softprops/action-gh-release@v2

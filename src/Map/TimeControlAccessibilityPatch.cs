@@ -101,6 +101,15 @@ namespace RimWorldAccess
 
             bool isForced = __instance.slower.ForcedNormalSpeed;
 
+            // Gate announcements behind the user setting (off by default).
+            // Still track the forced-state transitions so toggling the
+            // setting on mid-threat doesn't cause a spurious announcement.
+            if (!(RimWorldAccessMod_Settings.Settings?.AnnounceForcedSlowdowns ?? false))
+            {
+                wasForcedNormalSpeed = isForced;
+                return;
+            }
+
             // Only announce when the user's set speed is faster than Normal.
             // If they're on Paused or Normal, the forced slowdown has no
             // observable effect, so announcing would just be noise.

@@ -3,6 +3,17 @@
 ## Purpose
 Keyboard accessibility for transport pod loading, launch targeting, and world map destination selection. Also supports shuttles (Royalty DLC) which use the same systems.
 
+## Shared loading state
+`TransportPodLoadingState` is **shared** between two near-identical dialogs via the
+`ITransferLoadDialog` abstraction (`ITransferLoadDialog.cs`):
+- `Dialog_LoadTransporters` (pods/shuttles) - `LoadTransportersAdapter.cs` (this module)
+- `Dialog_EnterPortal` (map portals) - `EnterPortalAdapter` in the **Portals** module
+
+The state owns all navigation, announcement, typeahead, summary, and quantity logic; the adapters
+isolate the dialog-specific reflection, mass capacity, change notification, and summary stats.
+When changing the state, remember it now drives both dialogs - keep dialog-specific behavior in
+the adapters, not the state.
+
 ## Files
 **Patches:** TransportPodPatch.cs
 **States:** TransportPodSelectionState.cs, TransportPodLoadingState.cs, TransportPodLaunchState.cs

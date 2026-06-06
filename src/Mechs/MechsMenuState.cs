@@ -57,12 +57,16 @@ namespace RimWorldAccess
             MechsMenuHelper.InitColumnDefs();
 
             // Apply default sort matching PawnTable_Mechs.LabelSortFunction:
-            // Overseer → ControlGroupIndex → KindLabel → Label
+            // Overseer → ControlGroupIndex → KindLabel → Label.
+            // Label tiebreaker uses NaturalStringComparer so "Lifter 2" comes
+            // before "Lifter 10" instead of lexicographically between 1 and 2.
+            // ColonistBarState.GetMechs() uses the same chain so the bar and
+            // menu agree on order.
             mechsList = mechsList
                 .OrderBy(p => p.GetOverseer()?.thingIDNumber ?? int.MaxValue)
                 .ThenBy(p => p.GetMechControlGroup()?.Index ?? int.MaxValue)
                 .ThenBy(p => p.KindLabel)
-                .ThenBy(p => p.Label)
+                .ThenBy(p => p.Label, NaturalStringComparer.Instance)
                 .ToList();
 
             // Initialize table helper
@@ -110,7 +114,7 @@ namespace RimWorldAccess
             if (mechsList.Count == 0) return;
             tableHelper.SelectNextRow(mechsList.Count);
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeMechName: true);
+            AnnounceCurrentCell(includeMechName: true, includeColumnName: false);
         }
 
         public static void SelectPreviousMech()
@@ -118,7 +122,7 @@ namespace RimWorldAccess
             if (mechsList.Count == 0) return;
             tableHelper.SelectPreviousRow(mechsList.Count);
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeMechName: true);
+            AnnounceCurrentCell(includeMechName: true, includeColumnName: false);
         }
 
         public static void SelectNextColumn()
@@ -135,12 +139,12 @@ namespace RimWorldAccess
             AnnounceCurrentCell(includeMechName: false);
         }
 
-        private static void AnnounceCurrentCell(bool includeMechName = true)
+        private static void AnnounceCurrentCell(bool includeMechName = true, bool includeColumnName = true)
         {
             if (mechsList.Count == 0) return;
 
             Pawn currentMech = mechsList[tableHelper.CurrentRowIndex];
-            string announcement = tableHelper.BuildCellAnnouncement(currentMech, mechsList.Count, includeMechName);
+            string announcement = tableHelper.BuildCellAnnouncement(currentMech, mechsList.Count, includeMechName, includeColumnName);
             TolkHelper.SpeakData(announcement);
         }
 
@@ -709,7 +713,7 @@ namespace RimWorldAccess
 
             tableHelper.JumpToFirst(mechsList.Count);
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeMechName: true);
+            AnnounceCurrentCell(includeMechName: true, includeColumnName: false);
         }
 
         public static void JumpToLast()
@@ -718,7 +722,7 @@ namespace RimWorldAccess
 
             tableHelper.JumpToLast(mechsList.Count);
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeMechName: true);
+            AnnounceCurrentCell(includeMechName: true, includeColumnName: false);
         }
 
         #endregion

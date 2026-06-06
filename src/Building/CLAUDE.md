@@ -52,6 +52,37 @@ previewHelper.SetSecondCorner(cell, "[Context]");
 var cells = previewHelper.PreviewCells;
 ```
 
+### Select-All Shortcut
+`Ctrl+A` in shape placement steps through nested scopes:
+1. First press → current enclosure. Tries `Room.ExtentsClose` first; falls
+   back to `EnclosureDetector.TryFloodFillFromCell(cursor, map)` for areas
+   ringed by wall blueprints/frames; if neither resolves, jumps straight to
+   step 2.
+2. Second press → entire map (`map.Size` bounds).
+3. Third press → no-op with an "already at maximum" announcement.
+
+`Ctrl+Shift+A` pops the most recent step and restores the prior selection.
+
+`ShapePlacementState` owns the step history. `CurrentCtrlAStage` records what
+the most recent Ctrl+A applied (`None` / `Enclosure` / `EntireMap`), and
+`PushCtrlAHistory` / `TryUndoCtrlA` / `ClearCtrlAHistory` manage the stack.
+Any manual point change (`SetFirstPoint`, `SetSecondPoint`, `RemoveLastPoint`,
+`ClearSelectionAndStay`, `Reset`, `Enter`) clears the history because the
+stack would otherwise reference an incoherent prior state.
+
+- Line and AngledLine shapes refuse — only rect/oval variants apply.
+- Uses `ShapePlacementState.SetBothPoints` which jumps straight to `Previewing`.
+
+## Large-Shape Placement Performance
+
+Selecting many cells at once (e.g. whole-map rectangle) must avoid O(n²) patterns:
+- `ViewingModeState` keeps `obstacleCells` as a `List<IntVec3>` but pairs it with a
+  `HashSet<IntVec3> obstacleCellsSet` so dedup is O(1) — a prior List.Contains loop
+  froze the game for multiple seconds on full-map chop-wood selections.
+- When adding new obstacle/protected cells, do `if (obstacleCellsSet.Add(cell)) obstacleCells.Add(cell)`.
+- Always clear both containers together (Enter-fresh and Reset paths).
+- Removals go through the HashSet first: `if (obstacleCellsSet.Remove(cell)) obstacleCells.Remove(cell);`.
+
 ## Zone Undo Pattern
 
 ```csharp

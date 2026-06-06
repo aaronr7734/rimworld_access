@@ -186,6 +186,13 @@ namespace RimWorldAccess
             if (availableShapes == null || availableShapes.Count == 0)
                 return;
 
+            if (typeaheadHelper.HasActiveSearch && !typeaheadHelper.HasNoMatches)
+            {
+                selectedIndex = typeaheadHelper.GetFirstMatch();
+                AnnounceWithSearch();
+                return;
+            }
+
             selectedIndex = MenuHelper.JumpToFirst();
             typeaheadHelper.ClearSearch();
             AnnounceCurrentShape();
@@ -198,6 +205,13 @@ namespace RimWorldAccess
         {
             if (availableShapes == null || availableShapes.Count == 0)
                 return;
+
+            if (typeaheadHelper.HasActiveSearch && !typeaheadHelper.HasNoMatches)
+            {
+                selectedIndex = typeaheadHelper.GetLastMatch();
+                AnnounceWithSearch();
+                return;
+            }
 
             selectedIndex = MenuHelper.JumpToLast(availableShapes.Count);
             typeaheadHelper.ClearSearch();

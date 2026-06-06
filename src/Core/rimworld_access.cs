@@ -62,10 +62,18 @@ namespace RimWorldAccess
             // keyboard layouts (fixes the OlegTheSnowman Cyrillic-typeahead bug).
             TypeaheadConsumerRegistry.RegisterAll();
 
+            // Register all typeahead-consuming States so the priority -1.5 dispatch in
+            // UnifiedKeyboardPatch can route layout-aware characters from non-Latin
+            // keyboard layouts (fixes the OlegTheSnowman Cyrillic-typeahead bug).
+            TypeaheadConsumerRegistry.RegisterAll();
+
             Log.Message("[RimWorld Access] Applying Harmony patches...");
             HarmonyInstance.PatchAll(Assembly.GetExecutingAssembly());
 
-            ApplyGravshipStartPatch(HarmonyInstance);
+            // DLC-safe: patch Start() on each Dialog_BeginLordJob subclass we don't already
+            // patch declaratively. The shared prefix returns false while LordJobDialogState is
+            // active, blocking accidental Start invocations behind the user's back.
+            ApplyLordJobStartPatches(harmony);
 
             var patchedMethods = HarmonyInstance.GetPatchedMethods();
             int patchCount = 0;
@@ -82,32 +90,28 @@ namespace RimWorldAccess
             Application.quitting += OnApplicationQuit;
         }
 
-        public static void Teardown()
+        private static void ApplyLordJobStartPatches(Harmony harmony)
         {
-            Log.Message("[RimWorld Access] Tearing down for reload...");
+            var prefix = AccessTools.Method(typeof(RitualPatch), nameof(RitualPatch.LordJobStartPrefix));
+            if (prefix == null) return;
 
-            Application.quitting -= OnApplicationQuit;
-
-            if (HarmonyInstance != null)
+            // Dialog_BeginRitual.Start is patched declaratively in RitualPatch.
+            // Patch the other two subclasses here so virtual dispatch hits each override.
+            string[] additionalDialogTypes =
             {
-                HarmonyInstance.UnpatchAll(HarmonyId);
-                HarmonyInstance = null;
+                "RimWorld.Dialog_BeginPsychicRitual",
+                "RimWorld.Dialog_BeginGravshipLaunch",
+            };
+
+            foreach (var typeName in additionalDialogTypes)
+            {
+                var t = AccessTools.TypeByName(typeName);
+                if (t == null) continue;
+                var startMethod = AccessTools.Method(t, "Start");
+                if (startMethod == null) continue;
+                harmony.Patch(startMethod, prefix: new HarmonyMethod(prefix));
+                Log.Message($"[RimWorld Access] Applied {typeName}.Start() prefix");
             }
-
-            TolkHelper.Shutdown();
-        }
-
-        private static void ApplyGravshipStartPatch(Harmony harmony)
-        {
-            var gravshipDialogType = AccessTools.TypeByName("RimWorld.Dialog_BeginGravshipLaunch");
-            if (gravshipDialogType == null) return;
-
-            var startMethod = AccessTools.Method(gravshipDialogType, "Start");
-            if (startMethod == null) return;
-
-            var prefixMethod = AccessTools.Method(typeof(RitualPatch), nameof(RitualPatch.GravshipStartPrefix));
-            harmony.Patch(startMethod, prefix: new HarmonyMethod(prefixMethod));
-            Log.Message("[RimWorld Access] Applied gravship launch Start() patch");
         }
 
         private static void OnApplicationQuit()

@@ -19,6 +19,21 @@ namespace RimWorldAccess
             if (window == null)
                 return true;
 
+            // Redirect FloatMenus spawned by the ideoligion builder's typed-precept "Add"
+            // flow (and any nested grouping menus) into the accessible windowless menu.
+            if (window is FloatMenu builderFloatMenu && IdeoTypedPreceptState.IsActive)
+            {
+                var optionsField2 = typeof(FloatMenu).GetField("options",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                var opts2 = optionsField2?.GetValue(builderFloatMenu) as System.Collections.Generic.List<FloatMenuOption>;
+                if (opts2 != null && opts2.Count > 0)
+                {
+                    WindowlessFloatMenuState.Open(opts2, builderFloatMenu.givesColonistOrders, playOpenSound: false);
+                    return false;
+                }
+                return true;
+            }
+
             // Special handling for FloatMenu when:
             // 1. Executing a gizmo (e.g., long-range scanner mineral selection)
             // 2. Confirming a transport pod destination (arrival options)

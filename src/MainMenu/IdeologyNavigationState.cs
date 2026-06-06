@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -98,19 +97,19 @@ namespace RimWorldAccess
             {
                 Label = "CreateCustomFluid".Translate().ToString().Replace("\n", " "),
                 Description = IdeoPresetCategoryDefOf.Fluid.description,
-                EnumValue = 1
+                EnumValue = 1,
             });
             options.Add(new OptionEntry
             {
                 Label = "CreateCustomFixed".Translate().ToString().Replace("\n", " "),
                 Description = IdeoPresetCategoryDefOf.Custom.description,
-                EnumValue = 2
+                EnumValue = 2,
             });
             options.Add(new OptionEntry
             {
                 Label = "LoadSaved".Translate().ToString(),
                 Description = "",
-                EnumValue = 3
+                EnumValue = 3,
             });
 
             // Build preset tree

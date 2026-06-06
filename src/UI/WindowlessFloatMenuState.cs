@@ -161,7 +161,11 @@ namespace RimWorldAccess
             // (placement mode already announces its own message, e.g., "bed selected. Size: 1 by 2...")
             // Also skip if the caller suppressed the announcement (e.g., bill config submenus
             // where the callback already announces the updated state with position context)
-            if (!ArchitectState.IsInPlacementMode && announceOnExecute)
+            // Also skip if the action started a new targeting session — ItemTargetingState.Open
+            // already announced the same label as part of "<label>. Navigate with arrow keys...".
+            // Without this guard the user hears the option label twice back-to-back.
+            bool targetingStarted = Find.Targeter?.IsTargeting == true;
+            if (!ArchitectState.IsInPlacementMode && announceOnExecute && !targetingStarted)
             {
                 if (shiftHeld && givesColonistOrders)
                     TolkHelper.Speak("RimWorldAccess.UI.FloatMenu.SelectedQueued".Loc(selectedOption.Label, "Queued".Translate()));
@@ -178,6 +182,14 @@ namespace RimWorldAccess
             if (currentOptions == null || currentOptions.Count == 0)
                 return;
 
+            // During an active search, Home goes to the first match and keeps the search.
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                selectedIndex = typeahead.GetFirstMatch();
+                AnnounceCurrentSelection();
+                return;
+            }
+
             selectedIndex = MenuHelper.JumpToFirst();
             typeahead.ClearSearch();
             AnnounceCurrentSelection();
@@ -190,6 +202,13 @@ namespace RimWorldAccess
         {
             if (currentOptions == null || currentOptions.Count == 0)
                 return;
+
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                selectedIndex = typeahead.GetLastMatch();
+                AnnounceCurrentSelection();
+                return;
+            }
 
             selectedIndex = MenuHelper.JumpToLast(currentOptions.Count);
             typeahead.ClearSearch();

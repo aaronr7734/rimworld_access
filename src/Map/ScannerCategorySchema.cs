@@ -275,6 +275,7 @@ namespace RimWorldAccess
             new ScannerCategorySchema("All"),
             new ScannerCategorySchema("Pawns",
                 "Colonists", "Prisoners", "Slaves", "Guests", "Hostile", "Player Mechs", "Hostile Mechs"),
+            new ScannerCategorySchema("Entities", "Hostile", "Captured"),
             new ScannerCategorySchema("Tame", "Pen", "NonPen"),
             new ScannerCategorySchema("Wild", "Hostile", "Passive"),
             new ScannerCategorySchema("Hazards", "Fire", "Blight"),
@@ -291,6 +292,7 @@ namespace RimWorldAccess
                 "Cut", "Harvest", "Smooth", "Tame", "Slaughter", "Other"),
             new ScannerCategorySchema("Zones", "Growing", "Stockpile", "Fishing", "Other"),
             new ScannerCategorySchema("Rooms"), // only gets "All"
+            new ScannerCategorySchema("Unexplored"),
             // Uncategorized is built separately — its subcategories are discovered at runtime.
         };
     }

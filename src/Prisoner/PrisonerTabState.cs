@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Verse;
 using RimWorld;
 
@@ -22,6 +21,12 @@ namespace RimWorldAccess
         private static List<PrisonerInteractionModeDef> exclusiveModes = new List<PrisonerInteractionModeDef>();
         private static List<PrisonerInteractionModeDef> nonExclusiveModes = new List<PrisonerInteractionModeDef>();
         private static List<SlaveInteractionModeDef> slaveModes = new List<SlaveInteractionModeDef>();
+
+        // Typeahead search across every tabbable section (see HandleTypeahead). flatLocations maps
+        // each searchable row (in the same order as the labels handed to the helper) back to its
+        // (section, index) so match cycling can switch sections to land on a hit.
+        private static readonly TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
+        private static readonly List<KeyValuePair<TabSection, int>> flatLocations = new List<KeyValuePair<TabSection, int>>();
 
         public enum TabSection
         {
@@ -69,6 +74,7 @@ namespace RimWorldAccess
             currentSection = TabSection.Information;
             selectedIndex = 0;
             ClearCachedData();
+            typeahead.ClearSearch();
 
             TolkHelper.Speak("RimWorldAccess.Prisoner.Tab.Closed".Loc());
         }
@@ -118,6 +124,11 @@ namespace RimWorldAccess
             if (!isActive || currentPawn == null)
                 return;
 
+            // Left/Right do nothing while a typeahead search has results: matches span every section,
+            // so switching section mid-search is meaningless and confusing.
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                return;
+
             // Skip sections that don't apply
             do
             {
@@ -135,6 +146,11 @@ namespace RimWorldAccess
         public static void PreviousSection()
         {
             if (!isActive || currentPawn == null)
+                return;
+
+            // Left/Right do nothing while a typeahead search has results: matches span every section,
+            // so switching section mid-search is meaningless and confusing.
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
                 return;
 
             // Skip sections that don't apply
@@ -157,6 +173,13 @@ namespace RimWorldAccess
         {
             if (!isActive || currentPawn == null)
                 return;
+
+            // While a typeahead search is active, arrows cycle through matches (universal pattern).
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                MoveToFlatMatch(typeahead.GetNextMatch(CurrentFlatIndex()));
+                return;
+            }
 
             // Special handling for medical care - use up/down to adjust level
             if (currentSection == TabSection.MedicalCare)
@@ -182,6 +205,13 @@ namespace RimWorldAccess
             if (!isActive || currentPawn == null)
                 return;
 
+            // While a typeahead search is active, arrows cycle through matches (universal pattern).
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                MoveToFlatMatch(typeahead.GetPreviousMatch(CurrentFlatIndex()));
+                return;
+            }
+
             // Special handling for medical care - use up/down to adjust level
             if (currentSection == TabSection.MedicalCare)
             {
@@ -199,12 +229,69 @@ namespace RimWorldAccess
 
 
         /// <summary>
+        /// Jumps to the first item in the current section (Home key).
+        /// No-op for MedicalCare (single adjustable value).
+        /// </summary>
+        public static void NavigateToStart()
+        {
+            if (!isActive || currentPawn == null)
+                return;
+
+            // While a typeahead search is active, Home jumps to the first match (universal pattern).
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                MoveToFlatMatch(typeahead.GetFirstMatch());
+                return;
+            }
+
+            if (currentSection == TabSection.MedicalCare)
+                return;
+
+            int maxIndex = GetMaxIndexForCurrentSection();
+            if (maxIndex < 0)
+                return;
+
+            selectedIndex = 0;
+            AnnounceCurrentSelection();
+        }
+
+        /// <summary>
+        /// Jumps to the last item in the current section (End key).
+        /// No-op for MedicalCare (single adjustable value).
+        /// </summary>
+        public static void NavigateToEnd()
+        {
+            if (!isActive || currentPawn == null)
+                return;
+
+            // While a typeahead search is active, End jumps to the last match (universal pattern).
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                MoveToFlatMatch(typeahead.GetLastMatch());
+                return;
+            }
+
+            if (currentSection == TabSection.MedicalCare)
+                return;
+
+            int maxIndex = GetMaxIndexForCurrentSection();
+            if (maxIndex < 0)
+                return;
+
+            selectedIndex = maxIndex;
+            AnnounceCurrentSelection();
+        }
+
+        /// <summary>
         /// Executes the selected action (Enter key).
         /// </summary>
         public static void ExecuteAction()
         {
             if (!isActive || currentPawn == null)
                 return;
+
+            // Selecting an item ends the search (matches every other typeahead screen).
+            typeahead.ClearSearch();
 
             switch (currentSection)
             {
@@ -233,12 +320,44 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Handles Escape within the tab. Returns true if consumed internally
+        /// (e.g. backing out of the ideology picker), false if the caller should close the tab.
+        /// </summary>
+        public static bool HandleEscape()
+        {
+            if (!isActive || currentPawn == null)
+                return false;
+
+            // Escape clears an active typeahead search first (universal pattern), before backing out.
+            if (typeahead.HasActiveSearch)
+            {
+                typeahead.ClearSearchAndAnnounce();
+                AnnounceCurrentSelection();
+                return true;
+            }
+
+            if (currentSection == TabSection.IdeologySelection)
+            {
+                currentSection = TabSection.ExclusiveModes;
+                selectedIndex = exclusiveModes.IndexOf(PrisonerInteractionModeDefOf.Convert);
+                if (selectedIndex < 0) selectedIndex = 0;
+                AnnounceCurrentSection();
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Toggles a checkbox (Space key) - for non-exclusive modes.
         /// </summary>
         public static void ToggleCheckbox()
         {
             if (!isActive || currentPawn == null)
                 return;
+
+            // Selecting an item ends the search (matches every other typeahead screen).
+            typeahead.ClearSearch();
 
             if (currentSection == TabSection.NonExclusiveModes)
             {
@@ -261,7 +380,7 @@ namespace RimWorldAccess
             currentPawn.playerSettings.medCare = newCare;
 
             string label = PrisonerTabHelper.GetMedicalCareLabel(newCare);
-            TolkHelper.Speak("RimWorldAccess.Prisoner.MedicalCare.Announce".Loc(label));
+            TolkHelper.Speak($"{"AllowMedicine".Translate()}: {label}");
         }
 
         private static void SelectExclusiveMode()
@@ -272,27 +391,42 @@ namespace RimWorldAccess
                 {
                     PrisonerInteractionModeDef mode = exclusiveModes[selectedIndex];
 
-                    // Check for special cases
-                    if (mode == PrisonerInteractionModeDefOf.Convert)
-                    {
-                        // Switch to ideology selection section
-                        currentSection = TabSection.IdeologySelection;
-                        selectedIndex = 0;
-                        AnnounceCurrentSection();
-                        return;
-                    }
-
-                    // Set the mode
+                    // Apply the mode first — mirrors vanilla ITab_Pawn_Visitor.DrawExclusiveInteractionRow
+                    // (line 469-473) which always calls SetExclusiveInteraction before any follow-up UX.
                     currentPawn.guest.SetExclusiveInteraction(mode);
 
-                    // Handle mode-specific logic
-                    if (mode == PrisonerInteractionModeDefOf.Convert && currentPawn.guest.ideoForConversion == null)
+                    // Mirror vanilla InteractionModeChanged (line 507-510): auto-assign primary ideo
+                    // when switching to Convert if none has been chosen yet.
+                    if (mode == PrisonerInteractionModeDefOf.Convert && currentPawn.guest.ideoForConversion == null
+                        && Faction.OfPlayer.ideos != null)
                     {
                         currentPawn.guest.ideoForConversion = Faction.OfPlayer.ideos.PrimaryIdeo;
                     }
 
+                    // For Convert with multiple player ideologies, jump into the picker so the
+                    // user can confirm or change the target (vanilla exposes this via the ideo icon).
+                    if (mode == PrisonerInteractionModeDefOf.Convert)
+                    {
+                        List<Ideo> ideologies = PrisonerTabHelper.GetPlayerIdeologies();
+                        if (ideologies.Count > 1)
+                        {
+                            currentSection = TabSection.IdeologySelection;
+                            int currentIdeoIndex = ideologies.IndexOf(currentPawn.guest.ideoForConversion);
+                            selectedIndex = currentIdeoIndex >= 0 ? currentIdeoIndex : 0;
+                            AnnounceCurrentSection();
+                            return;
+                        }
+                    }
+
                     string description = PrisonerTabHelper.GetInteractionModeDescription(currentPawn, mode);
-                    TolkHelper.Speak("RimWorldAccess.Prisoner.Action.Selected".Loc(mode.LabelCap, description));
+                    if (mode == PrisonerInteractionModeDefOf.Convert && currentPawn.guest.ideoForConversion != null)
+                    {
+                        TolkHelper.Speak($"Selected: {mode.LabelCap}. {"IdeoConversionTarget".Translate()}: {currentPawn.guest.ideoForConversion.name}. {description}");
+                    }
+                    else
+                    {
+                        TolkHelper.Speak($"Selected: {mode.LabelCap}. {description}");
+                    }
                 }
             }
             else if (currentPawn.IsSlaveOfColony)
@@ -301,15 +435,40 @@ namespace RimWorldAccess
                 {
                     SlaveInteractionModeDef mode = slaveModes[selectedIndex];
 
-                    // Check for execution confirmation
+                    // Mirror vanilla's behavior: apply the mode immediately, then prompt for
+                    // confirmation on execute-vs-neutral-faction. On cancel, revert to the
+                    // previous mode (ITab_Pawn_Visitor.DoSlaveTab line 159-168).
+                    SlaveInteractionModeDef previousMode = currentPawn.guest.slaveInteractionMode;
+                    currentPawn.guest.slaveInteractionMode = mode;
+
                     if (mode == SlaveInteractionModeDefOf.Execute && currentPawn.SlaveFaction != null && !currentPawn.SlaveFaction.HostileTo(Faction.OfPlayer))
                     {
-                        // Warn about neutral faction
-                        TolkHelper.Speak("RimWorldAccess.Prisoner.Action.ExecuteNeutralWarning".Loc(currentPawn.SlaveFaction.Name));
-                        // For now, just set it - confirmation dialogs would require more complex handling
-                    }
+                        Pawn pawnForClosure = currentPawn;
+                        SlaveInteractionModeDef revertTo = previousMode;
+                        string confirmationMessage = "ExectueNeutralFactionSlave".Translate(
+                            pawnForClosure.Named("PAWN"),
+                            pawnForClosure.SlaveFaction.Named("FACTION"));
 
-                    currentPawn.guest.slaveInteractionMode = mode;
+                        // Mirror vanilla DoSlaveTab: pop the game's own Dialog_MessageBox so the
+                        // confirmation uses the standard window (announced and driven by
+                        // MessageBoxAccessibilityPatch) with the game's localized Confirm/Cancel buttons.
+                        var dialog = new Dialog_MessageBox(
+                            confirmationMessage,
+                            "Confirm".Translate(),
+                            () =>
+                            {
+                                string desc = PrisonerTabHelper.GetSlaveInteractionModeDescription(pawnForClosure, mode);
+                                TolkHelper.Speak($"{mode.LabelCap}. {desc}");
+                            },
+                            "Cancel".Translate(),
+                            () =>
+                            {
+                                pawnForClosure.guest.slaveInteractionMode = revertTo;
+                                TolkHelper.Speak(revertTo.LabelCap);
+                            });
+                        Find.WindowStack.Add(dialog);
+                        return;
+                    }
 
                     string description = PrisonerTabHelper.GetSlaveInteractionModeDescription(currentPawn, mode);
                     TolkHelper.Speak("RimWorldAccess.Prisoner.Action.Selected".Loc(mode.LabelCap, description));
@@ -359,7 +518,7 @@ namespace RimWorldAccess
                 Ideo selected = ideologies[selectedIndex];
                 currentPawn.guest.ideoForConversion = selected;
 
-                // Check for warden warning
+                // Check for warden warning (matches vanilla ITab_Pawn_Visitor line 326-330)
                 string warning = "";
                 if (currentPawn.MapHeld != null)
                 {
@@ -374,16 +533,18 @@ namespace RimWorldAccess
                     }
                     if (!hasWarden)
                     {
-                        warning = "RimWorldAccess.Prisoner.Warning.NoIdeoWardenInline".Translate();
+                        warning = ". " + "NoWardenOfIdeo".Translate(selected.memberName.Named("MEMBERNAME"));
                     }
                 }
 
-                TolkHelper.Speak("RimWorldAccess.Prisoner.Action.ConversionTarget".Loc(selected.name, warning));
-
-                // Return to exclusive modes section
+                // Return to exclusive modes section with Convert preselected
                 currentSection = TabSection.ExclusiveModes;
                 selectedIndex = exclusiveModes.IndexOf(PrisonerInteractionModeDefOf.Convert);
                 if (selectedIndex < 0) selectedIndex = 0;
+
+                // Confirm both the active mode and the chosen target in a single announcement.
+                string convertLabel = PrisonerInteractionModeDefOf.Convert.LabelCap;
+                TolkHelper.Speak($"Selected: {convertLabel}. {"IdeoConversionTarget".Translate()}: {selected.name}{warning}");
             }
         }
 
@@ -393,29 +554,29 @@ namespace RimWorldAccess
 
         private static void AnnouncePrisonerOpened()
         {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("RimWorldAccess.Prisoner.Tab.OpenedPrisoner".Translate(currentPawn.LabelShort).ToString());
-            sb.AppendLine("RimWorldAccess.Prisoner.Tab.CurrentMode".Translate(currentPawn.guest.ExclusiveInteractionMode.LabelCap).ToString());
-            sb.AppendLine("RimWorldAccess.Prisoner.MedicalCare.Announce".Translate(PrisonerTabHelper.GetMedicalCareLabel(currentPawn.playerSettings.medCare)).ToString());
-            sb.AppendLine("RimWorldAccess.Prisoner.Tab.NavigationHint".Translate().ToString());
-
-            TolkHelper.SpeakData(sb.ToString().TrimEnd());
+            PrisonerInteractionModeDef currentMode = currentPawn.guest.ExclusiveInteractionMode;
+            string mode = currentMode.LabelCap;
+            if (currentMode == PrisonerInteractionModeDefOf.Convert && currentPawn.guest.ideoForConversion != null)
+            {
+                mode = $"{mode} ({currentPawn.guest.ideoForConversion.name})";
+            }
+            string care = PrisonerTabHelper.GetMedicalCareLabel(currentPawn.playerSettings.medCare);
+            string allowMedicine = "AllowMedicine".Translate();
+            TolkHelper.Speak($"Prisoner Tab: {currentPawn.LabelShort}. Current Mode: {mode}. {allowMedicine}: {care}. Press Left/Right to navigate sections, Up/Down within sections, Enter to select");
         }
 
         private static void AnnounceSlaveOpened()
         {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("RimWorldAccess.Prisoner.Tab.OpenedSlave".Translate(currentPawn.LabelShort).ToString());
-            sb.AppendLine("RimWorldAccess.Prisoner.Tab.CurrentMode".Translate(currentPawn.guest.slaveInteractionMode.LabelCap).ToString());
+            string mode = currentPawn.guest.slaveInteractionMode.LabelCap;
+            string announcement = $"Slave Tab: {currentPawn.LabelShort}. Current Mode: {mode}";
 
             if (currentPawn.needs.TryGetNeed(out Need_Suppression suppressionNeed))
             {
-                sb.AppendLine("RimWorldAccess.Prisoner.Slave.Suppression".Translate(suppressionNeed.CurLevel.ToString("P0")).ToString());
+                announcement += $". {"Suppression".Translate()}: {suppressionNeed.CurLevel.ToStringPercent()}";
             }
 
-            sb.AppendLine("RimWorldAccess.Prisoner.Tab.NavigationHint".Translate().ToString());
-
-            TolkHelper.SpeakData(sb.ToString().TrimEnd());
+            announcement += ". Press Left/Right to navigate sections, Up/Down within sections, Enter to select";
+            TolkHelper.Speak(announcement);
         }
 
         private static void AnnounceCurrentSection()
@@ -431,7 +592,7 @@ namespace RimWorldAccess
 
                 case TabSection.MedicalCare:
                     string careLevel = PrisonerTabHelper.GetMedicalCareLabel(currentPawn.playerSettings.medCare);
-                    TolkHelper.Speak("RimWorldAccess.Prisoner.MedicalCare.AnnounceWithHint".Loc(careLevel));
+                    TolkHelper.Speak($"{"AllowMedicine".Translate()}: {careLevel}. Use Up/Down arrows to adjust");
                     break;
 
                 case TabSection.ExclusiveModes:
@@ -450,7 +611,7 @@ namespace RimWorldAccess
                     break;
 
                 case TabSection.IdeologySelection:
-                    TolkHelper.Speak("RimWorldAccess.Prisoner.Section.IdeologySelection".Loc());
+                    TolkHelper.Speak("IdeoConversionTarget".Translate());
                     break;
             }
 
@@ -477,7 +638,7 @@ namespace RimWorldAccess
 
                 case TabSection.MedicalCare:
                     string careLevel = PrisonerTabHelper.GetMedicalCareLabel(currentPawn.playerSettings.medCare);
-                    TolkHelper.Speak("RimWorldAccess.Prisoner.MedicalCare.Announce".Loc(careLevel));
+                    TolkHelper.Speak($"{"AllowMedicine".Translate()}: {careLevel}");
                     break;
 
                 case TabSection.ExclusiveModes:
@@ -485,17 +646,22 @@ namespace RimWorldAccess
                     {
                         PrisonerInteractionModeDef mode = exclusiveModes[selectedIndex];
                         bool isSelected = currentPawn.guest.ExclusiveInteractionMode == mode;
-                        string marker = isSelected ? "RimWorldAccess.Prisoner.Item.MarkerActive".Translate().ToString() : "";
+                        string selectedSuffix = isSelected ? ", selected" : "";
                         string description = PrisonerTabHelper.GetInteractionModeDescription(currentPawn, mode);
-                        TolkHelper.Speak("RimWorldAccess.Prisoner.Item.ModeWithDescription".Loc(marker, mode.LabelCap, description));
+                        string extra = "";
+                        if (mode == PrisonerInteractionModeDefOf.Convert && isSelected && currentPawn.guest.ideoForConversion != null)
+                        {
+                            extra = $". {"IdeoConversionTarget".Translate()}: {currentPawn.guest.ideoForConversion.name}";
+                        }
+                        TolkHelper.Speak($"{mode.LabelCap}{selectedSuffix}. {description}{extra}");
                     }
                     else if (currentPawn.IsSlaveOfColony && selectedIndex >= 0 && selectedIndex < slaveModes.Count)
                     {
                         SlaveInteractionModeDef mode = slaveModes[selectedIndex];
                         bool isSelected = currentPawn.guest.slaveInteractionMode == mode;
-                        string marker = isSelected ? "RimWorldAccess.Prisoner.Item.MarkerActive".Translate().ToString() : "";
+                        string selectedSuffix = isSelected ? ", selected" : "";
                         string description = PrisonerTabHelper.GetSlaveInteractionModeDescription(currentPawn, mode);
-                        TolkHelper.Speak("RimWorldAccess.Prisoner.Item.ModeWithDescription".Loc(marker, mode.LabelCap, description));
+                        TolkHelper.Speak($"{mode.LabelCap}{selectedSuffix}. {description}");
                     }
                     break;
 
@@ -517,8 +683,8 @@ namespace RimWorldAccess
                     {
                         Ideo ideo = ideologies[selectedIndex];
                         bool isCurrent = currentPawn.guest.ideoForConversion == ideo;
-                        string marker = isCurrent ? "RimWorldAccess.Prisoner.Item.MarkerCurrent".Translate().ToString() : "";
-                        TolkHelper.Speak("RimWorldAccess.Prisoner.Item.Ideo".Loc(marker, ideo.name));
+                        string selectedSuffix = isCurrent ? ", selected" : "";
+                        TolkHelper.Speak($"{ideo.name}{selectedSuffix}");
                     }
                     break;
             }
@@ -544,7 +710,10 @@ namespace RimWorldAccess
                     return true; // Always available
 
                 case TabSection.MedicalCare:
-                    return true; // Always available
+                    // Vanilla ITab_Pawn_Visitor only renders the medical care selector
+                    // inside DoPrisonerTab (line 353-366), not DoSlaveTab — slave medical
+                    // care is set from the Health tab instead.
+                    return currentPawn.IsPrisonerOfColony;
 
                 case TabSection.ExclusiveModes:
                     if (currentPawn.IsPrisonerOfColony)
@@ -567,7 +736,12 @@ namespace RimWorldAccess
 
         private static int GetMaxIndexForCurrentSection()
         {
-            switch (currentSection)
+            return GetMaxIndexForSection(currentSection);
+        }
+
+        private static int GetMaxIndexForSection(TabSection section)
+        {
+            switch (section)
             {
                 case TabSection.Information:
                     return infoLines.Count - 1;
@@ -593,12 +767,151 @@ namespace RimWorldAccess
             }
         }
 
+        /// <summary>
+        /// Returns the label shown for a given row, used by typeahead so a search matches the same
+        /// text the user hears. Mirrors the per-section announcements in AnnounceCurrentSelection.
+        /// </summary>
+        private static string GetSectionItemLabel(TabSection section, int index)
+        {
+            switch (section)
+            {
+                case TabSection.Information:
+                    return (index >= 0 && index < infoLines.Count) ? infoLines[index] : "";
+
+                case TabSection.MedicalCare:
+                    return $"{"AllowMedicine".Translate()}: {PrisonerTabHelper.GetMedicalCareLabel(currentPawn.playerSettings.medCare)}";
+
+                case TabSection.ExclusiveModes:
+                    if (currentPawn.IsPrisonerOfColony && index >= 0 && index < exclusiveModes.Count)
+                        return exclusiveModes[index].LabelCap;
+                    if (currentPawn.IsSlaveOfColony && index >= 0 && index < slaveModes.Count)
+                        return slaveModes[index].LabelCap;
+                    return "";
+
+                case TabSection.NonExclusiveModes:
+                    return (index >= 0 && index < nonExclusiveModes.Count) ? nonExclusiveModes[index].LabelCap.ToString() : "";
+
+                default:
+                    return "";
+            }
+        }
+
+        /// <summary>
+        /// Typeahead across every tabbable section (column) of the prisoner/slave tab at once. Typing
+        /// jumps to the first matching row anywhere in the tab — an info stat, medical care, or an
+        /// interaction mode — switching the active section if the match lives elsewhere. Registered
+        /// with the dispatcher ahead of the inspection tree this tab opens over, so the tree no longer
+        /// steals the search.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!isActive || currentPawn == null)
+                return;
+
+            var labels = BuildFlatRows();
+            if (typeahead.ProcessCharacterInput(c, labels, out int newIndex) && newIndex >= 0 && newIndex < flatLocations.Count)
+            {
+                MoveToFlatMatch(newIndex);
+            }
+            else
+            {
+                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'");
+            }
+        }
+
+        /// <summary>
+        /// Backspace deletes the last character of an active typeahead search and re-navigates to
+        /// the first remaining match (or restores normal navigation if the buffer empties), matching
+        /// every other typeahead screen.
+        /// </summary>
+        public static void HandleBackspace()
+        {
+            if (!isActive || currentPawn == null || !typeahead.HasActiveSearch)
+                return;
+
+            var labels = BuildFlatRows();
+            if (typeahead.ProcessBackspace(labels, out int newIndex))
+            {
+                if (newIndex >= 0 && newIndex < flatLocations.Count)
+                {
+                    currentSection = flatLocations[newIndex].Key;
+                    selectedIndex = flatLocations[newIndex].Value;
+                }
+                AnnounceWithSearch();
+            }
+        }
+
+        /// <summary>
+        /// Rebuilds <see cref="flatLocations"/> — every searchable row across all tabbable sections,
+        /// in section/order — and returns the matching label list to hand to the typeahead helper.
+        /// The two lists are index-aligned so a match index maps straight back to (section, index).
+        /// </summary>
+        private static List<string> BuildFlatRows()
+        {
+            flatLocations.Clear();
+            var labels = new List<string>();
+            foreach (TabSection section in System.Enum.GetValues(typeof(TabSection)))
+            {
+                if (!IsSectionAvailable(section))
+                    continue;
+
+                int max = GetMaxIndexForSection(section);
+                for (int i = 0; i <= max; i++)
+                {
+                    labels.Add(GetSectionItemLabel(section, i));
+                    flatLocations.Add(new KeyValuePair<TabSection, int>(section, i));
+                }
+            }
+            return labels;
+        }
+
+        /// <summary>Flat index of the current (section, index) within <see cref="flatLocations"/>.</summary>
+        private static int CurrentFlatIndex()
+        {
+            for (int i = 0; i < flatLocations.Count; i++)
+            {
+                if (flatLocations[i].Key == currentSection && flatLocations[i].Value == selectedIndex)
+                    return i;
+            }
+            return 0;
+        }
+
+        /// <summary>Moves selection to a flat row (switching section if needed) and announces it.</summary>
+        private static void MoveToFlatMatch(int flatIndex)
+        {
+            if (flatIndex < 0 || flatIndex >= flatLocations.Count)
+                return;
+
+            currentSection = flatLocations[flatIndex].Key;
+            selectedIndex = flatLocations[flatIndex].Value;
+            AnnounceWithSearch();
+        }
+
+        /// <summary>
+        /// Announces the current row with its search-match position ("X of N matches for '...'"),
+        /// matching the universal typeahead announcement every other menu uses. Falls back to the
+        /// normal per-section announcement when no search is active.
+        /// </summary>
+        private static void AnnounceWithSearch()
+        {
+            if (typeahead.HasActiveSearch)
+            {
+                string label = GetSectionItemLabel(currentSection, selectedIndex);
+                TolkHelper.Speak($"{label}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'");
+            }
+            else
+            {
+                AnnounceCurrentSelection();
+            }
+        }
+
         private static void ClearCachedData()
         {
             infoLines.Clear();
             exclusiveModes.Clear();
             nonExclusiveModes.Clear();
             slaveModes.Clear();
+            flatLocations.Clear();
         }
 
         #endregion

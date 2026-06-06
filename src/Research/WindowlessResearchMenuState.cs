@@ -54,6 +54,12 @@ namespace RimWorldAccess
         /// <summary>
         /// Opens the research menu and navigates to a specific project.
         /// Called when activating a research hyperlink from a letter.
+        ///
+        /// Strategy: build the tree, walk it to locate the project's leaf node, expand every
+        /// ancestor on the path so the leaf is visible, then initialize tree-nav and put the
+        /// cursor on the leaf. This is more reliable than blanket-expanding all categories
+        /// (the prior implementation occasionally landed the cursor on the parent tab/category
+        /// instead of the project itself, leaving the user with a collapsed-looking node).
         /// </summary>
         public static void OpenAndSelectProject(ResearchProjectDef project)
         {
@@ -63,22 +69,29 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Open the menu normally first
             isActive = true;
             var root = BuildCategoryTree();
 
-            // Expand all categories to find the project
-            ExpandAllCategoriesRecursive(root.Children);
+            var targetNode = FindProjectNode(root, project);
+            if (targetNode != null)
+            {
+                for (var p = targetNode.Parent; p != null; p = p.Parent)
+                {
+                    if (p.IsExpandable) p.IsExpanded = true;
+                }
+            }
             treeNav.Initialize(root);
 
-            // Find the project in the visible items list
             int foundIndex = -1;
-            for (int i = 0; i < treeNav.VisibleItems.Count; i++)
+            if (targetNode != null)
             {
-                if (treeNav.VisibleItems[i].Data is ResearchProjectDef proj && proj == project)
+                for (int i = 0; i < treeNav.VisibleItems.Count; i++)
                 {
-                    foundIndex = i;
-                    break;
+                    if (ReferenceEquals(treeNav.VisibleItems[i], targetNode))
+                    {
+                        foundIndex = i;
+                        break;
+                    }
                 }
             }
 
@@ -95,21 +108,18 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Recursively expands all category nodes.
+        /// Recursively walks the tree to find the leaf node carrying the given research project
+        /// in its Data field.
         /// </summary>
-        private static void ExpandAllCategoriesRecursive(List<InspectionTreeItem> items)
+        private static InspectionTreeItem FindProjectNode(InspectionTreeItem node, ResearchProjectDef target)
         {
-            foreach (var item in items)
+            if (node.Data is ResearchProjectDef proj && proj == target) return node;
+            foreach (var child in node.Children)
             {
-                if (item.Type == InspectionTreeItem.ItemType.Category && item.IsExpandable)
-                {
-                    item.IsExpanded = true;
-                    if (item.Children.Count > 0)
-                    {
-                        ExpandAllCategoriesRecursive(item.Children);
-                    }
-                }
+                var found = FindProjectNode(child, target);
+                if (found != null) return found;
             }
+            return null;
         }
 
         #region Navigation Wrappers (called by UnifiedKeyboardPatch)
@@ -324,8 +334,16 @@ namespace RimWorldAccess
                 IsExpandable = false
             };
 
-            // Get all research projects
-            var allProjects = DefDatabase<ResearchProjectDef>.AllDefsListForReading;
+            // Get research projects visible under current difficulty/playstyle settings.
+            // Mirrors MainTabWindow_Research.VisibleResearchProjects so anomaly-disabled or
+            // otherwise hidden projects don't leak through to keyboard navigation.
+            var difficulty = Find.Storyteller?.difficulty;
+            var researchManager = Find.ResearchManager;
+            var allProjects = DefDatabase<ResearchProjectDef>.AllDefsListForReading
+                .Where(p => difficulty == null
+                    || difficulty.AllowedBy(p.hideWhen)
+                    || (researchManager != null && researchManager.IsCurrentProject(p)))
+                .ToList();
 
             // Group by research tab (Main, Anomaly, etc.)
             var projectsByTab = allProjects.GroupBy(p => p.tab ?? ResearchTabDefOf.Main).ToList();
@@ -475,6 +493,14 @@ namespace RimWorldAccess
         private static string FormatProjectLabel(ResearchProjectDef project)
         {
             string label = project.LabelCap.ToString();
+
+            // Anomaly knowledge tier (basic / advanced) — the visual UI shows this as a colored
+            // category icon on every project tile. It's load-bearing for screen reader users
+            // because anomaly projects only progress when studying an entity of the matching tier.
+            if (project.knowledgeCategory != null)
+            {
+                label += $" - {project.knowledgeCategory.LabelCap}";
+            }
 
             // Add cost information
             float cost = project.CostApparent;

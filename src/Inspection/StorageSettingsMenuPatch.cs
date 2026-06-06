@@ -168,7 +168,7 @@ namespace RimWorldAccess
                 return;
             }
 
-            if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+            if (key == KeyCode.Return || key == KeyCode.KeypadEnter || key == KeyCode.Space)
             {
                 StorageSettingsMenuState.ToggleCurrent();
                 Event.current.Use();
@@ -228,12 +228,19 @@ namespace RimWorldAccess
             switch (key)
             {
                 case KeyCode.UpArrow:
-                    PlantSelectionMenuState.SelectPrevious();
+                    // Navigate matches when a search is active (with matches), else all plants
+                    if (PlantSelectionMenuState.HasActiveSearch && !PlantSelectionMenuState.HasNoMatches)
+                        PlantSelectionMenuState.SelectPreviousMatch();
+                    else
+                        PlantSelectionMenuState.SelectPrevious();
                     Event.current.Use();
                     break;
 
                 case KeyCode.DownArrow:
-                    PlantSelectionMenuState.SelectNext();
+                    if (PlantSelectionMenuState.HasActiveSearch && !PlantSelectionMenuState.HasNoMatches)
+                        PlantSelectionMenuState.SelectNextMatch();
+                    else
+                        PlantSelectionMenuState.SelectNext();
                     Event.current.Use();
                     break;
 
@@ -295,7 +302,13 @@ namespace RimWorldAccess
 
                 case KeyCode.Escape:
                     PlaySettingsMenuState.Close();
-                    TolkHelper.Speak("RimWorldAccess.Inspection.Storage.PlaySettingsClosed".Loc());
+                    // Return to pause menu, matching how Save / Load / Options /
+                    // Review Scenario behave when escaped — instead of dropping the
+                    // user out of the pause menu entirely.
+                    if (Current.ProgramState == ProgramState.Playing)
+                    {
+                        WindowlessPauseMenuState.Open();
+                    }
                     Event.current.Use();
                     break;
             }

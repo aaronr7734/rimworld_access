@@ -4,9 +4,9 @@
 Pawn information, character tabs, policies, and assignments.
 
 ## Files
-**Patches:** PawnInfoPatch.cs, AssignMenuPatch.cs, PolicyEditorPatch.cs
-**States:** PawnSelectionState.cs, ColonistBarState.cs, HealthState.cs, HealthTabState.cs, MoodState.cs, NeedsState.cs, AssignMenuState.cs, BedAssignmentState.cs, PolicyEditorState.cs, DrugPolicyEditorState.cs, ReadingPolicyEditorState.cs, WindowlessScheduleState.cs
-**Helpers:** PawnInfoHelper.cs, HealthTabHelper.cs, SocialTabHelper.cs, InteractiveGearHelper.cs
+**Patches:** PawnInfoPatch.cs, AssignMenuPatch.cs, PolicyEditorPatch.cs, PawnSkillsTablePatch.cs
+**States:** PawnSelectionState.cs, ColonistBarState.cs, HealthState.cs, HealthTabState.cs, MoodState.cs, NeedsState.cs, AssignMenuState.cs, BedAssignmentState.cs, PolicyEditorState.cs, DrugPolicyEditorState.cs, ReadingPolicyEditorState.cs, WindowlessScheduleState.cs, PawnSkillsTableState.cs
+**Helpers:** PawnInfoHelper.cs, HealthTabHelper.cs, SocialTabHelper.cs, InteractiveGearHelper.cs, PawnSkillsTableHelper.cs
 
 ## Key Shortcuts
 - **Tab/Shift+Tab** - Cycle selected pawns
@@ -21,6 +21,7 @@ Pawn information, character tabs, policies, and assignments.
 - **Alt+H** - Quick health info
 - **Alt+N** - Quick needs info
 - **Alt+K** - Quick top 3 skills info
+- **Alt+P** - Open pawn skills table (all colonists x all skills, read-only)
 - **Alt+A** - Quick area assignment for selected pawn
 - **F2** - Schedule editor
 - **F3** - Assign menu
@@ -32,6 +33,14 @@ Pawn information, character tabs, policies, and assignments.
 
 ## Architecture
 PawnSelectionState integrates with scanner. ColonistBarState provides page-based bar navigation with Alt+Arrow/number keys, reordering via ColonistBar.Reorder(), and mech section after colonist pages. Quick info shortcuts (Alt+M/H/N) work without opening tabs. Full tabs navigate detailed character info.
+
+### PawnSkillsTableState
+- Global Alt+P opens a read-only 2D table: rows = colonists (colonist bar order), columns = Name + all SkillDefs (vanilla SkillUI order, `listOrder` descending)
+- Built on `TabularMenuHelper<Pawn>` (same pattern as WorkTableState). Cell value: `"[passion, ]{level}, {LevelDescriptor}"` or `"incapable"` for disabled skills
+- Column tooltip announces the skill def's description (once on column change)
+- Alt+S sorts by current column (descending → ascending → default); skill columns sort by level with passion as tiebreaker, disabled pawns sort to the bottom
+- Typeahead search by pawn name (A-Z)
+- Arrow keys, Home/End, Escape/Enter close, Alt+P toggles
 
 ### ColonistBarState
 - Virtual "bar" overlaid on flat colonist list (pages of 10)

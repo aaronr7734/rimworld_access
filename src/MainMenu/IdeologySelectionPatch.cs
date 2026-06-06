@@ -11,6 +11,11 @@ namespace RimWorldAccess
     public static class IdeologySelectionPatch
     {
         private static bool hasAnnouncedTitle = false;
+        // Reclaim page focus after either an info card OR the saved-ideoligion load picker closes
+        // over this page. Without the load-picker case, closing Dialog_IdeoList_Load (especially via
+        // vanilla's Escape on an empty list) leaves the page dead to keyboard input — a full lockup.
+        private static readonly HostFocusReturn hostFocus =
+            new HostFocusReturn(typeof(Dialog_InfoCard), typeof(Dialog_IdeoList_Load));
 
         // Cached reflection fields (initialized once)
         private static Type presetSelectionEnumType;
@@ -33,11 +38,25 @@ namespace RimWorldAccess
         {
             try
             {
+                // Reclaim IMGUI focus when a child window (info card or load picker) opened over
+                // this page closes (must run in the page's own GUI.Window pass to take effect).
+                hostFocus.Track(__instance);
+
                 // Skip entire DoWindowContents while float menu is open.
                 // This prevents DoBottomButtons from processing Enter/Escape
                 // in the Page's IMGUI context (separate from UnifiedKeyboardPatch's context).
                 if (WindowlessFloatMenuState.IsActive)
                     return false;
+
+                // The Load button opens Dialog_IdeoList_Load on top of this page. Both windows
+                // share WindowLayer.Dialog, but the page is added first → its DoWindowContents
+                // runs BEFORE the dialog's in WindowStackOnGUI's i=0..count-1 iteration. Without
+                // this yield the page's KeyDown handlers (arrow keys, typeahead, Backspace)
+                // consume every keystroke before the load dialog's own prefix can route it to
+                // IdeoLoadState, and the empty-list case strands the user with no interactable
+                // controls. Same pattern as IdeoBuilderHubPatch.IsSubEditorOpen.
+                if (Find.WindowStack?.WindowOfType<Dialog_IdeoList_Load>() != null)
+                    return true;
 
                 EnsureReflectionCached();
 
@@ -154,7 +173,8 @@ namespace RimWorldAccess
                 return IdeologyNavigationState.HandleOptionBackspace();
             }
 
-            // Enter — do NOT consume, let game's Accept keybinding handle DoNext
+            // Enter — do NOT consume, let game's Accept keybinding handle DoNext (which
+            // routes to the now-accessible Classic / Custom / Load / Preset flows).
             if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
             {
                 return false;
@@ -246,4 +266,8 @@ namespace RimWorldAccess
             Find.WindowStack.Notify_ManuallySetFocus(__instance);
         }
     }
+
+    // All ideoligion-creation paths (Classic, Custom Fixed, Custom Fluid, Load, Presets)
+    // are now accessible via the IdeoBuilder, so the former "Accessibility coming soon"
+    // DoNext safety-net block has been removed.
 }

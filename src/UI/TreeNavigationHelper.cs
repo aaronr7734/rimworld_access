@@ -89,6 +89,25 @@ namespace RimWorldAccess
         public Func<InspectionTreeItem, bool> ShouldExpandForSearch { get; set; }
 
         /// <summary>
+        /// Optional override for which visible items typeahead can match, and what text
+        /// it matches against. Return the label to match on, or null/empty to exclude the
+        /// item from results entirely. When set, this fully replaces the default
+        /// label-selection logic (which ties matchability to <see cref="ShouldExpandForSearch"/>),
+        /// letting a consumer index only certain nodes (e.g. high-level inspection items)
+        /// independently of which nodes were auto-expanded for the search. If null, default
+        /// behavior applies. Indexes line up with the visible items list.
+        /// </summary>
+        public Func<InspectionTreeItem, string> SearchableLabelSelector { get; set; }
+
+        /// <summary>
+        /// Predicate marking which visible items act as "section boundaries" for Page Up/Down
+        /// navigation. When set, Page Up/Down jump the cursor to the previous/next matching item
+        /// (e.g. a role's "Abilities" / "Requirements" detail headers). If null, Page Up/Down are
+        /// inert (consumed, no movement).
+        /// </summary>
+        public Func<InspectionTreeItem, bool> IsSectionBoundary { get; set; }
+
+        /// <summary>
         /// Whether to include child counts in expand/collapse announcements.
         /// Default: true ("expanded, 3 items"). Set to false for just "expanded".
         /// </summary>
@@ -360,6 +379,19 @@ namespace RimWorldAccess
             if (key == KeyCode.Home)
             {
                 if (visibleItems.Count == 0) return true;
+                // During an active search, Home goes to the first match and keeps the
+                // search, rather than clearing it and jumping out to the top of the tree.
+                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                {
+                    int first = typeahead.GetFirstMatch();
+                    if (first >= 0)
+                    {
+                        selectedIndex = first;
+                        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                        AnnounceWithSearch();
+                    }
+                    return true;
+                }
                 typeahead.ClearSearch();
                 RestorePreSearchExpansion();
                 MenuHelper.HandleTreeHomeKey(visibleItems, ref selectedIndex,
@@ -371,6 +403,17 @@ namespace RimWorldAccess
             if (key == KeyCode.End)
             {
                 if (visibleItems.Count == 0) return true;
+                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                {
+                    int last = typeahead.GetLastMatch();
+                    if (last >= 0)
+                    {
+                        selectedIndex = last;
+                        SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                        AnnounceWithSearch();
+                    }
+                    return true;
+                }
                 typeahead.ClearSearch();
                 RestorePreSearchExpansion();
                 MenuHelper.HandleTreeEndKey(visibleItems, ref selectedIndex,
@@ -378,6 +421,18 @@ namespace RimWorldAccess
                     item => item.IsExpanded,
                     item => item.IsExpandable && item.Children.Count > 0,
                     ev.control, PlayTickAndAnnounce);
+                return true;
+            }
+
+            // Page Up / Page Down — jump between section boundaries (opt-in via IsSectionBoundary)
+            if (key == KeyCode.PageUp)
+            {
+                JumpToAdjacentSection(forward: false);
+                return true;
+            }
+            if (key == KeyCode.PageDown)
+            {
+                JumpToAdjacentSection(forward: true);
                 return true;
             }
 
@@ -681,6 +736,33 @@ namespace RimWorldAccess
             }
         }
 
+        /// <summary>
+        /// Moves the cursor to the previous/next item satisfying <see cref="IsSectionBoundary"/>.
+        /// Used by Page Up/Down to skip between detail sections. No-op (reject sound) when no
+        /// boundary predicate is configured, a search is active, or there is no further section.
+        /// </summary>
+        public void JumpToAdjacentSection(bool forward)
+        {
+            if (IsSectionBoundary == null || visibleItems.Count == 0 || typeahead.HasActiveSearch)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                return;
+            }
+
+            int step = forward ? 1 : -1;
+            for (int i = selectedIndex + step; i >= 0 && i < visibleItems.Count; i += step)
+            {
+                if (IsSectionBoundary(visibleItems[i]))
+                {
+                    selectedIndex = i;
+                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                    AnnounceCurrentItem();
+                    return;
+                }
+            }
+            SoundDefOf.ClickReject.PlayOneShotOnCamera();
+        }
+
         public void JumpToFirst(bool absolute)
         {
             if (visibleItems.Count == 0) return;
@@ -950,6 +1032,16 @@ namespace RimWorldAccess
         /// </summary>
         private List<string> GetSearchableLabels()
         {
+            // Explicit per-item selector wins: lets a consumer match an arbitrary subset
+            // of nodes against arbitrary text, decoupled from the expand-for-search set.
+            if (SearchableLabelSelector != null)
+            {
+                var selected = new List<string>(visibleItems.Count);
+                foreach (var item in visibleItems)
+                    selected.Add(SearchableLabelSelector(item) ?? "");
+                return selected;
+            }
+
             if (ShouldExpandForSearch == null)
                 return GetVisibleLabels();
 
@@ -982,6 +1074,104 @@ namespace RimWorldAccess
                 typeahead.SpeakNoMatches();
                 // Snapshot remains so the next typed character reuses the expanded view.
             }
+        }
+
+        /// <summary>
+        /// Public typeahead-character entry point for states that drive their own
+        /// keyboard routing instead of going through HandleInput. Honors the same
+        /// search-time auto-expansion (ShouldExpandForSearch) and announcement format
+        /// (FormatSearchAnnouncement) as the in-helper handler.
+        /// </summary>
+        public void HandleTypeaheadCharacter(char c) => HandleTypeahead(c);
+
+        /// <summary>
+        /// Public backspace handler for states that drive their own keyboard
+        /// routing. Delegates through TypeaheadSearchHelper.ProcessBackspace and
+        /// re-announces via AnnounceWithSearch / restores pre-search expansion
+        /// when the buffer empties.
+        /// </summary>
+        public void HandleTypeaheadBackspace()
+        {
+            if (!typeahead.HasActiveSearch) return;
+
+            var labels = GetSearchableLabels();
+            if (typeahead.ProcessBackspace(labels, out int newIndex))
+            {
+                if (newIndex >= 0)
+                    selectedIndex = newIndex;
+                SoundDefOf.Click.PlayOneShotOnCamera();
+                if (!typeahead.HasActiveSearch)
+                {
+                    RestorePreSearchExpansion();
+                    AnnounceCurrentItem();
+                }
+                else
+                {
+                    AnnounceWithSearch();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Clears any active typeahead search and restores the pre-search expansion
+        /// snapshot so the tree returns to its original shape. Use this after the
+        /// user commits to an item via Enter / Space — matches the behavior the
+        /// helper applies internally on expand/collapse.
+        /// </summary>
+        public void CommitAndClearSearch()
+        {
+            if (typeahead.HasActiveSearch)
+            {
+                typeahead.ClearSearch();
+                RestorePreSearchExpansion();
+            }
+            else if (preSearchExpansion != null)
+            {
+                RestorePreSearchExpansion();
+            }
+        }
+
+        /// <summary>
+        /// Commits the current search result: clears the search buffer and collapses the
+        /// tree back to its pre-search shape, but keeps the path to the selected item
+        /// expanded so the cursor stays on it. Use when the user picks a search result and
+        /// wants to remain positioned there (rather than expanding it or jumping away).
+        /// No-op if no search/snapshot is active.
+        /// </summary>
+        public void CommitSearchKeepingPath()
+        {
+            if (!typeahead.HasActiveSearch && preSearchExpansion == null)
+                return;
+
+            var target = (selectedIndex >= 0 && selectedIndex < visibleItems.Count)
+                ? visibleItems[selectedIndex] : null;
+
+            typeahead.ClearSearch();
+
+            // Collapse back to the pre-search shape (undo the bulk search expansion)...
+            if (preSearchExpansion != null)
+            {
+                foreach (var kv in preSearchExpansion)
+                    kv.Key.IsExpanded = kv.Value;
+                preSearchExpansion = null;
+            }
+
+            // ...then re-expand only the ancestor chain of the target so it stays visible.
+            var ancestor = target?.Parent;
+            while (ancestor != null)
+            {
+                if (ancestor.IsExpandable)
+                    ancestor.IsExpanded = true;
+                ancestor = ancestor.Parent;
+            }
+
+            RebuildVisibleList();
+
+            int idx = target != null ? visibleItems.IndexOf(target) : -1;
+            if (idx >= 0)
+                selectedIndex = idx;
+            else
+                selectedIndex = Math.Max(0, Math.Min(selectedIndex, visibleItems.Count - 1));
         }
 
         private void HandleEnterKey()

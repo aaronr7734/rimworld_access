@@ -1,3 +1,4 @@
+using System.Linq;
 using HarmonyLib;
 using RimWorld;
 using UnityEngine;
@@ -15,8 +16,12 @@ namespace RimWorldAccess
     {
         private static bool patchActive = false;
         private static bool hasAnnouncedTitle = false;
-        private enum NavigationMode { Storyteller, Difficulty, Permadeath }
+        private enum NavigationMode { Storyteller, Difficulty, Permadeath, AnomalySettings }
         private static NavigationMode currentMode = NavigationMode.Storyteller;
+
+        // The "Anomaly Settings..." button is only drawn by StorytellerUI when Anomaly is active
+        // (StorytellerUI.cs:133). Mirror that here so the Tab cycle skips a non-existent button.
+        private static bool AnomalySettingsAvailable => ModsConfig.AnomalyActive;
 
         // Prefix: Initialize state and handle keyboard input
         static void Prefix(Page_SelectStoryteller __instance, Rect rect)
@@ -30,7 +35,15 @@ namespace RimWorldAccess
                 // (e.g., faction relations from site selection), IMGUI focus may be
                 // lost to a deleted window, preventing KeyDown events from arriving.
                 // Same pattern used in IdeologySelectionPatch and StartingPawnPatch.
-                Find.WindowStack.Notify_ManuallySetFocus(__instance);
+                //
+                // CRITICAL: Skip when an absorbing modal child dialog is on top —
+                // otherwise we steal focus away every frame and the dialog can never
+                // receive keyboard input. Dialog_AnomalySettings is absorbInputAroundWindow=true,
+                // so it must own focus while it's open.
+                if (!AnomalySettingsDialogState.IsActive)
+                {
+                    Find.WindowStack.Notify_ManuallySetFocus(__instance);
+                }
 
                 // Announce window title and initial selection once
                 if (!hasAnnouncedTitle)
@@ -41,8 +54,11 @@ namespace RimWorldAccess
                     {
                         string position = MenuHelper.FormatPosition(0, StorytellerNavigationState.StorytellerCount);
                         string description = storyteller.description.TrimEnd('.');
-                        string positionPart = string.IsNullOrEmpty(position) ? "" : (string)"RimWorldAccess.Storyteller.OpenPositionSuffix".Translate(position);
-                        TolkHelper.Speak("RimWorldAccess.Storyteller.OpenInstructions".Loc(pageTitle, storyteller.label, description, positionPart));
+                        string positionPart = string.IsNullOrEmpty(position) ? "" : $" ({position})";
+                        string tabHint = AnomalySettingsAvailable
+                            ? "Tab and Shift+Tab to move between Storyteller, Difficulty, Save Mode, and Anomaly Settings."
+                            : "Tab and Shift+Tab to move between Storyteller, Difficulty, and Save Mode.";
+                        TolkHelper.Speak($"{pageTitle} - {storyteller.label} - {description}{positionPart}. {tabHint}");
                     }
                     else
                     {
@@ -85,6 +101,13 @@ namespace RimWorldAccess
                              currentMode == NavigationMode.Difficulty)
                     {
                         handled = HandleEnterOnDifficulty(__instance);
+                    }
+                    // Enter/Space on the Anomaly Settings row opens Dialog_AnomalySettings.
+                    // The dialog itself is keyboard-driven by AnomalySettingsDialogState.
+                    else if ((keyCode == KeyCode.Return || keyCode == KeyCode.KeypadEnter || keyCode == KeyCode.Space) &&
+                             currentMode == NavigationMode.AnomalySettings)
+                    {
+                        handled = HandleEnterOnAnomalySettings(__instance);
                     }
                     // Arrow key navigation
                     else if (keyCode == KeyCode.UpArrow)
@@ -242,6 +265,18 @@ namespace RimWorldAccess
                     AnnouncePermadeathMode();
                     break;
                 case NavigationMode.Permadeath:
+                    if (AnomalySettingsAvailable)
+                    {
+                        currentMode = NavigationMode.AnomalySettings;
+                        AnnounceAnomalySettingsMode();
+                    }
+                    else
+                    {
+                        currentMode = NavigationMode.Storyteller;
+                        AnnounceStorytellerMode(instance);
+                    }
+                    break;
+                case NavigationMode.AnomalySettings:
                     currentMode = NavigationMode.Storyteller;
                     AnnounceStorytellerMode(instance);
                     break;
@@ -253,8 +288,16 @@ namespace RimWorldAccess
             switch (currentMode)
             {
                 case NavigationMode.Storyteller:
-                    currentMode = NavigationMode.Permadeath;
-                    AnnouncePermadeathMode();
+                    if (AnomalySettingsAvailable)
+                    {
+                        currentMode = NavigationMode.AnomalySettings;
+                        AnnounceAnomalySettingsMode();
+                    }
+                    else
+                    {
+                        currentMode = NavigationMode.Permadeath;
+                        AnnouncePermadeathMode();
+                    }
                     break;
                 case NavigationMode.Difficulty:
                     currentMode = NavigationMode.Storyteller;
@@ -263,6 +306,10 @@ namespace RimWorldAccess
                 case NavigationMode.Permadeath:
                     currentMode = NavigationMode.Difficulty;
                     AnnounceDifficultyMode(instance);
+                    break;
+                case NavigationMode.AnomalySettings:
+                    currentMode = NavigationMode.Permadeath;
+                    AnnouncePermadeathMode();
                     break;
             }
         }
@@ -288,6 +335,42 @@ namespace RimWorldAccess
             StorytellerNavigationState.EnsurePermadeathSelected();
             TolkHelper.Speak("RimWorldAccess.Storyteller.SaveMode".Loc());
             StorytellerNavigationState.AnnouncePermadeath();
+        }
+
+        private static void AnnounceAnomalySettingsMode()
+        {
+            // The button is the entire "row" — there's nothing to navigate Up/Down within it,
+            // so the announcement tells the user how to activate it.
+            string label = "AnomalySettings".Translate();
+            TolkHelper.Speak($"{label}. Press Enter to open.");
+        }
+
+        private static bool HandleEnterOnAnomalySettings(Page_SelectStoryteller instance)
+        {
+            // Mirror StorytellerUI.cs:138-145: refuse if no difficulty is chosen yet, otherwise
+            // open Dialog_AnomalySettings against the page's difficultyValues. Our PostOpen
+            // patch on Window then wires AnomalySettingsDialogState to drive the dialog.
+            try
+            {
+                DifficultyDef chosen = StorytellerNavigationState.SelectedDifficulty;
+                if (chosen == null)
+                {
+                    TolkHelper.Speak("MustChooseDifficulty".Translate().Resolve());
+                    return true;
+                }
+                Difficulty difficultyValues = (Difficulty)AccessTools.Field(typeof(Page_SelectStoryteller), "difficultyValues").GetValue(instance);
+                if (difficultyValues == null)
+                {
+                    Log.Error("[StorytellerSelectionPatch] Could not read difficultyValues from page");
+                    return true;
+                }
+                Find.WindowStack.Add(new Dialog_AnomalySettings(difficultyValues));
+            }
+            catch (System.Exception ex)
+            {
+                Log.Error($"[StorytellerSelectionPatch] Failed to open Dialog_AnomalySettings: {ex.Message}");
+            }
+            return true;
         }
 
         private static bool HandleUpArrow(Page_SelectStoryteller instance)
@@ -526,6 +609,22 @@ namespace RimWorldAccess
         {
             hasAnnouncedTitle = false;
             currentMode = NavigationMode.Storyteller;
+        }
+
+        /// <summary>
+        /// Resets the in-page tab cursor back to the Storyteller row and announces it.
+        /// Called by AnomalySettingsDialogPatch on Accept-close so the user lands on a
+        /// row where pressing Enter advances the wizard naturally (rather than re-opening
+        /// the Anomaly Settings dialog they just confirmed).
+        /// </summary>
+        public static void ReturnToStorytellerMode()
+        {
+            currentMode = NavigationMode.Storyteller;
+            var page = Find.WindowStack?.Windows.OfType<Page_SelectStoryteller>().FirstOrDefault();
+            if (page != null)
+            {
+                AnnounceStorytellerMode(page);
+            }
         }
     }
 

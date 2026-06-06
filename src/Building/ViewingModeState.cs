@@ -37,8 +37,11 @@ namespace RimWorldAccess
         private static List<ShapeType> segmentShapeTypes = new List<ShapeType>();
 
         // Track obstacle cells for segment logic (knowing which cells failed)
-        // Navigation is handled by ScannerState's temporary category
+        // Navigation is handled by ScannerState's temporary category.
+        // Paired HashSet provides O(1) membership checks during the accumulation loop;
+        // without it, dedup is O(n^2) and chokes on full-map shape placements.
         private static List<IntVec3> obstacleCells = new List<IntVec3>();
+        private static HashSet<IntVec3> obstacleCellsSet = new HashSet<IntVec3>();
 
         // Track meditation focus / tree protection across segments
         private static int protectedCount = 0;
@@ -241,6 +244,7 @@ namespace RimWorldAccess
                 cellSegments.Clear();
                 segmentShapeTypes.Clear();
                 obstacleCells.Clear();
+                obstacleCellsSet.Clear();
                 protectedCount = 0;
                 protectedByLabels.Clear();
                 createdZones.Clear();
@@ -294,7 +298,7 @@ namespace RimWorldAccess
             {
                 foreach (var cell in result.ObstacleCells)
                 {
-                    if (!obstacleCells.Contains(cell))
+                    if (obstacleCellsSet.Add(cell))
                         obstacleCells.Add(cell);
                 }
             }
@@ -304,7 +308,7 @@ namespace RimWorldAccess
             {
                 foreach (var cell in result.ProtectedCells)
                 {
-                    if (!obstacleCells.Contains(cell))
+                    if (obstacleCellsSet.Add(cell))
                         obstacleCells.Add(cell);
                 }
                 protectedCount += result.ProtectedCount;
@@ -1056,6 +1060,7 @@ namespace RimWorldAccess
             cellSegments.Clear();
             segmentShapeTypes.Clear();
             obstacleCells.Clear();
+            obstacleCellsSet.Clear();
             detectedEnclosures.Clear();
             detectedRegionCount = 0;
             createdZones.Clear();
@@ -1133,7 +1138,7 @@ namespace RimWorldAccess
                 }
 
                 // Remove from obstacle list if it was there and update scanner category
-                if (obstacleCells.Contains(cursorPos))
+                if (obstacleCellsSet.Remove(cursorPos))
                 {
                     obstacleCells.Remove(cursorPos);
                     ViewingModeScannerHelper.UpdateObstacleCategory(obstacleCells, detectedEnclosures, isZoneDesignator);

@@ -313,7 +313,7 @@ namespace RimWorldAccess
 
             currentRowIndex = (currentRowIndex + 1) % configs.Count;
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeAnimalName: true);
+            AnnounceCurrentCell(includeAnimalName: true, includeColumnName: false);
         }
 
         public static void SelectPreviousRow()
@@ -322,7 +322,7 @@ namespace RimWorldAccess
 
             currentRowIndex = (currentRowIndex - 1 + configs.Count) % configs.Count;
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeAnimalName: true);
+            AnnounceCurrentCell(includeAnimalName: true, includeColumnName: false);
         }
 
         public static void SelectNextColumn()
@@ -345,7 +345,7 @@ namespace RimWorldAccess
 
             currentRowIndex = 0;
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeAnimalName: true);
+            AnnounceCurrentCell(includeAnimalName: true, includeColumnName: false);
         }
 
         public static void JumpToLast()
@@ -354,7 +354,7 @@ namespace RimWorldAccess
 
             currentRowIndex = configs.Count - 1;
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeAnimalName: true);
+            AnnounceCurrentCell(includeAnimalName: true, includeColumnName: false);
         }
 
         #endregion
@@ -501,7 +501,7 @@ namespace RimWorldAccess
 
         #region Announcements
 
-        private static void AnnounceCurrentCell(bool includeAnimalName)
+        private static void AnnounceCurrentCell(bool includeAnimalName, bool includeColumnName = true)
         {
             if (configs.Count == 0) return;
 
@@ -513,14 +513,14 @@ namespace RimWorldAccess
             string position = MenuHelper.FormatPosition(currentRowIndex, configs.Count);
 
             string announcement;
-            if (includeAnimalName)
-            {
-                announcement = "RimWorldAccess.Animals.AutoSlaughter.Cell.WithName".Translate(config.animal.LabelCap, columnName, value, position).ToString();
-            }
+            if (includeAnimalName && includeColumnName)
+                announcement = $"{config.animal.LabelCap}, {columnName}: {value}. {position}";
+            else if (includeAnimalName)
+                announcement = $"{config.animal.LabelCap}: {value}. {position}";
+            else if (includeColumnName)
+                announcement = $"{columnName}: {value}";
             else
-            {
-                announcement = "RimWorldAccess.Animals.AutoSlaughter.Cell.WithoutName".Translate(columnName, value).ToString();
-            }
+                announcement = $"{value}. {position}";
 
             TolkHelper.SpeakData(announcement);
         }

@@ -55,6 +55,19 @@ namespace RimWorldAccess
         /// </summary>
         public bool SubmenuTreeNavigation = false;
 
+        /// <summary>
+        /// Which work menu view F1 opens by default. Ctrl+Tab (Option+Tab on macOS)
+        /// in either view switches and updates this setting so the chosen view is remembered.
+        /// </summary>
+        public WorkMenuView DefaultWorkMenuView = WorkMenuView.Focused;
+
+        /// <summary>
+        /// When true, announces messages when the game forces Normal speed due to threats
+        /// ("Game slowed down by presence of threat." / "Threat passed. Game speed resumed.").
+        /// Default: false (silent).
+        /// </summary>
+        public bool AnnounceForcedSlowdowns = false;
+
         public override void ExposeData()
         {
             Scribe_Values.Look(ref WrapNavigation, "WrapNavigation", false);
@@ -64,8 +77,21 @@ namespace RimWorldAccess
             Scribe_Values.Look(ref AnnounceLevels, "AnnounceLevels", true);
             Scribe_Values.Look(ref SubmenuTreeNavigation, "SubmenuTreeNavigation", false);
             Scribe_Values.Look(ref AnnounceTerrain, "AnnounceTerrain", true);
+            Scribe_Values.Look(ref DefaultWorkMenuView, "DefaultWorkMenuView", WorkMenuView.Focused);
+            Scribe_Values.Look(ref AnnounceForcedSlowdowns, "AnnounceForcedSlowdowns", false);
             base.ExposeData();
         }
+    }
+
+    /// <summary>
+    /// Which work menu layout F1 opens by default.
+    /// Focused: priority-grouped per-pawn view (default; lower-verbosity).
+    /// Table: pawn rows by work-type columns (mirrors vanilla; for power users).
+    /// </summary>
+    public enum WorkMenuView
+    {
+        Focused,
+        Table
     }
 
     /// <summary>

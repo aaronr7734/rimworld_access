@@ -88,6 +88,33 @@ namespace RimWorldAccess
     }
 
     /// <summary>
+    /// Tracks which scope the most recent Ctrl+A selection applied so repeated
+    /// presses can step outward and Ctrl+Shift+A can step back.
+    /// </summary>
+    public enum CtrlAStage
+    {
+        /// <summary>No Ctrl+A selection is currently in effect.</summary>
+        None,
+        /// <summary>Current selection was set to an enclosure (room or blueprint flood).</summary>
+        Enclosure,
+        /// <summary>Current selection was set to the entire map.</summary>
+        EntireMap
+    }
+
+    /// <summary>
+    /// Snapshot of the prior placement state captured before Ctrl+A modified it.
+    /// Used to step back to the previous level when Ctrl+Shift+A is pressed.
+    /// </summary>
+    internal struct CtrlASnapshot
+    {
+        public bool HadFirstPoint;
+        public bool HadSecondPoint;
+        public IntVec3 First;
+        public IntVec3 Second;
+        public CtrlAStage Stage;
+    }
+
+    /// <summary>
     /// State machine for two-point shape-based building placement.
     /// Manages the workflow: Enter -> SetFirstPoint -> SetSecondPoint/UpdatePreview -> PlaceBlueprints.
     /// </summary>
@@ -108,11 +135,15 @@ namespace RimWorldAccess
         // This ensures the zone selection matches what was announced on entry
         private static IntVec3 entryCursorPosition = IntVec3.Invalid;
 
-        // Mapping of designator name keywords (English-only substring match
-        // against the lowercased designator label) to translated gerund
-        // action phrases. The substring matching is itself English; non-English
-        // players fall through to the translated lowercased label.
-        // TODO: replace with Designator_* type-check switch.
+        // Ctrl+A scope tracking. Press Ctrl+A to step from no-selection -> enclosure
+        // -> entire map. Press Ctrl+Shift+A to step back. The stack stores prior
+        // corner snapshots so undo can restore each previous level. The stage records
+        // what kind of selection Ctrl+A most recently applied. Any manual point
+        // change clears the history because the stack would no longer be coherent.
+        private static readonly Stack<CtrlASnapshot> ctrlAHistory = new Stack<CtrlASnapshot>();
+        private static CtrlAStage ctrlAStage = CtrlAStage.None;
+
+        // Mapping of designator name keywords to gerund action phrases
         private static readonly Dictionary<string, string> DesignatorActionMap = new Dictionary<string, string>(System.StringComparer.OrdinalIgnoreCase)
         {
             { "haul",        "RimWorldAccess.Building.Place.Action.haul" },
@@ -188,6 +219,17 @@ namespace RimWorldAccess
         /// </summary>
         public static bool HasViewingModeOnStack => hasViewingModeOnStack;
 
+        /// <summary>
+        /// The scope last applied by Ctrl+A. None until Ctrl+A pushes a selection;
+        /// any manual point change resets it back to None.
+        /// </summary>
+        public static CtrlAStage CurrentCtrlAStage => ctrlAStage;
+
+        /// <summary>
+        /// Whether Ctrl+Shift+A has anything to undo back to.
+        /// </summary>
+        public static bool HasCtrlAHistory => ctrlAHistory.Count > 0;
+
         #endregion
 
         #region State Management
@@ -206,6 +248,7 @@ namespace RimWorldAccess
             previewHelper.Reset();
             previewHelper.SetCurrentShape(shape);
             hasViewingModeOnStack = fromViewingMode;
+            ClearCtrlAHistory();
 
             // Sync shape selection to game's SelectedStyle for "Remember Draw Styles" setting
             SyncShapeToGameStyle(designator, shape);
@@ -353,6 +396,7 @@ namespace RimWorldAccess
 
             previewHelper.SetFirstCorner(cell, "[ShapePlacementState]");
             currentPhase = PlacementPhase.SettingSecondCorner;
+            ClearCtrlAHistory();
         }
 
         /// <summary>
@@ -375,6 +419,88 @@ namespace RimWorldAccess
 
             previewHelper.SetSecondCorner(cell, "[ShapePlacementState]");
             currentPhase = PlacementPhase.Previewing;
+            ClearCtrlAHistory();
+        }
+
+        /// <summary>
+        /// Sets both corners at once, transitioning directly to the Previewing phase.
+        /// Skips the per-corner announcements so the caller can speak a single summary.
+        /// Used by Ctrl+A to select a whole room or map.
+        /// </summary>
+        public static void SetBothPoints(IntVec3 first, IntVec3 second)
+        {
+            previewHelper.Reset();
+            previewHelper.SetFirstCorner(first, "[ShapePlacementState]", silent: true);
+            previewHelper.SetSecondCorner(second, "[ShapePlacementState]", silent: true);
+            currentPhase = PlacementPhase.Previewing;
+        }
+
+        /// <summary>
+        /// Captures the current placement state and stage so Ctrl+Shift+A can later
+        /// restore it. Call before applying a new Ctrl+A scope.
+        /// </summary>
+        public static void PushCtrlAHistory()
+        {
+            var snap = new CtrlASnapshot
+            {
+                HadFirstPoint = previewHelper.HasFirstCorner,
+                HadSecondPoint = previewHelper.IsInPreviewMode,
+                First = previewHelper.FirstCorner ?? IntVec3.Invalid,
+                Second = previewHelper.SecondCorner ?? IntVec3.Invalid,
+                Stage = ctrlAStage
+            };
+            ctrlAHistory.Push(snap);
+        }
+
+        /// <summary>
+        /// Updates the current Ctrl+A stage. Call after a successful Ctrl+A apply
+        /// so subsequent presses know which step to take.
+        /// </summary>
+        public static void SetCtrlAStage(CtrlAStage stage)
+        {
+            ctrlAStage = stage;
+        }
+
+        /// <summary>
+        /// Pops the most recent Ctrl+A snapshot and restores its corners and stage.
+        /// </summary>
+        /// <returns>True if a snapshot was restored, false if the history was empty.</returns>
+        public static bool TryUndoCtrlA()
+        {
+            if (ctrlAHistory.Count == 0)
+                return false;
+
+            var snap = ctrlAHistory.Pop();
+            previewHelper.Reset();
+
+            if (snap.HadSecondPoint)
+            {
+                previewHelper.SetFirstCorner(snap.First, "[ShapePlacementState]", silent: true);
+                previewHelper.SetSecondCorner(snap.Second, "[ShapePlacementState]", silent: true);
+                currentPhase = PlacementPhase.Previewing;
+            }
+            else if (snap.HadFirstPoint)
+            {
+                previewHelper.SetFirstCorner(snap.First, "[ShapePlacementState]", silent: true);
+                currentPhase = PlacementPhase.SettingSecondCorner;
+            }
+            else
+            {
+                currentPhase = PlacementPhase.SettingFirstCorner;
+            }
+
+            ctrlAStage = snap.Stage;
+            return true;
+        }
+
+        /// <summary>
+        /// Clears the Ctrl+A history and stage. Called whenever the user manually
+        /// modifies the selection so the stack stops referring to a coherent chain.
+        /// </summary>
+        public static void ClearCtrlAHistory()
+        {
+            ctrlAHistory.Clear();
+            ctrlAStage = CtrlAStage.None;
         }
 
         /// <summary>
@@ -905,6 +1031,7 @@ namespace RimWorldAccess
             // Reset preview helper but keep the shape
             previewHelper.Reset();
             currentPhase = PlacementPhase.SettingFirstCorner;
+            ClearCtrlAHistory();
 
             Log.Message($"[ShapePlacementState] Cleared selection from phase {previousPhase}, staying in {savedShape} mode");
             return true;
@@ -926,6 +1053,7 @@ namespace RimWorldAccess
                 // Use silent=true to avoid redundant "First point" announcement
                 previewHelper.SetFirstCorner(firstPointPos, "[ShapePlacementState]", silent: true);
                 currentPhase = PlacementPhase.SettingSecondCorner;
+                ClearCtrlAHistory();
                 TolkHelper.Speak("RimWorldAccess.Building.Place.SecondPointRemoved".Loc());
                 Log.Message("[ShapePlacementState] Removed second point, back to SettingSecondCorner phase");
                 return true;
@@ -936,6 +1064,7 @@ namespace RimWorldAccess
             {
                 previewHelper.Reset();
                 currentPhase = PlacementPhase.SettingFirstCorner;
+                ClearCtrlAHistory();
                 TolkHelper.Speak("RimWorldAccess.Building.Place.FirstPointRemoved".Loc());
                 Log.Message("[ShapePlacementState] Removed first point, back to SettingFirstCorner phase");
                 return true;
@@ -966,6 +1095,7 @@ namespace RimWorldAccess
             activeDesignator = null;
             hasViewingModeOnStack = false;
             entryCursorPosition = IntVec3.Invalid;
+            ClearCtrlAHistory();
 
             Log.Message("[ShapePlacementState] State reset");
         }

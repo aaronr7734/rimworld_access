@@ -142,6 +142,7 @@ namespace RimWorldAccess
             KeyCode key = Event.current.keyCode;
             bool handled = false;
             bool shiftHeld = Event.current.shift;
+            bool ctrlHeld = KeyboardHelper.IsCtrlHeld;
 
             // Handle local map targeting mode (transport pod landing) first
             if (inTransportPodTargeting)
@@ -178,6 +179,16 @@ namespace RimWorldAccess
             if (key == KeyCode.Tab)
             {
                 handled = HandleTabKey(activeDesignator, shiftHeld, supportsShapes, inArchitectMode, availableShapes);
+            }
+            // Ctrl+A - step outward: enclosure, then entire map.
+            else if (ctrlHeld && !shiftHeld && key == KeyCode.A)
+            {
+                handled = HandleCtrlAKey();
+            }
+            // Ctrl+Shift+A - step back to the previous Ctrl+A scope.
+            else if (ctrlHeld && shiftHeld && key == KeyCode.A)
+            {
+                handled = HandleCtrlShiftAKey();
             }
             // Shift+Space - Remove shape points OR cancel blueprint at cursor position
             else if (shiftHeld && key == KeyCode.Space)
@@ -394,6 +405,205 @@ namespace RimWorldAccess
                     TolkHelper.SpeakData(announcement);
                 }
             }
+            return true;
+        }
+
+        /// <summary>
+        /// Handles Ctrl+A input for stepping outward through selection scopes.
+        /// First press selects the current enclosure (room or blueprint flood);
+        /// when no enclosure is detected the press jumps straight to entire map.
+        /// A subsequent press while the enclosure is selected expands to entire map.
+        /// Pressing again at entire-map scope is a no-op with an announcement.
+        /// Only works for rectangle/oval shapes since lines cannot meaningfully fill a room.
+        /// </summary>
+        /// <returns>True if the key was handled, false otherwise.</returns>
+        private static bool HandleCtrlAKey()
+        {
+            if (!ShapePlacementState.IsActive)
+                return false;
+
+            ShapeType shape = ShapePlacementState.CurrentShape;
+            if (shape == ShapeType.Manual)
+            {
+                TolkHelper.Speak("Select all requires a shape. Press Tab to choose one.");
+                return true;
+            }
+            if (shape == ShapeType.Line || shape == ShapeType.AngledLine)
+            {
+                TolkHelper.Speak("Select all is not available for line shapes.");
+                return true;
+            }
+
+            Map map = Find.CurrentMap;
+            if (map == null)
+                return false;
+
+            CtrlAStage currentStage = ShapePlacementState.CurrentCtrlAStage;
+
+            // Already at the broadest scope — nothing to expand to.
+            if (currentStage == CtrlAStage.EntireMap)
+            {
+                TolkHelper.Speak("Entire map already selected. Press Ctrl plus Shift plus A to step back.");
+                return true;
+            }
+
+            // From the enclosure stage we step out to the entire map.
+            if (currentStage == CtrlAStage.Enclosure)
+            {
+                ApplyEntireMapScope(map, shape, "Expanded to ");
+                return true;
+            }
+
+            // First press (CtrlAStage.None): try enclosure first, fall back to entire map.
+            IntVec3 cursor = MapNavigationState.CurrentCursorPosition;
+            bool cursorValid = cursor.IsValid && cursor.InBounds(map);
+
+            IntVec3 cornerA;
+            IntVec3 cornerB;
+            string scopeLabel;
+
+            // Fast path: RimWorld's Room system already identifies finished enclosures.
+            Room room = cursorValid ? cursor.GetRoom(map) : null;
+            bool useRoom = room != null
+                && !room.PsychologicallyOutdoors
+                && !room.TouchesMapEdge
+                && room.CellCount > 0;
+
+            if (useRoom)
+            {
+                CellRect rect = room.ExtentsClose;
+                cornerA = new IntVec3(rect.minX, 0, rect.minZ);
+                cornerB = new IntVec3(rect.maxX, 0, rect.maxZ);
+                scopeLabel = $"room, {rect.Width} by {rect.Height}";
+            }
+            else if (cursorValid && TryBlueprintEnclosureBounds(cursor, map, out cornerA, out cornerB, out scopeLabel))
+            {
+                // Blueprint-walled enclosure detected via flood fill — corners already set above.
+            }
+            else
+            {
+                // No enclosure to step through — jump straight to entire map.
+                ApplyEntireMapScope(map, shape, "No enclosure detected, selected ");
+                return true;
+            }
+
+            ShapePlacementState.PushCtrlAHistory();
+            ShapePlacementState.SetBothPoints(cornerA, cornerB);
+            ShapePlacementState.SetCtrlAStage(CtrlAStage.Enclosure);
+
+            int cellCount = ShapePlacementState.PreviewCells?.Count ?? 0;
+            string shapeName = ShapeHelper.GetShapeName(shape);
+            TolkHelper.Speak($"Selected {scopeLabel}. {shapeName}, {cellCount} cells. Press Ctrl plus A again for entire map. Enter to confirm.");
+            return true;
+        }
+
+        /// <summary>
+        /// Applies entire-map corners and announces the new scope.
+        /// </summary>
+        private static void ApplyEntireMapScope(Map map, ShapeType shape, string prefix)
+        {
+            IntVec3 cornerA = new IntVec3(0, 0, 0);
+            IntVec3 cornerB = new IntVec3(map.Size.x - 1, 0, map.Size.z - 1);
+            string scopeLabel = $"entire map, {map.Size.x} by {map.Size.z}";
+
+            ShapePlacementState.PushCtrlAHistory();
+            ShapePlacementState.SetBothPoints(cornerA, cornerB);
+            ShapePlacementState.SetCtrlAStage(CtrlAStage.EntireMap);
+
+            int cellCount = ShapePlacementState.PreviewCells?.Count ?? 0;
+            string shapeName = ShapeHelper.GetShapeName(shape);
+            TolkHelper.Speak($"{prefix}{scopeLabel}. {shapeName}, {cellCount} cells. Press Ctrl plus Shift plus A to step back. Enter to confirm.");
+        }
+
+        /// <summary>
+        /// Handles Ctrl+Shift+A input by popping the most recent Ctrl+A scope and
+        /// restoring the prior selection (or clearing it if the prior step had no points).
+        /// </summary>
+        /// <returns>True if the key was handled, false otherwise.</returns>
+        private static bool HandleCtrlShiftAKey()
+        {
+            if (!ShapePlacementState.IsActive)
+                return false;
+
+            ShapeType shape = ShapePlacementState.CurrentShape;
+            if (shape == ShapeType.Manual)
+            {
+                TolkHelper.Speak("Select all requires a shape. Press Tab to choose one.");
+                return true;
+            }
+            if (shape == ShapeType.Line || shape == ShapeType.AngledLine)
+            {
+                TolkHelper.Speak("Select all is not available for line shapes.");
+                return true;
+            }
+
+            if (!ShapePlacementState.HasCtrlAHistory)
+            {
+                TolkHelper.Speak("No previous selection scope to return to.");
+                return true;
+            }
+
+            if (!ShapePlacementState.TryUndoCtrlA())
+            {
+                TolkHelper.Speak("No previous selection scope to return to.");
+                return true;
+            }
+
+            CtrlAStage stage = ShapePlacementState.CurrentCtrlAStage;
+            string shapeName = ShapeHelper.GetShapeName(shape);
+
+            if (stage == CtrlAStage.None)
+            {
+                // Restored to a state with no Ctrl+A selection in effect.
+                if (!ShapePlacementState.HasFirstPoint)
+                {
+                    TolkHelper.Speak("Selection cleared. Move to first point and press Space.");
+                }
+                else
+                {
+                    int cells = ShapePlacementState.PreviewCells?.Count ?? 0;
+                    TolkHelper.Speak($"Returned to previous selection. {shapeName}, {cells} cells.");
+                }
+                return true;
+            }
+
+            int cellCount = ShapePlacementState.PreviewCells?.Count ?? 0;
+            string scopeName = stage == CtrlAStage.Enclosure ? "enclosure" : "entire map";
+            TolkHelper.Speak($"Returned to {scopeName}. {shapeName}, {cellCount} cells. Enter to confirm.");
+            return true;
+        }
+
+        /// <summary>
+        /// Tries to detect a blueprint-walled enclosure surrounding <paramref name="cursor"/>.
+        /// RimWorld's Room system only recognises enclosures formed by finished walls, so this
+        /// flood-fills from the cursor treating wall blueprints and frames as boundaries. When
+        /// the fill stays bounded (does not escape to the map edge), the bounding box of the
+        /// interior cells is returned as shape corners.
+        /// </summary>
+        private static bool TryBlueprintEnclosureBounds(IntVec3 cursor, Map map,
+            out IntVec3 cornerA, out IntVec3 cornerB, out string scopeLabel)
+        {
+            cornerA = default;
+            cornerB = default;
+            scopeLabel = null;
+
+            var (isEnclosed, interior) = EnclosureDetector.TryFloodFillFromCell(cursor, map);
+            if (!isEnclosed || interior == null || interior.Count == 0)
+                return false;
+
+            int minX = int.MaxValue, minZ = int.MaxValue;
+            int maxX = int.MinValue, maxZ = int.MinValue;
+            foreach (IntVec3 c in interior)
+            {
+                if (c.x < minX) minX = c.x;
+                if (c.x > maxX) maxX = c.x;
+                if (c.z < minZ) minZ = c.z;
+                if (c.z > maxZ) maxZ = c.z;
+            }
+
+            cornerA = new IntVec3(minX, 0, minZ);
+            cornerB = new IntVec3(maxX, 0, maxZ);
+            scopeLabel = $"blueprint enclosure, {maxX - minX + 1} by {maxZ - minZ + 1}";
             return true;
         }
 

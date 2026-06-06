@@ -205,9 +205,13 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Builds a full cell announcement with pawn name, hour, assignment, and position.
+        /// Builds a cell announcement. Callers opt out of the unchanged axis so
+        /// screen reader users only hear what moved:
+        ///   - Pawn nav (row, same hour): includeHour=false
+        ///   - Hour nav (column, same pawn): includePawn=false
+        ///   - Full context (initial, sort, re-orientation): both true
         /// </summary>
-        private static string BuildCellAnnouncement()
+        private static string BuildCellAnnouncement(bool includePawn = true, bool includeHour = true)
         {
             if (pawns.Count == 0 || tableHelper.CurrentRowIndex < 0 || tableHelper.CurrentRowIndex >= pawns.Count)
                 return "RimWorldAccess.Pawns.Schedule.NoPawnsAvailable".Translate();
@@ -222,20 +226,31 @@ namespace RimWorldAccess
             string pawnPos = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, pawns.Count);
             string hourPos = MenuHelper.FormatPosition(hour, 24);
 
-            string message = (!string.IsNullOrEmpty(pawnPos) || !string.IsNullOrEmpty(hourPos))
-                ? "RimWorldAccess.Pawns.Schedule.CellWithPositions".Translate(pawn.LabelShort, hour, assignment.LabelCap, pawnPos, hourPos).ToString()
-                : "RimWorldAccess.Pawns.Schedule.Cell".Translate(pawn.LabelShort, hour, assignment.LabelCap).ToString();
+            string message;
+            if (includePawn && includeHour)
+                message = $"{pawn.LabelShort}, Hour {hour}: {assignment.LabelCap}";
+            else if (includePawn)
+                message = $"{pawn.LabelShort}: {assignment.LabelCap}";
+            else if (includeHour)
+                message = $"Hour {hour}: {assignment.LabelCap}";
+            else
+                message = assignment.LabelCap;
 
-            // Add search context if active
+            var positions = new List<string>();
+            if (includePawn && !string.IsNullOrEmpty(pawnPos)) positions.Add($"Pawn {pawnPos}");
+            if (includeHour && !string.IsNullOrEmpty(hourPos)) positions.Add($"Hour {hourPos}");
+            if (positions.Count > 0)
+                message += ". " + string.Join(", ", positions) + ".";
+
             if (tableHelper.Typeahead.HasActiveSearch)
                 message += tableHelper.Typeahead.BuildSearchContextSuffix();
 
             return message;
         }
 
-        private static void AnnounceCurrentCell()
+        private static void AnnounceCurrentCell(bool includePawn = true, bool includeHour = true)
         {
-            TolkHelper.SpeakData(BuildCellAnnouncement());
+            TolkHelper.SpeakData(BuildCellAnnouncement(includePawn, includeHour));
         }
 
         private static void AnnouncePaint(Pawn pawn, int hour, TimeAssignmentDef assignment)
@@ -312,7 +327,7 @@ namespace RimWorldAccess
             }
             else
             {
-                AnnounceCurrentCell();
+                AnnounceCurrentCell(includePawn: true, includeHour: false);
             }
         }
 
@@ -332,7 +347,7 @@ namespace RimWorldAccess
             }
             else
             {
-                AnnounceCurrentCell();
+                AnnounceCurrentCell(includePawn: true, includeHour: false);
             }
         }
 
@@ -342,7 +357,7 @@ namespace RimWorldAccess
         public static void MoveLeft()
         {
             tableHelper.SelectPreviousColumn();
-            AnnounceCurrentCell();
+            AnnounceCurrentCell(includePawn: false, includeHour: true);
         }
 
         /// <summary>
@@ -351,7 +366,7 @@ namespace RimWorldAccess
         public static void MoveRight()
         {
             tableHelper.SelectNextColumn();
-            AnnounceCurrentCell();
+            AnnounceCurrentCell(includePawn: false, includeHour: true);
         }
 
         /// <summary>
@@ -360,7 +375,7 @@ namespace RimWorldAccess
         public static void JumpToFirstHour()
         {
             tableHelper.CurrentColumnIndex = 0;
-            AnnounceCurrentCell();
+            AnnounceCurrentCell(includePawn: false, includeHour: true);
         }
 
         /// <summary>
@@ -369,7 +384,7 @@ namespace RimWorldAccess
         public static void JumpToLastHour()
         {
             tableHelper.CurrentColumnIndex = 23;
-            AnnounceCurrentCell();
+            AnnounceCurrentCell(includePawn: false, includeHour: true);
         }
 
         // ===== Painting (Shift+Arrows) =====
@@ -1201,7 +1216,7 @@ namespace RimWorldAccess
             }
             else
             {
-                AnnounceCurrentCell();
+                AnnounceCurrentCell(includePawn: true, includeHour: false);
             }
         }
 
@@ -1221,7 +1236,7 @@ namespace RimWorldAccess
             }
             else
             {
-                AnnounceCurrentCell();
+                AnnounceCurrentCell(includePawn: true, includeHour: false);
             }
         }
 

@@ -143,7 +143,7 @@ namespace RimWorldAccess
             if (pawnsList.Count == 0) return;
             tableHelper.SelectNextRow(pawnsList.Count);
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeItemName: true);
+            AnnounceCurrentCell(includeItemName: true, includeColumnName: false);
         }
 
         public static void SelectPreviousPawn()
@@ -151,7 +151,7 @@ namespace RimWorldAccess
             if (pawnsList.Count == 0) return;
             tableHelper.SelectPreviousRow(pawnsList.Count);
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeItemName: true);
+            AnnounceCurrentCell(includeItemName: true, includeColumnName: false);
         }
 
         public static void JumpToFirst()
@@ -159,7 +159,7 @@ namespace RimWorldAccess
             if (pawnsList.Count == 0) return;
             tableHelper.JumpToFirst(pawnsList.Count);
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeItemName: true);
+            AnnounceCurrentCell(includeItemName: true, includeColumnName: false);
         }
 
         public static void JumpToLast()
@@ -167,7 +167,7 @@ namespace RimWorldAccess
             if (pawnsList.Count == 0) return;
             tableHelper.JumpToLast(pawnsList.Count);
             SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrentCell(includeItemName: true);
+            AnnounceCurrentCell(includeItemName: true, includeColumnName: false);
         }
 
         // === Column Navigation ===
@@ -867,12 +867,12 @@ namespace RimWorldAccess
 
         // === Announcements ===
 
-        public static void AnnounceCurrentCell(bool includeItemName)
+        public static void AnnounceCurrentCell(bool includeItemName, bool includeColumnName = true)
         {
             if (pawnsList.Count == 0) return;
 
             Pawn currentPawn = pawnsList[tableHelper.CurrentRowIndex];
-            string announcement = tableHelper.BuildCellAnnouncement(currentPawn, pawnsList.Count, includeItemName);
+            string announcement = tableHelper.BuildCellAnnouncement(currentPawn, pawnsList.Count, includeItemName, includeColumnName);
             TolkHelper.SpeakData(announcement);
         }
 

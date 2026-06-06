@@ -73,11 +73,11 @@ namespace RimWorldAccess
             cachedFuelLevel = TransportPodHelper.GetFuelLevel(launchable);
             cachedMaxRange = TransportPodHelper.GetMaxLaunchDistance(launchable);
 
-            // Cache origin tile from the launchable's map
-            if (launchable.parent?.Map != null)
-                cachedOriginTile = launchable.parent.Map.Tile;
-            else
-                cachedOriginTile = PlanetTile.Invalid;
+            // Cache origin tile. Thing.Tile walks ParentHolder, so this resolves to the
+            // caravan's tile for caravan-held shuttles (Odyssey DLC) — where parent.Map is null —
+            // not just spawned-on-map shuttles. Without this, the reachability cache stays empty
+            // and FilterToReachableItems strips every scanner destination.
+            cachedOriginTile = launchable.parent?.Tile ?? PlanetTile.Invalid;
 
             BuildReachableTileCache();
 

@@ -86,6 +86,23 @@ namespace RimWorldAccess
                         allGizmos.Add(gizmo);
                         allOwners[gizmo] = selectable;
                     }
+
+                    // Thing.GetGizmos() omits reverse designators (Cancel, Deconstruct,
+                    // Uninstall, etc.) — vanilla's InspectGizmoGrid combines them at
+                    // render time. Mirror that so the G menu shows Cancel on a selected
+                    // designated building, matching what a sighted player would see.
+                    if (selectable is Thing selectedThing)
+                    {
+                        List<Designator> reverseDesignators = Find.ReverseDesignatorDatabase.AllDesignators;
+                        for (int i = 0; i < reverseDesignators.Count; i++)
+                        {
+                            Command_Action reverseGizmo = reverseDesignators[i].CreateReverseDesignationGizmo(selectedThing);
+                            if (reverseGizmo == null || ShouldSkipGizmo(reverseGizmo))
+                                continue;
+                            allGizmos.Add(reverseGizmo);
+                            allOwners[reverseGizmo] = selectable;
+                        }
+                    }
                 }
             }
 
@@ -494,12 +511,16 @@ namespace RimWorldAccess
                 return;
 
             Gizmo selectedGizmo = availableGizmos[selectedGizmoIndex];
-            string gizmoLabel = GetGizmoLabel(selectedGizmo);
+
+            // Resolve lazy properties (Label, Disabled, disabledReason) with the owner
+            // selected so they don't read stale Find.Selector state.
+            string gizmoLabel = WithGizmoOwnerSelected(selectedGizmo, null, () => GetGizmoLabel(selectedGizmo));
+            bool gizmoDisabled = WithGizmoOwnerSelected(selectedGizmo, null, () => selectedGizmo.Disabled);
 
             // Check if disabled
-            if (selectedGizmo.Disabled)
+            if (gizmoDisabled)
             {
-                string reason = selectedGizmo.disabledReason;
+                string reason = WithGizmoOwnerSelected(selectedGizmo, null, () => selectedGizmo.disabledReason);
                 if (string.IsNullOrEmpty(reason))
                     reason = "RimWorldAccess.Inspection.Gizmo.DisabledExecuteFallback".Translate();
 
@@ -629,7 +650,7 @@ namespace RimWorldAccess
                 // For non-Designator gizmos, also select the owner so FloatMenu actions work correctly
                 // (some actions check Find.Selector.SelectedObjects or Find.WorldSelector.SelectedObjects)
                 // Skip when multi-select is active — selection is already correct and must not be cleared
-                if (!PawnJustSelected && !MultiSelectState.IsMultiSelectActive && gizmoOwners.ContainsKey(selectedGizmo))
+                if (!PawnJustSelected && !MultiSelectState.IsMultiSelectMode && gizmoOwners.ContainsKey(selectedGizmo))
                 {
                     ISelectable owner = gizmoOwners[selectedGizmo];
                     // Use WorldSelector for WorldObjects, Selector for map Things
@@ -699,6 +720,25 @@ namespace RimWorldAccess
                         ? "RimWorldAccess.Inspection.Gizmo.LimiterStateOn"
                         : "RimWorldAccess.Inspection.Gizmo.LimiterStateOff").Translate();
                     TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NeuralHeatLimiter".Loc(stateStr));
+                    return;
+                }
+
+                // 3b. GeneGizmo_ResourceHemogen - toggle hemogenPacksAllowed on Enter
+                // (right-bracket still adjusts the target slider value, mirroring
+                // the PsychicEntropyGizmo dual-action pattern).
+                if (selectedGizmo.GetType().Name == "GeneGizmo_ResourceHemogen")
+                {
+                    bool? newState = ToggleHemogenPacksAllowed(selectedGizmo);
+                    if (newState.HasValue)
+                    {
+                        string stateStr = newState.Value ? "ON" : "OFF";
+                        string label = "AllowHemogenPacks".Translate().CapitalizeFirst();
+                        TolkHelper.Speak($"{label}: {stateStr}");
+                    }
+                    else
+                    {
+                        TolkHelper.Speak("Could not toggle hemogen packs setting", SpeechPriority.High);
+                    }
                     return;
                 }
 
@@ -863,6 +903,13 @@ namespace RimWorldAccess
             if (!isActive || availableGizmos.Count == 0)
                 return;
 
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                selectedGizmoIndex = typeahead.GetFirstMatch();
+                AnnounceWithSearch();
+                return;
+            }
+
             selectedGizmoIndex = MenuHelper.JumpToFirst();
             typeahead.ClearSearch();
             AnnounceCurrentGizmo();
@@ -875,6 +922,13 @@ namespace RimWorldAccess
         {
             if (!isActive || availableGizmos.Count == 0)
                 return;
+
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                selectedGizmoIndex = typeahead.GetLastMatch();
+                AnnounceWithSearch();
+                return;
+            }
 
             selectedGizmoIndex = MenuHelper.JumpToLast(availableGizmos.Count);
             typeahead.ClearSearch();
@@ -1054,10 +1108,14 @@ namespace RimWorldAccess
             if ((key == KeyCode.Return || key == KeyCode.KeypadEnter) && !KeyboardHelper.IsAltHeld)
             {
                 // Slider gizmos with no other Enter action enter adjustment mode directly.
-                // PsychicEntropyGizmo already has Enter = toggle neural heat limiter,
-                // so it keeps its existing behavior and uses right bracket for slider adjustment.
+                // PsychicEntropyGizmo already has Enter = toggle neural heat limiter, and
+                // GeneGizmo_ResourceHemogen has Enter = toggle hemogenPacksAllowed; both
+                // keep their existing behavior and use right bracket for slider adjustment.
                 Gizmo enterGizmo = availableGizmos[selectedGizmoIndex];
-                if (IsAdjustableSlider(enterGizmo) && enterGizmo.GetType().Name != "PsychicEntropyGizmo")
+                string enterTypeName = enterGizmo.GetType().Name;
+                if (IsAdjustableSlider(enterGizmo)
+                    && enterTypeName != "PsychicEntropyGizmo"
+                    && enterTypeName != "GeneGizmo_ResourceHemogen")
                 {
                     EnterSliderAdjustMode(enterGizmo);
                     Event.current.Use();
@@ -1172,7 +1230,10 @@ namespace RimWorldAccess
             var labels = new List<string>();
             foreach (var gizmo in availableGizmos)
             {
-                labels.Add(GetGizmoLabel(gizmo));
+                // Lazy labels (e.g. Designator_Install) require the owner to be the
+                // single-selected Thing to resolve correctly.
+                Gizmo captured = gizmo;
+                labels.Add(WithGizmoOwnerSelected(captured, null, () => GetGizmoLabel(captured)));
             }
             return labels;
         }
@@ -1189,30 +1250,34 @@ namespace RimWorldAccess
                 return;
 
             Gizmo gizmo = availableGizmos[selectedGizmoIndex];
-            string label = GetGizmoLabel(gizmo);
 
             if (typeahead.HasActiveSearch)
             {
-                string announcement = typeahead.BuildItemAnnouncement(label);
-
-                // Add disabled status if applicable
-                if (gizmo.Disabled)
+                // Lazy gizmo properties (Label, Disabled) check Find.Selector.SingleSelectedThing.
+                WithGizmoOwnerSelected(gizmo, null, () =>
                 {
-                    string reason = gizmo.disabledReason;
-                    if (string.IsNullOrEmpty(reason))
-                        reason = "RimWorldAccess.Inspection.Gizmo.DisabledNotAvailable".Translate();
-                    announcement += " " + "RimWorldAccess.Inspection.Gizmo.DisabledSuffix".Translate(reason);
+                    string label = GetGizmoLabel(gizmo);
+                    string announcement = $"{label}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
 
-                    // Add helpful context for specific disabled scenarios (e.g., transport pod mass)
-                    ISelectable gizmoOwner = null;
-                    if (gizmoOwners.Count > 0)
-                        gizmoOwners.TryGetValue(gizmo, out gizmoOwner);
-                    string context = GetDisabledGizmoContext(gizmo, gizmoOwner);
-                    if (!string.IsNullOrEmpty(context))
-                        announcement += $". {context}";
-                }
+                    // Add disabled status if applicable
+                    if (gizmo.Disabled)
+                    {
+                        string reason = gizmo.disabledReason;
+                        if (string.IsNullOrEmpty(reason))
+                            reason = "Not available";
+                        announcement += $" Disabled: {reason}";
 
-                TolkHelper.SpeakData(announcement);
+                        // Add helpful context for specific disabled scenarios (e.g., transport pod mass)
+                        ISelectable gizmoOwner = null;
+                        if (gizmoOwners.Count > 0)
+                            gizmoOwners.TryGetValue(gizmo, out gizmoOwner);
+                        string context = GetDisabledGizmoContext(gizmo, gizmoOwner);
+                        if (!string.IsNullOrEmpty(context))
+                            announcement += $". {context}";
+                    }
+
+                    TolkHelper.Speak(announcement);
+                });
             }
             else
             {
@@ -1234,6 +1299,13 @@ namespace RimWorldAccess
 
             Gizmo gizmo = availableGizmos[selectedGizmoIndex];
 
+            // Lazy gizmo properties (Label, Desc, Disabled) check Find.Selector.SingleSelectedThing.
+            // Wrap the property-reading section so the owner is the single-selected Thing.
+            WithGizmoOwnerSelected(gizmo, null, () => AnnounceCurrentGizmoInner(gizmo));
+        }
+
+        private static void AnnounceCurrentGizmoInner(Gizmo gizmo)
+        {
             string label = GetGizmoLabel(gizmo);
             string description = GetGizmoDescription(gizmo);
             string hotkey = GetGizmoHotkey(gizmo);
@@ -1336,14 +1408,62 @@ namespace RimWorldAccess
                     announcement += "RimWorldAccess.Inspection.Gizmo.HintRightClickOptions".Translate();
                 else if (IsAdjustableSlider(gizmo))
                 {
+                    string hintTypeName = gizmo.GetType().Name;
                     // PsychicEntropyGizmo has two actions: Enter toggles limiter, right bracket adjusts psyfocus
-                    announcement += (gizmo.GetType().Name == "PsychicEntropyGizmo"
-                        ? "RimWorldAccess.Inspection.Gizmo.HintPsychicEntropy"
-                        : "RimWorldAccess.Inspection.Gizmo.HintEnterToAdjust").Translate();
+                    if (hintTypeName == "PsychicEntropyGizmo")
+                        announcement += ". Press Enter to toggle limiter, right bracket to set psyfocus target";
+                    // GeneGizmo_ResourceHemogen mirrors that pattern: Enter toggles hemogen packs allowed,
+                    // right bracket adjusts the desired hemogen target value.
+                    else if (hintTypeName == "GeneGizmo_ResourceHemogen")
+                        announcement += ". Press Enter to toggle hemogen packs allowed, right bracket to set target";
+                    else
+                        announcement += ". Press Enter to adjust";
                 }
             }
 
             TolkHelper.SpeakData(announcement);
+        }
+
+        /// <summary>
+        /// Runs <paramref name="body"/> with the gizmo's owning Thing temporarily set as
+        /// <c>Find.Selector.SingleSelectedThing</c>, then restores the previous selection.
+        /// Many vanilla gizmos lazy-evaluate properties (Label, Desc, Visible, Disabled)
+        /// against the live selection — e.g. <c>Designator_Install.Label</c> returns
+        /// "Reinstall at..." instead of "Install" when the MinifiedThing isn't selected.
+        /// Owner is taken from <paramref name="explicitOwner"/>, falling back to the
+        /// gizmoOwners dictionary. Selection is only swapped when the owner is a Thing
+        /// and isn't already the single-selected Thing; otherwise body runs unchanged.
+        /// </summary>
+        private static T WithGizmoOwnerSelected<T>(Gizmo gizmo, ISelectable explicitOwner, System.Func<T> body)
+        {
+            ISelectable owner = explicitOwner;
+            if (owner == null && gizmoOwners != null)
+                gizmoOwners.TryGetValue(gizmo, out owner);
+
+            if (Find.Selector == null || !(owner is Thing thingOwner))
+                return body();
+
+            if (Find.Selector.SingleSelectedThing == thingOwner)
+                return body();
+
+            var previousSelection = Find.Selector.SelectedObjects.ToList();
+            try
+            {
+                Find.Selector.ClearSelection();
+                Find.Selector.Select(thingOwner, playSound: false, forceDesignatorDeselect: false);
+                return body();
+            }
+            finally
+            {
+                Find.Selector.ClearSelection();
+                foreach (var obj in previousSelection.OfType<ISelectable>())
+                    Find.Selector.Select(obj, playSound: false, forceDesignatorDeselect: false);
+            }
+        }
+
+        private static void WithGizmoOwnerSelected(Gizmo gizmo, ISelectable explicitOwner, System.Action body)
+        {
+            WithGizmoOwnerSelected<bool>(gizmo, explicitOwner, () => { body(); return true; });
         }
 
         /// <summary>
@@ -1445,7 +1565,8 @@ namespace RimWorldAccess
                     return "RimWorldAccess.Inspection.Gizmo.Type.CaravanInfo".Translate();
 
                 case "GeneGizmo_DeathrestCapacity":
-                    return "RimWorldAccess.Inspection.Gizmo.Type.DeathrestCapacity".Translate();
+                    // Vanilla translation key; resolves to "deathrest capacity" in English.
+                    return "DeathrestCapacity".Translate().ToString().CapitalizeFirst();
 
                 case "ActivityGizmo":
                     return GetActivityGizmoLabel(gizmo);
@@ -1669,6 +1790,9 @@ namespace RimWorldAccess
                     case "MechanitorControlGroupGizmo":
                         return MechControlGroupState.GetGizmoStatus(gizmo);
 
+                    case "GeneGizmo_DeathrestCapacity":
+                        return GetDeathrestCapacityStatus(gizmo);
+
                     default:
                         // Try to get status from Gizmo_Slider subclasses
                         if (gizmo is Verse.Gizmo_Slider)
@@ -1834,6 +1958,55 @@ namespace RimWorldAccess
                 SoundDefOf.Tick_High.PlayOneShotOnCamera();
 
             return newValue;
+        }
+
+        /// <summary>
+        /// Toggles Gene_Hemogen.hemogenPacksAllowed on a GeneGizmo_ResourceHemogen and
+        /// returns the new state. Returns null if the gene field cannot be read (sanguophage
+        /// genes from another mod, or Biotech disabled). Reflection-based so this file
+        /// compiles without a Biotech reference at runtime.
+        /// </summary>
+        private static bool? ToggleHemogenPacksAllowed(Gizmo gizmo)
+        {
+            try
+            {
+                var flags = System.Reflection.BindingFlags.Instance |
+                    System.Reflection.BindingFlags.NonPublic |
+                    System.Reflection.BindingFlags.Public;
+
+                // Walk up to the base GeneGizmo_Resource where the gene field lives.
+                System.Type t = gizmo.GetType();
+                System.Reflection.FieldInfo geneField = null;
+                while (t != null && geneField == null)
+                {
+                    geneField = t.GetField("gene", flags);
+                    t = t.BaseType;
+                }
+                if (geneField == null) return null;
+
+                var gene = geneField.GetValue(gizmo);
+                if (gene == null) return null;
+
+                var allowedField = gene.GetType().GetField("hemogenPacksAllowed", flags);
+                if (allowedField == null) return null;
+
+                bool currentValue = (bool)allowedField.GetValue(gene);
+                bool newValue = !currentValue;
+                allowedField.SetValue(gene, newValue);
+
+                // Match the game's checkbox feedback (low tick when turning off, high when on).
+                if (newValue)
+                    SoundDefOf.Tick_High.PlayOneShotOnCamera();
+                else
+                    SoundDefOf.Tick_Low.PlayOneShotOnCamera();
+
+                return newValue;
+            }
+            catch (System.Exception ex)
+            {
+                ModLogger.Error($"Exception toggling hemogen packs allowed: {ex.Message}");
+                return null;
+            }
         }
 
         /// <summary>
@@ -2176,6 +2349,47 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Gets the deathrest capacity status: progress percentage and currently-bound
+        /// building count vs. capacity. Reads Gene_Deathrest via reflection so this file
+        /// compiles cleanly when Biotech isn't loaded at runtime.
+        /// </summary>
+        private static string GetDeathrestCapacityStatus(Gizmo gizmo)
+        {
+            var geneField = gizmo.GetType().GetField("gene",
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic |
+                System.Reflection.BindingFlags.Public);
+            if (geneField == null) return "";
+
+            var gene = geneField.GetValue(gizmo);
+            if (gene == null) return "";
+
+            var percentProp = gene.GetType().GetProperty("DeathrestPercent");
+            var currentProp = gene.GetType().GetProperty("CurrentCapacity");
+            var maxProp = gene.GetType().GetProperty("DeathrestCapacity");
+
+            string percentStr = "";
+            if (percentProp != null)
+            {
+                float percent = (float)percentProp.GetValue(gene);
+                percentStr = $"{percent * 100:F0}%";
+            }
+
+            string buildingStr = "";
+            if (currentProp != null && maxProp != null)
+            {
+                int current = (int)currentProp.GetValue(gene);
+                int max = (int)maxProp.GetValue(gene);
+                string buildingsLabel = "Buildings".Translate().CapitalizeFirst();
+                buildingStr = $"{buildingsLabel}: {current} / {max}";
+            }
+
+            if (!string.IsNullOrEmpty(percentStr) && !string.IsNullOrEmpty(buildingStr))
+                return $"{percentStr}, {buildingStr}";
+            return percentStr + buildingStr;
+        }
+
+        /// <summary>
         /// Gets the status for Gizmo_Slider subclasses using their ValuePercent property.
         /// </summary>
         private static string GetSliderGizmoStatus(Gizmo gizmo)
@@ -2197,6 +2411,9 @@ namespace RimWorldAccess
         /// Gets the description text for a gizmo.
         /// For Command_Ability (psycasts), pulls from ability.def.description since
         /// Command_Ability.Desc is only populated during mouse hover rendering.
+        /// For non-Command status gizmos (Gizmo_Slider, GeneGizmo_DeathrestCapacity),
+        /// surfaces the protected GetTooltip() / equivalent translated description so
+        /// blind users hear the same context sighted users see on hover.
         /// </summary>
         private static string GetGizmoDescription(Gizmo gizmo)
         {
@@ -2216,7 +2433,168 @@ namespace RimWorldAccess
                 // Strip color tags from descriptions
                 return (desc ?? "").StripTags();
             }
+
+            // Non-Command status gizmos: surface their hover tooltip text.
+            return GetNonCommandGizmoDescription(gizmo);
+        }
+
+        /// <summary>
+        /// Surfaces non-Command gizmo descriptions (status panels, resource bars). These
+        /// types render their context only as hover tooltips; we extract the same text so
+        /// it can be spoken. Newlines are flattened to periods (memory: never use newlines
+        /// as separators in announcements).
+        /// </summary>
+        private static string GetNonCommandGizmoDescription(Gizmo gizmo)
+        {
+            string typeName = gizmo.GetType().Name;
+
+            try
+            {
+                if (typeName == "GeneGizmo_DeathrestCapacity")
+                {
+                    var geneField = gizmo.GetType().GetField("gene",
+                        System.Reflection.BindingFlags.Instance |
+                        System.Reflection.BindingFlags.NonPublic |
+                        System.Reflection.BindingFlags.Public);
+                    var gene = geneField?.GetValue(gizmo);
+                    string baseDesc = "DeathrestCapacityDesc".Translate();
+                    if (gene != null)
+                    {
+                        var pawnField = gene.GetType().GetField("pawn",
+                            System.Reflection.BindingFlags.Instance |
+                            System.Reflection.BindingFlags.NonPublic |
+                            System.Reflection.BindingFlags.Public);
+                        var pawn = pawnField?.GetValue(gene) as Pawn;
+                        var currentProp = gene.GetType().GetProperty("CurrentCapacity");
+                        var maxProp = gene.GetType().GetProperty("DeathrestCapacity");
+                        var boundProp = gene.GetType().GetProperty("BoundBuildings");
+                        var parts = new List<string> { baseDesc };
+                        if (pawn != null && currentProp != null && maxProp != null)
+                        {
+                            int current = (int)currentProp.GetValue(gene);
+                            int max = (int)maxProp.GetValue(gene);
+                            string connected = "PawnIsConnectedToBuildings".Translate(
+                                pawn.Named("PAWN"),
+                                current.Named("CURRENT"),
+                                max.Named("MAX")).Resolve();
+                            parts.Add(connected);
+                        }
+                        // Surface the names of bound buildings — sighted players see these via
+                        // hose lines drawn from each building to the deathrester's bed.
+                        if (boundProp != null && boundProp.GetValue(gene) is System.Collections.IEnumerable boundList)
+                        {
+                            var names = new List<string>();
+                            foreach (var t in boundList)
+                            {
+                                if (t is Thing thing)
+                                    names.Add(thing.LabelShortCap);
+                            }
+                            // No vanilla translation key for this label; "Bound buildings" is
+                            // a mod-coined phrase. Localizable alternatives may be added later.
+                            if (names.Count > 0)
+                                parts.Add($"Bound buildings: {names.ToCommaList(useAnd: true)}");
+                        }
+                        return FlattenNewlines(string.Join(". ", parts));
+                    }
+                    return FlattenNewlines(baseDesc);
+                }
+
+                // Gizmo_Slider exposes a protected abstract GetTooltip() — surface it as the
+                // description so blind users hear the rich tooltip (e.g., per-gene drain
+                // breakdown on the Hemogen bar) that sighted players see on hover.
+                if (gizmo is Verse.Gizmo_Slider)
+                {
+                    var tooltipMethod = gizmo.GetType().GetMethod("GetTooltip",
+                        System.Reflection.BindingFlags.Instance |
+                        System.Reflection.BindingFlags.NonPublic |
+                        System.Reflection.BindingFlags.Public);
+                    if (tooltipMethod != null)
+                    {
+                        string tooltip = tooltipMethod.Invoke(gizmo, null) as string;
+                        return FlattenNewlines(StripRedundantSliderTitle(gizmo, (tooltip ?? "").StripTags()));
+                    }
+                }
+            }
+            catch { }
+
             return "";
+        }
+
+        /// <summary>
+        /// Drops the leading "{Title}: ..." line from a Gizmo_Slider tooltip when that
+        /// line just repeats the title — we already announce "{Title}: {percent}" as the
+        /// status prefix, so leaving the tooltip's own header in would echo the title and
+        /// the absolute value back to back ("Hemogen: 90%. Hemogen: 90 / 100. ..."). The
+        /// rest of the tooltip (drain breakdown, description, etc.) is preserved.
+        /// </summary>
+        private static string StripRedundantSliderTitle(Gizmo gizmo, string tooltip)
+        {
+            if (string.IsNullOrEmpty(tooltip)) return tooltip;
+
+            string title = null;
+            try
+            {
+                var titleProp = gizmo.GetType().GetProperty("Title",
+                    System.Reflection.BindingFlags.Instance |
+                    System.Reflection.BindingFlags.NonPublic |
+                    System.Reflection.BindingFlags.Public);
+                title = titleProp?.GetValue(gizmo) as string;
+            }
+            catch { }
+
+            if (string.IsNullOrEmpty(title)) return tooltip;
+
+            // The title in the tooltip is rendered with the same casing the gizmo header
+            // uses (CapitalizeFirst). Match leniently: if the first non-blank line begins
+            // with the title (case-insensitive) followed by ":" or " ", drop that line.
+            int firstBreak = tooltip.IndexOf('\n');
+            string firstLine = firstBreak >= 0 ? tooltip.Substring(0, firstBreak) : tooltip;
+            string trimmed = firstLine.TrimEnd();
+            if (trimmed.StartsWith(title, System.StringComparison.OrdinalIgnoreCase))
+            {
+                int afterTitle = title.Length;
+                if (afterTitle >= trimmed.Length
+                    || trimmed[afterTitle] == ':'
+                    || trimmed[afterTitle] == ' ')
+                {
+                    return firstBreak >= 0 ? tooltip.Substring(firstBreak + 1) : "";
+                }
+            }
+            return tooltip;
+        }
+
+        /// <summary>
+        /// Replaces newline runs with period+space so multi-line tooltip text reads as a
+        /// single sentence. Memory: never use newlines as announcement separators.
+        /// </summary>
+        private static string FlattenNewlines(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return "";
+            var sb = new System.Text.StringBuilder(text.Length);
+            bool inBreak = false;
+            for (int i = 0; i < text.Length; i++)
+            {
+                char c = text[i];
+                if (c == '\n' || c == '\r')
+                {
+                    if (!inBreak)
+                    {
+                        // Trim trailing whitespace before the break.
+                        while (sb.Length > 0 && char.IsWhiteSpace(sb[sb.Length - 1]))
+                            sb.Length--;
+                        if (sb.Length > 0 && sb[sb.Length - 1] != '.' && sb[sb.Length - 1] != '!' && sb[sb.Length - 1] != '?' && sb[sb.Length - 1] != ':' && sb[sb.Length - 1] != ',')
+                            sb.Append('.');
+                        sb.Append(' ');
+                        inBreak = true;
+                    }
+                }
+                else
+                {
+                    sb.Append(c);
+                    inBreak = false;
+                }
+            }
+            return sb.ToString().Trim();
         }
 
         /// <summary>
@@ -2877,6 +3255,370 @@ namespace RimWorldAccess
             isAdjustingSlider = false;
             sliderGizmo = null;
             AnnounceCurrentGizmo();
+        }
+
+        /// <summary>
+        /// Tries to activate a gizmo whose hotkey matches the given key by searching
+        /// both the current selection and the cursor-tile objects. Always returns true
+        /// (event consumed): single match activates directly, multiple matches open a
+        /// WindowlessFloatMenuState for disambiguation, zero matches plays a rejection
+        /// sound and announces "no command for Shift+X" so the user knows the keypress
+        /// was received.
+        ///
+        /// Collects cursor-tile gizmos using the same temp-select-then-restore pattern
+        /// as OpenAtCursor, because some gizmos (e.g. Designator_Install) only expose
+        /// themselves when their owning Thing is selected.
+        /// </summary>
+        public static bool TryHotkeyActivate(KeyCode key)
+        {
+            if (key == KeyCode.None)
+                return false;
+            if (Find.Selector == null || Find.CurrentMap == null)
+                return false;
+
+            var collected = CollectHotkeyCandidates(key);
+
+            // Group matching gizmos using vanilla's GroupsWith/MergeWith logic so that
+            // identical gizmos from multiple selected pawns collapse to a single entry.
+            var rawGizmos = collected.Select(c => c.gizmo).ToList();
+            var rawOwners = new Dictionary<Gizmo, ISelectable>();
+            foreach (var (gizmo, owner) in collected)
+            {
+                if (!rawOwners.ContainsKey(gizmo))
+                    rawOwners[gizmo] = owner;
+            }
+
+            var groups = new List<List<Gizmo>>();
+            foreach (var gizmo in rawGizmos)
+            {
+                bool grouped = false;
+                for (int i = 0; i < groups.Count; i++)
+                {
+                    if (groups[i][0].GroupsWith(gizmo))
+                    {
+                        groups[i].Add(gizmo);
+                        groups[i][0].MergeWith(gizmo);
+                        grouped = true;
+                        break;
+                    }
+                }
+                if (!grouped)
+                    groups.Add(new List<Gizmo> { gizmo });
+            }
+
+            var representatives = groups
+                .Select(g => g[0])
+                .OrderBy(g => g.Order)
+                .ToList();
+
+            if (representatives.Count == 0)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak($"No command for Shift plus {key.ToStringReadable()}");
+                return true;
+            }
+
+            if (representatives.Count == 1)
+            {
+                Gizmo only = representatives[0];
+                ISelectable owner = rawOwners.TryGetValue(only, out var o) ? o : null;
+                List<Gizmo> group = groups.First(g => g[0] == only);
+                ActivateSingleGizmo(only, owner, group);
+                return true;
+            }
+
+            // Multiple matches — open a WindowlessFloatMenuState so the user hears the
+            // familiar menu-open sound and can pick one. Each option's Label is the full
+            // rich gizmo announcement (owner, hotkey, description, stats, disabled reason)
+            // so the user hears the same info they would in the G menu.
+            var options = new List<FloatMenuOption>();
+            foreach (var rep in representatives)
+            {
+                ISelectable owner = rawOwners.TryGetValue(rep, out var o) ? o : null;
+                List<Gizmo> group = groups.First(g => g[0] == rep);
+                string label = BuildGizmoMenuLabel(rep, owner);
+
+                if (rep.Disabled)
+                {
+                    options.Add(new FloatMenuOption(label, null) { Disabled = true });
+                    continue;
+                }
+
+                Gizmo capturedGizmo = rep;
+                ISelectable capturedOwner = owner;
+                List<Gizmo> capturedGroup = group;
+                options.Add(new FloatMenuOption(label, () =>
+                {
+                    ActivateSingleGizmo(capturedGizmo, capturedOwner, capturedGroup);
+                }));
+            }
+
+            WindowlessFloatMenuState.Open(options, colonistOrders: false);
+            return true;
+        }
+
+        /// <summary>
+        /// Seeds GizmoNavigationState with a single gizmo and invokes ExecuteSelected so
+        /// the existing activation paths (designator, toggle, verb-target, ability, float-
+        /// menu, etc) all apply unchanged. Closes the state afterward so we don't leak a
+        /// phantom single-item G menu.
+        /// </summary>
+        private static void ActivateSingleGizmo(Gizmo gizmo, ISelectable owner, List<Gizmo> group)
+        {
+            availableGizmos.Clear();
+            gizmoOwners.Clear();
+            gizmoGroups.Clear();
+            availableGizmos.Add(gizmo);
+            if (owner != null)
+                gizmoOwners[gizmo] = owner;
+            gizmoGroups[gizmo] = group ?? new List<Gizmo> { gizmo };
+            selectedGizmoIndex = 0;
+            isActive = true;
+            typeahead.ClearSearch();
+            lastAnnouncedOwner = null;
+            pawnJustSelected = false;
+
+            ExecuteSelected();
+
+            // ExecuteSelected closes the state for designator/build paths but leaves it
+            // open for toggle/verb-target/target so the G menu can keep navigating. In
+            // hotkey context the user is done, so close here unconditionally.
+            if (isActive)
+                Close();
+        }
+
+        /// <summary>
+        /// Builds the rich announcement string for a gizmo, mirroring AnnounceCurrentGizmo
+        /// but as a pure function that always includes the owner prefix. Used for
+        /// FloatMenuOption labels when Shift+hotkey has multiple matches.
+        /// </summary>
+        private static string BuildGizmoMenuLabel(Gizmo gizmo, ISelectable owner)
+        {
+            // Hotkey collector swaps selection per-thing during collection but restores it
+            // afterward. Lazy properties (Label, Desc, Disabled) here would otherwise see
+            // the stale selection and resolve incorrectly (e.g. Install -> "Reinstall at...").
+            return WithGizmoOwnerSelected(gizmo, owner, () => BuildGizmoMenuLabelInner(gizmo, owner));
+        }
+
+        private static string BuildGizmoMenuLabelInner(Gizmo gizmo, ISelectable owner)
+        {
+            string label = GetGizmoLabel(gizmo);
+            string description = GetGizmoDescription(gizmo);
+            string hotkey = GetGizmoHotkey(gizmo);
+            string statusValue = GetGizmoStatusValue(gizmo);
+
+            string ownerLabel = "";
+            if (owner is Thing thing)
+                ownerLabel = thing.LabelCap.StripTags();
+            else if (owner is WorldObject worldObj)
+                ownerLabel = worldObj.LabelCap.StripTags();
+
+            string announcement = label;
+
+            if (!string.IsNullOrEmpty(ownerLabel))
+                announcement += $" ({ownerLabel})";
+
+            if (!string.IsNullOrEmpty(hotkey))
+                announcement += $" ({hotkey})";
+
+            if (gizmo is Command_Toggle toggle)
+            {
+                bool isOn = toggle.isActive?.Invoke() ?? false;
+                announcement += isOn ? ": ON" : ": OFF";
+            }
+
+            if (!string.IsNullOrEmpty(statusValue))
+                announcement += $": {statusValue}";
+
+            bool isAbility = gizmo is Command_Ability;
+
+            if (!string.IsNullOrEmpty(description) && !isAbility)
+            {
+                string descSep = (gizmo is Command_Toggle || !string.IsNullOrEmpty(statusValue))
+                    ? (announcement.EndsWith(".") ? " " : ". ")
+                    : ": ";
+                announcement += descSep + description;
+            }
+
+            if (gizmo is Command_Target cmdTargetGizmo
+                && cmdTargetGizmo.icon == Pawn_TrainingTracker.AttackTargetTexture)
+            {
+                float attackRange = Pawn_TrainingTracker.AttackTargetRange;
+                string sep = announcement.EndsWith(".") ? " " : ". ";
+                announcement += $"{sep}Range: {attackRange:F0} tiles from master";
+            }
+
+            if (isAbility && gizmo is Command_Ability commandAbility && commandAbility.Ability != null)
+            {
+                string costInfo = GetAbilityCostInfo(commandAbility.Ability);
+                if (!string.IsNullOrEmpty(costInfo))
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + costInfo;
+
+                string rangeInfo = GetAbilityRangeInfo(commandAbility.Ability);
+                if (!string.IsNullOrEmpty(rangeInfo))
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + rangeInfo;
+
+                string cooldownInfo = GetAbilityCooldownInfo(commandAbility.Ability);
+                if (!string.IsNullOrEmpty(cooldownInfo))
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + cooldownInfo;
+
+                if (!string.IsNullOrEmpty(description))
+                    announcement += (announcement.EndsWith(".") ? " " : ". ") + description;
+            }
+
+            if (gizmo.Disabled)
+            {
+                string reason = gizmo.disabledReason;
+                if (string.IsNullOrEmpty(reason))
+                    reason = "Not available";
+                announcement += $" Disabled: {reason}";
+
+                string context = GetDisabledGizmoContext(gizmo, owner);
+                if (!string.IsNullOrEmpty(context))
+                    announcement += $". {context}";
+            }
+
+            return announcement;
+        }
+
+        /// <summary>
+        /// Collects all visible gizmos whose hotkey.MainKey matches the given key,
+        /// drawn from both the current selection and the objects at the cursor tile.
+        /// Uses the same temporary-selection pattern as OpenAtCursor for the cursor tile
+        /// so lazy gizmos (e.g. Designator_Install) become visible.
+        /// </summary>
+        private static List<(Gizmo gizmo, ISelectable owner)> CollectHotkeyCandidates(KeyCode key)
+        {
+            var results = new List<(Gizmo, ISelectable)>();
+            var seenGizmos = new HashSet<Gizmo>();
+            var ownersAlreadyProcessed = new HashSet<ISelectable>();
+
+            // 1. Current selection — no need to mutate; these objects' gizmos are live.
+            foreach (object obj in Find.Selector.SelectedObjects)
+            {
+                if (!(obj is ISelectable selectable))
+                    continue;
+                ownersAlreadyProcessed.Add(selectable);
+                foreach (var gizmo in selectable.GetGizmos())
+                {
+                    if (gizmo == null || !gizmo.Visible || ShouldSkipGizmo(gizmo))
+                        continue;
+                    if (!MatchesHotkey(gizmo, key))
+                        continue;
+                    if (seenGizmos.Add(gizmo))
+                        results.Add((gizmo, selectable));
+                }
+
+                // Thing.GetGizmos() does not include reverse designators (Cancel,
+                // Deconstruct, Uninstall, etc.) — vanilla's InspectGizmoGrid combines
+                // them at render time. Mirror that here so hotkeys keep working after
+                // a selection lands on the Thing (e.g. Shift+X → Deconstruct selects
+                // the torch, then Shift+C needs Cancel from the reverse database).
+                if (selectable is Thing selectedThing)
+                {
+                    List<Designator> selectedReverseDesignators = Find.ReverseDesignatorDatabase.AllDesignators;
+                    for (int i = 0; i < selectedReverseDesignators.Count; i++)
+                    {
+                        Command_Action reverseGizmo = selectedReverseDesignators[i].CreateReverseDesignationGizmo(selectedThing);
+                        if (reverseGizmo == null || ShouldSkipGizmo(reverseGizmo))
+                            continue;
+                        if (!MatchesHotkey(reverseGizmo, key))
+                            continue;
+                        if (seenGizmos.Add(reverseGizmo))
+                            results.Add((reverseGizmo, selectable));
+                    }
+                }
+            }
+
+            // 2. Cursor tile — temp-select each thing so lazy gizmos appear, then restore.
+            if (!MapNavigationState.IsInitialized)
+                return results;
+
+            IntVec3 cursor = MapNavigationState.CurrentCursorPosition;
+            Map map = Find.CurrentMap;
+            if (!cursor.IsValid || !cursor.InBounds(map))
+                return results;
+
+            var previousSelection = Find.Selector.SelectedObjects.ToList();
+            try
+            {
+                var sortedThings = cursor.GetThingList(map)
+                    .Where(t => !(t is Mote) && t.def.category != ThingCategory.Mote)
+                    .OrderByDescending(t => (int)t.def.altitudeLayer)
+                    .ToList();
+
+                foreach (ISelectable selectable in sortedThings.OfType<ISelectable>())
+                {
+                    if (ownersAlreadyProcessed.Contains(selectable))
+                        continue;
+
+                    Find.Selector.ClearSelection();
+                    Find.Selector.Select(selectable, playSound: false, forceDesignatorDeselect: false);
+
+                    foreach (var gizmo in selectable.GetGizmos())
+                    {
+                        if (gizmo == null || !gizmo.Visible || ShouldSkipGizmo(gizmo))
+                            continue;
+                        if (!MatchesHotkey(gizmo, key))
+                            continue;
+                        if (seenGizmos.Add(gizmo))
+                            results.Add((gizmo, selectable));
+                    }
+
+                    if (selectable is Thing thing)
+                    {
+                        List<Designator> reverseDesignators = Find.ReverseDesignatorDatabase.AllDesignators;
+                        for (int i = 0; i < reverseDesignators.Count; i++)
+                        {
+                            Command_Action reverseGizmo = reverseDesignators[i].CreateReverseDesignationGizmo(thing);
+                            if (reverseGizmo == null || ShouldSkipGizmo(reverseGizmo))
+                                continue;
+                            if (!MatchesHotkey(reverseGizmo, key))
+                                continue;
+                            if (seenGizmos.Add(reverseGizmo))
+                                results.Add((reverseGizmo, selectable));
+                        }
+                    }
+                }
+
+                Zone zone = cursor.GetZone(map);
+                if (zone != null && !ownersAlreadyProcessed.Contains(zone))
+                {
+                    Find.Selector.ClearSelection();
+                    Find.Selector.Select(zone, playSound: false, forceDesignatorDeselect: false);
+
+                    foreach (var gizmo in zone.GetGizmos())
+                    {
+                        if (gizmo == null || !gizmo.Visible || ShouldSkipGizmo(gizmo))
+                            continue;
+                        if (!MatchesHotkey(gizmo, key))
+                            continue;
+                        if (seenGizmos.Add(gizmo))
+                            results.Add((gizmo, zone));
+                    }
+                }
+            }
+            finally
+            {
+                Find.Selector.ClearSelection();
+                foreach (var obj in previousSelection.OfType<ISelectable>())
+                {
+                    Find.Selector.Select(obj, playSound: false, forceDesignatorDeselect: false);
+                }
+            }
+
+            return results;
+        }
+
+        private static bool MatchesHotkey(Gizmo gizmo, KeyCode key)
+        {
+            if (!(gizmo is Command command))
+                return false;
+            if (command.hotKey == null)
+                return false;
+            if (GizmoHotkeyShiftPatch.IsShiftExempt(command.hotKey))
+                return false;
+            return command.hotKey.MainKey == key;
         }
     }
 }

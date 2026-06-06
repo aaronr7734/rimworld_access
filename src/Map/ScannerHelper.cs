@@ -139,6 +139,12 @@ namespace RimWorldAccess
         public bool IsZone => Zone != null; // True if this represents a zone
         public Room Room { get; set; } // For room items
         public bool IsRoom => Room != null; // True if this represents a room
+
+        // Holding platform reference for captured Anomaly entities. When set, Thing is the
+        // held pawn (not spawned on the map) and Position is the platform's position so
+        // navigation/jump behavior works.
+        public Building_HoldingPlatform HoldingPlatform { get; set; }
+        public bool IsCapturedEntity => HoldingPlatform != null;
         public bool HasTerrainRegions => TerrainRegions != null && TerrainRegions.Count > 0;
         public int RegionCount => TerrainRegions?.Count ?? 0;
         public int TotalTileCount => TerrainRegions?.Sum(r => r.TileCount) ?? BulkTerrainPositions?.Count ?? 1;
@@ -254,6 +260,19 @@ namespace RimWorldAccess
             Distance = regions[0].Distance;
             Label = "RimWorldAccess.Map.Scanner.DeepOre.Deposit".Translate(oreDef.label);
             IsTerrain = true; // Treat as terrain-like for navigation
+        }
+
+        // Constructor for captured Anomaly entities held on a holding platform. The held pawn
+        // is not spawned on the map, so we take the platform's position for navigation while
+        // keeping the pawn as Thing for label/announcement purposes.
+        public ScannerItem(Pawn heldPawn, Building_HoldingPlatform platform, IntVec3 cursorPosition)
+        {
+            Thing = heldPawn;
+            HoldingPlatform = platform;
+            Position = platform.Position;
+            Distance = (Position - cursorPosition).LengthHorizontal;
+            IsTerrain = false;
+            Label = ScannerLabelBuilder.BuildThingLabel(heldPawn);
         }
 
         // Constructor for designation items
@@ -372,7 +391,20 @@ namespace RimWorldAccess
         {
             IsStale = false;
 
-            if (Thing != null)
+            if (IsCapturedEntity)
+            {
+                // Captured entity is not Spawned itself — its liveness is tied to the platform
+                // still existing on the map and still holding this same pawn.
+                if (HoldingPlatform == null || HoldingPlatform.Destroyed || !HoldingPlatform.Spawned
+                    || HoldingPlatform.HeldPawn != Thing)
+                {
+                    IsStale = true;
+                    return;
+                }
+
+                Label = ScannerLabelBuilder.BuildThingLabel(Thing);
+            }
+            else if (Thing != null)
             {
                 if (Thing.Destroyed || !Thing.Spawned)
                 {
@@ -446,6 +478,12 @@ namespace RimWorldAccess
 
     public static class ScannerHelper
     {
+        // Shared label for fog-of-war items in the Unexplored category. Search excludes items
+        // with this label since every fog region carries the same name and would dominate
+        // results. Used by both CollectMapItems (when emitting fog items) and the search
+        // filter so they stay in sync.
+        public const string UnexploredAreaLabel = "unexplored area";
+
         /// <summary>
         /// Adds a ScannerItem to both its specialized subcategory AND the category's "All"
         /// subcategory (convention: Subcategories[0]). This is the standard pattern used by
@@ -476,6 +514,10 @@ namespace RimWorldAccess
             var pawnsHostileSubcat = buckets.Sub("Pawns-Hostile");
             var pawnsPlayerMechSubcat = buckets.Sub("Pawns-Player Mechs");
             var pawnsHostileMechSubcat = buckets.Sub("Pawns-Hostile Mechs");
+
+            var entitiesCategory = buckets.Cat("Entities");
+            var entitiesHostileSubcat = buckets.Sub("Entities-Hostile");
+            var entitiesCapturedSubcat = buckets.Sub("Entities-Captured");
 
             var tameAnimalsCategory = buckets.Cat("Tame");
             var tamePenSubcat = buckets.Sub("Tame-Pen");
@@ -546,6 +588,7 @@ namespace RimWorldAccess
             var zonesOtherSubcat = buckets.Sub("Zones-Other");
 
             var roomsCategory = buckets.Cat("Rooms");
+            var unexploredCategory = buckets.Cat("Unexplored");
 
             // Uncategorized category — dict of per-def subcategories. The "All" subcategory
             // at index 0 was inserted by BuildFromSchema.
@@ -570,8 +613,20 @@ namespace RimWorldAccess
 
                 if (thing is Pawn pawn)
                 {
+                    // IsHiddenFromPlayer exempts player-faction pawns, so invisibility psycasts
+                    // on colonists still surface in the scanner; only hostile stealth is filtered.
+                    if (pawn.IsHiddenFromPlayer())
+                        continue;
+
+                    // Anomaly entities are permanent enemies of all non-Insect factions, so any
+                    // loose entity on the map is hostile by definition.
+                    if (pawn.RaceProps.IsAnomalyEntity)
+                    {
+                        AddTo(entitiesCategory, entitiesHostileSubcat, item);
+                        categorizedThings.Add(thing);
+                    }
                     // Categorize pawns by faction relationship (7-bucket scheme).
-                    if (pawn.RaceProps.IsMechanoid)
+                    else if (pawn.RaceProps.IsMechanoid)
                     {
                         if (pawn.Faction == playerFaction)
                         {
@@ -777,10 +832,30 @@ namespace RimWorldAccess
                 }
             }
 
-            // Collect mineable tiles, terrain, and deep ore in a single pass over all cells
+            // Collect captured Anomaly entities from holding platforms. Held pawns live inside
+            // the platform's innerContainer and are not in map.listerThings.AllThings, so we walk
+            // platforms explicitly. AllBuildingsColonistOfClass catches both HoldingPlatform and
+            // HoldingSpot variants (both derive from Building_HoldingPlatform).
+            foreach (var holdingPlatform in map.listerBuildings.AllBuildingsColonistOfClass<Building_HoldingPlatform>())
+            {
+                if (!holdingPlatform.Spawned || fogGrid.IsFogged(holdingPlatform.Position))
+                    continue;
+
+                var heldPawn = holdingPlatform.HeldPawn;
+                if (heldPawn == null || !heldPawn.RaceProps.IsAnomalyEntity)
+                    continue;
+
+                var capturedItem = new ScannerItem(heldPawn, holdingPlatform, cursorPosition);
+                AddTo(entitiesCategory, entitiesCapturedSubcat, capturedItem);
+            }
+
+            // Collect mineable tiles, terrain, deep ore, and fog cells in a single pass
+            // over all cells. The cache is invalidated on building changes (cell hash) OR on
+            // any fog state change — fog collection shares this walk, so all four categories
+            // refresh together.
             int currentCellHash = map.listerThings.StateHashOfGroup(ThingRequestGroup.BuildingArtificial);
 
-            if (cachedTerrainNatural != null && currentCellHash == lastCellHash)
+            if (cachedTerrainNatural != null && currentCellHash == lastCellHash && !fogDirty)
             {
                 // Reuse cached cell data — skip 60K+ cell iteration entirely.
                 // Also mirror every cached item into the category's "All" subcategory.
@@ -789,6 +864,7 @@ namespace RimWorldAccess
                 mineableRareSubcat.Items.AddRange(cachedMineableRare);
                 mineableStoneSubcat.Items.AddRange(cachedMineableStone);
                 mineableScannedSubcat.Items.AddRange(cachedMineableScanned);
+                unexploredCategory.Subcategories[0].Items.AddRange(cachedFogItems);
 
                 terrainCategory.Subcategories[0].Items.AddRange(cachedTerrainNatural);
                 terrainCategory.Subcategories[0].Items.AddRange(cachedTerrainConstructed);
@@ -805,6 +881,7 @@ namespace RimWorldAccess
                 // Collect mineables by def type for later adjacency grouping
                 var mineableRareByDef = new Dictionary<string, List<(IntVec3 position, Thing thing)>>();
                 var mineableStoneByDef = new Dictionary<string, List<(IntVec3 position, Thing thing)>>();
+                var fogPositions = new List<IntVec3>();
 
                 foreach (var cell in allCells)
                 {
@@ -871,6 +948,10 @@ namespace RimWorldAccess
                             }
                         }
                     }
+                    else
+                    {
+                        fogPositions.Add(cell);
+                    }
 
                     // Collect deep ore in same pass (only if active scanner exists)
                     // Deep ore is underground - no fog check needed (matches RimWorld's behavior)
@@ -934,12 +1015,29 @@ namespace RimWorldAccess
                     }
                 }
 
+                // Group unexplored fog cells by adjacency. Each contiguous fog region becomes
+                // its own scanner item so users can navigate region-by-region. This matches the
+                // game's data model: FogGrid is a sibling of TerrainGrid on Map, not a property
+                // of terrain, so each fog blob is treated as a first-class navigable item.
+                // Unexplored has only an "All" subcategory, so add directly (AddTo would
+                // double-add since specialized == Subcategories[0]).
+                var fogRegions = GroupTerrainByAdjacency(fogPositions, cursorPosition);
+                foreach (var region in fogRegions)
+                {
+                    var fogItem = new ScannerItem(
+                        new List<TerrainRegion> { region }, UnexploredAreaLabel, cursorPosition);
+                    unexploredCategory.Subcategories[0].Items.Add(fogItem);
+                }
+
                 // Save results to cell cache
                 cachedTerrainNatural = new List<ScannerItem>(terrainNaturalSubcat.Items);
                 cachedTerrainConstructed = new List<ScannerItem>(terrainConstructedSubcat.Items);
                 cachedMineableRare = new List<ScannerItem>(mineableRareSubcat.Items);
                 cachedMineableStone = new List<ScannerItem>(mineableStoneSubcat.Items);
                 cachedMineableScanned = new List<ScannerItem>(mineableScannedSubcat.Items);
+                cachedFogItems = new List<ScannerItem>(unexploredCategory.Subcategories[0].Items);
+                fogDirty = false;
+
                 lastCellHash = currentCellHash;
             }
 
@@ -1181,44 +1279,33 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Yields the 8 cardinal + diagonal neighbors of a cell on the square map grid. The shared
+        /// <see cref="Clump"/> flood-fill gates each neighbor on the valid-position set, so this
+        /// only needs to enumerate candidate offsets.
+        /// </summary>
+        private static IEnumerable<IntVec3> EightWayNeighbors(IntVec3 cell)
+        {
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                for (int dz = -1; dz <= 1; dz++)
+                {
+                    if (dx == 0 && dz == 0) continue;
+                    yield return new IntVec3(cell.x + dx, 0, cell.z + dz);
+                }
+            }
+        }
+
+        /// <summary>
         /// Performs a flood fill to find all contiguous positions starting from a given position.
-        /// Uses 8-way adjacency (cardinal + diagonal).
+        /// Uses 8-way adjacency (cardinal + diagonal). Delegates to the shared coordinate-agnostic
+        /// <see cref="Clump.Fill{TTile}"/> so the local and world scanners share one implementation.
         /// </summary>
         /// <param name="startPos">The starting position for the flood fill</param>
         /// <param name="validPositions">Set of all valid positions to consider (must be of same terrain type)</param>
         /// <returns>Set of all contiguous positions found</returns>
         internal static HashSet<IntVec3> FloodFillTerrainRegion(IntVec3 startPos, HashSet<IntVec3> validPositions)
         {
-            var region = new HashSet<IntVec3>();
-            var queue = new Queue<IntVec3>();
-            queue.Enqueue(startPos);
-
-            while (queue.Count > 0)
-            {
-                var current = queue.Dequeue();
-
-                if (!validPositions.Contains(current) || region.Contains(current))
-                    continue;
-
-                region.Add(current);
-
-                // Check all 8 neighbors (cardinal + diagonal)
-                for (int dx = -1; dx <= 1; dx++)
-                {
-                    for (int dz = -1; dz <= 1; dz++)
-                    {
-                        if (dx == 0 && dz == 0) continue;
-
-                        var neighbor = new IntVec3(current.x + dx, 0, current.z + dz);
-                        if (validPositions.Contains(neighbor) && !region.Contains(neighbor))
-                        {
-                            queue.Enqueue(neighbor);
-                        }
-                    }
-                }
-            }
-
-            return region;
+            return Clump.Fill(startPos, validPositions, EightWayNeighbors);
         }
 
         /// <summary>
@@ -1229,30 +1316,12 @@ namespace RimWorldAccess
         /// <returns>List of TerrainRegion objects sorted by distance from cursor</returns>
         internal static List<TerrainRegion> GroupTerrainByAdjacency(List<IntVec3> positions, IntVec3 cursorPosition)
         {
-            var regions = new List<TerrainRegion>();
-            var remaining = new HashSet<IntVec3>(positions);
-
-            while (remaining.Count > 0)
-            {
-                // Start flood fill from the first remaining position
-                var startPos = remaining.First();
-                var regionPositions = FloodFillTerrainRegion(startPos, remaining);
-
-                if (regionPositions.Count > 0)
-                {
-                    var region = new TerrainRegion(regionPositions.ToList(), cursorPosition);
-                    regions.Add(region);
-
-                    // Remove processed positions
-                    foreach (var pos in regionPositions)
-                        remaining.Remove(pos);
-                }
-            }
-
-            // Sort regions by distance from cursor
-            regions = regions.OrderBy(r => r.Distance).ToList();
-
-            return regions;
+            // Group contiguous tiles via the shared flood-fill, wrap each set into a TerrainRegion
+            // (which computes its center/dimensions/distance), then sort by distance from cursor.
+            return Clump.GroupByAdjacency(positions, EightWayNeighbors)
+                .Select(set => new TerrainRegion(set.ToList(), cursorPosition))
+                .OrderBy(r => r.Distance)
+                .ToList();
         }
 
         /// <summary>
@@ -1466,7 +1535,17 @@ namespace RimWorldAccess
         private static List<ScannerItem> cachedMineableRare = null;
         private static List<ScannerItem> cachedMineableStone = null;
         private static List<ScannerItem> cachedMineableScanned = null;
+        private static List<ScannerItem> cachedFogItems = null;
+        private static bool fogDirty = true;
         private static int lastCellHash = 0;
+
+        /// <summary>
+        /// Invalidates the fog portion of the cell-walk cache. Called by FogChangePatch
+        /// whenever a cell's fog state changes. The next CollectMapItems will rebuild the
+        /// Unexplored category — and, because fog collection shares the AllCells walk with
+        /// terrain/mineables/deep ore, those caches are rebuilt at the same time.
+        /// </summary>
+        public static void MarkFogDirty() => fogDirty = true;
 
         /// <summary>
         /// Invalidates all cell-based caches. Call when the map state changes
@@ -1479,6 +1558,8 @@ namespace RimWorldAccess
             cachedMineableRare = null;
             cachedMineableStone = null;
             cachedMineableScanned = null;
+            cachedFogItems = null;
+            fogDirty = true;
             lastCellHash = 0;
             designatorLabelCache = null;
         }

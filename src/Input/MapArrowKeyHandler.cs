@@ -22,9 +22,10 @@ namespace RimWorldAccess
         /// <returns>True if the key was handled, false otherwise</returns>
         public static bool HandleArrowKey(KeyCode key, bool ctrlHeld, bool shiftHeld)
         {
-            // Handle Shift+Up/Down for jump mode cycling
-            // NOTE: Jump mode cycling now works EVERYWHERE including zone creation mode
-            // (previously blocked by incorrect blockJumpModeCycling check)
+            // Handle Shift+arrow for jump mode adjustments.
+            // Shift+Up/Down cycles jump modes; Shift+Left/Right adjusts preset distance.
+            // These adjustments must NEVER move the cursor or camera — the user is only
+            // configuring the jump, not performing it.
             if (shiftHeld)
             {
                 if (key == KeyCode.UpArrow)
@@ -37,21 +38,19 @@ namespace RimWorldAccess
                     MapNavigationState.CycleJumpModeBackward();
                     return true;
                 }
-                // Shift+Left/Right adjusts preset distance (only in PresetDistance mode)
-                // Ctrl+Shift+Left/Right adjusts by 10 tiles
-                else if (MapNavigationState.CurrentJumpMode == JumpMode.PresetDistance)
+                else if (key == KeyCode.LeftArrow || key == KeyCode.RightArrow)
                 {
-                    int step = ctrlHeld ? 10 : 1;
-                    if (key == KeyCode.LeftArrow)
+                    // Preset distance adjustment applies only in PresetDistance mode;
+                    // in other modes we still consume the key so the cursor stays put.
+                    if (MapNavigationState.CurrentJumpMode == JumpMode.PresetDistance)
                     {
-                        MapNavigationState.DecreasePresetDistance(step);
-                        return true;
+                        int step = ctrlHeld ? 10 : 1;
+                        if (key == KeyCode.LeftArrow)
+                            MapNavigationState.DecreasePresetDistance(step);
+                        else
+                            MapNavigationState.IncreasePresetDistance(step);
                     }
-                    else if (key == KeyCode.RightArrow)
-                    {
-                        MapNavigationState.IncreasePresetDistance(step);
-                        return true;
-                    }
+                    return true;
                 }
             }
 
@@ -164,9 +163,8 @@ namespace RimWorldAccess
             // Switch to Cursor mode - camera follows cursor, blocks pawn following
             MapNavigationState.CurrentCameraMode = CameraFollowMode.Cursor;
 
-            // Play terrain audio feedback
-            TerrainDef terrain = newPosition.GetTerrain(Find.CurrentMap);
-            TerrainAudioHelper.PlayTerrainAudio(terrain, 0.5f);
+            // Play audio feedback for the cell (wall sound over walls, else terrain)
+            TerrainAudioHelper.PlayCellAudio(newPosition, Find.CurrentMap, 0.5f);
 
             // Announce the position with all contextual info
             AnnouncePosition(newPosition, Find.CurrentMap);
@@ -177,7 +175,7 @@ namespace RimWorldAccess
         /// Used by both arrow key movement and Go To coordinate input.
         /// This includes deep ore info, "in area", shape dimensions, etc.
         /// </summary>
-        public static void AnnouncePosition(IntVec3 position, Map map)
+        public static void AnnouncePosition(IntVec3 position, Map map, string prefix = null)
         {
             // Update shape preview if in shape placement mode
             if (ShapePlacementState.ShouldUpdatePreviewOnMove())
@@ -191,10 +189,17 @@ namespace RimWorldAccess
             // Add context prefixes based on current mode
             tileInfo = AddContextPrefix(tileInfo, position);
 
-            // Only announce if different from last announcement (avoids spam)
-            if (tileInfo != MapNavigationState.LastAnnouncedInfo)
+            // Optional lead-in (e.g. a scanner "Jumped N tiles dir to center" cue), so the move
+            // delta and the tile description are spoken together. A prefixed announcement always
+            // speaks — it is a deliberate jump, not incidental movement — and the spam-dedup
+            // still tracks the plain tile info so subsequent arrow steps dedup normally.
+            string toSpeak = string.IsNullOrEmpty(prefix)
+                ? tileInfo
+                : (string.IsNullOrEmpty(tileInfo) ? prefix : $"{prefix}. {tileInfo}");
+
+            if (!string.IsNullOrEmpty(prefix) || toSpeak != MapNavigationState.LastAnnouncedInfo)
             {
-                TolkHelper.SpeakData(tileInfo);
+                TolkHelper.SpeakData(toSpeak);
                 MapNavigationState.LastAnnouncedInfo = tileInfo;
             }
         }

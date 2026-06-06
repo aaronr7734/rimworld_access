@@ -355,11 +355,15 @@ namespace RimWorldAccess
                     break;
                 case Tab.Passions:
                     if (passionItems.Count > 0)
-                        passionIndex = MenuHelper.SelectNext(passionIndex, passionItems.Count);
+                        passionIndex = (passionTypeahead.HasActiveSearch && !passionTypeahead.HasNoMatches)
+                            ? passionTypeahead.GetNextMatch(passionIndex)
+                            : MenuHelper.SelectNext(passionIndex, passionItems.Count);
                     break;
                 case Tab.Traits:
                     if (traitItems.Count > 0)
-                        traitIndex = MenuHelper.SelectNext(traitIndex, traitItems.Count);
+                        traitIndex = (traitTypeahead.HasActiveSearch && !traitTypeahead.HasNoMatches)
+                            ? traitTypeahead.GetNextMatch(traitIndex)
+                            : MenuHelper.SelectNext(traitIndex, traitItems.Count);
                     break;
             }
             AnnounceCurrentItem();
@@ -376,11 +380,15 @@ namespace RimWorldAccess
                     break;
                 case Tab.Passions:
                     if (passionItems.Count > 0)
-                        passionIndex = MenuHelper.SelectPrevious(passionIndex, passionItems.Count);
+                        passionIndex = (passionTypeahead.HasActiveSearch && !passionTypeahead.HasNoMatches)
+                            ? passionTypeahead.GetPreviousMatch(passionIndex)
+                            : MenuHelper.SelectPrevious(passionIndex, passionItems.Count);
                     break;
                 case Tab.Traits:
                     if (traitItems.Count > 0)
-                        traitIndex = MenuHelper.SelectPrevious(traitIndex, traitItems.Count);
+                        traitIndex = (traitTypeahead.HasActiveSearch && !traitTypeahead.HasNoMatches)
+                            ? traitTypeahead.GetPreviousMatch(traitIndex)
+                            : MenuHelper.SelectPrevious(traitIndex, traitItems.Count);
                     break;
             }
             AnnounceCurrentItem();
@@ -395,10 +403,14 @@ namespace RimWorldAccess
                     infoIndex = MenuHelper.JumpToFirst();
                     break;
                 case Tab.Passions:
-                    passionIndex = MenuHelper.JumpToFirst();
+                    passionIndex = (passionTypeahead.HasActiveSearch && !passionTypeahead.HasNoMatches)
+                        ? passionTypeahead.GetFirstMatch()
+                        : MenuHelper.JumpToFirst();
                     break;
                 case Tab.Traits:
-                    traitIndex = MenuHelper.JumpToFirst();
+                    traitIndex = (traitTypeahead.HasActiveSearch && !traitTypeahead.HasNoMatches)
+                        ? traitTypeahead.GetFirstMatch()
+                        : MenuHelper.JumpToFirst();
                     break;
             }
             AnnounceCurrentItem();
@@ -413,10 +425,14 @@ namespace RimWorldAccess
                     infoIndex = MenuHelper.JumpToLast(infoLines?.Length ?? 0);
                     break;
                 case Tab.Passions:
-                    passionIndex = MenuHelper.JumpToLast(passionItems.Count);
+                    passionIndex = (passionTypeahead.HasActiveSearch && !passionTypeahead.HasNoMatches)
+                        ? passionTypeahead.GetLastMatch()
+                        : MenuHelper.JumpToLast(passionItems.Count);
                     break;
                 case Tab.Traits:
-                    traitIndex = MenuHelper.JumpToLast(traitItems.Count);
+                    traitIndex = (traitTypeahead.HasActiveSearch && !traitTypeahead.HasNoMatches)
+                        ? traitTypeahead.GetLastMatch()
+                        : MenuHelper.JumpToLast(traitItems.Count);
                     break;
             }
             AnnounceCurrentItem();

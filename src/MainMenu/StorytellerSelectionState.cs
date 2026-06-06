@@ -648,6 +648,9 @@ namespace RimWorldAccess
         private static void BuildCustomDifficultySections()
         {
             Storyteller storyteller = Current.Game.storyteller;
+            // isCharGen: false → omit the AnomalyPlaystyleSetting row and override-fraction
+            // slider, matching vanilla's StorytellerUI.cs:117 gate that only exposes the
+            // playstyle picker via Dialog_AnomalySettings during chargen.
             sections = DifficultySettingsHelper.BuildSections(
                 storyteller.difficulty,
                 onReset: (DifficultyDef def) =>
@@ -660,7 +663,8 @@ namespace RimWorldAccess
                     currentLevel = StorytellerSelectionLevel.CustomSectionList;
                     AnnounceCurrentState();
                 },
-                onAnomalyPlaystyleChanged: () => BuildCustomDifficultySections()
+                onAnomalyPlaystyleChanged: () => BuildCustomDifficultySections(),
+                isCharGen: false
             );
         }
 

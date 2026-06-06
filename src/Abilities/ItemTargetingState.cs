@@ -1,4 +1,5 @@
 using RimWorld;
+using UnityEngine;
 using Verse;
 
 namespace RimWorldAccess
@@ -58,6 +59,54 @@ namespace RimWorldAccess
 
             TolkHelper.Speak(
                 "RimWorldAccess.Abilities.Item.StartCallback".Loc(itemLabel),
+                SpeechPriority.Normal);
+        }
+
+        /// <summary>
+        /// The user-facing label for the active item-targeting session — typically the
+        /// localized float-menu option that started it (e.g.,
+        /// "Force target to wear alpaca wool face mask"). Strictly more accurate than
+        /// describing TargetingParameters' boolean flags, because callback-based targeting
+        /// (ForForceWear, force-equip, etc.) often pairs permissive defaults with a real
+        /// filter in TargetingParameters.validator that we cannot describe textually.
+        /// </summary>
+        public static string ItemLabel => itemLabel;
+
+        /// <summary>
+        /// Handles R / T during item targeting so they don't fall through to the game's
+        /// global shortcuts (R = draft selected pawn, T = time/weather announcement),
+        /// which is jarring mid-cast. Mirrors the AbilityTargetingState / JumpTargetingState
+        /// convention of consuming R and T while targeting is active.
+        ///
+        /// Item targeting has no range and no AOE preview to give. R announces "no range
+        /// constraint" (with the active session label as a reminder of what the user is
+        /// doing); T is consumed silently — arrow-key navigation already announces what's
+        /// at the cursor on every move, so re-reading on T would just be redundant chatter.
+        /// </summary>
+        public static bool HandleInput(KeyCode key, bool shift, bool ctrl, bool alt)
+        {
+            if (!isActive)
+                return false;
+            if (shift || ctrl || alt)
+                return false;
+
+            if (key == KeyCode.R)
+            {
+                AnnounceRangeInfo();
+                return true;
+            }
+            if (key == KeyCode.T)
+            {
+                // Consumed silently — see method docs.
+                return true;
+            }
+            return false;
+        }
+
+        private static void AnnounceRangeInfo()
+        {
+            string label = !string.IsNullOrEmpty(itemLabel) ? itemLabel : "this action";
+            TolkHelper.Speak($"No range constraint for {label}. Move cursor to a valid target and press Enter.",
                 SpeechPriority.Normal);
         }
 
@@ -124,15 +173,28 @@ namespace RimWorldAccess
             if (parameters == null)
                 return "RimWorldAccess.Abilities.Item.DefaultInstruction".Translate();
 
-            if (parameters.canTargetPawns || parameters.canTargetHumans
-                || parameters.canTargetAnimals || parameters.canTargetMechs)
-                return "RimWorldAccess.Abilities.Item.InferPawn".Translate();
-            if (parameters.canTargetBuildings)
-                return "RimWorldAccess.Abilities.Item.InferBuilding".Translate();
+            // canTargetPawns, canTargetBuildings, and several subtypes all default to TRUE
+            // on a fresh TargetingParameters. CanTarget() only treats a pawn as targetable
+            // when canTargetPawns AND at least one species subtype (humans / animals / mechs /
+            // subhumans) is enabled, so checking canTargetPawns alone is misleading.
+            // Example: TargetingParameters.ForCell() — used for shuttle "land in existing map"
+            // cell selection — leaves canTargetPawns at its default true but disables every
+            // species subtype, so picking a pawn would actually fail. Before this guard, the
+            // announcement said "Select pawn to target" for a cell-only target.
+            bool pawnsActuallyTargetable = parameters.canTargetPawns
+                && (parameters.canTargetHumans || parameters.canTargetAnimals
+                    || parameters.canTargetMechs || parameters.canTargetSubhumans);
+
+            if (pawnsActuallyTargetable)
+                return "Select pawn to target";
+            // Same defaulting trap for buildings: if locations are explicitly enabled, prefer
+            // the location label over a stale canTargetBuildings=true default.
+            if (parameters.canTargetBuildings && !parameters.canTargetLocations)
+                return "Select building to target";
             if (parameters.canTargetItems)
                 return "RimWorldAccess.Abilities.Item.InferItem".Translate();
             if (parameters.canTargetLocations)
-                return "RimWorldAccess.Abilities.Item.InferLocation".Translate();
+                return "Select a cell";
 
             return "RimWorldAccess.Abilities.Item.DefaultInstruction".Translate();
         }

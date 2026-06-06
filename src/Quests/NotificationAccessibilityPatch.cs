@@ -16,6 +16,27 @@ namespace RimWorldAccess
         private static HashSet<string> announcedAlerts = new HashSet<string>();
 
         /// <summary>
+        /// Monotonic counter incremented every time Messages.Message announces something
+        /// via this patch. Callers that wrap a game operation (e.g., ValidateTarget) can
+        /// sample it before and after to detect whether the game itself emitted a message,
+        /// and skip their own fallback announcement when it did. Avoids predicting which
+        /// abilities/verbs/comps speak vs. stay silent — we just measure.
+        /// </summary>
+        public static long MessageEmissionCount { get; private set; } = 0;
+
+        /// <summary>
+        /// Monotonic counter incremented every time the game *attempts* a message, including
+        /// ones RimWorld suppresses as duplicates. Paired with <see cref="LastAttemptedMessageText"/>,
+        /// this lets callers recover a rejection reason (e.g. "no healable injuries") that
+        /// <see cref="MessageEmissionCount"/> misses because the suppressed message never reaches
+        /// the Message(Message, bool) funnel.
+        /// </summary>
+        public static long MessageAttemptCount { get; private set; } = 0;
+
+        /// <summary>Cleaned text of the most recent attempted message (shown or suppressed).</summary>
+        public static string LastAttemptedMessageText { get; private set; }
+
+        /// <summary>
         /// Patches the Messages.Message(Message msg, bool historical) method to announce messages.
         /// This is the core method that all message variants funnel through.
         /// Location: Verse.Messages line 55
@@ -31,6 +52,25 @@ namespace RimWorldAccess
                 string announcement = "RimWorldAccess.Notification.LiveMessage".Translate(cleanText).ToString();
                 TolkHelper.SpeakData(announcement);
                 Log.Message($"[Notification] {announcement}");
+                MessageEmissionCount++;
+            }
+        }
+
+        /// <summary>
+        /// Patches Messages.AcceptsMessage, the single gate every message overload passes
+        /// through before display. It runs even when the message is about to be suppressed as
+        /// a duplicate, so it captures the text of rejection messages RimWorld dedupes. We only
+        /// record here (no announcement) — the Message(Message, bool) prefix above still handles
+        /// announcing messages that are actually shown.
+        /// </summary>
+        [HarmonyPatch(typeof(Verse.Messages), "AcceptsMessage")]
+        [HarmonyPrefix]
+        public static void Messages_AcceptsMessage_Prefix(string text)
+        {
+            if (!string.IsNullOrEmpty(text))
+            {
+                LastAttemptedMessageText = text.StripTags();
+                MessageAttemptCount++;
             }
         }
 

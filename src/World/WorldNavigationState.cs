@@ -67,7 +67,14 @@ namespace RimWorldAccess
         public static PlanetTile CurrentSelectedTile
         {
             get => currentSelectedTile;
-            set => currentSelectedTile = value;
+            set
+            {
+                currentSelectedTile = value;
+                // External origin writes end the world scanner's navigation session so the next
+                // Page Up/Down re-sorts from the new origin. Scanner-driven jumps (JumpToCurrent)
+                // guard with a flag so they do not self-invalidate.
+                WorldScannerState.NotifyOriginWritten();
+            }
         }
 
         /// <summary>
@@ -518,7 +525,7 @@ namespace RimWorldAccess
         /// Announces the current tile information.
         /// Includes biome descriptions (both contexts) and faction/settle warnings (WorldGen only).
         /// </summary>
-        public static void AnnounceTile()
+        public static void AnnounceTile(string prefix = null)
         {
             if (!currentSelectedTile.Valid)
                 return;
@@ -584,6 +591,13 @@ namespace RimWorldAccess
             if (!string.IsNullOrEmpty(biomeDesc))
             {
                 tileInfo = AppendSentence(tileInfo, biomeDesc);
+            }
+
+            // Optional lead-in (e.g. a scanner "Jumped N tiles dir to center" cue), so the move
+            // delta and the full tile description are spoken as one utterance.
+            if (!string.IsNullOrEmpty(prefix))
+            {
+                tileInfo = string.IsNullOrEmpty(tileInfo) ? prefix : $"{prefix}. {tileInfo}";
             }
 
             TolkHelper.SpeakData(tileInfo);

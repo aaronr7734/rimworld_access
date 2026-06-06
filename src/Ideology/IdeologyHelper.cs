@@ -326,13 +326,24 @@ namespace RimWorldAccess
 
         private static void BuildFluidSection(InspectionTreeItem root, Ideo ideo)
         {
-            var children = new List<string>();
-
             string points = ideo.development.Points + " / " + ideo.development.NextReformationDevelopmentPoints;
-            children.Add("CurrentDevelopmentPoints".Translate() + ": " + points);
-            children.Add("FluidIdeoTip".Translate().Resolve().StripTags());
+            bool canReform = ideo.development.CanReformNow;
 
-            // Ways to earn development points
+            // The section title carries the live points (and, when reformable, the action hint) so
+            // landing on the node leads with the actionable info. The explanatory tip and the list
+            // of ways to earn points live in the children — expand (Right) to read them. Enter on
+            // the node reforms directly when possible (no expand-then-arrow); the points are NOT
+            // repeated as a child (that produced a "current points, current points" double).
+            string title = "CurrentDevelopmentPoints".Translate().CapitalizeFirst() + ": " + points;
+            if (canReform)
+                title += ". " + "Press Enter to reform";
+
+            var children = new List<string>
+            {
+                "FluidIdeoTip".Translate().Resolve().StripTags(),
+            };
+
+            // Ways to earn development points.
             var earnMethods = new StringBuilder();
             earnMethods.Append("FluidIdeoTipGetPoints".Translate().Resolve().StripTags() + ": ");
             earnMethods.Append("FluidIdeoTipGetPoinsByConversion".Translate().Resolve().StripTags());
@@ -349,8 +360,14 @@ namespace RimWorldAccess
 
             children.Add(earnMethods.ToString());
 
-            string sectionLabel = "CurrentDevelopmentPoints".Translate().CapitalizeFirst();
-            var sectionNode = CreateSectionNode(root, sectionLabel, children);
+            var sectionNode = CreateSectionNode(root, title, children);
+
+            // When enough development points are earned, the node itself becomes the Reform action
+            // (Enter activates it via IdeologyTreeNavigation.HandleActivate); Right still expands to
+            // read the tip. Below the threshold it's a plain info node.
+            if (canReform)
+                sectionNode.Data = new IdeoReformState.ReformActionMarker { Ideo = ideo };
+
             root.Children.Add(sectionNode);
         }
 
@@ -395,7 +412,10 @@ namespace RimWorldAccess
                         IsExpandable = true,
                         IsExpanded = false,
                         Parent = sectionNode,
-                        Type = InspectionTreeItem.ItemType.SubCategory
+                        Type = InspectionTreeItem.ItemType.SubCategory,
+                        // Carry the MemeDef so Alt+I opens its info card (the walker climbs to here
+                        // from the detail-line children too). MemeDef : Def.
+                        Data = meme
                     };
 
                     foreach (string child in childLines)
@@ -406,7 +426,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    AddChildNode(sectionNode, memeHeader.ToString());
+                    AddChildNode(sectionNode, memeHeader.ToString(), meme);
                     memeLabels.Add(memeHeader.ToString());
                 }
             }
@@ -1064,7 +1084,13 @@ namespace RimWorldAccess
         /// For ritual abilities, the tip line shows the ritual precept label,
         /// so we map ritual labels to the ability description.
         /// </summary>
-        private static string EnhanceWithAbilityDescriptions(List<AbilityDef> abilities, Ideo ideo, string tip)
+        /// <summary>
+        /// Injects each granted ability's description inline with its bullet line in a role/ritual
+        /// precept tip (the vanilla tip lists ability NAMES only). Shared with the IdeoBuilder typed-
+        /// precept editor (<see cref="IdeoTypedPreceptState"/>) so the editor and the read-only viewer
+        /// present abilities identically. Preserves every non-ability line unchanged.
+        /// </summary>
+        internal static string EnhanceWithAbilityDescriptions(List<AbilityDef> abilities, Ideo ideo, string tip)
         {
             var descriptions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (var abilityDef in abilities)

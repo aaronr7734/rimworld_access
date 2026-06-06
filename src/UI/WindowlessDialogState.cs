@@ -157,6 +157,17 @@ namespace RimWorldAccess
             ShouldForcePause = false;
             openedOnFrame = -1;
             closedOnFrame = UnityEngine.Time.frameCount;
+
+            // Notify any state that was waiting for a specific dialog to close.
+            // DialogInterceptionPatch prevents Dialog_MessageBox from being added to
+            // the WindowStack, so LoadDialogWatcherPatch (which hooks Window.PostClose)
+            // never fires for those. Calling these here lets each state's pending
+            // weak-ref check fire on the dialog it was actually waiting for.
+            if (dialogToClose != null)
+            {
+                WindowlessSaveMenuState.OnWindowClosed(dialogToClose);
+                WindowlessPauseMenuState.OnWindowClosed(dialogToClose);
+            }
         }
 
         /// <summary>
@@ -255,7 +266,12 @@ namespace RimWorldAccess
                 return true;
             }
 
-            return false;
+            // Consume any remaining KeyDown events so global shortcuts (T for time,
+            // 1-7 for tile info, A for architect, etc.) can't fire while a windowless
+            // dialog is modal. Polling patches like DetailInfoPatch guard themselves
+            // via WindowlessDialogState.IsActive; this handles the IMGUI side.
+            evt.Use();
+            return true;
         }
 
         private static bool HandleTextFieldInput(TextFieldElement textField, Event evt)
@@ -357,7 +373,11 @@ namespace RimWorldAccess
                     val => { captured.Value = val; editingElement = null; },
                     () => { editingElement = null; },
                     replaceOnType: true,
-                    modal: false);
+                    modal: false,
+                    // The dialog field's own caption ("First name", etc.); the introspected spec
+                    // only carries a generic label, so pass the per-field label for the prompt and
+                    // the commit announcement.
+                    displayLabel: textField.Label);
             }
         }
 

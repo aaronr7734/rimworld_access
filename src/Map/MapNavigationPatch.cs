@@ -38,6 +38,7 @@ namespace RimWorldAccess
                 WorldNavigationState.IsActive ||
                 WindowlessDialogState.IsActive ||
                 WindowlessFloatMenuState.IsActive ||
+                ExtraMenusState.IsActive ||
                 ShapeSelectionMenuState.IsActive ||
                 // Note: ViewingModeState is NOT included - it allows arrow navigation for moving around
                 ArchitectTreeState.IsActive ||
@@ -47,7 +48,6 @@ namespace RimWorldAccess
                 QuestMenuState.IsActive ||
                 WindowlessSaveMenuState.IsActive ||
                 WindowlessConfirmationState.IsActive ||
-                WindowlessDeleteConfirmationState.IsActive ||
                 WindowlessOptionsMenuState.IsActive ||
                 ZoneRenameState.IsActive ||
                 PlaySettingsMenuState.IsActive ||
@@ -56,6 +56,7 @@ namespace RimWorldAccess
                 MechControlGroupState.IsActive ||
                 RangeEditMenuState.IsActive ||
                 WorkMenuState.IsActive ||
+                WorkTableState.IsActive ||
                 AssignMenuState.IsActive ||
                 PolicyEditorState.IsActive ||
                 WindowlessAreaState.IsActive ||
@@ -72,19 +73,29 @@ namespace RimWorldAccess
                 WindowlessInspectionState.IsActive ||
                 WindowlessInventoryState.IsActive ||
                 HealthTabState.IsActive ||
-                FlickableComponentState.IsActive ||
                 RefuelableComponentState.IsActive ||
-                BreakdownableComponentState.IsActive ||
                 DoorControlState.IsActive ||
                 ForbidControlState.IsActive ||
                 AnimalsMenuState.IsActive ||
                 WildlifeMenuState.IsActive ||
+                PawnSkillsTableState.IsActive ||
                 TransportPodLoadingState.IsActive ||
+                // Windowless overlays that navigate with arrow keys for their own lists/trees
+                // (not the map cursor) and are drawn over the live colony map. Without these,
+                // arrow keys pan the camera underneath them. MechsMenuState only sets the cursor
+                // directly on selection (a jump) and spawns its own Info Card window, so it
+                // belongs here too. See MenuOverlayGuard - tile-info/time-speed follow this list.
+                MechsMenuState.IsActive ||
+                AreaSelectionMenuState.IsActive ||
+                PawnAreaMenuState.IsActive ||
+                LearningHelperState.IsActive ||
+                StatBreakdownState.IsActive ||
                 // History tab states
                 HistoryState.IsActive ||
                 HistoryStatisticsState.IsActive ||
                 HistoryMessagesState.IsActive;
-                // Note: TransportPodSelectionState is NOT included - it uses map navigation for cursor movement
+                // Note: TransportPodSelectionState, GizmoZoneEditState, and ShelfLinkingState are
+                // NOT included - they use the map cursor (arrow keys) for cell selection.
         }
 
         /// <summary>
@@ -295,7 +306,7 @@ namespace RimWorldAccess
                 return false; // Block original - our map switching already handled it
 
             // Multi-select mode: move focus only, don't change selection or camera
-            if (MultiSelectState.IsMultiSelectActive)
+            if (MultiSelectState.IsMultiSelectMode)
             {
                 MultiSelectState.NavigateFocusNext();
                 return false;
@@ -321,6 +332,12 @@ namespace RimWorldAccess
                     return false;
                 }
             }
+
+            // If the game's Targeter is active, changing Selector would trigger vanilla
+            // Targeter.ConfirmStillValid → StopTargeting (caster no longer selected).
+            // Redirect to a cursor jump so the user can press Enter to target the pawn.
+            if (PawnSelectionState.TryRedirectForActiveTargeting(selectedPawn))
+                return false;
 
             // Select the pawn and jump camera to follow
             if (Find.Selector != null)
@@ -351,11 +368,14 @@ namespace RimWorldAccess
             if (string.IsNullOrEmpty(currentTask))
                 currentTask = "RimWorldAccess.Map.Pawn.Idle".Translate();
 
-            string announcement;
-            string coverInfo = (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
-                ? CoverHelper.GetCoverInfo(selectedPawn)
-                : null;
-            if (!string.IsNullOrEmpty(coverInfo))
+            string announcement = selectedPawn.LabelShort;
+            if (selectedPawn.Spawned && selectedPawn.Map != null)
+            {
+                string location = TileInfoHelper.GetLocationContextPlain(selectedPawn.Position, selectedPawn.Map);
+                if (!string.IsNullOrEmpty(location))
+                    announcement += $", {location}";
+            }
+            if (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
             {
                 announcement = "RimWorldAccess.Map.Pawn.SelectionWithCover".Translate(selectedPawn.LabelShort, coverInfo, currentTask);
             }
@@ -385,7 +405,7 @@ namespace RimWorldAccess
                 return false; // Block original - our map switching already handled it
 
             // Multi-select mode: move focus only, don't change selection or camera
-            if (MultiSelectState.IsMultiSelectActive)
+            if (MultiSelectState.IsMultiSelectMode)
             {
                 MultiSelectState.NavigateFocusPrevious();
                 return false;
@@ -411,6 +431,10 @@ namespace RimWorldAccess
                     return false;
                 }
             }
+
+            // See SelectNextColonist_Prefix for rationale.
+            if (PawnSelectionState.TryRedirectForActiveTargeting(selectedPawn))
+                return false;
 
             // Select the pawn and jump camera to follow
             if (Find.Selector != null)
@@ -441,11 +465,14 @@ namespace RimWorldAccess
             if (string.IsNullOrEmpty(currentTask))
                 currentTask = "RimWorldAccess.Map.Pawn.Idle".Translate();
 
-            string announcement;
-            string coverInfo = (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
-                ? CoverHelper.GetCoverInfo(selectedPawn)
-                : null;
-            if (!string.IsNullOrEmpty(coverInfo))
+            string announcement = selectedPawn.LabelShort;
+            if (selectedPawn.Spawned && selectedPawn.Map != null)
+            {
+                string location = TileInfoHelper.GetLocationContextPlain(selectedPawn.Position, selectedPawn.Map);
+                if (!string.IsNullOrEmpty(location))
+                    announcement += $", {location}";
+            }
+            if (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
             {
                 announcement = "RimWorldAccess.Map.Pawn.SelectionWithCover".Translate(selectedPawn.LabelShort, coverInfo, currentTask);
             }
@@ -477,6 +504,36 @@ namespace RimWorldAccess
                 return false;
 
             return true;
+        }
+    }
+
+    /// <summary>
+    /// Blocks RimWorld's built-in arrow-key camera dolly while the mod owns
+    /// arrow-key navigation. We translate arrow keys into cursor movement
+    /// (which does its own JumpToCurrentMapLoc) or jump-mode adjustments
+    /// (which must leave the camera alone). The vanilla dolly would otherwise
+    /// pan the camera in parallel — and with Shift held it pans 2.4× faster,
+    /// producing the "large amount" drift the user reported.
+    /// </summary>
+    [HarmonyPatch(typeof(CameraDriver))]
+    [HarmonyPatch("CameraDriverOnGUI")]
+    public static class CameraDriverOnGUIPatch
+    {
+        [HarmonyPostfix]
+        public static void Postfix(CameraDriver __instance)
+        {
+            if (Find.CurrentMap == null)
+                return;
+
+            if (!WorldRendererUtility.DrawingMap)
+                return;
+
+            if (!MapNavigationState.IsInitialized)
+                return;
+
+            // Zero the keyboard-driven dolly set by vanilla from MapDolly_* bindings.
+            // Mouse-drag dolly (desiredDollyRaw) is preserved in non-Cursor modes.
+            Traverse.Create(__instance).Field("desiredDolly").SetValue(Vector2.zero);
         }
     }
 }

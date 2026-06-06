@@ -116,7 +116,10 @@ namespace RimWorldAccess
             else
             {
                 // In list view, navigate to next notification
-                currentIndex = MenuHelper.SelectNext(currentIndex, notifications.Count);
+                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                    currentIndex = typeahead.GetNextMatch(currentIndex);
+                else
+                    currentIndex = MenuHelper.SelectNext(currentIndex, notifications.Count);
                 detailHelper.ResetDetailPosition();
                 detailHelper.RefreshButtons();
                 AnnounceCurrentSelection();
@@ -140,7 +143,10 @@ namespace RimWorldAccess
             else
             {
                 // In list view, navigate to previous notification
-                currentIndex = MenuHelper.SelectPrevious(currentIndex, notifications.Count);
+                if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                    currentIndex = typeahead.GetPreviousMatch(currentIndex);
+                else
+                    currentIndex = MenuHelper.SelectPrevious(currentIndex, notifications.Count);
                 detailHelper.ResetDetailPosition();
                 detailHelper.RefreshButtons();
                 AnnounceCurrentSelection();
@@ -983,9 +989,16 @@ namespace RimWorldAccess
 
             bool wasInDetailView = detailHelper.IsInDetailView;
             detailHelper.GoBackToList();
-            currentIndex = MenuHelper.JumpToFirst();
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                currentIndex = typeahead.GetFirstMatch();
+            }
+            else
+            {
+                currentIndex = MenuHelper.JumpToFirst();
+                typeahead.ClearSearch();
+            }
             detailHelper.ResetDetailPosition();
-            typeahead.ClearSearch();
             detailHelper.RefreshButtons();
 
             if (wasInDetailView)
@@ -1003,9 +1016,16 @@ namespace RimWorldAccess
 
             bool wasInDetailView = detailHelper.IsInDetailView;
             detailHelper.GoBackToList();
-            currentIndex = MenuHelper.JumpToLast(notifications.Count);
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                currentIndex = typeahead.GetLastMatch();
+            }
+            else
+            {
+                currentIndex = MenuHelper.JumpToLast(notifications.Count);
+                typeahead.ClearSearch();
+            }
             detailHelper.ResetDetailPosition();
-            typeahead.ClearSearch();
             detailHelper.RefreshButtons();
 
             if (wasInDetailView)

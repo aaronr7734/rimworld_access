@@ -50,7 +50,7 @@ namespace RimWorldAccess
                 Log.Message($"{context}: First point set at {cell}");
         }
 
-        public void SetSecondCorner(IntVec3 cell, string context = "")
+        public void SetSecondCorner(IntVec3 cell, string context = "", bool silent = false)
         {
             if (!firstCorner.HasValue)
             {
@@ -61,13 +61,16 @@ namespace RimWorldAccess
             secondCorner = cell;
             previewCells = ShapeHelper.CalculateCells(currentShape, firstCorner.Value, cell);
 
-            string sizeText = ShapeHelper.FormatShapeSize(previewCells);
-            // For regular rectangles, add cell count; for irregular shapes it's already in the size text
-            string announcement = ShapeHelper.IsRegularRectangle(previewCells)
-                ? (string)"RimWorldAccess.Building.Preview.SecondPointRegular".Translate(sizeText, previewCells.Count)
-                : (string)"RimWorldAccess.Building.Preview.SecondPointIrregular".Translate(sizeText);
+            if (!silent)
+            {
+                string sizeText = ShapeHelper.FormatShapeSize(previewCells);
+                // For regular rectangles, add cell count; for irregular shapes it's already in the size text
+                string announcement = ShapeHelper.IsRegularRectangle(previewCells)
+                    ? (string)"RimWorldAccess.Building.Preview.SecondPointRegular".Translate(sizeText, previewCells.Count)
+                    : (string)"RimWorldAccess.Building.Preview.SecondPointIrregular".Translate(sizeText);
 
-            TolkHelper.SpeakData(announcement);
+                TolkHelper.SpeakData(announcement);
+            }
             if (!string.IsNullOrEmpty(context))
                 Log.Message($"{context}: Second point at {cell}. {previewCells.Count} cells");
         }

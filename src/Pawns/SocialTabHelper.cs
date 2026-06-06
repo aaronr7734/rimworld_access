@@ -207,17 +207,11 @@ namespace RimWorldAccess
         {
             var labels = new List<string>();
 
-            var directRelations = pawn.relations.DirectRelations;
-            if (directRelations != null)
+            // Use PawnRelationUtility.GetRelations to catch implied/derived relations
+            // (e.g. Parent stores Child as an implied inverse, not in DirectRelations)
+            foreach (var def in pawn.GetRelations(otherPawn))
             {
-                foreach (var rel in directRelations)
-                {
-                    if (rel.otherPawn == otherPawn)
-                    {
-                        // Use GetGenderSpecificLabelCap to get the correct label based on the other pawn's gender
-                        labels.Add(rel.def.GetGenderSpecificLabelCap(otherPawn));
-                    }
-                }
+                labels.Add(def.GetGenderSpecificLabelCap(otherPawn));
             }
 
             // Add friendship/rivalry labels if no family relations.
@@ -281,18 +275,15 @@ namespace RimWorldAccess
 
             bool hasFactors = false;
 
-            var directRelations = pawn.relations.DirectRelations;
-            if (directRelations != null)
+            // Add relation opinion modifiers — mirrors vanilla Pawn_RelationsTracker.OpinionExplanation
+            foreach (var def in pawn.GetRelations(otherPawn))
             {
-                foreach (var rel in directRelations)
+                if (def.opinionOffset != 0)
                 {
-                    if (rel.otherPawn == otherPawn && rel.def.opinionOffset != 0)
-                    {
-                        lines.Add("RimWorldAccess.Pawns.Social.Relation.OpinionFactor"
-                            .Translate(rel.def.GetGenderSpecificLabelCap(otherPawn),
-                                rel.def.opinionOffset.ToString("+0;-0;0")));
-                        hasFactors = true;
-                    }
+                    lines.Add("RimWorldAccess.Pawns.Social.Relation.OpinionFactor"
+                        .Translate(def.GetGenderSpecificLabelCap(otherPawn),
+                            def.opinionOffset.ToString("+0;-0;0")));
+                    hasFactors = true;
                 }
             }
 

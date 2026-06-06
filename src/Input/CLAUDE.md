@@ -14,7 +14,7 @@ Central keyboard input routing system that coordinates all keyboard accessibilit
 ### Unified Text Input Pipeline (`TextInput/`)
 - **TextFieldSpec.cs** - Immutable per-field constraints (max length, allowed-chars regex, grammar specials, filename rules, custom validator). Static factories: `ForRimWorldDialog`, `ForIRenameable`, `Unrestricted`.
 - **TextFieldValidator.cs** - Pure validation returning `ValidationResult`. `AnnounceRejection` produces the localized speech string.
-- **TextInputController.cs** - One editing session: Begin/HandleCharacter/HandleBackspace/HandleDelete/HandleCopy/HandlePaste/HandleEnter/HandleEscape + cursor-review methods (HandleArrowLeft/Right, HandleHome/End — each takes `shift` and `ctrl` modifiers). `HandleEvent(Event)` dispatches IMGUI key events through the full set. Modal mode registers with `TextInputManager` and owns all keys including cursor nav; embedded mode leaves arrow keys for the surrounding state (cursor nav is only reachable if the site explicitly forwards arrow events).
+- **TextInputController.cs** - One editing session: Begin/HandleCharacter/HandleBackspace/HandleDelete/HandleCopy/HandlePaste/HandleEnter/HandleEscape + cursor-review methods (HandleArrowLeft/Right, HandleHome/End — each takes `shift` and `ctrl` modifiers). `HandleEvent(Event)` dispatches IMGUI key events through the full set. Modal mode registers with `TextInputManager` and owns all keys including cursor nav; embedded mode leaves arrow keys for the surrounding state (cursor nav is only reachable if the site explicitly forwards arrow events). When `HandleEnter` runs it announces the dismissal — "{field} set to {value}" when edited, "{value} unchanged" otherwise (never truncated) — spoken after the caller's confirm handler so it's the authoritative final word. This is gated purely on `announceOnCommit` (not on modal), so embedded fields that forward Enter to the controller (e.g. `WindowlessDialogState`) also announce; embedded save/preset/filename fields that handle Enter themselves to save never reach `HandleEnter` and announce their own result. Pass `announceOnCommit: false` to `Begin` to suppress it (e.g. the modal ideoligion-save field). Pass `displayLabel` to override the field caption used in the prompt and commit announcement when the spec only carries a generic label key (e.g. `WindowlessDialogState` passes each dialog field's own "First name"/"Faction Name" caption).
 - **TextInputManager.cs** - Static single-active-session registry. UnifiedKeyboardPatch's priority -1.6 dispatch routes ALL keys to `Active` when set.
 - **RimWorldDialogIntrospector.cs** - Reflection-cached extractor for vanilla dialog constraints (`Dialog_Rename<T>.MaxNameLength` + `NameIsValid`, `Dialog_GiveName.FirstCharLimit` + `IsValidName`, etc.). Pawn-name fields use `CharacterCardUtility.ValidNameRegex`.
 - **ITypeaheadConsumer.cs** - Delegate-based typeahead consumer (`TypeaheadConsumer` + `TypeaheadDispatcher`). Decouples typeahead detection from KeyCode gating — fixes the OlegTheSnowman Cyrillic-layout bug.
@@ -84,7 +84,7 @@ ALL keyboard shortcuts route through this module. Key bindings include:
 - **Alt+N** - Needs info
 - **Alt+A** - Assign allowed area to selected pawn
 - **Alt+F** - Unforbid all items
-- **Shift+C** - Reform caravan
+- **C** - Reform caravan
 - **F2** - Schedule
 - **F3** - Assign menu
 - **F6** - Research

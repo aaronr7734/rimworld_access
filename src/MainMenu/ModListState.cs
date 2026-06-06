@@ -927,10 +927,24 @@ namespace RimWorldAccess
 
         private static void JumpToFirst()
         {
-            typeahead.ClearSearch();
             var list = GetCurrentList();
             if (list == null || list.Count == 0) return;
 
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                int first = typeahead.GetFirstMatch();
+                if (first >= 0)
+                {
+                    selectedIndex = first;
+                    SyncSelection();
+                    BuildContentLines();
+                    detailHelper.RefreshButtons();
+                    AnnounceWithSearch();
+                }
+                return;
+            }
+
+            typeahead.ClearSearch();
             selectedIndex = MenuHelper.JumpToFirst();
             SyncSelection();
             BuildContentLines();
@@ -940,10 +954,24 @@ namespace RimWorldAccess
 
         private static void JumpToLast()
         {
-            typeahead.ClearSearch();
             var list = GetCurrentList();
             if (list == null || list.Count == 0) return;
 
+            if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+            {
+                int last = typeahead.GetLastMatch();
+                if (last >= 0)
+                {
+                    selectedIndex = last;
+                    SyncSelection();
+                    BuildContentLines();
+                    detailHelper.RefreshButtons();
+                    AnnounceWithSearch();
+                }
+                return;
+            }
+
+            typeahead.ClearSearch();
             selectedIndex = MenuHelper.JumpToLast(list.Count);
             SyncSelection();
             BuildContentLines();

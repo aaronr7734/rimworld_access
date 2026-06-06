@@ -18,9 +18,13 @@ namespace RimWorldAccess
     public sealed class TextInputController
     {
         private string currentText = string.Empty;
+        private string initialText = string.Empty;
         private bool replaceOnFirstKeystroke;
         private int cursorPos;
         private int selectionAnchor;
+        private bool modal;
+        private bool announceOnCommit;
+        private string displayLabel;
 
         public TextFieldSpec Spec { get; private set; }
         public string CurrentText => currentText;
@@ -39,6 +43,9 @@ namespace RimWorldAccess
         /// keys to <see cref="HandleCharacter"/> / <see cref="HandleEnter"/> / etc. itself.
         /// When <paramref name="replaceOnType"/> is true and initial text is non-empty,
         /// the first character/paste replaces the existing text.
+        /// <paramref name="displayLabel"/> overrides the field caption used in the editing prompt
+        /// and the commit announcement — pass an embedded field's own label (e.g. "First name")
+        /// when the spec carries only a generic label key.
         /// </summary>
         public void Begin(
             string initialText,
@@ -46,25 +53,31 @@ namespace RimWorldAccess
             Action<string> onConfirm,
             Action onCancel = null,
             bool replaceOnType = true,
-            bool modal = true)
+            bool modal = true,
+            bool announceOnCommit = true,
+            string displayLabel = null)
         {
             currentText = initialText ?? string.Empty;
+            this.initialText = currentText;
             replaceOnFirstKeystroke = replaceOnType && !string.IsNullOrEmpty(currentText);
             cursorPos = currentText.Length;
             selectionAnchor = cursorPos;
             Spec = spec;
             this.onConfirm = onConfirm;
             this.onCancel = onCancel;
+            this.modal = modal;
+            this.announceOnCommit = announceOnCommit;
+            this.displayLabel = displayLabel;
             if (modal) TextInputManager.SetActive(this);
 
-            string label = spec?.LabelKey != null ? spec.LabelKey.Translate().ToString() : string.Empty;
+            string label = ResolveLabel();
             string preview = string.IsNullOrEmpty(currentText)
                 ? "RimWorldAccess.TextInput.Empty".Translate().ToString()
                 : currentText;
             string announceKey = spec != null && spec.MultiLine
                 ? "RimWorldAccess.TextInput.EditingMultiLineField"
                 : "RimWorldAccess.TextInput.EditingField";
-            TolkHelper.Speak(announceKey.Loc(label, preview), SpeechPriority.High);
+            TolkHelper.Speak(announceKey.Translate(label, preview), SpeechPriority.High);
         }
 
         public void HandleCharacter(char c)
@@ -88,9 +101,9 @@ namespace RimWorldAccess
             cursorPos++;
             selectionAnchor = cursorPos;
             if (c == '\n')
-                TolkHelper.Speak("RimWorldAccess.TextInput.NewLine".Loc(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TextInput.NewLine".Translate(), SpeechPriority.High);
             else
-                TolkHelper.SpeakData(c.ToString(), SpeechPriority.High);
+                TolkHelper.Speak(c.ToString(), SpeechPriority.High);
         }
 
         public void HandleBackspace()
@@ -100,7 +113,7 @@ namespace RimWorldAccess
             {
                 string removed = GetSelectedText();
                 DeleteSelectionInternal();
-                TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Loc(removed), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Translate(removed), SpeechPriority.High);
                 return;
             }
             if (cursorPos == 0) return;
@@ -108,7 +121,7 @@ namespace RimWorldAccess
             currentText = currentText.Remove(cursorPos - 1, 1);
             cursorPos--;
             selectionAnchor = cursorPos;
-            TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Loc(c), SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Translate(c), SpeechPriority.High);
         }
 
         public void HandleDelete()
@@ -118,14 +131,14 @@ namespace RimWorldAccess
             {
                 string removed = GetSelectedText();
                 DeleteSelectionInternal();
-                TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Loc(removed), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Translate(removed), SpeechPriority.High);
                 return;
             }
             if (cursorPos >= currentText.Length) return;
             char c = currentText[cursorPos];
             currentText = currentText.Remove(cursorPos, 1);
             selectionAnchor = cursorPos;
-            TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Loc(c), SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Translate(c), SpeechPriority.High);
         }
 
         public void HandleArrowLeft(bool shift, bool ctrl)
@@ -260,7 +273,7 @@ namespace RimWorldAccess
         {
             string toCopy = HasSelection ? GetSelectedText() : (currentText ?? string.Empty);
             GUIUtility.systemCopyBuffer = toCopy;
-            TolkHelper.Speak("RimWorldAccess.TextInput.Copied".Loc(), SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.TextInput.Copied".Translate(), SpeechPriority.High);
         }
 
         /// <summary>
@@ -275,7 +288,7 @@ namespace RimWorldAccess
             {
                 GUIUtility.systemCopyBuffer = GetSelectedText();
                 DeleteSelectionInternal();
-                TolkHelper.Speak("RimWorldAccess.TextInput.Cut".Loc(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TextInput.Cut".Translate(), SpeechPriority.High);
                 return;
             }
             if (currentText.Length == 0) return;
@@ -283,7 +296,7 @@ namespace RimWorldAccess
             currentText = string.Empty;
             cursorPos = 0;
             selectionAnchor = 0;
-            TolkHelper.Speak("RimWorldAccess.TextInput.Cut".Loc(), SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.TextInput.Cut".Translate(), SpeechPriority.High);
         }
 
         /// <summary>
@@ -305,7 +318,7 @@ namespace RimWorldAccess
             currentText = currentText.Remove(prev, cursorPos - prev);
             cursorPos = prev;
             selectionAnchor = cursorPos;
-            TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Loc(removed), SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Translate(removed), SpeechPriority.High);
         }
 
         /// <summary>
@@ -326,7 +339,7 @@ namespace RimWorldAccess
             string removed = currentText.Substring(cursorPos, next - cursorPos);
             currentText = currentText.Remove(cursorPos, next - cursorPos);
             selectionAnchor = cursorPos;
-            TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Loc(removed), SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Translate(removed), SpeechPriority.High);
         }
 
         public void HandleSelectAll()
@@ -334,7 +347,7 @@ namespace RimWorldAccess
             replaceOnFirstKeystroke = false;
             if (currentText.Length == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.TextInput.Empty".Loc(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TextInput.Empty".Translate(), SpeechPriority.High);
                 return;
             }
             selectionAnchor = 0;
@@ -344,9 +357,9 @@ namespace RimWorldAccess
             // press Up/Down to re-read the full contents explicitly.
             const int LongTextThreshold = 200;
             if (currentText.Length > LongTextThreshold)
-                TolkHelper.Speak("RimWorldAccess.TextInput.SelectedAllLong".Loc(currentText.Length), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TextInput.SelectedAllLong".Translate(currentText.Length), SpeechPriority.High);
             else
-                TolkHelper.Speak("RimWorldAccess.TextInput.SelectedAll".Loc(currentText), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TextInput.SelectedAll".Translate(currentText), SpeechPriority.High);
         }
 
         public void HandlePaste()
@@ -354,7 +367,7 @@ namespace RimWorldAccess
             string clipboard = GUIUtility.systemCopyBuffer;
             if (string.IsNullOrEmpty(clipboard))
             {
-                TolkHelper.Speak("RimWorldAccess.TextInput.ClipboardEmpty".Loc(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TextInput.ClipboardEmpty".Translate(), SpeechPriority.High);
                 return;
             }
 
@@ -381,7 +394,7 @@ namespace RimWorldAccess
             var result = TextFieldValidator.Validate(candidate, Spec);
             if (!result.IsOk)
             {
-                TolkHelper.SpeakData(TextFieldValidator.AnnounceRejection(result, Spec), SpeechPriority.High);
+                TolkHelper.Speak(TextFieldValidator.AnnounceRejection(result, Spec), SpeechPriority.High);
                 return;
             }
 
@@ -389,7 +402,7 @@ namespace RimWorldAccess
             cursorPos = insertionEnd;
             selectionAnchor = cursorPos;
             replaceOnFirstKeystroke = false;
-            TolkHelper.SpeakData(SummarizePaste(clipboard), SpeechPriority.High);
+            TolkHelper.Speak(SummarizePaste(clipboard), SpeechPriority.High);
         }
 
         public void HandleEnter()
@@ -397,13 +410,62 @@ namespace RimWorldAccess
             var result = TextFieldValidator.Validate(currentText, Spec);
             if (!result.IsOk)
             {
-                TolkHelper.SpeakData(TextFieldValidator.AnnounceRejection(result, Spec), SpeechPriority.High);
+                TolkHelper.Speak(TextFieldValidator.AnnounceRejection(result, Spec), SpeechPriority.High);
                 return;
             }
             var cb = onConfirm;
             string text = currentText;
+
+            // Capture what we need for the dismissal announcement before Close() clears Spec.
+            // Gated purely on announceOnCommit: embedded fields that route Enter through the
+            // controller (e.g. WindowlessDialogState) announce too; sites that re-announce their
+            // own result handle Enter themselves and never reach here.
+            bool announce = announceOnCommit;
+            bool changed = text != initialText;
+            string label = ResolveLabel();
+
             Close();
             cb?.Invoke(text);
+
+            // Confirm the dismissal last, so it's the authoritative final word even when the caller's
+            // confirm handler re-announces something (it interrupts that, avoiding double-speak).
+            if (announce)
+                AnnounceCommit(label, text, changed);
+        }
+
+        /// <summary>
+        /// The human label used in the editing prompt and commit announcement. Prefers the explicit
+        /// display label passed to <see cref="Begin"/> (e.g. a dialog field's own caption like
+        /// "First name"); otherwise falls back to the spec's translated label key.
+        /// </summary>
+        private string ResolveLabel()
+        {
+            if (!string.IsNullOrEmpty(displayLabel))
+                return displayLabel;
+            return Spec?.LabelKey != null ? Spec.LabelKey.Translate().ToString() : string.Empty;
+        }
+
+        /// <summary>
+        /// Speaks the field's value on dismissal: "{field} set to {value}" when edited, "{value}
+        /// unchanged" when the user pressed Enter without changing anything. Never truncated.
+        /// </summary>
+        private void AnnounceCommit(string label, string text, bool changed)
+        {
+            string value = string.IsNullOrEmpty(text)
+                ? "RimWorldAccess.TextInput.Empty".Translate().ToString()
+                : text;
+            if (!changed)
+            {
+                // Identify the field by name ("First name unchanged"); fall back to the value only
+                // when no label is available, so we never speak a bare " unchanged".
+                string subject = string.IsNullOrEmpty(label) ? value : label;
+                TolkHelper.Speak("RimWorldAccess.TextInput.FieldUnchanged".Translate(subject), SpeechPriority.High);
+                return;
+            }
+            if (string.IsNullOrEmpty(label))
+                TolkHelper.Speak(value, SpeechPriority.High);
+            else
+                TolkHelper.Speak("RimWorldAccess.TextInput.FieldSet".Translate(label, value), SpeechPriority.High);
         }
 
         public void HandleEscape()
@@ -418,9 +480,9 @@ namespace RimWorldAccess
         public void ReadCurrentText()
         {
             if (string.IsNullOrEmpty(currentText))
-                TolkHelper.Speak("RimWorldAccess.TextInput.Empty".Loc());
+                TolkHelper.Speak("RimWorldAccess.TextInput.Empty".Translate());
             else
-                TolkHelper.SpeakData(currentText);
+                TolkHelper.Speak(currentText);
         }
 
         /// <summary>
@@ -532,6 +594,7 @@ namespace RimWorldAccess
             selectionAnchor = 0;
             replaceOnFirstKeystroke = false;
             Spec = null;
+            displayLabel = null;
             onConfirm = null;
             onCancel = null;
             if (TextInputManager.Active == this)
@@ -574,10 +637,10 @@ namespace RimWorldAccess
             int lineEnd = FindEndOfCurrentLine(lineStart);
             if (lineStart >= lineEnd)
             {
-                TolkHelper.Speak("RimWorldAccess.TextInput.BlankLine".Loc(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TextInput.BlankLine".Translate(), SpeechPriority.High);
                 return;
             }
-            TolkHelper.SpeakData(currentText.Substring(lineStart, lineEnd - lineStart), SpeechPriority.High);
+            TolkHelper.Speak(currentText.Substring(lineStart, lineEnd - lineStart), SpeechPriority.High);
         }
 
         private string GetWordAt(int pos)
@@ -617,11 +680,11 @@ namespace RimWorldAccess
                 int hi = Math.Max(oldCursor, newCursor);
                 if (lo < hi)
                 {
-                    TolkHelper.SpeakData(currentText.Substring(lo, hi - lo), SpeechPriority.High);
+                    TolkHelper.Speak(currentText.Substring(lo, hi - lo), SpeechPriority.High);
                     return;
                 }
                 int edge = leftward ? 0 : currentText.Length - 1;
-                TolkHelper.SpeakData(currentText[edge].ToString(), SpeechPriority.High);
+                TolkHelper.Speak(currentText[edge].ToString(), SpeechPriority.High);
                 return;
             }
 
@@ -633,17 +696,17 @@ namespace RimWorldAccess
                 string wordAtCursor = GetWordAt(newCursor);
                 if (!string.IsNullOrEmpty(wordAtCursor))
                 {
-                    TolkHelper.SpeakData(wordAtCursor, SpeechPriority.High);
+                    TolkHelper.Speak(wordAtCursor, SpeechPriority.High);
                     return;
                 }
                 string edgeWord = leftward ? GetFirstWord() : GetLastWord();
                 if (!string.IsNullOrEmpty(edgeWord))
                 {
-                    TolkHelper.SpeakData(edgeWord, SpeechPriority.High);
+                    TolkHelper.Speak(edgeWord, SpeechPriority.High);
                     return;
                 }
                 int edge = leftward ? 0 : currentText.Length - 1;
-                TolkHelper.SpeakData(currentText[edge].ToString(), SpeechPriority.High);
+                TolkHelper.Speak(currentText[edge].ToString(), SpeechPriority.High);
                 return;
             }
 
@@ -651,7 +714,7 @@ namespace RimWorldAccess
             // is past the last char (at `length`) or didn't move off a boundary, repeat
             // the edge char based on direction.
             int idx = newCursor < currentText.Length ? newCursor : currentText.Length - 1;
-            TolkHelper.SpeakData(currentText[idx].ToString(), SpeechPriority.High);
+            TolkHelper.Speak(currentText[idx].ToString(), SpeechPriority.High);
         }
 
         private string GetFirstWord()

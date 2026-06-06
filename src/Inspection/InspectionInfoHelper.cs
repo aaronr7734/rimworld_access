@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using Verse;
-using Verse.Sound;
 
 namespace RimWorldAccess
 {
@@ -46,6 +45,29 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Translates a RimWorld keyed string for display. Falls back to an English default
+        /// when no translation is registered so the label never reads as a raw key.
+        /// </summary>
+        private static string TranslateSyntheticName(string translationKey, string englishFallback)
+        {
+            if (string.IsNullOrEmpty(translationKey))
+                return englishFallback;
+
+            try
+            {
+                string translated = translationKey.Translate().ToString();
+                if (!string.IsNullOrEmpty(translated) && translated != translationKey)
+                    return translated;
+            }
+            catch
+            {
+                // Ignore and fall through
+            }
+
+            return englishFallback;
+        }
+
+        /// <summary>
         /// Gets a one-line summary description of an object.
         /// </summary>
         public static string GetObjectSummary(object obj)
@@ -54,33 +76,43 @@ namespace RimWorldAccess
 
             if (obj is Pawn pawn)
             {
-                bool isHumanlike = pawn.RaceProps.Humanlike;
-                string label = pawn.LabelCap.StripTags();
-                string statusKey;
+                string status = "";
+
                 if (pawn.Dead)
                     statusKey = isHumanlike ? "RimWorldAccess.Inspection.Summary.PawnDead" : "RimWorldAccess.Inspection.Summary.AnimalDead";
                 else if (pawn.Downed)
                     statusKey = isHumanlike ? "RimWorldAccess.Inspection.Summary.PawnDowned" : "RimWorldAccess.Inspection.Summary.AnimalDowned";
                 else if (pawn.Drafted)
-                    statusKey = isHumanlike ? "RimWorldAccess.Inspection.Summary.PawnDrafted" : "RimWorldAccess.Inspection.Summary.AnimalDrafted";
-                else
-                    statusKey = isHumanlike ? "RimWorldAccess.Inspection.Summary.Pawn" : "RimWorldAccess.Inspection.Summary.Animal";
-                return statusKey.Translate(label);
+                    status = " (Drafted)";
+
+                string displayName = pawn.LabelCap.StripTags();
+
+                // Prefix humanlikes with their translated kind (Colonist / Prisoner / Raider /
+                // Pirate / etc.) so the user knows the role at a glance. Animals' LabelCap
+                // already encodes the kind, so prefixing would read as "Muffalo: Muffalo".
+                if (pawn.RaceProps.Humanlike)
+                {
+                    string kindLabel = pawn.KindLabel.CapitalizeFirst();
+                    if (!string.IsNullOrEmpty(kindLabel) && !displayName.Equals(kindLabel, StringComparison.OrdinalIgnoreCase))
+                        return $"{kindLabel}: {displayName}{status}";
+                }
+
+                return $"{displayName}{status}";
             }
 
             if (obj is Building building)
             {
-                return "RimWorldAccess.Inspection.Summary.Building".Translate(building.LabelCap.StripTags());
+                return building.LabelCap.StripTags();
             }
 
             if (obj is Plant plant)
             {
-                return "RimWorldAccess.Inspection.Summary.Plant".Translate(plant.LabelCap.StripTags());
+                return plant.LabelCap.StripTags();
             }
 
             if (obj is Thing thing)
             {
-                return "RimWorldAccess.Inspection.Summary.Item".Translate(thing.LabelCap.StripTags());
+                return thing.LabelCap.StripTags();
             }
 
             if (obj is Zone zone)
@@ -104,7 +136,7 @@ namespace RimWorldAccess
             // Always add Overview first (synthetic category, not a real tab)
             categories.Add(new TabCategoryInfo
             {
-                Name = "Overview",
+                Name = TranslateSyntheticName("HealthOverview", "Overview"),
                 Tab = null,
                 Handler = TabHandlerType.RichNavigation,
                 IsKnown = true,
@@ -121,11 +153,11 @@ namespace RimWorldAccess
                 if (obj is Pawn pawn)
                 {
                     // Add Mood category (not a separate tab in RimWorld, but we show it)
-                    if (pawn.needs?.mood != null && !categories.Any(c => c.Name == "Mood"))
+                    if (pawn.needs?.mood != null && !categories.Any(c => c.OriginalCategoryName == "Mood"))
                     {
                         categories.Add(new TabCategoryInfo
                         {
-                            Name = "Mood",
+                            Name = TranslateSyntheticName("Mood", "Mood"),
                             Tab = null,
                             Handler = TabHandlerType.RichNavigation,
                             IsKnown = true,
@@ -134,11 +166,11 @@ namespace RimWorldAccess
                     }
 
                     // Add Skills category for humanlike pawns (part of Character tab in game)
-                    if (pawn.RaceProps.Humanlike && pawn.skills?.skills != null && !categories.Any(c => c.Name == "Skills"))
+                    if (pawn.RaceProps.Humanlike && pawn.skills?.skills != null && !categories.Any(c => c.OriginalCategoryName == "Skills"))
                     {
                         categories.Add(new TabCategoryInfo
                         {
-                            Name = "Skills",
+                            Name = TranslateSyntheticName("Skills", "Skills"),
                             Tab = null,
                             Handler = TabHandlerType.RichNavigation,
                             IsKnown = true,
@@ -147,7 +179,7 @@ namespace RimWorldAccess
                     }
 
                     // Add Work Priorities for humanlike pawns
-                    if (pawn.RaceProps.Humanlike && !categories.Any(c => c.Name == "Work Priorities"))
+                    if (pawn.RaceProps.Humanlike && !categories.Any(c => c.OriginalCategoryName == "Work Priorities"))
                     {
                         categories.Add(new TabCategoryInfo
                         {
@@ -160,7 +192,7 @@ namespace RimWorldAccess
                     }
 
                     // Add Job Queue if there are queued jobs
-                    if (pawn.jobs?.jobQueue?.Count > 0 && !categories.Any(c => c.Name == "Job Queue"))
+                    if (pawn.jobs?.jobQueue?.Count > 0 && !categories.Any(c => c.OriginalCategoryName == "Job Queue"))
                     {
                         categories.Add(new TabCategoryInfo
                         {
@@ -178,11 +210,11 @@ namespace RimWorldAccess
                 {
                     // Temperature control (not a tab, but a component)
                     var tempControl = building.TryGetComp<CompTempControl>();
-                    if (tempControl != null && !categories.Any(c => c.Name == "Temperature"))
+                    if (tempControl != null && !categories.Any(c => c.OriginalCategoryName == "Temperature"))
                     {
                         categories.Add(new TabCategoryInfo
                         {
-                            Name = "Temperature",
+                            Name = TranslateSyntheticName("Temperature", "Temperature"),
                             Tab = null,
                             Handler = TabHandlerType.Action,
                             IsKnown = true,
@@ -191,7 +223,7 @@ namespace RimWorldAccess
                     }
 
                     // Bed Assignment (not a tab)
-                    if (building is Building_Bed && !categories.Any(c => c.Name == "Bed Assignment"))
+                    if (building is Building_Bed && !categories.Any(c => c.OriginalCategoryName == "Bed Assignment"))
                     {
                         categories.Add(new TabCategoryInfo
                         {
@@ -207,7 +239,7 @@ namespace RimWorldAccess
                     if (!(building is Building_Bed))
                     {
                         var assignComp = building.TryGetComp<CompAssignableToPawn>();
-                        if (assignComp != null && !categories.Any(c => c.Name == "Owner Assignment"))
+                        if (assignComp != null && !categories.Any(c => c.OriginalCategoryName == "Owner Assignment"))
                         {
                             categories.Add(new TabCategoryInfo
                             {
@@ -223,7 +255,7 @@ namespace RimWorldAccess
                     // Meditation Focus (meditation spots with Royalty DLC)
                     if (building.def == ThingDefOf.MeditationSpot
                         && ModsConfig.RoyaltyActive
-                        && !categories.Any(c => c.Name == "Meditation Focus"))
+                        && !categories.Any(c => c.OriginalCategoryName == "Meditation Focus"))
                     {
                         categories.Add(new TabCategoryInfo
                         {
@@ -236,7 +268,7 @@ namespace RimWorldAccess
                     }
 
                     // Plant Selection for plant growers
-                    if (building is IPlantToGrowSettable && !categories.Any(c => c.Name == "Plant Selection"))
+                    if (building is IPlantToGrowSettable && !categories.Any(c => c.OriginalCategoryName == "Plant Selection"))
                     {
                         categories.Add(new TabCategoryInfo
                         {
@@ -248,23 +280,9 @@ namespace RimWorldAccess
                         });
                     }
 
-                    // Power info
-                    var powerComp = building.TryGetComp<CompPowerTrader>();
-                    if (powerComp != null && !categories.Any(c => c.Name == "Power"))
-                    {
-                        categories.Add(new TabCategoryInfo
-                        {
-                            Name = "Power",
-                            Tab = null,
-                            Handler = TabHandlerType.BasicInspectString,
-                            IsKnown = true,
-                            OriginalCategoryName = "Power"
-                        });
-                    }
-
                     // Dynamically discovered components
                     var discoveredComponents = BuildingComponentsHelper.GetDiscoverableComponents(building);
-                    foreach (var component in discoveredComponents.Where(cmp => !categories.Any(c => c.Name == cmp.CategoryName)))
+                    foreach (var component in discoveredComponents.Where(cmp => !categories.Any(c => c.OriginalCategoryName == cmp.CategoryName)))
                     {
                         categories.Add(new TabCategoryInfo
                         {
@@ -277,7 +295,7 @@ namespace RimWorldAccess
                     }
 
                     // Facility linking (CompFacility / CompAffectedByFacilities)
-                    if (FacilityLinkHelper.HasFacilityComps(building) && !categories.Any(c => c.Name == "Linked Facilities"))
+                    if (FacilityLinkHelper.HasFacilityComps(building) && !categories.Any(c => c.OriginalCategoryName == "Linked Facilities"))
                     {
                         categories.Add(new TabCategoryInfo
                         {
@@ -302,22 +320,6 @@ namespace RimWorldAccess
                         });
                     }
 
-                }
-
-                // Add growth info for plants
-                if (obj is Plant)
-                {
-                    if (!categories.Any(c => c.Name == "Growth Info"))
-                    {
-                        categories.Add(new TabCategoryInfo
-                        {
-                            Name = "Growth Info",
-                            Tab = null,
-                            Handler = TabHandlerType.RichNavigation,
-                            IsKnown = true,
-                            OriginalCategoryName = "Growth Info"
-                        });
-                    }
                 }
 
             }
@@ -355,6 +357,120 @@ namespace RimWorldAccess
                         OriginalCategoryName = "Plant Info"
                     });
                 }
+            }
+
+            return categories;
+        }
+
+        /// <summary>
+        /// Gets the list of available information categories for an object.
+        /// This is the legacy method that returns simple string categories.
+        /// Preserved for backward compatibility with existing code.
+        /// </summary>
+        public static List<string> GetAvailableCategories(object obj)
+        {
+            var categories = new List<string>();
+
+            if (obj is Pawn pawn)
+            {
+                categories.Add("Overview");
+                categories.Add("Health");
+
+                if (pawn.RaceProps.Humanlike)
+                {
+                    categories.Add("Needs");
+                    categories.Add("Mood");
+                    categories.Add("Gear");
+                    categories.Add("Skills");
+                    categories.Add("Social");
+                    categories.Add("Character");
+                    categories.Add("Work Priorities");
+                    categories.Add("Log");
+
+                    // Add Job Queue category if there are queued jobs
+                    if (pawn.jobs?.jobQueue?.Count > 0)
+                    {
+                        categories.Add("Job Queue");
+                    }
+
+                    // Add Prisoner category for prisoners and slaves
+                    if (pawn.IsPrisonerOfColony || pawn.IsSlaveOfColony)
+                    {
+                        categories.Add("Prisoner");
+                    }
+                }
+                else // Animal
+                {
+                    categories.Add("Needs");
+                    if (pawn.training != null)
+                        categories.Add("Training");
+                }
+            }
+            else if (obj is Building building)
+            {
+                categories.Add("Overview");
+
+                // Check for bills (workbench)
+                if (building is IBillGiver)
+                    categories.Add("Bills");
+
+                // Check for bed assignment
+                if (building is Building_Bed)
+                    categories.Add("Bed Assignment");
+
+                // Owner Assignment for non-bed CompAssignableToPawn buildings
+                if (!(building is Building_Bed) && building.TryGetComp<CompAssignableToPawn>() != null)
+                    categories.Add("Owner Assignment");
+
+                // Meditation Focus for meditation spots
+                if (building.def == ThingDefOf.MeditationSpot && ModsConfig.RoyaltyActive)
+                    categories.Add("Meditation Focus");
+
+                // Check for temperature control (coolers, heaters, vents)
+                var tempControl = building.TryGetComp<CompTempControl>();
+                if (tempControl != null)
+                    categories.Add("Temperature");
+
+                // Check for storage
+                if (building is IStoreSettingsParent || building is Building_Storage)
+                    categories.Add("Storage");
+
+                // Check for turrets with changeable projectiles (mortars)
+                if (building is Building_TurretGun turretGun && turretGun.gun?.TryGetComp<CompChangeableProjectile>() != null)
+                    categories.Add("Shells");
+
+                // Check for plant grower (hydroponics basin, growing zones, etc.)
+                if (building is IPlantToGrowSettable)
+                    categories.Add("Plant Selection");
+
+                // Dynamically discover and add component categories
+                var discoveredComponents = BuildingComponentsHelper.GetDiscoverableComponents(building);
+                foreach (var component in discoveredComponents.Where(cmp => !categories.Contains(cmp.CategoryName)))
+                {
+                    categories.Add(component.CategoryName);
+                }
+
+            }
+            else if (obj is Plant plant)
+            {
+                categories.Add("Overview");
+            }
+            else if (obj is Zone zone)
+            {
+                categories.Add("Overview");
+                categories.Add("Rename".Translate().ToString());
+
+                // Zone_Stockpile implements IStoreSettingsParent, so add Storage category
+                if (zone is IStoreSettingsParent)
+                    categories.Add("Storage");
+
+                // Zone_Growing has plant settings
+                if (zone is Zone_Growing)
+                    categories.Add("Plant Info");
+            }
+            else if (obj is Thing)
+            {
+                categories.Add("Overview");
             }
 
             return categories;
@@ -678,9 +794,6 @@ namespace RimWorldAccess
                 case "Storage":
                     return GetBuildingStorageInfo(building);
 
-                case "Power":
-                    return GetBuildingPowerInfo(building);
-
                 case "Linked Facilities":
                     return FacilityLinkHelper.GetInspectionInfo(building)
                         ?? (string)"RimWorldAccess.Inspection.Building.NoFacilityInfo".Translate();
@@ -708,8 +821,10 @@ namespace RimWorldAccess
                 lines.Add("");
             }
 
-            // Health
-            if (building.HitPoints < building.MaxHitPoints)
+            // Health — skipped for indestructible buildings (geysers etc.) which
+            // report HitPoints of -1. Vanilla gates on def.useHitPoints.
+            if (building.def != null && building.def.useHitPoints &&
+                building.HitPoints < building.MaxHitPoints)
             {
                 float healthPercent = (float)building.HitPoints / building.MaxHitPoints;
                 lines.Add("RimWorldAccess.Inspection.Building.Health"
@@ -808,31 +923,6 @@ namespace RimWorldAccess
             }
 
             return "RimWorldAccess.Inspection.Building.NoStorageSettings".Translate();
-        }
-
-        /// <summary>
-        /// Gets power information for a powered building.
-        /// </summary>
-        private static string GetBuildingPowerInfo(Building building)
-        {
-            var powerComp = building.TryGetComp<CompPowerTrader>();
-            if (powerComp != null)
-            {
-                var lines = new List<string>();
-                lines.Add("RimWorldAccess.Inspection.Building.PowerStatus"
-                    .Translate("Power".Translate(), powerComp.PowerOn ? "On".Translate() : "Off".Translate()));
-                lines.Add("RimWorldAccess.Inspection.Building.PowerConsumption".Translate(powerComp.PowerOutput));
-
-                if (!powerComp.PowerOn)
-                {
-                    lines.Add("");
-                    lines.Add("RimWorldAccess.Inspection.Building.PowerOff".Translate());
-                }
-
-                return string.Join("\n", lines);
-            }
-
-            return "RimWorldAccess.Inspection.Building.NoPower".Translate();
         }
 
         /// <summary>
@@ -958,9 +1048,6 @@ namespace RimWorldAccess
                 case "Overview":
                     return GetPlantOverview(plant);
 
-                case "Growth Info":
-                    return GetPlantGrowthInfo(plant);
-
                 default:
                     return "RimWorldAccess.Inspection.Category.NotFound".Translate();
             }
@@ -992,27 +1079,6 @@ namespace RimWorldAccess
                 description = System.Text.RegularExpressions.Regex.Replace(description, @"\s+", " ");
                 lines.Add(description);
             }
-
-            return string.Join("\n", lines);
-        }
-
-        /// <summary>
-        /// Gets detailed growth information for a plant.
-        /// </summary>
-        private static string GetPlantGrowthInfo(Plant plant)
-        {
-            var lines = new List<string>();
-            lines.Add("RimWorldAccess.Inspection.Plant.Growth".Translate(plant.Growth.ToStringPercent()));
-            lines.Add("RimWorldAccess.Inspection.Plant.Lifespan"
-                .Translate(plant.Age, plant.def.plant.LifespanTicks.TicksToDays().ToString("F1")));
-
-            if (plant.Blighted)
-                lines.Add("RimWorldAccess.Inspection.Plant.StatusBlighted".Translate());
-            else if (plant.Dying)
-                lines.Add("RimWorldAccess.Inspection.Plant.StatusDying".Translate());
-
-            if (plant.HarvestableNow)
-                lines.Add("RimWorldAccess.Inspection.Plant.ReadyHarvest".Translate());
 
             return string.Join("\n", lines);
         }
