@@ -113,8 +113,14 @@
   <RimWorldAccess.Pawns.MultiSelect.PawnSummary>{0}, {1}, {2}</RimWorldAccess.Pawns.MultiSelect.PawnSummary>
   <RimWorldAccess.Pawns.MultiSelect.PawnSummaryWithPos>{0}, {1}, {2}. {3}</RimWorldAccess.Pawns.MultiSelect.PawnSummaryWithPos>
   <RimWorldAccess.Pawns.MultiSelect.FocusedTask>{0} - {1}</RimWorldAccess.Pawns.MultiSelect.FocusedTask>
-  <!-- BlockedByTargeting: spoken when a Selector action is attempted during active targeting. -->
-  <RimWorldAccess.Pawns.MultiSelect.BlockedByTargeting>Cannot perform this action while targeting. Press Escape to cancel targeting first.</RimWorldAccess.Pawns.MultiSelect.BlockedByTargeting>
+  <!-- BlockedByTargeting: spoken when a Selector action is attempted during active
+       targeting. {0} = the action verb phrase (one of the Action* keys below),
+       kept as a data slot so each blocked action names itself. -->
+  <RimWorldAccess.Pawns.MultiSelect.BlockedByTargeting>Cannot {0} while targeting. Press Escape to cancel targeting first.</RimWorldAccess.Pawns.MultiSelect.BlockedByTargeting>
+  <RimWorldAccess.Pawns.MultiSelect.ActionChangeSelection>change selection</RimWorldAccess.Pawns.MultiSelect.ActionChangeSelection>
+  <RimWorldAccess.Pawns.MultiSelect.ActionExtendSelection>extend selection</RimWorldAccess.Pawns.MultiSelect.ActionExtendSelection>
+  <RimWorldAccess.Pawns.MultiSelect.ActionClearSelection>clear selection</RimWorldAccess.Pawns.MultiSelect.ActionClearSelection>
+  <RimWorldAccess.Pawns.MultiSelect.ActionSelectAll>select all</RimWorldAccess.Pawns.MultiSelect.ActionSelectAll>
   <!-- AddedStarted: first pawn added, entering multi-select mode.
        {0} = pawn label, {1} = total selected count. -->
   <RimWorldAccess.Pawns.MultiSelect.AddedStarted>{0} added. Multi-select started. {1} selected.</RimWorldAccess.Pawns.MultiSelect.AddedStarted>

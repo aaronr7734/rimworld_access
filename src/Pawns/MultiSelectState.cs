@@ -160,12 +160,14 @@ namespace RimWorldAccess
         /// messages, etc.) and at worst kills the cast outright. Better to refuse
         /// the action with a clear message and let the user finish or cancel first.
         /// </summary>
-        private static bool BlockedByActiveTargeting(string actionDescription)
+        private static bool BlockedByActiveTargeting(string actionVerbKey)
         {
             var targeter = Find.Targeter;
             if (targeter == null || !targeter.IsTargeting)
                 return false;
-            TolkHelper.Speak("RimWorldAccess.Pawns.MultiSelect.BlockedByTargeting".Loc(), SpeechPriority.High);
+            TolkHelper.Speak(
+                "RimWorldAccess.Pawns.MultiSelect.BlockedByTargeting".Loc((string)actionVerbKey.Translate()),
+                SpeechPriority.High);
             return true;
         }
 
@@ -177,7 +179,7 @@ namespace RimWorldAccess
                 return;
             }
 
-            if (BlockedByActiveTargeting("change selection"))
+            if (BlockedByActiveTargeting("RimWorldAccess.Pawns.MultiSelect.ActionChangeSelection"))
                 return;
 
             ValidateAndCleanupSelection();
@@ -276,7 +278,7 @@ namespace RimWorldAccess
             if (Find.CurrentMap == null)
                 return;
 
-            if (BlockedByActiveTargeting("extend selection"))
+            if (BlockedByActiveTargeting("RimWorldAccess.Pawns.MultiSelect.ActionExtendSelection"))
                 return;
 
             ValidateAndCleanupSelection();
@@ -300,7 +302,7 @@ namespace RimWorldAccess
             if (Find.CurrentMap == null)
                 return;
 
-            if (BlockedByActiveTargeting("extend selection"))
+            if (BlockedByActiveTargeting("RimWorldAccess.Pawns.MultiSelect.ActionExtendSelection"))
                 return;
 
             ValidateAndCleanupSelection();
@@ -440,7 +442,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void ClearMultiSelect()
         {
-            if (BlockedByActiveTargeting("clear selection"))
+            if (BlockedByActiveTargeting("RimWorldAccess.Pawns.MultiSelect.ActionClearSelection"))
                 return;
 
             if (!IsMultiSelectMode)
@@ -471,7 +473,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void SelectAllColonists(List<Pawn> allColonists)
         {
-            if (BlockedByActiveTargeting("select all"))
+            if (BlockedByActiveTargeting("RimWorldAccess.Pawns.MultiSelect.ActionSelectAll"))
                 return;
 
             if (allColonists == null || allColonists.Count == 0)
