@@ -195,4 +195,12 @@
   <RimWorldAccess.Rituals.DryadCaste.NoCasteSelected>No caste selected.</RimWorldAccess.Rituals.DryadCaste.NoCasteSelected>
   <RimWorldAccess.Rituals.DryadCaste.MissingTreeData>Cannot apply caste: missing tree data.</RimWorldAccess.Rituals.DryadCaste.MissingTreeData>
   <RimWorldAccess.Rituals.DryadCaste.DialogClosed>Dryad caste dialog closed.</RimWorldAccess.Rituals.DryadCaste.DialogClosed>
+  <!-- Lord-job dialog adapter announcements (consumed via SpeakData in RitualPatch). -->
+  <RimWorldAccess.Rituals.Ritual.DialogNameFallback>Ritual</RimWorldAccess.Rituals.Ritual.DialogNameFallback>
+  <RimWorldAccess.Rituals.Ritual.DialogClosed>Ritual dialog closed.</RimWorldAccess.Rituals.Ritual.DialogClosed>
+  <RimWorldAccess.Rituals.Ritual.ParticipantsDrafted>Some participants are drafted.</RimWorldAccess.Rituals.Ritual.ParticipantsDrafted>
+  <RimWorldAccess.Rituals.Gravship.DialogName>Gravship launch</RimWorldAccess.Rituals.Gravship.DialogName>
+  <RimWorldAccess.Rituals.Gravship.DialogClosed>Gravship launch dialog closed.</RimWorldAccess.Rituals.Gravship.DialogClosed>
+  <RimWorldAccess.Rituals.Psychic.DialogClosed>Psychic ritual dialog closed.</RimWorldAccess.Rituals.Psychic.DialogClosed>
+  <RimWorldAccess.Rituals.DryadCaste.UnknownCaste>Unknown caste</RimWorldAccess.Rituals.DryadCaste.UnknownCaste>
 </LanguageData>

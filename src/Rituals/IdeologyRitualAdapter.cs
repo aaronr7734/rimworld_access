@@ -44,11 +44,12 @@ namespace RimWorldAccess
             {
                 if (ritual?.behavior?.def?.label != null)
                     return ritual.behavior.def.label.CapitalizeFirst();
-                return ritual?.Label?.CapitalizeFirst() ?? "Ritual";
+                return ritual?.Label?.CapitalizeFirst()
+                    ?? (string)"RimWorldAccess.Rituals.Ritual.DialogNameFallback".Translate();
             }
         }
 
-        public override string ClosingAnnouncement => "Ritual dialog closed.";
+        public override string ClosingAnnouncement => "RimWorldAccess.Rituals.Ritual.DialogClosed".Translate();
 
         protected override void AppendDialogSpecificWarnings(List<string> warnings)
         {
@@ -63,7 +64,7 @@ namespace RimWorldAccess
             {
                 if (assignments != null && assignments.Participants.Any(p => p.Drafted))
                 {
-                    warnings.Add("Some participants are drafted.");
+                    warnings.Add("RimWorldAccess.Rituals.Ritual.ParticipantsDrafted".Translate());
                 }
             }
             catch { /* ignore */ }

@@ -238,4 +238,46 @@
   <RimWorldAccess.Abilities.World.ErrorSelecting>Error selecting destination</RimWorldAccess.Abilities.World.ErrorSelecting>
   <RimWorldAccess.Abilities.World.Cancelled>Ability targeting cancelled</RimWorldAccess.Abilities.World.Cancelled>
   <RimWorldAccess.Abilities.World.InvalidTarget>Invalid target</RimWorldAccess.Abilities.World.InvalidTarget>
+  <!-- TargetingParametersDescriber: "Looking for ..." session descriptions. Each
+       semantic case is its own key; {0}-style slots receive vanilla noun words
+       (person/colonist/animal/...) so only the phrase frame, article, and list
+       conjunction are translated here. -->
+  <RimWorldAccess.Abilities.Describe.Frame>Looking for {0}</RimWorldAccess.Abilities.Describe.Frame>
+  <RimWorldAccess.Abilities.Describe.Specific>Looking for {0}</RimWorldAccess.Abilities.Describe.Specific>
+  <RimWorldAccess.Abilities.Describe.Door>Looking for a door</RimWorldAccess.Abilities.Describe.Door>
+  <RimWorldAccess.Abilities.Describe.Corpse>Looking for a corpse</RimWorldAccess.Abilities.Describe.Corpse>
+  <RimWorldAccess.Abilities.Describe.DownedPerson>Looking for a downed {0}</RimWorldAccess.Abilities.Describe.DownedPerson>
+  <RimWorldAccess.Abilities.Describe.AnimaTree>Looking for an anima tree</RimWorldAccess.Abilities.Describe.AnimaTree>
+  <RimWorldAccess.Abilities.Describe.DamagedThing>Looking for a damaged thing</RimWorldAccess.Abilities.Describe.DamagedThing>
+  <RimWorldAccess.Abilities.Describe.Flammable>Looking for a flammable target</RimWorldAccess.Abilities.Describe.Flammable>
+  <RimWorldAccess.Abilities.Describe.Colonist>Looking for a {0}</RimWorldAccess.Abilities.Describe.Colonist>
+  <RimWorldAccess.Abilities.Describe.Prisoner>Looking for a {0}</RimWorldAccess.Abilities.Describe.Prisoner>
+  <RimWorldAccess.Abilities.Describe.ColonistOrPrisoner>Looking for a {0} or {1}</RimWorldAccess.Abilities.Describe.ColonistOrPrisoner>
+  <RimWorldAccess.Abilities.Describe.ColonistPrisonerSlave>Looking for a {0}, {1}, or {2}</RimWorldAccess.Abilities.Describe.ColonistPrisonerSlave>
+  <!-- Target-descriptor fragments composed into the Frame's {0} list slot. -->
+  <RimWorldAccess.Abilities.Describe.Part.Person>a {0}</RimWorldAccess.Abilities.Describe.Part.Person>
+  <RimWorldAccess.Abilities.Describe.Part.Animal>an {0}</RimWorldAccess.Abilities.Describe.Part.Animal>
+  <RimWorldAccess.Abilities.Describe.Part.Mech>a {0}</RimWorldAccess.Abilities.Describe.Part.Mech>
+  <RimWorldAccess.Abilities.Describe.Part.Entity>an entity</RimWorldAccess.Abilities.Describe.Part.Entity>
+  <RimWorldAccess.Abilities.Describe.Part.Corpse>a corpse</RimWorldAccess.Abilities.Describe.Part.Corpse>
+  <RimWorldAccess.Abilities.Describe.Part.PersonCorpse>a {0}'s corpse</RimWorldAccess.Abilities.Describe.Part.PersonCorpse>
+  <RimWorldAccess.Abilities.Describe.Part.AnimalCorpse>an {0} corpse</RimWorldAccess.Abilities.Describe.Part.AnimalCorpse>
+  <RimWorldAccess.Abilities.Describe.Part.MechCorpse>a {0} corpse</RimWorldAccess.Abilities.Describe.Part.MechCorpse>
+  <RimWorldAccess.Abilities.Describe.Part.Building>a building</RimWorldAccess.Abilities.Describe.Part.Building>
+  <RimWorldAccess.Abilities.Describe.Part.Item>an item</RimWorldAccess.Abilities.Describe.Part.Item>
+  <RimWorldAccess.Abilities.Describe.Part.Fire>a fire</RimWorldAccess.Abilities.Describe.Part.Fire>
+  <RimWorldAccess.Abilities.Describe.Part.Plant>a plant</RimWorldAccess.Abilities.Describe.Part.Plant>
+  <RimWorldAccess.Abilities.Describe.Part.Self>self</RimWorldAccess.Abilities.Describe.Part.Self>
+  <RimWorldAccess.Abilities.Describe.Part.Location>a {0}</RimWorldAccess.Abilities.Describe.Part.Location>
+  <!-- List joining for 2 and 3+ descriptor fragments. -->
+  <RimWorldAccess.Abilities.Describe.JoinPair>{0} or {1}</RimWorldAccess.Abilities.Describe.JoinPair>
+  <RimWorldAccess.Abilities.Describe.JoinSeparator>, </RimWorldAccess.Abilities.Describe.JoinSeparator>
+  <RimWorldAccess.Abilities.Describe.JoinLast>{0}, or {1}</RimWorldAccess.Abilities.Describe.JoinLast>
+  <!-- GenericTargetingState range-error and success returns (consumed via SpeakData
+       in the Combat TargetingPatch). {0}/{1} are pre-formatted distances/ranges. -->
+  <RimWorldAccess.Abilities.Generic.OutOfRangeError>Out of range. Distance: {0}, max range: {1}</RimWorldAccess.Abilities.Generic.OutOfRangeError>
+  <RimWorldAccess.Abilities.Generic.TooCloseError>Too close. Distance: {0}, min range: {1}</RimWorldAccess.Abilities.Generic.TooCloseError>
+  <RimWorldAccess.Abilities.Generic.LocationFallback>location</RimWorldAccess.Abilities.Generic.LocationFallback>
+  <RimWorldAccess.Abilities.Generic.TargetSelected>Target selected: {0}</RimWorldAccess.Abilities.Generic.TargetSelected>
+  <RimWorldAccess.Abilities.Generic.SourceTarget>{0}: {1}</RimWorldAccess.Abilities.Generic.SourceTarget>
 </LanguageData>

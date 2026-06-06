@@ -297,9 +297,10 @@ namespace RimWorldAccess
             try
             {
                 var prop = AccessTools.Property(typeof(Dialog_BeginLordJob), "ExpectedQualityLabel");
-                return ResolveTaggedString(prop?.GetValue(dialog)) ?? "Expected quality";
+                return ResolveTaggedString(prop?.GetValue(dialog))
+                    ?? (string)"RimWorldAccess.Rituals.Quality.ExpectedQualityLabel".Translate();
             }
-            catch { return "Expected quality"; }
+            catch { return "RimWorldAccess.Rituals.Quality.ExpectedQualityLabel".Translate(); }
         }
 
         protected static string ResolveTaggedString(object value)

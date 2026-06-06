@@ -36,7 +36,7 @@ namespace RimWorldAccess
         public override string LocalizedDialogName =>
             psychicRitualDef?.LabelCap.Resolve() ?? "Psychic ritual";
 
-        public override string ClosingAnnouncement => "Psychic ritual dialog closed.";
+        public override string ClosingAnnouncement => "RimWorldAccess.Rituals.Psychic.DialogClosed".Translate();
 
         public override string OutcomeDescriptionText
         {

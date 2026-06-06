@@ -16,9 +16,9 @@ namespace RimWorldAccess
             gravshipDialog = dialog;
         }
 
-        public override string LocalizedDialogName => "Gravship launch";
+        public override string LocalizedDialogName => "RimWorldAccess.Rituals.Gravship.DialogName".Translate();
 
-        public override string ClosingAnnouncement => "Gravship launch dialog closed.";
+        public override string ClosingAnnouncement => "RimWorldAccess.Rituals.Gravship.DialogClosed".Translate();
 
         public override IReadOnlyList<LordJobExtraToggle> BuildExtraToggles()
         {

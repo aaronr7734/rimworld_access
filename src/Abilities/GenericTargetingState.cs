@@ -145,7 +145,8 @@ namespace RimWorldAccess
             float distance = (cursor - casterPosition).LengthHorizontal;
 
             if (effectiveRange > 0f && distance > effectiveRange)
-                return $"Out of range. Distance: {distance:F0}, max range: {effectiveRange:F0}";
+                return "RimWorldAccess.Abilities.Generic.OutOfRangeError".Translate(
+                    distance.ToString("F0"), effectiveRange.ToString("F0"));
 
             // Use the target-aware min range (matches Verb.OutOfRange). For non-adjacent targets
             // of projectile weapons this snaps to 1.421 even when minRange is 0, so gate on the
@@ -156,7 +157,8 @@ namespace RimWorldAccess
             {
                 float effMin = verb.verbProps.EffectiveMinRange(new LocalTargetInfo(cursor), verb.caster);
                 if (distance < effMin)
-                    return $"Too close. Distance: {distance:F0}, min range: {effMin:F0}";
+                    return "RimWorldAccess.Abilities.Generic.TooCloseError".Translate(
+                        distance.ToString("F0"), effMin.ToString("F0"));
             }
 
             return null;
@@ -164,10 +166,12 @@ namespace RimWorldAccess
 
         public static string BuildSuccessAnnouncement(LocalTargetInfo target)
         {
-            string targetLabel = target.HasThing ? target.Thing.LabelShort : "location";
+            string targetLabel = target.HasThing
+                ? target.Thing.LabelShort
+                : (string)"RimWorldAccess.Abilities.Generic.LocationFallback".Translate();
             return string.IsNullOrEmpty(sourceLabel)
-                ? $"Target selected: {targetLabel}"
-                : $"{sourceLabel}: {targetLabel}";
+                ? (string)"RimWorldAccess.Abilities.Generic.TargetSelected".Translate(targetLabel)
+                : (string)"RimWorldAccess.Abilities.Generic.SourceTarget".Translate(sourceLabel, targetLabel);
         }
 
         private static string BuildStartAnnouncement()

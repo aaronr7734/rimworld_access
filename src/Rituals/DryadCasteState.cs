@@ -265,7 +265,7 @@ namespace RimWorldAccess
         private static string FormatModeAnnouncement(GauranlenTreeModeDef mode)
         {
             if (mode == null)
-                return "Unknown caste";
+                return "RimWorldAccess.Rituals.DryadCaste.UnknownCaste".Translate();
 
             GauranlenTreeModeDef currentMode = currentModeField?.GetValue(currentDialog) as GauranlenTreeModeDef;
             Pawn connectedPawn = connectedPawnField?.GetValue(currentDialog) as Pawn;
