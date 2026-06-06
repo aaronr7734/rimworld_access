@@ -607,18 +607,18 @@ namespace RimWorldAccess
 
                     // Melanin skin color genes all share generic "skin color" label.
                     // Synthesize a shade description from the color's luminance.
-                    if (gene.def.skinColorBase.HasValue && gene.def.label == "skin color")
+                    if (gene.def.skinColorBase.HasValue && gene.def.endogeneCategory == EndogeneCategory.Melanin)
                     {
                         Color color = gene.def.skinColorBase.Value;
                         float luminance = 0.299f * color.r + 0.587f * color.g + 0.114f * color.b;
-                        string shade = luminance > 0.85f ? "very light"
-                                     : luminance > 0.7f  ? "light"
-                                     : luminance > 0.55f ? "fair"
-                                     : luminance > 0.45f ? "medium"
-                                     : luminance > 0.35f ? "tan"
-                                     : luminance > 0.2f  ? "brown"
-                                     : "dark brown";
-                        geneName = $"Skin color ({shade})";
+                        string shade = (luminance > 0.85f ? "RimWorldAccess.Inspection.InfoCard.SkinShade.VeryLight"
+                                     : luminance > 0.7f  ? "RimWorldAccess.Inspection.InfoCard.SkinShade.Light"
+                                     : luminance > 0.55f ? "RimWorldAccess.Inspection.InfoCard.SkinShade.Fair"
+                                     : luminance > 0.45f ? "RimWorldAccess.Inspection.InfoCard.SkinShade.Medium"
+                                     : luminance > 0.35f ? "RimWorldAccess.Inspection.InfoCard.SkinShade.Tan"
+                                     : luminance > 0.2f  ? "RimWorldAccess.Inspection.InfoCard.SkinShade.Brown"
+                                     : "RimWorldAccess.Inspection.InfoCard.SkinShade.DarkBrown").Translate();
+                        geneName = "RimWorldAccess.Inspection.InfoCard.SkinColorShade".Translate(shade);
                     }
 
                     genes.Add((geneName, gene.def));
@@ -695,7 +695,7 @@ namespace RimWorldAccess
                 foreach (var hediff in pawn.health.hediffSet.hediffs.Where(h => h.Visible))
                 {
                     string label = hediff.LabelCap;
-                    string partLabel = hediff.Part?.LabelCap ?? "Whole body";
+                    string partLabel = hediff.Part?.LabelCap ?? "WholeBody".Translate();
                     string severity = hediff.SeverityLabel ?? "";
                     string tip = hediff.GetTooltip(pawn, false);
                     hediffs.Add((label, partLabel, severity, tip));

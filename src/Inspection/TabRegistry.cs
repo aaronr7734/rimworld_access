@@ -337,7 +337,7 @@ namespace RimWorldAccess
         public static string GetFallbackInfo(Thing thing, InspectTabBase tab)
         {
             if (thing == null || tab == null)
-                return "No information available.";
+                return "RimWorldAccess.Inspection.Category.NoInfo".Translate();
 
             try
             {
@@ -349,12 +349,12 @@ namespace RimWorldAccess
 
                 // If no inspect string, provide a helpful message
                 string tabName = GetCategoryNameForTab(tab);
-                return $"Tab '{tabName}' is available but has no keyboard-accessible text content.";
+                return "RimWorldAccess.Inspection.Tree.TabNoTextContent".Translate(tabName);
             }
             catch (Exception ex)
             {
                 Log.Warning($"[RimWorld Access] Error getting fallback info for tab {tab?.GetType()?.Name}: {ex.Message}");
-                return "Error retrieving information.";
+                return "RimWorldAccess.Inspection.Tree.ErrorRetrievingInfo".Translate();
             }
         }
 

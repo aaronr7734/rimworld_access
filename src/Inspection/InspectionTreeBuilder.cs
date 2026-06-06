@@ -2196,7 +2196,7 @@ namespace RimWorldAccess
                     {
                         // Cannot train — show reason with description inline
                         string shortLabel = info.Def.LabelCap + ": " +
-                            (!string.IsNullOrEmpty(info.DisabledReason) ? info.DisabledReason : "Cannot train");
+                            (!string.IsNullOrEmpty(info.DisabledReason) ? info.DisabledReason : "RimWorldAccess.Inspection.Training.CannotTrain".Translate().ToString());
                         AddChild(skillsItem, new InspectionTreeItem
                         {
                             Type = InspectionTreeItem.ItemType.DetailText,
@@ -2209,8 +2209,9 @@ namespace RimWorldAccess
                     }
                     else if (isReadOnly)
                     {
-                        string status = info.IsLearned ? "Learned"
-                                       : info.IsWanted ? "Wanted" : "Not wanted";
+                        string status = (info.IsLearned ? "RimWorldAccess.Inspection.Training.StatusLearned"
+                                       : info.IsWanted ? "RimWorldAccess.Inspection.Training.StatusWanted"
+                                       : "RimWorldAccess.Inspection.Training.StatusNotWanted").Translate();
                         string shortLabel = info.Def.LabelCap + ": " + status + ", " + progress;
                         AddChild(skillsItem, new InspectionTreeItem
                         {
@@ -2226,8 +2227,9 @@ namespace RimWorldAccess
                     {
                         // Interactive toggle with description inline
                         var capturedDef = info.Def;
-                        string status = info.IsLearned ? "Learned"
-                                       : info.IsWanted ? "Wanted" : "Not wanted";
+                        string status = (info.IsLearned ? "RimWorldAccess.Inspection.Training.StatusLearned"
+                                       : info.IsWanted ? "RimWorldAccess.Inspection.Training.StatusWanted"
+                                       : "RimWorldAccess.Inspection.Training.StatusNotWanted").Translate();
                         string shortLabel = info.Def.LabelCap + ": " + status + ", " + progress;
                         var skillItem = new InspectionTreeItem
                         {
@@ -2266,8 +2268,9 @@ namespace RimWorldAccess
                 {
                     bool wanted = pawn.training.GetWanted(td);
                     bool learned = pawn.training.HasLearned(td);
-                    string status = learned ? "Learned"
-                                   : wanted ? "Wanted" : "Not wanted";
+                    string status = (learned ? "RimWorldAccess.Inspection.Training.StatusLearned"
+                                   : wanted ? "RimWorldAccess.Inspection.Training.StatusWanted"
+                                   : "RimWorldAccess.Inspection.Training.StatusNotWanted").Translate();
                     int steps = TrainingTabHelper.GetSteps(pawn, td);
                     string shortLabel = td.LabelCap + ": " + status + ", " + steps + " / " + td.steps;
                     // Rebuild full label with description

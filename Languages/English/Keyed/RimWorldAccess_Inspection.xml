@@ -1383,4 +1383,32 @@
   <RimWorldAccess.Inspection.Power.BatteriesOne>1 battery</RimWorldAccess.Inspection.Power.BatteriesOne>
   <RimWorldAccess.Inspection.Power.BatteriesMany>{0} batteries</RimWorldAccess.Inspection.Power.BatteriesMany>
   <RimWorldAccess.Inspection.Power.ConnectedLabel>Connected: {0}</RimWorldAccess.Inspection.Power.ConnectedLabel>
+
+  <!-- Gizmo navigation fallbacks and composed labels (src/Inspection/GizmoNavigationState.cs). -->
+  <RimWorldAccess.Inspection.Gizmo.RangeFromMaster>Range: {0} tiles from master</RimWorldAccess.Inspection.Gizmo.RangeFromMaster>
+  <RimWorldAccess.Inspection.Gizmo.WeaponFallback>weapon</RimWorldAccess.Inspection.Gizmo.WeaponFallback>
+  <RimWorldAccess.Inspection.Gizmo.AttackFallback>attack</RimWorldAccess.Inspection.Gizmo.AttackFallback>
+  <RimWorldAccess.Inspection.Gizmo.UnknownWeaponFallback>Unknown weapon</RimWorldAccess.Inspection.Gizmo.UnknownWeaponFallback>
+  <RimWorldAccess.Inspection.Gizmo.WeaponVerbLabel>{0} - {1}</RimWorldAccess.Inspection.Gizmo.WeaponVerbLabel>
+  <RimWorldAccess.Inspection.Gizmo.UnknownCommand>Unknown Command</RimWorldAccess.Inspection.Gizmo.UnknownCommand>
+
+  <!-- Info Card skin-color shade descriptors (src/Inspection/InfoCardDataExtractor.cs), keyed off luminance. -->
+  <RimWorldAccess.Inspection.InfoCard.SkinShade.VeryLight>very light</RimWorldAccess.Inspection.InfoCard.SkinShade.VeryLight>
+  <RimWorldAccess.Inspection.InfoCard.SkinShade.Light>light</RimWorldAccess.Inspection.InfoCard.SkinShade.Light>
+  <RimWorldAccess.Inspection.InfoCard.SkinShade.Fair>fair</RimWorldAccess.Inspection.InfoCard.SkinShade.Fair>
+  <RimWorldAccess.Inspection.InfoCard.SkinShade.Medium>medium</RimWorldAccess.Inspection.InfoCard.SkinShade.Medium>
+  <RimWorldAccess.Inspection.InfoCard.SkinShade.Tan>tan</RimWorldAccess.Inspection.InfoCard.SkinShade.Tan>
+  <RimWorldAccess.Inspection.InfoCard.SkinShade.Brown>brown</RimWorldAccess.Inspection.InfoCard.SkinShade.Brown>
+  <RimWorldAccess.Inspection.InfoCard.SkinShade.DarkBrown>dark brown</RimWorldAccess.Inspection.InfoCard.SkinShade.DarkBrown>
+  <RimWorldAccess.Inspection.InfoCard.SkinColorShade>Skin color ({0})</RimWorldAccess.Inspection.InfoCard.SkinColorShade>
+
+  <!-- Training tab status words for tree labels (src/Inspection/InspectionTreeBuilder.cs). -->
+  <RimWorldAccess.Inspection.Training.CannotTrain>Cannot train</RimWorldAccess.Inspection.Training.CannotTrain>
+  <RimWorldAccess.Inspection.Training.StatusLearned>Learned</RimWorldAccess.Inspection.Training.StatusLearned>
+  <RimWorldAccess.Inspection.Training.StatusWanted>Wanted</RimWorldAccess.Inspection.Training.StatusWanted>
+  <RimWorldAccess.Inspection.Training.StatusNotWanted>Not wanted</RimWorldAccess.Inspection.Training.StatusNotWanted>
+
+  <!-- Tab fallback messages (src/Inspection/TabRegistry.cs). -->
+  <RimWorldAccess.Inspection.Tree.TabNoTextContent>Tab '{0}' is available but has no keyboard-accessible text content.</RimWorldAccess.Inspection.Tree.TabNoTextContent>
+  <RimWorldAccess.Inspection.Tree.ErrorRetrievingInfo>Error retrieving information.</RimWorldAccess.Inspection.Tree.ErrorRetrievingInfo>
 </LanguageData>

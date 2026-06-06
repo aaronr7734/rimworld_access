@@ -742,8 +742,8 @@ namespace RimWorldAccess
                             selectedGizmo.ProcessInput(fakeEvent);
                             ProcessGroupInput(selectedGizmo, fakeEvent);
 
-                            string weaponName = verbTarget.ownerThing?.LabelCap ?? "weapon";
-                            string verbLabel = verbTarget.verb?.ReportLabel ?? "attack";
+                            string weaponName = verbTarget.ownerThing?.LabelCap ?? "RimWorldAccess.Inspection.Gizmo.WeaponFallback".Translate().ToString();
+                            string verbLabel = verbTarget.verb?.ReportLabel ?? "RimWorldAccess.Inspection.Gizmo.AttackFallback".Translate().ToString();
                             TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.WeaponVerbTargeting".Loc(weaponName, verbLabel));
                         }
                         catch (System.Exception ex)
@@ -1289,7 +1289,7 @@ namespace RimWorldAccess
             {
                 float attackRange = Pawn_TrainingTracker.AttackTargetRange;
                 string sep = announcement.EndsWith(".") ? " " : ". ";
-                announcement += $"{sep}Range: {attackRange:F0} tiles from master";
+                announcement += sep + "RimWorldAccess.Inspection.Gizmo.RangeFromMaster".Translate(attackRange.ToString("F0"));
             }
 
             // For Command_Ability (psycasts, abilities), append cost, range, cooldown, then description.
@@ -1354,9 +1354,9 @@ namespace RimWorldAccess
             // Special handling for Command_VerbTarget (weapon attacks)
             if (gizmo is Command_VerbTarget verbTarget)
             {
-                string weaponName = verbTarget.ownerThing?.LabelCap ?? "Unknown weapon";
-                string verbLabel = verbTarget.verb?.ReportLabel ?? "attack";
-                return $"{weaponName} - {verbLabel}";
+                string weaponName = verbTarget.ownerThing?.LabelCap ?? "RimWorldAccess.Inspection.Gizmo.UnknownWeaponFallback".Translate().ToString();
+                string verbLabel = verbTarget.verb?.ReportLabel ?? "RimWorldAccess.Inspection.Gizmo.AttackFallback".Translate().ToString();
+                return "RimWorldAccess.Inspection.Gizmo.WeaponVerbLabel".Translate(weaponName, verbLabel);
             }
 
             if (gizmo is Command cmd)
@@ -1365,7 +1365,7 @@ namespace RimWorldAccess
                 if (string.IsNullOrEmpty(label))
                     label = cmd.defaultLabel;
                 if (string.IsNullOrEmpty(label))
-                    label = "Unknown Command";
+                    label = "RimWorldAccess.Inspection.Gizmo.UnknownCommand".Translate();
                 // Strip color tags (e.g., <color=#...>text</color>) from gizmo labels
                 return label.StripTags();
             }
