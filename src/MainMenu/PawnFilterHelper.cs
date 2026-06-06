@@ -271,13 +271,10 @@ namespace RimWorldAccess
 
         public static string FormatSkillLabel(SkillFilter skill)
         {
-            string label = skill.Skill.skillLabel.CapitalizeFirst() + ": ";
+            string skillName = skill.Skill.skillLabel.CapitalizeFirst();
 
             if (skill.MinLevel <= 0 && skill.MinPassion == Passion.None)
-            {
-                label += "Any";
-                return label;
-            }
+                return (string)"RimWorldAccess.PawnFilter.SkillLabelAny".Translate(skillName);
 
             var parts = new List<string>();
             if (skill.MinLevel > 0)
@@ -291,76 +288,79 @@ namespace RimWorldAccess
                 parts.Add(passionLabel);
             }
 
-            label += string.Join(", ", parts);
-            return label;
+            return (string)"RimWorldAccess.PawnFilter.SkillLabelWithRequirements".Translate(skillName, string.Join(", ", parts));
         }
 
         public static string FormatPassionMinLabel(PawnFilter filter)
         {
-            if (filter.PassionMin <= 0)
-                return "Total passions " + "minimum".Translate() + ": " + "Any";
-            return "Total passions " + "minimum".Translate() + ": " + filter.PassionMin;
+            string value = filter.PassionMin <= 0
+                ? (string)"RimWorldAccess.PawnFilter.Any".Translate()
+                : filter.PassionMin.ToString();
+            return (string)"RimWorldAccess.PawnFilter.TotalPassionsWithValue".Translate("minimum".Translate(), value);
         }
 
         public static string FormatPassionMaxLabel(PawnFilter filter)
         {
-            if (filter.PassionMax >= 12)
-                return "Total passions " + "maximum".Translate() + ": " + "Any";
-            return "Total passions " + "maximum".Translate() + ": " + filter.PassionMax;
+            string value = filter.PassionMax >= 12
+                ? (string)"RimWorldAccess.PawnFilter.Any".Translate()
+                : filter.PassionMax.ToString();
+            return (string)"RimWorldAccess.PawnFilter.TotalPassionsWithValue".Translate("maximum".Translate(), value);
         }
 
         public static string FormatSkillPointsMinLabel(PawnFilter filter)
         {
-            if (filter.SkillPointsMin <= 0)
-                return "Total skill points " + "minimum".Translate() + ": " + "Any";
-            return "Total skill points " + "minimum".Translate() + ": " + filter.SkillPointsMin;
+            string value = filter.SkillPointsMin <= 0
+                ? (string)"RimWorldAccess.PawnFilter.Any".Translate()
+                : filter.SkillPointsMin.ToString();
+            return (string)"RimWorldAccess.PawnFilter.TotalSkillPointsWithValue".Translate("minimum".Translate(), value);
         }
 
         public static string FormatSkillPointsMaxLabel(PawnFilter filter)
         {
-            if (filter.SkillPointsMax >= 240)
-                return "Total skill points " + "maximum".Translate() + ": " + "Any";
-            return "Total skill points " + "maximum".Translate() + ": " + filter.SkillPointsMax;
+            string value = filter.SkillPointsMax >= 240
+                ? (string)"RimWorldAccess.PawnFilter.Any".Translate()
+                : filter.SkillPointsMax.ToString();
+            return (string)"RimWorldAccess.PawnFilter.TotalSkillPointsWithValue".Translate("maximum".Translate(), value);
         }
 
         public static string FormatCountOnlyHighestAttackLabel(PawnFilter filter)
         {
             string state = filter.CountOnlyHighestAttack ? "On".Translate() : "Off".Translate();
-            return "Count only highest attack skill: " + state
-                + ". When counting total skill points, only count the higher of Shooting or Melee, not both";
+            return (string)"RimWorldAccess.PawnFilter.CountOnlyHighestAttack".Translate(state);
         }
 
         public static string FormatCountOnlyPassionSkillsLabel(PawnFilter filter)
         {
             string state = filter.CountOnlyPassionSkills ? "On".Translate() : "Off".Translate();
-            return "Count only passion skills: " + state
-                + ". When counting total skill points, only count skills that have a passion";
+            return (string)"RimWorldAccess.PawnFilter.CountOnlyPassionSkills".Translate(state);
         }
 
         public static string FormatRequiredTraitsInPoolLabel(PawnFilter filter)
         {
-            return "Required traits from pool: " + filter.RequiredTraitsInPool;
+            return (string)"RimWorldAccess.PawnFilter.RequiredTraitsInPool".Translate(filter.RequiredTraitsInPool);
         }
 
         public static string FormatAgeMinLabel(PawnFilter filter)
         {
-            if (filter.AgeMin <= 0)
-                return "Age" + " " + "minimum".Translate() + ": " + "Any";
-            return "Age" + " " + "minimum".Translate() + ": " + filter.AgeMin;
+            string value = filter.AgeMin <= 0
+                ? (string)"RimWorldAccess.PawnFilter.Any".Translate()
+                : filter.AgeMin.ToString();
+            return (string)"RimWorldAccess.PawnFilter.AgeWithValue".Translate("minimum".Translate(), value);
         }
 
         public static string FormatAgeMaxLabel(PawnFilter filter)
         {
-            if (filter.AgeMax >= 120)
-                return "Age" + " " + "maximum".Translate() + ": " + "Any";
-            return "Age" + " " + "maximum".Translate() + ": " + filter.AgeMax;
+            string value = filter.AgeMax >= 120
+                ? (string)"RimWorldAccess.PawnFilter.Any".Translate()
+                : filter.AgeMax.ToString();
+            return (string)"RimWorldAccess.PawnFilter.AgeWithValue".Translate("maximum".Translate(), value);
         }
 
         public static string FormatGenderLabel(PawnFilter filter)
         {
             string value;
             if (!filter.Gender.HasValue)
-                value = "Any";
+                value = (string)"RimWorldAccess.PawnFilter.Any".Translate();
             else if (filter.Gender.Value == Verse.Gender.Male)
                 value = "Male".Translate();
             else
@@ -375,10 +375,10 @@ namespace RimWorldAccess
             switch (filter.Health)
             {
                 case HealthFilterMode.AllowAll: value = "AllowAll".Translate(); break;
-                case HealthFilterMode.OnlyStartCondition: value = "Only start conditions"; break;
-                case HealthFilterMode.NoPain: value = "No pain"; break;
-                case HealthFilterMode.NoAddiction: value = "No addictions"; break;
-                case HealthFilterMode.AllowNone: value = "No health conditions"; break;
+                case HealthFilterMode.OnlyStartCondition: value = (string)"RimWorldAccess.PawnFilter.HealthOnlyStartConditions".Translate(); break;
+                case HealthFilterMode.NoPain: value = (string)"RimWorldAccess.PawnFilter.HealthNoPain".Translate(); break;
+                case HealthFilterMode.NoAddiction: value = (string)"RimWorldAccess.PawnFilter.HealthNoAddictions".Translate(); break;
+                case HealthFilterMode.AllowNone: value = (string)"RimWorldAccess.PawnFilter.HealthNoConditions".Translate(); break;
                 default: value = "AllowAll".Translate(); break;
             }
             return "Health".Translate() + ": " + value;
@@ -390,7 +390,7 @@ namespace RimWorldAccess
             switch (filter.Work)
             {
                 case WorkFilterMode.AllowAll: value = "AllowAll".Translate(); break;
-                case WorkFilterMode.NoDumbLabor: value = "No dumb labor"; break;
+                case WorkFilterMode.NoDumbLabor: value = (string)"RimWorldAccess.PawnFilter.WorkNoDumbLabor".Translate(); break;
                 case WorkFilterMode.AllowNone: value = "RimWorldAccess.PawnFilter.WorkAllowNone".Translate(); break;
                 default: value = "AllowAll".Translate(); break;
             }
@@ -399,7 +399,7 @@ namespace RimWorldAccess
 
         public static string FormatRerollLimitLabel(PawnFilter filter)
         {
-            return "Reroll limit: " + filter.RerollLimit;
+            return (string)"RimWorldAccess.PawnFilter.RerollLimit".Translate(filter.RerollLimit);
         }
 
         public static List<FloatMenuOption> BuildTraitPickerOptions(

@@ -933,6 +933,8 @@
   <RimWorldAccess.Building.Shelf.LinkWithInRoom>Link with {0} in room</RimWorldAccess.Building.Shelf.LinkWithInRoom>
   <RimWorldAccess.Building.Shelf.RoomGizmoDescFallback>Link all compatible storage in this room together. They will share the same storage settings.</RimWorldAccess.Building.Shelf.RoomGizmoDescFallback>
   <RimWorldAccess.Building.Shelf.ManualGizmoDescFallback>Enter selection mode to manually choose which storage buildings to link together.</RimWorldAccess.Building.Shelf.ManualGizmoDescFallback>
+  <RimWorldAccess.Building.Shelf.LinkManuallyLabel>Link storage manually</RimWorldAccess.Building.Shelf.LinkManuallyLabel>
+  <RimWorldAccess.Building.Shelf.StorageSettingsLabel>Storage settings</RimWorldAccess.Building.Shelf.StorageSettingsLabel>
 
   <!-- Architect buildable skill requirement (src/Building/ArchitectHelper.cs). {0}=skill level. -->
   <RimWorldAccess.Building.Architect.RequiresConstruction>requires Construction {0}</RimWorldAccess.Building.Architect.RequiresConstruction>
@@ -984,4 +986,37 @@
   <RimWorldAccess.Building.ArchitectPlace.CtrlA.ReturnedToPreviousSelection>Returned to previous selection. {0}, {1} cells.</RimWorldAccess.Building.ArchitectPlace.CtrlA.ReturnedToPreviousSelection>
   <RimWorldAccess.Building.ArchitectPlace.CtrlA.ReturnedToScope>Returned to {0}. {1}, {2} cells. Enter to confirm.</RimWorldAccess.Building.ArchitectPlace.CtrlA.ReturnedToScope>
 
+  <!-- Hidden display-English sweep (returned/assigned strings localized). -->
+  <RimWorldAccess.Building.Scanner.CategoryTargets>Targets</RimWorldAccess.Building.Scanner.CategoryTargets>
+  <RimWorldAccess.Building.Scanner.CategoryObstacles>Obstacles</RimWorldAccess.Building.Scanner.CategoryObstacles>
+  <RimWorldAccess.Building.Scanner.FallbackOrder>Order</RimWorldAccess.Building.Scanner.FallbackOrder>
+  <RimWorldAccess.Building.Scanner.FallbackTarget>Target</RimWorldAccess.Building.Scanner.FallbackTarget>
+  <RimWorldAccess.Building.Scanner.HuntTargets>Hunt Targets</RimWorldAccess.Building.Scanner.HuntTargets>
+  <RimWorldAccess.Building.Scanner.MineTargets>Mine Targets</RimWorldAccess.Building.Scanner.MineTargets>
+  <RimWorldAccess.Building.Scanner.CanceledOrders>Canceled Orders</RimWorldAccess.Building.Scanner.CanceledOrders>
+  <RimWorldAccess.Building.Scanner.HaulTargets>Haul Targets</RimWorldAccess.Building.Scanner.HaulTargets>
+  <RimWorldAccess.Building.Scanner.CutTargets>Cut Targets</RimWorldAccess.Building.Scanner.CutTargets>
+  <RimWorldAccess.Building.Scanner.HarvestTargets>Harvest Targets</RimWorldAccess.Building.Scanner.HarvestTargets>
+  <RimWorldAccess.Building.Scanner.TameTargets>Tame Targets</RimWorldAccess.Building.Scanner.TameTargets>
+  <RimWorldAccess.Building.Scanner.SlaughterTargets>Slaughter Targets</RimWorldAccess.Building.Scanner.SlaughterTargets>
+  <RimWorldAccess.Building.Scanner.DeconstructTargets>Deconstruct Targets</RimWorldAccess.Building.Scanner.DeconstructTargets>
+  <RimWorldAccess.Building.Scanner.GenericTargets>{0} Targets</RimWorldAccess.Building.Scanner.GenericTargets>
+  <RimWorldAccess.Building.Scanner.ObstacleWithDesc>Obstacle: {0}</RimWorldAccess.Building.Scanner.ObstacleWithDesc>
+  <RimWorldAccess.Building.Scanner.Enclosure>{0} enclosure</RimWorldAccess.Building.Scanner.Enclosure>
+  <RimWorldAccess.Building.Scanner.EnclosureNumbered>{0} enclosure {1}</RimWorldAccess.Building.Scanner.EnclosureNumbered>
+  <RimWorldAccess.Building.Scanner.ObstacleInEnclosure>{0} in {1}</RimWorldAccess.Building.Scanner.ObstacleInEnclosure>
+  <RimWorldAccess.Building.Scanner.ObstacleSomething>Something</RimWorldAccess.Building.Scanner.ObstacleSomething>
+  <RimWorldAccess.Building.Scanner.ObstacleBlueprint>Blueprint</RimWorldAccess.Building.Scanner.ObstacleBlueprint>
+  <RimWorldAccess.Building.Scanner.ObstacleItem>Item</RimWorldAccess.Building.Scanner.ObstacleItem>
+  <RimWorldAccess.Building.Scanner.ObstacleTerrain>Terrain</RimWorldAccess.Building.Scanner.ObstacleTerrain>
+  <RimWorldAccess.Building.Scanner.ObstacleOutOfBounds>Out of bounds</RimWorldAccess.Building.Scanner.ObstacleOutOfBounds>
+  <RimWorldAccess.Building.Scanner.ObstacleRoofedArea>Roofed area</RimWorldAccess.Building.Scanner.ObstacleRoofedArea>
+  <RimWorldAccess.Building.Scanner.ObstacleBlocked>Blocked</RimWorldAccess.Building.Scanner.ObstacleBlocked>
+  <RimWorldAccess.Building.Scanner.ZoneObstacle>Obstacle</RimWorldAccess.Building.Scanner.ZoneObstacle>
+  <RimWorldAccess.Building.Scanner.ZoneExisting>Existing {0}</RimWorldAccess.Building.Scanner.ZoneExisting>
+  <RimWorldAccess.Building.Scanner.ZoneEdgeArea>Edge area</RimWorldAccess.Building.Scanner.ZoneEdgeArea>
+  <RimWorldAccess.Building.Scanner.ZoneFogOfWar>Fog of war</RimWorldAccess.Building.Scanner.ZoneFogOfWar>
+  <RimWorldAccess.Building.Components.RefuelableStatusLine>Fuel: {0}/{1} ({2}%) - {3}</RimWorldAccess.Building.Components.RefuelableStatusLine>
+  <RimWorldAccess.Building.Zone.WillExpandExisting>will expand existing zone.</RimWorldAccess.Building.Zone.WillExpandExisting>
+  <RimWorldAccess.Building.Zone.WillCreateNew>will create new zone.</RimWorldAccess.Building.Zone.WillCreateNew>
 </LanguageData>

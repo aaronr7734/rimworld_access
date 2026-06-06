@@ -39,7 +39,7 @@ namespace RimWorldAccess
             {
                 var settingsGizmo = new Command_Action
                 {
-                    defaultLabel = "Storage settings",
+                    defaultLabel = (string)"RimWorldAccess.Building.Shelf.StorageSettingsLabel".Translate(),
                     defaultDesc = "",
                     icon = ContentFinder<Texture2D>.Get("UI/Commands/SetTargetFuelLevel", true),
                     action = delegate

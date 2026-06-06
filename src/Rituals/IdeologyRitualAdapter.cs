@@ -128,7 +128,7 @@ namespace RimWorldAccess
                 int spectatorCount = assignments.SpectatorsForReading.Count;
                 string spectatorLabel = ritual?.behavior?.def?.spectatorsLabel;
                 if (string.IsNullOrEmpty(spectatorLabel))
-                    spectatorLabel = "Spectators";
+                    spectatorLabel = (string)"RimWorldAccess.Rituals.Fallback.Spectators".Translate();
 
                 views.Add(new LordJobRoleView
                 {
@@ -286,11 +286,11 @@ namespace RimWorldAccess
 
                 rows.Add(new LordJobQualityRow
                 {
-                    Label = "Development Points",
-                    Change = "(Fluid ideology)",
+                    Label = (string)"RimWorldAccess.Rituals.Quality.DevelopmentPointsLabel".Translate(),
+                    Change = (string)"RimWorldAccess.Rituals.Quality.FluidIdeologyTag".Translate(),
                     IsPresent = true,
                     IsPositive = true,
-                    Tooltip = "Points awarded to your fluid ideology based on ritual outcome.",
+                    Tooltip = (string)"RimWorldAccess.Rituals.Quality.DevelopmentPointsTooltip".Translate(),
                 });
 
                 var outcomeChances = outcomeEffect.def.outcomeChances;
@@ -379,7 +379,7 @@ namespace RimWorldAccess
                     {
                         if (colonistRole.usedStat.Worker.IsDisabledFor(pawn))
                         {
-                            stats.Add($"{colonistRole.usedStat.LabelCap}: Disabled");
+                            stats.Add($"{colonistRole.usedStat.LabelCap}: {(string)"RimWorldAccess.Rituals.Pawn.StatDisabled".Translate()}");
                         }
                         else
                         {
@@ -394,7 +394,7 @@ namespace RimWorldAccess
                         if (skill != null)
                         {
                             stats.Add(skill.TotallyDisabled
-                                ? $"{colonistRole.usedSkill.LabelCap}: Disabled"
+                                ? $"{colonistRole.usedSkill.LabelCap}: {(string)"RimWorldAccess.Rituals.Pawn.StatDisabled".Translate()}"
                                 : $"{colonistRole.usedSkill.LabelCap}: {skill.Level}");
                         }
                     }

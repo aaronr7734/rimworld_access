@@ -175,7 +175,7 @@ namespace RimWorldAccess
             // Reset All Settings to Preset Section
             if (onReset != null)
             {
-                var resetSection = new DifficultySection("DifficultyReset".Translate(), "playstyles");
+                var resetSection = new DifficultySection("DifficultyReset".Translate(), (string)"RimWorldAccess.CustomDifficulty.ItemsLabelPlaystyles".Translate());
                 foreach (DifficultyDef def in DefDatabase<DifficultyDef>.AllDefs)
                 {
                     if (!def.isCustom)
@@ -291,11 +291,11 @@ namespace RimWorldAccess
         public List<DifficultySetting> Settings { get; }
         public string ItemsLabel { get; }
 
-        public DifficultySection(string name, string itemsLabel = "settings")
+        public DifficultySection(string name, string itemsLabel = null)
         {
             Name = name;
             Settings = new List<DifficultySetting>();
-            ItemsLabel = itemsLabel;
+            ItemsLabel = itemsLabel ?? (string)"RimWorldAccess.CustomDifficulty.ItemsLabelSettings".Translate();
         }
     }
 
@@ -553,7 +553,7 @@ namespace RimWorldAccess
         public DifficultyResetSetting(string label, string tooltip, Action executeAction)
         {
             Label = label;
-            Tooltip = string.IsNullOrEmpty(tooltip) ? "RimWorldAccess.CustomDifficulty.ResetTooltip".Translate().ToString() : tooltip;
+            Tooltip = string.IsNullOrEmpty(tooltip) ? (string)"RimWorldAccess.CustomDifficulty.ResetTooltip".Translate() : tooltip;
             this.executeAction = executeAction;
         }
 
@@ -595,7 +595,7 @@ namespace RimWorldAccess
             this.onTransitionToOverride = onTransitionToOverride;
             this.onChanged = onChanged;
             Label = "ChooseAnomalyPlaystyle".Translate();
-            Tooltip = "Select an anomaly playstyle";
+            Tooltip = (string)"RimWorldAccess.CustomDifficulty.AnomalyPlaystyleTooltip".Translate();
             options = DefDatabase<AnomalyPlaystyleDef>.AllDefs.ToList();
         }
 

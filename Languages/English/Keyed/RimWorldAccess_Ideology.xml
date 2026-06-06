@@ -76,4 +76,8 @@
 
   <!-- Spoken when the ] edit-menu is opened on a precept that has no editable options. -->
   <RimWorldAccess.Ideology.Builder.NoEditOptions>No edit options</RimWorldAccess.Ideology.Builder.NoEditOptions>
+  <!-- Hidden display-English sweep (returned/assigned strings localized). -->
+  <RimWorldAccess.Ideology.Builder.PreceptSection.Active>Active precepts, {0}</RimWorldAccess.Ideology.Builder.PreceptSection.Active>
+  <RimWorldAccess.Ideology.Builder.PreceptSection.NotSet>Not set, {0}</RimWorldAccess.Ideology.Builder.PreceptSection.NotSet>
+  <RimWorldAccess.Ideology.Builder.PreceptCurrent>current</RimWorldAccess.Ideology.Builder.PreceptCurrent>
 </LanguageData>

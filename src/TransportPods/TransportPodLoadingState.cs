@@ -760,7 +760,7 @@ namespace RimWorldAccess
 
             if (transferables.Count == 0)
             {
-                return "No items in this tab";
+                return (string)"RimWorldAccess.TransportPods.Loading.NoItemsInTab".Translate();
             }
 
             if (selectedIndex < 0 || selectedIndex >= transferables.Count)

@@ -51,12 +51,12 @@ namespace RimWorldAccess
                 Caravan caravanAtStart = Find.WorldObjects?.PlayerControlledCaravanAt(planner.waypoints[0].Tile);
                 if (caravanAtStart != null)
                 {
-                    return $"Using {caravanAtStart.LabelCap}'s speed";
+                    return (string)"RimWorldAccess.Route.UsingCaravanSpeed".Translate(caravanAtStart.LabelCap);
                 }
             }
 
             // No caravan - using average speed
-            return "Using average caravan speed";
+            return (string)"RimWorldAccess.Route.UsingAverageSpeed".Translate();
         }
 
         /// <summary>

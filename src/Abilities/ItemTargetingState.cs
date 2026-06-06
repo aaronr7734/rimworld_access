@@ -189,15 +189,15 @@ namespace RimWorldAccess
                     || parameters.canTargetMechs || parameters.canTargetSubhumans);
 
             if (pawnsActuallyTargetable)
-                return "Select pawn to target";
+                return (string)"RimWorldAccess.Abilities.Item.InferPawn".Translate();
             // Same defaulting trap for buildings: if locations are explicitly enabled, prefer
             // the location label over a stale canTargetBuildings=true default.
             if (parameters.canTargetBuildings && !parameters.canTargetLocations)
-                return "Select building to target";
+                return (string)"RimWorldAccess.Abilities.Item.InferBuilding".Translate();
             if (parameters.canTargetItems)
-                return "RimWorldAccess.Abilities.Item.InferItem".Translate();
+                return (string)"RimWorldAccess.Abilities.Item.InferItem".Translate();
             if (parameters.canTargetLocations)
-                return "Select a cell";
+                return (string)"RimWorldAccess.Abilities.Item.InferLocation".Translate();
 
             return "RimWorldAccess.Abilities.Item.DefaultInstruction".Translate();
         }

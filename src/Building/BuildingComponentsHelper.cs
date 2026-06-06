@@ -153,14 +153,17 @@ namespace RimWorldAccess
         public static string GetRefuelableStatus(CompRefuelable refuelable)
         {
             if (refuelable == null)
-                return "No fuel system";
+                return (string)"RimWorldAccess.Building.Refuel.NoFuelComponent".Translate();
 
             float fuel = refuelable.Fuel;
             float maxFuel = refuelable.Props.fuelCapacity;
             float percent = (maxFuel > 0) ? (fuel / maxFuel * 100f) : 0f;
-            string autoRefuel = refuelable.allowAutoRefuel ? "Auto-refuel: On" : "Auto-refuel: Off";
+            string autoRefuel = refuelable.allowAutoRefuel
+                ? (string)"RimWorldAccess.Building.Refuel.AutoRefuelOn".Translate()
+                : (string)"RimWorldAccess.Building.Refuel.AutoRefuelOff".Translate();
 
-            return $"Fuel: {fuel:F1}/{maxFuel:F1} ({percent:F0}%) - {autoRefuel}";
+            return (string)"RimWorldAccess.Building.Components.RefuelableStatusLine".Translate(
+                fuel.ToString("F1"), maxFuel.ToString("F1"), percent.ToString("F0"), autoRefuel);
         }
 
         /// <summary>
@@ -169,9 +172,11 @@ namespace RimWorldAccess
         public static string GetBreakdownableStatus(CompBreakdownable breakdownable)
         {
             if (breakdownable == null)
-                return "No breakdown system";
+                return (string)"RimWorldAccess.Building.Breakdown.NoBreakdownComponent".Translate();
 
-            return breakdownable.BrokenDown ? "Status: Broken down" : "Status: Operational";
+            return breakdownable.BrokenDown
+                ? (string)"RimWorldAccess.Building.Breakdown.StatusBrokenDown".Translate()
+                : (string)"RimWorldAccess.Building.Breakdown.StatusOperational".Translate();
         }
 
         /// <summary>

@@ -22,7 +22,7 @@ namespace RimWorldAccess
         /// <summary>
         /// Gets a human-readable size description ("4x3" or "12 tiles").
         /// </summary>
-        public string SizeDescription => Dimensions ?? $"{TileCount} tiles";
+        public string SizeDescription => Dimensions ?? (string)"RimWorldAccess.Map.Scanner.Region.SizeTiles".Translate(TileCount);
 
         public TerrainRegion(List<IntVec3> positions, IntVec3 cursorPosition)
         {
@@ -481,8 +481,9 @@ namespace RimWorldAccess
         // Shared label for fog-of-war items in the Unexplored category. Search excludes items
         // with this label since every fog region carries the same name and would dominate
         // results. Used by both CollectMapItems (when emitting fog items) and the search
-        // filter so they stay in sync.
-        public const string UnexploredAreaLabel = "unexplored area";
+        // filter so they stay in sync. Returned as a localized property so comparisons in
+        // ScannerSearchState remain correct across all languages.
+        public static string UnexploredAreaLabel => (string)"RimWorldAccess.Map.Scanner.UnexploredArea".Translate();
 
         /// <summary>
         /// Adds a ScannerItem to both its specialized subcategory AND the category's "All"
@@ -978,7 +979,7 @@ namespace RimWorldAccess
                     var positions = kvp.Value.Select(x => x.position).ToList();
                     var regions = GroupTerrainByAdjacency(positions, cursorPosition);
                     var primaryThing = kvp.Value[0].thing;
-                    string label = primaryThing.def.label ?? "Unknown";
+                    string label = primaryThing.def.label ?? (string)"RimWorldAccess.Map.Label.Unknown".Translate();
 
                     // Create item with regions (like terrain does)
                     var item = new ScannerItem(regions, label, cursorPosition, primaryThing);
@@ -991,7 +992,7 @@ namespace RimWorldAccess
                     var positions = kvp.Value.Select(x => x.position).ToList();
                     var regions = GroupTerrainByAdjacency(positions, cursorPosition);
                     var primaryThing = kvp.Value[0].thing;
-                    string label = primaryThing.def.label ?? "Unknown";
+                    string label = primaryThing.def.label ?? (string)"RimWorldAccess.Map.Label.Unknown".Translate();
 
                     // Create item with regions (like terrain does)
                     var item = new ScannerItem(regions, label, cursorPosition, primaryThing);

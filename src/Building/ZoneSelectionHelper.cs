@@ -205,11 +205,11 @@ namespace RimWorldAccess
 
             if (preview.IsExpansion && preview.TargetZone != null)
             {
-                return "will expand existing zone.";
+                return (string)"RimWorldAccess.Building.Zone.WillExpandExisting".Translate();
             }
             else
             {
-                return "will create new zone.";
+                return (string)"RimWorldAccess.Building.Zone.WillCreateNew".Translate();
             }
         }
     }

@@ -92,18 +92,28 @@ namespace RimWorldAccess
             return root;
         }
 
+        // Localized display labels for the two sections — kept separate from the stable const
+        // tokens (ActiveSectionTitle / NotSetSectionTitle) that are stored in Data and used for
+        // section lookup. Localized labels must never be used for comparison.
+        private static string LocalizedSectionLabel(string titleToken, int count)
+        {
+            if (titleToken == ActiveSectionTitle)
+                return (string)"RimWorldAccess.Ideology.Builder.PreceptSection.Active".Translate(count);
+            return (string)"RimWorldAccess.Ideology.Builder.PreceptSection.NotSet".Translate(count);
+        }
+
         private static void AddIssueSection(InspectionTreeItem root, Ideo ideo, string title, List<IssueDef> issues, bool expanded)
         {
             if (issues.Count == 0) return;
 
             var section = new InspectionTreeItem
             {
-                Label = title + ", " + issues.Count,
+                Label = LocalizedSectionLabel(title, issues.Count),
                 IndentLevel = 0,
                 IsExpandable = true,
                 IsExpanded = expanded,
                 Type = InspectionTreeItem.ItemType.Category,
-                Data = title, // lets navigation identify the section across rebuilds
+                Data = title, // lets navigation identify the section across rebuilds (MUST stay English const)
                 Parent = root,
             };
 
@@ -220,9 +230,9 @@ namespace RimWorldAccess
                 var sb = new StringBuilder();
                 sb.Append((string)def.LabelCap);
                 if (isCurrent)
-                    sb.Append(", current");
+                    sb.Append(", ").Append((string)"RimWorldAccess.Ideology.Builder.PreceptCurrent".Translate());
                 else if (!available)
-                    sb.Append(", ").Append("Unavailable");
+                    sb.Append(", ").Append((string)"RimWorldAccess.Ideology.Builder.Unavailable".Translate());
                 sb.Append(". ").Append("IdeoImpact".Translate()).Append(": ").Append(ImpactLabel(def.impact));
                 if (!isCurrent && !available && !string.IsNullOrWhiteSpace(addReport.Reason))
                     sb.Append(". ").Append(IdeoBuilderHelper.CleanGameText(addReport.Reason));

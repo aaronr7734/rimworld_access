@@ -64,7 +64,7 @@ namespace RimWorldAccess
                     else
                     {
                         TerrainDef terrain = cell.GetTerrain(map);
-                        label = terrain?.label ?? "Target";
+                        label = terrain?.label ?? (string)"RimWorldAccess.Building.Scanner.FallbackTarget".Translate();
                         var item = new ScannerItem(cell, label, cursorPos);
                         targetItems.Add(item);
                     }
@@ -86,33 +86,33 @@ namespace RimWorldAccess
         public static string GetTargetsCategoryName(Designator activeDesignator)
         {
             if (activeDesignator == null)
-                return "Targets";
+                return (string)"RimWorldAccess.Building.Scanner.CategoryTargets".Translate();
 
-            string label = activeDesignator.Label ?? "Order";
+            string label = activeDesignator.Label ?? (string)"RimWorldAccess.Building.Scanner.FallbackOrder".Translate();
 
             // Common designator types get specific names
             string defName = activeDesignator.GetType().Name;
 
             if (defName.Contains("Hunt"))
-                return "Hunt Targets";
+                return (string)"RimWorldAccess.Building.Scanner.HuntTargets".Translate();
             if (defName.Contains("Mine"))
-                return "Mine Targets";
+                return (string)"RimWorldAccess.Building.Scanner.MineTargets".Translate();
             if (defName.Contains("Cancel"))
-                return "Canceled Orders";
+                return (string)"RimWorldAccess.Building.Scanner.CanceledOrders".Translate();
             if (defName.Contains("Haul"))
-                return "Haul Targets";
+                return (string)"RimWorldAccess.Building.Scanner.HaulTargets".Translate();
             if (defName.Contains("Cut") || defName.Contains("Chop"))
-                return "Cut Targets";
+                return (string)"RimWorldAccess.Building.Scanner.CutTargets".Translate();
             if (defName.Contains("Harvest"))
-                return "Harvest Targets";
+                return (string)"RimWorldAccess.Building.Scanner.HarvestTargets".Translate();
             if (defName.Contains("Tame"))
-                return "Tame Targets";
+                return (string)"RimWorldAccess.Building.Scanner.TameTargets".Translate();
             if (defName.Contains("Slaughter"))
-                return "Slaughter Targets";
+                return (string)"RimWorldAccess.Building.Scanner.SlaughterTargets".Translate();
             if (defName.Contains("Deconstruct"))
-                return "Deconstruct Targets";
+                return (string)"RimWorldAccess.Building.Scanner.DeconstructTargets".Translate();
 
-            return $"{label} Targets";
+            return (string)"RimWorldAccess.Building.Scanner.GenericTargets".Translate(label);
         }
 
         #endregion
@@ -138,7 +138,7 @@ namespace RimWorldAccess
             foreach (var cell in obstacleCells)
             {
                 string obstacleDesc = GetObstacleDescription(cell, isZoneDesignator);
-                var item = new ScannerItem(cell, $"Obstacle: {obstacleDesc}", cursorPos);
+                var item = new ScannerItem(cell, (string)"RimWorldAccess.Building.Scanner.ObstacleWithDesc".Translate(obstacleDesc), cursorPos);
                 allObstacles.Add(item);
             }
 
@@ -167,14 +167,14 @@ namespace RimWorldAccess
 
                     // Only number if there are multiple enclosures of the same size
                     string enclosureLabel = sizeCounts[enclosureSize] > 1
-                        ? $"{enclosureSize} enclosure {sizeCurrentIndex[enclosureSize]}"
-                        : $"{enclosureSize} enclosure";
+                        ? (string)"RimWorldAccess.Building.Scanner.EnclosureNumbered".Translate(enclosureSize, sizeCurrentIndex[enclosureSize])
+                        : (string)"RimWorldAccess.Building.Scanner.Enclosure".Translate(enclosureSize);
 
                     foreach (var obstacle in enclosure.Obstacles)
                     {
                         // Create a new item with enclosure context
                         var item = new ScannerItem(obstacle.Thing, cursorPos);
-                        item.Label = $"{obstacle.Label} in {enclosureLabel}";
+                        item.Label = (string)"RimWorldAccess.Building.Scanner.ObstacleInEnclosure".Translate(obstacle.Label, enclosureLabel);
                         allObstacles.Add(item);
                     }
                 }
@@ -190,7 +190,7 @@ namespace RimWorldAccess
             allObstacles.Sort((a, b) => a.Distance.CompareTo(b.Distance));
 
             // Create temporary category in ScannerState
-            ScannerState.CreateTemporaryCategory("Obstacles", allObstacles);
+            ScannerState.CreateTemporaryCategory((string)"RimWorldAccess.Building.Scanner.CategoryObstacles".Translate(), allObstacles);
         }
 
         /// <summary>
@@ -204,7 +204,7 @@ namespace RimWorldAccess
         {
             Map map = Find.CurrentMap;
             if (map == null)
-                return "Unknown";
+                return (string)"RimWorldAccess.Map.Label.Unknown".Translate();
 
             // For zone designators, use zone-specific detection
             if (isZoneDesignator)
@@ -219,19 +219,19 @@ namespace RimWorldAccess
                 // Skip plants, filth, and other minor things
                 if (thing is Building || thing is Pawn)
                 {
-                    return thing.LabelShort ?? thing.def?.label ?? "Something";
+                    return thing.LabelShort ?? thing.def?.label ?? (string)"RimWorldAccess.Building.Scanner.ObstacleSomething".Translate();
                 }
 
                 // Check for blueprints or frames
                 if (thing.def.IsBlueprint || thing.def.IsFrame)
                 {
-                    return thing.LabelShort ?? "Blueprint";
+                    return thing.LabelShort ?? (string)"RimWorldAccess.Building.Scanner.ObstacleBlueprint".Translate();
                 }
 
                 // Check for items
                 if (thing.def.category == ThingCategory.Item)
                 {
-                    return thing.LabelShort ?? "Item";
+                    return thing.LabelShort ?? (string)"RimWorldAccess.Building.Scanner.ObstacleItem".Translate();
                 }
             }
 
@@ -239,23 +239,23 @@ namespace RimWorldAccess
             TerrainDef terrain = cell.GetTerrain(map);
             if (terrain != null && (terrain.passability == Traversability.Impassable || !terrain.affordances?.Contains(TerrainAffordanceDefOf.Light) == true))
             {
-                return terrain.label ?? "Terrain";
+                return terrain.label ?? (string)"RimWorldAccess.Building.Scanner.ObstacleTerrain".Translate();
             }
 
             // Check if out of bounds
             if (!cell.InBounds(map))
             {
-                return "Out of bounds";
+                return (string)"RimWorldAccess.Building.Scanner.ObstacleOutOfBounds".Translate();
             }
 
             // Check for roofing issues
             if (map.roofGrid?.RoofAt(cell) != null)
             {
                 // Some buildings can't be placed under certain roofs
-                return "Roofed area";
+                return (string)"RimWorldAccess.Building.Scanner.ObstacleRoofedArea".Translate();
             }
 
-            return "Blocked";
+            return (string)"RimWorldAccess.Building.Scanner.ObstacleBlocked".Translate();
         }
 
         /// <summary>
@@ -273,7 +273,7 @@ namespace RimWorldAccess
             {
                 if (thing.def != null && !thing.def.CanOverlapZones)
                 {
-                    return thing.LabelShort ?? thing.def?.label ?? "Obstacle";
+                    return thing.LabelShort ?? thing.def?.label ?? (string)"RimWorldAccess.Building.Scanner.ZoneObstacle".Translate();
                 }
             }
 
@@ -281,29 +281,29 @@ namespace RimWorldAccess
             Zone existingZone = map.zoneManager.ZoneAt(cell);
             if (existingZone != null)
             {
-                return $"Existing {existingZone.label}";
+                return (string)"RimWorldAccess.Building.Scanner.ZoneExisting".Translate(existingZone.label);
             }
 
             // Check if too close to map edge
             if (cell.InNoZoneEdgeArea(map))
             {
-                return "Edge area";
+                return (string)"RimWorldAccess.Building.Scanner.ZoneEdgeArea".Translate();
             }
 
             // Check if fogged
             if (cell.Fogged(map))
             {
-                return "Fog of war";
+                return (string)"RimWorldAccess.Building.Scanner.ZoneFogOfWar".Translate();
             }
 
             // Check terrain
             TerrainDef terrain = cell.GetTerrain(map);
             if (terrain != null && terrain.passability == Traversability.Impassable)
             {
-                return terrain.label ?? "Terrain";
+                return terrain.label ?? (string)"RimWorldAccess.Building.Scanner.ObstacleTerrain".Translate();
             }
 
-            return "Blocked";
+            return (string)"RimWorldAccess.Building.Scanner.ObstacleBlocked".Translate();
         }
 
         #endregion

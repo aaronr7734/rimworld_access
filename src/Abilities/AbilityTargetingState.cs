@@ -110,26 +110,26 @@ namespace RimWorldAccess
 
             // Surface the specific reason the cell was rejected.
             if (cursorPos.Impassable(casterMap))
-                return "Cannot teleport here, cell is impassable";
+                return (string)"RimWorldAccess.Abilities.Teleport.Impassable".Translate();
 
             var door = cursorPos.GetDoor(casterMap);
             if (door != null && !door.Open)
-                return "Cannot teleport here, door is closed";
+                return (string)"RimWorldAccess.Abilities.Teleport.DoorClosed".Translate();
 
             foreach (var thing in cursorPos.GetThingList(casterMap))
             {
                 if (thing.def.category == ThingCategory.Item)
-                    return $"Cannot teleport here, item in cell: {thing.LabelShort}";
+                    return (string)"RimWorldAccess.Abilities.Teleport.ItemInCell".Translate(thing.LabelShort);
             }
 
             var edifice = cursorPos.GetEdifice(casterMap);
             if (edifice != null)
-                return $"Cannot teleport here, blocked by {edifice.LabelShort}";
+                return (string)"RimWorldAccess.Abilities.Teleport.BlockedBy".Translate(edifice.LabelShort);
 
             if (!cursorPos.Standable(casterMap))
-                return "Cannot teleport here, cell is not standable";
+                return (string)"RimWorldAccess.Abilities.Teleport.NotStandable".Translate();
 
-            return "Cannot teleport here";
+            return (string)"RimWorldAccess.Abilities.Teleport.Generic".Translate();
         }
 
 
@@ -169,13 +169,13 @@ namespace RimWorldAccess
                 if (destinationRequiresLineOfSight && casterMap != null
                     && !GenSight.LineOfSight(casterPosition, cursorPos, casterMap))
                 {
-                    announcement += ", NO LINE OF SIGHT";
+                    announcement += (string)"RimWorldAccess.Abilities.Range.NoLineOfSight".Translate();
                 }
                 string cellError = ValidateDestinationCell(cursorPos);
                 if (cellError != null)
                     announcement += $". {cellError}";
                 else
-                    announcement += ". Valid teleport destination";
+                    announcement += (string)"RimWorldAccess.Abilities.Destination.ValidTeleport".Translate();
             }
             else
             {
@@ -335,7 +335,7 @@ namespace RimWorldAccess
                 if (!destinationRequiresLineOfSight)
                     return null;
                 if (!GenSight.LineOfSight(casterPosition, targetPos, casterMap))
-                    return "No line of sight to destination";
+                    return (string)"RimWorldAccess.Abilities.Teleport.NoLineOfSight".Translate();
                 return null;
             }
 
@@ -426,7 +426,9 @@ namespace RimWorldAccess
 
             // No specific reason found — surface a generic but phase-aware message so the
             // user knows the cast didn't queue and can move/retry.
-            return isDestinationPhase ? "Invalid teleport destination" : "Invalid target";
+            return isDestinationPhase
+                ? (string)"RimWorldAccess.Abilities.Teleport.InvalidDestination".Translate()
+                : (string)"RimWorldAccess.Abilities.World.InvalidTarget".Translate();
         }
 
         /// <summary>
@@ -476,22 +478,23 @@ namespace RimWorldAccess
             string baseLine;
             if (target.HasThing)
             {
-                baseLine = $"Targeting: {target.Thing.LabelShort}";
+                baseLine = (string)"RimWorldAccess.Abilities.Success.TargetingLocation".Translate(target.Thing.LabelShort);
             }
             else
             {
                 // Cell-only target (like Wallraise, Smokepop)
                 // Try to describe what's at the cell
                 var terrain = casterMap.terrainGrid.TerrainAt(cursorPos);
-                string terrainName = terrain?.label ?? "ground";
-                baseLine = $"Targeting: {terrainName}";
+                string terrainName = terrain?.label
+                    ?? (string)"RimWorldAccess.Abilities.Label.Ground".Translate();
+                baseLine = (string)"RimWorldAccess.Abilities.Success.TargetingLocation".Translate(terrainName);
             }
 
             // Append any cursor-side warnings the ability's effect comps emit
             // (e.g., bloodfeed's "Will kill" / "Will cause serious blood loss").
             string warnings = AbilityTargetingHelper.GetExtraTargetWarnings(currentAbility, target);
             if (!string.IsNullOrEmpty(warnings))
-                baseLine += $". Warning: {warnings}";
+                baseLine += (string)"RimWorldAccess.Abilities.Success.WarningsSuffix".Translate(warnings);
             return baseLine;
         }
     }

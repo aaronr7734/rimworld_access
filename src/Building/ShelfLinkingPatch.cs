@@ -173,7 +173,7 @@ namespace RimWorldAccess
 
             var manualGizmo = new Command_Action
             {
-                defaultLabel = "Link storage manually",
+                defaultLabel = (string)"RimWorldAccess.Building.Shelf.LinkManuallyLabel".Translate(),
                 defaultDesc = manualGizmoDesc,
                 icon = ContentFinder<Texture2D>.Get("UI/Commands/CopySettings", true),
                 action = delegate
@@ -207,7 +207,7 @@ namespace RimWorldAccess
 
             var settingsGizmo = new Command_Action
             {
-                defaultLabel = "Storage settings",
+                defaultLabel = (string)"RimWorldAccess.Building.Shelf.StorageSettingsLabel".Translate(),
                 defaultDesc = "",
                 icon = ContentFinder<Texture2D>.Get("UI/Commands/SetTargetFuelLevel", true),
                 action = delegate

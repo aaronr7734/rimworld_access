@@ -280,4 +280,14 @@
   <RimWorldAccess.Abilities.Generic.LocationFallback>location</RimWorldAccess.Abilities.Generic.LocationFallback>
   <RimWorldAccess.Abilities.Generic.TargetSelected>Target selected: {0}</RimWorldAccess.Abilities.Generic.TargetSelected>
   <RimWorldAccess.Abilities.Generic.SourceTarget>{0}: {1}</RimWorldAccess.Abilities.Generic.SourceTarget>
+  <!-- Hidden display-English sweep (returned/assigned strings localized). -->
+  <RimWorldAccess.Abilities.Teleport.Impassable>Cannot teleport here, cell is impassable</RimWorldAccess.Abilities.Teleport.Impassable>
+  <RimWorldAccess.Abilities.Teleport.DoorClosed>Cannot teleport here, door is closed</RimWorldAccess.Abilities.Teleport.DoorClosed>
+  <RimWorldAccess.Abilities.Teleport.ItemInCell>Cannot teleport here, item in cell: {0}</RimWorldAccess.Abilities.Teleport.ItemInCell>
+  <RimWorldAccess.Abilities.Teleport.BlockedBy>Cannot teleport here, blocked by {0}</RimWorldAccess.Abilities.Teleport.BlockedBy>
+  <RimWorldAccess.Abilities.Teleport.NotStandable>Cannot teleport here, cell is not standable</RimWorldAccess.Abilities.Teleport.NotStandable>
+  <RimWorldAccess.Abilities.Teleport.Generic>Cannot teleport here</RimWorldAccess.Abilities.Teleport.Generic>
+  <RimWorldAccess.Abilities.Teleport.NoLineOfSight>No line of sight to destination</RimWorldAccess.Abilities.Teleport.NoLineOfSight>
+  <RimWorldAccess.Abilities.Teleport.InvalidDestination>Invalid teleport destination</RimWorldAccess.Abilities.Teleport.InvalidDestination>
+  <RimWorldAccess.Abilities.Success.WarningsSuffix>. Warning: {0}</RimWorldAccess.Abilities.Success.WarningsSuffix>
 </LanguageData>

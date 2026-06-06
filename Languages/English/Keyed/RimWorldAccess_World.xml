@@ -408,6 +408,9 @@
   <RimWorldAccess.Route.NoWaypointToRemove>No waypoint here to remove</RimWorldAccess.Route.NoWaypointToRemove>
   <RimWorldAccess.Route.WaypointRemoved>Waypoint {0} removed. {1} waypoints remaining.</RimWorldAccess.Route.WaypointRemoved>
   <RimWorldAccess.Route.WaypointRemovedWithEta>Waypoint {0} removed. {1} waypoints remaining. Estimated travel time: {2} {3}</RimWorldAccess.Route.WaypointRemovedWithEta>
+  <!-- Travel-speed source line (RoutePlannerState). UsingCaravanSpeed {0}=caravan label. -->
+  <RimWorldAccess.Route.UsingCaravanSpeed>Using {0}'s speed</RimWorldAccess.Route.UsingCaravanSpeed>
+  <RimWorldAccess.Route.UsingAverageSpeed>Using average caravan speed</RimWorldAccess.Route.UsingAverageSpeed>
   <RimWorldAccess.Route.EtaWithSource>Estimated travel time: {0} {1}</RimWorldAccess.Route.EtaWithSource>
   <RimWorldAccess.Route.NoWaypointsSet>No waypoints set</RimWorldAccess.Route.NoWaypointsSet>
   <RimWorldAccess.Route.StartingPoint>Starting point: {0}. Add more waypoints with Space.</RimWorldAccess.Route.StartingPoint>
@@ -730,4 +733,16 @@
   <RimWorldAccess.WorldObject.UnknownFactionLower>unknown faction</RimWorldAccess.WorldObject.UnknownFactionLower>
   <RimWorldAccess.WorldObject.UnknownFaction>Unknown faction</RimWorldAccess.WorldObject.UnknownFaction>
   <RimWorldAccess.WorldObject.SettlementAnnounce>{0}. {1}.</RimWorldAccess.WorldObject.SettlementAnnounce>
+  <!-- Hidden display-English sweep (returned/assigned strings localized). -->
+  <RimWorldAccess.Gear.CantReason.Unknown>unknown</RimWorldAccess.Gear.CantReason.Unknown>
+  <RimWorldAccess.Gear.CantReason.Prisoner>prisoner</RimWorldAccess.Gear.CantReason.Prisoner>
+  <RimWorldAccess.Gear.CantReason.Pacifist>pacifist</RimWorldAccess.Gear.CantReason.Pacifist>
+  <RimWorldAccess.Gear.CantReason.CantShoot>can't shoot</RimWorldAccess.Gear.CantReason.CantShoot>
+  <RimWorldAccess.Gear.CantReason.CantManipulate>can't manipulate</RimWorldAccess.Gear.CantReason.CantManipulate>
+  <RimWorldAccess.Gear.CantReason.MissingBodyParts>missing body parts</RimWorldAccess.Gear.CantReason.MissingBodyParts>
+  <RimWorldAccess.Gear.CantReason.WouldReplaceLockedApparel>would replace locked apparel</RimWorldAccess.Gear.CantReason.WouldReplaceLockedApparel>
+  <RimWorldAccess.Gear.SlotUnarmed>unarmed</RimWorldAccess.Gear.SlotUnarmed>
+  <RimWorldAccess.Gear.SlotConflictingPlusMore>{0} +{1} more</RimWorldAccess.Gear.SlotConflictingPlusMore>
+  <RimWorldAccess.Gear.SlotNone>none</RimWorldAccess.Gear.SlotNone>
+  <RimWorldAccess.Gear.SwappedItemFallback>item</RimWorldAccess.Gear.SwappedItemFallback>
 </LanguageData>

@@ -651,4 +651,7 @@
   <RimWorldAccess.Map.Tile.RelDir.Diagonal>{0}{1}</RimWorldAccess.Map.Tile.RelDir.Diagonal>
   <RimWorldAccess.Map.Tile.RelDir.Adjacent>adjacent</RimWorldAccess.Map.Tile.RelDir.Adjacent>
 
+  <!-- Hidden display-English sweep (returned/assigned strings localized). -->
+  <RimWorldAccess.Map.Scanner.Region.SizeTiles>{0} tiles</RimWorldAccess.Map.Scanner.Region.SizeTiles>
+  <RimWorldAccess.Map.Scanner.UnexploredArea>unexplored area</RimWorldAccess.Map.Scanner.UnexploredArea>
 </LanguageData>

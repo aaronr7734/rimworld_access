@@ -130,7 +130,7 @@ namespace RimWorldAccess
                 if (!EquipmentUtility.CanEquip(itemToEquip, pawn, out string cantReason))
                 {
                     option.CanEquip = false;
-                    option.CantEquipReason = cantReason ?? "unknown";
+                    option.CantEquipReason = cantReason ?? (string)"RimWorldAccess.Gear.CantReason.Unknown".Translate();
                     cantEquipList.Add(option);
                     continue;
                 }
@@ -141,28 +141,28 @@ namespace RimWorldAccess
                     if (pawn.guest?.IsPrisoner == true)
                     {
                         option.CanEquip = false;
-                        option.CantEquipReason = "prisoner";
+                        option.CantEquipReason = (string)"RimWorldAccess.Gear.CantReason.Prisoner".Translate();
                         cantEquipList.Add(option);
                         continue;
                     }
                     if (pawn.WorkTagIsDisabled(WorkTags.Violent))
                     {
                         option.CanEquip = false;
-                        option.CantEquipReason = "pacifist";
+                        option.CantEquipReason = (string)"RimWorldAccess.Gear.CantReason.Pacifist".Translate();
                         cantEquipList.Add(option);
                         continue;
                     }
                     if (pawn.WorkTagIsDisabled(WorkTags.Shooting) && itemToEquip.def.IsRangedWeapon)
                     {
                         option.CanEquip = false;
-                        option.CantEquipReason = "can't shoot";
+                        option.CantEquipReason = (string)"RimWorldAccess.Gear.CantReason.CantShoot".Translate();
                         cantEquipList.Add(option);
                         continue;
                     }
                     if (!pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation))
                     {
                         option.CanEquip = false;
-                        option.CantEquipReason = "can't manipulate";
+                        option.CantEquipReason = (string)"RimWorldAccess.Gear.CantReason.CantManipulate".Translate();
                         cantEquipList.Add(option);
                         continue;
                     }
@@ -174,14 +174,14 @@ namespace RimWorldAccess
                     if (!ApparelUtility.HasPartsToWear(pawn, apparel.def))
                     {
                         option.CanEquip = false;
-                        option.CantEquipReason = "missing body parts";
+                        option.CantEquipReason = (string)"RimWorldAccess.Gear.CantReason.MissingBodyParts".Translate();
                         cantEquipList.Add(option);
                         continue;
                     }
                     if (pawn.apparel?.WouldReplaceLockedApparel(apparel) == true)
                     {
                         option.CanEquip = false;
-                        option.CantEquipReason = "would replace locked apparel";
+                        option.CantEquipReason = (string)"RimWorldAccess.Gear.CantReason.WouldReplaceLockedApparel".Translate();
                         cantEquipList.Add(option);
                         continue;
                     }
@@ -221,7 +221,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    label = "unarmed";
+                    label = (string)"RimWorldAccess.Gear.SlotUnarmed".Translate();
                 }
             }
             else if (itemToEquip is Apparel apparel)
@@ -237,12 +237,12 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        label = $"{conflicting[0].LabelCap} +{conflicting.Count - 1} more";
+                        label = (string)"RimWorldAccess.Gear.SlotConflictingPlusMore".Translate(conflicting[0].LabelCap, conflicting.Count - 1);
                     }
                 }
                 else
                 {
-                    label = "none";
+                    label = (string)"RimWorldAccess.Gear.SlotNone".Translate();
                 }
             }
         }
@@ -364,7 +364,7 @@ namespace RimWorldAccess
                     // Announce result
                     if (isSwap)
                     {
-                        string swappedItem = option.CurrentEquipment?.LabelCap ?? "item";
+                        string swappedItem = option.CurrentEquipment?.LabelCap ?? (string)"RimWorldAccess.Gear.SwappedItemFallback".Translate();
                         if (sourceOwner != null)
                         {
                             // Both pawns now have each other's gear

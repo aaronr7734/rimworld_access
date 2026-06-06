@@ -142,7 +142,7 @@ namespace RimWorldAccess
             typeahead.ClearSearch();
         }
 
-        public static string ClosingAnnouncement => adapter?.ClosingAnnouncement ?? "Dialog closed.";
+        public static string ClosingAnnouncement => adapter?.ClosingAnnouncement ?? (string)"RimWorldAccess.Rituals.LordJob.DialogClosed".Translate();
 
         // === Input ===
 
@@ -856,7 +856,7 @@ namespace RimWorldAccess
                 {
                     qualityRows.Add(new LordJobQualityRow
                     {
-                        Label = "Location",
+                        Label = (string)"RimWorldAccess.Rituals.Quality.LocationLabel".Translate(),
                         Change = loc,
                         IsInformational = true,
                     });
@@ -871,7 +871,7 @@ namespace RimWorldAccess
                     foreach (var f in factors.OrderBy(qf => qf.priority))
                     {
                         if (f == null) continue;
-                        string label = f.label ?? "Unknown";
+                        string label = f.label ?? (string)"RimWorldAccess.Rituals.Quality.UnknownFactor".Translate();
                         if (!string.IsNullOrEmpty(f.count)) label += $" ({f.count})";
                         qualityRows.Add(new LordJobQualityRow
                         {
@@ -889,7 +889,7 @@ namespace RimWorldAccess
                 // Expected quality summary row.
                 qualityRows.Add(new LordJobQualityRow
                 {
-                    Label = "Expected Quality",
+                    Label = (string)"RimWorldAccess.Rituals.Quality.ExpectedQualityLabel".Translate(),
                     Change = FormatRange(range),
                     IsInformational = true,
                 });
@@ -907,7 +907,7 @@ namespace RimWorldAccess
                 {
                     qualityRows.Add(new LordJobQualityRow
                     {
-                        Label = "Outcome chances",
+                        Label = (string)"RimWorldAccess.Rituals.Quality.OutcomeChancesLabel".Translate(),
                         Change = "",
                         IsInformational = true,
                     });
@@ -931,7 +931,7 @@ namespace RimWorldAccess
                 {
                     qualityRows.Add(new LordJobQualityRow
                     {
-                        Label = "Outcome description",
+                        Label = (string)"RimWorldAccess.Rituals.Quality.OutcomeDescriptionLabel".Translate(),
                         Change = "",
                         IsInformational = true,
                         Tooltip = outcomeDesc,
@@ -943,7 +943,7 @@ namespace RimWorldAccess
                 Log.Warning($"[LordJobDialogState] Error building quality rows: {ex.Message}");
                 qualityRows.Add(new LordJobQualityRow
                 {
-                    Label = "Quality stats unavailable",
+                    Label = (string)"RimWorldAccess.Rituals.Quality.Unavailable".Translate(),
                     Change = "",
                     Tooltip = ex.Message,
                 });
@@ -953,7 +953,7 @@ namespace RimWorldAccess
         private static string FormatRange(FloatRange range)
         {
             if (Math.Abs(range.min - range.max) < 0.01f) return range.min.ToStringPercent("F0");
-            return $"{range.min.ToStringPercent("F0")} to {range.max.ToStringPercent("F0")}";
+            return (string)"RimWorldAccess.Rituals.Quality.RangeFormat".Translate(range.min.ToStringPercent("F0"), range.max.ToStringPercent("F0"));
         }
 
         private static string FormatLocation(TargetInfo target)
@@ -973,11 +973,11 @@ namespace RimWorldAccess
                         if (room != null && room.ProperRoom && !room.PsychologicallyOutdoors)
                         {
                             string label = room.GetRoomRoleLabel();
-                            if (!string.IsNullOrEmpty(label)) parts.Add($"in {label}");
+                            if (!string.IsNullOrEmpty(label)) parts.Add((string)"RimWorldAccess.Rituals.Location.InRoom".Translate(label));
                         }
                         else if (room != null && room.PsychologicallyOutdoors)
                         {
-                            parts.Add("outdoors");
+                            parts.Add((string)"RimWorldAccess.Rituals.Location.Outdoors".Translate());
                         }
                     }
                 }
@@ -985,7 +985,7 @@ namespace RimWorldAccess
             }
 
             if (parts.Count == 0 && target.Cell.IsValid)
-                return $"Cell ({target.Cell.x}, {target.Cell.z})";
+                return (string)"RimWorldAccess.Rituals.Location.Cell".Translate(target.Cell.x.ToString(), target.Cell.z.ToString());
 
             return parts.Count > 0 ? string.Join(", ", parts) : null;
         }

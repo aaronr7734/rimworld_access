@@ -219,4 +219,9 @@
   <RimWorldAccess.Rituals.Psychic.Condition.Baby>babies</RimWorldAccess.Rituals.Psychic.Condition.Baby>
   <RimWorldAccess.Rituals.Psychic.Condition.Child>children</RimWorldAccess.Rituals.Psychic.Condition.Child>
   <RimWorldAccess.Rituals.DryadCaste.UnknownCaste>Unknown caste</RimWorldAccess.Rituals.DryadCaste.UnknownCaste>
+  <!-- Hidden display-English sweep (returned/assigned strings localized). -->
+  <RimWorldAccess.Rituals.LordJob.DialogClosed>Dialog closed.</RimWorldAccess.Rituals.LordJob.DialogClosed>
+  <RimWorldAccess.Rituals.Quality.OutcomeChancesLabel>Outcome chances</RimWorldAccess.Rituals.Quality.OutcomeChancesLabel>
+  <RimWorldAccess.Rituals.Quality.OutcomeDescriptionLabel>Outcome description</RimWorldAccess.Rituals.Quality.OutcomeDescriptionLabel>
+  <RimWorldAccess.Rituals.Quality.RangeFormat>{0} to {1}</RimWorldAccess.Rituals.Quality.RangeFormat>
 </LanguageData>

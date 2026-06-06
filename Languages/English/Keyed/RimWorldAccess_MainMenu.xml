@@ -732,4 +732,23 @@
        Two variants: with and without the Anomaly Settings tab stop. -->
   <RimWorldAccess.Storyteller.TabHint>Tab and Shift+Tab to move between Storyteller, Difficulty, and Save Mode.</RimWorldAccess.Storyteller.TabHint>
   <RimWorldAccess.Storyteller.TabHintWithAnomaly>Tab and Shift+Tab to move between Storyteller, Difficulty, Save Mode, and Anomaly Settings.</RimWorldAccess.Storyteller.TabHintWithAnomaly>
+  <!-- Hidden display-English sweep (returned/assigned strings localized). -->
+  <RimWorldAccess.PawnFilter.Any>Any</RimWorldAccess.PawnFilter.Any>
+  <RimWorldAccess.PawnFilter.SkillLabelAny>{0}: Any</RimWorldAccess.PawnFilter.SkillLabelAny>
+  <RimWorldAccess.PawnFilter.SkillLabelWithRequirements>{0}: {1}</RimWorldAccess.PawnFilter.SkillLabelWithRequirements>
+  <RimWorldAccess.PawnFilter.TotalPassionsWithValue>Total passions {0}: {1}</RimWorldAccess.PawnFilter.TotalPassionsWithValue>
+  <RimWorldAccess.PawnFilter.TotalSkillPointsWithValue>Total skill points {0}: {1}</RimWorldAccess.PawnFilter.TotalSkillPointsWithValue>
+  <RimWorldAccess.PawnFilter.CountOnlyHighestAttack>Count only highest attack skill: {0}. When counting total skill points, only count the higher of Shooting or Melee, not both</RimWorldAccess.PawnFilter.CountOnlyHighestAttack>
+  <RimWorldAccess.PawnFilter.CountOnlyPassionSkills>Count only passion skills: {0}. When counting total skill points, only count skills that have a passion</RimWorldAccess.PawnFilter.CountOnlyPassionSkills>
+  <RimWorldAccess.PawnFilter.RequiredTraitsInPool>Required traits from pool: {0}</RimWorldAccess.PawnFilter.RequiredTraitsInPool>
+  <RimWorldAccess.PawnFilter.AgeWithValue>Age {0}: {1}</RimWorldAccess.PawnFilter.AgeWithValue>
+  <RimWorldAccess.PawnFilter.HealthOnlyStartConditions>Only start conditions</RimWorldAccess.PawnFilter.HealthOnlyStartConditions>
+  <RimWorldAccess.PawnFilter.HealthNoPain>No pain</RimWorldAccess.PawnFilter.HealthNoPain>
+  <RimWorldAccess.PawnFilter.HealthNoAddictions>No addictions</RimWorldAccess.PawnFilter.HealthNoAddictions>
+  <RimWorldAccess.PawnFilter.HealthNoConditions>No health conditions</RimWorldAccess.PawnFilter.HealthNoConditions>
+  <RimWorldAccess.PawnFilter.WorkNoDumbLabor>No dumb labor</RimWorldAccess.PawnFilter.WorkNoDumbLabor>
+  <RimWorldAccess.PawnFilter.RerollLimit>Reroll limit: {0}</RimWorldAccess.PawnFilter.RerollLimit>
+  <RimWorldAccess.CustomDifficulty.ItemsLabelPlaystyles>playstyles</RimWorldAccess.CustomDifficulty.ItemsLabelPlaystyles>
+  <RimWorldAccess.CustomDifficulty.ItemsLabelSettings>settings</RimWorldAccess.CustomDifficulty.ItemsLabelSettings>
+  <RimWorldAccess.CustomDifficulty.AnomalyPlaystyleTooltip>Select an anomaly playstyle</RimWorldAccess.CustomDifficulty.AnomalyPlaystyleTooltip>
 </LanguageData>
