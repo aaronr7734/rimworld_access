@@ -208,7 +208,7 @@ namespace RimWorldAccess
             // at the cell so the user can judge whether it's a sensible teleport target.
             if (isDestinationPhase)
             {
-                TolkHelper.Speak(BuildDestinationCellAnnouncement(cursorPos), SpeechPriority.Normal);
+                TolkHelper.SpeakData(BuildDestinationCellAnnouncement(cursorPos), SpeechPriority.Normal);
                 return;
             }
 
@@ -227,8 +227,9 @@ namespace RimWorldAccess
             var sb = new StringBuilder();
 
             var terrain = casterMap.terrainGrid.TerrainAt(cursorPos);
-            string terrainName = terrain?.label ?? "ground";
-            sb.Append($"Destination: {terrainName}");
+            string terrainName = terrain?.label
+                ?? "RimWorldAccess.Abilities.Label.Ground".Translate().ToString();
+            sb.Append((string)"RimWorldAccess.Abilities.Destination.Terrain".Translate(terrainName));
 
             var things = cursorPos.GetThingList(casterMap);
             var pawnsAtCell = things.OfType<Pawn>().Select(p => p.LabelShort).ToList();
@@ -240,15 +241,15 @@ namespace RimWorldAccess
                 .ToList();
 
             if (pawnsAtCell.Count > 0)
-                sb.Append($", contains {string.Join(", ", pawnsAtCell)}");
+                sb.Append((string)"RimWorldAccess.Abilities.Destination.Contains".Translate(string.Join(", ", pawnsAtCell)));
             if (otherThings.Count > 0)
-                sb.Append($", contains {string.Join(", ", otherThings)}");
+                sb.Append((string)"RimWorldAccess.Abilities.Destination.Contains".Translate(string.Join(", ", otherThings)));
 
             string cellError = ValidateDestinationCell(cursorPos);
             if (cellError != null)
                 sb.Append($". {cellError}");
             else
-                sb.Append(". Valid teleport destination");
+                sb.Append((string)"RimWorldAccess.Abilities.Destination.ValidTeleport".Translate());
 
             return sb.ToString();
         }

@@ -703,6 +703,20 @@
   <RimWorldAccess.WorldScanner.EstimatedTravelTime>Estimated travel time: {0}</RimWorldAccess.WorldScanner.EstimatedTravelTime>
   <RimWorldAccess.WorldScanner.WaypointStart>(Start)</RimWorldAccess.WorldScanner.WaypointStart>
 
+  <!-- =================================================================
+       Caravan formation: colony-originated route-choice opening prompt.
+       {0} = translated "RoutePlannerAddOneOrMoreWaypoints" game string.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.Form.ChooseDestinationPrompt>Choose a destination for the caravan on the world map. {0} Space to add a waypoint, E for travel time, Enter to confirm, Escape to cancel.</RimWorldAccess.Caravan.Form.ChooseDestinationPrompt>
+
+  <!-- =================================================================
+       World scanner: no-move guard feedback when a Home jump targets
+       the tile the player already occupies.
+       {0} = scanner item label (from game data).
+       ================================================================= -->
+  <RimWorldAccess.WorldScanner.AlreadyAt>Already at {0}</RimWorldAccess.WorldScanner.AlreadyAt>
+  <RimWorldAccess.WorldScanner.AlreadyAtCenter>Already at center of {0}</RimWorldAccess.WorldScanner.AlreadyAtCenter>
+
   <!-- World object selection tree + announcements (src/World/WorldObjectSelectionState.cs). -->
   <RimWorldAccess.WorldObject.EnterSettlement>Enter Settlement</RimWorldAccess.WorldObject.EnterSettlement>
   <RimWorldAccess.WorldObject.Enter>Enter</RimWorldAccess.WorldObject.Enter>

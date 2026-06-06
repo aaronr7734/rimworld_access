@@ -160,11 +160,11 @@ namespace RimWorldAccess
                 {
                     Current.Game.CurrentMap = colonyOrigin;
                 }
-                TolkHelper.Speak("Caravan formation cancelled", SpeechPriority.Normal);
+                TolkHelper.Speak("RimWorldAccess.Caravan.Form.FormationCancelled".Loc(), SpeechPriority.Normal);
                 return;
             }
 
-            TolkHelper.Speak("Route planner closed", SpeechPriority.Normal);
+            TolkHelper.Speak("RimWorldAccess.Route.Closed".Loc(), SpeechPriority.Normal);
         }
 
         /// <summary>

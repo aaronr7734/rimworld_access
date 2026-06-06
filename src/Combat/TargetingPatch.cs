@@ -160,7 +160,7 @@ namespace RimWorldAccess
                         string genericRangeError = GenericTargetingState.ValidateRangeError(cursorPosition);
                         if (genericRangeError != null)
                         {
-                            TolkHelper.Speak(genericRangeError, SpeechPriority.High);
+                            TolkHelper.SpeakData(genericRangeError, SpeechPriority.High);
                             Event.current.Use();
                             return false;
                         }
@@ -175,9 +175,9 @@ namespace RimWorldAccess
                     {
                         string typeDesc = TargetingParametersDescriber.Describe(targetingSource.targetParams);
                         string msg = string.IsNullOrEmpty(typeDesc)
-                            ? "No valid target at cursor"
-                            : $"No valid target at cursor. {typeDesc}";
-                        TolkHelper.Speak(msg, SpeechPriority.High);
+                            ? (string)"RimWorldAccess.Abilities.Item.NoTargetAtCursor".Translate()
+                            : (string)"RimWorldAccess.Combat.Target.NoValidAtCursorWithDesc".Translate(typeDesc);
+                        TolkHelper.SpeakData(msg, SpeechPriority.High);
                         Event.current.Use();
                         return false;
                     }
@@ -245,7 +245,7 @@ namespace RimWorldAccess
                                     fallback = $"{targetLabel} is not a valid target";
                                 }
                             }
-                            TolkHelper.Speak(fallback ?? "Invalid target", SpeechPriority.High);
+                            TolkHelper.SpeakData(fallback ?? (string)"RimWorldAccess.Combat.Target.InvalidTarget".Translate(), SpeechPriority.High);
                         }
                         // User must press Escape to exit targeting
                         Event.current.Use();
@@ -440,9 +440,9 @@ namespace RimWorldAccess
                     {
                         string typeDesc = TargetingParametersDescriber.Describe(targetParams);
                         string msg = string.IsNullOrEmpty(typeDesc)
-                            ? "No valid target at cursor"
-                            : $"No valid target at cursor. {typeDesc}";
-                        TolkHelper.Speak(msg, SpeechPriority.High);
+                            ? (string)"RimWorldAccess.Abilities.Item.NoTargetAtCursor".Translate()
+                            : (string)"RimWorldAccess.Combat.Target.NoValidAtCursorWithDesc".Translate(typeDesc);
+                        TolkHelper.SpeakData(msg, SpeechPriority.High);
                         Event.current.Use();
                         return false;
                     }

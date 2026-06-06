@@ -28,9 +28,9 @@ namespace RimWorldAccess
         {
             if (IsActive) return;
             IsActive = true;
-            TolkHelper.Speak(
-                "ChooseNextColonySite".Translate()
-                + ". Use arrow keys to navigate, PageUp and PageDown for the scanner, Enter to confirm. You cannot cancel — you must choose a valid tile.",
+            TolkHelper.SpeakData(
+                (string)"ChooseNextColonySite".Translate()
+                + ". " + (string)"RimWorldAccess.Archonexus.TilePick.OpenInstructions".Translate(),
                 SpeechPriority.High);
         }
 
@@ -61,7 +61,7 @@ namespace RimWorldAccess
             {
                 // PickNewColonyTile sets allowEscape: false; the player genuinely
                 // cannot cancel. Make that audible instead of silent.
-                TolkHelper.Speak("You must choose a valid tile to continue.", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Archonexus.TilePick.MustChooseValid".Loc(), SpeechPriority.High);
                 return true;
             }
 
@@ -72,7 +72,7 @@ namespace RimWorldAccess
         {
             if (!WorldNavigationState.IsActive)
             {
-                TolkHelper.Speak("World navigation not active", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Guard.WorldNavigationNotActive".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -84,7 +84,7 @@ namespace RimWorldAccess
                     tile = selected.Tile;
                 else
                 {
-                    TolkHelper.Speak("No valid tile selected", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Guard.NoValidTileSelected".Loc(), SpeechPriority.High);
                     return;
                 }
             }
@@ -98,7 +98,7 @@ namespace RimWorldAccess
                 var tileChosen = tileChosenField?.GetValue(Find.TilePicker) as Action<PlanetTile>;
                 if (validator == null || tileChosen == null)
                 {
-                    TolkHelper.Speak("Cannot access tile picker callbacks", SpeechPriority.High);
+                    TolkHelper.Speak("RimWorldAccess.Gravships.Destination.CannotAccessCallbacks".Loc(), SpeechPriority.High);
                     return;
                 }
 
@@ -120,7 +120,7 @@ namespace RimWorldAccess
             catch (Exception ex)
             {
                 Log.Warning($"[RimWorld Access] Error confirming new colony tile: {ex}");
-                TolkHelper.Speak("Error selecting tile", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Archonexus.TilePick.ErrorSelectingTile".Loc(), SpeechPriority.High);
             }
         }
     }

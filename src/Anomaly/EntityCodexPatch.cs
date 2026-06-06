@@ -39,7 +39,7 @@ namespace RimWorldAccess
                     if (EntityCodexState.IsActive)
                     {
                         EntityCodexState.Close();
-                        TolkHelper.Speak($"{"EntityCodex".Translate()} closed.");
+                        TolkHelper.Speak("RimWorldAccess.Ideology.Tab.Closed".Loc((string)"EntityCodex".Translate()));
                     }
                 }
                 catch (Exception ex)

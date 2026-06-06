@@ -166,7 +166,7 @@ namespace RimWorldAccess
             rewardPrefItems.Clear();
             CleanupRewardMenu();
             if (announce)
-                TolkHelper.Speak("Quest menu closed");
+                TolkHelper.Speak("RimWorldAccess.Quests.Menu.Closed".Loc());
         }
 
         // =====================================================================

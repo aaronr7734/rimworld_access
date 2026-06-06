@@ -936,7 +936,7 @@ namespace RimWorldAccess
             }
 
             string addWaypointsPrompt = "RoutePlannerAddOneOrMoreWaypoints".Translate();
-            TolkHelper.Speak($"Choose a destination for the caravan on the world map. {addWaypointsPrompt} Space to add a waypoint, E for travel time, Enter to confirm, Escape to cancel.");
+            TolkHelper.SpeakData((string)"RimWorldAccess.Caravan.Form.ChooseDestinationPrompt".Translate(addWaypointsPrompt));
         }
 
         /// <summary>

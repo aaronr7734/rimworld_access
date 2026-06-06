@@ -59,11 +59,11 @@ namespace RimWorldAccess
                 isActive = true;
 
                 string title = "EntityCodex".Translate().Resolve();
-                TolkHelper.Speak($"{title}. {allEntries.Count} entries.", SpeechPriority.Normal);
+                TolkHelper.SpeakData((string)"RimWorldAccess.Anomaly.Codex.Opened".Translate(title, allEntries.Count), SpeechPriority.Normal);
 
                 string desc = "EntityCodexDesc".Translate().Resolve();
                 if (!string.IsNullOrEmpty(desc))
-                    TolkHelper.Speak(SanitizeText(desc), SpeechPriority.Normal);
+                    TolkHelper.SpeakData(SanitizeText(desc), SpeechPriority.Normal);
 
                 if (allEntries.Count > 0)
                     AnnounceCurrentSelection();
@@ -251,7 +251,7 @@ namespace RimWorldAccess
             string fullText = string.IsNullOrEmpty(position)
                 ? $"{categoryPrefix}{announcement}"
                 : $"{categoryPrefix}{announcement}, {position}";
-            TolkHelper.Speak(fullText, SpeechPriority.Normal);
+            TolkHelper.SpeakData(fullText, SpeechPriority.Normal);
         }
 
         private static void AnnounceWithSearch()
@@ -265,8 +265,8 @@ namespace RimWorldAccess
                 return;
             }
 
-            TolkHelper.Speak(
-                $"{FormatEntryAnnouncement(selectedIndex)}, {typeaheadHelper.CurrentMatchPosition} of {typeaheadHelper.MatchCount} matches for '{typeaheadHelper.SearchBuffer}'");
+            TolkHelper.SpeakData(
+                $"{FormatEntryAnnouncement(selectedIndex)}{(string)"RimWorldAccess.Search.ContextSuffix".Translate(typeaheadHelper.CurrentMatchPosition, typeaheadHelper.MatchCount, typeaheadHelper.SearchBuffer)}");
         }
 
         private static string FormatEntryAnnouncement(int index)
@@ -334,7 +334,7 @@ namespace RimWorldAccess
             var entry = allEntries[selectedIndex];
             if (!entry.Discovered)
             {
-                TolkHelper.Speak("UndiscoveredEntityDesc".Translate().Resolve());
+                TolkHelper.Speak("UndiscoveredEntityDesc".Loc());
                 return;
             }
 
@@ -369,7 +369,7 @@ namespace RimWorldAccess
 
             if (options.Count == 0)
             {
-                TolkHelper.Speak("None".Translate().Resolve());
+                TolkHelper.Speak("None".Loc());
                 return;
             }
 

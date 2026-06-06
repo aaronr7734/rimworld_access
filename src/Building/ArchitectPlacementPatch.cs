@@ -425,12 +425,12 @@ namespace RimWorldAccess
             ShapeType shape = ShapePlacementState.CurrentShape;
             if (shape == ShapeType.Manual)
             {
-                TolkHelper.Speak("Select all requires a shape. Press Tab to choose one.");
+                TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.CtrlA.RequiresShape".Loc());
                 return true;
             }
             if (shape == ShapeType.Line || shape == ShapeType.AngledLine)
             {
-                TolkHelper.Speak("Select all is not available for line shapes.");
+                TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.CtrlA.NotAvailableForLines".Loc());
                 return true;
             }
 
@@ -443,14 +443,14 @@ namespace RimWorldAccess
             // Already at the broadest scope — nothing to expand to.
             if (currentStage == CtrlAStage.EntireMap)
             {
-                TolkHelper.Speak("Entire map already selected. Press Ctrl plus Shift plus A to step back.");
+                TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.CtrlA.EntireMapAlreadySelected".Loc());
                 return true;
             }
 
             // From the enclosure stage we step out to the entire map.
             if (currentStage == CtrlAStage.Enclosure)
             {
-                ApplyEntireMapScope(map, shape, "Expanded to ");
+                ApplyEntireMapScope(map, shape);
                 return true;
             }
 
@@ -474,7 +474,7 @@ namespace RimWorldAccess
                 CellRect rect = room.ExtentsClose;
                 cornerA = new IntVec3(rect.minX, 0, rect.minZ);
                 cornerB = new IntVec3(rect.maxX, 0, rect.maxZ);
-                scopeLabel = $"room, {rect.Width} by {rect.Height}";
+                scopeLabel = (string)"RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeRoom".Translate(rect.Width.ToString(), rect.Height.ToString());
             }
             else if (cursorValid && TryBlueprintEnclosureBounds(cursor, map, out cornerA, out cornerB, out scopeLabel))
             {
@@ -483,7 +483,7 @@ namespace RimWorldAccess
             else
             {
                 // No enclosure to step through — jump straight to entire map.
-                ApplyEntireMapScope(map, shape, "No enclosure detected, selected ");
+                ApplyEntireMapScope(map, shape, isNoEnclosure: true);
                 return true;
             }
 
@@ -493,18 +493,20 @@ namespace RimWorldAccess
 
             int cellCount = ShapePlacementState.PreviewCells?.Count ?? 0;
             string shapeName = ShapeHelper.GetShapeName(shape);
-            TolkHelper.Speak($"Selected {scopeLabel}. {shapeName}, {cellCount} cells. Press Ctrl plus A again for entire map. Enter to confirm.");
+            TolkHelper.SpeakData((string)"RimWorldAccess.Building.ArchitectPlace.CtrlA.SelectedScope".Translate(scopeLabel, shapeName, cellCount.ToString()));
             return true;
         }
 
         /// <summary>
         /// Applies entire-map corners and announces the new scope.
+        /// <paramref name="isNoEnclosure"/> selects the "No enclosure detected, selected …" phrasing
+        /// (true) vs. the "Expanded to …" phrasing (false).
         /// </summary>
-        private static void ApplyEntireMapScope(Map map, ShapeType shape, string prefix)
+        private static void ApplyEntireMapScope(Map map, ShapeType shape, bool isNoEnclosure = false)
         {
             IntVec3 cornerA = new IntVec3(0, 0, 0);
             IntVec3 cornerB = new IntVec3(map.Size.x - 1, 0, map.Size.z - 1);
-            string scopeLabel = $"entire map, {map.Size.x} by {map.Size.z}";
+            string scopeLabel = (string)"RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeEntireMap".Translate(map.Size.x.ToString(), map.Size.z.ToString());
 
             ShapePlacementState.PushCtrlAHistory();
             ShapePlacementState.SetBothPoints(cornerA, cornerB);
@@ -512,7 +514,10 @@ namespace RimWorldAccess
 
             int cellCount = ShapePlacementState.PreviewCells?.Count ?? 0;
             string shapeName = ShapeHelper.GetShapeName(shape);
-            TolkHelper.Speak($"{prefix}{scopeLabel}. {shapeName}, {cellCount} cells. Press Ctrl plus Shift plus A to step back. Enter to confirm.");
+            string announceKey = isNoEnclosure
+                ? "RimWorldAccess.Building.ArchitectPlace.CtrlA.NoEnclosureSelectedScope"
+                : "RimWorldAccess.Building.ArchitectPlace.CtrlA.ExpandedToScope";
+            TolkHelper.SpeakData((string)announceKey.Translate(scopeLabel, shapeName, cellCount.ToString()));
         }
 
         /// <summary>
@@ -528,24 +533,24 @@ namespace RimWorldAccess
             ShapeType shape = ShapePlacementState.CurrentShape;
             if (shape == ShapeType.Manual)
             {
-                TolkHelper.Speak("Select all requires a shape. Press Tab to choose one.");
+                TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.CtrlA.RequiresShape".Loc());
                 return true;
             }
             if (shape == ShapeType.Line || shape == ShapeType.AngledLine)
             {
-                TolkHelper.Speak("Select all is not available for line shapes.");
+                TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.CtrlA.NotAvailableForLines".Loc());
                 return true;
             }
 
             if (!ShapePlacementState.HasCtrlAHistory)
             {
-                TolkHelper.Speak("No previous selection scope to return to.");
+                TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.CtrlA.NoPreviousScope".Loc());
                 return true;
             }
 
             if (!ShapePlacementState.TryUndoCtrlA())
             {
-                TolkHelper.Speak("No previous selection scope to return to.");
+                TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.CtrlA.NoPreviousScope".Loc());
                 return true;
             }
 
@@ -557,19 +562,21 @@ namespace RimWorldAccess
                 // Restored to a state with no Ctrl+A selection in effect.
                 if (!ShapePlacementState.HasFirstPoint)
                 {
-                    TolkHelper.Speak("Selection cleared. Move to first point and press Space.");
+                    TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.CtrlA.ClearedMoveToFirstPoint".Loc());
                 }
                 else
                 {
                     int cells = ShapePlacementState.PreviewCells?.Count ?? 0;
-                    TolkHelper.Speak($"Returned to previous selection. {shapeName}, {cells} cells.");
+                    TolkHelper.SpeakData((string)"RimWorldAccess.Building.ArchitectPlace.CtrlA.ReturnedToPreviousSelection".Translate(shapeName, cells.ToString()));
                 }
                 return true;
             }
 
             int cellCount = ShapePlacementState.PreviewCells?.Count ?? 0;
-            string scopeName = stage == CtrlAStage.Enclosure ? "enclosure" : "entire map";
-            TolkHelper.Speak($"Returned to {scopeName}. {shapeName}, {cellCount} cells. Enter to confirm.");
+            string scopeName = stage == CtrlAStage.Enclosure
+                ? (string)"RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeNameEnclosure".Translate()
+                : (string)"RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeNameEntireMap".Translate();
+            TolkHelper.SpeakData((string)"RimWorldAccess.Building.ArchitectPlace.CtrlA.ReturnedToScope".Translate(scopeName, shapeName, cellCount.ToString()));
             return true;
         }
 
@@ -603,7 +610,7 @@ namespace RimWorldAccess
 
             cornerA = new IntVec3(minX, 0, minZ);
             cornerB = new IntVec3(maxX, 0, maxZ);
-            scopeLabel = $"blueprint enclosure, {maxX - minX + 1} by {maxZ - minZ + 1}";
+            scopeLabel = (string)"RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeBlueprintEnclosure".Translate((maxX - minX + 1).ToString(), (maxZ - minZ + 1).ToString());
             return true;
         }
 

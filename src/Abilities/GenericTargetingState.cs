@@ -54,7 +54,7 @@ namespace RimWorldAccess
             sourceLabel = ExtractLabel(source);
             isActive = true;
 
-            TolkHelper.Speak(BuildStartAnnouncement(), SpeechPriority.Normal);
+            TolkHelper.SpeakData(BuildStartAnnouncement(), SpeechPriority.Normal);
         }
 
         public static void Close()
@@ -84,52 +84,52 @@ namespace RimWorldAccess
         {
             if (!isActive)
             {
-                TolkHelper.Speak("No targeting active");
+                TolkHelper.Speak("RimWorldAccess.Abilities.Generic.NoTargetingActive".Loc());
                 return;
             }
             IntVec3 cursor = MapNavigationState.CurrentCursorPosition;
             if (!cursor.IsValid)
             {
-                TolkHelper.Speak("Invalid cursor position");
+                TolkHelper.Speak("RimWorldAccess.Guard.InvalidCursorPosition".Loc());
                 return;
             }
             var sb = new StringBuilder();
             if (casterPosition.IsValid)
             {
                 float distance = (cursor - casterPosition).LengthHorizontal;
-                sb.Append($"Distance: {distance:F0} tiles");
+                sb.Append((string)"RimWorldAccess.Abilities.Range.Distance".Translate(distance.ToString("F0")));
                 if (distance > effectiveRange && effectiveRange > 0f)
                 {
-                    sb.Append($", OUT OF RANGE (max {effectiveRange:F0})");
+                    sb.Append((string)"RimWorldAccess.Abilities.Range.OutOfRange".Translate(effectiveRange.ToString("F0")));
                 }
                 else if (distance < minRange && minRange > 0f)
                 {
-                    sb.Append($", TOO CLOSE (min {minRange:F0})");
+                    sb.Append((string)"RimWorldAccess.Abilities.Generic.TooClose".Translate(minRange.ToString("F0")));
                 }
                 else if (effectiveRange > 0f)
                 {
-                    sb.Append(", IN RANGE");
+                    sb.Append((string)"RimWorldAccess.Abilities.Range.InRange".Translate());
                 }
                 if (casterMap != null && !GenSight.LineOfSight(casterPosition, cursor, casterMap))
                 {
-                    sb.Append(", NO LINE OF SIGHT");
+                    sb.Append((string)"RimWorldAccess.Abilities.Range.NoLineOfSight".Translate());
                 }
                 if (aoeRadius > 0f)
                 {
-                    sb.Append($", Explosion radius: {aoeRadius:F0}");
+                    sb.Append((string)"RimWorldAccess.Abilities.Generic.ExplosionRadius".Translate(aoeRadius.ToString("F0")));
                 }
             }
             else if (effectiveRange > 0f)
             {
-                sb.Append($"Range: {effectiveRange:F0} tiles");
+                sb.Append((string)"RimWorldAccess.Abilities.Generic.RangeOnly".Translate(effectiveRange.ToString("F0")));
                 if (aoeRadius > 0f)
-                    sb.Append($", Explosion radius: {aoeRadius:F0}");
+                    sb.Append((string)"RimWorldAccess.Abilities.Generic.ExplosionRadius".Translate(aoeRadius.ToString("F0")));
             }
             else
             {
-                sb.Append("No range information");
+                sb.Append((string)"RimWorldAccess.Abilities.Generic.NoRangeInfo".Translate());
             }
-            TolkHelper.Speak(sb.ToString());
+            TolkHelper.SpeakData(sb.ToString());
         }
 
         /// <summary>
@@ -174,20 +174,22 @@ namespace RimWorldAccess
         private static string BuildStartAnnouncement()
         {
             var sb = new StringBuilder();
-            sb.Append(string.IsNullOrEmpty(sourceLabel) ? "Targeting" : $"{sourceLabel} targeting");
+            sb.Append(string.IsNullOrEmpty(sourceLabel)
+                ? (string)"RimWorldAccess.Abilities.Generic.StartFallback".Translate()
+                : (string)"RimWorldAccess.Abilities.Generic.StartHeader".Translate(sourceLabel));
             string typeDesc = TargetingParametersDescriber.Describe(currentSource?.targetParams);
             if (!string.IsNullOrEmpty(typeDesc))
-                sb.Append($". {typeDesc}");
+                sb.Append((string)"RimWorldAccess.Abilities.Generic.StartTypeDesc".Translate(typeDesc));
             if (effectiveRange > 0f)
             {
                 if (minRange > 0f)
-                    sb.Append($". Range: {minRange:F0} to {effectiveRange:F0} tiles");
+                    sb.Append((string)"RimWorldAccess.Abilities.Generic.StartRangeMinMax".Translate(minRange.ToString("F0"), effectiveRange.ToString("F0")));
                 else
-                    sb.Append($". Range: {effectiveRange:F0} tiles");
+                    sb.Append((string)"RimWorldAccess.Abilities.Start.Range".Translate(effectiveRange.ToString("F0")));
             }
             if (aoeRadius > 0f)
-                sb.Append($". Explosion radius: {aoeRadius:F0} tiles");
-            sb.Append(". Press Enter at cursor to confirm. R for distance and line of sight. Escape to cancel.");
+                sb.Append((string)"RimWorldAccess.Abilities.Generic.StartExplosionRadius".Translate(aoeRadius.ToString("F0")));
+            sb.Append((string)"RimWorldAccess.Abilities.Generic.StartInstructionTail".Translate());
             return sb.ToString();
         }
 

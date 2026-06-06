@@ -44,6 +44,7 @@
   <RimWorldAccess.Combat.Target.InvalidPosition>Invalid target position</RimWorldAccess.Combat.Target.InvalidPosition>
   <RimWorldAccess.Combat.Target.InvalidTarget>Invalid target</RimWorldAccess.Combat.Target.InvalidTarget>
   <RimWorldAccess.Combat.Target.NotValidTarget>{0} is not a valid target</RimWorldAccess.Combat.Target.NotValidTarget>
+  <RimWorldAccess.Combat.Target.NoValidAtCursorWithDesc>No valid target at cursor. {0}</RimWorldAccess.Combat.Target.NoValidAtCursorWithDesc>
   <RimWorldAccess.Combat.Target.NoActionAvailable>No targeting action available</RimWorldAccess.Combat.Target.NoActionAvailable>
   <RimWorldAccess.Combat.Target.ErrorUsing>Error using on target: {0}</RimWorldAccess.Combat.Target.ErrorUsing>
 

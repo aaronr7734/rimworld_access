@@ -322,7 +322,7 @@ namespace RimWorldAccess
             var report = (AcceptanceReport)AcceptanceReportProp.GetValue(dialog);
             if (!report.Accepted)
             {
-                TolkHelper.Speak(report.Reason, SpeechPriority.High);
+                TolkHelper.SpeakData(report.Reason, SpeechPriority.High);
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }
@@ -443,11 +443,11 @@ namespace RimWorldAccess
             var sb = new StringBuilder();
             sb.Append("ChooseThingsForNewColonyTitle".Translate());
             sb.Append(". ").Append("ChooseThingsForNewColonyDesc".Translate());
-            sb.Append(". ").Append("Space or Enter to select, Alt S to send.");
+            sb.Append(". ").Append("RimWorldAccess.Archonexus.Colony.OpenInstructions".Translate());
             sb.Append(" ").Append(BuildStatusText());
             if (sections.Count > 0)
                 sb.Append(". ").Append(BuildCurrentText(includeSectionHeader: true));
-            TolkHelper.Speak(sb.ToString(), SpeechPriority.High);
+            TolkHelper.SpeakData(sb.ToString(), SpeechPriority.High);
         }
 
         private static void AnnounceCurrent(bool includeSectionHeader)
@@ -455,7 +455,7 @@ namespace RimWorldAccess
             if (sections.Count == 0) return;
             string text = BuildCurrentText(includeSectionHeader);
             if (!string.IsNullOrEmpty(text))
-                TolkHelper.Speak(text);
+                TolkHelper.SpeakData(text);
         }
 
         private static string BuildCurrentText(bool includeSectionHeader)
@@ -492,12 +492,12 @@ namespace RimWorldAccess
             var sb = new StringBuilder();
             sb.Append(nowSelected ? "selected" : "unselected");
             sb.Append(". ").Append(GetCount(CurrentSection)).Append(" of ").Append(GetMax(CurrentSection));
-            TolkHelper.Speak(sb.ToString());
+            TolkHelper.SpeakData(sb.ToString());
         }
 
         private static void AnnounceStatus()
         {
-            TolkHelper.Speak(BuildStatusText(), SpeechPriority.High);
+            TolkHelper.SpeakData(BuildStatusText(), SpeechPriority.High);
         }
 
         private static string BuildStatusText()

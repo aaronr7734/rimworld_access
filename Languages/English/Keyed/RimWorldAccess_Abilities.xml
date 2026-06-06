@@ -184,6 +184,43 @@
        label. -->
   <RimWorldAccess.Abilities.Permit.Start>Select a target for {0}. Navigate with arrow keys, Enter to confirm.</RimWorldAccess.Abilities.Permit.Start>
 
+  <!-- GenericTargetingState: catch-all for verb-based ITargetingSource sessions
+       (apparel weapons, mech abilities, modded verbs). Mirrors the
+       Ability/Jump key families above for range feedback and start
+       announcement. StartFallback/StartHeader replace the English
+       "Targeting"/"X targeting" literals; StartTypeDesc wraps the already-
+       translated type description from TargetingParametersDescriber;
+       StartRangeMinMax covers the min-to-max range case; StartExplosionRadius
+       is the AOE appendage (different form from Start.AOE which uses ", ");
+       StartInstructionTail is the fixed closing instruction sentence.
+       TooClose/ExplosionRadius/RangeOnly/NoRangeInfo mirror the Ability range
+       feedback keys. -->
+  <RimWorldAccess.Abilities.Generic.NoTargetingActive>No targeting active</RimWorldAccess.Abilities.Generic.NoTargetingActive>
+  <RimWorldAccess.Abilities.Generic.StartFallback>Targeting</RimWorldAccess.Abilities.Generic.StartFallback>
+  <RimWorldAccess.Abilities.Generic.StartHeader>{0} targeting</RimWorldAccess.Abilities.Generic.StartHeader>
+  <RimWorldAccess.Abilities.Generic.StartTypeDesc>. {0}</RimWorldAccess.Abilities.Generic.StartTypeDesc>
+  <RimWorldAccess.Abilities.Generic.StartRangeMinMax>. Range: {0} to {1} tiles</RimWorldAccess.Abilities.Generic.StartRangeMinMax>
+  <RimWorldAccess.Abilities.Generic.StartExplosionRadius>. Explosion radius: {0} tiles</RimWorldAccess.Abilities.Generic.StartExplosionRadius>
+  <RimWorldAccess.Abilities.Generic.StartInstructionTail>. Press Enter at cursor to confirm. R for distance and line of sight. Escape to cancel.</RimWorldAccess.Abilities.Generic.StartInstructionTail>
+  <RimWorldAccess.Abilities.Generic.TooClose>, TOO CLOSE (min {0})</RimWorldAccess.Abilities.Generic.TooClose>
+  <RimWorldAccess.Abilities.Generic.ExplosionRadius>, Explosion radius: {0}</RimWorldAccess.Abilities.Generic.ExplosionRadius>
+  <RimWorldAccess.Abilities.Generic.RangeOnly>Range: {0} tiles</RimWorldAccess.Abilities.Generic.RangeOnly>
+  <RimWorldAccess.Abilities.Generic.NoRangeInfo>No range information</RimWorldAccess.Abilities.Generic.NoRangeInfo>
+
+  <!-- AbilityTargetingState.BuildDestinationCellAnnouncement (Skip / dual-
+       target abilities). Terrain is the terrain label at the cursor;
+       Contains lists pawns or things sharing the cell; ValidTeleport is
+       the suffix when the cell passes CompAbilityEffect_WithDest validation.
+       The cell-error suffix (when invalid) is produced by ValidateDestinationCell
+       and passed through as data. -->
+  <RimWorldAccess.Abilities.Destination.Terrain>Destination: {0}</RimWorldAccess.Abilities.Destination.Terrain>
+  <RimWorldAccess.Abilities.Destination.Contains>, contains {0}</RimWorldAccess.Abilities.Destination.Contains>
+  <RimWorldAccess.Abilities.Destination.ValidTeleport>. Valid teleport destination</RimWorldAccess.Abilities.Destination.ValidTeleport>
+
+  <!-- ItemTargetingState.AnnounceRangeInfo (R key during item targeting).
+       {0} = item or action label. -->
+  <RimWorldAccess.Abilities.Item.NoRangeConstraint>No range constraint for {0}. Move cursor to a valid target and press Enter.</RimWorldAccess.Abilities.Item.NoRangeConstraint>
+
   <!-- World ability targeting (Farskip, etc.). Start sentence is composed
        from pieces so "Bringing N: names." can be omitted; TargetingStart
        holds the leading header, BringingOne/Many inject the AOE passenger

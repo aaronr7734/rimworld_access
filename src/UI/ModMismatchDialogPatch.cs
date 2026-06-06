@@ -63,7 +63,7 @@ namespace RimWorldAccess
 
                 parts.Add($"Press Enter for {"LoadAnyway".Translate()}, Escape for {"GoBack".Translate()}.");
 
-                TolkHelper.Speak(string.Join(". ", parts), SpeechPriority.High);
+                TolkHelper.SpeakData(string.Join(". ", parts), SpeechPriority.High);
             }
             catch (System.Exception ex)
             {

@@ -1149,9 +1149,9 @@ namespace RimWorldAccess
                     && jumpRegion.TileCount > 1
                     && cursorBeforeJump == jumpRegion.CenterPosition;
                 string where = atCenter
-                    ? $"Already at center of {currentItem.Label}"
-                    : $"Already at {currentItem.Label}";
-                TolkHelper.Speak(where, SpeechPriority.Normal);
+                    ? (string)"RimWorldAccess.Map.Scanner.AlreadyAtCenter".Translate(currentItem.Label)
+                    : (string)"RimWorldAccess.Map.Scanner.AlreadyAt".Translate(currentItem.Label);
+                TolkHelper.SpeakData(where, SpeechPriority.Normal);
                 return;
             }
 

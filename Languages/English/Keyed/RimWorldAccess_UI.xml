@@ -204,6 +204,18 @@
   <RimWorldAccess.UI.MessageBox.TwoButtons>Press Enter for {0}, Escape for {1}.</RimWorldAccess.UI.MessageBox.TwoButtons>
   <RimWorldAccess.UI.MessageBox.OneButton>Press Enter for {0}.</RimWorldAccess.UI.MessageBox.OneButton>
 
+  <!-- =================================================================
+       Slider dialog (SliderDialogState — Dialog_Slider keyboard nav).
+       OpenPrompt: {0} = current value text (from textGetter), {1} = min, {2} = max.
+       Confirmed: {0} = confirmed integer value.
+       Cleared: spoken when digit buffer is emptied via Backspace. -->
+  <RimWorldAccess.UI.Slider.OpenPrompt>{0}. Range {1} to {2}. Up Down to nudge, Left Right to step ten percent, type digits and Enter to set, Enter to confirm, Escape to cancel.</RimWorldAccess.UI.Slider.OpenPrompt>
+  <RimWorldAccess.UI.Slider.Confirmed>Confirmed {0}</RimWorldAccess.UI.Slider.Confirmed>
+  <RimWorldAccess.UI.Slider.Cleared>Cleared</RimWorldAccess.UI.Slider.Cleared>
+
+  <!-- Save menu: no existing files to overwrite (save mode, Down from text field). -->
+  <RimWorldAccess.UI.Save.NoExistingSaves>No existing saves to overwrite.</RimWorldAccess.UI.Save.NoExistingSaves>
+
   <!-- TwoLevelMenuHelper fallback messages, used when a caller does not supply
        its own context-specific text. -->
   <RimWorldAccess.TwoLevel.OpenFirstDefault>Press Enter to open this item first</RimWorldAccess.TwoLevel.OpenFirstDefault>

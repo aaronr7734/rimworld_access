@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- Entity Codex (Dialog_EntityCodex).
+       Opened: {0} = dialog title (EntityCodex translated), {1} = total entry count. -->
+  <RimWorldAccess.Anomaly.Codex.Opened>{0}. {1} entries.</RimWorldAccess.Anomaly.Codex.Opened>
+</LanguageData>

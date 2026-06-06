@@ -49,8 +49,8 @@ namespace RimWorldAccess
 
                 int curValue = GetCurValue();
                 string text = ResolveText(curValue);
-                TolkHelper.Speak(
-                    $"{text}. Range {from} to {to}. Up Down to nudge, Left Right to step ten percent, type digits and Enter to set, Enter to confirm, Escape to cancel.",
+                TolkHelper.SpeakData(
+                    (string)"RimWorldAccess.UI.Slider.OpenPrompt".Translate(text, from.ToString(), to.ToString()),
                     SpeechPriority.Normal);
             }
             catch (Exception ex)
@@ -79,7 +79,7 @@ namespace RimWorldAccess
             {
                 currentDialog.Close(doCloseSound: false);
                 Close();
-                TolkHelper.Speak("Cancelled");
+                TolkHelper.Speak("RimWorldAccess.UI.Cancelled".Loc());
                 return true;
             }
 
@@ -102,7 +102,7 @@ namespace RimWorldAccess
             if (key == KeyCode.Backspace && digitBuffer.Length > 0)
             {
                 digitBuffer.Length--;
-                TolkHelper.Speak(digitBuffer.Length > 0 ? digitBuffer.ToString() : "Cleared", SpeechPriority.Low);
+                TolkHelper.SpeakData(digitBuffer.Length > 0 ? digitBuffer.ToString() : (string)"RimWorldAccess.UI.Slider.Cleared".Translate(), SpeechPriority.Low);
                 return true;
             }
 
@@ -110,7 +110,7 @@ namespace RimWorldAccess
             if (TryReadDigit(key, out char digit))
             {
                 digitBuffer.Append(digit);
-                TolkHelper.Speak(digitBuffer.ToString(), SpeechPriority.Low);
+                TolkHelper.SpeakData(digitBuffer.ToString(), SpeechPriority.Low);
                 return true;
             }
 
@@ -183,7 +183,7 @@ namespace RimWorldAccess
                 currentDialog.Close(doCloseSound: false);
                 Close();
                 confirmAction?.Invoke(curValue);
-                TolkHelper.Speak($"Confirmed {curValue}");
+                TolkHelper.SpeakData((string)"RimWorldAccess.UI.Slider.Confirmed".Translate(curValue.ToString()));
             }
             catch (Exception ex)
             {
@@ -207,7 +207,7 @@ namespace RimWorldAccess
         private static void AnnounceCurrent()
         {
             int v = GetCurValue();
-            TolkHelper.Speak(ResolveText(v), SpeechPriority.Low);
+            TolkHelper.SpeakData(ResolveText(v), SpeechPriority.Low);
         }
 
         private static string ResolveText(int value)

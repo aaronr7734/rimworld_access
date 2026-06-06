@@ -145,9 +145,9 @@ namespace RimWorldAccess
             // at Tab so they discover they can open its full editor — otherwise the editor is hidden.
             string text = BuildCurrentText(includePosition: true);
             if (IsEditable(Current.Ideo))
-                text += ". Press Tab to edit this ideoligion.";
+                text += ". " + (string)"RimWorldAccess.Archonexus.Reform.PressTabToEdit".Translate();
             if (!string.IsNullOrEmpty(text))
-                TolkHelper.Speak(text, SpeechPriority.High);
+                TolkHelper.SpeakData(text, SpeechPriority.High);
         }
 
         /// <summary>Rebuilds the row list (actions + every ideoligion), preserving the focused ideo.</summary>
@@ -255,7 +255,7 @@ namespace RimWorldAccess
                 }
                 // Dialog has openMenuOnCancel:true and no real Cancel — the player cannot
                 // back out of this step of the quest. Make that audible.
-                TolkHelper.Speak("You cannot cancel reforming the ideoligion. Press Alt S to confirm and continue.", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Archonexus.Reform.CannotCancel".Loc(), SpeechPriority.High);
                 return true;
             }
 
@@ -380,7 +380,7 @@ namespace RimWorldAccess
         {
             if (Current.Kind != RowKind.Ideo || Current.Ideo == null)
             {
-                TolkHelper.Speak("No ideoligion details here. Move to an ideoligion first.");
+                TolkHelper.Speak("RimWorldAccess.Archonexus.Reform.NoIdeoDetailsHere".Loc());
                 return;
             }
             typeahead.ClearSearch();
@@ -443,7 +443,7 @@ namespace RimWorldAccess
             var current = (Ideo)CurrentPrimaryIdeoProp.GetValue(dialog);
             if (ideo == current)
             {
-                TolkHelper.Speak($"{ideo.name} is already the primary ideoligion.");
+                TolkHelper.SpeakData("RimWorldAccess.Archonexus.Reform.AlreadyPrimary".Translate(ideo.name));
                 return;
             }
             // The dialog's own helper handles primary assignment + bookkeeping for the "new" ideo
@@ -453,7 +453,7 @@ namespace RimWorldAccess
             // Clear any active search on select so the next keystrokes start fresh (parity with
             // the colony-selection screen).
             typeahead.ClearSearch();
-            TolkHelper.Speak($"{ideo.name} set as primary ideoligion.", SpeechPriority.High);
+            TolkHelper.SpeakData("RimWorldAccess.Archonexus.Reform.SetAsPrimary".Translate(ideo.name), SpeechPriority.High);
         }
 
         private static void CreateNew(bool fluid)
@@ -495,7 +495,7 @@ namespace RimWorldAccess
             IEnumerable<Pawn> source = pawns.Where(p => p.IsColonist && p.Ideo != Faction.OfPlayer.ideos.PrimaryIdeo);
             if (!source.Any())
             {
-                TolkHelper.Speak("No colonists need converting.");
+                TolkHelper.Speak("RimWorldAccess.Archonexus.Reform.NoColonistsNeedConverting".Loc());
                 return;
             }
 
@@ -538,7 +538,7 @@ namespace RimWorldAccess
             catch (Exception ex)
             {
                 Log.Error($"[RimWorld Access] Error confirming reform ideo: {ex}");
-                TolkHelper.Speak("Error confirming ideoligion", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.Archonexus.Reform.ErrorConfirming".Loc(), SpeechPriority.High);
             }
         }
 
@@ -552,10 +552,10 @@ namespace RimWorldAccess
         {
             var sb = new StringBuilder();
             sb.Append("ConfigureIdeoligion".Translate());
-            sb.Append(". Up and Down to browse, typeahead to search, Tab for full details, Enter to make primary, Alt S to confirm.");
+            sb.Append(". ").Append("RimWorldAccess.Archonexus.Reform.OpenInstructions".Translate());
             if (rows.Count > 0)
                 sb.Append(". ").Append(BuildCurrentText(includePosition: true));
-            TolkHelper.Speak(sb.ToString(), SpeechPriority.High);
+            TolkHelper.SpeakData(sb.ToString(), SpeechPriority.High);
         }
 
         private static void AnnounceCurrent(bool includePosition = true)
@@ -563,7 +563,7 @@ namespace RimWorldAccess
             if (rows.Count == 0) return;
             string text = BuildCurrentText(includePosition);
             if (!string.IsNullOrEmpty(text))
-                TolkHelper.Speak(text);
+                TolkHelper.SpeakData(text);
         }
 
         private static string BuildCurrentText(bool includePosition)

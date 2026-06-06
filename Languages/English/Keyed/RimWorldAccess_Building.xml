@@ -962,4 +962,26 @@
   <RimWorldAccess.Building.View.ItemTypeDesignationOne>designation</RimWorldAccess.Building.View.ItemTypeDesignationOne>
   <RimWorldAccess.Building.View.ItemTypeDesignationMany>designations</RimWorldAccess.Building.View.ItemTypeDesignationMany>
 
+  <!-- Ctrl+A / Ctrl+Shift+A select-all and undo-scope announcements
+       (src/Building/ArchitectPlacementPatch.cs).
+       Scope labels: {0}=width, {1}=height (integers).
+       Scope-aware announce strings: {0}=scopeLabel, {1}=shapeName, {2}=cellCount.
+       ReturnedToPreviousSelection: {0}=shapeName, {1}=cellCount.
+       ReturnedToScope / NoEnclosureSelectedScope: {0}=scopeName or scopeLabel, {1}=shapeName, {2}=cellCount. -->
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeRoom>room, {0} by {1}</RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeRoom>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeBlueprintEnclosure>blueprint enclosure, {0} by {1}</RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeBlueprintEnclosure>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeEntireMap>entire map, {0} by {1}</RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeEntireMap>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeNameEnclosure>enclosure</RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeNameEnclosure>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeNameEntireMap>entire map</RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeNameEntireMap>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.RequiresShape>Select all requires a shape. Press Tab to choose one.</RimWorldAccess.Building.ArchitectPlace.CtrlA.RequiresShape>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.NotAvailableForLines>Select all is not available for line shapes.</RimWorldAccess.Building.ArchitectPlace.CtrlA.NotAvailableForLines>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.EntireMapAlreadySelected>Entire map already selected. Press Ctrl plus Shift plus A to step back.</RimWorldAccess.Building.ArchitectPlace.CtrlA.EntireMapAlreadySelected>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.SelectedScope>Selected {0}. {1}, {2} cells. Press Ctrl plus A again for entire map. Enter to confirm.</RimWorldAccess.Building.ArchitectPlace.CtrlA.SelectedScope>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ExpandedToScope>Expanded to {0}. {1}, {2} cells. Press Ctrl plus Shift plus A to step back. Enter to confirm.</RimWorldAccess.Building.ArchitectPlace.CtrlA.ExpandedToScope>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.NoEnclosureSelectedScope>No enclosure detected, selected {0}. {1}, {2} cells. Press Ctrl plus Shift plus A to step back. Enter to confirm.</RimWorldAccess.Building.ArchitectPlace.CtrlA.NoEnclosureSelectedScope>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.NoPreviousScope>No previous selection scope to return to.</RimWorldAccess.Building.ArchitectPlace.CtrlA.NoPreviousScope>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ClearedMoveToFirstPoint>Selection cleared. Move to first point and press Space.</RimWorldAccess.Building.ArchitectPlace.CtrlA.ClearedMoveToFirstPoint>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ReturnedToPreviousSelection>Returned to previous selection. {0}, {1} cells.</RimWorldAccess.Building.ArchitectPlace.CtrlA.ReturnedToPreviousSelection>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ReturnedToScope>Returned to {0}. {1}, {2} cells. Enter to confirm.</RimWorldAccess.Building.ArchitectPlace.CtrlA.ReturnedToScope>
+
 </LanguageData>

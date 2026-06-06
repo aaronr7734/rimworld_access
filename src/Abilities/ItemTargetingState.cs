@@ -105,8 +105,11 @@ namespace RimWorldAccess
 
         private static void AnnounceRangeInfo()
         {
-            string label = !string.IsNullOrEmpty(itemLabel) ? itemLabel : "this action";
-            TolkHelper.Speak($"No range constraint for {label}. Move cursor to a valid target and press Enter.",
+            string label = !string.IsNullOrEmpty(itemLabel)
+                ? itemLabel
+                : "RimWorldAccess.Abilities.Item.DefaultInstruction".Translate().ToString();
+            TolkHelper.SpeakData(
+                (string)"RimWorldAccess.Abilities.Item.NoRangeConstraint".Translate(label),
                 SpeechPriority.Normal);
         }
 

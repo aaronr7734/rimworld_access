@@ -2275,9 +2275,9 @@ namespace RimWorldAccess
                 bool atCenter = members != null && members.Length > 1
                     && clumpCenter.Valid && originTile == clumpCenter;
                 string where = atCenter
-                    ? $"Already at center of {item.Label}"
-                    : $"Already at {item.Label}";
-                TolkHelper.Speak(where, SpeechPriority.Normal);
+                    ? (string)"RimWorldAccess.WorldScanner.AlreadyAtCenter".Translate(item.Label)
+                    : (string)"RimWorldAccess.WorldScanner.AlreadyAt".Translate(item.Label);
+                TolkHelper.SpeakData(where, SpeechPriority.Normal);
                 return;
             }
 

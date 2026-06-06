@@ -118,7 +118,7 @@ namespace RimWorldAccess
             {
                 if (saveFiles.Count == 0)
                 {
-                    TolkHelper.Speak("No existing saves to overwrite.");
+                    TolkHelper.Speak("RimWorldAccess.UI.Save.NoExistingSaves".Loc());
                     return;
                 }
                 saveFocus = SaveFocus.List;
@@ -387,7 +387,7 @@ namespace RimWorldAccess
             // High priority so the announcement reliably interrupts any queued speech
             // from the dialog that just closed.
             isActive = true;
-            TolkHelper.Speak(GetCurrentItemDescription(), SpeechPriority.High);
+            TolkHelper.SpeakData(GetCurrentItemDescription(), SpeechPriority.High);
         }
 
         private static void ReloadFiles()
@@ -430,7 +430,7 @@ namespace RimWorldAccess
 
         private static void AnnounceCurrentState()
         {
-            TolkHelper.Speak(GetCurrentItemDescription());
+            TolkHelper.SpeakData(GetCurrentItemDescription());
         }
 
         public static void GoBack()
@@ -449,7 +449,7 @@ namespace RimWorldAccess
                 var selected = MenuNavigationState.GetCurrentSelection();
                 if (selected != null)
                 {
-                    TolkHelper.Speak(selected.label);
+                    TolkHelper.SpeakData(selected.label);
                 }
             }
         }

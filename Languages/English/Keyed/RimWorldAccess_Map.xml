@@ -304,6 +304,13 @@
   <RimWorldAccess.Map.Scanner.AutoJumpEnabled>Auto-jump mode enabled</RimWorldAccess.Map.Scanner.AutoJumpEnabled>
   <RimWorldAccess.Map.Scanner.AutoJumpDisabled>Auto-jump mode disabled</RimWorldAccess.Map.Scanner.AutoJumpDisabled>
 
+  <!-- No-move guard (Home key): cursor is already on the target tile.
+       AlreadyAt:       {0} = item label (e.g. "silver lode").
+       AlreadyAtCenter: {0} = item label — cursor is specifically at the
+                        center of a multi-tile patch. -->
+  <RimWorldAccess.Map.Scanner.AlreadyAt>Already at {0}</RimWorldAccess.Map.Scanner.AlreadyAt>
+  <RimWorldAccess.Map.Scanner.AlreadyAtCenter>Already at center of {0}</RimWorldAccess.Map.Scanner.AlreadyAtCenter>
+
   <!-- Error and edge announcements during scanner navigation. -->
   <RimWorldAccess.Map.Scanner.NotInitialized>Map navigation not initialized</RimWorldAccess.Map.Scanner.NotInitialized>
   <RimWorldAccess.Map.Scanner.NoActiveMap>No active map</RimWorldAccess.Map.Scanner.NoActiveMap>

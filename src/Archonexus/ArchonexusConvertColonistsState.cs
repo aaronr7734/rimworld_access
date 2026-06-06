@@ -185,7 +185,7 @@ namespace RimWorldAccess
             // Checkbox toggle: announce the new checked state; when unchecked, name the ideoligion
             // they now keep so the player hears the consequence of leaving them unconverted.
             bool nowConverting = newIdeo == target;
-            TolkHelper.Speak(nowConverting
+            TolkHelper.SpeakData(nowConverting
                 ? "Selected"
                 : (newIdeo != null ? $"Not selected. Currently {newIdeo.name}" : "Not selected"));
         }
@@ -202,16 +202,16 @@ namespace RimWorldAccess
             sb.Append(". ").Append(pawns.Count);
             // Tell the player how to toggle and how to finish (vanilla's bottom "Close" button is
             // Escape for us).
-            sb.Append(". Space or Enter to convert, Escape when finished.");
+            sb.Append(". ").Append("RimWorldAccess.Archonexus.Convert.OpenInstructions".Translate());
             if (pawns.Count > 0)
                 sb.Append(". ").Append(BuildCurrentText());
-            TolkHelper.Speak(sb.ToString(), SpeechPriority.High);
+            TolkHelper.SpeakData(sb.ToString(), SpeechPriority.High);
         }
 
         private static void AnnounceCurrent()
         {
             if (pawns.Count == 0) return;
-            TolkHelper.Speak(BuildCurrentText());
+            TolkHelper.SpeakData(BuildCurrentText());
         }
 
         private static string BuildCurrentText()
