@@ -414,13 +414,23 @@ namespace RimWorldAccess
         /// </summary>
         private static void AnnounceSliderEditMode()
         {
-            string sliderName = GetCurrentSliderName();
-            string partName = GetCurrentPartName();
-            string value = GetCurrentPartValue();
-            if (sliderName == null || value == null) return;
+            string sliderName = currentSliderMode == SliderMode.Quality
+                ? "Quality".Translate()
+                : "HitPointsBasic".Translate().CapitalizeFirst();
+            string partName = currentSliderPart == SliderPart.Min ? "Minimum" : "Maximum";
 
-            TolkHelper.Speak("RimWorldAccess.Inspection.ThingFilter.SliderEdit.Announcement".Loc(
-                sliderName, partName, value));
+            if (currentSliderMode == SliderMode.Quality)
+            {
+                var range = currentFilter.AllowedQualityLevels;
+                string value = currentSliderPart == SliderPart.Min ? range.min.GetLabel() : range.max.GetLabel();
+                TolkHelper.Speak($"{sliderName} - {partName}: {value}. Use Left/Right to adjust, Up/Down to switch Min/Max, Enter to confirm.");
+            }
+            else if (currentSliderMode == SliderMode.HitPoints)
+            {
+                var range = currentFilter.AllowedHitPointsPercents;
+                string value = currentSliderPart == SliderPart.Min ? $"{range.min:P0}" : $"{range.max:P0}";
+                TolkHelper.Speak($"{sliderName} - {partName}: {value}. Use Left/Right to adjust, Up/Down to switch Min/Max, Enter to confirm.");
+            }
         }
 
         /// <summary>
@@ -429,97 +439,20 @@ namespace RimWorldAccess
         /// </summary>
         private static void AnnounceSliderPartValue(bool includePartName)
         {
-            string value = GetCurrentPartValue();
-            if (value == null) return;
+            string partName = currentSliderPart == SliderPart.Min ? "Minimum" : "Maximum";
 
-            if (includePartName)
-            {
-                TolkHelper.Speak("RimWorldAccess.Inspection.ThingFilter.SliderEdit.PartWithValue".Loc(
-                    GetCurrentPartName(), value));
-            }
-            else
-            {
-                TolkHelper.SpeakData(value);
-            }
-        }
-
-        /// <summary>
-        /// Returns the localized name of the active slider (Quality or Hit Points).
-        /// </summary>
-        private static string GetCurrentSliderName()
-        {
-            if (currentSliderMode == SliderMode.Quality)
-                return "Quality".Translate();
-            if (currentSliderMode == SliderMode.HitPoints)
-                return "HitPointsBasic".Translate().CapitalizeFirst();
-            return null;
-        }
-
-        /// <summary>
-        /// Returns the localized "Minimum" or "Maximum" word for the active part.
-        /// </summary>
-        private static string GetCurrentPartName()
-        {
-            return (currentSliderPart == SliderPart.Min
-                ? "RimWorldAccess.Inspection.ThingFilter.SliderPart.Min"
-                : "RimWorldAccess.Inspection.ThingFilter.SliderPart.Max").Translate();
-        }
-
-        /// <summary>
-        /// Returns the formatted value of the active part (label for quality, percent
-        /// string for hit points). Returns null if no slider is active.
-        /// </summary>
-        private static string GetCurrentPartValue()
-        {
             if (currentSliderMode == SliderMode.Quality)
             {
                 var range = currentFilter.AllowedQualityLevels;
-                return (currentSliderPart == SliderPart.Min ? range.min : range.max).GetLabel();
+                string value = currentSliderPart == SliderPart.Min ? range.min.GetLabel() : range.max.GetLabel();
+                TolkHelper.Speak(includePartName ? $"{partName}: {value}" : value);
             }
-            if (currentSliderMode == SliderMode.HitPoints)
+            else if (currentSliderMode == SliderMode.HitPoints)
             {
                 var range = currentFilter.AllowedHitPointsPercents;
-                return (currentSliderPart == SliderPart.Min ? range.min : range.max).ToStringPercent();
+                string value = currentSliderPart == SliderPart.Min ? $"{range.min:P0}" : $"{range.max:P0}";
+                TolkHelper.Speak(includePartName ? $"{partName}: {value}" : value);
             }
-            return null;
-        }
-
-        /// <summary>
-        /// Announces the toggle result for a SpecialFilter / Category / ThingDef row.
-        /// </summary>
-        private static void SpeakToggleResult(string label, bool allowed)
-        {
-            string key = allowed
-                ? "RimWorldAccess.Inspection.Storage.ToggleResultAllowed"
-                : "RimWorldAccess.Inspection.Storage.ToggleResultDisallowed";
-            TolkHelper.Speak(key.Loc(label));
-        }
-
-        /// <summary>
-        /// Returns the localized "{label}: {state}" range readout for a Quality
-        /// or HitPoints slider node, or empty string if the node is not a slider.
-        /// Used both as the navigation announcement (FormatItemAnnouncement) and
-        /// the bare-value readout (AnnounceSliderValue).
-        /// </summary>
-        private static string GetSliderLabeledRange(InspectionTreeItem item)
-        {
-            var data = item.Data as FilterNodeData;
-            if (data == null) return "";
-            string sliderType = data.Reference as string;
-
-            if (sliderType == "Quality")
-            {
-                var range = currentFilter.AllowedQualityLevels;
-                return "RimWorldAccess.Inspection.Storage.RangeLabel.Quality".Translate(
-                    range.min.GetLabel(), range.max.GetLabel());
-            }
-            if (sliderType == "HitPoints")
-            {
-                var range = currentFilter.AllowedHitPointsPercents;
-                return "RimWorldAccess.Inspection.Storage.RangeLabel.HitPoints".Translate(
-                    range.min.ToStringPercent(), range.max.ToStringPercent());
-            }
-            return "";
         }
 
         /// <summary>
@@ -551,7 +484,7 @@ namespace RimWorldAccess
                         currentFilter.SetAllow(specialFilter, desired);
                         // Re-read from game to verify actual state
                         data.IsChecked = currentFilter.Allows(specialFilter);
-                        SpeakToggleResult(cleanLabel, data.IsChecked);
+                        TolkHelper.Speak($"{cleanLabel}: {(data.IsChecked ? "Allowed" : "Disallowed")}");
                     }
                     break;
 
@@ -568,8 +501,8 @@ namespace RimWorldAccess
                         RefreshAllowanceStates();
                         var actualState = ThingFilterHelper.GetAllowanceState(
                             category.catDef, currentFilter, td => ThingFilterHelper.IsVisible(td, parentFilter));
-                        SpeakToggleResult(cleanLabel,
-                            actualState != ThingFilterHelper.CategoryAllowanceState.NoneAllowed);
+                        string catResult = actualState == ThingFilterHelper.CategoryAllowanceState.NoneAllowed ? "Disallowed" : "Allowed";
+                        TolkHelper.Speak($"{cleanLabel}: {catResult}");
                     }
                     break;
 
@@ -581,7 +514,7 @@ namespace RimWorldAccess
                         currentFilter.SetAllow(thingDef, desiredThing);
                         // Re-read from game to verify actual state
                         data.IsChecked = currentFilter.Allows(thingDef);
-                        SpeakToggleResult(cleanLabel, data.IsChecked);
+                        TolkHelper.Speak($"{cleanLabel}: {(data.IsChecked ? "Allowed" : "Disallowed")}");
                     }
                     break;
 
@@ -605,7 +538,7 @@ namespace RimWorldAccess
             if (data == null || data.Type != NodeType.Category)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.Inspection.Panel.CannotExpand".Loc());
+                TolkHelper.Speak("Cannot expand this item.");
                 return;
             }
 
@@ -717,9 +650,21 @@ namespace RimWorldAccess
         /// </summary>
         private static void AnnounceSliderValue(InspectionTreeItem item)
         {
-            string labeled = GetSliderLabeledRange(item);
-            if (!string.IsNullOrEmpty(labeled))
-                TolkHelper.SpeakData(labeled);
+            var data = item.Data as FilterNodeData;
+            if (data == null) return;
+
+            string sliderType = data.Reference as string;
+
+            if (sliderType == "Quality")
+            {
+                var range = currentFilter.AllowedQualityLevels;
+                TolkHelper.Speak($"{"Quality".Translate()}: {range.min.GetLabel()} - {range.max.GetLabel()}");
+            }
+            else if (sliderType == "HitPoints")
+            {
+                var range = currentFilter.AllowedHitPointsPercents;
+                TolkHelper.Speak($"{"HitPointsBasic".Translate().CapitalizeFirst()}: {range.min:P0} - {range.max:P0}");
+            }
         }
 
         /// <summary>
@@ -748,6 +693,29 @@ namespace RimWorldAccess
             }
         }
 
+        /// <summary>
+        /// Gets the current value string for a slider node.
+        /// </summary>
+        private static string GetSliderValueString(InspectionTreeItem item)
+        {
+            var data = item.Data as FilterNodeData;
+            if (data == null) return "";
+
+            string sliderType = data.Reference as string;
+
+            if (sliderType == "Quality")
+            {
+                var range = currentFilter.AllowedQualityLevels;
+                return $"{range.min.GetLabel()} - {range.max.GetLabel()}";
+            }
+            else if (sliderType == "HitPoints")
+            {
+                var range = currentFilter.AllowedHitPointsPercents;
+                return $"{range.min:P0} - {range.max:P0}";
+            }
+
+            return "";
+        }
 
         #region Announcement Formatters
 
@@ -773,15 +741,40 @@ namespace RimWorldAccess
             string suffix = MenuHelper.GetLevelSuffix("ThingFilter", item.IndentLevel);
             string posStr = MenuHelper.FormatPosition(position - 1, total);
 
-            string body = BuildLabelWithState(item, data);
-            string desc = string.IsNullOrEmpty(item.Description) ? "" : $" {item.Description}";
+            string cleanLabel = item.Label;
 
-            // Sliders own their own ". " separator since the labeled-range key
-            // already terminates with a clean phrase. Other rows still need the
-            // period that separates state from optional description.
-            if (data.Type == NodeType.Slider)
-                return $"{body}. {posStr}{suffix}";
-            return $"{body}.{desc} {posStr}{suffix}";
+            switch (data.Type)
+            {
+                case NodeType.Slider:
+                    string sliderValue = GetSliderValueString(item);
+                    return $"{cleanLabel} {sliderValue}. {posStr}{suffix}";
+
+                case NodeType.SpecialFilter:
+                    string specialState = data.IsChecked ? "allowed" : "disallowed";
+                    string specialDesc = string.IsNullOrEmpty(item.Description) ? "" : $" {item.Description}";
+                    return $"{cleanLabel}. {specialState}.{specialDesc} {posStr}{suffix}";
+
+                case NodeType.Category:
+                    var catNode = data.Reference as TreeNode_ThingCategory;
+                    string categorySummary = "disallowed";
+                    if (catNode != null)
+                    {
+                        var summary = ThingFilterHelper.GetCategorySummary(
+                            catNode.catDef, currentFilter, td => ThingFilterHelper.IsVisible(td, parentFilter));
+                        categorySummary = ThingFilterHelper.FormatCategorySummary(summary);
+                    }
+                    string categoryExpanded = item.IsExpanded ? "expanded" : "collapsed";
+                    string categoryDesc = string.IsNullOrEmpty(item.Description) ? "" : $" {item.Description}";
+                    return $"{cleanLabel}. {categorySummary}, {categoryExpanded}.{categoryDesc} {posStr}{suffix}";
+
+                case NodeType.ThingDef:
+                    string thingState = data.IsChecked ? "allowed" : "disallowed";
+                    string thingDesc = string.IsNullOrEmpty(item.Description) ? "" : $" {item.Description}";
+                    return $"{cleanLabel}. {thingState}.{thingDesc} {posStr}{suffix}";
+
+                default:
+                    return $"{cleanLabel}. {posStr}{suffix}";
+            }
         }
 
         /// <summary>
@@ -795,22 +788,6 @@ namespace RimWorldAccess
             if (!typeahead.HasActiveSearch)
                 return baseAnnouncement;
             return $"{baseAnnouncement} {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
-        }
-
-        /// <summary>
-        /// Resolves the localized category summary phrase via ThingFilterHelper,
-        /// or the bare "all disallowed" fallback when the category reference is
-        /// missing.
-        /// </summary>
-        private static string ResolveCategorySummary(FilterNodeData data)
-        {
-            var catNode = data.Reference as TreeNode_ThingCategory;
-            if (catNode == null)
-                return "RimWorldAccess.Inspection.Storage.Summary.AllDisallowed".Translate();
-
-            var summary = ThingFilterHelper.GetCategorySummary(
-                catNode.catDef, currentFilter, td => ThingFilterHelper.IsVisible(td, parentFilter));
-            return ThingFilterHelper.FormatCategorySummary(summary);
         }
 
         /// <summary>
@@ -936,7 +913,7 @@ namespace RimWorldAccess
 
             if (treeNav.HasActiveSearch)
             {
-                TolkHelper.SpeakData(FormatSearchAnnouncement(item, treeNav.Typeahead));
+                TolkHelper.Speak(FormatSearchAnnouncement(item, treeNav.Typeahead));
             }
             else
             {

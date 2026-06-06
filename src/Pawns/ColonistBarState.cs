@@ -268,7 +268,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Pawns.Bar.StartOfBar".Loc());
+                        TolkHelper.Speak("Start of bar");
                         return;
                     }
                 }
@@ -329,7 +329,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Pawns.Bar.LastPage".Loc());
+                        TolkHelper.Speak("Last page");
                     }
                 }
                 else
@@ -345,7 +345,7 @@ namespace RimWorldAccess
                 var mechs = GetMechs();
                 if (mechs.Count == 0)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NoMechsHere".Loc());
+                    TolkHelper.Speak("No mechs on this map");
                     return;
                 }
 
@@ -355,7 +355,7 @@ namespace RimWorldAccess
 
                 if (targetPosition / PageSize == CurrentPage)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Pawns.Bar.LastPage".Loc());
+                    TolkHelper.Speak("Last page");
                 }
                 else
                 {
@@ -399,7 +399,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("RimWorldAccess.Pawns.Bar.FirstPage".Loc());
+                        TolkHelper.Speak("First page");
                     }
                 }
             }
@@ -415,7 +415,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak("RimWorldAccess.Pawns.Bar.FirstPage".Loc());
+                    TolkHelper.Speak("First page");
                 }
             }
         }
@@ -439,9 +439,7 @@ namespace RimWorldAccess
 
             if (targetIndex >= list.Count)
             {
-                TolkHelper.Speak((onMechSection
-                    ? "RimWorldAccess.Pawns.Bar.NoMechAtPosition"
-                    : "RimWorldAccess.Pawns.Bar.NoColonistAtPosition").Loc(positionOnPage + 1));
+                TolkHelper.Speak($"No {(onMechSection ? "mech" : "colonist")} at position {positionOnPage + 1}");
                 return;
             }
 
@@ -560,7 +558,7 @@ namespace RimWorldAccess
 
             if (onMechSection)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.CannotReorderMechs".Loc());
+                TolkHelper.Speak("Cannot reorder mechs");
                 return;
             }
 
@@ -572,7 +570,7 @@ namespace RimWorldAccess
 
             if (barPosition >= colonists.Count - 1)
             {
-                MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.Last);
+                TolkHelper.Speak("Already at last position");
                 return;
             }
 
@@ -606,7 +604,7 @@ namespace RimWorldAccess
 
             if (onMechSection)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.CannotReorderMechs".Loc());
+                TolkHelper.Speak("Cannot reorder mechs");
                 return;
             }
 
@@ -618,7 +616,7 @@ namespace RimWorldAccess
 
             if (barPosition <= 0)
             {
-                MenuHelper.SpeakAlreadyAtEdge(MenuHelper.EdgeDirection.First);
+                TolkHelper.Speak("Already at first position");
                 return;
             }
 
@@ -653,7 +651,7 @@ namespace RimWorldAccess
 
             if (onMechSection)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.CannotReorderMechs".Loc());
+                TolkHelper.Speak("Cannot reorder mechs");
                 return;
             }
 
@@ -668,7 +666,7 @@ namespace RimWorldAccess
 
             if (targetBarPosition / PageSize == barPosition / PageSize)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.AlreadyOnLastPage".Loc());
+                TolkHelper.Speak("Already on last page");
                 return;
             }
 
@@ -702,7 +700,7 @@ namespace RimWorldAccess
 
             if (onMechSection)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.CannotReorderMechs".Loc());
+                TolkHelper.Speak("Cannot reorder mechs");
                 return;
             }
 
@@ -717,7 +715,7 @@ namespace RimWorldAccess
 
             if (targetBarPosition / PageSize == barPosition / PageSize)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.AlreadyOnFirstPage".Loc());
+                TolkHelper.Speak("Already on first page");
                 return;
             }
 
@@ -870,11 +868,9 @@ namespace RimWorldAccess
         {
             string task = pawn.GetJobReport();
             if (string.IsNullOrEmpty(task))
-                task = "RimWorldAccess.Pawns.Bar.Idle".Translate();
+                task = "Idle";
 
-            string coverInfo = (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
-                ? CoverHelper.GetCoverInfo(pawn)
-                : null;
+            string announcement = pawn.LabelShort;
 
             if (pawn.Spawned && pawn.Map != null)
             {
@@ -894,9 +890,9 @@ namespace RimWorldAccess
 
             string positionPart = MenuHelper.FormatPosition(barPosition, totalInSection);
             if (!string.IsNullOrEmpty(positionPart))
-                announcement = "RimWorldAccess.Pawns.Bar.WithPosition".Translate(announcement, positionPart);
+                announcement += $". {positionPart}";
 
-            TolkHelper.SpeakData(announcement);
+            TolkHelper.Speak(announcement);
         }
 
         /// <summary>
@@ -904,9 +900,8 @@ namespace RimWorldAccess
         /// </summary>
         private static void AnnouncePageChange()
         {
-            TolkHelper.Speak((onMechSection
-                ? "RimWorldAccess.Pawns.Bar.MechsPage"
-                : "RimWorldAccess.Pawns.Bar.Page").Loc(CurrentPage + 1));
+            string section = onMechSection ? "Mechs page" : "Page";
+            TolkHelper.Speak($"{section} {CurrentPage + 1}");
         }
 
         /// <summary>
@@ -914,9 +909,10 @@ namespace RimWorldAccess
         /// </summary>
         private static void AnnounceSectionChange()
         {
-            TolkHelper.Speak((onMechSection
-                ? "RimWorldAccess.Pawns.Bar.SectionMechs"
-                : "RimWorldAccess.Pawns.Bar.SectionColonists").Loc());
+            if (onMechSection)
+                TolkHelper.Speak("Mechs");
+            else
+                TolkHelper.Speak("Colonists");
         }
 
         /// <summary>
@@ -936,15 +932,15 @@ namespace RimWorldAccess
             // Build neighbor context
             string context;
             if (newIndex == 0 && colonists.Count == 1)
-                context = "RimWorldAccess.Pawns.Bar.OnlyColonist".Translate();
+                context = "only colonist";
             else if (newIndex == 0)
-                context = "RimWorldAccess.Pawns.Bar.Leftmost".Translate();
+                context = "leftmost";
             else if (newIndex == colonists.Count - 1)
-                context = "RimWorldAccess.Pawns.Bar.Rightmost".Translate();
+                context = "rightmost";
             else
-                context = "RimWorldAccess.Pawns.Bar.Between".Translate(colonists[newIndex - 1].LabelShort, colonists[newIndex + 1].LabelShort);
+                context = $"between {colonists[newIndex - 1].LabelShort} and {colonists[newIndex + 1].LabelShort}";
 
-            TolkHelper.Speak("RimWorldAccess.Pawns.Bar.ReorderResult".Loc(pawn.LabelShort, newIndex + 1, context));
+            TolkHelper.Speak($"{pawn.LabelShort}, position {newIndex + 1}, {context}");
         }
 
         /// <summary>
@@ -952,9 +948,10 @@ namespace RimWorldAccess
         /// </summary>
         private static void AnnounceEmpty()
         {
-            TolkHelper.Speak((onMechSection
-                ? "RimWorldAccess.Pawns.Bar.NoMechsHere"
-                : "RimWorldAccess.Pawns.Bar.NoColonistsHere").Loc());
+            if (onMechSection)
+                TolkHelper.Speak("No mechs on this map");
+            else
+                TolkHelper.Speak("No colonists on this map");
         }
 
         // ===== FOCUS-ONLY NAVIGATION (for multi-select mode) =====
@@ -1002,14 +999,14 @@ namespace RimWorldAccess
             Map map = Find.CurrentMap;
             if (map == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NotOnBar".Loc());
+                TolkHelper.Speak("Not on colonist bar");
                 return;
             }
 
             IntVec3 cursor = MapNavigationState.CurrentCursorPosition;
             if (!cursor.IsValid || !cursor.InBounds(map))
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NotOnBar".Loc());
+                TolkHelper.Speak("Not on colonist bar");
                 return;
             }
 
@@ -1019,7 +1016,7 @@ namespace RimWorldAccess
 
             if (pawn == null)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NotOnBar".Loc());
+                TolkHelper.Speak("Not on colonist bar");
                 return;
             }
 
@@ -1030,7 +1027,7 @@ namespace RimWorldAccess
             bool inMechs = !inColonists && mechs.Contains(pawn);
             if (!inColonists && !inMechs)
             {
-                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NotOnBar".Loc());
+                TolkHelper.Speak("Not on colonist bar");
                 return;
             }
 
@@ -1160,9 +1157,7 @@ namespace RimWorldAccess
             int targetIndex = CurrentPage * PageSize + positionOnPage;
             if (targetIndex >= list.Count)
             {
-                TolkHelper.Speak((onMechSection
-                    ? "RimWorldAccess.Pawns.Bar.NoMechAtPosition"
-                    : "RimWorldAccess.Pawns.Bar.NoColonistAtPosition").Loc(positionOnPage + 1));
+                TolkHelper.Speak($"No {(onMechSection ? "mech" : "colonist")} at position {positionOnPage + 1}");
                 return null;
             }
 

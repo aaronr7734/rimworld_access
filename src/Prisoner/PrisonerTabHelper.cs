@@ -19,16 +19,16 @@ namespace RimWorldAccess
         public static string GetPrisonerInfo(Pawn pawn)
         {
             if (pawn == null)
-                return "RimWorldAccess.Guard.NoPawnSelected".Translate();
+                return "No pawn selected";
 
             if (pawn.guest == null)
-                return "RimWorldAccess.Prisoner.Guest.NoTracker".Translate(pawn.LabelShort);
+                return $"{pawn.LabelShort}: No guest tracker";
 
             if (!pawn.IsPrisonerOfColony)
-                return "RimWorldAccess.Prisoner.Guest.NotPrisoner".Translate(pawn.LabelShort);
+                return $"{pawn.LabelShort}: Not a prisoner";
 
-            var ab = new AnnouncementBuilder()
-                .Add("RimWorldAccess.Prisoner.Info.HeaderPrisoner".Translate(pawn.LabelShort));
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"{pawn.LabelShort} - Prisoner");
 
             bool wildMan = pawn.IsWildMan();
 
@@ -147,7 +147,7 @@ namespace RimWorldAccess
                 sb.AppendLine($"  {"OpinionOfRecruiter".Translate()}: x{data.recruiterOpinionFactor.ToStringByStyle(ToStringStyle.FloatTwo)}");
             }
 
-            return ab.Build();
+            return sb.ToString().TrimEnd();
         }
 
         /// <summary>
@@ -157,13 +157,13 @@ namespace RimWorldAccess
         public static string GetSlaveInfo(Pawn pawn)
         {
             if (pawn == null)
-                return "RimWorldAccess.Guard.NoPawnSelected".Translate();
+                return "No pawn selected";
 
             if (pawn.guest == null)
-                return "RimWorldAccess.Prisoner.Guest.NoTracker".Translate(pawn.LabelShort);
+                return $"{pawn.LabelShort}: No guest tracker";
 
             if (!pawn.IsSlaveOfColony)
-                return "RimWorldAccess.Prisoner.Guest.NotSlave".Translate(pawn.LabelShort);
+                return $"{pawn.LabelShort}: Not a slave";
 
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"{pawn.LabelShort} - {"TabSlave".Translate()}");
@@ -223,7 +223,7 @@ namespace RimWorldAccess
             // Release Potential Relations (vanilla "SlaveReleasePotentialRelationGains", tooltip "SlaveReleaseRelationGainsDesc")
             sb.AppendLine($"{"SlaveReleasePotentialRelationGains".Translate()}: {GetSlaveReleaseRelationGainsText(pawn)}. {FlattenTooltip("SlaveReleaseRelationGainsDesc".Translate())}");
 
-            return ab.Build();
+            return sb.ToString().TrimEnd();
         }
 
         /// <summary>
@@ -332,8 +332,7 @@ namespace RimWorldAccess
         /// </summary>
         public static string GetInteractionModeDescription(Pawn pawn, PrisonerInteractionModeDef mode)
         {
-            var ab = new AnnouncementBuilder()
-                .Add(mode.description ?? mode.LabelCap);
+            string description = mode.description ?? mode.LabelCap;
 
             if (mode == PrisonerInteractionModeDefOf.Enslave && pawn.MapHeld != null && !ColonyHasAnyWardenCapableOfEnslavement(pawn.MapHeld))
             {
@@ -350,7 +349,7 @@ namespace RimWorldAccess
                 description += ". " + "NoWardenOfIdeo".Translate(pawn.guest.ideoForConversion.memberName.Named("MEMBERNAME"));
             }
 
-            return ab.Build();
+            return description;
         }
 
         /// <summary>
@@ -359,8 +358,7 @@ namespace RimWorldAccess
         /// </summary>
         public static string GetSlaveInteractionModeDescription(Pawn pawn, SlaveInteractionModeDef mode)
         {
-            var ab = new AnnouncementBuilder()
-                .Add(mode.description ?? mode.LabelCap);
+            string description = mode.description ?? mode.LabelCap;
 
             if (mode == SlaveInteractionModeDefOf.Emancipate)
             {
@@ -378,7 +376,7 @@ namespace RimWorldAccess
                 }
             }
 
-            return ab.Build();
+            return description;
         }
 
         /// <summary>

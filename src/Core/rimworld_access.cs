@@ -73,7 +73,7 @@ namespace RimWorldAccess
             // DLC-safe: patch Start() on each Dialog_BeginLordJob subclass we don't already
             // patch declaratively. The shared prefix returns false while LordJobDialogState is
             // active, blocking accidental Start invocations behind the user's back.
-            ApplyLordJobStartPatches(harmony);
+            ApplyLordJobStartPatches(HarmonyInstance);
 
             var patchedMethods = HarmonyInstance.GetPatchedMethods();
             int patchCount = 0;
@@ -88,6 +88,21 @@ namespace RimWorldAccess
             Log.Message("[RimWorld Access] Use Arrow keys to navigate, Enter to select.");
 
             Application.quitting += OnApplicationQuit;
+        }
+
+        public static void Teardown()
+        {
+            Log.Message("[RimWorld Access] Tearing down for reload...");
+
+            Application.quitting -= OnApplicationQuit;
+
+            if (HarmonyInstance != null)
+            {
+                HarmonyInstance.UnpatchAll(HarmonyId);
+                HarmonyInstance = null;
+            }
+
+            TolkHelper.Shutdown();
         }
 
         private static void ApplyLordJobStartPatches(Harmony harmony)

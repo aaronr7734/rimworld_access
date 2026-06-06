@@ -149,7 +149,7 @@ namespace RimWorldAccess
 
                 // Announce starting position
                 string initialInfo = TileInfoHelper.GetTileSummary(MapNavigationState.CurrentCursorPosition, Find.CurrentMap);
-                TolkHelper.SpeakData(initialInfo);
+                TolkHelper.Speak(initialInfo);
                 MapNavigationState.LastAnnouncedInfo = initialInfo;
                 hasAnnouncedThisFrame = true;
                 return true;
@@ -209,7 +209,7 @@ namespace RimWorldAccess
 
             if (mapCount <= 1)
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Switch.OnlyOne".Loc());
+                TolkHelper.Speak("Only one map available");
                 hasAnnouncedThisFrame = true;
                 return;
             }
@@ -222,7 +222,7 @@ namespace RimWorldAccess
             // Check if map switch actually happened (mapName will be set if successful)
             if (string.IsNullOrEmpty(mapName))
             {
-                TolkHelper.Speak("RimWorldAccess.Map.Switch.Failed".Loc());
+                TolkHelper.Speak("Could not switch maps");
                 hasAnnouncedThisFrame = true;
                 return;
             }
@@ -243,13 +243,13 @@ namespace RimWorldAccess
             string fullAnnouncement;
             if (string.IsNullOrEmpty(presenceInfo))
             {
-                fullAnnouncement = "RimWorldAccess.Map.Switch.NoPawns".Translate(mapName);
+                fullAnnouncement = $"Now at {mapName}. No player pawns here.";
             }
             else
             {
-                fullAnnouncement = "RimWorldAccess.Map.Switch.WithInfo".Translate(mapName, presenceInfo);
+                fullAnnouncement = $"Now at {mapName} ({presenceInfo})";
             }
-            TolkHelper.SpeakData(fullAnnouncement);
+            TolkHelper.Speak(fullAnnouncement);
             MapNavigationState.LastAnnouncedInfo = fullAnnouncement;
             hasAnnouncedThisFrame = true;
         }
@@ -319,7 +319,7 @@ namespace RimWorldAccess
                 selectedPawn = ColonistBarState.SelectNextMech();
                 if (selectedPawn == null)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Map.Pawn.NoMechs".Loc());
+                    TolkHelper.Speak("No mechs on this map");
                     return false;
                 }
             }
@@ -328,7 +328,7 @@ namespace RimWorldAccess
                 selectedPawn = PawnSelectionState.SelectNextColonist();
                 if (selectedPawn == null)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Map.Pawn.NoColonists".Loc());
+                    TolkHelper.Speak("No colonists on this map");
                     return false;
                 }
             }
@@ -366,7 +366,7 @@ namespace RimWorldAccess
             // Announce selection
             string currentTask = selectedPawn.GetJobReport();
             if (string.IsNullOrEmpty(currentTask))
-                currentTask = "RimWorldAccess.Map.Pawn.Idle".Translate();
+                currentTask = "Idle";
 
             string announcement = selectedPawn.LabelShort;
             if (selectedPawn.Spawned && selectedPawn.Map != null)
@@ -377,13 +377,12 @@ namespace RimWorldAccess
             }
             if (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
             {
-                announcement = "RimWorldAccess.Map.Pawn.SelectionWithCover".Translate(selectedPawn.LabelShort, coverInfo, currentTask);
+                string coverInfo = CoverHelper.GetCoverInfo(selectedPawn);
+                if (!string.IsNullOrEmpty(coverInfo))
+                    announcement += $", {coverInfo}";
             }
-            else
-            {
-                announcement = "RimWorldAccess.Map.Pawn.Selection".Translate(selectedPawn.LabelShort, currentTask);
-            }
-            TolkHelper.SpeakData(announcement);
+            announcement += $" - {currentTask}";
+            TolkHelper.Speak(announcement);
 
             return false; // Block original method
         }
@@ -418,7 +417,7 @@ namespace RimWorldAccess
                 selectedPawn = ColonistBarState.SelectPreviousMech();
                 if (selectedPawn == null)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Map.Pawn.NoMechs".Loc());
+                    TolkHelper.Speak("No mechs on this map");
                     return false;
                 }
             }
@@ -427,7 +426,7 @@ namespace RimWorldAccess
                 selectedPawn = PawnSelectionState.SelectPreviousColonist();
                 if (selectedPawn == null)
                 {
-                    TolkHelper.Speak("RimWorldAccess.Map.Pawn.NoColonists".Loc());
+                    TolkHelper.Speak("No colonists on this map");
                     return false;
                 }
             }
@@ -463,7 +462,7 @@ namespace RimWorldAccess
             // Announce selection
             string currentTask = selectedPawn.GetJobReport();
             if (string.IsNullOrEmpty(currentTask))
-                currentTask = "RimWorldAccess.Map.Pawn.Idle".Translate();
+                currentTask = "Idle";
 
             string announcement = selectedPawn.LabelShort;
             if (selectedPawn.Spawned && selectedPawn.Map != null)
@@ -474,13 +473,12 @@ namespace RimWorldAccess
             }
             if (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
             {
-                announcement = "RimWorldAccess.Map.Pawn.SelectionWithCover".Translate(selectedPawn.LabelShort, coverInfo, currentTask);
+                string coverInfo = CoverHelper.GetCoverInfo(selectedPawn);
+                if (!string.IsNullOrEmpty(coverInfo))
+                    announcement += $", {coverInfo}";
             }
-            else
-            {
-                announcement = "RimWorldAccess.Map.Pawn.Selection".Translate(selectedPawn.LabelShort, currentTask);
-            }
-            TolkHelper.SpeakData(announcement);
+            announcement += $" - {currentTask}";
+            TolkHelper.Speak(announcement);
 
             return false; // Block original method
         }
