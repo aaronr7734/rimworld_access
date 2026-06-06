@@ -625,4 +625,12 @@
   <RimWorldAccess.ScenarioBuilder.AddPart.LabelDescription>{0}: {1}</RimWorldAccess.ScenarioBuilder.AddPart.LabelDescription>
   <RimWorldAccess.ScenarioBuilder.AddPart.WithPositionSuffix> ({0})</RimWorldAccess.ScenarioBuilder.AddPart.WithPositionSuffix>
 
+
+  <!-- Mod-list detail nav + requirement status (src/MainMenu/ModListState.cs). -->
+  <RimWorldAccess.ModList.EndOfDetails>End of mod details</RimWorldAccess.ModList.EndOfDetails>
+  <RimWorldAccess.ModList.StartOfDetails>Start of mod details</RimWorldAccess.ModList.StartOfDetails>
+  <RimWorldAccess.ModList.ReqSatisfied>satisfied</RimWorldAccess.ModList.ReqSatisfied>
+  <RimWorldAccess.ModList.ReqNotSatisfied>not satisfied</RimWorldAccess.ModList.ReqNotSatisfied>
+  <!-- Difficulty reset preset tooltip fallback (src/MainMenu/DifficultySettingsHelper.cs). -->
+  <RimWorldAccess.CustomDifficulty.ResetTooltip>Resets all custom difficulty settings to this preset</RimWorldAccess.CustomDifficulty.ResetTooltip>
 </LanguageData>

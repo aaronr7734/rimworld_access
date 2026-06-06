@@ -445,7 +445,7 @@ namespace RimWorldAccess
         public DifficultyResetSetting(string label, string tooltip, Action executeAction)
         {
             Label = label;
-            Tooltip = string.IsNullOrEmpty(tooltip) ? "Resets all custom difficulty settings to this preset" : tooltip;
+            Tooltip = string.IsNullOrEmpty(tooltip) ? "RimWorldAccess.CustomDifficulty.ResetTooltip".Translate().ToString() : tooltip;
             this.executeAction = executeAction;
         }
 

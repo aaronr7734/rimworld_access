@@ -100,8 +100,8 @@ namespace RimWorldAccess
                 },
                 getContentLineAnnouncement: (idx) =>
                     idx >= 0 && idx < contentLines.Count ? contentLines[idx] : "",
-                endOfItemMessage: "End of mod details",
-                startOfItemMessage: "Start of mod details",
+                endOfItemMessage: "RimWorldAccess.ModList.EndOfDetails".Translate(),
+                startOfItemMessage: "RimWorldAccess.ModList.StartOfDetails".Translate(),
                 openFirstMessage: "RimWorldAccess.ModList.OpenDetailsFirst".Translate()
             );
 
@@ -472,7 +472,7 @@ namespace RimWorldAccess
                 foreach (var req in requirements)
                 {
                     string reqType = req.RequirementTypeLabel;
-                    string status = req.IsSatisfied ? "satisfied" : "not satisfied";
+                    string status = (req.IsSatisfied ? "RimWorldAccess.ModList.ReqSatisfied" : "RimWorldAccess.ModList.ReqNotSatisfied").Translate();
                     contentLines.Add($"{reqType}: {req.displayName} - {status}");
                 }
             }
