@@ -103,7 +103,7 @@ namespace RimWorldAccess
             if (c == '\n')
                 TolkHelper.Speak("RimWorldAccess.TextInput.NewLine".Loc(), SpeechPriority.High);
             else
-                TolkHelper.Speak(c.ToString(), SpeechPriority.High);
+                TolkHelper.SpeakData(c.ToString(), SpeechPriority.High);
         }
 
         public void HandleBackspace()
@@ -394,7 +394,7 @@ namespace RimWorldAccess
             var result = TextFieldValidator.Validate(candidate, Spec);
             if (!result.IsOk)
             {
-                TolkHelper.Speak(TextFieldValidator.AnnounceRejection(result, Spec), SpeechPriority.High);
+                TolkHelper.SpeakData(TextFieldValidator.AnnounceRejection(result, Spec), SpeechPriority.High);
                 return;
             }
 
@@ -402,7 +402,7 @@ namespace RimWorldAccess
             cursorPos = insertionEnd;
             selectionAnchor = cursorPos;
             replaceOnFirstKeystroke = false;
-            TolkHelper.Speak(SummarizePaste(clipboard), SpeechPriority.High);
+            TolkHelper.SpeakData(SummarizePaste(clipboard), SpeechPriority.High);
         }
 
         public void HandleEnter()
@@ -410,7 +410,7 @@ namespace RimWorldAccess
             var result = TextFieldValidator.Validate(currentText, Spec);
             if (!result.IsOk)
             {
-                TolkHelper.Speak(TextFieldValidator.AnnounceRejection(result, Spec), SpeechPriority.High);
+                TolkHelper.SpeakData(TextFieldValidator.AnnounceRejection(result, Spec), SpeechPriority.High);
                 return;
             }
             var cb = onConfirm;
@@ -463,7 +463,7 @@ namespace RimWorldAccess
                 return;
             }
             if (string.IsNullOrEmpty(label))
-                TolkHelper.Speak(value, SpeechPriority.High);
+                TolkHelper.SpeakData(value, SpeechPriority.High);
             else
                 TolkHelper.Speak("RimWorldAccess.TextInput.FieldSet".Loc(label, value), SpeechPriority.High);
         }
@@ -482,7 +482,7 @@ namespace RimWorldAccess
             if (string.IsNullOrEmpty(currentText))
                 TolkHelper.Speak("RimWorldAccess.TextInput.Empty".Loc());
             else
-                TolkHelper.Speak(currentText);
+                TolkHelper.SpeakData(currentText);
         }
 
         /// <summary>
@@ -640,7 +640,7 @@ namespace RimWorldAccess
                 TolkHelper.Speak("RimWorldAccess.TextInput.BlankLine".Loc(), SpeechPriority.High);
                 return;
             }
-            TolkHelper.Speak(currentText.Substring(lineStart, lineEnd - lineStart), SpeechPriority.High);
+            TolkHelper.SpeakData(currentText.Substring(lineStart, lineEnd - lineStart), SpeechPriority.High);
         }
 
         private string GetWordAt(int pos)
@@ -680,11 +680,11 @@ namespace RimWorldAccess
                 int hi = Math.Max(oldCursor, newCursor);
                 if (lo < hi)
                 {
-                    TolkHelper.Speak(currentText.Substring(lo, hi - lo), SpeechPriority.High);
+                    TolkHelper.SpeakData(currentText.Substring(lo, hi - lo), SpeechPriority.High);
                     return;
                 }
                 int edge = leftward ? 0 : currentText.Length - 1;
-                TolkHelper.Speak(currentText[edge].ToString(), SpeechPriority.High);
+                TolkHelper.SpeakData(currentText[edge].ToString(), SpeechPriority.High);
                 return;
             }
 
@@ -696,17 +696,17 @@ namespace RimWorldAccess
                 string wordAtCursor = GetWordAt(newCursor);
                 if (!string.IsNullOrEmpty(wordAtCursor))
                 {
-                    TolkHelper.Speak(wordAtCursor, SpeechPriority.High);
+                    TolkHelper.SpeakData(wordAtCursor, SpeechPriority.High);
                     return;
                 }
                 string edgeWord = leftward ? GetFirstWord() : GetLastWord();
                 if (!string.IsNullOrEmpty(edgeWord))
                 {
-                    TolkHelper.Speak(edgeWord, SpeechPriority.High);
+                    TolkHelper.SpeakData(edgeWord, SpeechPriority.High);
                     return;
                 }
                 int edge = leftward ? 0 : currentText.Length - 1;
-                TolkHelper.Speak(currentText[edge].ToString(), SpeechPriority.High);
+                TolkHelper.SpeakData(currentText[edge].ToString(), SpeechPriority.High);
                 return;
             }
 
@@ -714,7 +714,7 @@ namespace RimWorldAccess
             // is past the last char (at `length`) or didn't move off a boundary, repeat
             // the edge char based on direction.
             int idx = newCursor < currentText.Length ? newCursor : currentText.Length - 1;
-            TolkHelper.Speak(currentText[idx].ToString(), SpeechPriority.High);
+            TolkHelper.SpeakData(currentText[idx].ToString(), SpeechPriority.High);
         }
 
         private string GetFirstWord()

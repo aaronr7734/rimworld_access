@@ -56,9 +56,9 @@ namespace RimWorldAccess
                         string description = storyteller.description.TrimEnd('.');
                         string positionPart = string.IsNullOrEmpty(position) ? "" : $" ({position})";
                         string tabHint = AnomalySettingsAvailable
-                            ? "Tab and Shift+Tab to move between Storyteller, Difficulty, Save Mode, and Anomaly Settings."
-                            : "Tab and Shift+Tab to move between Storyteller, Difficulty, and Save Mode.";
-                        TolkHelper.Speak($"{pageTitle} - {storyteller.label} - {description}{positionPart}. {tabHint}");
+                            ? (string)"RimWorldAccess.Storyteller.TabHintWithAnomaly".Translate()
+                            : (string)"RimWorldAccess.Storyteller.TabHint".Translate();
+                        TolkHelper.SpeakData($"{pageTitle} - {storyteller.label} - {description}{positionPart}. {tabHint}");
                     }
                     else
                     {
@@ -342,7 +342,7 @@ namespace RimWorldAccess
             // The button is the entire "row" — there's nothing to navigate Up/Down within it,
             // so the announcement tells the user how to activate it.
             string label = "AnomalySettings".Translate();
-            TolkHelper.Speak($"{label}. Press Enter to open.");
+            TolkHelper.SpeakData("RimWorldAccess.AnomalySettings.LabelPressEnterToOpen".Translate(label));
         }
 
         private static bool HandleEnterOnAnomalySettings(Page_SelectStoryteller instance)
@@ -355,7 +355,7 @@ namespace RimWorldAccess
                 DifficultyDef chosen = StorytellerNavigationState.SelectedDifficulty;
                 if (chosen == null)
                 {
-                    TolkHelper.Speak("MustChooseDifficulty".Translate().Resolve());
+                    TolkHelper.Speak("MustChooseDifficulty".Loc());
                     return true;
                 }
                 Difficulty difficultyValues = (Difficulty)AccessTools.Field(typeof(Page_SelectStoryteller), "difficultyValues").GetValue(instance);

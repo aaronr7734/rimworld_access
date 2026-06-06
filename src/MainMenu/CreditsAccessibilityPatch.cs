@@ -58,7 +58,7 @@ namespace RimWorldAccess
                 // The game's own on-screen skip control (label verbatim, no invented key hint).
                 sb.Append(". ").Append("SkipCredits".Translate().ToString());
 
-                TolkHelper.Speak(sb.ToString(), SpeechPriority.High);
+                TolkHelper.SpeakData(sb.ToString(), SpeechPriority.High);
             }
             catch (System.Exception ex)
             {

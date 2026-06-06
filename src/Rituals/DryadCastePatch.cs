@@ -51,7 +51,7 @@ namespace RimWorldAccess
                     if (DryadCasteState.IsActive)
                     {
                         DryadCasteState.Close();
-                        TolkHelper.Speak("Dryad caste dialog closed.");
+                        TolkHelper.Speak("RimWorldAccess.Rituals.DryadCaste.DialogClosed".Loc());
                     }
                 }
                 catch (Exception ex)

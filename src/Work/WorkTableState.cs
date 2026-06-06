@@ -44,7 +44,7 @@ namespace RimWorldAccess
             if (IsActive) return;
             if (Find.CurrentMap == null)
             {
-                TolkHelper.Speak("No map loaded");
+                TolkHelper.Speak("RimWorldAccess.Guard.NoMapLoaded".Loc());
                 return;
             }
 
@@ -54,7 +54,7 @@ namespace RimWorldAccess
 
             if (pawns.Count == 0)
             {
-                TolkHelper.Speak("No colonists available");
+                TolkHelper.Speak("RimWorldAccess.Input.WorkMenu.NoColonistsAvailable".Loc());
                 return;
             }
 
@@ -79,9 +79,12 @@ namespace RimWorldAccess
             tableHelper.CurrentColumnIndex = WorkTableHelper.WorkTypes.Count > 0 ? 1 : 0;
 
             IsActive = true;
-            string mode = IsManualMode ? "manual priority mode" : "basic mode";
-            TolkHelper.Speak(
-                $"Work, table view, {pawns.Count} colonists, {WorkTableHelper.WorkTypes.Count} work types, {mode}");
+            string mode = IsManualMode
+                ? (string)"RimWorldAccess.Work.Mode.Manual".Translate()
+                : (string)"RimWorldAccess.Work.Mode.Basic".Translate();
+            TolkHelper.SpeakData(
+                (string)"RimWorldAccess.Work.Table.OpeningAnnouncement".Translate(
+                    pawns.Count, WorkTableHelper.WorkTypes.Count, mode));
             AnnounceInitialCell();
         }
 
@@ -99,7 +102,7 @@ namespace RimWorldAccess
 
             string cellAnnouncement = tableHelper.BuildCellAnnouncement(pawn, pawns.Count, includeItemName: true);
             string tooltip = WorkTableHelper.GetColumnTooltip(pawn, CurrentColumnIndex);
-            TolkHelper.Speak(string.IsNullOrEmpty(tooltip)
+            TolkHelper.SpeakData(string.IsNullOrEmpty(tooltip)
                 ? cellAnnouncement
                 : $"{cellAnnouncement}. {tooltip}");
         }
@@ -109,7 +112,7 @@ namespace RimWorldAccess
             if (!IsActive) return;
             RefreshAllPawnsWorkGivers();
             CleanupState();
-            TolkHelper.Speak("Work preferences saved");
+            TolkHelper.Speak("RimWorldAccess.Work.Saved".Loc());
         }
 
         /// <summary>
@@ -259,7 +262,7 @@ namespace RimWorldAccess
             WorkTypeDef workType = CurrentWorkType;
             if (pawn == null || workType == null)
             {
-                RejectAndAnnounce("Select a work type column first");
+                RejectAndAnnounce((string)"RimWorldAccess.Work.Table.SelectWorkTypeFirst".Translate());
                 return;
             }
             if (pawn.WorkTypeIsDisabled(workType))
@@ -304,7 +307,7 @@ namespace RimWorldAccess
             WorkTypeDef workType = CurrentWorkType;
             if (pawn == null || workType == null)
             {
-                RejectAndAnnounce("Select a work type column first");
+                RejectAndAnnounce((string)"RimWorldAccess.Work.Table.SelectWorkTypeFirst".Translate());
                 return;
             }
             if (pawn.WorkTypeIsDisabled(workType))
@@ -338,7 +341,7 @@ namespace RimWorldAccess
             WorkTypeDef workType = CurrentWorkType;
             if (workType == null)
             {
-                RejectAndAnnounce("Select a work type column first");
+                RejectAndAnnounce((string)"RimWorldAccess.Work.Table.SelectWorkTypeFirst".Translate());
                 return;
             }
 
@@ -374,7 +377,7 @@ namespace RimWorldAccess
 
             if (changed.Count == 0)
             {
-                RejectAndAnnounce($"No change for {workType.labelShort}");
+                RejectAndAnnounce((string)"RimWorldAccess.Work.Table.NoChangeFor".Translate(workType.labelShort));
                 return;
             }
 
@@ -390,8 +393,9 @@ namespace RimWorldAccess
             }
 
             string stateLabel = StateLabel(priority);
-            TolkHelper.Speak(
-                $"{workType.labelShort} {stateLabel} for {MenuHelper.FormatNameList(changed)}");
+            TolkHelper.SpeakData(
+                (string)"RimWorldAccess.Work.Table.SetStateForList".Translate(
+                    workType.labelShort, stateLabel, MenuHelper.FormatNameList(changed)));
             ResortIfNeeded();
         }
 
@@ -405,7 +409,7 @@ namespace RimWorldAccess
             WorkTypeDef workType = CurrentWorkType;
             if (workType == null)
             {
-                RejectAndAnnounce("Select a work type column first");
+                RejectAndAnnounce((string)"RimWorldAccess.Work.Table.SelectWorkTypeFirst".Translate());
                 return;
             }
 
@@ -442,7 +446,7 @@ namespace RimWorldAccess
 
             if (changed.Count == 0)
             {
-                RejectAndAnnounce($"No change for {workType.labelShort}");
+                RejectAndAnnounce((string)"RimWorldAccess.Work.Table.NoChangeFor".Translate(workType.labelShort));
                 return;
             }
 
@@ -457,9 +461,11 @@ namespace RimWorldAccess
                         p, MessageTypeDefOf.CautionInput, historical: false);
             }
 
-            string action = decrease ? "raised" : "lowered";
-            TolkHelper.Speak(
-                $"{workType.labelShort} {action} for {MenuHelper.FormatNameList(changed)}");
+            string nameList = MenuHelper.FormatNameList(changed);
+            string actionAnnouncement = decrease
+                ? (string)"RimWorldAccess.Work.Table.RaisedForList".Translate(workType.labelShort, nameList)
+                : (string)"RimWorldAccess.Work.Table.LoweredForList".Translate(workType.labelShort, nameList);
+            TolkHelper.SpeakData(actionAnnouncement);
             ResortIfNeeded();
         }
 
@@ -510,7 +516,9 @@ namespace RimWorldAccess
             if (current == newPriority)
             {
                 if (announceChange)
-                    TolkHelper.Speak($"{pawn.LabelShort} {workType.labelShort} already {StateLabel(newPriority)}");
+                    TolkHelper.SpeakData(
+                        (string)"RimWorldAccess.Work.Table.AlreadyState".Translate(
+                            pawn.LabelShort, workType.labelShort, StateLabel(newPriority)));
                 return;
             }
             bool wasActive = pawn.workSettings.WorkIsActive(workType);
@@ -524,7 +532,7 @@ namespace RimWorldAccess
                 string passionLabel = WorkTableHelper.PassionLabel(
                     pawn.skills.MaxPassionOfRelevantSkillsFor(workType));
                 if (!string.IsNullOrEmpty(passionLabel)) stateLabel += ", " + passionLabel;
-                TolkHelper.Speak(stateLabel);
+                TolkHelper.SpeakData(stateLabel);
             }
         }
 
@@ -570,7 +578,7 @@ namespace RimWorldAccess
             WorkTypeDef workType = CurrentWorkType;
             if (workType == null)
             {
-                RejectAndAnnounce("Cannot paint the Name column");
+                RejectAndAnnounce((string)"RimWorldAccess.Work.Table.CannotPaintNameColumn".Translate());
                 return;
             }
 
@@ -581,7 +589,7 @@ namespace RimWorldAccess
                 : source.workSettings.GetPriority(workType);
             if (brush < 0)
             {
-                RejectAndAnnounce($"{source.LabelShort} is incapable of {workType.labelShort}");
+                RejectAndAnnounce((string)"RimWorldAccess.Work.Table.SourceIncapableOf".Translate(source.LabelShort, workType.labelShort));
                 return;
             }
 
@@ -596,7 +604,7 @@ namespace RimWorldAccess
             WorkTypeDef workType = CurrentWorkType;
             if (workType == null)
             {
-                RejectAndAnnounce("Cannot paint the Name column");
+                RejectAndAnnounce((string)"RimWorldAccess.Work.Table.CannotPaintNameColumn".Translate());
                 return;
             }
             Pawn source = CurrentPawn;
@@ -606,7 +614,7 @@ namespace RimWorldAccess
                 : source.workSettings.GetPriority(workType);
             if (brush < 0)
             {
-                RejectAndAnnounce($"{source.LabelShort} is incapable of {workType.labelShort}");
+                RejectAndAnnounce((string)"RimWorldAccess.Work.Table.SourceIncapableOf".Translate(source.LabelShort, workType.labelShort));
                 return;
             }
 
@@ -620,20 +628,25 @@ namespace RimWorldAccess
             string position = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, pawns.Count);
             if (target.WorkTypeIsDisabled(workType))
             {
-                TolkHelper.Speak($"{target.LabelShort}: incapable. {position}");
+                TolkHelper.SpeakData(
+                    (string)"RimWorldAccess.Work.Table.PaintIncapable".Translate(target.LabelShort, position));
                 return;
             }
             int current = target.workSettings.GetPriority(workType);
             if (current == brush)
             {
-                TolkHelper.Speak($"{target.LabelShort}: already {StateLabel(brush)}. {position}");
+                TolkHelper.SpeakData(
+                    (string)"RimWorldAccess.Work.Table.PaintAlreadyState".Translate(
+                        target.LabelShort, StateLabel(brush), position));
                 return;
             }
             bool wasActive = target.workSettings.WorkIsActive(workType);
             target.workSettings.SetPriority(workType, brush);
             PlayPriorityChangeSound();
             PlayActivationSounds(target, workType, wasActive);
-            TolkHelper.Speak($"{target.LabelShort}: {StateLabel(brush)}. {position}");
+            TolkHelper.SpeakData(
+                (string)"RimWorldAccess.Work.Table.PaintedState".Translate(
+                    target.LabelShort, StateLabel(brush), position));
         }
 
         public static void PaintToFirst() => PaintRange(toward: -1);
@@ -645,14 +658,14 @@ namespace RimWorldAccess
             WorkTypeDef workType = CurrentWorkType;
             if (workType == null)
             {
-                RejectAndAnnounce("Cannot paint the Name column");
+                RejectAndAnnounce((string)"RimWorldAccess.Work.Table.CannotPaintNameColumn".Translate());
                 return;
             }
             Pawn source = CurrentPawn;
             if (source == null) return;
             if (source.WorkTypeIsDisabled(workType))
             {
-                RejectAndAnnounce($"{source.LabelShort} is incapable of {workType.labelShort}");
+                RejectAndAnnounce((string)"RimWorldAccess.Work.Table.SourceIncapableOf".Translate(source.LabelShort, workType.labelShort));
                 return;
             }
             int brush = source.workSettings.GetPriority(workType);
@@ -670,14 +683,14 @@ namespace RimWorldAccess
             WorkTypeDef workType = CurrentWorkType;
             if (workType == null)
             {
-                RejectAndAnnounce("Cannot paint the Name column");
+                RejectAndAnnounce((string)"RimWorldAccess.Work.Table.CannotPaintNameColumn".Translate());
                 return;
             }
             Pawn source = CurrentPawn;
             if (source == null) return;
             if (source.WorkTypeIsDisabled(workType))
             {
-                RejectAndAnnounce($"{source.LabelShort} is incapable of {workType.labelShort}");
+                RejectAndAnnounce((string)"RimWorldAccess.Work.Table.SourceIncapableOf".Translate(source.LabelShort, workType.labelShort));
                 return;
             }
             int brush = source.workSettings.GetPriority(workType);
@@ -717,7 +730,9 @@ namespace RimWorldAccess
 
             if (changed.Count == 0)
             {
-                TolkHelper.Speak($"{workType.labelShort} already {StateLabel(brush)} for this range");
+                TolkHelper.SpeakData(
+                    (string)"RimWorldAccess.Work.Table.RangeAlreadyState".Translate(
+                        workType.labelShort, StateLabel(brush)));
                 return;
             }
 
@@ -733,8 +748,9 @@ namespace RimWorldAccess
                         "MessageIdeoOpposedWorkTypeSelected".Translate(p, workType.gerundLabel),
                         p, MessageTypeDefOf.CautionInput, historical: false);
             }
-            TolkHelper.Speak(
-                $"Painted {workType.labelShort} to {StateLabel(brush)} for {MenuHelper.FormatNameList(changed)}");
+            TolkHelper.SpeakData(
+                (string)"RimWorldAccess.Work.Table.PaintedForList".Translate(
+                    workType.labelShort, StateLabel(brush), MenuHelper.FormatNameList(changed)));
             ResortIfNeeded();
         }
 
@@ -748,19 +764,22 @@ namespace RimWorldAccess
             var result = tableHelper.ToggleSortByCurrentColumn(pawns, out string direction, out bool sortCleared);
             if (result == null)
             {
-                TolkHelper.Speak($"{tableHelper.GetCurrentColumnName()} cannot be sorted");
+                TolkHelper.SpeakData(
+                    (string)"RimWorldAccess.Work.Table.CannotSort".Translate(tableHelper.GetCurrentColumnName()));
                 return;
             }
             pawns = result.ToList();
             if (sortCleared)
             {
                 SoundDefOf.Tick_Low.PlayOneShotOnCamera();
-                TolkHelper.Speak("Sort cleared, default order");
+                TolkHelper.Speak("RimWorldAccess.Animals.Sort.Cleared".Loc());
             }
             else
             {
                 SoundDefOf.Tick_High.PlayOneShotOnCamera();
-                TolkHelper.Speak($"Sorted by {tableHelper.GetCurrentColumnName()} ({direction})");
+                TolkHelper.SpeakData(
+                    (string)"RimWorldAccess.Work.Table.SortedBy".Translate(
+                        tableHelper.GetCurrentColumnName(), direction));
             }
             AnnounceCurrentCell(includePawnName: true);
         }
@@ -777,8 +796,9 @@ namespace RimWorldAccess
             Find.PlaySettings.useWorkPriorities = !Find.PlaySettings.useWorkPriorities;
             foreach (var p in pawns)
                 p.workSettings?.Notify_UseWorkPrioritiesChanged();
-            string mode = Find.PlaySettings.useWorkPriorities ? "Manual priority mode" : "Basic mode";
-            TolkHelper.Speak(mode);
+            TolkHelper.Speak(Find.PlaySettings.useWorkPriorities
+                ? "RimWorldAccess.Work.Mode.Manual".Loc()
+                : "RimWorldAccess.Work.Mode.Basic".Loc());
             AnnounceCurrentCell(includePawnName: false);
         }
 
@@ -831,7 +851,7 @@ namespace RimWorldAccess
             Pawn pawn = CurrentPawn;
             if (pawn == null) return;
             string announcement = tableHelper.BuildCellAnnouncement(pawn, pawns.Count, includePawnName, includeColumnName);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         public static void AnnounceWithSearch()
@@ -840,7 +860,7 @@ namespace RimWorldAccess
             Pawn pawn = CurrentPawn;
             if (pawn == null) return;
             string announcement = tableHelper.BuildCellAnnouncementWithSearch(pawn, pawns.Count);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         private static void AnnounceIncapable(Pawn pawn, WorkTypeDef workType)
@@ -848,15 +868,16 @@ namespace RimWorldAccess
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
             string reasons = WorkTableHelper.BuildDisabledReasons(pawn, workType);
             string detail = string.IsNullOrEmpty(reasons) ? "" : $": {reasons}";
-            TolkHelper.Speak(
-                $"{pawn.LabelShort} cannot do {workType.labelShort}{detail}",
+            TolkHelper.SpeakData(
+                (string)"RimWorldAccess.Work.Table.CannotDo".Translate(
+                    pawn.LabelShort, workType.labelShort, detail),
                 SpeechPriority.High);
         }
 
         private static void RejectAndAnnounce(string message)
         {
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            TolkHelper.Speak(message);
+            TolkHelper.SpeakData(message);
         }
 
         #endregion

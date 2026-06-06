@@ -82,7 +82,7 @@ namespace RimWorldAccess
                         string announcement = LordJobDialogState.ClosingAnnouncement;
                         LordJobDialogState.Close();
                         if (!string.IsNullOrEmpty(announcement))
-                            TolkHelper.Speak(announcement);
+                            TolkHelper.SpeakData(announcement);
                     }
                 }
                 catch (Exception ex)

@@ -417,19 +417,21 @@ namespace RimWorldAccess
             string sliderName = currentSliderMode == SliderMode.Quality
                 ? "Quality".Translate()
                 : "HitPointsBasic".Translate().CapitalizeFirst();
-            string partName = currentSliderPart == SliderPart.Min ? "Minimum" : "Maximum";
+            string partName = currentSliderPart == SliderPart.Min
+                ? (string)"RimWorldAccess.Inspection.ThingFilter.SliderPart.Min".Translate()
+                : (string)"RimWorldAccess.Inspection.ThingFilter.SliderPart.Max".Translate();
 
             if (currentSliderMode == SliderMode.Quality)
             {
                 var range = currentFilter.AllowedQualityLevels;
                 string value = currentSliderPart == SliderPart.Min ? range.min.GetLabel() : range.max.GetLabel();
-                TolkHelper.Speak($"{sliderName} - {partName}: {value}. Use Left/Right to adjust, Up/Down to switch Min/Max, Enter to confirm.");
+                TolkHelper.Speak("RimWorldAccess.Inspection.ThingFilter.SliderEdit.Announcement".Loc(sliderName, partName, value));
             }
             else if (currentSliderMode == SliderMode.HitPoints)
             {
                 var range = currentFilter.AllowedHitPointsPercents;
                 string value = currentSliderPart == SliderPart.Min ? $"{range.min:P0}" : $"{range.max:P0}";
-                TolkHelper.Speak($"{sliderName} - {partName}: {value}. Use Left/Right to adjust, Up/Down to switch Min/Max, Enter to confirm.");
+                TolkHelper.Speak("RimWorldAccess.Inspection.ThingFilter.SliderEdit.Announcement".Loc(sliderName, partName, value));
             }
         }
 
@@ -439,19 +441,25 @@ namespace RimWorldAccess
         /// </summary>
         private static void AnnounceSliderPartValue(bool includePartName)
         {
-            string partName = currentSliderPart == SliderPart.Min ? "Minimum" : "Maximum";
+            string partName = currentSliderPart == SliderPart.Min
+                ? (string)"RimWorldAccess.Inspection.ThingFilter.SliderPart.Min".Translate()
+                : (string)"RimWorldAccess.Inspection.ThingFilter.SliderPart.Max".Translate();
 
             if (currentSliderMode == SliderMode.Quality)
             {
                 var range = currentFilter.AllowedQualityLevels;
                 string value = currentSliderPart == SliderPart.Min ? range.min.GetLabel() : range.max.GetLabel();
-                TolkHelper.Speak(includePartName ? $"{partName}: {value}" : value);
+                TolkHelper.SpeakData(includePartName
+                    ? (string)"RimWorldAccess.Inspection.ThingFilter.SliderEdit.PartWithValue".Translate(partName, value)
+                    : value);
             }
             else if (currentSliderMode == SliderMode.HitPoints)
             {
                 var range = currentFilter.AllowedHitPointsPercents;
                 string value = currentSliderPart == SliderPart.Min ? $"{range.min:P0}" : $"{range.max:P0}";
-                TolkHelper.Speak(includePartName ? $"{partName}: {value}" : value);
+                TolkHelper.SpeakData(includePartName
+                    ? (string)"RimWorldAccess.Inspection.ThingFilter.SliderEdit.PartWithValue".Translate(partName, value)
+                    : value);
             }
         }
 
@@ -484,7 +492,9 @@ namespace RimWorldAccess
                         currentFilter.SetAllow(specialFilter, desired);
                         // Re-read from game to verify actual state
                         data.IsChecked = currentFilter.Allows(specialFilter);
-                        TolkHelper.Speak($"{cleanLabel}: {(data.IsChecked ? "Allowed" : "Disallowed")}");
+                        TolkHelper.SpeakData((string)(data.IsChecked
+                            ? "RimWorldAccess.Inspection.Storage.ToggleResultAllowed"
+                            : "RimWorldAccess.Inspection.Storage.ToggleResultDisallowed").Translate(cleanLabel));
                     }
                     break;
 
@@ -501,8 +511,10 @@ namespace RimWorldAccess
                         RefreshAllowanceStates();
                         var actualState = ThingFilterHelper.GetAllowanceState(
                             category.catDef, currentFilter, td => ThingFilterHelper.IsVisible(td, parentFilter));
-                        string catResult = actualState == ThingFilterHelper.CategoryAllowanceState.NoneAllowed ? "Disallowed" : "Allowed";
-                        TolkHelper.Speak($"{cleanLabel}: {catResult}");
+                        bool catAllowed = actualState != ThingFilterHelper.CategoryAllowanceState.NoneAllowed;
+                        TolkHelper.SpeakData((string)(catAllowed
+                            ? "RimWorldAccess.Inspection.Storage.ToggleResultAllowed"
+                            : "RimWorldAccess.Inspection.Storage.ToggleResultDisallowed").Translate(cleanLabel));
                     }
                     break;
 
@@ -514,7 +526,9 @@ namespace RimWorldAccess
                         currentFilter.SetAllow(thingDef, desiredThing);
                         // Re-read from game to verify actual state
                         data.IsChecked = currentFilter.Allows(thingDef);
-                        TolkHelper.Speak($"{cleanLabel}: {(data.IsChecked ? "Allowed" : "Disallowed")}");
+                        TolkHelper.SpeakData((string)(data.IsChecked
+                            ? "RimWorldAccess.Inspection.Storage.ToggleResultAllowed"
+                            : "RimWorldAccess.Inspection.Storage.ToggleResultDisallowed").Translate(cleanLabel));
                     }
                     break;
 
@@ -538,7 +552,7 @@ namespace RimWorldAccess
             if (data == null || data.Type != NodeType.Category)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("Cannot expand this item.");
+                TolkHelper.Speak("RimWorldAccess.Inspection.ThingFilter.CannotExpand".Loc());
                 return;
             }
 
@@ -658,12 +672,12 @@ namespace RimWorldAccess
             if (sliderType == "Quality")
             {
                 var range = currentFilter.AllowedQualityLevels;
-                TolkHelper.Speak($"{"Quality".Translate()}: {range.min.GetLabel()} - {range.max.GetLabel()}");
+                TolkHelper.SpeakData($"{"Quality".Translate()}: {range.min.GetLabel()} - {range.max.GetLabel()}");
             }
             else if (sliderType == "HitPoints")
             {
                 var range = currentFilter.AllowedHitPointsPercents;
-                TolkHelper.Speak($"{"HitPointsBasic".Translate().CapitalizeFirst()}: {range.min:P0} - {range.max:P0}");
+                TolkHelper.SpeakData($"{"HitPointsBasic".Translate().CapitalizeFirst()}: {range.min:P0} - {range.max:P0}");
             }
         }
 
@@ -913,7 +927,7 @@ namespace RimWorldAccess
 
             if (treeNav.HasActiveSearch)
             {
-                TolkHelper.Speak(FormatSearchAnnouncement(item, treeNav.Typeahead));
+                TolkHelper.SpeakData(FormatSearchAnnouncement(item, treeNav.Typeahead));
             }
             else
             {

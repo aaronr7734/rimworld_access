@@ -62,7 +62,8 @@ namespace RimWorldAccess
                 CompTreeConnection treeConnection = treeConnectionField?.GetValue(dialog) as CompTreeConnection;
                 string connectedPawnLabel = connectedPawn?.LabelShortCap ?? "connected pawn";
 
-                TolkHelper.Speak($"{"ChangeMode".Translate()}. {allModes.Count} castes for {connectedPawnLabel}.");
+                TolkHelper.SpeakData((string)"RimWorldAccess.Rituals.DryadCaste.OpenAnnouncement".Translate(
+                    (string)"ChangeMode".Translate(), allModes.Count.ToString(), connectedPawnLabel));
 
                 if (connectedPawn != null && treeConnection?.parent != null)
                 {
@@ -74,7 +75,7 @@ namespace RimWorldAccess
                             connectedPawn.Named("PAWN"),
                             treeConnection.parent.Named("TREE"),
                             daysToComplete.Named("UPGRADEDURATION"));
-                        TolkHelper.Speak(SanitizeText(intro));
+                        TolkHelper.SpeakData(SanitizeText(intro));
                     }
                     catch (Exception introEx)
                     {
@@ -242,7 +243,7 @@ namespace RimWorldAccess
             string fullText = string.IsNullOrEmpty(position)
                 ? announcement
                 : $"{announcement}, {position}";
-            TolkHelper.Speak(fullText, SpeechPriority.Normal);
+            TolkHelper.SpeakData(fullText, SpeechPriority.Normal);
         }
 
         private static void AnnounceWithSearch()
@@ -257,7 +258,7 @@ namespace RimWorldAccess
             }
 
             GauranlenTreeModeDef mode = allModes[selectedIndex];
-            TolkHelper.Speak(
+            TolkHelper.SpeakData(
                 $"{FormatModeAnnouncement(mode)}, {typeaheadHelper.CurrentMatchPosition} of {typeaheadHelper.MatchCount} matches for '{typeaheadHelper.SearchBuffer}'");
         }
 
@@ -353,7 +354,7 @@ namespace RimWorldAccess
         {
             if (allModes.Count == 0 || selectedIndex < 0 || selectedIndex >= allModes.Count)
             {
-                TolkHelper.Speak("No caste selected.");
+                TolkHelper.Speak("RimWorldAccess.Rituals.DryadCaste.NoCasteSelected".Loc());
                 return;
             }
 
@@ -392,7 +393,7 @@ namespace RimWorldAccess
             Pawn connectedPawn = connectedPawnField?.GetValue(currentDialog) as Pawn;
             if (treeConnection?.parent == null || connectedPawn == null)
             {
-                TolkHelper.Speak("Cannot apply caste: missing tree data.");
+                TolkHelper.Speak("RimWorldAccess.Rituals.DryadCaste.MissingTreeData".Loc());
                 return;
             }
 

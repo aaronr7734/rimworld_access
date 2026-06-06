@@ -74,6 +74,8 @@
   <RimWorldAccess.Prisoner.MedicalCare.Best>Best</RimWorldAccess.Prisoner.MedicalCare.Best>
   <RimWorldAccess.Prisoner.MedicalCare.Announce>Medical Care: {0}</RimWorldAccess.Prisoner.MedicalCare.Announce>
   <RimWorldAccess.Prisoner.MedicalCare.AnnounceWithHint>Medical Care: {0}. Use Up/Down arrows to adjust</RimWorldAccess.Prisoner.MedicalCare.AnnounceWithHint>
+  <!-- Standalone hint appended to a section announcement when entering the medical care row. -->
+  <RimWorldAccess.Prisoner.MedicalCare.AdjustHint>Use Up/Down arrows to adjust</RimWorldAccess.Prisoner.MedicalCare.AdjustHint>
 
   <!-- Interaction mode descriptions - warning suffixes appended after the
        def's own description through AnnouncementBuilder. {0} = ideo name. -->
@@ -94,6 +96,8 @@
   <RimWorldAccess.Prisoner.Tab.CurrentMode>Current Mode: {0}</RimWorldAccess.Prisoner.Tab.CurrentMode>
   <RimWorldAccess.Prisoner.Tab.NavigationHint>
 Press Left/Right to navigate sections, Up/Down within sections, Enter to select</RimWorldAccess.Prisoner.Tab.NavigationHint>
+  <!-- Inline variant without leading newline — used when embedded in a larger announcement sentence. -->
+  <RimWorldAccess.Prisoner.Tab.NavigationHintInline>Press Left/Right to navigate sections, Up/Down within sections, Enter to select</RimWorldAccess.Prisoner.Tab.NavigationHintInline>
 
   <!-- Section announcements. {0} = count (or current mode label). -->
   <RimWorldAccess.Prisoner.Section.Information>Information Section - Press Down to read stats</RimWorldAccess.Prisoner.Section.Information>

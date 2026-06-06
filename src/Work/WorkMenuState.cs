@@ -89,7 +89,8 @@ namespace RimWorldAccess
                 FindFirstPopulatedColumn();
             }
 
-            TolkHelper.Speak($"Work, focused view. {currentPawn.LabelShort}");
+            TolkHelper.SpeakData(
+                (string)"RimWorldAccess.Work.FocusedViewOpening".Translate(currentPawn.LabelShort));
             AnnounceCurrentPosition(true);
         }
 
@@ -676,7 +677,7 @@ namespace RimWorldAccess
                 // Announce the move with placement context (except for disabled)
                 if (newColumnIndex == 4) // Disabled
                 {
-                    TolkHelper.Speak($"{entry.WorkType.labelShort}, {PriorityWord(newColumnIndex)}");
+                    TolkHelper.SpeakData($"{entry.WorkType.labelShort}, {PriorityWord(newColumnIndex)}");
                 }
                 else
                 {
@@ -979,7 +980,7 @@ namespace RimWorldAccess
             WorkTypeEntry entry = GetCurrentEntry();
             if (entry == null)
             {
-                TolkHelper.Speak("No work type selected");
+                TolkHelper.Speak("RimWorldAccess.Work.NoWorkTypeSelected".Loc());
                 return;
             }
 
@@ -1018,7 +1019,8 @@ namespace RimWorldAccess
             if (changedNames.Count == 0)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak($"No change for {workType.labelShort}");
+                TolkHelper.SpeakData(
+                    (string)"RimWorldAccess.Work.Menu.NoChangeFor".Translate(workType.labelShort));
                 return;
             }
 
@@ -1033,9 +1035,11 @@ namespace RimWorldAccess
                         p, MessageTypeDefOf.CautionInput, historical: false);
             }
 
-            string verb = decrease ? "raised" : "lowered";
-            TolkHelper.Speak(
-                $"{workType.labelShort} {verb} for {FormatNameList(changedNames)}");
+            string nameList = FormatNameList(changedNames);
+            string cycleAnnouncement = decrease
+                ? (string)"RimWorldAccess.Work.Table.RaisedForList".Translate(workType.labelShort, nameList)
+                : (string)"RimWorldAccess.Work.Table.LoweredForList".Translate(workType.labelShort, nameList);
+            TolkHelper.SpeakData(cycleAnnouncement);
 
             // Keep current pawn's column structure in sync if it changed.
             bool currentPawnChanged = changedNames.Contains(currentPawn.LabelShort);
@@ -1371,7 +1375,7 @@ namespace RimWorldAccess
                 string status = entry.CurrentPriority > 0 ? "enabled" : "disabled";
                 string taskAnnouncement = BuildTaskAnnouncement(entry, true, status);
                 string position = MenuHelper.FormatPosition(basicModeIndex, allEntries.Count);
-                TolkHelper.Speak($"{taskAnnouncement}. {position}");
+                TolkHelper.SpeakData($"{taskAnnouncement}. {position}");
             }
         }
 
@@ -1417,7 +1421,7 @@ namespace RimWorldAccess
                 string taskAnnouncement = BuildTaskAnnouncement(entry, true, status);
                 string position = MenuHelper.FormatPosition(basicModeIndex, allEntries.Count);
 
-                TolkHelper.Speak($"{taskAnnouncement}. {position}");
+                TolkHelper.SpeakData($"{taskAnnouncement}. {position}");
             }
         }
 

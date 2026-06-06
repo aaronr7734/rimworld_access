@@ -84,7 +84,7 @@ namespace RimWorldAccess
                 lastWarnings.AddRange(adapter.ComputeWarnings() ?? Enumerable.Empty<string>());
 
                 var sb = new StringBuilder();
-                sb.Append($"Begin {name}.");
+                sb.Append((string)"RimWorldAccess.Rituals.Open.Begin".Translate(name));
 
                 if (!string.IsNullOrEmpty(description))
                     sb.Append($" {description}");
@@ -104,13 +104,13 @@ namespace RimWorldAccess
                     sb.Append($" {outcomeDesc}");
 
                 if (lastWarnings.Count > 0)
-                    sb.Append($" Warning: {string.Join(" ", lastWarnings)}");
+                    sb.Append($" {(string)"RimWorldAccess.Rituals.Open.Warning".Translate(string.Join(" ", lastWarnings))}");
 
                 int roleSlots = roleViews.Count;
-                sb.Append($" {roleSlots} {(roleSlots == 1 ? "role" : "roles")}.");
-                sb.Append(" Up/Down to navigate, Enter to assign pawns, Tab for quality stats, Alt+S to start.");
+                sb.Append($" {(string)(roleSlots == 1 ? "RimWorldAccess.Rituals.Open.RoleCountOne".Translate(roleSlots.ToString()) : "RimWorldAccess.Rituals.Open.RoleCountMany".Translate(roleSlots.ToString()))}");
+                sb.Append($" {(string)"RimWorldAccess.Rituals.Open.Instructions".Translate()}");
 
-                TolkHelper.Speak(sb.ToString());
+                TolkHelper.SpeakData(sb.ToString());
 
                 if (TotalNavItemCount() > 0)
                 {
@@ -482,7 +482,7 @@ namespace RimWorldAccess
                         }
                         else if (newIndex < 0 && !typeahead.HasActiveSearch)
                         {
-                            TolkHelper.Speak("Search cleared");
+                            TolkHelper.Speak("RimWorldAccess.Search.Cleared".Loc());
                         }
                         return true;
                     }
@@ -547,7 +547,7 @@ namespace RimWorldAccess
             int total = TotalNavItemCount();
             if (total == 0 || roleIndex < 0 || roleIndex >= total)
             {
-                TolkHelper.Speak("No item selected.");
+                TolkHelper.Speak("RimWorldAccess.Guard.NoItemSelected".Loc());
                 return;
             }
 
@@ -560,7 +560,7 @@ namespace RimWorldAccess
             var role = roleViews[roleIndex];
             if (role.IsLocked)
             {
-                TolkHelper.Speak("Role is locked. All assigned pawns are required.");
+                TolkHelper.Speak("RimWorldAccess.Rituals.LordJob.RoleLocked".Loc());
                 return;
             }
 
@@ -571,7 +571,7 @@ namespace RimWorldAccess
 
             if (pawnViews.Count == 0)
             {
-                TolkHelper.Speak("No eligible pawns for this role.");
+                TolkHelper.Speak("RimWorldAccess.Rituals.PawnSelection.NoEligiblePawns".Loc());
                 selectedRole = null;
                 return;
             }
@@ -580,8 +580,10 @@ namespace RimWorldAccess
             pawnIndex = 0;
             typeahead.ClearSearch();
 
-            TolkHelper.Speak($"Selecting pawn for {role.Label}. {pawnViews.Count} {(pawnViews.Count == 1 ? "candidate" : "candidates")}. " +
-                "Space to toggle selection, Enter to confirm, Escape to cancel.");
+            string countClause = pawnViews.Count == 1
+                ? (string)"RimWorldAccess.Rituals.PawnSelection.CandidateCountOne".Translate(pawnViews.Count.ToString())
+                : (string)"RimWorldAccess.Rituals.PawnSelection.CandidateCountMany".Translate(pawnViews.Count.ToString());
+            TolkHelper.SpeakData((string)"RimWorldAccess.Rituals.PawnSelection.EnterInstructions".Translate(role.Label, countClause));
             AnnounceCurrentPawn();
         }
 
@@ -595,7 +597,7 @@ namespace RimWorldAccess
 
             RebuildRoleAndToggleList();
 
-            TolkHelper.Speak(cancelled ? "Cancelled. Returned to role list." : "Selection confirmed. Returned to role list.");
+            TolkHelper.Speak(cancelled ? "RimWorldAccess.Rituals.PawnSelection.Cancelled".Loc() : "RimWorldAccess.Rituals.PawnSelection.Confirmed".Loc());
             AnnounceCurrentRoleOrToggle();
         }
 
@@ -607,13 +609,14 @@ namespace RimWorldAccess
                 if (savedMode == NavigationMode.RoleList)
                 {
                     roleIndex = savedIndex;
-                    TolkHelper.Speak("Returned to role list.");
+                    TolkHelper.Speak("RimWorldAccess.Rituals.QualityStats.ReturnedToRoleList".Loc());
                     AnnounceCurrentRoleOrToggle();
                 }
                 else if (savedMode == NavigationMode.PawnSelection)
                 {
                     pawnIndex = savedIndex;
-                    TolkHelper.Speak($"Returned to pawn selection for {selectedRole?.Label ?? "role"}.");
+                    string roleLabel = selectedRole?.Label ?? (string)"RimWorldAccess.Rituals.Fallback.Role".Translate();
+                    TolkHelper.SpeakData((string)"RimWorldAccess.Rituals.QualityStats.ReturnedToPawnSelection".Translate(roleLabel));
                     AnnounceCurrentPawn();
                 }
             }
@@ -629,12 +632,16 @@ namespace RimWorldAccess
 
                 if (!qualityInstructionsShown)
                 {
-                    TolkHelper.Speak($"Quality stats. {qualityRows.Count} factors. Up/Down to navigate, Alt+I for breakdown, Tab to return.");
+                    TolkHelper.SpeakData(qualityRows.Count == 1
+                        ? (string)"RimWorldAccess.Rituals.QualityStats.InstructionsOne".Translate(qualityRows.Count.ToString())
+                        : (string)"RimWorldAccess.Rituals.QualityStats.InstructionsMany".Translate(qualityRows.Count.ToString()));
                     qualityInstructionsShown = true;
                 }
                 else
                 {
-                    TolkHelper.Speak($"Quality stats. {qualityRows.Count} factors.");
+                    TolkHelper.SpeakData(qualityRows.Count == 1
+                        ? (string)"RimWorldAccess.Rituals.QualityStats.HeaderOne".Translate(qualityRows.Count.ToString())
+                        : (string)"RimWorldAccess.Rituals.QualityStats.HeaderMany".Translate(qualityRows.Count.ToString()));
                 }
 
                 if (qualityRows.Count > 0) AnnounceCurrentQualityRow();
@@ -654,19 +661,19 @@ namespace RimWorldAccess
             switch (result)
             {
                 case AssignmentResult.Assigned:
-                    TolkHelper.Speak($"{pawn.Pawn.LabelShort} selected.");
+                    TolkHelper.SpeakData((string)"RimWorldAccess.Rituals.Pawn.SelectedName".Translate(pawn.Pawn.LabelShort));
                     break;
                 case AssignmentResult.Unassigned:
-                    TolkHelper.Speak($"{pawn.Pawn.LabelShort} deselected.");
+                    TolkHelper.SpeakData((string)"RimWorldAccess.Rituals.Pawn.DeselectedName".Translate(pawn.Pawn.LabelShort));
                     break;
                 case AssignmentResult.BlockedForced:
-                    TolkHelper.Speak($"{pawn.Pawn.LabelShort} is forced for this role and cannot be changed.");
+                    TolkHelper.SpeakData((string)"RimWorldAccess.Rituals.Pawn.IsForced".Translate(pawn.Pawn.LabelShort));
                     return;
                 case AssignmentResult.BlockedDisabled:
-                    TolkHelper.Speak($"Cannot assign {pawn.Pawn.LabelShort}. {failureReason}");
+                    TolkHelper.SpeakData((string)"RimWorldAccess.Rituals.Pawn.CannotAssignWithReason".Translate(pawn.Pawn.LabelShort, failureReason));
                     return;
                 case AssignmentResult.Failed:
-                    TolkHelper.Speak($"Cannot assign {pawn.Pawn.LabelShort}.");
+                    TolkHelper.SpeakData((string)"RimWorldAccess.Rituals.Pawn.CannotAssign".Translate(pawn.Pawn.LabelShort));
                     return;
             }
 
@@ -680,7 +687,7 @@ namespace RimWorldAccess
 
             if (pawnViews.Count > 0 && pawnIndex >= 0 && pawnIndex < pawnViews.Count)
             {
-                TolkHelper.Speak($"Now at: {pawnViews[pawnIndex].Pawn.LabelShort}");
+                TolkHelper.SpeakData((string)"RimWorldAccess.Rituals.Pawn.NowAt".Translate(pawnViews[pawnIndex].Pawn.LabelShort));
             }
 
             adapter.Notify_AssignmentsChanged();
@@ -699,7 +706,7 @@ namespace RimWorldAccess
             var pawn = CurrentPawnOrNull();
             if (pawn == null) return;
             string text = info?.Invoke(pawn);
-            if (!string.IsNullOrEmpty(text)) TolkHelper.Speak(text);
+            if (!string.IsNullOrEmpty(text)) TolkHelper.SpeakData(text);
         }
 
         private static Pawn CurrentPawnOrNull()
@@ -715,16 +722,16 @@ namespace RimWorldAccess
             if (!string.IsNullOrEmpty(row.Explanation))
                 StatBreakdownState.Open(row.Label, row.Explanation);
             else if (!string.IsNullOrEmpty(row.Tooltip))
-                TolkHelper.Speak($"{row.Label}. {row.Tooltip}");
+                TolkHelper.SpeakData((string)"RimWorldAccess.Rituals.QualityStats.BreakdownWithTooltip".Translate(row.Label, row.Tooltip));
             else
-                TolkHelper.Speak("No detailed breakdown available for this factor.");
+                TolkHelper.Speak("RimWorldAccess.Rituals.QualityStats.NoBreakdown".Loc());
         }
 
         private static void StartLordJob()
         {
             if (adapter == null)
             {
-                TolkHelper.Speak("No dialog open.");
+                TolkHelper.Speak("RimWorldAccess.Rituals.LordJob.NoDialogOpen".Loc());
                 return;
             }
 
@@ -732,7 +739,7 @@ namespace RimWorldAccess
             {
                 if (!adapter.TryStart(out var blocking))
                 {
-                    TolkHelper.Speak($"Cannot start. {string.Join(". ", blocking)}");
+                    TolkHelper.SpeakData((string)"RimWorldAccess.Rituals.LordJob.CannotStart".Translate(string.Join(". ", blocking)));
                     return;
                 }
 
@@ -768,7 +775,7 @@ namespace RimWorldAccess
             int total = TotalNavItemCount();
             if (total == 0)
             {
-                TolkHelper.Speak("No roles available.");
+                TolkHelper.Speak("RimWorldAccess.Rituals.Empty.NoRoles".Loc());
                 return;
             }
             if (roleIndex < 0 || roleIndex >= total) roleIndex = 0;
@@ -787,14 +794,14 @@ namespace RimWorldAccess
             string position = MenuHelper.FormatPosition(roleIndex, total);
             if (!string.IsNullOrEmpty(position)) text += $" {position}";
 
-            TolkHelper.Speak(text);
+            TolkHelper.SpeakData(text);
         }
 
         private static void AnnounceCurrentPawn()
         {
             if (pawnViews.Count == 0)
             {
-                TolkHelper.Speak("No pawns available.");
+                TolkHelper.Speak("RimWorldAccess.Rituals.Empty.NoPawns".Loc());
                 return;
             }
             if (pawnIndex < 0 || pawnIndex >= pawnViews.Count) pawnIndex = 0;
@@ -802,14 +809,14 @@ namespace RimWorldAccess
             string text = RitualStatFormatter.FormatPawn(pawnViews[pawnIndex]);
             string position = MenuHelper.FormatPosition(pawnIndex, pawnViews.Count);
             if (!string.IsNullOrEmpty(position)) text += $" {position}";
-            TolkHelper.Speak(text);
+            TolkHelper.SpeakData(text);
         }
 
         private static void AnnounceCurrentQualityRow()
         {
             if (qualityRows.Count == 0)
             {
-                TolkHelper.Speak("No quality factors available.");
+                TolkHelper.Speak("RimWorldAccess.Rituals.Empty.NoQualityFactorsAvailable".Loc());
                 return;
             }
             if (qualityIndex < 0 || qualityIndex >= qualityRows.Count) qualityIndex = 0;
@@ -817,7 +824,7 @@ namespace RimWorldAccess
             string text = RitualStatFormatter.FormatQualityRow(qualityRows[qualityIndex]);
             string position = MenuHelper.FormatPosition(qualityIndex, qualityRows.Count);
             if (!string.IsNullOrEmpty(position)) text += $" {position}";
-            TolkHelper.Speak(text);
+            TolkHelper.SpeakData(text);
         }
 
         private static void AnnounceWarningDiff()
@@ -829,7 +836,7 @@ namespace RimWorldAccess
             lastWarnings.AddRange(current);
             if (newOnes.Count > 0)
             {
-                TolkHelper.Speak($"Warning: {string.Join(" ", newOnes)}");
+                TolkHelper.SpeakData((string)"RimWorldAccess.Rituals.Open.Warning".Translate(string.Join(" ", newOnes)));
             }
         }
 
@@ -1011,7 +1018,10 @@ namespace RimWorldAccess
             var toggle = extraToggles[idx];
             if (adapter.ApplyExtraToggle(toggle))
             {
-                TolkHelper.Speak($"{toggle.Label}: {(toggle.Checked ? "checked" : "unchecked")}.");
+                string state = toggle.Checked
+                    ? (string)"RimWorldAccess.Rituals.Checkbox.Checked".Translate()
+                    : (string)"RimWorldAccess.Rituals.Checkbox.Unchecked".Translate();
+                TolkHelper.SpeakData((string)"RimWorldAccess.Rituals.Checkbox.Toggled".Translate(toggle.Label, state));
             }
         }
 

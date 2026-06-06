@@ -200,6 +200,9 @@
   <RimWorldAccess.Inspection.Storage.Summary.AllowedExceptCount>allowed, except for {0} items</RimWorldAccess.Inspection.Storage.Summary.AllowedExceptCount>
   <RimWorldAccess.Inspection.Storage.Summary.DisallowedExceptCount>disallowed, except for {0} items</RimWorldAccess.Inspection.Storage.Summary.DisallowedExceptCount>
 
+  <!-- No info card available for the selected item. -->
+  <RimWorldAccess.Inspection.Storage.NoInfoCard>No info card available</RimWorldAccess.Inspection.Storage.NoInfoCard>
+
   <!-- Bulk action results. -->
   <RimWorldAccess.Inspection.Storage.ClearedAllItems>Cleared all items</RimWorldAccess.Inspection.Storage.ClearedAllItems>
   <RimWorldAccess.Inspection.Storage.AllowedAllItems>Allowed all items</RimWorldAccess.Inspection.Storage.AllowedAllItems>
@@ -242,6 +245,9 @@
        SliderEdit.PartWithValue: {0} = part name, {1} = value. Spoken
        when switching parts via Up/Down.
        ================================================================= -->
+  <!-- Cannot-expand rejection (ThingFilterNavigationState). -->
+  <RimWorldAccess.Inspection.ThingFilter.CannotExpand>Cannot expand this item.</RimWorldAccess.Inspection.ThingFilter.CannotExpand>
+
   <RimWorldAccess.Inspection.ThingFilter.SliderPart.Min>Minimum</RimWorldAccess.Inspection.ThingFilter.SliderPart.Min>
   <RimWorldAccess.Inspection.ThingFilter.SliderPart.Max>Maximum</RimWorldAccess.Inspection.ThingFilter.SliderPart.Max>
   <RimWorldAccess.Inspection.ThingFilter.SliderEdit.Announcement>{0} - {1}: {2}. Use Left/Right to adjust, Up/Down to switch Min/Max, Enter to confirm.</RimWorldAccess.Inspection.ThingFilter.SliderEdit.Announcement>
@@ -604,6 +610,10 @@
   <RimWorldAccess.Inspection.Gizmo.CouldNotReadPruningValue>Could not read pruning value</RimWorldAccess.Inspection.Gizmo.CouldNotReadPruningValue>
   <RimWorldAccess.Inspection.Gizmo.CouldNotReadCarrierValue>Could not read carrier value</RimWorldAccess.Inspection.Gizmo.CouldNotReadCarrierValue>
   <RimWorldAccess.Inspection.Gizmo.CouldNotAdjustControl>Could not adjust this control</RimWorldAccess.Inspection.Gizmo.CouldNotAdjustControl>
+  <!-- Hemogen toggle failure (GeneGizmo_ResourceHemogen). -->
+  <RimWorldAccess.Inspection.Gizmo.CouldNotToggleHemogen>Could not toggle hemogen packs setting</RimWorldAccess.Inspection.Gizmo.CouldNotToggleHemogen>
+  <!-- Shift+key with no matching command. {0} = key name. -->
+  <RimWorldAccess.Inspection.Gizmo.NoCommandForShiftPlus>No command for Shift plus {0}</RimWorldAccess.Inspection.Gizmo.NoCommandForShiftPlus>
 
   <!-- Hint suffixes appended to AnnounceCurrentGizmo for interactive
        gizmos. RightClickHint and EnterAdjustHint are the standard

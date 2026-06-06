@@ -5796,7 +5796,7 @@ namespace RimWorldAccess
                     IntVec3 pos = MapNavigationState.CurrentCursorPosition;
                     if (pos.IsValid)
                     {
-                        TolkHelper.Speak($"{pos.x}, {pos.z}");
+                        TolkHelper.SpeakData($"{pos.x}, {pos.z}");
                         Event.current.Use();
                         return;
                     }

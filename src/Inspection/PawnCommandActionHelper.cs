@@ -71,8 +71,8 @@ namespace RimWorldAccess
             {
                 if (pawn.Downed)
                 {
-                    TolkHelper.Speak(
-                        "MessageCantBanishDownedPawn".Translate(pawn.LabelShort, pawn).AdjustedFor(pawn),
+                    TolkHelper.SpeakData(
+                        (string)"MessageCantBanishDownedPawn".Translate(pawn.LabelShort, pawn).AdjustedFor(pawn),
                         SpeechPriority.High);
                     return;
                 }
@@ -104,7 +104,7 @@ namespace RimWorldAccess
                 item.Description = ExecuteDescription(pawn);
                 // Vanilla only messages when marking on; speak the verified marked message there, and
                 // a clear "Execute: Off" (both localized) when un-marking.
-                TolkHelper.Speak(
+                TolkHelper.SpeakData(
                     nowMarked
                         ? (string)"MessageColonistMarkedForExecution".Translate(pawn)
                         : (string)("Execute".Translate() + ": " + "Off".Translate()),

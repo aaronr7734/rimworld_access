@@ -197,6 +197,59 @@
   <RimWorldAccess.Work.Position.WithoutColumn>{0} {1}</RimWorldAccess.Work.Position.WithoutColumn>
   <RimWorldAccess.Work.Position.BasicModeItem>{0} {1}, {2}</RimWorldAccess.Work.Position.BasicModeItem>
 
+  <!-- WorkTableState lifecycle and mode announcements.
+       OpeningAnnouncement: {0} = colonist count, {1} = work type count, {2} = mode string.
+       FocusedViewOpening: {0} = pawn LabelShort. Spoken when focused view opens. -->
+  <RimWorldAccess.Work.Table.OpeningAnnouncement>Work, table view, {0} colonists, {1} work types, {2}</RimWorldAccess.Work.Table.OpeningAnnouncement>
+  <RimWorldAccess.Work.FocusedViewOpening>Work, focused view. {0}</RimWorldAccess.Work.FocusedViewOpening>
+
+  <!-- Table view: sort announcements.
+       CannotSort: {0} = column name.
+       SortedBy: {0} = column name, {1} = direction word. -->
+  <RimWorldAccess.Work.Table.CannotSort>{0} cannot be sorted</RimWorldAccess.Work.Table.CannotSort>
+  <RimWorldAccess.Work.Table.SortedBy>Sorted by {0} ({1})</RimWorldAccess.Work.Table.SortedBy>
+
+  <!-- Table view: priority-change feedback.
+       AlreadyState: {0} = pawn LabelShort, {1} = work labelShort, {2} = state label.
+       SetStateForList: {0} = work labelShort, {1} = state label, {2} = name list.
+       Raised/Lowered: direction words used inside RaisedForList / LoweredForList.
+       RaisedForList / LoweredForList: {0} = work labelShort, {1} = name list. -->
+  <RimWorldAccess.Work.Table.AlreadyState>{0} {1} already {2}</RimWorldAccess.Work.Table.AlreadyState>
+  <RimWorldAccess.Work.Table.SetStateForList>{0} {1} for {2}</RimWorldAccess.Work.Table.SetStateForList>
+  <RimWorldAccess.Work.Table.Raised>raised</RimWorldAccess.Work.Table.Raised>
+  <RimWorldAccess.Work.Table.Lowered>lowered</RimWorldAccess.Work.Table.Lowered>
+  <RimWorldAccess.Work.Table.RaisedForList>{0} raised for {1}</RimWorldAccess.Work.Table.RaisedForList>
+  <RimWorldAccess.Work.Table.LoweredForList>{0} lowered for {1}</RimWorldAccess.Work.Table.LoweredForList>
+
+  <!-- Table view: painting announcements.
+       PaintIncapable: {0} = target LabelShort, {1} = position string.
+       PaintAlreadyState: {0} = target LabelShort, {1} = state label, {2} = position.
+       PaintedState: {0} = target LabelShort, {1} = state label, {2} = position.
+       RangeAlreadyState: {0} = work labelShort, {1} = state label.
+       PaintedForList: {0} = work labelShort, {1} = state label, {2} = name list. -->
+  <RimWorldAccess.Work.Table.PaintIncapable>{0}: incapable. {1}</RimWorldAccess.Work.Table.PaintIncapable>
+  <RimWorldAccess.Work.Table.PaintAlreadyState>{0}: already {1}. {2}</RimWorldAccess.Work.Table.PaintAlreadyState>
+  <RimWorldAccess.Work.Table.PaintedState>{0}: {1}. {2}</RimWorldAccess.Work.Table.PaintedState>
+  <RimWorldAccess.Work.Table.RangeAlreadyState>{0} already {1} for this range</RimWorldAccess.Work.Table.RangeAlreadyState>
+  <RimWorldAccess.Work.Table.PaintedForList>Painted {0} to {1} for {2}</RimWorldAccess.Work.Table.PaintedForList>
+
+  <!-- Table view: reject / guard announcements.
+       SelectWorkTypeFirst: no work-type column is selected.
+       CannotPaintNameColumn: painting attempted on the name column.
+       NoChangeFor: {0} = work labelShort; all pawns already at the target.
+       SourceIncapableOf: {0} = source pawn LabelShort, {1} = work labelShort.
+       CannotDo: {0} = pawn LabelShort, {1} = work labelShort, {2} = optional reason detail (": reasons" or empty). -->
+  <RimWorldAccess.Work.Table.SelectWorkTypeFirst>Select a work type column first</RimWorldAccess.Work.Table.SelectWorkTypeFirst>
+  <RimWorldAccess.Work.Table.CannotPaintNameColumn>Cannot paint the Name column</RimWorldAccess.Work.Table.CannotPaintNameColumn>
+  <RimWorldAccess.Work.Table.NoChangeFor>No change for {0}</RimWorldAccess.Work.Table.NoChangeFor>
+  <RimWorldAccess.Work.Table.SourceIncapableOf>{0} is incapable of {1}</RimWorldAccess.Work.Table.SourceIncapableOf>
+  <RimWorldAccess.Work.Table.CannotDo>{0} cannot do {1}{2}</RimWorldAccess.Work.Table.CannotDo>
+
+  <!-- WorkMenuState: cycle-all-pawns no-change and direction feedback.
+       NoChangeFor: {0} = work labelShort. Used when no pawn changed.
+       RaisedForList / LoweredForList reused from Work.Table above. -->
+  <RimWorldAccess.Work.Menu.NoChangeFor>No change for {0}</RimWorldAccess.Work.Menu.NoChangeFor>
+
   <!-- Visual overlay (WorkMenuPatch.DrawMenuOverlay). Screen-reader users
        navigate by spoken announcements; these keys are the on-screen
        labels for sighted users and mod testers.

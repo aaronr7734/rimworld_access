@@ -103,7 +103,7 @@ namespace RimWorldAccess
                 wasAcceptClose = false;
                 isActive = true;
 
-                TolkHelper.Speak("AnomalySettings".Translate().Resolve());
+                TolkHelper.Speak("AnomalySettings".Loc());
                 AnnounceCurrent();
             }
             catch (Exception ex)
@@ -298,9 +298,9 @@ namespace RimWorldAccess
             // always at index 0, so selectedIndex stays valid. Re-fetch from items in case
             // the rebuild swapped instances.
             if (selectedIndex < items.Count)
-                TolkHelper.Speak(items[selectedIndex].GetAdjustmentAnnouncement());
+                TolkHelper.SpeakData(items[selectedIndex].GetAdjustmentAnnouncement());
             else
-                TolkHelper.Speak(setting.GetAdjustmentAnnouncement());
+                TolkHelper.SpeakData(setting.GetAdjustmentAnnouncement());
         }
 
         private static void ToggleCurrent()
@@ -308,7 +308,7 @@ namespace RimWorldAccess
             if (items.Count == 0 || selectedIndex < 0 || selectedIndex >= items.Count) return;
             items[selectedIndex].Toggle();
             if (selectedIndex < items.Count)
-                TolkHelper.Speak(items[selectedIndex].GetAdjustmentAnnouncement());
+                TolkHelper.SpeakData(items[selectedIndex].GetAdjustmentAnnouncement());
         }
 
         // ===== ITEM LIST =====
@@ -347,7 +347,7 @@ namespace RimWorldAccess
         {
             if (items.Count == 0)
             {
-                TolkHelper.Speak("None".Translate().Resolve());
+                TolkHelper.Speak("None".Loc());
                 return;
             }
             if (selectedIndex < 0 || selectedIndex >= items.Count) return;
@@ -360,11 +360,11 @@ namespace RimWorldAccess
                 && Find.Scenario != null && Find.Scenario.standardAnomalyPlaystyleOnly
                 && localPlaystyle != AnomalyPlaystyleDefOf.Standard)
             {
-                TolkHelper.Speak($"{setting.GetAnnouncement()}. {"DisabledByScenario".Translate()}: {Find.Scenario.name}{suffix}");
+                TolkHelper.SpeakData($"{setting.GetAnnouncement()}. {(string)"DisabledByScenario".Translate()}: {Find.Scenario.name}{suffix}");
                 return;
             }
 
-            TolkHelper.Speak($"{setting.GetAnnouncement()}{suffix}");
+            TolkHelper.SpeakData($"{setting.GetAnnouncement()}{suffix}");
         }
 
         // ===== ACCEPT / RESET =====
@@ -374,7 +374,7 @@ namespace RimWorldAccess
             if (Find.Scenario != null && Find.Scenario.standardAnomalyPlaystyleOnly
                 && localPlaystyle != null && localPlaystyle != AnomalyPlaystyleDefOf.Standard)
             {
-                TolkHelper.Speak($"{"DisabledByScenario".Translate()}: {Find.Scenario.name}");
+                TolkHelper.SpeakData($"{(string)"DisabledByScenario".Translate()}: {Find.Scenario.name}");
                 return;
             }
 
@@ -382,7 +382,7 @@ namespace RimWorldAccess
             {
                 if (localDifficulty == null)
                 {
-                    TolkHelper.Speak("Cannot accept: difficulty not loaded.");
+                    TolkHelper.Speak("RimWorldAccess.AnomalySettings.CannotAcceptDifficultyNotLoaded".Loc());
                     return;
                 }
 
@@ -437,13 +437,13 @@ namespace RimWorldAccess
                     localPlaystyle = AnomalyPlaystyleDefOf.Standard;
                     selectedIndex = 0;
                     RebuildItems();
-                    TolkHelper.Speak($"{captured.LabelCap}");
+                    TolkHelper.SpeakData($"{captured.LabelCap}");
                     AnnounceCurrent();
                 }));
             }
             if (options.Count == 0) return;
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
-            TolkHelper.Speak($"{"SetToStandardPlaystyle".Translate()}");
+            TolkHelper.Speak("SetToStandardPlaystyle".Loc());
         }
     }
 }

@@ -73,7 +73,7 @@ namespace RimWorldAccess
             typeahead.ClearSearch();
             isActive = true;
 
-            TolkHelper.Speak($"{"TabEntity".Translate()}. {heldPawn.LabelShortCap}");
+            TolkHelper.SpeakData($"{"TabEntity".Translate()}. {heldPawn.LabelShortCap}");
             AnnounceCurrent();
         }
 
@@ -157,10 +157,10 @@ namespace RimWorldAccess
                 return true;
             }
             // Alt+H/M/N/G → standard pawn deep-dives, mirrors ritual pawn picker behavior.
-            if (alt && key == KeyCode.H) { TolkHelper.Speak(PawnInfoHelper.GetHealthInfo(heldPawn)); return true; }
-            if (alt && key == KeyCode.M) { TolkHelper.Speak(PawnInfoHelper.GetMoodInfo(heldPawn)); return true; }
-            if (alt && key == KeyCode.N) { TolkHelper.Speak(PawnInfoHelper.GetNeedsInfo(heldPawn)); return true; }
-            if (alt && key == KeyCode.G) { TolkHelper.Speak(PawnInfoHelper.GetGearInfo(heldPawn)); return true; }
+            if (alt && key == KeyCode.H) { TolkHelper.SpeakData(PawnInfoHelper.GetHealthInfo(heldPawn)); return true; }
+            if (alt && key == KeyCode.M) { TolkHelper.SpeakData(PawnInfoHelper.GetMoodInfo(heldPawn)); return true; }
+            if (alt && key == KeyCode.N) { TolkHelper.SpeakData(PawnInfoHelper.GetNeedsInfo(heldPawn)); return true; }
+            if (alt && key == KeyCode.G) { TolkHelper.SpeakData(PawnInfoHelper.GetGearInfo(heldPawn)); return true; }
 
             switch (key)
             {
@@ -172,7 +172,7 @@ namespace RimWorldAccess
                         return true;
                     }
                     Close();
-                    TolkHelper.Speak($"{"TabEntity".Translate()} closed.");
+                    TolkHelper.Speak("RimWorldAccess.Ideology.Tab.Closed".Loc((string)"TabEntity".Translate()));
                     return true;
 
                 case KeyCode.UpArrow:
@@ -282,7 +282,7 @@ namespace RimWorldAccess
             if (typeahead.HasActiveSearch && rows.Count > 0 && selectedIndex >= 0 && selectedIndex < rows.Count)
             {
                 string label = GetRowLabel(rows[selectedIndex]);
-                TolkHelper.Speak($"{label}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'");
+                TolkHelper.SpeakData($"{label}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'");
             }
             else
             {
@@ -346,7 +346,7 @@ namespace RimWorldAccess
             if (current < 0) current = 0;
             int next = (current + direction + values.Length) % values.Length;
             heldPawn.playerSettings.medCare = values[next];
-            TolkHelper.Speak($"{"AllowMedicine".Translate()}: {heldPawn.playerSettings.medCare.GetLabel()}");
+            TolkHelper.SpeakData($"{"AllowMedicine".Translate()}: {heldPawn.playerSettings.medCare.GetLabel()}");
         }
 
         private static void CycleContainmentMode(int direction)
@@ -369,12 +369,12 @@ namespace RimWorldAccess
 
             if (values[next] == EntityContainmentMode.Execute && !comp.Props.canBeExecuted)
             {
-                TolkHelper.Speak("CantBeExecuted".Translate().Resolve());
+                TolkHelper.Speak("CantBeExecuted".Loc());
                 return;
             }
 
             comp.containmentMode = values[next];
-            TolkHelper.Speak($"{("EntityStudyMode_" + comp.containmentMode).Translate()}");
+            TolkHelper.Speak(("EntityStudyMode_" + comp.containmentMode).Loc());
         }
 
         private static void ToggleExtractBioferrite()
@@ -384,12 +384,12 @@ namespace RimWorldAccess
             var row = rows[selectedIndex];
             if (row.DisabledForInteraction)
             {
-                TolkHelper.Speak(row.DisabledReason);
+                TolkHelper.SpeakData(row.DisabledReason);
                 return;
             }
             comp.extractBioferrite = !comp.extractBioferrite;
             string status = comp.extractBioferrite ? "On" : "Off";
-            TolkHelper.Speak($"{"EntityStudyMode_Extract".Translate()}: {status}");
+            TolkHelper.SpeakData($"{"EntityStudyMode_Extract".Translate()}: {status}");
         }
 
         // ===== ANNOUNCEMENTS =====
@@ -401,7 +401,7 @@ namespace RimWorldAccess
             string text = BuildRowAnnouncement(row);
             string position = MenuHelper.FormatPosition(selectedIndex, rows.Count);
             string suffix = string.IsNullOrEmpty(position) ? "" : $" ({position})";
-            TolkHelper.Speak($"{text}{suffix}");
+            TolkHelper.SpeakData($"{text}{suffix}");
         }
 
         private static string GetRowLabel(Row row)

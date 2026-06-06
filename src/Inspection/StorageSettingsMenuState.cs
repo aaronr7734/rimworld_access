@@ -440,7 +440,9 @@ namespace RimWorldAccess
                         bool desired = !currentSettings.filter.Allows(specialFilter);
                         currentSettings.filter.SetAllow(specialFilter, desired);
                         data.IsChecked = currentSettings.filter.Allows(specialFilter);
-                        TolkHelper.Speak($"{item.Label}: {(data.IsChecked ? "Allowed" : "Disallowed")}");
+                        TolkHelper.SpeakData((string)(data.IsChecked
+                            ? "RimWorldAccess.Inspection.Storage.ToggleResultAllowed"
+                            : "RimWorldAccess.Inspection.Storage.ToggleResultDisallowed").Translate(item.Label));
                     }
                     break;
 
@@ -456,10 +458,10 @@ namespace RimWorldAccess
                         var actualState = ThingFilterHelper.GetAllowanceState(
                             catNode.catDef, currentSettings.filter,
                             td => ThingFilterHelper.IsVisible(td, parentFilter));
-                        string result = actualState == ThingFilterHelper.CategoryAllowanceState.NoneAllowed
-                            ? "Disallowed"
-                            : "Allowed";
-                        TolkHelper.Speak($"{item.Label}: {result}");
+                        bool catAllowed = actualState != ThingFilterHelper.CategoryAllowanceState.NoneAllowed;
+                        TolkHelper.SpeakData((string)(catAllowed
+                            ? "RimWorldAccess.Inspection.Storage.ToggleResultAllowed"
+                            : "RimWorldAccess.Inspection.Storage.ToggleResultDisallowed").Translate(item.Label));
                     }
                     break;
 
@@ -469,7 +471,9 @@ namespace RimWorldAccess
                         bool desiredThing = !currentSettings.filter.Allows(thingDef);
                         currentSettings.filter.SetAllow(thingDef, desiredThing);
                         data.IsChecked = currentSettings.filter.Allows(thingDef);
-                        TolkHelper.Speak($"{item.Label}: {(data.IsChecked ? "Allowed" : "Disallowed")}");
+                        TolkHelper.SpeakData((string)(data.IsChecked
+                            ? "RimWorldAccess.Inspection.Storage.ToggleResultAllowed"
+                            : "RimWorldAccess.Inspection.Storage.ToggleResultDisallowed").Translate(item.Label));
                     }
                     break;
             }
@@ -486,7 +490,7 @@ namespace RimWorldAccess
             }
 
             SoundDefOf.ClickReject.PlayOneShotOnCamera();
-            TolkHelper.Speak("No info card available");
+            TolkHelper.Speak("RimWorldAccess.Inspection.Storage.NoInfoCard".Loc());
         }
 
         /// <summary>
@@ -583,7 +587,7 @@ namespace RimWorldAccess
             if (treeNav.SelectedItem == null) return;
 
             if (treeNav.HasActiveSearch)
-                TolkHelper.Speak(FormatSearchAnnouncement(treeNav.SelectedItem, treeNav.Typeahead));
+                TolkHelper.SpeakData(FormatSearchAnnouncement(treeNav.SelectedItem, treeNav.Typeahead));
             else
                 treeNav.ReannounceCurrentItem();
         }

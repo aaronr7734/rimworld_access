@@ -51,13 +51,13 @@ namespace RimWorldAccess
                             // On Accept, route the user back to the Storyteller row so Enter
                             // advances the wizard naturally. ReturnToStorytellerMode speaks the
                             // storyteller info, so the user knows where focus landed.
-                            TolkHelper.Speak($"{"AnomalySettings".Translate()} saved.");
+                            TolkHelper.SpeakData("RimWorldAccess.AnomalySettings.Saved".Translate((string)"AnomalySettings".Translate()));
                             StorytellerSelectionPatch.ReturnToStorytellerMode();
                         }
                         else
                         {
                             // On Esc/X (discard), keep the cursor on the AnomalySettings row.
-                            TolkHelper.Speak($"{"AnomalySettings".Translate()} closed.");
+                            TolkHelper.SpeakData("RimWorldAccess.AnomalySettings.Closed".Translate((string)"AnomalySettings".Translate()));
                         }
                     }
                 }

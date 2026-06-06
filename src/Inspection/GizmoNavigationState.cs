@@ -731,13 +731,15 @@ namespace RimWorldAccess
                     bool? newState = ToggleHemogenPacksAllowed(selectedGizmo);
                     if (newState.HasValue)
                     {
-                        string stateStr = newState.Value ? "ON" : "OFF";
+                        string stateStr = (newState.Value
+                            ? "RimWorldAccess.Inspection.Gizmo.LimiterStateOn"
+                            : "RimWorldAccess.Inspection.Gizmo.LimiterStateOff").Translate();
                         string label = "AllowHemogenPacks".Translate().CapitalizeFirst();
-                        TolkHelper.Speak($"{label}: {stateStr}");
+                        TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.LabelWithState".Loc(label, stateStr));
                     }
                     else
                     {
-                        TolkHelper.Speak("Could not toggle hemogen packs setting", SpeechPriority.High);
+                        TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.CouldNotToggleHemogen".Loc(), SpeechPriority.High);
                     }
                     return;
                 }
@@ -1276,7 +1278,7 @@ namespace RimWorldAccess
                             announcement += $". {context}";
                     }
 
-                    TolkHelper.Speak(announcement);
+                    TolkHelper.SpeakData(announcement);
                 });
             }
             else
@@ -3314,7 +3316,7 @@ namespace RimWorldAccess
             if (representatives.Count == 0)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak($"No command for Shift plus {key.ToStringReadable()}");
+                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NoCommandForShiftPlus".Loc(key.ToStringReadable()));
                 return true;
             }
 

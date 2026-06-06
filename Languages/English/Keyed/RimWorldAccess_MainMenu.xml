@@ -716,4 +716,20 @@
   <RimWorldAccess.ModList.ReqNotSatisfied>not satisfied</RimWorldAccess.ModList.ReqNotSatisfied>
   <!-- Difficulty reset preset tooltip fallback (src/MainMenu/DifficultySettingsHelper.cs). -->
   <RimWorldAccess.CustomDifficulty.ResetTooltip>Resets all custom difficulty settings to this preset</RimWorldAccess.CustomDifficulty.ResetTooltip>
+
+  <!-- =================================================================
+       Anomaly settings dialog (AnomalySettingsDialogState +
+       AnomalySettingsDialogPatch + StorytellerSelectionPatch).
+       Dialog_AnomalySettings opened from the Storyteller page.
+       {0} = the translated "AnomalySettings" label (vanilla key).
+       ================================================================= -->
+  <RimWorldAccess.AnomalySettings.Saved>{0} saved.</RimWorldAccess.AnomalySettings.Saved>
+  <RimWorldAccess.AnomalySettings.Closed>{0} closed.</RimWorldAccess.AnomalySettings.Closed>
+  <RimWorldAccess.AnomalySettings.LabelPressEnterToOpen>{0}. Press Enter to open.</RimWorldAccess.AnomalySettings.LabelPressEnterToOpen>
+  <RimWorldAccess.AnomalySettings.CannotAcceptDifficultyNotLoaded>Cannot accept: difficulty not loaded.</RimWorldAccess.AnomalySettings.CannotAcceptDifficultyNotLoaded>
+
+  <!-- Storyteller page tab-cycle hint (StorytellerSelectionPatch line 61).
+       Two variants: with and without the Anomaly Settings tab stop. -->
+  <RimWorldAccess.Storyteller.TabHint>Tab and Shift+Tab to move between Storyteller, Difficulty, and Save Mode.</RimWorldAccess.Storyteller.TabHint>
+  <RimWorldAccess.Storyteller.TabHintWithAnomaly>Tab and Shift+Tab to move between Storyteller, Difficulty, Save Mode, and Anomaly Settings.</RimWorldAccess.Storyteller.TabHintWithAnomaly>
 </LanguageData>

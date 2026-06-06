@@ -653,7 +653,7 @@ namespace RimWorldAccess
             string pos = MenuHelper.FormatPosition(teamSkillIndex, teamSkillRows.Count);
             if (!string.IsNullOrEmpty(pos))
                 ann += $" ({pos})";
-            TolkHelper.Speak(ann);
+            TolkHelper.SpeakData(ann);
         }
 
         /// <summary>

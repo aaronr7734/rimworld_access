@@ -175,4 +175,24 @@
   <!-- Blocking issues surfaced during Open (RitualState.GetBlockingIssues).
        DraftedParticipants is spoken when any assigned participant is drafted. -->
   <RimWorldAccess.Rituals.Warning.DraftedParticipants>Some participants are drafted.</RimWorldAccess.Rituals.Warning.DraftedParticipants>
+
+  <!-- LordJobDialogState generic messages (covers ritual, psychic-ritual, gravship launch).
+       These are intentionally distinct from the Ritual-specific keys above which mention
+       "ritual" or "pawns required by the ritual" — the LordJob variants are dialog-agnostic.
+       RoleLocked: spoken when user tries to enter pawn selection for a locked role.
+       NoDialogOpen: fallback when Alt+S is pressed but no adapter is present.
+       CannotStart: {0} = blocking issues joined with ". " -->
+  <RimWorldAccess.Rituals.LordJob.RoleLocked>Role is locked. All assigned pawns are required.</RimWorldAccess.Rituals.LordJob.RoleLocked>
+  <RimWorldAccess.Rituals.LordJob.NoDialogOpen>No dialog open.</RimWorldAccess.Rituals.LordJob.NoDialogOpen>
+  <RimWorldAccess.Rituals.LordJob.CannotStart>Cannot start. {0}</RimWorldAccess.Rituals.LordJob.CannotStart>
+
+  <!-- DryadCasteState messages (DryadCasteState.cs, DryadCastePatch.cs).
+       OpenAnnouncement: {0} = "ChangeMode".Translate() result, {1} = caste count, {2} = pawn label.
+       NoCasteSelected: guard when Enter is pressed with no valid selection.
+       MissingTreeData: guard when the tree/pawn reflection data is null.
+       DialogClosed: spoken by DryadCastePatch when the dialog closes. -->
+  <RimWorldAccess.Rituals.DryadCaste.OpenAnnouncement>{0}. {1} castes for {2}.</RimWorldAccess.Rituals.DryadCaste.OpenAnnouncement>
+  <RimWorldAccess.Rituals.DryadCaste.NoCasteSelected>No caste selected.</RimWorldAccess.Rituals.DryadCaste.NoCasteSelected>
+  <RimWorldAccess.Rituals.DryadCaste.MissingTreeData>Cannot apply caste: missing tree data.</RimWorldAccess.Rituals.DryadCaste.MissingTreeData>
+  <RimWorldAccess.Rituals.DryadCaste.DialogClosed>Dryad caste dialog closed.</RimWorldAccess.Rituals.DryadCaste.DialogClosed>
 </LanguageData>
