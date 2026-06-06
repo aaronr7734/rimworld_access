@@ -1411,4 +1411,60 @@
   <!-- Tab fallback messages (src/Inspection/TabRegistry.cs). -->
   <RimWorldAccess.Inspection.Tree.TabNoTextContent>Tab '{0}' is available but has no keyboard-accessible text content.</RimWorldAccess.Inspection.Tree.TabNoTextContent>
   <RimWorldAccess.Inspection.Tree.ErrorRetrievingInfo>Error retrieving information.</RimWorldAccess.Inspection.Tree.ErrorRetrievingInfo>
+
+  <!-- Inspection category display names (src/Inspection/InspectionCategoryLocalizer.cs).
+       English identifiers stay as internal dispatch keys; these are display only. -->
+  <RimWorldAccess.Inspection.CategoryName.Overview>Overview</RimWorldAccess.Inspection.CategoryName.Overview>
+  <RimWorldAccess.Inspection.CategoryName.Health>Health</RimWorldAccess.Inspection.CategoryName.Health>
+  <RimWorldAccess.Inspection.CategoryName.Needs>Needs</RimWorldAccess.Inspection.CategoryName.Needs>
+  <RimWorldAccess.Inspection.CategoryName.Mood>Mood</RimWorldAccess.Inspection.CategoryName.Mood>
+  <RimWorldAccess.Inspection.CategoryName.Gear>Gear</RimWorldAccess.Inspection.CategoryName.Gear>
+  <RimWorldAccess.Inspection.CategoryName.Skills>Skills</RimWorldAccess.Inspection.CategoryName.Skills>
+  <RimWorldAccess.Inspection.CategoryName.Social>Social</RimWorldAccess.Inspection.CategoryName.Social>
+  <RimWorldAccess.Inspection.CategoryName.Character>Character</RimWorldAccess.Inspection.CategoryName.Character>
+  <RimWorldAccess.Inspection.CategoryName.WorkPriorities>Work Priorities</RimWorldAccess.Inspection.CategoryName.WorkPriorities>
+  <RimWorldAccess.Inspection.CategoryName.Log>Log</RimWorldAccess.Inspection.CategoryName.Log>
+  <RimWorldAccess.Inspection.CategoryName.JobQueue>Job Queue</RimWorldAccess.Inspection.CategoryName.JobQueue>
+  <RimWorldAccess.Inspection.CategoryName.Prisoner>Prisoner</RimWorldAccess.Inspection.CategoryName.Prisoner>
+  <RimWorldAccess.Inspection.CategoryName.Slave>Slave</RimWorldAccess.Inspection.CategoryName.Slave>
+  <RimWorldAccess.Inspection.CategoryName.Guest>Guest</RimWorldAccess.Inspection.CategoryName.Guest>
+  <RimWorldAccess.Inspection.CategoryName.Feeding>Feeding</RimWorldAccess.Inspection.CategoryName.Feeding>
+  <RimWorldAccess.Inspection.CategoryName.FormingCaravan>Forming Caravan</RimWorldAccess.Inspection.CategoryName.FormingCaravan>
+  <RimWorldAccess.Inspection.CategoryName.Training>Training</RimWorldAccess.Inspection.CategoryName.Training>
+  <RimWorldAccess.Inspection.CategoryName.Bills>Bills</RimWorldAccess.Inspection.CategoryName.Bills>
+  <RimWorldAccess.Inspection.CategoryName.BedAssignment>Bed Assignment</RimWorldAccess.Inspection.CategoryName.BedAssignment>
+  <RimWorldAccess.Inspection.CategoryName.OwnerAssignment>Owner Assignment</RimWorldAccess.Inspection.CategoryName.OwnerAssignment>
+  <RimWorldAccess.Inspection.CategoryName.MeditationFocus>Meditation Focus</RimWorldAccess.Inspection.CategoryName.MeditationFocus>
+  <RimWorldAccess.Inspection.CategoryName.Temperature>Temperature</RimWorldAccess.Inspection.CategoryName.Temperature>
+  <RimWorldAccess.Inspection.CategoryName.Storage>Storage</RimWorldAccess.Inspection.CategoryName.Storage>
+  <RimWorldAccess.Inspection.CategoryName.NutritionStorage>Nutrition Storage</RimWorldAccess.Inspection.CategoryName.NutritionStorage>
+  <RimWorldAccess.Inspection.CategoryName.AutoCutPlants>Auto-Cut Plants</RimWorldAccess.Inspection.CategoryName.AutoCutPlants>
+  <RimWorldAccess.Inspection.CategoryName.Shells>Shells</RimWorldAccess.Inspection.CategoryName.Shells>
+  <RimWorldAccess.Inspection.CategoryName.PlantSelection>Plant Selection</RimWorldAccess.Inspection.CategoryName.PlantSelection>
+  <RimWorldAccess.Inspection.CategoryName.Power>Power</RimWorldAccess.Inspection.CategoryName.Power>
+  <RimWorldAccess.Inspection.CategoryName.Art>Art</RimWorldAccess.Inspection.CategoryName.Art>
+  <RimWorldAccess.Inspection.CategoryName.Contents>Contents</RimWorldAccess.Inspection.CategoryName.Contents>
+  <RimWorldAccess.Inspection.CategoryName.Books>Books</RimWorldAccess.Inspection.CategoryName.Books>
+  <RimWorldAccess.Inspection.CategoryName.Book>Book</RimWorldAccess.Inspection.CategoryName.Book>
+  <RimWorldAccess.Inspection.CategoryName.Genepacks>Genepacks</RimWorldAccess.Inspection.CategoryName.Genepacks>
+  <RimWorldAccess.Inspection.CategoryName.Genes>Genes</RimWorldAccess.Inspection.CategoryName.Genes>
+  <RimWorldAccess.Inspection.CategoryName.PregnancyGenes>Pregnancy Genes</RimWorldAccess.Inspection.CategoryName.PregnancyGenes>
+  <RimWorldAccess.Inspection.CategoryName.Entity>Entity</RimWorldAccess.Inspection.CategoryName.Entity>
+  <RimWorldAccess.Inspection.CategoryName.StudyNotes>Study Notes</RimWorldAccess.Inspection.CategoryName.StudyNotes>
+  <RimWorldAccess.Inspection.CategoryName.Fishing>Fishing</RimWorldAccess.Inspection.CategoryName.Fishing>
+  <RimWorldAccess.Inspection.CategoryName.Pen>Pen</RimWorldAccess.Inspection.CategoryName.Pen>
+  <RimWorldAccess.Inspection.CategoryName.PenAnimals>Pen Animals</RimWorldAccess.Inspection.CategoryName.PenAnimals>
+  <RimWorldAccess.Inspection.CategoryName.PenFood>Pen Food</RimWorldAccess.Inspection.CategoryName.PenFood>
+  <RimWorldAccess.Inspection.CategoryName.PenAutoCut>Pen Auto-Cut</RimWorldAccess.Inspection.CategoryName.PenAutoCut>
+  <RimWorldAccess.Inspection.CategoryName.LinkedFacilities>Linked Facilities</RimWorldAccess.Inspection.CategoryName.LinkedFacilities>
+  <RimWorldAccess.Inspection.CategoryName.Rename>Rename</RimWorldAccess.Inspection.CategoryName.Rename>
+  <RimWorldAccess.Inspection.CategoryName.GrowthInfo>Growth Info</RimWorldAccess.Inspection.CategoryName.GrowthInfo>
+  <RimWorldAccess.Inspection.CategoryName.PlantInfo>Plant Info</RimWorldAccess.Inspection.CategoryName.PlantInfo>
+  <RimWorldAccess.Inspection.CategoryName.PowerControl>Power Control</RimWorldAccess.Inspection.CategoryName.PowerControl>
+  <RimWorldAccess.Inspection.CategoryName.BreakdownStatus>Breakdown Status</RimWorldAccess.Inspection.CategoryName.BreakdownStatus>
+  <RimWorldAccess.Inspection.CategoryName.DoorControls>Door Controls</RimWorldAccess.Inspection.CategoryName.DoorControls>
+  <RimWorldAccess.Inspection.CategoryName.ForbidControls>Forbid Controls</RimWorldAccess.Inspection.CategoryName.ForbidControls>
+  <RimWorldAccess.Inspection.CategoryName.Unknown>Unknown</RimWorldAccess.Inspection.CategoryName.Unknown>
+  <RimWorldAccess.Inspection.CategoryName.MoodLabel>{0}: {1}% ({2})</RimWorldAccess.Inspection.CategoryName.MoodLabel>
+  <RimWorldAccess.Inspection.CategoryName.JobQueueLabel>{0} ({1} queued)</RimWorldAccess.Inspection.CategoryName.JobQueueLabel>
 </LanguageData>

@@ -169,8 +169,8 @@ namespace RimWorldAccess
         {
             // Use OriginalCategoryName (English) for internal logic
             string categoryKey = categoryInfo.OriginalCategoryName ?? categoryInfo.Name;
-            // Use Name (translated) for display
-            string displayName = categoryInfo.Name ?? categoryKey;
+            // Localize the English identifier for display (dispatch still uses categoryKey)
+            string displayName = InspectionCategoryLocalizer.Localize(categoryKey);
 
             var item = new InspectionTreeItem
             {
@@ -290,7 +290,7 @@ namespace RimWorldAccess
                 AddChild(parentItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = "RimWorldAccess.Inspection.Tree.TabNoKeyboardContent".Translate(categoryInfo.Name),
+                    Label = "RimWorldAccess.Inspection.Tree.TabNoKeyboardContent".Translate(InspectionCategoryLocalizer.Localize(categoryInfo.OriginalCategoryName ?? categoryInfo.Name)),
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = false
                 });
@@ -340,14 +340,14 @@ namespace RimWorldAccess
             {
                 float moodPercentage = pawn.needs.mood.CurLevelPercentage * 100f;
                 string moodDescriptor = pawn.needs.mood.MoodString;
-                return $"{displayName}: {moodPercentage:F0}% ({moodDescriptor})";
+                return "RimWorldAccess.Inspection.CategoryName.MoodLabel".Translate(displayName, moodPercentage.ToString("F0"), moodDescriptor);
             }
 
             // Special handling for Job Queue category to show count
             if (categoryKey == "Job Queue" && obj is Pawn jobPawn && jobPawn.jobs?.jobQueue != null)
             {
                 int queueCount = jobPawn.jobs.jobQueue.Count;
-                return $"{displayName} ({queueCount} queued)";
+                return "RimWorldAccess.Inspection.CategoryName.JobQueueLabel".Translate(displayName, queueCount);
             }
 
             return displayName;
