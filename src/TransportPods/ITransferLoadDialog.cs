@@ -56,9 +56,12 @@ namespace RimWorldAccess
         void BuildSummaryItems(List<string> outItems, float massUsage);
 
         /// <summary>
-        /// Returns the (stat name, breakdown explanation) for a summary line, or null when no
-        /// breakdown is available for that line.
+        /// Returns the (stat name, breakdown explanation) for the summary line at the given
+        /// index, or null when no breakdown is available for that line. Indexed (not matched on
+        /// the line's display text) so it stays correct in non-English languages: the line text
+        /// is localized, but the index maps to a language-independent stat kind the adapter
+        /// recorded while building the summary.
         /// </summary>
-        (string name, string explanation)? GetStatExplanation(string summaryItem);
+        (string name, string explanation)? GetStatExplanation(int summaryIndex);
     }
 }

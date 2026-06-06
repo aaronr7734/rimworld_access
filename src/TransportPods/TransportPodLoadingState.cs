@@ -993,7 +993,7 @@ namespace RimWorldAccess
 
             if (adapter == null)
             {
-                summaryItems.Add("No data available");
+                summaryItems.Add("RimWorldAccess.TransportPods.Loading.SummaryNoData".Translate());
                 return;
             }
 
@@ -1057,7 +1057,7 @@ namespace RimWorldAccess
             if (summaryIndex < 0 || summaryIndex >= summaryItems.Count)
                 return null;
 
-            return adapter.GetStatExplanation(summaryItems[summaryIndex]);
+            return adapter.GetStatExplanation(summaryIndex);
         }
 
         #endregion

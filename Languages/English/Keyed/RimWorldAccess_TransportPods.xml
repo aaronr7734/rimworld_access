@@ -212,4 +212,10 @@
   <RimWorldAccess.TransportPods.Launch.FuelStatusPod>Fuel: {0} chemfuel. Max range: {1} tiles.</RimWorldAccess.TransportPods.Launch.FuelStatusPod>
   <RimWorldAccess.TransportPods.Launch.FuelStatusRange>Max range: {0} tiles.</RimWorldAccess.TransportPods.Launch.FuelStatusRange>
   <RimWorldAccess.TransportPods.Launch.FuelStatusUnlimited>Unlimited range.</RimWorldAccess.TransportPods.Launch.FuelStatusUnlimited>
+  <!-- Map-portal (Dialog_EnterPortal) announcements, shared via EnterPortalAdapter.
+       {0} = the portal's localized EnterString (e.g. "Enter ancient complex"). -->
+  <RimWorldAccess.TransportPods.Portal.OpenAnnouncement>{0}. Left/Right for tabs, Space or Enter to select, Alt S to confirm.</RimWorldAccess.TransportPods.Portal.OpenAnnouncement>
+  <RimWorldAccess.TransportPods.Portal.Cancelled>{0} cancelled</RimWorldAccess.TransportPods.Portal.Cancelled>
+  <RimWorldAccess.TransportPods.Portal.FallbackEnter>Load portal</RimWorldAccess.TransportPods.Portal.FallbackEnter>
+  <RimWorldAccess.TransportPods.Portal.FallbackLoading>Loading</RimWorldAccess.TransportPods.Portal.FallbackLoading>
 </LanguageData>

@@ -286,7 +286,7 @@ namespace RimWorldAccess
             // Get fallback info from the tab
             string info = TabRegistry.GetFallbackInfo(thing, categoryInfo.Tab);
 
-            if (string.IsNullOrEmpty(info) || info == "No information available.")
+            if (string.IsNullOrEmpty(info) || info == (string)"RimWorldAccess.Inspection.Category.NoInfo".Translate())
             {
                 AddChild(parentItem, new InspectionTreeItem
                 {

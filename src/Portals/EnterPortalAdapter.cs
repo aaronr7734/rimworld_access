@@ -38,8 +38,10 @@ namespace RimWorldAccess
             {
                 MapPortal portal = Portal;
                 // portal.EnterString is localized, e.g. "Enter ancient complex" / "Exit ancient complex".
-                string title = portal != null ? portal.EnterString : "Load portal";
-                return $"{title}. Left/Right for tabs, Space or Enter to select, Alt+S to confirm.";
+                string title = portal != null
+                    ? portal.EnterString
+                    : (string)"RimWorldAccess.TransportPods.Portal.FallbackEnter".Translate();
+                return "RimWorldAccess.TransportPods.Portal.OpenAnnouncement".Translate(title);
             }
         }
 
@@ -48,8 +50,10 @@ namespace RimWorldAccess
             get
             {
                 MapPortal portal = Portal;
-                string title = portal != null ? portal.EnterString : "Loading";
-                return $"{title} cancelled";
+                string title = portal != null
+                    ? portal.EnterString
+                    : (string)"RimWorldAccess.TransportPods.Portal.FallbackLoading".Translate();
+                return "RimWorldAccess.TransportPods.Portal.Cancelled".Translate(title);
             }
         }
 
@@ -110,7 +114,7 @@ namespace RimWorldAccess
         {
         }
 
-        public (string name, string explanation)? GetStatExplanation(string summaryItem)
+        public (string name, string explanation)? GetStatExplanation(int summaryIndex)
         {
             return null;
         }
