@@ -249,11 +249,11 @@ namespace RimWorldAccess
         public static string GetItemTypeForCount(int count, bool isBuildDesignator, bool isZoneDesignator)
         {
             if (isBuildDesignator)
-                return count == 1 ? "blueprint" : "blueprints";
+                return (count == 1 ? "RimWorldAccess.Building.View.ItemTypeBlueprintOne" : "RimWorldAccess.Building.View.ItemTypeBlueprintMany").Translate();
             else if (isZoneDesignator)
-                return count == 1 ? "zone cell" : "zone cells";
+                return (count == 1 ? "RimWorldAccess.Building.View.ItemTypeZoneCellOne" : "RimWorldAccess.Building.View.ItemTypeZoneCellMany").Translate();
             else
-                return count == 1 ? "designation" : "designations";
+                return (count == 1 ? "RimWorldAccess.Building.View.ItemTypeDesignationOne" : "RimWorldAccess.Building.View.ItemTypeDesignationMany").Translate();
         }
 
         #endregion

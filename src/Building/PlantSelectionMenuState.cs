@@ -31,7 +31,7 @@ namespace RimWorldAccess
                 displayText = def.LabelCap;
                 if (def.plant.sowMinSkill > 0)
                 {
-                    displayText += $" (Min Skill: {def.plant.sowMinSkill})";
+                    displayText += "RimWorldAccess.Building.Plant.MinSkillSuffix".Translate(def.plant.sowMinSkill);
                 }
 
                 // Build detailed info with game description and stats
@@ -46,23 +46,23 @@ namespace RimWorldAccess
                 // Skill requirement
                 if (def.plant.sowMinSkill > 0)
                 {
-                    details.Add($"Requires Plants skill {def.plant.sowMinSkill}");
+                    details.Add("RimWorldAccess.Building.Plant.RequiresPlantsSkill".Translate(def.plant.sowMinSkill));
                 }
 
                 // Growth time
                 float growDays = def.plant.growDays;
                 if (growDays > 0)
                 {
-                    details.Add($"Grows in {growDays:F1} days");
+                    details.Add("RimWorldAccess.Building.Plant.GrowsInDays".Translate(growDays.ToString("F1")));
                 }
 
                 // Yield information
                 if (def.plant.harvestedThingDef != null)
                 {
-                    string yieldInfo = $"Yields {def.plant.harvestedThingDef.LabelCap}";
+                    string yieldInfo = "RimWorldAccess.Building.Plant.Yields".Translate(def.plant.harvestedThingDef.LabelCap);
                     if (def.plant.harvestYield > 0)
                     {
-                        yieldInfo += $" (x{def.plant.harvestYield})";
+                        yieldInfo += "RimWorldAccess.Building.Plant.YieldMultiplier".Translate(def.plant.harvestYield);
                     }
                     details.Add(yieldInfo);
                 }
@@ -72,19 +72,19 @@ namespace RimWorldAccess
                 switch (def.plant.purpose)
                 {
                     case PlantPurpose.Food:
-                        purpose = "Food crop";
+                        purpose = "RimWorldAccess.Building.Plant.PurposeFood".Translate();
                         break;
                     case PlantPurpose.Health:
-                        purpose = "Medical plant";
+                        purpose = "RimWorldAccess.Building.Plant.PurposeHealth".Translate();
                         break;
                     case PlantPurpose.Beauty:
-                        purpose = "Decorative plant";
+                        purpose = "RimWorldAccess.Building.Plant.PurposeBeauty".Translate();
                         break;
                     case PlantPurpose.Misc:
-                        purpose = "Miscellaneous";
+                        purpose = "RimWorldAccess.Building.Plant.PurposeMisc".Translate();
                         break;
                     default:
-                        purpose = "Unknown";
+                        purpose = "RimWorldAccess.Building.Plant.PurposeUnknown".Translate();
                         break;
                 }
                 details.Add(purpose);
@@ -103,13 +103,13 @@ namespace RimWorldAccess
                     }
                     if (hasRoof)
                     {
-                        details.Add("WARNING: Requires no roof, but zone has roofed cells");
+                        details.Add("RimWorldAccess.Building.Plant.RoofWarning".Translate());
                     }
                 }
 
                 if (def.plant.cavePlant)
                 {
-                    details.Add("Cave plant - requires darkness");
+                    details.Add("RimWorldAccess.Building.Plant.CavePlant".Translate());
                 }
 
                 detailedInfo = string.Join(". ", details);

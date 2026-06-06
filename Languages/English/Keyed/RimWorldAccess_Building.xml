@@ -926,4 +926,40 @@
   <RimWorldAccess.Building.Facility.Active>active</RimWorldAccess.Building.Facility.Active>
   <RimWorldAccess.Building.Facility.Inactive>inactive</RimWorldAccess.Building.Facility.Inactive>
 
+  <!-- Storage-linking gizmo labels and tooltip fallbacks (src/Building/ShelfLinkingPatch.cs).
+       {0}/{1} are localized storage counts from ShelfLinkingHelper.FormatStorageCount. -->
+  <RimWorldAccess.Building.Shelf.AddToGroupWithLinked>Add {0} to group ({1} already linked)</RimWorldAccess.Building.Shelf.AddToGroupWithLinked>
+  <RimWorldAccess.Building.Shelf.AddToGroup>Add {0} to group</RimWorldAccess.Building.Shelf.AddToGroup>
+  <RimWorldAccess.Building.Shelf.LinkWithInRoom>Link with {0} in room</RimWorldAccess.Building.Shelf.LinkWithInRoom>
+  <RimWorldAccess.Building.Shelf.RoomGizmoDescFallback>Link all compatible storage in this room together. They will share the same storage settings.</RimWorldAccess.Building.Shelf.RoomGizmoDescFallback>
+  <RimWorldAccess.Building.Shelf.ManualGizmoDescFallback>Enter selection mode to manually choose which storage buildings to link together.</RimWorldAccess.Building.Shelf.ManualGizmoDescFallback>
+
+  <!-- Architect buildable skill requirement (src/Building/ArchitectHelper.cs). {0}=skill level. -->
+  <RimWorldAccess.Building.Architect.RequiresConstruction>requires Construction {0}</RimWorldAccess.Building.Architect.RequiresConstruction>
+
+  <!-- Plant-selection menu option details (src/Building/PlantSelectionMenuState.cs). -->
+  <RimWorldAccess.Building.Plant.MinSkillSuffix> (Min Skill: {0})</RimWorldAccess.Building.Plant.MinSkillSuffix>
+  <RimWorldAccess.Building.Plant.RequiresPlantsSkill>Requires Plants skill {0}</RimWorldAccess.Building.Plant.RequiresPlantsSkill>
+  <RimWorldAccess.Building.Plant.GrowsInDays>Grows in {0} days</RimWorldAccess.Building.Plant.GrowsInDays>
+  <RimWorldAccess.Building.Plant.Yields>Yields {0}</RimWorldAccess.Building.Plant.Yields>
+  <RimWorldAccess.Building.Plant.YieldMultiplier> (x{0})</RimWorldAccess.Building.Plant.YieldMultiplier>
+  <RimWorldAccess.Building.Plant.PurposeFood>Food crop</RimWorldAccess.Building.Plant.PurposeFood>
+  <RimWorldAccess.Building.Plant.PurposeHealth>Medical plant</RimWorldAccess.Building.Plant.PurposeHealth>
+  <RimWorldAccess.Building.Plant.PurposeBeauty>Decorative plant</RimWorldAccess.Building.Plant.PurposeBeauty>
+  <RimWorldAccess.Building.Plant.PurposeMisc>Miscellaneous</RimWorldAccess.Building.Plant.PurposeMisc>
+  <RimWorldAccess.Building.Plant.PurposeUnknown>Unknown</RimWorldAccess.Building.Plant.PurposeUnknown>
+  <RimWorldAccess.Building.Plant.RoofWarning>WARNING: Requires no roof, but zone has roofed cells</RimWorldAccess.Building.Plant.RoofWarning>
+  <RimWorldAccess.Building.Plant.CavePlant>Cave plant - requires darkness</RimWorldAccess.Building.Plant.CavePlant>
+
+  <!-- Meditation focus label fallback when game data lacks a label (src/Building/MeditationProtectionHelper.cs). -->
+  <RimWorldAccess.Building.Meditation.FocusFallback>meditation focus</RimWorldAccess.Building.Meditation.FocusFallback>
+
+  <!-- Item-type nouns for viewing-mode removal counts (src/Building/ViewingModeSegmentManager.cs). One/Many per type. -->
+  <RimWorldAccess.Building.View.ItemTypeBlueprintOne>blueprint</RimWorldAccess.Building.View.ItemTypeBlueprintOne>
+  <RimWorldAccess.Building.View.ItemTypeBlueprintMany>blueprints</RimWorldAccess.Building.View.ItemTypeBlueprintMany>
+  <RimWorldAccess.Building.View.ItemTypeZoneCellOne>zone cell</RimWorldAccess.Building.View.ItemTypeZoneCellOne>
+  <RimWorldAccess.Building.View.ItemTypeZoneCellMany>zone cells</RimWorldAccess.Building.View.ItemTypeZoneCellMany>
+  <RimWorldAccess.Building.View.ItemTypeDesignationOne>designation</RimWorldAccess.Building.View.ItemTypeDesignationOne>
+  <RimWorldAccess.Building.View.ItemTypeDesignationMany>designations</RimWorldAccess.Building.View.ItemTypeDesignationMany>
+
 </LanguageData>

@@ -325,7 +325,7 @@ namespace RimWorldAccess
         {
             if (buildable is ThingDef thingDef && thingDef.constructionSkillPrerequisite > 0)
             {
-                return $"requires Construction {thingDef.constructionSkillPrerequisite}";
+                return "RimWorldAccess.Building.Architect.RequiresConstruction".Translate(thingDef.constructionSkillPrerequisite);
             }
             return "";
         }

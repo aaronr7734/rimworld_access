@@ -122,23 +122,23 @@ namespace RimWorldAccess
                         {
                             // Some already in group, some new
                             string alreadyStr = ShelfLinkingHelper.FormatStorageCount(sameGroupItems);
-                            gizmoLabel = $"Add {countStr} to group ({alreadyStr} already linked)";
+                            gizmoLabel = "RimWorldAccess.Building.Shelf.AddToGroupWithLinked".Translate(countStr, alreadyStr);
                         }
                         else if (sourceGroup != null)
                         {
                             // Source is in a group, adding new items
-                            gizmoLabel = $"Add {countStr} to group";
+                            gizmoLabel = "RimWorldAccess.Building.Shelf.AddToGroup".Translate(countStr);
                         }
                         else
                         {
                             // Creating a new group - clarify these are OTHER shelves
-                            gizmoLabel = $"Link with {countStr} in room";
+                            gizmoLabel = "RimWorldAccess.Building.Shelf.LinkWithInRoom".Translate(countStr);
                         }
 
                         // Use game's tooltip if captured, otherwise fall back to our description
                         string roomGizmoDesc = !string.IsNullOrEmpty(gameLinkTooltip)
                             ? gameLinkTooltip
-                            : "Link all compatible storage in this room together. They will share the same storage settings.";
+                            : "RimWorldAccess.Building.Shelf.RoomGizmoDescFallback".Translate().ToString();
 
                         // Capture for delegate
                         IStorageGroupMember memberCapture = storageMember;
@@ -166,7 +166,7 @@ namespace RimWorldAccess
             // Use game's tooltip if captured, otherwise fall back to our description
             string manualGizmoDesc = !string.IsNullOrEmpty(gameLinkTooltip)
                 ? gameLinkTooltip
-                : "Enter selection mode to manually choose which storage buildings to link together.";
+                : "RimWorldAccess.Building.Shelf.ManualGizmoDescFallback".Translate().ToString();
 
             // Capture for delegate
             IStorageGroupMember manualMemberCapture = storageMember;

@@ -57,7 +57,7 @@ namespace RimWorldAccess
                 if (IsToggleEnabled(focus))
                 {
                     result.IsProtected = true;
-                    string label = focus.LabelShort ?? focus.def?.label ?? "meditation focus";
+                    string label = focus.LabelShort ?? focus.def?.label ?? "RimWorldAccess.Building.Meditation.FocusFallback".Translate().ToString();
                     if (!result.AffectedThingLabels.Contains(label))
                     {
                         result.AffectedThingLabels.Add(label);

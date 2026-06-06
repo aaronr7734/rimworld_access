@@ -215,20 +215,6 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets a summary of all discoverable components for a building.
-        /// </summary>
-        public static string GetComponentsSummary(Building building)
-        {
-            var components = GetDiscoverableComponents(building);
-            if (components.Count == 0)
-                return "No configurable components";
-
-            var summary = $"{components.Count} configurable component(s): ";
-            summary += string.Join(", ", components.Select(c => c.DisplayName));
-            return summary;
-        }
-
-        /// <summary>
         /// Checks if a component type is supported for modification.
         /// </summary>
         public static bool IsComponentSupported(Type componentType)
