@@ -177,7 +177,7 @@ namespace RimWorldAccess
                 var enterNode = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Action,
-                    Label = "Enter Settlement",
+                    Label = "RimWorldAccess.WorldObject.EnterSettlement".Translate(),
                     IndentLevel = depth,
                     Parent = parent,
                     Data = settlement,
@@ -194,13 +194,13 @@ namespace RimWorldAccess
             // Faction info
             if (settlement.Faction != null)
             {
-                AddDetailNode(parent, depth, $"Faction: {settlement.Faction.Name}");
+                AddDetailNode(parent, depth, "RimWorldAccess.WorldObject.FactionLabel".Translate(settlement.Faction.Name));
 
                 // Relation if not player
                 if (settlement.Faction != Faction.OfPlayer)
                 {
                     FactionRelationKind relation = settlement.Faction.RelationKindWith(Faction.OfPlayer);
-                    AddDetailNode(parent, depth, $"Relation: {relation}");
+                    AddDetailNode(parent, depth, "RimWorldAccess.WorldObject.RelationLabel".Translate(relation.GetLabelCap()));
                 }
             }
 
@@ -209,7 +209,7 @@ namespace RimWorldAccess
                 settlement.Faction != null &&
                 !settlement.Faction.HostileTo(Faction.OfPlayer))
             {
-                AddDetailNode(parent, depth, "Can trade here");
+                AddDetailNode(parent, depth, "RimWorldAccess.WorldObject.CanTradeHere".Translate());
             }
         }
 
@@ -235,7 +235,7 @@ namespace RimWorldAccess
             // Faction if present
             if (site.Faction != null)
             {
-                AddDetailNode(parent, depth, $"Faction: {site.Faction.Name}");
+                AddDetailNode(parent, depth, "RimWorldAccess.WorldObject.FactionLabel".Translate(site.Faction.Name));
             }
         }
 
@@ -252,7 +252,7 @@ namespace RimWorldAccess
                 var enterNode = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Action,
-                    Label = "Enter",
+                    Label = "RimWorldAccess.WorldObject.Enter".Translate(),
                     IndentLevel = depth,
                     Parent = parent,
                     Data = mapParent,
@@ -368,20 +368,20 @@ namespace RimWorldAccess
         {
             if (obj is Caravan caravan)
             {
-                return $"{caravan.Label} (caravan)";
+                return "RimWorldAccess.WorldObject.LabelCaravan".Translate(caravan.Label);
             }
 
             if (obj is Settlement settlement)
             {
                 if (settlement.Faction == Faction.OfPlayer)
-                    return $"{settlement.Label} (your settlement)";
+                    return "RimWorldAccess.WorldObject.LabelYourSettlement".Translate(settlement.Label);
                 else
-                    return $"{settlement.Label} ({settlement.Faction?.Name ?? "unknown faction"})";
+                    return "RimWorldAccess.WorldObject.LabelWithFaction".Translate(settlement.Label, settlement.Faction?.Name ?? "RimWorldAccess.WorldObject.UnknownFactionLower".Translate().ToString());
             }
 
             if (obj is Site site)
             {
-                return $"{site.Label} (site)";
+                return "RimWorldAccess.WorldObject.LabelSite".Translate(site.Label);
             }
 
             return obj.Label;
@@ -405,11 +405,11 @@ namespace RimWorldAccess
             else if (obj is Settlement otherSettlement)
             {
                 // For other faction settlements, announce info
-                string info = $"{otherSettlement.Label}. {otherSettlement.Faction?.Name ?? "Unknown faction"}.";
+                string info = "RimWorldAccess.WorldObject.SettlementAnnounce".Translate(otherSettlement.Label, otherSettlement.Faction?.Name ?? "RimWorldAccess.WorldObject.UnknownFaction".Translate().ToString());
                 if (otherSettlement.Faction != null)
                 {
                     FactionRelationKind relation = otherSettlement.Faction.RelationKindWith(Faction.OfPlayer);
-                    info += $" {relation}.";
+                    info += " " + relation.GetLabelCap() + ".";
                 }
                 TolkHelper.SpeakData(info);
             }

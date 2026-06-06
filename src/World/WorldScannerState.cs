@@ -24,7 +24,7 @@ namespace RimWorldAccess
         {
             CenterTile = centerTile;
             TileCount = tileCount;
-            SizeDescription = $"approximately {tileCount} tiles";
+            SizeDescription = "RimWorldAccess.WorldScanner.SizeApprox".Translate(tileCount);
         }
 
         public BiomeRegion(PlanetTile centerTile, HashSet<int> regionTiles)
@@ -32,7 +32,7 @@ namespace RimWorldAccess
             CenterTile = centerTile;
             TileCount = regionTiles.Count;
             TileIds = regionTiles.ToArray();
-            SizeDescription = $"approximately {TileCount} tiles";
+            SizeDescription = "RimWorldAccess.WorldScanner.SizeApprox".Translate(TileCount);
         }
     }
 
@@ -52,7 +52,7 @@ namespace RimWorldAccess
         {
             CenterTile = centerTile;
             TileCount = tileCount;
-            SizeDescription = $"{tileCount} tiles";
+            SizeDescription = "RimWorldAccess.WorldScanner.SizeTiles".Translate(tileCount);
         }
 
         /// <summary>
@@ -68,11 +68,11 @@ namespace RimWorldAccess
             // For roads, show length if meaningful
             if (Length >= 3)
             {
-                SizeDescription = $"{TileCount} tiles, {Length:F0} long";
+                SizeDescription = "RimWorldAccess.WorldScanner.SizeTilesLong".Translate(TileCount, Length.ToString("F0"));
             }
             else
             {
-                SizeDescription = $"{TileCount} tiles";
+                SizeDescription = "RimWorldAccess.WorldScanner.SizeTiles".Translate(TileCount);
             }
         }
 
@@ -147,7 +147,7 @@ namespace RimWorldAccess
             WorldObject = worldObject;
             Tile = worldObject.Tile;
             Faction = worldObject.Faction;
-            Label = worldObject.LabelShort ?? worldObject.Label ?? "Unknown";
+            Label = worldObject.LabelShort ?? worldObject.Label ?? "Unknown".Translate().ToString();
         }
 
         /// <summary>
@@ -246,14 +246,14 @@ namespace RimWorldAccess
             double angle = Math.Atan2(dotEast, dotNorth) * (180.0 / Math.PI);
             if (angle < 0) angle += 360;
 
-            if (angle >= 337.5 || angle < 22.5) return "North";
-            if (angle >= 22.5 && angle < 67.5) return "Northeast";
-            if (angle >= 67.5 && angle < 112.5) return "East";
-            if (angle >= 112.5 && angle < 157.5) return "Southeast";
-            if (angle >= 157.5 && angle < 202.5) return "South";
-            if (angle >= 202.5 && angle < 247.5) return "Southwest";
-            if (angle >= 247.5 && angle < 292.5) return "West";
-            return "Northwest";
+            if (angle >= 337.5 || angle < 22.5) return "RimWorldAccess.Map.Direction.North".Translate();
+            if (angle >= 22.5 && angle < 67.5) return "RimWorldAccess.Map.Direction.Northeast".Translate();
+            if (angle >= 67.5 && angle < 112.5) return "RimWorldAccess.Map.Direction.East".Translate();
+            if (angle >= 112.5 && angle < 157.5) return "RimWorldAccess.Map.Direction.Southeast".Translate();
+            if (angle >= 157.5 && angle < 202.5) return "RimWorldAccess.Map.Direction.South".Translate();
+            if (angle >= 202.5 && angle < 247.5) return "RimWorldAccess.Map.Direction.Southwest".Translate();
+            if (angle >= 247.5 && angle < 292.5) return "RimWorldAccess.Map.Direction.West".Translate();
+            return "RimWorldAccess.Map.Direction.Northwest".Translate();
         }
 
         private string GetRelativeDirection(Vector3 fromPos, Vector3 direction)
@@ -268,14 +268,14 @@ namespace RimWorldAccess
             double angle = Math.Atan2(dotEast, dotNorth) * (180.0 / Math.PI);
             if (angle < 0) angle += 360;
 
-            if (angle >= 337.5 || angle < 22.5) return "Ahead";
-            if (angle >= 22.5 && angle < 67.5) return "Ahead-right";
-            if (angle >= 67.5 && angle < 112.5) return "Right";
-            if (angle >= 112.5 && angle < 157.5) return "Behind-right";
-            if (angle >= 157.5 && angle < 202.5) return "Behind";
-            if (angle >= 202.5 && angle < 247.5) return "Behind-left";
-            if (angle >= 247.5 && angle < 292.5) return "Left";
-            return "Ahead-left";
+            if (angle >= 337.5 || angle < 22.5) return "RimWorldAccess.WorldScanner.RelDir.Ahead".Translate();
+            if (angle >= 22.5 && angle < 67.5) return "RimWorldAccess.WorldScanner.RelDir.AheadRight".Translate();
+            if (angle >= 67.5 && angle < 112.5) return "RimWorldAccess.WorldScanner.RelDir.Right".Translate();
+            if (angle >= 112.5 && angle < 157.5) return "RimWorldAccess.WorldScanner.RelDir.BehindRight".Translate();
+            if (angle >= 157.5 && angle < 202.5) return "RimWorldAccess.WorldScanner.RelDir.Behind".Translate();
+            if (angle >= 202.5 && angle < 247.5) return "RimWorldAccess.WorldScanner.RelDir.BehindLeft".Translate();
+            if (angle >= 247.5 && angle < 292.5) return "RimWorldAccess.WorldScanner.RelDir.Left".Translate();
+            return "RimWorldAccess.WorldScanner.RelDir.AheadLeft".Translate();
         }
     }
 
@@ -763,8 +763,8 @@ namespace RimWorldAccess
 
         private static WorldScannerCategory CreateWaypointsCategory(PlanetTile originTile)
         {
-            var category = new WorldScannerCategory("Route Waypoints");
-            var subcat = new WorldScannerSubcategory("Waypoints");
+            var category = new WorldScannerCategory("RimWorldAccess.WorldScanner.Cat.RouteWaypoints".Translate());
+            var subcat = new WorldScannerSubcategory("RimWorldAccess.WorldScanner.Sub.Waypoints".Translate());
 
             WorldRoutePlanner planner = Find.WorldRoutePlanner;
             if (planner == null || !planner.Active)
@@ -782,23 +782,23 @@ namespace RimWorldAccess
                 var item = new WorldScannerItem(waypoint);
 
                 StringBuilder label = new StringBuilder();
-                label.Append($"Waypoint {i + 1}");
+                label.Append("RimWorldAccess.WorldScanner.Waypoint".Translate(i + 1).ToString());
 
                 string tileName = WorldInfoHelper.GetTileSummary(waypoint.Tile, includeRouteInfo: false, minimal: true);
                 if (!string.IsNullOrEmpty(tileName))
                 {
-                    label.Append($": {tileName}");
+                    label.Append(": ").Append(tileName);
                 }
 
                 if (i >= 1)
                 {
                     int ticksToWaypoint = planner.GetTicksToWaypoint(i);
                     string timeString = ticksToWaypoint.ToStringTicksToDays("0.#");
-                    label.Append($". Estimated travel time: {timeString}");
+                    label.Append(". ").Append("RimWorldAccess.WorldScanner.EstimatedTravelTime".Translate(timeString).ToString());
                 }
                 else
                 {
-                    label.Append(" (Start)");
+                    label.Append(" ").Append("RimWorldAccess.WorldScanner.WaypointStart".Translate().ToString());
                 }
 
                 item.Label = label.ToString();
@@ -811,13 +811,13 @@ namespace RimWorldAccess
 
         private static WorldScannerCategory CreateSettlementsCategory(PlanetTile originTile)
         {
-            var category = new WorldScannerCategory("Settlements");
+            var category = new WorldScannerCategory("RimWorldAccess.WorldScanner.Cat.Settlements".Translate());
 
-            var allSubcat = new WorldScannerSubcategory("All");
-            var playerSubcat = new WorldScannerSubcategory("Player");
-            var alliedSubcat = new WorldScannerSubcategory("Allied");
-            var neutralSubcat = new WorldScannerSubcategory("Neutral");
-            var hostileSubcat = new WorldScannerSubcategory("Hostile");
+            var allSubcat = new WorldScannerSubcategory("RimWorldAccess.WorldScanner.Sub.All".Translate());
+            var playerSubcat = new WorldScannerSubcategory("RimWorldAccess.WorldScanner.Sub.Player".Translate());
+            var alliedSubcat = new WorldScannerSubcategory("RimWorldAccess.WorldScanner.Sub.Allied".Translate());
+            var neutralSubcat = new WorldScannerSubcategory("RimWorldAccess.WorldScanner.Sub.Neutral".Translate());
+            var hostileSubcat = new WorldScannerSubcategory("RimWorldAccess.WorldScanner.Sub.Hostile".Translate());
 
             var settlements = Find.WorldObjects?.Settlements;
             if (settlements != null)
@@ -872,8 +872,8 @@ namespace RimWorldAccess
 
         private static WorldScannerCategory CreateQuestSitesCategory(PlanetTile originTile)
         {
-            var category = new WorldScannerCategory("Quest Sites");
-            var subcat = new WorldScannerSubcategory("Active Quests");
+            var category = new WorldScannerCategory("RimWorldAccess.WorldScanner.Cat.QuestSites".Translate());
+            var subcat = new WorldScannerSubcategory("RimWorldAccess.WorldScanner.Sub.ActiveQuests".Translate());
 
             if (Find.QuestManager != null)
             {
@@ -919,8 +919,8 @@ namespace RimWorldAccess
 
         private static WorldScannerCategory CreateCaravansCategory(PlanetTile originTile)
         {
-            var category = new WorldScannerCategory("Caravans");
-            var subcat = new WorldScannerSubcategory("Player Caravans");
+            var category = new WorldScannerCategory("RimWorldAccess.WorldScanner.Cat.Caravans".Translate());
+            var subcat = new WorldScannerSubcategory("RimWorldAccess.WorldScanner.Sub.PlayerCaravans".Translate());
 
             var caravans = Find.WorldObjects?.Caravans?
                 .Where(c => c.Faction == Faction.OfPlayer)
@@ -942,8 +942,8 @@ namespace RimWorldAccess
 
         private static WorldScannerCategory CreateOtherSitesCategory(PlanetTile originTile)
         {
-            var category = new WorldScannerCategory("Other Sites");
-            var subcat = new WorldScannerSubcategory("Sites");
+            var category = new WorldScannerCategory("RimWorldAccess.WorldScanner.Cat.OtherSites".Translate());
+            var subcat = new WorldScannerSubcategory("RimWorldAccess.WorldScanner.Sub.Sites".Translate());
 
             var allObjects = Find.WorldObjects?.AllWorldObjects;
             if (allObjects != null)
@@ -988,8 +988,8 @@ namespace RimWorldAccess
 
         private static WorldScannerCategory CreateBiomesCategory(PlanetTile originTile)
         {
-            var category = new WorldScannerCategory("Biomes");
-            var subcat = new WorldScannerSubcategory("All Biomes");
+            var category = new WorldScannerCategory("RimWorldAccess.WorldScanner.Cat.Biomes".Translate());
+            var subcat = new WorldScannerSubcategory("RimWorldAccess.WorldScanner.Sub.AllBiomes".Translate());
 
             // Check if we need to rebuild the cache
             if (cachedBiomeRegions == null || !lastCacheOrigin.Valid ||
@@ -1031,8 +1031,8 @@ namespace RimWorldAccess
 
         private static WorldScannerCategory CreateRoadsCategory(PlanetTile originTile)
         {
-            var category = new WorldScannerCategory("Roads");
-            var subcat = new WorldScannerSubcategory("All Roads");
+            var category = new WorldScannerCategory("RimWorldAccess.WorldScanner.Cat.Roads".Translate());
+            var subcat = new WorldScannerSubcategory("RimWorldAccess.WorldScanner.Sub.AllRoads".Translate());
 
             // Check if we need to rebuild the cache
             if (cachedRoadSegments == null || !lastCacheOrigin.Valid ||
@@ -1071,7 +1071,7 @@ namespace RimWorldAccess
 
         private static WorldScannerCategory CreateLandmarksCategory(PlanetTile originTile)
         {
-            var category = new WorldScannerCategory("Landmarks");
+            var category = new WorldScannerCategory("RimWorldAccess.WorldScanner.Cat.Landmarks".Translate());
 
             if (!ModsConfig.OdysseyActive || Find.World?.landmarks == null)
                 return category;
@@ -1080,7 +1080,7 @@ namespace RimWorldAccess
             if (landmarks == null || landmarks.Count == 0)
                 return category;
 
-            var allSubcat = new WorldScannerSubcategory("All");
+            var allSubcat = new WorldScannerSubcategory("RimWorldAccess.WorldScanner.Sub.All".Translate());
 
             // Group landmarks by their def label for type subcategories
             var typeGroups = new Dictionary<string, WorldScannerSubcategory>();
@@ -1931,7 +1931,7 @@ namespace RimWorldAccess
                     {
                         if (!Find.WorldReachability.CanReach(lastWaypoint.Tile, targetTile))
                         {
-                            parts.Add("Unreachable");
+                            parts.Add("RimWorldAccess.WorldScanner.Unreachable".Translate());
                         }
                     }
                 }
@@ -1940,7 +1940,7 @@ namespace RimWorldAccess
             parts.Add(item.Label);
 
             if (!string.IsNullOrEmpty(item.QuestName))
-                parts.Add($"Quest: {item.QuestName}");
+                parts.Add("RimWorldAccess.WorldScanner.QuestPrefix".Translate(item.QuestName));
 
             // For settlements, add faction type and goodwill (matching WorldInfoHelper format)
             if (item.WorldObject is Settlement settlement && item.Faction != null && item.Faction != Faction.OfPlayer)
@@ -1948,16 +1948,16 @@ namespace RimWorldAccess
                 // Faction name and type (e.g., "The Tribe, Tribal")
                 string factionType = item.Faction.def?.LabelCap ?? "";
                 if (!string.IsNullOrEmpty(factionType) && factionType != item.Faction.Name)
-                    parts.Add($"{item.Faction.Name}, {factionType}");
+                    parts.Add("RimWorldAccess.WorldScanner.FactionWithType".Translate(item.Faction.Name, factionType));
                 else
                     parts.Add(item.Faction.Name);
 
                 // Relationship with goodwill (e.g., "Neutral +15")
-                string relationship = item.Faction.HostileTo(Faction.OfPlayer) ? "Hostile" :
+                string relationship = item.Faction.HostileTo(Faction.OfPlayer) ? "RimWorldAccess.World.Settlement.HostileRelationship".Translate().ToString() :
                                      item.Faction.PlayerRelationKind.GetLabelCap();
                 int goodwill = item.Faction.PlayerGoodwill;
                 string goodwillStr = goodwill >= 0 ? $"+{goodwill}" : goodwill.ToString();
-                parts.Add($"{relationship} {goodwillStr}");
+                parts.Add("RimWorldAccess.WorldScanner.RelationshipGoodwill".Translate(relationship, goodwillStr));
 
             }
 
@@ -1969,16 +1969,16 @@ namespace RimWorldAccess
                 else if (item.RoadSegments != null)
                     parts.Add($"{item.RoadSegments[0].SizeDescription}");
 
-                parts.Add($"Region 1 of {item.InstanceCount}");
+                parts.Add("RimWorldAccess.WorldScanner.RegionOf".Translate(1, item.InstanceCount));
             }
 
             if (!string.IsNullOrEmpty(direction) && distance > 0.1f)
             {
-                parts.Add($"{direction}, {distance:F0} tiles");
+                parts.Add("RimWorldAccess.WorldScanner.DirectionDistance".Translate(direction, distance.ToString("F0")));
             }
             else if (distance <= 0.1f && !onDifferentLayer)
             {
-                parts.Add("Current location");
+                parts.Add("RimWorldAccess.WorldScanner.CurrentLocation".Translate());
             }
 
             // Append layer name for cross-layer items
@@ -1988,7 +1988,7 @@ namespace RimWorldAccess
                 if (itemTile.Valid)
                 {
                     string layerName = itemTile.LayerDef.LabelCap;
-                    parts.Add($"on {layerName} layer");
+                    parts.Add("RimWorldAccess.WorldScanner.OnLayer".Translate(layerName));
                 }
             }
 
@@ -2016,7 +2016,7 @@ namespace RimWorldAccess
 
             int pos = currentItemIndex + 1;
             int total = subcat?.Items.Count ?? 0;
-            parts.Add($"{pos} of {total}");
+            parts.Add("RimWorldAccess.WorldScanner.PositionOf".Translate(pos, total));
 
             TolkHelper.SpeakData(string.Join(". ", parts), SpeechPriority.Normal);
         }
@@ -2047,7 +2047,7 @@ namespace RimWorldAccess
                 {
                     if (!Find.WorldReachability.CanReach(lastWaypoint.Tile, targetTile))
                     {
-                        parts.Add("Unreachable");
+                        parts.Add("RimWorldAccess.WorldScanner.Unreachable".Translate());
                     }
                 }
             }
@@ -2066,9 +2066,9 @@ namespace RimWorldAccess
             }
 
             if (!string.IsNullOrEmpty(direction) && distance > 0.1f)
-                parts.Add($"{direction}, {distance:F0} tiles");
+                parts.Add("RimWorldAccess.WorldScanner.DirectionDistance".Translate(direction, distance.ToString("F0")));
             else if (distance <= 0.1f)
-                parts.Add("Current location");
+                parts.Add("RimWorldAccess.WorldScanner.CurrentLocation".Translate());
 
             // Add fuel cost if transport pod or gravship launch targeting is active
             if (TransportPodLaunchState.ShouldAnnounceFuelCosts() && distance > 0.1f)
@@ -2086,7 +2086,7 @@ namespace RimWorldAccess
 
             int pos = currentInstanceIndex + 1;
             int total = item.InstanceCount;
-            parts.Add($"Region {pos} of {total}");
+            parts.Add("RimWorldAccess.WorldScanner.RegionOf".Translate(pos, total));
 
             TolkHelper.SpeakData(string.Join(". ", parts), SpeechPriority.Normal);
         }

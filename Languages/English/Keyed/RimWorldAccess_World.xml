@@ -659,4 +659,61 @@
   <RimWorldAccess.World.River.Bends.Inline>bends from {0} to {1}</RimWorldAccess.World.River.Bends.Inline>
   <RimWorldAccess.World.River.Confluence.Inline>confluence: {0}</RimWorldAccess.World.River.Confluence.Inline>
 
+
+  <!-- World scanner readout, categories, directions, sizes (src/World/WorldScannerState.cs). -->
+  <RimWorldAccess.WorldScanner.SizeApprox>approximately {0} tiles</RimWorldAccess.WorldScanner.SizeApprox>
+  <RimWorldAccess.WorldScanner.SizeTiles>{0} tiles</RimWorldAccess.WorldScanner.SizeTiles>
+  <RimWorldAccess.WorldScanner.SizeTilesLong>{0} tiles, {1} long</RimWorldAccess.WorldScanner.SizeTilesLong>
+  <RimWorldAccess.WorldScanner.RelDir.Ahead>Ahead</RimWorldAccess.WorldScanner.RelDir.Ahead>
+  <RimWorldAccess.WorldScanner.RelDir.AheadRight>Ahead-right</RimWorldAccess.WorldScanner.RelDir.AheadRight>
+  <RimWorldAccess.WorldScanner.RelDir.Right>Right</RimWorldAccess.WorldScanner.RelDir.Right>
+  <RimWorldAccess.WorldScanner.RelDir.BehindRight>Behind-right</RimWorldAccess.WorldScanner.RelDir.BehindRight>
+  <RimWorldAccess.WorldScanner.RelDir.Behind>Behind</RimWorldAccess.WorldScanner.RelDir.Behind>
+  <RimWorldAccess.WorldScanner.RelDir.BehindLeft>Behind-left</RimWorldAccess.WorldScanner.RelDir.BehindLeft>
+  <RimWorldAccess.WorldScanner.RelDir.Left>Left</RimWorldAccess.WorldScanner.RelDir.Left>
+  <RimWorldAccess.WorldScanner.RelDir.AheadLeft>Ahead-left</RimWorldAccess.WorldScanner.RelDir.AheadLeft>
+  <RimWorldAccess.WorldScanner.Cat.RouteWaypoints>Route Waypoints</RimWorldAccess.WorldScanner.Cat.RouteWaypoints>
+  <RimWorldAccess.WorldScanner.Cat.Settlements>Settlements</RimWorldAccess.WorldScanner.Cat.Settlements>
+  <RimWorldAccess.WorldScanner.Cat.QuestSites>Quest Sites</RimWorldAccess.WorldScanner.Cat.QuestSites>
+  <RimWorldAccess.WorldScanner.Cat.Caravans>Caravans</RimWorldAccess.WorldScanner.Cat.Caravans>
+  <RimWorldAccess.WorldScanner.Cat.OtherSites>Other Sites</RimWorldAccess.WorldScanner.Cat.OtherSites>
+  <RimWorldAccess.WorldScanner.Cat.Biomes>Biomes</RimWorldAccess.WorldScanner.Cat.Biomes>
+  <RimWorldAccess.WorldScanner.Cat.Roads>Roads</RimWorldAccess.WorldScanner.Cat.Roads>
+  <RimWorldAccess.WorldScanner.Cat.Landmarks>Landmarks</RimWorldAccess.WorldScanner.Cat.Landmarks>
+  <RimWorldAccess.WorldScanner.Sub.Waypoints>Waypoints</RimWorldAccess.WorldScanner.Sub.Waypoints>
+  <RimWorldAccess.WorldScanner.Sub.All>All</RimWorldAccess.WorldScanner.Sub.All>
+  <RimWorldAccess.WorldScanner.Sub.Player>Player</RimWorldAccess.WorldScanner.Sub.Player>
+  <RimWorldAccess.WorldScanner.Sub.Allied>Allied</RimWorldAccess.WorldScanner.Sub.Allied>
+  <RimWorldAccess.WorldScanner.Sub.Neutral>Neutral</RimWorldAccess.WorldScanner.Sub.Neutral>
+  <RimWorldAccess.WorldScanner.Sub.Hostile>Hostile</RimWorldAccess.WorldScanner.Sub.Hostile>
+  <RimWorldAccess.WorldScanner.Sub.ActiveQuests>Active Quests</RimWorldAccess.WorldScanner.Sub.ActiveQuests>
+  <RimWorldAccess.WorldScanner.Sub.PlayerCaravans>Player Caravans</RimWorldAccess.WorldScanner.Sub.PlayerCaravans>
+  <RimWorldAccess.WorldScanner.Sub.Sites>Sites</RimWorldAccess.WorldScanner.Sub.Sites>
+  <RimWorldAccess.WorldScanner.Sub.AllBiomes>All Biomes</RimWorldAccess.WorldScanner.Sub.AllBiomes>
+  <RimWorldAccess.WorldScanner.Sub.AllRoads>All Roads</RimWorldAccess.WorldScanner.Sub.AllRoads>
+  <RimWorldAccess.WorldScanner.Unreachable>Unreachable</RimWorldAccess.WorldScanner.Unreachable>
+  <RimWorldAccess.WorldScanner.QuestPrefix>Quest: {0}</RimWorldAccess.WorldScanner.QuestPrefix>
+  <RimWorldAccess.WorldScanner.FactionWithType>{0}, {1}</RimWorldAccess.WorldScanner.FactionWithType>
+  <RimWorldAccess.WorldScanner.RelationshipGoodwill>{0} {1}</RimWorldAccess.WorldScanner.RelationshipGoodwill>
+  <RimWorldAccess.WorldScanner.RegionOf>Region {0} of {1}</RimWorldAccess.WorldScanner.RegionOf>
+  <RimWorldAccess.WorldScanner.CurrentLocation>Current location</RimWorldAccess.WorldScanner.CurrentLocation>
+  <RimWorldAccess.WorldScanner.OnLayer>on {0} layer</RimWorldAccess.WorldScanner.OnLayer>
+  <RimWorldAccess.WorldScanner.PositionOf>{0} of {1}</RimWorldAccess.WorldScanner.PositionOf>
+  <RimWorldAccess.WorldScanner.Waypoint>Waypoint {0}</RimWorldAccess.WorldScanner.Waypoint>
+  <RimWorldAccess.WorldScanner.EstimatedTravelTime>Estimated travel time: {0}</RimWorldAccess.WorldScanner.EstimatedTravelTime>
+  <RimWorldAccess.WorldScanner.WaypointStart>(Start)</RimWorldAccess.WorldScanner.WaypointStart>
+
+  <!-- World object selection tree + announcements (src/World/WorldObjectSelectionState.cs). -->
+  <RimWorldAccess.WorldObject.EnterSettlement>Enter Settlement</RimWorldAccess.WorldObject.EnterSettlement>
+  <RimWorldAccess.WorldObject.Enter>Enter</RimWorldAccess.WorldObject.Enter>
+  <RimWorldAccess.WorldObject.FactionLabel>Faction: {0}</RimWorldAccess.WorldObject.FactionLabel>
+  <RimWorldAccess.WorldObject.RelationLabel>Relation: {0}</RimWorldAccess.WorldObject.RelationLabel>
+  <RimWorldAccess.WorldObject.CanTradeHere>Can trade here</RimWorldAccess.WorldObject.CanTradeHere>
+  <RimWorldAccess.WorldObject.LabelCaravan>{0} (caravan)</RimWorldAccess.WorldObject.LabelCaravan>
+  <RimWorldAccess.WorldObject.LabelYourSettlement>{0} (your settlement)</RimWorldAccess.WorldObject.LabelYourSettlement>
+  <RimWorldAccess.WorldObject.LabelWithFaction>{0} ({1})</RimWorldAccess.WorldObject.LabelWithFaction>
+  <RimWorldAccess.WorldObject.LabelSite>{0} (site)</RimWorldAccess.WorldObject.LabelSite>
+  <RimWorldAccess.WorldObject.UnknownFactionLower>unknown faction</RimWorldAccess.WorldObject.UnknownFactionLower>
+  <RimWorldAccess.WorldObject.UnknownFaction>Unknown faction</RimWorldAccess.WorldObject.UnknownFaction>
+  <RimWorldAccess.WorldObject.SettlementAnnounce>{0}. {1}.</RimWorldAccess.WorldObject.SettlementAnnounce>
 </LanguageData>
