@@ -553,14 +553,22 @@
   <RimWorldAccess.Map.Tile.Flooring.PathCost>path cost: {0}</RimWorldAccess.Map.Tile.Flooring.PathCost>
   <RimWorldAccess.Map.Tile.Flooring.Fish>fish: {0} ({1}/{2})</RimWorldAccess.Map.Tile.Flooring.Fish>
 
-  <!-- Plants hotkey (key 3). -->
+  <!-- Plants/resources hotkey (key 3). Covers plants, Odyssey fish, and deep ore.
+       Empty-result messages list only the resource types relevant to the tile context
+       (scanner active adds mineral deposits; water body adds fish). -->
   <RimWorldAccess.Map.Tile.Plants.NoneNoMinerals>no plants or mineral deposits</RimWorldAccess.Map.Tile.Plants.NoneNoMinerals>
   <RimWorldAccess.Map.Tile.Plants.None>no plants</RimWorldAccess.Map.Tile.Plants.None>
+  <!-- Odyssey DLC: on a water body with no resources present. -->
+  <RimWorldAccess.Map.Tile.Plants.NonePlusFish>no plants or fish</RimWorldAccess.Map.Tile.Plants.NonePlusFish>
+  <RimWorldAccess.Map.Tile.Plants.NonePlusFishMinerals>no plants, fish, or mineral deposits</RimWorldAccess.Map.Tile.Plants.NonePlusFishMinerals>
   <!-- {0} = plant label, {1} = growth percentage. -->
   <RimWorldAccess.Map.Tile.Plants.LabelWithGrowth>{0} ({1}% grown)</RimWorldAccess.Map.Tile.Plants.LabelWithGrowth>
   <RimWorldAccess.Map.Tile.Plants.Harvestable>harvestable</RimWorldAccess.Map.Tile.Plants.Harvestable>
   <RimWorldAccess.Map.Tile.Plants.NotHarvestable>not harvestable</RimWorldAccess.Map.Tile.Plants.NotHarvestable>
   <RimWorldAccess.Map.Tile.Plants.Dying>dying</RimWorldAccess.Map.Tile.Plants.Dying>
+  <!-- Odyssey fish section. {0} = fish species list, {1} = current population,
+       {2} = max population. Period-separated from plant content by AnnouncementBuilder. -->
+  <RimWorldAccess.Map.Tile.Plants.FishHeader>Fish: {0} ({1}/{2})</RimWorldAccess.Map.Tile.Plants.FishHeader>
   <RimWorldAccess.Map.Tile.Plants.DeepHeader>Deep: {0}</RimWorldAccess.Map.Tile.Plants.DeepHeader>
   <RimWorldAccess.Map.Tile.Plants.DeepOreInfo>{0}, {1} remaining</RimWorldAccess.Map.Tile.Plants.DeepOreInfo>
 

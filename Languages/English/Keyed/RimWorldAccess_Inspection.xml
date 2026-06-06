@@ -47,6 +47,16 @@
   <RimWorldAccess.Inspection.Summary.Plant>Plant: {0}</RimWorldAccess.Inspection.Summary.Plant>
   <RimWorldAccess.Inspection.Summary.Item>Item: {0}</RimWorldAccess.Inspection.Summary.Item>
   <RimWorldAccess.Inspection.Summary.Zone>{0} ({1})</RimWorldAccess.Inspection.Summary.Zone>
+  <!-- Master-merge additions: pawn summary now uses KindLabel prefix and
+       a generic status suffix rather than per-kind×status whole phrases.
+       KindWithLabel: {0} = kind label (e.g. "Colonist"), {1} = pawn name.
+       WithStatus: {0} = display name, {1} = status word.
+       PawnStatus*: bare status words used as {1} in WithStatus. -->
+  <RimWorldAccess.Inspection.Summary.KindWithLabel>{0}: {1}</RimWorldAccess.Inspection.Summary.KindWithLabel>
+  <RimWorldAccess.Inspection.Summary.WithStatus>{0} ({1})</RimWorldAccess.Inspection.Summary.WithStatus>
+  <RimWorldAccess.Inspection.Summary.PawnStatusDead>Dead</RimWorldAccess.Inspection.Summary.PawnStatusDead>
+  <RimWorldAccess.Inspection.Summary.PawnStatusDowned>Downed</RimWorldAccess.Inspection.Summary.PawnStatusDowned>
+  <RimWorldAccess.Inspection.Summary.PawnStatusDrafted>Drafted</RimWorldAccess.Inspection.Summary.PawnStatusDrafted>
 
   <!-- =================================================================
        Category-level fallbacks (InspectionInfoHelper.GetCategoryInfo,
