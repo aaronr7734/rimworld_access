@@ -34,7 +34,7 @@ namespace RimWorldAccess
         public override TargetInfo Target => assignments?.Target ?? TargetInfo.Invalid;
 
         public override string LocalizedDialogName =>
-            psychicRitualDef?.LabelCap.Resolve() ?? "Psychic ritual";
+            psychicRitualDef?.LabelCap.Resolve() ?? (string)"RimWorldAccess.Rituals.Psychic.FallbackName".Translate();
 
         public override string ClosingAnnouncement => "RimWorldAccess.Rituals.Psychic.DialogClosed".Translate();
 
@@ -183,22 +183,25 @@ namespace RimWorldAccess
             // assignability rules vanilla shows only via on-hover tooltips.
             var allowed = role.AllowedConditions;
             var disallowed = new List<string>();
-            void Check(PsychicRitualRoleDef.Condition c, string label)
+            void Check(PsychicRitualRoleDef.Condition c, string conditionKey)
             {
-                if ((allowed & c) == 0) disallowed.Add(label);
+                if ((allowed & c) == 0)
+                    disallowed.Add(("RimWorldAccess.Rituals.Psychic.Condition." + conditionKey).Translate());
             }
-            Check(PsychicRitualRoleDef.Condition.Sleeping, "sleeping");
-            Check(PsychicRitualRoleDef.Condition.Drafted, "drafted");
-            Check(PsychicRitualRoleDef.Condition.Bleeding, "bleeding");
-            Check(PsychicRitualRoleDef.Condition.Burning, "burning");
-            Check(PsychicRitualRoleDef.Condition.MentalState, "mental state");
-            Check(PsychicRitualRoleDef.Condition.Downed, "downed");
-            Check(PsychicRitualRoleDef.Condition.Prisoner, "prisoners");
-            Check(PsychicRitualRoleDef.Condition.Slave, "slaves");
-            Check(PsychicRitualRoleDef.Condition.Baby, "babies");
-            Check(PsychicRitualRoleDef.Condition.Child, "children");
+            Check(PsychicRitualRoleDef.Condition.Sleeping, "Sleeping");
+            Check(PsychicRitualRoleDef.Condition.Drafted, "Drafted");
+            Check(PsychicRitualRoleDef.Condition.Bleeding, "Bleeding");
+            Check(PsychicRitualRoleDef.Condition.Burning, "Burning");
+            Check(PsychicRitualRoleDef.Condition.MentalState, "MentalState");
+            Check(PsychicRitualRoleDef.Condition.Downed, "Downed");
+            Check(PsychicRitualRoleDef.Condition.Prisoner, "Prisoner");
+            Check(PsychicRitualRoleDef.Condition.Slave, "Slave");
+            Check(PsychicRitualRoleDef.Condition.Baby, "Baby");
+            Check(PsychicRitualRoleDef.Condition.Child, "Child");
 
-            return disallowed.Count == 0 ? null : "Disallows: " + string.Join(", ", disallowed) + ".";
+            return disallowed.Count == 0
+                ? null
+                : (string)"RimWorldAccess.Rituals.Psychic.Disallows".Translate(disallowed.ToCommaList(useAnd: false));
         }
 
         public override IReadOnlyList<LordJobPawnView> BuildPawnList(LordJobRoleView role)

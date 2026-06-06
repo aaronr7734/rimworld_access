@@ -202,5 +202,21 @@
   <RimWorldAccess.Rituals.Gravship.DialogName>Gravship launch</RimWorldAccess.Rituals.Gravship.DialogName>
   <RimWorldAccess.Rituals.Gravship.DialogClosed>Gravship launch dialog closed.</RimWorldAccess.Rituals.Gravship.DialogClosed>
   <RimWorldAccess.Rituals.Psychic.DialogClosed>Psychic ritual dialog closed.</RimWorldAccess.Rituals.Psychic.DialogClosed>
+  <!-- Fallback dialog name when the ritual def has no resolvable label. -->
+  <RimWorldAccess.Rituals.Psychic.FallbackName>Psychic ritual</RimWorldAccess.Rituals.Psychic.FallbackName>
+  <!-- Disallowed-condition readout on each role. {0} is the localized, comma-joined
+       list of condition nouns the role refuses. Surfaces the assignability rules
+       sighted players see only via on-hover tooltips. -->
+  <RimWorldAccess.Rituals.Psychic.Disallows>Disallows: {0}.</RimWorldAccess.Rituals.Psychic.Disallows>
+  <RimWorldAccess.Rituals.Psychic.Condition.Sleeping>sleeping</RimWorldAccess.Rituals.Psychic.Condition.Sleeping>
+  <RimWorldAccess.Rituals.Psychic.Condition.Drafted>drafted</RimWorldAccess.Rituals.Psychic.Condition.Drafted>
+  <RimWorldAccess.Rituals.Psychic.Condition.Bleeding>bleeding</RimWorldAccess.Rituals.Psychic.Condition.Bleeding>
+  <RimWorldAccess.Rituals.Psychic.Condition.Burning>burning</RimWorldAccess.Rituals.Psychic.Condition.Burning>
+  <RimWorldAccess.Rituals.Psychic.Condition.MentalState>mental state</RimWorldAccess.Rituals.Psychic.Condition.MentalState>
+  <RimWorldAccess.Rituals.Psychic.Condition.Downed>downed</RimWorldAccess.Rituals.Psychic.Condition.Downed>
+  <RimWorldAccess.Rituals.Psychic.Condition.Prisoner>prisoners</RimWorldAccess.Rituals.Psychic.Condition.Prisoner>
+  <RimWorldAccess.Rituals.Psychic.Condition.Slave>slaves</RimWorldAccess.Rituals.Psychic.Condition.Slave>
+  <RimWorldAccess.Rituals.Psychic.Condition.Baby>babies</RimWorldAccess.Rituals.Psychic.Condition.Baby>
+  <RimWorldAccess.Rituals.Psychic.Condition.Child>children</RimWorldAccess.Rituals.Psychic.Condition.Child>
   <RimWorldAccess.Rituals.DryadCaste.UnknownCaste>Unknown caste</RimWorldAccess.Rituals.DryadCaste.UnknownCaste>
 </LanguageData>
