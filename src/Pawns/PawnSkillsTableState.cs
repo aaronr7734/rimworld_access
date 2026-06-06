@@ -191,7 +191,7 @@ namespace RimWorldAccess
                 AnnounceWithSearch();
                 return true;
             }
-            TolkHelper.Speak($"No matches for '{tableHelper.Typeahead.LastFailedSearch}'");
+            tableHelper.Typeahead.SpeakNoMatches();
             return false;
         }
 
