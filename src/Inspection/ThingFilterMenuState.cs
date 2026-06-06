@@ -365,13 +365,13 @@ namespace RimWorldAccess
                 case NodeType.ClearAll:
                     currentFilter.SetDisallowAll();
                     RefreshAllowanceStates();
-                    TolkHelper.Speak("ClearAll".Translate());
+                    TolkHelper.Speak("ClearAll".Loc());
                     break;
 
                 case NodeType.AllowAll:
                     currentFilter.SetAllowAll(parentFilter);
                     RefreshAllowanceStates();
-                    TolkHelper.Speak("AllowAll".Translate());
+                    TolkHelper.Speak("AllowAll".Loc());
                     break;
 
                 case NodeType.HitPointsRange:

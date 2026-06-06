@@ -246,7 +246,7 @@ namespace RimWorldAccess
 
             if (string.IsNullOrEmpty(saveName))
             {
-                TolkHelper.Speak("NeedAName".Translate());
+                TolkHelper.Speak("NeedAName".Loc());
                 return;
             }
 

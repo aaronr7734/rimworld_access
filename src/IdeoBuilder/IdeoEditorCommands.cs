@@ -89,14 +89,14 @@ namespace RimWorldAccess
                     string fileName = GenFile.SanitizedFileName(text.Trim());
                     if (string.IsNullOrEmpty(fileName))
                     {
-                        TolkHelper.Speak("NeedAName".Translate(), SpeechPriority.High);
+                        TolkHelper.Speak("NeedAName".Loc(), SpeechPriority.High);
                         return;
                     }
                     string absPath = GenFilePaths.AbsPathForIdeo(fileName);
                     LongEventHandler.QueueLongEvent(
                         () => GameDataSaveLoader.SaveIdeo(ideo, absPath),
                         "SavingLongEvent", doAsynchronously: false, null);
-                    TolkHelper.Speak("SavedAs".Translate(fileName), SpeechPriority.High);
+                    TolkHelper.Speak("SavedAs".Loc(fileName), SpeechPriority.High);
                 },
                 // This field is a save filename, not an editable value — it announces "Saved as X"
                 // itself, so suppress the generic "Name set to X" commit announcement.

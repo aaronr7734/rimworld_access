@@ -362,7 +362,7 @@ namespace RimWorldAccess
 
             if (mode == currentMode)
             {
-                TolkHelper.Speak("AlreadySelected".Translate());
+                TolkHelper.Speak("AlreadySelected".Loc());
                 return;
             }
 
@@ -374,17 +374,17 @@ namespace RimWorldAccess
                     && (bool)(meetsMemeRequirementsMethod.Invoke(currentDialog, new object[] { mode }) ?? false);
                 if (!meetsMemeRequirements)
                 {
-                    TolkHelper.Speak("MissingRequiredMemes".Translate());
+                    TolkHelper.Speak("MissingRequiredMemes".Loc());
                     return;
                 }
 
                 if (mode.previousStage != null && currentMode != mode.previousStage)
                 {
-                    TolkHelper.Speak("MissingRequiredCaste".Translate());
+                    TolkHelper.Speak("MissingRequiredCaste".Loc());
                     return;
                 }
 
-                TolkHelper.Speak("Locked".Translate());
+                TolkHelper.Speak("Locked".Loc());
                 return;
             }
 

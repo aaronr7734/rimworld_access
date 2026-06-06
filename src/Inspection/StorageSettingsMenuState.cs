@@ -417,13 +417,13 @@ namespace RimWorldAccess
                 case NodeType.ClearAll:
                     currentSettings.filter.SetDisallowAll();
                     RefreshAllowanceStates();
-                    TolkHelper.Speak("ClearAll".Translate());
+                    TolkHelper.Speak("ClearAll".Loc());
                     break;
 
                 case NodeType.AllowAll:
                     currentSettings.filter.SetAllowAll(parentFilter);
                     RefreshAllowanceStates();
-                    TolkHelper.Speak("AllowAll".Translate());
+                    TolkHelper.Speak("AllowAll".Loc());
                     break;
 
                 case NodeType.HitPointsRange:

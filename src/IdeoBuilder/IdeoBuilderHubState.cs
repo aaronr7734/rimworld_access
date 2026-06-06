@@ -320,7 +320,7 @@ namespace RimWorldAccess
             else
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak($"No matches for '{listTypeahead.LastFailedSearch}'.");
+                listTypeahead.SpeakNoMatches();
             }
             return true;
         }
@@ -393,7 +393,7 @@ namespace RimWorldAccess
             else
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'.");
+                typeahead.SpeakNoMatches();
             }
             return true;
         }

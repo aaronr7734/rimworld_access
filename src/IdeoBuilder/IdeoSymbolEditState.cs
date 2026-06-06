@@ -81,7 +81,7 @@ namespace RimWorldAccess
                     AfterEdit();
                 }),
             };
-            TolkHelper.Speak("WorshipRoom".Translate());
+            TolkHelper.Speak("WorshipRoom".Loc());
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
         }
 
@@ -120,7 +120,7 @@ namespace RimWorldAccess
                     TolkHelper.Speak(LockStateText(ideo), SpeechPriority.High);
                 }),
             };
-            TolkHelper.Speak("CoreNarrative".Translate());
+            TolkHelper.Speak("CoreNarrative".Loc());
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
         }
 
@@ -150,7 +150,7 @@ namespace RimWorldAccess
             }
             if (options.Count == 0)
                 options.Add(new FloatMenuOption("NoneLower".Translate(), null));
-            TolkHelper.Speak("Icon".Translate());
+            TolkHelper.Speak("Icon".Loc());
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
         }
 
@@ -173,7 +173,7 @@ namespace RimWorldAccess
             }
             if (options.Count == 0)
                 options.Add(new FloatMenuOption("NoneLower".Translate(), null));
-            TolkHelper.Speak("Color".Translate());
+            TolkHelper.Speak("Color".Loc());
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
         }
 
@@ -203,7 +203,7 @@ namespace RimWorldAccess
             }
             if (options.Count == 0)
                 options.Add(new FloatMenuOption("NoneLower".Translate(), null));
-            TolkHelper.Speak("ChooseCulture".Translate());
+            TolkHelper.Speak("ChooseCulture".Loc());
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
         }
 
@@ -224,7 +224,7 @@ namespace RimWorldAccess
             if (slots.Count < 3)
                 options.Add(new FloatMenuOption("AddStyleCategory".Translate().ToString(), () => OpenStyleSlotPicker(ideo, -1)));
 
-            TolkHelper.Speak("Styles".Translate());
+            TolkHelper.Speak("Styles".Loc());
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
         }
 

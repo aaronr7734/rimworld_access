@@ -197,7 +197,7 @@ namespace RimWorldAccess
                     // Vanilla returns silently here — structure memes can't be deselected;
                     // selecting a different structure swaps them.
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak("ChooseStructureMeme".Translate());
+                    TolkHelper.Speak("ChooseStructureMeme".Loc());
                     return;
                 }
 
@@ -239,7 +239,7 @@ namespace RimWorldAccess
                     {
                         // Reforming a fluid ideoligion allows only one normal-meme change.
                         SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                        TolkHelper.Speak("ReformIdeoAddOrRemoveMeme".Translate(), SpeechPriority.High);
+                        TolkHelper.Speak("ReformIdeoAddOrRemoveMeme".Loc(), SpeechPriority.High);
                         return;
                     }
                     displaced.AddRange(newMemes.Where(m => !ideo.memes.Contains(m)));

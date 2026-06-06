@@ -676,7 +676,7 @@ namespace RimWorldAccess
             {
                 currentFilter.SetAllowAll(parentFilter);
                 RefreshAllowanceStates();
-                TolkHelper.Speak("AllowAll".Translate());
+                TolkHelper.Speak("AllowAll".Loc());
             }
         }
 
@@ -689,7 +689,7 @@ namespace RimWorldAccess
             {
                 currentFilter.SetDisallowAll();
                 RefreshAllowanceStates();
-                TolkHelper.Speak("ClearAll".Translate());
+                TolkHelper.Speak("ClearAll".Loc());
             }
         }
 

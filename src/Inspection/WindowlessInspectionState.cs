@@ -120,7 +120,7 @@ namespace RimWorldAccess
                 // or zones at unexplored cells.
                 if (Find.CurrentMap != null && position.Fogged(Find.CurrentMap))
                 {
-                    TolkHelper.Speak("Undiscovered".Translate());
+                    TolkHelper.Speak("Undiscovered".Loc());
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
                     return;
                 }

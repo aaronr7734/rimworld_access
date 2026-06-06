@@ -234,7 +234,7 @@ namespace RimWorldAccess
                 else
                 {
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak($"No matches for '{CurrentTypeahead.LastFailedSearch}'.");
+                    CurrentTypeahead.SpeakNoMatches();
                 }
                 return true;
             }

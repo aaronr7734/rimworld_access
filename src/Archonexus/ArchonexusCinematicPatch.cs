@@ -18,7 +18,7 @@ namespace RimWorldAccess
         {
             if (__instance is global::Screen_ArchonexusSettlementCinematics)
             {
-                TolkHelper.Speak("SoldColonyDescription".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("SoldColonyDescription".Loc(), SpeechPriority.High);
             }
         }
     }

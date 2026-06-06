@@ -560,7 +560,7 @@ namespace RimWorldAccess
                 teamSkillRows = StartingPawnHelper.BuildTeamSkillSummary();
                 teamSkillIndex = 0;
                 teamSkillTypeahead.ClearSearch();
-                TolkHelper.Speak("TeamSkills".Translate());
+                TolkHelper.Speak("TeamSkills".Loc());
                 AnnounceTeamSkillRow();
             }
             else
@@ -568,7 +568,7 @@ namespace RimWorldAccess
                 currentTab = PawnTab.Pawns;
                 teamSkillTypeahead.ClearSearch();
                 lastAnnouncedSection = null; // re-announce the section for context on return
-                TolkHelper.Speak("CreateCharacters".Translate());
+                TolkHelper.Speak("CreateCharacters".Loc());
                 treeNav.ReannounceCurrentItem();
             }
         }
@@ -643,7 +643,7 @@ namespace RimWorldAccess
         {
             if (teamSkillRows == null || teamSkillRows.Count == 0)
             {
-                TolkHelper.Speak("None".Translate());
+                TolkHelper.Speak("None".Loc());
                 return;
             }
             if (teamSkillIndex < 0 || teamSkillIndex >= teamSkillRows.Count)

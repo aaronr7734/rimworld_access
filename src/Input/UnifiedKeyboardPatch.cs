@@ -6958,7 +6958,7 @@ namespace RimWorldAccess
             // MouseoverReadout, which exits early without showing terrain or things.
             if (pos.Fogged(map))
             {
-                TolkHelper.Speak("Undiscovered".Translate());
+                TolkHelper.Speak("Undiscovered".Loc());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }

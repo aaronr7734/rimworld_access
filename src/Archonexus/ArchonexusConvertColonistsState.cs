@@ -122,7 +122,7 @@ namespace RimWorldAccess
                 else
                 {
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak($"No matches for '{typeahead.LastFailedSearch}'.");
+                    typeahead.SpeakNoMatches();
                 }
                 return true;
             }
@@ -160,7 +160,7 @@ namespace RimWorldAccess
             if (canChange != null && !canChange(pawn))
             {
                 // Already a follower of the player ideoligion — no toggle available.
-                TolkHelper.Speak("ExistingFollowerOfPlayerIdeoligion".Translate());
+                TolkHelper.Speak("ExistingFollowerOfPlayerIdeoligion".Loc());
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 return;
             }

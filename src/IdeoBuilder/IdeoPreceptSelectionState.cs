@@ -355,7 +355,7 @@ namespace RimWorldAccess
         {
             Close();
             SoundDefOf.TabClose.PlayOneShotOnCamera();
-            TolkHelper.Speak("CustomizeIdeoligion".Translate());
+            TolkHelper.Speak("CustomizeIdeoligion".Loc());
         }
 
         #endregion

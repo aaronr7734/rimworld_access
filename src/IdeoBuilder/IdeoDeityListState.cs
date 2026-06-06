@@ -192,7 +192,7 @@ namespace RimWorldAccess
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 string noun = (min <= 1) ? "Deity".Translate().ToString() : Find.ActiveLanguageWorker.Pluralize("Deity".Translate(), min);
-                TolkHelper.Speak("DeitiesRequired".Translate(min, noun.Named("DEITYNOUN")), SpeechPriority.High);
+                TolkHelper.Speak("DeitiesRequired".Loc(min, noun.Named("DEITYNOUN")), SpeechPriority.High);
                 return;
             }
             foundation.DeitiesListForReading.Remove(deity);
@@ -307,7 +307,7 @@ namespace RimWorldAccess
                 }
                 Close();
                 SoundDefOf.TabClose.PlayOneShotOnCamera();
-                TolkHelper.Speak("CustomizeIdeoligion".Translate());
+                TolkHelper.Speak("CustomizeIdeoligion".Loc());
                 return true;
             }
 

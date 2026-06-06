@@ -567,7 +567,7 @@ namespace RimWorldAccess
             }
             if (options.Count == 0)
                 options.Add(new FloatMenuOption("NoneLower".Translate(), null));
-            TolkHelper.Speak("RelicStuff".Translate());
+            TolkHelper.Speak("RelicStuff".Loc());
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
         }
 
@@ -607,7 +607,7 @@ namespace RimWorldAccess
                     AfterPreceptEdit(building);
                 }));
             }
-            TolkHelper.Speak("Appearance".Translate());
+            TolkHelper.Speak("Appearance".Loc());
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
         }
 
@@ -647,7 +647,7 @@ namespace RimWorldAccess
                 StartingConditionOption(ritual, anytime: true),
                 StartingConditionOption(ritual, anytime: false),
             };
-            TolkHelper.Speak("StartingCondition".Translate());
+            TolkHelper.Speak("StartingCondition".Loc());
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
         }
 
@@ -667,7 +667,7 @@ namespace RimWorldAccess
                 var quadrum = q;
                 options.Add(new FloatMenuOption(q.Label(), () => OpenDayMenu(ritual, dateTrigger, quadrum, currentDay)));
             }
-            TolkHelper.Speak("Date".Translate());
+            TolkHelper.Speak("Date".Loc());
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
         }
 
@@ -713,7 +713,7 @@ namespace RimWorldAccess
                     options.Add(new FloatMenuOption(label, () => { ritual.attachableOutcomeEffect = captured; AfterPreceptEdit(ritual); }));
                 }
             }
-            TolkHelper.Speak("RitualAttachedReward".Translate());
+            TolkHelper.Speak("RitualAttachedReward".Loc());
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
         }
 
@@ -749,7 +749,7 @@ namespace RimWorldAccess
                 }));
             }
 
-            TolkHelper.Speak("EditApparelRequirement".Translate());
+            TolkHelper.Speak("EditApparelRequirement".Loc());
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
         }
 
@@ -823,7 +823,7 @@ namespace RimWorldAccess
                 }
                 Close();
                 SoundDefOf.TabClose.PlayOneShotOnCamera();
-                TolkHelper.Speak("CustomizeIdeoligion".Translate());
+                TolkHelper.Speak("CustomizeIdeoligion".Loc());
                 return true;
             }
 

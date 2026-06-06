@@ -339,7 +339,7 @@ namespace RimWorldAccess
                 GenderOption(styleItem, Gender.Female, current),
                 GenderOption(styleItem, Gender.None, current),
             };
-            TolkHelper.Speak("Gender".Translate());
+            TolkHelper.Speak("Gender".Loc());
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
         }
 
@@ -436,7 +436,7 @@ namespace RimWorldAccess
                 }
                 Close();
                 SoundDefOf.TabClose.PlayOneShotOnCamera();
-                TolkHelper.Speak("CustomizeIdeoligion".Translate());
+                TolkHelper.Speak("CustomizeIdeoligion".Loc());
                 return true;
             }
 

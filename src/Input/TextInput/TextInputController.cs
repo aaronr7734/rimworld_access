@@ -77,7 +77,7 @@ namespace RimWorldAccess
             string announceKey = spec != null && spec.MultiLine
                 ? "RimWorldAccess.TextInput.EditingMultiLineField"
                 : "RimWorldAccess.TextInput.EditingField";
-            TolkHelper.Speak(announceKey.Translate(label, preview), SpeechPriority.High);
+            TolkHelper.Speak(announceKey.Loc(label, preview), SpeechPriority.High);
         }
 
         public void HandleCharacter(char c)
@@ -101,7 +101,7 @@ namespace RimWorldAccess
             cursorPos++;
             selectionAnchor = cursorPos;
             if (c == '\n')
-                TolkHelper.Speak("RimWorldAccess.TextInput.NewLine".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TextInput.NewLine".Loc(), SpeechPriority.High);
             else
                 TolkHelper.Speak(c.ToString(), SpeechPriority.High);
         }
@@ -113,7 +113,7 @@ namespace RimWorldAccess
             {
                 string removed = GetSelectedText();
                 DeleteSelectionInternal();
-                TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Translate(removed), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Loc(removed), SpeechPriority.High);
                 return;
             }
             if (cursorPos == 0) return;
@@ -121,7 +121,7 @@ namespace RimWorldAccess
             currentText = currentText.Remove(cursorPos - 1, 1);
             cursorPos--;
             selectionAnchor = cursorPos;
-            TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Translate(c), SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Loc(c), SpeechPriority.High);
         }
 
         public void HandleDelete()
@@ -131,14 +131,14 @@ namespace RimWorldAccess
             {
                 string removed = GetSelectedText();
                 DeleteSelectionInternal();
-                TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Translate(removed), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Loc(removed), SpeechPriority.High);
                 return;
             }
             if (cursorPos >= currentText.Length) return;
             char c = currentText[cursorPos];
             currentText = currentText.Remove(cursorPos, 1);
             selectionAnchor = cursorPos;
-            TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Translate(c), SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Loc(c), SpeechPriority.High);
         }
 
         public void HandleArrowLeft(bool shift, bool ctrl)
@@ -273,7 +273,7 @@ namespace RimWorldAccess
         {
             string toCopy = HasSelection ? GetSelectedText() : (currentText ?? string.Empty);
             GUIUtility.systemCopyBuffer = toCopy;
-            TolkHelper.Speak("RimWorldAccess.TextInput.Copied".Translate(), SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.TextInput.Copied".Loc(), SpeechPriority.High);
         }
 
         /// <summary>
@@ -288,7 +288,7 @@ namespace RimWorldAccess
             {
                 GUIUtility.systemCopyBuffer = GetSelectedText();
                 DeleteSelectionInternal();
-                TolkHelper.Speak("RimWorldAccess.TextInput.Cut".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TextInput.Cut".Loc(), SpeechPriority.High);
                 return;
             }
             if (currentText.Length == 0) return;
@@ -296,7 +296,7 @@ namespace RimWorldAccess
             currentText = string.Empty;
             cursorPos = 0;
             selectionAnchor = 0;
-            TolkHelper.Speak("RimWorldAccess.TextInput.Cut".Translate(), SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.TextInput.Cut".Loc(), SpeechPriority.High);
         }
 
         /// <summary>
@@ -318,7 +318,7 @@ namespace RimWorldAccess
             currentText = currentText.Remove(prev, cursorPos - prev);
             cursorPos = prev;
             selectionAnchor = cursorPos;
-            TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Translate(removed), SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Loc(removed), SpeechPriority.High);
         }
 
         /// <summary>
@@ -339,7 +339,7 @@ namespace RimWorldAccess
             string removed = currentText.Substring(cursorPos, next - cursorPos);
             currentText = currentText.Remove(cursorPos, next - cursorPos);
             selectionAnchor = cursorPos;
-            TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Translate(removed), SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.TextInput.Deleted".Loc(removed), SpeechPriority.High);
         }
 
         public void HandleSelectAll()
@@ -347,7 +347,7 @@ namespace RimWorldAccess
             replaceOnFirstKeystroke = false;
             if (currentText.Length == 0)
             {
-                TolkHelper.Speak("RimWorldAccess.TextInput.Empty".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TextInput.Empty".Loc(), SpeechPriority.High);
                 return;
             }
             selectionAnchor = 0;
@@ -357,9 +357,9 @@ namespace RimWorldAccess
             // press Up/Down to re-read the full contents explicitly.
             const int LongTextThreshold = 200;
             if (currentText.Length > LongTextThreshold)
-                TolkHelper.Speak("RimWorldAccess.TextInput.SelectedAllLong".Translate(currentText.Length), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TextInput.SelectedAllLong".Loc(currentText.Length), SpeechPriority.High);
             else
-                TolkHelper.Speak("RimWorldAccess.TextInput.SelectedAll".Translate(currentText), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TextInput.SelectedAll".Loc(currentText), SpeechPriority.High);
         }
 
         public void HandlePaste()
@@ -367,7 +367,7 @@ namespace RimWorldAccess
             string clipboard = GUIUtility.systemCopyBuffer;
             if (string.IsNullOrEmpty(clipboard))
             {
-                TolkHelper.Speak("RimWorldAccess.TextInput.ClipboardEmpty".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TextInput.ClipboardEmpty".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -459,13 +459,13 @@ namespace RimWorldAccess
                 // Identify the field by name ("First name unchanged"); fall back to the value only
                 // when no label is available, so we never speak a bare " unchanged".
                 string subject = string.IsNullOrEmpty(label) ? value : label;
-                TolkHelper.Speak("RimWorldAccess.TextInput.FieldUnchanged".Translate(subject), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TextInput.FieldUnchanged".Loc(subject), SpeechPriority.High);
                 return;
             }
             if (string.IsNullOrEmpty(label))
                 TolkHelper.Speak(value, SpeechPriority.High);
             else
-                TolkHelper.Speak("RimWorldAccess.TextInput.FieldSet".Translate(label, value), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TextInput.FieldSet".Loc(label, value), SpeechPriority.High);
         }
 
         public void HandleEscape()
@@ -480,7 +480,7 @@ namespace RimWorldAccess
         public void ReadCurrentText()
         {
             if (string.IsNullOrEmpty(currentText))
-                TolkHelper.Speak("RimWorldAccess.TextInput.Empty".Translate());
+                TolkHelper.Speak("RimWorldAccess.TextInput.Empty".Loc());
             else
                 TolkHelper.Speak(currentText);
         }
@@ -637,7 +637,7 @@ namespace RimWorldAccess
             int lineEnd = FindEndOfCurrentLine(lineStart);
             if (lineStart >= lineEnd)
             {
-                TolkHelper.Speak("RimWorldAccess.TextInput.BlankLine".Translate(), SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TextInput.BlankLine".Loc(), SpeechPriority.High);
                 return;
             }
             TolkHelper.Speak(currentText.Substring(lineStart, lineEnd - lineStart), SpeechPriority.High);

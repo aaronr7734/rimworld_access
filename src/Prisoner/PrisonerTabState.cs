@@ -611,7 +611,7 @@ namespace RimWorldAccess
                     break;
 
                 case TabSection.IdeologySelection:
-                    TolkHelper.Speak("IdeoConversionTarget".Translate());
+                    TolkHelper.Speak("IdeoConversionTarget".Loc());
                     break;
             }
 
