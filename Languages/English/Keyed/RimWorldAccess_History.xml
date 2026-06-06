@@ -104,4 +104,7 @@
   <RimWorldAccess.History.Button.Unpin>Unpin</RimWorldAccess.History.Button.Unpin>
   <RimWorldAccess.History.FailedToActivateButton>Failed to activate button</RimWorldAccess.History.FailedToActivateButton>
 
+
+  <!-- Keyboard-mode visual overlay (src/History/HistoryPatch.cs). -->
+  <RimWorldAccess.History.Overlay.KeyboardModeTab>Keyboard Mode Active - {0} Tab</RimWorldAccess.History.Overlay.KeyboardModeTab>
 </LanguageData>

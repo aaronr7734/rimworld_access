@@ -371,34 +371,34 @@ namespace RimWorldAccess
             var qualityComp = thing.TryGetComp<CompQuality>();
             if (qualityComp != null)
             {
-                sb.AppendLine($"Quality: {qualityComp.Quality}");
+                sb.AppendLine("RimWorldAccess.Pawns.Gear.Quality".Translate(qualityComp.Quality.GetLabel()));
             }
 
             // Hit points
             if (thing.def.useHitPoints)
             {
                 float healthPercent = (float)thing.HitPoints / thing.MaxHitPoints;
-                sb.AppendLine($"Condition: {healthPercent:P0} ({thing.HitPoints} / {thing.MaxHitPoints} HP)");
+                sb.AppendLine("RimWorldAccess.Pawns.Gear.Condition".Translate(healthPercent.ToString("P0"), thing.HitPoints, thing.MaxHitPoints));
             }
 
             // Material
             if (thing.Stuff != null)
             {
-                sb.AppendLine($"Material: {thing.Stuff.LabelCap.ToString().StripTags()}");
+                sb.AppendLine("RimWorldAccess.Pawns.Gear.Material".Translate(thing.Stuff.LabelCap.ToString().StripTags()));
             }
 
             // Market value
-            sb.AppendLine($"Market Value: {thing.MarketValue:F0} silver");
+            sb.AppendLine("RimWorldAccess.Pawns.Gear.MarketValue".Translate(thing.MarketValue.ToString("F0")));
 
             // Mass
             float mass = thing.GetStatValue(StatDefOf.Mass);
-            sb.AppendLine($"Mass: {mass:F2} kg");
+            sb.AppendLine("RimWorldAccess.Pawns.Gear.Mass".Translate(mass.ToString("F2")));
 
             // Description
             if (!string.IsNullOrEmpty(thing.def.description))
             {
                 sb.AppendLine();
-                sb.AppendLine("Description:");
+                sb.AppendLine("RimWorldAccess.Pawns.Gear.DescriptionHeader".Translate());
                 sb.AppendLine(thing.def.description);
             }
 

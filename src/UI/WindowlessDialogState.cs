@@ -465,7 +465,7 @@ namespace RimWorldAccess
 
             // Subtract 1 from count since element 0 is the description, not an action
             int actionCount = elements.Count > 0 ? elements.Count - 1 : 0;
-            announcement += $"{actionCount} elements. Use arrow keys to navigate, Enter to activate, Escape to cancel.";
+            announcement += "RimWorldAccess.UI.Dialog.NavInstructions".Translate(actionCount);
 
             return announcement;
         }

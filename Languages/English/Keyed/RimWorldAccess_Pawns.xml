@@ -640,4 +640,12 @@
        {1} = pawn label. -->
   <RimWorldAccess.Pawns.Schedule.CopyPasteAnnouncement>{0}: {1}</RimWorldAccess.Pawns.Schedule.CopyPasteAnnouncement>
 
+
+  <!-- Interactive gear item detail readout (src/Pawns/InteractiveGearHelper.cs). -->
+  <RimWorldAccess.Pawns.Gear.Quality>Quality: {0}</RimWorldAccess.Pawns.Gear.Quality>
+  <RimWorldAccess.Pawns.Gear.Condition>Condition: {0} ({1} / {2} HP)</RimWorldAccess.Pawns.Gear.Condition>
+  <RimWorldAccess.Pawns.Gear.Material>Material: {0}</RimWorldAccess.Pawns.Gear.Material>
+  <RimWorldAccess.Pawns.Gear.MarketValue>Market Value: {0} silver</RimWorldAccess.Pawns.Gear.MarketValue>
+  <RimWorldAccess.Pawns.Gear.Mass>Mass: {0} kg</RimWorldAccess.Pawns.Gear.Mass>
+  <RimWorldAccess.Pawns.Gear.DescriptionHeader>Description:</RimWorldAccess.Pawns.Gear.DescriptionHeader>
 </LanguageData>

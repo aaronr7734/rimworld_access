@@ -210,4 +210,9 @@
   <RimWorldAccess.TwoLevel.NavigateDownDefault>Navigate down to buttons first</RimWorldAccess.TwoLevel.NavigateDownDefault>
   <RimWorldAccess.TwoLevel.NoButtonsDefault>No buttons available</RimWorldAccess.TwoLevel.NoButtonsDefault>
 
+
+  <!-- Generic dialog nav instructions + give-name field labels (src/UI/WindowlessDialogState.cs, DialogElementExtractor.cs). -->
+  <RimWorldAccess.UI.Dialog.NavInstructions>{0} elements. Use arrow keys to navigate, Enter to activate, Escape to cancel.</RimWorldAccess.UI.Dialog.NavInstructions>
+  <RimWorldAccess.UI.GiveName.SettlementNameLabel>Settlement Name</RimWorldAccess.UI.GiveName.SettlementNameLabel>
+  <RimWorldAccess.UI.GiveName.SecondNameLabel>Second Name</RimWorldAccess.UI.GiveName.SecondNameLabel>
 </LanguageData>

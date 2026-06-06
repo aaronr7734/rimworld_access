@@ -274,7 +274,7 @@ namespace RimWorldAccess
                 }
 
                 // For Dialog_GiveName with two names: first is faction, second is settlement
-                string label = isDialogGiveName ? "Settlement Name" : "Second Name";
+                string label = (isDialogGiveName ? "RimWorldAccess.UI.GiveName.SettlementNameLabel" : "RimWorldAccess.UI.GiveName.SecondNameLabel").Translate();
 
                 TextFieldElement secondTextField = new TextFieldElement(
                     label,

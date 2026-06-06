@@ -146,7 +146,7 @@ namespace RimWorldAccess
             // Draw text
             Text.Font = GameFont.Tiny;
             Text.Anchor = TextAnchor.MiddleCenter;
-            Widgets.Label(indicatorRect, $"Keyboard Mode Active - {HistoryState.GetTabName()} Tab");
+            Widgets.Label(indicatorRect, "RimWorldAccess.History.Overlay.KeyboardModeTab".Translate(HistoryState.GetTabName()));
 
             // Reset text settings
             Text.Anchor = TextAnchor.UpperLeft;

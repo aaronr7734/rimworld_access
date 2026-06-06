@@ -104,4 +104,10 @@
   <RimWorldAccess.Input.Map.PrefixSecondPoint>Second point, {0}</RimWorldAccess.Input.Map.PrefixSecondPoint>
   <RimWorldAccess.Input.Map.PrefixInArea>In area, {0}</RimWorldAccess.Input.Map.PrefixInArea>
   <RimWorldAccess.Input.Map.PrefixDisconnected>Disconnected, {0}</RimWorldAccess.Input.Map.PrefixDisconnected>
+
+  <!-- Schedule editor visual overlay (src/Input/UnifiedKeyboardPatch.cs). -->
+  <RimWorldAccess.Input.Schedule.OverlayTitle>Schedule Menu - {0} ({1}/{2}) - Hour {3}</RimWorldAccess.Input.Schedule.OverlayTitle>
+  <RimWorldAccess.Input.Schedule.OverlayCurrent>Current: {0}</RimWorldAccess.Input.Schedule.OverlayCurrent>
+  <RimWorldAccess.Input.Schedule.OverlayInstructions1>Arrows: Navigate | 1-5: Select Brush | Space/Enter: Apply Brush</RimWorldAccess.Input.Schedule.OverlayInstructions1>
+  <RimWorldAccess.Input.Schedule.OverlayInstructions2>Shift+Arrows: Paint | Ctrl+C/V: Copy/Paste | Tab: Areas | Esc: Close</RimWorldAccess.Input.Schedule.OverlayInstructions2>
 </LanguageData>

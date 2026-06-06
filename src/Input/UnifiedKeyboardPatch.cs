@@ -6636,10 +6636,10 @@ namespace RimWorldAccess
 
             int pawnNum = WindowlessScheduleState.SelectedPawnIndex + 1;
             int totalPawns = WindowlessScheduleState.Pawns.Count;
-            string title = $"Schedule Menu - {selectedPawn.LabelShort} ({pawnNum}/{totalPawns}) - Hour {hour}";
-            string currentInfo = $"Current: {currentAssignment.label}";
-            string instructions1 = "Arrows: Navigate | 1-5: Select Brush | Space/Enter: Apply Brush";
-            string instructions2 = "Shift+Arrows: Paint | Ctrl+C/V: Copy/Paste | Tab: Areas | Esc: Close";
+            string title = "RimWorldAccess.Input.Schedule.OverlayTitle".Translate(selectedPawn.LabelShort, pawnNum, totalPawns, hour).ToString();
+            string currentInfo = "RimWorldAccess.Input.Schedule.OverlayCurrent".Translate(currentAssignment.label).ToString();
+            string instructions1 = "RimWorldAccess.Input.Schedule.OverlayInstructions1".Translate().ToString();
+            string instructions2 = "RimWorldAccess.Input.Schedule.OverlayInstructions2".Translate().ToString();
 
             Rect titleRect = new Rect(overlayX, overlayY + 10f, overlayWidth, 30f);
             Rect infoRect = new Rect(overlayX, overlayY + 40f, overlayWidth, 25f);
