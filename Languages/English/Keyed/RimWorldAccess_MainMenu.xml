@@ -624,6 +624,89 @@
        {0} = label, {1} = description or position. -->
   <RimWorldAccess.ScenarioBuilder.AddPart.LabelDescription>{0}: {1}</RimWorldAccess.ScenarioBuilder.AddPart.LabelDescription>
   <RimWorldAccess.ScenarioBuilder.AddPart.WithPositionSuffix> ({0})</RimWorldAccess.ScenarioBuilder.AddPart.WithPositionSuffix>
+  <RimWorldAccess.ScenarioBuilder.Field.Faction>Faction</RimWorldAccess.ScenarioBuilder.Field.Faction>
+  <RimWorldAccess.ScenarioBuilder.Field.PlanetLayer>Planet Layer</RimWorldAccess.ScenarioBuilder.Field.PlanetLayer>
+  <RimWorldAccess.ScenarioBuilder.Field.LayerTag>Layer Tag</RimWorldAccess.ScenarioBuilder.Field.LayerTag>
+  <RimWorldAccess.ScenarioBuilder.Field.LayerSettings>Layer Settings</RimWorldAccess.ScenarioBuilder.Field.LayerSettings>
+  <RimWorldAccess.ScenarioBuilder.Field.ArrivalMethod>Arrival Method</RimWorldAccess.ScenarioBuilder.Field.ArrivalMethod>
+  <RimWorldAccess.ScenarioBuilder.Field.Item>Item</RimWorldAccess.ScenarioBuilder.Field.Item>
+  <RimWorldAccess.ScenarioBuilder.Field.Material>Material</RimWorldAccess.ScenarioBuilder.Field.Material>
+  <RimWorldAccess.ScenarioBuilder.Field.Quality>Quality</RimWorldAccess.ScenarioBuilder.Field.Quality>
+  <RimWorldAccess.ScenarioBuilder.Field.Count>Count</RimWorldAccess.ScenarioBuilder.Field.Count>
+  <RimWorldAccess.ScenarioBuilder.Field.Chance>Chance</RimWorldAccess.ScenarioBuilder.Field.Chance>
+  <RimWorldAccess.ScenarioBuilder.Field.Condition>Condition</RimWorldAccess.ScenarioBuilder.Field.Condition>
+  <RimWorldAccess.ScenarioBuilder.Field.MinimumSeverity>Minimum Severity</RimWorldAccess.ScenarioBuilder.Field.MinimumSeverity>
+  <RimWorldAccess.ScenarioBuilder.Field.MaximumSeverity>Maximum Severity</RimWorldAccess.ScenarioBuilder.Field.MaximumSeverity>
+  <RimWorldAccess.ScenarioBuilder.Field.Affects>Affects</RimWorldAccess.ScenarioBuilder.Field.Affects>
+  <RimWorldAccess.ScenarioBuilder.Field.AnimalType>Animal Type</RimWorldAccess.ScenarioBuilder.Field.AnimalType>
+  <RimWorldAccess.ScenarioBuilder.Field.Trait>Trait</RimWorldAccess.ScenarioBuilder.Field.Trait>
+  <RimWorldAccess.ScenarioBuilder.Field.Incident>Incident</RimWorldAccess.ScenarioBuilder.Field.Incident>
+  <RimWorldAccess.ScenarioBuilder.Field.MinimumDays>Minimum Days</RimWorldAccess.ScenarioBuilder.Field.MinimumDays>
+  <RimWorldAccess.ScenarioBuilder.Field.MaximumDays>Maximum Days</RimWorldAccess.ScenarioBuilder.Field.MaximumDays>
+  <RimWorldAccess.ScenarioBuilder.Field.Repeat>Repeat</RimWorldAccess.ScenarioBuilder.Field.Repeat>
+  <RimWorldAccess.ScenarioBuilder.Field.Research>Research</RimWorldAccess.ScenarioBuilder.Field.Research>
+  <RimWorldAccess.ScenarioBuilder.Field.StartingPawns>Starting Pawns</RimWorldAccess.ScenarioBuilder.Field.StartingPawns>
+  <RimWorldAccess.ScenarioBuilder.Field.PawnChoicePool>Pawn Choice Pool</RimWorldAccess.ScenarioBuilder.Field.PawnChoicePool>
+  <RimWorldAccess.ScenarioBuilder.Field.AllowBabies>Allow Babies</RimWorldAccess.ScenarioBuilder.Field.AllowBabies>
+  <RimWorldAccess.ScenarioBuilder.Field.AllowChildren>Allow Children</RimWorldAccess.ScenarioBuilder.Field.AllowChildren>
+  <RimWorldAccess.ScenarioBuilder.Field.AllowAdults>Allow Adults</RimWorldAccess.ScenarioBuilder.Field.AllowAdults>
+  <RimWorldAccess.ScenarioBuilder.Field.MinimumAge>Minimum Age</RimWorldAccess.ScenarioBuilder.Field.MinimumAge>
+  <RimWorldAccess.ScenarioBuilder.Field.MaximumAge>Maximum Age</RimWorldAccess.ScenarioBuilder.Field.MaximumAge>
+  <RimWorldAccess.ScenarioBuilder.Field.MechType>Mech Type</RimWorldAccess.ScenarioBuilder.Field.MechType>
+  <RimWorldAccess.ScenarioBuilder.Field.MechanitorOversightChance>Mechanitor Oversight Chance</RimWorldAccess.ScenarioBuilder.Field.MechanitorOversightChance>
+  <RimWorldAccess.ScenarioBuilder.Field.DialogText>Dialog Text</RimWorldAccess.ScenarioBuilder.Field.DialogText>
+  <RimWorldAccess.ScenarioBuilder.Field.Stat>Stat</RimWorldAccess.ScenarioBuilder.Field.Stat>
+  <RimWorldAccess.ScenarioBuilder.Field.Factor>Factor</RimWorldAccess.ScenarioBuilder.Field.Factor>
+  <RimWorldAccess.ScenarioBuilder.Field.Building>Building</RimWorldAccess.ScenarioBuilder.Field.Building>
+  <RimWorldAccess.ScenarioBuilder.Field.Need>Need</RimWorldAccess.ScenarioBuilder.Field.Need>
+  <RimWorldAccess.ScenarioBuilder.Field.MinimumLevel>Minimum Level</RimWorldAccess.ScenarioBuilder.Field.MinimumLevel>
+  <RimWorldAccess.ScenarioBuilder.Field.MaximumLevel>Maximum Level</RimWorldAccess.ScenarioBuilder.Field.MaximumLevel>
+  <RimWorldAccess.ScenarioBuilder.Field.DurationDays>Duration (Days)</RimWorldAccess.ScenarioBuilder.Field.DurationDays>
+  <RimWorldAccess.ScenarioBuilder.Field.ExplosionRadius>Explosion Radius</RimWorldAccess.ScenarioBuilder.Field.ExplosionRadius>
+  <RimWorldAccess.ScenarioBuilder.Field.DamageType>Damage Type</RimWorldAccess.ScenarioBuilder.Field.DamageType>
+  <RimWorldAccess.ScenarioBuilder.Field.Quest>Quest</RimWorldAccess.ScenarioBuilder.Field.Quest>
+  <RimWorldAccess.ScenarioBuilder.Field.MapGenerator>Map Generator</RimWorldAccess.ScenarioBuilder.Field.MapGenerator>
+  <RimWorldAccess.ScenarioBuilder.Field.GenerationMethod>Generation Method</RimWorldAccess.ScenarioBuilder.Field.GenerationMethod>
+  <RimWorldAccess.ScenarioBuilder.Field.ActivationDelayDays>Activation Delay (Days)</RimWorldAccess.ScenarioBuilder.Field.ActivationDelayDays>
+  <RimWorldAccess.ScenarioBuilder.Field.PawnKind>Pawn Kind</RimWorldAccess.ScenarioBuilder.Field.PawnKind>
+  <RimWorldAccess.ScenarioBuilder.Field.RequiredAtStart>Required at Start</RimWorldAccess.ScenarioBuilder.Field.RequiredAtStart>
+  <RimWorldAccess.ScenarioBuilder.Field.Xenotype>Xenotype</RimWorldAccess.ScenarioBuilder.Field.Xenotype>
+  <RimWorldAccess.ScenarioBuilder.Field.MutantType>Mutant Type</RimWorldAccess.ScenarioBuilder.Field.MutantType>
+  <RimWorldAccess.ScenarioBuilder.Field.TargetLayer>Target Layer</RimWorldAccess.ScenarioBuilder.Field.TargetLayer>
+  <RimWorldAccess.ScenarioBuilder.Field.ZoomMode>Zoom Mode</RimWorldAccess.ScenarioBuilder.Field.ZoomMode>
+  <RimWorldAccess.ScenarioBuilder.Field.FuelCost>Fuel Cost</RimWorldAccess.ScenarioBuilder.Field.FuelCost>
+  <RimWorldAccess.ScenarioBuilder.Announce.AddNewItem>Add New Item. Press Enter to add.</RimWorldAccess.ScenarioBuilder.Announce.AddNewItem>
+  <RimWorldAccess.ScenarioBuilder.Announce.CheckboxField>{0}, checkbox, {1}. Press Enter or Space to toggle.</RimWorldAccess.ScenarioBuilder.Announce.CheckboxField>
+  <RimWorldAccess.ScenarioBuilder.Announce.EditableField>{0}: {1}. {2}. Press Enter to edit.</RimWorldAccess.ScenarioBuilder.Announce.EditableField>
+  <RimWorldAccess.ScenarioBuilder.Announce.FieldCountOne>1 field</RimWorldAccess.ScenarioBuilder.Announce.FieldCountOne>
+  <RimWorldAccess.ScenarioBuilder.Announce.FieldCountMany>{0} fields</RimWorldAccess.ScenarioBuilder.Announce.FieldCountMany>
+  <RimWorldAccess.ScenarioBuilder.Announce.ItemCountOne>1 item</RimWorldAccess.ScenarioBuilder.Announce.ItemCountOne>
+  <RimWorldAccess.ScenarioBuilder.Announce.ItemCountMany>{0} items</RimWorldAccess.ScenarioBuilder.Announce.ItemCountMany>
+  <RimWorldAccess.ScenarioBuilder.Announce.LabelWithSummary>{0} ({1})</RimWorldAccess.ScenarioBuilder.Announce.LabelWithSummary>
+  <RimWorldAccess.ScenarioBuilder.Announce.ListItemExpandable>{0}, {1}, {2}. Press Delete to remove.</RimWorldAccess.ScenarioBuilder.Announce.ListItemExpandable>
+  <RimWorldAccess.ScenarioBuilder.Announce.ListItemSimple>{0}. Press Delete to remove.</RimWorldAccess.ScenarioBuilder.Announce.ListItemSimple>
+  <RimWorldAccess.ScenarioBuilder.Announce.PartExpandable>{0}, {1}, {2}</RimWorldAccess.ScenarioBuilder.Announce.PartExpandable>
+  <RimWorldAccess.ScenarioBuilder.Announce.PartReadOnly>{0}, read only</RimWorldAccess.ScenarioBuilder.Announce.PartReadOnly>
+  <RimWorldAccess.ScenarioBuilder.Announce.ReadFullTextSuffix> Press Insert to read full text.</RimWorldAccess.ScenarioBuilder.Announce.ReadFullTextSuffix>
+  <RimWorldAccess.ScenarioBuilder.Announce.TypeHintDropdown>dropdown</RimWorldAccess.ScenarioBuilder.Announce.TypeHintDropdown>
+  <RimWorldAccess.ScenarioBuilder.Announce.TypeHintQuantity>quantity</RimWorldAccess.ScenarioBuilder.Announce.TypeHintQuantity>
+  <RimWorldAccess.ScenarioBuilder.Announce.TypeHintCheckbox>checkbox</RimWorldAccess.ScenarioBuilder.Announce.TypeHintCheckbox>
+  <RimWorldAccess.ScenarioBuilder.Announce.TypeHintText>text</RimWorldAccess.ScenarioBuilder.Announce.TypeHintText>
+  <RimWorldAccess.ScenarioBuilder.AddNewItemLabel>Add New Item</RimWorldAccess.ScenarioBuilder.AddNewItemLabel>
+  <RimWorldAccess.ScenarioBuilder.ConnectionTo>Connection to {0}</RimWorldAccess.ScenarioBuilder.ConnectionTo>
+  <RimWorldAccess.ScenarioBuilder.ConnectionToWithZoom>Connection to {0} ({1})</RimWorldAccess.ScenarioBuilder.ConnectionToWithZoom>
+  <RimWorldAccess.ScenarioBuilder.ListItemCount>{0}x {1}</RimWorldAccess.ScenarioBuilder.ListItemCount>
+  <RimWorldAccess.ScenarioBuilder.RequiredSuffix> (Required)</RimWorldAccess.ScenarioBuilder.RequiredSuffix>
+  <RimWorldAccess.ScenarioBuilder.PartLabelWithSummary>{0} - {1}</RimWorldAccess.ScenarioBuilder.PartLabelWithSummary>
+  <RimWorldAccess.ScenarioBuilder.ZoomIn>Zoom In</RimWorldAccess.ScenarioBuilder.ZoomIn>
+  <RimWorldAccess.ScenarioBuilder.ZoomOut>Zoom Out</RimWorldAccess.ScenarioBuilder.ZoomOut>
+  <RimWorldAccess.ScenarioBuilder.Value.Empty>(empty)</RimWorldAccess.ScenarioBuilder.Value.Empty>
+  <RimWorldAccess.ScenarioBuilder.Value.RandomPet>Random Pet</RimWorldAccess.ScenarioBuilder.Value.RandomPet>
+  <RimWorldAccess.ScenarioBuilder.ItemType.Item>item</RimWorldAccess.ScenarioBuilder.ItemType.Item>
+  <RimWorldAccess.ScenarioBuilder.ItemType.PawnKindEntry>pawn kind entry</RimWorldAccess.ScenarioBuilder.ItemType.PawnKindEntry>
+  <RimWorldAccess.ScenarioBuilder.ItemType.XenotypeEntry>xenotype entry</RimWorldAccess.ScenarioBuilder.ItemType.XenotypeEntry>
+  <RimWorldAccess.ScenarioBuilder.ItemType.MutantEntry>mutant entry</RimWorldAccess.ScenarioBuilder.ItemType.MutantEntry>
+  <RimWorldAccess.ScenarioBuilder.ItemType.Connection>connection</RimWorldAccess.ScenarioBuilder.ItemType.Connection>
 
 
   <!-- Mod-list detail nav + requirement status (src/MainMenu/ModListState.cs). -->

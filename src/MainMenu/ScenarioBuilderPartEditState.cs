@@ -164,11 +164,12 @@ namespace RimWorldAccess
                 currentField = field;
                 onComplete = onCompleteCallback;
 
-                // Checkbox is simple - just toggle and close
-                bool currentValue = field.CurrentValue == "Yes" || field.CurrentValue == "true" || field.CurrentValue == "True";
-                bool newValue = !currentValue;
+                // Checkbox is simple - just toggle and close. BoolValue is the
+                // language-independent state; CurrentValue is only the display string.
+                bool newValue = !field.BoolValue;
 
-                field.CurrentValue = newValue ? "Yes" : "No";
+                field.BoolValue = newValue;
+                field.CurrentValue = ScenarioBuilderState.BoolDisplay(newValue);
                 field.SetValue?.Invoke(newValue);
                 ScenarioBuilderState.SetDirty();
 

@@ -161,6 +161,12 @@ namespace RimWorldAccess
             /// even though the underlying value is a float. Used for days that are whole numbers.
             /// </summary>
             public bool IsIntegerDisplay { get; set; }
+            /// <summary>
+            /// For Checkbox fields: the actual boolean state. This language-independent value
+            /// drives the checked/unchecked announcement and the toggle, so the display string
+            /// (CurrentValue) can be localized without breaking state detection.
+            /// </summary>
+            public bool BoolValue { get; set; }
         }
 
         public enum FieldType { Dropdown, Quantity, Text, Checkbox }
@@ -321,11 +327,9 @@ namespace RimWorldAccess
             foreach (var part in partsHierarchy)
             {
                 // Build label with summary for better context (e.g., "Start With - Silver x50")
-                string partLabel = part.Label;
-                if (!string.IsNullOrEmpty(part.Summary))
-                {
-                    partLabel += $" - {part.Summary}";
-                }
+                string partLabel = string.IsNullOrEmpty(part.Summary)
+                    ? part.Label
+                    : (string)"RimWorldAccess.ScenarioBuilder.PartLabelWithSummary".Translate(part.Label, part.Summary);
 
                 // LIST-BASED PARTS: Special 3-level hierarchy
                 if (part.IsListPart)
@@ -405,7 +409,7 @@ namespace RimWorldAccess
                     partNode.Children.Add(new InspectionTreeItem
                     {
                         Type = InspectionTreeItem.ItemType.Action,
-                        Label = "Add New Item",
+                        Label = (string)"RimWorldAccess.ScenarioBuilder.AddNewItemLabel".Translate(),
                         IndentLevel = 1,
                         IsExpandable = false,
                         IsExpanded = false,
@@ -563,9 +567,9 @@ namespace RimWorldAccess
                 var currentFaction = (FactionDef)factionDefField.GetValue(part);
                 fields.Add(new PartField
                 {
-                    Name = "Faction",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Faction".Translate(),
                     Type = FieldType.Dropdown,
-                    CurrentValue = currentFaction?.LabelCap ?? "None",
+                    CurrentValue = currentFaction?.LabelCap ?? "None".Translate(),
                     Data = GetPlayerFactionOptions(),
                     SetValue = (val) => factionDefField.SetValue(part, val)
                 });
@@ -585,9 +589,9 @@ namespace RimWorldAccess
                     var currentLayer = (PlanetLayerDef)layerField.GetValue(part);
                     fields.Add(new PartField
                     {
-                        Name = "Planet Layer",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.PlanetLayer".Translate(),
                         Type = FieldType.Dropdown,
-                        CurrentValue = currentLayer?.LabelCap ?? "None",
+                        CurrentValue = currentLayer?.LabelCap ?? "None".Translate(),
                         Data = GetPlanetLayerOptions(),
                         SetValue = (val) => layerField.SetValue(part, val)
                     });
@@ -603,9 +607,9 @@ namespace RimWorldAccess
                 var currentTag = (string)tagField.GetValue(part) ?? "";
                 fields.Add(new PartField
                 {
-                    Name = "Layer Tag",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.LayerTag".Translate(),
                     Type = FieldType.Text,
-                    CurrentValue = string.IsNullOrEmpty(currentTag) ? "(empty)" :
+                    CurrentValue = string.IsNullOrEmpty(currentTag) ? (string)"RimWorldAccess.ScenarioBuilder.Value.Empty".Translate() :
                         (currentTag.Length > 60 ? currentTag.Substring(0, 60) + "..." : currentTag),
                     Data = currentTag,
                     SetValue = (val) => tagField.SetValue(part, val)
@@ -617,16 +621,16 @@ namespace RimWorldAccess
             if (settingsDefField != null && partType.Name == "ScenPart_PlanetLayer")
             {
                 var currentSettings = settingsDefField.GetValue(part);
-                string currentLabel = "None";
+                string currentLabel = (string)"None".Translate();
                 if (currentSettings != null)
                 {
                     var labelProp = currentSettings.GetType().GetProperty("LabelCap");
                     if (labelProp != null)
-                        currentLabel = labelProp.GetValue(currentSettings)?.ToString() ?? "None";
+                        currentLabel = labelProp.GetValue(currentSettings)?.ToString() ?? "None".Translate();
                 }
                 fields.Add(new PartField
                 {
-                    Name = "Layer Settings",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.LayerSettings".Translate(),
                     Type = FieldType.Dropdown,
                     CurrentValue = currentLabel,
                     Data = GetPlanetLayerSettingsOptions(),
@@ -641,7 +645,7 @@ namespace RimWorldAccess
                 var currentMethod = (PlayerPawnsArriveMethod)arriveMethodField.GetValue(part);
                 fields.Add(new PartField
                 {
-                    Name = "Arrival Method",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.ArrivalMethod".Translate(),
                     Type = FieldType.Dropdown,
                     CurrentValue = currentMethod.ToStringHuman(),
                     Data = GetArriveMethodOptions(),
@@ -657,9 +661,9 @@ namespace RimWorldAccess
                 var currentThingDef = (ThingDef)thingDefField.GetValue(part);
                 fields.Add(new PartField
                 {
-                    Name = "Item",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Item".Translate(),
                     Type = FieldType.Dropdown,
-                    CurrentValue = currentThingDef?.LabelCap ?? "None",
+                    CurrentValue = currentThingDef?.LabelCap ?? "None".Translate(),
                     Data = GetStartingThingOptions(part),
                     SetValue = (val) =>
                     {
@@ -682,9 +686,9 @@ namespace RimWorldAccess
                         var currentStuff = (ThingDef)stuffField.GetValue(part);
                         fields.Add(new PartField
                         {
-                            Name = "Material",
+                            Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Material".Translate(),
                             Type = FieldType.Dropdown,
-                            CurrentValue = currentStuff?.LabelCap ?? "Default",
+                            CurrentValue = currentStuff?.LabelCap ?? "Default".Translate(),
                             Data = GetStuffOptions(currentThingDef),
                             SetValue = (val) => stuffField.SetValue(part, val)
                         });
@@ -698,14 +702,14 @@ namespace RimWorldAccess
                     if (qualityField != null)
                     {
                         var currentQuality = qualityField.GetValue(part);
-                        string qualityLabel = "Default";
+                        string qualityLabel = (string)"Default".Translate();
                         if (currentQuality != null && currentQuality is QualityCategory q)
                         {
                             qualityLabel = q.GetLabel().CapitalizeFirst();
                         }
                         fields.Add(new PartField
                         {
-                            Name = "Quality",
+                            Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Quality".Translate(),
                             Type = FieldType.Dropdown,
                             CurrentValue = qualityLabel,
                             Data = GetQualityOptions(),
@@ -724,7 +728,7 @@ namespace RimWorldAccess
                 // We use int.MaxValue since it's an int field
                 fields.Add(new PartField
                 {
-                    Name = "Count",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Count".Translate(),
                     Type = FieldType.Quantity,
                     CurrentValue = currentValue.ToString(),
                     Data = new int[] { 1, int.MaxValue },
@@ -739,7 +743,7 @@ namespace RimWorldAccess
                 float currentValue = (float)chanceField.GetValue(part);
                 fields.Add(new PartField
                 {
-                    Name = "Chance",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Chance".Translate(),
                     Type = FieldType.Quantity,
                     CurrentValue = $"{currentValue * 100:F0}%",
                     Data = new float[] { 0f, 1f },
@@ -754,9 +758,9 @@ namespace RimWorldAccess
                 var currentHediff = (HediffDef)hediffField.GetValue(part);
                 fields.Add(new PartField
                 {
-                    Name = "Condition",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Condition".Translate(),
                     Type = FieldType.Dropdown,
-                    CurrentValue = currentHediff?.LabelCap ?? "None",
+                    CurrentValue = currentHediff?.LabelCap ?? "None".Translate(),
                     Data = GetHediffOptions(),
                     SetValue = (val) => hediffField.SetValue(part, val)
                 });
@@ -771,7 +775,7 @@ namespace RimWorldAccess
                 // Min severity field
                 fields.Add(new PartField
                 {
-                    Name = "Minimum Severity",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.MinimumSeverity".Translate(),
                     Type = FieldType.Quantity,
                     CurrentValue = $"{(currentRange.min * 100):F0}%",
                     Data = new float[] { 0f, 1f },
@@ -787,7 +791,7 @@ namespace RimWorldAccess
                 // Max severity field
                 fields.Add(new PartField
                 {
-                    Name = "Maximum Severity",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.MaximumSeverity".Translate(),
                     Type = FieldType.Quantity,
                     CurrentValue = $"{(currentRange.max * 100):F0}%",
                     Data = new float[] { 0f, 1f },
@@ -808,7 +812,7 @@ namespace RimWorldAccess
                 var currentContext = (PawnGenerationContext)contextField.GetValue(part);
                 fields.Add(new PartField
                 {
-                    Name = "Affects",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Affects".Translate(),
                     Type = FieldType.Dropdown,
                     CurrentValue = currentContext.ToStringHuman(),
                     Data = GetPawnGenerationContextOptions(),
@@ -823,9 +827,9 @@ namespace RimWorldAccess
                 var currentKind = (PawnKindDef)animalKindField.GetValue(part);
                 fields.Add(new PartField
                 {
-                    Name = "Animal Type",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.AnimalType".Translate(),
                     Type = FieldType.Dropdown,
-                    CurrentValue = currentKind?.LabelCap ?? "Random Pet",
+                    CurrentValue = currentKind?.LabelCap ?? (string)"RimWorldAccess.ScenarioBuilder.Value.RandomPet".Translate(),
                     Data = GetAnimalOptions(),
                     SetValue = (val) => animalKindField.SetValue(part, val)
                 });
@@ -843,7 +847,7 @@ namespace RimWorldAccess
                     int currentDegree = (int)degreeField.GetValue(part);
 
                     // Build current display value
-                    string currentLabel = "None";
+                    string currentLabel = (string)"None".Translate();
                     if (currentTrait != null)
                     {
                         var degreeData = currentTrait.DataAtDegree(currentDegree);
@@ -852,7 +856,7 @@ namespace RimWorldAccess
 
                     fields.Add(new PartField
                     {
-                        Name = "Trait",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Trait".Translate(),
                         Type = FieldType.Dropdown,
                         CurrentValue = currentLabel,
                         Data = GetTraitWithDegreeOptions(),
@@ -885,9 +889,9 @@ namespace RimWorldAccess
                     var currentIncident = incidentField.GetValue(part) as IncidentDef;
                     fields.Add(new PartField
                     {
-                        Name = "Incident",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Incident".Translate(),
                         Type = FieldType.Dropdown,
-                        CurrentValue = currentIncident?.LabelCap ?? "None",
+                        CurrentValue = currentIncident?.LabelCap ?? "None".Translate(),
                         Data = GetIncidentDefOptions(),
                         SetValue = (val) => incidentField.SetValue(part, val)
                     });
@@ -900,7 +904,7 @@ namespace RimWorldAccess
                     float currentMin = (float)minDaysField.GetValue(part);
                     fields.Add(new PartField
                     {
-                        Name = "Minimum Days",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.MinimumDays".Translate(),
                         Type = FieldType.Quantity,
                         CurrentValue = currentMin.ToString("F0"),
                         Data = new float[] { 0f, 1000f },
@@ -916,7 +920,7 @@ namespace RimWorldAccess
                     float currentMax = (float)maxDaysField.GetValue(part);
                     fields.Add(new PartField
                     {
-                        Name = "Maximum Days",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.MaximumDays".Translate(),
                         Type = FieldType.Quantity,
                         CurrentValue = currentMax.ToString("F0"),
                         Data = new float[] { 0f, 1000f },
@@ -932,11 +936,12 @@ namespace RimWorldAccess
                     bool currentRepeat = (bool)repeatField.GetValue(part);
                     fields.Add(new PartField
                     {
-                        Name = "Repeat",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Repeat".Translate(),
                         Type = FieldType.Checkbox,
-                        CurrentValue = currentRepeat ? "Yes" : "No",
+                        CurrentValue = BoolDisplay(currentRepeat),
+                        BoolValue = currentRepeat,
                         Data = null,
-                        SetValue = (val) => repeatField.SetValue(part, val is bool b ? b : val?.ToString() == "Yes")
+                        SetValue = (val) => repeatField.SetValue(part, val is bool b && b)
                     });
                 }
             }
@@ -950,9 +955,9 @@ namespace RimWorldAccess
                     var currentIncident = (IncidentDef)incidentField.GetValue(part);
                     fields.Add(new PartField
                     {
-                        Name = "Incident",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Incident".Translate(),
                         Type = FieldType.Dropdown,
-                        CurrentValue = currentIncident?.LabelCap ?? "None",
+                        CurrentValue = currentIncident?.LabelCap ?? "None".Translate(),
                         Data = GetIncidentOptions(),
                         SetValue = (val) => incidentField.SetValue(part, val)
                     });
@@ -966,9 +971,9 @@ namespace RimWorldAccess
                 var currentProject = (ResearchProjectDef)researchField.GetValue(part);
                 fields.Add(new PartField
                 {
-                    Name = "Research",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Research".Translate(),
                     Type = FieldType.Dropdown,
-                    CurrentValue = currentProject?.LabelCap ?? "None",
+                    CurrentValue = currentProject?.LabelCap ?? "None".Translate(),
                     Data = GetResearchOptions(),
                     SetValue = (val) => researchField.SetValue(part, val)
                 });
@@ -984,7 +989,7 @@ namespace RimWorldAccess
                 int currentValue = (int)pawnCountField.GetValue(part);
                 fields.Add(new PartField
                 {
-                    Name = "Starting Pawns",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.StartingPawns".Translate(),
                     Type = FieldType.Quantity,
                     CurrentValue = currentValue.ToString(),
                     Data = new int[] { 1, 10 }, // Game max is 10
@@ -1014,7 +1019,7 @@ namespace RimWorldAccess
 
                 fields.Add(new PartField
                 {
-                    Name = "Pawn Choice Pool",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.PawnChoicePool".Translate(),
                     Type = FieldType.Quantity,
                     CurrentValue = currentValue.ToString(),
                     Data = new int[] { pawnCount, 10 }, // Minimum is current pawnCount
@@ -1045,11 +1050,12 @@ namespace RimWorldAccess
 
                     fields.Add(new PartField
                     {
-                        Name = "Allow Babies",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.AllowBabies".Translate(),
                         Type = FieldType.Checkbox,
-                        CurrentValue = allowBabies ? "Yes" : "No",
+                        CurrentValue = BoolDisplay(allowBabies),
+                        BoolValue = allowBabies,
                         SetValue = (val) => {
-                            bool enable = val is bool b ? b : val?.ToString() == "Yes";
+                            bool enable = val is bool b && b;
                             int stages = Convert.ToInt32(devStagesField.GetValue(part));
                             if (enable) stages |= 2; else stages &= ~2;
                             devStagesField.SetValue(part, Enum.ToObject(devStagesField.FieldType, stages));
@@ -1058,11 +1064,12 @@ namespace RimWorldAccess
 
                     fields.Add(new PartField
                     {
-                        Name = "Allow Children",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.AllowChildren".Translate(),
                         Type = FieldType.Checkbox,
-                        CurrentValue = allowChildren ? "Yes" : "No",
+                        CurrentValue = BoolDisplay(allowChildren),
+                        BoolValue = allowChildren,
                         SetValue = (val) => {
-                            bool enable = val is bool b ? b : val?.ToString() == "Yes";
+                            bool enable = val is bool b && b;
                             int stages = Convert.ToInt32(devStagesField.GetValue(part));
                             if (enable) stages |= 4; else stages &= ~4;
                             devStagesField.SetValue(part, Enum.ToObject(devStagesField.FieldType, stages));
@@ -1071,11 +1078,12 @@ namespace RimWorldAccess
 
                     fields.Add(new PartField
                     {
-                        Name = "Allow Adults",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.AllowAdults".Translate(),
                         Type = FieldType.Checkbox,
-                        CurrentValue = allowAdults ? "Yes" : "No",
+                        CurrentValue = BoolDisplay(allowAdults),
+                        BoolValue = allowAdults,
                         SetValue = (val) => {
-                            bool enable = val is bool b ? b : val?.ToString() == "Yes";
+                            bool enable = val is bool b && b;
                             int stages = Convert.ToInt32(devStagesField.GetValue(part));
                             if (enable) stages |= 8; else stages &= ~8;
                             devStagesField.SetValue(part, Enum.ToObject(devStagesField.FieldType, stages));
@@ -1091,7 +1099,7 @@ namespace RimWorldAccess
                 var currentRange = (IntRange)ageRangeField.GetValue(part);
                 fields.Add(new PartField
                 {
-                    Name = "Minimum Age",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.MinimumAge".Translate(),
                     Type = FieldType.Quantity,
                     CurrentValue = currentRange.min.ToString(),
                     Data = new int[] { 15, 120 }, // Game limits from DoEditInterface
@@ -1108,7 +1116,7 @@ namespace RimWorldAccess
                 });
                 fields.Add(new PartField
                 {
-                    Name = "Maximum Age",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.MaximumAge".Translate(),
                     Type = FieldType.Quantity,
                     CurrentValue = currentRange.max.ToString(),
                     Data = new int[] { 19, 120 }, // Game min-max is 19
@@ -1133,15 +1141,15 @@ namespace RimWorldAccess
                 if (mechKindField != null)
                 {
                     var currentKind = mechKindField.GetValue(part);
-                    string currentLabel = "Random";
+                    string currentLabel = (string)"Random".Translate();
                     if (currentKind != null)
                     {
                         var labelProp = currentKind.GetType().GetProperty("LabelCap");
-                        currentLabel = labelProp?.GetValue(currentKind)?.ToString() ?? "Random";
+                        currentLabel = labelProp?.GetValue(currentKind)?.ToString() ?? "Random".Translate();
                     }
                     fields.Add(new PartField
                     {
-                        Name = "Mech Type",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.MechType".Translate(),
                         Type = FieldType.Dropdown,
                         CurrentValue = currentLabel,
                         Data = GetStartingMechOptions(),
@@ -1156,7 +1164,7 @@ namespace RimWorldAccess
                     float currentChance = (float)mechChanceField.GetValue(part);
                     fields.Add(new PartField
                     {
-                        Name = "Mechanitor Oversight Chance",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.MechanitorOversightChance".Translate(),
                         Type = FieldType.Quantity,
                         CurrentValue = $"{currentChance * 100:F0}%",
                         Data = new float[] { 0f, 1f },
@@ -1187,9 +1195,9 @@ namespace RimWorldAccess
 
                     fields.Add(new PartField
                     {
-                        Name = "Dialog Text",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.DialogText".Translate(),
                         Type = FieldType.Text,
-                        CurrentValue = string.IsNullOrEmpty(displayText) ? "(empty)" : displayText,
+                        CurrentValue = string.IsNullOrEmpty(displayText) ? (string)"RimWorldAccess.ScenarioBuilder.Value.Empty".Translate() : displayText,
                         Data = fullText, // Store full text for editing
                         SetValue = (val) => textField.SetValue(part, val)
                     });
@@ -1205,9 +1213,9 @@ namespace RimWorldAccess
                     var currentIncident = incidentField.GetValue(part) as IncidentDef;
                     fields.Add(new PartField
                     {
-                        Name = "Incident",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Incident".Translate(),
                         Type = FieldType.Dropdown,
-                        CurrentValue = currentIncident?.LabelCap ?? "None",
+                        CurrentValue = currentIncident?.LabelCap ?? "None".Translate(),
                         Data = GetIncidentDefOptions(), // Reuse existing helper
                         SetValue = (val) => incidentField.SetValue(part, val)
                     });
@@ -1224,9 +1232,9 @@ namespace RimWorldAccess
                     var currentStat = statField.GetValue(part) as StatDef;
                     fields.Add(new PartField
                     {
-                        Name = "Stat",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Stat".Translate(),
                         Type = FieldType.Dropdown,
-                        CurrentValue = currentStat?.LabelCap ?? "None",
+                        CurrentValue = currentStat?.LabelCap ?? "None".Translate(),
                         Data = GetStatDefOptions(),
                         SetValue = (val) => statField.SetValue(part, val)
                     });
@@ -1240,7 +1248,7 @@ namespace RimWorldAccess
                     float currentFactor = (float)factorField.GetValue(part);
                     fields.Add(new PartField
                     {
-                        Name = "Factor",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Factor".Translate(),
                         Type = FieldType.Quantity,
                         CurrentValue = $"{currentFactor * 100:F0}%",
                         Data = new float[] { 0f, 100f }, // 0-10000% range in game
@@ -1259,9 +1267,9 @@ namespace RimWorldAccess
                     var currentCondition = conditionField.GetValue(part) as GameConditionDef;
                     fields.Add(new PartField
                     {
-                        Name = "Condition",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Condition".Translate(),
                         Type = FieldType.Dropdown,
-                        CurrentValue = currentCondition?.LabelCap ?? "None",
+                        CurrentValue = currentCondition?.LabelCap ?? "None".Translate(),
                         Data = GetPermanentGameConditionOptions(),
                         SetValue = (val) => conditionField.SetValue(part, val)
                     });
@@ -1277,9 +1285,9 @@ namespace RimWorldAccess
                     var currentBuilding = buildingField.GetValue(part) as ThingDef;
                     fields.Add(new PartField
                     {
-                        Name = "Building",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Building".Translate(),
                         Type = FieldType.Dropdown,
-                        CurrentValue = currentBuilding?.LabelCap ?? "None",
+                        CurrentValue = currentBuilding?.LabelCap ?? "None".Translate(),
                         Data = GetBuildableThingDefOptions(),
                         SetValue = (val) => buildingField.SetValue(part, val)
                     });
@@ -1296,9 +1304,9 @@ namespace RimWorldAccess
                     var currentNeed = needField.GetValue(part) as NeedDef;
                     fields.Add(new PartField
                     {
-                        Name = "Need",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Need".Translate(),
                         Type = FieldType.Dropdown,
-                        CurrentValue = currentNeed?.LabelCap ?? "None",
+                        CurrentValue = currentNeed?.LabelCap ?? "None".Translate(),
                         Data = GetNeedDefOptions(),
                         SetValue = (val) => needField.SetValue(part, val)
                     });
@@ -1312,7 +1320,7 @@ namespace RimWorldAccess
 
                     fields.Add(new PartField
                     {
-                        Name = "Minimum Level",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.MinimumLevel".Translate(),
                         Type = FieldType.Quantity,
                         CurrentValue = $"{currentRange.min * 100:F0}%",
                         Data = new float[] { 0f, 1f },
@@ -1326,7 +1334,7 @@ namespace RimWorldAccess
 
                     fields.Add(new PartField
                     {
-                        Name = "Maximum Level",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.MaximumLevel".Translate(),
                         Type = FieldType.Quantity,
                         CurrentValue = $"{currentRange.max * 100:F0}%",
                         Data = new float[] { 0f, 1f },
@@ -1351,7 +1359,7 @@ namespace RimWorldAccess
                     float currentDuration = (float)durationField.GetValue(part);
                     fields.Add(new PartField
                     {
-                        Name = "Duration (Days)",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.DurationDays".Translate(),
                         Type = FieldType.Quantity,
                         CurrentValue = currentDuration.ToString("F0"),
                         Data = new float[] { 0f, 1000f },
@@ -1371,7 +1379,7 @@ namespace RimWorldAccess
                     float currentRadius = (float)radiusField.GetValue(part);
                     fields.Add(new PartField
                     {
-                        Name = "Explosion Radius",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.ExplosionRadius".Translate(),
                         Type = FieldType.Quantity,
                         CurrentValue = currentRadius.ToString("F1"),
                         Data = new float[] { 0.1f, 50f },
@@ -1386,9 +1394,9 @@ namespace RimWorldAccess
                     var currentDamage = damageField.GetValue(part) as DamageDef;
                     fields.Add(new PartField
                     {
-                        Name = "Damage Type",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.DamageType".Translate(),
                         Type = FieldType.Dropdown,
-                        CurrentValue = currentDamage?.LabelCap ?? "None",
+                        CurrentValue = currentDamage?.LabelCap ?? "None".Translate(),
                         Data = GetExplosionDamageDefOptions(),
                         SetValue = (val) => damageField.SetValue(part, val)
                     });
@@ -1406,7 +1414,7 @@ namespace RimWorldAccess
                     string questLabel;
                     if (currentQuest == null)
                     {
-                        questLabel = "None";
+                        questLabel = (string)"None".Translate();
                     }
                     else if (currentQuest.label.NullOrEmpty())
                     {
@@ -1418,7 +1426,7 @@ namespace RimWorldAccess
                     }
                     fields.Add(new PartField
                     {
-                        Name = "Quest",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Quest".Translate(),
                         Type = FieldType.Dropdown,
                         CurrentValue = questLabel,
                         Data = GetQuestScriptDefOptions(),
@@ -1438,7 +1446,7 @@ namespace RimWorldAccess
                     string questLabel;
                     if (currentQuest == null)
                     {
-                        questLabel = "None";
+                        questLabel = (string)"None".Translate();
                     }
                     else if (currentQuest.label.NullOrEmpty())
                     {
@@ -1450,7 +1458,7 @@ namespace RimWorldAccess
                     }
                     fields.Add(new PartField
                     {
-                        Name = "Quest",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Quest".Translate(),
                         Type = FieldType.Dropdown,
                         CurrentValue = questLabel,
                         Data = GetQuestScriptDefOptions(),
@@ -1469,9 +1477,9 @@ namespace RimWorldAccess
                     var currentMapGen = mapGenField.GetValue(part) as MapGeneratorDef;
                     fields.Add(new PartField
                     {
-                        Name = "Map Generator",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.MapGenerator".Translate(),
                         Type = FieldType.Dropdown,
-                        CurrentValue = currentMapGen?.LabelCap ?? "None",
+                        CurrentValue = currentMapGen?.LabelCap ?? "None".Translate(),
                         Data = GetMapGeneratorDefOptions(),
                         SetValue = (val) => mapGenField.SetValue(part, val)
                     });
@@ -1484,9 +1492,9 @@ namespace RimWorldAccess
                     var currentLayer = layerDefField.GetValue(part) as PlanetLayerDef;
                     fields.Add(new PartField
                     {
-                        Name = "Planet Layer",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.PlanetLayer".Translate(),
                         Type = FieldType.Dropdown,
-                        CurrentValue = currentLayer?.LabelCap ?? "None",
+                        CurrentValue = currentLayer?.LabelCap ?? "None".Translate(),
                         Data = GetPlanetLayerOptions(),
                         SetValue = (val) => layerDefField.SetValue(part, val)
                     });
@@ -1500,11 +1508,11 @@ namespace RimWorldAccess
                 if (methodField != null)
                 {
                     var currentMethod = methodField.GetValue(part);
-                    string currentLabel = currentMethod?.ToString() ?? "None";
+                    string currentLabel = currentMethod?.ToString() ?? "None".Translate();
 
                     fields.Add(new PartField
                     {
-                        Name = "Generation Method",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.GenerationMethod".Translate(),
                         Type = FieldType.Dropdown,
                         CurrentValue = currentLabel,
                         Data = GetMonolithGenerationMethodOptions(),
@@ -1524,7 +1532,7 @@ namespace RimWorldAccess
 
                     fields.Add(new PartField
                     {
-                        Name = "Activation Delay (Days)",
+                        Name = (string)"RimWorldAccess.ScenarioBuilder.Field.ActivationDelayDays".Translate(),
                         Type = FieldType.Quantity,
                         CurrentValue = currentDays.ToString("F0"),
                         Data = new float[] { 0f, 1000f },
@@ -1592,7 +1600,7 @@ namespace RimWorldAccess
         private static List<(string label, object value)> GetAnimalOptions()
         {
             var options = new List<(string, object)>();
-            options.Add(("Random Pet", null));
+            options.Add(((string)"RimWorldAccess.ScenarioBuilder.Value.RandomPet".Translate(), null));
             foreach (var kind in DefDatabase<PawnKindDef>.AllDefs.Where(k => k.RaceProps.Animal).OrderBy(k => k.label))
             {
                 options.Add((kind.LabelCap, kind));
@@ -1715,7 +1723,7 @@ namespace RimWorldAccess
         {
             var options = new List<(string, object)>();
             // Add "Default" option (null value for QualityCategory?)
-            options.Add(("Default", null));
+            options.Add(((string)"Default".Translate(), null));
 
             foreach (QualityCategory quality in QualityUtility.AllQualityCategories)
             {
@@ -1747,19 +1755,71 @@ namespace RimWorldAccess
             return options;
         }
 
-        private static List<(string label, object value)> GetYesNoOptions()
+        /// <summary>
+        /// Localized "Yes"/"No" display string for a boolean checkbox value (reuses vanilla keys).
+        /// </summary>
+        internal static string BoolDisplay(bool value) =>
+            value ? (string)"Yes".Translate() : (string)"No".Translate();
+
+        /// <summary>
+        /// Localized one-word hint describing how a field is edited (dropdown/quantity/checkbox/text).
+        /// </summary>
+        private static string TypeHint(FieldType type)
         {
-            return new List<(string, object)>
+            switch (type)
             {
-                ("Yes", "Yes"),
-                ("No", "No")
-            };
+                case FieldType.Dropdown: return (string)"RimWorldAccess.ScenarioBuilder.Announce.TypeHintDropdown".Translate();
+                case FieldType.Quantity: return (string)"RimWorldAccess.ScenarioBuilder.Announce.TypeHintQuantity".Translate();
+                case FieldType.Checkbox: return (string)"RimWorldAccess.ScenarioBuilder.Announce.TypeHintCheckbox".Translate();
+                default: return (string)"RimWorldAccess.ScenarioBuilder.Announce.TypeHintText".Translate();
+            }
+        }
+
+        /// <summary>Localized "1 field" / "N fields".</summary>
+        private static string FieldCount(int n) => n == 1
+            ? (string)"RimWorldAccess.ScenarioBuilder.Announce.FieldCountOne".Translate()
+            : (string)"RimWorldAccess.ScenarioBuilder.Announce.FieldCountMany".Translate(n);
+
+        /// <summary>Localized "1 item" / "N items".</summary>
+        private static string ItemCount(int n) => n == 1
+            ? (string)"RimWorldAccess.ScenarioBuilder.Announce.ItemCountOne".Translate()
+            : (string)"RimWorldAccess.ScenarioBuilder.Announce.ItemCountMany".Translate(n);
+
+        /// <summary>Localized "checked" / "unchecked" word for a boolean checkbox state.</summary>
+        private static string CheckState(bool value) => value
+            ? (string)"RimWorldAccess.ScenarioBuilder.PartEdit.Checked".Translate()
+            : (string)"RimWorldAccess.ScenarioBuilder.PartEdit.Unchecked".Translate();
+
+        /// <summary>Localized list-item label "{count}x {label}" with an optional "(Required)" suffix.</summary>
+        private static string ListItemCountLabel(int count, string label, bool required)
+        {
+            string baseLabel = (string)"RimWorldAccess.ScenarioBuilder.ListItemCount".Translate(count, label);
+            return required
+                ? baseLabel + (string)"RimWorldAccess.ScenarioBuilder.RequiredSuffix".Translate()
+                : baseLabel;
+        }
+
+        /// <summary>
+        /// Localized display word for a planet-layer-connection zoom mode. The argument is the
+        /// language-independent C# enum name. Prefers the game's own key, then our keys.
+        /// </summary>
+        private static string ZoomModeDisplay(string enumName)
+        {
+            string vanillaKey = "ScenPart_PlanetLayerConnections_" + enumName;
+            if (vanillaKey.CanTranslate())
+                return (string)vanillaKey.Translate();
+            switch (enumName)
+            {
+                case "ZoomIn": return (string)"RimWorldAccess.ScenarioBuilder.ZoomIn".Translate();
+                case "ZoomOut": return (string)"RimWorldAccess.ScenarioBuilder.ZoomOut".Translate();
+                default: return (string)"None".Translate();
+            }
         }
 
         private static List<(string label, object value)> GetStartingMechOptions()
         {
             var options = new List<(string, object)>();
-            options.Add(("Random", null));
+            options.Add(((string)"Random".Translate(), null));
 
             foreach (var kind in DefDatabase<PawnKindDef>.AllDefs
                 .Where(k => k.RaceProps != null && k.RaceProps.IsMechanoid)
@@ -2001,16 +2061,7 @@ namespace RimWorldAccess
             {
                 foreach (var value in Enum.GetValues(zoomModeType))
                 {
-                    string label = value.ToString();
-                    // Try to get translated label
-                    string translationKey = $"ScenPart_PlanetLayerConnections_{label}";
-                    if (translationKey.CanTranslate())
-                        label = translationKey.Translate();
-                    else if (label == "ZoomIn")
-                        label = "Zoom In";
-                    else if (label == "ZoomOut")
-                        label = "Zoom Out";
-                    options.Add((label, value));
+                    options.Add((ZoomModeDisplay(value.ToString()), value));
                 }
             }
             return options;
@@ -2074,8 +2125,8 @@ namespace RimWorldAccess
                 int count = countField != null ? (int)countField.GetValue(item) : 1;
                 bool required = requiredField != null && (bool)requiredField.GetValue(item);
 
-                string kindLabel = kindDef?.LabelCap ?? "Unknown";
-                string label = $"{count}x {kindLabel}" + (required ? " (Required)" : "");
+                string kindLabel = kindDef?.LabelCap ?? "Unknown".Translate().CapitalizeFirst();
+                string label = ListItemCountLabel(count, kindLabel, required);
 
                 var listItem = new ListItemData
                 {
@@ -2090,7 +2141,7 @@ namespace RimWorldAccess
                 int capturedIndex = i;
                 listItem.Fields.Add(new PartField
                 {
-                    Name = "Count",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Count".Translate(),
                     Type = FieldType.Quantity,
                     CurrentValue = count.ToString(),
                     Data = new int[] { 1, 10 },
@@ -2107,7 +2158,7 @@ namespace RimWorldAccess
 
                 listItem.Fields.Add(new PartField
                 {
-                    Name = "Pawn Kind",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.PawnKind".Translate(),
                     Type = FieldType.Dropdown,
                     CurrentValue = kindLabel,
                     Data = GetPawnKindDefOptions(),
@@ -2124,9 +2175,10 @@ namespace RimWorldAccess
 
                 listItem.Fields.Add(new PartField
                 {
-                    Name = "Required at Start",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.RequiredAtStart".Translate(),
                     Type = FieldType.Checkbox,
-                    CurrentValue = required ? "Yes" : "No",
+                    CurrentValue = BoolDisplay(required),
+                    BoolValue = required,
                     Data = null,
                     SetValue = (val) =>
                     {
@@ -2134,7 +2186,7 @@ namespace RimWorldAccess
                         if (list != null && capturedIndex < list.Count)
                         {
                             var entry = list[capturedIndex];
-                            bool newVal = val is bool b ? b : val?.ToString() == "Yes";
+                            bool newVal = val is bool b && b;
                             requiredField.SetValue(entry, newVal);
                         }
                     }
@@ -2171,8 +2223,8 @@ namespace RimWorldAccess
                 int count = countField != null ? (int)countField.GetValue(item) : 1;
                 bool required = requiredField != null && (bool)requiredField.GetValue(item);
 
-                string xenoLabel = xenotype?.LabelCap ?? "Unknown";
-                string label = $"{count}x {xenoLabel}" + (required ? " (Required)" : "");
+                string xenoLabel = xenotype?.LabelCap ?? "Unknown".Translate().CapitalizeFirst();
+                string label = ListItemCountLabel(count, xenoLabel, required);
 
                 var listItem = new ListItemData
                 {
@@ -2186,7 +2238,7 @@ namespace RimWorldAccess
                 int capturedIndex = i;
                 listItem.Fields.Add(new PartField
                 {
-                    Name = "Count",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Count".Translate(),
                     Type = FieldType.Quantity,
                     CurrentValue = count.ToString(),
                     Data = new int[] { 1, 10 },
@@ -2203,7 +2255,7 @@ namespace RimWorldAccess
 
                 listItem.Fields.Add(new PartField
                 {
-                    Name = "Xenotype",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Xenotype".Translate(),
                     Type = FieldType.Dropdown,
                     CurrentValue = xenoLabel,
                     Data = GetXenotypeDefOptions(),
@@ -2220,9 +2272,10 @@ namespace RimWorldAccess
 
                 listItem.Fields.Add(new PartField
                 {
-                    Name = "Required at Start",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.RequiredAtStart".Translate(),
                     Type = FieldType.Checkbox,
-                    CurrentValue = required ? "Yes" : "No",
+                    CurrentValue = BoolDisplay(required),
+                    BoolValue = required,
                     Data = null,
                     SetValue = (val) =>
                     {
@@ -2230,7 +2283,7 @@ namespace RimWorldAccess
                         if (list != null && capturedIndex < list.Count)
                         {
                             var entry = list[capturedIndex];
-                            bool newVal = val is bool b ? b : val?.ToString() == "Yes";
+                            bool newVal = val is bool b && b;
                             requiredField.SetValue(entry, newVal);
                         }
                     }
@@ -2268,7 +2321,7 @@ namespace RimWorldAccess
                 bool required = requiredField != null && (bool)requiredField.GetValue(item);
 
                 string mutantLabel = mutant?.LabelCap ?? "None".Translate().CapitalizeFirst();
-                string label = $"{count}x {mutantLabel}" + (required ? " (Required)" : "");
+                string label = ListItemCountLabel(count, mutantLabel, required);
 
                 var listItem = new ListItemData
                 {
@@ -2282,7 +2335,7 @@ namespace RimWorldAccess
                 int capturedIndex = i;
                 listItem.Fields.Add(new PartField
                 {
-                    Name = "Count",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.Count".Translate(),
                     Type = FieldType.Quantity,
                     CurrentValue = count.ToString(),
                     Data = new int[] { 1, 10 },
@@ -2299,7 +2352,7 @@ namespace RimWorldAccess
 
                 listItem.Fields.Add(new PartField
                 {
-                    Name = "Mutant Type",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.MutantType".Translate(),
                     Type = FieldType.Dropdown,
                     CurrentValue = mutantLabel,
                     Data = GetMutantDefOptions(),
@@ -2316,9 +2369,10 @@ namespace RimWorldAccess
 
                 listItem.Fields.Add(new PartField
                 {
-                    Name = "Required at Start",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.RequiredAtStart".Translate(),
                     Type = FieldType.Checkbox,
-                    CurrentValue = required ? "Yes" : "No",
+                    CurrentValue = BoolDisplay(required),
+                    BoolValue = required,
                     Data = null,
                     SetValue = (val) =>
                     {
@@ -2326,7 +2380,7 @@ namespace RimWorldAccess
                         if (list != null && capturedIndex < list.Count)
                         {
                             var entry = list[capturedIndex];
-                            bool newVal = val is bool b ? b : val?.ToString() == "Yes";
+                            bool newVal = val is bool b && b;
                             requiredField.SetValue(entry, newVal);
                         }
                     }
@@ -2366,11 +2420,12 @@ namespace RimWorldAccess
                 var zoomMode = zoomModeField?.GetValue(item);
                 float fuelCost = fuelCostField != null ? (float)fuelCostField.GetValue(item) : 0f;
 
-                string zoomLabel = zoomMode?.ToString() ?? "None";
-                if (zoomLabel == "ZoomIn") zoomLabel = "Zoom In";
-                else if (zoomLabel == "ZoomOut") zoomLabel = "Zoom Out";
-
-                string label = $"Connection to {tag}" + (zoomLabel != "None" ? $" ({zoomLabel})" : "");
+                // zoomMode.ToString() is the C# enum name (language-independent), used only to
+                // decide presence; the user-facing zoom word is localized via ZoomModeDisplay.
+                string zoomEnum = zoomMode?.ToString() ?? "None";
+                string label = zoomEnum != "None"
+                    ? (string)"RimWorldAccess.ScenarioBuilder.ConnectionToWithZoom".Translate(tag, ZoomModeDisplay(zoomEnum))
+                    : (string)"RimWorldAccess.ScenarioBuilder.ConnectionTo".Translate(tag);
 
                 var listItem = new ListItemData
                 {
@@ -2385,7 +2440,7 @@ namespace RimWorldAccess
 
                 listItem.Fields.Add(new PartField
                 {
-                    Name = "Target Layer",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.TargetLayer".Translate(),
                     Type = FieldType.Dropdown,
                     CurrentValue = tag,
                     Data = GetAvailableTagOptions(part, connectionsList),
@@ -2414,9 +2469,9 @@ namespace RimWorldAccess
 
                 listItem.Fields.Add(new PartField
                 {
-                    Name = "Zoom Mode",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.ZoomMode".Translate(),
                     Type = FieldType.Dropdown,
-                    CurrentValue = zoomLabel,
+                    CurrentValue = ZoomModeDisplay(zoomEnum),
                     Data = GetZoomModeOptions(),
                     SetValue = (val) =>
                     {
@@ -2431,7 +2486,7 @@ namespace RimWorldAccess
 
                 listItem.Fields.Add(new PartField
                 {
-                    Name = "Fuel Cost",
+                    Name = (string)"RimWorldAccess.ScenarioBuilder.Field.FuelCost".Translate(),
                     Type = FieldType.Quantity,
                     CurrentValue = fuelCost.ToString("F1"),
                     Data = new float[] { 0f, 10000f },
@@ -2572,31 +2627,31 @@ namespace RimWorldAccess
             string typeName = part.GetType().Name;
 
             System.Collections.IList list = null;
-            string itemType = "item";
+            string itemType = (string)"RimWorldAccess.ScenarioBuilder.ItemType.Item".Translate();
 
             if (typeName == "ScenPart_ConfigPage_ConfigureStartingPawns_KindDefs")
             {
                 var kindCountsField = part.GetType().GetField("kindCounts", BindingFlags.Public | BindingFlags.Instance);
                 list = kindCountsField?.GetValue(part) as System.Collections.IList;
-                itemType = "pawn kind entry";
+                itemType = (string)"RimWorldAccess.ScenarioBuilder.ItemType.PawnKindEntry".Translate();
             }
             else if (ModsConfig.BiotechActive && typeName == "ScenPart_ConfigPage_ConfigureStartingPawns_Xenotypes")
             {
                 var xenotypeCountsField = part.GetType().GetField("xenotypeCounts", BindingFlags.Public | BindingFlags.Instance);
                 list = xenotypeCountsField?.GetValue(part) as System.Collections.IList;
-                itemType = "xenotype entry";
+                itemType = (string)"RimWorldAccess.ScenarioBuilder.ItemType.XenotypeEntry".Translate();
             }
             else if (ModsConfig.AnomalyActive && typeName == "ScenPart_ConfigPage_ConfigureStartingPawns_Mutants")
             {
                 var mutantCountsField = part.GetType().GetField("mutantCounts", BindingFlags.Public | BindingFlags.Instance);
                 list = mutantCountsField?.GetValue(part) as System.Collections.IList;
-                itemType = "mutant entry";
+                itemType = (string)"RimWorldAccess.ScenarioBuilder.ItemType.MutantEntry".Translate();
             }
             else if (typeName == "ScenPart_PlanetLayer")
             {
                 var connectionsField = part.GetType().GetField("connections", BindingFlags.Public | BindingFlags.Instance);
                 list = connectionsField?.GetValue(part) as System.Collections.IList;
-                itemType = "connection";
+                itemType = (string)"RimWorldAccess.ScenarioBuilder.ItemType.Connection".Translate();
             }
 
             if (list != null && listItemIndex >= 0 && listItemIndex < list.Count)
@@ -2753,19 +2808,19 @@ namespace RimWorldAccess
             switch (metadataIndex)
             {
                 case 0:
-                    editingFieldName = "Title";
+                    editingFieldName = (string)"Title".Translate();
                     current = currentScenario.name ?? string.Empty;
                     maxLen = 55;
                     labelKey = "RimWorldAccess.TextInput.LabelScenarioTitle";
                     break;
                 case 1:
-                    editingFieldName = "Summary";
+                    editingFieldName = (string)"Summary".Translate();
                     current = currentScenario.summary ?? string.Empty;
                     maxLen = 300;
                     labelKey = "RimWorldAccess.TextInput.LabelScenarioSummary";
                     break;
                 case 2:
-                    editingFieldName = "Description";
+                    editingFieldName = (string)"Description".Translate();
                     current = currentScenario.description ?? string.Empty;
                     maxLen = 1000;
                     labelKey = "RimWorldAccess.TextInput.LabelScenarioDescription";
@@ -3036,7 +3091,7 @@ namespace RimWorldAccess
             // Handle "Add New Item" action
             if (data.IsAddAction)
             {
-                announcement = "Add New Item. Press Enter to add.";
+                announcement = (string)"RimWorldAccess.ScenarioBuilder.Announce.AddNewItem".Translate();
             }
             // Handle list items (level 1 in list-based parts)
             else if (data.IsListItem)
@@ -3046,12 +3101,12 @@ namespace RimWorldAccess
                 {
                     string state = TreeNavigationHelper.GetExpansionStateWord(item);
                     int fieldCount = data.ListItemData?.Fields.Count ?? 0;
-                    string fieldCountStr = fieldCount == 1 ? "1 field" : $"{fieldCount} fields";
-                    announcement = $"{itemLabel}, {state}, {fieldCountStr}. Press Delete to remove.";
+                    announcement = (string)"RimWorldAccess.ScenarioBuilder.Announce.ListItemExpandable".Translate(
+                        itemLabel, state, FieldCount(fieldCount));
                 }
                 else
                 {
-                    announcement = $"{itemLabel}. Press Delete to remove.";
+                    announcement = (string)"RimWorldAccess.ScenarioBuilder.Announce.ListItemSimple".Translate(itemLabel);
                 }
             }
             // Single-field items have BOTH AsPart and Field set - treat them as editable fields
@@ -3059,23 +3114,21 @@ namespace RimWorldAccess
             {
                 var part = data.AsPart;
                 var field = data.Field;
-                string typeHint = field.Type == FieldType.Dropdown ? "dropdown" :
-                                  field.Type == FieldType.Quantity ? "quantity" :
-                                  field.Type == FieldType.Checkbox ? "checkbox" : "text";
                 string partLabel = StripTrailingPunctuation(part.Label);
                 string fieldValue = StripTrailingPunctuation(field.CurrentValue);
                 if (field.Type == FieldType.Checkbox)
                 {
-                    string checkState = (fieldValue == "Yes" || fieldValue == "true" || fieldValue == "True") ? "checked" : "unchecked";
-                    announcement = $"{partLabel}, checkbox, {checkState}. Press Enter or Space to toggle.";
+                    announcement = (string)"RimWorldAccess.ScenarioBuilder.Announce.CheckboxField".Translate(
+                        partLabel, CheckState(field.BoolValue));
                 }
                 else
                 {
-                    announcement = $"{partLabel}: {fieldValue}. {typeHint}. Press Enter to edit.";
+                    announcement = (string)"RimWorldAccess.ScenarioBuilder.Announce.EditableField".Translate(
+                        partLabel, fieldValue, TypeHint(field.Type));
                 }
                 if (field.Type == FieldType.Text && field.Data is string fullText && fullText.Length > 60)
                 {
-                    announcement += " Press Insert to read full text.";
+                    announcement += (string)"RimWorldAccess.ScenarioBuilder.Announce.ReadFullTextSuffix".Translate();
                 }
             }
             else if (data.IsPart)
@@ -3083,51 +3136,52 @@ namespace RimWorldAccess
                 var part = data.AsPart;
                 string partLabel = StripTrailingPunctuation(part.Label);
                 string summaryText = StripTrailingPunctuation(part.Summary);
-                string summary = string.IsNullOrEmpty(summaryText) ? "" : $" ({summaryText})";
+                string combinedLabel = string.IsNullOrEmpty(summaryText)
+                    ? partLabel
+                    : (string)"RimWorldAccess.ScenarioBuilder.Announce.LabelWithSummary".Translate(partLabel, summaryText);
 
                 if (item.IsExpandable)
                 {
                     string state = TreeNavigationHelper.GetExpansionStateWord(item);
 
                     int childCount;
+                    string countStr;
                     if (part.IsListPart)
                     {
                         childCount = part.ListItems.Count + part.Fields.Count;
-                        string itemCountStr = childCount == 1 ? "1 item" : $"{childCount} items";
-                        announcement = $"{partLabel}{summary}, {state}, {itemCountStr}";
+                        countStr = ItemCount(childCount);
                     }
                     else
                     {
                         childCount = part.Fields.Count;
-                        string itemCountStr = childCount == 1 ? "1 field" : $"{childCount} fields";
-                        announcement = $"{partLabel}{summary}, {state}, {itemCountStr}";
+                        countStr = FieldCount(childCount);
                     }
+                    announcement = (string)"RimWorldAccess.ScenarioBuilder.Announce.PartExpandable".Translate(
+                        combinedLabel, state, countStr);
                 }
                 else
                 {
-                    announcement = $"{partLabel}{summary}, read only";
+                    announcement = (string)"RimWorldAccess.ScenarioBuilder.Announce.PartReadOnly".Translate(combinedLabel);
                 }
             }
             else if (data.IsField)
             {
                 var field = data.Field;
-                string typeHint = field.Type == FieldType.Dropdown ? "dropdown" :
-                                  field.Type == FieldType.Quantity ? "quantity" :
-                                  field.Type == FieldType.Checkbox ? "checkbox" : "text";
                 string fieldName = StripTrailingPunctuation(field.Name);
                 string fieldValue = StripTrailingPunctuation(field.CurrentValue);
                 if (field.Type == FieldType.Checkbox)
                 {
-                    string checkState = (fieldValue == "Yes" || fieldValue == "true" || fieldValue == "True") ? "checked" : "unchecked";
-                    announcement = $"{fieldName}, checkbox, {checkState}. Press Enter or Space to toggle.";
+                    announcement = (string)"RimWorldAccess.ScenarioBuilder.Announce.CheckboxField".Translate(
+                        fieldName, CheckState(field.BoolValue));
                 }
                 else
                 {
-                    announcement = $"{fieldName}: {fieldValue}. {typeHint}. Press Enter to edit.";
+                    announcement = (string)"RimWorldAccess.ScenarioBuilder.Announce.EditableField".Translate(
+                        fieldName, fieldValue, TypeHint(field.Type));
                 }
                 if (field.Type == FieldType.Text && field.Data is string fullText && fullText.Length > 60)
                 {
-                    announcement += " Press Insert to read full text.";
+                    announcement += (string)"RimWorldAccess.ScenarioBuilder.Announce.ReadFullTextSuffix".Translate();
                 }
             }
             else
