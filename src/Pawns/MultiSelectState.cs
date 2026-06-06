@@ -165,9 +165,7 @@ namespace RimWorldAccess
             var targeter = Find.Targeter;
             if (targeter == null || !targeter.IsTargeting)
                 return false;
-            TolkHelper.Speak(
-                $"Cannot {actionDescription} while targeting. Press Escape to cancel targeting first.",
-                SpeechPriority.High);
+            TolkHelper.Speak("RimWorldAccess.Pawns.MultiSelect.BlockedByTargeting".Loc(), SpeechPriority.High);
             return true;
         }
 
@@ -203,7 +201,7 @@ namespace RimWorldAccess
                 ColonistBarState.SyncBarPosition(pawn);
 
                 int count = selector.SelectedPawns.Count;
-                TolkHelper.Speak($"{pawn.LabelShort} added. Multi-select started. {count} selected.");
+                TolkHelper.SpeakData("RimWorldAccess.Pawns.MultiSelect.AddedStarted".Translate(pawn.LabelShort, count.ToString()).ToString());
                 return;
             }
 
@@ -218,7 +216,7 @@ namespace RimWorldAccess
                     inMultiSelectMode = false;
                     focusedPawn = null;
                     rangeAnchorPawn = null;
-                    TolkHelper.Speak($"{pawn.LabelShort} removed. Multi-select disabled.");
+                    TolkHelper.SpeakData("RimWorldAccess.Pawns.MultiSelect.RemovedDisabled".Translate(pawn.LabelShort).ToString());
                 }
                 else if (remaining == 1)
                 {
@@ -232,14 +230,14 @@ namespace RimWorldAccess
                     focusedPawn = lone;
                     rangeAnchorPawn = null;
                     GizmoNavigationState.PawnJustSelected = true;
-                    TolkHelper.Speak($"{pawn.LabelShort} removed. Multi-select disabled. {lone.LabelShort} selected.");
+                    TolkHelper.SpeakData("RimWorldAccess.Pawns.MultiSelect.RemovedDisabledThenSingle".Translate(pawn.LabelShort, lone.LabelShort).ToString());
                 }
                 else
                 {
                     if (focusedPawn == pawn)
                         focusedPawn = selector.SelectedPawns.First();
                     GizmoNavigationState.PawnJustSelected = true;
-                    TolkHelper.Speak($"{pawn.LabelShort} removed. {remaining} selected.");
+                    TolkHelper.SpeakData("RimWorldAccess.Pawns.MultiSelect.Removed".Translate(pawn.LabelShort, remaining.ToString()).ToString());
                 }
             }
             else
@@ -248,7 +246,7 @@ namespace RimWorldAccess
                 focusedPawn = pawn;
                 GizmoNavigationState.PawnJustSelected = true;
                 int count = selector.SelectedPawns.Count;
-                TolkHelper.Speak($"{pawn.LabelShort} added. {count} selected.");
+                TolkHelper.SpeakData("RimWorldAccess.Pawns.MultiSelect.Added".Translate(pawn.LabelShort, count.ToString()).ToString());
             }
         }
 
@@ -339,7 +337,7 @@ namespace RimWorldAccess
 
             if (anchor == null)
             {
-                TolkHelper.Speak("No pawn selected");
+                TolkHelper.Speak("RimWorldAccess.Guard.NoPawnSelected".Loc());
                 rangeAnchorPawn = null;
                 return false;
             }
@@ -391,11 +389,11 @@ namespace RimWorldAccess
                 {
                     inMultiSelectMode = false;
                     rangeAnchorPawn = null;
-                    TolkHelper.Speak($"{oldFocus.LabelShort} removed. Multi-select disabled. {newFocus.LabelShort} selected.");
+                    TolkHelper.SpeakData("RimWorldAccess.Pawns.MultiSelect.RemovedDisabledThenSingle".Translate(oldFocus.LabelShort, newFocus.LabelShort).ToString());
                 }
                 else
                 {
-                    TolkHelper.Speak($"{oldFocus.LabelShort} removed. {newFocus.LabelShort}, {count} selected.");
+                    TolkHelper.SpeakData("RimWorldAccess.Pawns.MultiSelect.RemovedFocusChanged".Translate(oldFocus.LabelShort, newFocus.LabelShort, count.ToString()).ToString());
                 }
             }
             else
@@ -405,9 +403,9 @@ namespace RimWorldAccess
                 int count = selector.SelectedPawns.Count;
 
                 if (!alreadySelected)
-                    TolkHelper.Speak($"{newFocus.LabelShort} added. {count} selected.");
+                    TolkHelper.SpeakData("RimWorldAccess.Pawns.MultiSelect.Added".Translate(newFocus.LabelShort, count.ToString()).ToString());
                 else
-                    TolkHelper.Speak($"{newFocus.LabelShort}, already selected. {count} selected.");
+                    TolkHelper.SpeakData("RimWorldAccess.Pawns.MultiSelect.AlreadySelected".Translate(newFocus.LabelShort, count.ToString()).ToString());
             }
         }
 
@@ -459,12 +457,12 @@ namespace RimWorldAccess
             {
                 string task = focusedPawn.GetJobReport();
                 if (string.IsNullOrEmpty(task))
-                    task = "Idle";
-                TolkHelper.Speak($"Selection cleared. {focusedPawn.LabelShort}, {task}");
+                    task = "RimWorldAccess.Pawns.MultiSelect.Idle".Translate().ToString();
+                TolkHelper.SpeakData("RimWorldAccess.Pawns.MultiSelect.SelectionClearedFocus".Translate(focusedPawn.LabelShort, task).ToString());
             }
             else
             {
-                TolkHelper.Speak("Selection cleared");
+                TolkHelper.Speak("RimWorldAccess.Pawns.MultiSelect.SelectionCleared".Loc());
             }
         }
 
@@ -509,11 +507,11 @@ namespace RimWorldAccess
             {
                 string names = MenuHelper.FormatNameList(
                     selected.Select(p => p.LabelShort).ToList());
-                TolkHelper.Speak($"All selected: {names}. {selected.Count} colonists.");
+                TolkHelper.SpeakData("RimWorldAccess.Pawns.MultiSelect.AllSelectedNamed".Translate(names, selected.Count.ToString()).ToString());
             }
             else
             {
-                TolkHelper.Speak($"All {selected.Count} colonists selected");
+                TolkHelper.SpeakData("RimWorldAccess.Pawns.MultiSelect.AllSelectedCount".Translate(selected.Count.ToString()).ToString());
             }
         }
 

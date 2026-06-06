@@ -209,7 +209,7 @@ namespace RimWorldAccess
                     // sound conveys "can't") — faithful parity, don't invent a message.
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
                     if (!string.IsNullOrEmpty(report.Reason))
-                        TolkHelper.Speak(report.Reason, SpeechPriority.High);
+                        TolkHelper.SpeakData(report.Reason, SpeechPriority.High);
                     return;
                 }
                 newMemes.Remove(meme);
@@ -267,7 +267,7 @@ namespace RimWorldAccess
                 string status = IdeoMemeSelectionHelper.BuildStatusLine(currentDialog);
                 if (!string.IsNullOrEmpty(status))
                     sb.Append(". ").Append(status);
-                TolkHelper.Speak(sb.ToString());
+                TolkHelper.SpeakData(sb.ToString());
             }
         }
 
@@ -326,7 +326,7 @@ namespace RimWorldAccess
                     if (chosen != null)
                     {
                         FocusMemeNode(chosen);
-                        TolkHelper.Speak("Randomize".Translate() + ". " + chosen.LabelCap + ", Selected");
+                        TolkHelper.SpeakData((string)"Randomize".Translate() + ". " + chosen.LabelCap + ", Selected");
                         return;
                     }
                 }
@@ -336,7 +336,7 @@ namespace RimWorldAccess
                     .Where(m => m.category == MemeCategory.Normal)
                     .Select(m => (string)m.LabelCap));
                 if (string.IsNullOrEmpty(names)) names = "None".Translate();
-                TolkHelper.Speak("Randomize".Translate() + ". " + names + ", Selected. "
+                TolkHelper.SpeakData((string)"Randomize".Translate() + ". " + names + ", Selected. "
                     + IdeoMemeSelectionHelper.BuildStatusLine(currentDialog));
             }
             catch (System.Exception ex)
@@ -519,7 +519,7 @@ namespace RimWorldAccess
                     sb.Append(", ").Append(first.IsExpanded ? "expanded" : "collapsed");
             }
 
-            TolkHelper.Speak(sb.ToString(), SpeechPriority.High);
+            TolkHelper.SpeakData(sb.ToString(), SpeechPriority.High);
         }
 
         #endregion

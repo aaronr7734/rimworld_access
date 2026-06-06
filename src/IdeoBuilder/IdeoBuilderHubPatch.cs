@@ -341,7 +341,7 @@ namespace RimWorldAccess
             if (!string.IsNullOrEmpty(err))
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak(err, SpeechPriority.High);
+                TolkHelper.SpeakData(err, SpeechPriority.High);
                 return;
             }
 

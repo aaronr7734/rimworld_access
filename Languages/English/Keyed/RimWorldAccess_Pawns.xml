@@ -113,6 +113,25 @@
   <RimWorldAccess.Pawns.MultiSelect.PawnSummary>{0}, {1}, {2}</RimWorldAccess.Pawns.MultiSelect.PawnSummary>
   <RimWorldAccess.Pawns.MultiSelect.PawnSummaryWithPos>{0}, {1}, {2}. {3}</RimWorldAccess.Pawns.MultiSelect.PawnSummaryWithPos>
   <RimWorldAccess.Pawns.MultiSelect.FocusedTask>{0} - {1}</RimWorldAccess.Pawns.MultiSelect.FocusedTask>
+  <!-- BlockedByTargeting: spoken when a Selector action is attempted during active targeting. -->
+  <RimWorldAccess.Pawns.MultiSelect.BlockedByTargeting>Cannot perform this action while targeting. Press Escape to cancel targeting first.</RimWorldAccess.Pawns.MultiSelect.BlockedByTargeting>
+  <!-- AddedStarted: first pawn added, entering multi-select mode.
+       {0} = pawn label, {1} = total selected count. -->
+  <RimWorldAccess.Pawns.MultiSelect.AddedStarted>{0} added. Multi-select started. {1} selected.</RimWorldAccess.Pawns.MultiSelect.AddedStarted>
+  <!-- RemovedDisabled: last pawn removed, exiting multi-select.
+       {0} = pawn label. -->
+  <RimWorldAccess.Pawns.MultiSelect.RemovedDisabled>{0} removed. Multi-select disabled.</RimWorldAccess.Pawns.MultiSelect.RemovedDisabled>
+  <!-- RemovedDisabledThenSingle: shrunk to one pawn, exiting multi-select.
+       {0} = removed pawn label, {1} = remaining pawn label. -->
+  <RimWorldAccess.Pawns.MultiSelect.RemovedDisabledThenSingle>{0} removed. Multi-select disabled. {1} selected.</RimWorldAccess.Pawns.MultiSelect.RemovedDisabledThenSingle>
+  <!-- RemovedFocusChanged: removed from range, focus moved.
+       {0} = removed pawn label, {1} = new focus label, {2} = count. -->
+  <RimWorldAccess.Pawns.MultiSelect.RemovedFocusChanged>{0} removed. {1}, {2} selected.</RimWorldAccess.Pawns.MultiSelect.RemovedFocusChanged>
+  <!-- SelectionCleared: spoken when clearing multi-select with no focused pawn. -->
+  <RimWorldAccess.Pawns.MultiSelect.SelectionCleared>Selection cleared</RimWorldAccess.Pawns.MultiSelect.SelectionCleared>
+  <!-- SelectionClearedFocus: spoken when clearing multi-select with a focused pawn.
+       {0} = pawn label, {1} = job report. -->
+  <RimWorldAccess.Pawns.MultiSelect.SelectionClearedFocus>Selection cleared. {0}, {1}</RimWorldAccess.Pawns.MultiSelect.SelectionClearedFocus>
 
   <!-- Persistent group slots (MultiSelectGroupComponent, F1-F4).
        Saved/Empty/Recalled: {0} = 1-based slot number; lists, counts,
@@ -267,6 +286,10 @@
   <RimWorldAccess.Pawns.Bar.Rightmost>rightmost</RimWorldAccess.Pawns.Bar.Rightmost>
   <RimWorldAccess.Pawns.Bar.Between>between {0} and {1}</RimWorldAccess.Pawns.Bar.Between>
   <RimWorldAccess.Pawns.Bar.ReorderResult>{0}, position {1}, {2}</RimWorldAccess.Pawns.Bar.ReorderResult>
+  <RimWorldAccess.Pawns.Bar.AlreadyAtLastPosition>Already at last position</RimWorldAccess.Pawns.Bar.AlreadyAtLastPosition>
+  <RimWorldAccess.Pawns.Bar.AlreadyAtFirstPosition>Already at first position</RimWorldAccess.Pawns.Bar.AlreadyAtFirstPosition>
+  <!-- JumpedTo: {0} = pawn label, {1} = tile info summary. -->
+  <RimWorldAccess.Pawns.Bar.JumpedTo>Jumped to {0}. {1}</RimWorldAccess.Pawns.Bar.JumpedTo>
 
   <!-- Pawn announcement composition (AnnouncePawn).
        Bare:           {0} = label, {1} = job task.
@@ -608,6 +631,15 @@
   <RimWorldAccess.Pawns.WorkInfo.EnabledHeader>{0} enabled</RimWorldAccess.Pawns.WorkInfo.EnabledHeader>
   <RimWorldAccess.Pawns.WorkInfo.DisabledHeader>{0} disabled</RimWorldAccess.Pawns.WorkInfo.DisabledHeader>
   <RimWorldAccess.Pawns.WorkInfo.NoWork>No work types enabled</RimWorldAccess.Pawns.WorkInfo.NoWork>
+
+  <!-- =================================================================
+       Pawn skills table (PawnSkillsTableState).
+       Read-only 2D table: rows = colonists, columns = SkillDefs.
+       Opened: {0} = colonist count, {1} = skill count.
+       Sort keys reuse RimWorldAccess.Animals.Sort.* (CannotSort/Cleared/SortedBy).
+       ================================================================= -->
+  <RimWorldAccess.Pawns.SkillsTable.Opened>Skills, {0} colonists, {1} skills</RimWorldAccess.Pawns.SkillsTable.Opened>
+  <RimWorldAccess.Pawns.SkillsTable.Closed>Skills table closed</RimWorldAccess.Pawns.SkillsTable.Closed>
 
   <!-- =================================================================
        Drug policy editor (DrugPolicyEditorState) announcement glue.

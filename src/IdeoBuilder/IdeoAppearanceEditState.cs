@@ -326,7 +326,7 @@ namespace RimWorldAccess
                     ideo.style.SetFrequency(styleItem, captured);
                 }));
             }
-            TolkHelper.Speak(styleItem.LabelCap);
+            TolkHelper.SpeakData(styleItem.LabelCap);
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
         }
 
@@ -366,7 +366,7 @@ namespace RimWorldAccess
                         ideo.style.SetFrequency(s, captured);
                 }));
             }
-            TolkHelper.Speak(catRef.Category.LabelCap);
+            TolkHelper.SpeakData(catRef.Category.LabelCap);
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
         }
 
@@ -461,7 +461,7 @@ namespace RimWorldAccess
             sb.Append(". ").Append(IdeoBuilderHelper.AppearanceSummary(ideo));
             if (treeNav.Count > 0)
                 sb.Append(". ").Append(treeNav.VisibleItems[0].Label);
-            TolkHelper.Speak(sb.ToString(), SpeechPriority.High);
+            TolkHelper.SpeakData(sb.ToString(), SpeechPriority.High);
         }
 
         #endregion

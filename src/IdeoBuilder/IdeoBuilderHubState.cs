@@ -132,10 +132,10 @@ namespace RimWorldAccess
             sb.Append(IdeoBuilderHelper.BuildOpeningAnnouncement(currentIdeo));
             // Hint the two-tab shell once on open (only when other ideoligions exist to browse).
             if (allIdeos.Count > 1)
-                sb.Append(". ").Append("Tab for the ideoligion list");
+                sb.Append(". ").Append((string)"RimWorldAccess.Ideology.Builder.TabForIdeoList".Translate());
             sb.Append(". ");
             sb.Append(BuildCurrentSectionAnnouncement());
-            TolkHelper.Speak(sb.ToString());
+            TolkHelper.SpeakData(sb.ToString());
         }
 
         #endregion
@@ -350,7 +350,7 @@ namespace RimWorldAccess
         {
             if (allIdeos.Count == 0)
             {
-                TolkHelper.Speak(MainButtonDefOf.Ideos.LabelCap + ". " + "NoneLower".Translate());
+                TolkHelper.SpeakData(MainButtonDefOf.Ideos.LabelCap + ". " + (string)"NoneLower".Translate());
                 return;
             }
             if (listIndex < 0 || listIndex >= allIdeos.Count) listIndex = 0;
@@ -365,14 +365,14 @@ namespace RimWorldAccess
             string position = MenuHelper.FormatPosition(listIndex, allIdeos.Count);
             if (!string.IsNullOrEmpty(position))
                 sb.Append(". ").Append(position);
-            TolkHelper.Speak(sb.ToString());
+            TolkHelper.SpeakData(sb.ToString());
         }
 
         private static void AnnounceListWithSearch()
         {
             if (allIdeos.Count == 0 || listIndex < 0 || listIndex >= allIdeos.Count) return;
             string name = allIdeos[listIndex].name;
-            TolkHelper.Speak($"{name}, {listTypeahead.CurrentMatchPosition} of {listTypeahead.MatchCount} matches for '{listTypeahead.SearchBuffer}'");
+            TolkHelper.SpeakData(name + listTypeahead.BuildSearchContextSuffix());
         }
 
         #endregion
@@ -435,7 +435,9 @@ namespace RimWorldAccess
             if (section.Disabled)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak(string.IsNullOrEmpty(section.DisabledReason) ? "Unavailable" : section.DisabledReason);
+                TolkHelper.SpeakData(string.IsNullOrEmpty(section.DisabledReason)
+                    ? (string)"RimWorldAccess.Ideology.Builder.Unavailable".Translate()
+                    : section.DisabledReason);
                 return;
             }
 
@@ -485,7 +487,7 @@ namespace RimWorldAccess
         {
             string text = BuildCurrentSectionAnnouncement();
             if (!string.IsNullOrEmpty(text))
-                TolkHelper.Speak(text);
+                TolkHelper.SpeakData(text);
         }
 
         private static void AnnounceWithSearch()
@@ -493,8 +495,10 @@ namespace RimWorldAccess
             var section = SelectedSection;
             if (section == null) return;
 
-            string searchInfo = $", {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
-            TolkHelper.Speak($"{section.Label}: {section.ValueSummary}{searchInfo}");
+            string baseText = string.IsNullOrEmpty(section.ValueSummary)
+                ? section.Label
+                : $"{section.Label}: {section.ValueSummary}";
+            TolkHelper.SpeakData(baseText + typeahead.BuildSearchContextSuffix());
         }
 
         public static void AnnounceValidationOrImpact()
@@ -503,7 +507,7 @@ namespace RimWorldAccess
             string err = IdeoBuilderHelper.BuildValidationSummary(currentIdeo);
             if (!string.IsNullOrEmpty(err))
             {
-                TolkHelper.Speak(err, SpeechPriority.High);
+                TolkHelper.SpeakData(err, SpeechPriority.High);
                 return;
             }
 
@@ -525,7 +529,7 @@ namespace RimWorldAccess
             }
 
             if (sb.Length > 0)
-                TolkHelper.Speak(sb.ToString());
+                TolkHelper.SpeakData(sb.ToString());
         }
 
         #endregion

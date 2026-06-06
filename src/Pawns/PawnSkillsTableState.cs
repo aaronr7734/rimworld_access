@@ -37,12 +37,12 @@ namespace RimWorldAccess
             if (IsActive) return;
             if (Current.ProgramState != ProgramState.Playing)
             {
-                TolkHelper.Speak("Not in game");
+                TolkHelper.Speak("RimWorldAccess.Guard.NotInGame".Loc());
                 return;
             }
             if (Find.CurrentMap == null)
             {
-                TolkHelper.Speak("No map loaded");
+                TolkHelper.Speak("RimWorldAccess.Guard.NoMapLoaded".Loc());
                 return;
             }
 
@@ -54,7 +54,7 @@ namespace RimWorldAccess
 
             if (pawns.Count == 0)
             {
-                TolkHelper.Speak("No colonists available");
+                TolkHelper.Speak("RimWorldAccess.Input.WorkMenu.NoColonistsAvailable".Loc());
                 return;
             }
 
@@ -74,8 +74,7 @@ namespace RimWorldAccess
             tableHelper.CurrentColumnIndex = PawnSkillsTableHelper.Skills.Count > 0 ? 1 : 0;
 
             IsActive = true;
-            TolkHelper.Speak(
-                $"Skills, {pawns.Count} colonists, {PawnSkillsTableHelper.Skills.Count} skills");
+            TolkHelper.SpeakData("RimWorldAccess.Pawns.SkillsTable.Opened".Translate(pawns.Count.ToString(), PawnSkillsTableHelper.Skills.Count.ToString()).ToString());
             AnnounceInitialCell();
         }
 
@@ -83,7 +82,7 @@ namespace RimWorldAccess
         {
             if (!IsActive) return;
             CleanupState();
-            TolkHelper.Speak("Skills table closed");
+            TolkHelper.Speak("RimWorldAccess.Pawns.SkillsTable.Closed".Loc());
         }
 
         private static void CleanupState()
@@ -107,7 +106,7 @@ namespace RimWorldAccess
 
             string cell = tableHelper.BuildCellAnnouncement(pawn, pawns.Count, includeItemName: true);
             string tooltip = PawnSkillsTableHelper.GetColumnTooltip(pawn, CurrentColumnIndex);
-            TolkHelper.Speak(string.IsNullOrEmpty(tooltip) ? cell : $"{cell}. {tooltip}");
+            TolkHelper.SpeakData(string.IsNullOrEmpty(tooltip) ? cell : $"{cell}. {tooltip}");
         }
 
         #endregion
@@ -166,19 +165,19 @@ namespace RimWorldAccess
             var result = tableHelper.ToggleSortByCurrentColumn(pawns, out string direction, out bool sortCleared);
             if (result == null)
             {
-                TolkHelper.Speak($"{tableHelper.GetCurrentColumnName()} cannot be sorted");
+                TolkHelper.SpeakData("RimWorldAccess.Animals.Sort.CannotSort".Translate(tableHelper.GetCurrentColumnName()).ToString());
                 return;
             }
             pawns = result.ToList();
             if (sortCleared)
             {
                 SoundDefOf.Tick_Low.PlayOneShotOnCamera();
-                TolkHelper.Speak("Sort cleared, default order");
+                TolkHelper.Speak("RimWorldAccess.Animals.Sort.Cleared".Loc());
             }
             else
             {
                 SoundDefOf.Tick_High.PlayOneShotOnCamera();
-                TolkHelper.Speak($"Sorted by {tableHelper.GetCurrentColumnName()} ({direction})");
+                TolkHelper.SpeakData("RimWorldAccess.Animals.Sort.SortedBy".Translate(tableHelper.GetCurrentColumnName(), direction).ToString());
             }
             AnnounceCurrentCell(includePawnName: true);
         }
@@ -230,7 +229,7 @@ namespace RimWorldAccess
             Pawn pawn = CurrentPawn;
             if (pawn == null) return;
             string announcement = tableHelper.BuildCellAnnouncement(pawn, pawns.Count, includePawnName, includeColumnName);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         public static void AnnounceWithSearch()
@@ -239,7 +238,7 @@ namespace RimWorldAccess
             Pawn pawn = CurrentPawn;
             if (pawn == null) return;
             string announcement = tableHelper.BuildCellAnnouncementWithSearch(pawn, pawns.Count);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         #endregion

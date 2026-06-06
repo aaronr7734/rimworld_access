@@ -188,7 +188,7 @@ namespace RimWorldAccess
                     fileInfo.Delete();
                     ReloadFilesMethod.Invoke(dialog, null);
                     RebuildFromDialog();
-                    TolkHelper.Speak($"{fileInfo.Name}, removed");
+                    TolkHelper.SpeakData($"{fileInfo.Name}, removed");
                     AnnounceCurrent();
                 },
                 destructive: true));
@@ -211,14 +211,14 @@ namespace RimWorldAccess
             {
                 sb.Append(". ").Append("NoneLower".Translate());
             }
-            TolkHelper.Speak(sb.ToString(), SpeechPriority.High);
+            TolkHelper.SpeakData(sb.ToString(), SpeechPriority.High);
         }
 
         private static void AnnounceCurrent()
         {
             string text = BuildCurrentText();
             if (!string.IsNullOrEmpty(text))
-                TolkHelper.Speak(text);
+                TolkHelper.SpeakData(text);
         }
 
         private static string BuildCurrentText()

@@ -268,7 +268,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("Start of bar");
+                        TolkHelper.Speak("RimWorldAccess.Pawns.Bar.StartOfBar".Loc());
                         return;
                     }
                 }
@@ -329,7 +329,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("Last page");
+                        TolkHelper.Speak("RimWorldAccess.Pawns.Bar.LastPage".Loc());
                     }
                 }
                 else
@@ -345,7 +345,7 @@ namespace RimWorldAccess
                 var mechs = GetMechs();
                 if (mechs.Count == 0)
                 {
-                    TolkHelper.Speak("No mechs on this map");
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NoMechsHere".Loc());
                     return;
                 }
 
@@ -355,7 +355,7 @@ namespace RimWorldAccess
 
                 if (targetPosition / PageSize == CurrentPage)
                 {
-                    TolkHelper.Speak("Last page");
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Bar.LastPage".Loc());
                 }
                 else
                 {
@@ -399,7 +399,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("First page");
+                        TolkHelper.Speak("RimWorldAccess.Pawns.Bar.FirstPage".Loc());
                     }
                 }
             }
@@ -415,7 +415,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    TolkHelper.Speak("First page");
+                    TolkHelper.Speak("RimWorldAccess.Pawns.Bar.FirstPage".Loc());
                 }
             }
         }
@@ -439,7 +439,7 @@ namespace RimWorldAccess
 
             if (targetIndex >= list.Count)
             {
-                TolkHelper.Speak($"No {(onMechSection ? "mech" : "colonist")} at position {positionOnPage + 1}");
+                TolkHelper.SpeakData(onMechSection ? "RimWorldAccess.Pawns.Bar.NoMechAtPosition".Translate((positionOnPage + 1).ToString()).ToString() : "RimWorldAccess.Pawns.Bar.NoColonistAtPosition".Translate((positionOnPage + 1).ToString()).ToString());
                 return;
             }
 
@@ -511,7 +511,7 @@ namespace RimWorldAccess
 
             if (targetIndex >= list.Count)
             {
-                TolkHelper.Speak($"No {(onMechSection ? "mech" : "colonist")} at position {positionOnPage + 1}");
+                TolkHelper.SpeakData(onMechSection ? "RimWorldAccess.Pawns.Bar.NoMechAtPosition".Translate((positionOnPage + 1).ToString()).ToString() : "RimWorldAccess.Pawns.Bar.NoColonistAtPosition".Translate((positionOnPage + 1).ToString()).ToString());
                 return;
             }
 
@@ -542,7 +542,7 @@ namespace RimWorldAccess
 
             MapNavigationState.LastAnnouncedInfo = "";
             string tileInfo = TileInfoHelper.GetTileSummary(pos, map);
-            TolkHelper.Speak($"Jumped to {pawn.LabelShort}. {tileInfo}");
+            TolkHelper.SpeakData("RimWorldAccess.Pawns.Bar.JumpedTo".Translate(pawn.LabelShort, tileInfo).ToString());
             MapNavigationState.LastAnnouncedInfo = tileInfo;
         }
 
@@ -558,7 +558,7 @@ namespace RimWorldAccess
 
             if (onMechSection)
             {
-                TolkHelper.Speak("Cannot reorder mechs");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.CannotReorderMechs".Loc());
                 return;
             }
 
@@ -570,7 +570,7 @@ namespace RimWorldAccess
 
             if (barPosition >= colonists.Count - 1)
             {
-                TolkHelper.Speak("Already at last position");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.AlreadyAtLastPosition".Loc());
                 return;
             }
 
@@ -604,7 +604,7 @@ namespace RimWorldAccess
 
             if (onMechSection)
             {
-                TolkHelper.Speak("Cannot reorder mechs");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.CannotReorderMechs".Loc());
                 return;
             }
 
@@ -616,7 +616,7 @@ namespace RimWorldAccess
 
             if (barPosition <= 0)
             {
-                TolkHelper.Speak("Already at first position");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.AlreadyAtFirstPosition".Loc());
                 return;
             }
 
@@ -651,7 +651,7 @@ namespace RimWorldAccess
 
             if (onMechSection)
             {
-                TolkHelper.Speak("Cannot reorder mechs");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.CannotReorderMechs".Loc());
                 return;
             }
 
@@ -666,7 +666,7 @@ namespace RimWorldAccess
 
             if (targetBarPosition / PageSize == barPosition / PageSize)
             {
-                TolkHelper.Speak("Already on last page");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.AlreadyOnLastPage".Loc());
                 return;
             }
 
@@ -700,7 +700,7 @@ namespace RimWorldAccess
 
             if (onMechSection)
             {
-                TolkHelper.Speak("Cannot reorder mechs");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.CannotReorderMechs".Loc());
                 return;
             }
 
@@ -715,7 +715,7 @@ namespace RimWorldAccess
 
             if (targetBarPosition / PageSize == barPosition / PageSize)
             {
-                TolkHelper.Speak("Already on first page");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.AlreadyOnFirstPage".Loc());
                 return;
             }
 
@@ -892,7 +892,7 @@ namespace RimWorldAccess
             if (!string.IsNullOrEmpty(positionPart))
                 announcement += $". {positionPart}";
 
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
@@ -900,8 +900,10 @@ namespace RimWorldAccess
         /// </summary>
         private static void AnnouncePageChange()
         {
-            string section = onMechSection ? "Mechs page" : "Page";
-            TolkHelper.Speak($"{section} {CurrentPage + 1}");
+            string pageNum = (CurrentPage + 1).ToString();
+            TolkHelper.SpeakData(onMechSection
+                ? "RimWorldAccess.Pawns.Bar.MechsPage".Translate(pageNum).ToString()
+                : "RimWorldAccess.Pawns.Bar.Page".Translate(pageNum).ToString());
         }
 
         /// <summary>
@@ -910,9 +912,9 @@ namespace RimWorldAccess
         private static void AnnounceSectionChange()
         {
             if (onMechSection)
-                TolkHelper.Speak("Mechs");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.SectionMechs".Loc());
             else
-                TolkHelper.Speak("Colonists");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.SectionColonists".Loc());
         }
 
         /// <summary>
@@ -932,15 +934,15 @@ namespace RimWorldAccess
             // Build neighbor context
             string context;
             if (newIndex == 0 && colonists.Count == 1)
-                context = "only colonist";
+                context = "RimWorldAccess.Pawns.Bar.OnlyColonist".Translate().ToString();
             else if (newIndex == 0)
-                context = "leftmost";
+                context = "RimWorldAccess.Pawns.Bar.Leftmost".Translate().ToString();
             else if (newIndex == colonists.Count - 1)
-                context = "rightmost";
+                context = "RimWorldAccess.Pawns.Bar.Rightmost".Translate().ToString();
             else
-                context = $"between {colonists[newIndex - 1].LabelShort} and {colonists[newIndex + 1].LabelShort}";
+                context = "RimWorldAccess.Pawns.Bar.Between".Translate(colonists[newIndex - 1].LabelShort, colonists[newIndex + 1].LabelShort).ToString();
 
-            TolkHelper.Speak($"{pawn.LabelShort}, position {newIndex + 1}, {context}");
+            TolkHelper.SpeakData("RimWorldAccess.Pawns.Bar.ReorderResult".Translate(pawn.LabelShort, (newIndex + 1).ToString(), context).ToString());
         }
 
         /// <summary>
@@ -949,9 +951,9 @@ namespace RimWorldAccess
         private static void AnnounceEmpty()
         {
             if (onMechSection)
-                TolkHelper.Speak("No mechs on this map");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NoMechsHere".Loc());
             else
-                TolkHelper.Speak("No colonists on this map");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NoColonistsHere".Loc());
         }
 
         // ===== FOCUS-ONLY NAVIGATION (for multi-select mode) =====
@@ -999,14 +1001,14 @@ namespace RimWorldAccess
             Map map = Find.CurrentMap;
             if (map == null)
             {
-                TolkHelper.Speak("Not on colonist bar");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NotOnBar".Loc());
                 return;
             }
 
             IntVec3 cursor = MapNavigationState.CurrentCursorPosition;
             if (!cursor.IsValid || !cursor.InBounds(map))
             {
-                TolkHelper.Speak("Not on colonist bar");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NotOnBar".Loc());
                 return;
             }
 
@@ -1016,7 +1018,7 @@ namespace RimWorldAccess
 
             if (pawn == null)
             {
-                TolkHelper.Speak("Not on colonist bar");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NotOnBar".Loc());
                 return;
             }
 
@@ -1027,7 +1029,7 @@ namespace RimWorldAccess
             bool inMechs = !inColonists && mechs.Contains(pawn);
             if (!inColonists && !inMechs)
             {
-                TolkHelper.Speak("Not on colonist bar");
+                TolkHelper.Speak("RimWorldAccess.Pawns.Bar.NotOnBar".Loc());
                 return;
             }
 
@@ -1157,7 +1159,7 @@ namespace RimWorldAccess
             int targetIndex = CurrentPage * PageSize + positionOnPage;
             if (targetIndex >= list.Count)
             {
-                TolkHelper.Speak($"No {(onMechSection ? "mech" : "colonist")} at position {positionOnPage + 1}");
+                TolkHelper.SpeakData(onMechSection ? "RimWorldAccess.Pawns.Bar.NoMechAtPosition".Translate((positionOnPage + 1).ToString()).ToString() : "RimWorldAccess.Pawns.Bar.NoColonistAtPosition".Translate((positionOnPage + 1).ToString()).ToString());
                 return null;
             }
 

@@ -56,7 +56,7 @@ namespace RimWorldAccess
                 // a successful load itself).
                 if (!wasAccepted)
                 {
-                    TolkHelper.Speak(cancelAnnouncement, SpeechPriority.Normal);
+                    TolkHelper.SpeakData(cancelAnnouncement, SpeechPriority.Normal);
                 }
             }
         }

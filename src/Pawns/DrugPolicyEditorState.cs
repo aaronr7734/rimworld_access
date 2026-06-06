@@ -365,12 +365,12 @@ namespace RimWorldAccess
             string status = GetDrugStatusSummary(entry);
             if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
             {
-                TolkHelper.Speak($"{drugName}. {status}. match {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} for '{typeahead.SearchBuffer}'");
+                TolkHelper.SpeakData($"{drugName}. {status}{typeahead.BuildSearchContextSuffix()}");
             }
             else
             {
                 string position = MenuHelper.FormatPosition(selectedDrugIndex, policy.Count);
-                TolkHelper.Speak($"{drugName}. {status}. {position}");
+                TolkHelper.SpeakData("RimWorldAccess.Pawns.DrugPolicy.DrugLine".Translate(drugName, status, position).ToString());
             }
         }
 

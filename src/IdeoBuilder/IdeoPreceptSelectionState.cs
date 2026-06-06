@@ -150,7 +150,7 @@ namespace RimWorldAccess
             if (current.Count == 0)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak(IdeoPreceptSelectionHelper.BuildIssueLabel(issue, current), SpeechPriority.High);
+                TolkHelper.SpeakData(IdeoPreceptSelectionHelper.BuildIssueLabel(issue, current), SpeechPriority.High);
                 return true;
             }
 
@@ -158,7 +158,7 @@ namespace RimWorldAccess
             if (removable.Count == 0)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak(RemovalBlockedReason(current[0]), SpeechPriority.High);
+                TolkHelper.SpeakData(RemovalBlockedReason(current[0]), SpeechPriority.High);
                 return true;
             }
 
@@ -196,7 +196,7 @@ namespace RimWorldAccess
         private static void OpenValuePicker(IssueDef issue)
         {
             var options = IdeoPreceptSelectionHelper.BuildValuePickerOptions(ideo, issue, () => OnPreceptChanged(issue));
-            TolkHelper.Speak(issue.LabelCap);
+            TolkHelper.SpeakData(issue.LabelCap);
             // Suppress the float menu's generic "{full option label} selected" echo — the verbose
             // option text (value, impact, description) is too much on commit. OnPreceptChanged
             // speaks a concise "{issue}: {value}, selected" confirmation instead.
@@ -320,7 +320,7 @@ namespace RimWorldAccess
             if (sel != null && !ReferenceEquals(sel.Data, issue))
                 sb.Append(". ").Append(FormatItem(sel));
 
-            TolkHelper.Speak(sb.ToString(), SpeechPriority.High);
+            TolkHelper.SpeakData(sb.ToString(), SpeechPriority.High);
         }
 
         #endregion
@@ -389,7 +389,7 @@ namespace RimWorldAccess
                     sb.Append(first.IsExpanded ? ", expanded" : ", collapsed");
             }
 
-            TolkHelper.Speak(sb.ToString(), SpeechPriority.High);
+            TolkHelper.SpeakData(sb.ToString(), SpeechPriority.High);
             // Mark the starting section as already announced so the first arrow doesn't repeat it.
             treeNav.MarkCurrentParentAsAnnounced();
         }

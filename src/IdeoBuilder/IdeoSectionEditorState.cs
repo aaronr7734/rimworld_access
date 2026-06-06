@@ -233,7 +233,7 @@ namespace RimWorldAccess
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 if (!string.IsNullOrEmpty(section.DisabledReason))
-                    TolkHelper.Speak(section.DisabledReason, SpeechPriority.High);
+                    TolkHelper.SpeakData(section.DisabledReason, SpeechPriority.High);
                 return;
             }
             typeahead.ClearSearch();
@@ -251,10 +251,10 @@ namespace RimWorldAccess
             var sb = new StringBuilder();
             // Same opening as the worldgen hub: title + name + overall impact line.
             sb.Append(IdeoBuilderHelper.BuildOpeningAnnouncement(ideo));
-            sb.Append(". ").Append("Tab to return to the list");
+            sb.Append(". ").Append((string)"RimWorldAccess.Ideology.Builder.TabToReturnToList".Translate());
             if (sections.Count > 0)
                 sb.Append(". ").Append(BuildCurrentText());
-            TolkHelper.Speak(sb.ToString(), SpeechPriority.High);
+            TolkHelper.SpeakData(sb.ToString(), SpeechPriority.High);
         }
 
         private static void AnnounceCurrent()
@@ -262,7 +262,7 @@ namespace RimWorldAccess
             if (sections.Count == 0) return;
             string text = BuildCurrentText();
             if (!string.IsNullOrEmpty(text))
-                TolkHelper.Speak(text);
+                TolkHelper.SpeakData(text);
         }
 
         /// <summary>Announces the focused section plus the typeahead match position (parity with the hub).</summary>
@@ -271,8 +271,7 @@ namespace RimWorldAccess
             if (selectedIndex < 0 || selectedIndex >= sections.Count) return;
             var s = sections[selectedIndex];
             string value = string.IsNullOrEmpty(s.ValueSummary) ? "" : ": " + s.ValueSummary;
-            string searchInfo = $", {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
-            TolkHelper.Speak($"{s.Label}{value}{searchInfo}");
+            TolkHelper.SpeakData(s.Label + value + typeahead.BuildSearchContextSuffix());
         }
 
         /// <summary>
@@ -285,7 +284,7 @@ namespace RimWorldAccess
             string err = IdeoBuilderHelper.BuildValidationSummary(ideo);
             if (!string.IsNullOrEmpty(err))
             {
-                TolkHelper.Speak(err, SpeechPriority.High);
+                TolkHelper.SpeakData(err, SpeechPriority.High);
                 return;
             }
 
@@ -305,7 +304,7 @@ namespace RimWorldAccess
             }
 
             if (sb.Length > 0)
-                TolkHelper.Speak(sb.ToString());
+                TolkHelper.SpeakData(sb.ToString());
         }
 
         private static string BuildCurrentText()

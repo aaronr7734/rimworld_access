@@ -65,4 +65,15 @@
        (e.g. a minimal/custom ideology with no visible sections).
          {0} = ideology name, {1} = vanilla "NoneLower" translation. -->
   <RimWorldAccess.Ideology.Tree.Empty>{0}. {1}</RimWorldAccess.Ideology.Tree.Empty>
+
+  <!-- IdeoBuilder module strings (src/IdeoBuilder/).
+       Navigation hints for the two-tab builder shell. -->
+  <RimWorldAccess.Ideology.Builder.TabForIdeoList>Tab for the ideoligion list</RimWorldAccess.Ideology.Builder.TabForIdeoList>
+  <RimWorldAccess.Ideology.Builder.TabToReturnToList>Tab to return to the list</RimWorldAccess.Ideology.Builder.TabToReturnToList>
+
+  <!-- Spoken when a section or action is disabled but has no specific reason string. -->
+  <RimWorldAccess.Ideology.Builder.Unavailable>Unavailable</RimWorldAccess.Ideology.Builder.Unavailable>
+
+  <!-- Spoken when the ] edit-menu is opened on a precept that has no editable options. -->
+  <RimWorldAccess.Ideology.Builder.NoEditOptions>No edit options</RimWorldAccess.Ideology.Builder.NoEditOptions>
 </LanguageData>

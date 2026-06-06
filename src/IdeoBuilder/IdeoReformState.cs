@@ -334,7 +334,7 @@ namespace RimWorldAccess
                 if (!action.Enabled)
                 {
                     SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    TolkHelper.Speak(action.DisabledReason ?? "Unavailable", SpeechPriority.High);
+                    TolkHelper.SpeakData(action.DisabledReason ?? (string)"RimWorldAccess.Ideology.Builder.Unavailable".Translate(), SpeechPriority.High);
                     return;
                 }
                 action.Activate?.Invoke();
@@ -367,7 +367,7 @@ namespace RimWorldAccess
             if (pair != default(Pair<Precept, Precept>))
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("MessageIdeoIncompatiblePrecepts".Translate(
+                TolkHelper.SpeakData("MessageIdeoIncompatiblePrecepts".Translate(
                     pair.First.Label.Named("PRECEPT1"), pair.Second.Label.Named("PRECEPT2")).CapitalizeFirst(),
                     SpeechPriority.High);
                 return;
@@ -383,7 +383,7 @@ namespace RimWorldAccess
                 dlg.Close(doCloseSound: false);
                 // The game shows no message on a successful reform, so confirm it ourselves —
                 // otherwise Alt+S just silently closes the dialog.
-                TolkHelper.Speak(reformedName + ", reformed", SpeechPriority.High);
+                TolkHelper.SpeakData(reformedName + ", reformed", SpeechPriority.High);
             });
         }
 
@@ -438,7 +438,7 @@ namespace RimWorldAccess
             parts.Add(BuildCurrentText());
 
             // Join non-empty parts with ". " so an absent intro/impact never leaves a lone period.
-            TolkHelper.Speak(string.Join(". ", parts.Where(p => !string.IsNullOrEmpty(p))), SpeechPriority.High);
+            TolkHelper.SpeakData(string.Join(". ", parts.Where(p => !string.IsNullOrEmpty(p))), SpeechPriority.High);
         }
 
         /// <summary>"Impact: N, label" for the working copy's normal memes, or "" if it has none.</summary>
@@ -467,7 +467,7 @@ namespace RimWorldAccess
                 sb.Append(warning);
             }
             if (sb.Length > 0)
-                TolkHelper.Speak(sb.ToString());
+                TolkHelper.SpeakData(sb.ToString());
 
             AnnounceIncompatibilityIfAny();
         }
@@ -479,7 +479,7 @@ namespace RimWorldAccess
             var pair = newIdeo.FirstIncompatiblePreceptPair();
             if (pair != default(Pair<Precept, Precept>))
             {
-                TolkHelper.Speak("MessageIdeoIncompatiblePrecepts".Translate(
+                TolkHelper.SpeakData("MessageIdeoIncompatiblePrecepts".Translate(
                     pair.First.Label.Named("PRECEPT1"), pair.Second.Label.Named("PRECEPT2")).CapitalizeFirst(),
                     SpeechPriority.High);
             }
@@ -489,7 +489,7 @@ namespace RimWorldAccess
         {
             string text = BuildCurrentText();
             if (!string.IsNullOrEmpty(text))
-                TolkHelper.Speak(text);
+                TolkHelper.SpeakData(text);
         }
 
         private static string BuildCurrentText()

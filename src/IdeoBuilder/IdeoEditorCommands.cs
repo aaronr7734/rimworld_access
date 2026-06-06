@@ -108,7 +108,7 @@ namespace RimWorldAccess
             if (ritualPreviewSustainer != null && !ritualPreviewSustainer.Ended)
             {
                 StopRitualPreview();
-                TolkHelper.Speak("RitualAmbienceSound".Translate().Resolve() + ", stopped.");
+                TolkHelper.Speak("RimWorldAccess.Ideology.RitualSound.Stopped".Loc((string)"RitualAmbienceSound".Translate()));
                 return;
             }
             var sound = ideo?.SoundOngoingRitual;
@@ -123,7 +123,7 @@ namespace RimWorldAccess
             info.forcedPlayOnCamera = true;
             info.testPlay = true;
             ritualPreviewSustainer = sound.TrySpawnSustainer(info);
-            TolkHelper.Speak("RitualAmbienceSound".Translate().Resolve() + ", playing.");
+            TolkHelper.Speak("RimWorldAccess.Ideology.RitualSound.Playing".Loc((string)"RitualAmbienceSound".Translate()));
         }
 
         /// <summary>

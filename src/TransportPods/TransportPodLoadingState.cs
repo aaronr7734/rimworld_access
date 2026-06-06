@@ -80,13 +80,13 @@ namespace RimWorldAccess
         {
             if (dialog == null)
             {
-                TolkHelper.Speak("No loading dialog available", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Loading.NoDialog".Loc(), SpeechPriority.High);
                 return;
             }
 
             if (!LoadTransportersAdapter.ReflectionReady)
             {
-                TolkHelper.Speak("Transport pod loading accessibility unavailable due to game update. Please check for mod updates.", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Loading.ReflectionFailed".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -101,13 +101,13 @@ namespace RimWorldAccess
         {
             if (dialog == null)
             {
-                TolkHelper.Speak("No portal dialog available", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Loading.NoPortalDialog".Loc(), SpeechPriority.High);
                 return;
             }
 
             if (!EnterPortalAdapter.ReflectionReady)
             {
-                TolkHelper.Speak("Portal loading accessibility unavailable due to game update. Please check for mod updates.", SpeechPriority.High);
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Loading.PortalReflectionFailed".Loc(), SpeechPriority.High);
                 return;
             }
 
@@ -130,7 +130,7 @@ namespace RimWorldAccess
             // Speak the open line, tab summary, and current item as one utterance so
             // SpeechSanitizer cleans the seams between them (separate Speak() calls are each
             // sanitized in isolation, leaving stray periods at the joins).
-            TolkHelper.Speak($"{adapter.OpenAnnouncement}. {BuildCurrentTabText()}. {BuildCurrentItemText()}");
+            TolkHelper.SpeakData($"{adapter.OpenAnnouncement}. {BuildCurrentTabText()}. {BuildCurrentItemText()}");
         }
 
         /// <summary>
@@ -248,7 +248,7 @@ namespace RimWorldAccess
                     }
                     else
                     {
-                        TolkHelper.Speak("No breakdown available for this item");
+                        TolkHelper.Speak("RimWorldAccess.TransportPods.Loading.NoBreakdown".Loc());
                     }
                 }
                 else
@@ -285,7 +285,7 @@ namespace RimWorldAccess
                 if (typeahead.HasActiveSearch)
                 {
                     typeahead.ClearSearch();
-                    TolkHelper.Speak("Search cleared");
+                    TolkHelper.Speak("RimWorldAccess.Search.Cleared".Loc());
                     AnnounceCurrentItem();
                     return true;
                 }
@@ -432,7 +432,7 @@ namespace RimWorldAccess
 
             if (transferables.Count == 0)
             {
-                TolkHelper.Speak("No items in this tab");
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Loading.NoItemsInTab".Loc());
                 return;
             }
 
@@ -460,7 +460,7 @@ namespace RimWorldAccess
 
             if (transferables.Count == 0)
             {
-                TolkHelper.Speak("No items in this tab");
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Loading.NoItemsInTab".Loc());
                 return;
             }
 
@@ -513,7 +513,7 @@ namespace RimWorldAccess
 
             if (transferables.Count == 0 || selectedIndex < 0 || selectedIndex >= transferables.Count)
             {
-                TolkHelper.Speak("No item selected");
+                TolkHelper.Speak("RimWorldAccess.Guard.NoItemSelected".Loc());
                 return;
             }
 
@@ -548,12 +548,12 @@ namespace RimWorldAccess
             if (transferable.CountToTransfer > 0)
             {
                 transferable.AdjustTo(0);
-                TolkHelper.Speak($"{label} unchecked");
+                TolkHelper.SpeakData((string)"RimWorldAccess.TransportPods.Loading.ItemUnchecked".Translate(label));
             }
             else
             {
                 transferable.AdjustTo(transferable.MaxCount);
-                TolkHelper.Speak($"{label} checked");
+                TolkHelper.SpeakData((string)"RimWorldAccess.TransportPods.Loading.ItemChecked".Translate(label));
             }
 
             NotifyTransferablesChanged();
@@ -586,7 +586,7 @@ namespace RimWorldAccess
 
             if (transferables.Count == 0 || selectedIndex < 0 || selectedIndex >= transferables.Count)
             {
-                TolkHelper.Speak("No item selected");
+                TolkHelper.Speak("RimWorldAccess.Guard.NoItemSelected".Loc());
                 return;
             }
 
@@ -601,11 +601,11 @@ namespace RimWorldAccess
             {
                 transferable.AdjustTo(result.NewCount);
                 NotifyTransferablesChanged();
-                TolkHelper.Speak(result.Announcement);
+                TolkHelper.SpeakData(result.Announcement);
             }
             else
             {
-                TolkHelper.Speak(result.Announcement);
+                TolkHelper.SpeakData(result.Announcement);
             }
         }
 
@@ -618,7 +618,7 @@ namespace RimWorldAccess
 
             if (transferables.Count == 0 || selectedIndex < 0 || selectedIndex >= transferables.Count)
             {
-                TolkHelper.Speak("No item selected");
+                TolkHelper.Speak("RimWorldAccess.Guard.NoItemSelected".Loc());
                 return;
             }
 
@@ -626,7 +626,7 @@ namespace RimWorldAccess
 
             if (transferable.CountToTransfer == 0)
             {
-                TolkHelper.Speak("Already at zero");
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Loading.AlreadyAtZero".Loc());
                 return;
             }
 
@@ -634,7 +634,7 @@ namespace RimWorldAccess
             NotifyTransferablesChanged();
 
             string label = GetTransferableLabel(transferable);
-            TolkHelper.Speak($"{label} removed");
+            TolkHelper.SpeakData((string)"RimWorldAccess.TransportPods.Loading.ItemRemoved".Translate(label));
         }
 
         /// <summary>
@@ -646,7 +646,7 @@ namespace RimWorldAccess
 
             if (transferables.Count == 0 || selectedIndex < 0 || selectedIndex >= transferables.Count)
             {
-                TolkHelper.Speak("No item to inspect");
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Loading.NoItemToInspect".Loc());
                 return;
             }
 
@@ -663,7 +663,7 @@ namespace RimWorldAccess
             }
             else
             {
-                TolkHelper.Speak("Cannot inspect this item");
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Loading.CannotInspectItem".Loc());
             }
         }
 
@@ -734,7 +734,7 @@ namespace RimWorldAccess
             }
 
             NotifyTransferablesChanged();
-            TolkHelper.Speak("All items reset to zero");
+            TolkHelper.Speak("RimWorldAccess.TransportPods.Loading.ResetAll".Loc());
             AnnounceCurrentItem();
         }
 
@@ -778,7 +778,7 @@ namespace RimWorldAccess
         /// </summary>
         private static void AnnounceCurrentItem()
         {
-            TolkHelper.Speak(BuildCurrentItemText());
+            TolkHelper.SpeakData(BuildCurrentItemText());
         }
 
         /// <summary>
@@ -788,7 +788,7 @@ namespace RimWorldAccess
         /// </summary>
         private static void AnnounceTabAndItem()
         {
-            TolkHelper.Speak($"{BuildCurrentTabText()}. {BuildCurrentItemText()}");
+            TolkHelper.SpeakData($"{BuildCurrentTabText()}. {BuildCurrentItemText()}");
         }
 
         /// <summary>
@@ -807,7 +807,7 @@ namespace RimWorldAccess
             TransferableOneWay transferable = transferables[selectedIndex];
             string announcement = CaravanAnnouncementHelper.BuildSearchAnnouncement(
                 transferable, typeahead.SearchBuffer, typeahead.CurrentMatchPosition, typeahead.MatchCount);
-            TolkHelper.Speak(announcement);
+            TolkHelper.SpeakData(announcement);
         }
 
         /// <summary>
@@ -823,14 +823,14 @@ namespace RimWorldAccess
             if (usage > capacity)
             {
                 float over = usage - capacity;
-                status = $"OVERLOADED by {over:F1} kg";
+                status = (string)"RimWorldAccess.TransportPods.Loading.MassOverloaded".Translate(over.ToString("F1"));
             }
             else
             {
-                status = $"{remaining:F1} kg remaining";
+                status = (string)"RimWorldAccess.TransportPods.Loading.MassRemaining".Translate(remaining.ToString("F1"));
             }
 
-            TolkHelper.Speak($"Mass: {usage:F1} of {capacity:F1} kg. {status}");
+            TolkHelper.SpeakData((string)"RimWorldAccess.TransportPods.Loading.MassSummary".Translate(usage.ToString("F1"), capacity.ToString("F1"), status));
         }
 
         #endregion
@@ -952,7 +952,7 @@ namespace RimWorldAccess
             // Map portals show no stats panel in vanilla, so there is no summary to toggle into.
             if (!showingSummary && (adapter == null || !adapter.HasSummary))
             {
-                TolkHelper.Speak("No summary available for this dialog");
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Loading.NoSummaryForDialog".Loc());
                 return;
             }
 
@@ -964,7 +964,7 @@ namespace RimWorldAccess
                 typeahead.ClearSearch();
 
                 string tabName = currentTab == Tab.Pawns ? "Pawns" : "Items";
-                TolkHelper.Speak($"Returned to {tabName} tab");
+                TolkHelper.SpeakData((string)"RimWorldAccess.TransportPods.Loading.ReturnedToTab".Translate(tabName));
                 AnnounceCurrentItem();
             }
             else
@@ -974,7 +974,7 @@ namespace RimWorldAccess
                 showingSummary = true;
                 typeahead.ClearSearch();
 
-                TolkHelper.Speak("Summary view. Up/Down navigates stats. Tab to return.");
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Loading.SummaryEntry".Loc());
                 BuildSummaryItems();
                 AnnounceCurrentSummaryItem();
             }
@@ -1007,7 +1007,7 @@ namespace RimWorldAccess
         {
             if (summaryItems.Count == 0)
             {
-                TolkHelper.Speak("No summary data");
+                TolkHelper.Speak("RimWorldAccess.TransportPods.Loading.SummaryNoSummary".Loc());
                 return;
             }
 
@@ -1018,7 +1018,7 @@ namespace RimWorldAccess
 
             string item = summaryItems[summaryIndex];
             string position = MenuHelper.FormatPosition(summaryIndex, summaryItems.Count);
-            TolkHelper.Speak($"{item}. {position}");
+            TolkHelper.SpeakData($"{item}. {position}");
         }
 
         /// <summary>

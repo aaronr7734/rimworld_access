@@ -198,7 +198,7 @@ namespace RimWorldAccess
             foundation.DeitiesListForReading.Remove(deity);
             ideo.RegenerateDescription();
             SoundDefOf.Tick_Low.PlayOneShotOnCamera();
-            TolkHelper.Speak($"{deity.name}, removed");
+            TolkHelper.SpeakData($"{deity.name}, removed");
             RebuildTree();
         }
 
@@ -229,7 +229,7 @@ namespace RimWorldAccess
             if (foundation.DeitiesListForReading.Count > ideo.DeityCountRange.min)
                 options.Add(new FloatMenuOption("Remove".Translate().CapitalizeFirst(), () => RemoveDeity(deity)));
 
-            TolkHelper.Speak(deity.name);
+            TolkHelper.SpeakData(deity.name);
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
         }
 
@@ -336,7 +336,7 @@ namespace RimWorldAccess
             sb.Append(". ").Append(foundation.DeitiesListForReading.Count);
             if (treeNav.Count > 0)
                 sb.Append(". ").Append(treeNav.VisibleItems[0].Label);
-            TolkHelper.Speak(sb.ToString(), SpeechPriority.High);
+            TolkHelper.SpeakData(sb.ToString(), SpeechPriority.High);
         }
     }
 }

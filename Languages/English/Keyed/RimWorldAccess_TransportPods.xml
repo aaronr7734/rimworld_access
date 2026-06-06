@@ -123,6 +123,8 @@
   <!-- Open guards. -->
   <RimWorldAccess.TransportPods.Loading.NoDialog>No loading dialog available</RimWorldAccess.TransportPods.Loading.NoDialog>
   <RimWorldAccess.TransportPods.Loading.ReflectionFailed>Transport pod loading accessibility unavailable due to game update. Please check for mod updates.</RimWorldAccess.TransportPods.Loading.ReflectionFailed>
+  <RimWorldAccess.TransportPods.Loading.NoPortalDialog>No portal dialog available</RimWorldAccess.TransportPods.Loading.NoPortalDialog>
+  <RimWorldAccess.TransportPods.Loading.PortalReflectionFailed>Portal loading accessibility unavailable due to game update. Please check for mod updates.</RimWorldAccess.TransportPods.Loading.PortalReflectionFailed>
 
   <!-- Entry announcement. One/Many split so translators control pod/pods
        agreement; the pod-noun key is inlined into the sentence so word order
@@ -151,6 +153,9 @@
   <RimWorldAccess.TransportPods.Loading.NoItemToInspect>No item to inspect</RimWorldAccess.TransportPods.Loading.NoItemToInspect>
   <RimWorldAccess.TransportPods.Loading.CannotInspectItem>Cannot inspect this item</RimWorldAccess.TransportPods.Loading.CannotInspectItem>
 
+  <!-- Delete/remove guard. -->
+  <RimWorldAccess.TransportPods.Loading.AlreadyAtZero>Already at zero</RimWorldAccess.TransportPods.Loading.AlreadyAtZero>
+
   <!-- Reset (Alt+R). -->
   <RimWorldAccess.TransportPods.Loading.ResetAll>All items reset to zero</RimWorldAccess.TransportPods.Loading.ResetAll>
 
@@ -162,6 +167,7 @@
   <RimWorldAccess.TransportPods.Loading.MassRemaining>{0} kg remaining</RimWorldAccess.TransportPods.Loading.MassRemaining>
 
   <!-- Summary view (Tab toggle). Empty/error states come next. -->
+  <RimWorldAccess.TransportPods.Loading.NoSummaryForDialog>No summary available for this dialog</RimWorldAccess.TransportPods.Loading.NoSummaryForDialog>
   <RimWorldAccess.TransportPods.Loading.SummaryEntry>Summary view. Up/Down navigates stats. Tab to return.</RimWorldAccess.TransportPods.Loading.SummaryEntry>
   <RimWorldAccess.TransportPods.Loading.SummaryNoData>No data available</RimWorldAccess.TransportPods.Loading.SummaryNoData>
   <RimWorldAccess.TransportPods.Loading.SummaryNoTransporters>No transporters</RimWorldAccess.TransportPods.Loading.SummaryNoTransporters>

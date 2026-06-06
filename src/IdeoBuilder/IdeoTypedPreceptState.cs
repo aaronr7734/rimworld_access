@@ -341,14 +341,14 @@ namespace RimWorldAccess
             if (!precept.def.canRemoveInUI || precept.def.issue.HasDefaultPrecept)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("CannotRemove".Translate() + ": " + IdeoBuilderHelper.PreceptLabel(precept), SpeechPriority.High);
+                TolkHelper.SpeakData((string)"CannotRemove".Translate() + ": " + IdeoBuilderHelper.PreceptLabel(precept), SpeechPriority.High);
                 return true;
             }
             var requiringMeme = ideo.GetMemeThatRequiresPrecept(precept.def);
             if (requiringMeme != null)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("CannotRemove".Translate() + ": " + "RequiredByMeme".Translate(requiringMeme.label), SpeechPriority.High);
+                TolkHelper.SpeakData((string)"CannotRemove".Translate() + ": " + (string)"RequiredByMeme".Translate(requiringMeme.label), SpeechPriority.High);
                 return true;
             }
 
@@ -357,7 +357,7 @@ namespace RimWorldAccess
             ideo.anyPreceptEdited = true;
             ideo.RegenerateDescription();
             SoundDefOf.Tick_Low.PlayOneShotOnCamera();
-            TolkHelper.Speak($"{removedName}, removed");
+            TolkHelper.SpeakData($"{removedName}, removed");
             RebuildTree();
             return true;
         }
@@ -434,11 +434,11 @@ namespace RimWorldAccess
             if (options.Count == 0)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("No edit options");
+                TolkHelper.Speak("RimWorldAccess.Ideology.Builder.NoEditOptions".Loc());
                 return;
             }
 
-            TolkHelper.Speak("Edit".Translate() + " " + IdeoBuilderHelper.PreceptLabel(precept));
+            TolkHelper.SpeakData((string)"Edit".Translate() + " " + IdeoBuilderHelper.PreceptLabel(precept));
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
         }
 
@@ -546,7 +546,7 @@ namespace RimWorldAccess
         {
             precept.nameLocked = !precept.nameLocked;
             (precept.nameLocked ? SoundDefOf.Checkbox_TurnedOn : SoundDefOf.Checkbox_TurnedOff).PlayOneShotOnCamera();
-            TolkHelper.Speak(NameLockText(precept), SpeechPriority.High);
+            TolkHelper.SpeakData(NameLockText(precept), SpeechPriority.High);
         }
 
         private static string NameLockText(Precept precept) =>
@@ -685,7 +685,7 @@ namespace RimWorldAccess
                     AfterPreceptEdit(ritual);
                 }));
             }
-            TolkHelper.Speak(quadrum.Label());
+            TolkHelper.SpeakData(quadrum.Label());
             WindowlessFloatMenuState.Open(options, colonistOrders: false);
         }
 
@@ -798,7 +798,7 @@ namespace RimWorldAccess
             ideo.RegenerateDescription();
             SoundDefOf.Tick_High.PlayOneShotOnCamera();
             RebuildTree();
-            TolkHelper.Speak(IdeoBuilderHelper.PreceptLabel(precept), SpeechPriority.High);
+            TolkHelper.SpeakData(IdeoBuilderHelper.PreceptLabel(precept), SpeechPriority.High);
         }
 
         #endregion
@@ -856,7 +856,7 @@ namespace RimWorldAccess
                 sb.Append(". ").Append(first.Label);
             }
 
-            TolkHelper.Speak(sb.ToString(), SpeechPriority.High);
+            TolkHelper.SpeakData(sb.ToString(), SpeechPriority.High);
         }
 
         #endregion

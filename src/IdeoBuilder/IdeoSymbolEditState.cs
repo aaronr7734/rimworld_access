@@ -117,7 +117,7 @@ namespace RimWorldAccess
                     ideo.descriptionLocked = !ideo.descriptionLocked;
                     (ideo.descriptionLocked ? SoundDefOf.Checkbox_TurnedOn : SoundDefOf.Checkbox_TurnedOff)
                         .PlayOneShotOnCamera();
-                    TolkHelper.Speak(LockStateText(ideo), SpeechPriority.High);
+                    TolkHelper.SpeakData(LockStateText(ideo), SpeechPriority.High);
                 }),
             };
             TolkHelper.Speak("CoreNarrative".Loc());
