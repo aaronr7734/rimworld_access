@@ -1,0 +1,26 @@
+name: Localization Guard
+
+# Fails the check when player-facing English is added that the C# compiler
+# cannot catch (strings returned from a method, assigned to a display field,
+# interpolated, or concatenated onto a .Translate() result). The deleted
+# Speak(string) overload (Phase F.4) already blocks the direct case at compile
+# time; this lint covers the indirect class. See scripts/check_localization.py.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Run localization guardrail
+        run: python3 scripts/check_localization.py
