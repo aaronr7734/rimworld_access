@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <!-- Tests are linked source, not a reference to the mod DLL (which targets
+         net472 and depends on Verse/Unity). Disable default globbing so we only
+         pull in the explicitly linked game-free files below. -->
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <!-- Test sources in this project. -->
+  <ItemGroup>
+    <Compile Include="**/*.cs" />
+  </ItemGroup>
+
+  <!--
+    Game-free production source files under test. We LINK the .cs files rather
+    than reference the mod DLL: the mod targets net472 and depends on
+    Verse/UnityEngine, which cannot load in a plain net10.0 test host. Only
+    files that compile with zero game dependencies belong here. As more pure
+    logic is extracted from game-coupled classes, add it to this list.
+  -->
+  <ItemGroup>
+    <Compile Include="..\..\src\ScreenReader\SpeechSanitizer.cs"
+             Link="UnderTest\SpeechSanitizer.cs" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,24 @@
+name: Tests
+
+# Runs the game-free unit tests (pure logic extracted from the mod, e.g. the
+# screen-reader text sanitizer). These link source files directly and target
+# net10.0, so they need no RimWorld/Unity assemblies and run in seconds.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Run tests
+        run: dotnet test tests/RimWorldAccess.Tests/RimWorldAccess.Tests.csproj
