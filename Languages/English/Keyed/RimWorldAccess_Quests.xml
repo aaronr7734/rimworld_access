@@ -302,4 +302,6 @@
   <RimWorldAccess.Notifications.Target.Thing>thing</RimWorldAccess.Notifications.Target.Thing>
   <RimWorldAccess.Notifications.Target.Position>position {0}, {1}</RimWorldAccess.Notifications.Target.Position>
 
+  <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
+  <RimWorldAccess.Quests.AcceptedAgo>Accepted {0} ago</RimWorldAccess.Quests.AcceptedAgo>
 </LanguageData>

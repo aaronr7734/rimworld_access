@@ -1019,4 +1019,6 @@
   <RimWorldAccess.Building.Components.RefuelableStatusLine>Fuel: {0}/{1} ({2}%) - {3}</RimWorldAccess.Building.Components.RefuelableStatusLine>
   <RimWorldAccess.Building.Zone.WillExpandExisting>will expand existing zone.</RimWorldAccess.Building.Zone.WillExpandExisting>
   <RimWorldAccess.Building.Zone.WillCreateNew>will create new zone.</RimWorldAccess.Building.Zone.WillCreateNew>
+  <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
+  <RimWorldAccess.Building.Meditation.SkippedProtected>{0} skipped, protected by {1}</RimWorldAccess.Building.Meditation.SkippedProtected>
 </LanguageData>

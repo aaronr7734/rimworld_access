@@ -715,12 +715,12 @@ namespace RimWorldAccess
 
             if (saveFiles == null || saveFiles.Count == 0)
             {
-                return "No save files available";
+                return (string)"RimWorldAccess.UI.SaveMenu.NoSaveFiles".Translate();
             }
 
             if (selectedIndex < 0 || selectedIndex >= saveFiles.Count)
             {
-                return "No save files available";
+                return (string)"RimWorldAccess.UI.SaveMenu.NoSaveFiles".Translate();
             }
 
             SaveFileInfo file = saveFiles[selectedIndex];

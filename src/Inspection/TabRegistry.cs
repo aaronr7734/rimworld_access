@@ -312,18 +312,18 @@ namespace RimWorldAccess
                 case "ITab_Pawn_Slave": return "Slave";
                 case "ITab_Bills": return "Bills";
                 case "ITab_Storage": return "Storage";
-                case "ITab_BiosculpterNutritionStorage": return "Nutrition Storage";
+                case "ITab_BiosculpterNutritionStorage": return "Nutrition Storage"; // l10n-exempt: dispatch token, localized for display via InspectionCategoryLocalizer
                 case "ITab_Shells": return "Shells";
-                case "ITab_PenAnimals": return "Pen Animals";
-                case "ITab_PenAutoCut": return "Pen Auto-Cut";
-                case "ITab_PenFood": return "Pen Food";
+                case "ITab_PenAnimals": return "Pen Animals"; // l10n-exempt: dispatch token, localized for display via InspectionCategoryLocalizer
+                case "ITab_PenAutoCut": return "Pen Auto-Cut"; // l10n-exempt: dispatch token, localized for display via InspectionCategoryLocalizer
+                case "ITab_PenFood": return "Pen Food"; // l10n-exempt: dispatch token, localized for display via InspectionCategoryLocalizer
                 case "ITab_Fishing": return "Fishing";
                 case "ITab_Genes": return "Genes";
                 case "ITab_Pawn_Feeding": return "Feeding";
                 case "ITab_Art": return "Art";
                 case "ITab_Book": return "Book";
                 case "ITab_ContentsBooks": return "Books";
-                case "ITab_WindTurbineAutoCut": return "Auto-Cut Plants";
+                case "ITab_WindTurbineAutoCut": return "Auto-Cut Plants"; // l10n-exempt: dispatch token, localized for display via InspectionCategoryLocalizer
                 case "ITab_Pawn_Guest": return "Guest";
                 case "ITab_Pawn_Visitor": return "Guest";
                 case "ITab_ContentsTransporter": return "Contents";

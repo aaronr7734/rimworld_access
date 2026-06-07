@@ -604,7 +604,7 @@ namespace RimWorldAccess
             // Use the Label property (inherited from DialogElement) if available
             if (!string.IsNullOrEmpty(Label))
             {
-                return $"{Label} {Text}. Cannot be edited.";
+                return (string)"RimWorldAccess.UI.Dialog.FieldCannotBeEdited".Translate(Label, Text);
             }
             return Text;
         }

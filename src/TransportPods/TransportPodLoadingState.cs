@@ -747,8 +747,10 @@ namespace RimWorldAccess
         /// </summary>
         private static string BuildCurrentTabText()
         {
-            string tabName = currentTab == Tab.Pawns ? "Pawns" : "Items";
-            return $"{tabName} tab, {GetCurrentTabTransferables().Count} items";
+            string tabName = currentTab == Tab.Pawns
+                ? (string)"PawnsTab".Translate()
+                : (string)"ItemsTab".Translate();
+            return (string)"RimWorldAccess.TransportPods.Loading.TabSummary".Translate(tabName, GetCurrentTabTransferables().Count);
         }
 
         /// <summary>

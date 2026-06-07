@@ -1487,4 +1487,6 @@
   <RimWorldAccess.Inspection.CategoryName.Unknown>Unknown</RimWorldAccess.Inspection.CategoryName.Unknown>
   <RimWorldAccess.Inspection.CategoryName.MoodLabel>{0}: {1}% ({2})</RimWorldAccess.Inspection.CategoryName.MoodLabel>
   <RimWorldAccess.Inspection.CategoryName.JobQueueLabel>{0} ({1} queued)</RimWorldAccess.Inspection.CategoryName.JobQueueLabel>
+  <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
+  <RimWorldAccess.Inspection.Inventory.CarriedByColonists>{0} x{1} ({2} carried by colonists)</RimWorldAccess.Inspection.Inventory.CarriedByColonists>
 </LanguageData>

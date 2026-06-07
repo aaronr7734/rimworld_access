@@ -106,7 +106,7 @@ namespace RimWorldAccess
         private static string FormatSearch(InspectionTreeItem item, TypeaheadSearchHelper t)
         {
             string label = !string.IsNullOrEmpty(item.ExpandedLabel) ? item.ExpandedLabel : item.Label;
-            return $"{label}, {t.CurrentMatchPosition} of {t.MatchCount} matches for '{t.SearchBuffer}'";
+            return label + t.BuildSearchContextSuffix();
         }
 
         private static bool HandleActivate(InspectionTreeItem item)

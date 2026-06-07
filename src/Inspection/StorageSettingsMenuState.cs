@@ -667,7 +667,7 @@ namespace RimWorldAccess
             string baseAnnouncement = FormatItemAnnouncement(item);
             if (!typeahead.HasActiveSearch)
                 return baseAnnouncement;
-            return $"{baseAnnouncement} {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
+            return baseAnnouncement + typeahead.BuildSearchContextSuffix();
         }
 
         // Custom activate routes through the same logic as Space/Enter so the standard

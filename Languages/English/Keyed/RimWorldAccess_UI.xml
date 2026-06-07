@@ -227,4 +227,7 @@
   <RimWorldAccess.UI.Dialog.NavInstructions>{0} elements. Use arrow keys to navigate, Enter to activate, Escape to cancel.</RimWorldAccess.UI.Dialog.NavInstructions>
   <RimWorldAccess.UI.GiveName.SettlementNameLabel>Settlement Name</RimWorldAccess.UI.GiveName.SettlementNameLabel>
   <RimWorldAccess.UI.GiveName.SecondNameLabel>Second Name</RimWorldAccess.UI.GiveName.SecondNameLabel>
+  <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
+  <RimWorldAccess.UI.Dialog.FieldCannotBeEdited>{0} {1}. Cannot be edited.</RimWorldAccess.UI.Dialog.FieldCannotBeEdited>
+  <RimWorldAccess.UI.SaveMenu.NoSaveFiles>No save files available</RimWorldAccess.UI.SaveMenu.NoSaveFiles>
 </LanguageData>

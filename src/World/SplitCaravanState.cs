@@ -587,7 +587,7 @@ namespace RimWorldAccess
                 float massCapacity = (float)massCapacityInfo.GetValue(currentDialog);
                 return CaravanStatFormatter.FormatMass(massUsage, massCapacity);
             }
-            return "Mass: Unknown";
+            return (string)"RimWorldAccess.Stat.MassUnknown".Translate();
         }
 
         /// <summary>
@@ -636,7 +636,7 @@ namespace RimWorldAccess
 
                 return CaravanStatFormatter.FormatSpeed(tilesPerDay, isOverloaded);
             }
-            return "Speed: Unknown";
+            return (string)"RimWorldAccess.Stat.SpeedUnknown".Translate();
         }
 
         private static string GetFoodStatValue(bool isSource)
@@ -650,7 +650,7 @@ namespace RimWorldAccess
                 var food = (ValueTuple<float, float>)foodObj;
                 return CaravanStatFormatter.FormatFood(food.Item1, food.Item2);
             }
-            return "Food: Unknown";
+            return (string)"RimWorldAccess.Stat.FoodUnknown".Translate();
         }
 
         private static string GetForagingStatValue(bool isSource)
@@ -664,7 +664,7 @@ namespace RimWorldAccess
                 var forage = (ValueTuple<ThingDef, float>)forageObj;
                 return CaravanStatFormatter.FormatForaging(forage.Item1, forage.Item2);
             }
-            return "Foraging: Unknown";
+            return (string)"RimWorldAccess.Stat.ForagingUnknown".Translate();
         }
 
         private static string GetVisibilityStatValue(bool isSource)
@@ -677,7 +677,7 @@ namespace RimWorldAccess
                 float visibility = (float)visInfo.GetValue(currentDialog);
                 return CaravanStatFormatter.FormatVisibility(visibility);
             }
-            return "Visibility: Unknown";
+            return (string)"RimWorldAccess.Stat.VisibilityUnknown".Translate();
         }
 
         /// <summary>

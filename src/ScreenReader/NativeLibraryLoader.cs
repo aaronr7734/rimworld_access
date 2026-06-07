@@ -202,7 +202,7 @@ namespace RimWorldAccess
             if (IsWindows)
             {
                 int errorCode = Marshal.GetLastWin32Error();
-                return $"Win32 error code: {errorCode}";
+                return $"Win32 error code: {errorCode}"; // l10n-exempt: dev/native diagnostic, never user-facing speech
             }
             else
             {
@@ -211,7 +211,7 @@ namespace RimWorldAccess
                 {
                     return Marshal.PtrToStringAnsi(error) ?? "Unknown error";
                 }
-                return "No error";
+                return "No error"; // l10n-exempt: dev/native diagnostic, never user-facing speech
             }
         }
     }

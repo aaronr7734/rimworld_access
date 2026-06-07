@@ -1427,7 +1427,7 @@ namespace RimWorldAccess
                             delayPart.TicksLeft.ToStringTicksToPeriod(allowSeconds: false, shortForm: true, canUseDecimals: false)).ToString();
                     }
                 }
-                return $"Accepted {quest.TicksSinceAccepted.ToStringTicksToPeriod(allowSeconds: false, shortForm: true)} ago";
+                return (string)"RimWorldAccess.Quests.AcceptedAgo".Translate(quest.TicksSinceAccepted.ToStringTicksToPeriod(allowSeconds: false, shortForm: true));
             }
 
             return "";

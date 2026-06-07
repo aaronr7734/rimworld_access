@@ -38,7 +38,7 @@ namespace RimWorldAccess
                 byte[] bytes = File.ReadAllBytes(currentDllPath);
                 Log.Message($"[RimWorld Access] Reload: read {bytes.Length} bytes from {currentDllPath}");
 
-                TolkHelper.SpeakData("Reloading RimWorld Access", SpeechPriority.High);
+                TolkHelper.SpeakData("Reloading RimWorld Access", SpeechPriority.High); // l10n-exempt: dev-only hot-reload diagnostic
 
                 RimWorldAccessMod.Teardown();
 
@@ -75,7 +75,7 @@ namespace RimWorldAccess
                 Log.Error($"[RimWorld Access] Reload failed: {ex.Message}\n{ex.StackTrace}");
                 try
                 {
-                    TolkHelper.SpeakData("Reload failed: " + ex.Message, SpeechPriority.High);
+                    TolkHelper.SpeakData("Reload failed: " + ex.Message, SpeechPriority.High); // l10n-exempt: dev-only hot-reload diagnostic
                 }
                 catch { }
             }

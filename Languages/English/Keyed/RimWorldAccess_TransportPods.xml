@@ -218,4 +218,6 @@
   <RimWorldAccess.TransportPods.Portal.Cancelled>{0} cancelled</RimWorldAccess.TransportPods.Portal.Cancelled>
   <RimWorldAccess.TransportPods.Portal.FallbackEnter>Load portal</RimWorldAccess.TransportPods.Portal.FallbackEnter>
   <RimWorldAccess.TransportPods.Portal.FallbackLoading>Loading</RimWorldAccess.TransportPods.Portal.FallbackLoading>
+  <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
+  <RimWorldAccess.TransportPods.Loading.TabSummary>{0} tab, {1} items</RimWorldAccess.TransportPods.Loading.TabSummary>
 </LanguageData>

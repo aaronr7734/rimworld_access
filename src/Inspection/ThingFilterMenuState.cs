@@ -569,7 +569,7 @@ namespace RimWorldAccess
             string baseAnnouncement = FormatItemAnnouncement(item);
             if (!typeahead.HasActiveSearch)
                 return baseAnnouncement;
-            return $"{baseAnnouncement} {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'";
+            return baseAnnouncement + typeahead.BuildSearchContextSuffix();
         }
 
         private static bool HandleActivate(InspectionTreeItem item)

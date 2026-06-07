@@ -107,4 +107,8 @@
 
   <!-- Keyboard-mode visual overlay (src/History/HistoryPatch.cs). -->
   <RimWorldAccess.History.Overlay.KeyboardModeTab>Keyboard Mode Active - {0} Tab</RimWorldAccess.History.Overlay.KeyboardModeTab>
+  <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
+  <RimWorldAccess.History.Duration.DaysHoursMinutes>{0} days, {1} hours, {2} minutes</RimWorldAccess.History.Duration.DaysHoursMinutes>
+  <RimWorldAccess.History.Duration.HoursMinutes>{0} hours, {1} minutes</RimWorldAccess.History.Duration.HoursMinutes>
+  <RimWorldAccess.History.Duration.Minutes>{0} minutes</RimWorldAccess.History.Duration.Minutes>
 </LanguageData>

@@ -95,7 +95,7 @@ namespace RimWorldAccess
                 int carried = CarriedCount;
                 if (carried > 0)
                 {
-                    return $"{name} x{TotalQuantity} ({carried} carried by colonists)";
+                    return (string)"RimWorldAccess.Inspection.Inventory.CarriedByColonists".Translate(name, TotalQuantity, carried);
                 }
                 return $"{name} x{TotalQuantity}";
             }

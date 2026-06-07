@@ -484,15 +484,15 @@ namespace RimWorldAccess
         {
             if (time.TotalDays >= 1)
             {
-                return $"{(int)time.TotalDays} days, {time.Hours} hours, {time.Minutes} minutes";
+                return (string)"RimWorldAccess.History.Duration.DaysHoursMinutes".Translate((int)time.TotalDays, time.Hours, time.Minutes);
             }
             else if (time.TotalHours >= 1)
             {
-                return $"{(int)time.TotalHours} hours, {time.Minutes} minutes";
+                return (string)"RimWorldAccess.History.Duration.HoursMinutes".Translate((int)time.TotalHours, time.Minutes);
             }
             else
             {
-                return $"{(int)time.TotalMinutes} minutes";
+                return (string)"RimWorldAccess.History.Duration.Minutes".Translate((int)time.TotalMinutes);
             }
         }
 

@@ -282,7 +282,7 @@ namespace RimWorldAccess
             if (typeahead.HasActiveSearch && rows.Count > 0 && selectedIndex >= 0 && selectedIndex < rows.Count)
             {
                 string label = GetRowLabel(rows[selectedIndex]);
-                TolkHelper.SpeakData($"{label}, {typeahead.CurrentMatchPosition} of {typeahead.MatchCount} matches for '{typeahead.SearchBuffer}'");
+                TolkHelper.SpeakData(label + typeahead.BuildSearchContextSuffix());
             }
             else
             {

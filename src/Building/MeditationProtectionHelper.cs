@@ -103,7 +103,7 @@ namespace RimWorldAccess
                 return string.Empty;
 
             string thingList = string.Join(", ", allAffectedLabels);
-            return $"{protectedCount} skipped, protected by {thingList}";
+            return (string)"RimWorldAccess.Building.Meditation.SkippedProtected".Translate(protectedCount, thingList);
         }
     }
 }

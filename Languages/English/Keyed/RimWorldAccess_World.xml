@@ -745,4 +745,10 @@
   <RimWorldAccess.Gear.SlotConflictingPlusMore>{0} +{1} more</RimWorldAccess.Gear.SlotConflictingPlusMore>
   <RimWorldAccess.Gear.SlotNone>none</RimWorldAccess.Gear.SlotNone>
   <RimWorldAccess.Gear.SwappedItemFallback>item</RimWorldAccess.Gear.SwappedItemFallback>
+  <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
+  <RimWorldAccess.Stat.MassUnknown>Mass: Unknown</RimWorldAccess.Stat.MassUnknown>
+  <RimWorldAccess.Stat.SpeedUnknown>Speed: Unknown</RimWorldAccess.Stat.SpeedUnknown>
+  <RimWorldAccess.Stat.FoodUnknown>Food: Unknown</RimWorldAccess.Stat.FoodUnknown>
+  <RimWorldAccess.Stat.ForagingUnknown>Foraging: Unknown</RimWorldAccess.Stat.ForagingUnknown>
+  <RimWorldAccess.Stat.VisibilityUnknown>Visibility: Unknown</RimWorldAccess.Stat.VisibilityUnknown>
 </LanguageData>
