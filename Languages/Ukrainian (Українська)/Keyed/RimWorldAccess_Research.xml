@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Research module strings (src/Research/). Two state files contribute:
+      - WindowlessResearchMenuState.cs  (the accessible research menu that
+        replaces MainTabWindow_Research; hierarchical tree of tabs,
+        status groups, and projects)
+      - WindowlessResearchDetailState.cs  (the detail view opened from a
+        project; tree of description, prerequisites, unlocks, dependents,
+        and the start/stop action)
+
+    Shared phrases (no info card available, already at edge, etc.) are
+    delegated to RimWorldAccess_Common.xml so translators only localize
+    them once. Only strings unique to the research UI live here.
+
+    Placeholders follow string.Format ({0}, {1}, ...). One/Many key
+    variants are used where English needs singular vs. plural agreement
+    (e.g. "1 hidden prerequisite" vs "3 hidden prerequisites");
+    translators with different plural classes can either collapse or
+    split these further.
+  -->
+
+  <!-- Menu open/close announcements (WindowlessResearchMenuState). -->
+  <RimWorldAccess.Research.Menu.Title>Меню дослідження</RimWorldAccess.Research.Menu.Title>
+  <RimWorldAccess.Research.Menu.Closed>Меню дослідження закрито</RimWorldAccess.Research.Menu.Closed>
+  <RimWorldAccess.Research.Menu.ProjectNotAvailable>Дослідницький проєкт недоступний</RimWorldAccess.Research.Menu.ProjectNotAvailable>
+  <RimWorldAccess.Research.Menu.ProjectNotFound>Дослідницький проєкт {0} не знайдено в меню</RimWorldAccess.Research.Menu.ProjectNotFound>
+
+  <!-- Root label for the built category tree. -->
+  <RimWorldAccess.Research.Tree.RootLabel>Дослідження</RimWorldAccess.Research.Tree.RootLabel>
+
+  <!-- Status group labels. {0} = number of projects in the group. -->
+  <RimWorldAccess.Research.Status.InProgress>В процесі ({0})</RimWorldAccess.Research.Status.InProgress>
+  <RimWorldAccess.Research.Status.Available>Доступно ({0})</RimWorldAccess.Research.Status.Available>
+  <RimWorldAccess.Research.Status.Completed>Завершено ({0})</RimWorldAccess.Research.Status.Completed>
+  <RimWorldAccess.Research.Status.Locked>Заблоковано ({0})</RimWorldAccess.Research.Status.Locked>
+
+  <!-- Short status words used inline in labels (e.g. after prereq/dep rows). -->
+  <RimWorldAccess.Research.Status.CompletedWord>Завершено</RimWorldAccess.Research.Status.CompletedWord>
+  <RimWorldAccess.Research.Status.AvailableWord>Доступно</RimWorldAccess.Research.Status.AvailableWord>
+  <RimWorldAccess.Research.Status.LockedWord>Заблоковано</RimWorldAccess.Research.Status.LockedWord>
+
+  <!-- Project label formatting (menu list entries).
+       Cost/knowledge/progress suffixes are composed together with the
+       project name by the caller. {0} = the numeric value. -->
+  <RimWorldAccess.Research.Label.CostSuffix> - вартість: {0}</RimWorldAccess.Research.Label.CostSuffix>
+  <RimWorldAccess.Research.Label.KnowledgeSuffix> - знання: {0}</RimWorldAccess.Research.Label.KnowledgeSuffix>
+  <RimWorldAccess.Research.Label.ProgressSuffix> - виконано {0}%</RimWorldAccess.Research.Label.ProgressSuffix>
+  <RimWorldAccess.Research.Label.StatusSuffix> - {0}</RimWorldAccess.Research.Label.StatusSuffix>
+
+  <!-- Detail view navigation (WindowlessResearchDetailState).
+       BackTo: {0} = the previous research project we return to. -->
+  <RimWorldAccess.Research.Detail.BackTo>Назад до: {0}</RimWorldAccess.Research.Detail.BackTo>
+  <RimWorldAccess.Research.Detail.ReturnedToMenu>Повернення до меню дослідження</RimWorldAccess.Research.Detail.ReturnedToMenu>
+
+  <!-- Detail top-level node labels. -->
+  <RimWorldAccess.Research.Detail.DescriptionLabel>Опис</RimWorldAccess.Research.Detail.DescriptionLabel>
+  <RimWorldAccess.Research.Detail.StartResearch>Почати дослідження</RimWorldAccess.Research.Detail.StartResearch>
+  <RimWorldAccess.Research.Detail.StopResearch>Зупинити дослідження</RimWorldAccess.Research.Detail.StopResearch>
+  <RimWorldAccess.Research.Detail.StartResearchHint>Натисніть Enter, щоб почати це дослідження</RimWorldAccess.Research.Detail.StartResearchHint>
+  <RimWorldAccess.Research.Detail.StopResearchHint>Натисніть Enter, щоб зупинити це дослідження</RimWorldAccess.Research.Detail.StopResearchHint>
+
+  <!-- Category headers inside the detail tree.
+       WithCount: {0} = number of child items; None is used when empty. -->
+  <RimWorldAccess.Research.Detail.PrerequisitesWithCount>Передумови ({0} пунктів)</RimWorldAccess.Research.Detail.PrerequisitesWithCount>
+  <RimWorldAccess.Research.Detail.PrerequisitesNone>Передумови (немає)</RimWorldAccess.Research.Detail.PrerequisitesNone>
+  <RimWorldAccess.Research.Detail.UnlocksWithCount>Відкриває ({0} пунктів)</RimWorldAccess.Research.Detail.UnlocksWithCount>
+  <RimWorldAccess.Research.Detail.UnlocksNone>Відкриває (немає)</RimWorldAccess.Research.Detail.UnlocksNone>
+  <RimWorldAccess.Research.Detail.DependentsWithCount>Залежні ({0} пунктів)</RimWorldAccess.Research.Detail.DependentsWithCount>
+  <RimWorldAccess.Research.Detail.DependentsNone>Залежні (немає)</RimWorldAccess.Research.Detail.DependentsNone>
+
+  <!-- Research row inside a category (prereqs / dependents).
+       {0} = project label, {1} = cost, {2} = status word. -->
+  <RimWorldAccess.Research.Detail.ResearchRow>{0} - вартість: {1} {2}</RimWorldAccess.Research.Detail.ResearchRow>
+
+  <!-- Hidden prerequisite summary. AllCompleted is used when nothing is
+       missing; IncompleteCount takes {0} = number still incomplete.
+       HiddenOne/Many compose with the status word: {0} = count (omitted
+       in One form), {1} = status word. -->
+  <RimWorldAccess.Research.Detail.HiddenAllCompleted>Усе завершено</RimWorldAccess.Research.Detail.HiddenAllCompleted>
+  <RimWorldAccess.Research.Detail.HiddenIncompleteCount>{0} незавершених</RimWorldAccess.Research.Detail.HiddenIncompleteCount>
+  <RimWorldAccess.Research.Detail.HiddenOne>1 прихована передумова - {0}</RimWorldAccess.Research.Detail.HiddenOne>
+  <RimWorldAccess.Research.Detail.HiddenMany>{0} прихованих передумов - {1}</RimWorldAccess.Research.Detail.HiddenMany>
+
+  <!-- Prerequisite bench/facility/techprint/mechanitor/analyze/grav rows.
+       Each row has an inline status tail. {0} = value or main label. -->
+  <RimWorldAccess.Research.Detail.BenchAvailable>Доступно</RimWorldAccess.Research.Detail.BenchAvailable>
+  <RimWorldAccess.Research.Detail.BenchNotAvailable>Недоступно</RimWorldAccess.Research.Detail.BenchNotAvailable>
+  <RimWorldAccess.Research.Detail.RequiresBench>Потрібен стіл: {0} - {1}</RimWorldAccess.Research.Detail.RequiresBench>
+  <RimWorldAccess.Research.Detail.RequiresFacility>Потрібне обладнання: {0}</RimWorldAccess.Research.Detail.RequiresFacility>
+
+  <RimWorldAccess.Research.Detail.TechprintsComplete>Завершено</RimWorldAccess.Research.Detail.TechprintsComplete>
+  <RimWorldAccess.Research.Detail.TechprintsProgress>{0}/{1}</RimWorldAccess.Research.Detail.TechprintsProgress>
+  <RimWorldAccess.Research.Detail.RequiresTechprints>Потрібні креслення: {0}</RimWorldAccess.Research.Detail.RequiresTechprints>
+
+  <RimWorldAccess.Research.Detail.MechanitorMet>Виконано</RimWorldAccess.Research.Detail.MechanitorMet>
+  <RimWorldAccess.Research.Detail.MechanitorNotMet>Не виконано</RimWorldAccess.Research.Detail.MechanitorNotMet>
+  <RimWorldAccess.Research.Detail.RequiresMechanitor>Потрібен механітор - {0}</RimWorldAccess.Research.Detail.RequiresMechanitor>
+
+  <RimWorldAccess.Research.Detail.AnalyzeComplete>Завершено</RimWorldAccess.Research.Detail.AnalyzeComplete>
+  <RimWorldAccess.Research.Detail.AnalyzeProgress>{0}/{1}</RimWorldAccess.Research.Detail.AnalyzeProgress>
+  <RimWorldAccess.Research.Detail.RequiresAnalyzing>Потрібен аналіз: {0} - {1}</RimWorldAccess.Research.Detail.RequiresAnalyzing>
+
+  <RimWorldAccess.Research.Detail.GravEngineInspected>Оглянуто</RimWorldAccess.Research.Detail.GravEngineInspected>
+  <RimWorldAccess.Research.Detail.GravEngineNotInspected>Не оглянуто</RimWorldAccess.Research.Detail.GravEngineNotInspected>
+  <RimWorldAccess.Research.Detail.RequiresGravEngine>Потрібен огляд грав-двигуна - {0}</RimWorldAccess.Research.Detail.RequiresGravEngine>
+
+  <!-- Unlocked item categories. Nouns used in labels like "(Building)". -->
+  <RimWorldAccess.Research.Detail.UnlockCategoryBuilding>Споруда</RimWorldAccess.Research.Detail.UnlockCategoryBuilding>
+  <RimWorldAccess.Research.Detail.UnlockCategoryPlant>Рослина</RimWorldAccess.Research.Detail.UnlockCategoryPlant>
+  <RimWorldAccess.Research.Detail.UnlockCategoryItem>Предмет</RimWorldAccess.Research.Detail.UnlockCategoryItem>
+  <RimWorldAccess.Research.Detail.UnlockCategoryRecipe>Рецепт</RimWorldAccess.Research.Detail.UnlockCategoryRecipe>
+
+  <!-- No-info-card message for non-target tree sections. -->
+  <RimWorldAccess.Research.Detail.NoInfoCardForSection>Немає картки відомостей для цього розділу</RimWorldAccess.Research.Detail.NoInfoCardForSection>
+
+  <!-- Description content builder (StringBuilder in BuildDescriptionContent).
+       Each key is a single line in the composed text block. -->
+  <RimWorldAccess.Research.Desc.ProjectLine>Проєкт: {0}</RimWorldAccess.Research.Desc.ProjectLine>
+  <RimWorldAccess.Research.Desc.ResearchCost>Вартість дослідження: {0}</RimWorldAccess.Research.Desc.ResearchCost>
+  <RimWorldAccess.Research.Desc.KnowledgeCost>Вартість знань: {0}</RimWorldAccess.Research.Desc.KnowledgeCost>
+  <RimWorldAccess.Research.Desc.KnowledgeCategory>Категорія знань: {0}</RimWorldAccess.Research.Desc.KnowledgeCategory>
+  <RimWorldAccess.Research.Desc.Progress>Прогрес: {0}%</RimWorldAccess.Research.Desc.Progress>
+  <RimWorldAccess.Research.Desc.StatusCompleted>Стан: Завершено</RimWorldAccess.Research.Desc.StatusCompleted>
+  <RimWorldAccess.Research.Desc.StatusAvailable>Стан: Доступно для дослідження</RimWorldAccess.Research.Desc.StatusAvailable>
+  <RimWorldAccess.Research.Desc.StatusLocked>Стан: Заблоковано</RimWorldAccess.Research.Desc.StatusLocked>
+  <RimWorldAccess.Research.Desc.RequiredBench>Потрібний стіл: {0}</RimWorldAccess.Research.Desc.RequiredBench>
+  <RimWorldAccess.Research.Desc.RequiredFacilitiesPrefix>Потрібне обладнання: </RimWorldAccess.Research.Desc.RequiredFacilitiesPrefix>
+
+  <!-- Research action announcements (start / stop / blocked). -->
+  <RimWorldAccess.Research.Action.Stopped>Дослідження зупинено: {0}</RimWorldAccess.Research.Action.Stopped>
+  <RimWorldAccess.Research.Action.AlreadyCompleted>{0} вже завершено</RimWorldAccess.Research.Action.AlreadyCompleted>
+  <RimWorldAccess.Research.Action.MissingPrereqs>Неможливо почати дослідження: відсутні передумови - {0}</RimWorldAccess.Research.Action.MissingPrereqs>
+  <RimWorldAccess.Research.Action.NeedTechprints>Неможливо почати дослідження: потрібно {0} креслень, застосовано лише {1}</RimWorldAccess.Research.Action.NeedTechprints>
+  <RimWorldAccess.Research.Action.StudyFirst>Неможливо почати дослідження: спершу потрібно вивчити необхідні предмети</RimWorldAccess.Research.Action.StudyFirst>
+  <RimWorldAccess.Research.Action.Started>Дослідження розпочато: {0}</RimWorldAccess.Research.Action.Started>
+  <RimWorldAccess.Research.Action.StartedReplacing>Дослідження розпочато: {0}. Зупинено {1} на {2}% прогресу.</RimWorldAccess.Research.Action.StartedReplacing>
+
+  <!-- Missing prerequisite list fragments.
+       Unknown: spoken when currentProject is null or no parts collected.
+       HiddenOne/Many: {0} = count of hidden missing prereqs (omitted in One form). -->
+  <RimWorldAccess.Research.MissingPrereqs.Unknown>Невідомо</RimWorldAccess.Research.MissingPrereqs.Unknown>
+  <RimWorldAccess.Research.MissingPrereqs.HiddenOne>1 прихована передумова</RimWorldAccess.Research.MissingPrereqs.HiddenOne>
+  <RimWorldAccess.Research.MissingPrereqs.HiddenMany>{0} прихованих передумов</RimWorldAccess.Research.MissingPrereqs.HiddenMany>
+</LanguageData>

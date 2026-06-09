@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Archonexus module strings (src/Archonexus/). Five files contribute:
+      - ArchonexusColonyState.cs         (Screen 1: choose things for new colony)
+      - NewColonyTilePickState.cs        (Screen 3: choose new colony site)
+      - ArchonexusReformIdeoState.cs     (Screen 4: reform ideoligion)
+      - ArchonexusConvertColonistsState.cs (Screen 4 sub-dialog: assign colonists)
+
+    Guard-style messages that exactly match Common.xml values are NOT repeated
+    here — callers use those shared keys directly:
+      - "World navigation not active" -> RimWorldAccess.Guard.WorldNavigationNotActive
+      - "No valid tile selected"       -> RimWorldAccess.Guard.NoValidTileSelected
+      - "Cannot access tile picker callbacks" -> RimWorldAccess.Gravships.Destination.CannotAccessCallbacks
+
+    Vanilla keys referenced by the C# (ChooseNextColonySite, ChooseThingsForNewColonyTitle,
+    ChooseThingsForNewColonyDesc, ConfigureIdeoligion, ChooseColonistsForIdeoTitle,
+    ChooseColonistsForIdeoDesc, CreateNew, CreateFluid, LoadExistingIdeoligion,
+    AssignColonists, Next, etc.) are NOT duplicated here.
+  -->
+
+  <!-- Screen 1 — opening announcement instruction fragment
+       (ArchonexusColonyState.AnnounceOpening). Appended after the vanilla
+       dialog title and description. -->
+  <RimWorldAccess.Archonexus.Colony.OpenInstructions>Пробіл або Enter, щоб вибрати; Alt S, щоб надіслати.</RimWorldAccess.Archonexus.Colony.OpenInstructions>
+
+  <!-- Screen 3 — tile pick (NewColonyTilePickState.Open).
+       OpenInstructions: appended after "ChooseNextColonySite".Translate().
+       MustChooseValid: spoken when the player presses Escape (cannot cancel).
+       ErrorSelectingTile: spoken on exception during tile confirmation. -->
+  <RimWorldAccess.Archonexus.TilePick.OpenInstructions>Стрілки для навігації, PageUp і PageDown для сканера, Enter для підтвердження. Скасувати не можна — потрібно обрати придатну плитку.</RimWorldAccess.Archonexus.TilePick.OpenInstructions>
+  <RimWorldAccess.Archonexus.TilePick.MustChooseValid>Щоб продовжити, потрібно обрати придатну плитку.</RimWorldAccess.Archonexus.TilePick.MustChooseValid>
+  <RimWorldAccess.Archonexus.TilePick.ErrorSelectingTile>Помилка вибору плитки</RimWorldAccess.Archonexus.TilePick.ErrorSelectingTile>
+
+  <!-- Screen 4 — reform ideoligion list (ArchonexusReformIdeoState).
+       OpenInstructions: appended after "ConfigureIdeoligion".Translate().
+       CannotCancel: spoken when the player presses Escape (the dialog cannot be cancelled).
+       NoIdeoDetailsHere: spoken when Tab is pressed on a non-ideoligion row.
+       AlreadyPrimary: {0} = ideoligion name.
+       SetAsPrimary: {0} = ideoligion name.
+       NoColonistsNeedConverting: spoken when "Assign colonists" is triggered but
+         all colonists already follow the chosen ideoligion.
+       ErrorConfirming: spoken on exception during the "Next" commit. -->
+  <RimWorldAccess.Archonexus.Reform.OpenInstructions>Вгору і Вниз для перегляду, пошук за введенням, Tab для повних відомостей, Enter, щоб зробити основною, Alt S для підтвердження.</RimWorldAccess.Archonexus.Reform.OpenInstructions>
+  <RimWorldAccess.Archonexus.Reform.CannotCancel>Скасувати реформування ідеології не можна. Натисніть Alt S, щоб підтвердити та продовжити.</RimWorldAccess.Archonexus.Reform.CannotCancel>
+  <RimWorldAccess.Archonexus.Reform.NoIdeoDetailsHere>Тут немає відомостей про ідеологію. Спершу перейдіть до ідеології.</RimWorldAccess.Archonexus.Reform.NoIdeoDetailsHere>
+  <RimWorldAccess.Archonexus.Reform.AlreadyPrimary>{0} вже є основною ідеологією.</RimWorldAccess.Archonexus.Reform.AlreadyPrimary>
+  <RimWorldAccess.Archonexus.Reform.SetAsPrimary>{0} призначено основною ідеологією.</RimWorldAccess.Archonexus.Reform.SetAsPrimary>
+  <RimWorldAccess.Archonexus.Reform.NoColonistsNeedConverting>Немає колоністів, яких потрібно конвертувати.</RimWorldAccess.Archonexus.Reform.NoColonistsNeedConverting>
+  <RimWorldAccess.Archonexus.Reform.ErrorConfirming>Помилка підтвердження ідеології</RimWorldAccess.Archonexus.Reform.ErrorConfirming>
+  <!-- PressTabToEdit: appended to an item announcement when the focused ideoligion
+       is the editable custom one and the player just returned from a sub-screen. -->
+  <RimWorldAccess.Archonexus.Reform.PressTabToEdit>Натисніть Tab, щоб редагувати цю ідеологію.</RimWorldAccess.Archonexus.Reform.PressTabToEdit>
+
+  <!-- Screen 4 sub-dialog — assign colonists (ArchonexusConvertColonistsState).
+       OpenInstructions: appended after the vanilla dialog title, description,
+         and pawn count.
+       SpaceOrEnterToConvert: the keyboard hint in the opening announcement. -->
+  <RimWorldAccess.Archonexus.Convert.OpenInstructions>Пробіл або Enter, щоб конвертувати; Escape, коли завершите.</RimWorldAccess.Archonexus.Convert.OpenInstructions>
+</LanguageData>

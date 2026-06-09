@@ -1,0 +1,689 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Pawns module strings (src/Pawns/). Covers the colonist bar,
+    multi-select group, pawn info card and quick-info, the per-tab
+    info dumps (Health, Skills, Gear, Mood, Needs, Social, Training),
+    bed and area assignment, drug and reading policy editors, the
+    schedule menu, line-formation tool, name dialog, and the assign
+    menu (workers, mechs, equipment).
+
+    Phrasing decisions:
+
+    - Vanilla labels for hediffs, skills, needs, moods, traits,
+      faction names, item labels, drug names, schedule labels, and
+      pawn names come from the game's own translation system and are
+      NOT duplicated here.
+
+    - Per-tab readouts (Health, Skills, Gear, Mood, Needs, Social,
+      Training) compose many small fragments. Each readout shape is
+      its own key so translators can reorder fragments instead of
+      relying on C# concatenation.
+
+    - One/Many splits used wherever a count toggles between one
+      thing and several (e.g. "1 colonist selected" vs "{N} colonists
+      selected"). Translators with additional plural classes can
+      keep both keys identical or split further via LanguageWorker.
+
+    - Toggle / status announcements split into one key per semantic
+      case (e.g. AreaAssigned / AreaCleared) so the activity verb
+      can inflect differently than the cleared verb.
+
+    Shared phrases delegated elsewhere:
+      - Search.NoMatches / Search.Cleared       -> Common.xml
+      - Edge.* (boundary announcements)         -> Common.xml
+      - Guard.NoPawnSelected                    -> Common.xml
+      - Map.Direction.*                         -> Map.xml (when used)
+      - "Cancel" button label                    -> vanilla "Cancel"
+  -->
+
+  <!-- =================================================================
+       Pawn label composition (PawnLabelHelper.BuildGroupedPawnLabel).
+       Used by World, TransportPods, and Trade modules to label
+       grouped animals (e.g., "Male Ducklings", "Female Cows
+       (pregnant)"). Each grammatical case is its own key so the
+       gender-noun agreement stays the translator's call.
+       ================================================================= -->
+  <RimWorldAccess.Pawns.Group.MalePrefix>Самці </RimWorldAccess.Pawns.Group.MalePrefix>
+  <RimWorldAccess.Pawns.Group.FemalePrefix>Самки </RimWorldAccess.Pawns.Group.FemalePrefix>
+  <RimWorldAccess.Pawns.Group.Pregnant>вагітні</RimWorldAccess.Pawns.Group.Pregnant>
+  <!-- Final composition: "{0} = gender prefix (or empty), {1} =
+       capitalized kind label, {2} = " (suffix1, suffix2, ...)" or "". -->
+  <RimWorldAccess.Pawns.Group.Label>{0}{1}{2}</RimWorldAccess.Pawns.Group.Label>
+  <RimWorldAccess.Pawns.Group.SuffixWrap> ({0})</RimWorldAccess.Pawns.Group.SuffixWrap>
+
+  <!-- =================================================================
+       Quick-info float-menu picker (PawnQuickInfo.Display).
+       Spoken when multi-select is active and the user presses a
+       quick-info hotkey. Each row is the pawn label + the extracted
+       info (health, mood, etc.).
+       {0} = pawn label, {1} = extractor output. -->
+  <RimWorldAccess.Pawns.QuickInfo.PickerRow>{0}: {1}</RimWorldAccess.Pawns.QuickInfo.PickerRow>
+
+  <!-- =================================================================
+       Line formation mode (LineFormationState).
+       Activated from a multi-pawn float menu; the player places two
+       points on the map and presses Enter to spread the selected
+       pawns along the line.
+       PawnsCount: {0} = number of pawns moving in formation.
+       Confirmed/AllExcept/OnlySome: {0} = pawn-name list, when the
+       confirmation produces partial success.
+       ================================================================= -->
+  <RimWorldAccess.Pawns.Formation.NoValidPawns>Немає придатних персонажів для переміщення</RimWorldAccess.Pawns.Formation.NoValidPawns>
+  <RimWorldAccess.Pawns.Formation.Activated>Режим шикування в лінію. {0} персонажів. Переміщуйтеся стрілками, натисніть Пробіл, щоб поставити першу точку.</RimWorldAccess.Pawns.Formation.Activated>
+  <RimWorldAccess.Pawns.Formation.InvalidPosition>Неприпустима позиція</RimWorldAccess.Pawns.Formation.InvalidPosition>
+  <RimWorldAccess.Pawns.Formation.FirstPlaced>Першу точку поставлено. Перейдіть до другої точки та натисніть Пробіл.</RimWorldAccess.Pawns.Formation.FirstPlaced>
+  <RimWorldAccess.Pawns.Formation.SecondPlaced>Лінію шикування задано. Натисніть Enter, щоб підтвердити, Escape, щоб скасувати.</RimWorldAccess.Pawns.Formation.SecondPlaced>
+  <RimWorldAccess.Pawns.Formation.AllMoving>{0} рухаються в шикуванні</RimWorldAccess.Pawns.Formation.AllMoving>
+  <RimWorldAccess.Pawns.Formation.NoneMoving>Жоден персонаж не зміг дістатися до місця призначення</RimWorldAccess.Pawns.Formation.NoneMoving>
+  <RimWorldAccess.Pawns.Formation.AllExcept>{0}, окрім {1}, рухаються в шикуванні</RimWorldAccess.Pawns.Formation.AllExcept>
+  <RimWorldAccess.Pawns.Formation.OnlySome>Лише {0} рухаються в шикуванні</RimWorldAccess.Pawns.Formation.OnlySome>
+  <RimWorldAccess.Pawns.Formation.Cancelled>Шикування скасовано</RimWorldAccess.Pawns.Formation.Cancelled>
+
+  <!-- =================================================================
+       Multi-select state (MultiSelectState).
+       Toggling pawns in/out of the selection (Alt+Space, Alt+Shift+
+       arrows). Each shape has its own key so the suffix
+       ("removed. {N} selected.") can carry whichever count word the
+       language uses.
+       Added/Removed: {0} = pawn label, {1} = total selected count.
+       AlreadySelected: same shape with the leading note.
+       AllSelectedNamed/Count: all-colonists shortcut.
+       PawnSummary: {0} = label, {1} = selected/not-selected status,
+                    {2} = job report.
+       PawnSummaryWithPos: appends ". {0}" position fragment.
+       Idle: spoken when GetJobReport is empty.
+       SelectedStatus / NotSelectedStatus: the bare status word
+       composed into PawnSummary.
+       FocusedTask: ClearMultiSelect single-select fallback.
+       ================================================================= -->
+  <RimWorldAccess.Pawns.MultiSelect.NoFocus>Немає сфокусованого персонажа</RimWorldAccess.Pawns.MultiSelect.NoFocus>
+  <RimWorldAccess.Pawns.MultiSelect.DeselectedCleared>{0}: знято виділення. Виділення очищено.</RimWorldAccess.Pawns.MultiSelect.DeselectedCleared>
+  <RimWorldAccess.Pawns.MultiSelect.RemovedThenSingle>{0}: вилучено. Вибрано: {1}.</RimWorldAccess.Pawns.MultiSelect.RemovedThenSingle>
+  <RimWorldAccess.Pawns.MultiSelect.Removed>{0}: вилучено. Вибрано: {1}.</RimWorldAccess.Pawns.MultiSelect.Removed>
+  <RimWorldAccess.Pawns.MultiSelect.Added>{0}: додано. Вибрано: {1}.</RimWorldAccess.Pawns.MultiSelect.Added>
+  <RimWorldAccess.Pawns.MultiSelect.AlreadySelected>{0}: вже вибрано. Вибрано: {1}.</RimWorldAccess.Pawns.MultiSelect.AlreadySelected>
+  <RimWorldAccess.Pawns.MultiSelect.Inactive>Мультивибір неактивний</RimWorldAccess.Pawns.MultiSelect.Inactive>
+  <RimWorldAccess.Pawns.MultiSelect.NoColonists>На цій мапі немає колоністів</RimWorldAccess.Pawns.MultiSelect.NoColonists>
+  <RimWorldAccess.Pawns.MultiSelect.AllSelectedNamed>Вибрано всіх: {0}. {1} колоністів.</RimWorldAccess.Pawns.MultiSelect.AllSelectedNamed>
+  <RimWorldAccess.Pawns.MultiSelect.AllSelectedCount>Вибрано всіх {0} колоністів</RimWorldAccess.Pawns.MultiSelect.AllSelectedCount>
+  <RimWorldAccess.Pawns.MultiSelect.SelectedStatus>вибрано</RimWorldAccess.Pawns.MultiSelect.SelectedStatus>
+  <RimWorldAccess.Pawns.MultiSelect.NotSelectedStatus>не вибрано</RimWorldAccess.Pawns.MultiSelect.NotSelectedStatus>
+  <RimWorldAccess.Pawns.MultiSelect.Idle>Без діла</RimWorldAccess.Pawns.MultiSelect.Idle>
+  <RimWorldAccess.Pawns.MultiSelect.PawnSummary>{0}, {1}, {2}</RimWorldAccess.Pawns.MultiSelect.PawnSummary>
+  <RimWorldAccess.Pawns.MultiSelect.PawnSummaryWithPos>{0}, {1}, {2}. {3}</RimWorldAccess.Pawns.MultiSelect.PawnSummaryWithPos>
+  <RimWorldAccess.Pawns.MultiSelect.FocusedTask>{0} - {1}</RimWorldAccess.Pawns.MultiSelect.FocusedTask>
+  <!-- BlockedByTargeting: spoken when a Selector action is attempted during active
+       targeting. {0} = the action verb phrase (one of the Action* keys below),
+       kept as a data slot so each blocked action names itself. -->
+  <RimWorldAccess.Pawns.MultiSelect.BlockedByTargeting>Неможливо {0} під час наведення. Спочатку натисніть Escape, щоб скасувати наведення.</RimWorldAccess.Pawns.MultiSelect.BlockedByTargeting>
+  <RimWorldAccess.Pawns.MultiSelect.ActionChangeSelection>змінити виділення</RimWorldAccess.Pawns.MultiSelect.ActionChangeSelection>
+  <RimWorldAccess.Pawns.MultiSelect.ActionExtendSelection>розширити виділення</RimWorldAccess.Pawns.MultiSelect.ActionExtendSelection>
+  <RimWorldAccess.Pawns.MultiSelect.ActionClearSelection>очистити виділення</RimWorldAccess.Pawns.MultiSelect.ActionClearSelection>
+  <RimWorldAccess.Pawns.MultiSelect.ActionSelectAll>вибрати все</RimWorldAccess.Pawns.MultiSelect.ActionSelectAll>
+  <!-- AddedStarted: first pawn added, entering multi-select mode.
+       {0} = pawn label, {1} = total selected count. -->
+  <RimWorldAccess.Pawns.MultiSelect.AddedStarted>{0}: додано. Мультивибір розпочато. Вибрано: {1}.</RimWorldAccess.Pawns.MultiSelect.AddedStarted>
+  <!-- RemovedDisabled: last pawn removed, exiting multi-select.
+       {0} = pawn label. -->
+  <RimWorldAccess.Pawns.MultiSelect.RemovedDisabled>{0}: вилучено. Мультивибір вимкнено.</RimWorldAccess.Pawns.MultiSelect.RemovedDisabled>
+  <!-- RemovedDisabledThenSingle: shrunk to one pawn, exiting multi-select.
+       {0} = removed pawn label, {1} = remaining pawn label. -->
+  <RimWorldAccess.Pawns.MultiSelect.RemovedDisabledThenSingle>{0}: вилучено. Мультивибір вимкнено. Вибрано: {1}.</RimWorldAccess.Pawns.MultiSelect.RemovedDisabledThenSingle>
+  <!-- RemovedFocusChanged: removed from range, focus moved.
+       {0} = removed pawn label, {1} = new focus label, {2} = count. -->
+  <RimWorldAccess.Pawns.MultiSelect.RemovedFocusChanged>{0}: вилучено. {1}, вибрано: {2}.</RimWorldAccess.Pawns.MultiSelect.RemovedFocusChanged>
+  <!-- SelectionCleared: spoken when clearing multi-select with no focused pawn. -->
+  <RimWorldAccess.Pawns.MultiSelect.SelectionCleared>Виділення очищено</RimWorldAccess.Pawns.MultiSelect.SelectionCleared>
+  <!-- SelectionClearedFocus: spoken when clearing multi-select with a focused pawn.
+       {0} = pawn label, {1} = job report. -->
+  <RimWorldAccess.Pawns.MultiSelect.SelectionClearedFocus>Виділення очищено. {0}, {1}</RimWorldAccess.Pawns.MultiSelect.SelectionClearedFocus>
+
+  <!-- Persistent group slots (MultiSelectGroupComponent, F1-F4).
+       Saved/Empty/Recalled: {0} = 1-based slot number; lists, counts,
+       and unavailable counts vary per phrase. -->
+  <RimWorldAccess.Pawns.Group.Saved>Групу {0} збережено: {1}</RimWorldAccess.Pawns.Group.Saved>
+  <RimWorldAccess.Pawns.Group.SlotEmpty>Група {0} порожня</RimWorldAccess.Pawns.Group.SlotEmpty>
+  <RimWorldAccess.Pawns.Group.NoPawnsAvailable>Група {0}: немає доступних персонажів на цій мапі</RimWorldAccess.Pawns.Group.NoPawnsAvailable>
+  <RimWorldAccess.Pawns.Group.RecalledPartial>Групу {0} викликано: {1}. {2} недоступно. Вибрано: {3}.</RimWorldAccess.Pawns.Group.RecalledPartial>
+  <RimWorldAccess.Pawns.Group.Recalled>Групу {0} викликано: {1}. Вибрано: {2}.</RimWorldAccess.Pawns.Group.Recalled>
+
+  <!-- =================================================================
+       Name pawn dialog (NamePawnDialogHelper, baby/animal/mech naming).
+       Most field labels and the dialog title come from the vanilla
+       Dialog_NamePawn fields; only the announcement strings live here.
+       NameFallback: {0} = 1-based field index used when the dialog
+                     does not provide a label. -->
+  <RimWorldAccess.Pawns.NameDialog.NoPawn>Помилка: не вдалося знайти персонажа</RimWorldAccess.Pawns.NameDialog.NoPawn>
+  <RimWorldAccess.Pawns.NameDialog.MethodNotFound>Помилка: метод BuildName не знайдено</RimWorldAccess.Pawns.NameDialog.MethodNotFound>
+  <RimWorldAccess.Pawns.NameDialog.Invalid>Ім'я неприпустиме. Перевірте поля імені.</RimWorldAccess.Pawns.NameDialog.Invalid>
+  <RimWorldAccess.Pawns.NameDialog.Named>Названо: {0}</RimWorldAccess.Pawns.NameDialog.Named>
+  <RimWorldAccess.Pawns.NameDialog.RandomCannotFindPawn>Не вдалося знайти персонажа</RimWorldAccess.Pawns.NameDialog.RandomCannotFindPawn>
+  <RimWorldAccess.Pawns.NameDialog.RandomInvalidIndex>Неприпустимий індекс поля</RimWorldAccess.Pawns.NameDialog.RandomInvalidIndex>
+  <RimWorldAccess.Pawns.NameDialog.RandomCannotRandomize>Це поле не можна задати випадково</RimWorldAccess.Pawns.NameDialog.RandomCannotRandomize>
+  <RimWorldAccess.Pawns.NameDialog.RandomizedTo>Випадково задано: {0}</RimWorldAccess.Pawns.NameDialog.RandomizedTo>
+  <RimWorldAccess.Pawns.NameDialog.RandomCouldNotGenerate>Не вдалося згенерувати випадкове ім'я</RimWorldAccess.Pawns.NameDialog.RandomCouldNotGenerate>
+  <RimWorldAccess.Pawns.NameDialog.RandomFailed>Не вдалося задати випадково</RimWorldAccess.Pawns.NameDialog.RandomFailed>
+  <RimWorldAccess.Pawns.NameDialog.NameFallback>Поле імені {0}</RimWorldAccess.Pawns.NameDialog.NameFallback>
+
+  <!-- =================================================================
+       Pawn info hotkeys (PawnInfoPatch).
+       UnknownInfoType: defensive fallback for an unrecognized info
+       type enum (should never be heard in normal play).
+       NoPawnSelected / NotAPawn: spoken when Alt+C / F1 fires without
+       a valid pawn under selection.
+       JumpPickerRow: shape for the multi-select Alt+C float menu;
+                      {0} = pawn label, {1} = job report. -->
+  <RimWorldAccess.Pawns.Info.UnknownInfoType>Невідомий тип інформації</RimWorldAccess.Pawns.Info.UnknownInfoType>
+  <RimWorldAccess.Pawns.Info.NoPawnSelected>Жодного персонажа не вибрано</RimWorldAccess.Pawns.Info.NoPawnSelected>
+  <RimWorldAccess.Pawns.Info.NotAPawn>Вибраний об'єкт не є персонажем</RimWorldAccess.Pawns.Info.NotAPawn>
+  <RimWorldAccess.Pawns.Info.JumpPickerRow>{0}: {1}</RimWorldAccess.Pawns.Info.JumpPickerRow>
+
+  <!-- =================================================================
+       Pawn area-restriction menu (PawnAreaMenuState, Alt+A).
+       NoSupport: {0} = pawn label.
+       OpenAnnouncement: {0} = pawn label, {1} = current area name
+                         (or "Unrestricted").
+       Applied: {0} = pawn label, {1} = area name.
+       AreaWithCells / AreaBare: composes the announced row.
+                                {0} = area label, {1} = "(current)" or
+                                "" suffix, {2} = cell count.
+       WithPosition: appends ", {position}" via Common's Menu.Position
+                     output. -->
+  <RimWorldAccess.Pawns.Area.NoSupport>{0}: обмеження за областю не підтримуються</RimWorldAccess.Pawns.Area.NoSupport>
+  <RimWorldAccess.Pawns.Area.NoMap>Мапа недоступна</RimWorldAccess.Pawns.Area.NoMap>
+  <RimWorldAccess.Pawns.Area.OpenAnnouncement>Призначення області для {0}. Поточна область: {1}</RimWorldAccess.Pawns.Area.OpenAnnouncement>
+  <RimWorldAccess.Pawns.Area.Unrestricted>Необмежено</RimWorldAccess.Pawns.Area.Unrestricted>
+  <RimWorldAccess.Pawns.Area.PawnGone>Персонаж більше недоступний</RimWorldAccess.Pawns.Area.PawnGone>
+  <RimWorldAccess.Pawns.Area.Applied>{0}: {1} застосовано</RimWorldAccess.Pawns.Area.Applied>
+  <RimWorldAccess.Pawns.Area.Cancelled>Призначення області скасовано</RimWorldAccess.Pawns.Area.Cancelled>
+  <RimWorldAccess.Pawns.Area.ManageAreas>Керування областями</RimWorldAccess.Pawns.Area.ManageAreas>
+  <RimWorldAccess.Pawns.Area.ManageAreasWithPosition>Керування областями, {0}</RimWorldAccess.Pawns.Area.ManageAreasWithPosition>
+  <RimWorldAccess.Pawns.Area.UnknownLabel>Невідомо</RimWorldAccess.Pawns.Area.UnknownLabel>
+  <RimWorldAccess.Pawns.Area.CurrentSuffix> (поточна)</RimWorldAccess.Pawns.Area.CurrentSuffix>
+  <RimWorldAccess.Pawns.Area.AreaWithCells>{0}{1}, {2} клітинок</RimWorldAccess.Pawns.Area.AreaWithCells>
+  <RimWorldAccess.Pawns.Area.AreaBare>{0}{1}</RimWorldAccess.Pawns.Area.AreaBare>
+  <RimWorldAccess.Pawns.Area.WithPosition>{0}, {1}</RimWorldAccess.Pawns.Area.WithPosition>
+
+  <!-- =================================================================
+       Bed assignment menu (BedAssignmentState).
+       Opened from the inspection menu's "manage bed" action. Hosts a
+       four-level menu (main / assign / unassign / bed-type). Dispatch
+       happens via a separate enum so localized labels don't break
+       string-equality switches.
+       Owner-type labels and medical-status labels appear both in the
+       main menu's bed-info readout (via " - X" suffix keys) and as
+       the actual menu options for the bed-type submenu (via
+       Type.Colonist/Prisoner/Slave keys).
+       ================================================================= -->
+  <RimWorldAccess.Pawns.Bed.NoBed>Немає ліжка для налаштування</RimWorldAccess.Pawns.Bed.NoBed>
+  <RimWorldAccess.Pawns.Bed.Action.AssignPawn>Призначити персонажа</RimWorldAccess.Pawns.Bed.Action.AssignPawn>
+  <RimWorldAccess.Pawns.Bed.Action.UnassignPawn>Скасувати призначення персонажа</RimWorldAccess.Pawns.Bed.Action.UnassignPawn>
+  <RimWorldAccess.Pawns.Bed.Action.ChangeBedType>Змінити тип ліжка</RimWorldAccess.Pawns.Bed.Action.ChangeBedType>
+  <RimWorldAccess.Pawns.Bed.Action.ToggleMedical>Перемкнути медичне</RimWorldAccess.Pawns.Bed.Action.ToggleMedical>
+  <RimWorldAccess.Pawns.Bed.Action.CloseMenu>Закрити меню</RimWorldAccess.Pawns.Bed.Action.CloseMenu>
+  <RimWorldAccess.Pawns.Bed.ForPrisoners> - Для в'язнів</RimWorldAccess.Pawns.Bed.ForPrisoners>
+  <RimWorldAccess.Pawns.Bed.ForSlaves> - Для рабів</RimWorldAccess.Pawns.Bed.ForSlaves>
+  <RimWorldAccess.Pawns.Bed.ForColonists> - Для колоністів</RimWorldAccess.Pawns.Bed.ForColonists>
+  <RimWorldAccess.Pawns.Bed.MedicalSuffix> - Медичне</RimWorldAccess.Pawns.Bed.MedicalSuffix>
+  <RimWorldAccess.Pawns.Bed.NotMedicalSuffix> - Не медичне</RimWorldAccess.Pawns.Bed.NotMedicalSuffix>
+  <RimWorldAccess.Pawns.Bed.AssignedToList> - Призначено: {0}</RimWorldAccess.Pawns.Bed.AssignedToList>
+  <RimWorldAccess.Pawns.Bed.UnassignedSuffix> - Не призначено</RimWorldAccess.Pawns.Bed.UnassignedSuffix>
+  <RimWorldAccess.Pawns.Bed.OptionSuffix> - {0}</RimWorldAccess.Pawns.Bed.OptionSuffix>
+  <RimWorldAccess.Pawns.Bed.MenuClosed>Меню ліжка закрито</RimWorldAccess.Pawns.Bed.MenuClosed>
+  <RimWorldAccess.Pawns.Bed.CannotAssign>Неможливо призначити персонажів до цього ліжка</RimWorldAccess.Pawns.Bed.CannotAssign>
+  <RimWorldAccess.Pawns.Bed.NoCandidates>Немає доступних персонажів для призначення</RimWorldAccess.Pawns.Bed.NoCandidates>
+  <RimWorldAccess.Pawns.Bed.AssignWithCannot>{0} (неможливо призначити)</RimWorldAccess.Pawns.Bed.AssignWithCannot>
+  <RimWorldAccess.Pawns.Bed.AssignIdeologyForbids>{0} (віра забороняє)</RimWorldAccess.Pawns.Bed.AssignIdeologyForbids>
+  <RimWorldAccess.Pawns.Bed.AlreadyAssigned>{0} (вже призначено)</RimWorldAccess.Pawns.Bed.AlreadyAssigned>
+  <RimWorldAccess.Pawns.Bed.AssignFirstOption>Призначити персонажа - {0}</RimWorldAccess.Pawns.Bed.AssignFirstOption>
+  <RimWorldAccess.Pawns.Bed.CannotAssignSingle>Неможливо призначити персонажа</RimWorldAccess.Pawns.Bed.CannotAssignSingle>
+  <RimWorldAccess.Pawns.Bed.CannotAssignToBed>Неможливо призначити {0} до цього ліжка</RimWorldAccess.Pawns.Bed.CannotAssignToBed>
+  <RimWorldAccess.Pawns.Bed.IdeologyForbidsBed>Віра забороняє {0} користуватися цим ліжком</RimWorldAccess.Pawns.Bed.IdeologyForbidsBed>
+  <RimWorldAccess.Pawns.Bed.AssignedSuccess>{0}: призначено до {1}</RimWorldAccess.Pawns.Bed.AssignedSuccess>
+  <RimWorldAccess.Pawns.Bed.AssignFailed>Не вдалося призначити {0}</RimWorldAccess.Pawns.Bed.AssignFailed>
+  <RimWorldAccess.Pawns.Bed.CannotUnassign>Неможливо скасувати призначення персонажів для цього ліжка</RimWorldAccess.Pawns.Bed.CannotUnassign>
+  <RimWorldAccess.Pawns.Bed.NoneAssigned>До цього ліжка не призначено жодного персонажа</RimWorldAccess.Pawns.Bed.NoneAssigned>
+  <RimWorldAccess.Pawns.Bed.UnassignFirstOption>Скасувати призначення персонажа - {0}</RimWorldAccess.Pawns.Bed.UnassignFirstOption>
+  <RimWorldAccess.Pawns.Bed.CannotUnassignSingle>Неможливо скасувати призначення персонажа</RimWorldAccess.Pawns.Bed.CannotUnassignSingle>
+  <RimWorldAccess.Pawns.Bed.UnassignedSuccess>{0}: призначення до {1} скасовано</RimWorldAccess.Pawns.Bed.UnassignedSuccess>
+  <RimWorldAccess.Pawns.Bed.UnassignFailed>Не вдалося скасувати призначення {0}</RimWorldAccess.Pawns.Bed.UnassignFailed>
+  <RimWorldAccess.Pawns.Bed.Type.Colonist>Колоніст</RimWorldAccess.Pawns.Bed.Type.Colonist>
+  <RimWorldAccess.Pawns.Bed.Type.Prisoner>В'язень</RimWorldAccess.Pawns.Bed.Type.Prisoner>
+  <RimWorldAccess.Pawns.Bed.Type.Slave>Раб</RimWorldAccess.Pawns.Bed.Type.Slave>
+  <RimWorldAccess.Pawns.Bed.ChangeTypeOption>Змінити тип ліжка - {0} (поточний)</RimWorldAccess.Pawns.Bed.ChangeTypeOption>
+  <RimWorldAccess.Pawns.Bed.NeedEnclosed>Неможливо задати ліжко для в'язнів - не в закритому приміщенні. Спершу збудуйте стіни навколо ліжка.</RimWorldAccess.Pawns.Bed.NeedEnclosed>
+  <RimWorldAccess.Pawns.Bed.TypeChanged>Тип ліжка змінено на: {0}</RimWorldAccess.Pawns.Bed.TypeChanged>
+  <RimWorldAccess.Pawns.Bed.MedicalStatus>Медичний статус ліжка: {0}</RimWorldAccess.Pawns.Bed.MedicalStatus>
+  <RimWorldAccess.Pawns.Bed.MedicalState.Medical>Медичне</RimWorldAccess.Pawns.Bed.MedicalState.Medical>
+  <RimWorldAccess.Pawns.Bed.MedicalState.NotMedical>Не медичне</RimWorldAccess.Pawns.Bed.MedicalState.NotMedical>
+  <RimWorldAccess.Pawns.Bed.Prefix.Assign>Призначити: </RimWorldAccess.Pawns.Bed.Prefix.Assign>
+  <RimWorldAccess.Pawns.Bed.Prefix.Unassign>Скасувати призначення: </RimWorldAccess.Pawns.Bed.Prefix.Unassign>
+  <RimWorldAccess.Pawns.Bed.Prefix.BedType>Тип ліжка: </RimWorldAccess.Pawns.Bed.Prefix.BedType>
+  <RimWorldAccess.Pawns.Bed.PrefixedOption>{0}{1}</RimWorldAccess.Pawns.Bed.PrefixedOption>
+
+  <!-- =================================================================
+       Colonist bar navigation (ColonistBarState).
+       Page-based bar with mechs after colonists. Navigation uses
+       Alt+Arrow for movement and Ctrl+Alt+Arrow for reorder.
+       NoPawnAtPosition: {0} = "mech" or "colonist", {1} = 1-based
+                         page slot.
+       Reorder.Position: {0} = pawn label, {1} = 1-based new position,
+                         {2} = neighbor context.
+       BetweenContext: {0}/{1} = neighbor labels.
+       Page: {0} = 1-based page number. -->
+  <RimWorldAccess.Pawns.Bar.StartOfBar>Початок панелі</RimWorldAccess.Pawns.Bar.StartOfBar>
+  <RimWorldAccess.Pawns.Bar.LastPage>Остання сторінка</RimWorldAccess.Pawns.Bar.LastPage>
+  <RimWorldAccess.Pawns.Bar.FirstPage>Перша сторінка</RimWorldAccess.Pawns.Bar.FirstPage>
+  <RimWorldAccess.Pawns.Bar.AlreadyOnLastPage>Вже на останній сторінці</RimWorldAccess.Pawns.Bar.AlreadyOnLastPage>
+  <RimWorldAccess.Pawns.Bar.AlreadyOnFirstPage>Вже на першій сторінці</RimWorldAccess.Pawns.Bar.AlreadyOnFirstPage>
+  <RimWorldAccess.Pawns.Bar.NoMechsHere>На цій мапі немає механоїдів</RimWorldAccess.Pawns.Bar.NoMechsHere>
+  <RimWorldAccess.Pawns.Bar.NoColonistsHere>На цій мапі немає колоністів</RimWorldAccess.Pawns.Bar.NoColonistsHere>
+  <RimWorldAccess.Pawns.Bar.NotOnBar>Не на панелі колоністів</RimWorldAccess.Pawns.Bar.NotOnBar>
+  <RimWorldAccess.Pawns.Bar.CannotReorderMechs>Неможливо переставити механоїдів</RimWorldAccess.Pawns.Bar.CannotReorderMechs>
+  <RimWorldAccess.Pawns.Bar.NoMechAtPosition>Немає механоїда на позиції {0}</RimWorldAccess.Pawns.Bar.NoMechAtPosition>
+  <RimWorldAccess.Pawns.Bar.NoColonistAtPosition>Немає колоніста на позиції {0}</RimWorldAccess.Pawns.Bar.NoColonistAtPosition>
+  <RimWorldAccess.Pawns.Bar.MechsPage>Сторінка механоїдів {0}</RimWorldAccess.Pawns.Bar.MechsPage>
+  <RimWorldAccess.Pawns.Bar.Page>Сторінка {0}</RimWorldAccess.Pawns.Bar.Page>
+  <RimWorldAccess.Pawns.Bar.SectionMechs>Механоїди</RimWorldAccess.Pawns.Bar.SectionMechs>
+  <RimWorldAccess.Pawns.Bar.SectionColonists>Колоністи</RimWorldAccess.Pawns.Bar.SectionColonists>
+  <RimWorldAccess.Pawns.Bar.OnlyColonist>єдиний колоніст</RimWorldAccess.Pawns.Bar.OnlyColonist>
+  <RimWorldAccess.Pawns.Bar.Leftmost>крайній лівий</RimWorldAccess.Pawns.Bar.Leftmost>
+  <RimWorldAccess.Pawns.Bar.Rightmost>крайній правий</RimWorldAccess.Pawns.Bar.Rightmost>
+  <RimWorldAccess.Pawns.Bar.Between>між {0} та {1}</RimWorldAccess.Pawns.Bar.Between>
+  <RimWorldAccess.Pawns.Bar.ReorderResult>{0}, позиція {1}, {2}</RimWorldAccess.Pawns.Bar.ReorderResult>
+  <RimWorldAccess.Pawns.Bar.AlreadyAtLastPosition>Вже на останній позиції</RimWorldAccess.Pawns.Bar.AlreadyAtLastPosition>
+  <RimWorldAccess.Pawns.Bar.AlreadyAtFirstPosition>Вже на першій позиції</RimWorldAccess.Pawns.Bar.AlreadyAtFirstPosition>
+  <!-- JumpedTo: {0} = pawn label, {1} = tile info summary. -->
+  <RimWorldAccess.Pawns.Bar.JumpedTo>Перехід до: {0}. {1}</RimWorldAccess.Pawns.Bar.JumpedTo>
+
+  <!-- Pawn announcement composition (AnnouncePawn).
+       Bare:           {0} = label, {1} = job task.
+       WithCover:      {0} = label, {1} = cover info, {2} = task.
+       WithPosition:   {0} = pawn announcement, {1} = position phrase. -->
+  <RimWorldAccess.Pawns.Bar.PawnTask>{0} - {1}</RimWorldAccess.Pawns.Bar.PawnTask>
+  <RimWorldAccess.Pawns.Bar.PawnTaskWithCover>{0}, {1} - {2}</RimWorldAccess.Pawns.Bar.PawnTaskWithCover>
+  <RimWorldAccess.Pawns.Bar.WithPosition>{0}. {1}</RimWorldAccess.Pawns.Bar.WithPosition>
+  <RimWorldAccess.Pawns.Bar.Idle>Без діла</RimWorldAccess.Pawns.Bar.Idle>
+
+  <!-- =================================================================
+       Interactive gear actions (InteractiveGearHelper).
+       Used by the inspection tree's gear category to drop, consume, or
+       view info on a pawn's equipment, apparel, or inventory items.
+       Action.Drop / Action.Consume / Action.ViewInfo are the menu labels
+       for each gear action.
+       Drop / Consume verb keys split into Cannot/Doing/Done/Failed/Error
+       so each verb can inflect independently.
+       NoItemInfo: spoken when ExecuteInfoAction is called with a missing
+                   item.
+       {0} = item label in all parameterized keys. -->
+  <RimWorldAccess.Pawns.Gear.Action.Drop>Викинути</RimWorldAccess.Pawns.Gear.Action.Drop>
+  <RimWorldAccess.Pawns.Gear.Action.Consume>Спожити</RimWorldAccess.Pawns.Gear.Action.Consume>
+  <RimWorldAccess.Pawns.Gear.Action.ViewInfo>Переглянути інформацію</RimWorldAccess.Pawns.Gear.Action.ViewInfo>
+  <RimWorldAccess.Pawns.Gear.CannotDrop>Неможливо викинути {0}</RimWorldAccess.Pawns.Gear.CannotDrop>
+  <RimWorldAccess.Pawns.Gear.Removing>Знімається {0}</RimWorldAccess.Pawns.Gear.Removing>
+  <RimWorldAccess.Pawns.Gear.Dropping>Викидається {0}</RimWorldAccess.Pawns.Gear.Dropping>
+  <RimWorldAccess.Pawns.Gear.Dropped>Викинуто: {0}</RimWorldAccess.Pawns.Gear.Dropped>
+  <RimWorldAccess.Pawns.Gear.FailedToDrop>Не вдалося викинути {0}</RimWorldAccess.Pawns.Gear.FailedToDrop>
+  <RimWorldAccess.Pawns.Gear.ErrorDropping>Помилка під час викидання {0}</RimWorldAccess.Pawns.Gear.ErrorDropping>
+  <RimWorldAccess.Pawns.Gear.CannotConsume>Неможливо спожити {0}</RimWorldAccess.Pawns.Gear.CannotConsume>
+  <RimWorldAccess.Pawns.Gear.Consuming>Споживається {0}</RimWorldAccess.Pawns.Gear.Consuming>
+  <RimWorldAccess.Pawns.Gear.ErrorConsuming>Помилка під час споживання {0}</RimWorldAccess.Pawns.Gear.ErrorConsuming>
+  <RimWorldAccess.Pawns.Gear.NoItemInfo>Інформація про предмет недоступна</RimWorldAccess.Pawns.Gear.NoItemInfo>
+  <RimWorldAccess.Pawns.Gear.NoActions>Немає доступних дій</RimWorldAccess.Pawns.Gear.NoActions>
+
+  <!-- =================================================================
+       Assign menu policy CRUD (AssignMenuHelper).
+       Used when the player creates, duplicates, deletes, or sets a
+       default policy from the assign menu's per-policy context menu.
+       Each verb has its own key so it can inflect independently.
+       {0} = policy label. -->
+  <RimWorldAccess.Pawns.AssignMenu.PolicyCreated>Створено: {0}</RimWorldAccess.Pawns.AssignMenu.PolicyCreated>
+  <RimWorldAccess.Pawns.AssignMenu.PolicyDuplicated>Продубльовано: {0}</RimWorldAccess.Pawns.AssignMenu.PolicyDuplicated>
+  <RimWorldAccess.Pawns.AssignMenu.PolicyDeleted>Політику видалено</RimWorldAccess.Pawns.AssignMenu.PolicyDeleted>
+  <RimWorldAccess.Pawns.AssignMenu.PolicySetAsDefault>{0}: задано за замовчуванням</RimWorldAccess.Pawns.AssignMenu.PolicySetAsDefault>
+
+  <!-- =================================================================
+       Assign menu state (AssignMenuState).
+       The tabular pawn-by-policy table accessed from the bottom-bar
+       Assign tab (or F3 hotkey). Composed announcements split into
+       semantic-case keys so each verb (sort/set/paint/already) can
+       inflect independently.
+       Opened: {0} = tab label (e.g. "Assign"), {1} = colonist count.
+       Closed: {0} = tab label.
+       SortCannot/SortBy: {0} = column name, {1} = direction.
+       SetTo: {0} = pawn label, {1} = column name, {2} = option label.
+       ResortNowAt: {0} = cell announcement (item name + position).
+       AlreadyAt: {0} = pawn label, {1} = column name, {2} = value,
+                  {3} = position phrase.
+       AppliedAt: {0} = pawn label, {1} = applied value,
+                  {2} = position phrase.
+       PaintedTo: {0} = column name, {1} = source value, {2} = name list.
+       AllAlready: {0} = column name, {1} = source value. -->
+  <RimWorldAccess.Pawns.AssignMenu.NoColonists>Колоністів не знайдено</RimWorldAccess.Pawns.AssignMenu.NoColonists>
+  <RimWorldAccess.Pawns.AssignMenu.Opened>{0}, {1} колоністів</RimWorldAccess.Pawns.AssignMenu.Opened>
+  <RimWorldAccess.Pawns.AssignMenu.Closed>{0} закрито</RimWorldAccess.Pawns.AssignMenu.Closed>
+  <RimWorldAccess.Pawns.AssignMenu.SortCannot>{0}: сортування неможливе</RimWorldAccess.Pawns.AssignMenu.SortCannot>
+  <RimWorldAccess.Pawns.AssignMenu.SortCleared>Сортування очищено, типовий порядок</RimWorldAccess.Pawns.AssignMenu.SortCleared>
+  <RimWorldAccess.Pawns.AssignMenu.SortedBy>Відсортовано за {0} ({1})</RimWorldAccess.Pawns.AssignMenu.SortedBy>
+  <RimWorldAccess.Pawns.AssignMenu.PawnNotOnMap>Персонажа немає на мапі</RimWorldAccess.Pawns.AssignMenu.PawnNotOnMap>
+  <RimWorldAccess.Pawns.AssignMenu.NotApplicable>Н/Д</RimWorldAccess.Pawns.AssignMenu.NotApplicable>
+  <RimWorldAccess.Pawns.AssignMenu.NoOptions>Немає доступних варіантів</RimWorldAccess.Pawns.AssignMenu.NoOptions>
+  <RimWorldAccess.Pawns.AssignMenu.SetTo>{0}: {1} задано на {2}</RimWorldAccess.Pawns.AssignMenu.SetTo>
+  <RimWorldAccess.Pawns.AssignMenu.ResortNowAt>Тепер на {0}</RimWorldAccess.Pawns.AssignMenu.ResortNowAt>
+  <RimWorldAccess.Pawns.AssignMenu.NoContextMenuColumn>Немає контекстного меню для цього стовпця</RimWorldAccess.Pawns.AssignMenu.NoContextMenuColumn>
+  <RimWorldAccess.Pawns.AssignMenu.NoContextMenuItem>Немає контекстного меню для цього елемента</RimWorldAccess.Pawns.AssignMenu.NoContextMenuItem>
+  <RimWorldAccess.Pawns.AssignMenu.AlreadyAt>{0}: {1} вже {2}. {3}</RimWorldAccess.Pawns.AssignMenu.AlreadyAt>
+  <RimWorldAccess.Pawns.AssignMenu.AppliedAt>{0}: {1} застосовано. {2}</RimWorldAccess.Pawns.AssignMenu.AppliedAt>
+  <RimWorldAccess.Pawns.AssignMenu.PaintedTo>Нанесено {0} на {1} для {2}</RimWorldAccess.Pawns.AssignMenu.PaintedTo>
+  <RimWorldAccess.Pawns.AssignMenu.AllAlready>{0} вже {1} для всіх колоністів</RimWorldAccess.Pawns.AssignMenu.AllAlready>
+  <RimWorldAccess.Pawns.AssignMenu.NoColonistsShort>Немає колоністів</RimWorldAccess.Pawns.AssignMenu.NoColonistsShort>
+
+  <!-- =================================================================
+       Schedule menu (WindowlessScheduleState).
+       Two-column timetable: 24 hour cells per pawn (Schedule) and an
+       allowed-area picker (Areas). Brush keys 1-9,0 select the active
+       assignment def. Each composed shape is its own key so the
+       hour/pawn/area phrasing can localize independently.
+
+       HourColumn: {0} = hour index (0-23), used as the "column name" in
+                   table announcements.
+       Closed: {0} = schedule tab label.
+       NoSchedule: {0} = pawn label (timetable component missing).
+       Cell: {0} = pawn label, {1} = hour, {2} = assignment label.
+       CellWithPositions: appends ". Pawn {3}, Hour {4}." to Cell shape.
+       PaintApplied: {0} = pawn label, {1} = hour, {2} = assignment.
+       AlreadyAtHour: {0} = hour, {1} = assignment.
+       AlreadyAtPawnHour: {0} = pawn label, {1} = hour, {2} = assignment.
+       Brush.* keys compose the opening-announcement help text.
+       Brush.Selected: {0} = assignment label.
+       Brush.NumberKeyHelp: {0} = digit (0-9), {1} = assignment label.
+       Brush.NoBrushOnKey: {0} = digit pressed without a brush bound.
+       Brush.CopyPasteHelp: {0} = "Copy", {1} = "Paste" (vanilla
+                            translations passed in from C#).
+       Brush.TabForArea: {0} = "AllowedArea" (vanilla translation).
+       BulkPaint.HourRangeOne: {0} = single hour.
+       BulkPaint.HourRange: {0} = start hour, {1} = end hour.
+       BulkPaint.HoursLabelOne / Many: prefix word for the formatted list.
+       BulkPaint.PaintedHours: {0} = assignment, {1} = hour-range list,
+                                {2} = pawn label.
+       BulkPaint.HoursAlready: {0} = hour-range phrase, {1} = assignment,
+                                {2} = pawn label.
+       BulkPaint.HourRangeOneSlot: {0} = hour (e.g. "Hour 0").
+       BulkPaint.HourRangeFromTo: {0} = start hour, {1} = end hour.
+       AreaApplied: {0} = pawn label, {1} = area name, {2} = position.
+       AreaPaintedFor: {0} = area name, {1} = name list.
+       AreaAllAlready: {0} = area name.
+       AreaCellSummary: {0} = pawn label, {1} = area, {2} = pawn pos,
+                        {3} = area pos.
+       AreaSwitchHeader: {0} = "AllowedArea" (vanilla), {1} = AreaCellSummary
+                          composition.
+       AreaSwitchEmpty: {0} = "AllowedArea" (vanilla).
+       NoSchedCopied / NoHomeArea / ContextOnlyAreas: bare strings.
+       ContextMenu.SetAllHome / ClearAll: bulk-paint context-menu labels.
+       SetCountToHome: {0} = count.
+       ClearedCount: {0} = count. -->
+  <RimWorldAccess.Pawns.Schedule.HourColumn>Година {0}</RimWorldAccess.Pawns.Schedule.HourColumn>
+  <RimWorldAccess.Pawns.Schedule.Closed>{0} закрито</RimWorldAccess.Pawns.Schedule.Closed>
+  <RimWorldAccess.Pawns.Schedule.NoPawnsAvailable>Немає доступних персонажів</RimWorldAccess.Pawns.Schedule.NoPawnsAvailable>
+  <RimWorldAccess.Pawns.Schedule.NoSchedule>{0}: немає розкладу</RimWorldAccess.Pawns.Schedule.NoSchedule>
+  <RimWorldAccess.Pawns.Schedule.Cell>{0}, година {1}: {2}</RimWorldAccess.Pawns.Schedule.Cell>
+  <RimWorldAccess.Pawns.Schedule.CellWithPositions>{0}, година {1}: {2}. Персонаж {3}, година {4}.</RimWorldAccess.Pawns.Schedule.CellWithPositions>
+  <RimWorldAccess.Pawns.Schedule.PaintApplied>{0}, година {1} задано на {2}</RimWorldAccess.Pawns.Schedule.PaintApplied>
+  <RimWorldAccess.Pawns.Schedule.AlreadyAtHour>Година {0}: вже задано на {1}</RimWorldAccess.Pawns.Schedule.AlreadyAtHour>
+  <RimWorldAccess.Pawns.Schedule.AlreadyAtPawnHour>{0}, година {1}: вже задано на {2}</RimWorldAccess.Pawns.Schedule.AlreadyAtPawnHour>
+  <RimWorldAccess.Pawns.Schedule.Brush.Selected>Поточний вибраний пензель: {0}.</RimWorldAccess.Pawns.Schedule.Brush.Selected>
+  <RimWorldAccess.Pawns.Schedule.Brush.HelpHeader>Натисніть такі цифри, щоб обрати пензель:</RimWorldAccess.Pawns.Schedule.Brush.HelpHeader>
+  <RimWorldAccess.Pawns.Schedule.Brush.NumberKeyHelp>{0}: {1}.</RimWorldAccess.Pawns.Schedule.Brush.NumberKeyHelp>
+  <RimWorldAccess.Pawns.Schedule.Brush.ApplyHelp>Натисніть Пробіл, щоб застосувати активний пензель до поточної клітинки.</RimWorldAccess.Pawns.Schedule.Brush.ApplyHelp>
+  <RimWorldAccess.Pawns.Schedule.Brush.PaintHelp>Утримуйте клавішу Shift та натискайте стрілки, щоб нанести вибраний пензель на кілька клітинок.</RimWorldAccess.Pawns.Schedule.Brush.PaintHelp>
+  <RimWorldAccess.Pawns.Schedule.Brush.CopyPasteHelp>{0} Ctrl+C, {1} Ctrl+V.</RimWorldAccess.Pawns.Schedule.Brush.CopyPasteHelp>
+  <RimWorldAccess.Pawns.Schedule.Brush.TabForArea>Tab для {0}.</RimWorldAccess.Pawns.Schedule.Brush.TabForArea>
+  <RimWorldAccess.Pawns.Schedule.Brush.NoBrushOnKey>До клавіші {0} не призначено пензель</RimWorldAccess.Pawns.Schedule.Brush.NoBrushOnKey>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeOne>{0}</RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeOne>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.HourRange>{0} до {1}</RimWorldAccess.Pawns.Schedule.BulkPaint.HourRange>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.HoursLabelOne>година</RimWorldAccess.Pawns.Schedule.BulkPaint.HoursLabelOne>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.HoursLabelMany>годин</RimWorldAccess.Pawns.Schedule.BulkPaint.HoursLabelMany>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.HoursWithList>{0} {1}</RimWorldAccess.Pawns.Schedule.BulkPaint.HoursWithList>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.PaintedHours>Нанесено {0} на {1} для {2}</RimWorldAccess.Pawns.Schedule.BulkPaint.PaintedHours>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.HoursAlready>{0} вже задано на {1} для {2}</RimWorldAccess.Pawns.Schedule.BulkPaint.HoursAlready>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeFirstOnly>Година 0</RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeFirstOnly>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeFromZero>Години з 0 до {0}</RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeFromZero>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeLastOnly>Година 23</RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeLastOnly>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeToLast>Години з {0} до 23</RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeToLast>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.PaintedHourForPawns>Нанесено {0} на годину {1} для {2}</RimWorldAccess.Pawns.Schedule.BulkPaint.PaintedHourForPawns>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.HourAllPawnsAlready>Година {0} вже задано на {1} для всіх персонажів</RimWorldAccess.Pawns.Schedule.BulkPaint.HourAllPawnsAlready>
+  <RimWorldAccess.Pawns.Schedule.NoSchedCopied>Розклад не скопійовано</RimWorldAccess.Pawns.Schedule.NoSchedCopied>
+  <RimWorldAccess.Pawns.Schedule.AreaApplied>{0}: {1} застосовано. {2}</RimWorldAccess.Pawns.Schedule.AreaApplied>
+  <RimWorldAccess.Pawns.Schedule.AreaAppliedPawnPos>{0}: {1} застосовано. Персонаж {2}</RimWorldAccess.Pawns.Schedule.AreaAppliedPawnPos>
+  <RimWorldAccess.Pawns.Schedule.AreaPaintedFor>Нанесено {0} для {1}</RimWorldAccess.Pawns.Schedule.AreaPaintedFor>
+  <RimWorldAccess.Pawns.Schedule.AreaAllAlready>Усім персонажам вже задано {0}</RimWorldAccess.Pawns.Schedule.AreaAllAlready>
+  <RimWorldAccess.Pawns.Schedule.AreaCellSummary>{0}: {1}. Персонаж {2}, область {3}</RimWorldAccess.Pawns.Schedule.AreaCellSummary>
+  <RimWorldAccess.Pawns.Schedule.AreaSwitchHeader>{0}. {1}</RimWorldAccess.Pawns.Schedule.AreaSwitchHeader>
+  <RimWorldAccess.Pawns.Schedule.AreaSwitchEmpty>{0}. Немає доступних персонажів</RimWorldAccess.Pawns.Schedule.AreaSwitchEmpty>
+  <RimWorldAccess.Pawns.Schedule.AreaFocus>{0}. {1}</RimWorldAccess.Pawns.Schedule.AreaFocus>
+  <RimWorldAccess.Pawns.Schedule.ContextOnlyAreas>Контекстне меню доступне лише в стовпці областей</RimWorldAccess.Pawns.Schedule.ContextOnlyAreas>
+  <RimWorldAccess.Pawns.Schedule.ContextMenu.SetAllHome>Задати всім домашню область</RimWorldAccess.Pawns.Schedule.ContextMenu.SetAllHome>
+  <RimWorldAccess.Pawns.Schedule.ContextMenu.ClearAll>Очистити всі дозволені області</RimWorldAccess.Pawns.Schedule.ContextMenu.ClearAll>
+  <RimWorldAccess.Pawns.Schedule.NoHomeArea>Домашню область не визначено</RimWorldAccess.Pawns.Schedule.NoHomeArea>
+  <RimWorldAccess.Pawns.Schedule.SetCountToHome>Задано {0} персонажам домашню область</RimWorldAccess.Pawns.Schedule.SetCountToHome>
+  <RimWorldAccess.Pawns.Schedule.ClearedCount>Очищено дозволені області для {0} персонажів</RimWorldAccess.Pawns.Schedule.ClearedCount>
+
+  <!-- =================================================================
+       Training tab actions (TrainingTabHelper).
+       Toggle confirmations and exception fallbacks for the inspection
+       tree's Training category. Each toggle and error has its own key
+       so verbs (toggle/set/training/setting) can inflect independently
+       across languages. -->
+  <RimWorldAccess.Pawns.Training.Wanted>Бажано</RimWorldAccess.Pawns.Training.Wanted>
+  <RimWorldAccess.Pawns.Training.NotWanted>Не бажано</RimWorldAccess.Pawns.Training.NotWanted>
+  <RimWorldAccess.Pawns.Training.ErrorToggleTraining>Помилка перемикання дресури</RimWorldAccess.Pawns.Training.ErrorToggleTraining>
+  <RimWorldAccess.Pawns.Training.ErrorSetMaster>Помилка призначення господаря</RimWorldAccess.Pawns.Training.ErrorSetMaster>
+  <RimWorldAccess.Pawns.Training.ErrorToggleSetting>Помилка перемикання налаштування</RimWorldAccess.Pawns.Training.ErrorToggleSetting>
+
+  <!-- =================================================================
+       Social tab actions (SocialTabHelper).
+       Action-result announcements for assigning ideology roles, setting
+       pregnancy approach, and initiating romance. Each verb is its own
+       key so it can inflect independently.
+       RoleAssigned: {0} = pawn label, {1} = role name.
+       RoleUnassigned: same shape, "unassigned from".
+       PregnancyApproachSet: {0} = approach label (already capitalized). -->
+  <RimWorldAccess.Pawns.Social.RoleAssigned>{0}: призначено як {1}</RimWorldAccess.Pawns.Social.RoleAssigned>
+  <RimWorldAccess.Pawns.Social.RoleUnassigned>{0}: знято з ролі {1}</RimWorldAccess.Pawns.Social.RoleUnassigned>
+  <RimWorldAccess.Pawns.Social.ErrorAssignRole>Помилка призначення ролі</RimWorldAccess.Pawns.Social.ErrorAssignRole>
+  <RimWorldAccess.Pawns.Social.ErrorUnassignRole>Помилка зняття ролі</RimWorldAccess.Pawns.Social.ErrorUnassignRole>
+  <RimWorldAccess.Pawns.Social.PregnancyApproachSet>Підхід до вагітності задано на: {0}</RimWorldAccess.Pawns.Social.PregnancyApproachSet>
+  <RimWorldAccess.Pawns.Social.ErrorSetPregnancyApproach>Помилка задання підходу до вагітності</RimWorldAccess.Pawns.Social.ErrorSetPregnancyApproach>
+  <RimWorldAccess.Pawns.Social.ErrorInitiateRomance>Помилка спроби завести роман</RimWorldAccess.Pawns.Social.ErrorInitiateRomance>
+
+  <!-- =================================================================
+       Social tab tree display (SocialTabHelper + InspectionTreeBuilder
+       social/ideology/romance branches). Each phrase below is a complete
+       tree-item label, so word order can vary by language. Friend /
+       Rival / Acquaintance reuse the vanilla keys of the same names.
+       Each detail line composed by SocialTabHelper becomes one tree item;
+       no separators are glued in C#.
+       ================================================================= -->
+  <RimWorldAccess.Pawns.Social.Ideology.None>Немає</RimWorldAccess.Pawns.Social.Ideology.None>
+  <RimWorldAccess.Pawns.Social.Ideology.NotAvailable>Інформація про віру недоступна</RimWorldAccess.Pawns.Social.Ideology.NotAvailable>
+  <RimWorldAccess.Pawns.Social.Ideology.Header>Віра: {0}</RimWorldAccess.Pawns.Social.Ideology.Header>
+
+  <!-- Relations list. Entry: {0} = pawn label, {1} = relations
+       (comma-joined or "Acquaintance"), {2} = signed opinion. Header:
+       {0} = other pawn label. Relationships: {0} = relations list.
+       MyOpinion / TheirOpinion: {0} = signed opinion. OpinionFactor:
+       {0} = factor label, {1} = signed offset. -->
+  <RimWorldAccess.Pawns.Social.Relation.NoRelations>Немає стосунків</RimWorldAccess.Pawns.Social.Relation.NoRelations>
+  <RimWorldAccess.Pawns.Social.Relation.Entry>{0} ({1}, думка: {2})</RimWorldAccess.Pawns.Social.Relation.Entry>
+  <RimWorldAccess.Pawns.Social.Relation.Header>Стосунки з {0}:</RimWorldAccess.Pawns.Social.Relation.Header>
+  <RimWorldAccess.Pawns.Social.Relation.Relationships>Стосунки: {0}</RimWorldAccess.Pawns.Social.Relation.Relationships>
+  <RimWorldAccess.Pawns.Social.Relation.MyOpinion>Моя думка: {0}</RimWorldAccess.Pawns.Social.Relation.MyOpinion>
+  <RimWorldAccess.Pawns.Social.Relation.TheirOpinion>Їхня думка: {0}</RimWorldAccess.Pawns.Social.Relation.TheirOpinion>
+  <RimWorldAccess.Pawns.Social.Relation.OpinionFactorsHeader>Чинники думки:</RimWorldAccess.Pawns.Social.Relation.OpinionFactorsHeader>
+  <RimWorldAccess.Pawns.Social.Relation.OpinionFactor>{0}: {1}</RimWorldAccess.Pawns.Social.Relation.OpinionFactor>
+  <RimWorldAccess.Pawns.Social.Relation.NoFactors>(Немає)</RimWorldAccess.Pawns.Social.Relation.NoFactors>
+  <RimWorldAccess.Pawns.Social.Relation.LovePartners>Кохані партнери</RimWorldAccess.Pawns.Social.Relation.LovePartners>
+
+  <!-- Try Romance sub-menu. WillTry: {0} = initiator, {1} = target.
+       TargetEntry: {0} = target name, {1} = chance percent, {2} = the
+       vanilla "chance" word. TargetUnavailable: {0} = target name,
+       {1} = vanilla rejection reason. BreakdownHeader: {0} = target,
+       {1} = vanilla "RomanceChance" label, {2} = chance percent. -->
+  <RimWorldAccess.Pawns.Social.Romance.WillTry>{0} спробує завести роман з {1}</RimWorldAccess.Pawns.Social.Romance.WillTry>
+  <RimWorldAccess.Pawns.Social.Romance.TargetEntry>{0} ({1} {2})</RimWorldAccess.Pawns.Social.Romance.TargetEntry>
+  <RimWorldAccess.Pawns.Social.Romance.TargetUnavailable>{0} ({1})</RimWorldAccess.Pawns.Social.Romance.TargetUnavailable>
+  <RimWorldAccess.Pawns.Social.Romance.BreakdownHeader>{0} - {1}: {2}</RimWorldAccess.Pawns.Social.Romance.BreakdownHeader>
+
+  <!-- Ideology role assign/unassign actions and headers. LabelWithHolder:
+       {0} = role label, {1} = current holder name (or vanilla
+       "NoRoleAssigned"). Assign/Unassign: {0} = pawn name. -->
+  <RimWorldAccess.Pawns.Social.Role.LabelWithHolder>{0}: {1}</RimWorldAccess.Pawns.Social.Role.LabelWithHolder>
+  <RimWorldAccess.Pawns.Social.Role.Assign>Призначити {0}</RimWorldAccess.Pawns.Social.Role.Assign>
+  <RimWorldAccess.Pawns.Social.Role.Unassign>Зняти {0}</RimWorldAccess.Pawns.Social.Role.Unassign>
+  <RimWorldAccess.Pawns.Social.Role.CannotAssignReason>Неможливо призначити: {0}</RimWorldAccess.Pawns.Social.Role.CannotAssignReason>
+  <RimWorldAccess.Pawns.Social.Role.CannotAssignDefault>Неможливо призначити: вимоги не виконано</RimWorldAccess.Pawns.Social.Role.CannotAssignDefault>
+  <RimWorldAccess.Pawns.Social.Role.RequirementsHeader>Вимоги</RimWorldAccess.Pawns.Social.Role.RequirementsHeader>
+
+  <!-- =================================================================
+       Pawn quick-info readouts (PawnInfoHelper.GetHealthInfo /
+       GetMoodInfo / GetNeedsInfo / GetGearInfo / GetSocialInfo /
+       GetTrainingInfo / GetCharacterInfo / GetTopSkillsInfo /
+       GetWorkInfo). Spoken by the Alt+H/M/N/G/K hotkeys (and consumed
+       by other modules through these methods). Each helper composes
+       clean phrase fragments through AnnouncementBuilder, which owns
+       the period separators between fragments — values below carry no
+       trailing punctuation.
+       ================================================================= -->
+  <RimWorldAccess.Pawns.Info.NoPawn>Немає персонажа</RimWorldAccess.Pawns.Info.NoPawn>
+  <RimWorldAccess.Pawns.Info.Idle>Без діла</RimWorldAccess.Pawns.Info.Idle>
+
+  <!-- Health (combat-focused dump). Fragments are clean phrases; the
+       AnnouncementBuilder owns separators between them.
+       NameHeader: pawn label only — opens the readout.
+       Capacity: {0} = capacity label, {1} = level label.
+       PartHealth: {0} = body part label, {1} = current HP, {2} = max HP. -->
+  <RimWorldAccess.Pawns.Health.NoTracker>{0}: немає трекера здоров'я</RimWorldAccess.Pawns.Health.NoTracker>
+  <RimWorldAccess.Pawns.Health.NameHeader>{0}</RimWorldAccess.Pawns.Health.NameHeader>
+  <RimWorldAccess.Pawns.Health.Capacity>{0}: {1}</RimWorldAccess.Pawns.Health.Capacity>
+  <RimWorldAccess.Pawns.Health.PartHealth>{0}: {1}/{2}</RimWorldAccess.Pawns.Health.PartHealth>
+
+  <!-- Needs. -->
+  <RimWorldAccess.Pawns.Needs.NoTracker>{0}: немає трекера потреб</RimWorldAccess.Pawns.Needs.NoTracker>
+  <RimWorldAccess.Pawns.Needs.Header>Потреби {0}</RimWorldAccess.Pawns.Needs.Header>
+  <RimWorldAccess.Pawns.Needs.NeedLine>{0}: {1}%</RimWorldAccess.Pawns.Needs.NeedLine>
+  <RimWorldAccess.Pawns.Needs.LearningDesires>Бажання навчатися: {0}</RimWorldAccess.Pawns.Needs.LearningDesires>
+  <RimWorldAccess.Pawns.Needs.Empty>Немає потреб для відображення</RimWorldAccess.Pawns.Needs.Empty>
+
+  <!-- Mood. -->
+  <RimWorldAccess.Pawns.Mood.NoTracker>{0}: немає трекера настрою</RimWorldAccess.Pawns.Mood.NoTracker>
+  <RimWorldAccess.Pawns.Mood.Header>Настрій {0}</RimWorldAccess.Pawns.Mood.Header>
+  <RimWorldAccess.Pawns.Mood.MoodLine>Настрій: {0}% ({1})</RimWorldAccess.Pawns.Mood.MoodLine>
+  <RimWorldAccess.Pawns.Mood.ThoughtsHeader>Думки, що впливають на настрій, загалом {0}</RimWorldAccess.Pawns.Mood.ThoughtsHeader>
+  <RimWorldAccess.Pawns.Mood.ThoughtLine>{0}: {1}</RimWorldAccess.Pawns.Mood.ThoughtLine>
+  <RimWorldAccess.Pawns.Mood.ThoughtMultiplier>{0} x{1}</RimWorldAccess.Pawns.Mood.ThoughtMultiplier>
+  <RimWorldAccess.Pawns.Mood.NoThoughts>Немає думок, що впливають на настрій</RimWorldAccess.Pawns.Mood.NoThoughts>
+
+  <!-- Gear. -->
+  <RimWorldAccess.Pawns.GearInfo.Header>Спорядження {0}</RimWorldAccess.Pawns.GearInfo.Header>
+  <RimWorldAccess.Pawns.GearInfo.Wielding>Тримає в руках: {0}</RimWorldAccess.Pawns.GearInfo.Wielding>
+  <RimWorldAccess.Pawns.GearInfo.WieldingNothing>Нічого не тримає в руках</RimWorldAccess.Pawns.GearInfo.WieldingNothing>
+  <RimWorldAccess.Pawns.GearInfo.QualifiedItem>{0} ({1})</RimWorldAccess.Pawns.GearInfo.QualifiedItem>
+  <RimWorldAccess.Pawns.GearInfo.Wearing>Одягнено: {0}</RimWorldAccess.Pawns.GearInfo.Wearing>
+  <RimWorldAccess.Pawns.GearInfo.WearingNothing>Нічого не одягнено</RimWorldAccess.Pawns.GearInfo.WearingNothing>
+
+  <!-- Social. -->
+  <RimWorldAccess.Pawns.SocialInfo.NoTracker>{0}: немає трекера стосунків</RimWorldAccess.Pawns.SocialInfo.NoTracker>
+  <RimWorldAccess.Pawns.SocialInfo.Header>Соціальна інформація {0}</RimWorldAccess.Pawns.SocialInfo.Header>
+  <RimWorldAccess.Pawns.SocialInfo.RelationshipsHeader>{0} стосунків</RimWorldAccess.Pawns.SocialInfo.RelationshipsHeader>
+  <RimWorldAccess.Pawns.SocialInfo.RelationshipLine>{0}: {1}</RimWorldAccess.Pawns.SocialInfo.RelationshipLine>
+  <RimWorldAccess.Pawns.SocialInfo.OpinionsHeader>Думки інших, загалом {0}</RimWorldAccess.Pawns.SocialInfo.OpinionsHeader>
+  <RimWorldAccess.Pawns.SocialInfo.OpinionLine>{0}: {1}</RimWorldAccess.Pawns.SocialInfo.OpinionLine>
+  <RimWorldAccess.Pawns.SocialInfo.OpinionsMore>та ще {0}</RimWorldAccess.Pawns.SocialInfo.OpinionsMore>
+  <RimWorldAccess.Pawns.SocialInfo.NoRelationships>Немає прямих стосунків</RimWorldAccess.Pawns.SocialInfo.NoRelationships>
+
+  <!-- Training (animal trainable readout). -->
+  <RimWorldAccess.Pawns.TrainingInfo.NotTrainable>{0}: не піддається дресурі</RimWorldAccess.Pawns.TrainingInfo.NotTrainable>
+  <RimWorldAccess.Pawns.TrainingInfo.Header>Дресура {0}</RimWorldAccess.Pawns.TrainingInfo.Header>
+  <RimWorldAccess.Pawns.TrainingInfo.LineLearned>{0}: вивчено</RimWorldAccess.Pawns.TrainingInfo.LineLearned>
+  <RimWorldAccess.Pawns.TrainingInfo.LineInProgress>{0}: в процесі</RimWorldAccess.Pawns.TrainingInfo.LineInProgress>
+  <RimWorldAccess.Pawns.TrainingInfo.TrainedHeader>{0} вивчено</RimWorldAccess.Pawns.TrainingInfo.TrainedHeader>
+  <RimWorldAccess.Pawns.TrainingInfo.InProgressHeader>{0} в процесі</RimWorldAccess.Pawns.TrainingInfo.InProgressHeader>
+  <RimWorldAccess.Pawns.TrainingInfo.NoSkills>Немає навичок для дресури</RimWorldAccess.Pawns.TrainingInfo.NoSkills>
+
+  <!-- Character (traits, backstory, top skills). -->
+  <RimWorldAccess.Pawns.Character.Header>Персонаж {0}</RimWorldAccess.Pawns.Character.Header>
+  <RimWorldAccess.Pawns.Character.Age>Вік: {0} років</RimWorldAccess.Pawns.Character.Age>
+  <RimWorldAccess.Pawns.Character.TraitsHeader>{0} рис</RimWorldAccess.Pawns.Character.TraitsHeader>
+  <RimWorldAccess.Pawns.Character.Childhood>Дитинство: {0}</RimWorldAccess.Pawns.Character.Childhood>
+  <RimWorldAccess.Pawns.Character.Adulthood>Повноліття: {0}</RimWorldAccess.Pawns.Character.Adulthood>
+  <RimWorldAccess.Pawns.Character.TopSkillsHeader>Найкращі навички</RimWorldAccess.Pawns.Character.TopSkillsHeader>
+  <RimWorldAccess.Pawns.Character.SkillLine>{0}: {1}{2}</RimWorldAccess.Pawns.Character.SkillLine>
+  <RimWorldAccess.Pawns.Character.PassionMinor> (•)</RimWorldAccess.Pawns.Character.PassionMinor>
+  <RimWorldAccess.Pawns.Character.PassionMajor> (••)</RimWorldAccess.Pawns.Character.PassionMajor>
+
+  <!-- Top-3 skills concise format (Alt+K). -->
+  <RimWorldAccess.Pawns.TopSkills.NoSkills>{0}: немає навичок</RimWorldAccess.Pawns.TopSkills.NoSkills>
+  <RimWorldAccess.Pawns.TopSkills.Header>Найкращі навички {0}</RimWorldAccess.Pawns.TopSkills.Header>
+  <RimWorldAccess.Pawns.TopSkills.SkillEntry>{0}: {1}</RimWorldAccess.Pawns.TopSkills.SkillEntry>
+  <RimWorldAccess.Pawns.TopSkills.SkillEntryMinorPassion>{0}: {1}, зацікавленість</RimWorldAccess.Pawns.TopSkills.SkillEntryMinorPassion>
+  <RimWorldAccess.Pawns.TopSkills.SkillEntryMajorPassion>{0}: {1}, подвійна зацікавленість</RimWorldAccess.Pawns.TopSkills.SkillEntryMajorPassion>
+
+  <!-- Work priorities readout. -->
+  <RimWorldAccess.Pawns.WorkInfo.NoSettings>{0}: немає налаштувань праці</RimWorldAccess.Pawns.WorkInfo.NoSettings>
+  <RimWorldAccess.Pawns.WorkInfo.Header>Праця {0}</RimWorldAccess.Pawns.WorkInfo.Header>
+  <RimWorldAccess.Pawns.WorkInfo.LinePriority>{0} (пріоритет {1})</RimWorldAccess.Pawns.WorkInfo.LinePriority>
+  <RimWorldAccess.Pawns.WorkInfo.LineEnabled>{0} (активовано)</RimWorldAccess.Pawns.WorkInfo.LineEnabled>
+  <RimWorldAccess.Pawns.WorkInfo.EnabledHeader>{0} активовано</RimWorldAccess.Pawns.WorkInfo.EnabledHeader>
+  <RimWorldAccess.Pawns.WorkInfo.DisabledHeader>{0} деактивовано</RimWorldAccess.Pawns.WorkInfo.DisabledHeader>
+  <RimWorldAccess.Pawns.WorkInfo.NoWork>Немає активованих типів праці</RimWorldAccess.Pawns.WorkInfo.NoWork>
+
+  <!-- =================================================================
+       Pawn skills table (PawnSkillsTableState).
+       Read-only 2D table: rows = colonists, columns = SkillDefs.
+       Opened: {0} = colonist count, {1} = skill count.
+       Sort keys reuse RimWorldAccess.Animals.Sort.* (CannotSort/Cleared/SortedBy).
+       ================================================================= -->
+  <RimWorldAccess.Pawns.SkillsTable.Opened>Навички, {0} колоністів, {1} навичок</RimWorldAccess.Pawns.SkillsTable.Opened>
+  <RimWorldAccess.Pawns.SkillsTable.Closed>Таблицю навичок закрито</RimWorldAccess.Pawns.SkillsTable.Closed>
+
+  <!-- =================================================================
+       Drug policy editor (DrugPolicyEditorState) announcement glue.
+       The setting labels, tooltips, drug names, and on/off values
+       come through .Translate() at the call site (vanilla keys); the
+       composition shapes live here.
+       DrugLine: {0} = drug name, {1} = status summary, {2} = position.
+       SettingNoTooltip: {0} = setting label, {1} = value, {2} = pos.
+       SettingWithTooltip: {0} = label, {1} = value, {2} = tooltip,
+                          {3} = position.
+       SettingChange: {0} = label, {1} = new value.
+       ================================================================= -->
+  <RimWorldAccess.Pawns.DrugPolicy.DrugLine>{0}. {1}. {2}</RimWorldAccess.Pawns.DrugPolicy.DrugLine>
+  <RimWorldAccess.Pawns.DrugPolicy.SettingNoTooltip>{0}: {1}. {2}</RimWorldAccess.Pawns.DrugPolicy.SettingNoTooltip>
+  <RimWorldAccess.Pawns.DrugPolicy.SettingWithTooltip>{0}: {1}. {2} {3}</RimWorldAccess.Pawns.DrugPolicy.SettingWithTooltip>
+  <RimWorldAccess.Pawns.DrugPolicy.SettingChange>{0}: {1}</RimWorldAccess.Pawns.DrugPolicy.SettingChange>
+
+  <!-- =================================================================
+       Policy editor announcement (PolicyEditorState).
+       Spoken when an apparel/food/drug/reading editor opens.
+       {0} = the localized "Edit" verb (vanilla "AssignTabEdit"),
+       {1} = the policy label (e.g. "Restricted"). The two-token space
+       glue is one phrase so a translator can re-order them.
+       ================================================================= -->
+  <RimWorldAccess.Pawns.Policy.EditAnnouncement>{0} {1}</RimWorldAccess.Pawns.Policy.EditAnnouncement>
+
+  <!-- Schedule copy/paste announcement (WindowlessScheduleState). The
+       leading word is the vanilla "Copy"/"Paste" key resolved at the
+       call site; the colon-space joiner lives here. {0} = verb,
+       {1} = pawn label. -->
+  <RimWorldAccess.Pawns.Schedule.CopyPasteAnnouncement>{0}: {1}</RimWorldAccess.Pawns.Schedule.CopyPasteAnnouncement>
+
+
+  <!-- Interactive gear item detail readout (src/Pawns/InteractiveGearHelper.cs). -->
+  <RimWorldAccess.Pawns.Gear.Quality>Якість: {0}</RimWorldAccess.Pawns.Gear.Quality>
+  <RimWorldAccess.Pawns.Gear.Condition>Стан: {0} ({1} / {2} міцності)</RimWorldAccess.Pawns.Gear.Condition>
+  <RimWorldAccess.Pawns.Gear.Material>Матеріал: {0}</RimWorldAccess.Pawns.Gear.Material>
+  <RimWorldAccess.Pawns.Gear.MarketValue>Ринкова ціна: {0} срібла</RimWorldAccess.Pawns.Gear.MarketValue>
+  <RimWorldAccess.Pawns.Gear.Mass>Вага: {0} кг</RimWorldAccess.Pawns.Gear.Mass>
+  <RimWorldAccess.Pawns.Gear.DescriptionHeader>Опис:</RimWorldAccess.Pawns.Gear.DescriptionHeader>
+</LanguageData>

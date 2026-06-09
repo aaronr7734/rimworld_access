@@ -1,0 +1,754 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    MainMenu module strings (src/MainMenu/). Covers the main menu, the
+    full game-setup flow (scenario picker, scenario builder, mod manager,
+    storyteller/difficulty picker, ideology picker, world parameters,
+    starting site selection, faction relations dialog, starting pawn
+    editor, pawn filter), the loading screen, and the quit/save flow.
+
+    Files contributing strings:
+      - MainMenuAccessibilityPatch.cs   (the main menu shell)
+      - LoadingScreenAccessibilityPatch (the load-screen tip + events)
+      - ModListState.cs / ModSettingsDialogPatch.cs
+      - WindowlessScenarioLoadState.cs / WindowlessScenarioSaveState.cs
+      - ScenarioSelectionPatch.cs / ScenarioNavigationState.cs
+      - ScenarioBuilderState.cs / ScenarioBuilderPatch.cs /
+        ScenarioBuilderAddPartState.cs / ScenarioBuilderPartEditState.cs
+      - StorytellerSelectionPatch.cs / StorytellerSelectionState.cs /
+        StorytellerNavigationState.cs / CustomDifficultyEditState.cs
+      - IdeologyNavigationState.cs / IdeologySelectionPatch.cs
+      - WorldParamsPatch.cs / WorldParamsNavigationState.cs
+      - StartingSitePatch.cs / StartingSiteContext.cs
+      - StartingPawnState.cs / StartingPawnHelper.cs
+      - FactionsNavigationState.cs / FactionLandingState.cs
+      - PawnFilterState.cs / PawnFilterPresetLoadState.cs /
+        PawnFilterPresetSaveState.cs
+      - RerollState.cs
+
+    Shared phrases delegated elsewhere:
+      - Position / Edge / Search / Stepper            -> Common.xml
+      - "{0}. {1}" position composition (UI.Item.WithPosition) -> UI.xml
+      - "Cancelled"                                    -> UI.Cancelled
+      - vanilla labels: "NewColony", "Save", "LoadGame", "Options",
+        "Mods", "Credits", "QuitToMainMenu", "QuitToOS",
+        "ConfirmQuit", "GameOverMainMenu", "Tutorial",
+        "ChooseAIStoryteller", "Difficulty", "ClearAll",
+        "Randomize", "AnyNonArchite", "Random", "Structure",
+        "RandomStructureTip", "NoneLower", "DifficultyCustomSectionLabel",
+        "BuySoundtrack_*", "FictionPrimer", "LudeonBlog", "Subreddit",
+        "OfficialWiki", "TynansX", "TynansDesignBook", "HelpTranslate",
+        "ReviewScenario", "DevQuickTest", "SaveTranslationReport",
+        "SaveAndQuitToMainMenu", "SaveAndQuitToOS",
+        "LearnToPlay" - all come from vanilla via .Translate().
+
+    Data such as scenario names, faction names/descriptions, mod names,
+    storyteller labels/descriptions, ideology preset labels, biome
+    names, faction relation status text, season/weather/era data, and
+    pawn names continue to come from the game and are NOT translated
+    in this file.
+  -->
+
+  <!-- =================================================================
+       Main menu shell (MainMenuAccessibilityPatch).
+       Tutorial-not-implemented dialog. The "GameOverMainMenu" title
+       announcement comes from the vanilla key.
+       ================================================================= -->
+  <RimWorldAccess.MainMenu.TutorialNotAccessible>Навчальний посібник наразі недоступний. Його буде додано згодом.</RimWorldAccess.MainMenu.TutorialNotAccessible>
+
+  <!-- =================================================================
+       Loading screen (LoadingScreenAccessibilityPatch).
+       Live announcements as the game loads. "Tip: {0}" wraps the
+       vanilla tip-of-the-day text; the loading message itself and
+       any progress events come straight from the game. AssetsPercent
+       suffixes the vanilla LoadingAssets phrase with a percentage.
+       {0} = the tip text or percent value.
+       ================================================================= -->
+  <RimWorldAccess.Loading.Tip>Порада: {0}</RimWorldAccess.Loading.Tip>
+  <RimWorldAccess.Loading.AssetsPercent>{0} {1}%</RimWorldAccess.Loading.AssetsPercent>
+
+  <!-- =================================================================
+       Mod settings dialog (ModSettingsDialogPatch).
+       {0} = the mod's display name (when known).
+       ================================================================= -->
+  <RimWorldAccess.ModSettings.OpenedFor>Налаштування мода: {0}. Натисніть Escape, щоб закрити.</RimWorldAccess.ModSettings.OpenedFor>
+  <RimWorldAccess.ModSettings.OpenedGeneric>Діалог налаштувань мода відкрито. Натисніть Escape, щоб закрити.</RimWorldAccess.ModSettings.OpenedGeneric>
+  <RimWorldAccess.ModSettings.Closed>Налаштування мода закрито</RimWorldAccess.ModSettings.Closed>
+  <RimWorldAccess.ModSettings.UnknownMod>Невідомий мод</RimWorldAccess.ModSettings.UnknownMod>
+
+  <!-- =================================================================
+       Mod list / mod manager (ModListState).
+       Action announcements for the active/inactive mod columns,
+       reorder feedback, save/sort buttons, web-link launch feedback.
+       {0} = mod name, {1} = action verb (enabled/disabled) or
+       new position, {2} = additional context.
+       ================================================================= -->
+  <RimWorldAccess.ModList.OpeningWebsiteFor>Відкривається вебсайт: {0}</RimWorldAccess.ModList.OpeningWebsiteFor>
+  <RimWorldAccess.ModList.OpeningWorkshopPageFor>Відкривається сторінка Workshop: {0}</RimWorldAccess.ModList.OpeningWorkshopPageFor>
+  <RimWorldAccess.ModList.OpeningFolderFor>Відкривається тека: {0}</RimWorldAccess.ModList.OpeningFolderFor>
+  <RimWorldAccess.ModList.UnsubscribedFrom>Відписано від {0}</RimWorldAccess.ModList.UnsubscribedFrom>
+  <RimWorldAccess.ModList.CouldNotEnableMod>Не вдалося активувати мод. Можливо, мод з таким самим ID пакета вже активний.</RimWorldAccess.ModList.CouldNotEnableMod>
+  <RimWorldAccess.ModList.ActionEnabled>активовано</RimWorldAccess.ModList.ActionEnabled>
+  <RimWorldAccess.ModList.ActionDisabled>деактивовано</RimWorldAccess.ModList.ActionDisabled>
+  <RimWorldAccess.ModList.ModWithAction>{0} {1}</RimWorldAccess.ModList.ModWithAction>
+  <RimWorldAccess.ModList.ModWithActionAndNext>{0} {1}.{2}</RimWorldAccess.ModList.ModWithActionAndNext>
+  <RimWorldAccess.ModList.CanOnlyReorderActiveMods>Можна впорядковувати лише активні моди</RimWorldAccess.ModList.CanOnlyReorderActiveMods>
+  <RimWorldAccess.ModList.MovedToPosition>{0} переміщено на позицію {1}</RimWorldAccess.ModList.MovedToPosition>
+  <RimWorldAccess.ModList.OpenDetailsFirst>Натисніть Enter, щоб спершу відкрити відомості про мод</RimWorldAccess.ModList.OpenDetailsFirst>
+  <RimWorldAccess.ModList.CannotReorder>Неможливо впорядкувати: {0}</RimWorldAccess.ModList.CannotReorder>
+  <RimWorldAccess.ModList.ChangesSaved>Зміни модів збережено</RimWorldAccess.ModList.ChangesSaved>
+  <RimWorldAccess.ModList.AutoSorted>Моди автоматично впорядковано</RimWorldAccess.ModList.AutoSorted>
+  <RimWorldAccess.ModList.FailedToActivateButton>Не вдалося активувати кнопку</RimWorldAccess.ModList.FailedToActivateButton>
+  <RimWorldAccess.ModList.ColumnEmpty>Список модів «{0}», порожній</RimWorldAccess.ModList.ColumnEmpty>
+  <RimWorldAccess.ModList.ColumnActive>Активні</RimWorldAccess.ModList.ColumnActive>
+  <RimWorldAccess.ModList.ColumnInactive>Неактивні</RimWorldAccess.ModList.ColumnInactive>
+  <!-- More mod-list composition strings (ModListState).
+       {0} = mod name, {1} = author, {2} = next mod info, {3} = column name. -->
+  <RimWorldAccess.ModList.ContainsErrors>містить помилки</RimWorldAccess.ModList.ContainsErrors>
+  <RimWorldAccess.ModList.ByAuthor>автор: {0}</RimWorldAccess.ModList.ByAuthor>
+  <RimWorldAccess.ModList.OpeningAnnouncement>{0}. {1}, {2} модів. {3}: Alt+R. {4}: Alt+S.</RimWorldAccess.ModList.OpeningAnnouncement>
+  <RimWorldAccess.ModList.OpeningWithMod>{0} ... {1}</RimWorldAccess.ModList.OpeningWithMod>
+  <RimWorldAccess.ModList.ColumnHeader>{0} модів, {1} модів. </RimWorldAccess.ModList.ColumnHeader>
+  <RimWorldAccess.ModList.NowOnNext> Зараз на: {0}, {1}</RimWorldAccess.ModList.NowOnNext>
+  <RimWorldAccess.ModList.NowEmpty> Список тепер порожній.</RimWorldAccess.ModList.NowEmpty>
+  <RimWorldAccess.ModList.SearchPosition>{0}, {1} з {2}</RimWorldAccess.ModList.SearchPosition>
+
+  <!-- =================================================================
+       Scenario load dialog (WindowlessScenarioLoadState).
+       Type-to-search list of saved scenarios with delete confirmation.
+       {0} = scenario count, {1} = filename.
+       ================================================================= -->
+  <RimWorldAccess.ScenarioLoad.FileWithDate>{0} - {1}</RimWorldAccess.ScenarioLoad.FileWithDate>
+  <RimWorldAccess.ScenarioLoad.WithPositionSuffix> ({0})</RimWorldAccess.ScenarioLoad.WithPositionSuffix>
+  <RimWorldAccess.ScenarioLoad.NoSavedScenarios>Збережених сценаріїв не знайдено.</RimWorldAccess.ScenarioLoad.NoSavedScenarios>
+  <RimWorldAccess.ScenarioLoad.OpenInstructions>Завантажити сценарій. Доступно сценаріїв: {0}. Введіть текст для пошуку.</RimWorldAccess.ScenarioLoad.OpenInstructions>
+  <RimWorldAccess.ScenarioLoad.NoScenariosAvailable>Немає доступних сценаріїв.</RimWorldAccess.ScenarioLoad.NoScenariosAvailable>
+  <RimWorldAccess.ScenarioLoad.NoScenarioSelected>Сценарій не вибрано.</RimWorldAccess.ScenarioLoad.NoScenarioSelected>
+  <RimWorldAccess.ScenarioLoad.FailedToLoad>Не вдалося завантажити сценарій: {0}</RimWorldAccess.ScenarioLoad.FailedToLoad>
+  <RimWorldAccess.ScenarioLoad.ErrorLoading>Помилка завантаження сценарію: {0}</RimWorldAccess.ScenarioLoad.ErrorLoading>
+  <RimWorldAccess.ScenarioLoad.DeleteConfirm>Видалити {0}? Натисніть Enter для підтвердження, Escape для скасування.</RimWorldAccess.ScenarioLoad.DeleteConfirm>
+  <RimWorldAccess.ScenarioLoad.Deleted>Видалено {0}</RimWorldAccess.ScenarioLoad.Deleted>
+  <RimWorldAccess.ScenarioLoad.DeleteCancelled>Видалення скасовано</RimWorldAccess.ScenarioLoad.DeleteCancelled>
+
+  <!-- =================================================================
+       Scenario save dialog (WindowlessScenarioSaveState).
+       Filename text-input plus a list of existing scenarios that
+       can be overwritten. {0} = current filename, {1} = position
+       fragment, {2} = file modified date.
+       ================================================================= -->
+  <RimWorldAccess.ScenarioSave.OpenInstructions>Зберегти сценарій. Введіть назву файлу або натисніть Стрілку вниз, щоб вибрати наявний файл для перезапису. Поточна назва: {0}</RimWorldAccess.ScenarioSave.OpenInstructions>
+  <RimWorldAccess.ScenarioSave.SaveAs>Зберегти як: {0} ({1})</RimWorldAccess.ScenarioSave.SaveAs>
+  <RimWorldAccess.ScenarioSave.Overwrite>Перезаписати: {0} - {1} ({2})</RimWorldAccess.ScenarioSave.Overwrite>
+  <RimWorldAccess.ScenarioSave.InvalidSelection>Неправильний вибір</RimWorldAccess.ScenarioSave.InvalidSelection>
+  <RimWorldAccess.ScenarioSave.FilenameEmpty>Назва файлу не може бути порожньою</RimWorldAccess.ScenarioSave.FilenameEmpty>
+  <RimWorldAccess.ScenarioSave.FileExists>Файл {0} вже існує. Натисніть Enter ще раз, щоб перезаписати, або Escape для скасування.</RimWorldAccess.ScenarioSave.FileExists>
+  <RimWorldAccess.ScenarioSave.SavedAs>Збережено як {0}</RimWorldAccess.ScenarioSave.SavedAs>
+  <RimWorldAccess.ScenarioSave.ErrorSaving>Помилка збереження: {0}</RimWorldAccess.ScenarioSave.ErrorSaving>
+
+  <!-- =================================================================
+       Scenario picker (Page_SelectScenario via ScenarioSelectionPatch
+       and ScenarioNavigationState). Shown when starting a new colony.
+       {0} = page title, {1} = first scenario name,
+       {2} = first scenario summary, {3} = category suffix.
+       ================================================================= -->
+  <RimWorldAccess.ScenarioSelect.OpenInstructions>{0} - {1} - {2}{3}. Tab для подробиць, Alt+E для редагування.</RimWorldAccess.ScenarioSelect.OpenInstructions>
+  <RimWorldAccess.ScenarioSelect.EditingScenario>Редагування сценарію: {0}</RimWorldAccess.ScenarioSelect.EditingScenario>
+  <RimWorldAccess.ScenarioSelect.EditingCopyOf>Редагування копії: {0}</RimWorldAccess.ScenarioSelect.EditingCopyOf>
+  <RimWorldAccess.ScenarioSelect.CategoryBuiltIn> (Вбудований)</RimWorldAccess.ScenarioSelect.CategoryBuiltIn>
+  <RimWorldAccess.ScenarioSelect.CategoryGeneric> ({0})</RimWorldAccess.ScenarioSelect.CategoryGeneric>
+  <RimWorldAccess.ScenarioSelect.CannotEditBuilderEntry>Неможливо редагувати запис Конструктора сценаріїв. Натисніть Enter, щоб створити новий сценарій.</RimWorldAccess.ScenarioSelect.CannotEditBuilderEntry>
+  <RimWorldAccess.ScenarioSelect.CannotDeleteBuilderEntry>Неможливо видалити запис Конструктора сценаріїв</RimWorldAccess.ScenarioSelect.CannotDeleteBuilderEntry>
+  <RimWorldAccess.ScenarioSelect.CannotDeleteBuiltIn>Неможливо видалити вбудовані сценарії</RimWorldAccess.ScenarioSelect.CannotDeleteBuiltIn>
+  <RimWorldAccess.ScenarioSelect.NoDetailsForBuilder>Немає подробиць для Конструктора сценаріїв. Натисніть Enter, щоб відкрити.</RimWorldAccess.ScenarioSelect.NoDetailsForBuilder>
+  <!-- Scenario list and detail tree announcements (ScenarioNavigationState).
+       {0} = scenario name, {1} = scenario summary, {2} = category suffix.
+       Detail headers are also user-facing tree labels. -->
+  <RimWorldAccess.ScenarioSelect.BuilderEntryLabel>Конструктор сценаріїв - Створити власний сценарій з нуля</RimWorldAccess.ScenarioSelect.BuilderEntryLabel>
+  <RimWorldAccess.ScenarioSelect.WithPositionSuffix> ({0})</RimWorldAccess.ScenarioSelect.WithPositionSuffix>
+  <RimWorldAccess.ScenarioSelect.NameSummary>{0} - {1}{2}</RimWorldAccess.ScenarioSelect.NameSummary>
+  <RimWorldAccess.ScenarioSelect.WarningSuffix>. Увага: {0}</RimWorldAccess.ScenarioSelect.WarningSuffix>
+  <RimWorldAccess.ScenarioSelect.CategoryCustom> (Власний)</RimWorldAccess.ScenarioSelect.CategoryCustom>
+  <RimWorldAccess.ScenarioSelect.CategoryWorkshop> (Майстерня)</RimWorldAccess.ScenarioSelect.CategoryWorkshop>
+  <RimWorldAccess.ScenarioSelect.NoAdditionalDetails>Додаткові подробиці недоступні</RimWorldAccess.ScenarioSelect.NoAdditionalDetails>
+  <RimWorldAccess.ScenarioSelect.DetailsLabel>Подробиці</RimWorldAccess.ScenarioSelect.DetailsLabel>
+  <RimWorldAccess.ScenarioSelect.ScenarioListLabel>Список сценаріїв</RimWorldAccess.ScenarioSelect.ScenarioListLabel>
+  <RimWorldAccess.ScenarioSelect.BuilderSearchLabel>Конструктор сценаріїв</RimWorldAccess.ScenarioSelect.BuilderSearchLabel>
+  <RimWorldAccess.ScenarioSelect.DescriptionLine>Опис: {0}</RimWorldAccess.ScenarioSelect.DescriptionLine>
+  <RimWorldAccess.ScenarioSelect.StartWith>Почати з</RimWorldAccess.ScenarioSelect.StartWith>
+  <RimWorldAccess.ScenarioSelect.MapScatteredWith>На мапі розкидано</RimWorldAccess.ScenarioSelect.MapScatteredWith>
+  <RimWorldAccess.ScenarioSelect.CreateIncident>Створити подію</RimWorldAccess.ScenarioSelect.CreateIncident>
+  <RimWorldAccess.ScenarioSelect.DisableIncident>Вимкнути подію</RimWorldAccess.ScenarioSelect.DisableIncident>
+  <RimWorldAccess.ScenarioSelect.PermanentGameCondition>Постійна ігрова умова</RimWorldAccess.ScenarioSelect.PermanentGameCondition>
+  <RimWorldAccess.ScenarioSelect.Deleted>Видалено {0}</RimWorldAccess.ScenarioSelect.Deleted>
+  <RimWorldAccess.ScenarioSelect.UnsubscribedFrom>Відписано від {0}</RimWorldAccess.ScenarioSelect.UnsubscribedFrom>
+  <RimWorldAccess.ScenarioSelect.CannotUnsubscribe>Неможливо відписатися від цього сценарію</RimWorldAccess.ScenarioSelect.CannotUnsubscribe>
+  <RimWorldAccess.ScenarioSelect.CannotDelete>Неможливо видалити цей сценарій</RimWorldAccess.ScenarioSelect.CannotDelete>
+
+  <!-- =================================================================
+       Scenario builder shell (ScenarioBuilderState + ScenarioBuilderPatch).
+       Two-section editor: Metadata (title/summary/description) +
+       Parts (the list of scenario rules). Many announcements track
+       moves between sections, item edits, parts insert/remove, and
+       global save/load/randomize actions.
+       {0} = scenario title or part name, {1} = field name or
+       neighbor part name, {2} = secondary neighbor name.
+       ================================================================= -->
+  <RimWorldAccess.ScenarioBuilder.OpenInstructions>Конструктор сценаріїв: {0}. Розділ метаданих. Натисніть Tab, щоб перейти до Частин. Alt+L для завантаження, Alt+S для збереження, Alt+R для випадкового вибору, Alt+A для додавання частини.</RimWorldAccess.ScenarioBuilder.OpenInstructions>
+  <RimWorldAccess.ScenarioBuilder.UnsavedChangesPrompt>Ви маєте незбережені зміни в цьому сценарії.</RimWorldAccess.ScenarioBuilder.UnsavedChangesPrompt>
+  <RimWorldAccess.ScenarioBuilder.UnsavedChangesTitle>Незбережені зміни</RimWorldAccess.ScenarioBuilder.UnsavedChangesTitle>
+  <RimWorldAccess.ScenarioBuilder.UnsavedSave>Зберегти</RimWorldAccess.ScenarioBuilder.UnsavedSave>
+  <RimWorldAccess.ScenarioBuilder.UnsavedDiscard>Відхилити</RimWorldAccess.ScenarioBuilder.UnsavedDiscard>
+  <RimWorldAccess.ScenarioBuilder.UnsavedCancel>Скасувати</RimWorldAccess.ScenarioBuilder.UnsavedCancel>
+  <RimWorldAccess.ScenarioBuilder.ChangesDiscarded>Зміни відхилено.</RimWorldAccess.ScenarioBuilder.ChangesDiscarded>
+  <RimWorldAccess.ScenarioBuilder.ContinuingToEdit>Продовження редагування.</RimWorldAccess.ScenarioBuilder.ContinuingToEdit>
+  <RimWorldAccess.ScenarioBuilder.AddedPawnKindEntry>Додано новий запис типу персонажа.</RimWorldAccess.ScenarioBuilder.AddedPawnKindEntry>
+  <RimWorldAccess.ScenarioBuilder.AddedXenotypeEntry>Додано новий запис ксенотипу.</RimWorldAccess.ScenarioBuilder.AddedXenotypeEntry>
+  <RimWorldAccess.ScenarioBuilder.AddedMutantEntry>Додано новий запис мутанта.</RimWorldAccess.ScenarioBuilder.AddedMutantEntry>
+  <RimWorldAccess.ScenarioBuilder.NoLayerTagsAvailable>Немає доступних тегів шарів для під'єднання.</RimWorldAccess.ScenarioBuilder.NoLayerTagsAvailable>
+  <RimWorldAccess.ScenarioBuilder.AddedConnectionTo>Додано з'єднання з {0}.</RimWorldAccess.ScenarioBuilder.AddedConnectionTo>
+  <RimWorldAccess.ScenarioBuilder.RemovedItemType>Видалено {0}.</RimWorldAccess.ScenarioBuilder.RemovedItemType>
+  <RimWorldAccess.ScenarioBuilder.ConfirmOrCancelEditingFirst>Спершу натисніть Enter для підтвердження або Escape для скасування редагування</RimWorldAccess.ScenarioBuilder.ConfirmOrCancelEditingFirst>
+  <RimWorldAccess.ScenarioBuilder.PartsSection>Розділ частин</RimWorldAccess.ScenarioBuilder.PartsSection>
+  <RimWorldAccess.ScenarioBuilder.MetadataSection>Розділ метаданих</RimWorldAccess.ScenarioBuilder.MetadataSection>
+  <RimWorldAccess.ScenarioBuilder.FieldSetTo>{0} встановлено на: {1}</RimWorldAccess.ScenarioBuilder.FieldSetTo>
+  <RimWorldAccess.ScenarioBuilder.FieldEmptyValue>порожньо</RimWorldAccess.ScenarioBuilder.FieldEmptyValue>
+  <RimWorldAccess.ScenarioBuilder.PressEnterToEditHint>Натисніть Enter для редагування.</RimWorldAccess.ScenarioBuilder.PressEnterToEditHint>
+  <RimWorldAccess.ScenarioBuilder.FieldEditCancelled>Скасовано. {0} без змін.</RimWorldAccess.ScenarioBuilder.FieldEditCancelled>
+  <RimWorldAccess.ScenarioBuilder.NoParts>Немає частин сценарію. Натисніть Alt+A, щоб додати частину.</RimWorldAccess.ScenarioBuilder.NoParts>
+  <RimWorldAccess.ScenarioBuilder.PartHasNoFields>Ця частина не має полів для редагування. Натисніть Delete, щоб видалити її.</RimWorldAccess.ScenarioBuilder.PartHasNoFields>
+  <RimWorldAccess.ScenarioBuilder.NoItemSelected>Елемент не вибрано.</RimWorldAccess.ScenarioBuilder.NoItemSelected>
+  <RimWorldAccess.ScenarioBuilder.FieldEmpty>Поле порожнє.</RimWorldAccess.ScenarioBuilder.FieldEmpty>
+  <RimWorldAccess.ScenarioBuilder.NotATextField>Це не текстове поле.</RimWorldAccess.ScenarioBuilder.NotATextField>
+  <RimWorldAccess.ScenarioBuilder.CannotDeleteAddAction>Неможливо видалити дію додавання.</RimWorldAccess.ScenarioBuilder.CannotDeleteAddAction>
+  <RimWorldAccess.ScenarioBuilder.PartCannotBeRemoved>Цю частину неможливо видалити.</RimWorldAccess.ScenarioBuilder.PartCannotBeRemoved>
+  <RimWorldAccess.ScenarioBuilder.RemovedLabel>Видалено {0}.</RimWorldAccess.ScenarioBuilder.RemovedLabel>
+  <RimWorldAccess.ScenarioBuilder.CannotMoveUp>Неможливо перемістити {0} вгору.</RimWorldAccess.ScenarioBuilder.CannotMoveUp>
+  <RimWorldAccess.ScenarioBuilder.MovedToTopAbove>Переміщено {0} на початок, над {1}.</RimWorldAccess.ScenarioBuilder.MovedToTopAbove>
+  <RimWorldAccess.ScenarioBuilder.MovedToTopOfList>Переміщено {0} на початок списку.</RimWorldAccess.ScenarioBuilder.MovedToTopOfList>
+  <RimWorldAccess.ScenarioBuilder.MovedUpBetween>Переміщено {0} вгору, тепер між {1} та {2}.</RimWorldAccess.ScenarioBuilder.MovedUpBetween>
+  <RimWorldAccess.ScenarioBuilder.MovedUpBelow>Переміщено {0} вгору, тепер під {1}.</RimWorldAccess.ScenarioBuilder.MovedUpBelow>
+  <RimWorldAccess.ScenarioBuilder.CannotMoveDown>Неможливо перемістити {0} вниз.</RimWorldAccess.ScenarioBuilder.CannotMoveDown>
+  <RimWorldAccess.ScenarioBuilder.MovedToBottomBelow>Переміщено {0} у кінець, під {1}.</RimWorldAccess.ScenarioBuilder.MovedToBottomBelow>
+  <RimWorldAccess.ScenarioBuilder.MovedToBottomOfList>Переміщено {0} у кінець списку.</RimWorldAccess.ScenarioBuilder.MovedToBottomOfList>
+  <RimWorldAccess.ScenarioBuilder.MovedDownBetween>Переміщено {0} вниз, тепер між {1} та {2}.</RimWorldAccess.ScenarioBuilder.MovedDownBetween>
+  <RimWorldAccess.ScenarioBuilder.MovedDownAbove>Переміщено {0} вниз, тепер над {1}.</RimWorldAccess.ScenarioBuilder.MovedDownAbove>
+  <RimWorldAccess.ScenarioBuilder.AddedPressEnterToEdit>Додано {0}. Натисніть Enter для редагування.</RimWorldAccess.ScenarioBuilder.AddedPressEnterToEdit>
+  <RimWorldAccess.ScenarioBuilder.LoadedScenario>Завантажено сценарій: {0}</RimWorldAccess.ScenarioBuilder.LoadedScenario>
+  <RimWorldAccess.ScenarioBuilder.ScenarioSaved>Сценарій збережено.</RimWorldAccess.ScenarioBuilder.ScenarioSaved>
+  <RimWorldAccess.ScenarioBuilder.RandomizedNew>Випадково створено. Новий сценарій: {0}</RimWorldAccess.ScenarioBuilder.RandomizedNew>
+  <RimWorldAccess.ScenarioBuilder.NewScenarioFallback>Новий сценарій</RimWorldAccess.ScenarioBuilder.NewScenarioFallback>
+
+  <!-- =================================================================
+       Scenario builder add-part picker (ScenarioBuilderAddPartState).
+       Type-to-search list of available scenario part defs.
+       {0} = the count of parts available.
+       ================================================================= -->
+  <RimWorldAccess.ScenarioBuilder.AddPart.NothingToAdd>Немає частин для додавання.</RimWorldAccess.ScenarioBuilder.AddPart.NothingToAdd>
+  <RimWorldAccess.ScenarioBuilder.AddPart.OpenInstructions>Додати частину. Доступно частин: {0}. Введіть текст для пошуку.</RimWorldAccess.ScenarioBuilder.AddPart.OpenInstructions>
+  <RimWorldAccess.ScenarioBuilder.AddPart.NoneAvailable>Немає доступних частин.</RimWorldAccess.ScenarioBuilder.AddPart.NoneAvailable>
+
+  <!-- =================================================================
+       Scenario builder part-edit overlay (ScenarioBuilderPartEditState).
+       Edits a single field on a scenario part: enum picker, text,
+       integer, float, percent. Limit annotations: "minimum"/"maximum"
+       come from Common.Stepper; "{0} ({1})" wraps the limit-tag text.
+       {0} = label or value, {1} = limit type word.
+       ================================================================= -->
+  <RimWorldAccess.ScenarioBuilder.PartEdit.SelectedLabel>Вибрано: {0}</RimWorldAccess.ScenarioBuilder.PartEdit.SelectedLabel>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.SetTo>Встановлено на: {0}</RimWorldAccess.ScenarioBuilder.PartEdit.SetTo>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.TextSaved>Текст збережено</RimWorldAccess.ScenarioBuilder.PartEdit.TextSaved>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.AlreadyHasDecimal>Десяткова крапка вже є</RimWorldAccess.ScenarioBuilder.PartEdit.AlreadyHasDecimal>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.ZeroPoint>0 крапка</RimWorldAccess.ScenarioBuilder.PartEdit.ZeroPoint>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.NumberPoint>{0} крапка</RimWorldAccess.ScenarioBuilder.PartEdit.NumberPoint>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.ValueWithLimit>{0} ({1})</RimWorldAccess.ScenarioBuilder.PartEdit.ValueWithLimit>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.PercentBare>{0}%</RimWorldAccess.ScenarioBuilder.PartEdit.PercentBare>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.PercentWithLimit>{0}% ({1})</RimWorldAccess.ScenarioBuilder.PartEdit.PercentWithLimit>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.Cleared>Очищено</RimWorldAccess.ScenarioBuilder.PartEdit.Cleared>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.LimitMinimum>мінімум</RimWorldAccess.ScenarioBuilder.PartEdit.LimitMinimum>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.LimitMaximum>максимум</RimWorldAccess.ScenarioBuilder.PartEdit.LimitMaximum>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.CheckboxToggled>{0}: {1}</RimWorldAccess.ScenarioBuilder.PartEdit.CheckboxToggled>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.Checked>позначено</RimWorldAccess.ScenarioBuilder.PartEdit.Checked>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.Unchecked>не позначено</RimWorldAccess.ScenarioBuilder.PartEdit.Unchecked>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.UnsupportedFieldType>Непідтримуваний тип поля.</RimWorldAccess.ScenarioBuilder.PartEdit.UnsupportedFieldType>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.QuantityHint>{0}: {1}. Введіть число або використовуйте Стрілки вгору/вниз для зміни, Enter для підтвердження.</RimWorldAccess.ScenarioBuilder.PartEdit.QuantityHint>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.QuantityFallback>Значення</RimWorldAccess.ScenarioBuilder.PartEdit.QuantityFallback>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.TextHint>{0}: {1}. Введіть текст для редагування, Ctrl+V для вставлення, Insert для прочитання всього, Shift+Enter для нового рядка, Enter для підтвердження, Escape для скасування.</RimWorldAccess.ScenarioBuilder.PartEdit.TextHint>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.TextFallback>Текст</RimWorldAccess.ScenarioBuilder.PartEdit.TextFallback>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.TextEmpty>порожньо</RimWorldAccess.ScenarioBuilder.PartEdit.TextEmpty>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryLines>{0} рядків, {1} слів</RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryLines>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryWords>{0} слів</RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryWords>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.NewLineSpoken>Новий рядок</RimWorldAccess.ScenarioBuilder.PartEdit.NewLineSpoken>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.NoOptionsForField>Немає доступних варіантів для цього поля.</RimWorldAccess.ScenarioBuilder.PartEdit.NoOptionsForField>
+
+  <!-- =================================================================
+       Storyteller picker (StorytellerSelectionPatch + State).
+       Page_SelectStoryteller has three side-by-side panels: storyteller,
+       difficulty, save mode. Tab cycles between them.
+       {0} = page title, {1} = storyteller label, {2} = description,
+       {3} = position suffix.
+       ================================================================= -->
+  <RimWorldAccess.Storyteller.OpenInstructions>{0} - {1} - {2}{3}. Tab та Shift+Tab для переходу між Оповідачем, Складністю та Режимом збереження.</RimWorldAccess.Storyteller.OpenInstructions>
+  <RimWorldAccess.Storyteller.OpenPositionSuffix> ({0})</RimWorldAccess.Storyteller.OpenPositionSuffix>
+  <RimWorldAccess.Storyteller.ModeIndicator>[{0}]</RimWorldAccess.Storyteller.ModeIndicator>
+  <!-- Per-row announcements (StorytellerNavigationState).
+       The custom-difficulty marker is a parenthetical added to the difficulty
+       label when the def is custom; it then gets the description and position
+       suffix appended. {0} = label, {1} = description, {2} = position. -->
+  <RimWorldAccess.Storyteller.LabelDescription>{0} - {1}</RimWorldAccess.Storyteller.LabelDescription>
+  <RimWorldAccess.Storyteller.WithDescriptionSuffix> - {0}</RimWorldAccess.Storyteller.WithDescriptionSuffix>
+  <RimWorldAccess.Storyteller.WithPositionSuffix> ({0})</RimWorldAccess.Storyteller.WithPositionSuffix>
+  <RimWorldAccess.Storyteller.CustomSettingsSuffix> (Власні налаштування)</RimWorldAccess.Storyteller.CustomSettingsSuffix>
+  <RimWorldAccess.Storyteller.SaveMode>Режим збереження</RimWorldAccess.Storyteller.SaveMode>
+  <RimWorldAccess.Storyteller.CustomDifficultyOpenInstructions>Власні налаштування складності. Використовуйте Стрілки вгору та вниз для переходу між розділами, Enter для редагування налаштувань, Escape для повернення.</RimWorldAccess.Storyteller.CustomDifficultyOpenInstructions>
+  <RimWorldAccess.Storyteller.NoSettingsInSection>Немає доступних налаштувань у цьому розділі</RimWorldAccess.Storyteller.NoSettingsInSection>
+  <RimWorldAccess.Storyteller.AllSettingsResetTo>Усі налаштування скинуто до {0}</RimWorldAccess.Storyteller.AllSettingsResetTo>
+  <RimWorldAccess.Storyteller.ResetSelectPreset>Скинути всі налаштування до шаблону. Виберіть шаблон складності.</RimWorldAccess.Storyteller.ResetSelectPreset>
+  <RimWorldAccess.Storyteller.Confirmed>Оповідача та складність підтверджено. Закриття вибору.</RimWorldAccess.Storyteller.Confirmed>
+  <!-- In-game storyteller picker (StorytellerSelectionState) - separate from
+       the main-menu Page_SelectStoryteller. {0} = label, {1} = description,
+       {2} = customize hint, {3} = section name, {4} = settings count,
+       {5} = items noun (already localized). -->
+  <RimWorldAccess.Storyteller.LabelDot>{0}. {1}</RimWorldAccess.Storyteller.LabelDot>
+  <RimWorldAccess.Storyteller.LabelDotWithHint>{0}. {1}{2}</RimWorldAccess.Storyteller.LabelDotWithHint>
+  <RimWorldAccess.Storyteller.CustomizeHintSuffix> Натисніть Enter, щоб налаштувати параметри.</RimWorldAccess.Storyteller.CustomizeHintSuffix>
+  <RimWorldAccess.Storyteller.SectionWithCount>{0}. {1} {2}</RimWorldAccess.Storyteller.SectionWithCount>
+  <RimWorldAccess.Storyteller.SwitchToDifficultyHint> Натисніть Tab, щоб перейти до вибору складності.</RimWorldAccess.Storyteller.SwitchToDifficultyHint>
+  <RimWorldAccess.Storyteller.SwitchToStorytellerHint> Натисніть Tab, щоб перейти до вибору оповідача. Натисніть Enter для підтвердження.</RimWorldAccess.Storyteller.SwitchToStorytellerHint>
+  <RimWorldAccess.Storyteller.PositionSpacePrefix> {0}</RimWorldAccess.Storyteller.PositionSpacePrefix>
+
+  <!-- =================================================================
+       Custom difficulty editor (CustomDifficultyEditState).
+       Section list with per-section setting list. {0} = section name,
+       {1} = setting count, {2} = items label (already the section's
+       own translated noun: e.g. "settings", "options").
+       ================================================================= -->
+  <RimWorldAccess.CustomDifficulty.SectionList>Список розділів</RimWorldAccess.CustomDifficulty.SectionList>
+  <RimWorldAccess.CustomDifficulty.SectionWithCount>{0}. {1} {2}</RimWorldAccess.CustomDifficulty.SectionWithCount>
+  <RimWorldAccess.CustomDifficulty.AllSettingsSetTo>Усі налаштування встановлено на {0}</RimWorldAccess.CustomDifficulty.AllSettingsSetTo>
+  <RimWorldAccess.CustomDifficulty.NoSettingSelected>Налаштування не вибрано</RimWorldAccess.CustomDifficulty.NoSettingSelected>
+
+  <!-- =================================================================
+       Ideology picker (IdeologyNavigationState).
+       Two-tab dialog (Options / Presets) plus structure and style
+       submenus. Most labels come from vanilla; only the join phrasings
+       and the Random + tip prefix sentence live here.
+       ================================================================= -->
+  <RimWorldAccess.Ideology.OptionsTab>Параметри</RimWorldAccess.Ideology.OptionsTab>
+  <RimWorldAccess.Ideology.PresetsTab>Шаблони</RimWorldAccess.Ideology.PresetsTab>
+  <RimWorldAccess.Ideology.TabPrefix>{0}. {1}</RimWorldAccess.Ideology.TabPrefix>
+  <RimWorldAccess.Ideology.TabNoneSuffix>{0}. {1}.</RimWorldAccess.Ideology.TabNoneSuffix>
+  <RimWorldAccess.Ideology.PresetsHint>. Alt+S, щоб задати структуру, Alt+Y, щоб задати стиль для обраного шаблону</RimWorldAccess.Ideology.PresetsHint>
+  <RimWorldAccess.Ideology.PresetSiblingPosition>. {0} з {1}</RimWorldAccess.Ideology.PresetSiblingPosition>
+  <RimWorldAccess.Ideology.OptionWithDescription>{0}. {1}</RimWorldAccess.Ideology.OptionWithDescription>
+  <RimWorldAccess.Ideology.OptionDotPosition>{0}. {1}</RimWorldAccess.Ideology.OptionDotPosition>
+  <RimWorldAccess.Ideology.StructureColon>{0}: {1}</RimWorldAccess.Ideology.StructureColon>
+  <RimWorldAccess.Ideology.StructureRandomTip>{0}: {1}. {2}</RimWorldAccess.Ideology.StructureRandomTip>
+  <RimWorldAccess.Ideology.StructureMemeOption>{0}. {1}</RimWorldAccess.Ideology.StructureMemeOption>
+  <RimWorldAccess.Ideology.CategoryWithDescription>{0}: {1}</RimWorldAccess.Ideology.CategoryWithDescription>
+  <RimWorldAccess.Ideology.StyleSlot>{0} {1}: {2}</RimWorldAccess.Ideology.StyleSlot>
+  <RimWorldAccess.Ideology.StylesAnnouncement>{0}: {1}</RimWorldAccess.Ideology.StylesAnnouncement>
+  <RimWorldAccess.Ideology.StateChangeAnnouncement>{0}. {1}</RimWorldAccess.Ideology.StateChangeAnnouncement>
+  <RimWorldAccess.Ideology.OpeningAnnouncement>{0}. {1}. {2}</RimWorldAccess.Ideology.OpeningAnnouncement>
+
+  <!-- =================================================================
+       World parameters (WorldParamsPatch + WorldParamsNavigationState).
+       Page_CreateWorldParams has fields like Seed, Coverage, Rainfall,
+       Temperature, Population. Seed input is a text dialog with
+       custom announcements; other fields announce via FieldColonValue.
+       {0} = page-level help/title, {1} = field name, {2} = value,
+       {3} = warning suffix.
+       ================================================================= -->
+  <RimWorldAccess.WorldParams.OpenInstructions>Створення світу. {0}</RimWorldAccess.WorldParams.OpenInstructions>
+  <RimWorldAccess.WorldParams.OpenHelp>Натисніть Enter, щоб згенерувати світ з типовими налаштуваннями, або Стрілки вгору/вниз для перегляду полів, Вліво/Вправо для зміни значень. Tab для переходу до фракцій.</RimWorldAccess.WorldParams.OpenHelp>
+  <RimWorldAccess.WorldParams.SeedTypingIndicator>[Введення зерна: {0}] (Enter=Підтвердити, Esc=Скасувати)</RimWorldAccess.WorldParams.SeedTypingIndicator>
+  <RimWorldAccess.WorldParams.FieldIndicator>[Поле: {0}] (Стрілки для навігації)</RimWorldAccess.WorldParams.FieldIndicator>
+  <RimWorldAccess.WorldParams.Title>Параметри світу</RimWorldAccess.WorldParams.Title>
+  <RimWorldAccess.WorldParams.SeedInstructions>Натисніть Enter, щоб ввести власне зерно, або R для випадкового вибору</RimWorldAccess.WorldParams.SeedInstructions>
+  <RimWorldAccess.WorldParams.SeedConfirmed>Зерно світу: {0} (Підтверджено)</RimWorldAccess.WorldParams.SeedConfirmed>
+  <RimWorldAccess.WorldParams.SeedEmptyCancelled>Введення зерна скасовано (порожнє)</RimWorldAccess.WorldParams.SeedEmptyCancelled>
+  <RimWorldAccess.WorldParams.SeedEditCancelled>Редагування зерна скасовано</RimWorldAccess.WorldParams.SeedEditCancelled>
+  <RimWorldAccess.WorldParams.SeedRandomized>Зерно світу: {0} (Випадкове)</RimWorldAccess.WorldParams.SeedRandomized>
+  <RimWorldAccess.WorldParams.FieldColonValue>{0}: {1}{2}</RimWorldAccess.WorldParams.FieldColonValue>
+  <RimWorldAccess.WorldParams.FieldColonValueNoWarning>{0}: {1}</RimWorldAccess.WorldParams.FieldColonValueNoWarning>
+  <RimWorldAccess.WorldParams.WarningPrefix>. {0}</RimWorldAccess.WorldParams.WarningPrefix>
+
+  <!-- Rainfall/Temperature/Population/Landmark density labels for the
+       world-params editor. The game's enum lacks vanilla translation
+       keys for these adjectives, so we ship our own. -->
+  <RimWorldAccess.WorldParams.Rainfall.AlmostNone>Майже відсутні</RimWorldAccess.WorldParams.Rainfall.AlmostNone>
+  <RimWorldAccess.WorldParams.Rainfall.Little>Незначні</RimWorldAccess.WorldParams.Rainfall.Little>
+  <RimWorldAccess.WorldParams.Rainfall.LittleLess>Трохи менше</RimWorldAccess.WorldParams.Rainfall.LittleLess>
+  <RimWorldAccess.WorldParams.Rainfall.Normal>Звичайні</RimWorldAccess.WorldParams.Rainfall.Normal>
+  <RimWorldAccess.WorldParams.Rainfall.LittleMore>Трохи більше</RimWorldAccess.WorldParams.Rainfall.LittleMore>
+  <RimWorldAccess.WorldParams.Rainfall.High>Високі</RimWorldAccess.WorldParams.Rainfall.High>
+  <RimWorldAccess.WorldParams.Rainfall.VeryHigh>Дуже високі</RimWorldAccess.WorldParams.Rainfall.VeryHigh>
+  <RimWorldAccess.WorldParams.Temperature.VeryCold>Дуже холодно</RimWorldAccess.WorldParams.Temperature.VeryCold>
+  <RimWorldAccess.WorldParams.Temperature.Cold>Холодно</RimWorldAccess.WorldParams.Temperature.Cold>
+  <RimWorldAccess.WorldParams.Temperature.LittleColder>Трохи холодніше</RimWorldAccess.WorldParams.Temperature.LittleColder>
+  <RimWorldAccess.WorldParams.Temperature.Normal>Звичайна</RimWorldAccess.WorldParams.Temperature.Normal>
+  <RimWorldAccess.WorldParams.Temperature.LittleWarmer>Трохи тепліше</RimWorldAccess.WorldParams.Temperature.LittleWarmer>
+  <RimWorldAccess.WorldParams.Temperature.Hot>Жарко</RimWorldAccess.WorldParams.Temperature.Hot>
+  <RimWorldAccess.WorldParams.Temperature.VeryHot>Дуже жарко</RimWorldAccess.WorldParams.Temperature.VeryHot>
+  <RimWorldAccess.WorldParams.LandmarkDensity.Sparse>Рідкісні</RimWorldAccess.WorldParams.LandmarkDensity.Sparse>
+  <RimWorldAccess.WorldParams.LandmarkDensity.MoreSparse>Дещо рідкісніші</RimWorldAccess.WorldParams.LandmarkDensity.MoreSparse>
+  <RimWorldAccess.WorldParams.LandmarkDensity.SlightSparse>Трохи рідкісні</RimWorldAccess.WorldParams.LandmarkDensity.SlightSparse>
+  <RimWorldAccess.WorldParams.LandmarkDensity.Normal>Звичайні</RimWorldAccess.WorldParams.LandmarkDensity.Normal>
+  <RimWorldAccess.WorldParams.LandmarkDensity.SlightCrowded>Трохи густі</RimWorldAccess.WorldParams.LandmarkDensity.SlightCrowded>
+  <RimWorldAccess.WorldParams.LandmarkDensity.MoreCrowded>Дещо густіші</RimWorldAccess.WorldParams.LandmarkDensity.MoreCrowded>
+  <RimWorldAccess.WorldParams.LandmarkDensity.Crowded>Густі</RimWorldAccess.WorldParams.LandmarkDensity.Crowded>
+
+  <!-- =================================================================
+       Starting site selection (StartingSitePatch + StartingSiteContext).
+       The world tile picker before colony start. The "I" menu surfaces
+       per-tile read-outs (terrain, biome, stone, faction relations).
+       {0} = page title, {1} = error/info text, {2} = item count.
+       ================================================================= -->
+  <RimWorldAccess.StartingSite.OpenInstructions>{0} - Стрілки для навігації, Ctrl+стрілки для переходу за біомом, Page Up/Down для сканера, Z для пошуку, 1-5 для інформації про плитку, I для докладного інформаційного меню, F для фракцій, Enter для підтвердження вибору</RimWorldAccess.StartingSite.OpenInstructions>
+  <RimWorldAccess.StartingSite.CannotSettleHere>Тут неможливо оселитися: {0}</RimWorldAccess.StartingSite.CannotSettleHere>
+
+  <!-- Visual help/menu overlays drawn by StartingSitePatch's Postfix.
+       Visible to sighted users only. Each line has its own key so the
+       caller can join them with Environment.NewLine; this avoids
+       embedding literal newlines in XML and keeps each line independently
+       localizable. {0} = selected item, {1} = position, {2} = total. -->
+  <RimWorldAccess.StartingSite.MenuOverlayTitle>Меню додаткової інформації</RimWorldAccess.StartingSite.MenuOverlayTitle>
+  <RimWorldAccess.StartingSite.MenuOverlaySelected>Вибрано: {0}</RimWorldAccess.StartingSite.MenuOverlaySelected>
+  <RimWorldAccess.StartingSite.MenuOverlayItemPosition>Елемент {0} з {1}</RimWorldAccess.StartingSite.MenuOverlayItemPosition>
+  <RimWorldAccess.StartingSite.MenuOverlayControls>Керування:</RimWorldAccess.StartingSite.MenuOverlayControls>
+  <RimWorldAccess.StartingSite.MenuOverlayControlNavigate>  Стрілки вгору/вниз: Перехід між пунктами меню</RimWorldAccess.StartingSite.MenuOverlayControlNavigate>
+  <RimWorldAccess.StartingSite.MenuOverlayControlEnter>  Enter: Прочитати докладну інформацію</RimWorldAccess.StartingSite.MenuOverlayControlEnter>
+  <RimWorldAccess.StartingSite.MenuOverlayControlEscape>  Escape: Закрити меню</RimWorldAccess.StartingSite.MenuOverlayControlEscape>
+  <RimWorldAccess.StartingSite.HelpOverlayTitle>Вибір початкового місця:</RimWorldAccess.StartingSite.HelpOverlayTitle>
+  <RimWorldAccess.StartingSite.HelpOverlayLine1>Стрілки: Навігація  |  Ctrl+стрілки: Перехід за біомом  |  PgUp/PgDn: Сканер</RimWorldAccess.StartingSite.HelpOverlayLine1>
+  <RimWorldAccess.StartingSite.HelpOverlayLine2>1-5: Інформація про плитку  |  Z: Пошук  |  I: Інформаційне меню  |  F: Фракції  |  R: Випадково  |  Enter: Підтвердити</RimWorldAccess.StartingSite.HelpOverlayLine2>
+  <RimWorldAccess.StartingSite.NoTileSelected>Плитку не вибрано. Спершу за допомогою стрілок перейдіть до плитки.</RimWorldAccess.StartingSite.NoTileSelected>
+  <RimWorldAccess.StartingSite.Selected>Початкове місце вибрано.</RimWorldAccess.StartingSite.Selected>
+  <RimWorldAccess.StartingSite.MenuOpened>{0}. Вибрано: {1}. Використовуйте стрілки для навігації, Enter для прочитання подробиць, Escape для закриття.</RimWorldAccess.StartingSite.MenuOpened>
+  <RimWorldAccess.StartingSite.MenuTitle>Меню додаткової інформації - доступно категорій: {0}</RimWorldAccess.StartingSite.MenuTitle>
+  <RimWorldAccess.StartingSite.MenuItemPosition>{0} ({1} з {2})</RimWorldAccess.StartingSite.MenuItemPosition>
+
+  <!-- Per-category labels for the I-menu (StartingSiteContext.GetMenuItemName).
+       These appear both in the menu list and as headers in the detail readouts. -->
+  <RimWorldAccess.StartingSite.Category.RoadsAndRivers>Дороги, річки та узбережжя</RimWorldAccess.StartingSite.Category.RoadsAndRivers>
+  <RimWorldAccess.StartingSite.Category.StoneTypes>Типи каменю</RimWorldAccess.StartingSite.Category.StoneTypes>
+  <RimWorldAccess.StartingSite.Category.GrowingInfo>Вирощування та збиральництво</RimWorldAccess.StartingSite.Category.GrowingInfo>
+  <RimWorldAccess.StartingSite.Category.HealthInfo>Частота хвороб</RimWorldAccess.StartingSite.Category.HealthInfo>
+  <RimWorldAccess.StartingSite.Category.MovementAndLocation>Пересування та часовий пояс</RimWorldAccess.StartingSite.Category.MovementAndLocation>
+  <RimWorldAccess.StartingSite.Category.DLCFeatures>Можливості DLC</RimWorldAccess.StartingSite.Category.DLCFeatures>
+  <RimWorldAccess.StartingSite.Category.Coordinates>Координати</RimWorldAccess.StartingSite.Category.Coordinates>
+  <RimWorldAccess.StartingSite.Category.Unknown>Невідомо</RimWorldAccess.StartingSite.Category.Unknown>
+
+  <!-- Roads/Rivers/Coastline detail readout (sentences joined into a single
+       readout string). -->
+  <RimWorldAccess.StartingSite.RoadsRivers.Header>Дороги, річки та узбережжя:</RimWorldAccess.StartingSite.RoadsRivers.Header>
+  <RimWorldAccess.StartingSite.RoadsRivers.RoadsList>Дороги: {0}</RimWorldAccess.StartingSite.RoadsRivers.RoadsList>
+  <RimWorldAccess.StartingSite.RoadsRivers.RoadsNone>Дороги: Немає</RimWorldAccess.StartingSite.RoadsRivers.RoadsNone>
+  <RimWorldAccess.StartingSite.RoadsRivers.River>Річка: {0}</RimWorldAccess.StartingSite.RoadsRivers.River>
+  <RimWorldAccess.StartingSite.RoadsRivers.RiverNone>Річка: Немає</RimWorldAccess.StartingSite.RoadsRivers.RiverNone>
+  <RimWorldAccess.StartingSite.RoadsRivers.CoastalYes>Узбережжя: Так (вода на {0})</RimWorldAccess.StartingSite.RoadsRivers.CoastalYes>
+  <RimWorldAccess.StartingSite.RoadsRivers.CoastalNo>Узбережжя: Ні</RimWorldAccess.StartingSite.RoadsRivers.CoastalNo>
+
+  <!-- Stone types detail readout. -->
+  <RimWorldAccess.StartingSite.Stone.Header>Типи каменю:</RimWorldAccess.StartingSite.Stone.Header>
+
+  <!-- DLC features detail readout. -->
+  <RimWorldAccess.StartingSite.Dlc.Header>Можливості DLC:</RimWorldAccess.StartingSite.Dlc.Header>
+  <RimWorldAccess.StartingSite.Dlc.Pollution>Забруднення: {0}</RimWorldAccess.StartingSite.Dlc.Pollution>
+  <RimWorldAccess.StartingSite.Dlc.NoxiousHazeEvery>Отруйний серпанок: У середньому кожні {0} днів</RimWorldAccess.StartingSite.Dlc.NoxiousHazeEvery>
+  <RimWorldAccess.StartingSite.Dlc.NoxiousHazeNone>Отруйний серпанок: Не трапляється</RimWorldAccess.StartingSite.Dlc.NoxiousHazeNone>
+  <RimWorldAccess.StartingSite.Dlc.Landmark>Орієнтир: {0}</RimWorldAccess.StartingSite.Dlc.Landmark>
+  <RimWorldAccess.StartingSite.Dlc.TileMutators>Модифікатори плитки: {0}</RimWorldAccess.StartingSite.Dlc.TileMutators>
+  <RimWorldAccess.StartingSite.Dlc.MutatorBullet>  - {0}</RimWorldAccess.StartingSite.Dlc.MutatorBullet>
+
+  <!-- Faction proximity warning, used by both the random-tile announcement
+       and the live tile read-out. {0} = warning prefix (vanilla Warning),
+       {1} = count. -->
+  <RimWorldAccess.StartingSite.SettlingAffectsFactionsOne>{0}: Поселення тут вплине на {1} фракцію</RimWorldAccess.StartingSite.SettlingAffectsFactionsOne>
+  <RimWorldAccess.StartingSite.SettlingAffectsFactionsMany>{0}: Поселення тут вплине на {1} фракцій</RimWorldAccess.StartingSite.SettlingAffectsFactionsMany>
+  <RimWorldAccess.StartingSite.NoAdditionalInfo>Немає додаткової інформації для цієї плитки.</RimWorldAccess.StartingSite.NoAdditionalInfo>
+  <RimWorldAccess.StartingSite.MenuClosed>Меню закрито.</RimWorldAccess.StartingSite.MenuClosed>
+  <RimWorldAccess.StartingSite.RandomSiteFailed>Не вдалося знайти придатне випадкове початкове місце.</RimWorldAccess.StartingSite.RandomSiteFailed>
+  <RimWorldAccess.StartingSite.RandomSiteSelected>Вибрано випадкове місце: {0}</RimWorldAccess.StartingSite.RandomSiteSelected>
+  <RimWorldAccess.StartingSite.CannotDetermineBiome>Неможливо визначити біом у поточному розташуванні</RimWorldAccess.StartingSite.CannotDetermineBiome>
+  <RimWorldAccess.StartingSite.NoDifferentBiomeFound>Іншого біома не знайдено (перевірено плиток: {0})</RimWorldAccess.StartingSite.NoDifferentBiomeFound>
+  <RimWorldAccess.StartingSite.NoInfoAvailable>Немає доступної інформації.</RimWorldAccess.StartingSite.NoInfoAvailable>
+  <RimWorldAccess.StartingSite.NoStoneInfo>Немає доступної інформації про камінь.</RimWorldAccess.StartingSite.NoStoneInfo>
+  <RimWorldAccess.StartingSite.NoDlcFeatures>На цій плитці немає можливостей DLC.</RimWorldAccess.StartingSite.NoDlcFeatures>
+
+  <!-- =================================================================
+       Starting pawn editor (StartingPawnState + StartingPawnHelper +
+       RerollState). Tree of pawns with Bio/Traits/Skills/Health/etc.
+       Reroll runs in batches; the periodic announcement shows
+       attempt count. {0} = attempts.
+       ================================================================= -->
+  <RimWorldAccess.StartingPawn.GoBackConfirm>Повернення назад призведе до втрати поточних початкових колоністів. Продовжити?</RimWorldAccess.StartingPawn.GoBackConfirm>
+  <RimWorldAccess.StartingPawn.GoBackContinue>Продовжити</RimWorldAccess.StartingPawn.GoBackContinue>
+  <RimWorldAccess.StartingPawn.GoBackCancel>Скасувати</RimWorldAccess.StartingPawn.GoBackCancel>
+  <RimWorldAccess.StartingPawn.WandererTitle>{0}. Alt+A для додавання, Delete для видалення.</RimWorldAccess.StartingPawn.WandererTitle>
+  <RimWorldAccess.StartingPawn.RandomizeWithMatch>{0}. Знайдено збіг за {1} спроб.</RimWorldAccess.StartingPawn.RandomizeWithMatch>
+  <RimWorldAccess.StartingPawn.RandomizeNoMatch>{0}. Збігу не знайдено після {1} спроб, зберігається останній результат.</RimWorldAccess.StartingPawn.RandomizeNoMatch>
+  <RimWorldAccess.StartingPawn.RandomizeWithSummary>{0}. {1}</RimWorldAccess.StartingPawn.RandomizeWithSummary>
+  <RimWorldAccess.StartingPawn.RerollStopped>Зупинено на {0} спроб.</RimWorldAccess.StartingPawn.RerollStopped>
+  <RimWorldAccess.StartingPawn.RerollFound>Знайдено збіг за {0} спроб.</RimWorldAccess.StartingPawn.RerollFound>
+  <RimWorldAccess.StartingPawn.RerollNoMatch>Збігу не знайдено після {0} спроб, зберігається останній результат.</RimWorldAccess.StartingPawn.RerollNoMatch>
+  <RimWorldAccess.StartingPawn.NeighborBetween>між {0} та {1}</RimWorldAccess.StartingPawn.NeighborBetween>
+  <RimWorldAccess.StartingPawn.NeighborAfter>після {0}</RimWorldAccess.StartingPawn.NeighborAfter>
+  <RimWorldAccess.StartingPawn.NeighborBefore>перед {0}</RimWorldAccess.StartingPawn.NeighborBefore>
+  <RimWorldAccess.StartingPawn.NoPawnSelected>Персонажа не вибрано</RimWorldAccess.StartingPawn.NoPawnSelected>
+  <RimWorldAccess.StartingPawn.StartGameConfirm>Почати гру з {0}?</RimWorldAccess.StartingPawn.StartGameConfirm>
+  <RimWorldAccess.StartingPawn.WandererConfirm>{0}: {1}?</RimWorldAccess.StartingPawn.WandererConfirm>
+  <RimWorldAccess.StartingPawn.MaximumPawns>Максимум {0}</RimWorldAccess.StartingPawn.MaximumPawns>
+  <RimWorldAccess.StartingPawn.MinimumPawns>Мінімум {0}</RimWorldAccess.StartingPawn.MinimumPawns>
+  <RimWorldAccess.StartingPawn.PawnAdded>Персонажа додано</RimWorldAccess.StartingPawn.PawnAdded>
+  <RimWorldAccess.StartingPawn.PawnRemoved>{0} видалено</RimWorldAccess.StartingPawn.PawnRemoved>
+  <RimWorldAccess.StartingPawn.LabelRandomize>{0}, {1}</RimWorldAccess.StartingPawn.LabelRandomize>
+
+  <!-- Tree-item composition for the starting pawn editor (FormatItemAnnouncement).
+       Splits into per-shape keys so the order of {label}/{state}/{position} can
+       differ per language. {0} = label, {1} = state word (expanded/collapsed),
+       {2} = summary text or position fragment. The bare " ({0})" position
+       suffix is reused by all branches. The " Inspectable." suffix lives
+       in Common.xml as RimWorldAccess.InfoCard.Inspectable. -->
+  <RimWorldAccess.StartingPawn.PawnLabelWithState>{0}, {1}</RimWorldAccess.StartingPawn.PawnLabelWithState>
+  <RimWorldAccess.StartingPawn.CategoryLabelWithState>{0}, {1}</RimWorldAccess.StartingPawn.CategoryLabelWithState>
+  <RimWorldAccess.StartingPawn.CategoryWithSummary>{0}: {1}, {2}</RimWorldAccess.StartingPawn.CategoryWithSummary>
+  <RimWorldAccess.StartingPawn.PositionParenSuffix> ({0})</RimWorldAccess.StartingPawn.PositionParenSuffix>
+  <RimWorldAccess.StartingPawn.SectionPrefix>{0}. {1}</RimWorldAccess.StartingPawn.SectionPrefix>
+  <RimWorldAccess.Reroll.SearchingAttempts>Пошук, {0} спроб...</RimWorldAccess.Reroll.SearchingAttempts>
+
+  <!-- =================================================================
+       Factions navigation (FactionsNavigationState + FactionLandingState).
+       The starting-faction dialog allows adding/removing factions.
+       Locked-by-scenario / tutorial-mode are user-facing block reasons.
+       {0} = faction label, {1} = remaining count or disabled reason.
+       ================================================================= -->
+  <RimWorldAccess.Factions.Title>Фракції</RimWorldAccess.Factions.Title>
+  <RimWorldAccess.Factions.PressAddHint>Натисніть Alt+A, щоб додати фракції.</RimWorldAccess.Factions.PressAddHint>
+  <RimWorldAccess.Factions.NoFactionsInList>Фракції. У списку немає фракцій. Натисніть Alt+A, щоб додати фракції.</RimWorldAccess.Factions.NoFactionsInList>
+  <RimWorldAccess.Factions.NoFactionSelected>Фракцію не вибрано</RimWorldAccess.Factions.NoFactionSelected>
+  <RimWorldAccess.Factions.CannotRemoveLocked>Неможливо видалити {0}: заблоковано сценарієм</RimWorldAccess.Factions.CannotRemoveLocked>
+  <RimWorldAccess.Factions.CannotModifyTutorial>Неможливо змінювати фракції в навчальному режимі</RimWorldAccess.Factions.CannotModifyTutorial>
+  <RimWorldAccess.Factions.RemovedRemaining>{0} видалено. Залишилося фракцій: {1}.</RimWorldAccess.Factions.RemovedRemaining>
+  <RimWorldAccess.Factions.NoneRemaining>Фракцій не залишилося. Натисніть Alt+A, щоб додати фракції.</RimWorldAccess.Factions.NoneRemaining>
+  <RimWorldAccess.Factions.NoneAvailableToAdd>Немає фракцій для додавання</RimWorldAccess.Factions.NoneAvailableToAdd>
+  <RimWorldAccess.Factions.AddMenuOpened>Меню додавання фракцій відкрито</RimWorldAccess.Factions.AddMenuOpened>
+  <RimWorldAccess.Factions.AddMenuClosed>Меню додавання закрито</RimWorldAccess.Factions.AddMenuClosed>
+  <RimWorldAccess.Factions.CannotAddReason>Неможливо додати {0}: {1}</RimWorldAccess.Factions.CannotAddReason>
+  <RimWorldAccess.Factions.AddedNowInList>{0} додано. Тепер у списку: {1}.</RimWorldAccess.Factions.AddedNowInList>
+  <RimWorldAccess.Factions.LandingClosed>Стосунки з фракціями закрито.</RimWorldAccess.Factions.LandingClosed>
+  <!-- AddFactionMenu and faction list announcements. {0} = label,
+       {1} = description, {2} = position, {3} = disabled reason or count. -->
+  <RimWorldAccess.Factions.MaxAllowed>Дозволено максимум {0} фракцій</RimWorldAccess.Factions.MaxAllowed>
+  <RimWorldAccess.Factions.MaxOfType>Максимум {0} фракцій цього типу</RimWorldAccess.Factions.MaxOfType>
+  <RimWorldAccess.Factions.WarningNoFactions>Увага: Без фракцій рейди, торгівля та завдання не відбуватимуться як зазвичай.</RimWorldAccess.Factions.WarningNoFactions>
+  <RimWorldAccess.Factions.WarningMissingEmpire>Увага: Відсутність фракції Імперії може зменшити вміст завдань Royalty.</RimWorldAccess.Factions.WarningMissingEmpire>
+  <RimWorldAccess.Factions.WarningMissingMechanoid>Увага: Відсутність механоїдів може зменшити різноманіття завдань.</RimWorldAccess.Factions.WarningMissingMechanoid>
+  <RimWorldAccess.Factions.WarningMissingInsect>Увага: Відсутність комах може зменшити різноманіття завдань.</RimWorldAccess.Factions.WarningMissingInsect>
+  <RimWorldAccess.Factions.LabelWithReason>{0} ({1})</RimWorldAccess.Factions.LabelWithReason>
+  <RimWorldAccess.Factions.LabelWithCount>{0} ({1})</RimWorldAccess.Factions.LabelWithCount>
+  <RimWorldAccess.Factions.WithDescriptionSuffix>. {0}</RimWorldAccess.Factions.WithDescriptionSuffix>
+  <RimWorldAccess.Factions.PositionSpaceSuffix> {0}</RimWorldAccess.Factions.PositionSpaceSuffix>
+  <RimWorldAccess.Factions.LockedSuffix> (заблоковано сценарієм)</RimWorldAccess.Factions.LockedSuffix>
+  <RimWorldAccess.Factions.DisabledSuffix> (вимкнено)</RimWorldAccess.Factions.DisabledSuffix>
+
+  <!-- =================================================================
+       Pawn filter editor (PawnFilterState + Helper). Configure
+       what kinds of pawns the reroll system will accept.
+       {0} = mode label / type, {1} = trait label, {2} = filter count.
+       ================================================================= -->
+  <RimWorldAccess.PawnFilter.Editor>Редактор фільтра персонажів.{0}</RimWorldAccess.PawnFilter.Editor>
+  <RimWorldAccess.PawnFilter.ActiveFiltersCountSuffix> Активних фільтрів: {0}.</RimWorldAccess.PawnFilter.ActiveFiltersCountSuffix>
+  <RimWorldAccess.PawnFilter.FilterSaved>Фільтр збережено. Активних фільтрів: {0}.</RimWorldAccess.PawnFilter.FilterSaved>
+  <RimWorldAccess.PawnFilter.EditorClosedDiscarded>Редактор фільтрів закрито. Зміни відхилено.</RimWorldAccess.PawnFilter.EditorClosedDiscarded>
+  <RimWorldAccess.PawnFilter.PresetLoaded>Шаблон завантажено. Активних фільтрів: {0}.</RimWorldAccess.PawnFilter.PresetLoaded>
+  <RimWorldAccess.PawnFilter.TraitAdded>{0}: {1} додано</RimWorldAccess.PawnFilter.TraitAdded>
+  <RimWorldAccess.PawnFilter.NoAvailableTraits>Немає доступних рис</RimWorldAccess.PawnFilter.NoAvailableTraits>
+  <RimWorldAccess.PawnFilter.TraitRemoved>{0}: {1} видалено</RimWorldAccess.PawnFilter.TraitRemoved>
+  <RimWorldAccess.PawnFilter.AddRequiredTrait>Додати обов'язкову рису...</RimWorldAccess.PawnFilter.AddRequiredTrait>
+  <RimWorldAccess.PawnFilter.AddExcludedTrait>Додати виключену рису...</RimWorldAccess.PawnFilter.AddExcludedTrait>
+  <RimWorldAccess.PawnFilter.AddOptionalTrait>Додати необов'язкову рису...</RimWorldAccess.PawnFilter.AddOptionalTrait>
+  <RimWorldAccess.PawnFilter.SavePreset>Зберегти шаблон...</RimWorldAccess.PawnFilter.SavePreset>
+  <RimWorldAccess.PawnFilter.LoadPreset>Завантажити шаблон...</RimWorldAccess.PawnFilter.LoadPreset>
+  <RimWorldAccess.PawnFilter.SectionDemographics>Демографія</RimWorldAccess.PawnFilter.SectionDemographics>
+  <RimWorldAccess.PawnFilter.SectionConditions>Умови</RimWorldAccess.PawnFilter.SectionConditions>
+  <RimWorldAccess.PawnFilter.SectionActions>Дії</RimWorldAccess.PawnFilter.SectionActions>
+  <RimWorldAccess.PawnFilter.TraitEntryFormat>{0}: {1} {2}</RimWorldAccess.PawnFilter.TraitEntryFormat>
+  <RimWorldAccess.PawnFilter.WorkAllowNone>Не дозволяти жодного</RimWorldAccess.PawnFilter.WorkAllowNone>
+
+  <!-- =================================================================
+       Pawn filter preset save (PawnFilterPresetSaveState).
+       Same shape as the scenario save dialog.
+       {0} = current name buffer, {1} = position fragment,
+       {2} = preset name to overwrite.
+       ================================================================= -->
+  <RimWorldAccess.PawnFilter.PresetSave.OpenInstructions>Зберегти шаблон фільтра. Введіть назву або натисніть Стрілку вниз, щоб вибрати наявний шаблон для перезапису. Поточна назва: {0}</RimWorldAccess.PawnFilter.PresetSave.OpenInstructions>
+  <RimWorldAccess.PawnFilter.PresetSave.SaveAs>Зберегти як: {0} ({1})</RimWorldAccess.PawnFilter.PresetSave.SaveAs>
+  <RimWorldAccess.PawnFilter.PresetSave.Overwrite>Перезаписати: {0} ({1})</RimWorldAccess.PawnFilter.PresetSave.Overwrite>
+  <RimWorldAccess.PawnFilter.PresetSave.NameEmpty>Назва не може бути порожньою</RimWorldAccess.PawnFilter.PresetSave.NameEmpty>
+  <RimWorldAccess.PawnFilter.PresetSave.PresetOverwritten>Шаблон {0} перезаписано</RimWorldAccess.PawnFilter.PresetSave.PresetOverwritten>
+  <RimWorldAccess.PawnFilter.PresetSave.PresetSavedAs>Шаблон збережено як {0}</RimWorldAccess.PawnFilter.PresetSave.PresetSavedAs>
+  <RimWorldAccess.PawnFilter.PresetSave.ErrorSaving>Помилка збереження: {0}</RimWorldAccess.PawnFilter.PresetSave.ErrorSaving>
+  <RimWorldAccess.PawnFilter.PresetSave.InvalidSelection>Неправильний вибір</RimWorldAccess.PawnFilter.PresetSave.InvalidSelection>
+
+  <!-- =================================================================
+       Pawn filter preset load (PawnFilterPresetLoadState).
+       Same shape as the scenario load dialog.
+       {0} = preset count, {1} = preset name, {2} = error message.
+       ================================================================= -->
+  <RimWorldAccess.PawnFilter.PresetLoad.NoSavedPresets>Збережених шаблонів не знайдено.</RimWorldAccess.PawnFilter.PresetLoad.NoSavedPresets>
+  <RimWorldAccess.PawnFilter.PresetLoad.UnnamedFallback>(без назви)</RimWorldAccess.PawnFilter.PresetLoad.UnnamedFallback>
+  <RimWorldAccess.PawnFilter.PresetLoad.WithPositionSuffix> ({0})</RimWorldAccess.PawnFilter.PresetLoad.WithPositionSuffix>
+  <RimWorldAccess.PawnFilter.PresetLoad.OpenInstructions>Завантажити шаблон фільтра. Доступно шаблонів: {0}. Введіть текст для пошуку.</RimWorldAccess.PawnFilter.PresetLoad.OpenInstructions>
+  <RimWorldAccess.PawnFilter.PresetLoad.NoPresetsAvailable>Немає доступних шаблонів.</RimWorldAccess.PawnFilter.PresetLoad.NoPresetsAvailable>
+  <RimWorldAccess.PawnFilter.PresetLoad.NoPresetSelected>Шаблон не вибрано.</RimWorldAccess.PawnFilter.PresetLoad.NoPresetSelected>
+  <RimWorldAccess.PawnFilter.PresetLoad.Loaded>Завантажено {0}</RimWorldAccess.PawnFilter.PresetLoad.Loaded>
+  <RimWorldAccess.PawnFilter.PresetLoad.ErrorLoading>Помилка завантаження шаблону</RimWorldAccess.PawnFilter.PresetLoad.ErrorLoading>
+  <RimWorldAccess.PawnFilter.PresetLoad.ErrorLoadingDetail>Помилка завантаження шаблону: {0}</RimWorldAccess.PawnFilter.PresetLoad.ErrorLoadingDetail>
+  <RimWorldAccess.PawnFilter.PresetLoad.DeleteConfirm>Видалити {0}? Натисніть Enter для підтвердження, Escape для скасування.</RimWorldAccess.PawnFilter.PresetLoad.DeleteConfirm>
+  <RimWorldAccess.PawnFilter.PresetLoad.NoneRemaining>Шаблонів не залишилося.</RimWorldAccess.PawnFilter.PresetLoad.NoneRemaining>
+  <RimWorldAccess.PawnFilter.PresetLoad.Deleted>Видалено {0}</RimWorldAccess.PawnFilter.PresetLoad.Deleted>
+  <RimWorldAccess.PawnFilter.PresetLoad.ErrorDeleting>Помилка видалення шаблону: {0}</RimWorldAccess.PawnFilter.PresetLoad.ErrorDeleting>
+  <RimWorldAccess.PawnFilter.PresetLoad.DeleteCancelled>Видалення скасовано</RimWorldAccess.PawnFilter.PresetLoad.DeleteCancelled>
+
+  <!-- Note: the bare "Cancelled" word reuses RimWorldAccess.UI.Cancelled
+       from the UI module (already used by quantity/save dialogs). The
+       longer Delete-cancelled phrasings live in this file's
+       ScenarioLoad.DeleteCancelled and PawnFilter.PresetLoad.DeleteCancelled
+       since they share the "Delete cancelled" wording across both load
+       dialogs. -->
+
+  <!-- Add part announcement composition (ScenarioBuilderAddPartState).
+       LabelDescription joins a part's label and description with a colon.
+       PartWithPosition appends a position suffix in parentheses for
+       the navigation announcement.
+       {0} = label, {1} = description or position. -->
+  <RimWorldAccess.ScenarioBuilder.AddPart.LabelDescription>{0}: {1}</RimWorldAccess.ScenarioBuilder.AddPart.LabelDescription>
+  <RimWorldAccess.ScenarioBuilder.AddPart.WithPositionSuffix> ({0})</RimWorldAccess.ScenarioBuilder.AddPart.WithPositionSuffix>
+  <RimWorldAccess.ScenarioBuilder.Field.Faction>Фракція</RimWorldAccess.ScenarioBuilder.Field.Faction>
+  <RimWorldAccess.ScenarioBuilder.Field.PlanetLayer>Шар планети</RimWorldAccess.ScenarioBuilder.Field.PlanetLayer>
+  <RimWorldAccess.ScenarioBuilder.Field.LayerTag>Тег шару</RimWorldAccess.ScenarioBuilder.Field.LayerTag>
+  <RimWorldAccess.ScenarioBuilder.Field.LayerSettings>Налаштування шару</RimWorldAccess.ScenarioBuilder.Field.LayerSettings>
+  <RimWorldAccess.ScenarioBuilder.Field.ArrivalMethod>Спосіб прибуття</RimWorldAccess.ScenarioBuilder.Field.ArrivalMethod>
+  <RimWorldAccess.ScenarioBuilder.Field.Item>Предмет</RimWorldAccess.ScenarioBuilder.Field.Item>
+  <RimWorldAccess.ScenarioBuilder.Field.Material>Матеріал</RimWorldAccess.ScenarioBuilder.Field.Material>
+  <RimWorldAccess.ScenarioBuilder.Field.Quality>Якість</RimWorldAccess.ScenarioBuilder.Field.Quality>
+  <RimWorldAccess.ScenarioBuilder.Field.Count>Кількість</RimWorldAccess.ScenarioBuilder.Field.Count>
+  <RimWorldAccess.ScenarioBuilder.Field.Chance>Шанс</RimWorldAccess.ScenarioBuilder.Field.Chance>
+  <RimWorldAccess.ScenarioBuilder.Field.Condition>Умова</RimWorldAccess.ScenarioBuilder.Field.Condition>
+  <RimWorldAccess.ScenarioBuilder.Field.MinimumSeverity>Мінімальна тяжкість</RimWorldAccess.ScenarioBuilder.Field.MinimumSeverity>
+  <RimWorldAccess.ScenarioBuilder.Field.MaximumSeverity>Максимальна тяжкість</RimWorldAccess.ScenarioBuilder.Field.MaximumSeverity>
+  <RimWorldAccess.ScenarioBuilder.Field.Affects>Впливає на</RimWorldAccess.ScenarioBuilder.Field.Affects>
+  <RimWorldAccess.ScenarioBuilder.Field.AnimalType>Тип тварини</RimWorldAccess.ScenarioBuilder.Field.AnimalType>
+  <RimWorldAccess.ScenarioBuilder.Field.Trait>Риса</RimWorldAccess.ScenarioBuilder.Field.Trait>
+  <RimWorldAccess.ScenarioBuilder.Field.Incident>Подія</RimWorldAccess.ScenarioBuilder.Field.Incident>
+  <RimWorldAccess.ScenarioBuilder.Field.MinimumDays>Мінімум днів</RimWorldAccess.ScenarioBuilder.Field.MinimumDays>
+  <RimWorldAccess.ScenarioBuilder.Field.MaximumDays>Максимум днів</RimWorldAccess.ScenarioBuilder.Field.MaximumDays>
+  <RimWorldAccess.ScenarioBuilder.Field.Repeat>Повторення</RimWorldAccess.ScenarioBuilder.Field.Repeat>
+  <RimWorldAccess.ScenarioBuilder.Field.Research>Дослідження</RimWorldAccess.ScenarioBuilder.Field.Research>
+  <RimWorldAccess.ScenarioBuilder.Field.StartingPawns>Початкові персонажі</RimWorldAccess.ScenarioBuilder.Field.StartingPawns>
+  <RimWorldAccess.ScenarioBuilder.Field.PawnChoicePool>Пул вибору персонажів</RimWorldAccess.ScenarioBuilder.Field.PawnChoicePool>
+  <RimWorldAccess.ScenarioBuilder.Field.AllowBabies>Дозволити немовлят</RimWorldAccess.ScenarioBuilder.Field.AllowBabies>
+  <RimWorldAccess.ScenarioBuilder.Field.AllowChildren>Дозволити дітей</RimWorldAccess.ScenarioBuilder.Field.AllowChildren>
+  <RimWorldAccess.ScenarioBuilder.Field.AllowAdults>Дозволити дорослих</RimWorldAccess.ScenarioBuilder.Field.AllowAdults>
+  <RimWorldAccess.ScenarioBuilder.Field.MinimumAge>Мінімальний вік</RimWorldAccess.ScenarioBuilder.Field.MinimumAge>
+  <RimWorldAccess.ScenarioBuilder.Field.MaximumAge>Максимальний вік</RimWorldAccess.ScenarioBuilder.Field.MaximumAge>
+  <RimWorldAccess.ScenarioBuilder.Field.MechType>Тип механоїда</RimWorldAccess.ScenarioBuilder.Field.MechType>
+  <RimWorldAccess.ScenarioBuilder.Field.MechanitorOversightChance>Шанс нагляду механітора</RimWorldAccess.ScenarioBuilder.Field.MechanitorOversightChance>
+  <RimWorldAccess.ScenarioBuilder.Field.DialogText>Текст діалогу</RimWorldAccess.ScenarioBuilder.Field.DialogText>
+  <RimWorldAccess.ScenarioBuilder.Field.Stat>Характеристика</RimWorldAccess.ScenarioBuilder.Field.Stat>
+  <RimWorldAccess.ScenarioBuilder.Field.Factor>Множник</RimWorldAccess.ScenarioBuilder.Field.Factor>
+  <RimWorldAccess.ScenarioBuilder.Field.Building>Будівля</RimWorldAccess.ScenarioBuilder.Field.Building>
+  <RimWorldAccess.ScenarioBuilder.Field.Need>Потреба</RimWorldAccess.ScenarioBuilder.Field.Need>
+  <RimWorldAccess.ScenarioBuilder.Field.MinimumLevel>Мінімальний рівень</RimWorldAccess.ScenarioBuilder.Field.MinimumLevel>
+  <RimWorldAccess.ScenarioBuilder.Field.MaximumLevel>Максимальний рівень</RimWorldAccess.ScenarioBuilder.Field.MaximumLevel>
+  <RimWorldAccess.ScenarioBuilder.Field.DurationDays>Тривалість (дні)</RimWorldAccess.ScenarioBuilder.Field.DurationDays>
+  <RimWorldAccess.ScenarioBuilder.Field.ExplosionRadius>Радіус вибуху</RimWorldAccess.ScenarioBuilder.Field.ExplosionRadius>
+  <RimWorldAccess.ScenarioBuilder.Field.DamageType>Тип ушкодження</RimWorldAccess.ScenarioBuilder.Field.DamageType>
+  <RimWorldAccess.ScenarioBuilder.Field.Quest>Завдання</RimWorldAccess.ScenarioBuilder.Field.Quest>
+  <RimWorldAccess.ScenarioBuilder.Field.MapGenerator>Генератор мапи</RimWorldAccess.ScenarioBuilder.Field.MapGenerator>
+  <RimWorldAccess.ScenarioBuilder.Field.GenerationMethod>Спосіб генерації</RimWorldAccess.ScenarioBuilder.Field.GenerationMethod>
+  <RimWorldAccess.ScenarioBuilder.Field.ActivationDelayDays>Затримка активації (дні)</RimWorldAccess.ScenarioBuilder.Field.ActivationDelayDays>
+  <RimWorldAccess.ScenarioBuilder.Field.PawnKind>Тип персонажа</RimWorldAccess.ScenarioBuilder.Field.PawnKind>
+  <RimWorldAccess.ScenarioBuilder.Field.RequiredAtStart>Обов'язково на старті</RimWorldAccess.ScenarioBuilder.Field.RequiredAtStart>
+  <RimWorldAccess.ScenarioBuilder.Field.Xenotype>Ксенотип</RimWorldAccess.ScenarioBuilder.Field.Xenotype>
+  <RimWorldAccess.ScenarioBuilder.Field.MutantType>Тип мутанта</RimWorldAccess.ScenarioBuilder.Field.MutantType>
+  <RimWorldAccess.ScenarioBuilder.Field.TargetLayer>Цільовий шар</RimWorldAccess.ScenarioBuilder.Field.TargetLayer>
+  <RimWorldAccess.ScenarioBuilder.Field.ZoomMode>Режим масштабування</RimWorldAccess.ScenarioBuilder.Field.ZoomMode>
+  <RimWorldAccess.ScenarioBuilder.Field.FuelCost>Витрата пального</RimWorldAccess.ScenarioBuilder.Field.FuelCost>
+  <RimWorldAccess.ScenarioBuilder.Announce.AddNewItem>Додати новий елемент. Натисніть Enter, щоб додати.</RimWorldAccess.ScenarioBuilder.Announce.AddNewItem>
+  <RimWorldAccess.ScenarioBuilder.Announce.CheckboxField>{0}, прапорець, {1}. Натисніть Enter або Space для перемикання.</RimWorldAccess.ScenarioBuilder.Announce.CheckboxField>
+  <RimWorldAccess.ScenarioBuilder.Announce.EditableField>{0}: {1}. {2}. Натисніть Enter для редагування.</RimWorldAccess.ScenarioBuilder.Announce.EditableField>
+  <RimWorldAccess.ScenarioBuilder.Announce.FieldCountOne>1 поле</RimWorldAccess.ScenarioBuilder.Announce.FieldCountOne>
+  <RimWorldAccess.ScenarioBuilder.Announce.FieldCountMany>{0} полів</RimWorldAccess.ScenarioBuilder.Announce.FieldCountMany>
+  <RimWorldAccess.ScenarioBuilder.Announce.ItemCountOne>1 елемент</RimWorldAccess.ScenarioBuilder.Announce.ItemCountOne>
+  <RimWorldAccess.ScenarioBuilder.Announce.ItemCountMany>{0} елементів</RimWorldAccess.ScenarioBuilder.Announce.ItemCountMany>
+  <RimWorldAccess.ScenarioBuilder.Announce.LabelWithSummary>{0} ({1})</RimWorldAccess.ScenarioBuilder.Announce.LabelWithSummary>
+  <RimWorldAccess.ScenarioBuilder.Announce.ListItemExpandable>{0}, {1}, {2}. Натисніть Delete, щоб видалити.</RimWorldAccess.ScenarioBuilder.Announce.ListItemExpandable>
+  <RimWorldAccess.ScenarioBuilder.Announce.ListItemSimple>{0}. Натисніть Delete, щоб видалити.</RimWorldAccess.ScenarioBuilder.Announce.ListItemSimple>
+  <RimWorldAccess.ScenarioBuilder.Announce.PartExpandable>{0}, {1}, {2}</RimWorldAccess.ScenarioBuilder.Announce.PartExpandable>
+  <RimWorldAccess.ScenarioBuilder.Announce.PartReadOnly>{0}, лише для читання</RimWorldAccess.ScenarioBuilder.Announce.PartReadOnly>
+  <RimWorldAccess.ScenarioBuilder.Announce.ReadFullTextSuffix> Натисніть Insert, щоб прочитати повний текст.</RimWorldAccess.ScenarioBuilder.Announce.ReadFullTextSuffix>
+  <RimWorldAccess.ScenarioBuilder.Announce.TypeHintDropdown>спадне меню</RimWorldAccess.ScenarioBuilder.Announce.TypeHintDropdown>
+  <RimWorldAccess.ScenarioBuilder.Announce.TypeHintQuantity>кількість</RimWorldAccess.ScenarioBuilder.Announce.TypeHintQuantity>
+  <RimWorldAccess.ScenarioBuilder.Announce.TypeHintCheckbox>прапорець</RimWorldAccess.ScenarioBuilder.Announce.TypeHintCheckbox>
+  <RimWorldAccess.ScenarioBuilder.Announce.TypeHintText>текст</RimWorldAccess.ScenarioBuilder.Announce.TypeHintText>
+  <RimWorldAccess.ScenarioBuilder.AddNewItemLabel>Додати новий елемент</RimWorldAccess.ScenarioBuilder.AddNewItemLabel>
+  <RimWorldAccess.ScenarioBuilder.ConnectionTo>З'єднання з {0}</RimWorldAccess.ScenarioBuilder.ConnectionTo>
+  <RimWorldAccess.ScenarioBuilder.ConnectionToWithZoom>З'єднання з {0} ({1})</RimWorldAccess.ScenarioBuilder.ConnectionToWithZoom>
+  <RimWorldAccess.ScenarioBuilder.ListItemCount>{0}x {1}</RimWorldAccess.ScenarioBuilder.ListItemCount>
+  <RimWorldAccess.ScenarioBuilder.RequiredSuffix> (Обов'язково)</RimWorldAccess.ScenarioBuilder.RequiredSuffix>
+  <RimWorldAccess.ScenarioBuilder.PartLabelWithSummary>{0} - {1}</RimWorldAccess.ScenarioBuilder.PartLabelWithSummary>
+  <RimWorldAccess.ScenarioBuilder.ZoomIn>Збільшити</RimWorldAccess.ScenarioBuilder.ZoomIn>
+  <RimWorldAccess.ScenarioBuilder.ZoomOut>Зменшити</RimWorldAccess.ScenarioBuilder.ZoomOut>
+  <RimWorldAccess.ScenarioBuilder.Value.Empty>(порожньо)</RimWorldAccess.ScenarioBuilder.Value.Empty>
+  <RimWorldAccess.ScenarioBuilder.Value.RandomPet>Випадковий улюбленець</RimWorldAccess.ScenarioBuilder.Value.RandomPet>
+  <RimWorldAccess.ScenarioBuilder.ItemType.Item>предмет</RimWorldAccess.ScenarioBuilder.ItemType.Item>
+  <RimWorldAccess.ScenarioBuilder.ItemType.PawnKindEntry>запис типу персонажа</RimWorldAccess.ScenarioBuilder.ItemType.PawnKindEntry>
+  <RimWorldAccess.ScenarioBuilder.ItemType.XenotypeEntry>запис ксенотипу</RimWorldAccess.ScenarioBuilder.ItemType.XenotypeEntry>
+  <RimWorldAccess.ScenarioBuilder.ItemType.MutantEntry>запис мутанта</RimWorldAccess.ScenarioBuilder.ItemType.MutantEntry>
+  <RimWorldAccess.ScenarioBuilder.ItemType.Connection>з'єднання</RimWorldAccess.ScenarioBuilder.ItemType.Connection>
+
+
+  <!-- Mod-list detail nav + requirement status (src/MainMenu/ModListState.cs). -->
+  <RimWorldAccess.ModList.EndOfDetails>Кінець відомостей про мод</RimWorldAccess.ModList.EndOfDetails>
+  <RimWorldAccess.ModList.StartOfDetails>Початок відомостей про мод</RimWorldAccess.ModList.StartOfDetails>
+  <RimWorldAccess.ModList.ReqSatisfied>задоволено</RimWorldAccess.ModList.ReqSatisfied>
+  <RimWorldAccess.ModList.ReqNotSatisfied>не задоволено</RimWorldAccess.ModList.ReqNotSatisfied>
+  <!-- Difficulty reset preset tooltip fallback (src/MainMenu/DifficultySettingsHelper.cs). -->
+  <RimWorldAccess.CustomDifficulty.ResetTooltip>Скидає всі власні налаштування складності до цього шаблону</RimWorldAccess.CustomDifficulty.ResetTooltip>
+
+  <!-- =================================================================
+       Anomaly settings dialog (AnomalySettingsDialogState +
+       AnomalySettingsDialogPatch + StorytellerSelectionPatch).
+       Dialog_AnomalySettings opened from the Storyteller page.
+       {0} = the translated "AnomalySettings" label (vanilla key).
+       ================================================================= -->
+  <RimWorldAccess.AnomalySettings.Saved>{0} збережено.</RimWorldAccess.AnomalySettings.Saved>
+  <RimWorldAccess.AnomalySettings.Closed>{0} закрито.</RimWorldAccess.AnomalySettings.Closed>
+  <RimWorldAccess.AnomalySettings.LabelPressEnterToOpen>{0}. Натисніть Enter, щоб відкрити.</RimWorldAccess.AnomalySettings.LabelPressEnterToOpen>
+  <RimWorldAccess.AnomalySettings.CannotAcceptDifficultyNotLoaded>Неможливо прийняти: складність не завантажено.</RimWorldAccess.AnomalySettings.CannotAcceptDifficultyNotLoaded>
+
+  <!-- Storyteller page tab-cycle hint (StorytellerSelectionPatch line 61).
+       Two variants: with and without the Anomaly Settings tab stop. -->
+  <RimWorldAccess.Storyteller.TabHint>Tab та Shift+Tab для переходу між Оповідачем, Складністю та Режимом збереження.</RimWorldAccess.Storyteller.TabHint>
+  <RimWorldAccess.Storyteller.TabHintWithAnomaly>Tab та Shift+Tab для переходу між Оповідачем, Складністю, Режимом збереження та Налаштуваннями аномалій.</RimWorldAccess.Storyteller.TabHintWithAnomaly>
+  <!-- Hidden display-English sweep (returned/assigned strings localized). -->
+  <RimWorldAccess.PawnFilter.Any>Будь-який</RimWorldAccess.PawnFilter.Any>
+  <RimWorldAccess.PawnFilter.SkillLabelAny>{0}: Будь-який</RimWorldAccess.PawnFilter.SkillLabelAny>
+  <RimWorldAccess.PawnFilter.SkillLabelWithRequirements>{0}: {1}</RimWorldAccess.PawnFilter.SkillLabelWithRequirements>
+  <RimWorldAccess.PawnFilter.TotalPassionsWithValue>Усього зацікавленостей {0}: {1}</RimWorldAccess.PawnFilter.TotalPassionsWithValue>
+  <RimWorldAccess.PawnFilter.TotalSkillPointsWithValue>Усього очок навичок {0}: {1}</RimWorldAccess.PawnFilter.TotalSkillPointsWithValue>
+  <RimWorldAccess.PawnFilter.CountOnlyHighestAttack>Рахувати лише найвищу бойову навичку: {0}. Під час підрахунку загальних очок навичок враховувати лише вищу з навичок Стрільба чи Ближній бій, а не обидві</RimWorldAccess.PawnFilter.CountOnlyHighestAttack>
+  <RimWorldAccess.PawnFilter.CountOnlyPassionSkills>Рахувати лише навички із зацікавленістю: {0}. Під час підрахунку загальних очок навичок враховувати лише навички, що мають зацікавленість</RimWorldAccess.PawnFilter.CountOnlyPassionSkills>
+  <RimWorldAccess.PawnFilter.RequiredTraitsInPool>Обов'язкові риси з пулу: {0}</RimWorldAccess.PawnFilter.RequiredTraitsInPool>
+  <RimWorldAccess.PawnFilter.AgeWithValue>Вік {0}: {1}</RimWorldAccess.PawnFilter.AgeWithValue>
+  <RimWorldAccess.PawnFilter.HealthOnlyStartConditions>Лише початкові стани</RimWorldAccess.PawnFilter.HealthOnlyStartConditions>
+  <RimWorldAccess.PawnFilter.HealthNoPain>Без болю</RimWorldAccess.PawnFilter.HealthNoPain>
+  <RimWorldAccess.PawnFilter.HealthNoAddictions>Без залежностей</RimWorldAccess.PawnFilter.HealthNoAddictions>
+  <RimWorldAccess.PawnFilter.HealthNoConditions>Без станів здоров'я</RimWorldAccess.PawnFilter.HealthNoConditions>
+  <RimWorldAccess.PawnFilter.WorkNoDumbLabor>Без чорнової праці</RimWorldAccess.PawnFilter.WorkNoDumbLabor>
+  <RimWorldAccess.PawnFilter.RerollLimit>Ліміт повторних спроб: {0}</RimWorldAccess.PawnFilter.RerollLimit>
+  <RimWorldAccess.CustomDifficulty.ItemsLabelPlaystyles>стилів гри</RimWorldAccess.CustomDifficulty.ItemsLabelPlaystyles>
+  <RimWorldAccess.CustomDifficulty.ItemsLabelSettings>налаштувань</RimWorldAccess.CustomDifficulty.ItemsLabelSettings>
+  <RimWorldAccess.CustomDifficulty.AnomalyPlaystyleTooltip>Виберіть стиль гри аномалії</RimWorldAccess.CustomDifficulty.AnomalyPlaystyleTooltip>
+</LanguageData>

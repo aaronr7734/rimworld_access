@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    UI module strings (src/UI/). The UI module hosts shared dialog and
+    menu infrastructure used by the rest of the mod; many of its files
+    (TypeaheadSearchHelper, GuardHelper, MenuHelper, TreeNavigationHelper,
+    TwoLevelMenuHelper, NumericStepperHelper) were already wired through
+    Common.xml in earlier phases. This file covers the remaining
+    state/patch/helper files that still emit module-specific phrasing:
+
+      - WindowlessSaveMenuState.cs       (save/load file browser)
+      - WindowlessFloatMenuState.cs      (keyboard-navigable float menu)
+      - WindowlessPauseMenuState.cs      (in-game pause menu)
+      - WindowlessOptionsMenuState.cs    (options panel + setting hints)
+      - WindowlessDialogState.cs         (generic dialog frame)
+      - WindowlessConfirmationState.cs   (yes/no confirmation)
+      - QuantityMenuState.cs             (numeric quantity picker)
+      - GiveNameDialogPatch.cs           (Dialog_GiveName randomize/accept)
+      - DialogElementExtractor.cs        (Dialog_Rename / Dialog_GiveName /
+                                           Dialog_NamePawn OK feedback)
+      - TransferableQuantityHelper.cs    (caravan/trade quantity setters)
+      - MessageBoxAccessibilityPatch.cs  (Dialog_MessageBox Cancel)
+      - ExtraMenusState.cs               (extra-menus picker)
+      - Dialog_NameAllowedArea.cs        (zone-area name dialog)
+
+    Phrasing decisions:
+      - "{Label}. {Position}" appears across pause/options/extra menus.
+        It uses a shared key (UI.Item.WithPosition).
+      - The "{Label}. {Position}. No matches for '{X}'" pattern (typeahead
+        no-match in pause/extra menus) is also shared.
+      - "OK", "Accept", "Cancel" button labels delegate to vanilla
+        translation keys via .Translate() at the call site.
+      - The "RimWorld Access" settings sub-category in the in-game options
+        panel reuses the existing RimWorldAccess.Core.Settings.* keys
+        (canonical wording lives in RimWorldAccess_Core.xml).
+
+    Data such as save file names, faction names, settings category labels
+    from the game (Prefs categories), modder-supplied SettingsCategory()
+    text, mass values, item labels, and dialog button text extracted via
+    reflection from RimWorld dialogs is NOT translated here.
+  -->
+
+  <!-- =================================================================
+       Composition keys shared across multiple state classes.
+       Item.WithPosition: {0} = label/option text, {1} = position string.
+       Item.WithPositionNoMatches: {0} = label, {1} = position,
+                                    {2} = current search buffer (failed).
+       ================================================================= -->
+  <RimWorldAccess.UI.Item.WithPosition>{0}. {1}</RimWorldAccess.UI.Item.WithPosition>
+  <RimWorldAccess.UI.Item.WithPositionNoMatches>{0}. {1}. Немає збігів для «{2}»</RimWorldAccess.UI.Item.WithPositionNoMatches>
+
+  <!-- =================================================================
+       Save / load menu (WindowlessSaveMenuState +
+                         WindowlessDeleteConfirmationState).
+       Save mode introduces a virtual "Create New Save" entry at index 0,
+       so position composition has its own keys. Load mode shares
+       Item.WithPosition for the basic line.
+       ================================================================= -->
+  <RimWorldAccess.UI.Save.NoFiles>Немає доступних файлів збереження</RimWorldAccess.UI.Save.NoFiles>
+  <RimWorldAccess.UI.Save.InvalidSelection>Недійсний вибір збереження</RimWorldAccess.UI.Save.InvalidSelection>
+  <RimWorldAccess.UI.Save.NeedName>Потрібна назва для файлу збереження</RimWorldAccess.UI.Save.NeedName>
+  <RimWorldAccess.UI.Save.SavedAs>Збережено як {0}</RimWorldAccess.UI.Save.SavedAs>
+  <RimWorldAccess.UI.Save.Loading>Завантаження: {0}</RimWorldAccess.UI.Save.Loading>
+  <RimWorldAccess.UI.Save.CannotDeleteCreateNew>Неможливо видалити пункт «Створити нове збереження»</RimWorldAccess.UI.Save.CannotDeleteCreateNew>
+  <!-- {0} = file name (stripped of extension). -->
+  <RimWorldAccess.UI.Save.DeleteConfirmPrompt>Видалити {0}? Натисніть Enter для підтвердження, Escape для скасування</RimWorldAccess.UI.Save.DeleteConfirmPrompt>
+  <RimWorldAccess.UI.Save.Deleted>Видалено: {0}</RimWorldAccess.UI.Save.Deleted>
+  <RimWorldAccess.UI.Save.DeleteCancelled>Видалення скасовано</RimWorldAccess.UI.Save.DeleteCancelled>
+  <!-- Per-row composition. CreateNew: {0} = current typedSaveName,
+       {1} = position. Overwrite/Load: {0} = file name, {1} = formatted
+       date-time, {2} = position. -->
+  <RimWorldAccess.UI.Save.CreateNewRow>Створити нове збереження: {0}. {1}</RimWorldAccess.UI.Save.CreateNewRow>
+  <RimWorldAccess.UI.Save.OverwriteRow>Перезаписати: {0} - {1}. {2}</RimWorldAccess.UI.Save.OverwriteRow>
+  <RimWorldAccess.UI.Save.LoadRow>Завантажити: {0} - {1}. {2}</RimWorldAccess.UI.Save.LoadRow>
+
+  <!-- =================================================================
+       Float menu (WindowlessFloatMenuState). The selection announcement
+       differentiates between a queued action (Shift held while clicking
+       a colonist order) and a normal one. {0} = option label.
+       FloatMenu.OptionTooltip: {0} = option text, {1} = tooltip text,
+                                 {2} = position phrase.
+       (The Item.WithPosition shared key handles the no-tooltip case.)
+       ================================================================= -->
+  <RimWorldAccess.UI.FloatMenu.SelectedQueued>{0}, {1}</RimWorldAccess.UI.FloatMenu.SelectedQueued>
+  <RimWorldAccess.UI.FloatMenu.Selected>Вибрано: {0}</RimWorldAccess.UI.FloatMenu.Selected>
+  <!-- Suffix appended to a disabled option label. -->
+  <RimWorldAccess.UI.FloatMenu.UnavailableSuffix> (недоступно)</RimWorldAccess.UI.FloatMenu.UnavailableSuffix>
+  <!-- Spoken when activating a disabled float-menu option. {0} = option label. -->
+  <RimWorldAccess.UI.FloatMenu.LabelUnavailable>{0} - недоступно</RimWorldAccess.UI.FloatMenu.LabelUnavailable>
+  <!-- Generic confirmation prompt (WindowlessConfirmationState). {0} = the
+       caller-supplied message; the instruction tail is owned here. -->
+  <RimWorldAccess.UI.Confirm.MessageWithInstructions>{0} - Натисніть Enter для підтвердження, Escape для скасування</RimWorldAccess.UI.Confirm.MessageWithInstructions>
+  <RimWorldAccess.UI.FloatMenu.OptionTooltip>{0}. {1} {2}</RimWorldAccess.UI.FloatMenu.OptionTooltip>
+  <!-- Tooltip variant inside an active typeahead search; the search
+       buffer suffix is appended by typeahead.BuildSearchContextSuffix(),
+       so this key does not include the query. -->
+  <RimWorldAccess.UI.FloatMenu.OptionTooltipSearch>{0}. {1}</RimWorldAccess.UI.FloatMenu.OptionTooltipSearch>
+
+  <!-- =================================================================
+       Quantity menu (QuantityMenuState).
+       OpenInstructions: {0} = item label.
+       Selected: {0} = quantity, {1} = item label.
+       Invalid: {0} = current numeric buffer.
+       Maximum / Minimum spoken when increment cap is hit. -->
+  <RimWorldAccess.UI.Quantity.OpenInstructions>Меню кількості для {0}. Використовуйте Вгору/Вниз для зміни, введіть число або натисніть Enter для підтвердження.</RimWorldAccess.UI.Quantity.OpenInstructions>
+  <RimWorldAccess.UI.Quantity.Selected>Вибрано: {0} {1}</RimWorldAccess.UI.Quantity.Selected>
+  <RimWorldAccess.UI.Quantity.Cancelled>Вибір кількості скасовано</RimWorldAccess.UI.Quantity.Cancelled>
+  <RimWorldAccess.UI.Quantity.Maximum>Максимальна кількість</RimWorldAccess.UI.Quantity.Maximum>
+  <RimWorldAccess.UI.Quantity.Minimum>Мінімальна кількість</RimWorldAccess.UI.Quantity.Minimum>
+  <RimWorldAccess.UI.Quantity.InvalidNumber>Недійсне число: {0}</RimWorldAccess.UI.Quantity.InvalidNumber>
+
+  <!-- =================================================================
+       Pause menu (WindowlessPauseMenuState).
+       Quit prompts share a "Press Enter to confirm, Escape to cancel"
+       suffix. Each prompt is a whole-phrase key so translators can vary
+       wording for politeness register (e.g. "Quit to desktop?" might be
+       expressed differently in some locales). -->
+  <RimWorldAccess.UI.Pause.QuitMainMenuPrompt>Підтвердити вихід до головного меню? Натисніть Enter для підтвердження, Escape для скасування</RimWorldAccess.UI.Pause.QuitMainMenuPrompt>
+  <RimWorldAccess.UI.Pause.QuitDesktopPrompt>Підтвердити вихід на робочий стіл? Натисніть Enter для підтвердження, Escape для скасування</RimWorldAccess.UI.Pause.QuitDesktopPrompt>
+  <RimWorldAccess.UI.Pause.ResumedGame>Гру відновлено</RimWorldAccess.UI.Pause.ResumedGame>
+
+  <!-- =================================================================
+       Options menu (WindowlessOptionsMenuState).
+       The "Press Enter to ..." button hints share a small key set;
+       each is one full phrase so translators can vary verb choice. -->
+  <RimWorldAccess.UI.Options.PressEnterToReset>Натисніть Enter, щоб скинути всі налаштування</RimWorldAccess.UI.Options.PressEnterToReset>
+  <RimWorldAccess.UI.Options.PressEnterToModify>Натисніть Enter, щоб змінити</RimWorldAccess.UI.Options.PressEnterToModify>
+  <RimWorldAccess.UI.Options.PressEnterToOpen>Натисніть Enter, щоб відкрити</RimWorldAccess.UI.Options.PressEnterToOpen>
+  <RimWorldAccess.UI.Options.OpeningResetDialog>Відкривається діалог підтвердження скидання</RimWorldAccess.UI.Options.OpeningResetDialog>
+  <RimWorldAccess.UI.Options.CannotChangeStoryteller>Зараз неможливо змінити оповідача</RimWorldAccess.UI.Options.CannotChangeStoryteller>
+  <!-- {0} = mod's SettingsCategory() string. -->
+  <RimWorldAccess.UI.Options.OpeningModSettings>Відкриваються налаштування для {0}</RimWorldAccess.UI.Options.OpeningModSettings>
+
+  <!-- =================================================================
+       Generic dialog frame (WindowlessDialogState).
+       ButtonExecuted: {0} = button label.
+       ButtonCannotActivate: {0} = disabled reason text.
+       Disabled suffix: ButtonAnnouncement: {0} = button label,
+                          DisabledSuffix: {0} = disabled reason. The two
+                        keys compose because the suffix is conditional. -->
+  <RimWorldAccess.UI.Dialog.ButtonExecuted>Активовано: {0}</RimWorldAccess.UI.Dialog.ButtonExecuted>
+  <RimWorldAccess.UI.Dialog.ButtonCannotActivate>Неможливо активувати: {0}</RimWorldAccess.UI.Dialog.ButtonCannotActivate>
+  <RimWorldAccess.UI.Dialog.ButtonAnnouncement>{0}, кнопка</RimWorldAccess.UI.Dialog.ButtonAnnouncement>
+  <RimWorldAccess.UI.Dialog.ButtonDisabledSuffix>{0} (Деактивовано: {1})</RimWorldAccess.UI.Dialog.ButtonDisabledSuffix>
+  <!-- TextField announcement: {0} = label, {1} = current value or
+       Empty marker. The Empty placeholder is its own key so non-Latin
+       languages can choose a punctuation-free word. -->
+  <RimWorldAccess.UI.Dialog.TextField>Текстове поле: {0}. Поточне значення: {1}. Натисніть Enter, щоб редагувати.</RimWorldAccess.UI.Dialog.TextField>
+  <RimWorldAccess.UI.Dialog.TextFieldEmpty>Порожньо</RimWorldAccess.UI.Dialog.TextFieldEmpty>
+
+  <!-- =================================================================
+       Name dialogs (DialogElementExtractor + GiveNameDialogPatch).
+       Both surfaces (Dialog_GiveName Patch + DialogElementExtractor's
+       reflection-based OK handlers) emit the same announcement set, so
+       the keys live in one place.
+       ================================================================= -->
+  <RimWorldAccess.UI.Name.Invalid>Недійсна назва</RimWorldAccess.UI.Name.Invalid>
+  <RimWorldAccess.UI.Name.InvalidSecond>Недійсна друга назва</RimWorldAccess.UI.Name.InvalidSecond>
+  <!-- {0} = randomized name. -->
+  <RimWorldAccess.UI.Name.Randomized>Випадково обрано: {0}</RimWorldAccess.UI.Name.Randomized>
+  <RimWorldAccess.UI.Name.RandomizedFirst>Випадково обране ім'я: {0}</RimWorldAccess.UI.Name.RandomizedFirst>
+  <RimWorldAccess.UI.Name.RandomizedSecond>Випадково обрана друга назва: {0}</RimWorldAccess.UI.Name.RandomizedSecond>
+  <!-- Submit-success announcements. {0} = first name, {1} = second name. -->
+  <RimWorldAccess.UI.Name.Accepted>Назву прийнято: {0}</RimWorldAccess.UI.Name.Accepted>
+  <RimWorldAccess.UI.Name.AcceptedBoth>Назви прийнято: {0}, {1}</RimWorldAccess.UI.Name.AcceptedBoth>
+  <RimWorldAccess.UI.Name.Renamed>Перейменовано на {0}</RimWorldAccess.UI.Name.Renamed>
+  <RimWorldAccess.UI.Name.NamedSingle>Названо: {0}</RimWorldAccess.UI.Name.NamedSingle>
+  <RimWorldAccess.UI.Name.NamedBoth>Названо: {0} {1}</RimWorldAccess.UI.Name.NamedBoth>
+
+  <!-- Dialog_GiveName keyboard announcements (GiveNameDialogPatch).
+       DialogIntro {0} = first prompt; the text-field keys take {0} = prompt,
+       {1} = current value. -->
+  <RimWorldAccess.UI.GiveName.DialogIntro>Діалог назви. {0}</RimWorldAccess.UI.GiveName.DialogIntro>
+  <RimWorldAccess.UI.GiveName.NavHint>Використовуйте Tab для переходу між полями. Натисніть Enter для підтвердження.</RimWorldAccess.UI.GiveName.NavHint>
+  <RimWorldAccess.UI.GiveName.TextField>Текстове поле: {0}. Поточне значення: {1}</RimWorldAccess.UI.GiveName.TextField>
+  <RimWorldAccess.UI.GiveName.FirstTextField>Перше текстове поле: {0}. Поточне значення: {1}</RimWorldAccess.UI.GiveName.FirstTextField>
+  <RimWorldAccess.UI.GiveName.SecondTextField>Друге текстове поле: {0}. Поточне значення: {1}</RimWorldAccess.UI.GiveName.SecondTextField>
+  <RimWorldAccess.UI.GiveName.RandomizeButton>Кнопка «Випадково»</RimWorldAccess.UI.GiveName.RandomizeButton>
+  <RimWorldAccess.UI.GiveName.RandomizeFirstButton>Кнопка випадкового імені</RimWorldAccess.UI.GiveName.RandomizeFirstButton>
+  <RimWorldAccess.UI.GiveName.RandomizeSecondButton>Кнопка випадкової другої назви</RimWorldAccess.UI.GiveName.RandomizeSecondButton>
+  <RimWorldAccess.UI.GiveName.OkButton>Кнопка ОК</RimWorldAccess.UI.GiveName.OkButton>
+
+  <!-- Dialog_NameAllowedArea opening prompt. -->
+  <RimWorldAccess.UI.NameArea.OpenPrompt>Назвіть цю дозволену область. Введіть назву і натисніть ОК або Enter, щоб продовжити.</RimWorldAccess.UI.NameArea.OpenPrompt>
+
+  <!-- =================================================================
+       TransferableQuantityHelper (caravan/trade quantity setters).
+       AdjustTo and SetToZero share a "{count} {item}" phrasing. The
+       SetToMax variant adds a localized "maximum" suffix and an
+       optional mass tag. {0} = count, {1} = item label.
+       MaxLine: {0} = count, {1} = item, {2} = mass suffix or empty.
+       MassSuffix: {0} = total mass formatted to one decimal. -->
+  <RimWorldAccess.UI.Transferable.QuantitySpoken>{0} {1}</RimWorldAccess.UI.Transferable.QuantitySpoken>
+  <RimWorldAccess.UI.Transferable.MaxLine>{0} {1}, максимум{2}</RimWorldAccess.UI.Transferable.MaxLine>
+  <RimWorldAccess.UI.Transferable.MassSuffix>, {0} кг</RimWorldAccess.UI.Transferable.MassSuffix>
+
+  <!-- =================================================================
+       MessageBox patch + ExtraMenusState + WindowlessConfirmationState.
+       Cancelled is shared (used by all three). -->
+  <RimWorldAccess.UI.Cancelled>Скасовано</RimWorldAccess.UI.Cancelled>
+  <RimWorldAccess.UI.Extra.None>Немає доступних додаткових меню</RimWorldAccess.UI.Extra.None>
+
+  <!-- MessageBox button prompts. {0} = accept button label, {1} = cancel button label. -->
+  <RimWorldAccess.UI.MessageBox.TwoButtons>Натисніть Enter для {0}, Escape для {1}.</RimWorldAccess.UI.MessageBox.TwoButtons>
+  <RimWorldAccess.UI.MessageBox.OneButton>Натисніть Enter для {0}.</RimWorldAccess.UI.MessageBox.OneButton>
+
+  <!-- =================================================================
+       Slider dialog (SliderDialogState — Dialog_Slider keyboard nav).
+       OpenPrompt: {0} = current value text (from textGetter), {1} = min, {2} = max.
+       Confirmed: {0} = confirmed integer value.
+       Cleared: spoken when digit buffer is emptied via Backspace. -->
+  <RimWorldAccess.UI.Slider.OpenPrompt>{0}. Діапазон від {1} до {2}. Вгору/Вниз для дрібної зміни, Вліво/Вправо для кроку в десять відсотків, введіть цифри і Enter, щоб встановити, Enter для підтвердження, Escape для скасування.</RimWorldAccess.UI.Slider.OpenPrompt>
+  <RimWorldAccess.UI.Slider.Confirmed>Підтверджено: {0}</RimWorldAccess.UI.Slider.Confirmed>
+  <RimWorldAccess.UI.Slider.Cleared>Очищено</RimWorldAccess.UI.Slider.Cleared>
+
+  <!-- Save menu: no existing files to overwrite (save mode, Down from text field). -->
+  <RimWorldAccess.UI.Save.NoExistingSaves>Немає наявних збережень для перезапису.</RimWorldAccess.UI.Save.NoExistingSaves>
+
+  <!-- TwoLevelMenuHelper fallback messages, used when a caller does not supply
+       its own context-specific text. -->
+  <RimWorldAccess.TwoLevel.OpenFirstDefault>Натисніть Enter, щоб спершу відкрити цей пункт</RimWorldAccess.TwoLevel.OpenFirstDefault>
+  <RimWorldAccess.TwoLevel.NavigateDownDefault>Спершу перейдіть вниз до кнопок</RimWorldAccess.TwoLevel.NavigateDownDefault>
+  <RimWorldAccess.TwoLevel.NoButtonsDefault>Немає доступних кнопок</RimWorldAccess.TwoLevel.NoButtonsDefault>
+
+
+  <!-- Generic dialog nav instructions + give-name field labels (src/UI/WindowlessDialogState.cs, DialogElementExtractor.cs). -->
+  <RimWorldAccess.UI.Dialog.NavInstructions>{0} елементів. Використовуйте клавіші зі стрілками для навігації, Enter для активації, Escape для скасування.</RimWorldAccess.UI.Dialog.NavInstructions>
+  <RimWorldAccess.UI.GiveName.SettlementNameLabel>Назва поселення</RimWorldAccess.UI.GiveName.SettlementNameLabel>
+  <RimWorldAccess.UI.GiveName.SecondNameLabel>Друга назва</RimWorldAccess.UI.GiveName.SecondNameLabel>
+  <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
+  <RimWorldAccess.UI.Dialog.FieldCannotBeEdited>{0} {1}. Не можна редагувати.</RimWorldAccess.UI.Dialog.FieldCannotBeEdited>
+  <RimWorldAccess.UI.SaveMenu.NoSaveFiles>Немає доступних файлів збереження</RimWorldAccess.UI.SaveMenu.NoSaveFiles>
+</LanguageData>

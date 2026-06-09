@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Quests module strings (src/Quests/). Five files contribute:
+      - QuestMenuState.cs           (windowless quest browser)
+      - NotificationMenuState.cs    (messages/letters/alerts viewer)
+      - QuestRewardHelper.cs        (reward extraction + reward prefs)
+      - NotificationAccessibilityPatch.cs  (live message/letter/alert
+                                            announcements as they arrive)
+      - QuestMenuPatch.cs           (no user strings)
+
+    The quest list and detail views, the reward-choice float menu, the
+    reward-preferences panel, and the notification menu's two-level
+    navigation all live here. Many phrasings are split into One/Many
+    pairs (1 quest vs N quests, 1 star vs N stars) so plural agreement
+    survives translation.
+
+    Shared phrases delegated elsewhere:
+      - Position / Edge / Search / InfoCard.Unavailable -> Common.xml
+      - "Jumped to {target}"                            -> Common.xml
+      - "Accept", "Delete", "Close", "Activate", "Open",
+        "Difficulty", "JumpToLocation", "ViewRelatedQuest",
+        "QuestExpiresIn", "AvailableQuests"/"ActiveQuests"/
+        "HistoricalQuests", "Goodwill"                  -> vanilla keys
+
+    Data such as quest names, faction names, reward item labels,
+    target locations, ticks-to-period strings, sign-formatted
+    numbers, and royal favor labels (faction.def.royalFavorLabel)
+    comes from the game and is NOT translated in this file.
+  -->
+
+  <!-- =================================================================
+       Live notification announcements (NotificationAccessibilityPatch).
+       Spoken when a Message, Letter, or Alert arrives in-game so screen
+       reader users hear the event without opening the notification menu.
+       {0} = the cleaned text/label of the notification.
+       ================================================================= -->
+  <RimWorldAccess.Notification.LiveMessage>Повідомлення: {0}</RimWorldAccess.Notification.LiveMessage>
+  <RimWorldAccess.Notification.LiveLetter>Лист: {0}</RimWorldAccess.Notification.LiveLetter>
+  <RimWorldAccess.Notification.LiveAlert>Сповіщення: {0}</RimWorldAccess.Notification.LiveAlert>
+
+  <!-- =================================================================
+       Quest menu lifecycle (QuestMenuState.Open / Close / OpenAndSelect).
+       OpenInstructions is the one-time orientation message spoken when
+       the menu opens; it is suffixed with the first quest's announcement
+       or the empty-tab message. {0} = first quest announcement, or tab
+       summary, depending on context.
+       ================================================================= -->
+  <RimWorldAccess.Quests.Menu.OpenInstructions>Меню завдань. Alt+A — прийняти, Alt+D — відхилити. Enter — перегляд деталей завдання за стрілками.</RimWorldAccess.Quests.Menu.OpenInstructions>
+  <RimWorldAccess.Quests.Menu.Title>Меню завдань</RimWorldAccess.Quests.Menu.Title>
+  <RimWorldAccess.Quests.Menu.Closed>Меню завдань закрито</RimWorldAccess.Quests.Menu.Closed>
+  <RimWorldAccess.Quests.Menu.QuestNoLongerAvailable>Завдання більше не доступне</RimWorldAccess.Quests.Menu.QuestNoLongerAvailable>
+  <RimWorldAccess.Quests.Menu.NoQuestsInTab>У цій вкладці немає завдань</RimWorldAccess.Quests.Menu.NoQuestsInTab>
+  <RimWorldAccess.Quests.Menu.NoQuestSelected>Завдання не вибрано</RimWorldAccess.Quests.Menu.NoQuestSelected>
+  <RimWorldAccess.Quests.Menu.FailedToActivateButton>Не вдалося активувати кнопку</RimWorldAccess.Quests.Menu.FailedToActivateButton>
+
+  <!-- =================================================================
+       Quest tabs. Available/Active/Historical (vanilla provides the
+       short labels; we suffix "Quests" because the screen-reader
+       announcement uses the tab in a sentence).
+       Tab.WithCountOne / Many / NoQuests build the per-tab summary
+       sentence; {0} = tab label, {1} = count (Many only).
+       ================================================================= -->
+  <RimWorldAccess.Quests.Tab.Available>Доступні завдання</RimWorldAccess.Quests.Tab.Available>
+  <RimWorldAccess.Quests.Tab.Active>Активні завдання</RimWorldAccess.Quests.Tab.Active>
+  <RimWorldAccess.Quests.Tab.Historical>Минулі завдання</RimWorldAccess.Quests.Tab.Historical>
+  <RimWorldAccess.Quests.Tab.Generic>Завдання</RimWorldAccess.Quests.Tab.Generic>
+  <RimWorldAccess.Quests.Tab.WithCountOne>Вкладка {0} — 1 завдання</RimWorldAccess.Quests.Tab.WithCountOne>
+  <RimWorldAccess.Quests.Tab.WithCountMany>Вкладка {0} — {1} завдань</RimWorldAccess.Quests.Tab.WithCountMany>
+  <RimWorldAccess.Quests.Tab.NoQuests>Вкладка {0} — немає завдань</RimWorldAccess.Quests.Tab.NoQuests>
+
+  <!-- =================================================================
+       Status words, used both in the list-view name suffix
+       ("{name}, Dismissed") and in the detail-view header
+       ("Quest: {name} (Active)"). Available/Active spell out the
+       NotYetAccepted/Ongoing states for the screen reader. -->
+  <RimWorldAccess.Quests.Status.Available>Доступне</RimWorldAccess.Quests.Status.Available>
+  <RimWorldAccess.Quests.Status.Active>Активне</RimWorldAccess.Quests.Status.Active>
+  <RimWorldAccess.Quests.Status.Dismissed>Відхилене</RimWorldAccess.Quests.Status.Dismissed>
+  <RimWorldAccess.Quests.Status.Completed>Завершене</RimWorldAccess.Quests.Status.Completed>
+  <RimWorldAccess.Quests.Status.Failed>Провалене</RimWorldAccess.Quests.Status.Failed>
+  <RimWorldAccess.Quests.Status.Expired>Прострочене</RimWorldAccess.Quests.Status.Expired>
+
+  <!-- =================================================================
+       List-view announcement composition (BuildQuestAnnouncement).
+       NameWithStatus appends a status word to the quest name; the bare
+       Name case has no suffix and is spoken directly.
+       StarsOne/Many is the difficulty rating; CharitySuffix is appended
+       when quest.charity is true.
+       ExpiresIn / AcceptedAgo / AgoOnly are the short time-info phrases
+       (no colon, terse - distinct from the detail-view variants below).
+       Rewards: {0} = compact reward summary string. -->
+  <RimWorldAccess.Quests.List.NameWithStatus>{0}, {1}</RimWorldAccess.Quests.List.NameWithStatus>
+  <RimWorldAccess.Quests.List.StarsOne>1 зірка</RimWorldAccess.Quests.List.StarsOne>
+  <RimWorldAccess.Quests.List.StarsMany>{0} зірок</RimWorldAccess.Quests.List.StarsMany>
+  <RimWorldAccess.Quests.List.CharitySuffix>, благодійне завдання</RimWorldAccess.Quests.List.CharitySuffix>
+  <RimWorldAccess.Quests.List.ExpiresIn>Спливає через {0}</RimWorldAccess.Quests.List.ExpiresIn>
+  <RimWorldAccess.Quests.List.AcceptedAgo>Прийнято {0} тому</RimWorldAccess.Quests.List.AcceptedAgo>
+  <RimWorldAccess.Quests.List.AgoOnly>{0} тому</RimWorldAccess.Quests.List.AgoOnly>
+  <RimWorldAccess.Quests.List.RewardsSummary>Винагороди: {0}</RimWorldAccess.Quests.List.RewardsSummary>
+
+  <!-- =================================================================
+       Detail-view content lines (BuildDetailContentLines). These take
+       the same data as the list-view phrases but use a longer "label:"
+       layout because each line stands on its own.
+       DifficultyOne/Many: {0} = star count (Many only); CharitySuffix
+       is appended in the same fashion as the list view.
+       ExpiresIn / AcceptedAgo: {0} = ToStringTicksToPeriod output.
+       Status: {0} = outcome status word (Completed/Failed/Expired).
+       Finished: {0} = ticks-since-cleanup formatted period. -->
+  <RimWorldAccess.Quests.Detail.HeaderStatus>Завдання: {0} ({1})</RimWorldAccess.Quests.Detail.HeaderStatus>
+  <RimWorldAccess.Quests.Detail.DifficultyOne>Складність: 1 зірка</RimWorldAccess.Quests.Detail.DifficultyOne>
+  <RimWorldAccess.Quests.Detail.DifficultyMany>Складність: {0} зірок</RimWorldAccess.Quests.Detail.DifficultyMany>
+  <RimWorldAccess.Quests.Detail.CharitySuffix> (Благодійне завдання)</RimWorldAccess.Quests.Detail.CharitySuffix>
+  <RimWorldAccess.Quests.Detail.ExpiresIn>Спливає через: {0}</RimWorldAccess.Quests.Detail.ExpiresIn>
+  <RimWorldAccess.Quests.Detail.AcceptedAgo>Прийнято: {0} тому</RimWorldAccess.Quests.Detail.AcceptedAgo>
+  <RimWorldAccess.Quests.Detail.Status>Стан: {0}</RimWorldAccess.Quests.Detail.Status>
+  <RimWorldAccess.Quests.Detail.Finished>Завершено: {0} тому</RimWorldAccess.Quests.Detail.Finished>
+  <RimWorldAccess.Quests.Detail.StartOfDetails>Початок деталей завдання</RimWorldAccess.Quests.Detail.StartOfDetails>
+  <RimWorldAccess.Quests.Detail.EndOfDetails>Кінець деталей завдання</RimWorldAccess.Quests.Detail.EndOfDetails>
+  <RimWorldAccess.Quests.Detail.OpenFirst>Натисніть Enter, щоб спершу відкрити деталі завдання</RimWorldAccess.Quests.Detail.OpenFirst>
+  <!-- "Choose item to inspect" lives in Common.xml as
+       RimWorldAccess.InfoCard.ChooseItemToInspect. -->
+
+
+  <!-- =================================================================
+       Detail-view button labels (PopulateQuestButtons).
+       AcceptChoice: {0} = 1-based choice index, {1} = reward description.
+       AcceptWithRewards: {0} = reward description.
+       JumpToTarget: {0} = target label (CameraJumper.CanJump returned a
+       valid label); JumpToLocation has no label and falls back. -->
+  <RimWorldAccess.Quests.Button.Accept>Прийняти</RimWorldAccess.Quests.Button.Accept>
+  <RimWorldAccess.Quests.Button.AcceptWithRewards>Прийняти: {0}</RimWorldAccess.Quests.Button.AcceptWithRewards>
+  <RimWorldAccess.Quests.Button.AcceptChoice>Прийняти варіант {0}: {1}</RimWorldAccess.Quests.Button.AcceptChoice>
+  <RimWorldAccess.Quests.Button.Dismiss>Відхилити</RimWorldAccess.Quests.Button.Dismiss>
+  <RimWorldAccess.Quests.Button.Resume>Відновити</RimWorldAccess.Quests.Button.Resume>
+  <RimWorldAccess.Quests.Button.Delete>Видалити</RimWorldAccess.Quests.Button.Delete>
+  <RimWorldAccess.Quests.Button.JumpToLocation>Перейти до місця</RimWorldAccess.Quests.Button.JumpToLocation>
+  <RimWorldAccess.Quests.Button.JumpToTarget>Перейти до: {0}</RimWorldAccess.Quests.Button.JumpToTarget>
+
+  <!-- =================================================================
+       Action result announcements after the user accepts/dismisses/
+       deletes a quest. {0} = quest name (StripTags applied).
+       AcceptedWithRewards: {0} = reward description string.
+       AcceptedWithPawn: {0} = colonist's LabelShort.
+       CannotAcceptReason: {0} = QuestUtility.CanAcceptQuest's report.
+       NotAvailableToAccept: spoken when the quest moved out of
+       NotYetAccepted between the user's keypress and our handler. -->
+  <RimWorldAccess.Quests.Action.CannotAccept>Неможливо прийняти завдання</RimWorldAccess.Quests.Action.CannotAccept>
+  <RimWorldAccess.Quests.Action.NotAvailableToAccept>Завдання недоступне для прийняття</RimWorldAccess.Quests.Action.NotAvailableToAccept>
+  <RimWorldAccess.Quests.Action.CannotAcceptReason>Неможливо прийняти: {0}</RimWorldAccess.Quests.Action.CannotAcceptReason>
+  <RimWorldAccess.Quests.Action.AcceptedQuest>Завдання прийнято: {0}</RimWorldAccess.Quests.Action.AcceptedQuest>
+  <RimWorldAccess.Quests.Action.AcceptedWithRewards>Завдання прийнято з: {0}</RimWorldAccess.Quests.Action.AcceptedWithRewards>
+  <RimWorldAccess.Quests.Action.AcceptedWithPawn>Завдання прийнято з {0}</RimWorldAccess.Quests.Action.AcceptedWithPawn>
+  <RimWorldAccess.Quests.Action.DismissedQuest>Завдання відхилено: {0}</RimWorldAccess.Quests.Action.DismissedQuest>
+  <RimWorldAccess.Quests.Action.ResumedQuest>Завдання відновлено: {0}</RimWorldAccess.Quests.Action.ResumedQuest>
+  <RimWorldAccess.Quests.Action.DeletedQuest>Завдання видалено: {0}</RimWorldAccess.Quests.Action.DeletedQuest>
+  <RimWorldAccess.Quests.Action.NoEligibleColonists>Немає відповідних колоністів для прийняття цього завдання</RimWorldAccess.Quests.Action.NoEligibleColonists>
+  <RimWorldAccess.Quests.Action.SelectColonist>Виберіть колоніста для прийняття цього завдання</RimWorldAccess.Quests.Action.SelectColonist>
+  <!-- Eligible-colonist label suffix when the pawn holds royalty:
+       {0} = pawn LabelShort, {1} = title label. -->
+  <RimWorldAccess.Quests.Action.PawnWithTitle>{0} ({1})</RimWorldAccess.Quests.Action.PawnWithTitle>
+
+  <!-- =================================================================
+       Reward-choice float menu (multi-choice quests). The float menu
+       is opened by Alt+A on a quest with QuestPart_Choice and 2+
+       choices; Choose announces the prompt before WindowlessFloatMenu
+       opens. NoItemsToInspect is spoken when Alt+I is pressed but the
+       chosen reward has no inspectable Things or Factions. -->
+  <RimWorldAccess.Quests.RewardChoice.Prompt>Виберіть винагороду</RimWorldAccess.Quests.RewardChoice.Prompt>
+  <RimWorldAccess.Quests.RewardChoice.NoItemsToInspect>Немає предметів для огляду</RimWorldAccess.Quests.RewardChoice.NoItemsToInspect>
+  <RimWorldAccess.Quests.RewardChoice.BackToList>Назад до списку завдань</RimWorldAccess.Quests.RewardChoice.BackToList>
+
+  <!-- =================================================================
+       Reward preferences panel (Tab in the quest list). Toggles
+       per-faction acceptance of royal-favor and goodwill rewards.
+       Status words (checked / unchecked) compose into the per-faction
+       label below; relation phrasing is also a key so translators can
+       reorder "currently {amount}, {relation}". -->
+  <RimWorldAccess.Quests.Pref.Title>Налаштування винагород</RimWorldAccess.Quests.Pref.Title>
+  <RimWorldAccess.Quests.Pref.QuestList>Список завдань</RimWorldAccess.Quests.Pref.QuestList>
+  <RimWorldAccess.Quests.Pref.None>Немає доступних налаштувань винагород</RimWorldAccess.Quests.Pref.None>
+  <RimWorldAccess.Quests.Pref.Checked>позначено</RimWorldAccess.Quests.Pref.Checked>
+  <RimWorldAccess.Quests.Pref.Unchecked>не позначено</RimWorldAccess.Quests.Pref.Unchecked>
+  <!-- Royal-favor row: {0} = faction.Name, {1} = royal favor label
+       (CapitalizeFirst), {2} = checked/unchecked. -->
+  <RimWorldAccess.Quests.Pref.RoyalFavorRow>{0}: приймати {1}, {2}</RimWorldAccess.Quests.Pref.RoyalFavorRow>
+  <!-- Goodwill row: {0} = faction.Name, {1} = checked/unchecked,
+       {2} = relation phrase (built from RelationPhrase below). -->
+  <RimWorldAccess.Quests.Pref.GoodwillRow>{0}: приймати прихильність, {1}, {2}</RimWorldAccess.Quests.Pref.GoodwillRow>
+  <!-- Relation phrase: {0} = signed goodwill amount, {1} = relation
+       kind label cap (Ally/Neutral/Hostile/etc., from vanilla). -->
+  <RimWorldAccess.Quests.Pref.RelationPhrase>зараз {0}, {1}</RimWorldAccess.Quests.Pref.RelationPhrase>
+  <!-- Pref-row position suffix: {0} = built row label,
+       {1} = position string from MenuHelper.FormatPosition. -->
+  <RimWorldAccess.Quests.Pref.RowWithPosition>{0}. {1}</RimWorldAccess.Quests.Pref.RowWithPosition>
+
+  <!-- =================================================================
+       Reward extraction (QuestRewardHelper). Builds the reward detail
+       lines and the compact reward description used in list views and
+       button labels. The "indent" prefix ("  ") is hard-coded in the
+       helper so each reward item line is visually grouped under its
+       header line; the indent is preserved in keys here. -->
+  <RimWorldAccess.Quests.Reward.NoRewards>Немає винагород</RimWorldAccess.Quests.Reward.NoRewards>
+  <RimWorldAccess.Quests.Reward.MultipleChoices>Доступно кілька варіантів винагороди</RimWorldAccess.Quests.Reward.MultipleChoices>
+  <RimWorldAccess.Quests.Reward.RewardsHeader>Винагороди:</RimWorldAccess.Quests.Reward.RewardsHeader>
+  <RimWorldAccess.Quests.Reward.ChoicesHeader>Варіанти винагороди (виберіть один для прийняття):</RimWorldAccess.Quests.Reward.ChoicesHeader>
+  <!-- {0} = 1-based choice index. -->
+  <RimWorldAccess.Quests.Reward.ChoiceLabel>Варіант {0}:</RimWorldAccess.Quests.Reward.ChoiceLabel>
+
+  <!-- Item formatting for both the detail-view lines and the compact
+       summary. ItemWithCount: {0} = count, {1} = capitalized label;
+       ItemSingle: {0} = capitalized label. -->
+  <RimWorldAccess.Quests.Reward.ItemWithCount>{0}x {1}</RimWorldAccess.Quests.Reward.ItemWithCount>
+  <RimWorldAccess.Quests.Reward.ItemSingle>{0}</RimWorldAccess.Quests.Reward.ItemSingle>
+  <RimWorldAccess.Quests.Reward.ItemsFallback>Предмети</RimWorldAccess.Quests.Reward.ItemsFallback>
+  <RimWorldAccess.Quests.Reward.ItemFallback>Предмет</RimWorldAccess.Quests.Reward.ItemFallback>
+
+  <!-- Goodwill / royal-favor reward composition. {0} = signed amount
+       (ToStringWithSign), {1} = faction.Name, {2} = favor label
+       (royal favor only; CapitalizeFirst applied at callsite). -->
+  <RimWorldAccess.Quests.Reward.Goodwill>{0} прихильності з {1}</RimWorldAccess.Quests.Reward.Goodwill>
+  <RimWorldAccess.Quests.Reward.RoyalFavor>{0} {1} з {2}</RimWorldAccess.Quests.Reward.RoyalFavor>
+
+  <!-- Pawn reward variants. PawnHidden has no name (details are
+       hidden); PawnWithName: {0} = pawn LabelShort. -->
+  <RimWorldAccess.Quests.Reward.PawnHidden>Персонаж (деталі приховано)</RimWorldAccess.Quests.Reward.PawnHidden>
+  <RimWorldAccess.Quests.Reward.PawnWithName>Персонаж: {0}</RimWorldAccess.Quests.Reward.PawnWithName>
+  <RimWorldAccess.Quests.Reward.PawnGeneric>Персонаж</RimWorldAccess.Quests.Reward.PawnGeneric>
+
+  <!-- Total market value line, appended once per reward set if the
+       sum is positive. {0} = ToStringMoney("F0") result. -->
+  <RimWorldAccess.Quests.Reward.TotalValue>Загальна вартість: {0}</RimWorldAccess.Quests.Reward.TotalValue>
+
+  <!-- Indent applied to detail-view reward item lines. Stays as a
+       key so non-English layouts can use a different prefix or none. -->
+  <RimWorldAccess.Quests.Reward.LineIndent>  </RimWorldAccess.Quests.Reward.LineIndent>
+
+  <!-- =================================================================
+       Notification menu (NotificationMenuState). List view shows all
+       active messages, letters, and alerts; detail view shows the full
+       letter content with extracted action buttons.
+       ================================================================= -->
+  <RimWorldAccess.Notifications.Menu.None>Немає доступних сповіщень</RimWorldAccess.Notifications.Menu.None>
+  <RimWorldAccess.Notifications.Menu.Closed>Меню сповіщень закрито</RimWorldAccess.Notifications.Menu.Closed>
+  <RimWorldAccess.Notifications.Menu.NoTargetLocation>Немає доступного місця призначення</RimWorldAccess.Notifications.Menu.NoTargetLocation>
+  <RimWorldAccess.Notifications.Menu.TargetNotValid>Місце призначення недійсне</RimWorldAccess.Notifications.Menu.TargetNotValid>
+  <RimWorldAccess.Notifications.Menu.FailedToActivateButton>Не вдалося активувати кнопку</RimWorldAccess.Notifications.Menu.FailedToActivateButton>
+  <RimWorldAccess.Notifications.Menu.FailedToJump>Не вдалося перейти до цілі</RimWorldAccess.Notifications.Menu.FailedToJump>
+  <RimWorldAccess.Notifications.Menu.OnlyLettersDeletable>Видаляти можна лише листи</RimWorldAccess.Notifications.Menu.OnlyLettersDeletable>
+  <RimWorldAccess.Notifications.Menu.CannotDeleteLetter>Неможливо видалити цей лист</RimWorldAccess.Notifications.Menu.CannotDeleteLetter>
+
+  <!-- Type labels for notifications. Used both as the prefix of the
+       list-view announcement ("Letter: <label>") and inside the
+       detail-view header. -->
+  <RimWorldAccess.Notifications.Type.Message>Повідомлення</RimWorldAccess.Notifications.Type.Message>
+  <RimWorldAccess.Notifications.Type.Letter>Лист</RimWorldAccess.Notifications.Type.Letter>
+  <RimWorldAccess.Notifications.Type.Alert>Сповіщення</RimWorldAccess.Notifications.Type.Alert>
+  <RimWorldAccess.Notifications.Type.Unknown>Невідомо</RimWorldAccess.Notifications.Type.Unknown>
+
+  <!-- List-view announcement composition. {0} = type label, {1} =
+       notification label, {2} = position string. -->
+  <RimWorldAccess.Notifications.List.LineWithPosition>{0}: {1}. {2}</RimWorldAccess.Notifications.List.LineWithPosition>
+  <RimWorldAccess.Notifications.List.HeaderInDetail>{0}: {1}</RimWorldAccess.Notifications.List.HeaderInDetail>
+
+  <!-- Detail navigation markers (parallel to Quests.Detail.Start /
+       EndOfDetails - separate keys so word order can vary). -->
+  <RimWorldAccess.Notifications.Detail.StartOfLetter>Початок листа</RimWorldAccess.Notifications.Detail.StartOfLetter>
+  <RimWorldAccess.Notifications.Detail.EndOfLetter>Кінець листа</RimWorldAccess.Notifications.Detail.EndOfLetter>
+
+  <!-- Action button labels extracted from letters and alerts. -->
+  <RimWorldAccess.Notifications.Button.OpenGrowthMoment>Відкрити момент зростання</RimWorldAccess.Notifications.Button.OpenGrowthMoment>
+  <RimWorldAccess.Notifications.Button.ViewChoices>Переглянути варіанти</RimWorldAccess.Notifications.Button.ViewChoices>
+  <RimWorldAccess.Notifications.Button.OpenResearch>Відкрити дослідження</RimWorldAccess.Notifications.Button.OpenResearch>
+  <RimWorldAccess.Notifications.Button.Activate>Активувати</RimWorldAccess.Notifications.Button.Activate>
+  <!-- Single-target jump button: {0} = target description. -->
+  <RimWorldAccess.Notifications.Button.JumpTo>Перейти до: {0}</RimWorldAccess.Notifications.Button.JumpTo>
+  <!-- Multi-target jump button: {0} = target description, {1} = 1-based
+       index, {2} = total target count (capped at 5). -->
+  <RimWorldAccess.Notifications.Button.JumpToWithIndex>Перейти до: {0} ({1} з {2})</RimWorldAccess.Notifications.Button.JumpToWithIndex>
+
+  <!-- Action feedback strings spoken after a button completes. {0} =
+       button label echoed back so the user hears confirmation. -->
+  <RimWorldAccess.Notifications.Action.AlertActivated>Сповіщення активовано</RimWorldAccess.Notifications.Action.AlertActivated>
+  <RimWorldAccess.Notifications.Action.ActivatedNoneRemaining>{0} активовано. Сповіщень не залишилося</RimWorldAccess.Notifications.Action.ActivatedNoneRemaining>
+  <RimWorldAccess.Notifications.Action.ActivatedBackToList>{0} активовано. Назад до списку</RimWorldAccess.Notifications.Action.ActivatedBackToList>
+  <RimWorldAccess.Notifications.Action.OpeningInfoCard>Відкриття картки інформації для {0}</RimWorldAccess.Notifications.Action.OpeningInfoCard>
+  <!-- Delete-letter feedback. {0} = deleted letter label.
+       DeletedNoneRemaining is spoken when the deletion empties the
+       list; DeletedNextItem composes the next item announcement.
+       {1} = next type label, {2} = next item label, {3} = position. -->
+  <RimWorldAccess.Notifications.Action.DeletedNoneRemaining>{0} видалено. Сповіщень не залишилося</RimWorldAccess.Notifications.Action.DeletedNoneRemaining>
+  <RimWorldAccess.Notifications.Action.DeletedNextItem>{0} видалено. {1}: {2}. {3}</RimWorldAccess.Notifications.Action.DeletedNextItem>
+
+  <!-- Target descriptions used by Notifications.Button.JumpTo and
+       MapNavigationState.SpeakJumpedTo. Position: {0} = cell.x,
+       {1} = cell.z. -->
+  <RimWorldAccess.Notifications.Target.Generic>місце призначення</RimWorldAccess.Notifications.Target.Generic>
+  <RimWorldAccess.Notifications.Target.LocationFallback>місце</RimWorldAccess.Notifications.Target.LocationFallback>
+  <RimWorldAccess.Notifications.Target.Unknown>невідоме місце</RimWorldAccess.Notifications.Target.Unknown>
+  <RimWorldAccess.Notifications.Target.WorldLocation>місце на світовій мапі</RimWorldAccess.Notifications.Target.WorldLocation>
+  <RimWorldAccess.Notifications.Target.Thing>об'єкт</RimWorldAccess.Notifications.Target.Thing>
+  <RimWorldAccess.Notifications.Target.Position>позиція {0}, {1}</RimWorldAccess.Notifications.Target.Position>
+
+  <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
+  <RimWorldAccess.Quests.AcceptedAgo>Прийнято {0} тому</RimWorldAccess.Quests.AcceptedAgo>
+</LanguageData>

@@ -1,0 +1,754 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    World module strings (src/World/). Covers the world map, settlements,
+    caravan formation/split, route planning (waypoint editor for caravan
+    travel), gear-equip menu (pawn-side equip/swap from Caravan Inspect),
+    settlement and quest browsers, world scanner (mirrors Map.Scanner's
+    category structure), caravan multi-select, layer switching, and the
+    stat-breakdown overlay.
+
+    Files contributing strings:
+      - WorldNavigationState.cs        (main world map + caravan focus)
+      - CaravanFormationState.cs       (Dialog_FormCaravan)
+      - SplitCaravanState.cs           (Dialog_SplitCaravan)
+      - CaravanInspectState.cs         (windowless caravan inspect tree)
+      - CaravanInputHelper.cs          (Alt+H/M/N/G/K caravan tab dispatch)
+      - CaravanUIHelper.cs             (transferable check/uncheck)
+      - CaravanQuantityHelper.cs       (per-stack quantity adjust feedback)
+      - CaravanFormationPatch.cs / SplitCaravanPatch.cs / CaravanAnnouncementHelper.cs
+      - GearEquipMenuState.cs          (equip-this-item picker)
+      - QuestLocationsBrowserState.cs / SettlementBrowserState.cs
+      - StatBreakdownState.cs          (Alt+I breakdown overlay)
+      - RoutePlannerState.cs           (caravan waypoint planner)
+      - WorldNavigationPatch.cs / WorldObjectSelectionState.cs
+      - WorldScannerState.cs           (PgUp/PgDn world map scanner)
+
+    Shared phrases delegated elsewhere:
+      - Position / Edge / Search / Stepper / Map.JumpedTo -> Common.xml
+      - "Cancelled"                                       -> UI.Cancelled
+      - World/scanner direction nouns                     -> Map.Direction.*
+      - Pawn quick-info hotkeys ("No pawn selected")      -> Common.Guard
+      - vanilla labels: caravan/settlement names, faction relations,
+        biome names, pawn labels, item labels, days/hours, layer
+        labels (LabelCap from LayerDef) - all from game.
+
+    Data such as caravan names, settlement labels, pawn names, item
+    labels, faction names, biome descriptions, ETA strings ("X days"),
+    speed-source nouns from the game, and stat values come from the
+    game's translation system and are NOT duplicated here.
+  -->
+
+  <!-- =================================================================
+       World map shell + caravan navigation (WorldNavigationState).
+       Covers tile read-out, caravan multi-select, layer switching,
+       pole compass mode, jump-to-home / jump-to-caravan.
+       {0} = caravan label, {1} = count, {2} = pole name, {3} = layer name.
+       ================================================================= -->
+  <RimWorldAccess.World.NotAvailable>Світ недоступний</RimWorldAccess.World.NotAvailable>
+  <RimWorldAccess.World.OpenWithRoute>Мапа світу. Планувальник маршруту активний, точок маршруту: {0}. {1}</RimWorldAccess.World.OpenWithRoute>
+  <RimWorldAccess.World.OpenRoutePlannerActive>Мапа світу. Планувальник маршруту активний. {0}</RimWorldAccess.World.OpenRoutePlannerActive>
+  <RimWorldAccess.World.OpenInstructions>Мапа світу. {0}</RimWorldAccess.World.OpenInstructions>
+  <RimWorldAccess.World.NearPole>Поблизу полюса: {0}. Використовуються відносні напрямки</RimWorldAccess.World.NearPole>
+  <RimWorldAccess.World.LeavingPole>Вихід із полярної зони. Використовуються напрямки за компасом</RimWorldAccess.World.LeavingPole>
+  <RimWorldAccess.World.LayerSwitchFailed>Неможливо перейти на шар {0}: {1}</RimWorldAccess.World.LayerSwitchFailed>
+  <RimWorldAccess.World.NoOtherLayers>Інших шарів немає</RimWorldAccess.World.NoOtherLayers>
+  <RimWorldAccess.World.SwitchedToLayer>Перехід на шар: {0}.</RimWorldAccess.World.SwitchedToLayer>
+  <RimWorldAccess.World.SwitchedToLayerSpace>Перехід на шар: {0}. Космічний шар.</RimWorldAccess.World.SwitchedToLayerSpace>
+  <RimWorldAccess.World.NoHomeSettlement>Домашнє поселення не знайдено</RimWorldAccess.World.NoHomeSettlement>
+  <RimWorldAccess.World.NoPlayerCaravans>Караванів гравця не знайдено</RimWorldAccess.World.NoPlayerCaravans>
+  <RimWorldAccess.World.NoCaravansAtAll>Караванів не знайдено</RimWorldAccess.World.NoCaravansAtAll>
+  <RimWorldAccess.World.NoTileSelected>Плитку не вибрано</RimWorldAccess.World.NoTileSelected>
+  <RimWorldAccess.World.NoSettlementAtTile>На поточній плитці немає поселення</RimWorldAccess.World.NoSettlementAtTile>
+  <RimWorldAccess.World.OnlyPlayerSettlements>Каравани можна формувати лише з поселень гравця</RimWorldAccess.World.OnlyPlayerSettlements>
+  <RimWorldAccess.World.SettlementHasNoMap>Поселення не має мапи</RimWorldAccess.World.SettlementHasNoMap>
+  <RimWorldAccess.World.NoCaravanSelected>Караван не вибрано</RimWorldAccess.World.NoCaravanSelected>
+  <RimWorldAccess.World.CaravanTraveling>{0} прямує до призначення</RimWorldAccess.World.CaravanTraveling>
+  <RimWorldAccess.World.NoOrdersAlreadyHere>Накази недоступні: вже в цьому місці</RimWorldAccess.World.NoOrdersAlreadyHere>
+  <RimWorldAccess.World.CaravanOrders>Накази для {0}: доступно варіантів: {1}</RimWorldAccess.World.CaravanOrders>
+  <RimWorldAccess.World.NoCaravanFocused>Жоден караван не у фокусі. Спершу скористайтеся комою або крапкою, щоб перемикатися між караванами.</RimWorldAccess.World.NoCaravanFocused>
+  <RimWorldAccess.World.CaravanDeselected>{0}: вибір знято. Вибрано караванів: {1}.</RimWorldAccess.World.CaravanDeselected>
+  <RimWorldAccess.World.CaravanSelected>{0}: вибрано. Вибрано караванів: {1}.</RimWorldAccess.World.CaravanSelected>
+  <RimWorldAccess.World.MultiSelectDifferentTiles>Не можна перебувати у двох місцях одночасно! Вибрані каравани розташовані на різних плитках.</RimWorldAccess.World.MultiSelectDifferentTiles>
+  <RimWorldAccess.World.JumpedToMultipleCaravans>Перехід до вибраних караванів: {0}. {1}</RimWorldAccess.World.JumpedToMultipleCaravans>
+  <RimWorldAccess.World.JumpedToCaravan>Перехід до: {0}. {1}</RimWorldAccess.World.JumpedToCaravan>
+  <RimWorldAccess.World.NoCaravanSelectedHint>Караван не вибрано. Спершу скористайтеся комою або крапкою, щоб перемикатися між караванами.</RimWorldAccess.World.NoCaravanSelectedHint>
+  <RimWorldAccess.World.CycleCaravanSelected>{0}, {1}, вибрано, {2} з {3}</RimWorldAccess.World.CycleCaravanSelected>
+  <RimWorldAccess.World.CycleCaravanNotSelected>{0}, {1}, {2} з {3}</RimWorldAccess.World.CycleCaravanNotSelected>
+  <RimWorldAccess.World.TravelToTile>Подорожувати до цієї плитки</RimWorldAccess.World.TravelToTile>
+
+  <!-- =================================================================
+       Caravan formation dialog (CaravanFormationState).
+       Uses Dialog_FormCaravan with tabs (Pawns / Items / Animals /
+       Travel Supplies). Tab-summary view is split off; many block
+       reasons are user-facing.
+       {0} = tab name, {1} = item count, {2} = error message,
+       {3} = stat / item / position label.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.Form.CannotReformFromHome>Неможливо переформувати караван у домашньому поселенні. Скористайтеся мапою світу, щоб сформувати нові каравани.</RimWorldAccess.Caravan.Form.CannotReformFromHome>
+  <RimWorldAccess.Caravan.Form.MapHasNoParent>Мапа не має батьківського об'єкта світу</RimWorldAccess.Caravan.Form.MapHasNoParent>
+  <RimWorldAccess.Caravan.Form.MapDoesNotSupport>Ця мапа не підтримує переформування каравану</RimWorldAccess.Caravan.Form.MapDoesNotSupport>
+  <RimWorldAccess.Caravan.Form.CannotReformEnemiesPresent>Неможливо переформувати караван, поки присутні вороги</RimWorldAccess.Caravan.Form.CannotReformEnemiesPresent>
+  <RimWorldAccess.Caravan.Form.CannotReformAtThisTime>Зараз неможливо переформувати караван</RimWorldAccess.Caravan.Form.CannotReformAtThisTime>
+  <RimWorldAccess.Caravan.Form.OpeningReformation>Відкриття діалогу переформування каравану</RimWorldAccess.Caravan.Form.OpeningReformation>
+  <RimWorldAccess.Caravan.Form.NoFormationDialog>Діалог формування каравану недоступний</RimWorldAccess.Caravan.Form.NoFormationDialog>
+  <RimWorldAccess.Caravan.Form.OpenInstructions>Діалог формування каравану відкрито. Tab — зведення, Alt+I — огляд, Alt+S — відправити.</RimWorldAccess.Caravan.Form.OpenInstructions>
+  <RimWorldAccess.Caravan.Form.TabHeader>Вкладка {0}, предметів: {1}</RimWorldAccess.Caravan.Form.TabHeader>
+  <RimWorldAccess.Caravan.Form.NoItemsInTab>На цій вкладці немає предметів</RimWorldAccess.Caravan.Form.NoItemsInTab>
+  <RimWorldAccess.Caravan.Form.ReturnedToTab>Повернення до вкладки {0}</RimWorldAccess.Caravan.Form.ReturnedToTab>
+  <RimWorldAccess.Caravan.Form.SummaryViewWithHint>Перегляд зведення. Вгору/вниз — навігація показниками, Alt+I — деталізація. Tab — повернутися.</RimWorldAccess.Caravan.Form.SummaryViewWithHint>
+  <RimWorldAccess.Caravan.Form.SummaryView>Перегляд зведення.</RimWorldAccess.Caravan.Form.SummaryView>
+  <RimWorldAccess.Caravan.Form.NoSummaryData>Немає даних зведення</RimWorldAccess.Caravan.Form.NoSummaryData>
+  <RimWorldAccess.Caravan.Form.SummaryNoCaravanData>Дані каравану недоступні</RimWorldAccess.Caravan.Form.SummaryNoCaravanData>
+  <RimWorldAccess.Caravan.Form.SummaryDestination>Призначення: {0}</RimWorldAccess.Caravan.Form.SummaryDestination>
+  <RimWorldAccess.Caravan.Form.SummaryDestinationWithEta>Призначення: {0}, час прибуття: {1} днів</RimWorldAccess.Caravan.Form.SummaryDestinationWithEta>
+  <RimWorldAccess.Caravan.Form.SummaryDestinationNotSet>Призначення: не задано</RimWorldAccess.Caravan.Form.SummaryDestinationNotSet>
+  <RimWorldAccess.Caravan.Form.SummaryStatsUnavailable>Показники недоступні</RimWorldAccess.Caravan.Form.SummaryStatsUnavailable>
+
+  <!-- =================================================================
+       Caravan stat formatter (CaravanStatFormatter).
+       Shared formatter used by formation/split summary views and the
+       transport pod loader. Tooltip descriptions come from game keys
+       (CaravanMovementSpeedTip, DaysWorthOfFoodTooltip, etc.).
+       {0} = primary value, {1} = secondary value, {2} = description.
+       ================================================================= -->
+  <RimWorldAccess.Stat.Mass>Вага: {0} з {1} кг</RimWorldAccess.Stat.Mass>
+  <RimWorldAccess.Stat.MassOverloaded>Вага: {0} з {1} кг — ПЕРЕВАНТАЖЕНО</RimWorldAccess.Stat.MassOverloaded>
+  <RimWorldAccess.Stat.SpeedImmobile>Швидкість: {0}</RimWorldAccess.Stat.SpeedImmobile>
+  <RimWorldAccess.Stat.SpeedImmobileWithDesc>Швидкість: {0}. {1}</RimWorldAccess.Stat.SpeedImmobileWithDesc>
+  <RimWorldAccess.Stat.SpeedTilesPerDay>Швидкість: {0} плиток за день</RimWorldAccess.Stat.SpeedTilesPerDay>
+  <RimWorldAccess.Stat.SpeedTilesPerDayWithDesc>Швидкість: {0} плиток за день. {1}</RimWorldAccess.Stat.SpeedTilesPerDayWithDesc>
+  <RimWorldAccess.Stat.SpeedCannotMove>Швидкість: рух неможливий</RimWorldAccess.Stat.SpeedCannotMove>
+  <RimWorldAccess.Stat.SpeedCannotMoveWithDesc>Швидкість: рух неможливий. {0}</RimWorldAccess.Stat.SpeedCannotMoveWithDesc>
+  <RimWorldAccess.Stat.FoodInfinite>Їжа: {0}</RimWorldAccess.Stat.FoodInfinite>
+  <RimWorldAccess.Stat.FoodInfiniteWithDesc>Їжа: {0}. {1}</RimWorldAccess.Stat.FoodInfiniteWithDesc>
+  <RimWorldAccess.Stat.FoodNone>Їжа: немає</RimWorldAccess.Stat.FoodNone>
+  <RimWorldAccess.Stat.FoodNoneWithDesc>Їжа: немає. {0}</RimWorldAccess.Stat.FoodNoneWithDesc>
+  <RimWorldAccess.Stat.FoodDays>Їжа: {0} днів</RimWorldAccess.Stat.FoodDays>
+  <RimWorldAccess.Stat.FoodDaysWithDesc>Їжа: {0} днів. {1}</RimWorldAccess.Stat.FoodDaysWithDesc>
+  <RimWorldAccess.Stat.FoodDaysWithSpoil>Їжа: {0} днів, псується через {1} днів</RimWorldAccess.Stat.FoodDaysWithSpoil>
+  <RimWorldAccess.Stat.FoodDaysWithSpoilWithDesc>Їжа: {0} днів, псується через {1} днів. {2}</RimWorldAccess.Stat.FoodDaysWithSpoilWithDesc>
+  <RimWorldAccess.Stat.ForagingPerDay>Збір їжі: {0} за день</RimWorldAccess.Stat.ForagingPerDay>
+  <RimWorldAccess.Stat.ForagingPerDayWithDesc>Збір їжі: {0} за день. {1}</RimWorldAccess.Stat.ForagingPerDayWithDesc>
+  <RimWorldAccess.Stat.ForagingPerDayWithType>Збір їжі: {0} ({1}) за день</RimWorldAccess.Stat.ForagingPerDayWithType>
+  <RimWorldAccess.Stat.ForagingPerDayWithTypeWithDesc>Збір їжі: {0} ({1}) за день. {2}</RimWorldAccess.Stat.ForagingPerDayWithTypeWithDesc>
+  <RimWorldAccess.Stat.Visibility>Помітність: {0}</RimWorldAccess.Stat.Visibility>
+  <RimWorldAccess.Stat.VisibilityWithDesc>Помітність: {0}. {1}</RimWorldAccess.Stat.VisibilityWithDesc>
+  <RimWorldAccess.Caravan.Form.ItemPosition>{0}. {1}</RimWorldAccess.Caravan.Form.ItemPosition>
+  <RimWorldAccess.Caravan.Form.NoDialog>Діалог недоступний</RimWorldAccess.Caravan.Form.NoDialog>
+  <RimWorldAccess.Caravan.Form.ChoosingDestination>Вибір призначення каравану. Використовуйте стрілки для навігації мапою світу, Enter — вибрати призначення, Escape — скасувати.</RimWorldAccess.Caravan.Form.ChoosingDestination>
+  <RimWorldAccess.Caravan.Form.FailedRoutePlanner>Не вдалося відкрити планувальник маршруту: {0}</RimWorldAccess.Caravan.Form.FailedRoutePlanner>
+  <RimWorldAccess.Caravan.Form.InvalidDestination>Недійсна плитка призначення</RimWorldAccess.Caravan.Form.InvalidDestination>
+  <RimWorldAccess.Caravan.Form.FailedAccessNotifyChoseRoute>Не вдалося отримати доступ до методу Notify_ChoseRoute</RimWorldAccess.Caravan.Form.FailedAccessNotifyChoseRoute>
+  <RimWorldAccess.Caravan.Form.DestinationSet>Призначення задано: {0}.</RimWorldAccess.Caravan.Form.DestinationSet>
+  <RimWorldAccess.Caravan.Form.FailedSetDestination>Не вдалося задати призначення: {0}</RimWorldAccess.Caravan.Form.FailedSetDestination>
+  <RimWorldAccess.Caravan.Form.DestinationCancelled>Вибір призначення скасовано. Повернення до діалогу формування каравану.</RimWorldAccess.Caravan.Form.DestinationCancelled>
+  <RimWorldAccess.Caravan.Form.FailedCancelDestination>Не вдалося скасувати вибір призначення: {0}</RimWorldAccess.Caravan.Form.FailedCancelDestination>
+  <RimWorldAccess.Caravan.Form.FailedSendCaravan>Не вдалося відправити караван: {0}</RimWorldAccess.Caravan.Form.FailedSendCaravan>
+  <RimWorldAccess.Caravan.Form.SelectionsReset>Вибір скинуто</RimWorldAccess.Caravan.Form.SelectionsReset>
+  <RimWorldAccess.Caravan.Form.FailedReset>Не вдалося скинути: {0}</RimWorldAccess.Caravan.Form.FailedReset>
+  <RimWorldAccess.Caravan.Form.AutoProvisionOff>Автопостачання вимкнено. Ручний вибір відновлено.</RimWorldAccess.Caravan.Form.AutoProvisionOff>
+  <RimWorldAccess.Caravan.Form.AutoProvisionOn>Автопостачання увімкнено. Вкладку припасів заблоковано. Натисніть Alt+A ще раз, щоб вимкнути.</RimWorldAccess.Caravan.Form.AutoProvisionOn>
+  <RimWorldAccess.Caravan.Form.FailedToggleAutoProvision>Не вдалося перемкнути автопостачання: {0}</RimWorldAccess.Caravan.Form.FailedToggleAutoProvision>
+  <RimWorldAccess.Caravan.Form.ReformationCancelled>Переформування каравану скасовано</RimWorldAccess.Caravan.Form.ReformationCancelled>
+  <RimWorldAccess.Caravan.Form.SuppliesTabLocked>Вкладку припасів заблоковано. Натисніть Alt+A, щоб вимкнути автопостачання.</RimWorldAccess.Caravan.Form.SuppliesTabLocked>
+  <RimWorldAccess.Caravan.Form.NoBreakdownForItem>Для цього предмета деталізація недоступна</RimWorldAccess.Caravan.Form.NoBreakdownForItem>
+  <RimWorldAccess.Caravan.Form.FormationCancelled>Формування каравану скасовано</RimWorldAccess.Caravan.Form.FormationCancelled>
+  <!-- On-screen visual aids drawn over the dialog for sighted observers
+       (not spoken). The instructions string uses \n line breaks. -->
+  <RimWorldAccess.Caravan.Form.KeyboardModeActive>Режим клавіатури активний</RimWorldAccess.Caravan.Form.KeyboardModeActive>
+  <RimWorldAccess.Caravan.Form.KeyboardInstructions>Вкладки: персонажі, предмети, дорожні припаси | Пробіл/Enter: перемкнути/кількість\nShift+Enter: максимум | Del: прибрати | Tab: зведення | Alt+I: огляд/деталізація\nAlt+A: автопостачання | Alt+D: призначення | Alt+S: відправити | Alt+R: скинути</RimWorldAccess.Caravan.Form.KeyboardInstructions>
+
+  <!-- =================================================================
+       Split caravan dialog (SplitCaravanState).
+       Same shape as form-caravan but the two-caravan summary view
+       has a Left/Right swap to switch between source and split-target.
+       {0} = tab name, {1} = item count, {2} = stat value,
+       {3} = caravan name, {4} = position fragment.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.Split.NoDialog>Діалог поділу каравану недоступний</RimWorldAccess.Caravan.Split.NoDialog>
+  <RimWorldAccess.Caravan.Split.OpenInstructions>Діалог поділу каравану відкрито. Tab — зведення, Alt+I — огляд, Alt+S — поділити.</RimWorldAccess.Caravan.Split.OpenInstructions>
+  <RimWorldAccess.Caravan.Split.TabHeader>Вкладка {0}, предметів: {1}</RimWorldAccess.Caravan.Split.TabHeader>
+  <RimWorldAccess.Caravan.Split.BottomEdge>Кінець. {0}. {1} з {2}</RimWorldAccess.Caravan.Split.BottomEdge>
+  <RimWorldAccess.Caravan.Split.TopEdge>Початок. {0}. {1} з {2}</RimWorldAccess.Caravan.Split.TopEdge>
+  <RimWorldAccess.Caravan.Split.NoItemsInTab>На цій вкладці немає предметів</RimWorldAccess.Caravan.Split.NoItemsInTab>
+  <RimWorldAccess.Caravan.Split.ReturnedToTab>Повернення до вкладки {0}</RimWorldAccess.Caravan.Split.ReturnedToTab>
+  <RimWorldAccess.Caravan.Split.SummaryViewWithHint>Перегляд зведення. Вгору/вниз — навігація показниками, вліво/вправо — перемикання караванів, Alt+I — деталізація. Tab — повернутися.</RimWorldAccess.Caravan.Split.SummaryViewWithHint>
+  <RimWorldAccess.Caravan.Split.SummaryView>Перегляд зведення.</RimWorldAccess.Caravan.Split.SummaryView>
+  <RimWorldAccess.Caravan.Split.NoCaravanData>Дані каравану недоступні</RimWorldAccess.Caravan.Split.NoCaravanData>
+  <RimWorldAccess.Caravan.Split.NewCaravanLabel>Новий караван</RimWorldAccess.Caravan.Split.NewCaravanLabel>
+  <RimWorldAccess.Caravan.Split.OriginalCaravanLabel>Початковий караван</RimWorldAccess.Caravan.Split.OriginalCaravanLabel>
+  <RimWorldAccess.Caravan.Split.UnknownStatValue>Невідомо</RimWorldAccess.Caravan.Split.UnknownStatValue>
+  <RimWorldAccess.Caravan.Split.StatPosition>{0}. {1} з {2}</RimWorldAccess.Caravan.Split.StatPosition>
+  <RimWorldAccess.Caravan.Split.StatCaravanPosition>{0}. {1}, {2} з {3}</RimWorldAccess.Caravan.Split.StatCaravanPosition>
+  <RimWorldAccess.Caravan.Split.NoDialogAvailable>Діалог недоступний</RimWorldAccess.Caravan.Split.NoDialogAvailable>
+  <RimWorldAccess.Caravan.Split.SplitSuccessfully>Караван успішно поділено</RimWorldAccess.Caravan.Split.SplitSuccessfully>
+  <RimWorldAccess.Caravan.Split.FailedToSplit>Не вдалося поділити караван: {0}</RimWorldAccess.Caravan.Split.FailedToSplit>
+  <RimWorldAccess.Caravan.Split.SelectionsReset>Вибір скинуто</RimWorldAccess.Caravan.Split.SelectionsReset>
+  <RimWorldAccess.Caravan.Split.FailedReset>Не вдалося скинути: {0}</RimWorldAccess.Caravan.Split.FailedReset>
+  <RimWorldAccess.Caravan.Split.NoBreakdownForStat>Для цього показника деталізація недоступна</RimWorldAccess.Caravan.Split.NoBreakdownForStat>
+  <RimWorldAccess.Caravan.Split.SplitCancelled>Поділ каравану скасовано</RimWorldAccess.Caravan.Split.SplitCancelled>
+
+  <!-- =================================================================
+       Caravan inspect (CaravanInspectState).
+       Windowless inspection of a single caravan. Per-tab readouts
+       reuse PawnInfoHelper output.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.Inspect.NoCaravanSpecified>Караван не вказано</RimWorldAccess.Caravan.Inspect.NoCaravanSpecified>
+  <RimWorldAccess.Caravan.Inspect.Closed>Огляд каравану закрито</RimWorldAccess.Caravan.Inspect.Closed>
+  <RimWorldAccess.Caravan.Inspect.CannotAbandon>Неможливо покинути цей предмет</RimWorldAccess.Caravan.Inspect.CannotAbandon>
+  <RimWorldAccess.Caravan.Inspect.NoMoodForItem>Для цього предмета інформація про настрій недоступна</RimWorldAccess.Caravan.Inspect.NoMoodForItem>
+  <RimWorldAccess.Caravan.Inspect.NoNeedsForItem>Для цього предмета інформація про потреби недоступна</RimWorldAccess.Caravan.Inspect.NoNeedsForItem>
+  <RimWorldAccess.Caravan.Inspect.NoHealthForItem>Для цього предмета інформація про здоров'я недоступна</RimWorldAccess.Caravan.Inspect.NoHealthForItem>
+  <RimWorldAccess.Caravan.Inspect.NoGearForItem>Для цього предмета інформація про спорядження недоступна</RimWorldAccess.Caravan.Inspect.NoGearForItem>
+  <RimWorldAccess.Caravan.Inspect.NoSkillsForItem>Для цього предмета інформація про навички недоступна</RimWorldAccess.Caravan.Inspect.NoSkillsForItem>
+  <RimWorldAccess.Caravan.Inspect.NoActionAvailable>Дія недоступна</RimWorldAccess.Caravan.Inspect.NoActionAvailable>
+  <RimWorldAccess.Caravan.Inspect.NoBreakdown>Деталізація недоступна</RimWorldAccess.Caravan.Inspect.NoBreakdown>
+
+  <!-- Caravan inspect treeview (CaravanInspectState): category labels, stat
+       labels, stat values, and Alt+I stat-breakdown tooltips. Spoken while
+       navigating the tree. Units reuse vanilla keys where available
+       (PeriodDays, PeriodHours, Infinite, None, TilesPerDay).
+       In the tooltip strings, a leading "- " marks a sub-item and a trailing
+       ":" marks a section header for the breakdown parser; preserve them. -->
+  <RimWorldAccess.Caravan.Inspect.StatLabelValue>{0}: {1}</RimWorldAccess.Caravan.Inspect.StatLabelValue>
+  <RimWorldAccess.Caravan.Inspect.Unknown>Невідомо</RimWorldAccess.Caravan.Inspect.Unknown>
+  <RimWorldAccess.Caravan.Inspect.NotAvailable>Н/Д</RimWorldAccess.Caravan.Inspect.NotAvailable>
+  <RimWorldAccess.Caravan.Inspect.CategoryCaravanStatus>Стан каравану</RimWorldAccess.Caravan.Inspect.CategoryCaravanStatus>
+  <RimWorldAccess.Caravan.Inspect.CategoryPawns>Персонажі ({0})</RimWorldAccess.Caravan.Inspect.CategoryPawns>
+  <RimWorldAccess.Caravan.Inspect.CategoryColonists>Колоністи ({0})</RimWorldAccess.Caravan.Inspect.CategoryColonists>
+  <RimWorldAccess.Caravan.Inspect.CategoryPrisoners>В'язні ({0})</RimWorldAccess.Caravan.Inspect.CategoryPrisoners>
+  <RimWorldAccess.Caravan.Inspect.CategoryAnimals>Тварини ({0})</RimWorldAccess.Caravan.Inspect.CategoryAnimals>
+  <RimWorldAccess.Caravan.Inspect.CategoryGear>Спорядження (предметів: {0})</RimWorldAccess.Caravan.Inspect.CategoryGear>
+  <RimWorldAccess.Caravan.Inspect.CategoryItems>Предмети ({0})</RimWorldAccess.Caravan.Inspect.CategoryItems>
+  <RimWorldAccess.Caravan.Inspect.CategoryItemsEmpty>Предмети (порожньо)</RimWorldAccess.Caravan.Inspect.CategoryItemsEmpty>
+  <RimWorldAccess.Caravan.Inspect.Negotiator>перемовник</RimWorldAccess.Caravan.Inspect.Negotiator>
+  <RimWorldAccess.Caravan.Inspect.PawnPossession>{0}: {1}</RimWorldAccess.Caravan.Inspect.PawnPossession>
+  <RimWorldAccess.Caravan.Inspect.StatLocation>Розташування</RimWorldAccess.Caravan.Inspect.StatLocation>
+  <RimWorldAccess.Caravan.Inspect.StatMass>Вага</RimWorldAccess.Caravan.Inspect.StatMass>
+  <RimWorldAccess.Caravan.Inspect.StatStatus>Стан</RimWorldAccess.Caravan.Inspect.StatStatus>
+  <RimWorldAccess.Caravan.Inspect.StatSpeed>Швидкість</RimWorldAccess.Caravan.Inspect.StatSpeed>
+  <RimWorldAccess.Caravan.Inspect.StatFood>Їжа</RimWorldAccess.Caravan.Inspect.StatFood>
+  <RimWorldAccess.Caravan.Inspect.StatForaging>Збір їжі</RimWorldAccess.Caravan.Inspect.StatForaging>
+  <RimWorldAccess.Caravan.Inspect.StatDestination>Призначення</RimWorldAccess.Caravan.Inspect.StatDestination>
+  <RimWorldAccess.Caravan.Inspect.StatETA>Час прибуття</RimWorldAccess.Caravan.Inspect.StatETA>
+  <RimWorldAccess.Caravan.Inspect.StatVisibility>Помітність</RimWorldAccess.Caravan.Inspect.StatVisibility>
+  <RimWorldAccess.Caravan.Inspect.StatBeds>Спальні місця</RimWorldAccess.Caravan.Inspect.StatBeds>
+  <RimWorldAccess.Caravan.Inspect.Immobile>Нерухомий</RimWorldAccess.Caravan.Inspect.Immobile>
+  <RimWorldAccess.Caravan.Inspect.DaysUntilRot>(до псування {0} днів)</RimWorldAccess.Caravan.Inspect.DaysUntilRot>
+  <RimWorldAccess.Caravan.Inspect.OutOfFood>ЇЖА ЗАКІНЧИЛАСЯ</RimWorldAccess.Caravan.Inspect.OutOfFood>
+  <RimWorldAccess.Caravan.Inspect.FoodFallback>їжа</RimWorldAccess.Caravan.Inspect.FoodFallback>
+  <RimWorldAccess.Caravan.Inspect.ForagingPerDay>{0} ({1})/день</RimWorldAccess.Caravan.Inspect.ForagingPerDay>
+  <RimWorldAccess.Caravan.Inspect.BedrollsInUse>використовується спальних місць: {0}</RimWorldAccess.Caravan.Inspect.BedrollsInUse>
+  <RimWorldAccess.Caravan.Inspect.NoBedrolls>Немає спальних місць</RimWorldAccess.Caravan.Inspect.NoBedrolls>
+  <RimWorldAccess.Caravan.Inspect.LocationCoords>Плитка {0}, {1} пн. {2} сх.</RimWorldAccess.Caravan.Inspect.LocationCoords>
+  <RimWorldAccess.Caravan.Inspect.MassUsageCapacity>{0} / {1} кг</RimWorldAccess.Caravan.Inspect.MassUsageCapacity>
+  <RimWorldAccess.Caravan.Inspect.TileNumber>Плитка {0}</RimWorldAccess.Caravan.Inspect.TileNumber>
+  <RimWorldAccess.Caravan.Inspect.TooltipMassCarried>Перенесена вага: {0} кг</RimWorldAccess.Caravan.Inspect.TooltipMassCarried>
+  <RimWorldAccess.Caravan.Inspect.TooltipMassCapacity>Вантажопідйомність: {0} кг</RimWorldAccess.Caravan.Inspect.TooltipMassCapacity>
+  <RimWorldAccess.Caravan.Inspect.TooltipOverloaded>ПЕРЕВАНТАЖЕНО — караван не може рухатися, доки вагу не буде зменшено.</RimWorldAccess.Caravan.Inspect.TooltipOverloaded>
+  <RimWorldAccess.Caravan.Inspect.TooltipRemainingCapacity>Залишок вантажопідйомності: {0} кг</RimWorldAccess.Caravan.Inspect.TooltipRemainingCapacity>
+  <RimWorldAccess.Caravan.Inspect.TooltipCapacityBreakdown>Деталізація вантажопідйомності:</RimWorldAccess.Caravan.Inspect.TooltipCapacityBreakdown>
+  <RimWorldAccess.Caravan.Inspect.StatusCannotMoveBecause>Караван не може рухатися, тому що:</RimWorldAccess.Caravan.Inspect.StatusCannotMoveBecause>
+  <RimWorldAccess.Caravan.Inspect.StatusAllDowned>Усі учасники каравану непритомні</RimWorldAccess.Caravan.Inspect.StatusAllDowned>
+  <RimWorldAccess.Caravan.Inspect.StatusAllMentalBreak>Усі учасники каравану переживають психічний зрив</RimWorldAccess.Caravan.Inspect.StatusAllMentalBreak>
+  <RimWorldAccess.Caravan.Inspect.StatusOverloaded>Караван перевантажено понад вантажопідйомність</RimWorldAccess.Caravan.Inspect.StatusOverloaded>
+  <RimWorldAccess.Caravan.Inspect.StatusNightResting>Караван відпочиває у нічні години.</RimWorldAccess.Caravan.Inspect.StatusNightResting>
+  <RimWorldAccess.Caravan.Inspect.StatusUsingBedrolls>Використовується спальних місць для кращого відпочинку: {0}.</RimWorldAccess.Caravan.Inspect.StatusUsingBedrolls>
+  <RimWorldAccess.Caravan.Inspect.StatusNoBedrollsGround>Немає спальних місць — персонажі сплять на землі.</RimWorldAccess.Caravan.Inspect.StatusNoBedrollsGround>
+  <RimWorldAccess.Caravan.Inspect.StatusPaused>Рух каравану призупинено.</RimWorldAccess.Caravan.Inspect.StatusPaused>
+  <RimWorldAccess.Caravan.Inspect.StatusTraveling>Караван прямує до призначення.</RimWorldAccess.Caravan.Inspect.StatusTraveling>
+  <RimWorldAccess.Caravan.Inspect.StatusStopped>Караван зупинився й очікує наказів.</RimWorldAccess.Caravan.Inspect.StatusStopped>
+
+  <!-- =================================================================
+       Caravan input helper (CaravanInputHelper).
+       Alt+H/M/N/G/K dispatch from inside the caravan dialog tabs.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.Input.NoPawnSelected>Персонажа не вибрано. Спершу перейдіть на вкладку персонажів.</RimWorldAccess.Caravan.Input.NoPawnSelected>
+  <RimWorldAccess.Caravan.Input.RemovedSingle>Прибрано: {0}</RimWorldAccess.Caravan.Input.RemovedSingle>
+  <RimWorldAccess.Caravan.Input.RemovedAllOf>Прибрано всі {0} {1}</RimWorldAccess.Caravan.Input.RemovedAllOf>
+
+  <!-- =================================================================
+       Caravan UI helper (CaravanUIHelper).
+       Toggling individual transferable rows. Spoken on space-bar
+       check / uncheck. {0} = item label.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.UI.TransferableUnchecked>{0}: позначку знято</RimWorldAccess.Caravan.UI.TransferableUnchecked>
+  <RimWorldAccess.Caravan.UI.TransferableChecked>{0}: позначено</RimWorldAccess.Caravan.UI.TransferableChecked>
+
+  <!-- =================================================================
+       Caravan quantity helper (CaravanQuantityHelper).
+       Boundary feedback when adjusting per-item quantities.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.Quantity.NotEnoughCapacity>Недостатньо вантажопідйомності для більшої кількості</RimWorldAccess.Caravan.Quantity.NotEnoughCapacity>
+  <!-- Shift+Enter "add maximum" feedback. {N} are counts; the trailing
+       insert is the localized MassSuffix (", X kg") or empty. -->
+  <RimWorldAccess.Caravan.Quantity.MassSuffix>, {0} кг</RimWorldAccess.Caravan.Quantity.MassSuffix>
+  <RimWorldAccess.Caravan.Quantity.TakingOne>Береться 1{0}</RimWorldAccess.Caravan.Quantity.TakingOne>
+  <RimWorldAccess.Caravan.Quantity.TakingAll>Береться все: {0}{1}</RimWorldAccess.Caravan.Quantity.TakingAll>
+  <RimWorldAccess.Caravan.Quantity.TakingXofY>Береться {0} з {1}{2}</RimWorldAccess.Caravan.Quantity.TakingXofY>
+  <RimWorldAccess.Caravan.Quantity.TakingXofYLimit>Береться {0} з {1}{2}, межа вантажопідйомності</RimWorldAccess.Caravan.Quantity.TakingXofYLimit>
+  <RimWorldAccess.Caravan.Quantity.AddedOne>Додано 1{0}</RimWorldAccess.Caravan.Quantity.AddedOne>
+  <RimWorldAccess.Caravan.Quantity.AddedOneNowAll>Додано 1, тепер береться все: {0}{1}</RimWorldAccess.Caravan.Quantity.AddedOneNowAll>
+  <RimWorldAccess.Caravan.Quantity.AddedNowAll>Додано {0}, тепер береться все: {1}{2}</RimWorldAccess.Caravan.Quantity.AddedNowAll>
+  <RimWorldAccess.Caravan.Quantity.AddedNowXofY>Додано {0}, тепер {1} з {2}{3}</RimWorldAccess.Caravan.Quantity.AddedNowXofY>
+  <RimWorldAccess.Caravan.Quantity.AddedNowXofYLimit>Додано {0}, тепер {1} з {2}{3}, межа вантажопідйомності</RimWorldAccess.Caravan.Quantity.AddedNowXofYLimit>
+
+  <!-- =================================================================
+       Caravan announcement helper (CaravanAnnouncementHelper).
+       Shared per-tab "no items" announcement.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.Announce.NoItemsInTab>На цій вкладці немає предметів</RimWorldAccess.Caravan.Announce.NoItemsInTab>
+  <!-- Per-item announcement fragments for the formation/split tab lists.
+       Appended after the item label with a leading separator in code. -->
+  <RimWorldAccess.Caravan.Announce.NoItemSelected>Предмет не вибрано</RimWorldAccess.Caravan.Announce.NoItemSelected>
+  <RimWorldAccess.Caravan.Announce.TakingXofY>Береться {0} з {1}</RimWorldAccess.Caravan.Announce.TakingXofY>
+  <RimWorldAccess.Caravan.Announce.XAvailable>{0} доступно</RimWorldAccess.Caravan.Announce.XAvailable>
+  <RimWorldAccess.Caravan.Announce.Wielding>(тримає {0})</RimWorldAccess.Caravan.Announce.Wielding>
+  <RimWorldAccess.Caravan.Announce.Checked>позначено</RimWorldAccess.Caravan.Announce.Checked>
+  <RimWorldAccess.Caravan.Announce.MassKg>Вага: {0} кг</RimWorldAccess.Caravan.Announce.MassKg>
+  <RimWorldAccess.Caravan.Announce.SearchMatch>«{0}» збіг {1} з {2}</RimWorldAccess.Caravan.Announce.SearchMatch>
+
+  <!-- =================================================================
+       Gear-equip menu (GearEquipMenuState).
+       Pawn picker shown by Alt+E while inspecting an item; user
+       chooses who to equip the item on. Handles swap/replace/equip
+       paths and apparel locking.
+       {0} = action verb (Equip / Wear / Drop), {1} = item label,
+       {2} = target pawn, {3} = previously-equipped item or owner.
+       ================================================================= -->
+  <RimWorldAccess.Gear.CannotOpenEquipMenu>Неможливо відкрити меню спорядження</RimWorldAccess.Gear.CannotOpenEquipMenu>
+  <RimWorldAccess.Gear.NoPawnsAvailable>Немає персонажів, доступних для спорядження цим предметом</RimWorldAccess.Gear.NoPawnsAvailable>
+  <RimWorldAccess.Gear.OpenInstructions>{0} {1}, кому? Використовуйте стрілки для навігації, Enter — вибрати, Escape — скасувати.</RimWorldAccess.Gear.OpenInstructions>
+  <RimWorldAccess.Gear.CannotEquipReason>Неможливо спорядити: {0}</RimWorldAccess.Gear.CannotEquipReason>
+  <RimWorldAccess.Gear.UnequippedToInventory>{0} переміщено до інвентарю.</RimWorldAccess.Gear.UnequippedToInventory>
+  <RimWorldAccess.Gear.SwappedTwoOwners>Обмін виконано. Тепер {0} має {1}, а {2} має {3}.</RimWorldAccess.Gear.SwappedTwoOwners>
+  <RimWorldAccess.Gear.SwappedToInventory>Обмін виконано. Тепер {0} має {1}. {2} переміщено до інвентарю.</RimWorldAccess.Gear.SwappedToInventory>
+  <RimWorldAccess.Gear.EquippedTo>{1} споряджено предметом {0}.</RimWorldAccess.Gear.EquippedTo>
+  <RimWorldAccess.Gear.FailedToEquip>Не вдалося спорядити предмет</RimWorldAccess.Gear.FailedToEquip>
+  <RimWorldAccess.Gear.CannotRemoveLockedApparel>Неможливо зняти заблокований одяг</RimWorldAccess.Gear.CannotRemoveLockedApparel>
+  <RimWorldAccess.Gear.CannotRemoveLockedFromPawn>Неможливо зняти заблокований одяг {0} з персонажа {1}</RimWorldAccess.Gear.CannotRemoveLockedFromPawn>
+  <RimWorldAccess.Gear.LabelPosition>{0}. {1}</RimWorldAccess.Gear.LabelPosition>
+  <RimWorldAccess.Gear.UnequipToInventory>Зняти до інвентарю</RimWorldAccess.Gear.UnequipToInventory>
+  <RimWorldAccess.Gear.PawnCantEquip>{0} (неможливо спорядити: {1})</RimWorldAccess.Gear.PawnCantEquip>
+  <RimWorldAccess.Gear.PawnWithCurrent>{0} ({1})</RimWorldAccess.Gear.PawnWithCurrent>
+  <RimWorldAccess.Gear.ActionGive>Дати</RimWorldAccess.Gear.ActionGive>
+  <RimWorldAccess.Gear.ActionEquip>Спорядити</RimWorldAccess.Gear.ActionEquip>
+
+  <!-- =================================================================
+       Quest locations browser (QuestLocationsBrowserState).
+       List of tiles flagged by quests; J key opens it from the world
+       map. {0} = filter or position.
+       ================================================================= -->
+  <RimWorldAccess.QuestBrowser.QuestSystemUnavailable>Система завдань недоступна</RimWorldAccess.QuestBrowser.QuestSystemUnavailable>
+  <RimWorldAccess.QuestBrowser.NoQuestLocationsFound>Місць завдань не знайдено</RimWorldAccess.QuestBrowser.NoQuestLocationsFound>
+  <RimWorldAccess.QuestBrowser.Closed>Оглядач місць завдань закрито</RimWorldAccess.QuestBrowser.Closed>
+  <RimWorldAccess.QuestBrowser.NoQuestLocationsAvailable>Немає доступних місць завдань</RimWorldAccess.QuestBrowser.NoQuestLocationsAvailable>
+  <RimWorldAccess.QuestBrowser.NoQuestLocationSelected>Місце завдання не вибрано</RimWorldAccess.QuestBrowser.NoQuestLocationSelected>
+  <RimWorldAccess.QuestBrowser.UnknownLocation>Невідоме місце</RimWorldAccess.QuestBrowser.UnknownLocation>
+  <RimWorldAccess.QuestBrowser.LocationAnnouncement>{0} — {1}, {2} плиток. {3}. {4}</RimWorldAccess.QuestBrowser.LocationAnnouncement>
+
+  <!-- =================================================================
+       Settlement browser (SettlementBrowserState).
+       Filterable settlement list (Friendly / Hostile / Neutral / Player).
+       {0} = filter name, {1} = match count.
+       ================================================================= -->
+  <RimWorldAccess.SettlementBrowser.WorldObjectsUnavailable>Об'єкти світу недоступні</RimWorldAccess.SettlementBrowser.WorldObjectsUnavailable>
+  <RimWorldAccess.SettlementBrowser.NoSettlementsFound>Поселень не знайдено</RimWorldAccess.SettlementBrowser.NoSettlementsFound>
+  <RimWorldAccess.SettlementBrowser.Closed>Оглядач поселень закрито</RimWorldAccess.SettlementBrowser.Closed>
+  <RimWorldAccess.SettlementBrowser.NoSettlementsMatchFilter>Жодне поселення не відповідає цьому фільтру</RimWorldAccess.SettlementBrowser.NoSettlementsMatchFilter>
+  <RimWorldAccess.SettlementBrowser.NoSettlementsAvailable>Немає доступних поселень</RimWorldAccess.SettlementBrowser.NoSettlementsAvailable>
+  <RimWorldAccess.SettlementBrowser.NoSettlementSelected>Поселення не вибрано</RimWorldAccess.SettlementBrowser.NoSettlementSelected>
+  <RimWorldAccess.SettlementBrowser.FilterCount>{0}, знайдено: {1}</RimWorldAccess.SettlementBrowser.FilterCount>
+  <RimWorldAccess.SettlementBrowser.FilterPlayer>Поселення гравця</RimWorldAccess.SettlementBrowser.FilterPlayer>
+  <RimWorldAccess.SettlementBrowser.FilterAllied>Союзні поселення</RimWorldAccess.SettlementBrowser.FilterAllied>
+  <RimWorldAccess.SettlementBrowser.FilterNeutral>Нейтральні поселення</RimWorldAccess.SettlementBrowser.FilterNeutral>
+  <RimWorldAccess.SettlementBrowser.FilterHostile>Ворожі поселення</RimWorldAccess.SettlementBrowser.FilterHostile>
+  <RimWorldAccess.SettlementBrowser.FilterAll>Усі поселення</RimWorldAccess.SettlementBrowser.FilterAll>
+  <RimWorldAccess.SettlementBrowser.FilterUnknown>Невідомий фільтр</RimWorldAccess.SettlementBrowser.FilterUnknown>
+  <RimWorldAccess.SettlementBrowser.RelationshipUnknown>Невідомо</RimWorldAccess.SettlementBrowser.RelationshipUnknown>
+  <RimWorldAccess.SettlementBrowser.RelationshipPlayer>Гравець</RimWorldAccess.SettlementBrowser.RelationshipPlayer>
+  <RimWorldAccess.SettlementBrowser.RelationshipHostile>Ворожі</RimWorldAccess.SettlementBrowser.RelationshipHostile>
+  <RimWorldAccess.SettlementBrowser.SettlementAnnouncement>{0}, {1}, {2}, {3} плиток. {4}</RimWorldAccess.SettlementBrowser.SettlementAnnouncement>
+  <RimWorldAccess.SettlementBrowser.SearchAnnouncement>{0}: {1}, {2}, {3}, {4} плиток</RimWorldAccess.SettlementBrowser.SearchAnnouncement>
+  <RimWorldAccess.SettlementBrowser.SearchInfo>«{0}» збіг {1} з {2}</RimWorldAccess.SettlementBrowser.SearchInfo>
+
+  <!-- =================================================================
+       Stat-breakdown overlay (StatBreakdownState).
+       Tree of stat factors opened by Alt+I from a summary stat row.
+       {0} = stat name, {1} = factor count, {2} = suffix.
+       ================================================================= -->
+  <RimWorldAccess.StatBreakdown.NoBreakdownFor>Деталізація недоступна для: {0}</RimWorldAccess.StatBreakdown.NoBreakdownFor>
+  <RimWorldAccess.StatBreakdown.NoFactorsFor>Немає чинників деталізації для: {0}</RimWorldAccess.StatBreakdown.NoFactorsFor>
+  <RimWorldAccess.StatBreakdown.HeaderWithSuffix>Деталізація показника {0} (чинників: {1}){2}.</RimWorldAccess.StatBreakdown.HeaderWithSuffix>
+  <RimWorldAccess.StatBreakdown.Closed>Деталізацію закрито</RimWorldAccess.StatBreakdown.Closed>
+  <RimWorldAccess.StatBreakdown.NotExpandable>Не розгортається</RimWorldAccess.StatBreakdown.NotExpandable>
+  <RimWorldAccess.StatBreakdown.AlreadyExpanded>Уже розгорнуто</RimWorldAccess.StatBreakdown.AlreadyExpanded>
+  <RimWorldAccess.StatBreakdown.TreeviewSuffix> деревоподібний список</RimWorldAccess.StatBreakdown.TreeviewSuffix>
+
+  <!-- =================================================================
+       Route planner (RoutePlannerState).
+       Caravan waypoint planner. Estimated travel time always pairs
+       with the speed-source noun ("walking", "driving", etc.) which
+       comes from game data, lowercased before display.
+       {0} = waypoint count, {1} = travel time string,
+       {2} = speed source noun, {3} = error/limit message,
+       {4} = destination name.
+       ================================================================= -->
+  <RimWorldAccess.Route.WorldNavMustBeActive>Навігація світом має бути активною</RimWorldAccess.Route.WorldNavMustBeActive>
+  <RimWorldAccess.Route.PlannerNotAvailable>Планувальник маршруту недоступний</RimWorldAccess.Route.PlannerNotAvailable>
+  <RimWorldAccess.Route.NoCaravanDialog>Немає діалогу каравану</RimWorldAccess.Route.NoCaravanDialog>
+  <RimWorldAccess.Route.PlannerNotActive>Планувальник маршруту неактивний</RimWorldAccess.Route.PlannerNotActive>
+  <RimWorldAccess.Route.WorldNavNotActive>Навігація світом неактивна</RimWorldAccess.Route.WorldNavNotActive>
+  <RimWorldAccess.Route.ChoosingPrompt>Вибір маршруту. {0} Пробіл — додати точку маршруту, E — час подорожі, Enter — підтвердити, Escape — скасувати.</RimWorldAccess.Route.ChoosingPrompt>
+  <RimWorldAccess.Route.StandaloneInstructions>Планувальник маршруту активний. Пробіл — додати точку маршруту, Shift+Пробіл — прибрати точку маршруту під курсором, E — час подорожі, Escape — вийти.</RimWorldAccess.Route.StandaloneInstructions>
+  <RimWorldAccess.Route.Closed>Планувальник маршруту закрито</RimWorldAccess.Route.Closed>
+  <RimWorldAccess.Route.WaypointAddedWithEta>Точку маршруту {0} додано. Очікуваний час подорожі: {1} {2}</RimWorldAccess.Route.WaypointAddedWithEta>
+  <RimWorldAccess.Route.WaypointAddedStarting>Точку маршруту {0} додано (початкова точка)</RimWorldAccess.Route.WaypointAddedStarting>
+  <RimWorldAccess.Route.NoWaypointToRemove>Тут немає точки маршруту для видалення</RimWorldAccess.Route.NoWaypointToRemove>
+  <RimWorldAccess.Route.WaypointRemoved>Точку маршруту {0} прибрано. Залишилося точок маршруту: {1}.</RimWorldAccess.Route.WaypointRemoved>
+  <RimWorldAccess.Route.WaypointRemovedWithEta>Точку маршруту {0} прибрано. Залишилося точок маршруту: {1}. Очікуваний час подорожі: {2} {3}</RimWorldAccess.Route.WaypointRemovedWithEta>
+  <!-- Travel-speed source line (RoutePlannerState). UsingCaravanSpeed {0}=caravan label. -->
+  <RimWorldAccess.Route.UsingCaravanSpeed>Використовується швидкість каравану {0}</RimWorldAccess.Route.UsingCaravanSpeed>
+  <RimWorldAccess.Route.UsingAverageSpeed>Використовується середня швидкість каравану</RimWorldAccess.Route.UsingAverageSpeed>
+  <RimWorldAccess.Route.EtaWithSource>Очікуваний час подорожі: {0} {1}</RimWorldAccess.Route.EtaWithSource>
+  <RimWorldAccess.Route.NoWaypointsSet>Точок маршруту не задано</RimWorldAccess.Route.NoWaypointsSet>
+  <RimWorldAccess.Route.StartingPoint>Початкова точка: {0}. Додавайте точки маршруту клавішею Пробіл.</RimWorldAccess.Route.StartingPoint>
+  <RimWorldAccess.Route.WaypointSummary>{0} точок маршруту. {1} {2}</RimWorldAccess.Route.WaypointSummary>
+  <RimWorldAccess.Route.RouteConfirmed>Маршрут підтверджено. Призначення: {0}</RimWorldAccess.Route.RouteConfirmed>
+  <RimWorldAccess.Route.AlreadySent>Караван уже відправлено. Планувальник маршруту закрито.</RimWorldAccess.Route.AlreadySent>
+
+  <!-- =================================================================
+       World scanner (WorldScannerState).
+       Mirrors Map scanner pattern - same category structure,
+       PgUp/PgDn for items inside categories, etc. {0} = layer,
+       {1} = direction noun, {2} = distance, {3} = category name,
+       {4} = item count, {5} = position.
+       ================================================================= -->
+  <RimWorldAccess.WorldScanner.AutoJumpEnabled>Режим автопереходу увімкнено</RimWorldAccess.WorldScanner.AutoJumpEnabled>
+  <RimWorldAccess.WorldScanner.AutoJumpDisabled>Режим автопереходу вимкнено</RimWorldAccess.WorldScanner.AutoJumpDisabled>
+  <RimWorldAccess.WorldScanner.NavNotActive>Навігація світом неактивна</RimWorldAccess.WorldScanner.NavNotActive>
+  <RimWorldAccess.WorldScanner.NoWorldObjects>Об'єктів світу не знайдено</RimWorldAccess.WorldScanner.NoWorldObjects>
+  <RimWorldAccess.WorldScanner.NoSubcategories>Немає підкатегорій</RimWorldAccess.WorldScanner.NoSubcategories>
+  <RimWorldAccess.WorldScanner.NoItemsInCategory>У цій категорії немає елементів</RimWorldAccess.WorldScanner.NoItemsInCategory>
+  <RimWorldAccess.WorldScanner.NoInstancesToNavigate>Немає об'єктів для навігації</RimWorldAccess.WorldScanner.NoInstancesToNavigate>
+  <RimWorldAccess.WorldScanner.SwitchedToLayer>Перехід на шар: {0}.</RimWorldAccess.WorldScanner.SwitchedToLayer>
+  <RimWorldAccess.WorldScanner.DirectionDistance>{0}, {1} плиток</RimWorldAccess.WorldScanner.DirectionDistance>
+  <RimWorldAccess.WorldScanner.CategoryAnnouncement>{0}, {1} елементів. Категорія {2} з {3}</RimWorldAccess.WorldScanner.CategoryAnnouncement>
+  <RimWorldAccess.WorldScanner.SubcategoryAnnouncement>{0}, {1} елементів. Підкатегорія {2} з {3}</RimWorldAccess.WorldScanner.SubcategoryAnnouncement>
+
+  <!-- =================================================================
+       World object inspect (WorldObjectSelectionState + WorldNavigationPatch).
+       The "Selection" overlay opened by Alt+I on the world map,
+       listing world objects on the focused tile.
+       {0} = settlement / map-parent label.
+       ================================================================= -->
+  <RimWorldAccess.WorldObject.NoObjectsHere>Тут немає об'єктів</RimWorldAccess.WorldObject.NoObjectsHere>
+  <RimWorldAccess.WorldObject.NoObjectsToInspect>Тут немає об'єктів для огляду</RimWorldAccess.WorldObject.NoObjectsToInspect>
+  <RimWorldAccess.WorldObject.Entering>Вхід до {0}</RimWorldAccess.WorldObject.Entering>
+  <RimWorldAccess.WorldObject.NoActionAvailable>Дія недоступна</RimWorldAccess.WorldObject.NoActionAvailable>
+  <RimWorldAccess.WorldObject.SelectionClosed>Виділення закрито</RimWorldAccess.WorldObject.SelectionClosed>
+  <RimWorldAccess.WorldObject.ObjectsAtTile>На цій плитці об'єктів: {0}</RimWorldAccess.WorldObject.ObjectsAtTile>
+
+  <!-- =================================================================
+       World tile info helper (WorldInfoHelper.cs).
+       Tile read-out helpers used across the world map: brief summary
+       (arrow-key navigation), detailed tile info (I-key), per-category
+       readouts (number keys 1-5), settlement info, caravan status /
+       short-status / path announcements, and road / river direction
+       descriptions.
+
+       Compass direction nouns reuse RimWorldAccess.Map.Direction.Lower.*
+       (the eight lowercase forms north / northeast / east / ... ); the
+       internal compass tokens stay English inside WorldInfoHelper for
+       dictionary lookups and only get translated at emission time via
+       a private LocalizeCompass helper.
+
+       A small slice of legacy behavior continues to operate on the
+       game's English-language inspect strings: ConvertToInfinitive
+       (turning "Entering Mikaelville" into "enter Mikaelville") and
+       the "Traveling to X" prefix extraction in GetDestinationSuffix /
+       GetCaravanDestinationName both pattern-match English. Non-English
+       game data falls through to the destination-tile fallback and the
+       phrase frames below stay localizable.
+
+       {0}/{1}/... = data-driven values per phrase (counts, names,
+       distances, biome / hilliness / faction labels from game data).
+       ================================================================= -->
+
+  <!-- Guard / "tile is invalid or unknown" returns. -->
+  <RimWorldAccess.World.Tile.Invalid>Недійсна плитка</RimWorldAccess.World.Tile.Invalid>
+  <RimWorldAccess.World.Tile.Unknown>Невідома плитка</RimWorldAccess.World.Tile.Unknown>
+
+  <!-- Settlement field labels and parentheticals. The Inline / *Field
+       split lets GetTileSummary emit "FactionName, Hostile +0" inside
+       parentheses while GetSettlementInfo emits "Faction: X" /
+       "Relationship: X" on their own lines. -->
+  <RimWorldAccess.World.Settlement.None>Немає поселення</RimWorldAccess.World.Settlement.None>
+  <RimWorldAccess.World.Settlement.FactionInline>{0}</RimWorldAccess.World.Settlement.FactionInline>
+  <RimWorldAccess.World.Settlement.FactionWithRelationInline>{0}, {1} {2}</RimWorldAccess.World.Settlement.FactionWithRelationInline>
+  <!-- Settlement label with parenthesized faction info: "Outpost (Empire, Ally +30)". -->
+  <RimWorldAccess.World.Settlement.LabelWithFaction>{0} ({1})</RimWorldAccess.World.Settlement.LabelWithFaction>
+  <RimWorldAccess.World.Settlement.GoodwillPositive>+{0}</RimWorldAccess.World.Settlement.GoodwillPositive>
+  <RimWorldAccess.World.Settlement.RequiresTitleToTrade>Для торгівлі потрібен титул: {0}</RimWorldAccess.World.Settlement.RequiresTitleToTrade>
+  <RimWorldAccess.World.Settlement.LabelField>Поселення: {0}</RimWorldAccess.World.Settlement.LabelField>
+  <RimWorldAccess.World.Settlement.FactionField>Фракція: {0}</RimWorldAccess.World.Settlement.FactionField>
+  <RimWorldAccess.World.Settlement.RelationshipField>Стосунки: {0}</RimWorldAccess.World.Settlement.RelationshipField>
+  <RimWorldAccess.World.Settlement.RelationshipWithGoodwillField>Стосунки: {0} ({1})</RimWorldAccess.World.Settlement.RelationshipWithGoodwillField>
+  <RimWorldAccess.World.Settlement.GoodwillField>Прихильність: {0}</RimWorldAccess.World.Settlement.GoodwillField>
+  <RimWorldAccess.World.Settlement.PlayerColonyRelationship>Колонія гравця</RimWorldAccess.World.Settlement.PlayerColonyRelationship>
+  <RimWorldAccess.World.Settlement.HostileRelationship>Ворожі</RimWorldAccess.World.Settlement.HostileRelationship>
+  <RimWorldAccess.World.Settlement.StatusVisitable>Стан: можна відвідати</RimWorldAccess.World.Settlement.StatusVisitable>
+  <RimWorldAccess.World.Settlement.StatusAttackable>Стан: можна атакувати</RimWorldAccess.World.Settlement.StatusAttackable>
+
+  <!-- Tile summary (GetTileSummary). Composes biome, landmark, fuel
+       cost, hilliness, temperature, world objects, road, river, quest,
+       and route info. Most items are appended via ", "; full sentences
+       via ". " - composition stays in code so each segment translates
+       independently. -->
+  <RimWorldAccess.World.Tile.Summary.WaypointPrefix>Точка маршруту {0}. </RimWorldAccess.World.Tile.Summary.WaypointPrefix>
+  <RimWorldAccess.World.Tile.Summary.RoadInline>{0} {1}</RimWorldAccess.World.Tile.Summary.RoadInline>
+  <RimWorldAccess.World.Tile.Summary.RiverInline>Річка {0}</RimWorldAccess.World.Tile.Summary.RiverInline>
+  <RimWorldAccess.World.Tile.Caravan.IsHere>{0} тут</RimWorldAccess.World.Tile.Caravan.IsHere>
+  <RimWorldAccess.World.Tile.Caravan.AreHere>{0} тут</RimWorldAccess.World.Tile.Caravan.AreHere>
+  <RimWorldAccess.World.Tile.Caravan.WithDetailParenthetical>{0} ({1})</RimWorldAccess.World.Tile.Caravan.WithDetailParenthetical>
+
+  <!-- Caravan status (GetCaravanStatus + GetCaravanShortStatus). -->
+  <RimWorldAccess.World.Caravan.DefaultLabel>Караван</RimWorldAccess.World.Caravan.DefaultLabel>
+  <RimWorldAccess.World.Caravan.Status.Unknown>невідомо</RimWorldAccess.World.Caravan.Status.Unknown>
+  <RimWorldAccess.World.Caravan.Status.AllDowned>усі непритомні</RimWorldAccess.World.Caravan.Status.AllDowned>
+  <RimWorldAccess.World.Caravan.Status.MentalBreak>психічний зрив</RimWorldAccess.World.Caravan.Status.MentalBreak>
+  <RimWorldAccess.World.Caravan.Status.Overloaded>перевантажено</RimWorldAccess.World.Caravan.Status.Overloaded>
+  <RimWorldAccess.World.Caravan.Status.Visiting>відвідує {0}</RimWorldAccess.World.Caravan.Status.Visiting>
+  <RimWorldAccess.World.Caravan.Status.Paused>призупинено</RimWorldAccess.World.Caravan.Status.Paused>
+  <RimWorldAccess.World.Caravan.Status.Resting>відпочиває</RimWorldAccess.World.Caravan.Status.Resting>
+  <RimWorldAccess.World.Caravan.Status.Waiting>очікує</RimWorldAccess.World.Caravan.Status.Waiting>
+  <RimWorldAccess.World.Caravan.Status.Stopped>зупинено</RimWorldAccess.World.Caravan.Status.Stopped>
+  <RimWorldAccess.World.Caravan.Status.Traveling>прямує</RimWorldAccess.World.Caravan.Status.Traveling>
+  <RimWorldAccess.World.Caravan.Status.TravelingTo>прямує до {0}</RimWorldAccess.World.Caravan.Status.TravelingTo>
+  <RimWorldAccess.World.Caravan.Status.HeadingDirection>прямує на {0}</RimWorldAccess.World.Caravan.Status.HeadingDirection>
+  <RimWorldAccess.World.Caravan.Status.HeadingDirectionToward>прямує на {0} до {1}</RimWorldAccess.World.Caravan.Status.HeadingDirectionToward>
+
+  <!-- Bedroll parenthetical appended to "resting" when the caravan
+       has bedrolls in use. One/Many split for subject-verb agreement
+       (1 bedroll vs N bedrolls). The leading space matches the
+       concatenation pattern used by GetCaravanStatus. -->
+  <RimWorldAccess.World.Caravan.RestingBedsOneSuffix> (1 спальне місце)</RimWorldAccess.World.Caravan.RestingBedsOneSuffix>
+  <RimWorldAccess.World.Caravan.RestingBedsManySuffix> ({0} спальних місць)</RimWorldAccess.World.Caravan.RestingBedsManySuffix>
+
+  <!-- Destination suffix (GetDestinationSuffix). Two top-level shapes
+       (active "to" vs paused "will") x two arrival sources (the game's
+       "Traveling to X" extracted form vs a verb-extracted infinitive
+       phrase). The ActiveTo / PausedSeparate variants take the bare
+       destination name; the *Verb variants take the infinitive phrase
+       like "enter Mikaelville". -->
+  <RimWorldAccess.World.Caravan.SuffixActiveTo> до {0}</RimWorldAccess.World.Caravan.SuffixActiveTo>
+  <RimWorldAccess.World.Caravan.SuffixActiveVerb>, щоб {0}</RimWorldAccess.World.Caravan.SuffixActiveVerb>
+  <RimWorldAccess.World.Caravan.SuffixPausedSeparate>. До {0}</RimWorldAccess.World.Caravan.SuffixPausedSeparate>
+  <RimWorldAccess.World.Caravan.SuffixPausedVerb>, щоб {0}</RimWorldAccess.World.Caravan.SuffixPausedVerb>
+
+  <!-- Caravan path announcement (GetCaravanPathAnnouncement). Used
+       when a caravan's planned path passes through (or terminates at)
+       the focused tile. -->
+  <RimWorldAccess.World.Caravan.PathHeadingTowardOnTile>{0} прямує на {1} до {2}.</RimWorldAccess.World.Caravan.PathHeadingTowardOnTile>
+  <RimWorldAccess.World.Caravan.PathHeadingOnTile>{0} прямує на {1}.</RimWorldAccess.World.Caravan.PathHeadingOnTile>
+  <RimWorldAccess.World.Caravan.PathWillHead>{0} рушить на {1}.</RimWorldAccess.World.Caravan.PathWillHead>
+  <RimWorldAccess.World.Caravan.PathWillStopHere>{0} зупиниться тут.</RimWorldAccess.World.Caravan.PathWillStopHere>
+
+  <!-- Quest entries (GetQuestInfoForTile + GetDetailedQuestInfoForTile).
+       Difficulty stars are split One/Many. Description-suffix variants
+       compose with " - " inside the same key so the punctuation belongs
+       to the phrase. -->
+  <RimWorldAccess.World.Quest.DifficultyOneStar>1 зірка</RimWorldAccess.World.Quest.DifficultyOneStar>
+  <RimWorldAccess.World.Quest.DifficultyManyStars>{0} зірок</RimWorldAccess.World.Quest.DifficultyManyStars>
+  <RimWorldAccess.World.Quest.Label>Завдання: {0}</RimWorldAccess.World.Quest.Label>
+  <RimWorldAccess.World.Quest.LabelWithDifficulty>Завдання: {0} ({1})</RimWorldAccess.World.Quest.LabelWithDifficulty>
+  <RimWorldAccess.World.Quest.LabelWithDescription>Завдання: {0} — {1}</RimWorldAccess.World.Quest.LabelWithDescription>
+  <RimWorldAccess.World.Quest.LabelWithDifficultyAndDescription>Завдання: {0} ({1}) — {2}</RimWorldAccess.World.Quest.LabelWithDifficultyAndDescription>
+  <RimWorldAccess.World.Quest.DetailDifficultyField>Складність: {0}</RimWorldAccess.World.Quest.DetailDifficultyField>
+  <RimWorldAccess.World.Quest.DetailDescriptionField>Опис: {0}</RimWorldAccess.World.Quest.DetailDescriptionField>
+
+  <!-- Detailed tile info (GetDetailedTileInfo) - I-key view. -->
+  <RimWorldAccess.World.Tile.Detail.Coordinates>Координати: {0}° пн. ш., {1}° сх. д.</RimWorldAccess.World.Tile.Detail.Coordinates>
+  <RimWorldAccess.World.Tile.Detail.Biome>Біом: {0}</RimWorldAccess.World.Tile.Detail.Biome>
+  <RimWorldAccess.World.Tile.Detail.Hilliness>Рельєф: {0}</RimWorldAccess.World.Tile.Detail.Hilliness>
+  <RimWorldAccess.World.Tile.Detail.Elevation>Висота: {0} м</RimWorldAccess.World.Tile.Detail.Elevation>
+  <RimWorldAccess.World.Tile.Detail.TemperatureAverage>Температура: середня {0}</RimWorldAccess.World.Tile.Detail.TemperatureAverage>
+  <RimWorldAccess.World.Tile.Detail.Pollution>Забруднення: {0}%</RimWorldAccess.World.Tile.Detail.Pollution>
+  <RimWorldAccess.World.Tile.Detail.WorldObjectsHeader>Об'єкти світу</RimWorldAccess.World.Tile.Detail.WorldObjectsHeader>
+  <RimWorldAccess.World.Tile.Detail.QuestTargetsHeader>Цілі завдань</RimWorldAccess.World.Tile.Detail.QuestTargetsHeader>
+  <!-- Whole-phrase keys for the four world-object shapes. Spoken as
+       comma- and period-separated fragments by AnnouncementBuilder. -->
+  <RimWorldAccess.World.Tile.Detail.PlayerSettlement>{0} ({1})</RimWorldAccess.World.Tile.Detail.PlayerSettlement>
+  <RimWorldAccess.World.Tile.Detail.Faction>Фракція: {0}</RimWorldAccess.World.Tile.Detail.Faction>
+  <RimWorldAccess.World.Tile.Detail.RelationshipWithGoodwill>Стосунки: {0} ({1})</RimWorldAccess.World.Tile.Detail.RelationshipWithGoodwill>
+  <RimWorldAccess.World.Tile.Detail.RequiresTitleToTrade>Для торгівлі потрібен титул: {0}</RimWorldAccess.World.Tile.Detail.RequiresTitleToTrade>
+  <RimWorldAccess.World.Tile.Detail.CaravanWithFaction>Караван: {0} ({1})</RimWorldAccess.World.Tile.Detail.CaravanWithFaction>
+  <RimWorldAccess.World.Tile.Detail.Site>Локація: {0}</RimWorldAccess.World.Tile.Detail.Site>
+
+  <!-- Number key 1: growing / food / resources. AnnouncementBuilder
+       owns the period separator, so each fragment is a clean phrase. -->
+  <RimWorldAccess.World.Tile.Growing.NoSpaceInfo>Немає інформації про вирощування для космічних плиток</RimWorldAccess.World.Tile.Growing.NoSpaceInfo>
+  <RimWorldAccess.World.Tile.Growing.Period>Сезон росту: {0}</RimWorldAccess.World.Tile.Growing.Period>
+  <RimWorldAccess.World.Tile.Growing.Rainfall>Кількість опадів: {0} мм</RimWorldAccess.World.Tile.Growing.Rainfall>
+  <RimWorldAccess.World.Tile.Growing.Forageability>Придатність для збору їжі: {0} ({1})</RimWorldAccess.World.Tile.Growing.Forageability>
+  <RimWorldAccess.World.Tile.Growing.NoForageability>Придатність для збору їжі: 0%</RimWorldAccess.World.Tile.Growing.NoForageability>
+  <RimWorldAccess.World.Tile.Growing.GrazeYes>Тварини можуть пастися: так</RimWorldAccess.World.Tile.Growing.GrazeYes>
+  <RimWorldAccess.World.Tile.Growing.GrazeNo>Тварини можуть пастися: ні</RimWorldAccess.World.Tile.Growing.GrazeNo>
+  <RimWorldAccess.World.Tile.Growing.StoneTypes>Типи каменю: {0}</RimWorldAccess.World.Tile.Growing.StoneTypes>
+
+  <!-- Number key 2: movement / terrain. -->
+  <RimWorldAccess.World.Tile.Movement.NoSpaceInfo>Немає інформації про пересування для космічних плиток</RimWorldAccess.World.Tile.Movement.NoSpaceInfo>
+  <RimWorldAccess.World.Tile.Movement.RouteArrival>Прибуття: {0}</RimWorldAccess.World.Tile.Movement.RouteArrival>
+  <RimWorldAccess.World.Tile.Movement.Impassable>Пересування: непрохідно</RimWorldAccess.World.Tile.Movement.Impassable>
+  <RimWorldAccess.World.Tile.Movement.Difficulty>Складність пересування: {0}</RimWorldAccess.World.Tile.Movement.Difficulty>
+  <RimWorldAccess.World.Tile.Movement.WinterPenaltyCurrent>Поточний зимовий штраф: +{0}</RimWorldAccess.World.Tile.Movement.WinterPenaltyCurrent>
+  <RimWorldAccess.World.Tile.Movement.WinterPenaltyDefault>Зимовий штраф: +2.0 взимку</RimWorldAccess.World.Tile.Movement.WinterPenaltyDefault>
+  <RimWorldAccess.World.Tile.Movement.Terrain>Рельєф: {0}</RimWorldAccess.World.Tile.Movement.Terrain>
+  <RimWorldAccess.World.Tile.Movement.Elevation>Висота: {0} м</RimWorldAccess.World.Tile.Movement.Elevation>
+  <RimWorldAccess.World.Tile.Movement.Road>Дорога: {0}</RimWorldAccess.World.Tile.Movement.Road>
+  <RimWorldAccess.World.Tile.Movement.River>Річка: {0}</RimWorldAccess.World.Tile.Movement.River>
+  <RimWorldAccess.World.Tile.Movement.Coastal>Узбережжя</RimWorldAccess.World.Tile.Movement.Coastal>
+
+  <!-- Number key 3: health / environment. -->
+  <RimWorldAccess.World.Tile.Health.NoSpaceInfo>Немає інформації про здоров'я для космічних плиток</RimWorldAccess.World.Tile.Health.NoSpaceInfo>
+  <RimWorldAccess.World.Tile.Health.DiseaseFrequency>Частота захворювань: {0} на рік</RimWorldAccess.World.Tile.Health.DiseaseFrequency>
+  <RimWorldAccess.World.Tile.Health.DiseaseNone>Частота захворювань: немає</RimWorldAccess.World.Tile.Health.DiseaseNone>
+  <RimWorldAccess.World.Tile.Health.TilePollution>Забруднення плитки: {0}</RimWorldAccess.World.Tile.Health.TilePollution>
+  <RimWorldAccess.World.Tile.Health.NearbyPollution>Забруднення поблизу: {0}</RimWorldAccess.World.Tile.Health.NearbyPollution>
+  <RimWorldAccess.World.Tile.Health.NoxiousHazeInterval>Інтервал отруйного серпанку: {0} днів</RimWorldAccess.World.Tile.Health.NoxiousHazeInterval>
+  <RimWorldAccess.World.Tile.Health.NoxiousHazeNever>Отруйний серпанок: ніколи</RimWorldAccess.World.Tile.Health.NoxiousHazeNever>
+
+  <!-- Number key 4: location / coordinates / time zone. -->
+  <RimWorldAccess.World.Tile.Location.Coordinates>Координати: {0} градусів {1}, {2} градусів {3}</RimWorldAccess.World.Tile.Location.Coordinates>
+  <RimWorldAccess.World.Tile.Location.LatNorth>пн. ш.</RimWorldAccess.World.Tile.Location.LatNorth>
+  <RimWorldAccess.World.Tile.Location.LatSouth>пд. ш.</RimWorldAccess.World.Tile.Location.LatSouth>
+  <RimWorldAccess.World.Tile.Location.LonEast>сх. д.</RimWorldAccess.World.Tile.Location.LonEast>
+  <RimWorldAccess.World.Tile.Location.LonWest>зх. д.</RimWorldAccess.World.Tile.Location.LonWest>
+  <RimWorldAccess.World.Tile.Location.TimeZonePositive>+{0}</RimWorldAccess.World.Tile.Location.TimeZonePositive>
+  <RimWorldAccess.World.Tile.Location.TimeZone>Часовий пояс: UTC{0}</RimWorldAccess.World.Tile.Location.TimeZone>
+  <RimWorldAccess.World.Tile.Location.TileId>Ідентифікатор плитки: {0}</RimWorldAccess.World.Tile.Location.TileId>
+
+  <!-- Number key 5: features / DLC content. -->
+  <RimWorldAccess.World.Tile.Features.Mutators>Особливості плитки: {0}</RimWorldAccess.World.Tile.Features.Mutators>
+  <RimWorldAccess.World.Tile.Features.MutatorWithDescription>{0}: {1}</RimWorldAccess.World.Tile.Features.MutatorWithDescription>
+  <RimWorldAccess.World.Tile.Features.Landmark>Орієнтир: {0}, {1}</RimWorldAccess.World.Tile.Features.Landmark>
+  <RimWorldAccess.World.Tile.Features.Region>Область: {0}</RimWorldAccess.World.Tile.Features.Region>
+  <RimWorldAccess.World.Tile.Features.MayHaveCaves>Можуть бути печери</RimWorldAccess.World.Tile.Features.MayHaveCaves>
+  <RimWorldAccess.World.Tile.Features.None>Особливих характеристик немає</RimWorldAccess.World.Tile.Features.None>
+
+  <!-- Road and river direction descriptions. The capitalized form
+       (Cap) is used standalone at sentence start; the inline lowercase
+       form (Inline) is composed with the road / river name like
+       "Highway1 runs north to south" inside GetTileSummary - the
+       trailing period is omitted from the inline keys so the caller
+       can choose the segment terminator. -->
+  <RimWorldAccess.World.Road.EndsHere>Закінчується тут.</RimWorldAccess.World.Road.EndsHere>
+  <RimWorldAccess.World.Road.EndsContinues>Закінчується тут, продовжується на {0}.</RimWorldAccess.World.Road.EndsContinues>
+  <RimWorldAccess.World.Road.Runs>Проходить з {0} на {1}.</RimWorldAccess.World.Road.Runs>
+  <RimWorldAccess.World.Road.Curves>Повертає з {0} на {1}.</RimWorldAccess.World.Road.Curves>
+  <RimWorldAccess.World.Road.Junction>Перехрестя: {0}.</RimWorldAccess.World.Road.Junction>
+  <RimWorldAccess.World.Road.EndsHere.Inline>закінчується тут</RimWorldAccess.World.Road.EndsHere.Inline>
+  <RimWorldAccess.World.Road.EndsContinues.Inline>закінчується тут, продовжується на {0}</RimWorldAccess.World.Road.EndsContinues.Inline>
+  <RimWorldAccess.World.Road.Runs.Inline>проходить з {0} на {1}</RimWorldAccess.World.Road.Runs.Inline>
+  <RimWorldAccess.World.Road.Curves.Inline>повертає з {0} на {1}</RimWorldAccess.World.Road.Curves.Inline>
+  <RimWorldAccess.World.Road.Junction.Inline>перехрестя: {0}</RimWorldAccess.World.Road.Junction.Inline>
+  <RimWorldAccess.World.River.Flows>Тече на {0}.</RimWorldAccess.World.River.Flows>
+  <RimWorldAccess.World.River.FlowsBetween>Тече з {0} на {1}.</RimWorldAccess.World.River.FlowsBetween>
+  <RimWorldAccess.World.River.Bends>Повертає з {0} на {1}.</RimWorldAccess.World.River.Bends>
+  <RimWorldAccess.World.River.Confluence>Злиття: {0}.</RimWorldAccess.World.River.Confluence>
+  <RimWorldAccess.World.River.Flows.Inline>тече на {0}</RimWorldAccess.World.River.Flows.Inline>
+  <RimWorldAccess.World.River.FlowsBetween.Inline>тече з {0} на {1}</RimWorldAccess.World.River.FlowsBetween.Inline>
+  <RimWorldAccess.World.River.Bends.Inline>повертає з {0} на {1}</RimWorldAccess.World.River.Bends.Inline>
+  <RimWorldAccess.World.River.Confluence.Inline>злиття: {0}</RimWorldAccess.World.River.Confluence.Inline>
+
+
+  <!-- World scanner readout, categories, directions, sizes (src/World/WorldScannerState.cs). -->
+  <RimWorldAccess.WorldScanner.SizeApprox>приблизно {0} плиток</RimWorldAccess.WorldScanner.SizeApprox>
+  <RimWorldAccess.WorldScanner.SizeTiles>{0} плиток</RimWorldAccess.WorldScanner.SizeTiles>
+  <RimWorldAccess.WorldScanner.SizeTilesLong>{0} плиток, {1} завдовжки</RimWorldAccess.WorldScanner.SizeTilesLong>
+  <RimWorldAccess.WorldScanner.RelDir.Ahead>Попереду</RimWorldAccess.WorldScanner.RelDir.Ahead>
+  <RimWorldAccess.WorldScanner.RelDir.AheadRight>Попереду-праворуч</RimWorldAccess.WorldScanner.RelDir.AheadRight>
+  <RimWorldAccess.WorldScanner.RelDir.Right>Праворуч</RimWorldAccess.WorldScanner.RelDir.Right>
+  <RimWorldAccess.WorldScanner.RelDir.BehindRight>Позаду-праворуч</RimWorldAccess.WorldScanner.RelDir.BehindRight>
+  <RimWorldAccess.WorldScanner.RelDir.Behind>Позаду</RimWorldAccess.WorldScanner.RelDir.Behind>
+  <RimWorldAccess.WorldScanner.RelDir.BehindLeft>Позаду-ліворуч</RimWorldAccess.WorldScanner.RelDir.BehindLeft>
+  <RimWorldAccess.WorldScanner.RelDir.Left>Ліворуч</RimWorldAccess.WorldScanner.RelDir.Left>
+  <RimWorldAccess.WorldScanner.RelDir.AheadLeft>Попереду-ліворуч</RimWorldAccess.WorldScanner.RelDir.AheadLeft>
+  <RimWorldAccess.WorldScanner.Cat.RouteWaypoints>Точки маршруту</RimWorldAccess.WorldScanner.Cat.RouteWaypoints>
+  <RimWorldAccess.WorldScanner.Cat.Settlements>Поселення</RimWorldAccess.WorldScanner.Cat.Settlements>
+  <RimWorldAccess.WorldScanner.Cat.QuestSites>Місця завдань</RimWorldAccess.WorldScanner.Cat.QuestSites>
+  <RimWorldAccess.WorldScanner.Cat.Caravans>Каравани</RimWorldAccess.WorldScanner.Cat.Caravans>
+  <RimWorldAccess.WorldScanner.Cat.OtherSites>Інші локації</RimWorldAccess.WorldScanner.Cat.OtherSites>
+  <RimWorldAccess.WorldScanner.Cat.Biomes>Біоми</RimWorldAccess.WorldScanner.Cat.Biomes>
+  <RimWorldAccess.WorldScanner.Cat.Roads>Дороги</RimWorldAccess.WorldScanner.Cat.Roads>
+  <RimWorldAccess.WorldScanner.Cat.Landmarks>Орієнтири</RimWorldAccess.WorldScanner.Cat.Landmarks>
+  <RimWorldAccess.WorldScanner.Sub.Waypoints>Точки маршруту</RimWorldAccess.WorldScanner.Sub.Waypoints>
+  <RimWorldAccess.WorldScanner.Sub.All>Усі</RimWorldAccess.WorldScanner.Sub.All>
+  <RimWorldAccess.WorldScanner.Sub.Player>Гравець</RimWorldAccess.WorldScanner.Sub.Player>
+  <RimWorldAccess.WorldScanner.Sub.Allied>Союзні</RimWorldAccess.WorldScanner.Sub.Allied>
+  <RimWorldAccess.WorldScanner.Sub.Neutral>Нейтральні</RimWorldAccess.WorldScanner.Sub.Neutral>
+  <RimWorldAccess.WorldScanner.Sub.Hostile>Ворожі</RimWorldAccess.WorldScanner.Sub.Hostile>
+  <RimWorldAccess.WorldScanner.Sub.ActiveQuests>Активні завдання</RimWorldAccess.WorldScanner.Sub.ActiveQuests>
+  <RimWorldAccess.WorldScanner.Sub.PlayerCaravans>Каравани гравця</RimWorldAccess.WorldScanner.Sub.PlayerCaravans>
+  <RimWorldAccess.WorldScanner.Sub.Sites>Локації</RimWorldAccess.WorldScanner.Sub.Sites>
+  <RimWorldAccess.WorldScanner.Sub.AllBiomes>Усі біоми</RimWorldAccess.WorldScanner.Sub.AllBiomes>
+  <RimWorldAccess.WorldScanner.Sub.AllRoads>Усі дороги</RimWorldAccess.WorldScanner.Sub.AllRoads>
+  <RimWorldAccess.WorldScanner.Unreachable>Недосяжно</RimWorldAccess.WorldScanner.Unreachable>
+  <RimWorldAccess.WorldScanner.QuestPrefix>Завдання: {0}</RimWorldAccess.WorldScanner.QuestPrefix>
+  <RimWorldAccess.WorldScanner.FactionWithType>{0}, {1}</RimWorldAccess.WorldScanner.FactionWithType>
+  <RimWorldAccess.WorldScanner.RelationshipGoodwill>{0} {1}</RimWorldAccess.WorldScanner.RelationshipGoodwill>
+  <RimWorldAccess.WorldScanner.RegionOf>Область {0} з {1}</RimWorldAccess.WorldScanner.RegionOf>
+  <RimWorldAccess.WorldScanner.CurrentLocation>Поточне місце</RimWorldAccess.WorldScanner.CurrentLocation>
+  <RimWorldAccess.WorldScanner.OnLayer>на шарі {0}</RimWorldAccess.WorldScanner.OnLayer>
+  <RimWorldAccess.WorldScanner.PositionOf>{0} з {1}</RimWorldAccess.WorldScanner.PositionOf>
+  <RimWorldAccess.WorldScanner.Waypoint>Точка маршруту {0}</RimWorldAccess.WorldScanner.Waypoint>
+  <RimWorldAccess.WorldScanner.EstimatedTravelTime>Очікуваний час подорожі: {0}</RimWorldAccess.WorldScanner.EstimatedTravelTime>
+  <RimWorldAccess.WorldScanner.WaypointStart>(Початок)</RimWorldAccess.WorldScanner.WaypointStart>
+
+  <!-- =================================================================
+       Caravan formation: colony-originated route-choice opening prompt.
+       {0} = translated "RoutePlannerAddOneOrMoreWaypoints" game string.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.Form.ChooseDestinationPrompt>Виберіть призначення для каравану на мапі світу. {0} Пробіл — додати точку маршруту, E — час подорожі, Enter — підтвердити, Escape — скасувати.</RimWorldAccess.Caravan.Form.ChooseDestinationPrompt>
+
+  <!-- =================================================================
+       World scanner: no-move guard feedback when a Home jump targets
+       the tile the player already occupies.
+       {0} = scanner item label (from game data).
+       ================================================================= -->
+  <RimWorldAccess.WorldScanner.AlreadyAt>Уже на місці: {0}</RimWorldAccess.WorldScanner.AlreadyAt>
+  <RimWorldAccess.WorldScanner.AlreadyAtCenter>Уже в центрі: {0}</RimWorldAccess.WorldScanner.AlreadyAtCenter>
+
+  <!-- World object selection tree + announcements (src/World/WorldObjectSelectionState.cs). -->
+  <RimWorldAccess.WorldObject.EnterSettlement>Увійти до поселення</RimWorldAccess.WorldObject.EnterSettlement>
+  <RimWorldAccess.WorldObject.Enter>Увійти</RimWorldAccess.WorldObject.Enter>
+  <RimWorldAccess.WorldObject.FactionLabel>Фракція: {0}</RimWorldAccess.WorldObject.FactionLabel>
+  <RimWorldAccess.WorldObject.RelationLabel>Стосунки: {0}</RimWorldAccess.WorldObject.RelationLabel>
+  <RimWorldAccess.WorldObject.CanTradeHere>Тут можна торгувати</RimWorldAccess.WorldObject.CanTradeHere>
+  <RimWorldAccess.WorldObject.LabelCaravan>{0} (караван)</RimWorldAccess.WorldObject.LabelCaravan>
+  <RimWorldAccess.WorldObject.LabelYourSettlement>{0} (ваше поселення)</RimWorldAccess.WorldObject.LabelYourSettlement>
+  <RimWorldAccess.WorldObject.LabelWithFaction>{0} ({1})</RimWorldAccess.WorldObject.LabelWithFaction>
+  <RimWorldAccess.WorldObject.LabelSite>{0} (локація)</RimWorldAccess.WorldObject.LabelSite>
+  <RimWorldAccess.WorldObject.UnknownFactionLower>невідома фракція</RimWorldAccess.WorldObject.UnknownFactionLower>
+  <RimWorldAccess.WorldObject.UnknownFaction>Невідома фракція</RimWorldAccess.WorldObject.UnknownFaction>
+  <RimWorldAccess.WorldObject.SettlementAnnounce>{0}. {1}.</RimWorldAccess.WorldObject.SettlementAnnounce>
+  <!-- Hidden display-English sweep (returned/assigned strings localized). -->
+  <RimWorldAccess.Gear.CantReason.Unknown>невідомо</RimWorldAccess.Gear.CantReason.Unknown>
+  <RimWorldAccess.Gear.CantReason.Prisoner>в'язень</RimWorldAccess.Gear.CantReason.Prisoner>
+  <RimWorldAccess.Gear.CantReason.Pacifist>пацифіст</RimWorldAccess.Gear.CantReason.Pacifist>
+  <RimWorldAccess.Gear.CantReason.CantShoot>не може стріляти</RimWorldAccess.Gear.CantReason.CantShoot>
+  <RimWorldAccess.Gear.CantReason.CantManipulate>не може маніпулювати</RimWorldAccess.Gear.CantReason.CantManipulate>
+  <RimWorldAccess.Gear.CantReason.MissingBodyParts>відсутні частини тіла</RimWorldAccess.Gear.CantReason.MissingBodyParts>
+  <RimWorldAccess.Gear.CantReason.WouldReplaceLockedApparel>замінив би заблокований одяг</RimWorldAccess.Gear.CantReason.WouldReplaceLockedApparel>
+  <RimWorldAccess.Gear.SlotUnarmed>беззбройний</RimWorldAccess.Gear.SlotUnarmed>
+  <RimWorldAccess.Gear.SlotConflictingPlusMore>{0} +{1} ще</RimWorldAccess.Gear.SlotConflictingPlusMore>
+  <RimWorldAccess.Gear.SlotNone>немає</RimWorldAccess.Gear.SlotNone>
+  <RimWorldAccess.Gear.SwappedItemFallback>предмет</RimWorldAccess.Gear.SwappedItemFallback>
+  <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
+  <RimWorldAccess.Stat.MassUnknown>Вага: невідомо</RimWorldAccess.Stat.MassUnknown>
+  <RimWorldAccess.Stat.SpeedUnknown>Швидкість: невідомо</RimWorldAccess.Stat.SpeedUnknown>
+  <RimWorldAccess.Stat.FoodUnknown>Їжа: невідомо</RimWorldAccess.Stat.FoodUnknown>
+  <RimWorldAccess.Stat.ForagingUnknown>Збір їжі: невідомо</RimWorldAccess.Stat.ForagingUnknown>
+  <RimWorldAccess.Stat.VisibilityUnknown>Помітність: невідомо</RimWorldAccess.Stat.VisibilityUnknown>
+</LanguageData>

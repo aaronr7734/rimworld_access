@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <RimWorldAccess.TextInput.LabelDefault>поле</RimWorldAccess.TextInput.LabelDefault>
+  <RimWorldAccess.TextInput.LabelFaction>назва фракції</RimWorldAccess.TextInput.LabelFaction>
+  <RimWorldAccess.TextInput.LabelSettlement>назва поселення</RimWorldAccess.TextInput.LabelSettlement>
+  <RimWorldAccess.TextInput.LabelPawnFirstName>ім'я</RimWorldAccess.TextInput.LabelPawnFirstName>
+  <RimWorldAccess.TextInput.LabelPawnNickName>прізвисько</RimWorldAccess.TextInput.LabelPawnNickName>
+  <RimWorldAccess.TextInput.LabelPawnLastName>прізвище</RimWorldAccess.TextInput.LabelPawnLastName>
+  <RimWorldAccess.TextInput.LabelZone>назва зони</RimWorldAccess.TextInput.LabelZone>
+  <RimWorldAccess.TextInput.LabelStorage>назва складу</RimWorldAccess.TextInput.LabelStorage>
+  <RimWorldAccess.TextInput.LabelPen>назва загону</RimWorldAccess.TextInput.LabelPen>
+  <RimWorldAccess.TextInput.LabelScenarioTitle>назва сценарію</RimWorldAccess.TextInput.LabelScenarioTitle>
+  <RimWorldAccess.TextInput.LabelScenarioSummary>стислий опис сценарію</RimWorldAccess.TextInput.LabelScenarioSummary>
+  <RimWorldAccess.TextInput.LabelScenarioDescription>опис сценарію</RimWorldAccess.TextInput.LabelScenarioDescription>
+  <RimWorldAccess.TextInput.LabelFilename>назва файлу</RimWorldAccess.TextInput.LabelFilename>
+  <RimWorldAccess.TextInput.LabelXenotype>назва ксенотипу</RimWorldAccess.TextInput.LabelXenotype>
+  <RimWorldAccess.TextInput.LabelXenogerm>назва ксенозародку</RimWorldAccess.TextInput.LabelXenogerm>
+  <RimWorldAccess.TextInput.LabelWorldSeed>зерно світу</RimWorldAccess.TextInput.LabelWorldSeed>
+
+  <RimWorldAccess.TextInput.EditingField>Редагування {0}: {1}. Введіть нове значення, Enter для підтвердження, Escape для скасування.</RimWorldAccess.TextInput.EditingField>
+  <RimWorldAccess.TextInput.EditingMultiLineField>Редагування багаторядкового поля {0}: {1}. Введіть текст, Shift+Enter для нового рядка, Вгору/Вниз для навігації по рядках, Enter для підтвердження, Escape для скасування.</RimWorldAccess.TextInput.EditingMultiLineField>
+  <RimWorldAccess.TextInput.Empty>порожнє</RimWorldAccess.TextInput.Empty>
+  <RimWorldAccess.TextInput.Deleted>Видалено: {0}</RimWorldAccess.TextInput.Deleted>
+  <RimWorldAccess.TextInput.FieldSet>{0}: {1}</RimWorldAccess.TextInput.FieldSet>
+  <RimWorldAccess.TextInput.FieldUnchanged>{0}: без змін</RimWorldAccess.TextInput.FieldUnchanged>
+  <RimWorldAccess.TextInput.NewLine>Новий рядок</RimWorldAccess.TextInput.NewLine>
+  <RimWorldAccess.TextInput.BlankLine>порожній рядок</RimWorldAccess.TextInput.BlankLine>
+
+  <RimWorldAccess.TextInput.Copied>Скопійовано</RimWorldAccess.TextInput.Copied>
+  <RimWorldAccess.TextInput.Cut>Вирізано</RimWorldAccess.TextInput.Cut>
+  <RimWorldAccess.TextInput.SelectedAll>Виділено все: {0}</RimWorldAccess.TextInput.SelectedAll>
+  <RimWorldAccess.TextInput.SelectedAllLong>Виділено все, {0} символів</RimWorldAccess.TextInput.SelectedAllLong>
+  <RimWorldAccess.TextInput.ClipboardEmpty>Буфер обміну порожній</RimWorldAccess.TextInput.ClipboardEmpty>
+  <RimWorldAccess.TextInput.PastedShort>Вставлено: {0}</RimWorldAccess.TextInput.PastedShort>
+  <RimWorldAccess.TextInput.PastedWords>Вставлено {0} слів</RimWorldAccess.TextInput.PastedWords>
+  <RimWorldAccess.TextInput.PastedLines>Вставлено {0} рядків, {1} слів</RimWorldAccess.TextInput.PastedLines>
+
+  <RimWorldAccess.TextInput.RejectedEmpty>Неможливо прийняти порожнє значення</RimWorldAccess.TextInput.RejectedEmpty>
+  <RimWorldAccess.TextInput.RejectedTooLong>Неможливо вставити, перевищено максимум у {0} символів</RimWorldAccess.TextInput.RejectedTooLong>
+  <RimWorldAccess.TextInput.RejectedTooShort>Неможливо вставити, потрібно щонайменше {0} символів</RimWorldAccess.TextInput.RejectedTooShort>
+  <RimWorldAccess.TextInput.RejectedDisallowed>Неможливо вставити, містить недозволені символи: {0}</RimWorldAccess.TextInput.RejectedDisallowed>
+  <RimWorldAccess.TextInput.RejectedSpecial>Неможливо вставити, містить заборонені граматичні символи</RimWorldAccess.TextInput.RejectedSpecial>
+  <RimWorldAccess.TextInput.RejectedFilename>Неможливо вставити, містить символи, недопустимі в назвах файлів</RimWorldAccess.TextInput.RejectedFilename>
+  <RimWorldAccess.TextInput.RejectedCustom>Неможливо прийняти значення: {0}</RimWorldAccess.TextInput.RejectedCustom>
+</LanguageData>

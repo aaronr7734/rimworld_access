@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Ideology module strings (src/Ideology/). Four files contribute:
+      - IdeologyHelper.cs       (list/tree construction and announcements)
+      - IdeologyTabPatch.cs     (Harmony interception — no user strings)
+      - IdeologyTabState.cs     (two-panel navigation: list + details)
+      - IdeologyTreeNavigation.cs (details panel tree nav, ritual sound preview)
+
+    Most ideology content already flows through vanilla keys
+    ("IdeoligionOf", "StructureMeme", "FluidIdeoTip", etc.) — those are left
+    alone. The keys below cover the connective English phrases we add on top
+    of the vanilla strings: faction-status parentheticals, ritual-sound preview
+    hints, tab-closed announcements, and the inspectable / info-card prompts.
+
+    Note: "Inspectable" suffix and "Choose item to inspect" live in
+    RimWorldAccess_Common.xml as RimWorldAccess.InfoCard.Inspectable and
+    RimWorldAccess.InfoCard.ChooseItemToInspect — every module that needs
+    those phrases delegates to the shared keys.
+  -->
+
+  <!-- Faction usage suffixes for the list-panel and factions section.
+       Appended parenthetically to a faction name to indicate whether the
+       faction holds this ideology as primary or minor. -->
+  <RimWorldAccess.Ideology.List.FactionPrimarySuffix>{0} (основна)</RimWorldAccess.Ideology.List.FactionPrimarySuffix>
+  <RimWorldAccess.Ideology.List.FactionMinorSuffix>{0} (другорядна)</RimWorldAccess.Ideology.List.FactionMinorSuffix>
+  <RimWorldAccess.Ideology.FactionsSection.PrimaryEntry>{0}, основна</RimWorldAccess.Ideology.FactionsSection.PrimaryEntry>
+  <RimWorldAccess.Ideology.FactionsSection.MinorEntry>{0}, другорядна</RimWorldAccess.Ideology.FactionsSection.MinorEntry>
+
+  <!-- Style-category ritual-sound preview hints. Shown in a tree node label
+       so keyboard users know to expand the node and press Enter to preview
+       the ritual ambience sound.
+         {0} = comma-separated style names that have a sound preview
+         {1} = count (Many only)
+       Separate One/Many keys because English needs subject-verb agreement
+       ("1 style has" vs "N styles have") and noun-plural agreement
+       ("preview" vs "previews"). -->
+  <RimWorldAccess.Ideology.Styles.RitualSoundHintOne>1 стиль має звук ритуалу ({0}), розгорніть для прослуховування</RimWorldAccess.Ideology.Styles.RitualSoundHintOne>
+  <RimWorldAccess.Ideology.Styles.RitualSoundHintMany>{1} стилів мають звук ритуалу ({0}), розгорніть для прослуховування</RimWorldAccess.Ideology.Styles.RitualSoundHintMany>
+
+  <!-- "Enter to preview" hint appended to a RitualAmbienceSound node label so
+       the user knows the Enter key will start/stop sound playback. -->
+  <RimWorldAccess.Ideology.Styles.EnterToPreview>, Enter для прослуховування</RimWorldAccess.Ideology.Styles.EnterToPreview>
+
+  <!-- Ritual sound toggle announcements. {0} = vanilla "RitualAmbienceSound"
+       label, resolved at call time. -->
+  <RimWorldAccess.Ideology.RitualSound.Playing>{0}, відтворюється.</RimWorldAccess.Ideology.RitualSound.Playing>
+  <RimWorldAccess.Ideology.RitualSound.Stopped>{0}, зупинено.</RimWorldAccess.Ideology.RitualSound.Stopped>
+
+  <!-- Tab open/close composition.
+         TabClosed: spoken when Escape closes the tab. {0} = tab label.
+         TabEmpty: spoken when the tab opens with no visible ideologies.
+                   {0} = tab label, {1} = vanilla "NoneLower" translation.
+         TabItemCount: spoken after the tab label to give an overall count.
+                       {0} = count, {1} = tab label (already translated). -->
+  <RimWorldAccess.Ideology.Tab.Closed>{0} закрито.</RimWorldAccess.Ideology.Tab.Closed>
+  <RimWorldAccess.Ideology.Tab.Empty>{0}. {1}.</RimWorldAccess.Ideology.Tab.Empty>
+  <RimWorldAccess.Ideology.Tab.ItemCount>{0} {1}</RimWorldAccess.Ideology.Tab.ItemCount>
+
+  <!-- Inspectable suffix and "Choose item to inspect" prompt are shared
+       across modules; see RimWorldAccess.InfoCard.Inspectable and
+       RimWorldAccess.InfoCard.ChooseItemToInspect in Common.xml. -->
+
+  <!-- Fallback announcement when a selected ideology has no tree content
+       (e.g. a minimal/custom ideology with no visible sections).
+         {0} = ideology name, {1} = vanilla "NoneLower" translation. -->
+  <RimWorldAccess.Ideology.Tree.Empty>{0}. {1}</RimWorldAccess.Ideology.Tree.Empty>
+
+  <!-- IdeoBuilder module strings (src/IdeoBuilder/).
+       Navigation hints for the two-tab builder shell. -->
+  <RimWorldAccess.Ideology.Builder.TabForIdeoList>Tab для списку ідеологій</RimWorldAccess.Ideology.Builder.TabForIdeoList>
+  <RimWorldAccess.Ideology.Builder.TabToReturnToList>Tab для повернення до списку</RimWorldAccess.Ideology.Builder.TabToReturnToList>
+
+  <!-- Spoken when a section or action is disabled but has no specific reason string. -->
+  <RimWorldAccess.Ideology.Builder.Unavailable>Недоступно</RimWorldAccess.Ideology.Builder.Unavailable>
+
+  <!-- Spoken when the ] edit-menu is opened on a precept that has no editable options. -->
+  <RimWorldAccess.Ideology.Builder.NoEditOptions>Немає параметрів для редагування</RimWorldAccess.Ideology.Builder.NoEditOptions>
+  <!-- Hidden display-English sweep (returned/assigned strings localized). -->
+  <RimWorldAccess.Ideology.Builder.PreceptSection.Active>Активні правила, {0}</RimWorldAccess.Ideology.Builder.PreceptSection.Active>
+  <RimWorldAccess.Ideology.Builder.PreceptSection.NotSet>Не встановлено, {0}</RimWorldAccess.Ideology.Builder.PreceptSection.NotSet>
+  <RimWorldAccess.Ideology.Builder.PreceptCurrent>поточне</RimWorldAccess.Ideology.Builder.PreceptCurrent>
+</LanguageData>

@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Biotech module strings (src/Biotech/). Ten files contribute:
+      - GeneInspectionPatch.cs    (Harmony patch, no user-facing text)
+      - GeneInspectionState.cs    (baby/embryo/genepack/xenogerm gene tree)
+      - GeneTreeBuilder.cs        (gene-tree node labels, biostats summary)
+      - GrowthMomentPatch.cs      (Harmony patch, no user-facing text)
+      - GrowthMomentState.cs      (child growth moment dialog: info/passions/traits)
+      - MechControlGroupState.cs  (mechanitor control group settings/members)
+      - XenogermPatch.cs          (Harmony patch, no user-facing text)
+      - XenogermState.cs          (Dialog_CreateXenogerm tabbed tree)
+      - XenotypeEditorPatch.cs    (Harmony patch, no user-facing text)
+      - XenotypeEditorState.cs    (Dialog_CreateXenotype tabbed tree)
+
+    Shared vocabulary (edge announcements, info-card unavailable, typeahead
+    feedback, tree expansion state, level suffix) is sourced from
+    RimWorldAccess_Common.xml. Gene names, xenotype labels, category labels,
+    and all biostat terms (Complexity, Metabolism, Archites) come from the
+    game's own vanilla translation keys via .Translate(), so they are NOT
+    duplicated here.
+
+    Placeholders follow string.Format ({0}, {1}, ...). One/Many variants exist
+    where English needs singular/plural agreement (e.g. "1 gene" vs "N genes").
+    Other languages can collapse or further split these using their own XML.
+  -->
+
+  <!-- ============================================================
+       Gene tree builder (GeneTreeBuilder.cs).
+       Used to label gene-tree nodes built by both GeneInspectionState
+       and XenogermState/XenotypeEditorState.
+       ============================================================ -->
+
+  <!-- Skin shade descriptions from perceptual luminance. -->
+  <RimWorldAccess.Biotech.Color.SkinVeryLight>дуже світла</RimWorldAccess.Biotech.Color.SkinVeryLight>
+  <RimWorldAccess.Biotech.Color.SkinLight>світла</RimWorldAccess.Biotech.Color.SkinLight>
+  <RimWorldAccess.Biotech.Color.SkinFair>бліда</RimWorldAccess.Biotech.Color.SkinFair>
+  <RimWorldAccess.Biotech.Color.SkinMedium>середня</RimWorldAccess.Biotech.Color.SkinMedium>
+  <RimWorldAccess.Biotech.Color.SkinTan>засмагла</RimWorldAccess.Biotech.Color.SkinTan>
+  <RimWorldAccess.Biotech.Color.SkinBrown>коричнева</RimWorldAccess.Biotech.Color.SkinBrown>
+  <RimWorldAccess.Biotech.Color.SkinDarkBrown>темно-коричнева</RimWorldAccess.Biotech.Color.SkinDarkBrown>
+
+  <!-- Grayscale / brightness descriptions (hair, non-skin). -->
+  <RimWorldAccess.Biotech.Color.VeryDark>дуже темний</RimWorldAccess.Biotech.Color.VeryDark>
+  <RimWorldAccess.Biotech.Color.Dark>темний</RimWorldAccess.Biotech.Color.Dark>
+  <RimWorldAccess.Biotech.Color.MediumDark>середньо-темний</RimWorldAccess.Biotech.Color.MediumDark>
+  <RimWorldAccess.Biotech.Color.Medium>середній</RimWorldAccess.Biotech.Color.Medium>
+  <RimWorldAccess.Biotech.Color.Light>світлий</RimWorldAccess.Biotech.Color.Light>
+  <RimWorldAccess.Biotech.Color.VeryLight>дуже світлий</RimWorldAccess.Biotech.Color.VeryLight>
+
+  <!-- Hue-based color descriptions. -->
+  <RimWorldAccess.Biotech.Color.Orange>помаранчевий</RimWorldAccess.Biotech.Color.Orange>
+  <RimWorldAccess.Biotech.Color.Brown>коричневий</RimWorldAccess.Biotech.Color.Brown>
+  <RimWorldAccess.Biotech.Color.Pink>рожевий</RimWorldAccess.Biotech.Color.Pink>
+  <RimWorldAccess.Biotech.Color.Red>червоний</RimWorldAccess.Biotech.Color.Red>
+  <RimWorldAccess.Biotech.Color.LightGreen>світло-зелений</RimWorldAccess.Biotech.Color.LightGreen>
+  <RimWorldAccess.Biotech.Color.Green>зелений</RimWorldAccess.Biotech.Color.Green>
+  <RimWorldAccess.Biotech.Color.LightBlue>блакитний</RimWorldAccess.Biotech.Color.LightBlue>
+  <RimWorldAccess.Biotech.Color.Blue>синій</RimWorldAccess.Biotech.Color.Blue>
+  <RimWorldAccess.Biotech.Color.Blonde>білявий</RimWorldAccess.Biotech.Color.Blonde>
+  <RimWorldAccess.Biotech.Color.Gray>сірий</RimWorldAccess.Biotech.Color.Gray>
+
+  <!-- Gene tree root labels.
+       {0} = xenotype label, {1} = gene count (with unit suffix). -->
+  <RimWorldAccess.Biotech.Gene.RootBabyGenes>Гени немовляти</RimWorldAccess.Biotech.Gene.RootBabyGenes>
+  <RimWorldAccess.Biotech.Gene.RootBabyGenesWithXenotype>Гени немовляти: {0}</RimWorldAccess.Biotech.Gene.RootBabyGenesWithXenotype>
+  <RimWorldAccess.Biotech.Gene.RootBabyGenesNone>Гени немовляти: відсутні</RimWorldAccess.Biotech.Gene.RootBabyGenesNone>
+  <RimWorldAccess.Biotech.Gene.RootEmbryoGenes>Гени ембріона {0}</RimWorldAccess.Biotech.Gene.RootEmbryoGenes>
+  <RimWorldAccess.Biotech.Gene.RootEmbryoGenesWithXenotype>Гени ембріона: {0} {1}</RimWorldAccess.Biotech.Gene.RootEmbryoGenesWithXenotype>
+  <RimWorldAccess.Biotech.Gene.RootXenogermGenes>Гени ксенозародку: {0} {1}</RimWorldAccess.Biotech.Gene.RootXenogermGenes>
+  <RimWorldAccess.Biotech.Gene.RootGenepackGenes>Гени генопаку {0}</RimWorldAccess.Biotech.Gene.RootGenepackGenes>
+  <RimWorldAccess.Biotech.Gene.RootGenepackWithXenotype>Генопак: {0} {1}</RimWorldAccess.Biotech.Gene.RootGenepackWithXenotype>
+  <RimWorldAccess.Biotech.Gene.RootGenes>Гени {0}</RimWorldAccess.Biotech.Gene.RootGenes>
+  <RimWorldAccess.Biotech.Gene.RootGenesWithXenotype>Гени: {0} {1}</RimWorldAccess.Biotech.Gene.RootGenesWithXenotype>
+  <RimWorldAccess.Biotech.Gene.RootAdultGenes>Гени: {0} {1}</RimWorldAccess.Biotech.Gene.RootAdultGenes>
+
+  <!-- Gene count suffix (appended to root labels).
+       One: "(1 gene)"; Many: "(N genes)". -->
+  <RimWorldAccess.Biotech.Gene.CountSuffixOne>(1 ген)</RimWorldAccess.Biotech.Gene.CountSuffixOne>
+  <RimWorldAccess.Biotech.Gene.CountSuffixMany>({0} генів)</RimWorldAccess.Biotech.Gene.CountSuffixMany>
+
+  <!-- Gene node and status markers. -->
+  <RimWorldAccess.Biotech.Gene.StatusOverridden>[перевизначено]</RimWorldAccess.Biotech.Gene.StatusOverridden>
+  <RimWorldAccess.Biotech.Gene.StatusInactive>[неактивний]</RimWorldAccess.Biotech.Gene.StatusInactive>
+  <RimWorldAccess.Biotech.Gene.CosmeticNoEffects>Косметичний ген без ігрового впливу</RimWorldAccess.Biotech.Gene.CosmeticNoEffects>
+  <RimWorldAccess.Biotech.Gene.NoDetails>Додаткові відомості недоступні</RimWorldAccess.Biotech.Gene.NoDetails>
+
+  <!-- Biostats summary label for gene tree (composed with vanilla
+       Complexity/Metabolism/ArchitesRequired keys and signed values). -->
+  <RimWorldAccess.Biotech.Gene.TotalBiostats>Загальні біопоказники: {0}</RimWorldAccess.Biotech.Gene.TotalBiostats>
+  <RimWorldAccess.Biotech.Gene.BiostatComplexityValue>Комплексність {0}</RimWorldAccess.Biotech.Gene.BiostatComplexityValue>
+  <RimWorldAccess.Biotech.Gene.BiostatMetabolismValue>Метаболізм {0}</RimWorldAccess.Biotech.Gene.BiostatMetabolismValue>
+  <RimWorldAccess.Biotech.Gene.BiostatArchitesValue>Архіт {0}</RimWorldAccess.Biotech.Gene.BiostatArchitesValue>
+  <RimWorldAccess.Biotech.Gene.BiostatComplexityWithDesc>Комплексність: {0}. {1}</RimWorldAccess.Biotech.Gene.BiostatComplexityWithDesc>
+  <RimWorldAccess.Biotech.Gene.BiostatMetabolismWithDesc>Метаболізм: {0}. {1}</RimWorldAccess.Biotech.Gene.BiostatMetabolismWithDesc>
+  <RimWorldAccess.Biotech.Gene.BiostatArchitesWithDesc>Потрібно архіту: {0}. {1}</RimWorldAccess.Biotech.Gene.BiostatArchitesWithDesc>
+
+  <!-- ============================================================
+       Gene inspection (GeneInspectionState.cs).
+       ITab_GenesPregnancy / ITab_Genes keyboard overlay.
+       ============================================================ -->
+
+  <RimWorldAccess.Biotech.GeneInspection.NoPregnancy>Вагітність не знайдено.</RimWorldAccess.Biotech.GeneInspection.NoPregnancy>
+  <RimWorldAccess.Biotech.GeneInspection.Closed>Огляд генів закрито.</RimWorldAccess.Biotech.GeneInspection.Closed>
+  <RimWorldAccess.Biotech.GeneInspection.FirstGene>Перший ген: {0}</RimWorldAccess.Biotech.GeneInspection.FirstGene>
+  <RimWorldAccess.Biotech.GeneInspection.NavHint>Вгору й вниз для навігації, вправо щоб розгорнути, вліво щоб згорнути. Page Up і Page Down переходять між генами.</RimWorldAccess.Biotech.GeneInspection.NavHint>
+  <RimWorldAccess.Biotech.GeneInspection.AlreadyExpanded>Вже розгорнуто.</RimWorldAccess.Biotech.GeneInspection.AlreadyExpanded>
+  <RimWorldAccess.Biotech.GeneInspection.NoAction>Для цього елемента немає доступних дій.</RimWorldAccess.Biotech.GeneInspection.NoAction>
+
+  <!-- ============================================================
+       Growth moment (GrowthMomentState.cs).
+       Dialog_GrowthMomentChoices keyboard overlay: Info / Passions / Traits.
+       ============================================================ -->
+
+  <!-- Tab names. -->
+  <RimWorldAccess.Biotech.GrowthMoment.TabInfo>Відомості</RimWorldAccess.Biotech.GrowthMoment.TabInfo>
+  <RimWorldAccess.Biotech.GrowthMoment.TabPassions>Зацікавленості</RimWorldAccess.Biotech.GrowthMoment.TabPassions>
+  <RimWorldAccess.Biotech.GrowthMoment.TabTraits>Риси</RimWorldAccess.Biotech.GrowthMoment.TabTraits>
+  <RimWorldAccess.Biotech.GrowthMoment.TabUnknown>Невідомо</RimWorldAccess.Biotech.GrowthMoment.TabUnknown>
+  <RimWorldAccess.Biotech.GrowthMoment.OnlyOneTab>Доступна лише одна вкладка</RimWorldAccess.Biotech.GrowthMoment.OnlyOneTab>
+
+  <!-- Tab announcements. {0} = count for passions, {1} = total. -->
+  <RimWorldAccess.Biotech.GrowthMoment.ChooseOne>Виберіть 1</RimWorldAccess.Biotech.GrowthMoment.ChooseOne>
+  <RimWorldAccess.Biotech.GrowthMoment.ChooseNOfM>Виберіть {0} з {1}</RimWorldAccess.Biotech.GrowthMoment.ChooseNOfM>
+
+  <!-- Info tab. {0} = growth tier number, {1} = old name, {2} = new name,
+       {3} = passions list, {4} = trait label. -->
+  <RimWorldAccess.Biotech.GrowthMoment.NoInformation>Відомості недоступні</RimWorldAccess.Biotech.GrowthMoment.NoInformation>
+  <RimWorldAccess.Biotech.GrowthMoment.GrowthTier>Рівень зростання: {0}</RimWorldAccess.Biotech.GrowthMoment.GrowthTier>
+  <RimWorldAccess.Biotech.GrowthMoment.NicknameChanged>Прізвисько змінено з {0} на {1}</RimWorldAccess.Biotech.GrowthMoment.NicknameChanged>
+  <RimWorldAccess.Biotech.GrowthMoment.ChosenPassions>Вибрані зацікавленості: {0}</RimWorldAccess.Biotech.GrowthMoment.ChosenPassions>
+  <RimWorldAccess.Biotech.GrowthMoment.ChosenTrait>Вибрана риса: {0}</RimWorldAccess.Biotech.GrowthMoment.ChosenTrait>
+  <RimWorldAccess.Biotech.GrowthMoment.NoTraitChosen>Без риси</RimWorldAccess.Biotech.GrowthMoment.NoTraitChosen>
+
+  <!-- Passion tab item/action announcements. {0} = skill label,
+       {1} = current passion, {2} = new passion, {3} = count, {4} = total. -->
+  <RimWorldAccess.Biotech.GrowthMoment.NoPassions>Немає доступних зацікавленостей</RimWorldAccess.Biotech.GrowthMoment.NoPassions>
+  <RimWorldAccess.Biotech.GrowthMoment.PassionTransition>{0}, {1} на {2}. {3}</RimWorldAccess.Biotech.GrowthMoment.PassionTransition>
+  <RimWorldAccess.Biotech.GrowthMoment.PassionSelectedStatus>Вибрано</RimWorldAccess.Biotech.GrowthMoment.PassionSelectedStatus>
+  <RimWorldAccess.Biotech.GrowthMoment.PassionNotSelectedStatus>Не вибрано</RimWorldAccess.Biotech.GrowthMoment.PassionNotSelectedStatus>
+  <RimWorldAccess.Biotech.GrowthMoment.PassionSelectedFeedback>{0} вибрано. Вибрано зацікавленостей: {1} з {2}</RimWorldAccess.Biotech.GrowthMoment.PassionSelectedFeedback>
+  <RimWorldAccess.Biotech.GrowthMoment.PassionDeselectedFeedback>{0} знято. Вибрано зацікавленостей: {1} з {2}</RimWorldAccess.Biotech.GrowthMoment.PassionDeselectedFeedback>
+  <RimWorldAccess.Biotech.GrowthMoment.PassionLimitReached>Вже вибрано {0} з {0} зацікавленостей. Спочатку зніміть одну</RimWorldAccess.Biotech.GrowthMoment.PassionLimitReached>
+
+  <!-- Passion name enum display. -->
+  <RimWorldAccess.Biotech.GrowthMoment.PassionNone>Відсутня</RimWorldAccess.Biotech.GrowthMoment.PassionNone>
+  <RimWorldAccess.Biotech.GrowthMoment.PassionMinor>Цікаво</RimWorldAccess.Biotech.GrowthMoment.PassionMinor>
+  <RimWorldAccess.Biotech.GrowthMoment.PassionMajor>В захваті</RimWorldAccess.Biotech.GrowthMoment.PassionMajor>
+
+  <!-- Trait tab announcements. -->
+  <RimWorldAccess.Biotech.GrowthMoment.NoTraits>Немає доступних рис</RimWorldAccess.Biotech.GrowthMoment.NoTraits>
+  <RimWorldAccess.Biotech.GrowthMoment.TraitWithDesc>{0}. {1}. {2}</RimWorldAccess.Biotech.GrowthMoment.TraitWithDesc>
+  <RimWorldAccess.Biotech.GrowthMoment.TraitWithoutDesc>{0}. {1}</RimWorldAccess.Biotech.GrowthMoment.TraitWithoutDesc>
+  <RimWorldAccess.Biotech.GrowthMoment.TraitSelected>{0} вибрано</RimWorldAccess.Biotech.GrowthMoment.TraitSelected>
+  <RimWorldAccess.Biotech.GrowthMoment.NoTraitSelected>Рису не вибрано</RimWorldAccess.Biotech.GrowthMoment.NoTraitSelected>
+
+  <!-- Archive view announcement. -->
+  <RimWorldAccess.Biotech.GrowthMoment.ArchiveReadOnly>Перегляд архіву, лише для читання</RimWorldAccess.Biotech.GrowthMoment.ArchiveReadOnly>
+
+  <!-- Opening announcement and navigation hints.
+       {0} = tab count, {1} = passion count, {2} = passion total. -->
+  <RimWorldAccess.Biotech.GrowthMoment.TabCount>{0} вкладок</RimWorldAccess.Biotech.GrowthMoment.TabCount>
+  <RimWorldAccess.Biotech.GrowthMoment.PressEnterToConfirm>Натисніть Enter для підтвердження</RimWorldAccess.Biotech.GrowthMoment.PressEnterToConfirm>
+  <RimWorldAccess.Biotech.GrowthMoment.ChoosePassionsAndTrait>Виберіть {0} з {1} зацікавленостей і 1 рису. {2}. Tab для перемикання сторінок, Alt+S для підтвердження</RimWorldAccess.Biotech.GrowthMoment.ChoosePassionsAndTrait>
+  <RimWorldAccess.Biotech.GrowthMoment.ChooseTraitOnly>Виберіть 1 рису. {0}. Tab для перемикання сторінок, Alt+S для підтвердження</RimWorldAccess.Biotech.GrowthMoment.ChooseTraitOnly>
+
+  <!-- Confirm / postpone. {0} = pawn short label. -->
+  <RimWorldAccess.Biotech.GrowthMoment.Confirmed>Вибір зростання підтверджено для {0}</RimWorldAccess.Biotech.GrowthMoment.Confirmed>
+  <RimWorldAccess.Biotech.GrowthMoment.Postponed>Момент зростання відкладено</RimWorldAccess.Biotech.GrowthMoment.Postponed>
+  <RimWorldAccess.Biotech.GrowthMoment.PawnFallback>персонаж</RimWorldAccess.Biotech.GrowthMoment.PawnFallback>
+
+  <!-- ============================================================
+       Mechanitor control group (MechControlGroupState.cs).
+       Two-page overlay: Settings (work mode, recharge range, select all)
+       and Members (individual mech list).
+       ============================================================ -->
+
+  <!-- Page labels and open/close announcements. -->
+  <RimWorldAccess.Biotech.Mech.Settings>Налаштування</RimWorldAccess.Biotech.Mech.Settings>
+  <RimWorldAccess.Biotech.Mech.Members>Учасники</RimWorldAccess.Biotech.Mech.Members>
+  <RimWorldAccess.Biotech.Mech.GroupSettingsHeader>Налаштування: {0}</RimWorldAccess.Biotech.Mech.GroupSettingsHeader>
+  <RimWorldAccess.Biotech.Mech.GroupClosed>Підконтрольну групу закрито</RimWorldAccess.Biotech.Mech.GroupClosed>
+
+  <!-- Work mode menu. {0} = work mode label. -->
+  <RimWorldAccess.Biotech.Mech.NoWorkModes>Немає доступних режимів роботи</RimWorldAccess.Biotech.Mech.NoWorkModes>
+  <RimWorldAccess.Biotech.Mech.WorkModeSet>Режим роботи встановлено: {0}</RimWorldAccess.Biotech.Mech.WorkModeSet>
+
+  <!-- Recharge range editor. {0} = min%, {1} = max%, {2} = current label. -->
+  <RimWorldAccess.Biotech.Mech.RangeSaved>Діапазон підзарядки збережено: {0} до {1}</RimWorldAccess.Biotech.Mech.RangeSaved>
+  <RimWorldAccess.Biotech.Mech.RangeCancelled>Редагування діапазону підзарядки скасовано</RimWorldAccess.Biotech.Mech.RangeCancelled>
+  <RimWorldAccess.Biotech.Mech.RangeMinimum>Мінімум</RimWorldAccess.Biotech.Mech.RangeMinimum>
+  <RimWorldAccess.Biotech.Mech.RangeMaximum>Максимум</RimWorldAccess.Biotech.Mech.RangeMaximum>
+  <RimWorldAccess.Biotech.Mech.RangeSelection>{0}: {1}. Діапазон: {2} до {3}</RimWorldAccess.Biotech.Mech.RangeSelection>
+
+  <!-- Select-all and reassignment. -->
+  <RimWorldAccess.Biotech.Mech.NoMechsInGroup>У цій групі немає механоїдів</RimWorldAccess.Biotech.Mech.NoMechsInGroup>
+  <RimWorldAccess.Biotech.Mech.SelectedMechOne>Вибрано {0} механоїда</RimWorldAccess.Biotech.Mech.SelectedMechOne>
+  <RimWorldAccess.Biotech.Mech.SelectedMechMany>Вибрано {0} механоїдів</RimWorldAccess.Biotech.Mech.SelectedMechMany>
+  <RimWorldAccess.Biotech.Mech.NoOtherGroups>Немає інших доступних підконтрольних груп</RimWorldAccess.Biotech.Mech.NoOtherGroups>
+  <RimWorldAccess.Biotech.Mech.AssignedToGroup>{0} призначено до {1} {2}</RimWorldAccess.Biotech.Mech.AssignedToGroup>
+
+  <!-- Mech labels and uncontrolled marker. -->
+  <RimWorldAccess.Biotech.Mech.Uncontrolled>неконтрольований</RimWorldAccess.Biotech.Mech.Uncontrolled>
+
+  <!-- Gizmo label fallback and merged-group suffixes. -->
+  <RimWorldAccess.Biotech.Mech.GizmoLabelFallback>Підконтрольні групи механітора</RimWorldAccess.Biotech.Mech.GizmoLabelFallback>
+  <RimWorldAccess.Biotech.Mech.MechCountOne>{0} механоїд</RimWorldAccess.Biotech.Mech.MechCountOne>
+  <RimWorldAccess.Biotech.Mech.MechCountMany>{0} механоїдів</RimWorldAccess.Biotech.Mech.MechCountMany>
+  <RimWorldAccess.Biotech.Mech.AverageEnergy>Середнє {0}: {1}</RimWorldAccess.Biotech.Mech.AverageEnergy>
+
+  <!-- ============================================================
+       Xenogerm creation (XenogermState.cs).
+       Dialog_CreateXenogerm tabbed tree: Library / Selected / Controls.
+       ============================================================ -->
+
+  <!-- Tab announcements. {0} = label, {1} = count. -->
+  <RimWorldAccess.Biotech.Xenogerm.Controls>Керування.</RimWorldAccess.Biotech.Xenogerm.Controls>
+  <RimWorldAccess.Biotech.Xenogerm.TabSummaryOne>{0}, 1 елемент.</RimWorldAccess.Biotech.Xenogerm.TabSummaryOne>
+  <RimWorldAccess.Biotech.Xenogerm.TabSummaryMany>{0}, {1} елементів.</RimWorldAccess.Biotech.Xenogerm.TabSummaryMany>
+
+  <!-- Opening announcement. {0} = header, {1} = complexity label,
+       {2} = max complexity value, {3} = tab announcement. -->
+  <RimWorldAccess.Biotech.Xenogerm.OpeningSummary>{0}. {1} ліміт {2}. {3}</RimWorldAccess.Biotech.Xenogerm.OpeningSummary>
+
+  <!-- Rename feedback. {0} = new name. -->
+  <RimWorldAccess.Biotech.Xenogerm.RenameCancelled>Перейменування скасовано.</RimWorldAccess.Biotech.Xenogerm.RenameCancelled>
+  <RimWorldAccess.Biotech.Xenogerm.Renamed>Перейменовано на {0}. Назву зафіксовано.</RimWorldAccess.Biotech.Xenogerm.Renamed>
+
+  <!-- Toggle feedback. {0} = pack label, {1} = biostats summary. -->
+  <RimWorldAccess.Biotech.Xenogerm.PackAdded>{0} додано. {1}</RimWorldAccess.Biotech.Xenogerm.PackAdded>
+  <RimWorldAccess.Biotech.Xenogerm.PackRemoved>{0} вилучено. {1}</RimWorldAccess.Biotech.Xenogerm.PackRemoved>
+
+  <!-- Template operations. {0} = template name, {1} = matched pack count,
+       {2} = missing genes list, {3} = biostats summary. -->
+  <RimWorldAccess.Biotech.Xenogerm.NoSavedTemplates>Немає збережених шаблонів.</RimWorldAccess.Biotech.Xenogerm.NoSavedTemplates>
+  <RimWorldAccess.Biotech.Xenogerm.TemplateLabel>{0}: {1}</RimWorldAccess.Biotech.Xenogerm.TemplateLabel>
+  <RimWorldAccess.Biotech.Xenogerm.TemplateLoaded>Завантажено {0}. Збіглося генопаків: {1}.</RimWorldAccess.Biotech.Xenogerm.TemplateLoaded>
+  <RimWorldAccess.Biotech.Xenogerm.TemplateMissingGenes> Відсутні гени: {0}.</RimWorldAccess.Biotech.Xenogerm.TemplateMissingGenes>
+
+  <!-- Genepack formatting. {0} = gene list, {1} = complexity label+value,
+       {2} = metabolism label+value, {3} = archites label+value (optional). -->
+  <RimWorldAccess.Biotech.Xenogerm.PackUnpowered>без живлення</RimWorldAccess.Biotech.Xenogerm.PackUnpowered>
+
+  <!-- Biostats formatting. {0} = complexity label, {1} = gcx, {2} = maxGCX,
+       {3} = metabolism label, {4} = met value, {5} = archites label, {6} = arc. -->
+  <RimWorldAccess.Biotech.Xenogerm.BiostatsOfMax>{0} {1} з {2} максимум</RimWorldAccess.Biotech.Xenogerm.BiostatsOfMax>
+  <RimWorldAccess.Biotech.Xenogerm.BiostatsNoMax>{0} {1}</RimWorldAccess.Biotech.Xenogerm.BiostatsNoMax>
+
+  <!-- Name display fields. {0} = label, {1} = value. -->
+  <RimWorldAccess.Biotech.Xenogerm.NameWithValue>{0}: {1}</RimWorldAccess.Biotech.Xenogerm.NameWithValue>
+  <RimWorldAccess.Biotech.Xenogerm.NameNone>{0}: ({1})</RimWorldAccess.Biotech.Xenogerm.NameNone>
+
+  <!-- ============================================================
+       Xenotype editor (XenotypeEditorState.cs).
+       Dialog_CreateXenotype tabbed tree: Selected / Library / Controls.
+       ============================================================ -->
+
+  <!-- Tab announcements. {0} = label, {1} = count. -->
+  <RimWorldAccess.Biotech.XenotypeEditor.TabSummaryOne>{0}, 1 елемент.</RimWorldAccess.Biotech.XenotypeEditor.TabSummaryOne>
+  <RimWorldAccess.Biotech.XenotypeEditor.TabSummaryMany>{0}, {1} елементів.</RimWorldAccess.Biotech.XenotypeEditor.TabSummaryMany>
+  <RimWorldAccess.Biotech.XenotypeEditor.TabSummaryCategoryOne>{0}, 1 категорія.</RimWorldAccess.Biotech.XenotypeEditor.TabSummaryCategoryOne>
+  <RimWorldAccess.Biotech.XenotypeEditor.TabSummaryCategoryMany>{0}, {1} категорій.</RimWorldAccess.Biotech.XenotypeEditor.TabSummaryCategoryMany>
+
+  <!-- Opening announcement. {0} = header, {1} = tab summary. -->
+  <RimWorldAccess.Biotech.XenotypeEditor.OpeningSummary>{0}. {1}</RimWorldAccess.Biotech.XenotypeEditor.OpeningSummary>
+
+  <!-- Gene selection / library / rename feedback. -->
+  <RimWorldAccess.Biotech.XenotypeEditor.GeneAdded>{0} додано. {1}</RimWorldAccess.Biotech.XenotypeEditor.GeneAdded>
+  <RimWorldAccess.Biotech.XenotypeEditor.GeneRemoved>{0} вилучено. {1}</RimWorldAccess.Biotech.XenotypeEditor.GeneRemoved>
+  <RimWorldAccess.Biotech.XenotypeEditor.Uncategorized>Без категорії</RimWorldAccess.Biotech.XenotypeEditor.Uncategorized>
+  <RimWorldAccess.Biotech.XenotypeEditor.RenameCancelled>Перейменування скасовано.</RimWorldAccess.Biotech.XenotypeEditor.RenameCancelled>
+  <RimWorldAccess.Biotech.XenotypeEditor.Renamed>Перейменовано на {0}. Назву зафіксовано.</RimWorldAccess.Biotech.XenotypeEditor.Renamed>
+
+  <!-- Save/apply validation. -->
+  <RimWorldAccess.Biotech.XenotypeEditor.TooManySaved>Збережено забагато власних ксенотипів. Спочатку видаліть деякі.</RimWorldAccess.Biotech.XenotypeEditor.TooManySaved>
+  <RimWorldAccess.Biotech.XenotypeEditor.NoCustom>Немає збережених власних ксенотипів.</RimWorldAccess.Biotech.XenotypeEditor.NoCustom>
+  <RimWorldAccess.Biotech.XenotypeEditor.FailedToLoad>Не вдалося завантажити ксенотип.</RimWorldAccess.Biotech.XenotypeEditor.FailedToLoad>
+  <RimWorldAccess.Biotech.XenotypeEditor.NoPremade>Немає доступних готових ксенотипів.</RimWorldAccess.Biotech.XenotypeEditor.NoPremade>
+
+  <!-- Load feedback. {0} = name, {1} = gene count, {2} = biostats summary. -->
+  <RimWorldAccess.Biotech.XenotypeEditor.LoadedSummaryOne>Завантажено {0}. 1 ген. {1}</RimWorldAccess.Biotech.XenotypeEditor.LoadedSummaryOne>
+  <RimWorldAccess.Biotech.XenotypeEditor.LoadedSummaryMany>Завантажено {0}. {1} генів. {2}</RimWorldAccess.Biotech.XenotypeEditor.LoadedSummaryMany>
+
+  <!-- Controls formatting. {0} = label, {1} = value. -->
+  <RimWorldAccess.Biotech.XenotypeEditor.NameWithValue>{0}: {1}</RimWorldAccess.Biotech.XenotypeEditor.NameWithValue>
+  <RimWorldAccess.Biotech.XenotypeEditor.NameNone>{0}: ({1})</RimWorldAccess.Biotech.XenotypeEditor.NameNone>
+  <RimWorldAccess.Biotech.XenotypeEditor.YesValue>Так</RimWorldAccess.Biotech.XenotypeEditor.YesValue>
+  <RimWorldAccess.Biotech.XenotypeEditor.NoValue>Ні</RimWorldAccess.Biotech.XenotypeEditor.NoValue>
+
+  <!-- Ignore-restrictions toggle-off: archite genes removed. {0} = count. -->
+  <RimWorldAccess.Biotech.XenotypeEditor.AchiteRemovedOne>. 1 архітний ген вилучено.</RimWorldAccess.Biotech.XenotypeEditor.AchiteRemovedOne>
+  <RimWorldAccess.Biotech.XenotypeEditor.AchiteRemovedMany>. {0} архітних генів вилучено.</RimWorldAccess.Biotech.XenotypeEditor.AchiteRemovedMany>
+
+  <!-- Controls tab fallback announcement. -->
+  <RimWorldAccess.Biotech.XenotypeEditor.ControlsLabel>Керування.</RimWorldAccess.Biotech.XenotypeEditor.ControlsLabel>
+
+</LanguageData>
