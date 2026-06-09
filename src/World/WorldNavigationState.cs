@@ -544,6 +544,10 @@ namespace RimWorldAccess
             {
                 fuelCostInfo = GravshipDestinationState.GetFuelCostAnnouncement(currentSelectedTile);
             }
+            else if (context == WorldNavContext.InGame && AerialVehicleLaunchState.ShouldAnnounceFuelCosts())
+            {
+                fuelCostInfo = AerialVehicleLaunchState.GetDestinationInfo(currentSelectedTile);
+            }
 
             // Get ability destination info if world ability targeting is active (in-game only)
             string abilityDestInfo = null;
@@ -906,6 +910,9 @@ namespace RimWorldAccess
                 return;
             }
 
+            if (TryOpenAerialVehicleLaunchOrders(caravan))
+                return;
+
             List<FloatMenuOption> orders = new List<FloatMenuOption>();
 
             // Add basic "Travel here" option if not at current location
@@ -947,6 +954,32 @@ namespace RimWorldAccess
             // Open windowless float menu with caravan orders (includes disabled options)
             WindowlessFloatMenuState.Open(orders, colonistOrders: false);
             TolkHelper.Speak($"{caravan.Label} orders: {orders.Count} options available");
+        }
+
+        private static bool TryOpenAerialVehicleLaunchOrders(Caravan caravan)
+        {
+            if (caravan == null)
+                return false;
+
+            System.Type caravanType = caravan.GetType();
+            if (caravanType.FullName != "Vehicles.World.VehicleCaravan")
+                return false;
+
+            object aerialVehicleValue = caravanType.GetProperty("AerialVehicle")?.GetValue(caravan, null);
+            bool isAerialVehicle = aerialVehicleValue is bool value && value;
+            if (!isAerialVehicle)
+                return false;
+
+            System.Reflection.MethodInfo launchMethod = caravanType.GetMethod("LaunchAerialVehicle");
+            if (launchMethod == null)
+            {
+                TolkHelper.Speak("Aerial launch is not available here", SpeechPriority.High);
+                return true;
+            }
+
+            launchMethod.Invoke(caravan, null);
+            AerialVehicleLaunchState.OpenFromVehicleCaravan(caravan);
+            return true;
         }
 
         /// <summary>

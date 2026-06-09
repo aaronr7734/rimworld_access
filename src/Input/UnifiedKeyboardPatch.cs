@@ -731,7 +731,7 @@ namespace RimWorldAccess
             // ===== PRIORITY 0.22: Handle inspection menu EARLY if opened from caravan/split/inspect/transport pod dialogs =====
             // This ensures Escape in inspection doesn't get caught by other handlers
             // Note: Window.OnCancelKeyPressed is patched in CaravanFormationPatch and TransportPodPatch to block RimWorld's Cancel handling
-            if (WindowlessInspectionState.IsActive && (CaravanFormationState.IsActive || SplitCaravanState.IsActive || CaravanInspectState.IsActive || TransportPodLoadingState.IsActive))
+            if (WindowlessInspectionState.IsActive && (CaravanFormationState.IsActive || SplitCaravanState.IsActive || CaravanInspectState.IsActive || TransportPodLoadingState.IsActive || VehicleCargoLoadingState.IsActive))
             {
                 if (WindowlessInspectionState.HandleInput(Event.current))
                 {
@@ -849,6 +849,20 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY 0.325: Handle Vehicle Framework cargo loading dialog if active =====
+            if (VehicleCargoLoadingState.IsActive && !WindowlessDialogState.IsActive && !WindowlessInspectionState.IsActive && !QuantityMenuState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = KeyboardHelper.IsAltHeld;
+
+                if (VehicleCargoLoadingState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY 0.33: Handle ritual dialog if active =====
             // Handles all ritual types (weddings, funerals, childbirth, conversions, etc.)
             // Skip if overlay states are active - they take priority
@@ -898,6 +912,57 @@ namespace RimWorldAccess
                 bool alt = KeyboardHelper.IsAltHeld;
 
                 if (TransportPodLaunchState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 0.361: Late-activate pending Vehicle Framework aerial launch on world map =====
+            if (AerialVehicleLaunchState.HasPendingVehicleLaunch &&
+                !AerialVehicleLaunchState.IsActive &&
+                !WindowlessDialogState.IsActive &&
+                WorldRendererUtility.WorldSelected)
+            {
+                AerialVehicleLaunchState.TryActivatePendingVehicleLaunch();
+            }
+
+            // ===== PRIORITY 0.362: Handle Vehicle Framework aerial world targeting if active =====
+            if (AerialVehicleLaunchState.IsActive && !WindowlessDialogState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = KeyboardHelper.IsAltHeld;
+
+                if (AerialVehicleLaunchState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 0.363: Handle Vehicle Framework landing cell targeting if active =====
+            if (AerialVehicleLandingState.IsActive && !WindowlessDialogState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = KeyboardHelper.IsAltHeld;
+
+                if (AerialVehicleLandingState.HandleInput(key, shift, ctrl, alt))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 0.364: Handle Vehicle Framework vehicle orientation targeting if active =====
+            if (VehicleOrientationState.IsActive && !WindowlessDialogState.IsActive)
+            {
+                bool shift = Event.current.shift;
+                bool ctrl = Event.current.control;
+                bool alt = KeyboardHelper.IsAltHeld;
+
+                if (VehicleOrientationState.HandleInput(key, shift, ctrl, alt))
                 {
                     Event.current.Use();
                     return;
@@ -6177,6 +6242,51 @@ namespace RimWorldAccess
                         Event.current.Use();
                         return;
                     }
+                }
+            }
+
+            // ===== PRIORITY 7.045: Vehicle Framework local vehicle control =====
+            // Alt+O boards selected pawns into the vehicle under the map cursor.
+            // Alt+V selects and drafts the vehicle under the map cursor.
+            // Alt+Shift+V orders the selected vehicle to move to the map cursor.
+            // Alt+Shift+O starts in-place vehicle orientation for the selected vehicle.
+            if ((key == KeyCode.V || key == KeyCode.O) && KeyboardHelper.IsAltHeld && !Event.current.control)
+            {
+                if (Current.ProgramState == ProgramState.Playing &&
+                    Find.CurrentMap != null &&
+                    !WorldRendererUtility.WorldSelected &&
+                    !ShapePlacementState.IsActive &&
+                    !(ViewingModeState.IsActive && !ViewingModeState.JustConfirmed) &&
+                    !ZoneCreationState.IsInCreationMode &&
+                    MapNavigationState.IsInitialized &&
+                    !KeyboardHelper.IsAnyAccessibilityMenuActive() &&
+                    (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion))
+                {
+                    Event.current.Use();
+                    IntVec3 cursorPosition = MapNavigationState.CurrentCursorPosition;
+                    string vehicleMessage;
+                    bool ok;
+                    if (key == KeyCode.O && Event.current.shift)
+                    {
+                        ok = VehicleFrameworkHelper.TryStartSelectedVehicleOrientation(out vehicleMessage);
+                    }
+                    else if (key == KeyCode.O)
+                    {
+                        ok = VehicleFrameworkHelper.TryBoardSelectedPawnsIntoVehicleAtCursor(
+                            cursorPosition, Find.CurrentMap, out vehicleMessage);
+                    }
+                    else
+                    {
+                        ok = Event.current.shift
+                            ? VehicleFrameworkHelper.TryOrderSelectedVehicleToCursor(
+                                cursorPosition, Find.CurrentMap, out vehicleMessage)
+                            : VehicleFrameworkHelper.TrySelectAndDraftVehicleAtCursor(
+                                cursorPosition, Find.CurrentMap, out vehicleMessage);
+                    }
+
+                    TolkHelper.Speak(vehicleMessage ?? (ok ? "Vehicle command accepted" : "Vehicle command failed"),
+                        ok ? SpeechPriority.Normal : SpeechPriority.High);
+                    return;
                 }
             }
 

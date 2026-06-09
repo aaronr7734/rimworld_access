@@ -110,6 +110,15 @@ namespace RimWorldAccess
             System.Type windowType = window.GetType();
             string typeName = windowType.Name;
 
+            if (AerialVehicleLaunchState.HasPendingVehicleLaunch)
+            {
+                if (window is Dialog_MessageBox)
+                    return true;
+
+                if (typeName.StartsWith("Dialog_Confirm"))
+                    return true;
+            }
+
             // Exclude Dialog_Trade - it's already working with keyboard navigation
             if (typeName == "Dialog_Trade")
                 return false;
@@ -131,6 +140,10 @@ namespace RimWorldAccess
 
             // Intercept Dialog_MessageBox (confirmations, warnings)
             if (window is Dialog_MessageBox)
+                return true;
+
+            // Vehicle Framework uses Dialog_Confirm for aerial launch confirmations.
+            if (typeName.StartsWith("Dialog_Confirm"))
                 return true;
 
             // Intercept Dialog_NodeTree and all subclasses (quest dialogs, research completion, etc.)

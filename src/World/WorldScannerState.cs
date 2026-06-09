@@ -2560,6 +2560,16 @@ namespace RimWorldAccess
                         parts.Add(fuelInfo);
                 }
             }
+            else if (AerialVehicleLaunchState.ShouldAnnounceFuelCosts())
+            {
+                PlanetTile itemTile = item.GetTileAtInstance(0);
+                if (itemTile.Valid)
+                {
+                    string fuelInfo = AerialVehicleLaunchState.GetDestinationInfo(itemTile);
+                    if (!string.IsNullOrEmpty(fuelInfo))
+                        parts.Add(fuelInfo);
+                }
+            }
 
             // When the cursor is standing on a multi-tile patch whose center is a distinct tile,
             // teach the second Home press that jumps there. During a launch the members are the
@@ -2652,6 +2662,12 @@ namespace RimWorldAccess
             else if (GravshipDestinationState.ShouldAnnounceFuelCosts() && announceTile.Valid)
             {
                 string fuelInfo = GravshipDestinationState.GetFuelCostAnnouncement(announceTile);
+                if (!string.IsNullOrEmpty(fuelInfo))
+                    parts.Add(fuelInfo);
+            }
+            else if (AerialVehicleLaunchState.ShouldAnnounceFuelCosts() && announceTile.Valid)
+            {
+                string fuelInfo = AerialVehicleLaunchState.GetDestinationInfo(announceTile);
                 if (!string.IsNullOrEmpty(fuelInfo))
                     parts.Add(fuelInfo);
             }

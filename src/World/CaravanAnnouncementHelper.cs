@@ -29,6 +29,20 @@ namespace RimWorldAccess
 
             StringBuilder announcement = new StringBuilder();
 
+            if (VehicleFrameworkHelper.IsVehiclePawn(transferable.AnyThing))
+            {
+                string vehicleAnnouncement = VehicleFrameworkHelper.BuildVehicleAnnouncement(transferable);
+                if (!vehicleAnnouncement.NullOrEmpty())
+                {
+                    announcement.Append(vehicleAnnouncement);
+                    if (includePosition)
+                    {
+                        announcement.Append($". {MenuHelper.FormatPosition(selectedIndex, totalCount)}");
+                    }
+                    return announcement.ToString();
+                }
+            }
+
             if (transferable.AnyThing is Pawn pawn)
             {
                 int maxCount = transferable.MaxCount;
@@ -124,6 +138,17 @@ namespace RimWorldAccess
                 return "No item selected";
 
             StringBuilder announcement = new StringBuilder();
+
+            if (VehicleFrameworkHelper.IsVehiclePawn(transferable.AnyThing))
+            {
+                string vehicleAnnouncement = VehicleFrameworkHelper.BuildVehicleAnnouncement(transferable);
+                if (!vehicleAnnouncement.NullOrEmpty())
+                {
+                    announcement.Append(vehicleAnnouncement);
+                    announcement.Append($". '{searchBuffer}' match {matchPosition} of {matchCount}");
+                    return announcement.ToString();
+                }
+            }
 
             if (transferable.AnyThing is Pawn pawn)
             {

@@ -270,6 +270,7 @@ namespace RimWorldAccess
                 // input via UnifiedKeyboardPatch priorities
                 || CaravanInspectState.IsActive
                 || (CaravanFormationState.IsActive && !CaravanFormationState.IsChoosingDestination)
+                || VehicleCargoLoadingState.IsActive
                 || LordJobDialogState.IsActive
                 || QuestMenuState.IsActive
                 || NotificationMenuState.IsActive
@@ -316,6 +317,10 @@ namespace RimWorldAccess
                 || AreaPaintingState.IsActive
                 // Split caravan and related menus
                 || SplitCaravanState.IsActive
+                // Aerial vehicle destination and landing targeters need world/map arrow keys,
+                // so only the arrival-option sub-menu counts as a modal accessibility menu.
+                || AerialVehicleLaunchState.IsChoosingArrivalOption
+                || VehicleOrientationState.IsActive
                 || GearEquipMenuState.IsActive
                 || QuantityMenuState.IsActive
                 || AreaSelectionMenuState.IsActive
