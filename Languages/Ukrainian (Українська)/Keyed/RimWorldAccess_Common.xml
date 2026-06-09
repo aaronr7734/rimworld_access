@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Shared vocabulary used by RimWorld Access helper classes. Every phrase in
+    this file is emitted by a helper in src/UI, src/Map, or src/Inspection and
+    represents the canonical English wording that Phase A consolidated. Each
+    key is spoken many times across the mod - localizing here localizes the
+    corresponding announcement everywhere it appears.
+
+    Placeholders follow string.Format ({0}, {1}, ...). When a key has One/Many
+    variants, the caller picks the form based on a count value; languages with
+    additional plural classes can either keep both keys identical or split
+    further using RimWorld's LanguageWorker.
+  -->
+
+  <!-- Guard preconditions (src/UI/GuardHelper.cs).
+       Spoken when a state class cannot proceed because of missing game state. -->
+  <RimWorldAccess.Guard.NotInGame>Не у грі</RimWorldAccess.Guard.NotInGame>
+  <RimWorldAccess.Guard.NoMapLoaded>Мапу не завантажено</RimWorldAccess.Guard.NoMapLoaded>
+  <RimWorldAccess.Guard.NoPawnSelected>Персонажа не вибрано</RimWorldAccess.Guard.NoPawnSelected>
+  <RimWorldAccess.Guard.NoItemSelected>Предмет не вибрано</RimWorldAccess.Guard.NoItemSelected>
+  <RimWorldAccess.Guard.NoBuildingToConfigure>Немає будівлі для налаштування</RimWorldAccess.Guard.NoBuildingToConfigure>
+  <RimWorldAccess.Guard.WorldNavigationNotActive>Навігація світом неактивна</RimWorldAccess.Guard.WorldNavigationNotActive>
+  <RimWorldAccess.Guard.NoValidTileSelected>Не вибрано дійсної плитки</RimWorldAccess.Guard.NoValidTileSelected>
+  <RimWorldAccess.Guard.InvalidCursorPosition>Недійсна позиція курсора</RimWorldAccess.Guard.InvalidCursorPosition>
+
+  <!-- Typeahead search (src/UI/TypeaheadSearchHelper.cs).
+       Used across every menu that has type-to-find search.
+       {0} = the user's search text (NoMatches).
+       {0} = current 1-based match position, {1} = total matches,
+       {2} = search buffer (ContextSuffix). -->
+  <RimWorldAccess.Search.Cleared>Пошук очищено</RimWorldAccess.Search.Cleared>
+  <RimWorldAccess.Search.NoMatches>Немає збігів для «{0}»</RimWorldAccess.Search.NoMatches>
+  <RimWorldAccess.Search.ContextSuffix>, {0} з {1} збігів для «{2}»</RimWorldAccess.Search.ContextSuffix>
+
+  <!-- Info card (src/Inspection/InfoCardState.cs).
+       Spoken when an 'i'-style info-card action has no eligible target.
+       Inspectable: suffix appended to a tree item's announcement when
+       pressing Alt+I would open an info card; the leading space is part
+       of the key so it joins onto whatever label precedes it.
+       ChooseItemToInspect: float-menu prompt when the current item has
+       multiple Defs that could be inspected. -->
+  <RimWorldAccess.InfoCard.Unavailable>Інформаційна картка недоступна</RimWorldAccess.InfoCard.Unavailable>
+  <RimWorldAccess.InfoCard.Inspectable> Можна оглянути.</RimWorldAccess.InfoCard.Inspectable>
+  <RimWorldAccess.InfoCard.ChooseItemToInspect>Виберіть предмет для огляду</RimWorldAccess.InfoCard.ChooseItemToInspect>
+
+  <!-- Tree expansion state (src/UI/TreeNavigationHelper.cs).
+       StateExpanded/StateCollapsed are the bare words, composed into the
+       suffix keys. SuffixWithCountOne/Many are used when a child count is
+       included; {0} = state word, {1} = child count.
+       ExpandedCountOne/Many are spoken after ExpandAllSiblings collapses or
+       expands several siblings in one action. -->
+  <RimWorldAccess.Tree.StateExpanded>розгорнуто</RimWorldAccess.Tree.StateExpanded>
+  <RimWorldAccess.Tree.StateCollapsed>згорнуто</RimWorldAccess.Tree.StateCollapsed>
+  <RimWorldAccess.Tree.ExpansionSuffix>, {0}</RimWorldAccess.Tree.ExpansionSuffix>
+  <RimWorldAccess.Tree.ExpansionSuffixWithCountOne>, {0}, {1} елемент</RimWorldAccess.Tree.ExpansionSuffixWithCountOne>
+  <RimWorldAccess.Tree.ExpansionSuffixWithCountMany>, {0}, {1} елементів</RimWorldAccess.Tree.ExpansionSuffixWithCountMany>
+  <RimWorldAccess.Tree.ExpansionSpaceSuffix> {0}</RimWorldAccess.Tree.ExpansionSpaceSuffix>
+  <RimWorldAccess.Tree.ExpandedCountOne>Розгорнуто {0} елемент</RimWorldAccess.Tree.ExpandedCountOne>
+  <RimWorldAccess.Tree.ExpandedCountMany>Розгорнуто {0} елементів</RimWorldAccess.Tree.ExpandedCountMany>
+
+  <!-- Two-level menu (src/UI/TwoLevelMenuHelper.cs).
+       Used by quest, history, notification, and mod-list menus.
+       ButtonAnnouncement/Disabled: {0} = button label, {1} = position suffix.
+       ButtonDisabled/Reason: {0} = button label, {1} = reason. -->
+  <RimWorldAccess.TwoLevel.BackToList>Назад до списку</RimWorldAccess.TwoLevel.BackToList>
+  <RimWorldAccess.TwoLevel.BackToListWithSuffix>Назад до списку. {0}</RimWorldAccess.TwoLevel.BackToListWithSuffix>
+  <RimWorldAccess.TwoLevel.ButtonAnnouncement>{0}. Кнопка. {1}</RimWorldAccess.TwoLevel.ButtonAnnouncement>
+  <RimWorldAccess.TwoLevel.ButtonAnnouncementDisabled>{0} (деактивовано). Кнопка. {1}</RimWorldAccess.TwoLevel.ButtonAnnouncementDisabled>
+  <RimWorldAccess.TwoLevel.ButtonDisabled>{0}: деактивовано</RimWorldAccess.TwoLevel.ButtonDisabled>
+  <RimWorldAccess.TwoLevel.ButtonDisabledReason>{0}: деактивовано: {1}</RimWorldAccess.TwoLevel.ButtonDisabledReason>
+
+  <!-- Menu formatting (src/UI/MenuHelper.cs).
+       Position: {0} = 1-based index, {1} = total.
+       LevelSuffix: {0} = indent level (1-based), appended to item announcements.
+       CannotPaintColumn: tabular menus when a column cannot be paint-copied. -->
+  <RimWorldAccess.Menu.Position>{0} з {1}</RimWorldAccess.Menu.Position>
+  <RimWorldAccess.Menu.LevelSuffix> рівень {0}</RimWorldAccess.Menu.LevelSuffix>
+  <RimWorldAccess.Menu.CannotPaintColumn>Неможливо скопіювати цей стовпець</RimWorldAccess.Menu.CannotPaintColumn>
+
+  <!-- Edge announcements (src/UI/MenuHelper.cs, MenuHelper.EdgeDirection).
+       Spoken when navigation has reached a boundary and cannot continue. -->
+  <RimWorldAccess.Edge.Top>Вже на початку</RimWorldAccess.Edge.Top>
+  <RimWorldAccess.Edge.Bottom>Вже в кінці</RimWorldAccess.Edge.Bottom>
+  <RimWorldAccess.Edge.First>Вже на першій позиції</RimWorldAccess.Edge.First>
+  <RimWorldAccess.Edge.Last>Вже на останній позиції</RimWorldAccess.Edge.Last>
+  <RimWorldAccess.Edge.Minimum>Вже на мінімумі</RimWorldAccess.Edge.Minimum>
+  <RimWorldAccess.Edge.Maximum>Вже на максимумі</RimWorldAccess.Edge.Maximum>
+  <RimWorldAccess.Edge.TopLevel>Вже на верхньому рівні</RimWorldAccess.Edge.TopLevel>
+  <RimWorldAccess.Edge.Zero>Вже на нулі</RimWorldAccess.Edge.Zero>
+  <RimWorldAccess.Edge.Generic>Вже на краю</RimWorldAccess.Edge.Generic>
+
+  <!-- Map navigation (src/Map/MapNavigationState.cs).
+       JumpedTo: {0} = the target label (scanner item, menu row, etc.).
+       JumpedToTarget: fallback when no label is available.
+       SelectedCell: {0} = cell x, {1} = cell z. -->
+  <RimWorldAccess.Map.JumpedTo>Перейти до: {0}</RimWorldAccess.Map.JumpedTo>
+  <RimWorldAccess.Map.JumpedToTarget>Перейдено до цілі</RimWorldAccess.Map.JumpedToTarget>
+  <RimWorldAccess.Map.SelectedCell>Вибрано, {0}, {1}</RimWorldAccess.Map.SelectedCell>
+
+  <!-- Numeric stepper (src/UI/NumericStepperHelper.cs).
+       Minimum/Maximum are boundary hits (value did not change).
+       ValueAtMinimum/Maximum are transitions INTO the boundary; {0} = the
+       formatted value label. -->
+  <RimWorldAccess.Stepper.Minimum>Мінімум</RimWorldAccess.Stepper.Minimum>
+  <RimWorldAccess.Stepper.Maximum>Максимум</RimWorldAccess.Stepper.Maximum>
+  <RimWorldAccess.Stepper.ValueAtMinimum>{0}, мінімум</RimWorldAccess.Stepper.ValueAtMinimum>
+  <RimWorldAccess.Stepper.ValueAtMaximum>{0}, максимум</RimWorldAccess.Stepper.ValueAtMaximum>
+</LanguageData>
